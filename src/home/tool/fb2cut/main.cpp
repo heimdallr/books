@@ -1004,6 +1004,7 @@ QStringList ProcessArchives(Settings& settings)
 			throw std::ios_base::failure(QString("Cannot write to %1").arg(settings.imageStatistics).toStdString());
 		imageStatisticsStream = std::make_unique<QTextStream>(&imageStatisticsFile);
 		*imageStatisticsStream << "#ARCHIVE|FB2_FILE|IMAGE_ID|FAIL_INFO|IS_COVER|PIXEL_TYPE|IMAGE_FILE_SIZE|WIDTH|HEIGHT|HASH\n";
+		imageStatisticsStream->flush();
 	}
 
 	std::atomic_int fileCount;
