@@ -528,7 +528,9 @@ private:
 			auto imageFile = settings.fileNameGetter(completeFileName, isCover ? name : QString::number(num));
 			idToNum.try_emplace(std::move(name), num);
 
-			(isCover ? m_covers : m_images).emplace_back(imageFile, encode(settings, imageFile, image, body), dateTime);
+			auto encoded = encode(settings, imageFile, image, body);
+
+			(isCover ? m_covers : m_images).emplace_back(imageFile, encoded.size() < body.size() ? std::move(encoded) : std::move(body), dateTime);
 		};
 
 		Fb2ImageParser::Parse(input, std::move(binaryCallback));
