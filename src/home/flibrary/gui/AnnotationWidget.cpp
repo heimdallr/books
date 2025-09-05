@@ -470,17 +470,18 @@ private: // IAnnotationController::IUrlGenerator
 			return {};
 
 		static constexpr std::pair<const char*, const char*> typeToNavigation[] {
-			{  Loc::AUTHORS,   Loc::Authors },
-            {   Loc::SERIES,    Loc::Series },
-            {   Loc::GENRES,    Loc::Genres },
-            { Loc::KEYWORDS,  Loc::Keywords },
-            {  Loc::UPDATES,   Loc::Updates },
-            {  Loc::ARCHIVE,  Loc::Archives },
-			{ Loc::LANGUAGE, Loc::Languages },
-            {   Loc::GROUPS,    Loc::Groups },
-            {      "Search",    Loc::Search },
-            {     "Reviews",   Loc::Reviews },
-            {    "AllBooks",  Loc::AllBooks },
+			{      Loc::AUTHORS,      Loc::Authors },
+            {       Loc::SERIES,       Loc::Series },
+            {       Loc::GENRES,       Loc::Genres },
+            { Loc::PUBLISH_YEAR, Loc::PublishYears },
+			{     Loc::KEYWORDS,     Loc::Keywords },
+            {      Loc::UPDATES,      Loc::Updates },
+            {      Loc::ARCHIVE,     Loc::Archives },
+            {     Loc::LANGUAGE,    Loc::Languages },
+			{       Loc::GROUPS,       Loc::Groups },
+            {          "Search",       Loc::Search },
+            {         "Reviews",      Loc::Reviews },
+            {        "AllBooks",     Loc::AllBooks },
 		};
 		static_assert(std::size(typeToNavigation) == static_cast<size_t>(NavigationMode::Last));
 		const auto* navigation = FindSecond(typeToNavigation, type, nullptr, PszComparer {});

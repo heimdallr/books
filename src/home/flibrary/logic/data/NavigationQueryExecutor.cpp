@@ -37,8 +37,11 @@ constexpr auto GROUPS_QUERY = "select GroupID, Title, IsDeleted from Groups_User
 constexpr auto UPDATES_QUERY = "select UpdateID, UpdateTitle, ParentId, IsDeleted from Updates order by ParentId";
 constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle, IsDeleted from Folders where exists (select 42 from Books where Books.FolderID = Folders.FolderID)";
 constexpr auto LANGUAGES_QUERY = R"(with languages(lang) as (select distinct lang from Books)
-	select l.lang, not exists (select 42 from Books b left join Books_User bu on bu.BookID = b.BookId where b.lang = l.lang and coalesce(bu.IsDeleted, b.IsDeleted, 0) = 0 ) IsDeleted
+	select l.lang, not exists (select 42 from Books_View b where b.lang = l.lang and b.IsDeleted = 0 ) IsDeleted
 	from languages l)";
+constexpr auto PUBLISH_YEAR_QUERY = R"(with PublishYears(Year) as (select distinct Year from Books)
+	select y.Year, y.Year, not exists (select 42 from Books_View b where b.Year = y.Year and b.IsDeleted = 0 ) IsDeleted
+	from PublishYears y)";
 constexpr auto SEARCH_QUERY = "select SearchID, Title, 0 IsDeleted from Searches_User";
 constexpr auto ALL_BOOK_QUERY = "select 'All books'";
 
@@ -46,7 +49,8 @@ constexpr auto WHERE_AUTHOR = "where a.AuthorID  = :id";
 constexpr auto WHERE_GENRE = "where g.GenreCode = :id";
 constexpr auto WHERE_UPDATE = "where b.UpdateID  = :id";
 constexpr auto WHERE_ARCHIVE = "where b.FolderID  = :id";
-constexpr auto WHERE_LANGUAGE = "where b.lang  = :id";
+constexpr auto WHERE_LANGUAGE = "where b.Lang  = :id";
+constexpr auto WHERE_YEAR = "where b.Year  = :id";
 constexpr auto JOIN_SERIES = "join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = :id";
 constexpr auto JOIN_GROUPS = "join Groups_List_User_View grl on grl.BookID = b.BookID and grl.GroupID = :id";
 constexpr auto JOIN_SEARCHES = "join Ids i on i.BookID = b.BookID";
@@ -114,7 +118,7 @@ int BindInt(DB::IQuery& query, const QString& id)
 
 int BindString(DB::IQuery& query, const QString& id)
 {
-	return query.Bind(":id", id.toStdString());
+	return id.isEmpty() ? query.Bind(":id") : query.Bind(":id", id.toStdString());
 }
 
 auto CreateCalendarTree(const NavigationMode mode, INavigationQueryExecutor::Callback callback, Cache& cache, const auto& selector)
@@ -146,19 +150,19 @@ auto CreateCalendarTree(const NavigationMode mode, INavigationQueryExecutor::Cal
 	};
 }
 
-void RequestNavigationSimpleList(NavigationMode navigationMode,
-                                 INavigationQueryExecutor::Callback callback,
-                                 const IDatabaseUser& databaseUser,
-                                 const QueryDescription& queryDescription,
-                                 const ICollectionProvider&,
-                                 Cache& cache)
+void RequestNavigationList(const NavigationMode navigationMode,
+                           INavigationQueryExecutor::Callback callback,
+                           const IDatabaseUser& databaseUser,
+                           const QueryDescription& queryDescription,
+                           Cache& cache,
+                           std::function<void(IDataItem::Items&)> postProcess)
 {
 	auto db = databaseUser.Database();
 	if (!db)
 		return;
 
 	databaseUser.Execute({ "Get navigation",
-	                       [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable
+	                       [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), postProcess = std::move(postProcess), db = std::move(db)]() mutable
 	                       {
 							   std::unordered_map<QString, IDataItem::Ptr> index;
 
@@ -173,7 +177,7 @@ void RequestNavigationSimpleList(NavigationMode navigationMode,
 							   items.reserve(std::size(index));
 							   std::ranges::copy(index | std::views::values, std::back_inserter(items));
 
-							   std::ranges::sort(items, [](const IDataItem::Ptr& lhs, const IDataItem::Ptr& rhs) { return Util::QStringWrapper { lhs->GetData() } < Util::QStringWrapper { rhs->GetData() }; });
+							   postProcess(items);
 
 							   auto root = NavigationItem::Create();
 							   root->SetChildren(std::move(items));
@@ -185,6 +189,53 @@ void RequestNavigationSimpleList(NavigationMode navigationMode,
 							   };
 						   } },
 	                     1);
+}
+
+void RequestNavigationSimpleList(const NavigationMode navigationMode,
+                                 INavigationQueryExecutor::Callback callback,
+                                 const IDatabaseUser& databaseUser,
+                                 const QueryDescription& queryDescription,
+                                 const ICollectionProvider&,
+                                 Cache& cache)
+{
+	RequestNavigationList(
+		navigationMode,
+		std::move(callback),
+		databaseUser,
+		queryDescription,
+		cache,
+		[](IDataItem::Items& items)
+		{ std::ranges::sort(items, [](const IDataItem::Ptr& lhs, const IDataItem::Ptr& rhs) { return Util::QStringWrapper { lhs->GetData() } < Util::QStringWrapper { rhs->GetData() }; }); });
+}
+
+void RequestNavigationPublishYears(const NavigationMode navigationMode,
+                                   INavigationQueryExecutor::Callback callback,
+                                   const IDatabaseUser& databaseUser,
+                                   const QueryDescription& queryDescription,
+                                   const ICollectionProvider&,
+                                   Cache& cache)
+{
+	RequestNavigationList(navigationMode,
+	                      std::move(callback),
+	                      databaseUser,
+	                      queryDescription,
+	                      cache,
+	                      [](IDataItem::Items& items)
+	                      {
+							  auto getYear = [](const IDataItem& item) -> int
+							  {
+								  const auto& id = item.GetId();
+								  if (id.isEmpty())
+									  return std::numeric_limits<int>::max();
+
+								  bool ok = false;
+								  const auto year = id.toInt(&ok);
+								  return !ok ? std::numeric_limits<int>::max() : year < 500 ? year + 10000 : year;
+							  };
+							  std::ranges::sort(items, [getYear = std::move(getYear)](const IDataItem::Ptr& lhs, const IDataItem::Ptr& rhs) { return getYear(*lhs) < getYear(*rhs); });
+							  if (const auto it = std::ranges::find_if(items, [](const auto& item) { return item->GetId().isEmpty(); }); it != std::cend(items))
+								  (*it)->SetData(Loc::Tr(LANGUAGES_CONTEXT, UNDEFINED));
+						  });
 }
 
 void RequestNavigationGenres(NavigationMode navigationMode, INavigationQueryExecutor::Callback callback, const IDatabaseUser& databaseUser, const QueryDescription&, const ICollectionProvider&, Cache& cache)
@@ -328,7 +379,7 @@ constexpr int MAPPING_TREE_GENRES[] { BookItem::Column::Title,   BookItem::Colum
 	                                  BookItem::Column::LibRate, BookItem::Column::UserRate,  BookItem::Column::UpdateDate, BookItem::Column::Year,   BookItem::Column::Lang };
 
 constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescription>> QUERIES[] {
-	{   NavigationMode::Authors,
+	{     NavigationMode::Authors,
      { &RequestNavigationSimpleList,
      { AUTHORS_QUERY,
      QUERY_INFO_AUTHOR,
@@ -339,7 +390,7 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
      &IBooksTreeCreator::CreateAuthorsTree,
      BookItem::Mapping(MAPPING_AUTHORS),
      BookItem::Mapping(MAPPING_TREE_COMMON) } } },
-	{    NavigationMode::Series,
+	{	  NavigationMode::Series,
      { &RequestNavigationSimpleList,
      { SERIES_QUERY,
      QUERY_INFO_SIMPLE_LIST_ITEM,
@@ -351,7 +402,7 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
      BookItem::Mapping(MAPPING_SERIES),
      BookItem::Mapping(MAPPING_TREE_COMMON),
      "sl" } }								  },
-	{    NavigationMode::Genres,
+	{	  NavigationMode::Genres,
      { &RequestNavigationGenres,
      { GENRES_QUERY,
      QUERY_INFO_GENRE_ITEM,
@@ -362,7 +413,18 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
      &IBooksTreeCreator::CreateGeneralTree,
      BookItem::Mapping(MAPPING_GENRES),
      BookItem::Mapping(MAPPING_TREE_GENRES) } } },
-	{  NavigationMode::Keywords,
+	{ NavigationMode::PublishYear,
+     { &RequestNavigationPublishYears,
+     { PUBLISH_YEAR_QUERY,
+     QUERY_INFO_SIMPLE_LIST_ITEM,
+     WHERE_YEAR,
+     nullptr,
+     &BindString,
+     &IBooksListCreator::CreateGeneralList,
+     &IBooksTreeCreator::CreateGeneralTree,
+     BookItem::Mapping(MAPPING_FULL),
+     BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+	{    NavigationMode::Keywords,
      { &RequestNavigationSimpleList,
      { KEYWORDS_QUERY,
      QUERY_INFO_SIMPLE_LIST_ITEM,
@@ -373,7 +435,7 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
      &IBooksTreeCreator::CreateGeneralTree,
      BookItem::Mapping(MAPPING_FULL),
      BookItem::Mapping(MAPPING_TREE_COMMON) } } },
-	{    NavigationMode::Groups,
+	{	  NavigationMode::Groups,
      { &RequestNavigationSimpleList,
      { GROUPS_QUERY,
      QUERY_INFO_SIMPLE_LIST_ITEM,
@@ -384,7 +446,7 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
      &IBooksTreeCreator::CreateGeneralTree,
      BookItem::Mapping(MAPPING_FULL),
      BookItem::Mapping(MAPPING_TREE_COMMON) } } },
-	{   NavigationMode::Updates,
+	{     NavigationMode::Updates,
      { &RequestNavigationUpdates,
      { UPDATES_QUERY,
      QUERY_INFO_UPDATE_ITEM,
@@ -395,7 +457,7 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
      &IBooksTreeCreator::CreateGeneralTree,
      BookItem::Mapping(MAPPING_FULL),
      BookItem::Mapping(MAPPING_TREE_COMMON) } } },
-	{  NavigationMode::Archives,
+	{    NavigationMode::Archives,
      { &RequestNavigationSimpleList,
      { ARCHIVES_QUERY,
      QUERY_INFO_SIMPLE_LIST_ITEM,
@@ -406,7 +468,7 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
      &IBooksTreeCreator::CreateGeneralTree,
      BookItem::Mapping(MAPPING_FULL),
      BookItem::Mapping(MAPPING_TREE_COMMON) } } },
-	{ NavigationMode::Languages,
+	{   NavigationMode::Languages,
      { &RequestNavigationSimpleList,
      { LANGUAGES_QUERY,
      QUERY_INFO_LANGUAGE_ITEM,
@@ -417,7 +479,7 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
      &IBooksTreeCreator::CreateGeneralTree,
      BookItem::Mapping(MAPPING_FULL),
      BookItem::Mapping(MAPPING_TREE_COMMON) } } },
-	{    NavigationMode::Search,
+	{	  NavigationMode::Search,
      { &RequestNavigationSimpleList,
      { SEARCH_QUERY,
      QUERY_INFO_SIMPLE_LIST_ITEM,
@@ -430,7 +492,7 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
      BookItem::Mapping(MAPPING_TREE_COMMON),
      "b",
      WITH_SEARCH } }						   },
-	{   NavigationMode::Reviews,
+	{     NavigationMode::Reviews,
      { &RequestNavigationReviews,
      { nullptr,
      {},
@@ -444,7 +506,7 @@ constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescriptio
      "b",
      nullptr,
      &IBookSelector::SelectReviews } }         },
-	{  NavigationMode::AllBooks,
+	{    NavigationMode::AllBooks,
      { &RequestNavigationSimpleList,
      { ALL_BOOK_QUERY,
      QUERY_INFO_SIMPLE_LIST_ITEM,

@@ -7,6 +7,7 @@ namespace HomeCompa::Flibrary
 	NAVIGATION_MODE_ITEM(Authors)     \
 	NAVIGATION_MODE_ITEM(Series)      \
 	NAVIGATION_MODE_ITEM(Genres)      \
+	NAVIGATION_MODE_ITEM(PublishYear) \
 	NAVIGATION_MODE_ITEM(Keywords)    \
 	NAVIGATION_MODE_ITEM(Updates)     \
 	NAVIGATION_MODE_ITEM(Archives)    \
