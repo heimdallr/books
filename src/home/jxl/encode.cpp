@@ -25,8 +25,35 @@ QByteArray Encode(const QImage& image, int quality)
 		return {};
 	}
 
-	const auto imagePixelFormat = image.pixelFormat();
+	JxlEncoderFrameSettings* frameSettings = JxlEncoderFrameSettingsCreate(enc.get(), nullptr);
+	if (!frameSettings)
+	{
+		PLOGE << "JxlEncoderFrameSettingsCreate failed";
+		return {};
+	}
 
+	if (quality < 0)
+		quality = 70;
+	const auto distance = JxlEncoderDistanceFromQuality(static_cast<float>(quality));
+	if (JXL_ENC_SUCCESS != JxlEncoderSetFrameDistance(frameSettings, distance))
+	{
+		PLOGE << "JxlEncoderSetFrameDistance failed";
+		return {};
+	}
+
+	if (JXL_ENC_SUCCESS != JxlEncoderUseContainer(enc.get(), 0))
+	{
+		PLOGE << "JxlEncoderUseContainer failed";
+		return {};
+	}
+
+	if (JXL_ENC_SUCCESS != JxlEncoderSetCodestreamLevel(enc.get(), -1))
+	{
+		PLOGE << "JxlEncoderSetCodestreamLevel failed";
+		return {};
+	}
+
+	const auto imagePixelFormat = image.pixelFormat();
 	const JxlPixelFormat pixelFormat { imagePixelFormat.channelCount(), JXL_TYPE_UINT8, JXL_NATIVE_ENDIAN, static_cast<size_t>(image.bytesPerLine()) };
 
 	JxlBasicInfo basicInfo;
@@ -47,36 +74,31 @@ QByteArray Encode(const QImage& image, int quality)
 		return {};
 	}
 
+	if (JXL_ENC_SUCCESS != JxlEncoderSetUpsamplingMode(enc.get(), 1, 1))
+	{
+		PLOGE << "JxlEncoderSetUpsamplingMode() failed";
+		return {};
+	}
+
+	JxlBitDepth bitDepth { JXL_BIT_DEPTH_FROM_PIXEL_FORMAT, 0, 0 };
+	if (JXL_ENC_SUCCESS != JxlEncoderSetFrameBitDepth(frameSettings, &bitDepth))
+	{
+		PLOGE << "JxlEncoderSetFrameBitDepth() failed";
+		return {};
+	}
+
+	if (basicInfo.num_extra_channels != 0 && JXL_ENC_SUCCESS != JxlEncoderSetExtraChannelDistance(frameSettings, 0, 0.0f))
+	{
+		PLOGE << "JxlEncoderSetExtraChannelDistance failed";
+		return {};
+	}
+
 	JxlColorEncoding colorEncoding = {};
 	JXL_BOOL isGray = TO_JXL_BOOL(pixelFormat.num_channels < 3);
 	JxlColorEncodingSetToSRGB(&colorEncoding, isGray);
 	if (JXL_ENC_SUCCESS != JxlEncoderSetColorEncoding(enc.get(), &colorEncoding))
 	{
 		PLOGE << "JxlEncoderSetColorEncoding failed";
-		return {};
-	}
-
-	JxlEncoderFrameSettings* frameSettings = JxlEncoderFrameSettingsCreate(enc.get(), nullptr);
-	if (!frameSettings)
-	{
-		PLOGE << "JxlEncoderFrameSettingsCreate failed";
-		return {};
-	}
-
-	if (quality < 0)
-		quality = 70;
-
-	const auto distance = JxlEncoderDistanceFromQuality(static_cast<float>(quality));
-
-	if (JXL_ENC_SUCCESS != JxlEncoderSetFrameDistance(frameSettings, distance))
-	{
-		PLOGE << "JxlEncoderSetFrameDistance failed";
-		return {};
-	}
-
-	if (basicInfo.num_extra_channels != 0 && JXL_ENC_SUCCESS != JxlEncoderSetExtraChannelDistance(frameSettings, 0, distance))
-	{
-		PLOGE << "JxlEncoderSetExtraChannelDistance failed";
 		return {};
 	}
 

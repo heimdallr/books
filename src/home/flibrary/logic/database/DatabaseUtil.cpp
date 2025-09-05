@@ -35,10 +35,11 @@ constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[] {
 	{     BookQueryFields::LibRate,    BookItem::Column::LibRate },
     {    BookQueryFields::UserRate,   BookItem::Column::UserRate },
     {  BookQueryFields::UpdateDate, BookItem::Column::UpdateDate },
-	{		BookQueryFields::Lang,       BookItem::Column::Lang },
+	{		BookQueryFields::Year,       BookItem::Column::Year },
+    {        BookQueryFields::Lang,       BookItem::Column::Lang },
     {    BookQueryFields::FolderID,   BookItem::Column::FolderID },
-    {    BookQueryFields::UpdateID,   BookItem::Column::UpdateID },
-	{	   BookQueryFields::LibID,      BookItem::Column::LibID },
+	{    BookQueryFields::UpdateID,   BookItem::Column::UpdateID },
+    {       BookQueryFields::LibID,      BookItem::Column::LibID },
 };
 
 }

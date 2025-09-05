@@ -175,9 +175,9 @@ QByteArray Decode(QByteArray inputFileBody)
 			return result.replace(QRegularExpression(R"(encoding=".*?")"), R"(encoding="UTF-8")");
 		}
 
-		const auto index = static_cast<qsizetype>(std::string(inputFileBody.data(), 100).find(R"("?>)") + 3);
+		const auto index = static_cast<qsizetype>(std::string(inputFileBody.data(), 100).find(R"(?>)") + 2);
 		auto head = QString::fromLatin1(inputFileBody.data(), index);
-		const QRegularExpression rx(R"(^<\?xml +version=".*?" +encoding="windows-.*?"\?>$)", QRegularExpression::CaseInsensitiveOption);
+		const QRegularExpression rx(R"(^<\?xml +version=".*?" +encoding="windows-.*?" *?\?>$)", QRegularExpression::CaseInsensitiveOption);
 		if (const auto match = rx.match(head); match.hasMatch())
 		{
 			head = R"(<?xml version="1.0" encoding="UTF-8"?>)";
@@ -528,7 +528,9 @@ private:
 			auto imageFile = settings.fileNameGetter(completeFileName, isCover ? name : QString::number(num));
 			idToNum.try_emplace(std::move(name), num);
 
-			(isCover ? m_covers : m_images).emplace_back(imageFile, encode(settings, imageFile, image, body), dateTime);
+			auto encoded = encode(settings, imageFile, image, body);
+
+			(isCover ? m_covers : m_images).emplace_back(imageFile, encoded.size() < body.size() ? std::move(encoded) : std::move(body), dateTime);
 		};
 
 		Fb2ImageParser::Parse(input, std::move(binaryCallback));
@@ -1002,6 +1004,7 @@ QStringList ProcessArchives(Settings& settings)
 			throw std::ios_base::failure(QString("Cannot write to %1").arg(settings.imageStatistics).toStdString());
 		imageStatisticsStream = std::make_unique<QTextStream>(&imageStatisticsFile);
 		*imageStatisticsStream << "#ARCHIVE|FB2_FILE|IMAGE_ID|FAIL_INFO|IS_COVER|PIXEL_TYPE|IMAGE_FILE_SIZE|WIDTH|HEIGHT|HASH\n";
+		imageStatisticsStream->flush();
 	}
 
 	std::atomic_int fileCount;

@@ -209,6 +209,10 @@
 		<translation>Мой рейтинг:</translation>
 	</message>
 	<message>
+		<source>PublishYear:</source>
+		<translation>Год издания:</translation>
+	</message>
+	<message>
 		<source>Rate:</source>
 		<translation>Рейтинг:</translation>
 	</message>
@@ -336,6 +340,10 @@
 	<message>
 		<source>UserRate</source>
 		<translation>Мой рейтинг</translation>
+	</message>
+	<message>
+		<source>Year</source>
+		<translation>Год</translation>
 	</message>
 </context>
 <context>
@@ -4872,6 +4880,10 @@ Try again?</source>
 	<message>
 		<source>Languages</source>
 		<translation>Языки</translation>
+	</message>
+	<message>
+		<source>PublishYear</source>
+		<translation>Год издания</translation>
 	</message>
 	<message>
 		<source>Remove</source>

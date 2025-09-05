@@ -96,7 +96,8 @@ struct Book
 	     const std::wstring_view format_,
 	     const size_t size_,
 	     const bool deleted_,
-	     const size_t updateId_)
+	     const size_t updateId_,
+	     const int year_)
 		: id { id_ }
 		, libId { libId_ }
 		, title { title_ }
@@ -112,6 +113,7 @@ struct Book
 		, size { size_ }
 		, deleted { deleted_ }
 		, updateId { updateId_ }
+		, year { year_ }
 	{
 		std::ranges::transform(language, std::begin(language), towlower);
 	}
@@ -131,6 +133,7 @@ struct Book
 	size_t size;
 	bool deleted;
 	size_t updateId;
+	int year;
 
 private:
 	static std::wstring InsertDot(const std::wstring_view format)
@@ -249,7 +252,8 @@ inline std::ostream& operator<<(std::ostream& stream, const Genre& genre)
 	BOOK_BUF_FIELD_ITEM(FOLDER)     \
 	BOOK_BUF_FIELD_ITEM(LANG)       \
 	BOOK_BUF_FIELD_ITEM(LIBRATE)    \
-	BOOK_BUF_FIELD_ITEM(KEYWORDS)
+	BOOK_BUF_FIELD_ITEM(KEYWORDS)   \
+	BOOK_BUF_FIELD_ITEM(YEAR)
 
 struct BookBuf
 {

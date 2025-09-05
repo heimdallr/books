@@ -118,6 +118,7 @@ CREATE TABLE Books (
   UpdateDate       VARCHAR(23)   NOT NULL,
   LibRate          INTEGER       NOT NULL                           DEFAULT 0,
   Lang             VARCHAR(3)             COLLATE MHL_SYSTEM_NOCASE,
+  Year             INTEGER,
   FolderID         INTEGER       NOT NULL,
   FileName         VARCHAR(170)  NOT NULL COLLATE MHL_SYSTEM_NOCASE,
   InsideNo         INTEGER       NOT NULL,

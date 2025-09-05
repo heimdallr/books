@@ -46,6 +46,9 @@ CREATE INDEX IX_Book_SearchTitle ON Books(SearchTitle COLLATE NOCASE);
 CREATE INDEX IX_Books_Lang ON Books(Lang);
 --@@
 
+CREATE INDEX IX_Books_Year ON Books (Year);
+--@@
+
 CREATE UNIQUE INDEX UIX_Genre_List_PrimaryKey ON Genre_List (BookID, GenreCode);
 --@@
 
@@ -100,6 +103,7 @@ CREATE VIEW IF NOT EXISTS Books_View (
 		UpdateDate,
 		LibRate,
 		Lang,
+		Year,
 		FolderID,
 		FileName,
 		BookSize,
@@ -117,6 +121,7 @@ AS SELECT
 		b.UpdateDate,
 		b.LibRate,
 		b.Lang,
+		b.Year,
 		b.FolderID,
 		b.FileName || b.Ext AS FileName,
 		b.BookSize,
