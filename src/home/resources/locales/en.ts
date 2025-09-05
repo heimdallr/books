@@ -209,6 +209,10 @@
 		<translation></translation>
 	</message>
 	<message>
+		<source>PublishYear:</source>
+		<translation>Publish year:</translation>
+	</message>
+	<message>
 		<source>Rate:</source>
 		<translation></translation>
 	</message>
@@ -4864,6 +4868,10 @@ Try again?</source>
 	<message>
 		<source>Languages</source>
 		<translation></translation>
+	</message>
+	<message>
+		<source>PublishYear</source>
+		<translation>Publish year</translation>
 	</message>
 	<message>
 		<source>Remove</source>
