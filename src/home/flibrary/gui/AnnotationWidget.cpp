@@ -34,6 +34,24 @@ using namespace Flibrary;
 namespace
 {
 
+constexpr std::pair<const char*, bool> NO_NAVIGATION { nullptr, false };
+
+constexpr std::pair<const char*, std::pair<const char*, bool>> TYPE_TO_NAVIGATION[] {
+	{	  Loc::AUTHORS,      { Loc::Authors, true } },
+    {       Loc::SERIES,       { Loc::Series, true } },
+    {       Loc::GENRES,       { Loc::Genres, true } },
+    { Loc::PUBLISH_YEAR, { Loc::PublishYears, true } },
+	{     Loc::KEYWORDS,     { Loc::Keywords, true } },
+    {      Loc::UPDATES,      { Loc::Updates, true } },
+    {      Loc::ARCHIVE,     { Loc::Archives, true } },
+    {     Loc::LANGUAGE,    { Loc::Languages, true } },
+	{	   Loc::GROUPS,       { Loc::Groups, true } },
+    {          "Search",      { Loc::Search, false } },
+    {         "Reviews",     { Loc::Reviews, false } },
+    {        "AllBooks",    { Loc::AllBooks, false } },
+};
+static_assert(std::size(TYPE_TO_NAVIGATION) == static_cast<size_t>(NavigationMode::Last));
+
 constexpr auto CONTEXT = "Annotation";
 constexpr auto SELECT_IMAGE_FILE_NAME = QT_TRANSLATE_NOOP("Annotation", "Select image file name");
 constexpr auto SELECT_IMAGE_FOLDER = QT_TRANSLATE_NOOP("Annotation", "Select images folder");
@@ -54,8 +72,6 @@ QT_TRANSLATE_NOOP("Annotation", "Inpx")
 #endif
 
 constexpr auto DIALOG_KEY = "Image";
-
-constexpr const char* CUSTOM_URL_SCHEMA[] { Loc::AUTHORS, Loc::SERIES, Loc::GENRES, Loc::KEYWORDS, Loc::UPDATES, Loc::ARCHIVE, Loc::LANGUAGE, Loc::GROUPS, nullptr };
 
 TR_DEF
 
@@ -469,23 +485,9 @@ private: // IAnnotationController::IUrlGenerator
 		if (str.isEmpty())
 			return {};
 
-		static constexpr std::pair<const char*, const char*> typeToNavigation[] {
-			{      Loc::AUTHORS,      Loc::Authors },
-            {       Loc::SERIES,       Loc::Series },
-            {       Loc::GENRES,       Loc::Genres },
-            { Loc::PUBLISH_YEAR, Loc::PublishYears },
-			{     Loc::KEYWORDS,     Loc::Keywords },
-            {      Loc::UPDATES,      Loc::Updates },
-            {      Loc::ARCHIVE,     Loc::Archives },
-            {     Loc::LANGUAGE,    Loc::Languages },
-			{       Loc::GROUPS,       Loc::Groups },
-            {          "Search",       Loc::Search },
-            {         "Reviews",      Loc::Reviews },
-            {        "AllBooks",     Loc::AllBooks },
-		};
-		static_assert(std::size(typeToNavigation) == static_cast<size_t>(NavigationMode::Last));
-		const auto* navigation = FindSecond(typeToNavigation, type, nullptr, PszComparer {});
-		return !navigation || m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation), true) ? QString("<a href=%1//%2>%3</a>").arg(type, id, str) : QString("%1").arg(str);
+		const auto& navigation = FindSecond(TYPE_TO_NAVIGATION, type, NO_NAVIGATION, PszComparer {});
+		return !navigation.first || m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation.first), true) ? QString("<a href=%1//%2>%3</a>").arg(type, id, str)
+		                                                                                                                                   : QString("%1").arg(str);
 	}
 
 	QString GenerateStars(const int rate) const override
@@ -502,7 +504,7 @@ private:
 		{
 			return m_readerController->Read(url.back().toLongLong());
 		}
-		if (std::ranges::none_of(CUSTOM_URL_SCHEMA, [&](const char* schema) { return QString(schema).startsWith(url.front()); }))
+		if (std::ranges::none_of(TYPE_TO_NAVIGATION, [&](const auto& schema) { return schema.second.second && QString(schema.first).startsWith(url.front()); }))
 		{
 			QDesktopServices::openUrl(link);
 			return;
