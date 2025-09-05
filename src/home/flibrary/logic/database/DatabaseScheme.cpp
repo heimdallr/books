@@ -333,7 +333,8 @@ AS
 	                  "Books",
 	                  "Year",
 	                  "INTEGER",
-	                  { "DROP VIEW IF EXISTS Books_View",
+	                  { "CREATE INDEX IX_Books_Year ON Books (Year)",
+	                    " DROP VIEW IF EXISTS Books_View ",
 	                    R"(
 CREATE VIEW IF NOT EXISTS Books_View (
 		BookID,

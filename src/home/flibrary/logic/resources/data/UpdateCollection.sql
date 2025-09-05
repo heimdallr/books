@@ -46,6 +46,9 @@ CREATE INDEX IX_Book_SearchTitle ON Books(SearchTitle COLLATE NOCASE);
 CREATE INDEX IX_Books_Lang ON Books(Lang);
 --@@
 
+CREATE INDEX IX_Books_Year ON Books (Year);
+--@@
+
 CREATE UNIQUE INDEX UIX_Genre_List_PrimaryKey ON Genre_List (BookID, GenreCode);
 --@@
 
