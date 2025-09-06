@@ -144,6 +144,9 @@ private: // IOpdsController::IObserver
 		ui.btnStart->setVisible(!isRunning);
 		ui.btnStop->setVisible(isRunning);
 
+		ui.checkBoxAuth->setEnabled(!isRunning);
+		ui.auth->setEnabled(!isRunning && ui.checkBoxAuth->isChecked());
+
 		SelLabelLink(isRunning);
 	}
 
