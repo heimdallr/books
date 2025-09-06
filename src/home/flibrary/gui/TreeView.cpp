@@ -317,8 +317,6 @@ private: // ITreeViewController::IObserver
 		m_ui.value->setText({});
 		const auto idIndex = m_ui.cbMode->findData(index, Qt::UserRole + 1);
 		m_ui.cbMode->setCurrentIndex(std::max(idIndex, 0));
-
-		QTimer::singleShot(0, [this, visible = m_controller->GetItemType() == ItemType::Books || index != static_cast<int>(NavigationMode::AllBooks)] { m_self.parentWidget()->setVisible(visible); });
 	}
 
 	void OnModelChanged(QAbstractItemModel* model) override
