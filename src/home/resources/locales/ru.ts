@@ -2481,6 +2481,17 @@ Try again?</source>
 	</message>
 </context>
 <context>
+	<name>Http</name>
+	<message>
+		<source>Authentication failed</source>
+		<translation>Аутентификация не удалась</translation>
+	</message>
+	<message>
+		<source>Authentication required</source>
+		<translation>Требуется аутентификация</translation>
+	</message>
+</context>
+<context>
 	<name>ImageSettingsWidget</name>
 	<message>
 		<source>Compression quality</source>
@@ -4953,6 +4964,10 @@ Try again?</source>
 		<translation>Адрес OPDS</translation>
 	</message>
 	<message>
+		<source>Password</source>
+		<translation>Пароль</translation>
+	</message>
+	<message>
 		<source>Port</source>
 		<translation>Порт</translation>
 	</message>
@@ -4971,6 +4986,10 @@ Try again?</source>
 	<message>
 		<source>Stop</source>
 		<translation>Стоп</translation>
+	</message>
+	<message>
+		<source>User</source>
+		<translation>Пользователь</translation>
 	</message>
 	<message>
 		<source>Web Address</source>
