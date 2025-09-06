@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>717</width>
-    <height>235</height>
+    <width>767</width>
+    <height>256</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -29,20 +29,6 @@
       <widget class="QLabel" name="label">
        <property name="text">
         <string>Port</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Autostart</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QCheckBox" name="checkBoxAddToSturtup">
-       <property name="text">
-        <string>Start automatically</string>
        </property>
       </widget>
      </item>
@@ -132,32 +118,93 @@
       <widget class="QLineEdit" name="lineEditSiteAddress"/>
      </item>
      <item row="6" column="1">
-      <layout class="QHBoxLayout" name="_2">
+      <widget class="QWidget" name="auth" native="true">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <layout class="QHBoxLayout" name="_2">
+        <property name="leftMargin">
+         <number>0</number>
+        </property>
+        <property name="topMargin">
+         <number>0</number>
+        </property>
+        <property name="rightMargin">
+         <number>0</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="labelOpdsUser">
+          <property name="text">
+           <string>User</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEditOpdsUser"/>
+        </item>
+        <item>
+         <widget class="QLabel" name="labelOpdsPassword">
+          <property name="text">
+           <string>Password</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="lineEditOpdsPassword">
+          <property name="echoMode">
+           <enum>QLineEdit::EchoMode::Password</enum>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </widget>
+     </item>
+     <item row="6" column="0">
+      <widget class="QCheckBox" name="checkBoxAuth">
+       <property name="layoutDirection">
+        <enum>Qt::LayoutDirection::RightToLeft</enum>
+       </property>
+       <property name="text">
+        <string>Authorization</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <layout class="QHBoxLayout" name="horizontalLayout">
        <item>
-        <widget class="QLabel" name="labelOpdsUser">
+        <widget class="QCheckBox" name="checkBoxAddToSturtup">
+         <property name="layoutDirection">
+          <enum>Qt::LayoutDirection::RightToLeft</enum>
+         </property>
          <property name="text">
-          <string>User</string>
+          <string>Start automatically</string>
          </property>
         </widget>
        </item>
        <item>
-        <widget class="QLineEdit" name="lineEditOpdsUser"/>
-       </item>
-       <item>
-        <widget class="QLabel" name="labelOpdsPassword">
-         <property name="text">
-          <string>Password</string>
+        <spacer name="horizontalSpacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
          </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QLineEdit" name="lineEditOpdsPassword">
-         <property name="echoMode">
-          <enum>QLineEdit::EchoMode::Password</enum>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
          </property>
-        </widget>
+        </spacer>
        </item>
       </layout>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="label_2">
+       <property name="text">
+        <string>Autostart</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -260,6 +307,22 @@
     <hint type="destinationlabel">
      <x>185</x>
      <y>20</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxAuth</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>auth</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>57</x>
+     <y>179</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>442</x>
+     <y>180</y>
     </hint>
    </hints>
   </connection>
