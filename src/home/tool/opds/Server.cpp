@@ -296,6 +296,29 @@ private:
 		RouteReactApp();
 	}
 
+	QFuture<QHttpServerResponse> Authorization(const QHttpServerRequest& request) const
+	{
+		const auto expected = m_settings->Get(Flibrary::Constant::Settings::OPDS_AUTH, QString {});
+		if (expected.isEmpty())
+			return {};
+
+		const auto& headers = request.headers();
+		const auto authorization = headers.value("authorization").toByteArray();
+		if (authorization.isEmpty())
+		{
+			PLOGW << "Attempt connection without authorization";
+			return QtConcurrent::run([] { return QHttpServerResponse { "Authentication required", QHttpServerResponder::StatusCode::NetworkAuthenticationRequired }; });
+		}
+
+		if (std::ranges::none_of(AUTH_CHECKERS, [&](const auto checker) { return checker(expected, authorization); }))
+		{
+			PLOGW << "Attempt connection with wrong authorization: " << authorization;
+			return QtConcurrent::run([] { return QHttpServerResponse { "Authentication failed", QHttpServerResponder::StatusCode::Unauthorized }; });
+		}
+
+		return {};
+	}
+
 	void RouteWithRoot(const QString& root)
 	{
 		using Invoker = QByteArray (IRequester::*)(const QString&, const IRequester::Parameters&) const;
@@ -309,37 +332,21 @@ private:
 		};
 
 		for (const auto& [path, invoker] : descriptions)
-			m_server.route(
-				QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString {}),
-				[this, root, path, invoker](const QHttpServerRequest& request)
-				{
-					if (!path)
-					{
-						if (const auto expected = m_settings->Get(Flibrary::Constant::Settings::OPDS_AUTH, QString {}); !expected.isEmpty())
-						{
-							const auto& headers = request.headers();
-							const auto authorization = headers.value("authorization").toByteArray();
-							if (authorization.isEmpty())
-							{
-								PLOGW << "Attempt connection without authorization";
-								return QtConcurrent::run([] { return QHttpServerResponse { "Authentication required", QHttpServerResponder::StatusCode::NetworkAuthenticationRequired }; });
-							}
+			m_server.route(QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString {}),
+			               [this, root, path, invoker](const QHttpServerRequest& request)
+			               {
+							   if (!path)
+								   if (auto auth = Authorization(request); auth.isValid())
+									   return auth;
 
-							if (std::ranges::none_of(AUTH_CHECKERS, [&](const auto checker) { return checker(expected, authorization); }))
-							{
-								PLOGW << "Attempt connection with wrong authorization: " << authorization;
-								return QtConcurrent::run([] { return QHttpServerResponse { "Authentication failed", QHttpServerResponder::StatusCode::Unauthorized }; });
-							}
-						}
-					}
-					return QtConcurrent::run(
-						[this, root, invoker, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)]
-						{
-							auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), std::cref(parameters)), acceptEncoding);
-							SetContentType(response, root, MessageType::Atom);
-							return response;
-						});
-				});
+							   return QtConcurrent::run(
+								   [this, root, invoker, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)]
+								   {
+									   auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), std::cref(parameters)), acceptEncoding);
+									   SetContentType(response, root, MessageType::Atom);
+									   return response;
+								   });
+						   });
 	}
 
 	void RouteReactApp()
@@ -348,6 +355,9 @@ private:
 			"/",
 			[this](const QHttpServerRequest& request)
 			{
+				if (auto auth = Authorization(request); auth.isValid())
+					return auth;
+
 				return QtConcurrent::run(
 					[this, acceptEncoding = GetAcceptEncoding(request)]
 					{ return *FromWebsite("index.html", acceptEncoding, [this](QByteArray data) { return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8()); }); });
