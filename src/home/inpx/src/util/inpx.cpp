@@ -1502,7 +1502,7 @@ private:
 		const auto fieldList = [&]() -> QString
 		{
 			return zip && zip->GetFileNameList().contains(STRUCTURE_INFO) ? QString::fromUtf8(zip->Read(STRUCTURE_INFO)->GetStream().readAll()).simplified()
-			                                                              : QString("AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;");
+			                                                              : QString("AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;YEAR;");
 		}();
 
 		const std::unordered_map<QString, BookBufFieldGetter> bookBufMapping {
