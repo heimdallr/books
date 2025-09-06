@@ -16,7 +16,6 @@
 
 #include "util/ISettings.h"
 #include "util/hash.h"
-#include "util/localization.h"
 
 #include "log.h"
 #include "root.h"
@@ -39,11 +38,6 @@ constexpr auto GET_BOOKS_API_BOOK_DATA = "/Images/fb2/%1";
 constexpr auto GET_BOOKS_API_BOOK_ZIP = "/Images/zip/%1";
 constexpr auto GET_BOOKS_API_BOOK_DATA_COMPACT = "/Images/fb2compact/%1";
 
-constexpr auto CONTEXT = "Http";
-constexpr auto AUTH_REQUIRED = QT_TRANSLATE_NOOP("Http", "Authentication required");
-constexpr auto AUTH_FAILED = QT_TRANSLATE_NOOP("Http", "Authentication failed");
-
-TR_DEF
 
 #define OPDS_REQUEST_ROOT_ITEM(NAME) constexpr auto(NAME) = "/" #NAME;
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
@@ -299,14 +293,14 @@ private:
 									   if (authorization.isEmpty())
 									   {
 										   PLOGW << "Attempt connection without authorization";
-										   return QtConcurrent::run([] { return QHttpServerResponse { Tr(AUTH_REQUIRED), QHttpServerResponder::StatusCode::NetworkAuthenticationRequired }; });
+										   return QtConcurrent::run([] { return QHttpServerResponse { "Authentication required", QHttpServerResponder::StatusCode::NetworkAuthenticationRequired }; });
 									   }
 
 									   const auto authorizationReceived = QString::fromUtf8(QByteArray::fromBase64(authorization.toByteArray()));
 									   if (Util::GetSaltedHash(authorizationReceived) != auth)
 									   {
 										   PLOGW << "Attempt connection with wrong authorization: " << authorizationReceived;
-										   return QtConcurrent::run([] { return QHttpServerResponse { Tr(AUTH_FAILED), QHttpServerResponder::StatusCode::Unauthorized }; });
+										   return QtConcurrent::run([] { return QHttpServerResponse { "Authentication failed", QHttpServerResponder::StatusCode::Unauthorized }; });
 									   }
 								   }
 							   }

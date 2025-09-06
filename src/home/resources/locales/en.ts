@@ -2469,17 +2469,6 @@ Try again?</source>
 	</message>
 </context>
 <context>
-	<name>Http</name>
-	<message>
-		<source>Authentication failed</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Authentication required</source>
-		<translation></translation>
-	</message>
-</context>
-<context>
 	<name>ImageSettingsWidget</name>
 	<message>
 		<source>Compression quality</source>

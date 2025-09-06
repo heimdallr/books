@@ -2481,17 +2481,6 @@ Try again?</source>
 	</message>
 </context>
 <context>
-	<name>Http</name>
-	<message>
-		<source>Authentication failed</source>
-		<translation>Помилка автентифікації</translation>
-	</message>
-	<message>
-		<source>Authentication required</source>
-		<translation>Потрібна автентифікація</translation>
-	</message>
-</context>
-<context>
 	<name>ImageSettingsWidget</name>
 	<message>
 		<source>Compression quality</source>
