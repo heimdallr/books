@@ -4929,6 +4929,10 @@ Try again?</source>
 		<translation>Любой</translation>
 	</message>
 	<message>
+		<source>Authorization</source>
+		<translation>Авторизация</translation>
+	</message>
+	<message>
 		<source>Autostart</source>
 		<translation>Автозапуск</translation>
 	</message>

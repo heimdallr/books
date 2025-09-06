@@ -4929,6 +4929,10 @@ Try again?</source>
 		<translation>Будь-який</translation>
 	</message>
 	<message>
+		<source>Authorization</source>
+		<translation>Авторизація</translation>
+	</message>
+	<message>
 		<source>Autostart</source>
 		<translation>Автозапуск</translation>
 	</message>
