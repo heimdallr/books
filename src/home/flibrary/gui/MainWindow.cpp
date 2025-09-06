@@ -130,6 +130,7 @@ class MainWindow::Impl final
 	, ICollectionsObserver
 	, ILineOption::IObserver
 	, IAlphabetPanel::IObserver
+	, ITreeViewController::IObserver
 	, virtual plog::IAppender
 {
 	NON_COPY_MOVABLE(Impl)
@@ -174,6 +175,7 @@ public:
 		, m_logItemDelegate { std::move(logItemDelegate) }
 		, m_lineOption { std::move(lineOption) }
 		, m_alphabetPanel { std::move(alphabetPanel) }
+		, m_navigationViewController { ILogicFactory::Lock(m_logicFactory)->GetTreeViewController(ItemType::Navigation) }
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
 		, m_navigationWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Navigation) }
 	{
@@ -218,6 +220,7 @@ public:
 	~Impl() override
 	{
 		SaveGeometry();
+		m_navigationViewController->UnregisterObserver(this);
 		m_collectionController->UnregisterObserver(this);
 		m_alphabetPanel->UnregisterObserver(this);
 	}
@@ -380,6 +383,20 @@ private: // IAlphabetPanel::IObserver
 		hasVisible();
 	}
 
+private: // ITreeViewController::::IObserver
+	void OnModeChanged(const int index) override
+	{
+		m_ui.leftWidget->setVisible(index != static_cast<int>(NavigationMode::AllBooks));
+	}
+
+	void OnModelChanged(QAbstractItemModel* /*model*/) override
+	{
+	}
+
+	void OnContextMenuTriggered(const QString& /*id*/, const IDataItem::Ptr& /*item*/) override
+	{
+	}
+
 private:
 	void Setup()
 	{
@@ -422,6 +439,9 @@ private:
 			m_self.setWindowTitle(QString("%1 %2 - %3").arg(PRODUCT_ID, PRODUCT_VERSION, m_collectionController->GetActiveCollection().name));
 
 		m_self.addAction(m_ui.actionShowQueryWindow);
+
+		OnModeChanged(m_navigationViewController->GetModeIndex());
+		m_navigationViewController->RegisterObserver(this);
 
 		ReplaceMenuBar();
 	}
@@ -1169,6 +1189,8 @@ private:
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_logItemDelegate;
 	PropagateConstPtr<ILineOption, std::shared_ptr> m_lineOption;
 	PropagateConstPtr<IAlphabetPanel, std::shared_ptr> m_alphabetPanel;
+
+	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationViewController;
 
 	PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
 	PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
