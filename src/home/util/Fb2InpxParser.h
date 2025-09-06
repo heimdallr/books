@@ -46,6 +46,7 @@ public:
 		QString series;
 		QString keywords;
 		QString seqNumber;
+		QString year;
 
 		QString error;
 	};
