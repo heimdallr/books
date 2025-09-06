@@ -32,6 +32,7 @@ constexpr auto BOOK_TITLE = "FictionBook/description/title-info/book-title";
 constexpr auto LANG = "FictionBook/description/title-info/lang";
 constexpr auto SEQUENCE = "FictionBook/description/title-info/sequence";
 constexpr auto KEYWORDS = "FictionBook/description/title-info/keywords";
+constexpr auto PUBLISH_INFO_YEAR = "FictionBook/description/publish-info/year";
 
 QString AuthorsToString(const Fb2InpxParser::Data::Authors& authors)
 {
@@ -108,6 +109,7 @@ private: // SaxParser
 			{             BOOK_TITLE,        &Impl::ParseBookTitle },
 			{				   LANG,             &Impl::ParseLang },
 			{			   KEYWORDS,         &Impl::ParseKeywords },
+			{      PUBLISH_INFO_YEAR,      &Impl::ParsePublishYear },
 		};
 
 		return Parse(*this, PARSERS, path, value);
@@ -215,6 +217,12 @@ private:
 		return true;
 	}
 
+	bool ParsePublishYear(const QString& value)
+	{
+		m_data.year = value;
+		return true;
+	}
+
 private:
 	const QString& m_fileName;
 	Data m_data {};
@@ -257,7 +265,7 @@ QString Fb2InpxParser::Parse(const QString& folder, const Zip& zip, const QStrin
 
 		const auto values = QStringList() << AuthorsToString(parserData.authors) << GenresToString(parserData.genres) << parserData.title << parserData.series << parserData.seqNumber
 		                                  << fileInfo.completeBaseName() << QString::number(zip.GetFileSize(fileName)) << fileInfo.completeBaseName() << (isDeleted ? "1" : "0") << fileInfo.suffix()
-		                                  << std::move(dateTime) << parserData.lang << "0" << parserData.keywords;
+		                                  << std::move(dateTime) << parserData.lang << "0" << parserData.keywords << parserData.year;
 
 		return values.join(FIELDS_SEPARATOR);
 	}
