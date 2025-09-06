@@ -15,6 +15,8 @@
 #include "interface/constants/SettingsConstant.h"
 
 #include "util/ISettings.h"
+#include "util/hash.h"
+#include "util/localization.h"
 
 #include "log.h"
 #include "root.h"
@@ -36,6 +38,12 @@ constexpr auto GET_BOOKS_API_COVER = "/Images/covers/%1";
 constexpr auto GET_BOOKS_API_BOOK_DATA = "/Images/fb2/%1";
 constexpr auto GET_BOOKS_API_BOOK_ZIP = "/Images/zip/%1";
 constexpr auto GET_BOOKS_API_BOOK_DATA_COMPACT = "/Images/fb2compact/%1";
+
+constexpr auto CONTEXT = "Http";
+constexpr auto AUTH_REQUIRED = QT_TRANSLATE_NOOP("Http", "Authentication required");
+constexpr auto AUTH_FAILED = QT_TRANSLATE_NOOP("Http", "Authentication failed");
+
+TR_DEF
 
 #define OPDS_REQUEST_ROOT_ITEM(NAME) constexpr auto(NAME) = "/" #NAME;
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
@@ -148,22 +156,23 @@ T GetParameters(const QHttpServerRequest& request)
 class Server::Impl
 {
 public:
-	Impl(const ISettings& settings,
+	Impl(std::shared_ptr<const ISettings> settings,
 	     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 	     std::shared_ptr<const IRequester> requester,
 	     std::shared_ptr<const IReactAppRequester> reactAppRequester,
 	     std::shared_ptr<const INoSqlRequester> noSqlRequester)
-		: m_collectionProvider { std::move(collectionProvider) }
+		: m_settings { std::move(settings) }
+		, m_collectionProvider { std::move(collectionProvider) }
 		, m_requester { std::move(requester) }
 		, m_reactAppRequester { std::move(reactAppRequester) }
 		, m_noSqlRequester { std::move(noSqlRequester) }
 	{
-		const auto host = [&]() -> QHostAddress
+		const auto host = [this]() -> QHostAddress
 		{
-			const auto address = settings.Get(Flibrary::Constant::Settings::OPDS_HOST_KEY, Flibrary::Constant::Settings::OPDS_HOST_DEFAULT);
+			const auto address = m_settings->Get(Flibrary::Constant::Settings::OPDS_HOST_KEY, Flibrary::Constant::Settings::OPDS_HOST_DEFAULT);
 			return address == Flibrary::Constant::Settings::OPDS_HOST_DEFAULT ? QHostAddress::Any : QHostAddress { address };
 		}();
-		InitHttp(host, static_cast<uint16_t>(settings.Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT)));
+		InitHttp(host, static_cast<uint16_t>(m_settings->Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT)));
 
 		if (!m_localServer.listen(Flibrary::Constant::OPDS_SERVER_NAME))
 			throw std::runtime_error(std::format("Cannot listen pipe {}", Flibrary::Constant::OPDS_SERVER_NAME));
@@ -279,8 +288,28 @@ private:
 
 		for (const auto& [path, invoker] : descriptions)
 			m_server.route(QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString {}),
-			               [this, root, invoker](const QHttpServerRequest& request)
+			               [this, root, path, invoker](const QHttpServerRequest& request)
 			               {
+							   if (!path)
+							   {
+								   if (const auto auth = m_settings->Get(Flibrary::Constant::Settings::OPDS_AUTH, QString {}); !auth.isEmpty())
+								   {
+									   const auto& headers = request.headers();
+									   const auto authorization = headers.value("authorization");
+									   if (authorization.isEmpty())
+									   {
+										   PLOGW << "Attempt connection without authorization";
+										   return QtConcurrent::run([] { return QHttpServerResponse { Tr(AUTH_REQUIRED), QHttpServerResponder::StatusCode::NetworkAuthenticationRequired }; });
+									   }
+
+									   const auto authorizationReceived = QString::fromUtf8(QByteArray::fromBase64(authorization.toByteArray()));
+									   if (Util::GetSaltedHash(authorizationReceived) != auth)
+									   {
+										   PLOGW << "Attempt connection with wrong authorization: " << authorizationReceived;
+										   return QtConcurrent::run([] { return QHttpServerResponse { Tr(AUTH_FAILED), QHttpServerResponder::StatusCode::Unauthorized }; });
+									   }
+								   }
+							   }
 							   return QtConcurrent::run(
 								   [this, root, invoker, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)]
 								   {
@@ -351,18 +380,19 @@ private:
 private:
 	QLocalServer m_localServer;
 	QHttpServer m_server;
+	std::shared_ptr<const ISettings> m_settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> m_collectionProvider;
 	std::shared_ptr<const IRequester> m_requester;
 	std::shared_ptr<const IReactAppRequester> m_reactAppRequester;
 	std::shared_ptr<const INoSqlRequester> m_noSqlRequester;
 };
 
-Server::Server(const std::shared_ptr<const ISettings>& settings,
+Server::Server(std::shared_ptr<const ISettings> settings,
                std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
                std::shared_ptr<const IRequester> requester,
                std::shared_ptr<const IReactAppRequester> reactAppRequester,
                std::shared_ptr<const INoSqlRequester> noSqlRequester)
-	: m_impl(*settings, std::move(collectionProvider), std::move(requester), std::move(reactAppRequester), std::move(noSqlRequester))
+	: m_impl(std::move(settings), std::move(collectionProvider), std::move(requester), std::move(reactAppRequester), std::move(noSqlRequester))
 {
 	PLOGV << "Server created";
 }

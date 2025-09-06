@@ -24,6 +24,7 @@ constexpr auto OPDS_HOST_DEFAULT = "Any";
 constexpr auto OPDS_PORT_DEFAULT = 12791;
 constexpr auto OPDS_READ_URL_TEMPLATE = "opds/ReadUrlTemplate";
 constexpr auto OPDS_AUTOUPDATE_COLLECTION = "opds/AutoupdateCollection";
+constexpr auto OPDS_AUTH = "opds/Authentication";
 
 constexpr auto EXPORT_DIALOG_KEY = "Export";
 
