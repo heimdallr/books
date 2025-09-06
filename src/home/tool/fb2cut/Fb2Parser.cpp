@@ -149,7 +149,7 @@ private: // Util::SaxParser
 			return true;
 		}
 
-		if (path == BINARY)
+		if (IsOneOf(path, BINARY, BODY_BINARY))
 			return true;
 
 		m_writer.WriteStartElement(name);
@@ -186,7 +186,7 @@ private: // Util::SaxParser
 			m_hasProgramUsed = true;
 		}
 
-		if (path == BINARY)
+		if (IsOneOf(path, BINARY, BODY_BINARY))
 			return true;
 
 		m_writer.WriteEndElement();
@@ -196,7 +196,7 @@ private: // Util::SaxParser
 
 	bool OnCharacters(const QString& path, const QString& value) override
 	{
-		if (path == BINARY)
+		if (IsOneOf(path, BINARY, BODY_BINARY))
 			return true;
 
 		if (path == PROGRAM_USED)
