@@ -4917,6 +4917,10 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>Authorization</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>Autostart</source>
 		<translation></translation>
 	</message>

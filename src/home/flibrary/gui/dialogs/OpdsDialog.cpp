@@ -59,6 +59,7 @@ struct OpdsDialog::Impl final
 
 		ui.spinBoxPort->setValue(this->settings->Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT));
 		ui.checkBoxAddToSturtup->setChecked(this->opdsController->InStartup());
+		ui.checkBoxAuth->setChecked(!this->settings->Get(Constant::Settings::OPDS_AUTH, QString {}).isEmpty());
 
 		connect(ui.spinBoxPort, &QSpinBox::valueChanged, &self, [this] { OnConnectionChanged(); });
 		connect(ui.comboBoxHosts, &QComboBox::currentIndexChanged, &self, [this] { OnConnectionChanged(); });
@@ -76,6 +77,14 @@ struct OpdsDialog::Impl final
 		connect(ui.checkBoxAddToSturtup, &QAbstractButton::toggled, &self, [this](const bool checked) { checked ? this->opdsController->AddToStartup() : this->opdsController->RemoveFromStartup(); });
 		connect(ui.lineEditOpdsUser, &QLineEdit::editingFinished, &self, [this] { SetAuth(); });
 		connect(ui.lineEditOpdsPassword, &QLineEdit::editingFinished, &self, [this] { SetAuth(); });
+		connect(ui.checkBoxAuth,
+		        &QAbstractButton::toggled,
+		        &self,
+		        [this](const bool checked)
+		        {
+					if (!checked)
+						this->settings->Remove(Constant::Settings::OPDS_AUTH);
+				});
 
 		const auto actionSetup = [&self](QAction* action, QLineEdit* lineEdit)
 		{
@@ -167,8 +176,8 @@ private:
 
 	void SetAuth()
 	{
-		ui.labelOpdsUser->text().isEmpty() ? settings->Remove(Constant::Settings::OPDS_AUTH)
-										   : settings->Set(Constant::Settings::OPDS_AUTH, Util::GetSaltedHash(ui.lineEditOpdsUser->text(), ui.lineEditOpdsPassword->text()));
+		ui.lineEditOpdsUser->text().isEmpty() ? settings->Remove(Constant::Settings::OPDS_AUTH)
+											  : settings->Set(Constant::Settings::OPDS_AUTH, Util::GetSaltedHash(ui.lineEditOpdsUser->text(), ui.lineEditOpdsPassword->text()));
 	}
 
 private:
