@@ -9,6 +9,7 @@
 #include "interface/constants/SettingsConstant.h"
 
 #include "gutil/GeometryRestorable.h"
+#include "util/hash.h"
 #include "util/localization.h"
 
 using namespace HomeCompa;
@@ -35,8 +36,8 @@ struct OpdsDialog::Impl final
 {
 	Ui::OpdsDialog ui {};
 	QWidget& self;
-	std::shared_ptr<ISettings> settings;
-	std::shared_ptr<IOpdsController> opdsController;
+	PropagateConstPtr<ISettings, std::shared_ptr> settings;
+	PropagateConstPtr<IOpdsController, std::shared_ptr> opdsController;
 
 	Impl(QDialog& self, std::shared_ptr<ISettings> settings, std::shared_ptr<IOpdsController> opdsController)
 		: GeometryRestorable(*this, settings, CONTEXT)
@@ -73,6 +74,8 @@ struct OpdsDialog::Impl final
 				});
 
 		connect(ui.checkBoxAddToSturtup, &QAbstractButton::toggled, &self, [this](const bool checked) { checked ? this->opdsController->AddToStartup() : this->opdsController->RemoveFromStartup(); });
+		connect(ui.lineEditOpdsUser, &QLineEdit::editingFinished, &self, [this] { SetAuth(); });
+		connect(ui.lineEditOpdsPassword, &QLineEdit::editingFinished, &self, [this] { SetAuth(); });
 
 		const auto actionSetup = [&self](QAction* action, QLineEdit* lineEdit)
 		{
@@ -160,6 +163,12 @@ private:
 			ui.labelOpds->setText(Tr(OPDS));
 			ui.labelWeb->setText(Tr(WEB));
 		}
+	}
+
+	void SetAuth()
+	{
+		ui.labelOpdsUser->text().isEmpty() ? settings->Remove(Constant::Settings::OPDS_AUTH)
+										   : settings->Set(Constant::Settings::OPDS_AUTH, Util::GetSaltedHash(ui.lineEditOpdsUser->text(), ui.lineEditOpdsPassword->text()));
 	}
 
 private:
