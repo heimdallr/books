@@ -2481,6 +2481,33 @@ Try again?</source>
 	</message>
 </context>
 <context>
+	<name>Http</name>
+	<message>
+		<source>Authentication failed</source>
+		<translation>Ошибка аутентификации</translation>
+	</message>
+	<message>
+		<source>Authentication required</source>
+		<translation>Требуется аутентификация</translation>
+	</message>
+	<message>
+		<source>Enter Password</source>
+		<translation>Введите пароль</translation>
+	</message>
+	<message>
+		<source>Enter Username</source>
+		<translation>Введите имя пользователя</translation>
+	</message>
+	<message>
+		<source>Login</source>
+		<translation>Логин</translation>
+	</message>
+	<message>
+		<source>Password</source>
+		<translation>Пароль</translation>
+	</message>
+</context>
+<context>
 	<name>ImageSettingsWidget</name>
 	<message>
 		<source>Compression quality</source>
