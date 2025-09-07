@@ -63,6 +63,9 @@ int ReviewTreeModel::columnCount(const QModelIndex& /*parent*/) const
 
 QVariant ReviewTreeModel::data(const QModelIndex& index, const int role) const
 {
+	if (!index.isValid())
+		return TreeModel::data(index, role);
+
 	const auto* item = GetInternalPointer(index);
 	if (item->To<ReviewItem>())
 	{
