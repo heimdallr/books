@@ -10,6 +10,7 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/ExportStat.h"
+#include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 
 #include "data/DataProvider.h"
@@ -134,6 +135,11 @@ int TreeViewControllerBooks::GetModeIndex(const QString& mode) const
 ItemType TreeViewControllerBooks::GetItemType() const noexcept
 {
 	return ItemType::Books;
+}
+
+QString TreeViewControllerBooks::GetItemName() const
+{
+	return Loc::Books;
 }
 
 ViewMode TreeViewControllerBooks::GetViewMode() const noexcept

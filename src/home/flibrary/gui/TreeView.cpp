@@ -631,6 +631,8 @@ private:
 			Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, &m_self, SLOT(OnBookTitleToSearchVisibleChanged()));
 		}
 
+		m_ui.value->setAccessibleName(QString("%1SearchAndFilter").arg(m_controller->GetItemName()));
+
 		m_ui.treeView->setItemDelegate(m_delegate->GetDelegate());
 		m_delegate->RegisterObserver(this);
 

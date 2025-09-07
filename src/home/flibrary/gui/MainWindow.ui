@@ -45,6 +45,9 @@
     </item>
     <item>
      <widget class="QLineEdit" name="lineEditBookTitleToSearch">
+      <property name="accessibleName">
+       <string notr="true">SearchBooksByNames</string>
+      </property>
       <property name="clearButtonEnabled">
        <bool>true</bool>
       </property>
