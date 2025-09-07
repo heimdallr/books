@@ -681,6 +681,7 @@ private:
 					SaveHeaderLayout();
 					m_recentMode = std::move(newMode);
 					m_controller->SetMode(m_recentMode);
+					m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
 				});
 		connect(m_ui.cbValueMode,
 		        &QComboBox::currentIndexChanged,
@@ -690,6 +691,7 @@ private:
 					m_settings->Set(GetValueModeKey(), m_ui.cbValueMode->currentData());
 					m_ui.treeView->model()->setData({}, {}, Role::TextFilter);
 					OnValueChanged();
+					m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
 				});
 		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [&] { OnValueChanged(); });
 		connect(&m_filterTimer,
