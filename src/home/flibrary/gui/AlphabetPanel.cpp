@@ -287,6 +287,7 @@ AlphabetPanel::AlphabetPanel(std::shared_ptr<const IUiFactory> uiFactory, std::s
 	: QMainWindow(parent)
 	, m_impl(*this, std::move(uiFactory), std::move(settings))
 {
+	connect(qApp, &QApplication::focusChanged, this, [this](QWidget*, QWidget* now) { setEnabled(qobject_cast<QLineEdit*>(now)); });
 }
 
 AlphabetPanel::~AlphabetPanel() = default;
