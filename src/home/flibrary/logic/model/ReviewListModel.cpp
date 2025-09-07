@@ -52,7 +52,6 @@ int ReviewListModel::columnCount(const QModelIndex& /*parent*/) const
 
 QVariant ReviewListModel::data(const QModelIndex& index, const int role) const
 {
-
 	if (!index.isValid())
 		return ListModel::data(index, role);
 
