@@ -39,6 +39,7 @@ private: // AbstractTreeViewController
 	void OnModeChanged(const QString& mode) override;
 	[[nodiscard]] int GetModeIndex(const QString& mode) const override;
 	[[nodiscard]] ItemType GetItemType() const noexcept override;
+	[[nodiscard]] QString GetItemName() const override;
 	[[nodiscard]] ViewMode GetViewMode() const noexcept override;
 	void RequestContextMenu(const QModelIndex& index, RequestContextMenuOptions options, RequestContextMenuCallback callback) override;
 	void OnContextMenuTriggered(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item) override;

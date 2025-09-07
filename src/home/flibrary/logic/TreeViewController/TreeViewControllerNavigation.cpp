@@ -726,6 +726,11 @@ ItemType TreeViewControllerNavigation::GetItemType() const noexcept
 	return ItemType::Navigation;
 }
 
+QString TreeViewControllerNavigation::GetItemName() const
+{
+	return Loc::NAVIGATION;
+}
+
 ViewMode TreeViewControllerNavigation::GetViewMode() const noexcept
 {
 	return MODE_DESCRIPTORS[m_impl->mode].second.viewMode;

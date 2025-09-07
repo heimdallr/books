@@ -54,7 +54,8 @@ public:
 	virtual void SetMode(const QString& mode) = 0;
 	virtual void SetCurrentId(ItemType type, QString id) = 0;
 	[[nodiscard]] virtual int GetModeIndex() const = 0;
-	[[nodiscard]] virtual enum class ItemType GetItemType() const noexcept = 0;
+	[[nodiscard]] virtual ItemType GetItemType() const noexcept = 0;
+	[[nodiscard]] virtual QString GetItemName() const = 0;
 	[[nodiscard]] virtual enum class ViewMode GetViewMode() const noexcept = 0;
 	virtual void RequestContextMenu(const QModelIndex& index, RequestContextMenuOptions options, RequestContextMenuCallback callback) = 0;
 	virtual void OnContextMenuTriggered(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item) = 0;
