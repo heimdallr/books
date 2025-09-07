@@ -81,6 +81,7 @@ constexpr auto SHOW_REVIEWS_KEY = "ui/View/ShowReadersReviews";
 constexpr auto SHOW_SEARCH_BOOK_KEY = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY = "ui/View/CheckForUpdateOnStart";
 constexpr auto GENRE_FILTER_ENABLED_KEY = "ui/Books/GenreFilter/enabled";
+constexpr auto START_FOCUSED_CONTROL = "ui/View/StartFocusedControl";
 constexpr auto QSS = "qss";
 
 class LineEditPlaceholderTextController final : public QObject
@@ -444,6 +445,16 @@ private:
 		m_navigationViewController->RegisterObserver(this);
 
 		ReplaceMenuBar();
+
+		QTimer::singleShot(0,
+		                   [this]
+		                   {
+							   const auto widgets = m_self.findChildren<QWidget*>();
+							   if (const auto it =
+			                           std::ranges::find(widgets, m_settings->Get(START_FOCUSED_CONTROL, QString("SearchBooksByNames")), [](const QWidget* widget) { return widget->accessibleName(); });
+			                       it != widgets.cend())
+								   (*it)->setFocus(Qt::FocusReason::OtherFocusReason);
+						   });
 	}
 
 	void ReplaceMenuBar()
