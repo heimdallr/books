@@ -141,20 +141,25 @@ QByteArray NoSqlRequester::RequestAuth(const QString& title, const QString& url)
 {
 	return QString(R"(
 <html>
-<body>
-<h1>%1</h1>
-<form action="%2" method="post">
-  <div class="container">
-    <label for="user"><b>%3</b></label>
-    <input type="text" placeholder="%4" id="user" name="user" required>
-
-    <label for="password"><b>%5</b></label>
-    <input type="password" placeholder="%6" id="password" name="password" required>
-
-    <button type="submit">Login</button>
-  </div>
-</form>
-</body>
+	<body>
+		<h2>%1</h2>
+		<form action="%2" method="post">
+			<table>
+				<tr>
+					<td><label for="user"><b>%3</b></label></td>
+					<td><input type="text" placeholder="%4" id="user" name="user" size="42" required></td>
+				</tr>
+				<tr>
+					<td><label for="password"><b>%5</b></label></td>
+					<td><input type="password" placeholder="%6" id="password" name="password" size="42" required></td>
+				</tr>
+				<tr>
+					<td></td>
+					<td><button type="submit">Login</button></td>
+				</tr>
+			</table>
+		</form>
+	</body>
 </html>
 )")
 	    .arg(title, url, Tr(LOGIN), Tr(ENTER_LOGIN), Tr(PASSWORD), Tr(ENTER_PASSWORD))
