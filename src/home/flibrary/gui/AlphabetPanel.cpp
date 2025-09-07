@@ -69,7 +69,7 @@ private:
 	}
 };
 
-auto CreateLetterClickFunctor(QChar ch)
+auto CreateLetterClickFunctor(const QChar ch)
 {
 	return [ch]
 	{
@@ -244,12 +244,15 @@ private:
 		auto* toolBar = new ToolBar(id, translatedLang, self, &self);
 		toolBar->setVisible(Visible(toolBar));
 		toolBar->setFont(self.font());
-		for (const auto& ch : alphabet)
+
+		const auto createChar = [&](const QChar ch)
 		{
 			auto* action = toolBar->addAction(ch);
 			action->setFont(self.font());
 			connect(action, &QAction::triggered, CreateLetterClickFunctor(ch));
-		}
+		};
+
+		std::ranges::for_each(alphabet, createChar);
 
 		if (removable)
 		{
