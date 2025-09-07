@@ -267,6 +267,7 @@ private:
 						std::erase_if(m_toolBars, [&](const auto* item) { return item == toolBar; });
 						m_settings->Remove(QString("%1/%2").arg(GROUP_KEY, toolBar->property(ID).toString()));
 						Perform(&IAlphabetPanel::IObserver::OnToolBarChanged);
+						OnShow();
 					});
 		}
 
