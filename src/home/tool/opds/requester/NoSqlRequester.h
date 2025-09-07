@@ -28,6 +28,7 @@ private:
 	QByteArray GetCoverThumbnail(const QString& bookId) const override;
 	std::pair<QString, QByteArray> GetBook(const QString& bookId, bool restoreImages) const override;
 	std::pair<QString, QByteArray> GetBookZip(const QString& bookId, bool restoreImages) const override;
+	QByteArray RequestAuth(const QString& title, const QString& url) const override;
 
 private:
 	struct Impl;

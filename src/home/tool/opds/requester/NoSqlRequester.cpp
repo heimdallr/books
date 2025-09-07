@@ -10,6 +10,7 @@
 
 #include "logic/shared/ImageRestore.h"
 #include "util/AnnotationControllerObserver.h"
+#include "util/localization.h"
 
 #include "zip.h"
 
@@ -18,6 +19,12 @@ using namespace Opds;
 
 namespace
 {
+const auto CONTEXT = "Http";
+const auto LOGIN = QT_TRANSLATE_NOOP("Http", "Login");
+const auto PASSWORD = QT_TRANSLATE_NOOP("Http", "Password");
+const auto ENTER_LOGIN = QT_TRANSLATE_NOOP("Http", "Enter Username");
+const auto ENTER_PASSWORD = QT_TRANSLATE_NOOP("Http", "Enter Password");
+TR_DEF
 
 QByteArray Decompress(const QString& path, const QString& archive, const QString& fileName, const bool restoreImages)
 {
@@ -128,4 +135,28 @@ std::pair<QString, QByteArray> NoSqlRequester::GetBookZip(const QString& bookId,
 	auto [fileName, title, data] = m_impl->GetBook(bookId, restoreImages);
 	data = Compress(std::move(data), std::move(fileName));
 	return std::make_pair(QFileInfo(title).completeBaseName() + ".zip", std::move(data));
+}
+
+QByteArray NoSqlRequester::RequestAuth(const QString& title, const QString& url) const
+{
+	return QString(R"(
+<html>
+<body>
+<h1>%1</h1>
+<form action="%2" method="post">
+  <div class="container">
+    <label for="user"><b>%3</b></label>
+    <input type="text" placeholder="%4" id="user" name="user" required>
+
+    <label for="password"><b>%5</b></label>
+    <input type="password" placeholder="%6" id="password" name="password" required>
+
+    <button type="submit">Login</button>
+  </div>
+</form>
+</body>
+</html>
+)")
+	    .arg(title, url, Tr(LOGIN), Tr(ENTER_LOGIN), Tr(PASSWORD), Tr(ENTER_PASSWORD))
+	    .toUtf8();
 }
