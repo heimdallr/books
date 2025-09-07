@@ -191,7 +191,7 @@ T GetParameters(const QString& data)
 	                       [](const auto& item)
 	                       {
 							   const auto values = item.split('=');
-							   return std::make_pair(values.front(), values.back());
+							   return std::make_pair(QUrl::fromPercentEncoding(values.front().toUtf8()), QUrl::fromPercentEncoding(values.back().toUtf8()));
 						   });
 	return result;
 }
