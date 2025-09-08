@@ -55,8 +55,9 @@ constexpr auto LAST = "Last";
 class HeaderView final : public QHeaderView
 {
 public:
-	explicit HeaderView(QWidget* parent = nullptr)
+	explicit HeaderView(QAbstractItemView& view, QWidget* parent = nullptr)
 		: QHeaderView(Qt::Horizontal, parent)
+		, m_view { view }
 	{
 		setFirstSectionMovable(false);
 		setSectionsMovable(true);
@@ -117,7 +118,11 @@ public:
 
 	void ApplySort() const
 	{
+		const auto id = m_view.currentIndex().data(Role::Id).toString();
 		model()->setData({}, QVariant::fromValue(m_sort), Role::SortOrder);
+		if (const auto matched = model()->match(model()->index(0, 0), Role::Id, id, 1, Qt::MatchFlag::MatchExactly | Qt::MatchFlag::MatchRecursive);
+		    !matched.isEmpty())
+			m_view.scrollTo(matched.front(), PositionAtCenter);
 	}
 
 private: // QHeaderView
@@ -223,6 +228,7 @@ private:
 	}
 
 private:
+	QAbstractItemView& m_view;
 	std::vector<std::pair<int, Qt::SortOrder>> m_sort;
 	std::unordered_map<QString, size_t> m_columns;
 };
@@ -719,7 +725,7 @@ private:
 		m_ui.setupUi(&m_self);
 
 		if (m_controller->GetItemType() == ItemType::Books)
-			m_ui.treeView->setHeader(m_booksHeaderView = new HeaderView(&m_self));
+			m_ui.treeView->setHeader(m_booksHeaderView = new HeaderView(*m_ui.treeView, & m_self));
 
 		auto& treeViewHeader = *m_ui.treeView->header();
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
