@@ -37,6 +37,7 @@ struct Role
 		UncheckAll,
 		InvertCheck,
 		IsTree,
+		HeaderName,
 		HeaderTitle,
 		AllGenreCodes,
 		Remap,
