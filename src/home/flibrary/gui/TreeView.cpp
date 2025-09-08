@@ -46,6 +46,7 @@ constexpr auto COLUMN_HIDDEN_LOCAL_KEY = "%1/Hidden";
 constexpr auto SORT_INDICATOR_COLUMN_KEY = "Sort/Index";
 constexpr auto SORT_INDICATOR_ORDER_KEY = "Sort/Order";
 constexpr auto RECENT_LANG_FILTER_KEY = "ui/language";
+constexpr auto LAST = "Last";
 
 class HeaderView final : public QHeaderView
 {
@@ -729,18 +730,26 @@ private:
 			return;
 
 		const auto* header = m_ui.treeView->header();
-
-		SettingsGroup guard(*m_settings, GetColumnSettingsKey());
-		for (int i = 1, sz = header->count(); i < sz; ++i)
+		const auto* model = header->model();
+		const auto saveHeaderLayout = [&]
 		{
-			if (!header->isSectionHidden(i))
-				m_settings->Set(QString(COLUMN_WIDTH_LOCAL_KEY).arg(i), header->sectionSize(i));
-			m_settings->Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(i), header->visualIndex(i));
-			m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(i), header->isSectionHidden(i));
-		}
+			for (int i = 1, sz = header->count(); i < sz; ++i)
+			{
+				const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
+				if (!header->isSectionHidden(i))
+					m_settings->Set(QString(COLUMN_WIDTH_LOCAL_KEY).arg(name), header->sectionSize(i));
+				m_settings->Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(name), header->visualIndex(i));
+				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), header->isSectionHidden(i));
+			}
 
-		m_settings->Set(SORT_INDICATOR_COLUMN_KEY, header->sortIndicatorSection());
-		m_settings->Set(SORT_INDICATOR_ORDER_KEY, header->sortIndicatorOrder());
+			m_settings->Set(SORT_INDICATOR_COLUMN_KEY, header->sortIndicatorSection());
+			m_settings->Set(SORT_INDICATOR_ORDER_KEY, header->sortIndicatorOrder());
+		};
+
+		{
+			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
+			saveHeaderLayout();
+		}
 	}
 
 	void RestoreHeaderLayout()
@@ -757,6 +766,7 @@ private:
 			return;
 
 		auto* header = m_ui.treeView->header();
+		const auto* model = header->model();
 
 		auto lastRestoredLayoutKey = m_ui.treeView->model()->rowCount() == 0 ? QString {} : QString("%1_%2").arg(m_navigationModeName, m_ui.cbMode->currentData().toString());
 		if (m_lastRestoredLayoutKey == lastRestoredLayoutKey)
@@ -767,34 +777,43 @@ private:
 
 		m_lastRestoredLayoutKey = std::move(lastRestoredLayoutKey);
 
+		std::unordered_map<QString, int> nameToIndex;
+		for (int i = 1, sz = header->count(); i < sz; ++i)
+			nameToIndex.try_emplace(model->headerData(i, Qt::Horizontal, Role::HeaderName).toString(), i);
+
 		std::map<int, int> widths;
-		std::map<int, int> indices;
+		std::multimap<int, QString> indices;
 		auto sortIndex = 0;
 		auto sortOrder = Qt::AscendingOrder;
-		{
-			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
-			const auto columns = m_settings->GetGroups();
-			for (const auto& column : columns)
-			{
-				bool ok = false;
-				if (const auto logicalIndex = column.toInt(&ok); ok)
-				{
-					widths.try_emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(column), -1));
-					indices.try_emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(column), -1), logicalIndex);
-					m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(column), false) ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
-				}
-			}
 
-			if (columns.isEmpty())
-				for (auto i = 0, sz = header->count(); i < sz; ++i)
-					header->showSection(i);
+		const auto collectData = [&]
+		{
+			const auto columns = m_settings->GetGroups();
+			for (const auto& columnName : columns)
+			{
+				const auto it = nameToIndex.find(columnName);
+				if (it == nameToIndex.end())
+					continue;
+
+				const auto logicalIndex = it->second;
+				widths.try_emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(columnName), -1));
+				indices.emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(columnName), std::numeric_limits<int>::max()), columnName);
+				m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), false) ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
+			}
 
 			sortIndex = m_settings->Get(SORT_INDICATOR_COLUMN_KEY, sortIndex);
 			sortOrder = m_settings->Get(SORT_INDICATOR_ORDER_KEY, sortOrder);
-			m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(sortIndex, sortOrder)), Role::SortOrder);
+		};
+
+		{
+			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
+			collectData();
 		}
 
-		indices.erase(-1);
+		m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(sortIndex, sortOrder)), Role::SortOrder);
+		if (widths.empty())
+			for (auto i = 0, sz = header->count(); i < sz; ++i)
+				header->showSection(i);
 
 		auto totalWidth = m_ui.treeView->viewport()->width();
 
@@ -817,8 +836,9 @@ private:
 
 		header->resizeSection(0, totalWidth);
 
-		for (const auto [visualIndex, logicalIndex] : indices)
-			header->moveSection(header->visualIndex(logicalIndex), visualIndex);
+		for (int n = 0; const auto& columnName : indices | std::views::values)
+			if (const auto it = nameToIndex.find(columnName); it != nameToIndex.end())
+				header->moveSection(header->visualIndex(it->second), ++n);
 
 		header->setSortIndicator(sortIndex, sortOrder);
 	}
@@ -969,9 +989,13 @@ private:
 		m_ui.lblCount->setText(m_ui.treeView->model()->data({}, Role::Count).toString());
 	}
 
-	QString GetColumnSettingsKey(const char* value = nullptr) const
+	QString GetColumnSettingsKey(const char* value = nullptr, const QString& navigationModeName = {}) const
 	{
-		return QString("ui/%1/%2/Columns/%3%4").arg(m_controller->TrContext()).arg(m_recentMode).arg(m_navigationModeName).arg(value ? QString("/%1").arg(value) : QString {});
+		return QString("ui/%1/%2/Columns/%3%4")
+		    .arg(m_controller->TrContext())
+		    .arg(m_recentMode)
+		    .arg(navigationModeName.isEmpty() ? m_navigationModeName : navigationModeName)
+		    .arg(value ? QString("/%1").arg(value) : QString {});
 	}
 
 	QString GetValueModeKey() const
