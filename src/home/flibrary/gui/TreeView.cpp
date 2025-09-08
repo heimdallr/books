@@ -201,7 +201,6 @@ private:
 		const auto change = [&]
 		{
 			assert(it->second < m_sort.size());
-
 			auto& sort = m_sort[it->second];
 
 			if (sort.second == Qt::SortOrder::AscendingOrder)
@@ -1069,12 +1068,13 @@ private:
 
 	void Find(const QVariant& value, const int role) const
 	{
+		const auto setCurrentIndex = [this](const QModelIndex& index) { m_ui.treeView->setCurrentIndex(index); };
 		const auto& model = *m_ui.treeView->model();
 		if (const auto matched = model.match(model.index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive);
 		    !matched.isEmpty())
-			m_ui.treeView->setCurrentIndex(matched.front());
+			setCurrentIndex(matched.front());
 		else if (role == Role::Id)
-			m_ui.treeView->setCurrentIndex(model.index(0, 0));
+			setCurrentIndex(model.index(0, 0));
 
 		if (const auto index = m_ui.treeView->currentIndex(); index.isValid())
 			m_ui.treeView->scrollTo(index, QAbstractItemView::ScrollHint::PositionAtCenter);

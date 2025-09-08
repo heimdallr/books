@@ -290,7 +290,8 @@ public:
 	void ShowReviews(const bool value) noexcept
 	{
 		m_showReviews = value;
-		ExtractInfo();
+		if (!m_currentBookId.isEmpty())
+			m_extractInfoTimer->start();
 	}
 
 private: // IDataProvider
@@ -447,7 +448,7 @@ private:
 	{
 		m_ready = Ready::None;
 		auto db = m_databaseUser->Database();
-		if (!db)
+		if (!db || m_currentBookId.isEmpty())
 			return;
 
 		m_databaseUser->Execute({ "Get database book info",

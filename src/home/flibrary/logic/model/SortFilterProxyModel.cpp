@@ -125,8 +125,8 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 				return false;
 
 			case Role::SortOrder:
-				QSortFilterProxyModel::sort(0);
 				m_impl->sort = value.value<std::vector<std::pair<int, Qt::SortOrder>>>();
+				QSortFilterProxyModel::sort(m_impl->sort.empty() ? -1 : 0);
 				invalidate();
 				return true;
 
