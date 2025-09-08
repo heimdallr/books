@@ -117,6 +117,7 @@ public:
 
 	void ApplySort() const
 	{
+		model()->setData({}, QVariant::fromValue(m_sort), Role::SortOrder);
 	}
 
 private: // QHeaderView

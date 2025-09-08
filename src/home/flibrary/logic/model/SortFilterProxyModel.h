@@ -34,6 +34,7 @@ private: // QSortFilterProxyModel
 	bool lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const override;
 
 private:
+	bool lessThanImpl(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const;
 	bool FilterAcceptsText(const QModelIndex& index) const;
 	bool FilterAcceptsLanguage(const QModelIndex& index) const;
 	bool FilterAcceptsRemoved(const QModelIndex& index) const;
