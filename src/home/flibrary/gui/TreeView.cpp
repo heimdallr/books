@@ -46,6 +46,7 @@ constexpr auto COLUMN_HIDDEN_LOCAL_KEY = "%1/Hidden";
 constexpr auto SORT_INDICATOR_COLUMN_KEY = "Sort/Index";
 constexpr auto SORT_INDICATOR_ORDER_KEY = "Sort/Order";
 constexpr auto RECENT_LANG_FILTER_KEY = "ui/language";
+constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "ui/View/CommonBooksTableColumnSettings";
 constexpr auto LAST = "Last";
 
 class HeaderView final : public QHeaderView
@@ -746,6 +747,7 @@ private:
 			m_settings->Set(SORT_INDICATOR_ORDER_KEY, header->sortIndicatorOrder());
 		};
 
+		if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
 		{
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
 			saveHeaderLayout();
@@ -809,6 +811,7 @@ private:
 			sortOrder = m_settings->Get(SORT_INDICATOR_ORDER_KEY, sortOrder);
 		};
 
+		if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
 		{
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
 			collectData();
