@@ -39,6 +39,7 @@ struct SortFilterProxyModel::Impl final
 	bool m_showRemoved { true };
 	QVector<int> m_visibleColumns;
 	std::unordered_set<QString> m_filteredGenres;
+	std::vector<std::pair<int, Qt::SortOrder>> sort;
 
 	explicit Impl(const IModelProvider& modelProvider)
 		: m_sourceModel(modelProvider.GetSourceModel())
@@ -124,11 +125,10 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 				return false;
 
 			case Role::SortOrder:
-			{
-				const auto [column, order] = value.value<QPair<int, Qt::SortOrder>>();
-				sort(column, order);
+				QSortFilterProxyModel::sort(0);
+				m_impl->sort = value.value<std::vector<std::pair<int, Qt::SortOrder>>>();
+				invalidate();
 				return true;
-			}
 
 			default:
 				break;
@@ -146,6 +146,38 @@ bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelInd
 }
 
 bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const
+{
+	if (m_impl->sort.empty())
+		return lessThanImpl(sourceLeft, sourceRight);
+
+	for (const auto& [column, order] : m_impl->sort)
+	{
+		assert(column < sourceModel()->columnCount());
+		const auto lhs = sourceModel()->index(sourceLeft.row(), column, sourceLeft.parent());
+		const auto rhs = sourceModel()->index(sourceRight.row(), column, sourceRight.parent());
+
+		if (order == Qt::AscendingOrder)
+		{
+			if (lessThanImpl(lhs, rhs))
+				return true;
+
+			if (lessThanImpl(rhs, lhs))
+				return false;
+
+			continue;
+		}
+
+		if (lessThanImpl(rhs, lhs))
+			return true;
+
+		if (lessThanImpl(lhs, rhs))
+			return false;
+	}
+
+	return false;
+}
+
+bool SortFilterProxyModel::lessThanImpl(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const
 {
 	const auto lhs = sourceLeft.data(), rhs = sourceRight.data();
 	const auto lhsType = lhs.typeId(), rhsType = rhs.typeId();

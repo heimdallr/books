@@ -14,6 +14,8 @@
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/algorithm.h"
+#include "fnd/linear.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
@@ -43,8 +45,9 @@ constexpr auto VALUE_MODE_KEY = "ui/%1/ValueMode";
 constexpr auto COLUMN_WIDTH_LOCAL_KEY = "%1/Width";
 constexpr auto COLUMN_INDEX_LOCAL_KEY = "%1/Index";
 constexpr auto COLUMN_HIDDEN_LOCAL_KEY = "%1/Hidden";
-constexpr auto SORT_INDICATOR_COLUMN_KEY = "Sort/Column";
-constexpr auto SORT_INDICATOR_ORDER_KEY = "Sort/Order";
+constexpr auto SORT_KEY = "Sort";
+constexpr auto SORT_INDEX_KEY = "Index";
+constexpr auto SORT_ORDER_KEY = "Order";
 constexpr auto RECENT_LANG_FILTER_KEY = "ui/language";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "ui/View/CommonBooksTableColumnSettings";
 constexpr auto LAST = "Last";
@@ -57,7 +60,64 @@ public:
 	{
 		setFirstSectionMovable(false);
 		setSectionsMovable(true);
-		setSortIndicator(0, Qt::AscendingOrder);
+
+		connect(this, &QHeaderView::sectionClicked, this, &HeaderView::OnSectionClicked);
+	}
+
+	void Save(ISettings& settings) const
+	{
+		settings.Remove(SORT_KEY);
+		for (const auto& [name, index] : m_columns)
+		{
+			assert(index < m_sort.size());
+			const auto key = QString("%1/%2/%3").arg(SORT_KEY, name, "%1");
+			settings.Set(key.arg(SORT_INDEX_KEY), index);
+			settings.Set(key.arg(SORT_ORDER_KEY), static_cast<int>(m_sort[index].second));
+		}
+	}
+
+	void Load(const ISettings& settings)
+	{
+		m_columns.clear();
+		m_sort.clear();
+
+		std::multimap<int, std::pair<QString, Qt::SortOrder>> buffer;
+		SettingsGroup guard(settings, SORT_KEY);
+		std::ranges::transform(settings.GetGroups(),
+		                       std::inserter(buffer, buffer.end()),
+		                       [&](const QString& columnName)
+		                       {
+								   const auto key = QString("%1/%2").arg(columnName, "%1");
+								   return std::make_pair(settings.Get(key.arg(SORT_INDEX_KEY), std::numeric_limits<int>::max()),
+			                                             std::make_pair(columnName, static_cast<Qt::SortOrder>(settings.Get(key.arg(SORT_ORDER_KEY), Qt::SortOrder::AscendingOrder))));
+							   });
+
+		const auto nameToIndex = GetNameToIndexMapping();
+		std::ranges::for_each(buffer | std::views::values,
+		                      [&](auto&& item)
+		                      {
+								  if (const auto it = nameToIndex.find(item.first); it != nameToIndex.end())
+								  {
+									  m_columns.try_emplace(std::move(item.first), m_sort.size());
+									  m_sort.emplace_back(it->second, item.second);
+								  }
+							  });
+		ApplySort();
+	}
+
+	std::unordered_map<QString, int> GetNameToIndexMapping() const
+	{
+		assert(model());
+		std::unordered_map<QString, int> nameToIndex;
+		for (int i = 0, sz = count(); i < sz; ++i)
+			nameToIndex.try_emplace(model()->headerData(i, Qt::Horizontal, Role::HeaderName).toString(), i);
+
+		return nameToIndex;
+	}
+
+	void ApplySort() const
+	{
+		model()->setData({}, QVariant::fromValue(m_sort), Role::SortOrder);
 	}
 
 private: // QHeaderView
@@ -72,13 +132,23 @@ private: // QHeaderView
 
 		PaintIcon(painter, rect, logicalIndex);
 
-		if (logicalIndex != sortIndicatorSection())
+		const auto columnName = model()->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
+		const auto it = m_columns.find(columnName);
+		if (it == m_columns.end())
 			return;
 
 		const ScopedCall painterGuard([=] { painter->save(); }, [=] { painter->restore(); });
 		const auto palette = QApplication::palette();
-		painter->setPen(palette.color(QPalette::Text));
-		painter->setBrush(palette.color(QPalette::Text));
+		const auto fgColor = palette.color(QPalette::Text);
+		const auto bgColor = palette.color(QPalette::Button);
+
+		QColor color = fgColor;
+		color.setRedF(Linear(size_t { 0 }, fgColor.redF(), m_sort.size(), bgColor.redF())(it->second));
+		color.setGreenF(Linear(size_t { 0 }, fgColor.greenF(), m_sort.size(), bgColor.greenF())(it->second));
+		color.setBlueF(Linear(size_t { 0 }, fgColor.blueF(), m_sort.size(), bgColor.blueF())(it->second));
+
+		painter->setPen(color);
+		painter->setBrush(color);
 
 		const auto size = rect.height() / 4.0;
 		const auto height = std::sqrt(2.0) * size / 2;
@@ -88,7 +158,9 @@ private: // QHeaderView
 			QPointF { size / 2,      0 },
 			QPointF {      0.0, height }
         });
-		if (sortIndicatorOrder() == Qt::DescendingOrder)
+
+		assert(it->second < m_sort.size());
+		if (m_sort[it->second].second == Qt::DescendingOrder)
 			triangle = QTransform(1, 0, 0, -1, 0, height).map(triangle);
 
 		painter->drawPolygon(triangle.translated(rect.right() - 4 * size / 3, size / 2));
@@ -109,6 +181,51 @@ private:
 
 		return true;
 	}
+
+	void OnSectionClicked(const int logicalIndex)
+	{
+		if (!model())
+			return;
+
+		const ScopedCall apply([this] { ApplySort(); });
+
+		auto name = model()->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
+		const auto add = [&]
+		{
+			m_columns.try_emplace(std::move(name), std::size(m_sort));
+			m_sort.emplace_back(logicalIndex, Qt::SortOrder::AscendingOrder);
+		};
+
+		const auto it = m_columns.find(name);
+
+		const auto change = [&]
+		{
+			assert(it->second < m_sort.size());
+
+			auto& sort = m_sort[it->second];
+
+			if (sort.second == Qt::SortOrder::AscendingOrder)
+				return (void)(sort.second = Qt::SortOrder::DescendingOrder);
+
+			m_sort.erase(std::next(m_sort.begin(), static_cast<ptrdiff_t>(it->second)));
+			std::ranges::for_each(m_columns | std::views::values | std::views::filter([n = it->second](const auto item) { return item > n; }), [](auto& item) { --item; });
+			m_columns.erase(it);
+		};
+
+		if (QGuiApplication::queryKeyboardModifiers() & Qt::KeyboardModifier::ShiftModifier)
+			return it == m_columns.end() ? add() : change();
+
+		if (it != m_columns.end() && it->second + 1 == m_sort.size())
+			return change();
+
+		m_sort.clear();
+		m_columns.clear();
+		return add();
+	}
+
+private:
+	std::vector<std::pair<int, Qt::SortOrder>> m_sort;
+	std::unordered_map<QString, size_t> m_columns;
 };
 
 class ValueEventFilter final : public QObject
@@ -604,7 +721,7 @@ private:
 		m_ui.setupUi(&m_self);
 
 		if (m_controller->GetItemType() == ItemType::Books)
-			m_ui.treeView->setHeader(new HeaderView(&m_self));
+			m_ui.treeView->setHeader(m_booksHeaderView = new HeaderView(&m_self));
 
 		auto& treeViewHeader = *m_ui.treeView->header();
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
@@ -719,10 +836,6 @@ private:
 		        &m_self,
 		        [&] { m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [&](const QString& id, const IDataItem::Ptr& item) { OnContextMenuReady(id, item); }); });
 		connect(m_ui.treeView, &QTreeView::doubleClicked, &m_self, [&] { m_controller->OnDoubleClicked(m_ui.treeView->currentIndex()); });
-		connect(m_ui.treeView->header(),
-		        &QHeaderView::sortIndicatorChanged,
-		        &m_self,
-		        [&](const int logicalIndex, const Qt::SortOrder sortOrder) { m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(logicalIndex, sortOrder)), Role::SortOrder); });
 	}
 
 	void SaveHeaderLayout()
@@ -746,11 +859,7 @@ private:
 				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), header->isSectionHidden(i));
 			}
 
-			if (const auto sortIndicatorSection = header->sortIndicatorSection(); sortIndicatorSection >= 0)
-			{
-				m_settings->Set(SORT_INDICATOR_COLUMN_KEY, model->headerData(header->sortIndicatorSection(), Qt::Horizontal, Role::HeaderName).toString());
-				m_settings->Set(SORT_INDICATOR_ORDER_KEY, header->sortIndicatorOrder());
-			}
+			m_booksHeaderView->Save(*m_settings);
 		};
 
 		if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
@@ -778,25 +887,15 @@ private:
 			return;
 
 		auto* header = m_ui.treeView->header();
-		const auto* model = header->model();
 
 		auto lastRestoredLayoutKey = m_ui.treeView->model()->rowCount() == 0 ? QString {} : QString("%1_%2").arg(m_navigationModeName, m_ui.cbMode->currentData().toString());
-		if (m_lastRestoredLayoutKey == lastRestoredLayoutKey)
-		{
-			m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(header->sortIndicatorSection(), header->sortIndicatorOrder())), Role::SortOrder);
-			return;
-		}
+		if (!Util::Set(m_lastRestoredLayoutKey, lastRestoredLayoutKey))
+			return m_booksHeaderView->ApplySort();
 
-		m_lastRestoredLayoutKey = std::move(lastRestoredLayoutKey);
-
-		std::unordered_map<QString, int> nameToIndex;
-		for (int i = 1, sz = header->count(); i < sz; ++i)
-			nameToIndex.try_emplace(model->headerData(i, Qt::Horizontal, Role::HeaderName).toString(), i);
+		const auto nameToIndex = m_booksHeaderView->GetNameToIndexMapping();
 
 		std::map<int, int> widths;
 		std::multimap<int, QString> indices;
-		QString sortColumn;
-		auto sortOrder = Qt::AscendingOrder;
 
 		const auto collectData = [&]
 		{
@@ -813,8 +912,7 @@ private:
 				m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), false) ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
 			}
 
-			sortColumn = m_settings->Get(SORT_INDICATOR_COLUMN_KEY, sortColumn);
-			sortOrder = m_settings->Get(SORT_INDICATOR_ORDER_KEY, sortOrder);
+			m_booksHeaderView->Load(*m_settings);
 		};
 
 		if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
@@ -856,16 +954,6 @@ private:
 		for (int n = 0; const auto& columnName : indices | std::views::values)
 			if (const auto it = nameToIndex.find(columnName); it != nameToIndex.end())
 				header->moveSection(header->visualIndex(it->second), ++n);
-
-		if (const auto it = nameToIndex.find(sortColumn); it != nameToIndex.end())
-		{
-			m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(it->second, sortOrder)), Role::SortOrder);
-			header->setSortIndicator(it->second, sortOrder);
-		}
-		else
-		{
-			header->setSortIndicator(-1, sortOrder);
-		}
 	}
 
 	void OnHeaderSectionsVisibleChanged() const
@@ -1060,6 +1148,7 @@ private:
 	QString m_lastRestoredLayoutKey;
 	ITreeViewController::RemoveItems m_removeItems;
 	MenuEventFilter m_menuEventFilter;
+	HeaderView* m_booksHeaderView;
 };
 
 TreeView::TreeView(std::shared_ptr<ISettings> settings,
