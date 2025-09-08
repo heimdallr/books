@@ -510,13 +510,12 @@ private:
 		connect(m_ui.treeView->selectionModel(),
 		        &QItemSelectionModel::currentRowChanged,
 		        &m_self,
-		        [this](const QModelIndex& index)
+		        [this](const QModelIndex& index, const QModelIndex& prev)
 		        {
-					if (m_controller->GetItemType() == ItemType::Books && m_currentId.isEmpty())
-						return;
-
-					m_controller->SetCurrentId(index.data(Role::Type).value<ItemType>(), m_currentId = index.data(Role::Id).toString());
-					m_settings->Set(GetRecentIdKey(), m_currentId);
+					auto currentId = index.data(Role::Id).toString();
+					m_controller->SetCurrentId(index.data(Role::Type).value<ItemType>(), currentId);
+					if (prev.isValid())
+						m_settings->Set(GetRecentIdKey(), m_currentId = std::move(currentId));
 
 					if (m_controller->GetItemType() == ItemType::Navigation && m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Search))
 						emit m_self.SearchNavigationItemSelected(m_currentId.toLongLong(), index.data().toString());
@@ -880,6 +879,9 @@ private:
 			return;
 
 		m_currentId = m_settings->Get(GetRecentIdKey(), m_currentId);
+		if (m_currentId.isEmpty())
+			if (const auto currentIndex = m_ui.treeView->currentIndex(); !currentIndex.isValid())
+				m_currentId = currentIndex.data(Role::Id).toString();
 
 		UpdateSectionSize();
 		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
