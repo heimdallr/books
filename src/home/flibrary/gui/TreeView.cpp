@@ -750,6 +750,10 @@ private:
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
 			saveHeaderLayout();
 		}
+		{
+			SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
+			saveHeaderLayout();
+		}
 	}
 
 	void RestoreHeaderLayout()
@@ -807,6 +811,11 @@ private:
 
 		{
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
+			collectData();
+		}
+		if (widths.empty())
+		{
+			SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
 			collectData();
 		}
 
