@@ -396,6 +396,9 @@ private:
 		        &m_self,
 		        [this](const QModelIndex& index)
 		        {
+					if (m_controller->GetItemType() == ItemType::Books && m_currentId.isEmpty())
+						return;
+
 					m_controller->SetCurrentId(index.data(Role::Type).value<ItemType>(), m_currentId = index.data(Role::Id).toString());
 					m_settings->Set(GetRecentIdKey(), m_currentId);
 
