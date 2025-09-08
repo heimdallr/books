@@ -43,7 +43,7 @@ constexpr auto VALUE_MODE_KEY = "ui/%1/ValueMode";
 constexpr auto COLUMN_WIDTH_LOCAL_KEY = "%1/Width";
 constexpr auto COLUMN_INDEX_LOCAL_KEY = "%1/Index";
 constexpr auto COLUMN_HIDDEN_LOCAL_KEY = "%1/Hidden";
-constexpr auto SORT_INDICATOR_COLUMN_KEY = "Sort/Index";
+constexpr auto SORT_INDICATOR_COLUMN_KEY = "Sort/Column";
 constexpr auto SORT_INDICATOR_ORDER_KEY = "Sort/Order";
 constexpr auto RECENT_LANG_FILTER_KEY = "ui/language";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "ui/View/CommonBooksTableColumnSettings";
@@ -746,8 +746,11 @@ private:
 				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), header->isSectionHidden(i));
 			}
 
-			m_settings->Set(SORT_INDICATOR_COLUMN_KEY, header->sortIndicatorSection());
-			m_settings->Set(SORT_INDICATOR_ORDER_KEY, header->sortIndicatorOrder());
+			if (const auto sortIndicatorSection = header->sortIndicatorSection(); sortIndicatorSection >= 0)
+			{
+				m_settings->Set(SORT_INDICATOR_COLUMN_KEY, model->headerData(header->sortIndicatorSection(), Qt::Horizontal, Role::HeaderName).toString());
+				m_settings->Set(SORT_INDICATOR_ORDER_KEY, header->sortIndicatorOrder());
+			}
 		};
 
 		if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
@@ -792,7 +795,7 @@ private:
 
 		std::map<int, int> widths;
 		std::multimap<int, QString> indices;
-		auto sortIndex = 0;
+		QString sortColumn;
 		auto sortOrder = Qt::AscendingOrder;
 
 		const auto collectData = [&]
@@ -810,7 +813,7 @@ private:
 				m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), false) ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
 			}
 
-			sortIndex = m_settings->Get(SORT_INDICATOR_COLUMN_KEY, sortIndex);
+			sortColumn = m_settings->Get(SORT_INDICATOR_COLUMN_KEY, sortColumn);
 			sortOrder = m_settings->Get(SORT_INDICATOR_ORDER_KEY, sortOrder);
 		};
 
@@ -825,7 +828,6 @@ private:
 			collectData();
 		}
 
-		m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(sortIndex, sortOrder)), Role::SortOrder);
 		if (widths.empty())
 			for (auto i = 0, sz = header->count(); i < sz; ++i)
 				header->showSection(i);
@@ -855,7 +857,15 @@ private:
 			if (const auto it = nameToIndex.find(columnName); it != nameToIndex.end())
 				header->moveSection(header->visualIndex(it->second), ++n);
 
-		header->setSortIndicator(sortIndex, sortOrder);
+		if (const auto it = nameToIndex.find(sortColumn); it != nameToIndex.end())
+		{
+			m_ui.treeView->model()->setData({}, QVariant::fromValue(qMakePair(it->second, sortOrder)), Role::SortOrder);
+			header->setSortIndicator(it->second, sortOrder);
+		}
+		else
+		{
+			header->setSortIndicator(-1, sortOrder);
+		}
 	}
 
 	void OnHeaderSectionsVisibleChanged() const
