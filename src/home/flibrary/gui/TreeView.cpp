@@ -55,9 +55,10 @@ constexpr auto LAST = "Last";
 class HeaderView final : public QHeaderView
 {
 public:
-	explicit HeaderView(QAbstractItemView& view, QWidget* parent = nullptr)
+	HeaderView(QAbstractItemView& view, const QString& currentId, QWidget* parent = nullptr)
 		: QHeaderView(Qt::Horizontal, parent)
 		, m_view { view }
+		, m_currentId { currentId }
 	{
 		setFirstSectionMovable(false);
 		setSectionsMovable(true);
@@ -118,10 +119,17 @@ public:
 
 	void ApplySort() const
 	{
-		const auto id = m_view.currentIndex().data(Role::Id).toString();
 		model()->setData({}, QVariant::fromValue(m_sort), Role::SortOrder);
-		if (const auto matched = model()->match(model()->index(0, 0), Role::Id, id, 1, Qt::MatchFlag::MatchExactly | Qt::MatchFlag::MatchRecursive);
-		    !matched.isEmpty())
+
+		if (m_currentId.isEmpty())
+			return QTimer::singleShot(0,
+			                          [this]
+			                          {
+										  m_view.setCurrentIndex(model()->index(0, 0));
+										  return m_view.scrollToTop();
+									  });
+
+		if (const auto matched = model()->match(model()->index(0, 0), Role::Id, m_currentId, 1, Qt::MatchFlag::MatchExactly | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
 			m_view.scrollTo(matched.front(), PositionAtCenter);
 	}
 
@@ -229,6 +237,7 @@ private:
 
 private:
 	QAbstractItemView& m_view;
+	const QString& m_currentId;
 	std::vector<std::pair<int, Qt::SortOrder>> m_sort;
 	std::unordered_map<QString, size_t> m_columns;
 };
@@ -725,7 +734,7 @@ private:
 		m_ui.setupUi(&m_self);
 
 		if (m_controller->GetItemType() == ItemType::Books)
-			m_ui.treeView->setHeader(m_booksHeaderView = new HeaderView(*m_ui.treeView, & m_self));
+			m_ui.treeView->setHeader(m_booksHeaderView = new HeaderView(*m_ui.treeView, m_currentId, &m_self));
 
 		auto& treeViewHeader = *m_ui.treeView->header();
 		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
@@ -885,9 +894,6 @@ private:
 			return;
 
 		m_currentId = m_settings->Get(GetRecentIdKey(), m_currentId);
-		if (m_currentId.isEmpty())
-			if (const auto currentIndex = m_ui.treeView->currentIndex(); !currentIndex.isValid())
-				m_currentId = currentIndex.data(Role::Id).toString();
 
 		UpdateSectionSize();
 		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
