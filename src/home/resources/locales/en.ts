@@ -5149,6 +5149,10 @@ Try again?</source>
 <context>
 	<name>ScriptController</name>
 	<message>
+		<source>%all_keywords%</source>
+		<translation>List of keywords</translation>
+	</message>
+	<message>
 		<source>%author%</source>
 		<translation>Author's Surname Firstname. Middlename</translation>
 	</message>
@@ -5203,6 +5207,14 @@ Try again?</source>
 	<message>
 		<source>%genre_tree%</source>
 		<translation>Genre, subgenre, etc.</translation>
+	</message>
+	<message>
+		<source>%keyword%</source>
+		<translation>Keyword</translation>
+	</message>
+	<message>
+		<source>%language%</source>
+		<translation>Language</translation>
 	</message>
 	<message>
 		<source>%lib_id%</source>

@@ -5161,6 +5161,10 @@ Try again?</source>
 <context>
 	<name>ScriptController</name>
 	<message>
+		<source>%all_keywords%</source>
+		<translation>Список ключових слів</translation>
+	</message>
+	<message>
 		<source>%author%</source>
 		<translation>Прізвище Ім'я По батькові автора</translation>
 	</message>
@@ -5215,6 +5219,14 @@ Try again?</source>
 	<message>
 		<source>%genre_tree%</source>
 		<translation>Жанр, піджанр тощо</translation>
+	</message>
+	<message>
+		<source>%keyword%</source>
+		<translation>Ключове слово</translation>
+	</message>
+	<message>
+		<source>%language%</source>
+		<translation>Мова</translation>
 	</message>
 	<message>
 		<source>%lib_id%</source>
