@@ -231,7 +231,7 @@ ILogicFactory::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel
 	m_impl->UpdateGenreParents();
 	ExtractedBooks books;
 
-	const std::vector<int> roles { Role::Id, Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title, Role::Genre, Role::LibID };
+	const std::vector<int> roles { Role::Id, Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title, Role::Genre, Role::LibID, Role::Lang };
 	const auto selected = GetSelectedBookIds(model, index, indexList, roles);
 	std::ranges::transform(selected,
 	                       std::back_inserter(books),
@@ -248,7 +248,8 @@ ILogicFactory::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel
 			                                          .seqNumber = book[6].toInt(),
 			                                          .title = std::move(book[7]),
 			                                          .genre = genres.isEmpty() ? QString {} : std::move(genres.front()),
-			                                          .libId = book[9].toLongLong() };
+			                                          .libId = book[9].toLongLong(),
+			                                          .lang = book[10] };
 
 							   for (auto genre = result.genre; !genre.isEmpty(); genre = m_impl->genreParents.at(genre))
 								   result.genreTree.push_front(genre);

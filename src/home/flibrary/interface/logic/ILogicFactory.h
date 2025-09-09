@@ -59,6 +59,7 @@ public:
 		QString genre;
 		QStringList genreTree;
 		long long libId;
+		QString lang;
 	};
 
 	using ExtractedBooks = std::vector<ExtractedBook>;

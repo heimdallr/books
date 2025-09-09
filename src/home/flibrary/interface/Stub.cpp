@@ -160,6 +160,11 @@ QString ApplyMacroGenreTree(DB::IDatabase&, const ILogicFactory::ExtractedBook& 
 	return genreTree.join('/');
 }
 
+QString ApplyMacroLanguage(DB::IDatabase&, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	return book.lang;
+}
+
 QString ApplyQuery(DB::IDatabase& db, const ILogicFactory::ExtractedBook& book, const std::string_view queryText)
 {
 	const auto query = db.CreateQuery(queryText);
