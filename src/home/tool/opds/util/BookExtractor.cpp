@@ -72,7 +72,8 @@ where b.BookID = ?
 	QString GetFileName(const Flibrary::ILogicFactory::ExtractedBook& book) const
 	{
 		auto outputFileName = m_outputFileNameTemplate;
-		Flibrary::ILogicFactory::FillScriptTemplate(outputFileName, book);
+		auto db = databaseController->GetDatabase(true);
+		Flibrary::ILogicFactory::FillScriptTemplate(*db, outputFileName, book);
 		if (!settings->Get(OPDS_TRANSLITERATE, false))
 			return outputFileName;
 
