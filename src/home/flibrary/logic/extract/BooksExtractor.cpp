@@ -143,6 +143,7 @@ std::pair<bool, std::filesystem::path> Write(const std::shared_ptr<const ISettin
 std::filesystem::path Process(const std::shared_ptr<const ISettings>& settings,
                               const std::filesystem::path& archiveFolder,
                               const QString& dstFolder,
+                              DB::IDatabase& db,
                               const ILogicFactory::ExtractedBook& book,
                               QString outputFileTemplate,
                               IProgressController::IProgressItem& progress,
@@ -154,7 +155,7 @@ std::filesystem::path Process(const std::shared_ptr<const ISettings>& settings,
 		return {};
 
 	IScriptController::SetMacro(outputFileTemplate, IScriptController::Macro::UserDestinationFolder, dstFolder);
-	ILogicFactory::FillScriptTemplate(outputFileTemplate, book);
+	ILogicFactory::FillScriptTemplate(db, outputFileTemplate, book);
 
 	const auto folder = QDir::fromNativeSeparators(QString::fromStdWString(archiveFolder / book.folder.toStdWString()));
 	if (!QFile::exists(folder))
@@ -172,6 +173,7 @@ std::filesystem::path Process(const std::shared_ptr<const ISettings>& settings,
 void Process(const std::shared_ptr<const ISettings>& settings,
              const std::filesystem::path& archiveFolder,
              const QString& dstFolder,
+             DB::IDatabase& db,
              const ILogicFactory::ExtractedBook& book,
              const QString& outputFileTemplate,
              IProgressController::IProgressItem& progress,
@@ -181,7 +183,7 @@ void Process(const std::shared_ptr<const ISettings>& settings,
              const QTemporaryDir& tempDir)
 {
 	const auto needFile = std::ranges::any_of(commands, [](const auto& command) { return IScriptController::HasMacro(command.args, IScriptController::Macro::SourceFile); });
-	const auto sourceFile = needFile ? Process(settings, archiveFolder, tempDir.filePath(""), book, outputFileTemplate, progress, {}, pathChecker, WriteMode::AsIs) : std::filesystem::path {};
+	const auto sourceFile = needFile ? Process(settings, archiveFolder, tempDir.filePath(""), db, book, outputFileTemplate, progress, {}, pathChecker, WriteMode::AsIs) : std::filesystem::path {};
 
 	std::ranges::sort(commands, {}, [](const IScriptController::Command& command) { return command.number; });
 	for (auto command : commands)
@@ -189,7 +191,7 @@ void Process(const std::shared_ptr<const ISettings>& settings,
 		if (needFile)
 			IScriptController::SetMacro(command.args, IScriptController::Macro::SourceFile, QDir::toNativeSeparators(QString::fromStdWString(sourceFile)));
 		IScriptController::SetMacro(command.args, IScriptController::Macro::UserDestinationFolder, QDir::toNativeSeparators(dstFolder));
-		ILogicFactory::FillScriptTemplate(command.args, book);
+		ILogicFactory::FillScriptTemplate(db, command.args, book);
 
 		if (progress.IsStopped() || !scriptController.Execute(command))
 			return;
@@ -269,6 +271,11 @@ public:
 	std::shared_ptr<const ISettings> GetSettings() const
 	{
 		return m_settings;
+	}
+
+	std::shared_ptr<DB::IDatabase> GetDatabase() const
+	{
+		return m_databaseUser->Database();
 	}
 
 private: // IPathChecker
@@ -370,17 +377,17 @@ BooksExtractor::~BooksExtractor()
 void BooksExtractor::ExtractAsArchives(QString folder, const QString& /*parameter*/, ILogicFactory::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback)
 {
 	auto zipProgressCallback = m_impl->GetZipProgressCallback();
-	m_impl->Extract(
-		std::move(folder),
-		std::move(books),
-		std::move(callback),
-		ExportStat::Type::Archive,
-		[outputFileNameTemplate = std::move(outputFileNameTemplate), zipProgressCallback = std::move(zipProgressCallback), settings = m_impl->GetSettings()](const std::filesystem::path& archiveFolder,
-	                                                                                                                                                         const QString& dstFolder,
-	                                                                                                                                                         const ILogicFactory::ExtractedBook& book,
-	                                                                                                                                                         IProgressController::IProgressItem& progress,
-	                                                                                                                                                         IPathChecker& pathChecker) mutable
-		{ Process(settings, archiveFolder, dstFolder, book, outputFileNameTemplate, progress, std::move(zipProgressCallback), pathChecker, WriteMode::Archive); });
+	m_impl->Extract(std::move(folder),
+	                std::move(books),
+	                std::move(callback),
+	                ExportStat::Type::Archive,
+	                [outputFileNameTemplate = std::move(outputFileNameTemplate), zipProgressCallback = std::move(zipProgressCallback), settings = m_impl->GetSettings(), db = m_impl->GetDatabase()](
+						const std::filesystem::path& archiveFolder,
+						const QString& dstFolder,
+						const ILogicFactory::ExtractedBook& book,
+						IProgressController::IProgressItem& progress,
+						IPathChecker& pathChecker) mutable
+	                { Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, progress, std::move(zipProgressCallback), pathChecker, WriteMode::Archive); });
 }
 
 void BooksExtractor::ExtractAsIs(QString folder, const QString& /*parameter*/, ILogicFactory::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback)
@@ -389,12 +396,12 @@ void BooksExtractor::ExtractAsIs(QString folder, const QString& /*parameter*/, I
 	                std::move(books),
 	                std::move(callback),
 	                ExportStat::Type::AsIs,
-	                [outputFileNameTemplate = std::move(outputFileNameTemplate), settings = m_impl->GetSettings()](const std::filesystem::path& archiveFolder,
-	                                                                                                               const QString& dstFolder,
-	                                                                                                               const ILogicFactory::ExtractedBook& book,
-	                                                                                                               IProgressController::IProgressItem& progress,
-	                                                                                                               IPathChecker& pathChecker)
-	                { Process(settings, archiveFolder, dstFolder, book, outputFileNameTemplate, progress, {}, pathChecker, WriteMode::AsIs); });
+	                [outputFileNameTemplate = std::move(outputFileNameTemplate), settings = m_impl->GetSettings(), db = m_impl->GetDatabase()](const std::filesystem::path& archiveFolder,
+	                                                                                                                                           const QString& dstFolder,
+	                                                                                                                                           const ILogicFactory::ExtractedBook& book,
+	                                                                                                                                           IProgressController::IProgressItem& progress,
+	                                                                                                                                           IPathChecker& pathChecker)
+	                { Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, progress, {}, pathChecker, WriteMode::AsIs); });
 }
 
 void BooksExtractor::ExtractUnpack(QString folder, const QString& /*parameter*/, ILogicFactory::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback)
@@ -403,12 +410,12 @@ void BooksExtractor::ExtractUnpack(QString folder, const QString& /*parameter*/,
 	                std::move(books),
 	                std::move(callback),
 	                ExportStat::Type::Unpack,
-	                [outputFileNameTemplate = std::move(outputFileNameTemplate), settings = m_impl->GetSettings()](const std::filesystem::path& archiveFolder,
-	                                                                                                               const QString& dstFolder,
-	                                                                                                               const ILogicFactory::ExtractedBook& book,
-	                                                                                                               IProgressController::IProgressItem& progress,
-	                                                                                                               IPathChecker& pathChecker)
-	                { Process(settings, archiveFolder, dstFolder, book, outputFileNameTemplate, progress, {}, pathChecker, WriteMode::Unpack); });
+	                [outputFileNameTemplate = std::move(outputFileNameTemplate), settings = m_impl->GetSettings(), db = m_impl->GetDatabase()](const std::filesystem::path& archiveFolder,
+	                                                                                                                                           const QString& dstFolder,
+	                                                                                                                                           const ILogicFactory::ExtractedBook& book,
+	                                                                                                                                           IProgressController::IProgressItem& progress,
+	                                                                                                                                           IPathChecker& pathChecker)
+	                { Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, progress, {}, pathChecker, WriteMode::Unpack); });
 }
 
 void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, ILogicFactory::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback)
@@ -423,10 +430,11 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, I
 	                 commands = std::move(commands),
 	                 tempDir = std::make_shared<QTemporaryDir>(),
 	                 outputFileNameTemplate = std::move(outputFileNameTemplate),
-	                 settings = m_impl->GetSettings()](const std::filesystem::path& archiveFolder,
-	                                                   const QString& dstFolder,
-	                                                   const ILogicFactory::ExtractedBook& book,
-	                                                   IProgressController::IProgressItem& progress,
-	                                                   IPathChecker& pathChecker)
-	                { Process(settings, archiveFolder, dstFolder, book, outputFileNameTemplate, progress, pathChecker, *scriptController, commands, *tempDir); });
+	                 settings = m_impl->GetSettings(),
+	                 db = m_impl->GetDatabase()](const std::filesystem::path& archiveFolder,
+	                                             const QString& dstFolder,
+	                                             const ILogicFactory::ExtractedBook& book,
+	                                             IProgressController::IProgressItem& progress,
+	                                             IPathChecker& pathChecker)
+	                { Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, progress, pathChecker, *scriptController, commands, *tempDir); });
 }

@@ -10,6 +10,7 @@
 #include "interface/logic/ICollectionUpdateChecker.h"
 #include "interface/logic/ICommandLine.h"
 #include "interface/logic/IDatabaseChecker.h"
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IJokeRequesterFactory.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
@@ -56,7 +57,8 @@ public:
 	           std::shared_ptr<LogItemDelegate> logItemDelegate,
 	           std::shared_ptr<ICommandLine> commandLine,
 	           std::shared_ptr<ILineOption> lineOption,
-	           std::shared_ptr<IDatabaseChecker> databaseChecker,
+	           std::shared_ptr<const IDatabaseChecker> databaseChecker,
+	           std::shared_ptr<const IDatabaseUser> databaseUser,
 	           std::shared_ptr<IAlphabetPanel> alphabetPanel,
 	           QWidget* parent = nullptr);
 	~MainWindow() override;

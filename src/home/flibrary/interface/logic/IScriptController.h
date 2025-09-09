@@ -66,6 +66,9 @@ public:
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileSize)              \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Genre)                 \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(GenreTree)             \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Keyword)               \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AllKeywords)           \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Language)              \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Id)                    \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(LibId)                 \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Uid)
@@ -184,6 +187,9 @@ public:
 		{			  Macro::FileSize, QT_TRANSLATE_NOOP("ScriptController",               "%file_size%") },
 		{				 Macro::Genre, QT_TRANSLATE_NOOP("ScriptController",                   "%genre%") },
 		{			 Macro::GenreTree, QT_TRANSLATE_NOOP("ScriptController",              "%genre_tree%") },
+		{			   Macro::Keyword, QT_TRANSLATE_NOOP("ScriptController",                 "%keyword%") },
+		{		   Macro::AllKeywords, QT_TRANSLATE_NOOP("ScriptController",            "%all_keywords%") },
+		{			  Macro::Language, QT_TRANSLATE_NOOP("ScriptController",                "%language%") },
 		{					Macro::Id, QT_TRANSLATE_NOOP("ScriptController",                   "%db_id%") },
 		{				 Macro::LibId, QT_TRANSLATE_NOOP("ScriptController",                  "%lib_id%") },
 		{				   Macro::Uid, QT_TRANSLATE_NOOP("ScriptController",                     "%uid%") },

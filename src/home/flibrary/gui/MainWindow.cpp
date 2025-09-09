@@ -155,7 +155,8 @@ public:
 	     std::shared_ptr<QStyledItemDelegate> logItemDelegate,
 	     std::shared_ptr<ICommandLine> commandLine,
 	     std::shared_ptr<ILineOption> lineOption,
-	     std::shared_ptr<IDatabaseChecker> databaseChecker,
+	     std::shared_ptr<const IDatabaseChecker> databaseChecker,
+	     std::shared_ptr<const IDatabaseUser> databaseUser,
 	     std::shared_ptr<IAlphabetPanel> alphabetPanel)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
@@ -175,6 +176,7 @@ public:
 		, m_progressBar { std::move(progressBar) }
 		, m_logItemDelegate { std::move(logItemDelegate) }
 		, m_lineOption { std::move(lineOption) }
+		, m_databaseUser { std::move(databaseUser) }
 		, m_alphabetPanel { std::move(alphabetPanel) }
 		, m_navigationViewController { ILogicFactory::Lock(m_logicFactory)->GetTreeViewController(ItemType::Navigation) }
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
@@ -332,7 +334,8 @@ private: // ILineOption::IObserver
 			return;
 
 		auto scriptTemplate = value;
-		ILogicFactory::FillScriptTemplate(scriptTemplate, books.front());
+		auto db = m_databaseUser->Database();
+		ILogicFactory::FillScriptTemplate(*db, scriptTemplate, books.front());
 		PLOGI << scriptTemplate;
 	}
 
@@ -1199,6 +1202,7 @@ private:
 	PropagateConstPtr<QWidget, std::shared_ptr> m_progressBar;
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_logItemDelegate;
 	PropagateConstPtr<ILineOption, std::shared_ptr> m_lineOption;
+	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	PropagateConstPtr<IAlphabetPanel, std::shared_ptr> m_alphabetPanel;
 
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationViewController;
@@ -1242,7 +1246,8 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
                        std::shared_ptr<LogItemDelegate> logItemDelegate,
                        std::shared_ptr<ICommandLine> commandLine,
                        std::shared_ptr<ILineOption> lineOption,
-                       std::shared_ptr<IDatabaseChecker> databaseChecker,
+                       std::shared_ptr<const IDatabaseChecker> databaseChecker,
+                       std::shared_ptr<const IDatabaseUser> databaseUser,
                        std::shared_ptr<IAlphabetPanel> alphabetPanel,
                        QWidget* parent)
 	: QMainWindow(parent)
@@ -1265,6 +1270,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
              std::move(commandLine),
              std::move(lineOption),
              std::move(databaseChecker),
+             std::move(databaseUser),
              std::move(alphabetPanel))
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
