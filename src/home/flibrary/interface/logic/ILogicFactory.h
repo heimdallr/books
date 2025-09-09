@@ -87,7 +87,7 @@ public: // special
 	[[nodiscard]] virtual std::shared_ptr<IProgressController> GetProgressController() const = 0;
 
 	FLINT_EXPORT static std::vector<std::vector<QString>> GetSelectedBookIds(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, const std::vector<int>& roles);
-	FLINT_EXPORT static void FillScriptTemplate(QString& scriptTemplate, const ExtractedBook& book);
+	FLINT_EXPORT static void FillScriptTemplate(DB::IDatabase& db, QString& scriptTemplate, const ExtractedBook& book);
 };
 
 } // namespace HomeCompa::Flibrary
