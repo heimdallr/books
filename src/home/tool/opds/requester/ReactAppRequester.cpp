@@ -35,7 +35,7 @@ constexpr auto SELECTED_GROUP_ID = "selectedGroupID";
 
 #define AUTHOR_FULL_NAME "a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '')"
 
-constexpr auto MAIN_BOOK_FIELDS = "b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) as SeqNumber, b.FileName, b.Ext, b.UpdateDate";
+constexpr auto MAIN_BOOK_FIELDS = "b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) as SeqNumber, b.FileName, b.Ext, b.UpdateDate, b.Year";
 constexpr auto AUTHORS_FIELD = "(select group_concat(" AUTHOR_FULL_NAME R"(, ', ')
 	from Authors a 
 	join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
