@@ -9,6 +9,7 @@
 #include "fnd/ScopedCall.h"
 
 #include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
 
 #include "constants/ModelRole.h"
 #include "constants/ProductConstant.h"
@@ -157,6 +158,24 @@ QString ApplyMacroGenreTree(DB::IDatabase&, const ILogicFactory::ExtractedBook& 
 	QStringList genreTree;
 	std::ranges::transform(book.genreTree, std::back_inserter(genreTree), &Util::RemoveIllegalPathCharacters);
 	return genreTree.join('/');
+}
+
+QString ApplyQuery(DB::IDatabase& db, const ILogicFactory::ExtractedBook& book, const std::string_view queryText)
+{
+	const auto query = db.CreateQuery(queryText);
+	query->Bind(0, book.id);
+	query->Execute();
+	return query->Eof() ? QString {} : Util::RemoveIllegalPathCharacters(query->Get<const char*>(0));
+}
+
+QString ApplyMacroKeyword(DB::IDatabase& db, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	return ApplyQuery(db, book, "select k.KeywordTitle from Keywords k join Keyword_List l on l.KeywordID = k.KeywordID and l.BookID = ? order by l.OrdNum limit 1");
+}
+
+QString ApplyMacroAllKeywords(DB::IDatabase& db, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	return ApplyQuery(db, book, "select group_concat(k.KeywordTitle, '_') from Keywords k join Keyword_List l on l.KeywordID = k.KeywordID and l.BookID = ? order by l.OrdNum");
 }
 
 QString ApplyMacroId(DB::IDatabase&, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
