@@ -12,7 +12,8 @@ constexpr auto RECENT_NAVIGATION_ID_KEY = "Collections/%1/Navigation/%2/LastId";
 constexpr auto EXPORT_TEMPLATE_KEY = "ui/Export/OutputTemplate";
 constexpr auto EXPORT_GRAYSCALE_COVER_KEY = "ui/Export/GrayscaleCover";
 constexpr auto EXPORT_GRAYSCALE_IMAGES_KEY = "ui/Export/GrayscaleImages";
-constexpr auto KEEP_RECENT_LANG_FILTER_KEY = "ui/keepLanguage";
+constexpr auto PERMANENT_LANG_FILTER_KEY = "ui/permanentLanguageFilter";
+constexpr auto PERMANENT_LANG_FILTER_ENABLED_KEY = "ui/permanentLanguageFilterEnabled";
 constexpr auto HIDE_SCROLLBARS_KEY = "ui/hideScrollBars";
 constexpr auto SHOW_REMOVED_BOOKS_KEY = "ui/View/RemovedBooks";
 

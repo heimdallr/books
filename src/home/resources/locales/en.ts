@@ -4433,10 +4433,6 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>&amp;Permanent language filter</source>
-		<translation></translation>
-	</message>
-	<message>
 		<source>&amp;Remove collection</source>
 		<translation></translation>
 	</message>
@@ -4606,6 +4602,14 @@ Try again?</source>
 	</message>
 	<message>
 		<source>I&amp;mport</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Language filter</source>
+		<translation>Book language filter</translation>
+	</message>
+	<message>
+		<source>Languages</source>
 		<translation></translation>
 	</message>
 	<message>

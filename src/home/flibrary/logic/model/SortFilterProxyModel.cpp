@@ -35,6 +35,7 @@ struct SortFilterProxyModel::Impl final
 {
 	QString m_filter;
 	QString m_languageFilter;
+	std::unordered_set<QString> m_permanentLanguageFilter;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
 	bool m_showRemoved { true };
 	QVector<int> m_visibleColumns;
@@ -124,6 +125,9 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 
 				return false;
 
+			case Role::PermanentLanguageFilter:
+				return Set(m_impl->m_permanentLanguageFilter, value.value<std::unordered_set<QString>>(), [&] { invalidateFilter(); });
+
 			case Role::SortOrder:
 				m_impl->sort = value.value<std::vector<std::pair<int, Qt::SortOrder>>>();
 				QSortFilterProxyModel::sort(m_impl->sort.empty() ? -1 : 0);
@@ -204,7 +208,16 @@ bool SortFilterProxyModel::FilterAcceptsText(const QModelIndex& index) const
 
 bool SortFilterProxyModel::FilterAcceptsLanguage(const QModelIndex& index) const
 {
-	return m_impl->m_languageFilter.isEmpty() || (index.data(Role::Type).value<ItemType>() == ItemType::Books && index.data(Role::Lang) == m_impl->m_languageFilter);
+	const auto& filter = m_impl->m_languageFilter;
+	const auto& permanentFilter = m_impl->m_permanentLanguageFilter;
+	if (filter.isEmpty() && permanentFilter.empty() || index.data(Role::Type).value<ItemType>() != ItemType::Books)
+		return true;
+
+	const auto lang = index.data(Role::Lang).toString();
+	if (!permanentFilter.empty() && !permanentFilter.contains(lang))
+		return false;
+
+	return filter.isEmpty() || lang == filter;
 }
 
 bool SortFilterProxyModel::FilterAcceptsRemoved(const QModelIndex& index) const

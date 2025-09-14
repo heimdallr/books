@@ -28,6 +28,7 @@ struct Role
 		Languages,
 		TextFilter,
 		LanguageFilter,
+		PermanentLanguageFilter,
 		ShowRemovedFilter,
 		GenreFilter,
 		VisibleColumns,

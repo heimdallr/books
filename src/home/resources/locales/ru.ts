@@ -4445,10 +4445,6 @@ Try again?</source>
 		<translation>&amp;Журнал</translation>
 	</message>
 	<message>
-		<source>&amp;Permanent language filter</source>
-		<translation>&amp;Постоянный языковой фильтр</translation>
-	</message>
-	<message>
 		<source>&amp;Remove collection</source>
 		<translation>&amp;Удалить коллекцию</translation>
 	</message>
@@ -4619,6 +4615,14 @@ Try again?</source>
 	<message>
 		<source>I&amp;mport</source>
 		<translation>&amp;Импорт</translation>
+	</message>
+	<message>
+		<source>Language filter</source>
+		<translation>Фильтр языка книг</translation>
+	</message>
+	<message>
+		<source>Languages</source>
+		<translation>Языки</translation>
 	</message>
 	<message>
 		<source>Log &amp;verbosity level</source>

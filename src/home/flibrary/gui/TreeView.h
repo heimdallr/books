@@ -44,6 +44,7 @@ public:
 	void SetNavigationModeName(QString navigationModeName);
 	void ShowRemoved(bool showRemoved);
 	void FilterGenres(bool filterGenres);
+	void FilterLanguages(bool filterLanguages);
 	QAbstractItemView* GetView() const;
 	void SetMode(int mode, const QString& id);
 

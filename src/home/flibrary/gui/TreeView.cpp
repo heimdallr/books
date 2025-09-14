@@ -372,30 +372,33 @@ public:
 
 	void FilterGenres(const bool filterGenres)
 	{
-		m_filterGenres = filterGenres;
-		auto* model = m_ui.treeView->model();
-		if (!model)
-			return;
+		Filter(filterGenres,
+		       m_filterGenres,
+		       Role::GenreFilter,
+		       [this]() -> std::unordered_set<QString>
+		       {
+				   auto filteredGenreNames = m_genreFilterProvider->GetFilteredGenreNames();
+				   if (m_navigationModeName != Loc::Genres)
+					   return filteredGenreNames;
 
-		const auto getFilteredGenres = [this]() -> std::unordered_set<QString>
-		{
-			if (!m_filterGenres)
-				return {};
+				   const auto& codeToName = m_genreFilterProvider->GetGenreCodeToNameMap();
+				   if (const auto it = codeToName.find(m_controller->GetNavigationId()); it != codeToName.end())
+					   filteredGenreNames.erase(it->second);
 
-			auto filteredGenreNames = m_genreFilterProvider->GetFilteredGenreNames();
-			if (m_navigationModeName != Loc::Genres)
-				return filteredGenreNames;
+				   return filteredGenreNames;
+			   });
+	}
 
-			const auto& codeToName = m_genreFilterProvider->GetGenreCodeToNameMap();
-			if (const auto it = codeToName.find(m_controller->GetNavigationId()); it != codeToName.end())
-				filteredGenreNames.erase(it->second);
-
-			return filteredGenreNames;
-		};
-
-		model->setData({}, QVariant::fromValue(getFilteredGenres()), Role::GenreFilter);
-		OnCountChanged();
-		Find(m_currentId, Role::Id);
+	void FilterLanguages(const bool filterLanguages)
+	{
+		Filter(filterLanguages,
+		       m_filterLanguages,
+		       Role::PermanentLanguageFilter,
+		       [this]() -> std::unordered_set<QString>
+		       {
+				   auto checkedList = m_settings->Get(Constant::Settings::PERMANENT_LANG_FILTER_KEY, QString {}).split(';', Qt::SkipEmptyParts);
+				   return std::unordered_set<QString> { std::make_move_iterator(checkedList.begin()), std::make_move_iterator(checkedList.end()) };
+			   });
 	}
 
 	QAbstractItemView* GetView() const
@@ -545,7 +548,7 @@ private:
 		{
 			m_languageContextMenu.reset();
 			model->setData({}, true, Role::Checkable);
-			SetLanguageFilter();
+			FilterLanguages(m_filterLanguages);
 			FilterGenres(m_filterGenres);
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
@@ -1067,15 +1070,6 @@ private:
 		return m_languageContextMenu;
 	}
 
-	void SetLanguageFilter() const
-	{
-		if (!m_settings->Get(Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY, false))
-			return;
-
-		if (const auto language = m_settings->Get(RECENT_LANG_FILTER_KEY, QString {}); !language.isEmpty())
-			m_ui.treeView->model()->setData({}, language, Role::LanguageFilter);
-	}
-
 	void OnValueChanged()
 	{
 		std::invoke(ModeComboBox::VALUE_MODES[m_ui.cbValueMode->currentIndex()].second, static_cast<IValueApplier&>(*this));
@@ -1141,6 +1135,18 @@ private:
 		return key;
 	}
 
+	void Filter(const bool filter, bool& filtered, const int role, const std::function<std::unordered_set<QString>()>& getValues) const
+	{
+		filtered = filter;
+		auto* model = m_ui.treeView->model();
+		if (!model)
+			return;
+
+		model->setData({}, QVariant::fromValue(filtered ? getValues() : std::unordered_set<QString> {}), role);
+		OnCountChanged();
+		Find(m_currentId, Role::Id);
+	}
+
 private:
 	TreeView& m_self;
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_controller;
@@ -1159,6 +1165,7 @@ private:
 	std::shared_ptr<QMenu> m_languageContextMenu;
 	bool m_showRemoved { false };
 	bool m_filterGenres { false };
+	bool m_filterLanguages { false };
 	int m_lineHeight { 0 };
 	QString m_lastRestoredLayoutKey;
 	ITreeViewController::RemoveItems m_removeItems;
@@ -1197,6 +1204,11 @@ void TreeView::ShowRemoved(const bool showRemoved)
 void TreeView::FilterGenres(const bool filterGenres)
 {
 	m_impl->FilterGenres(filterGenres);
+}
+
+void TreeView::FilterLanguages(const bool filterLanguages)
+{
+	m_impl->FilterLanguages(filterLanguages);
 }
 
 QAbstractItemView* TreeView::GetView() const
