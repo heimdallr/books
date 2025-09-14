@@ -387,7 +387,18 @@ public:
 
 				   return filteredGenreNames;
 			   });
+	}
 
+	void FilterLanguages(const bool filterLanguages)
+	{
+		Filter(filterLanguages,
+		       m_filterLanguages,
+		       Role::PermanentLanguageFilter,
+		       [this]() -> std::unordered_set<QString>
+		       {
+				   auto checkedList = m_settings->Get(Constant::Settings::PERMANENT_LANG_FILTER_KEY, QString {}).split(';', Qt::SkipEmptyParts);
+				   return std::unordered_set<QString> { std::make_move_iterator(checkedList.begin()), std::make_move_iterator(checkedList.end()) };
+			   });
 	}
 
 	QAbstractItemView* GetView() const
@@ -537,7 +548,7 @@ private:
 		{
 			m_languageContextMenu.reset();
 			model->setData({}, true, Role::Checkable);
-			SetLanguageFilter();
+			FilterLanguages(m_filterLanguages);
 			FilterGenres(m_filterGenres);
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
@@ -1059,15 +1070,6 @@ private:
 		return m_languageContextMenu;
 	}
 
-	void SetLanguageFilter() const
-	{
-		if (!m_settings->Get(Constant::Settings::KEEP_RECENT_LANG_FILTER_KEY, false))
-			return;
-
-		if (const auto language = m_settings->Get(RECENT_LANG_FILTER_KEY, QString {}); !language.isEmpty())
-			m_ui.treeView->model()->setData({}, language, Role::LanguageFilter);
-	}
-
 	void OnValueChanged()
 	{
 		std::invoke(ModeComboBox::VALUE_MODES[m_ui.cbValueMode->currentIndex()].second, static_cast<IValueApplier&>(*this));
@@ -1163,6 +1165,7 @@ private:
 	std::shared_ptr<QMenu> m_languageContextMenu;
 	bool m_showRemoved { false };
 	bool m_filterGenres { false };
+	bool m_filterLanguages { false };
 	int m_lineHeight { 0 };
 	QString m_lastRestoredLayoutKey;
 	ITreeViewController::RemoveItems m_removeItems;
@@ -1201,6 +1204,11 @@ void TreeView::ShowRemoved(const bool showRemoved)
 void TreeView::FilterGenres(const bool filterGenres)
 {
 	m_impl->FilterGenres(filterGenres);
+}
+
+void TreeView::FilterLanguages(const bool filterLanguages)
+{
+	m_impl->FilterLanguages(filterLanguages);
 }
 
 QAbstractItemView* TreeView::GetView() const
