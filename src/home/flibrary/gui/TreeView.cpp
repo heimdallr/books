@@ -203,6 +203,7 @@ private:
 		const ScopedCall apply([this] { ApplySort(); });
 
 		auto name = model()->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
+		assert(!name.isEmpty());
 		const auto add = [&]
 		{
 			m_columns.try_emplace(std::move(name), std::size(m_sort));

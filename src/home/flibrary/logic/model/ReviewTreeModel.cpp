@@ -22,22 +22,24 @@ ReviewTreeModel::~ReviewTreeModel()
 QVariant ReviewTreeModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
 {
 	if (orientation != Qt::Horizontal)
-		return {};
+		return TreeModel::headerData(section, orientation, role);
+
+	const auto getHeader = [&] { return section < m_data->GetColumnCount() ? m_data->GetData(section) : m_data->GetRawData(section - m_data->GetColumnCount() + BookItem::Column::Last + 1); };
 
 	switch (role)
 	{
 		case Qt::DisplayRole:
 		case Role::HeaderTitle:
-		{
-			const auto data = section < m_data->GetColumnCount() ? m_data->GetData(section) : m_data->GetRawData(section - m_data->GetColumnCount() + BookItem::Column::Last + 1);
-			return Loc::Tr(Loc::Ctx::BOOK, data.toUtf8().data());
-		}
+			return Loc::Tr(Loc::Ctx::BOOK, getHeader().toUtf8().data());
+
+		case Role::HeaderName:
+			return getHeader();
 
 		default:
 			break;
 	}
 
-	return {};
+	return TreeModel::headerData(section, orientation, role);
 }
 
 int ReviewTreeModel::rowCount(const QModelIndex& parent) const
