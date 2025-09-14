@@ -32,6 +32,7 @@ TR_DEF
 
 constexpr auto ID = "id";
 constexpr auto GROUP_KEY = "ui/View/Alphabets";
+constexpr auto LINKED_CONTROL = "ui/View/Alphabets/LinkedControl";
 constexpr auto KEY_TEMPLATE = "ui/View/Alphabets/%1/%2";
 constexpr auto VISIBLE = "visible";
 constexpr auto ORD_NUM = "order";
@@ -69,11 +70,18 @@ private:
 	}
 };
 
-auto CreateLetterClickFunctor(const QChar ch)
+class IControlGetter // NOLINT(cppcoreguidelines-special-member-functions)
 {
-	return [ch]
+public:
+	virtual ~IControlGetter() = default;
+	virtual QLineEdit* Get() const = 0;
+};
+
+auto CreateLetterClickFunctor(const QChar ch, const IControlGetter* controlGetter)
+{
+	return [=]
 	{
-		auto* edit = qobject_cast<QLineEdit*>(QApplication::focusWidget());
+		auto* edit = controlGetter->Get();
 		if (!edit)
 			return;
 
@@ -90,6 +98,7 @@ class AlphabetPanel::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
 	, public Observable<IObserver>
+	, IControlGetter
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -132,6 +141,9 @@ public:
 		std::ranges::for_each(customIds, [this](const auto& id) { AddToolBar(m_self, id, m_settings->Get(QString(KEY_TEMPLATE).arg(id, ALPHABET)).toString(), true); });
 
 		std::ranges::sort(m_toolBars, {}, [](const auto* toolBar) { return toolBar->property(ORD_NUM).toInt(); });
+
+		if (m_linkedControl.isEmpty())
+			connect(qApp, &QApplication::focusChanged, &m_self, [this](QWidget*, QWidget* now) { m_self.setEnabled(qobject_cast<QLineEdit*>(now)); });
 
 		LoadGeometry();
 	}
@@ -234,6 +246,12 @@ private: // Util::GeometryRestorableObserver
 		OnShow();
 	}
 
+private: // ILinkedControlGetter
+	QLineEdit* Get() const override
+	{
+		return std::invoke(m_controlGetter, this);
+	}
+
 private:
 	void AddToolBar(QMainWindow& self, const QString& id, const QString& alphabet, const bool removable = false)
 	{
@@ -249,7 +267,7 @@ private:
 		{
 			auto* action = toolBar->addAction(ch);
 			action->setFont(self.font());
-			connect(action, &QAction::triggered, CreateLetterClickFunctor(ch));
+			connect(action, &QAction::triggered, CreateLetterClickFunctor(ch, this));
 		};
 
 		std::ranges::for_each(alphabet, createChar);
@@ -278,10 +296,34 @@ private:
 		toolBar->setProperty(ORD_NUM, m_settings->Get(GetOrdNumKey(*toolBar), m_toolBars.size()));
 	}
 
+	// ReSharper disable once CppMemberFunctionMayBeStatic
+	QLineEdit* GetFocusedControl() const
+	{
+		return qobject_cast<QLineEdit*>(QApplication::focusWidget());
+	}
+
+	QLineEdit* GetLinkedControl() const
+	{
+		auto* parent = m_uiFactory->GetParentWidget();
+		const auto children = parent->findChildren<QLineEdit*>();
+		const auto it = std::ranges::find(children, m_linkedControl, [](const auto* item) { return item->accessibleName(); });
+		if (it == children.end())
+			return nullptr;
+
+		auto* control = *it;
+		if (!control->hasFocus())
+			control->setFocus(Qt::FocusReason::OtherFocusReason);
+
+		return control;
+	}
+
 private:
 	QMainWindow& m_self;
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
+	const QString m_linkedControl { m_settings->Get(LINKED_CONTROL, QString {}) };
+	using ControlGetter = QLineEdit* (Impl::*)() const;
+	const ControlGetter m_controlGetter { m_linkedControl.isEmpty() ? &Impl::GetFocusedControl : &Impl::GetLinkedControl };
 	std::unordered_map<QString, const char*> m_languages { GetLanguagesMap() };
 	ToolBars m_toolBars;
 	Ui::AlphabetPanel m_ui;
@@ -291,7 +333,6 @@ AlphabetPanel::AlphabetPanel(std::shared_ptr<const IUiFactory> uiFactory, std::s
 	: QMainWindow(parent)
 	, m_impl(*this, std::move(uiFactory), std::move(settings))
 {
-	connect(qApp, &QApplication::focusChanged, this, [this](QWidget*, QWidget* now) { setEnabled(qobject_cast<QLineEdit*>(now)); });
 }
 
 AlphabetPanel::~AlphabetPanel() = default;
