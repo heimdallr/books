@@ -12,6 +12,8 @@
 #include "gutil/interface/IParentWidgetProvider.h"
 #include "util/ISettings.h"
 
+#include "ScrollBarController.h"
+
 namespace HomeCompa::Flibrary
 {
 
@@ -21,11 +23,12 @@ class LanguageFilterDialog final : public QDialog
 
 public:
 	LanguageFilterDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
-	                  const std::shared_ptr<const ILanguageFilterProvider>& languageFilterProvider,
-	                  std::shared_ptr<ISettings> settings,
-	                  std::shared_ptr<ILanguageFilterController> languageFilterController,
-	                  std::shared_ptr<ILanguageModel> languageModel,
-	                  QWidget* parent = nullptr);
+	                     const std::shared_ptr<const ILanguageFilterProvider>& languageFilterProvider,
+	                     std::shared_ptr<ISettings> settings,
+	                     std::shared_ptr<ILanguageFilterController> languageFilterController,
+	                     std::shared_ptr<ILanguageModel> languageModel,
+	                     std::shared_ptr<ScrollBarController> scrollBarController,
+	                     QWidget* parent = nullptr);
 	~LanguageFilterDialog() override;
 
 private:

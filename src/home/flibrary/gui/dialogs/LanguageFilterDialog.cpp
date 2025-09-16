@@ -39,22 +39,25 @@ struct LanguageFilterDialog::Impl final
 	, Util::GeometryRestorableObserver
 {
 	QWidget& self;
-	PropagateConstPtr<ISettings, std::shared_ptr> settings; 
+	PropagateConstPtr<ISettings, std::shared_ptr> settings;
 	PropagateConstPtr<ILanguageFilterController, std::shared_ptr> languageFilterController;
 	PropagateConstPtr<ILanguageModel, std::shared_ptr> languageModel;
+	PropagateConstPtr<ScrollBarController, std::shared_ptr> scrollBarController;
 	Ui::LanguageFilterDialog ui {};
 
 	Impl(LanguageFilterDialog& self,
 	     const ILanguageFilterProvider& languageFilterProvider,
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<ILanguageFilterController> languageFilterController,
-	     std::shared_ptr<ILanguageModel> languageModel)
+	     std::shared_ptr<ILanguageModel> languageModel,
+	     std::shared_ptr<ScrollBarController> scrollBarController)
 		: GeometryRestorable(*this, settings, "LanguageFilterDialog")
 		, GeometryRestorableObserver(self)
 		, self { self }
 		, settings { std::move(settings) }
 		, languageFilterController { std::move(languageFilterController) }
 		, languageModel { std::move(languageModel) }
+		, scrollBarController { std::move(scrollBarController) }
 	{
 		ui.setupUi(&self);
 
@@ -80,6 +83,9 @@ struct LanguageFilterDialog::Impl final
 					model->setData({}, QVariant::fromValue(list), Role::SelectedList);
 				});
 		ui.view->setModel(model);
+		this->scrollBarController->SetScrollArea(ui.view);
+		ui.view->viewport()->installEventFilter(this->scrollBarController.get());
+
 		ui.checkBoxFilterEnabled->setChecked(languageFilterProvider.IsFilterEnabled());
 
 		LoadGeometry();
@@ -112,13 +118,14 @@ private:
 };
 
 LanguageFilterDialog::LanguageFilterDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
-                                     const std::shared_ptr<const ILanguageFilterProvider>& languageFilterProvider,
-                                     std::shared_ptr<ISettings> settings,
-                                     std::shared_ptr<ILanguageFilterController> languageFilterController,
-                                     std::shared_ptr<ILanguageModel> languageModel,
-                                     QWidget* parent)
+                                           const std::shared_ptr<const ILanguageFilterProvider>& languageFilterProvider,
+                                           std::shared_ptr<ISettings> settings,
+                                           std::shared_ptr<ILanguageFilterController> languageFilterController,
+                                           std::shared_ptr<ILanguageModel> languageModel,
+                                           std::shared_ptr<ScrollBarController> scrollBarController,
+                                           QWidget* parent)
 	: QDialog(parentWidgetProvider->GetWidget(parent))
-	, m_impl(*this, *languageFilterProvider, std::move(settings), std::move(languageFilterController), std::move(languageModel))
+	, m_impl(*this, *languageFilterProvider, std::move(settings), std::move(languageFilterController), std::move(languageModel), std::move(scrollBarController))
 {
 	connect(this, &QDialog::accepted, [this] { m_impl->Save(); });
 }

@@ -12,6 +12,8 @@
 #include "gutil/interface/IParentWidgetProvider.h"
 #include "util/ISettings.h"
 
+#include "ScrollBarController.h"
+
 namespace HomeCompa::Flibrary
 {
 
@@ -25,6 +27,7 @@ public:
 	                  std::shared_ptr<ISettings> settings,
 	                  std::shared_ptr<IGenreFilterController> genreFilterController,
 	                  std::shared_ptr<IGenreModel> genreModel,
+	                  std::shared_ptr<ScrollBarController> scrollBarController,
 	                  QWidget* parent = nullptr);
 	~GenreFilterDialog() override;
 
