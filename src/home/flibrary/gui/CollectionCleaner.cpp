@@ -12,6 +12,7 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "gutil/GeometryRestorable.h"
+#include "gutil/util.h"
 #include "util/ISettingsObserver.h"
 #include "util/localization.h"
 
@@ -344,12 +345,7 @@ private:
 		m_ui.unrated->setChecked(m_settings->Get(DELETE_UNRATED, m_ui.unrated->isChecked()));
 		m_ui.minimumRate->setValue(m_settings->Get(MINIMUM_RATE, m_ui.minimumRate->value()));
 
-		if (const auto var = m_settings->Get(LANGUAGE_FIELD_WIDTH_KEY, QVariant {}); var.isValid())
-		{
-			const auto widths = var.value<QVector<int>>();
-			for (auto i = 0, sz = std::min(header->count() - 1, static_cast<int>(widths.size())); i < sz; ++i)
-				header->resizeSection(i, widths[static_cast<qsizetype>(i)]);
-		}
+		Util::LoadHeaderSectionWidth(*header, *m_settings, LANGUAGE_FIELD_WIDTH_KEY);
 	}
 
 	void Save()
@@ -373,10 +369,7 @@ private:
 		m_settings->Set(DELETE_UNRATED, m_ui.unrated->isChecked());
 		m_settings->Set(MINIMUM_RATE, m_ui.minimumRate->value());
 
-		QVector<int> widths;
-		for (auto i = 0, sz = header->count() - 1; i < sz; ++i)
-			widths << header->sectionSize(i);
-		m_settings->Set(LANGUAGE_FIELD_WIDTH_KEY, QVariant::fromValue(widths));
+		Util::SaveHeaderSectionWidth(*header, *m_settings, LANGUAGE_FIELD_WIDTH_KEY);
 	}
 
 private:

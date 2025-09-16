@@ -2373,6 +2373,10 @@ Restart now?</source>
 		<translation>Виділити все</translation>
 	</message>
 	<message>
+		<source>Filter enabled</source>
+		<translation>Фільтр увімкнено</translation>
+	</message>
+	<message>
 		<source>Genre filter settings</source>
 		<translation>Налаштування фільтру жанрів</translation>
 	</message>
@@ -4321,6 +4325,29 @@ Try again?</source>
 	</message>
 </context>
 <context>
+	<name>LanguageFilterDialog</name>
+	<message>
+		<source>Check all</source>
+		<translation>Виділити все</translation>
+	</message>
+	<message>
+		<source>Filter enabled</source>
+		<translation>Фільтр увімкнено</translation>
+	</message>
+	<message>
+		<source>Invert checks</source>
+		<translation>Інвертувати виділення</translation>
+	</message>
+	<message>
+		<source>Language filter settings</source>
+		<translation>Налаштування мовного фільтра</translation>
+	</message>
+	<message>
+		<source>Uncheck all</source>
+		<translation>Зняти виділення</translation>
+	</message>
+</context>
+<context>
 	<name>LanguageModel</name>
 	<message>
 		<source>Code</source>
@@ -4419,10 +4446,6 @@ Try again?</source>
 	<message>
 		<source>&amp;Font</source>
 		<translation>&amp;Шрифт</translation>
-	</message>
-	<message>
-		<source>&amp;Genres filter</source>
-		<translation>Фільтр &amp;жанрів</translation>
 	</message>
 	<message>
 		<source>&amp;Help</source>
@@ -4525,6 +4548,14 @@ Try again?</source>
 		<translation>Шаблон експорту книг</translation>
 	</message>
 	<message>
+		<source>By &amp;genres...</source>
+		<translation>По &amp;жанрах...</translation>
+	</message>
+	<message>
+		<source>By &amp;languages...</source>
+		<translation>За &amp;мовами...</translation>
+	</message>
+	<message>
 		<source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
 		<translation>Дозволяючи деструктивні операції, ви берете відповідальність за можливу втрату потрібних вам книг. Ви впевнені?</translation>
 	</message>
@@ -4573,14 +4604,6 @@ Try again?</source>
 		<translation>Включити все</translation>
 	</message>
 	<message>
-		<source>Filter &amp;enabled</source>
-		<translation>Фільтр &amp;активний</translation>
-	</message>
-	<message>
-		<source>Filter &amp;settings...</source>
-		<translation>&amp;Налаштування фільтра...</translation>
-	</message>
-	<message>
 		<source>Font &amp;settings...</source>
 		<translation>&amp;Налаштування шрифтів...</translation>
 	</message>
@@ -4615,14 +4638,6 @@ Try again?</source>
 	<message>
 		<source>I&amp;mport</source>
 		<translation>&amp;Імпорт</translation>
-	</message>
-	<message>
-		<source>Language filter</source>
-		<translation>Фільтр мови книг</translation>
-	</message>
-	<message>
-		<source>Languages</source>
-		<translation>Мови</translation>
 	</message>
 	<message>
 		<source>Log &amp;verbosity level</source>

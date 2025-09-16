@@ -31,12 +31,8 @@ protected:
 protected:
 	static QVariant GetValue(const IDataItem& item, const int column);
 
-private:
-	QVariant GetAllGenreCodes() const;
-
 protected:
 	IDataItem::Ptr m_data;
-	std::shared_ptr<const IGenreFilterProvider> m_genreFilterProvider;
 	std::shared_ptr<const ILibRateProvider> m_libRateProvider;
 	bool m_checkable { false };
 };

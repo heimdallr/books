@@ -38,22 +38,28 @@ struct GenreFilterDialog::Impl final
 	, Util::GeometryRestorableObserver
 {
 	QWidget& self;
+	PropagateConstPtr<ISettings, std::shared_ptr> settings;
 	PropagateConstPtr<IGenreFilterController, std::shared_ptr> genreFilterController;
 	PropagateConstPtr<IGenreModel, std::shared_ptr> genreModel;
+	PropagateConstPtr<ScrollBarController, std::shared_ptr> scrollBarController;
 	std::set<QString> selected;
-	std::unordered_set<QString> filtered { genreFilterController->GetFilteredGenreCodes() };
+	std::unordered_set<QString> filtered;
 	Ui::GenreFilterDialog ui {};
 
 	Impl(GenreFilterDialog& self,
-	     std::unordered_set<QString> visibleGenres,
+	     const IGenreFilterProvider& genreFilterProvider,
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<IGenreFilterController> genreFilterController,
-	     std::shared_ptr<IGenreModel> genreModel)
-		: GeometryRestorable(*this, std::move(settings), "GenreFilterDialog")
+	     std::shared_ptr<IGenreModel> genreModel,
+	     std::shared_ptr<ScrollBarController> scrollBarController)
+		: GeometryRestorable(*this, settings, "GenreFilterDialog")
 		, GeometryRestorableObserver(self)
 		, self { self }
+		, settings { std::move(settings) }
 		, genreFilterController { std::move(genreFilterController) }
 		, genreModel { std::move(genreModel) }
+		, scrollBarController { std::move(scrollBarController) }
+		, filtered { genreFilterProvider.GetFilteredCodes() }
 	{
 		ui.setupUi(&self);
 
@@ -72,12 +78,15 @@ struct GenreFilterDialog::Impl final
 		        [this, model]
 		        {
 					model->setData({}, {}, Role::CheckAll);
-					if (!filtered.empty())
-						model->setData({}, QVariant::fromValue(filtered), Role::UncheckAll);
+					if (!this->filtered.empty())
+						model->setData({}, QVariant::fromValue(this->filtered), Role::UncheckAll);
 					selected = GetSelected(*model);
 				});
-		model->setData({}, QVariant::fromValue(std::move(visibleGenres)), Role::VisibleGenreCodes);
 		ui.view->setModel(model);
+		this->scrollBarController->SetScrollArea(ui.view);
+		ui.view->viewport()->installEventFilter(this->scrollBarController.get());
+
+		ui.checkBoxFilterEnabled->setChecked(genreFilterProvider.IsFilterEnabled());
 
 		LoadGeometry();
 	}
@@ -94,7 +103,7 @@ struct GenreFilterDialog::Impl final
 			filtered.erase(item);
 
 		std::ranges::set_difference(selected, current, std::inserter(filtered, filtered.end()));
-		genreFilterController->SetFilteredGenres(filtered);
+		genreFilterController->SetFilteredCodes(ui.checkBoxFilterEnabled->isChecked(), filtered);
 	}
 
 private:
@@ -111,13 +120,15 @@ private:
 	NON_COPY_MOVABLE(Impl)
 };
 
-GenreFilterDialog::GenreFilterDialog(const std::shared_ptr<const IUiFactory>& uiFactory,
+GenreFilterDialog::GenreFilterDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
+                                     const std::shared_ptr<const IGenreFilterProvider>& genreFilterProvider,
                                      std::shared_ptr<ISettings> settings,
                                      std::shared_ptr<IGenreFilterController> genreFilterController,
                                      std::shared_ptr<IGenreModel> genreModel,
+                                     std::shared_ptr<ScrollBarController> scrollBarController,
                                      QWidget* parent)
-	: QDialog(uiFactory->GetParentWidget(parent))
-	, m_impl(*this, uiFactory->GetVisibleGenres(), std::move(settings), std::move(genreFilterController), std::move(genreModel))
+	: QDialog(parentWidgetProvider->GetWidget(parent))
+	, m_impl(*this, *genreFilterProvider, std::move(settings), std::move(genreFilterController), std::move(genreModel), std::move(scrollBarController))
 {
 	connect(this, &QDialog::accepted, [this] { m_impl->Save(); });
 }

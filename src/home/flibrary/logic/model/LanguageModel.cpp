@@ -4,6 +4,7 @@
 
 #include <QSortFilterProxyModel>
 
+#include "fnd/ScopedCall.h"
 #include "fnd/algorithm.h"
 
 #include "database/interface/IDatabase.h"
@@ -47,15 +48,7 @@ public:
 									  for (query->Execute(); !query->Eof(); query->Next())
 										  items.emplace_back(query->Get<const char*>(0), query->Get<int>(1));
 
-									  return [this, items = std::move(items)](size_t) mutable
-									  {
-										  beginResetModel();
-										  m_items = std::move(items);
-										  std::unordered_set languagesIndexed(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
-										  for (auto& item : m_items)
-											  item.checked = languagesIndexed.contains(item.language);
-										  endResetModel();
-									  };
+									  return [this, items = std::move(items)](size_t) mutable { Reset(std::move(items)); };
 								  } });
 	}
 
@@ -140,7 +133,10 @@ private: // QAbstractItemModel
 			case Role::RevertChecks:
 				return SetChecks([](const auto& item) { return !item.checked; });
 			case Role::SelectedList:
-				return Util::Set(m_checked, value.toStringList());
+				if (!Util::Set(m_checked, value.toStringList()))
+					return false;
+				return Reset(), true;
+
 			default:
 				break;
 		}
@@ -170,6 +166,17 @@ private:
 			emit dataChanged(index(begin, 0), index(end - 1, 0), { Qt::CheckStateRole });
 
 		return !indices.empty();
+	}
+
+	void Reset(Items items = {})
+	{
+		const ScopedCall resetGuard([this] { beginResetModel(); }, [this] { endResetModel(); });
+		if (!items.empty())
+			m_items = std::move(items);
+
+		std::unordered_set languagesIndexed(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
+		for (auto& item : m_items)
+			item.checked = languagesIndexed.contains(item.language);
 	}
 
 private:

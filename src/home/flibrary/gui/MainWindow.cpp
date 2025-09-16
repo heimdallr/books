@@ -13,9 +13,6 @@
 #include <QTimer>
 #include <QToolBar>
 
-#include "database/interface/IDatabase.h"
-#include "database/interface/IQuery.h"
-
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
@@ -83,10 +80,8 @@ constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 constexpr auto SHOW_REVIEWS_KEY = "ui/View/ShowReadersReviews";
 constexpr auto SHOW_SEARCH_BOOK_KEY = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY = "ui/View/CheckForUpdateOnStart";
-constexpr auto GENRE_FILTER_ENABLED_KEY = "ui/Books/GenreFilter/enabled";
 constexpr auto START_FOCUSED_CONTROL = "ui/View/StartFocusedControl";
 constexpr auto QSS = "qss";
-constexpr auto ID = "obj_id";
 
 class LineEditPlaceholderTextController final : public QObject
 {
@@ -777,19 +772,8 @@ private:
 	void ConnectActionsSettingsFilters()
 	{
 		PLOGV << "ConnectActionsSettingsFilters";
-		ConnectSettings(m_ui.actionLanguageFilterEnabled, Constant::Settings::PERMANENT_LANG_FILTER_ENABLED_KEY, m_booksWidget.get(), &TreeView::FilterLanguages);
-		ConnectSettings(m_ui.actionGenreFilterEnabled, GENRE_FILTER_ENABLED_KEY, m_booksWidget.get(), &TreeView::FilterGenres);
-		connect(m_ui.menuLanguageFilterLanguagesList, &QMenu::aboutToShow, [this] { CreateFilterLanguageList(); });
-		connect(m_ui.actionGenreFilterSettings,
-		        &QAction::triggered,
-		        &m_self,
-		        [this]
-		        {
-					auto allGenreCodes = m_booksWidget->GetView()->model()->data({}, Role::AllGenreCodes).value<std::unordered_set<QString>>();
-					auto dialog = m_uiFactory->CreateGenreFilterDialog(std::move(allGenreCodes));
-					if (dialog->exec() == QDialog::Accepted)
-						m_booksWidget->FilterGenres(true);
-				});
+		connect(m_ui.actionLanguageFilter, &QAction::triggered, &m_self, [this] { m_uiFactory->CreateLanguageFilterDialog()->exec(); });
+		connect(m_ui.actionGenreFilter, &QAction::triggered, &m_self, [this] { m_uiFactory->CreateGenreFilterDialog()->exec(); });
 	}
 
 	void ConnectActionsSettings()
@@ -881,66 +865,6 @@ private:
 
 		connect(show, &QAction::triggered, &m_self, [=] { showHide(true); });
 		connect(hide, &QAction::triggered, &m_self, [=] { showHide(false); });
-	}
-
-	void CreateFilterLanguageList()
-	{
-		if (!m_ui.menuLanguageFilterLanguagesList->isEmpty())
-			return;
-
-		m_databaseUser->Execute(
-			{ "Get language list",
-		      [this, db = m_databaseUser->Database()]
-		      {
-				  std::unordered_map<QString, std::pair<const char*, int>> langMap;
-				  std::ranges::transform(LANGUAGES, std::inserter(langMap, langMap.end()), [](const auto& item) { return std::make_pair(QString(item.key), std::make_pair(item.title, item.priority)); });
-
-				  const auto query = db->CreateQuery("select distinct Lang from Books");
-				  std::vector<std::tuple<QString, QString, int>> languages {
-					  { {}, {}, 5000 }
-				  };
-				  for (query->Execute(); !query->Eof(); query->Next())
-				  {
-					  QString key = query->Get<const char*>(0);
-					  const auto it = langMap.find(key);
-					  languages.emplace_back(std::move(key), it == langMap.end() ? QString {} : Loc::Tr(LANGUAGES_CONTEXT, it->second.first), it->second.second);
-				  }
-				  std::ranges::sort(languages, {}, [](const auto& item) { return std::make_tuple(std::get<2>(item), std::get<1>(item)); });
-
-				  return [this, languages = std::move(languages)](size_t)
-				  {
-					  auto checkedList = m_settings->Get(Constant::Settings::PERMANENT_LANG_FILTER_KEY, QString {}).split(';', Qt::SkipEmptyParts);
-					  std::unordered_set<QString> checked { std::make_move_iterator(checkedList.begin()), std::make_move_iterator(checkedList.end()) };
-
-					  for (const auto& [key, language, _] : languages)
-					  {
-						  if (key.isEmpty())
-						  {
-							  m_ui.menuLanguageFilterLanguagesList->addSeparator();
-							  continue;
-						  }
-
-						  auto action = m_ui.menuLanguageFilterLanguagesList->addAction(language.isEmpty() ? key : language);
-						  action->setProperty(ID, key);
-						  action->setCheckable(true);
-						  action->setChecked(checked.contains(key));
-						  connect(action,
-					              &QAction::triggered,
-					              [this]
-					              {
-									  QStringList checkedLanguages;
-									  std::ranges::transform(m_ui.menuLanguageFilterLanguagesList->actions() | std::views::filter([](const auto* item) { return item->isChecked(); }),
-						                                     std::back_inserter(checkedLanguages),
-						                                     [](const auto* item) { return item->property(ID).toString(); });
-									  checkedLanguages.isEmpty() ? m_settings->Remove(Constant::Settings::PERMANENT_LANG_FILTER_KEY)
-																 : m_settings->Set(Constant::Settings::PERMANENT_LANG_FILTER_KEY, checkedLanguages.join(';'));
-									  m_booksWidget->FilterLanguages(true);
-								  });
-					  }
-
-					  m_ui.menuLanguageFilterLanguagesList->exec(m_ui.menuLanguageFilter->mapToGlobal(QPoint(0, 0)));
-				  };
-			  } });
 	}
 
 	void ApplyStyleAction(QAction& action, const QActionGroup& group) const

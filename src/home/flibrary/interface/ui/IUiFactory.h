@@ -20,7 +20,8 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate> CreateTreeViewDelegateBooks(QTreeView& parent) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate> CreateTreeViewDelegateNavigation(QAbstractItemView& parent) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QDialog> CreateOpdsDialog() const = 0;
-	[[nodiscard]] virtual std::shared_ptr<QDialog> CreateGenreFilterDialog(std::unordered_set<QString> visibleGenres = {}) const = 0;
+	[[nodiscard]] virtual std::shared_ptr<QDialog> CreateLanguageFilterDialog() const = 0;
+	[[nodiscard]] virtual std::shared_ptr<QDialog> CreateGenreFilterDialog() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QMainWindow> CreateQueryWindow() const = 0;
 	virtual void CreateCollectionCleaner() const = 0;
@@ -34,7 +35,6 @@ public: // special
 	[[nodiscard]] virtual QTreeView& GetTreeView() const noexcept = 0;
 	[[nodiscard]] virtual QAbstractItemView& GetAbstractItemView() const noexcept = 0;
 	[[nodiscard]] virtual QString GetTitle() const noexcept = 0;
-	[[nodiscard]] virtual std::unordered_set<QString> GetVisibleGenres() const noexcept = 0;
 	[[nodiscard]] virtual long long GetAuthorId() const noexcept = 0;
 };
 

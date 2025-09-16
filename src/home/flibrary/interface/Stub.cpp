@@ -198,7 +198,7 @@ QString ApplyMacroUid(DB::IDatabase&, const ILogicFactory::ExtractedBook&, const
 	return QUuid::createUuid().toString(QUuid::WithoutBraces);
 }
 
-constexpr std::pair<IScriptController::Macro, QString (*)(DB::IDatabase&db, const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)> MACRO_APPLIERS[] {
+constexpr std::pair<IScriptController::Macro, QString (*)(DB::IDatabase& db, const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)> MACRO_APPLIERS[] {
 #define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(NAME) { IScriptController::Macro::NAME, &ApplyMacro##NAME },
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO
 #undef SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM

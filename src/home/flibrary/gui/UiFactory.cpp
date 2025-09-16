@@ -14,6 +14,7 @@
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
 #include "dialogs/AddCollectionDialog.h"
 #include "dialogs/GenreFilterDialog.h"
+#include "dialogs/LanguageFilterDialog.h"
 #include "dialogs/OpdsDialog.h"
 #include "util/localization.h"
 #include "version/AppVersion.h"
@@ -100,7 +101,6 @@ struct UiFactory::Impl
 	mutable QTreeView* treeView { nullptr };
 	mutable QAbstractItemView* abstractItemView { nullptr };
 	mutable QString title;
-	mutable std::unordered_set<QString> visibleGenres;
 	mutable long long authorId { -1 };
 
 	explicit Impl(Hypodermic::Container& container)
@@ -164,9 +164,13 @@ std::shared_ptr<QDialog> UiFactory::CreateOpdsDialog() const
 	return m_impl->container.resolve<OpdsDialog>();
 }
 
-std::shared_ptr<QDialog> UiFactory::CreateGenreFilterDialog(std::unordered_set<QString> visibleGenres) const
+std::shared_ptr<QDialog> UiFactory::CreateLanguageFilterDialog() const
 {
-	m_impl->visibleGenres = std::move(visibleGenres);
+	return m_impl->container.resolve<LanguageFilterDialog>();
+}
+
+std::shared_ptr<QDialog> UiFactory::CreateGenreFilterDialog() const
+{
 	return m_impl->container.resolve<GenreFilterDialog>();
 }
 
@@ -301,13 +305,6 @@ QAbstractItemView& UiFactory::GetAbstractItemView() const noexcept
 QString UiFactory::GetTitle() const noexcept
 {
 	return std::move(m_impl->title);
-}
-
-std::unordered_set<QString> UiFactory::GetVisibleGenres() const noexcept
-{
-	auto visibleGenres = std::move(m_impl->visibleGenres);
-	m_impl->visibleGenres = {};
-	return visibleGenres;
 }
 
 long long UiFactory::GetAuthorId() const noexcept

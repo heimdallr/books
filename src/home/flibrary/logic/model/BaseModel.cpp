@@ -5,7 +5,6 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
-#include "interface/logic/IGenreFilterProvider.h"
 #include "interface/logic/ILibRateProvider.h"
 #include "interface/logic/IModelProvider.h"
 
@@ -31,7 +30,6 @@ void Enumerate(const IDataItem& root, const F& f)
 BaseModel::BaseModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent)
 	: QAbstractItemModel(parent)
 	, m_data { modelProvider->GetData() }
-	, m_genreFilterProvider { modelProvider->GetGenreFilterProvider() }
 	, m_libRateProvider { modelProvider->GetLibRateProvider() }
 {
 }
@@ -61,9 +59,6 @@ QVariant BaseModel::headerData(const int section, const Qt::Orientation orientat
 
 QVariant BaseModel::data(const QModelIndex& index, const int role) const
 {
-	if (!index.isValid())
-		return role == Role::AllGenreCodes ? GetAllGenreCodes() : QVariant {};
-
 	const auto* item = GetInternalPointer(index);
 	if (item->GetType() == ItemType::Books)
 	{
@@ -180,22 +175,4 @@ QVariant BaseModel::GetValue(const IDataItem& item, const int column)
 	}
 
 	return item.GetRawData(column);
-}
-
-QVariant BaseModel::GetAllGenreCodes() const
-{
-	std::unordered_set<QString> uniqueCodes;
-
-	Enumerate(*m_data,
-	          [&uniqueCodes, &genresNameToCode = m_genreFilterProvider->GetGenreNameToCodeMap()](const IDataItem& item)
-	          {
-				  if (item.GetType() != ItemType::Books)
-					  return;
-
-				  for (const auto& name : item.GetRawData(BookItem::Column::Genre).split(", ", Qt::SkipEmptyParts))
-					  if (const auto it = genresNameToCode.find(name); it != genresNameToCode.end())
-						  uniqueCodes.insert(it->second);
-			  });
-
-	return QVariant::fromValue(uniqueCodes);
 }

@@ -2363,6 +2363,10 @@ Restart now?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>Filter enabled</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>Genre filter settings</source>
 		<translation></translation>
 	</message>
@@ -4309,6 +4313,29 @@ Try again?</source>
 	</message>
 </context>
 <context>
+	<name>LanguageFilterDialog</name>
+	<message>
+		<source>Check all</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Filter enabled</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Invert checks</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Language filter settings</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Uncheck all</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
 	<name>LanguageModel</name>
 	<message>
 		<source>Code</source>
@@ -4406,10 +4433,6 @@ Try again?</source>
 	</message>
 	<message>
 		<source>&amp;Font</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>&amp;Genres filter</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -4513,6 +4536,14 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>By &amp;genres...</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>By &amp;languages...</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
 		<translation></translation>
 	</message>
@@ -4561,14 +4592,6 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>Filter &amp;enabled</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Filter &amp;settings...</source>
-		<translation></translation>
-	</message>
-	<message>
 		<source>Font &amp;settings...</source>
 		<translation></translation>
 	</message>
@@ -4602,14 +4625,6 @@ Try again?</source>
 	</message>
 	<message>
 		<source>I&amp;mport</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Language filter</source>
-		<translation>Book language filter</translation>
-	</message>
-	<message>
-		<source>Languages</source>
 		<translation></translation>
 	</message>
 	<message>
