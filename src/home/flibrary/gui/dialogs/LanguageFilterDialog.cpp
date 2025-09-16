@@ -7,6 +7,7 @@
 #include "interface/logic/IModel.h"
 
 #include "gutil/GeometryRestorable.h"
+#include "gutil/util.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -15,6 +16,8 @@ namespace
 {
 
 using Role = ILanguageModel::Role;
+
+constexpr auto FIELD_WIDTH_KEY = "ui/Books/LanguageFilter/columnWidths";
 
 std::unordered_set<QString> GetSelected(const QAbstractItemModel& model)
 {
@@ -36,6 +39,7 @@ struct LanguageFilterDialog::Impl final
 	, Util::GeometryRestorableObserver
 {
 	QWidget& self;
+	PropagateConstPtr<ISettings, std::shared_ptr> settings; 
 	PropagateConstPtr<ILanguageFilterController, std::shared_ptr> languageFilterController;
 	PropagateConstPtr<ILanguageModel, std::shared_ptr> languageModel;
 	Ui::LanguageFilterDialog ui {};
@@ -45,9 +49,10 @@ struct LanguageFilterDialog::Impl final
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<ILanguageFilterController> languageFilterController,
 	     std::shared_ptr<ILanguageModel> languageModel)
-		: GeometryRestorable(*this, std::move(settings), "LanguageFilterDialog")
+		: GeometryRestorable(*this, settings, "LanguageFilterDialog")
 		, GeometryRestorableObserver(self)
 		, self { self }
+		, settings { std::move(settings) }
 		, languageFilterController { std::move(languageFilterController) }
 		, languageModel { std::move(languageModel) }
 	{
@@ -78,10 +83,12 @@ struct LanguageFilterDialog::Impl final
 		ui.checkBoxFilterEnabled->setChecked(languageFilterProvider.IsFilterEnabled());
 
 		LoadGeometry();
+		Util::LoadHeaderSectionWidth(*ui.view->horizontalHeader(), *this->settings, FIELD_WIDTH_KEY);
 	}
 
 	~Impl() override
 	{
+		Util::SaveHeaderSectionWidth(*ui.view->horizontalHeader(), *this->settings, FIELD_WIDTH_KEY);
 		SaveGeometry();
 	}
 
