@@ -45,7 +45,7 @@ struct GenreFilterDialog::Impl final
 	Ui::GenreFilterDialog ui {};
 
 	Impl(GenreFilterDialog& self,
-	     std::unordered_set<QString> filtered,
+	     const IGenreFilterProvider& genreFilterProvider,
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<IGenreFilterController> genreFilterController,
 	     std::shared_ptr<IGenreModel> genreModel)
@@ -54,7 +54,7 @@ struct GenreFilterDialog::Impl final
 		, self { self }
 		, genreFilterController { std::move(genreFilterController) }
 		, genreModel { std::move(genreModel) }
-		, filtered { std::move(filtered) }
+		, filtered { genreFilterProvider.GetFilteredCodes() }
 	{
 		ui.setupUi(&self);
 
@@ -78,6 +78,7 @@ struct GenreFilterDialog::Impl final
 					selected = GetSelected(*model);
 				});
 		ui.view->setModel(model);
+		ui.checkBoxFilterEnabled->setChecked(genreFilterProvider.IsFilterEnabled());
 
 		LoadGeometry();
 	}
@@ -118,7 +119,7 @@ GenreFilterDialog::GenreFilterDialog(const std::shared_ptr<const IParentWidgetPr
                                      std::shared_ptr<IGenreModel> genreModel,
                                      QWidget* parent)
 	: QDialog(parentWidgetProvider->GetWidget(parent))
-	, m_impl(*this, genreFilterProvider->GetFilteredCodes(), std::move(settings), std::move(genreFilterController), std::move(genreModel))
+	, m_impl(*this, *genreFilterProvider, std::move(settings), std::move(genreFilterController), std::move(genreModel))
 {
 	connect(this, &QDialog::accepted, [this] { m_impl->Save(); });
 }

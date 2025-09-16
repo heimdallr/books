@@ -22,8 +22,11 @@ public:
 	GenreFilterProvider(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<ISettings> settings);
 	~GenreFilterProvider() override;
 
-private: // IGenreFilterProvider
+private: // IFilterProvider
+	[[nodiscard]] bool IsFilterEnabled() const override;
 	[[nodiscard]] std::unordered_set<QString> GetFilteredCodes() const override;
+
+private: // IGenreFilterProvider
 	[[nodiscard]] std::unordered_set<QString> GetFilteredNames() const override;
 	[[nodiscard]] const std::unordered_map<QString, QString>& GetNameToCodeMap() const override;
 	[[nodiscard]] const std::unordered_map<QString, QString>& GetCodeToNameMap() const override;
@@ -31,7 +34,7 @@ private: // IGenreFilterProvider
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;
 
-private: // IGenreFilterController
+private: // IFilterController
 	void SetFilteredCodes(bool enabled, const std::unordered_set<QString>& codes) override;
 
 private:

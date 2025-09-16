@@ -502,6 +502,9 @@ private: // IGenreFilterProviderObserver
 		Filter(Role::GenreFilter,
 		       [this]() -> std::unordered_set<QString>
 		       {
+				   if (!m_genreFilterProvider->IsFilterEnabled())
+					   return {};
+
 				   auto filteredGenreNames = m_genreFilterProvider->GetFilteredNames();
 				   if (m_navigationModeName != Loc::Genres)
 					   return filteredGenreNames;

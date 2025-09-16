@@ -15,7 +15,7 @@ constexpr auto FILTERED_GENRES_KEY = "ui/Books/GenreFilter/genres";
 constexpr auto GENRE_FILTER_ENABLED_KEY = "ui/Books/GenreFilter/enabled";
 }
 
-struct GenreFilterProvider::Impl final : Observable<IFilterProvider::IObserver>
+struct GenreFilterProvider::Impl final : Observable<IObserver>
 {
 	std::shared_ptr<const IDatabaseUser> databaseUser;
 	std::shared_ptr<ISettings> settings;
@@ -50,6 +50,11 @@ GenreFilterProvider::GenreFilterProvider(std::shared_ptr<const IDatabaseUser> da
 
 GenreFilterProvider::~GenreFilterProvider() = default;
 
+bool GenreFilterProvider::IsFilterEnabled() const
+{
+	return m_impl->settings->Get(GENRE_FILTER_ENABLED_KEY, false);
+}
+
 std::unordered_set<QString> GenreFilterProvider::GetFilteredCodes() const
 {
 	auto list = m_impl->settings->Get(FILTERED_GENRES_KEY).toStringList();
@@ -59,9 +64,6 @@ std::unordered_set<QString> GenreFilterProvider::GetFilteredCodes() const
 
 std::unordered_set<QString> GenreFilterProvider::GetFilteredNames() const
 {
-	if (!m_impl->settings->Get(GENRE_FILTER_ENABLED_KEY, false))
-		return {};
-
 	if (m_impl->codeToName.empty())
 		m_impl->Update();
 
