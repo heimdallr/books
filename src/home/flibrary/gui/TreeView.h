@@ -31,6 +31,7 @@ public:
 	         std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
 	         std::shared_ptr<ScrollBarController> scrollBarController,
 	         std::shared_ptr<const ICollectionProvider> collectionProvider,
+	         std::shared_ptr<ILanguageFilterProvider> languageFilterProvider,
 	         std::shared_ptr<IGenreFilterProvider> genreFilterProvider,
 	         QWidget* parent = nullptr);
 	~TreeView() override;
@@ -43,7 +44,6 @@ signals:
 public:
 	void SetNavigationModeName(QString navigationModeName);
 	void ShowRemoved(bool showRemoved);
-	void FilterLanguages(bool filterLanguages);
 	QAbstractItemView* GetView() const;
 	void SetMode(int mode, const QString& id);
 
