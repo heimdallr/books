@@ -19,7 +19,6 @@
 #include "model/script/ScriptModel.h"
 #include "model/script/ScriptSortFilterModel.h"
 
-#include "GenreFilterProvider.h"
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
@@ -183,11 +182,6 @@ IDataItem::Ptr ModelProvider::GetData() const noexcept
 std::shared_ptr<const ILibRateProvider> ModelProvider::GetLibRateProvider() const
 {
 	return m_impl->container.resolve<ILibRateProvider>();
-}
-
-std::shared_ptr<const IGenreFilterProvider> ModelProvider::GetGenreFilterProvider() const
-{
-	return m_impl->container.resolve<IGenreFilterProvider>();
 }
 
 void ModelProvider::OnModeChanged(const int index)

@@ -36,7 +36,6 @@ private: // IModelProvider
 	[[nodiscard]] IDataItem::Ptr GetData() const noexcept override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel> GetSourceModel() const noexcept override;
 	[[nodiscard]] std::shared_ptr<const ILibRateProvider> GetLibRateProvider() const override;
-	[[nodiscard]] std::shared_ptr<const IGenreFilterProvider> GetGenreFilterProvider() const override;
 
 private: // ITreeViewController::IObserver
 	void OnModeChanged(int index) override;

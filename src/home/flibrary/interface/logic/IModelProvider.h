@@ -30,7 +30,6 @@ public:
 	[[nodiscard]] virtual IDataItem::Ptr GetData() const noexcept = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel> GetSourceModel() const noexcept = 0;
 	[[nodiscard]] virtual std::shared_ptr<const ILibRateProvider> GetLibRateProvider() const = 0;
-	[[nodiscard]] virtual std::shared_ptr<const IGenreFilterProvider> GetGenreFilterProvider() const = 0;
 };
 
 } // namespace HomeCompa::Flibrary

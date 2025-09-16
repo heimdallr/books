@@ -40,7 +40,6 @@ struct Role
 		IsTree,
 		HeaderName,
 		HeaderTitle,
-		AllGenreCodes,
 		Remap,
 	};
 };
