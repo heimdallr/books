@@ -54,6 +54,13 @@
       <number>9</number>
      </property>
      <item>
+      <widget class="QCheckBox" name="checkBoxFilterEnabled">
+       <property name="text">
+        <string>Filter enabled</string>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QDialogButtonBox" name="buttons">
        <property name="standardButtons">
         <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
