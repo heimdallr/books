@@ -5,8 +5,8 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-#include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IBooksFilterProvider.h"
+#include "interface/logic/ICollectionProvider.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"

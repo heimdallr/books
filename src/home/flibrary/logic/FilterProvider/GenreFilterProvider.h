@@ -4,8 +4,8 @@
 
 #include "fnd/NonCopyMovable.h"
 
-#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IBooksFilterProvider.h"
+#include "interface/logic/IDatabaseUser.h"
 
 #include "util/ISettings.h"
 

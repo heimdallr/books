@@ -25,8 +25,8 @@ private: // IFilterProvider
 	[[nodiscard]] bool IsFilterEnabled() const override;
 	[[nodiscard]] std::unordered_set<QString> GetFilteredCodes() const override;
 	//	[[nodiscard]] std::unordered_set<QString> GetFilteredNames() const override;
-//	[[nodiscard]] const std::unordered_map<QString, QString>& GetNameToCodeMap() const override;
-//	[[nodiscard]] const std::unordered_map<QString, QString>& GetCodeToNameMap() const override;
+	//	[[nodiscard]] const std::unordered_map<QString, QString>& GetNameToCodeMap() const override;
+	//	[[nodiscard]] const std::unordered_map<QString, QString>& GetCodeToNameMap() const override;
 
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;

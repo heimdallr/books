@@ -136,7 +136,7 @@ private: // QAbstractItemModel
 				if (!Util::Set(m_checked, value.toStringList()))
 					return false;
 				return Reset(), true;
-			
+
 			default:
 				break;
 		}

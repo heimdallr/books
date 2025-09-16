@@ -29,7 +29,7 @@ public:
 	virtual void UnregisterObserver(IObserver* observer) = 0;
 };
 
-class IFilterController  // NOLINT(cppcoreguidelines-special-member-functions)
+class IFilterController // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IFilterController() = default;

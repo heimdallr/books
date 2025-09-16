@@ -6,7 +6,7 @@
 namespace HomeCompa
 {
 
-class IParentWidgetProvider  // NOLINT(cppcoreguidelines-special-member-functions)
+class IParentWidgetProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IParentWidgetProvider() = default;
