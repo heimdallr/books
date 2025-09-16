@@ -79,9 +79,7 @@ QObject* UiFactory::GetParentObject(QObject* defaultObject) const noexcept
 
 QWidget* UiFactory::GetParentWidget(QWidget* defaultWidget) const noexcept
 {
-	if (auto* widget = m_impl->container.resolve<IParentWidgetProvider>()->GetWidget())
-		return widget;
-	return defaultWidget;
+	return m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(defaultWidget);
 }
 
 QMessageBox::ButtonRole UiFactory::ShowCustomDialog(const QMessageBox::Icon icon,
