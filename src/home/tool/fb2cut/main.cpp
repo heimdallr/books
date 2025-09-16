@@ -244,11 +244,14 @@ QByteArray FixInputFile(const QByteArray& inputFileBody)
 	str.replace(QRegularExpression(R"(<section id=n(\d)>)", QRegularExpression::CaseInsensitiveOption), R"(<section id="n\1">)");
 
 	{
+		const QString customInfo = "custom-info";
+		const QString br = "br";
 		constexpr const char* specials[] { "amp;", "apos;", "gt;", "lt;", "quot;" };
 		const auto index = str.indexOf(R"(?>)");
 		QString buf = str.first(index + 3);
 		buf.reserve(str.length());
 		bool lineBreak = false;
+		bool isCustomInfo = false;
 		for (qsizetype i = buf.length(), sz = str.length(); i < sz; ++i)
 		{
 			const auto ch = str[i];
@@ -273,34 +276,51 @@ QByteArray FixInputFile(const QByteArray& inputFileBody)
 
 			if (ch == QChar { '<' } && str[i + 1] != '/')
 			{
-				if (std::ranges::none_of(FB2_TAGS,
-				                         [&](const QString& tag)
-				                         {
-											 const auto tagLength = tag.length();
-											 QStringView s(str.constData() + i + 1, tagLength);
-											 const auto nextCh = str[i + 1 + tagLength];
-											 return s.compare(tag, Qt::CaseInsensitive) == 0 && IsOneOf(nextCh, ' ', '>', '/', '\x0d', '\x0a');
-										 }))
+				const auto it = std::ranges::find_if(FB2_TAGS,
+				                                     [&](const QString& tag)
+				                                     {
+														 const auto tagLength = tag.length();
+														 QStringView s(str.constData() + i + 1, tagLength);
+														 const auto nextCh = str[i + 1 + tagLength];
+														 return s.compare(tag, Qt::CaseInsensitive) == 0 && IsOneOf(nextCh, ' ', '>', '/', '\x0d', '\x0a');
+													 });
+				if (!isCustomInfo && it == std::end(FB2_TAGS))
 				{
 					buf.append("&lt;");
 					continue;
 				}
+
+				if (br == *it)
+				{
+					i += 2;
+					continue;
+				}
+
+				if (customInfo == *it)
+					isCustomInfo = true;
 			}
 
 			if (ch == QChar { '>' } && !IsOneOf(str[i - 1], '/', '"'))
 			{
-				if (std::ranges::none_of(FB2_TAGS,
-				                         [&](const QString& tag)
-				                         {
-											 const auto tagLength = tag.length();
-											 QStringView s(str.constData() + i - tagLength, tagLength);
-											 const auto prevCh = str[i - tagLength - 1];
-											 return IsOneOf(prevCh, '<', '/') && s.compare(tag, Qt::CaseInsensitive) == 0;
-										 }))
+				const auto it = std::ranges::find_if(FB2_TAGS,
+				                                     [&](const QString& tag)
+				                                     {
+														 const auto tagLength = tag.length();
+														 QStringView s(str.constData() + i - tagLength, tagLength);
+														 const auto prevCh = str[i - tagLength - 1];
+														 return IsOneOf(prevCh, '<', '/') && s.compare(tag, Qt::CaseInsensitive) == 0;
+													 });
+				if (!isCustomInfo && it == std::end(FB2_TAGS))
 				{
 					buf.append("&gt;");
 					continue;
 				}
+
+				if (br == *it)
+					continue;
+
+				if (customInfo == *it)
+					isCustomInfo = false;
 			}
 
 			if (const auto value = ch.unicode(); value >= char16_t { 32 })
@@ -533,7 +553,8 @@ private:
 			(isCover ? m_covers : m_images).emplace_back(imageFile, encoded.size() < body.size() ? std::move(encoded) : std::move(body), dateTime);
 		};
 
-		Fb2ImageParser::Parse(input, std::move(binaryCallback));
+		if (!Fb2ImageParser::Parse(input, std::move(binaryCallback)))
+			return {};
 
 		input.seek(0);
 		Fb2Parser::Parse(inputFilePath, input, output, idToNum);

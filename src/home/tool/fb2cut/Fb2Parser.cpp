@@ -36,7 +36,18 @@ constexpr auto DESCRIPTION = "FictionBook/description";
 constexpr auto DOCUMENT_INFO = "FictionBook/description/document-info";
 constexpr auto PROGRAM_USED = "FictionBook/description/document-info/program-used";
 
+constexpr auto CUSTOM_INFO = "custom-info";
+constexpr auto BR = "br";
+
 const std::unordered_set<QString> FB2_TAGS_CACHE { std::begin(Fb2Parser::FB2_TAGS), std::end(Fb2Parser::FB2_TAGS) };
+
+const std::pair<QString, QString> REPLACE_CHAR[] {
+	{  "&lt;",  "<" },
+    {  "&gt;",  ">" },
+    {  "amp;",  "&" },
+    { "apos;",  "'" },
+    { "quot;", "\"" },
+};
 
 }
 
@@ -53,8 +64,12 @@ public:
 private: // Util::SaxParser
 	bool OnStartElement(const QString&, const QString& path, const Util::XmlAttributes& attributes) override
 	{
+		if (m_isBinary)
+			throw std::runtime_error("bad binary");
+
 		if (IsOneOf(path, BINARY, BODY_BINARY))
 		{
+			m_isBinary = true;
 			m_picId = attributes.GetAttribute(ID).trimmed();
 			if (const auto it = std::ranges::find_if(m_picId, [](const auto ch) { return ch != '#'; }); it != m_picId.end())
 				m_picId = m_picId.last(std::distance(it, m_picId.end())).trimmed();
@@ -80,12 +95,21 @@ private: // Util::SaxParser
 		return true;
 	}
 
+	bool OnEndElement(const QString&, const QString& path) override
+	{
+		if (IsOneOf(path, BINARY, BODY_BINARY))
+			m_isBinary = false;
+
+		return true;
+	}
+
 	bool OnCharacters([[maybe_unused]] const QString& path, const QString& value) override
 	{
 		if (m_picId.isEmpty())
 			return true;
 
-		assert(IsOneOf(path, BINARY, BODY_BINARY));
+		if (!m_isBinary || !IsOneOf(path, BINARY, BODY_BINARY))
+			throw std::runtime_error("bad binary");
 
 		const auto isCover = m_picId == m_coverPage;
 		m_binaryCallback(std::move(m_picId), isCover, QByteArray::fromBase64(value.toUtf8()));
@@ -95,14 +119,28 @@ private: // Util::SaxParser
 	}
 
 private:
+	bool m_isBinary { false };
 	OnBinaryFound m_binaryCallback;
 	QString m_coverPage;
 	QString m_picId;
 };
 
-void Fb2ImageParser::Parse(QIODevice& input, OnBinaryFound binaryCallback)
+bool Fb2ImageParser::Parse(QIODevice& input, OnBinaryFound binaryCallback)
 {
-	const Fb2ImageParser parser(input, std::move(binaryCallback));
+	try
+	{
+		const Fb2ImageParser parser(input, std::move(binaryCallback));
+		return true;
+	}
+	catch (const std::exception& ex)
+	{
+		PLOGE << ex.what();
+	}
+	catch (...)
+	{
+		PLOGE << "unknown error";
+	}
+	return false;
 }
 
 Fb2ImageParser::Fb2ImageParser(QIODevice& input, OnBinaryFound binaryCallback)
@@ -136,8 +174,18 @@ private: // Util::SaxParser
 
 	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
-		if (!FB2_TAGS_CACHE.contains(name.toLower()))
-			return m_writer.WriteCharacters(QString("&lt;%1").arg(name)), true;
+		if (name == BR)
+			return true;
+
+		if (name == CUSTOM_INFO)
+			m_isCustomInfo = true;
+
+		if (!m_isCustomInfo && !FB2_TAGS_CACHE.contains(name.toLower()))
+		{
+			PLOGW << "Unexpected tag: " << name;
+			m_writer.WriteCharacters(QString("<%1").arg(name));
+			return true;
+		}
 
 		m_tags.push(name);
 
@@ -166,8 +214,14 @@ private: // Util::SaxParser
 
 	bool OnEndElement(const QString& name, const QString& path) override
 	{
-		if (!FB2_TAGS_CACHE.contains(name.toLower()))
-			return m_writer.WriteCharacters("&gt;"), true;
+		if (name == BR)
+			return true;
+
+		if (name == CUSTOM_INFO)
+			m_isCustomInfo = false;
+
+		if (!m_isCustomInfo && !FB2_TAGS_CACHE.contains(name.toLower()))
+			return m_writer.WriteCharacters(">"), true;
 
 		if (m_tags.top() != name)
 			return false;
@@ -206,7 +260,12 @@ private: // Util::SaxParser
 			return true;
 		}
 
-		m_writer.WriteCharacters(value);
+		auto valueCopy = value;
+
+		for (const auto& [before, after] : REPLACE_CHAR)
+			valueCopy.replace(before, after, Qt::CaseInsensitive);
+
+		m_writer.WriteCharacters(valueCopy);
 
 		return true;
 	}
@@ -267,6 +326,7 @@ private:
 	std::unordered_map<QString, size_t, std::hash<QString>, std::equal_to<>> m_imageNames;
 	bool m_hasProgramUsed { false };
 	std::stack<QString> m_tags;
+	bool m_isCustomInfo { false };
 };
 
 void Fb2Parser::Parse(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId)
