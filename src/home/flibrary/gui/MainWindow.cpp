@@ -83,7 +83,6 @@ constexpr auto SHOW_STATUS_BAR_KEY = "ui/View/Status";
 constexpr auto SHOW_REVIEWS_KEY = "ui/View/ShowReadersReviews";
 constexpr auto SHOW_SEARCH_BOOK_KEY = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY = "ui/View/CheckForUpdateOnStart";
-constexpr auto GENRE_FILTER_ENABLED_KEY = "ui/Books/GenreFilter/enabled";
 constexpr auto START_FOCUSED_CONTROL = "ui/View/StartFocusedControl";
 constexpr auto QSS = "qss";
 constexpr auto ID = "obj_id";
@@ -778,17 +777,13 @@ private:
 	{
 		PLOGV << "ConnectActionsSettingsFilters";
 		ConnectSettings(m_ui.actionLanguageFilterEnabled, Constant::Settings::PERMANENT_LANG_FILTER_ENABLED_KEY, m_booksWidget.get(), &TreeView::FilterLanguages);
-		ConnectSettings(m_ui.actionGenreFilterEnabled, GENRE_FILTER_ENABLED_KEY, m_booksWidget.get(), &TreeView::FilterGenres);
 		connect(m_ui.menuLanguageFilterLanguagesList, &QMenu::aboutToShow, [this] { CreateFilterLanguageList(); });
-		connect(m_ui.actionGenreFilterSettings,
+		connect(m_ui.actionGenreFilter,
 		        &QAction::triggered,
 		        &m_self,
 		        [this]
 		        {
-					auto allGenreCodes = m_booksWidget->GetView()->model()->data({}, Role::AllGenreCodes).value<std::unordered_set<QString>>();
-					auto dialog = m_uiFactory->CreateGenreFilterDialog(std::move(allGenreCodes));
-					if (dialog->exec() == QDialog::Accepted)
-						m_booksWidget->FilterGenres(true);
+					m_uiFactory->CreateGenreFilterDialog()->exec();
 				});
 	}
 

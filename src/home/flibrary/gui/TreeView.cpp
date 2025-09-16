@@ -52,6 +52,16 @@ constexpr auto RECENT_LANG_FILTER_KEY = "ui/language";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "ui/View/CommonBooksTableColumnSettings";
 constexpr auto LAST = "Last";
 
+class IGenreFilterProviderObserver : public IGenreFilterProvider::IObserver
+{
+	void OnFilterChanged() override
+	{
+		OnGenreFilterChanged();
+	}
+
+	virtual void OnGenreFilterChanged() = 0;
+};
+
 class HeaderView final : public QHeaderView
 {
 public:
@@ -319,6 +329,7 @@ void TreeOperation(const QAbstractItemModel& model, const QModelIndex& index, co
 class TreeView::Impl final
 	: ITreeViewController::IObserver
 	, ITreeViewDelegate::IObserver
+	, IGenreFilterProviderObserver
 	, ModeComboBox::IValueApplier
 {
 	NON_COPY_MOVABLE(Impl)
@@ -330,7 +341,7 @@ public:
 	     std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
 	     std::shared_ptr<ScrollBarController> scrollBarController,
 	     std::shared_ptr<const ICollectionProvider> collectionProvider,
-	     std::shared_ptr<const IGenreFilterProvider> genreFilterProvider)
+	     std::shared_ptr<IGenreFilterProvider> genreFilterProvider)
 		: m_self { self }
 		, m_controller { uiFactory->GetTreeViewController() }
 		, m_settings { std::move(settings) }
@@ -348,6 +359,7 @@ public:
 	~Impl() override
 	{
 		SaveHeaderLayout();
+		m_genreFilterProvider->UnregisterObserver(this);
 		m_controller->UnregisterObserver(this);
 		m_delegate->UnregisterObserver(this);
 	}
@@ -370,35 +382,16 @@ public:
 		Find(m_currentId, Role::Id);
 	}
 
-	void FilterGenres(const bool filterGenres)
+	void FilterLanguages(const bool /*filterLanguages*/)
 	{
-		Filter(filterGenres,
-		       m_filterGenres,
-		       Role::GenreFilter,
-		       [this]() -> std::unordered_set<QString>
-		       {
-				   auto filteredGenreNames = m_genreFilterProvider->GetFilteredGenreNames();
-				   if (m_navigationModeName != Loc::Genres)
-					   return filteredGenreNames;
-
-				   const auto& codeToName = m_genreFilterProvider->GetGenreCodeToNameMap();
-				   if (const auto it = codeToName.find(m_controller->GetNavigationId()); it != codeToName.end())
-					   filteredGenreNames.erase(it->second);
-
-				   return filteredGenreNames;
-			   });
-	}
-
-	void FilterLanguages(const bool filterLanguages)
-	{
-		Filter(filterLanguages,
-		       m_filterLanguages,
-		       Role::PermanentLanguageFilter,
-		       [this]() -> std::unordered_set<QString>
-		       {
-				   auto checkedList = m_settings->Get(Constant::Settings::PERMANENT_LANG_FILTER_KEY, QString {}).split(';', Qt::SkipEmptyParts);
-				   return std::unordered_set<QString> { std::make_move_iterator(checkedList.begin()), std::make_move_iterator(checkedList.end()) };
-			   });
+//		Filter(filterLanguages,
+//		       m_filterLanguages,
+//		       Role::PermanentLanguageFilter,
+//		       [this]() -> std::unordered_set<QString>
+//		       {
+//				   auto checkedList = m_settings->Get(Constant::Settings::PERMANENT_LANG_FILTER_KEY, QString {}).split(';', Qt::SkipEmptyParts);
+//				   return std::unordered_set<QString> { std::make_move_iterator(checkedList.begin()), std::make_move_iterator(checkedList.end()) };
+//			   });
 	}
 
 	QAbstractItemView* GetView() const
@@ -503,6 +496,24 @@ private: // ITreeViewDelegate::IObserver
 		m_removeItems(m_ui.treeView->selectionModel()->selectedIndexes());
 	}
 
+private: // IGenreFilterProviderObserver
+	void OnGenreFilterChanged() override
+	{
+		Filter(Role::GenreFilter,
+		       [this]() -> std::unordered_set<QString>
+		       {
+				   auto filteredGenreNames = m_genreFilterProvider->GetFilteredNames();
+				   if (m_navigationModeName != Loc::Genres)
+					   return filteredGenreNames;
+
+				   const auto& codeToName = m_genreFilterProvider->GetCodeToNameMap();
+				   if (const auto it = codeToName.find(m_controller->GetNavigationId()); it != codeToName.end())
+					   filteredGenreNames.erase(it->second);
+
+				   return filteredGenreNames;
+			   });
+	}
+
 private: //	ModeComboBox::IValueApplier
 	void Find() override
 	{
@@ -549,7 +560,7 @@ private:
 			m_languageContextMenu.reset();
 			model->setData({}, true, Role::Checkable);
 			FilterLanguages(m_filterLanguages);
-			FilterGenres(m_filterGenres);
+			OnGenreFilterChanged();
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 
@@ -783,7 +794,7 @@ private:
 
 		Impl::OnModeChanged(m_controller->GetModeIndex());
 		m_controller->RegisterObserver(this);
-
+		m_genreFilterProvider->RegisterObserver(this);
 		QTimer::singleShot(0, [&] { emit m_self.NavigationModeNameChanged(m_ui.cbMode->currentData().toString()); });
 	}
 
@@ -1135,14 +1146,13 @@ private:
 		return key;
 	}
 
-	void Filter(const bool filter, bool& filtered, const int role, const std::function<std::unordered_set<QString>()>& getValues) const
+	void Filter(const int role, const std::function<std::unordered_set<QString>()>& getValues) const
 	{
-		filtered = filter;
 		auto* model = m_ui.treeView->model();
 		if (!model)
 			return;
 
-		model->setData({}, QVariant::fromValue(filtered ? getValues() : std::unordered_set<QString> {}), role);
+		model->setData({}, QVariant::fromValue(getValues()), role);
 		OnCountChanged();
 		Find(m_currentId, Role::Id);
 	}
@@ -1155,7 +1165,7 @@ private:
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> m_itemViewToolTipper;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
 	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
-	std::shared_ptr<const IGenreFilterProvider> m_genreFilterProvider;
+	PropagateConstPtr<IGenreFilterProvider, std::shared_ptr> m_genreFilterProvider;
 	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr> m_delegate;
 	Ui::TreeView m_ui {};
 	QTimer m_filterTimer;
@@ -1164,7 +1174,6 @@ private:
 	QString m_currentId;
 	std::shared_ptr<QMenu> m_languageContextMenu;
 	bool m_showRemoved { false };
-	bool m_filterGenres { false };
 	bool m_filterLanguages { false };
 	int m_lineHeight { 0 };
 	QString m_lastRestoredLayoutKey;
@@ -1178,7 +1187,7 @@ TreeView::TreeView(std::shared_ptr<ISettings> settings,
                    std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
                    std::shared_ptr<ScrollBarController> scrollBarController,
                    std::shared_ptr<const ICollectionProvider> collectionProvider,
-                   std::shared_ptr<const IGenreFilterProvider> genreFilterProvider,
+                   std::shared_ptr<IGenreFilterProvider> genreFilterProvider,
                    QWidget* parent)
 	: QWidget(parent)
 	, m_impl(*this, std::move(settings), std::move(uiFactory), std::move(itemViewToolTipper), std::move(scrollBarController), std::move(collectionProvider), std::move(genreFilterProvider))
@@ -1199,11 +1208,6 @@ void TreeView::SetNavigationModeName(QString navigationModeName)
 void TreeView::ShowRemoved(const bool showRemoved)
 {
 	m_impl->ShowRemoved(showRemoved);
-}
-
-void TreeView::FilterGenres(const bool filterGenres)
-{
-	m_impl->FilterGenres(filterGenres);
 }
 
 void TreeView::FilterLanguages(const bool filterLanguages)

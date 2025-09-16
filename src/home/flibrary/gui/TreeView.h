@@ -6,7 +6,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IGenreFilterProvider.h"
+#include "interface/logic/IBooksFilterProvider.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"
@@ -31,7 +31,7 @@ public:
 	         std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
 	         std::shared_ptr<ScrollBarController> scrollBarController,
 	         std::shared_ptr<const ICollectionProvider> collectionProvider,
-	         std::shared_ptr<const IGenreFilterProvider> genreFilterProvider,
+	         std::shared_ptr<IGenreFilterProvider> genreFilterProvider,
 	         QWidget* parent = nullptr);
 	~TreeView() override;
 
@@ -43,7 +43,6 @@ signals:
 public:
 	void SetNavigationModeName(QString navigationModeName);
 	void ShowRemoved(bool showRemoved);
-	void FilterGenres(bool filterGenres);
 	void FilterLanguages(bool filterLanguages);
 	QAbstractItemView* GetView() const;
 	void SetMode(int mode, const QString& id);

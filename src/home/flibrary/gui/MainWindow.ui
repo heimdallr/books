@@ -459,15 +459,8 @@
       <addaction name="actionLanguageFilterEnabled"/>
       <addaction name="menuLanguageFilterLanguagesList"/>
      </widget>
-     <widget class="QMenu" name="menuGenresFilter">
-      <property name="title">
-       <string>&amp;Genres filter</string>
-      </property>
-      <addaction name="actionGenreFilterEnabled"/>
-      <addaction name="actionGenreFilterSettings"/>
-     </widget>
      <addaction name="menuLanguageFilter"/>
-     <addaction name="menuGenresFilter"/>
+     <addaction name="actionGenreFilter"/>
     </widget>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
@@ -996,23 +989,9 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionGenreFilterEnabled">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
+  <action name="actionGenreFilter">
    <property name="text">
-    <string>Filter &amp;enabled</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionGenreFilterSettings">
-   <property name="enabled">
-    <bool>false</bool>
-   </property>
-   <property name="text">
-    <string>Filter &amp;settings...</string>
+    <string>By &amp;genres...</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -1043,22 +1022,6 @@
   <include location="../icons/light/resources/light.qrc"/>
  </resources>
  <connections>
-  <connection>
-   <sender>actionGenreFilterEnabled</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>actionGenreFilterSettings</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-   </hints>
-  </connection>
   <connection>
    <sender>actionLanguageFilterEnabled</sender>
    <signal>toggled(bool)</signal>
