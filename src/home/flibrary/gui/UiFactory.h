@@ -1,7 +1,5 @@
 #pragma once
 
-#include <QObject>
-
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
@@ -35,7 +33,7 @@ private: // IUiFactory
 	std::shared_ptr<ITreeViewDelegate> CreateTreeViewDelegateBooks(QTreeView& parent) const override;
 	std::shared_ptr<ITreeViewDelegate> CreateTreeViewDelegateNavigation(QAbstractItemView& parent) const override;
 	std::shared_ptr<QDialog> CreateOpdsDialog() const override;
-	std::shared_ptr<QDialog> CreateGenreFilterDialog(std::unordered_set<QString> visibleGenres) const override;
+	std::shared_ptr<QDialog> CreateGenreFilterDialog() const override;
 	std::shared_ptr<IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const override;
 	std::shared_ptr<QMainWindow> CreateQueryWindow() const override;
 	void CreateCollectionCleaner() const override;
@@ -65,7 +63,6 @@ private: // special
 	QTreeView& GetTreeView() const noexcept override;
 	QAbstractItemView& GetAbstractItemView() const noexcept override;
 	QString GetTitle() const noexcept override;
-	std::unordered_set<QString> GetVisibleGenres() const noexcept override;
 	long long GetAuthorId() const noexcept override;
 
 private:

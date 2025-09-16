@@ -77,7 +77,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<DatabaseController>().as<IDatabaseController>().singleInstance();
 	builder.registerType<DatabaseUser>().as<IDatabaseUser>().singleInstance();
 	builder.registerType<DataProvider>().as<IDataProvider>().singleInstance();
-	builder.registerType<GenreFilterProvider>().as<IGenreFilterController>().singleInstance();
+	builder.registerType<GenreFilterProvider>().singleInstance();
 	builder.registerType<LogController>().as<ILogController>().singleInstance();
 	builder.registerType<NavigationQueryExecutor>().as<INavigationQueryExecutor>().singleInstance();
 	builder.registerType<ProgressController>().as<IBooksExtractorProgressController>().singleInstance();
@@ -85,7 +85,8 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<SearchController>().as<IBookSearchController>().singleInstance();
 
 	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return ctx.resolve<IDataProvider>(); }).as<IBookInfoProvider>();
-	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return ctx.resolve<IGenreFilterController>(); }).as<IGenreFilterProvider>();
+	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return ctx.resolve<GenreFilterProvider>(); }).as<IGenreFilterProvider>();
+	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return ctx.resolve<GenreFilterProvider>(); }).as<IGenreFilterController>();
 	builder
 		.registerInstanceFactory(
 			[&](Hypodermic::ComponentContext& ctx)
