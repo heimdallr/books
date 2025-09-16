@@ -14,6 +14,7 @@
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
 #include "dialogs/AddCollectionDialog.h"
 #include "dialogs/GenreFilterDialog.h"
+#include "dialogs/LanguageFilterDialog.h"
 #include "dialogs/OpdsDialog.h"
 #include "util/localization.h"
 #include "version/AppVersion.h"
@@ -161,6 +162,11 @@ std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateNavigation(Q
 std::shared_ptr<QDialog> UiFactory::CreateOpdsDialog() const
 {
 	return m_impl->container.resolve<OpdsDialog>();
+}
+
+std::shared_ptr<QDialog> UiFactory::CreateLanguageFilterDialog() const
+{
+	return m_impl->container.resolve<LanguageFilterDialog>();
 }
 
 std::shared_ptr<QDialog> UiFactory::CreateGenreFilterDialog() const
