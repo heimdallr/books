@@ -48,4 +48,12 @@ class IGenreFilterController : public IFilterController
 {
 };
 
+class ILanguageFilterProvider : public IFilterProvider
+{
+};
+
+class ILanguageFilterController : public IFilterController
+{
+};
+
 } // namespace HomeCompa::Flibrary
