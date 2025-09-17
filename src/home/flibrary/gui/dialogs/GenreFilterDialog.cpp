@@ -47,7 +47,6 @@ struct GenreFilterDialog::Impl final
 	Ui::GenreFilterDialog ui {};
 
 	Impl(GenreFilterDialog& self,
-	     const IGenreFilterProvider& genreFilterProvider,
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<IGenreFilterController> genreFilterController,
 	     std::shared_ptr<IGenreModel> genreModel,
@@ -59,7 +58,7 @@ struct GenreFilterDialog::Impl final
 		, genreFilterController { std::move(genreFilterController) }
 		, genreModel { std::move(genreModel) }
 		, scrollBarController { std::move(scrollBarController) }
-		, filtered { genreFilterProvider.GetFilteredCodes() }
+		, filtered { this->genreFilterController->ToProvider().GetFilteredCodes() }
 	{
 		ui.setupUi(&self);
 
@@ -86,7 +85,7 @@ struct GenreFilterDialog::Impl final
 		this->scrollBarController->SetScrollArea(ui.view);
 		ui.view->viewport()->installEventFilter(this->scrollBarController.get());
 
-		ui.checkBoxFilterEnabled->setChecked(genreFilterProvider.IsFilterEnabled());
+		ui.checkBoxFilterEnabled->setChecked(this->genreFilterController->ToProvider().IsFilterEnabled());
 
 		LoadGeometry();
 	}
@@ -121,14 +120,13 @@ private:
 };
 
 GenreFilterDialog::GenreFilterDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
-                                     const std::shared_ptr<const IGenreFilterProvider>& genreFilterProvider,
                                      std::shared_ptr<ISettings> settings,
                                      std::shared_ptr<IGenreFilterController> genreFilterController,
                                      std::shared_ptr<IGenreModel> genreModel,
                                      std::shared_ptr<ScrollBarController> scrollBarController,
                                      QWidget* parent)
 	: QDialog(parentWidgetProvider->GetWidget(parent))
-	, m_impl(*this, *genreFilterProvider, std::move(settings), std::move(genreFilterController), std::move(genreModel), std::move(scrollBarController))
+	, m_impl(*this, std::move(settings), std::move(genreFilterController), std::move(genreModel), std::move(scrollBarController))
 {
 	connect(this, &QDialog::accepted, [this] { m_impl->Save(); });
 }

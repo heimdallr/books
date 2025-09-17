@@ -48,7 +48,6 @@ struct LanguageFilterDialog::Impl final
 	Ui::LanguageFilterDialog ui {};
 
 	Impl(LanguageFilterDialog& self,
-	     const ILanguageFilterProvider& languageFilterProvider,
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<ILanguageFilterController> languageFilterController,
 	     std::shared_ptr<ILanguageModel> languageModel,
@@ -75,12 +74,12 @@ struct LanguageFilterDialog::Impl final
 		connect(ui.view, &QWidget::customContextMenuRequested, &self, [&] { OnLanguagesContextMenuRequested(); });
 		connect(model,
 		        &QAbstractItemModel::modelReset,
-		        [this, model, filtered = languageFilterProvider.GetFilteredCodes()]() mutable
+		        [this, model, filtered = this->languageFilterController->ToProvider().GetFilteredCodes()]() mutable
 		        {
 					if (filtered.empty())
 						return;
 
-					QStringList list { filtered.cbegin(), filtered.cend() };
+					const QStringList list { std::make_move_iterator(filtered.begin()), std::make_move_iterator(filtered.end()) };
 					filtered.clear();
 					model->setData({}, QVariant::fromValue(list), Role::SelectedList);
 				});
@@ -88,12 +87,12 @@ struct LanguageFilterDialog::Impl final
 		this->scrollBarController->SetScrollArea(ui.view);
 		ui.view->viewport()->installEventFilter(this->scrollBarController.get());
 
-		ui.checkBoxFilterEnabled->setChecked(languageFilterProvider.IsFilterEnabled());
+		ui.checkBoxFilterEnabled->setChecked(this->languageFilterController->ToProvider().IsFilterEnabled());
 
 		LoadGeometry();
-		Util::LoadHeaderSectionWidth(*ui.view->horizontalHeader(), *this->settings, FIELD_WIDTH_KEY);
-		ui.view->horizontalHeader()->setSortIndicator(this->settings->Get(SORT_INDEX_KEY, ui.view->horizontalHeader()->sortIndicatorSection()),
-		                                              this->settings->Get(SORT_ORDER_KEY, ui.view->horizontalHeader()->sortIndicatorOrder()));
+		auto& header = *ui.view->horizontalHeader();
+		Util::LoadHeaderSectionWidth(header, *this->settings, FIELD_WIDTH_KEY);
+		header.setSortIndicator(this->settings->Get(SORT_INDEX_KEY, header.sortIndicatorSection()), this->settings->Get(SORT_ORDER_KEY, header.sortIndicatorOrder()));
 	}
 
 	~Impl() override
@@ -124,14 +123,13 @@ private:
 };
 
 LanguageFilterDialog::LanguageFilterDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
-                                           const std::shared_ptr<const ILanguageFilterProvider>& languageFilterProvider,
                                            std::shared_ptr<ISettings> settings,
                                            std::shared_ptr<ILanguageFilterController> languageFilterController,
                                            std::shared_ptr<ILanguageModel> languageModel,
                                            std::shared_ptr<ScrollBarController> scrollBarController,
                                            QWidget* parent)
 	: QDialog(parentWidgetProvider->GetWidget(parent))
-	, m_impl(*this, *languageFilterProvider, std::move(settings), std::move(languageFilterController), std::move(languageModel), std::move(scrollBarController))
+	, m_impl(*this, std::move(settings), std::move(languageFilterController), std::move(languageModel), std::move(scrollBarController))
 {
 	connect(this, &QDialog::accepted, [this] { m_impl->Save(); });
 }

@@ -444,8 +444,10 @@
      <property name="title">
       <string>&amp;Filters</string>
      </property>
-     <addaction name="actionGenreFilter"/>
      <addaction name="actionLanguageFilter"/>
+     <addaction name="actionGenreFilter"/>
+     <addaction name="separator"/>
+     <addaction name="actionDisableAllFilters"/>
     </widget>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
@@ -996,6 +998,11 @@
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionDisableAllFilters">
+   <property name="text">
+    <string>Disable &amp;all filters</string>
    </property>
   </action>
  </widget>

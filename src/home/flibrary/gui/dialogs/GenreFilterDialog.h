@@ -23,7 +23,6 @@ class GenreFilterDialog final : public QDialog
 
 public:
 	GenreFilterDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
-	                  const std::shared_ptr<const IGenreFilterProvider>& genreFilterProvider,
 	                  std::shared_ptr<ISettings> settings,
 	                  std::shared_ptr<IGenreFilterController> genreFilterController,
 	                  std::shared_ptr<IGenreModel> genreModel,
