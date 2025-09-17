@@ -53,6 +53,7 @@ set(CMAKE_AUTOUIC ON)
 
 add_compile_definitions(PLOG_IMPORT)
 add_compile_definitions(UNICODE _UNICODE NOMINMAX _USE_MATH_DEFINES)
+add_compile_definitions(HYPODERMIC_OVERRIDE_CONSTRUCTOR_ARGUMENT_COUNT=32)
 include_directories("src/ext/Hypodermic")
 
 include("src/ext/sqlite.cmake")
