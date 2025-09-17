@@ -3,10 +3,12 @@
 #include <Windows.h>
 
 #include <QBuffer>
+#include <QDesktopServices>
 #include <QDir>
 #include <QEventLoop>
 #include <QProcess>
 #include <QRegularExpression>
+#include <QUrl>
 
 #include "fnd/FindPair.h"
 
@@ -104,6 +106,11 @@ bool EmbeddedCommandDownload(const QString& argStr)
 	}
 
 	return true;
+}
+
+bool EmbeddedCommandOpenLink(const QString& argStr)
+{
+	return QDesktopServices::openUrl(argStr);
 }
 
 constexpr std::pair<IScriptController::Command::Type, std::tuple<int /*show*/, bool /*wait for finished*/>> TYPES[] {
