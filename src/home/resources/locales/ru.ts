@@ -4588,6 +4588,10 @@ Try again?</source>
 		<translation>Удалить все темы</translation>
 	</message>
 	<message>
+		<source>Disable &amp;all filters</source>
+		<translation>Выключить &amp;все фильтры</translation>
+	</message>
+	<message>
 		<source>Disable all</source>
 		<translation>Выключить все</translation>
 	</message>

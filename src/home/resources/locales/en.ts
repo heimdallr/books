@@ -4576,6 +4576,10 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>Disable &amp;all filters</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>Disable all</source>
 		<translation></translation>
 	</message>
