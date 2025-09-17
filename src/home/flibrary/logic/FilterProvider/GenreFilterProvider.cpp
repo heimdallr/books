@@ -107,6 +107,16 @@ void GenreFilterProvider::SetFilteredCodes(const bool enabled, const std::unorde
 	m_impl->Perform(&IObserver::OnFilterChanged);
 }
 
+IFilterProvider& GenreFilterProvider::ToProvider() noexcept
+{
+	return *this;
+}
+
+IGenreFilterProvider& GenreFilterProvider::ToGenreFilterProvider() noexcept
+{
+	return *this;
+}
+
 void GenreFilterProvider::RegisterObserver(IObserver* observer)
 {
 	m_impl->Register(observer);

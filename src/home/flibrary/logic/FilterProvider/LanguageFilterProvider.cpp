@@ -58,6 +58,11 @@ void LanguageFilterProvider::SetFilteredCodes(const bool enabled, const std::uno
 	m_impl->Perform(&IObserver::OnFilterChanged);
 }
 
+IFilterProvider& LanguageFilterProvider::ToProvider() noexcept
+{
+	return *this;
+}
+
 void LanguageFilterProvider::RegisterObserver(IObserver* observer)
 {
 	m_impl->Register(observer);

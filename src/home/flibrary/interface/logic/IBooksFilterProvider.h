@@ -35,6 +35,7 @@ public:
 	virtual ~IFilterController() = default;
 	virtual void SetEnabled(bool enabled) = 0;
 	virtual void SetFilteredCodes(bool enabled, const std::unordered_set<QString>& codes) = 0;
+	virtual IFilterProvider& ToProvider() noexcept = 0;
 };
 
 class IGenreFilterProvider : public IFilterProvider
@@ -47,6 +48,8 @@ public:
 
 class IGenreFilterController : public IFilterController
 {
+public:
+	virtual IGenreFilterProvider& ToGenreFilterProvider() noexcept = 0;
 };
 
 class ILanguageFilterProvider : public IFilterProvider

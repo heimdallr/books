@@ -31,6 +31,7 @@ private: // IFilterProvider
 private: // IFilterController
 	void SetEnabled(bool enabled) override;
 	void SetFilteredCodes(bool enabled, const std::unordered_set<QString>& codes) override;
+	IFilterProvider& ToProvider() noexcept override;
 
 private:
 	struct Impl;
