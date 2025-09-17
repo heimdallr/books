@@ -5288,6 +5288,10 @@ Try again?</source>
 		<translation>Launch GUI application</translation>
 	</message>
 	<message>
+		<source>OpenLink</source>
+		<translation>Open link</translation>
+	</message>
+	<message>
 		<source>System</source>
 		<translation></translation>
 	</message>
