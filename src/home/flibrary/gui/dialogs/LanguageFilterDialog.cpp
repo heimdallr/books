@@ -18,6 +18,8 @@ namespace
 using Role = ILanguageModel::Role;
 
 constexpr auto FIELD_WIDTH_KEY = "ui/Books/LanguageFilter/columnWidths";
+constexpr auto SORT_INDEX_KEY = "ui/Books/LanguageFilter/sortIndex";
+constexpr auto SORT_ORDER_KEY = "ui/Books/LanguageFilter/sortOrder";
 
 std::unordered_set<QString> GetSelected(const QAbstractItemModel& model)
 {
@@ -90,11 +92,15 @@ struct LanguageFilterDialog::Impl final
 
 		LoadGeometry();
 		Util::LoadHeaderSectionWidth(*ui.view->horizontalHeader(), *this->settings, FIELD_WIDTH_KEY);
+		ui.view->horizontalHeader()->setSortIndicator(this->settings->Get(SORT_INDEX_KEY, ui.view->horizontalHeader()->sortIndicatorSection()),
+		                                              this->settings->Get(SORT_ORDER_KEY, ui.view->horizontalHeader()->sortIndicatorOrder()));
 	}
 
 	~Impl() override
 	{
 		Util::SaveHeaderSectionWidth(*ui.view->horizontalHeader(), *this->settings, FIELD_WIDTH_KEY);
+		settings->Set(SORT_INDEX_KEY, ui.view->horizontalHeader()->sortIndicatorSection());
+		settings->Set(SORT_ORDER_KEY, ui.view->horizontalHeader()->sortIndicatorOrder());
 		SaveGeometry();
 	}
 
