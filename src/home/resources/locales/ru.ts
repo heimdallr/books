@@ -5300,6 +5300,10 @@ Try again?</source>
 		<translation>Запуск GUI приложения</translation>
 	</message>
 	<message>
+		<source>OpenLink</source>
+		<translation>Перейти по ссылке</translation>
+	</message>
+	<message>
 		<source>System</source>
 		<translation>Системная команда</translation>
 	</message>
