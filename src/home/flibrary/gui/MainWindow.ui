@@ -444,8 +444,8 @@
      <property name="title">
       <string>&amp;Filters</string>
      </property>
-     <addaction name="actionGenreFilter"/>
      <addaction name="actionLanguageFilter"/>
+     <addaction name="actionGenreFilter"/>
      <addaction name="separator"/>
      <addaction name="actionDisableAllFilters"/>
     </widget>
