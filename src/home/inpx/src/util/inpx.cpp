@@ -1579,7 +1579,8 @@ private:
 
 		if (!found && !!(m_mode & CreateCollectionMode::SkipLostBooks))
 		{
-			PLOGW << std::quoted(ToMultiByte(buf.TITLE)) << " skipped because its file " << ToMultiByte(buf.FILE) << "." << ToMultiByte(buf.EXT) << " not found.";
+			PLOGW << "'" << QString::fromStdWString(std::wstring(buf.TITLE)) << "'" << " skipped because its file " << QString::fromStdWString(folder) << "/" << ToMultiByte(buf.FILE) << "."
+				  << ToMultiByte(buf.EXT) << " not found.";
 			return;
 		}
 
