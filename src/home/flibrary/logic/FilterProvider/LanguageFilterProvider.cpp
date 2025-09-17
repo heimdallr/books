@@ -45,6 +45,12 @@ std::unordered_set<QString> LanguageFilterProvider::GetFilteredCodes() const
 	return filtered;
 }
 
+void LanguageFilterProvider::SetEnabled(const bool enabled)
+{
+	m_impl->settings->Set(LANGUAGES_FILTER_ENABLED_KEY, enabled);
+	m_impl->Perform(&IObserver::OnFilterChanged);
+}
+
 void LanguageFilterProvider::SetFilteredCodes(const bool enabled, const std::unordered_set<QString>& codes)
 {
 	m_impl->settings->Set(LANGUAGES_FILTER_ENABLED_KEY, enabled);

@@ -33,6 +33,7 @@ class IFilterController // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IFilterController() = default;
+	virtual void SetEnabled(bool enabled) = 0;
 	virtual void SetFilteredCodes(bool enabled, const std::unordered_set<QString>& codes) = 0;
 };
 

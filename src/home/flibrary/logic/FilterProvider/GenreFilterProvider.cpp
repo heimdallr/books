@@ -94,6 +94,12 @@ const std::unordered_map<QString, QString>& GenreFilterProvider::GetCodeToNameMa
 	return m_impl->codeToName;
 }
 
+void GenreFilterProvider::SetEnabled(const bool enabled)
+{
+	m_impl->settings->Set(GENRE_FILTER_ENABLED_KEY, enabled);
+	m_impl->Perform(&IObserver::OnFilterChanged);
+}
+
 void GenreFilterProvider::SetFilteredCodes(const bool enabled, const std::unordered_set<QString>& codes)
 {
 	m_impl->settings->Set(GENRE_FILTER_ENABLED_KEY, enabled);

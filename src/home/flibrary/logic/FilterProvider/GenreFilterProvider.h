@@ -35,6 +35,7 @@ private: // IGenreFilterProvider
 	void UnregisterObserver(IObserver* observer) override;
 
 private: // IFilterController
+	void SetEnabled(bool enabled) override; 
 	void SetFilteredCodes(bool enabled, const std::unordered_set<QString>& codes) override;
 
 private:
