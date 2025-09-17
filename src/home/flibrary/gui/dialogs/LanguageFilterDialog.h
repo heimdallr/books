@@ -23,7 +23,6 @@ class LanguageFilterDialog final : public QDialog
 
 public:
 	LanguageFilterDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
-	                     const std::shared_ptr<const ILanguageFilterProvider>& languageFilterProvider,
 	                     std::shared_ptr<ISettings> settings,
 	                     std::shared_ptr<ILanguageFilterController> languageFilterController,
 	                     std::shared_ptr<ILanguageModel> languageModel,
