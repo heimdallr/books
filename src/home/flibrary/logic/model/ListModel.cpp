@@ -1,5 +1,7 @@
 #include "ListModel.h"
 
+#include "interface/constants/ModelRole.h"
+
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
@@ -39,4 +41,9 @@ int ListModel::columnCount(const QModelIndex& parent) const
 {
 	const auto* parentItem = parent.isValid() ? static_cast<IDataItem*>(parent.internalPointer()) : m_data.get();
 	return parentItem->GetChildCount() ? parentItem->GetChild(0)->GetColumnCount() : 0;
+}
+
+QVariant ListModel::data(const QModelIndex& index, const int role) const
+{
+	return role == Role::IsTree ? QVariant { false } : AbstractListModel::data(index, role);
 }
