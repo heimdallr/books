@@ -623,6 +623,22 @@ size_t Store(const Path& dbFileName, Data& data)
 		},
 		"INSERT INTO Books_Search(Books_Search) VALUES('rebuild')");
 
+	{
+		std::unordered_set<std::wstring> languages;
+		std::ranges::transform(data.books, std::inserter(languages, languages.end()), [](const auto& item) { return item.language; });
+		result += StoreRange(dbFileName,
+		                     "Languages",
+		                     "INSERT OR IGNORE INTO Languages (LanguageCode) VALUES(?)",
+		                     languages,
+		                     [](sqlite3pp::command& cmd, const std::wstring& item)
+		                     {
+								 const auto language = ToMultiByte(item);
+								 cmd.reset();
+								 cmd.binder() << language;
+								 return cmd.execute();
+							 });
+	}
+
 	result += StoreRange(dbFileName,
 	                     "Author_List",
 	                     "INSERT INTO Author_List (AuthorID, BookID, OrdNum) VALUES(?, ?, ?)",

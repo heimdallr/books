@@ -35,11 +35,13 @@ constexpr auto INP_EXT = L".inp";
 constexpr size_t LOG_INTERVAL = 10000;
 
 constexpr auto GET_MAX_ID_QUERY = "select coalesce(max(m), 0) from ("
-								  "      select max(BookID)    m from Books "
-								  "union select max(AuthorID)  m from Authors "
-								  "union select max(SeriesID)  m from Series "
-								  "union select max(KeywordID) m from Keywords "
-								  "union select max(FolderID)  m from Folders "
+								  "select 0 m "
+								  "union select max(AuthorID)   m from Authors "
+								  "union select max(BookID)     m from Books "
+								  "union select max(FolderID)   m from Folders "
+								  "union select max(KeywordID)  m from Keywords "
+								  "union select max(SeriesID)   m from Series "
+								  "union select max(UpdateID)   m from Updates "
 								  ")";
 
 static constexpr auto IS_DELETED_UPDATE_STATEMENT_TOTAL = R"(

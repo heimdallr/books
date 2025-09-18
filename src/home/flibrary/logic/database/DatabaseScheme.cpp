@@ -61,15 +61,17 @@ bool AddUserTableField(DB::ITransaction& transaction, const QString& table, cons
 	return true;
 }
 
+long long GetNextID(DB::ITransaction& transaction)
+{
+	const auto query = transaction.CreateQuery(GET_MAX_ID_QUERY);
+	query->Execute();
+	assert(!query->Eof());
+	return query->Get<long long>(0);
+}
+
 void OnBooksFolderIDAdded(DB::ITransaction& transaction)
 {
-	auto maxId = [&]
-	{
-		const auto query = transaction.CreateQuery(GET_MAX_ID_QUERY);
-		query->Execute();
-		assert(!query->Eof());
-		return query->Get<long long>(0);
-	}();
+	auto maxId = GetNextID(transaction);
 
 	std::unordered_map<std::string, long long> folders;
 	std::vector<std::pair<long long, std::string>> books;
@@ -120,6 +122,13 @@ void FixSearches_User(DB::ITransaction& transaction)
 		transaction.CreateCommand(command)->Execute();
 }
 
+bool RecordsExists(DB::ITransaction& transaction, const std::string_view tableName, const std::string_view where = {})
+{
+	const auto query = transaction.CreateQuery(std::format("SELECT exists(SELECT 1 FROM {} {})", tableName, where));
+	query->Execute();
+	return query->Get<int>(0) != 0;
+}
+
 void FillSearchTables(DB::ITransaction& transaction)
 {
 	static constexpr const char* tables[] {
@@ -129,9 +138,7 @@ void FillSearchTables(DB::ITransaction& transaction)
 	};
 	for (const auto* table : tables)
 	{
-		const auto query = transaction.CreateQuery(std::format("SELECT exists(SELECT 1 FROM {}_idx)", table));
-		query->Execute();
-		if (query->Get<int>(0) != 0)
+		if (RecordsExists(transaction, std::format("{}_idx", table)))
 			continue;
 
 		PLOGI << "Update Full Text Search Table " << table;
@@ -141,9 +148,7 @@ void FillSearchTables(DB::ITransaction& transaction)
 
 void FillInpx(const ICollectionProvider& collectionProvider, DB::ITransaction& transaction)
 {
-	const auto query = transaction.CreateQuery("SELECT exists(SELECT 1 FROM Inpx)");
-	query->Execute();
-	if (query->Get<int>(0) != 0)
+	if (RecordsExists(transaction, "Inpx"))
 		return;
 
 	PLOGI << "Update inpx table";
@@ -152,13 +157,20 @@ void FillInpx(const ICollectionProvider& collectionProvider, DB::ITransaction& t
 
 void FillSeriesList(DB::ITransaction& transaction)
 {
-	const auto query = transaction.CreateQuery("SELECT exists(SELECT 1 FROM Series_List)");
-	query->Execute();
-	if (query->Get<int>(0) != 0)
+	if (RecordsExists(transaction, "Series_List"))
 		return;
 
 	PLOGI << "Update series table";
 	transaction.CreateCommand("insert into Series_List(SeriesID, BookID, SeqNumber) select b.SeriesID, b.BookID, b.SeqNumber from Books b where b.SeriesID is not null")->Execute();
+}
+
+void FillLanguage(DB::ITransaction& transaction)
+{
+	if (RecordsExists(transaction, "Languages"))
+		return;
+
+	PLOGI << "Update languages table";
+	transaction.CreateCommand("insert into Languages(LanguageCode) select distinct Lang from Books")->Execute();
 }
 
 void AddUserTables(DB::ITransaction& transaction)
@@ -179,6 +191,7 @@ void AddUserTables(DB::ITransaction& transaction)
 		"CREATE TABLE IF NOT EXISTS Updates (UpdateID INTEGER NOT NULL, UpdateTitle INTEGER NOT NULL, ParentID INTEGER NOT NULL, IsDeleted INTEGER NOT NULL DEFAULT(0))", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Update_PrimaryKey ON Updates (UpdateID)", "CREATE INDEX IF NOT EXISTS IX_Update_ParentID ON Updates (ParentID)",
 		"CREATE TABLE IF NOT EXISTS Settings (SettingID INTEGER NOT NULL PRIMARY KEY, SettingValue BLOB)",
 		"CREATE TABLE IF NOT EXISTS Reviews (BookID INTEGER NOT NULL, Folder VARCHAR (10) NOT NULL)", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Reviews_PrimaryKey ON Reviews (BookID, Folder)",
+		"CREATE TABLE IF NOT EXISTS Languages (LanguageCode VARCHAR (3) NOT NULL, Flags INTEGER NOT NULL DEFAULT (0))", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Languages_PrimaryKey ON Languages (LanguageCode)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Authors_Search USING fts5(LastName, FirstName, MiddleName, content=Authors, content_rowid=AuthorID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books, content_rowid=BookID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Series_Search USING fts5(SeriesTitle, content=Series, content_rowid=SeriesID)",
@@ -374,6 +387,10 @@ AS SELECT
 	FROM Books b
 	LEFT JOIN Books_User bu ON bu.BookID = b.BookID
 )" });
+	AddUserTableField(transaction, "Authors", "Flags", "INTEGER NOT NULL DEFAULT (0)");
+	AddUserTableField(transaction, "Genres", "Flags", "INTEGER NOT NULL DEFAULT (0)");
+	AddUserTableField(transaction, "Keywords", "Flags", "INTEGER NOT NULL DEFAULT (0)");
+	AddUserTableField(transaction, "Series", "Flags", "INTEGER NOT NULL DEFAULT (0)");
 }
 
 } // namespace
@@ -387,6 +404,7 @@ void Update(DB::IDatabase& db, const ICollectionProvider& collectionProvider)
 	FixSearches_User(*transaction);
 	FillSearchTables(*transaction);
 	FillSeriesList(*transaction);
+	FillLanguage(*transaction);
 	FillInpx(collectionProvider, *transaction);
 
 	transaction->Commit();

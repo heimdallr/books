@@ -67,6 +67,9 @@ CREATE UNIQUE INDEX UIX_Groups_List_User_PrimaryKey ON Groups_List_User (GroupID
 CREATE INDEX IX_Groups_List_User_ObjectID ON Groups_List_User (ObjectID);
 --@@
 
+CREATE UNIQUE INDEX UIX_Languages_PrimaryKey ON Languages (LanguageCode);
+--@@
+
 CREATE UNIQUE INDEX UIX_Keywords_PrimaryKey ON Keywords (KeywordID);
 --@@
 
