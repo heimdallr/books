@@ -29,16 +29,14 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName, IsDeleted from Authors";
-constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle, IsDeleted from Series";
-constexpr auto KEYWORDS_QUERY = "select KeywordID, KeywordTitle, IsDeleted from Keywords";
-constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount, IsDeleted from Genres g";
+constexpr auto AUTHORS_QUERY = "select AuthorID, FirstName, LastName, MiddleName, IsDeleted, Flags from Authors";
+constexpr auto SERIES_QUERY = "select SeriesID, SeriesTitle, IsDeleted, Flags from Series";
+constexpr auto KEYWORDS_QUERY = "select KeywordID, KeywordTitle, IsDeleted, Flags from Keywords";
+constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount, IsDeleted, Flags from Genres g";
 constexpr auto GROUPS_QUERY = "select GroupID, Title, IsDeleted from Groups_User";
-constexpr auto UPDATES_QUERY = "select UpdateID, UpdateTitle, ParentId, IsDeleted from Updates order by ParentId";
-constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle, IsDeleted from Folders where exists (select 42 from Books where Books.FolderID = Folders.FolderID)";
-constexpr auto LANGUAGES_QUERY = R"(with languages(lang) as (select distinct lang from Books)
-	select l.lang, not exists (select 42 from Books_View b where b.lang = l.lang and b.IsDeleted = 0 ) IsDeleted
-	from languages l)";
+constexpr auto UPDATES_QUERY = "select UpdateID, UpdateTitle, ParentId, IsDeleted, Flags from Updates order by ParentId";
+constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle, IsDeleted, Flags from Folders where exists (select 42 from Books where Books.FolderID = Folders.FolderID)";
+constexpr auto LANGUAGES_QUERY = "select l.LanguageCode, not exists (select 42 from Books_View b where b.Lang = l.LanguageCode and b.IsDeleted = 0 ) IsDeleted, Flags from Languages l";
 constexpr auto PUBLISH_YEAR_QUERY = R"(with PublishYears(Year) as (select distinct Year from Books)
 	select y.Year, y.Year, not exists (select 42 from Books_View b where b.Year = y.Year and b.IsDeleted = 0 ) IsDeleted
 	from PublishYears y)";
@@ -95,13 +93,13 @@ QString CreateAuthorTitle(const DB::IQuery& query, const size_t* index)
 	return title;
 }
 
-IDataItem::Ptr CreateAuthorItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
+IDataItem::Ptr CreateAuthorItem(const DB::IQuery& query, const QueryInfo& queryInfo)
 {
 	auto item = NavigationItem::Create();
 
-	item->SetId(QString::number(query.Get<long long>(index[0])));
-	item->SetRemoved(query.Get<int>(removedIndex));
-	item->SetData(CreateAuthorTitle(query, index));
+	item->SetId(QString::number(query.Get<long long>(queryInfo.index[0])));
+	item->SetRemoved(query.Get<int>(queryInfo.removedIndex));
+	item->SetData(CreateAuthorTitle(query, queryInfo.index));
 
 	return item;
 }
@@ -169,7 +167,7 @@ void RequestNavigationList(const NavigationMode navigationMode,
 							   const auto query = db->CreateQuery(queryDescription.query);
 							   for (query->Execute(); !query->Eof(); query->Next())
 							   {
-								   auto item = queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index, queryDescription.queryInfo.removedIndex);
+								   auto item = queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo);
 								   index.try_emplace(item->GetId(), item);
 							   }
 
@@ -297,7 +295,7 @@ void RequestNavigationUpdates(NavigationMode navigationMode,
 															 const auto query = db->CreateQuery(queryDescription.query);
 															 for (query->Execute(); !query->Eof(); query->Next())
 															 {
-																 auto item = queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo.index, queryDescription.queryInfo.removedIndex);
+																 auto item = queryDescription.queryInfo.extractor(*query, queryDescription.queryInfo);
 																 const auto id = item->GetId().toLongLong();
 																 const auto parentIt = items.find(query->Get<long long>(2));
 																 assert(parentIt != items.end());

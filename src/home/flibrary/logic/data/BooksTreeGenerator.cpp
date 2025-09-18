@@ -112,7 +112,7 @@ std::optional<KeyType> UpdateDictionary(
 	if (it != dictionary.end())
 		return it->first;
 
-	auto item = queryInfo.extractor(query, queryInfo.index, queryInfo.removedIndex);
+	auto item = queryInfo.extractor(query, queryInfo);
 	return filter(*item) ? std::optional<KeyType>(dictionary.emplace(key, std::move(item)).first->first) : std::nullopt;
 }
 

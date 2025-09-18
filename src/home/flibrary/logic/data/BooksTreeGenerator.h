@@ -63,13 +63,14 @@ public:
 	virtual void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&) = 0;
 };
 
-using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query, const size_t* index, size_t removedIndex);
+struct QueryInfo;
+using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query, const QueryInfo& queryInfo);
 
 struct QueryInfo
 {
-	QueryDataExtractor extractor;
-	const size_t* index;
-	size_t removedIndex;
+	QueryDataExtractor extractor { nullptr };
+	const size_t* index { nullptr };
+	size_t removedIndex { 0 };
 };
 
 struct QueryDescription

@@ -23,6 +23,7 @@
 #include "interface/logic/IJokeRequester.h"
 #include "interface/logic/IProgressController.h"
 
+#include "data/BooksTreeGenerator.h"
 #include "data/DataItem.h"
 #include "database/DatabaseUtil.h"
 #include "inpx/src/util/constant.h"
@@ -52,7 +53,7 @@ constexpr auto REVIEWS = QT_TRANSLATE_NOOP("Annotation", "Readers' Reviews");
 
 TR_DEF
 
-using Extractor = IDataItem::Ptr (*)(const DB::IQuery& query, const size_t* index, size_t removedIndex);
+using Extractor = IDataItem::Ptr (*)(const DB::IQuery& query, const QueryInfo& queryInfo);
 constexpr size_t QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 constexpr auto BOOK_QUERY =
@@ -617,7 +618,7 @@ private:
 		query->Bind(":id", id);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
-			auto child = extractor(*query, QUERY_INDEX_SIMPLE_LIST_ITEM, 0);
+			auto child = extractor(*query, QueryInfo { .index = QUERY_INDEX_SIMPLE_LIST_ITEM });
 			child->Reduce();
 			root->AppendChild(std::move(child));
 		}

@@ -1,7 +1,5 @@
 #include "DatabaseUtil.h"
 
-#include <QHash>
-
 #include <format>
 
 #include "database/interface/IDatabase.h"
@@ -14,6 +12,7 @@
 #include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
+#include "data/BooksTreeGenerator.h"
 #include "inpx/src/util/constant.h"
 #include "util/localization.h"
 
@@ -44,61 +43,61 @@ constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[] {
 
 }
 
-IDataItem::Ptr CreateSimpleListItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
+IDataItem::Ptr CreateSimpleListItem(const DB::IQuery& query, const QueryInfo& queryInfo)
 {
 	auto item = IDataItem::Ptr(NavigationItem::Create());
 
-	item->SetId(query.Get<const char*>(index[0]));
-	item->SetData(query.Get<const char*>(index[1]));
+	item->SetId(query.Get<const char*>(queryInfo.index[0]));
+	item->SetData(query.Get<const char*>(queryInfo.index[1]));
 
-	if (removedIndex)
-		item->SetRemoved(query.Get<int>(removedIndex));
+	if (queryInfo.removedIndex)
+		item->SetRemoved(query.Get<int>(queryInfo.removedIndex));
 
 	return item;
 }
 
-IDataItem::Ptr CreateSeriesItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
+IDataItem::Ptr CreateSeriesItem(const DB::IQuery& query, const QueryInfo& queryInfo)
 {
 	auto item = IDataItem::Ptr(SeriesItem::Create());
 
-	item->SetId(query.Get<const char*>(index[0]));
-	item->SetData(query.Get<const char*>(index[1]), SeriesItem::Column::Title);
-	item->SetData(query.Get<const char*>(index[2]), SeriesItem::Column::SeqNum);
+	item->SetId(query.Get<const char*>(queryInfo.index[0]));
+	item->SetData(query.Get<const char*>(queryInfo.index[1]), SeriesItem::Column::Title);
+	item->SetData(query.Get<const char*>(queryInfo.index[2]), SeriesItem::Column::SeqNum);
 
-	if (removedIndex)
-		item->SetRemoved(query.Get<int>(removedIndex));
+	if (queryInfo.removedIndex)
+		item->SetRemoved(query.Get<int>(queryInfo.removedIndex));
 
 	return item;
 }
 
-IDataItem::Ptr CreateGenreItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
+IDataItem::Ptr CreateGenreItem(const DB::IQuery& query, const QueryInfo& queryInfo)
 {
 	auto item = IDataItem::Ptr(GenreItem::Create());
 
-	item->SetId(query.Get<const char*>(index[0]));
-	if (removedIndex)
-		item->SetRemoved(query.Get<int>(removedIndex));
+	item->SetId(query.Get<const char*>(queryInfo.index[0]));
+	if (queryInfo.removedIndex)
+		item->SetRemoved(query.Get<int>(queryInfo.removedIndex));
 
-	const auto* fbCode = query.Get<const char*>(index[2]);
+	const auto* fbCode = query.Get<const char*>(queryInfo.index[2]);
 	const auto translated = Loc::Tr(GENRE, fbCode);
 
 	item->SetData(fbCode, GenreItem::Column::Fb2Code);
-	item->SetData(translated != fbCode ? translated : query.Get<const char*>(index[1]));
+	item->SetData(translated != fbCode ? translated : query.Get<const char*>(queryInfo.index[1]));
 
 	return item;
 }
 
-IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
+IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query, const QueryInfo& queryInfo)
 {
 	static const auto languages = GetLanguagesMap();
 
 	auto item = IDataItem::Ptr(NavigationItem::Create());
 
-	item->SetId(query.Get<const char*>(index[0]));
-	if (removedIndex)
-		item->SetRemoved(query.Get<int>(removedIndex));
+	item->SetId(query.Get<const char*>(queryInfo.index[0]));
+	if (queryInfo.removedIndex)
+		item->SetRemoved(query.Get<int>(queryInfo.removedIndex));
 
-	QString language = query.Get<const char*>(index[1]);
+	QString language = query.Get<const char*>(queryInfo.index[1]);
 	const auto it = languages.find(language);
 
 	item->SetData(it != languages.end() ? Loc::Tr(LANGUAGES_CONTEXT, it->second) : std::move(language));
@@ -106,16 +105,16 @@ IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query, const size_t* index, 
 	return item;
 }
 
-IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
+IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery& query, const QueryInfo& queryInfo)
 {
 	auto item = AuthorItem::Create();
 
-	item->SetId(QString::number(query.Get<long long>(index[0])));
-	if (removedIndex)
-		item->SetRemoved(query.Get<int>(removedIndex));
+	item->SetId(QString::number(query.Get<long long>(queryInfo.index[0])));
+	if (queryInfo.removedIndex)
+		item->SetRemoved(query.Get<int>(queryInfo.removedIndex));
 
 	for (int i = 0; i < AuthorItem::Column::Last; ++i)
-		item->SetData(query.Get<const char*>(index[i + 1]), i);
+		item->SetData(query.Get<const char*>(queryInfo.index[i + 1]), i);
 
 	return item;
 }
