@@ -53,7 +53,7 @@ constexpr auto REVIEWS = QT_TRANSLATE_NOOP("Annotation", "Readers' Reviews");
 
 TR_DEF
 
-using Extractor = IDataItem::Ptr (*)(const DB::IQuery& query, const QueryInfo& queryInfo);
+using Extractor = IDataItem::Ptr (*)(const DB::IQuery& query);
 constexpr size_t QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
 constexpr auto BOOK_QUERY =
@@ -605,7 +605,11 @@ private:
 
 	static IDataItem::Ptr CreateBook(DB::IDatabase& db, const long long id)
 	{
-		const auto query = db.CreateQuery(QString(BOOK_QUERY).arg(QString(IDatabaseUser::BOOKS_QUERY_FIELDS).arg("b")).toStdString());
+		static constexpr auto BOOKS_QUERY_FIELDS =
+			"b.BookID, b.Title, coalesce(b.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, b.Year, f.FolderTitle, b.FileName || b.Ext, b.BookSize, coalesce(bu.userRate, 0), "
+			"coalesce(bu.IsDeleted, b.IsDeleted, 0), b.FolderID, b.UpdateID, b.LibID";
+
+		const auto query = db.CreateQuery(QString(BOOK_QUERY).arg(BOOKS_QUERY_FIELDS).toStdString());
 		query->Bind(":id", id);
 		query->Execute();
 		return query->Eof() ? NavigationItem::Create() : DatabaseUtil::CreateBookItem(*query);
@@ -618,7 +622,7 @@ private:
 		query->Bind(":id", id);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
-			auto child = extractor(*query, QueryInfo { .index = QUERY_INDEX_SIMPLE_LIST_ITEM });
+			auto child = extractor(*query);
 			child->Reduce();
 			root->AppendChild(std::move(child));
 		}

@@ -63,33 +63,20 @@ public:
 	virtual void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&) = 0;
 };
 
-struct QueryInfo;
-using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query, const QueryInfo& queryInfo);
-
-struct QueryInfo
-{
-	QueryDataExtractor extractor { nullptr };
-	const size_t* index { nullptr };
-	size_t removedIndex { 0 };
-	size_t flagsIndex { 0 };
-};
+using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query);
 
 struct QueryDescription
 {
 	using Binder = int (*)(DB::IQuery&, const QString&);
 	using MappingGetter = const BookItem::Mapping& (QueryDescription::*)() const noexcept;
 
-	const char* query { nullptr };
-	const QueryInfo& queryInfo;
-	const char* whereClause { nullptr };
+	const char* navigationQuery { nullptr };
+	QueryDataExtractor navigationExtractor { nullptr };
 	const char* joinClause { nullptr };
-	Binder binder { nullptr };
 	IBooksListCreator::Creator listCreator { nullptr };
 	IBooksTreeCreator::Creator treeCreator { nullptr };
 	BookItem::Mapping listMapping;
 	BookItem::Mapping treeMapping;
-	const char* seqNumberTableAlias { "b" };
-	const char* with { nullptr };
 	IBookSelector::Selector bookSelector { &IBookSelector::SelectBooks };
 
 	constexpr const BookItem::Mapping& GetListMapping() const noexcept
