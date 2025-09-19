@@ -107,7 +107,11 @@ void Select<Genre>(DB::IQuery& query, const std::unordered_set<Genre::CodeType>&
 	auto translated = Loc::Tr(GENRE, fb2Code);
 	assert(!translated.contains(','));
 	AllTreeItem<Genre> item {
-		Genre { .fb2Code = fb2Code, .code = query.Get<const char*>(0), .name = translated != fb2Code ? std::move(translated) : query.Get<const char*>(3), .removed = static_cast<bool>(query.Get<int>(5)) },
+		Genre { .fb2Code = fb2Code,
+               .code = query.Get<const char*>(0),
+               .name = translated != fb2Code ? std::move(translated) : query.Get<const char*>(3),
+               .removed = static_cast<bool>(query.Get<int>(5)),
+               .flags = static_cast<IDataItem::Flags>(query.Get<int>(6)) },
 		query.Get<const char*>(2)
 	};
 	if (query.Get<int>(4) && (neededItems.empty() || neededItems.contains(std::get<0>(item).code)))
@@ -120,7 +124,7 @@ template <>
 void Select<Update>(DB::IQuery& query, const std::unordered_set<Update::CodeType>& neededItems, std::unordered_map<Update::CodeType, AllTreeItem<Update>>& allItems, std::vector<AllTreeItem<Update>>& buffer)
 {
 	AllTreeItem<Update> item {
-		Update { .code = query.Get<long long>(0), .name = query.Get<const char*>(1), .removed = static_cast<bool>(query.Get<int>(4)) },
+		Update { .code = query.Get<long long>(0), .name = query.Get<const char*>(1), .removed = static_cast<bool>(query.Get<int>(4)), .flags = static_cast<IDataItem::Flags>(query.Get<int>(5)) },
 		query.Get<long long>(2)
 	};
 	if (query.Get<int>(3) && (neededItems.empty() || neededItems.contains(std::get<0>(item).code)))
@@ -189,7 +193,7 @@ Genre Genre::Load(DB::IDatabase& db, const std::unordered_set<QString>& neededGe
 {
 	return LoadImpl<Genre>(db,
 	                       neededGenres,
-	                       "select g.GenreCode, g.FB2Code, g.ParentCode, g.GenreAlias, exists (select 42 from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount, IsDeleted from Genres g",
+	                       "select g.GenreCode, g.FB2Code, g.ParentCode, g.GenreAlias, exists (select 42 from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount, IsDeleted, Flags from Genres g",
 	                       SORTER);
 }
 
@@ -197,7 +201,7 @@ Update Update::Load(DB::IDatabase& db, const std::unordered_set<long long>& need
 {
 	auto root = LoadImpl<Update>(db,
 	                             neededUpdates,
-	                             "select u.UpdateId, u.UpdateTitle, u.ParentId, exists (select 42 from Books b where b.UpdateID = u.UpdateID) BookCount, u.IsDeleted from Updates u",
+	                             "select u.UpdateId, u.UpdateTitle, u.ParentId, exists (select 42 from Books b where b.UpdateID = u.UpdateID) BookCount, u.IsDeleted, Flags from Updates u",
 	                             &SortByNameIntegral<Update>);
 
 	const auto tr = [](Update& treeItem, const auto& f) -> void

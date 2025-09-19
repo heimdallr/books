@@ -38,9 +38,9 @@ constexpr auto UPDATES_QUERY = "select UpdateID, UpdateTitle, ParentId, IsDelete
 constexpr auto ARCHIVES_QUERY = "select FolderID, FolderTitle, IsDeleted, Flags from Folders where exists (select 42 from Books where Books.FolderID = Folders.FolderID)";
 constexpr auto LANGUAGES_QUERY = "select l.LanguageCode, not exists (select 42 from Books_View b where b.Lang = l.LanguageCode and b.IsDeleted = 0 ) IsDeleted, Flags from Languages l";
 constexpr auto PUBLISH_YEAR_QUERY = R"(with PublishYears(Year) as (select distinct Year from Books)
-	select y.Year, y.Year, not exists (select 42 from Books_View b where b.Year = y.Year and b.IsDeleted = 0 ) IsDeleted
+	select y.Year, y.Year, not exists (select 42 from Books_View b where b.Year = y.Year and b.IsDeleted = 0 ) IsDeleted, 0 Flags
 	from PublishYears y)";
-constexpr auto SEARCH_QUERY = "select SearchID, Title, 0 IsDeleted from Searches_User";
+constexpr auto SEARCH_QUERY = "select SearchID, Title, 0 IsDeleted, 0 Flags from Searches_User";
 constexpr auto ALL_BOOK_QUERY = "select 'All books'";
 
 constexpr auto WHERE_AUTHOR = "where a.AuthorID  = :id";
@@ -98,6 +98,7 @@ IDataItem::Ptr CreateAuthorItem(const DB::IQuery& query, const QueryInfo& queryI
 	auto item = NavigationItem::Create();
 
 	item->SetId(QString::number(query.Get<long long>(queryInfo.index[0])));
+	item->SetFlags(static_cast<IDataItem::Flags>(query.Get<int>(queryInfo.flagsIndex)));
 	item->SetRemoved(query.Get<int>(queryInfo.removedIndex));
 	item->SetData(CreateAuthorTitle(query, queryInfo.index));
 
@@ -255,6 +256,7 @@ void RequestNavigationGenres(NavigationMode navigationMode, INavigationQueryExec
 								   queue.pop();
 
 								   dataItem->SetId(genreItem->code);
+								   dataItem->SetFlags(genreItem->flags);
 								   dataItem->SetRemoved(genreItem->removed);
 								   dataItem->SetData(genreItem->name);
 								   for (const auto& item : genreItem->children)
@@ -355,11 +357,11 @@ constexpr size_t NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1 };
 constexpr size_t NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM_SINGLE[] { 0, 0 };
 constexpr size_t NAVIGATION_QUERY_INDEX_GENRE_ITEM[] { 0, 1, 2 };
 
-constexpr QueryInfo QUERY_INFO_AUTHOR { &CreateAuthorItem, NAVIGATION_QUERY_INDEX_AUTHOR, 4 };
-constexpr QueryInfo QUERY_INFO_SIMPLE_LIST_ITEM { &DatabaseUtil::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM, 2 };
-constexpr QueryInfo QUERY_INFO_LANGUAGE_ITEM { &DatabaseUtil::CreateLanguageItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM_SINGLE, 1 };
-constexpr QueryInfo QUERY_INFO_GENRE_ITEM { &DatabaseUtil::CreateGenreItem, NAVIGATION_QUERY_INDEX_GENRE_ITEM, 5 };
-constexpr QueryInfo QUERY_INFO_UPDATE_ITEM { &DatabaseUtil::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM, 3 };
+constexpr QueryInfo QUERY_INFO_AUTHOR { &CreateAuthorItem, NAVIGATION_QUERY_INDEX_AUTHOR, 4, 5 };
+constexpr QueryInfo QUERY_INFO_SIMPLE_LIST_ITEM { &DatabaseUtil::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM, 2, 3 };
+constexpr QueryInfo QUERY_INFO_LANGUAGE_ITEM { &DatabaseUtil::CreateLanguageItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM_SINGLE, 1, 2 };
+constexpr QueryInfo QUERY_INFO_GENRE_ITEM { &DatabaseUtil::CreateGenreItem, NAVIGATION_QUERY_INDEX_GENRE_ITEM, 5, 6 };
+constexpr QueryInfo QUERY_INFO_UPDATE_ITEM { &DatabaseUtil::CreateSimpleListItem, NAVIGATION_QUERY_INDEX_SIMPLE_LIST_ITEM, 3, 4 };
 
 constexpr int MAPPING_FULL[] { BookItem::Column::Author,     BookItem::Column::Title,  BookItem::Column::Series,   BookItem::Column::SeqNumber, BookItem::Column::Size,
 	                           BookItem::Column::Genre,      BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate,   BookItem::Column::UserRate,

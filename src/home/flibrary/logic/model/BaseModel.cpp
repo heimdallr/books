@@ -59,6 +59,8 @@ QVariant BaseModel::headerData(const int section, const Qt::Orientation orientat
 
 QVariant BaseModel::data(const QModelIndex& index, const int role) const
 {
+	assert(index.isValid());
+
 	const auto* item = GetInternalPointer(index);
 	if (item->GetType() == ItemType::Books)
 	{
@@ -99,6 +101,9 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 
 		case Role::IsTree:
 			return false;
+
+		case Role::Flags:
+			return QVariant::fromValue(item->GetFlags());
 
 		case Role::IsRemoved:
 			return item->IsRemoved();

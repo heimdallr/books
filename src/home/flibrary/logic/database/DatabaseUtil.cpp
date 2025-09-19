@@ -53,6 +53,9 @@ IDataItem::Ptr CreateSimpleListItem(const DB::IQuery& query, const QueryInfo& qu
 	if (queryInfo.removedIndex)
 		item->SetRemoved(query.Get<int>(queryInfo.removedIndex));
 
+	if (queryInfo.flagsIndex)
+		item->SetFlags(static_cast<IDataItem::Flags>(query.Get<int>(queryInfo.flagsIndex)));
+
 	return item;
 }
 
@@ -67,6 +70,9 @@ IDataItem::Ptr CreateSeriesItem(const DB::IQuery& query, const QueryInfo& queryI
 	if (queryInfo.removedIndex)
 		item->SetRemoved(query.Get<int>(queryInfo.removedIndex));
 
+	if (queryInfo.flagsIndex)
+		item->SetFlags(static_cast<IDataItem::Flags>(query.Get<int>(queryInfo.flagsIndex)));
+
 	return item;
 }
 
@@ -77,6 +83,9 @@ IDataItem::Ptr CreateGenreItem(const DB::IQuery& query, const QueryInfo& queryIn
 	item->SetId(query.Get<const char*>(queryInfo.index[0]));
 	if (queryInfo.removedIndex)
 		item->SetRemoved(query.Get<int>(queryInfo.removedIndex));
+
+	if (queryInfo.flagsIndex)
+		item->SetFlags(static_cast<IDataItem::Flags>(query.Get<int>(queryInfo.flagsIndex)));
 
 	const auto* fbCode = query.Get<const char*>(queryInfo.index[2]);
 	const auto translated = Loc::Tr(GENRE, fbCode);
@@ -97,6 +106,9 @@ IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query, const QueryInfo& quer
 	if (queryInfo.removedIndex)
 		item->SetRemoved(query.Get<int>(queryInfo.removedIndex));
 
+	if (queryInfo.flagsIndex)
+		item->SetFlags(static_cast<IDataItem::Flags>(query.Get<int>(queryInfo.flagsIndex)));
+
 	QString language = query.Get<const char*>(queryInfo.index[1]);
 	const auto it = languages.find(language);
 
@@ -112,6 +124,9 @@ IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery& query, const QueryInfo& qu
 	item->SetId(QString::number(query.Get<long long>(queryInfo.index[0])));
 	if (queryInfo.removedIndex)
 		item->SetRemoved(query.Get<int>(queryInfo.removedIndex));
+
+	if (queryInfo.flagsIndex)
+		item->SetFlags(static_cast<IDataItem::Flags>(query.Get<int>(queryInfo.flagsIndex)));
 
 	for (int i = 0; i < AuthorItem::Column::Last; ++i)
 		item->SetData(query.Get<const char*>(queryInfo.index[i + 1]), i);

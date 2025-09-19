@@ -37,8 +37,9 @@ public:
 	enum class Flags
 	{
 		None = 0,
-		Hidden = 1 << 0,
-		Filtered = 1 << 1,
+		Filtered = 1 << 0,
+		BooksFiltered = 1 << 1,
+		Multiple = 1 << 2,
 	};
 
 public:

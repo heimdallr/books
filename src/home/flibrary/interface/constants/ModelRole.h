@@ -17,6 +17,7 @@ struct Role
 		Type,
 		CheckState,
 		IsRemoved,
+		Flags,
 
 #define BOOKS_COLUMN_ITEM(NAME) NAME,
 		BOOKS_COLUMN_ITEMS_X_MACRO

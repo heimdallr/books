@@ -6,6 +6,8 @@
 
 #include <QString>
 
+#include "interface/logic/IDataItem.h"
+
 #include "export/logic.h"
 
 namespace HomeCompa
@@ -30,6 +32,7 @@ struct Update
 	Update* parent { nullptr };
 	std::vector<Update> children;
 	bool removed { false };
+	IDataItem::Flags flags { IDataItem::Flags::None };
 
 	LOGIC_EXPORT static Update Load(DB::IDatabase& db, const std::unordered_set<long long>& neededUpdates = {});
 	LOGIC_EXPORT static Update* Find(Update* root, long long code);
@@ -51,6 +54,7 @@ struct Genre
 	Genre* parent { nullptr };
 	std::vector<Genre> children;
 	bool removed { false };
+	IDataItem::Flags flags { IDataItem::Flags::None };
 
 	LOGIC_EXPORT static Genre Load(DB::IDatabase& db, const std::unordered_set<QString>& neededGenres = {});
 	LOGIC_EXPORT static Genre* Find(Genre* root, const QString& code);

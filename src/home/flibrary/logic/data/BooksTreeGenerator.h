@@ -71,6 +71,7 @@ struct QueryInfo
 	QueryDataExtractor extractor { nullptr };
 	const size_t* index { nullptr };
 	size_t removedIndex { 0 };
+	size_t flagsIndex { 0 };
 };
 
 struct QueryDescription
