@@ -52,6 +52,8 @@ public:
 		[[nodiscard]] virtual const IDataItem& GetGenres() const noexcept = 0;
 		[[nodiscard]] virtual const IDataItem& GetGroups() const noexcept = 0;
 		[[nodiscard]] virtual const IDataItem& GetKeywords() const noexcept = 0;
+		[[nodiscard]] virtual const IDataItem& GetFolder() const noexcept = 0;
+		[[nodiscard]] virtual const IDataItem& GetUpdate() const noexcept = 0;
 
 		[[nodiscard]] virtual const QString& GetError() const noexcept = 0;
 		[[nodiscard]] virtual const QString& GetAnnotation() const noexcept = 0;

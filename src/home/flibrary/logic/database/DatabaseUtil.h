@@ -18,6 +18,15 @@ struct QueryInfo;
 
 namespace HomeCompa::Flibrary::DatabaseUtil
 {
+
+constexpr auto BOOKS_QUERY = R"({}
+select b.BookID, b.Title, coalesce(b.SeqNumber, -1) SeqNumber, b.UpdateDate, b.LibRate, b.Lang, b.Year, f.FolderTitle, b.FileName, b.BookSize, b.UserRate, b.LibID, b.IsDeleted, l.Flags{}
+    {}
+    join Folders f on f.FolderID = b.FolderID
+    join Languages l on l.LanguageCode = b.Lang
+	{}
+)";
+
 IDataItem::Ptr CreateSimpleListItem(const DB::IQuery& query);
 IDataItem::Ptr CreateSeriesItem(const DB::IQuery& query);
 IDataItem::Ptr CreateGenreItem(const DB::IQuery& query);

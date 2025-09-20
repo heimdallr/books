@@ -309,7 +309,7 @@ private: // IBookSelector
 						reviewItem->SetData(Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS), ReviewItem::Column::Name);
 				}
 			}
-//			tr->CreateCommand(std::format("CREATE INDEX IX_LibID ON {} (LibID)", tmpTable->GetName()))->Execute();
+			tr->CreateCommand(std::format("CREATE INDEX {}.IX_LibID ON {} (LibID)", tmpTable->GetSchemaName(), tmpTable->GetTableName()))->Execute();
 			tr->Commit();
 		}
 
@@ -327,22 +327,13 @@ private: // IBookSelector
 	}
 
 private:
-	void CreateSelectedBookItems(
-		DB::IDatabase& db,
-		const QueryClause& queryClause,
-		const std::function<void(const DB::IQuery&, const SelectedBookItem&)>& additional = [](const DB::IQuery&, const auto&) {})
+	void CreateSelectedBookItems(DB::IDatabase& db, const QueryClause& queryClause, const std::function<void(const DB::IQuery&, const SelectedBookItem&)>& additional = [](const DB::IQuery&, const auto&) {})
 	{
 		const auto with = QString(queryClause.with).arg(navigationId).toStdString();
 
 		{
-			static constexpr auto queryText = R"({}
-select b.BookID, b.Title, coalesce(b.SeqNumber, -1) SeqNumber, b.UpdateDate, b.LibRate, b.Lang, b.Year, f.FolderTitle, b.FileName, b.BookSize, b.UserRate, b.LibID, b.IsDeleted, l.Flags{}
-    {}
-    join Folders f on f.FolderID = b.FolderID
-    join Languages l on l.LanguageCode = b.Lang
-	{}
-)";
-			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.additionalFields, queryClause.booksFrom, QString(queryClause.booksWhere).arg(navigationId).toStdString()));
+			const auto query =
+				db.CreateQuery(std::format(DatabaseUtil::BOOKS_QUERY, with, queryClause.additionalFields, queryClause.booksFrom, QString(queryClause.booksWhere).arg(navigationId).toStdString()));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto& book = m_books[query->Get<long long>(BookQueryFields::BookId)];

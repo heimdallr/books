@@ -23,7 +23,6 @@
 #include "interface/logic/IJokeRequester.h"
 #include "interface/logic/IProgressController.h"
 
-#include "data/BooksTreeGenerator.h"
 #include "data/DataItem.h"
 #include "database/DatabaseUtil.h"
 #include "inpx/src/util/constant.h"
@@ -54,17 +53,15 @@ constexpr auto REVIEWS = QT_TRANSLATE_NOOP("Annotation", "Readers' Reviews");
 TR_DEF
 
 using Extractor = IDataItem::Ptr (*)(const DB::IQuery& query);
-constexpr size_t QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
 
-constexpr auto BOOK_QUERY =
-	"select %1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, coalesce(b.SeqNumber, -1), s.SeriesTitle from Books b join Folders f on f.FolderID = b.FolderID left join Books_User bu on bu.BookID = b.BookID "
-	"left join Series s on s.SeriesID = b.SeriesID where b.BookID = :id";
 constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle, sl.SeqNumber from Series s join Series_List sl on sl.SeriesID = s.SeriesID and sl.BookID = :id order by sl.OrdNum";
 constexpr auto AUTHORS_QUERY = "select a.AuthorID, a.LastName, a.LastName, a.FirstName, a.MiddleName from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = :id order by al.OrdNum";
 constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id order by gl.OrdNum";
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title from Groups_User g join Groups_List_User_View gl on gl.GroupID = g.GroupID and gl.BookID = :id";
 constexpr auto KEYWORDS_QUERY = "select k.KeywordID, k.KeywordTitle from Keywords k join Keyword_List kl on kl.KeywordID = k.KeywordID and kl.BookID = :id order by kl.OrdNum";
 constexpr auto REVIEWS_QUERY = "select b.LibID, r.Folder from Reviews r join Books b on b.BookID = r.BookID where r.BookID = :id";
+constexpr auto FOLDER_QUERY = "select f.FolderID, f.FolderTitle from Folders f join Books b on b.FolderID = f.FolderID and b.BookID = :id";
+constexpr auto UPDATE_QUERY = "select u.UpdateID, b.UpdateDate from Updates u join Books b on b.UpdateID = u.UpdateID and b.BookID = :id";
 
 constexpr auto ERROR_PATTERN = R"(<p style="font-style:italic;">%1</p>)";
 constexpr auto TITLE_PATTERN = "<p align=center><b>%1</b></p>";
@@ -202,12 +199,12 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, c
 		.Add(Loc::SERIES, Urls(strategy, Loc::SERIES, dataProvider.GetSeries()))
 		.Add(Loc::GENRES, Urls(strategy, Loc::GENRES, dataProvider.GetGenres()))
 		.Add(Loc::PUBLISH_YEAR, strategy.GenerateUrl(Loc::PUBLISH_YEAR, book.GetRawData(BookItem::Column::Year), book.GetRawData(BookItem::Column::Year)))
-//		.Add(Loc::ARCHIVE, strategy.GenerateUrl(Loc::ARCHIVE, book.GetRawData(BookItem::Column::FolderID), folder))
+		.Add(Loc::ARCHIVE, Urls(strategy, Loc::ARCHIVE, dataProvider.GetFolder()))
 		.Add(Loc::GROUPS, Urls(strategy, Loc::GROUPS, dataProvider.GetGroups()))
 		.Add(Loc::KEYWORDS, Urls(strategy, Loc::KEYWORDS, keywords))
 		.Add(Loc::LANGUAGE, langStr)
-//		.Add(Loc::UPDATES, strategy.GenerateUrl(Loc::UPDATES, book.GetRawData(BookItem::Column::UpdateID), book.GetRawData(BookItem::Column::UpdateDate))
-		;
+		.Add(Loc::UPDATES, Urls(strategy, Loc::UPDATES, dataProvider.GetUpdate()))
+	;
 
 	return table;
 }
@@ -325,6 +322,16 @@ private: // IDataProvider
 	[[nodiscard]] const IDataItem& GetKeywords() const noexcept override
 	{
 		return *m_keywords;
+	}
+
+	[[nodiscard]] const IDataItem& GetFolder() const noexcept override
+	{
+		return *m_folder;
+	}
+
+	[[nodiscard]] const IDataItem& GetUpdate() const noexcept override
+	{
+		return *m_update;
 	}
 
 	[[nodiscard]] const QString& GetError() const noexcept override
@@ -520,6 +527,8 @@ private:
 									  auto genres = CreateDictionary(*db, GENRES_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
 									  auto groups = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
 									  auto keywords = CreateDictionary(*db, KEYWORDS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
+									  auto folder = CreateDictionary(*db, FOLDER_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
+									  auto update = CreateDictionary(*db, UPDATE_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
 
 									  ExportStatistics exportStatistics;
 									  {
@@ -538,6 +547,8 @@ private:
 			                                  groups = std::move(groups),
 			                                  keywords = std::move(keywords),
 			                                  exportStatistics = std::move(exportStatistics),
+			                                  folder = std::move(folder),
+			                                  update = std::move(update),
 			                                  reviews = CollectReviews(*db, bookId)](size_t) mutable
 									  {
 										  if (book->GetId() != m_currentBookId)
@@ -550,6 +561,8 @@ private:
 										  m_groups = std::move(groups);
 										  m_keywords = std::move(keywords);
 										  m_exportStatistics = std::move(exportStatistics);
+										  m_folder = std::move(folder);
+										  m_update = std::move(update);
 										  m_reviews = std::move(reviews);
 										  m_ready |= Ready::Database;
 
@@ -606,11 +619,7 @@ private:
 
 	static IDataItem::Ptr CreateBook(DB::IDatabase& db, const long long id)
 	{
-		static constexpr auto BOOKS_QUERY_FIELDS =
-			"b.BookID, b.Title, coalesce(b.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, b.Year, f.FolderTitle, b.FileName || b.Ext, b.BookSize, coalesce(bu.userRate, 0), "
-			"coalesce(bu.IsDeleted, b.IsDeleted, 0), b.FolderID, b.UpdateID, b.LibID";
-
-		const auto query = db.CreateQuery(QString(BOOK_QUERY).arg(BOOKS_QUERY_FIELDS).toStdString());
+		const auto query = db.CreateQuery(std::format(DatabaseUtil::BOOKS_QUERY, "", "", "from Books_View b", "where b.BookID = :id"));
 		query->Bind(":id", id);
 		query->Execute();
 		return query->Eof() ? NavigationItem::Create() : DatabaseUtil::CreateBookItem(*query);
@@ -665,6 +674,8 @@ private:
 	IDataItem::Ptr m_genres;
 	IDataItem::Ptr m_groups;
 	IDataItem::Ptr m_keywords;
+	IDataItem::Ptr m_folder;
+	IDataItem::Ptr m_update;
 
 	ExportStatistics m_exportStatistics;
 	Reviews m_reviews;
