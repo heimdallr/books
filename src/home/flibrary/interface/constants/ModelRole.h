@@ -30,6 +30,8 @@ struct Role
 		TextFilter,
 		LanguageFilter,
 		ShowRemovedFilter,
+		NavigationItemFiltered,
+		UniFilterEnabled,
 		VisibleColumns,
 		Selected,
 		SortOrder,

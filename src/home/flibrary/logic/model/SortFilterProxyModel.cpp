@@ -1,7 +1,5 @@
 #include "SortFilterProxyModel.h"
 
-#include <unordered_set>
-
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 
@@ -37,6 +35,8 @@ struct SortFilterProxyModel::Impl final
 	QString m_languageFilter;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
 	bool m_showRemoved { true };
+	bool m_navigationFiltered { false };
+	bool m_uniFilterEnabled { true };
 	QVector<int> m_visibleColumns;
 	std::vector<std::pair<int, Qt::SortOrder>> sort;
 
@@ -111,6 +111,12 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 			case Role::ShowRemovedFilter:
 				return Set(m_impl->m_showRemoved, value.toBool(), [&] { invalidateFilter(); });
 
+			case Role::NavigationItemFiltered:
+				return Set(m_impl->m_navigationFiltered, value.toBool(), [&] { invalidateFilter(); });
+
+			case Role::UniFilterEnabled:
+				return Set(m_impl->m_uniFilterEnabled, value.toBool(), [&] { invalidateFilter(); });
+
 			case Role::LanguageFilter:
 				if (Set(m_impl->m_languageFilter, value.toString().simplified(), [&] { invalidateFilter(); }))
 				{
@@ -138,7 +144,7 @@ bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelInd
 {
 	const auto itemIndex = m_impl->m_sourceModel->index(sourceRow, 0, sourceParent);
 	assert(itemIndex.isValid());
-	return FilterAcceptsText(itemIndex) && FilterAcceptsRemoved(itemIndex);
+	return FilterAcceptsRemoved(itemIndex) && FilterAcceptsFlags(itemIndex) && FilterAcceptsText(itemIndex);
 }
 
 bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const
@@ -201,4 +207,13 @@ bool SortFilterProxyModel::FilterAcceptsText(const QModelIndex& index) const
 bool SortFilterProxyModel::FilterAcceptsRemoved(const QModelIndex& index) const
 {
 	return m_impl->m_showRemoved || !index.data(Role::IsRemoved).toBool();
+}
+
+bool SortFilterProxyModel::FilterAcceptsFlags(const QModelIndex& index) const
+{
+	if (!m_impl->m_uniFilterEnabled)
+		return true;
+
+	const auto flags = index.data(Role::Flags).value<IDataItem::Flags>();
+	return ((!(flags & IDataItem::Flags::Filtered)) || (index.data(Role::Type).value<ItemType>() == ItemType::Books && m_impl->m_navigationFiltered && !(flags & IDataItem::Flags::Multiple)));
 }

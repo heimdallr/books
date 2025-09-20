@@ -37,6 +37,7 @@ private:
 	bool lessThanImpl(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const;
 	bool FilterAcceptsText(const QModelIndex& index) const;
 	bool FilterAcceptsRemoved(const QModelIndex& index) const;
+	bool FilterAcceptsFlags(const QModelIndex& index) const;
 
 private:
 	struct Impl;

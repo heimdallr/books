@@ -37,6 +37,7 @@ signals:
 	void NavigationModeNameChanged(QString navigationModeName) const;
 	void ValueGeometryChanged(const QRect& geometry) const;
 	void SearchNavigationItemSelected(long long id, const QString& text) const;
+	void CurrentNavigationItemChanged(const QModelIndex& index) const;
 
 public:
 	void SetNavigationModeName(QString navigationModeName);
@@ -46,6 +47,7 @@ public:
 
 private slots:
 	void OnBookTitleToSearchVisibleChanged() const;
+	void OnCurrentNavigationItemChanged(const QModelIndex& index);
 
 private: // QWidget
 	void resizeEvent(QResizeEvent* event) override;

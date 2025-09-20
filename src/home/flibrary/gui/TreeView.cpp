@@ -329,8 +329,7 @@ public:
 	     std::shared_ptr<IUiFactory> uiFactory,
 	     std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
 	     std::shared_ptr<ScrollBarController> scrollBarController,
-	     std::shared_ptr<const ICollectionProvider> collectionProvider
-	)
+	     std::shared_ptr<const ICollectionProvider> collectionProvider)
 		: m_self { self }
 		, m_controller { uiFactory->GetTreeViewController() }
 		, m_settings { std::move(settings) }
@@ -376,7 +375,7 @@ public:
 
 	void SetMode(const int mode, const QString& id)
 	{
-		assert(m_controller->GetItemType() == ItemType::Navigation);
+		assert(IsNavigation());
 		const auto modeIndex = m_ui.cbMode->findData(mode, Qt::UserRole + 1);
 		const auto modeName = m_ui.cbMode->itemData(modeIndex).toString();
 		m_settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(m_collectionProvider->GetActiveCollectionId()).arg(modeName), id);
@@ -392,6 +391,12 @@ public:
 	void OnBookTitleToSearchVisibleChanged() const
 	{
 		emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.value));
+	}
+
+	void OnCurrentNavigationItemChanged(const QModelIndex& index)
+	{
+		assert(!IsNavigation());
+		m_navigationItemFlags = index.data(Role::Flags).value<IDataItem::Flags>();
 	}
 
 	void ResizeEvent(const QResizeEvent* event)
@@ -475,7 +480,7 @@ private: //	ModeComboBox::IValueApplier
 	void Find() override
 	{
 		if (!m_ui.value->text().isEmpty())
-			return Find(m_ui.value->text(), m_controller->GetItemType() == ItemType::Books ? static_cast<int>(Role::Title) : Qt::DisplayRole);
+			return Find(m_ui.value->text(), IsNavigation() ? Qt::DisplayRole : static_cast<int>(Role::Title));
 
 		if (!m_currentId.isEmpty())
 			return Find(m_currentId, Role::Id);
@@ -489,6 +494,11 @@ private: //	ModeComboBox::IValueApplier
 	}
 
 private:
+	bool IsNavigation() const
+	{
+		return m_controller->GetItemType() == ItemType::Navigation;
+	}
+
 	void OnModelChangedImpl(QAbstractItemModel* model)
 	{
 		m_ui.treeView->setModel(model);
@@ -504,11 +514,15 @@ private:
 					if (prev.isValid())
 						m_settings->Set(GetRecentIdKey(), m_currentId = std::move(currentId));
 
-					if (m_controller->GetItemType() == ItemType::Navigation && m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Search))
-						emit m_self.SearchNavigationItemSelected(m_currentId.toLongLong(), index.data().toString());
+					if (IsNavigation())
+					{
+						emit m_self.CurrentNavigationItemChanged(index);
+						if (m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Search))
+							emit m_self.SearchNavigationItemSelected(m_currentId.toLongLong(), index.data().toString());
+					}
 				});
 
-		if (m_controller->GetItemType() == ItemType::Navigation)
+		if (IsNavigation())
 		{
 			m_delegate->SetEnabled(static_cast<bool>((m_removeItems = m_controller->GetRemoveItems())));
 		}
@@ -516,6 +530,7 @@ private:
 		{
 			m_languageContextMenu.reset();
 			model->setData({}, true, Role::Checkable);
+			model->setData({}, !!(m_navigationItemFlags & (IDataItem::Flags::Filtered | IDataItem::Flags::BooksFiltered)), Role::NavigationItemFiltered);
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 
@@ -703,22 +718,23 @@ private:
 	{
 		m_ui.setupUi(&m_self);
 
-		if (m_controller->GetItemType() == ItemType::Books)
+		if (!IsNavigation())
 			m_ui.treeView->setHeader(m_booksHeaderView = new HeaderView(*m_ui.treeView, m_currentId, &m_self));
 
 		auto& treeViewHeader = *m_ui.treeView->header();
-		m_ui.treeView->setHeaderHidden(m_controller->GetItemType() == ItemType::Navigation);
+		m_ui.treeView->setHeaderHidden(IsNavigation());
 		treeViewHeader.setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
 		m_ui.treeView->viewport()->installEventFilter(m_scrollBarController.get());
 
 		SetupNewItemButton();
 
-		if (m_controller->GetItemType() == ItemType::Navigation)
+		if (IsNavigation())
 		{
 			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateNavigation(*m_ui.treeView));
 
 			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, &m_self, SIGNAL(SearchNavigationItemSelected(long long, const QString&)));
+			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::CURRENT_NAVIGATION_ITEM_CHANGED, &m_self, SIGNAL(CurrentNavigationItemChanged(const QModelIndex&)));
 		}
 		else
 		{
@@ -734,6 +750,7 @@ private:
 
 			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, &m_self, SIGNAL(ValueGeometryChanged(const QRect&)));
 			Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, &m_self, SLOT(OnBookTitleToSearchVisibleChanged()));
+			Util::ObjectsConnector::registerReceiver(ObjectConnectorID::CURRENT_NAVIGATION_ITEM_CHANGED, &m_self, SLOT(OnCurrentNavigationItemChanged(const QModelIndex&)));
 		}
 
 		m_ui.value->setAccessibleName(QString("%1SearchAndFilter").arg(m_controller->GetItemName()));
@@ -1092,10 +1109,7 @@ private:
 
 	QString GetRecentIdKey() const
 	{
-		auto key = QString("Collections/%1/%2%3/LastId")
-		               .arg(m_collectionProvider->GetActiveCollection().id)
-		               .arg(m_controller->TrContext())
-		               .arg(m_controller->GetItemType() == ItemType::Navigation ? QString("/%1").arg(m_recentMode) : QString {});
+		auto key = QString("Collections/%1/%2%3/LastId").arg(m_collectionProvider->GetActiveCollection().id).arg(m_controller->TrContext()).arg(IsNavigation() ? QString("/%1").arg(m_recentMode) : QString {});
 
 		return key;
 	}
@@ -1132,6 +1146,7 @@ private:
 	ITreeViewController::RemoveItems m_removeItems;
 	MenuEventFilter m_menuEventFilter;
 	HeaderView* m_booksHeaderView;
+	IDataItem::Flags m_navigationItemFlags { IDataItem::Flags::None };
 };
 
 TreeView::TreeView(std::shared_ptr<ISettings> settings,
@@ -1141,13 +1156,7 @@ TreeView::TreeView(std::shared_ptr<ISettings> settings,
                    std::shared_ptr<const ICollectionProvider> collectionProvider,
                    QWidget* parent)
 	: QWidget(parent)
-	, m_impl(*this,
-             std::move(settings),
-             std::move(uiFactory),
-             std::move(itemViewToolTipper),
-             std::move(scrollBarController),
-             std::move(collectionProvider)
-	)
+	, m_impl(*this, std::move(settings), std::move(uiFactory), std::move(itemViewToolTipper), std::move(scrollBarController), std::move(collectionProvider))
 {
 	PLOGV << "TreeView created";
 }
@@ -1180,6 +1189,11 @@ void TreeView::SetMode(const int mode, const QString& id)
 void TreeView::OnBookTitleToSearchVisibleChanged() const
 {
 	m_impl->OnBookTitleToSearchVisibleChanged();
+}
+
+void TreeView::OnCurrentNavigationItemChanged(const QModelIndex& index)
+{
+	m_impl->OnCurrentNavigationItemChanged(index);
 }
 
 void TreeView::resizeEvent(QResizeEvent* event)
