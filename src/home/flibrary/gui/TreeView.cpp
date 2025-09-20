@@ -22,6 +22,7 @@
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/logic/IFilterProvider.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/ITreeViewDelegate.h"
 
@@ -319,24 +320,27 @@ void TreeOperation(const QAbstractItemModel& model, const QModelIndex& index, co
 class TreeView::Impl final
 	: ITreeViewController::IObserver
 	, ITreeViewDelegate::IObserver
+	, IFilterProvider::IObserver
 	, ModeComboBox::IValueApplier
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
 	Impl(TreeView& self,
+	     std::shared_ptr<const ICollectionProvider> collectionProvider,
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<IUiFactory> uiFactory,
+	     std::shared_ptr<IFilterProvider> filterProvider,
 	     std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
-	     std::shared_ptr<ScrollBarController> scrollBarController,
-	     std::shared_ptr<const ICollectionProvider> collectionProvider)
+	     std::shared_ptr<ScrollBarController> scrollBarController)
 		: m_self { self }
 		, m_controller { uiFactory->GetTreeViewController() }
+		, m_collectionProvider { std::move(collectionProvider) }
 		, m_settings { std::move(settings) }
 		, m_uiFactory { std::move(uiFactory) }
+		, m_filterProvider { std::move(filterProvider) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
-		, m_collectionProvider { std::move(collectionProvider) }
 		, m_delegate { std::shared_ptr<ITreeViewDelegate>() }
 	{
 		Setup();
@@ -346,6 +350,7 @@ public:
 	~Impl() override
 	{
 		SaveHeaderLayout();
+		m_filterProvider->UnregisterObserver(this);
 		m_controller->UnregisterObserver(this);
 		m_delegate->UnregisterObserver(this);
 	}
@@ -435,7 +440,7 @@ private: // ITreeViewController::IObserver
 			OnModelChangedImpl(model);
 
 		RestoreHeaderLayout();
-		OnCountChanged();
+		OnFilterEnabledChanged();
 		OnValueChanged();
 	}
 
@@ -474,6 +479,13 @@ private: // ITreeViewDelegate::IObserver
 	{
 		assert(m_removeItems);
 		m_removeItems(m_ui.treeView->selectionModel()->selectedIndexes());
+	}
+
+private: // IFilterProvider::IObserver
+	void OnFilterEnabledChanged() override
+	{
+		m_ui.treeView->model()->setData({}, m_filterProvider->IsFilterEnabled(), Role::UniFilterEnabled);
+		OnCountChanged();
 	}
 
 private: //	ModeComboBox::IValueApplier
@@ -766,6 +778,8 @@ private:
 
 		Impl::OnModeChanged(m_controller->GetModeIndex());
 		m_controller->RegisterObserver(this);
+		m_filterProvider->RegisterObserver(this);
+
 		QTimer::singleShot(0, [&] { emit m_self.NavigationModeNameChanged(m_ui.cbMode->currentData().toString()); });
 	}
 
@@ -1128,11 +1142,12 @@ private:
 private:
 	TreeView& m_self;
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_controller;
+	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
+	PropagateConstPtr<IFilterProvider, std::shared_ptr> m_filterProvider;
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> m_itemViewToolTipper;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
-	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
 	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr> m_delegate;
 	Ui::TreeView m_ui {};
 	QTimer m_filterTimer;
@@ -1149,14 +1164,15 @@ private:
 	IDataItem::Flags m_navigationItemFlags { IDataItem::Flags::None };
 };
 
-TreeView::TreeView(std::shared_ptr<ISettings> settings,
+TreeView::TreeView(std::shared_ptr<const ICollectionProvider> collectionProvider,
+                   std::shared_ptr<ISettings> settings,
                    std::shared_ptr<IUiFactory> uiFactory,
+                   std::shared_ptr<IFilterProvider> filterProvider,
                    std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
                    std::shared_ptr<ScrollBarController> scrollBarController,
-                   std::shared_ptr<const ICollectionProvider> collectionProvider,
                    QWidget* parent)
 	: QWidget(parent)
-	, m_impl(*this, std::move(settings), std::move(uiFactory), std::move(itemViewToolTipper), std::move(scrollBarController), std::move(collectionProvider))
+	, m_impl(*this, std::move(collectionProvider), std::move(settings), std::move(uiFactory), std::move(filterProvider), std::move(itemViewToolTipper), std::move(scrollBarController))
 {
 	PLOGV << "TreeView created";
 }

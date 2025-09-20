@@ -6,6 +6,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ICollectionProvider.h"
+#include "interface/logic/IFilterProvider.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"
@@ -25,11 +26,12 @@ class TreeView final : public QWidget
 	NON_COPY_MOVABLE(TreeView)
 
 public:
-	TreeView(std::shared_ptr<ISettings> settings,
+	TreeView(std::shared_ptr<const ICollectionProvider> collectionProvider,
+	         std::shared_ptr<ISettings> settings,
 	         std::shared_ptr<IUiFactory> uiFactory,
+	         std::shared_ptr<IFilterProvider> filterProvider,
 	         std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
 	         std::shared_ptr<ScrollBarController> scrollBarController,
-	         std::shared_ptr<const ICollectionProvider> collectionProvider,
 	         QWidget* parent = nullptr);
 	~TreeView() override;
 

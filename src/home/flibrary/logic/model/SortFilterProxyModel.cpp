@@ -36,7 +36,7 @@ struct SortFilterProxyModel::Impl final
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
 	bool m_showRemoved { true };
 	bool m_navigationFiltered { false };
-	bool m_uniFilterEnabled { true };
+	bool m_uniFilterEnabled { false };
 	QVector<int> m_visibleColumns;
 	std::vector<std::pair<int, Qt::SortOrder>> sort;
 
