@@ -31,6 +31,7 @@
 #include "script/CommandExecutor.h"
 #include "script/ScriptController.h"
 #include "shared/CommandLine.h"
+#include "shared/FilterController.h"
 #include "shared/LibRateProvider.h"
 #include "shared/OpdsController.h"
 #include "shared/ProgressController.h"
@@ -76,6 +77,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<DatabaseController>().as<IDatabaseController>().singleInstance();
 	builder.registerType<DatabaseUser>().as<IDatabaseUser>().singleInstance();
 	builder.registerType<DataProvider>().as<IDataProvider>().singleInstance();
+	builder.registerType<FilterController>().as<IFilterController>().singleInstance();
 	builder.registerType<LogController>().as<ILogController>().singleInstance();
 	builder.registerType<NavigationQueryExecutor>().as<INavigationQueryExecutor>().singleInstance();
 	builder.registerType<ProgressController>().as<IBooksExtractorProgressController>().singleInstance();
@@ -84,6 +86,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 
 	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return ctx.resolve<IDataProvider>(); }).as<IBookInfoProvider>();
 	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return ctx.resolve<IDataProvider>(); }).as<INavigationInfoProvider>();
+	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return ctx.resolve<IFilterController>(); }).as<IFilterProvider>();
 
 	builder.registerInstanceFactory([&](Hypodermic::ComponentContext&) { return std::make_shared<JokeRequesterFactory>(*container); }).as<IJokeRequesterFactory>().singleInstance();
 	builder.registerInstanceFactory([&](Hypodermic::ComponentContext&) { return std::make_shared<LogicFactory>(*container); }).as<ILogicFactory>().singleInstance();

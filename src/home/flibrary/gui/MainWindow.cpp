@@ -769,20 +769,15 @@ private:
 				});
 	}
 
-	void ConnectActionsSettingsFilters()
-	{
-		PLOGV << "ConnectActionsSettingsFilters";
-	}
-
 	void ConnectActionsSettings()
 	{
 		PLOGV << "ConnectActionsSettings";
 		ConnectActionsSettingsExport();
 		ConnectActionsSettingsView();
 		ConnectActionsSettingsHttp();
-		ConnectActionsSettingsFilters();
 
 		connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] { Reboot(); });
+		connect(m_ui.actionFilters, &QAction::triggered, &m_self, [&] { m_uiFactory->CreateFilterDialog()->exec(); });
 		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] { m_uiFactory->CreateScriptDialog()->Exec(); });
 	}
 
