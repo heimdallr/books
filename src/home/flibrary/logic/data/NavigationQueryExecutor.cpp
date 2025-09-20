@@ -259,7 +259,7 @@ void RequestNavigationUpdates(NavigationMode navigationMode,
 															 {
 																 auto item = queryDescription.navigationExtractor(*query);
 																 const auto id = item->GetId().toLongLong();
-																 const auto parentIt = items.find(query->Get<long long>(4));
+																 const auto parentIt = items.find(query->Get<long long>(3));
 																 assert(parentIt != items.end());
 																 parentIt->second->AppendChild(items.try_emplace(id, std::move(item)).first->second);
 															 }

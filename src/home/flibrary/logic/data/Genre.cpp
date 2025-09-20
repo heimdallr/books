@@ -201,7 +201,7 @@ Update Update::Load(DB::IDatabase& db, const std::unordered_set<long long>& need
 {
 	auto root = LoadImpl<Update>(db,
 	                             neededUpdates,
-	                             "select u.UpdateId, u.UpdateTitle, u.ParentId, exists (select 42 from Books b where b.UpdateID = u.UpdateID) BookCount, u.IsDeleted, Flags from Updates u",
+	                             "select u.UpdateId, u.UpdateTitle, u.ParentId, exists (select 42 from Books b where b.UpdateID = u.UpdateID) BookCount, u.IsDeleted, 0 Flags from Updates u",
 	                             &SortByNameIntegral<Update>);
 
 	const auto tr = [](Update& treeItem, const auto& f) -> void
