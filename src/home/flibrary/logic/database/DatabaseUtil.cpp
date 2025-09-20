@@ -147,8 +147,8 @@ bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& i
 {
 	auto progressItem = progressController ? progressController->Add(static_cast<int64_t>(11 * ids.size() / 10)) : std::make_unique<IProgressController::ProgressItemStub>();
 	bool ok = true;
+	const auto tempTable = db.CreateTemporaryTable();
 	const auto transaction = db.CreateTransaction();
-	const auto tempTable = transaction->CreateTemporaryTable();
 	{
 		const auto command = transaction->CreateCommand(std::format("insert into {} (id) values (?)", tempTable->GetName()));
 		for (const auto id : ids)

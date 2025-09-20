@@ -5,7 +5,7 @@
 #include "fnd/NonCopyMovable.h"
 
 #include "ICommand.h"
-#include "IQuery.h"
+#include "IDatabase.h"
 #include "ITemporaryTable.h"
 #include "ITransaction.h"
 
@@ -22,9 +22,8 @@ class TemporaryTable final : virtual public ITemporaryTable
 	NON_COPY_MOVABLE(TemporaryTable)
 
 public:
-	TemporaryTable(ITransaction& tr, const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional)
-		: m_tr { tr }
-		, m_name { std::format("tmp.tab_{}", ++id) }
+	TemporaryTable(IDatabase& db, const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional)
+		: m_db { db }
 	{
 		assert(!fields.empty());
 		std::string statement = "create table ";
@@ -34,19 +33,21 @@ public:
 			statement.append(", ").append(field);
 		statement.append(");");
 
-		auto ok = m_tr.CreateCommand(statement)->Execute();
+		const auto tr = db.CreateTransaction();
+		auto ok = tr->CreateCommand(statement)->Execute();
 		assert(ok);
 
 		for (const auto add : additional)
 		{
-			ok = m_tr.CreateCommand(add)->Execute();
+			ok = tr->CreateCommand(add)->Execute();
 			assert(ok);
 		}
+		tr->Commit();
 	}
 
 	~TemporaryTable() override
 	{
-		m_tr.CreateQuery(std::format("drop table {}", m_name))->Execute();
+		m_db.CreateTransaction()->CreateCommand(std::format("drop table {}", m_name))->Execute();
 	}
 
 private: // Transaction
@@ -55,16 +56,28 @@ private: // Transaction
 		return m_name;
 	}
 
+	const std::string& GetSchemaName() const noexcept override
+	{
+		return m_schemaName;
+	}
+
+	const std::string& GetTableName() const noexcept override
+	{
+		return m_tableName;
+	}
+
 private:
-	ITransaction& m_tr;
-	const std::string m_name;
+	IDatabase& m_db;
+	const std::string m_schemaName { "tmp" };
+	const std::string m_tableName { std::format("tab_{}", ++id) };
+	const std::string m_name { std::format("{}.{}", m_schemaName, m_tableName) };
 };
 
 } // namespace
 
-std::unique_ptr<ITemporaryTable> CreateTemporaryTableImpl(ITransaction& tr, const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional)
+std::unique_ptr<ITemporaryTable> CreateTemporaryTableImpl(IDatabase& db, const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional)
 {
-	return std::make_unique<TemporaryTable>(tr, fields, additional);
+	return std::make_unique<TemporaryTable>(db, fields, additional);
 }
 
 } // namespace HomeCompa::DB::Impl::Sqlite

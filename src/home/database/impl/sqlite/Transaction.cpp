@@ -4,7 +4,6 @@
 
 #include "ICommand.h"
 #include "IQuery.h"
-#include "ITemporaryTable.h"
 #include "ITransaction.h"
 #include "sqlite3ppext.h"
 
@@ -13,7 +12,6 @@ namespace HomeCompa::DB::Impl::Sqlite
 
 std::unique_ptr<ICommand> CreateCommandImpl(sqlite3pp::database& db, std::string_view command);
 std::unique_ptr<IQuery> CreateQueryImpl(std::mutex& mutex, sqlite3pp::database& db, std::string_view query);
-std::unique_ptr<ITemporaryTable> CreateTemporaryTableImpl(ITransaction& tr, const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional);
 
 namespace
 {
@@ -61,11 +59,6 @@ private: // Transaction
 	std::unique_ptr<IQuery> CreateQuery(const std::string_view query) override
 	{
 		return CreateQueryImpl(m_queryMutex, m_db, query);
-	}
-
-	std::unique_ptr<ITemporaryTable> CreateTemporaryTable(const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional) override
-	{
-		return CreateTemporaryTableImpl(*this, fields, additional);
 	}
 
 private:
