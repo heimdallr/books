@@ -2367,29 +2367,6 @@ Restart now?</source>
 	</message>
 </context>
 <context>
-	<name>GenreFilterDialog</name>
-	<message>
-		<source>Check all</source>
-		<translation>Виділити все</translation>
-	</message>
-	<message>
-		<source>Filter enabled</source>
-		<translation>Фільтр увімкнено</translation>
-	</message>
-	<message>
-		<source>Genre filter settings</source>
-		<translation>Налаштування фільтру жанрів</translation>
-	</message>
-	<message>
-		<source>Invert checks</source>
-		<translation>Інвертувати виділення</translation>
-	</message>
-	<message>
-		<source>Uncheck all</source>
-		<translation>Зняти виділення</translation>
-	</message>
-</context>
-<context>
 	<name>GroupController</name>
 	<message>
 		<source>Are you sure you want to delete the groups (%1)?</source>
@@ -4325,29 +4302,6 @@ Try again?</source>
 	</message>
 </context>
 <context>
-	<name>LanguageFilterDialog</name>
-	<message>
-		<source>Check all</source>
-		<translation>Виділити все</translation>
-	</message>
-	<message>
-		<source>Filter enabled</source>
-		<translation>Фільтр увімкнено</translation>
-	</message>
-	<message>
-		<source>Invert checks</source>
-		<translation>Інвертувати виділення</translation>
-	</message>
-	<message>
-		<source>Language filter settings</source>
-		<translation>Налаштування мовного фільтра</translation>
-	</message>
-	<message>
-		<source>Uncheck all</source>
-		<translation>Зняти виділення</translation>
-	</message>
-</context>
-<context>
 	<name>LanguageModel</name>
 	<message>
 		<source>Code</source>
@@ -4440,8 +4394,8 @@ Try again?</source>
 		<translation>&amp;Файл</translation>
 	</message>
 	<message>
-		<source>&amp;Filters</source>
-		<translation>&amp;Фільтри</translation>
+		<source>&amp;Filters...</source>
+		<translation>&amp;Фільтри...</translation>
 	</message>
 	<message>
 		<source>&amp;Font</source>
@@ -4548,14 +4502,6 @@ Try again?</source>
 		<translation>Шаблон експорту книг</translation>
 	</message>
 	<message>
-		<source>By &amp;genres...</source>
-		<translation>По &amp;жанрах...</translation>
-	</message>
-	<message>
-		<source>By &amp;languages...</source>
-		<translation>За &amp;мовами...</translation>
-	</message>
-	<message>
 		<source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
 		<translation>Дозволяючи деструктивні операції, ви берете відповідальність за можливу втрату потрібних вам книг. Ви впевнені?</translation>
 	</message>
@@ -4586,10 +4532,6 @@ Try again?</source>
 	<message>
 		<source>Delete all themes</source>
 		<translation>Видалити всі теми</translation>
-	</message>
-	<message>
-		<source>Disable &amp;all filters</source>
-		<translation>Вимкнути &amp;всі фільтри</translation>
 	</message>
 	<message>
 		<source>Disable all</source>

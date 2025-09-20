@@ -36,9 +36,7 @@ private: // QSortFilterProxyModel
 private:
 	bool lessThanImpl(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const;
 	bool FilterAcceptsText(const QModelIndex& index) const;
-	bool FilterAcceptsLanguage(const QModelIndex& index) const;
 	bool FilterAcceptsRemoved(const QModelIndex& index) const;
-	bool FilterAcceptsGenres(const QModelIndex& index) const;
 
 private:
 	struct Impl;

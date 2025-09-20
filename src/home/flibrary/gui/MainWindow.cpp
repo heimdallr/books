@@ -113,39 +113,6 @@ private:
 	const QString m_placeholderText;
 };
 
-class FiltersController final : public IFilterProvider::IObserver
-{
-	NON_COPY_MOVABLE(FiltersController)
-
-public:
-	using Items = std::vector<std::shared_ptr<IFilterController>>;
-
-public:
-	FiltersController(QAction& action, Items controllers)
-		: m_action { action }
-		, m_controllers { std::move(controllers) }
-	{
-		std::ranges::for_each(m_controllers, [this](const auto& controller) { controller->ToProvider().RegisterObserver(this); });
-		QObject::connect(&m_action, &QAction::triggered, [this] { std::ranges::for_each(m_controllers, [this](const auto& provider) { provider->SetEnabled(false); }); });
-		OnFilterChanged();
-	}
-
-	~FiltersController() override
-	{
-		std::ranges::for_each(m_controllers, [this](const auto& controller) { controller->ToProvider().UnregisterObserver(this); });
-	}
-
-private:
-	void OnFilterChanged() override
-	{
-		m_action.setEnabled(std::ranges::any_of(m_controllers, [](const auto& controller) { return controller->ToProvider().IsFilterEnabled(); }));
-	}
-
-private:
-	QAction& m_action;
-	Items m_controllers;
-};
-
 std::set<QString> GetQssList()
 {
 	std::set<QString> list;
@@ -189,8 +156,7 @@ public:
 	     std::shared_ptr<ILineOption> lineOption,
 	     std::shared_ptr<const IDatabaseChecker> databaseChecker,
 	     std::shared_ptr<const IDatabaseUser> databaseUser,
-	     std::shared_ptr<IAlphabetPanel> alphabetPanel,
-	     FiltersController::Items filterControllers)
+	     std::shared_ptr<IAlphabetPanel> alphabetPanel)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
 		, m_self { self }
@@ -216,9 +182,6 @@ public:
 		, m_navigationWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Navigation) }
 	{
 		Setup();
-
-		m_filtersController = std::make_unique<FiltersController>(*m_ui.actionDisableAllFilters, std::move(filterControllers));
-
 		ConnectActions();
 		CreateStylesMenu();
 		CreateLogMenu();
@@ -809,8 +772,6 @@ private:
 	void ConnectActionsSettingsFilters()
 	{
 		PLOGV << "ConnectActionsSettingsFilters";
-		connect(m_ui.actionLanguageFilter, &QAction::triggered, &m_self, [this] { m_uiFactory->CreateLanguageFilterDialog()->exec(); });
-		connect(m_ui.actionGenreFilter, &QAction::triggered, &m_self, [this] { m_uiFactory->CreateGenreFilterDialog()->exec(); });
 	}
 
 	void ConnectActionsSettings()
@@ -1239,8 +1200,6 @@ private:
 	std::shared_ptr<QMainWindow> m_queryWindow;
 	std::shared_ptr<QWidget> m_additionalWidget;
 
-	std::unique_ptr<const FiltersController> m_filtersController;
-
 	Util::FunctorExecutionForwarder m_forwarder;
 	const Log::LogAppender m_logAppender { this };
 
@@ -1277,8 +1236,6 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
                        std::shared_ptr<const IDatabaseChecker> databaseChecker,
                        std::shared_ptr<const IDatabaseUser> databaseUser,
                        std::shared_ptr<IAlphabetPanel> alphabetPanel,
-                       std::shared_ptr<ILanguageFilterController> languageFilterController,
-                       std::shared_ptr<IGenreFilterController> genreFilterController,
                        QWidget* parent)
 	: QMainWindow(parent)
 	, m_impl(*this,
@@ -1301,10 +1258,7 @@ MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
              std::move(lineOption),
              std::move(databaseChecker),
              std::move(databaseUser),
-             std::move(alphabetPanel),
-             FiltersController::Items {
-				 { std::move(languageFilterController), std::move(genreFilterController) }
-})
+             std::move(alphabetPanel))
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)), true);

@@ -35,11 +35,9 @@ struct SortFilterProxyModel::Impl final
 {
 	QString m_filter;
 	QString m_languageFilter;
-	std::unordered_set<QString> m_permanentLanguageFilter;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
 	bool m_showRemoved { true };
 	QVector<int> m_visibleColumns;
-	std::unordered_set<QString> m_filteredGenres;
 	std::vector<std::pair<int, Qt::SortOrder>> sort;
 
 	explicit Impl(const IModelProvider& modelProvider)
@@ -113,9 +111,6 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 			case Role::ShowRemovedFilter:
 				return Set(m_impl->m_showRemoved, value.toBool(), [&] { invalidateFilter(); });
 
-			case Role::GenreFilter:
-				return Set(m_impl->m_filteredGenres, value.value<std::unordered_set<QString>>(), [&] { invalidateFilter(); });
-
 			case Role::LanguageFilter:
 				if (Set(m_impl->m_languageFilter, value.toString().simplified(), [&] { invalidateFilter(); }))
 				{
@@ -124,9 +119,6 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 				}
 
 				return false;
-
-			case Role::PermanentLanguageFilter:
-				return Set(m_impl->m_permanentLanguageFilter, value.value<std::unordered_set<QString>>(), [&] { invalidateFilter(); });
 
 			case Role::SortOrder:
 				m_impl->sort = value.value<std::vector<std::pair<int, Qt::SortOrder>>>();
@@ -146,7 +138,7 @@ bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelInd
 {
 	const auto itemIndex = m_impl->m_sourceModel->index(sourceRow, 0, sourceParent);
 	assert(itemIndex.isValid());
-	return FilterAcceptsText(itemIndex) && FilterAcceptsLanguage(itemIndex) && FilterAcceptsRemoved(itemIndex) && FilterAcceptsGenres(itemIndex);
+	return FilterAcceptsText(itemIndex) && FilterAcceptsRemoved(itemIndex);
 }
 
 bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const
@@ -206,27 +198,7 @@ bool SortFilterProxyModel::FilterAcceptsText(const QModelIndex& index) const
 							   });
 }
 
-bool SortFilterProxyModel::FilterAcceptsLanguage(const QModelIndex& index) const
-{
-	const auto& filter = m_impl->m_languageFilter;
-	const auto& permanentFilter = m_impl->m_permanentLanguageFilter;
-	if (filter.isEmpty() && permanentFilter.empty() || index.data(Role::Type).value<ItemType>() != ItemType::Books)
-		return true;
-
-	const auto lang = index.data(Role::Lang).toString();
-	if (!permanentFilter.empty() && !permanentFilter.contains(lang))
-		return false;
-
-	return filter.isEmpty() || lang == filter;
-}
-
 bool SortFilterProxyModel::FilterAcceptsRemoved(const QModelIndex& index) const
 {
 	return m_impl->m_showRemoved || !index.data(Role::IsRemoved).toBool();
-}
-
-bool SortFilterProxyModel::FilterAcceptsGenres(const QModelIndex& index) const
-{
-	return m_impl->m_filteredGenres.empty() || index.data(Role::Type).value<ItemType>() != ItemType::Books
-	    || std::ranges::none_of(index.data(Role::Genre).toString().split(", "), [&filtered = m_impl->m_filteredGenres](const auto& item) { return filtered.contains(item); });
 }
