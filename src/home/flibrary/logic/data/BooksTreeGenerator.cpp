@@ -43,23 +43,6 @@ constexpr const char* BOOKS_COLUMN_NAMES[] {
 #undef BOOKS_COLUMN_ITEM
 };
 
-constexpr auto BOOKS_QUERY = R"(
-%4select
-	%1,
-	a.AuthorID, a.LastName, a.FirstName, a.MiddleName, g.GenreCode, g.GenreAlias, g.FB2Code, coalesce(b.SeriesID, -1), s.SeriesTitle %5
-		from Books b
-		join Author_List al on al.BookID = b.BookID
-		join Authors a on a.AuthorID = al.AuthorID
-		join Genre_List gl on gl.BookID = b.BookID
-		join Genres g on g.GenreCode = gl.GenreCode
-		join Folders f on f.FolderID = b.FolderID
-		%2
-		left join Series s on s.SeriesID = b.SeriesID
-		left join Books_User bu on bu.BookID = b.BookID
-		%3
-		order by b.BookID, al.OrdNum, gl.OrdNum
-)";
-
 auto ToAuthorItemComparable(const IDataItem::Ptr& author)
 {
 	return std::make_tuple(Util::QStringWrapper { author->GetData(AuthorItem::Column::LastName) },
@@ -284,22 +267,22 @@ public:
 private: // IBookSelector
 	void SelectBooks(const Collection&, DB::IDatabase& db, const QueryDescription& description) override
 	{
-		CreateSelectedBookItems(db, QString(description.joinClause).arg(navigationId));
+		CreateSelectedBookItems(db, description.queryClause);
 	}
 
-	void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription& /*description*/) override
+	void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription& description) override
 	{
 		const auto folder = activeCollection.folder + "/" + QString::fromStdWString(REVIEWS_FOLDER) + "/" + navigationId + ".7z";
 		if (!QFile::exists(folder))
 			return;
 
-		const auto tr = db.CreateTransaction();
-		const auto tmpTable = tr->CreateTemporaryTable({ "LibID VARCHAR (200)", "Name VARCHAR (200)", "Time VARCHAR (20)", "Text BLOB (1024)", "ReviewID INTEGER" });
+		const auto tmpTable = db.CreateTemporaryTable({ "LibID VARCHAR (200)", "ReviewID INTEGER" });
 
 		{
-			const auto insertCommand = tr->CreateCommand(QString("insert into %1(LibID, Name, Time, Text, ReviewID) values(?, ?, ?, ?, ?)").arg(tmpTable->GetName().data()).toStdString());
+			const auto tr = db.CreateTransaction();
+			const auto insertCommand = tr->CreateCommand(QString("insert into %1(LibID, ReviewID) values(?, ?)").arg(tmpTable->GetName().data()).toStdString());
 			Zip zip(folder);
-			for (int reviewId = 0; const auto& file : zip.GetFileNameList())
+			for (long long reviewId = 0; const auto& file : zip.GetFileNameList())
 			{
 				QJsonParseError parseError;
 				const auto doc = QJsonDocument::fromJson(zip.Read(file)->GetStream().readAll(), &parseError);
@@ -315,54 +298,57 @@ private: // IBookSelector
 					assert(recordValue.isObject());
 					const auto recordObject = recordValue.toObject();
 					insertCommand->Bind(0, file.toStdString());
-					insertCommand->Bind(1, recordObject[Constant::NAME].toString().toStdString());
-					insertCommand->Bind(2, recordObject[Constant::TIME].toString().toStdString());
-					insertCommand->Bind(3, recordObject[Constant::TEXT].toString().toStdString());
-					insertCommand->Bind(4, ++reviewId);
+					insertCommand->Bind(1, ++reviewId);
 					insertCommand->Execute();
+
+					auto& reviewItem = m_reviews.try_emplace(reviewId, ReviewItem::Create()).first->second;
+					reviewItem->SetData(recordObject[Constant::NAME].toString(), ReviewItem::Column::Name);
+					reviewItem->SetData(recordObject[Constant::TIME].toString(), ReviewItem::Column::Time);
+					reviewItem->SetData(recordObject[Constant::TEXT].toString(), ReviewItem::Column::Comment);
+					if (reviewItem->GetData(ReviewItem::Column::Name).isEmpty())
+						reviewItem->SetData(Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS), ReviewItem::Column::Name);
 				}
 			}
+//			tr->CreateCommand(std::format("CREATE INDEX IX_LibID ON {} (LibID)", tmpTable->GetName()))->Execute();
+			tr->Commit();
 		}
 
-		//const auto queryText = QString(BOOKS_QUERY)
-		//                           .arg(QString(IDatabaseUser::BOOKS_QUERY_FIELDS).arg(description.seqNumberTableAlias))
-		//                           .arg(QString("join %1 t on t.LibID = b.LibID").arg(tmpTable->GetName().data()), "", "", ", t.Name, t.Time, t.Text, t.ReviewID")
-		//                           .toStdString();
-		//[[maybe_unused]] const auto query = tr->CreateQuery(queryText);
-		//		CreateSelectedBookItems(*query,
-		//		                        [&](const SelectedBookItem& selectedItem)
-		//		                        {
-		//									auto& reviewItem = m_reviews[query->Get<long long>(static_cast<int>(BookQueryFields::Last) + static_cast<int>(ReviewItem::Column::Last))];
-		//									if (reviewItem)
-		//										return;
-		//
-		//									reviewItem = ReviewItem::Create();
-		//									const auto bookItem = reviewItem->AppendChild(std::get<0>(selectedItem));
-		//									reviewItem->SetId(bookItem->GetId());
-		//									for (int i = 0; i < ReviewItem::Column::Last; ++i)
-		//										reviewItem->SetData(query->Get<const char*>(BookQueryFields::Last + i), i);
-		//									if (reviewItem->GetData(ReviewItem::Column::Name).isEmpty())
-		//										reviewItem->SetData(Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS), ReviewItem::Column::Name);
-		//								});
+		CreateSelectedBookItems(db,
+		                        description.queryClause,
+		                        [&](const DB::IQuery& query, const SelectedBookItem& selectedItem)
+		                        {
+									const auto it = m_reviews.find(query.Get<long long>(BookQueryFields::Last));
+									assert(it != m_reviews.end());
+
+									auto& reviewItem = it->second;
+									const auto& bookItem = reviewItem->AppendChild(std::get<0>(selectedItem));
+									reviewItem->SetId(bookItem->GetId());
+								});
 	}
 
 private:
-	void CreateSelectedBookItems(DB::IDatabase& db, const QString& join)
+	void CreateSelectedBookItems(
+		DB::IDatabase& db,
+		const QueryClause& queryClause,
+		const std::function<void(const DB::IQuery&, const SelectedBookItem&)>& additional = [](const DB::IQuery&, const auto&) {})
 	{
+		const auto with = QString(queryClause.with).arg(navigationId).toStdString();
+
 		{
-			static constexpr auto queryText = R"(
-select b.BookID, b.Title, coalesce(b.SeqNumber, -1) SeqNumber, b.UpdateDate, b.LibRate, b.Lang, b.Year, f.FolderTitle, b.FileName, b.BookSize, b.UserRate, b.LibID, b.IsDeleted, l.Flags
-    from Books_View b
-    join Folders f on f.FolderID = b.FolderID
-	join Languages l on l.LanguageCode = b.Lang
+			static constexpr auto queryText = R"({}
+select b.BookID, b.Title, coalesce(b.SeqNumber, -1) SeqNumber, b.UpdateDate, b.LibRate, b.Lang, b.Year, f.FolderTitle, b.FileName, b.BookSize, b.UserRate, b.LibID, b.IsDeleted, l.Flags{}
     {}
+    join Folders f on f.FolderID = b.FolderID
+    join Languages l on l.LanguageCode = b.Lang
+	{}
 )";
-			const auto query = db.CreateQuery(std::format(queryText, join.toStdString()));
+			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.additionalFields, queryClause.booksFrom, QString(queryClause.booksWhere).arg(navigationId).toStdString()));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto& book = m_books[query->Get<long long>(BookQueryFields::BookId)];
-				assert(!std::get<0>(book));
-				std::get<0>(book) = DatabaseUtil::CreateBookItem(*query);
+				if (!std::get<0>(book))
+					std::get<0>(book) = DatabaseUtil::CreateBookItem(*query);
+				additional(*query, book);
 			}
 		}
 
@@ -377,14 +363,17 @@ select b.BookID, b.Title, coalesce(b.SeqNumber, -1) SeqNumber, b.UpdateDate, b.L
 			book.SetFlags(toSet);
 		};
 
+		const auto where = QString(queryClause.navigationWhere).arg(navigationId).toStdString();
+
 		{
-			static constexpr auto queryText = R"(
-select s.SeriesID, s.SeriesTitle, s.IsDeleted, s.Flags, b.BookID, b.OrdNum
-		from Series s
-		join Series_List b on b.SeriesID = s.SeriesID
-		{}
+			static constexpr auto queryText = R"({}
+select s.SeriesID, s.SeriesTitle, s.IsDeleted, s.Flags, l.BookID, l.OrdNum
+{}
+join Series_List l on l.BookID = b.BookID
+join Series s on s.SeriesID = l.SeriesID
+{}
 )";
-			const auto query = db.CreateQuery(std::format(queryText, join.toStdString()));
+			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				const auto id = query->Get<long long>(0);
@@ -402,13 +391,14 @@ select s.SeriesID, s.SeriesTitle, s.IsDeleted, s.Flags, b.BookID, b.OrdNum
 		}
 
 		{
-			static constexpr auto queryText = R"(
-select a.AuthorID, a.LastName, a.FirstName, a.MiddleName, a.IsDeleted, a.Flags, b.BookID, b.OrdNum
-    from Authors a
-    join Author_List b on b.AuthorID = a.AuthorID
-    {}
+			static constexpr auto queryText = R"({}
+select a.AuthorID, a.LastName, a.FirstName, a.MiddleName, a.IsDeleted, a.Flags, l.BookID, l.OrdNum
+{}
+join Author_List l on l.BookID = b.BookID
+join Authors a on a.AuthorID = l.AuthorID
+{}
 )";
-			const auto query = db.CreateQuery(std::format(queryText, join.toStdString()));
+			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto id = query->Get<long long>(0);
@@ -423,13 +413,14 @@ select a.AuthorID, a.LastName, a.FirstName, a.MiddleName, a.IsDeleted, a.Flags, 
 			}
 		}
 		{
-			static constexpr auto queryText = R"(
-select g.GenreCode, g.GenreAlias, g.FB2Code, g.IsDeleted, g.Flags, b.BookID, b.OrdNum
-	from Genres g
-	join Genre_List b on b.GenreCode = g.GenreCode
-    {}
+			static constexpr auto queryText = R"({}
+select g.GenreCode, g.GenreAlias, g.FB2Code, g.IsDeleted, g.Flags, l.BookID, l.OrdNum
+{}
+join Genre_List l on l.BookID = b.BookID
+join Genres g on g.GenreCode = l.GenreCode
+{}
 )";
-			const auto query = db.CreateQuery(std::format(queryText, join.toStdString()));
+			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				QString id = query->Get<const char*>(0);
@@ -444,13 +435,14 @@ select g.GenreCode, g.GenreAlias, g.FB2Code, g.IsDeleted, g.Flags, b.BookID, b.O
 			}
 		}
 		{
-			static constexpr auto queryText = R"(
-select k.Flags, b.BookID, b.OrdNum
-    from Keywords k
-    join Keyword_List b on b.KeywordID = k.KeywordID
-    {}
+			static constexpr auto queryText = R"({}
+select k.Flags, l.BookID, l.OrdNum
+{}
+join Keyword_List l on l.BookID = b.BookID
+join Keywords k on k.KeywordID = l.KeywordID
+{}
 )";
-			const auto query = db.CreateQuery(std::format(queryText, join.toStdString()));
+			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto& book = m_books[query->Get<long long>(1)];

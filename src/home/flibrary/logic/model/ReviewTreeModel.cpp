@@ -75,7 +75,7 @@ QVariant ReviewTreeModel::data(const QModelIndex& index, const int role) const
 		{
 			case Qt::DisplayRole:
 			case Qt::ToolTipRole:
-				return GetValue(*item, index.column() - item->GetChild(0)->GetColumnCount() + 1);
+				return item->GetData(index.column() - item->GetChild(0)->GetColumnCount() + 1);
 
 			case Role::Remap:
 				return index.column();

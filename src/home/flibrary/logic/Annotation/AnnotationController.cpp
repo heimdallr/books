@@ -180,7 +180,7 @@ QString TranslateLang(const QString& code)
 Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, const IAnnotationController::IStrategy& strategy)
 {
 	const auto& book = dataProvider.GetBook();
-	const auto& folder = book.GetRawData(BookItem::Column::Folder);
+//	const auto& folder = book.GetRawData(BookItem::Column::Folder);
 	const auto& keywords = dataProvider.GetKeywords();
 	const auto& lang = book.GetRawData(BookItem::Column::Lang);
 	const auto& fbLang = dataProvider.GetLanguage();
@@ -202,11 +202,12 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, c
 		.Add(Loc::SERIES, Urls(strategy, Loc::SERIES, dataProvider.GetSeries()))
 		.Add(Loc::GENRES, Urls(strategy, Loc::GENRES, dataProvider.GetGenres()))
 		.Add(Loc::PUBLISH_YEAR, strategy.GenerateUrl(Loc::PUBLISH_YEAR, book.GetRawData(BookItem::Column::Year), book.GetRawData(BookItem::Column::Year)))
-		.Add(Loc::ARCHIVE, strategy.GenerateUrl(Loc::ARCHIVE, book.GetRawData(BookItem::Column::FolderID), folder))
+//		.Add(Loc::ARCHIVE, strategy.GenerateUrl(Loc::ARCHIVE, book.GetRawData(BookItem::Column::FolderID), folder))
 		.Add(Loc::GROUPS, Urls(strategy, Loc::GROUPS, dataProvider.GetGroups()))
 		.Add(Loc::KEYWORDS, Urls(strategy, Loc::KEYWORDS, keywords))
 		.Add(Loc::LANGUAGE, langStr)
-		.Add(Loc::UPDATES, strategy.GenerateUrl(Loc::UPDATES, book.GetRawData(BookItem::Column::UpdateID), book.GetRawData(BookItem::Column::UpdateDate)));
+//		.Add(Loc::UPDATES, strategy.GenerateUrl(Loc::UPDATES, book.GetRawData(BookItem::Column::UpdateID), book.GetRawData(BookItem::Column::UpdateDate))
+		;
 
 	return table;
 }

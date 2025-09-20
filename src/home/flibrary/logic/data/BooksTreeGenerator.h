@@ -65,6 +65,16 @@ public:
 
 using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query);
 
+struct QueryClause
+{
+	const char* booksFrom { "" };
+	const char* booksWhere { "" };
+	const char* navigationFrom { "" };
+	const char* navigationWhere { "" };
+	const char* additionalFields { "" };
+	const char* with { "" };
+};
+
 struct QueryDescription
 {
 	using Binder = int (*)(DB::IQuery&, const QString&);
@@ -72,7 +82,7 @@ struct QueryDescription
 
 	const char* navigationQuery { nullptr };
 	QueryDataExtractor navigationExtractor { nullptr };
-	const char* joinClause { nullptr };
+	QueryClause queryClause;
 	IBooksListCreator::Creator listCreator { nullptr };
 	IBooksTreeCreator::Creator treeCreator { nullptr };
 	BookItem::Mapping listMapping;

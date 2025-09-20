@@ -188,9 +188,7 @@ class LOGIC_EXPORT BookItem final : public DataItem
 	BOOKS_COLUMN_ITEM(LibID)       \
 	BOOKS_COLUMN_ITEM(Series)      \
 	BOOKS_COLUMN_ITEM(Genre)       \
-	BOOKS_COLUMN_ITEM(AuthorFull)  \
-	BOOKS_COLUMN_ITEM(FolderID)    \
-	BOOKS_COLUMN_ITEM(UpdateID)
+	BOOKS_COLUMN_ITEM(AuthorFull)
 
 public:
 	struct Column
