@@ -7,6 +7,7 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDataProvider.h"
 #include "interface/logic/IDatabaseController.h"
+#include "interface/logic/IFilterController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
 

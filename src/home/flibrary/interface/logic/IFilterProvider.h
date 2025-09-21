@@ -25,10 +25,4 @@ public:
 	virtual void UnregisterObserver(IObserver* observer) = 0;
 };
 
-class IFilterController : public IFilterProvider
-{
-public:
-	virtual void SetFilterEnabled(bool enabled) = 0;
-};
-
 } // namespace HomeCompa::Flibrary

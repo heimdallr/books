@@ -4,7 +4,7 @@
 
 #include "fnd/NonCopyMovable.h"
 
-#include "interface/logic/IFilterProvider.h"
+#include "interface/logic/IFilterController.h"
 
 #include "util/ISettings.h"
 

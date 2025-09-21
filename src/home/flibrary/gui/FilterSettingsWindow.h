@@ -5,7 +5,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-#include "interface/logic/IFilterProvider.h"
+#include "interface/logic/IFilterController.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
 #include "util/ISettings.h"
