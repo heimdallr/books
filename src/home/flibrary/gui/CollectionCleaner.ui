@@ -433,14 +433,6 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionCancel">
-   <property name="shortcut">
-    <string notr="true">Shift+Esc</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
@@ -526,22 +518,6 @@
     <hint type="destinationlabel">
      <x>485</x>
      <y>157</y>
-    </hint>
-   </hints>
-  </connection>
-  <connection>
-   <sender>actionCancel</sender>
-   <signal>triggered()</signal>
-   <receiver>btnCancel</receiver>
-   <slot>click()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>-1</x>
-     <y>-1</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>1037</x>
-     <y>690</y>
     </hint>
    </hints>
   </connection>

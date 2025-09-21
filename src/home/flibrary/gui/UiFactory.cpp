@@ -13,13 +13,13 @@
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
 #include "dialogs/AddCollectionDialog.h"
-#include "dialogs/FilterDialog.h"
 #include "dialogs/OpdsDialog.h"
 #include "util/localization.h"
 #include "version/AppVersion.h"
 
 #include "AuthorReview.h"
 #include "CollectionCleaner.h"
+#include "FilterSettingsWindow.h"
 #include "QueryWindow.h"
 #include "TreeView.h"
 #include "log.h"
@@ -163,11 +163,6 @@ std::shared_ptr<QDialog> UiFactory::CreateOpdsDialog() const
 	return m_impl->container.resolve<OpdsDialog>();
 }
 
-std::shared_ptr<QDialog> UiFactory::CreateFilterDialog() const
-{
-	return m_impl->container.resolve<FilterDialog>();
-}
-
 std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString title) const
 {
 	m_impl->title = std::move(title);
@@ -182,6 +177,11 @@ std::shared_ptr<QMainWindow> UiFactory::CreateQueryWindow() const
 void UiFactory::CreateCollectionCleaner() const
 {
 	CreateStackedPage<CollectionCleaner>(m_impl->container, this);
+}
+
+void UiFactory::CreateFilterSettingsWindow() const
+{
+	CreateStackedPage<FilterSettingsWindow>(m_impl->container, this);
 }
 
 void UiFactory::CreateAuthorReview(const long long id) const

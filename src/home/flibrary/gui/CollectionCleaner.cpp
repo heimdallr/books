@@ -100,7 +100,6 @@ public:
 		, m_destructiveOperationsAllowedKey { QString("%1/%2/%3").arg(Constant::Settings::COLLECTIONS, collectionProvider.GetActiveCollectionId(), Constant::Settings::DESTRUCTIVE_OPERATIONS_ALLOWED_KEY) }
 	{
 		m_ui.setupUi(&self);
-		self.addAction(m_ui.actionCancel);
 
 		m_ui.genres->setModel(m_genreModel->GetModel());
 		m_ui.genres->viewport()->installEventFilter(m_scrollBarControllerGenre.get());
@@ -292,7 +291,7 @@ private:
 	{
 		m_ui.btnCancel->setEnabled(false);
 		m_analyzeCanceled = true;
-		m_ui.progressBar->isVisible() ? m_collectionCleaner->AnalyzeCancel() : m_self.StateChanged(State::Canceled);
+		m_ui.progressBar->isVisible() ? m_collectionCleaner->AnalyzeCancel() : m_self.closeAction->trigger();
 	}
 
 	void Analyze()

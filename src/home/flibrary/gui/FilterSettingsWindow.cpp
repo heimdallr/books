@@ -1,6 +1,6 @@
-#include "ui_FilterDialog.h"
+#include "ui_FilterSettingsWindow.h"
 
-#include "FilterDialog.h"
+#include "FilterSettingsWindow.h"
 
 #include <QMenu>
 
@@ -36,18 +36,18 @@ constexpr auto SORT_ORDER_KEY = "ui/Books/LanguageFilter/sortOrder";
 
 }
 
-struct FilterDialog::Impl final
+struct FilterSettingsWindow::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
 {
-	QWidget& self;
+	StackedPage& self;
 	PropagateConstPtr<ISettings, std::shared_ptr> settings;
 	PropagateConstPtr<IFilterController, std::shared_ptr> filterController;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> scrollBarController;
-	Ui::FilterDialog ui {};
+	Ui::FilterSettingsWindow ui {};
 
-	Impl(FilterDialog& self, std::shared_ptr<ISettings> settings, std::shared_ptr<IFilterController> filterController, std::shared_ptr<ScrollBarController> scrollBarController)
-		: GeometryRestorable(*this, settings, "FilterDialog")
+	Impl(FilterSettingsWindow& self, std::shared_ptr<ISettings> settings, std::shared_ptr<IFilterController> filterController, std::shared_ptr<ScrollBarController> scrollBarController)
+		: GeometryRestorable(*this, settings, "FilterSettingsWindow")
 		, GeometryRestorableObserver(self)
 		, self { self }
 		, settings { std::move(settings) }
@@ -55,8 +55,9 @@ struct FilterDialog::Impl final
 		, scrollBarController { std::move(scrollBarController) }
 	{
 		ui.setupUi(&self);
+		connect(ui.btnCancel, &QAbstractButton::clicked, self.closeAction, &QAction::trigger);
 
-		connect(&self, &QDialog::accepted, [this] { this->filterController->SetFilterEnabled(ui.checkBoxFilterEnabled->isChecked()); });
+		connect(ui.btnApply, &QAbstractButton::clicked, [this] { Apply(); });
 
 		//		for (auto [action, role] : std::initializer_list<std::pair<QAction*, int>> {
 		//				 {     ui.actionLanguageCheckAll,     Role::CheckAll },
@@ -98,12 +99,13 @@ struct FilterDialog::Impl final
 		SaveGeometry();
 	}
 
-	void Save()
+private:
+	void Apply()
 	{
-		//		languageFilterController->SetFilteredCodes(ui.checkBoxFilterEnabled->isChecked(), GetSelected(*languageModel->GetModel()));
+		filterController->SetFilterEnabled(ui.checkBoxFilterEnabled->isChecked());
+		self.closeAction->trigger();
 	}
 
-private:
 	void OnLanguagesContextMenuRequested() const
 	{
 		QMenu menu;
@@ -117,15 +119,14 @@ private:
 	NON_COPY_MOVABLE(Impl)
 };
 
-FilterDialog::FilterDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
+FilterSettingsWindow::FilterSettingsWindow(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
                            std::shared_ptr<ISettings> settings,
                            std::shared_ptr<IFilterController> filterController,
                            std::shared_ptr<ScrollBarController> scrollBarController,
                            QWidget* parent)
-	: QDialog(parentWidgetProvider->GetWidget(parent))
+	: StackedPage(parentWidgetProvider->GetWidget(parent))
 	, m_impl(*this, std::move(settings), std::move(filterController), std::move(scrollBarController))
 {
-	connect(this, &QDialog::accepted, [this] { m_impl->Save(); });
 }
 
-FilterDialog::~FilterDialog() = default;
+FilterSettingsWindow::~FilterSettingsWindow() = default;

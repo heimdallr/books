@@ -18,10 +18,10 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate> CreateTreeViewDelegateBooks(QTreeView& parent) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate> CreateTreeViewDelegateNavigation(QAbstractItemView& parent) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QDialog> CreateOpdsDialog() const = 0;
-	[[nodiscard]] virtual std::shared_ptr<QDialog> CreateFilterDialog() const = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QMainWindow> CreateQueryWindow() const = 0;
 	virtual void CreateCollectionCleaner() const = 0;
+	virtual void CreateFilterSettingsWindow() const = 0;
 	virtual void CreateAuthorReview(long long id) const = 0;
 
 	virtual void ShowAbout() const = 0;

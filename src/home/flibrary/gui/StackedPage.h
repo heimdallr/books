@@ -35,6 +35,9 @@ public:
 
 public:
 	void StateChanged(int state);
+
+public:
+	QAction* closeAction;
 };
 
 } // namespace HomeCompa::Flibrary
