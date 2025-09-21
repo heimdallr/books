@@ -7,6 +7,7 @@
 
 #include "interface/logic/IDataProvider.h"
 #include "interface/logic/IFilterController.h"
+#include "interface/logic/IModelProvider.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
 #include "util/ISettings.h"
@@ -23,6 +24,7 @@ class FilterSettingsWindow final : public StackedPage
 
 public:
 	FilterSettingsWindow(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
+	                     std::shared_ptr<const IModelProvider> modelProvider,
 	                     std::shared_ptr<ISettings> settings,
 	                     std::shared_ptr<IFilterController> filterController,
 	                     std::shared_ptr<IFilterDataProvider> filterDataProvider,

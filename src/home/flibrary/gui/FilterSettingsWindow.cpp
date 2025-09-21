@@ -46,14 +46,17 @@ struct FilterSettingsWindow::Impl final
 	, Util::GeometryRestorableObserver
 {
 	StackedPage& self;
+	std::shared_ptr<const IModelProvider> modelProvider;
 	PropagateConstPtr<ISettings, std::shared_ptr> settings;
 	PropagateConstPtr<IFilterController, std::shared_ptr> filterController;
 	PropagateConstPtr<IFilterDataProvider, std::shared_ptr> dataProvider;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> scrollBarController;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> model { std::shared_ptr<QAbstractItemModel> {} };
+	IFilterController::ModelGetter modelGetter { nullptr };
 	Ui::FilterSettingsWindow ui {};
 
 	Impl(FilterSettingsWindow& self,
+	     std::shared_ptr<const IModelProvider> modelProvider,
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<IFilterController> filterController,
 	     std::shared_ptr<IFilterDataProvider> dataProvider,
@@ -61,6 +64,7 @@ struct FilterSettingsWindow::Impl final
 		: GeometryRestorable(*this, settings, "FilterSettingsWindow")
 		, GeometryRestorableObserver(self)
 		, self { self }
+		, modelProvider { std::move(modelProvider) }
 		, settings { std::move(settings) }
 		, filterController { std::move(filterController) }
 		, dataProvider { std::move(dataProvider) }
@@ -104,13 +108,19 @@ private:
 					ui.view->setModel(nullptr);
 					model.reset();
 					const auto index = static_cast<size_t>(tabIndex);
+					modelGetter = IFilterController::GetFilteredNavigationDescription(static_cast<size_t>(indexToMode[index])).modelGetter;
+					assert(modelGetter);
 					dataProvider->SetNavigationMode(indexToMode[index]);
 					dataProvider->RequestNavigation();
 					ui.tabs->widget(tabIndex)->layout()->addWidget(ui.view);
 				});
+
 		dataProvider->SetNavigationRequestCallback(
 			[this](IDataItem::Ptr root)
 			{
+				assert(modelGetter);
+				model.reset(std::invoke(modelGetter, *modelProvider, std::move(root)));
+				ui.view->setModel(model.get());
 			});
 
 		if (const auto index = settings->Get(RECENT_TAB_KEY, 0))
@@ -172,13 +182,14 @@ private:
 };
 
 FilterSettingsWindow::FilterSettingsWindow(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
+                                           std::shared_ptr<const IModelProvider> modelProvider,
                                            std::shared_ptr<ISettings> settings,
                                            std::shared_ptr<IFilterController> filterController,
                                            std::shared_ptr<IFilterDataProvider> dataProvider,
                                            std::shared_ptr<ScrollBarController> scrollBarController,
                                            QWidget* parent)
 	: StackedPage(parentWidgetProvider->GetWidget(parent))
-	, m_impl(*this, std::move(settings), std::move(filterController), std::move(dataProvider), std::move(scrollBarController))
+	, m_impl(*this, std::move(modelProvider), std::move(settings), std::move(filterController), std::move(dataProvider), std::move(scrollBarController))
 {
 	PLOGV << "FilterSettingsWindow created";
 }

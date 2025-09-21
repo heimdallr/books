@@ -13,10 +13,7 @@
   <property name="windowTitle">
    <string>Filter settings</string>
   </property>
-  <layout class="QVBoxLayout">
-   <property name="spacing">
-    <number>0</number>
-   </property>
+  <layout class="QVBoxLayout" name="_3">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -29,6 +26,9 @@
    <property name="bottomMargin">
     <number>0</number>
    </property>
+   <item>
+    <widget class="QTabWidget" name="tabs"/>
+   </item>
    <item>
     <widget class="QTreeView" name="view">
      <property name="contextMenuPolicy">

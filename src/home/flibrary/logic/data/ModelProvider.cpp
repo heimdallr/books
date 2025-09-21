@@ -152,6 +152,16 @@ std::shared_ptr<QAbstractItemModel> ModelProvider::CreateAuthorReviewModel() con
 	return m_impl->container.resolve<AuthorReviewModel>();
 }
 
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateFilterListModel(IDataItem::Ptr /*data*/) const
+{
+	return {};
+}
+
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateFilterTreeModel(IDataItem::Ptr /*data*/) const
+{
+	return {};
+}
+
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const
 {
 	return m_impl->CreateModel<TreeModel>(std::move(data), autoAcceptChildRows);
