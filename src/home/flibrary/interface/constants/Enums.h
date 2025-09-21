@@ -107,7 +107,9 @@ struct BooksMenuAction
 	MENU_ACTION_ITEM(RemoveFromGroupAllAuthors)  \
 	MENU_ACTION_ITEM(RemoveFromGroupAllSeries)   \
 	MENU_ACTION_ITEM(RemoveFromGroupAllKeywords) \
-	MENU_ACTION_ITEM(AuthorReview)
+	MENU_ACTION_ITEM(AuthorReview)               \
+	MENU_ACTION_ITEM(HideNavigationItem)         \
+	MENU_ACTION_ITEM(FilterNavigationItemBooks)
 
 struct MenuAction
 {

@@ -672,6 +672,12 @@ private:
 		const QFontMetrics metrics(font);
 		std::stack<std::pair<const IDataItem*, QMenu*>> stack { { { &item, &menu } } };
 
+		const auto getBool = [](const IDataItem& menuItem, const int column, const bool defaultValue)
+		{
+			const auto& str = menuItem.GetData(column);
+			return str.isEmpty() ? defaultValue : QVariant(str).toBool();
+		};
+
 		while (!stack.empty())
 		{
 			auto [parent, subMenu] = stack.top();
@@ -682,8 +688,7 @@ private:
 			for (size_t i = 0, sz = parent->GetChildCount(); i < sz; ++i)
 			{
 				auto child = parent->GetChild(i);
-				const auto enabledStr = child->GetData(MenuItem::Column::Enabled);
-				const auto enabled = enabledStr.isEmpty() || QVariant(enabledStr).toBool();
+				const auto enabled = getBool(*child, MenuItem::Column::Enabled, true);
 				const auto title = child->GetData().toStdString();
 				const auto titleText = Loc::Tr(m_controller->TrContext(), title.data());
 				auto statusTip = titleText;
@@ -705,6 +710,9 @@ private:
 					continue;
 				}
 
+				const auto checkable = getBool(*child, MenuItem::Column::Checkable, false);
+				const auto checked = getBool(*child, MenuItem::Column::Checked, false);
+
 				auto* action = subMenu->addAction(titleText,
 				                                  [&, child = std::move(child)]() mutable
 				                                  {
@@ -716,8 +724,10 @@ private:
 													  m_controller->OnContextMenuTriggered(view.model(), view.currentIndex(), selected, std::move(child));
 												  });
 				action->setStatusTip(statusTip);
-
 				action->setEnabled(enabled);
+				action->setCheckable(checkable);
+				if (checkable)
+					action->setChecked(checked);
 			}
 
 			subMenu->setMinimumWidth(maxWidth);

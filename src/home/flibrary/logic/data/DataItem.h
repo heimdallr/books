@@ -259,6 +259,8 @@ public:
 			Id,
 			Parameter,
 			Enabled,
+			Checkable,
+			Checked,
 			HasError,
 			Last
 		};

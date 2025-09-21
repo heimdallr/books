@@ -27,7 +27,8 @@ public:
 	                             std::shared_ptr<INavigationInfoProvider> dataProvider,
 	                             std::shared_ptr<IUiFactory> uiFactory,
 	                             std::shared_ptr<IDatabaseController> databaseController,
-	                             std::shared_ptr<IAuthorAnnotationController> authorAnnotationController);
+	                             std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
+	                             std::shared_ptr<IFilterController> filterController);
 	~TreeViewControllerNavigation() override;
 
 public:
