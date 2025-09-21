@@ -4,6 +4,7 @@
 
 #include "fnd/NonCopyMovable.h"
 
+#include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IFilterController.h"
 
 #include "util/ISettings.h"
@@ -16,7 +17,7 @@ class FilterController final : public IFilterController
 	NON_COPY_MOVABLE(FilterController)
 
 public:
-	explicit FilterController(std::shared_ptr<ISettings> settings);
+	FilterController(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<ISettings> settings);
 	~FilterController() override;
 
 private: // IFilterProvider

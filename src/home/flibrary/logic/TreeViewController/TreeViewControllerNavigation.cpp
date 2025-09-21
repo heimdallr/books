@@ -253,7 +253,7 @@ struct TreeViewControllerNavigation::Impl final
 	, virtual private IContextMenuProvider
 {
 	TreeViewControllerNavigation& self;
-	std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
+	mutable std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
 	std::weak_ptr<const ILogicFactory> logicFactory;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 	PropagateConstPtr<INavigationInfoProvider, std::shared_ptr> dataProvider;
@@ -392,6 +392,9 @@ private: // IContextMenuHandler
 
 	void OnHideNavigationItemTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& /*item*/, Callback callback) const override
 	{
+		for (const auto& indexListItem : indexList)
+			models[static_cast<size_t>(mode)]->setData(indexListItem, QVariant::fromValue(IDataItem::Flags::Filtered), Role::Flags);
+
 		QStringList ids;
 		std::ranges::move(GetSelected<QString>(index, indexList), std::back_inserter(ids));
 		filterController->SetNavigationItemFlags(static_cast<NavigationMode>(mode), std::move(ids), IDataItem::Flags::Filtered, std::move(callback));
@@ -399,6 +402,9 @@ private: // IContextMenuHandler
 
 	void OnFilterNavigationItemBooksTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
+		for (const auto& indexListItem : indexList)
+			models[static_cast<size_t>(mode)]->setData(indexListItem, QVariant::fromValue(IDataItem::Flags::BooksFiltered), Role::Flags);
+
 		QStringList ids;
 		std::ranges::move(GetSelected<QString>(index, indexList), std::back_inserter(ids));
 
@@ -723,7 +729,7 @@ private:
 						   });
 	}
 
-	void OnTableChanged(const NavigationMode tableMode)
+	void OnTableChanged(const NavigationMode tableMode) const
 	{
 		static_cast<NavigationMode>(mode) == tableMode ? self.RequestNavigation(true) : models[static_cast<size_t>(tableMode)].reset();
 	}
@@ -748,12 +754,22 @@ private:
 		if (!result)
 			result = MenuItem::Create();
 
+		assert(static_cast<size_t>(mode) < std::size(IFilterController::FILTERED_NAVIGATION_DESCRIPTION));
+		const auto& description = IFilterController::FILTERED_NAVIGATION_DESCRIPTION[static_cast<size_t>(mode)];
+		assert(!description.table.empty() && !description.idField.empty());
+		const auto query = db.CreateQuery(std::format("select Flags from {} where {} = ?", description.table, description.idField));
+		description.queueBinder(*query, 0, id);
+		query->Execute();
+		assert(!query->Eof());
+		const auto booksFiltered = !!(static_cast<IDataItem::Flags>(query->Get<int>(0)) & IDataItem::Flags::BooksFiltered);
+
 		const auto parent = AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Filters"));
 		const auto filterEnabled = QVariant(!!(options & RequestContextMenuOptions::UniFilterEnabled)).toString();
 
 		AddMenuItem(parent, QT_TRANSLATE_NOOP("Navigation", "Hide"), MenuAction::HideNavigationItem)->SetData(filterEnabled, MenuItem::Column::Enabled);
 		AddMenuItem(parent, QT_TRANSLATE_NOOP("Navigation", "Filter books"), MenuAction::FilterNavigationItemBooks)
 			->SetData(QVariant(true).toString(), MenuItem::Column::Checkable)
+			.SetData(QVariant(booksFiltered).toString(), MenuItem::Column::Checked)
 			.SetData(filterEnabled, MenuItem::Column::Enabled);
 		AddMenuItem(parent, QT_TRANSLATE_NOOP("Navigation", "Filter settings..."), MenuAction::ShowFilterSettings);
 		return result;

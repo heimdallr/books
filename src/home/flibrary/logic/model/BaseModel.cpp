@@ -137,6 +137,9 @@ bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const i
 			case Qt::EditRole:
 				return true;
 
+			case Role::Flags:
+				return item->SetFlags(value.value<IDataItem::Flags>()), true;
+
 			default:
 				return assert(false && "unexpected role"), false;
 		}

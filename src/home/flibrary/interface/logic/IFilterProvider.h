@@ -7,13 +7,18 @@ class QString;
 namespace HomeCompa::Flibrary
 {
 
+enum class NavigationMode;
+
 class IFilterProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
+
 public:
 	class IObserver : public Observer
 	{
 	public:
 		virtual void OnFilterEnabledChanged() = 0;
+		virtual void OnFilterNavigationChanged(NavigationMode navigationMode) = 0;
+		virtual void OnFilterBooksChanged() = 0;
 	};
 
 public:
