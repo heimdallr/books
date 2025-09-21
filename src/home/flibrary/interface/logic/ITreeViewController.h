@@ -35,6 +35,7 @@ public:
 		AllowDestructiveOperations = 1 << 6,
 		IsArchive                  = 1 << 7,
 		ShowRemoved                = 1 << 8,
+		UniFilterEnabled           = 1 << 9,
 		// clang-format on
 	};
 

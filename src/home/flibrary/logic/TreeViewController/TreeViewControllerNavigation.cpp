@@ -90,44 +90,6 @@ auto GetSubscribedTable(const std::string_view name)
 	return FindSecond(SUBSCRIBED_TABLES, name, nullptr);
 }
 
-IDataItem::Ptr TreeMenuRequester(DB::IDatabase&, const QString&, const ITreeViewController::RequestContextMenuOptions options, IDataItem::Ptr result = {})
-{
-	if (!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
-		return {};
-
-	if (!result)
-		result = MenuItem::Create();
-
-	BooksContextMenuProvider::AddTreeMenuItems(result, options);
-	return result;
-}
-
-IDataItem::Ptr MenuRequesterFilter(DB::IDatabase& /*db*/, const QString& /*id*/, const ITreeViewController::RequestContextMenuOptions options, IDataItem::Ptr result = {})
-{
-	if (!(options & ITreeViewController::RequestContextMenuOptions::HasSelection))
-		return {};
-
-	if (!result)
-		result = MenuItem::Create();
-
-	const auto parent = AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Filters"));
-
-	AddMenuItem(parent, QT_TRANSLATE_NOOP("Navigation", "Hide"), MenuAction::HideNavigationItem);
-	AddMenuItem(parent, QT_TRANSLATE_NOOP("Navigation", "Filter books"), MenuAction::FilterNavigationItemBooks)->SetData(QVariant(true).toString(), MenuItem::Column::Checkable);
-	return result;
-}
-
-IDataItem::Ptr MenuRequesterGroupNavigation(DB::IDatabase& db, const QString& id, const ITreeViewController::RequestContextMenuOptions options, IDataItem::Ptr result = {})
-{
-	if (!(options & ITreeViewController::RequestContextMenuOptions::HasSelection))
-		return {};
-
-	result = MenuRequesterFilter(db, id, options, std::move(result));
-
-	CreateGroupMenu(result, id, db);
-	return result;
-}
-
 class IContextMenuHandler // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
@@ -419,6 +381,12 @@ private: // IContextMenuHandler
 	void OnAuthorReviewTriggered(const QList<QModelIndex>&, const QModelIndex& index, const IDataItem::Ptr&, Callback callback) const override
 	{
 		uiFactory->CreateAuthorReview(index.data(Role::Id).toLongLong());
+		forwarder.Forward(std::move(callback));
+	}
+
+	void OnShowFilterSettingsTriggered(const QList<QModelIndex>&, const QModelIndex&, const IDataItem::Ptr&, Callback callback) const override
+	{
+		uiFactory->CreateFilterSettingsWindow();
 		forwarder.Forward(std::move(callback));
 	}
 
@@ -758,6 +726,48 @@ private:
 	void OnTableChanged(const NavigationMode tableMode)
 	{
 		static_cast<NavigationMode>(mode) == tableMode ? self.RequestNavigation(true) : models[static_cast<size_t>(tableMode)].reset();
+	}
+
+	static IDataItem::Ptr TreeMenuRequester(DB::IDatabase&, const QString&, const RequestContextMenuOptions options, IDataItem::Ptr result = {})
+	{
+		if (!(options & RequestContextMenuOptions::IsTree))
+			return {};
+
+		if (!result)
+			result = MenuItem::Create();
+
+		BooksContextMenuProvider::AddTreeMenuItems(result, options);
+		return result;
+	}
+
+	IDataItem::Ptr MenuRequesterFilter(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options, IDataItem::Ptr result = {}) const
+	{
+		if (!(options & RequestContextMenuOptions::HasSelection))
+			return {};
+
+		if (!result)
+			result = MenuItem::Create();
+
+		const auto parent = AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Filters"));
+		const auto filterEnabled = QVariant(!!(options & RequestContextMenuOptions::UniFilterEnabled)).toString();
+
+		AddMenuItem(parent, QT_TRANSLATE_NOOP("Navigation", "Hide"), MenuAction::HideNavigationItem)->SetData(filterEnabled, MenuItem::Column::Enabled);
+		AddMenuItem(parent, QT_TRANSLATE_NOOP("Navigation", "Filter books"), MenuAction::FilterNavigationItemBooks)
+			->SetData(QVariant(true).toString(), MenuItem::Column::Checkable)
+			.SetData(filterEnabled, MenuItem::Column::Enabled);
+		AddMenuItem(parent, QT_TRANSLATE_NOOP("Navigation", "Filter settings..."), MenuAction::ShowFilterSettings);
+		return result;
+	}
+
+	IDataItem::Ptr MenuRequesterGroupNavigation(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options, IDataItem::Ptr result = {}) const
+	{
+		if (!(options & RequestContextMenuOptions::HasSelection))
+			return {};
+
+		result = MenuRequesterFilter(db, id, options, std::move(result));
+
+		CreateGroupMenu(result, id, db);
+		return result;
 	}
 
 	NON_COPY_MOVABLE(Impl)
