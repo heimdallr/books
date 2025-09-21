@@ -754,9 +754,8 @@ private:
 		if (!result)
 			result = MenuItem::Create();
 
-		assert(static_cast<size_t>(mode) < std::size(IFilterController::FILTERED_NAVIGATION_DESCRIPTION));
-		const auto& description = IFilterController::FILTERED_NAVIGATION_DESCRIPTION[static_cast<size_t>(mode)];
-		assert(!description.table.empty() && !description.idField.empty());
+		const auto& description = IFilterController::GetFilteredNavigationDescription(static_cast<size_t>(mode));
+		assert(description.table && description.idField);
 		const auto query = db.CreateQuery(std::format("select Flags from {} where {} = ?", description.table, description.idField));
 		description.queueBinder(*query, 0, id);
 		query->Execute();

@@ -11,10 +11,12 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
+#include "constants/Localization.h"
 #include "constants/ModelRole.h"
 #include "constants/ProductConstant.h"
 #include "logic/IAnnotationController.h"
 #include "logic/IDatabaseUser.h"
+#include "logic/IFilterController.h"
 #include "logic/ILogicFactory.h"
 #include "logic/IScriptController.h"
 #include "ui/IStyleApplier.h"
@@ -351,6 +353,73 @@ QString IAnnotationController::IStrategy::AddTableRowImpl(const QStringList& val
 QString IAnnotationController::IStrategy::TableRowsToStringImpl(const QStringList& values)
 {
 	return values.isEmpty() ? QString {} : QString("<table>%1</table>\n").arg(values.join("\n"));
+}
+
+namespace
+{
+constexpr auto AUTHORS = "Authors";
+constexpr auto AUTHOR_ID = "AuthorID";
+constexpr auto SERIES = "Series";
+constexpr auto SERIES_ID = "SeriesID";
+constexpr auto GENRES = "Genres";
+constexpr auto GENRE_CODE = "GenreCode";
+constexpr auto KEYWORDS = "Keywords";
+constexpr auto KEYWORD_ID = "KeywordID";
+constexpr auto LANGUAGES = "Languages";
+constexpr auto LANGUAGE_ID = "LanguageCode";
+
+template <typename StatementType, typename T>
+struct Binder
+{
+	static void Bind(StatementType& s, size_t index, const QString& value) = delete;
+};
+
+template <typename StatementType>
+struct Binder<StatementType, int>
+{
+	static void Bind(StatementType& s, size_t index, const QString& value)
+	{
+		s.Bind(index, value.toInt());
+	}
+};
+
+template <typename StatementType>
+struct Binder<StatementType, std::string>
+{
+	static void Bind(StatementType& s, size_t index, const QString& value)
+	{
+		s.Bind(index, value.toStdString());
+	}
+};
+
+constexpr IFilterController::FilteredNavigation FILTERED_NAVIGATION_DESCRIPTION[] {
+	// clang-format off
+		{ NavigationMode::Authors    , Loc::Authors     , &IModelProvider::CreateFilterListModel, AUTHORS  , AUTHOR_ID  , &Binder<DB::ICommand, int        >::Bind, &Binder<DB::IQuery, int        >::Bind },
+		{ NavigationMode::Series     , Loc::Series      , &IModelProvider::CreateFilterListModel, SERIES   , SERIES_ID  , &Binder<DB::ICommand, int        >::Bind, &Binder<DB::IQuery, int        >::Bind },
+		{ NavigationMode::Genres     , Loc::Genres      , &IModelProvider::CreateFilterTreeModel, GENRES   , GENRE_CODE , &Binder<DB::ICommand, std::string>::Bind, &Binder<DB::IQuery, std::string>::Bind },
+		{ NavigationMode::PublishYear, Loc::PublishYears, &IModelProvider::CreateFilterTreeModel },
+		{ NavigationMode::Keywords   , Loc::Keywords    , &IModelProvider::CreateFilterListModel, KEYWORDS , KEYWORD_ID , &Binder<DB::ICommand, int        >::Bind, &Binder<DB::IQuery, int        >::Bind },
+		{ NavigationMode::Updates    , Loc::Updates     , &IModelProvider::CreateFilterTreeModel },
+		{ NavigationMode::Archives   , Loc::Archives    , &IModelProvider::CreateFilterListModel },
+		{ NavigationMode::Languages  , Loc::Languages   , &IModelProvider::CreateFilterListModel, LANGUAGES, LANGUAGE_ID, &Binder<DB::ICommand, std::string>::Bind, &Binder<DB::IQuery, std::string>::Bind },
+		{ NavigationMode::Groups     , Loc::Groups      , &IModelProvider::CreateFilterListModel },
+		{ NavigationMode::Search     , Loc::Search      , &IModelProvider::CreateFilterListModel },
+		{ NavigationMode::Reviews    , Loc::Reviews     , &IModelProvider::CreateFilterListModel },
+		{ NavigationMode::AllBooks   , Loc::AllBooks    , &IModelProvider::CreateFilterListModel },
+	// clang-format on
+};
+
+static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(FILTERED_NAVIGATION_DESCRIPTION));
+#define NAVIGATION_MODE_ITEM(NAME) static_assert(NavigationMode::NAME == FILTERED_NAVIGATION_DESCRIPTION[static_cast<size_t>(NavigationMode::NAME)].navigationMode);
+NAVIGATION_MODE_ITEMS_X_MACRO
+#undef NAVIGATION_MODE_ITEM
+
+}
+
+const IFilterController::FilteredNavigation& IFilterController::GetFilteredNavigationDescription(const size_t index)
+{
+	assert(index < std::size(FILTERED_NAVIGATION_DESCRIPTION));
+	return FILTERED_NAVIGATION_DESCRIPTION[index];
 }
 
 } // namespace HomeCompa::Flibrary

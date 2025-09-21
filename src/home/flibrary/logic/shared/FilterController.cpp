@@ -20,8 +20,6 @@ constexpr auto FILTER_ENABLED_KEY = "ui/View/UniFilter/enabled";
 constexpr auto SET_FILTER_QUERY = "update {} set Flags = Flags | ? where {} = ?";
 constexpr auto CLEAR_FILTER_QUERY = "update {} set Flags = Flags & ~? where {} = ?";
 
-static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(IFilterController::FILTERED_NAVIGATION_DESCRIPTION));
-
 }
 
 struct FilterController::Impl final : Observable<IObserver>
@@ -51,9 +49,8 @@ struct FilterController::Impl final : Observable<IObserver>
 		                        [this, db = std::move(db), navigationMode, ids = std::move(navigationIds), flags, callback = std::move(callback), queryText]() mutable
 		                        {
 									const auto tableIndex = static_cast<size_t>(navigationMode);
-									assert(tableIndex < std::size(FILTERED_NAVIGATION_DESCRIPTION));
-									const auto& description = FILTERED_NAVIGATION_DESCRIPTION[tableIndex];
-									assert(!description.table.empty() && !description.idField.empty());
+									const auto& description = GetFilteredNavigationDescription(tableIndex);
+									assert(description.table && description.idField);
 
 									const auto tr = db->CreateTransaction();
 									const auto command = tr->CreateCommand(std::vformat(queryText, std::make_format_args(description.table, description.idField)));
