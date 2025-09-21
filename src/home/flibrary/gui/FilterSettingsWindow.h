@@ -9,6 +9,7 @@
 #include "interface/logic/IFilterController.h"
 #include "interface/logic/IModelProvider.h"
 
+#include "ItemViewToolTipper.h"
 #include "gutil/interface/IParentWidgetProvider.h"
 #include "util/ISettings.h"
 
@@ -28,6 +29,7 @@ public:
 	                     std::shared_ptr<ISettings> settings,
 	                     std::shared_ptr<IFilterController> filterController,
 	                     std::shared_ptr<IFilterDataProvider> filterDataProvider,
+	                     std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
 	                     std::shared_ptr<ScrollBarController> scrollBarController,
 	                     QWidget* parent = nullptr);
 	~FilterSettingsWindow() override;

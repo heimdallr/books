@@ -50,6 +50,7 @@ struct FilterSettingsWindow::Impl final
 	PropagateConstPtr<ISettings, std::shared_ptr> settings;
 	PropagateConstPtr<IFilterController, std::shared_ptr> filterController;
 	PropagateConstPtr<IFilterDataProvider, std::shared_ptr> dataProvider;
+	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> itemViewToolTipper;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> scrollBarController;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> model { std::shared_ptr<QAbstractItemModel> {} };
 	IFilterController::ModelGetter modelGetter { nullptr };
@@ -60,6 +61,7 @@ struct FilterSettingsWindow::Impl final
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<IFilterController> filterController,
 	     std::shared_ptr<IFilterDataProvider> dataProvider,
+	     std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
 	     std::shared_ptr<ScrollBarController> scrollBarController)
 		: GeometryRestorable(*this, settings, "FilterSettingsWindow")
 		, GeometryRestorableObserver(self)
@@ -68,6 +70,7 @@ struct FilterSettingsWindow::Impl final
 		, settings { std::move(settings) }
 		, filterController { std::move(filterController) }
 		, dataProvider { std::move(dataProvider) }
+		, itemViewToolTipper { std::move(itemViewToolTipper) }
 		, scrollBarController { std::move(scrollBarController) }
 	{
 		ui.setupUi(&self);
@@ -121,6 +124,8 @@ private:
 				assert(modelGetter);
 				model.reset(std::invoke(modelGetter, *modelProvider, std::move(root)));
 				ui.view->setModel(model.get());
+				ui.view->setFont(self.font());
+				ui.view->header()->setFont(self.font());
 			});
 
 		if (const auto index = settings->Get(RECENT_TAB_KEY, 0))
@@ -152,6 +157,7 @@ private:
 		//				});
 		//		ui.view->setModel(model);
 		scrollBarController->SetScrollArea(ui.view);
+		ui.view->viewport()->installEventFilter(itemViewToolTipper.get());
 		ui.view->viewport()->installEventFilter(scrollBarController.get());
 
 		ui.checkBoxFilterEnabled->setChecked(filterController->IsFilterEnabled());
@@ -186,10 +192,11 @@ FilterSettingsWindow::FilterSettingsWindow(const std::shared_ptr<const IParentWi
                                            std::shared_ptr<ISettings> settings,
                                            std::shared_ptr<IFilterController> filterController,
                                            std::shared_ptr<IFilterDataProvider> dataProvider,
+                                           std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
                                            std::shared_ptr<ScrollBarController> scrollBarController,
                                            QWidget* parent)
 	: StackedPage(parentWidgetProvider->GetWidget(parent))
-	, m_impl(*this, std::move(modelProvider), std::move(settings), std::move(filterController), std::move(dataProvider), std::move(scrollBarController))
+	, m_impl(*this, std::move(modelProvider), std::move(settings), std::move(filterController), std::move(dataProvider), std::move(itemViewToolTipper), std::move(scrollBarController))
 {
 	PLOGV << "FilterSettingsWindow created";
 }
