@@ -46,6 +46,15 @@
      <property name="selectionBehavior">
       <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
      </property>
+     <property name="autoExpandDelay">
+      <number>0</number>
+     </property>
+     <property name="uniformRowHeights">
+      <bool>true</bool>
+     </property>
+     <property name="animated">
+      <bool>true</bool>
+     </property>
     </widget>
    </item>
    <item>

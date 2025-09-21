@@ -28,6 +28,8 @@ private: // IFilterProvider
 
 private: // IFilterController
 	void SetFilterEnabled(bool enabled) override;
+	void Apply() override;
+	void SetFlags(NavigationMode navigationMode, QString id, IDataItem::Flags flags) override;
 	void SetNavigationItemFlags(NavigationMode navigationMode, QStringList navigationIds, IDataItem::Flags flags, Callback callback) override;
 	void ClearNavigationItemFlags(NavigationMode navigationMode, QStringList navigationIds, IDataItem::Flags flags, Callback callback) override;
 

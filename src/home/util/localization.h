@@ -535,8 +535,8 @@ inline std::unordered_map<QString, const char*> GetLanguagesMap()
 
 } // namespace HomeCompa
 
-#define TR_DEF                        \
-	QString Tr(const char* str)       \
-	{                                 \
-		return Loc::Tr(CONTEXT, str); \
+#define TR_DEF                         \
+	inline QString Tr(const char* str) \
+	{                                  \
+		return Loc::Tr(CONTEXT, str);  \
 	}

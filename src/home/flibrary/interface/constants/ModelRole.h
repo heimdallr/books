@@ -43,6 +43,7 @@ struct Role
 		HeaderName,
 		HeaderTitle,
 		Remap,
+		NavigationMode,
 	};
 };
 

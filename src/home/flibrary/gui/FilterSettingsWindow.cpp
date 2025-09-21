@@ -5,6 +5,7 @@
 #include <QMenu>
 
 #include "interface/constants/Localization.h"
+#include "interface/constants/ModelRole.h"
 #include "interface/logic/IModel.h"
 
 #include "gutil/GeometryRestorable.h"
@@ -19,11 +20,7 @@ using namespace Flibrary;
 namespace
 {
 
-using Role = ILanguageModel::Role;
-
 constexpr auto FIELD_WIDTH_KEY = "ui/View/UniFilter/columnWidths";
-constexpr auto SORT_INDEX_KEY = "ui/View/UniFilter/sortIndex";
-constexpr auto SORT_ORDER_KEY = "ui/View/UniFilter/sortOrder";
 constexpr auto RECENT_TAB_KEY = "ui/View/UniFilter/recentTab";
 
 //std::unordered_set<QString> GetSelected(const QAbstractItemModel& model)
@@ -53,7 +50,7 @@ struct FilterSettingsWindow::Impl final
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> itemViewToolTipper;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> scrollBarController;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> model { std::shared_ptr<QAbstractItemModel> {} };
-	IFilterController::ModelGetter modelGetter { nullptr };
+	const IFilterController::FilteredNavigation* filteredNavigation { nullptr };
 	Ui::FilterSettingsWindow ui {};
 
 	Impl(FilterSettingsWindow& self,
@@ -83,8 +80,6 @@ struct FilterSettingsWindow::Impl final
 		auto& header = *ui.view->header();
 		Util::SaveHeaderSectionWidth(header, *this->settings, FIELD_WIDTH_KEY);
 		SaveGeometry();
-		settings->Set(SORT_INDEX_KEY, header.sortIndicatorSection());
-		settings->Set(SORT_ORDER_KEY, header.sortIndicatorOrder());
 	}
 
 private:
@@ -103,7 +98,14 @@ private:
 			ui.tabs->addTab(widget, Loc::Tr(Loc::NAVIGATION, description.navigationTitle));
 			indexToMode.emplace_back(description.navigationMode);
 		}
-		connect(ui.tabs, &QTabWidget::tabCloseRequested, [this](const int index) { ui.tabs->widget(index)->layout()->removeWidget(ui.view); });
+		connect(ui.tabs,
+		        &QTabWidget::tabCloseRequested,
+		        [this](const int index)
+		        {
+					ui.tabs->widget(index)->layout()->removeWidget(ui.view);
+					if (model)
+						Util::SaveHeaderSectionWidth(*ui.view->header(), *this->settings, FIELD_WIDTH_KEY);
+				});
 		connect(ui.tabs,
 		        &QTabWidget::currentChanged,
 		        [this, indexToMode = std::move(indexToMode)](const int tabIndex)
@@ -111,8 +113,8 @@ private:
 					ui.view->setModel(nullptr);
 					model.reset();
 					const auto index = static_cast<size_t>(tabIndex);
-					modelGetter = IFilterController::GetFilteredNavigationDescription(static_cast<size_t>(indexToMode[index])).modelGetter;
-					assert(modelGetter);
+					filteredNavigation = &IFilterController::GetFilteredNavigationDescription(static_cast<size_t>(indexToMode[index]));
+					assert(filteredNavigation);
 					dataProvider->SetNavigationMode(indexToMode[index]);
 					dataProvider->RequestNavigation();
 					ui.tabs->widget(tabIndex)->layout()->addWidget(ui.view);
@@ -121,11 +123,16 @@ private:
 		dataProvider->SetNavigationRequestCallback(
 			[this](IDataItem::Ptr root)
 			{
-				assert(modelGetter);
-				model.reset(std::invoke(modelGetter, *modelProvider, std::move(root)));
+				assert(filteredNavigation);
+				model.reset(std::invoke(filteredNavigation->modelGetter, *modelProvider, std::move(root)));
 				ui.view->setModel(model.get());
 				ui.view->setFont(self.font());
 				ui.view->header()->setFont(self.font());
+				if (!model)
+					return;
+
+				model->setData({}, QVariant::fromValue(filteredNavigation->navigationMode), Role::NavigationMode);
+				Util::LoadHeaderSectionWidth(*ui.view->header(), *settings, FIELD_WIDTH_KEY);
 			});
 
 		if (const auto index = settings->Get(RECENT_TAB_KEY, 0))
@@ -163,14 +170,12 @@ private:
 		ui.checkBoxFilterEnabled->setChecked(filterController->IsFilterEnabled());
 
 		LoadGeometry();
-		auto& header = *ui.view->header();
-		Util::LoadHeaderSectionWidth(header, *settings, FIELD_WIDTH_KEY);
-		header.setSortIndicator(settings->Get(SORT_INDEX_KEY, header.sortIndicatorSection()), settings->Get(SORT_ORDER_KEY, header.sortIndicatorOrder()));
 	}
 
 	void Apply()
 	{
 		filterController->SetFilterEnabled(ui.checkBoxFilterEnabled->isChecked());
+		filterController->Apply();
 		self.closeAction->trigger();
 	}
 
