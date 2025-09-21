@@ -488,6 +488,24 @@ private: // IFilterProvider::IObserver
 		OnCountChanged();
 	}
 
+	void OnFilterNavigationChanged(const NavigationMode navigationMode) override
+	{
+		if (!IsNavigation() || m_controller->GetModeIndex() != static_cast<int>(navigationMode))
+			return;
+
+		m_ui.treeView->model()->setData({}, {}, Role::UniFilterChanged);
+		OnCountChanged();
+	}
+
+	void OnFilterBooksChanged() override
+	{
+		if (IsNavigation())
+			return;
+
+		m_ui.treeView->model()->setData({}, {}, Role::UniFilterChanged);
+		OnCountChanged();
+	}
+
 private: //	ModeComboBox::IValueApplier
 	void Find() override
 	{

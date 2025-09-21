@@ -32,6 +32,7 @@ struct Role
 		ShowRemovedFilter,
 		NavigationItemFiltered,
 		UniFilterEnabled,
+		UniFilterChanged,
 		VisibleColumns,
 		Selected,
 		SortOrder,

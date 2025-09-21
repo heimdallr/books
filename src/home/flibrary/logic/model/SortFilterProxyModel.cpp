@@ -117,6 +117,9 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 			case Role::UniFilterEnabled:
 				return Set(m_impl->m_uniFilterEnabled, value.toBool(), [&] { invalidateFilter(); });
 
+			case Role::UniFilterChanged:
+				return invalidateFilter(), true;
+
 			case Role::LanguageFilter:
 				if (Set(m_impl->m_languageFilter, value.toString().simplified(), [&] { invalidateFilter(); }))
 				{
