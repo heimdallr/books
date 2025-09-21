@@ -5,6 +5,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IDataProvider.h"
 #include "interface/logic/IFilterController.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
@@ -23,7 +24,8 @@ class FilterSettingsWindow final : public StackedPage
 public:
 	FilterSettingsWindow(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
 	                     std::shared_ptr<ISettings> settings,
-	                     std::shared_ptr<IFilterController> languageFilterController,
+	                     std::shared_ptr<IFilterController> filterController,
+	                     std::shared_ptr<IFilterDataProvider> filterDataProvider,
 	                     std::shared_ptr<ScrollBarController> scrollBarController,
 	                     QWidget* parent = nullptr);
 	~FilterSettingsWindow() override;

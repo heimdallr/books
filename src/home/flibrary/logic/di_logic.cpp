@@ -77,6 +77,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<DatabaseController>().as<IDatabaseController>().singleInstance();
 	builder.registerType<DatabaseUser>().as<IDatabaseUser>().singleInstance();
 	builder.registerType<DataProvider>().as<IDataProvider>().singleInstance();
+	builder.registerType<DataProvider>().as<IFilterDataProvider>().singleInstance();
 	builder.registerType<FilterController>().as<IFilterController>().singleInstance();
 	builder.registerType<LogController>().as<ILogController>().singleInstance();
 	builder.registerType<NavigationQueryExecutor>().as<INavigationQueryExecutor>().singleInstance();

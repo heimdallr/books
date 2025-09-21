@@ -4,10 +4,14 @@
 
 #include <QMenu>
 
+#include "interface/constants/Localization.h"
 #include "interface/logic/IModel.h"
 
 #include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
+#include "util/localization.h"
+
+#include "log.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -17,9 +21,10 @@ namespace
 
 using Role = ILanguageModel::Role;
 
-constexpr auto FIELD_WIDTH_KEY = "ui/Books/LanguageFilter/columnWidths";
-constexpr auto SORT_INDEX_KEY = "ui/Books/LanguageFilter/sortIndex";
-constexpr auto SORT_ORDER_KEY = "ui/Books/LanguageFilter/sortOrder";
+constexpr auto FIELD_WIDTH_KEY = "ui/View/UniFilter/columnWidths";
+constexpr auto SORT_INDEX_KEY = "ui/View/UniFilter/sortIndex";
+constexpr auto SORT_ORDER_KEY = "ui/View/UniFilter/sortOrder";
+constexpr auto RECENT_TAB_KEY = "ui/View/UniFilter/recentTab";
 
 //std::unordered_set<QString> GetSelected(const QAbstractItemModel& model)
 //{
@@ -43,20 +48,77 @@ struct FilterSettingsWindow::Impl final
 	StackedPage& self;
 	PropagateConstPtr<ISettings, std::shared_ptr> settings;
 	PropagateConstPtr<IFilterController, std::shared_ptr> filterController;
+	PropagateConstPtr<IFilterDataProvider, std::shared_ptr> dataProvider;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> scrollBarController;
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> model { std::shared_ptr<QAbstractItemModel> {} };
 	Ui::FilterSettingsWindow ui {};
 
-	Impl(FilterSettingsWindow& self, std::shared_ptr<ISettings> settings, std::shared_ptr<IFilterController> filterController, std::shared_ptr<ScrollBarController> scrollBarController)
+	Impl(FilterSettingsWindow& self,
+	     std::shared_ptr<ISettings> settings,
+	     std::shared_ptr<IFilterController> filterController,
+	     std::shared_ptr<IFilterDataProvider> dataProvider,
+	     std::shared_ptr<ScrollBarController> scrollBarController)
 		: GeometryRestorable(*this, settings, "FilterSettingsWindow")
 		, GeometryRestorableObserver(self)
 		, self { self }
 		, settings { std::move(settings) }
 		, filterController { std::move(filterController) }
+		, dataProvider { std::move(dataProvider) }
 		, scrollBarController { std::move(scrollBarController) }
 	{
 		ui.setupUi(&self);
-		connect(ui.btnCancel, &QAbstractButton::clicked, self.closeAction, &QAction::trigger);
+		Init();
+	}
 
+	~Impl() override
+	{
+		settings->Set(RECENT_TAB_KEY, ui.tabs->currentIndex());
+		auto& header = *ui.view->header();
+		Util::SaveHeaderSectionWidth(header, *this->settings, FIELD_WIDTH_KEY);
+		SaveGeometry();
+		settings->Set(SORT_INDEX_KEY, header.sortIndicatorSection());
+		settings->Set(SORT_ORDER_KEY, header.sortIndicatorOrder());
+	}
+
+private:
+	void Init()
+	{
+		std::vector<NavigationMode> indexToMode;
+		for (size_t i = 0, sz = static_cast<size_t>(NavigationMode::Last); i < sz; ++i)
+		{
+			const auto& description = IFilterController::GetFilteredNavigationDescription(i);
+			if (!description.table)
+				continue;
+
+			auto* widget = new QWidget(&self);
+			widget->setLayout(new QVBoxLayout);
+			widget->layout()->setContentsMargins(0, 0, 0, 0);
+			ui.tabs->addTab(widget, Loc::Tr(Loc::NAVIGATION, description.navigationTitle));
+			indexToMode.emplace_back(description.navigationMode);
+		}
+		connect(ui.tabs, &QTabWidget::tabCloseRequested, [this](const int index) { ui.tabs->widget(index)->layout()->removeWidget(ui.view); });
+		connect(ui.tabs,
+		        &QTabWidget::currentChanged,
+		        [this, indexToMode = std::move(indexToMode)](const int tabIndex)
+		        {
+					ui.view->setModel(nullptr);
+					model.reset();
+					const auto index = static_cast<size_t>(tabIndex);
+					dataProvider->SetNavigationMode(indexToMode[index]);
+					dataProvider->RequestNavigation();
+					ui.tabs->widget(tabIndex)->layout()->addWidget(ui.view);
+				});
+		dataProvider->SetNavigationRequestCallback(
+			[this](IDataItem::Ptr root)
+			{
+			});
+
+		if (const auto index = settings->Get(RECENT_TAB_KEY, 0))
+			ui.tabs->setCurrentIndex(index);
+		else
+			ui.tabs->currentChanged(index);
+
+		connect(ui.btnCancel, &QAbstractButton::clicked, self.closeAction, &QAction::trigger);
 		connect(ui.btnApply, &QAbstractButton::clicked, [this] { Apply(); });
 
 		//		for (auto [action, role] : std::initializer_list<std::pair<QAction*, int>> {
@@ -79,27 +141,17 @@ struct FilterSettingsWindow::Impl final
 		//					model->setData({}, QVariant::fromValue(list), Role::SelectedList);
 		//				});
 		//		ui.view->setModel(model);
-		this->scrollBarController->SetScrollArea(ui.view);
-		ui.view->viewport()->installEventFilter(this->scrollBarController.get());
+		scrollBarController->SetScrollArea(ui.view);
+		ui.view->viewport()->installEventFilter(scrollBarController.get());
 
-		ui.checkBoxFilterEnabled->setChecked(this->filterController->IsFilterEnabled());
+		ui.checkBoxFilterEnabled->setChecked(filterController->IsFilterEnabled());
 
 		LoadGeometry();
 		auto& header = *ui.view->header();
-		Util::LoadHeaderSectionWidth(header, *this->settings, FIELD_WIDTH_KEY);
-		header.setSortIndicator(this->settings->Get(SORT_INDEX_KEY, header.sortIndicatorSection()), this->settings->Get(SORT_ORDER_KEY, header.sortIndicatorOrder()));
+		Util::LoadHeaderSectionWidth(header, *settings, FIELD_WIDTH_KEY);
+		header.setSortIndicator(settings->Get(SORT_INDEX_KEY, header.sortIndicatorSection()), settings->Get(SORT_ORDER_KEY, header.sortIndicatorOrder()));
 	}
 
-	~Impl() override
-	{
-		auto& header = *ui.view->header();
-		Util::SaveHeaderSectionWidth(header, *this->settings, FIELD_WIDTH_KEY);
-		settings->Set(SORT_INDEX_KEY,header.sortIndicatorSection());
-		settings->Set(SORT_ORDER_KEY,header.sortIndicatorOrder());
-		SaveGeometry();
-	}
-
-private:
 	void Apply()
 	{
 		filterController->SetFilterEnabled(ui.checkBoxFilterEnabled->isChecked());
@@ -120,13 +172,18 @@ private:
 };
 
 FilterSettingsWindow::FilterSettingsWindow(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
-                           std::shared_ptr<ISettings> settings,
-                           std::shared_ptr<IFilterController> filterController,
-                           std::shared_ptr<ScrollBarController> scrollBarController,
-                           QWidget* parent)
+                                           std::shared_ptr<ISettings> settings,
+                                           std::shared_ptr<IFilterController> filterController,
+                                           std::shared_ptr<IFilterDataProvider> dataProvider,
+                                           std::shared_ptr<ScrollBarController> scrollBarController,
+                                           QWidget* parent)
 	: StackedPage(parentWidgetProvider->GetWidget(parent))
-	, m_impl(*this, std::move(settings), std::move(filterController), std::move(scrollBarController))
+	, m_impl(*this, std::move(settings), std::move(filterController), std::move(dataProvider), std::move(scrollBarController))
 {
+	PLOGV << "FilterSettingsWindow created";
 }
 
-FilterSettingsWindow::~FilterSettingsWindow() = default;
+FilterSettingsWindow::~FilterSettingsWindow()
+{
+	PLOGV << "FilterSettingsWindow destroyed";
+}
