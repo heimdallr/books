@@ -38,11 +38,12 @@ using Callback = std::function<void()>;
 
 TR_DEF
 
-GroupController::Ids GetSelected(const QModelIndex& index, const QList<QModelIndex>& indexList)
+template <typename T>
+std::unordered_set<T> GetSelected(const QModelIndex& index, const QList<QModelIndex>& indexList)
 {
-	GroupController::Ids ids { index.data(Role::Id).toLongLong() };
+	std::unordered_set<T> ids { index.data(Role::Id).value<T>() };
 	ids.reserve(indexList.size() + 1);
-	std::ranges::transform(indexList, std::inserter(ids, ids.end()), [](const auto& item) { return item.data(Role::Id).toLongLong(); });
+	std::ranges::transform(indexList, std::inserter(ids, ids.end()), [](const auto& item) { return item.data(Role::Id).template value<T>(); });
 	return ids;
 }
 
@@ -297,7 +298,7 @@ struct TreeViewControllerNavigation::Impl final
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
 	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> authorAnnotationController;
-	PropagateConstPtr<IFilterController, std::shared_ptr> filterController;
+	std::shared_ptr<IFilterController> filterController;
 	const std::vector<std::pair<const char*, int>> modes { GetModes() };
 	Util::FunctorExecutionForwarder forwarder;
 	int mode { -1 };
@@ -421,14 +422,23 @@ private: // IContextMenuHandler
 		forwarder.Forward(std::move(callback));
 	}
 
-	void OnHideNavigationItemTriggered(const QList<QModelIndex>& /*indexList*/, const QModelIndex& /*index*/, const IDataItem::Ptr& /*item*/, Callback callback) const override
+	void OnHideNavigationItemTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& /*item*/, Callback callback) const override
 	{
-		forwarder.Forward(std::move(callback));
+		QStringList ids;
+		std::ranges::move(GetSelected<QString>(index, indexList), std::back_inserter(ids));
+		filterController->SetNavigationItemFlags(static_cast<NavigationMode>(mode), std::move(ids), IDataItem::Flags::Filtered, std::move(callback));
 	}
 
-	void OnFilterNavigationItemBooksTriggered(const QList<QModelIndex>& /*indexList*/, const QModelIndex& /*index*/, const IDataItem::Ptr& /*item*/, Callback callback) const override
+	void OnFilterNavigationItemBooksTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
-		forwarder.Forward(std::move(callback));
+		QStringList ids;
+		std::ranges::move(GetSelected<QString>(index, indexList), std::back_inserter(ids));
+
+		const auto& str = item->GetData(MenuItem::Column::Checked);
+		const auto checked = !str.isEmpty() && QVariant(str).toBool();
+		const auto invoker = checked ? &IFilterController::ClearNavigationItemFlags : &IFilterController::SetNavigationItemFlags;
+
+		std::invoke(invoker, *filterController, static_cast<NavigationMode>(mode), std::move(ids), IDataItem::Flags::BooksFiltered, std::move(callback));
 	}
 
 private: // DatabaseController::IObserver
@@ -722,7 +732,7 @@ private:
 		ExecuteGroupAction(controllerRef,
 		                   invoker,
 		                   id,
-		                   GetSelected(index, indexList),
+		                   GetSelected<GroupController::Id>(index, indexList),
 		                   [callback = std::move(callback), controller = std::move(controller)](auto) mutable
 		                   {
 							   callback();

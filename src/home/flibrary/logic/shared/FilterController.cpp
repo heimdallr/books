@@ -45,6 +45,16 @@ void FilterController::SetFilterEnabled(const bool enabled)
 	m_impl->Perform(&IObserver::OnFilterEnabledChanged);
 }
 
+void FilterController::SetNavigationItemFlags(const NavigationMode /*navigationMode*/, QStringList /*navigationIds*/, const IDataItem::Flags /*flags*/, Callback callback)
+{
+	callback();
+}
+
+void FilterController::ClearNavigationItemFlags(const NavigationMode /*navigationMode*/, QStringList /*navigationIds*/, const IDataItem::Flags /*flags*/, Callback callback)
+{
+	callback();
+}
+
 void FilterController::RegisterObserver(IObserver* observer)
 {
 	m_impl->Register(observer);
