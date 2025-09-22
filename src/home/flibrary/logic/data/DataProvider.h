@@ -10,6 +10,7 @@
 #include "interface/logic/IDataItem.h"
 #include "interface/logic/IDataProvider.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IFilterProvider.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 
 class QString;
@@ -26,6 +27,7 @@ class DataProvider final
 public:
 	DataProvider(std::shared_ptr<const ICollectionProvider> collectionProvider,
 	             std::shared_ptr<const IDatabaseUser> databaseUser,
+	             std::shared_ptr<const IFilterProvider> filterProvider,
 	             std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
 	             std::shared_ptr<IAuthorAnnotationController> authorAnnotationController);
 	~DataProvider() override;

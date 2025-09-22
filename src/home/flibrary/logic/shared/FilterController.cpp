@@ -85,6 +85,27 @@ bool FilterController::IsFilterEnabled() const noexcept
 	return m_impl->filterEnabled;
 }
 
+std::vector<IDataItem::Flags> FilterController::GetFlags(const NavigationMode navigationMode, const std::vector<QString>& ids) const
+{
+	const auto& description = GetFilteredNavigationDescription(navigationMode);
+	if (!description.table || !IsFilterEnabled())
+		return std::vector { ids.size(), IDataItem::Flags::None };
+
+	std::vector<IDataItem::Flags> result;
+
+	const auto db = m_impl->databaseUser->Database();
+	const auto query = db->CreateQuery(std::format("select Flags from {} where {} = ?", description.table, description.idField));
+	for (const auto& id : ids)
+	{
+		description.queueBinder(*query, 0, id);
+		query->Execute();
+		result.emplace_back(query->Eof() ? IDataItem::Flags::None : static_cast<IDataItem::Flags>(query->Get<int>(0)));
+		query->Reset();
+	}
+
+	return result;
+}
+
 void FilterController::SetFilterEnabled(const bool enabled)
 {
 	if (!Util::Set(m_impl->filterEnabled, enabled))

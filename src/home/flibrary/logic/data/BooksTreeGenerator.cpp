@@ -20,6 +20,7 @@
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IFilterProvider.h"
 
 #include "database/DatabaseUtil.h"
 #include "inpx/src/util/constant.h"
@@ -86,27 +87,6 @@ void Add(UniqueIdList<KeyType>& uniqueIdList, KeyType&& key, const int order)
 		uniqueIdList.second.emplace(order, std::forward<KeyType>(key));
 }
 
-template <typename T, std::ranges::range U>
-QString Join(const std::unordered_map<T, IDataItem::Ptr>& dictionary, const U& keyIds)
-{
-	IDataItem::Items values;
-	values.reserve(std::size(keyIds));
-	std::ranges::transform(keyIds,
-	                       std::back_inserter(values),
-	                       [&](const T& id)
-	                       {
-							   const auto it = dictionary.find(id);
-							   assert(it != dictionary.end());
-							   return it->second;
-						   });
-
-	QString result;
-	for (const auto& value : values)
-		AppendTitle(result, value->GetData(0), ", ");
-
-	return result;
-}
-
 } // namespace
 
 class BooksTreeGenerator::Impl final : virtual IBookSelector
@@ -117,11 +97,13 @@ public:
 	mutable IDataItem::Ptr rootCached;
 	const NavigationMode navigationMode;
 	const QString navigationId;
+	const IFilterProvider& filterProvider;
 	ViewMode viewMode { ViewMode::Unknown };
 
-	Impl(const Collection& activeCollection, DB::IDatabase& db, const NavigationMode navigationMode, QString navigationId, const QueryDescription& description)
+	Impl(const Collection& activeCollection, DB::IDatabase& db, const NavigationMode navigationMode, QString navigationId, const QueryDescription& description, const IFilterProvider& filterProvider)
 		: navigationMode { navigationMode }
 		, navigationId { std::move(navigationId) }
+		, filterProvider { filterProvider }
 	{
 		if (!this->navigationId.isEmpty())
 			std::invoke(description.bookSelector, static_cast<IBookSelector&>(*this), std::cref(activeCollection), std::ref(db), std::cref(description));
@@ -327,6 +309,32 @@ private: // IBookSelector
 	}
 
 private:
+	bool IsFiltered(const IDataItem& item) const
+	{
+		return filterProvider.IsFilterEnabled() && !!(item.GetFlags() & IDataItem::Flags::Filtered);
+	}
+
+	template <typename T, std::ranges::range U>
+	QString Join(const std::unordered_map<T, IDataItem::Ptr>& dictionary, const U& keyIds)
+	{
+		IDataItem::Items values;
+		values.reserve(std::size(keyIds));
+		std::ranges::transform(keyIds,
+		                       std::back_inserter(values),
+		                       [&](const T& id)
+		                       {
+								   const auto it = dictionary.find(id);
+								   assert(it != dictionary.end());
+								   return it->second;
+							   });
+
+		QString result;
+		for (const auto& value : values | std::views::filter([this](const auto& item) { return !IsFiltered(*item); }))
+			AppendTitle(result, value->GetData(0), ", ");
+
+		return result;
+	}
+
 	void CreateSelectedBookItems(DB::IDatabase& db, const QueryClause& queryClause, const std::function<void(const DB::IQuery&, const SelectedBookItem&)>& additional = [](const DB::IQuery&, const auto&) {})
 	{
 		const auto with = QString(queryClause.with).arg(navigationId).toStdString();
@@ -376,7 +384,7 @@ join Series s on s.SeriesID = l.SeriesID
 				assert(std::get<0>(book));
 				std::get<1>(book).emplace(id);
 				addFlag(*std::get<0>(book), item->GetFlags());
-				if (std::get<0>(book)->GetData(BookItem::Column::Series).isEmpty())
+				if (!IsFiltered(*item) && std::get<0>(book)->GetData(BookItem::Column::Series).isEmpty())
 					std::get<0>(book)->SetData(item->GetData(DataItem::Column::Title), BookItem::Column::Series);
 			}
 		}
@@ -444,10 +452,18 @@ join Keywords k on k.KeywordID = l.KeywordID
 
 		for (auto& [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
 		{
-			assert(!authorIds.second.empty());
-			const auto& author = m_authors.find(authorIds.second.cbegin()->second)->second;
-			auto authorStr = GetAuthorFull(*author);
-			book->SetData(std::move(authorStr), BookItem::Column::AuthorFull);
+			for (const auto authorId : authorIds.second | std::views::values)
+			{
+				const auto it = m_authors.find(authorId);
+				assert(it != m_authors.end());
+				const auto& author = *it->second;
+				if (!IsFiltered(author))
+				{
+					auto authorStr = GetAuthorFull(author);
+					book->SetData(std::move(authorStr), BookItem::Column::AuthorFull);
+					break;
+				}
+			}
 		}
 
 		for (const auto& author : m_authors | std::views::values)
@@ -507,8 +523,13 @@ private:
 	std::unordered_map<QString, IDataItem::Ptr> m_genres;
 };
 
-BooksTreeGenerator::BooksTreeGenerator(const Collection& activeCollection, DB::IDatabase& db, const NavigationMode navigationMode, QString navigationId, const QueryDescription& description)
-	: m_impl(activeCollection, db, navigationMode, std::move(navigationId), description)
+BooksTreeGenerator::BooksTreeGenerator(const Collection& activeCollection,
+                                       DB::IDatabase& db,
+                                       const NavigationMode navigationMode,
+                                       QString navigationId,
+                                       const QueryDescription& description,
+                                       const IFilterProvider& filterProvider)
+	: m_impl(activeCollection, db, navigationMode, std::move(navigationId), description, filterProvider)
 {
 	PLOGV << "BooksTreeGenerator created";
 }

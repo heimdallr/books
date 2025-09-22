@@ -39,10 +39,12 @@ class DataProvider::Impl
 public:
 	Impl(std::shared_ptr<const ICollectionProvider> collectionProvider,
 	     std::shared_ptr<const IDatabaseUser> databaseUser,
+	     std::shared_ptr<const IFilterProvider> filterProvider,
 	     std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
 	     std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
 		: m_collectionProvider { std::move(collectionProvider) }
 		, m_databaseUser { std::move(databaseUser) }
+		, m_filterProvider { std::move(filterProvider) }
 		, m_navigationQueryExecutor { std::move(navigationQueryExecutor) }
 		, m_authorAnnotationController { std::move(authorAnnotationController) }
 	{
@@ -138,7 +140,7 @@ private:
 				  {
 					  const auto& activeCollection = m_collectionProvider->GetActiveCollection();
 					  const auto db = m_databaseUser->Database();
-					  generator = std::make_unique<BooksTreeGenerator>(activeCollection, *db, navigationMode, navigationId, description);
+					  generator = std::make_unique<BooksTreeGenerator>(activeCollection, *db, navigationMode, navigationId, description, *m_filterProvider);
 
 					  if (navigationMode == NavigationMode::Authors && !navigationId.isEmpty())
 					  {
@@ -190,6 +192,7 @@ private:
 
 	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
+	std::shared_ptr<const IFilterProvider> m_filterProvider;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> m_navigationQueryExecutor;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> m_authorAnnotationController;
 	std::unique_ptr<QTimer> m_navigationTimer { Util::CreateUiTimer([&] { RequestNavigationImpl(); }) };
@@ -198,9 +201,10 @@ private:
 
 DataProvider::DataProvider(std::shared_ptr<const ICollectionProvider> collectionProvider,
                            std::shared_ptr<const IDatabaseUser> databaseUser,
+                           std::shared_ptr<const IFilterProvider> filterProvider,
                            std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
                            std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
-	: m_impl(std::move(collectionProvider), std::move(databaseUser), std::move(navigationQueryExecutor), std::move(authorAnnotationController))
+	: m_impl(std::move(collectionProvider), std::move(databaseUser), std::move(filterProvider), std::move(navigationQueryExecutor), std::move(authorAnnotationController))
 {
 	PLOGV << "DataProvider created";
 }

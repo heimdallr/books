@@ -6,6 +6,7 @@
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IFilterProvider.h"
 #include "interface/logic/ILogicFactory.h"
 
 namespace HomeCompa::Flibrary
@@ -19,7 +20,8 @@ public:
 	AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory,
 	                     std::shared_ptr<const ICollectionProvider> collectionProvider,
 	                     std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
-	                     std::shared_ptr<const IDatabaseUser> databaseUser);
+	                     std::shared_ptr<const IDatabaseUser> databaseUser,
+	                     std::shared_ptr<const IFilterProvider> filterProvider);
 	~AnnotationController() override;
 
 private: // IAnnotationController

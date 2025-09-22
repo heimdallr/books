@@ -13,6 +13,7 @@ class IDatabase;
 
 namespace HomeCompa::Flibrary
 {
+class IFilterProvider;
 struct Collection;
 
 class IBooksListCreator // NOLINT(cppcoreguidelines-special-member-functions)
@@ -108,7 +109,12 @@ class BooksTreeGenerator final
 	NON_COPY_MOVABLE(BooksTreeGenerator)
 
 public:
-	BooksTreeGenerator(const Collection& activeCollection, DB::IDatabase& db, enum class NavigationMode navigationMode, QString navigationId, const QueryDescription& description);
+	BooksTreeGenerator(const Collection& activeCollection,
+	                   DB::IDatabase& db,
+	                   enum class NavigationMode navigationMode,
+	                   QString navigationId,
+	                   const QueryDescription& description,
+	                   const IFilterProvider& filterProvider);
 	~BooksTreeGenerator() override;
 
 public:
