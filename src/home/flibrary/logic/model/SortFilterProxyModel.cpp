@@ -1,5 +1,7 @@
 #include "SortFilterProxyModel.h"
 
+#include "fnd/algorithm.h"
+
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 
@@ -7,22 +9,6 @@
 
 using namespace HomeCompa;
 using namespace Flibrary;
-
-namespace
-{
-
-template <typename T>
-bool Set(T& oldValue, T&& newValue, const std::function<void()>& f = [] {})
-{
-	if (oldValue == newValue)
-		return false;
-
-	oldValue = std::forward<T>(newValue);
-	f();
-	return true;
-}
-
-}
 
 AbstractSortFilterProxyModel::AbstractSortFilterProxyModel(QObject* parent)
 	: QSortFilterProxyModel(parent)
@@ -103,25 +89,25 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 		switch (role)
 		{
 			case Role::TextFilter:
-				return Set(m_impl->m_filter, value.toString().simplified(), [&] { invalidateFilter(); });
+				return Util::Set(m_impl->m_filter, value.toString().simplified(), [&] { invalidateFilter(); });
 
 			case Role::VisibleColumns:
-				return Set(m_impl->m_visibleColumns, value.value<QVector<int>>(), [&] { invalidateFilter(); });
+				return Util::Set(m_impl->m_visibleColumns, value.value<QVector<int>>(), [&] { invalidateFilter(); });
 
 			case Role::ShowRemovedFilter:
-				return Set(m_impl->m_showRemoved, value.toBool(), [&] { invalidateFilter(); });
+				return Util::Set(m_impl->m_showRemoved, value.toBool(), [&] { invalidateFilter(); });
 
 			case Role::NavigationItemFiltered:
-				return Set(m_impl->m_navigationFiltered, value.toBool(), [&] { invalidateFilter(); });
+				return Util::Set(m_impl->m_navigationFiltered, value.toBool(), [&] { invalidateFilter(); });
 
 			case Role::UniFilterEnabled:
-				return Set(m_impl->m_uniFilterEnabled, value.toBool(), [&] { invalidateFilter(); });
+				return Util::Set(m_impl->m_uniFilterEnabled, value.toBool(), [&] { invalidateFilter(); });
 
 			case Role::UniFilterChanged:
 				return invalidateFilter(), true;
 
 			case Role::LanguageFilter:
-				if (Set(m_impl->m_languageFilter, value.toString().simplified(), [&] { invalidateFilter(); }))
+				if (Util::Set(m_impl->m_languageFilter, value.toString().simplified(), [&] { invalidateFilter(); }))
 				{
 					emit headerDataChanged(Qt::Horizontal, 0, columnCount() - 1);
 					return true;

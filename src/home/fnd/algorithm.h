@@ -17,7 +17,7 @@ static bool Set(T& dst, T value)
 }
 
 template <typename T, typename Obj, typename Signal = void (Obj::*)()>
-static bool Set(T& dst, T value, Obj& obj, const Signal signal = nullptr)
+static bool Set(T& dst, T value, Obj& obj, const Signal signal)
 {
 	if (!Set<T>(dst, std::move(value)))
 		return false;
@@ -29,7 +29,7 @@ static bool Set(T& dst, T value, Obj& obj, const Signal signal = nullptr)
 }
 
 template <typename T, typename Obj, typename Signal = void (Obj::*)() const>
-static bool Set(T& dst, T value, const Obj& obj, const Signal signal = nullptr)
+static bool Set(T& dst, T value, const Obj& obj, const Signal signal)
 {
 	if (!Set<T>(dst, std::move(value)))
 		return false;
@@ -39,6 +39,18 @@ static bool Set(T& dst, T value, const Obj& obj, const Signal signal = nullptr)
 
 	return true;
 }
+
+template <typename T, std::invocable F>
+bool Set(T& oldValue, T&& newValue, const F& f)
+{
+	if (oldValue == newValue)
+		return false;
+
+	oldValue = std::forward<T>(newValue);
+	f();
+	return true;
+}
+
 
 // из отсортированного диапазона делает вектор диапазонов из идущих подряд элементов
 template <typename InputIterator, typename Value = typename std::iterator_traits<InputIterator>::value_type>
