@@ -88,7 +88,7 @@ private:
 		std::vector<NavigationMode> indexToMode;
 		for (size_t i = 0, sz = static_cast<size_t>(NavigationMode::Last); i < sz; ++i)
 		{
-			const auto& description = IFilterController::GetFilteredNavigationDescription(i);
+			const auto& description = IFilterController::GetFilteredNavigationDescription(static_cast<NavigationMode>(i));
 			if (!description.table)
 				continue;
 
@@ -113,7 +113,7 @@ private:
 					ui.view->setModel(nullptr);
 					model.reset();
 					const auto index = static_cast<size_t>(tabIndex);
-					filteredNavigation = &IFilterController::GetFilteredNavigationDescription(static_cast<size_t>(indexToMode[index]));
+					filteredNavigation = &IFilterController::GetFilteredNavigationDescription(indexToMode[index]);
 					assert(filteredNavigation);
 					dataProvider->SetNavigationMode(indexToMode[index]);
 					dataProvider->RequestNavigation();

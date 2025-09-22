@@ -51,8 +51,7 @@ struct FilterController::Impl final : Observable<IObserver>
 		databaseUser->Execute({ "Apply filter",
 		                        [this, db = std::move(db), navigationMode, ids = std::move(navigationIds), flags, callback = std::move(callback), queryText]() mutable
 		                        {
-									const auto tableIndex = static_cast<size_t>(navigationMode);
-									const auto& description = GetFilteredNavigationDescription(tableIndex);
+									const auto& description = GetFilteredNavigationDescription(navigationMode);
 									assert(description.table && description.idField);
 
 									const auto tr = db->CreateTransaction();
@@ -108,8 +107,9 @@ void FilterController::Apply()
 											if (change.empty())
 												continue;
 
-											changed.emplace_back(static_cast<NavigationMode>(index));
-											const auto& description = GetFilteredNavigationDescription(index);
+											const auto navigationMode = static_cast<NavigationMode>(index);
+											changed.emplace_back(navigationMode);
+											const auto& description = GetFilteredNavigationDescription(navigationMode);
 											assert(description.table && description.idField);
 
 											const auto tr = db->CreateTransaction();

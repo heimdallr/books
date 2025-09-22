@@ -16,7 +16,7 @@
 #include "constants/ProductConstant.h"
 #include "logic/IAnnotationController.h"
 #include "logic/IDatabaseUser.h"
-#include "logic/IFilterController.h"
+#include "logic/IFilterProvider.h"
 #include "logic/ILogicFactory.h"
 #include "logic/IScriptController.h"
 #include "ui/IStyleApplier.h"
@@ -368,7 +368,7 @@ constexpr auto KEYWORD_ID = "KeywordID";
 constexpr auto LANGUAGES = "Languages";
 constexpr auto LANGUAGE_ID = "LanguageCode";
 
-template <typename StatementType, typename T>
+template <typename StatementType, typename>
 struct Binder
 {
 	static void Bind(StatementType& s, size_t index, const QString& value) = delete;
@@ -392,7 +392,7 @@ struct Binder<StatementType, std::string>
 	}
 };
 
-constexpr IFilterController::FilteredNavigation FILTERED_NAVIGATION_DESCRIPTION[] {
+constexpr IFilterProvider::FilteredNavigation FILTERED_NAVIGATION_DESCRIPTION[] {
 	// clang-format off
 		{ NavigationMode::Authors    , Loc::Authors     , &IModelProvider::CreateFilterListModel, AUTHORS  , AUTHOR_ID  , &Binder<DB::ICommand, int        >::Bind, &Binder<DB::IQuery, int        >::Bind },
 		{ NavigationMode::Series     , Loc::Series      , &IModelProvider::CreateFilterListModel, SERIES   , SERIES_ID  , &Binder<DB::ICommand, int        >::Bind, &Binder<DB::IQuery, int        >::Bind },
@@ -416,8 +416,9 @@ NAVIGATION_MODE_ITEMS_X_MACRO
 
 }
 
-const IFilterController::FilteredNavigation& IFilterController::GetFilteredNavigationDescription(const size_t index)
+const IFilterProvider::FilteredNavigation& IFilterProvider::GetFilteredNavigationDescription(const NavigationMode navigationMode)
 {
+	const auto index = static_cast<size_t>(navigationMode);
 	assert(index < std::size(FILTERED_NAVIGATION_DESCRIPTION));
 	return FILTERED_NAVIGATION_DESCRIPTION[index];
 }
