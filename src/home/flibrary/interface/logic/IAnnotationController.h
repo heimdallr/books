@@ -107,7 +107,7 @@ public:
 
 	public:
 		virtual ~IStrategy() = default;
-		virtual QString GenerateUrl(const char* type, const QString& id, const QString& str) const = 0;
+		virtual QString GenerateUrl(const char* type, const QString& id, const QString& str, bool textMode = false) const = 0;
 		virtual QString GenerateStars(int rate) const = 0;
 
 		virtual void Add(const Section section, QString& text, const QString& str, const char* pattern = "%1") const

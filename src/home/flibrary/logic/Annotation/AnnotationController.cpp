@@ -177,7 +177,6 @@ QString TranslateLang(const QString& code)
 Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, const IAnnotationController::IStrategy& strategy)
 {
 	const auto& book = dataProvider.GetBook();
-//	const auto& folder = book.GetRawData(BookItem::Column::Folder);
 	const auto& keywords = dataProvider.GetKeywords();
 	const auto& lang = book.GetRawData(BookItem::Column::Lang);
 	const auto& fbLang = dataProvider.GetLanguage();
