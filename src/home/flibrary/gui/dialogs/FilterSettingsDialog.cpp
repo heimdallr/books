@@ -1,12 +1,9 @@
-#include "ui_FilterSettingsWindow.h"
+#include "ui_FilterSettingsDialog.h"
 
-#include "FilterSettingsWindow.h"
-
-#include <QMenu>
+#include "FilterSettingsDialog.h"
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
-#include "interface/logic/IModel.h"
 
 #include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
@@ -23,26 +20,13 @@ namespace
 constexpr auto FIELD_WIDTH_KEY = "ui/View/UniFilter/columnWidths";
 constexpr auto RECENT_TAB_KEY = "ui/View/UniFilter/recentTab";
 
-//std::unordered_set<QString> GetSelected(const QAbstractItemModel& model)
-//{
-//	auto list = model.data({}, Role::SelectedList).toStringList();
-//	std::unordered_set<QString> selected;
-//	std::ranges::move(list, std::inserter(selected, selected.end()));
-//	return selected;
-//}
-//
-//void SetModelData(QAbstractItemModel& model, const int role, const QVariant& value = {}, const QModelIndex& index = {})
-//{
-//	model.setData(index, value, role);
-//}
-
 }
 
-struct FilterSettingsWindow::Impl final
+struct FilterSettingsDialog::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
 {
-	StackedPage& self;
+	QDialog& self;
 	std::shared_ptr<const IModelProvider> modelProvider;
 	PropagateConstPtr<ISettings, std::shared_ptr> settings;
 	PropagateConstPtr<IFilterController, std::shared_ptr> filterController;
@@ -51,16 +35,16 @@ struct FilterSettingsWindow::Impl final
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> scrollBarController;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> model { std::shared_ptr<QAbstractItemModel> {} };
 	const IFilterController::FilteredNavigation* filteredNavigation { nullptr };
-	Ui::FilterSettingsWindow ui {};
+	Ui::FilterSettingsDialog ui {};
 
-	Impl(FilterSettingsWindow& self,
+	Impl(QDialog& self,
 	     std::shared_ptr<const IModelProvider> modelProvider,
 	     std::shared_ptr<ISettings> settings,
 	     std::shared_ptr<IFilterController> filterController,
 	     std::shared_ptr<IFilterDataProvider> dataProvider,
 	     std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
 	     std::shared_ptr<ScrollBarController> scrollBarController)
-		: GeometryRestorable(*this, settings, "FilterSettingsWindow")
+		: GeometryRestorable(*this, settings, "FilterSettingsDialog")
 		, GeometryRestorableObserver(self)
 		, self { self }
 		, modelProvider { std::move(modelProvider) }
@@ -140,29 +124,9 @@ private:
 		else
 			ui.tabs->currentChanged(index);
 
-		connect(ui.btnCancel, &QAbstractButton::clicked, self.closeAction, &QAction::trigger);
+		connect(ui.btnCancel, &QAbstractButton::clicked, &self, &QDialog::reject);
 		connect(ui.btnApply, &QAbstractButton::clicked, [this] { Apply(); });
 
-		//		for (auto [action, role] : std::initializer_list<std::pair<QAction*, int>> {
-		//				 {     ui.actionLanguageCheckAll,     Role::CheckAll },
-		//				 {   ui.actionLanguageUncheckAll,   Role::UncheckAll },
-		//				 { ui.actionLanguageInvertChecks, Role::RevertChecks },
-		//        })
-		//			connect(action, &QAction::triggered, &self, [=] { SetModelData(*model, role); });
-
-		//		connect(ui.view, &QWidget::customContextMenuRequested, &self, [&] { OnLanguagesContextMenuRequested(); });
-		//		connect(model,
-		//		        &QAbstractItemModel::modelReset,
-		//		        [this, model, filtered = this->languageFilterController->ToProvider().GetFilteredCodes()]() mutable
-		//		        {
-		//					if (filtered.empty())
-		//						return;
-		//
-		//					const QStringList list { std::make_move_iterator(filtered.begin()), std::make_move_iterator(filtered.end()) };
-		//					filtered.clear();
-		//					model->setData({}, QVariant::fromValue(list), Role::SelectedList);
-		//				});
-		//		ui.view->setModel(model);
 		scrollBarController->SetScrollArea(ui.view);
 		ui.view->viewport()->installEventFilter(itemViewToolTipper.get());
 		ui.view->viewport()->installEventFilter(scrollBarController.get());
@@ -176,23 +140,13 @@ private:
 	{
 		filterController->SetFilterEnabled(ui.checkBoxFilterEnabled->isChecked());
 		filterController->Apply();
-		self.closeAction->trigger();
-	}
-
-	void OnLanguagesContextMenuRequested() const
-	{
-		QMenu menu;
-		menu.setFont(self.font());
-		menu.addAction(ui.actionLanguageCheckAll);
-		menu.addAction(ui.actionLanguageUncheckAll);
-		menu.addAction(ui.actionLanguageInvertChecks);
-		menu.exec(QCursor::pos());
+		self.accept();
 	}
 
 	NON_COPY_MOVABLE(Impl)
 };
 
-FilterSettingsWindow::FilterSettingsWindow(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
+FilterSettingsDialog::FilterSettingsDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
                                            std::shared_ptr<const IModelProvider> modelProvider,
                                            std::shared_ptr<ISettings> settings,
                                            std::shared_ptr<IFilterController> filterController,
@@ -200,13 +154,13 @@ FilterSettingsWindow::FilterSettingsWindow(const std::shared_ptr<const IParentWi
                                            std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
                                            std::shared_ptr<ScrollBarController> scrollBarController,
                                            QWidget* parent)
-	: StackedPage(parentWidgetProvider->GetWidget(parent))
+	: QDialog(parentWidgetProvider->GetWidget(parent))
 	, m_impl(*this, std::move(modelProvider), std::move(settings), std::move(filterController), std::move(dataProvider), std::move(itemViewToolTipper), std::move(scrollBarController))
 {
-	PLOGV << "FilterSettingsWindow created";
+	PLOGV << "FilterSettingsDialog created";
 }
 
-FilterSettingsWindow::~FilterSettingsWindow()
+FilterSettingsDialog::~FilterSettingsDialog()
 {
-	PLOGV << "FilterSettingsWindow destroyed";
+	PLOGV << "FilterSettingsDialog destroyed";
 }

@@ -14,17 +14,16 @@
 #include "util/ISettings.h"
 
 #include "ScrollBarController.h"
-#include "StackedPage.h"
 
 namespace HomeCompa::Flibrary
 {
 
-class FilterSettingsWindow final : public StackedPage
+class FilterSettingsDialog final : public QDialog
 {
-	NON_COPY_MOVABLE(FilterSettingsWindow)
+	NON_COPY_MOVABLE(FilterSettingsDialog)
 
 public:
-	FilterSettingsWindow(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
+	FilterSettingsDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
 	                     std::shared_ptr<const IModelProvider> modelProvider,
 	                     std::shared_ptr<ISettings> settings,
 	                     std::shared_ptr<IFilterController> filterController,
@@ -32,7 +31,7 @@ public:
 	                     std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
 	                     std::shared_ptr<ScrollBarController> scrollBarController,
 	                     QWidget* parent = nullptr);
-	~FilterSettingsWindow() override;
+	~FilterSettingsDialog() override;
 
 private:
 	struct Impl;

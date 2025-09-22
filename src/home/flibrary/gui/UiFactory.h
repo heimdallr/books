@@ -33,10 +33,10 @@ private: // IUiFactory
 	std::shared_ptr<ITreeViewDelegate> CreateTreeViewDelegateBooks(QTreeView& parent) const override;
 	std::shared_ptr<ITreeViewDelegate> CreateTreeViewDelegateNavigation(QAbstractItemView& parent) const override;
 	std::shared_ptr<QDialog> CreateOpdsDialog() const override;
+	std::shared_ptr<QDialog> CreateFilterSettingsDialog() const override;
 	std::shared_ptr<IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const override;
 	std::shared_ptr<QMainWindow> CreateQueryWindow() const override;
 	void CreateCollectionCleaner() const override;
-	void CreateFilterSettingsWindow() const override;
 	void CreateAuthorReview(long long id) const override;
 
 	void ShowAbout() const override;

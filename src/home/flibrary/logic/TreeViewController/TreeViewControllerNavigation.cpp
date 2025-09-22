@@ -386,7 +386,7 @@ private: // IContextMenuHandler
 
 	void OnShowFilterSettingsTriggered(const QList<QModelIndex>&, const QModelIndex&, const IDataItem::Ptr&, Callback callback) const override
 	{
-		uiFactory->CreateFilterSettingsWindow();
+		uiFactory->CreateFilterSettingsDialog()->exec();
 		forwarder.Forward(std::move(callback));
 	}
 
