@@ -18,6 +18,7 @@ enum class Type;
 
 namespace HomeCompa::Flibrary
 {
+enum class NavigationMode;
 
 class IAnnotationController // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -74,6 +75,8 @@ public:
 		[[nodiscard]] virtual const QString& GetPublishIsbn() const noexcept = 0;
 		[[nodiscard]] virtual const ExportStatistics& GetExportStatistics() const noexcept = 0;
 		[[nodiscard]] virtual const Reviews& GetReviews() const noexcept = 0;
+
+		[[nodiscard]] virtual std::vector<IDataItem::Flags> GetFlags(NavigationMode navigationMode, const std::vector<QString>& ids) const noexcept = 0;
 	};
 
 	class IObserver : public Observer

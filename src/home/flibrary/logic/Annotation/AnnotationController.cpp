@@ -20,6 +20,7 @@
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/IFilterProvider.h"
 #include "interface/logic/IJokeRequester.h"
 #include "interface/logic/IProgressController.h"
 
@@ -183,16 +184,18 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, c
 	const auto& fbLang = dataProvider.GetLanguage();
 	const auto& fbSourceLang = dataProvider.GetSourceLanguage();
 
+	const auto langFlags = dataProvider.GetFlags(NavigationMode::Languages, { lang, fbLang, fbSourceLang });
+
 	const auto langTr = TranslateLang(lang);
-	auto langStr = strategy.GenerateUrl(Loc::LANGUAGE, lang, langTr);
+	auto langStr = strategy.GenerateUrl(Loc::LANGUAGE, lang, langTr, !!(langFlags[0] & IDataItem::Flags::Filtered));
 
 	if (!fbLang.isEmpty())
 		if (const auto fbLangTr = TranslateLang(fbLang); fbLangTr != langTr && fbLangTr != Loc::Tr(LANGUAGES_CONTEXT, UNDEFINED))
-			langStr.append(Tr(OR).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbLang, fbLangTr)));
+			langStr.append(Tr(OR).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbLang, fbLangTr, !!(langFlags[1] & IDataItem::Flags::Filtered))));
 
 	if (!fbSourceLang.isEmpty() && fbSourceLang != lang && fbSourceLang != fbLang)
 		if (const auto fbSourceLangTr = TranslateLang(fbSourceLang); fbSourceLangTr != langTr)
-			langStr.append(Tr(TRANSLATION_FROM).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbSourceLang, fbSourceLangTr)));
+			langStr.append(Tr(TRANSLATION_FROM).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbSourceLang, fbSourceLangTr, !!(langFlags[2] & IDataItem::Flags::Filtered))));
 
 	Table table(strategy);
 	table.Add(Loc::AUTHORS, Urls(strategy, Loc::AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
@@ -203,8 +206,7 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, c
 		.Add(Loc::GROUPS, Urls(strategy, Loc::GROUPS, dataProvider.GetGroups()))
 		.Add(Loc::KEYWORDS, Urls(strategy, Loc::KEYWORDS, keywords))
 		.Add(Loc::LANGUAGE, langStr)
-		.Add(Loc::UPDATES, Urls(strategy, Loc::UPDATES, dataProvider.GetUpdate()))
-	;
+		.Add(Loc::UPDATES, Urls(strategy, Loc::UPDATES, dataProvider.GetUpdate()));
 
 	return table;
 }
@@ -422,6 +424,27 @@ private: // IDataProvider
 	[[nodiscard]] const Reviews& GetReviews() const noexcept override
 	{
 		return m_reviews;
+	}
+
+	[[nodiscard]] std::vector<IDataItem::Flags> GetFlags(const NavigationMode navigationMode, const std::vector<QString>& ids) const noexcept override
+	{
+		const auto db = m_databaseUser->Database();
+		const auto& description = IFilterProvider::GetFilteredNavigationDescription(navigationMode);
+		if (!description.table)
+			return std::vector(ids.size(), IDataItem::Flags::None);
+
+		std::vector<IDataItem::Flags> result;
+
+		const auto query = db->CreateQuery(std::format("select Flags from {} where {} = ?", description.table, description.idField));
+		for (const auto& id : ids)
+		{
+			description.queueBinder(*query, 0, id);
+			query->Execute();
+			result.emplace_back(query->Eof() ? IDataItem::Flags::None : static_cast<IDataItem::Flags>(query->Get<int>(0)));
+			query->Reset();
+		}
+
+		return result;
 	}
 
 private: // IProgressController::IObserver
