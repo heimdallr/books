@@ -485,7 +485,11 @@ private: // IFilterProvider::IObserver
 	void OnFilterEnabledChanged() override
 	{
 		m_ui.treeView->model()->setData({}, m_filterProvider->IsFilterEnabled(), Role::UniFilterEnabled);
+		if (!IsNavigation())
+			return;
+
 		OnCountChanged();
+		m_controller->SetCurrentId(ItemType::Navigation, m_currentId);
 	}
 
 	void OnFilterNavigationChanged(const NavigationMode navigationMode) override
@@ -500,10 +504,7 @@ private: // IFilterProvider::IObserver
 	void OnFilterBooksChanged() override
 	{
 		if (IsNavigation())
-			return;
-
-		m_ui.treeView->model()->setData({}, {}, Role::UniFilterChanged);
-		OnCountChanged();
+			m_controller->SetCurrentId(ItemType::Navigation, m_currentId);
 	}
 
 private: //	ModeComboBox::IValueApplier
