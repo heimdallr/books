@@ -44,6 +44,7 @@ struct Role
 		HeaderTitle,
 		Remap,
 		NavigationMode,
+		Last
 	};
 };
 

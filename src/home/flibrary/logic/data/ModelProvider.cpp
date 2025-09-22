@@ -157,13 +157,15 @@ std::shared_ptr<QAbstractItemModel> ModelProvider::CreateAuthorReviewModel() con
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateFilterListModel(IDataItem::Ptr data) const
 {
 	m_impl->data = std::move(data);
-	return m_impl->container.resolve<FilterListModel>();
+	m_impl->sourceModel = m_impl->container.resolve<FilterListModel>();
+	return m_impl->CreateSortFilterProxyModel(false);
 }
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateFilterTreeModel(IDataItem::Ptr data) const
 {
 	m_impl->data = std::move(data);
-	return m_impl->container.resolve<FilterTreeModel>();
+	m_impl->sourceModel = m_impl->container.resolve<FilterTreeModel>();
+	return m_impl->CreateSortFilterProxyModel(false);
 }
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const

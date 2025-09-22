@@ -6,14 +6,17 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>932</width>
+    <height>850</height>
    </rect>
   </property>
   <property name="windowTitle">
    <string>Filter settings</string>
   </property>
-  <layout class="QVBoxLayout" name="_3">
+  <property name="modal">
+   <bool>true</bool>
+  </property>
+  <layout class="QVBoxLayout" name="_4">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -30,31 +33,96 @@
     <widget class="QTabWidget" name="tabs"/>
    </item>
    <item>
-    <widget class="QTreeView" name="view">
-     <property name="contextMenuPolicy">
-      <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
-     </property>
-     <property name="verticalScrollBarPolicy">
-      <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
-     </property>
-     <property name="horizontalScrollBarPolicy">
-      <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
-     </property>
-     <property name="selectionMode">
-      <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
-     </property>
-     <property name="selectionBehavior">
-      <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
-     </property>
-     <property name="autoExpandDelay">
-      <number>0</number>
-     </property>
-     <property name="uniformRowHeights">
-      <bool>true</bool>
-     </property>
-     <property name="animated">
-      <bool>true</bool>
-     </property>
+    <widget class="QWidget" name="content" native="true">
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="_3">
+        <property name="spacing">
+         <number>8</number>
+        </property>
+        <property name="leftMargin">
+         <number>4</number>
+        </property>
+        <property name="topMargin">
+         <number>4</number>
+        </property>
+        <property name="rightMargin">
+         <number>4</number>
+        </property>
+        <property name="bottomMargin">
+         <number>0</number>
+        </property>
+        <item>
+         <widget class="QLineEdit" name="value">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="font">
+           <font>
+            <pointsize>9</pointsize>
+           </font>
+          </property>
+          <property name="clearButtonEnabled">
+           <bool>true</bool>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="HomeCompa::Flibrary::ModeComboBox" name="cbValueMode">
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QTreeView" name="view">
+        <property name="contextMenuPolicy">
+         <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+        </property>
+        <property name="verticalScrollBarPolicy">
+         <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="horizontalScrollBarPolicy">
+         <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+        </property>
+        <property name="selectionMode">
+         <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
+        </property>
+        <property name="selectionBehavior">
+         <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+        </property>
+        <property name="autoExpandDelay">
+         <number>0</number>
+        </property>
+        <property name="uniformRowHeights">
+         <bool>true</bool>
+        </property>
+        <property name="animated">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
@@ -71,6 +139,13 @@
      <property name="bottomMargin">
       <number>9</number>
      </property>
+     <item>
+      <widget class="QCheckBox" name="checkBoxShowCheckedOnly">
+       <property name="text">
+        <string>Show checked only</string>
+       </property>
+      </widget>
+     </item>
      <item>
       <spacer name="horizontalSpacer">
        <property name="orientation">
@@ -134,6 +209,22 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>HomeCompa::Flibrary::ModeComboBox</class>
+   <extends>QComboBox</extends>
+   <header>widgets/ModeComboBox.h</header>
+  </customwidget>
+ </customwidgets>
+ <tabstops>
+  <tabstop>tabs</tabstop>
+  <tabstop>value</tabstop>
+  <tabstop>cbValueMode</tabstop>
+  <tabstop>view</tabstop>
+  <tabstop>checkBoxFilterEnabled</tabstop>
+  <tabstop>btnApply</tabstop>
+  <tabstop>btnCancel</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>
