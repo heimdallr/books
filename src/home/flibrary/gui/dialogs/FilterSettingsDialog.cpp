@@ -63,17 +63,14 @@ private: // QSortFilterProxyModel
 		if (!checkedOnly)
 			return true;
 
-		const auto sourceIndex = sourceModel->index(sourceRow, 0, sourceParent);
-		assert(sourceIndex.isValid());
-
-		auto check = [&](const QModelIndex& index, const int column)
+		auto check = [&](const int column)
 		{
-			const auto sibling = sourceModel->index(index.row(), column);
-			const auto checked = sibling.data(Qt::CheckStateRole);
+			const auto sourceIndex = sourceModel->index(sourceRow, column, sourceParent);
+			const auto checked = sourceIndex.data(Qt::CheckStateRole);
 			return !checked.isValid() || checked.value<Qt::CheckState>() == Qt::Checked;
 		};
 
-		return check(sourceIndex, 1) || check(sourceIndex, 2);
+		return check(1) || check(2);
 	}
 };
 
