@@ -2,6 +2,8 @@
 
 #include "FilterSettingsDialog.h"
 
+#include <ranges>
+
 #include <QSortFilterProxyModel>
 #include <QTimer>
 
@@ -125,7 +127,7 @@ struct FilterSettingsDialog::Impl final
 private: //	ModeComboBox::IValueApplier
 	void Find() override
 	{
-		Find(ui.value->text(), Qt::DisplayRole);
+		FindImpl(ui.value->text(), Qt::DisplayRole);
 	}
 
 	void Filter() override
@@ -136,27 +138,16 @@ private: //	ModeComboBox::IValueApplier
 private:
 	void Init()
 	{
+		ui.checkBoxFilterEnabled->setChecked(filterController->IsFilterEnabled());
 		ui.checkBoxShowCheckedOnly->setChecked(settings->Get(SHOW_CHECKED_ONLY_KEY, ui.checkBoxShowCheckedOnly->isChecked()));
-
-		std::vector<NavigationMode> indexToMode;
-		for (size_t i = 0, sz = static_cast<size_t>(NavigationMode::Last); i < sz; ++i)
-		{
-			const auto& description = IFilterController::GetFilteredNavigationDescription(static_cast<NavigationMode>(i));
-			if (!description.table)
-				continue;
-
-			auto* widget = new QWidget(&self);
-			widget->setLayout(new QVBoxLayout);
-			widget->layout()->setContentsMargins(0, 0, 0, 0);
-			ui.tabs->addTab(widget, Loc::Tr(Loc::NAVIGATION, description.navigationTitle));
-			indexToMode.emplace_back(description.navigationMode);
-		}
-		connect(ui.tabs, &QTabWidget::tabCloseRequested, [this](const int index) { OnTabCloseRequest(index); });
-		connect(ui.tabs, &QTabWidget::currentChanged, [this, indexToMode = std::move(indexToMode)](const int tabIndex) { OnTabChanged(indexToMode, tabIndex); });
-		connect(ui.checkBoxShowCheckedOnly, &QCheckBox::toggled, &self, [this] { OnShowCheckedOnlyChanged(); });
-		connect(&filterTimer, &QTimer::timeout, &self, [&] { OnFilterTimerTimeout(); });
-
 		dataProvider->SetNavigationRequestCallback([this](IDataItem::Ptr root) { OnSetNavigationRequestCallback(std::move(root)); });
+		filterTimer.setSingleShot(true);
+		filterTimer.setInterval(std::chrono::milliseconds(200));
+
+		connect(ui.tabs, &QTabWidget::currentChanged, [this, indexToMode = CreateTabs()](const int tabIndex) { OnTabChanged(indexToMode, tabIndex); });
+		connect(ui.tabs, &QTabWidget::tabCloseRequested, [this](const int index) { OnTabCloseRequest(index); });
+		connect(ui.checkBoxShowCheckedOnly, &QCheckBox::toggled, &self, [this] { OnShowCheckedOnlyChanged(); });
+		connect(&filterTimer, &QTimer::timeout, &self, [&] { FilterImpl(); });
 
 		if (const auto index = settings->Get(RECENT_TAB_KEY, 0))
 			ui.tabs->setCurrentIndex(index);
@@ -172,16 +163,51 @@ private:
 		ui.view->viewport()->installEventFilter(itemViewToolTipper.get());
 		ui.view->viewport()->installEventFilter(scrollBarController.get());
 
-		ui.checkBoxFilterEnabled->setChecked(filterController->IsFilterEnabled());
-
 		if (const auto it = std::ranges::find_if(ModeComboBox::VALUE_MODES, [mode = settings->Get(RECENT_VALUE_MODE_KEY).toString()](const auto& item) { return mode == item.first; });
 		    it != std::cend(ModeComboBox::VALUE_MODES))
 			ui.cbValueMode->setCurrentIndex(static_cast<int>(std::distance(std::cbegin(ModeComboBox::VALUE_MODES), it)));
 
-		filterTimer.setSingleShot(true);
-		filterTimer.setInterval(std::chrono::milliseconds(200));
-
 		LoadGeometry();
+	}
+
+	std::vector<NavigationMode> CreateTabs() const
+	{
+		std::vector<NavigationMode> indexToMode;
+
+		std::ranges::transform(std::views::iota(size_t { 0 }, static_cast<size_t>(NavigationMode::Last))
+		                           | std::views::transform([](const auto index) { return IFilterController::GetFilteredNavigationDescription(static_cast<NavigationMode>(index)); })
+		                           | std::views::filter([](const auto& description) { return !!description.table; }),
+		                       std::back_inserter(indexToMode),
+		                       [this](const auto& description)
+		                       {
+								   auto* widget = new QWidget(&self);
+								   widget->setLayout(new QVBoxLayout);
+								   widget->layout()->setContentsMargins(0, 0, 0, 0);
+								   ui.tabs->addTab(widget, Loc::Tr(Loc::NAVIGATION, description.navigationTitle));
+								   return description.navigationMode;
+							   });
+
+		return indexToMode;
+	}
+
+	void OnTabChanged(const std::vector<NavigationMode>& indexToMode, const int tabIndex)
+	{
+		ui.view->setModel(nullptr);
+		model.reset();
+		const auto index = static_cast<size_t>(tabIndex);
+		filteredNavigation = &IFilterController::GetFilteredNavigationDescription(indexToMode[index]);
+		assert(filteredNavigation);
+		dataProvider->SetNavigationMode(indexToMode[index]);
+		dataProvider->RequestNavigation();
+		ui.tabs->widget(tabIndex)->layout()->addWidget(ui.content);
+		SetFont();
+	}
+
+	void OnTabCloseRequest(const int index)
+	{
+		ui.tabs->widget(index)->layout()->removeWidget(ui.content);
+		if (model)
+			Util::SaveHeaderSectionWidth(*ui.view->header(), *this->settings, FIELD_WIDTH_KEY);
 	}
 
 	void OnSetNavigationRequestCallback(IDataItem::Ptr root)
@@ -198,6 +224,11 @@ private:
 		Util::LoadHeaderSectionWidth(*ui.view->header(), *settings, FIELD_WIDTH_KEY);
 	}
 
+	void OnValueChanged()
+	{
+		std::invoke(ModeComboBox::VALUE_MODES[ui.cbValueMode->currentIndex()].second, static_cast<IValueApplier&>(*this));
+	}
+
 	void OnValueModeIndexChanged()
 	{
 		settings->Set(RECENT_VALUE_MODE_KEY, ui.cbValueMode->currentData());
@@ -207,7 +238,7 @@ private:
 		ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
 	}
 
-	void OnFilterTimerTimeout()
+	void FilterImpl()
 	{
 		if (!model)
 			return;
@@ -219,29 +250,23 @@ private:
 		}();
 		model->setData({}, ui.value->text(), Role::TextFilter);
 		if (!currentId.isValid())
-			return Find(currentId, Role::Id);
+			return FindImpl(currentId, Role::Id);
 		if (model->rowCount() != 0)
 			ui.view->setCurrentIndex(model->index(0, 0));
 	}
 
-	void OnTabCloseRequest(const int index)
+	void FindImpl(const QVariant& value, const int role) const
 	{
-		ui.tabs->widget(index)->layout()->removeWidget(ui.content);
-		if (model)
-			Util::SaveHeaderSectionWidth(*ui.view->header(), *this->settings, FIELD_WIDTH_KEY);
-	}
+		assert(model);
+		const auto setCurrentIndex = [this](const QModelIndex& index) { ui.view->setCurrentIndex(index); };
+		if (const auto matched = model->match(model->index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive);
+		    !matched.isEmpty())
+			setCurrentIndex(matched.front());
+		else if (role == Role::Id)
+			setCurrentIndex(model->index(0, 0));
 
-	void OnTabChanged(const std::vector<NavigationMode>& indexToMode, const int tabIndex)
-	{
-		ui.view->setModel(nullptr);
-		model.reset();
-		const auto index = static_cast<size_t>(tabIndex);
-		filteredNavigation = &IFilterController::GetFilteredNavigationDescription(indexToMode[index]);
-		assert(filteredNavigation);
-		dataProvider->SetNavigationMode(indexToMode[index]);
-		dataProvider->RequestNavigation();
-		ui.tabs->widget(tabIndex)->layout()->addWidget(ui.content);
-		SetFont();
+		if (const auto index = ui.view->currentIndex(); index.isValid())
+			ui.view->scrollTo(index, QAbstractItemView::ScrollHint::PositionAtCenter);
 	}
 
 	void OnShowCheckedOnlyChanged()
@@ -254,11 +279,6 @@ private:
 	{
 		if (model)
 			model->setData({}, ui.checkBoxShowCheckedOnly->isChecked(), SortFilterProxyModel::Role::CheckedOnly);
-	}
-
-	void OnValueChanged()
-	{
-		std::invoke(ModeComboBox::VALUE_MODES[ui.cbValueMode->currentIndex()].second, static_cast<IValueApplier&>(*this));
 	}
 
 	void Apply()
@@ -274,19 +294,6 @@ private:
 			widget->setFont(self.parentWidget()->font());
 	}
 
-	void Find(const QVariant& value, const int role) const
-	{
-		assert(model);
-		const auto setCurrentIndex = [this](const QModelIndex& index) { ui.view->setCurrentIndex(index); };
-		if (const auto matched = model->match(model->index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive);
-		    !matched.isEmpty())
-			setCurrentIndex(matched.front());
-		else if (role == Role::Id)
-			setCurrentIndex(model->index(0, 0));
-
-		if (const auto index = ui.view->currentIndex(); index.isValid())
-			ui.view->scrollTo(index, QAbstractItemView::ScrollHint::PositionAtCenter);
-	}
 	NON_COPY_MOVABLE(Impl)
 };
 
