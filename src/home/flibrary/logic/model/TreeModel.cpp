@@ -46,9 +46,6 @@ QModelIndex TreeModel::parent(const QModelIndex& index) const
 
 int TreeModel::rowCount(const QModelIndex& parent) const
 {
-	if (parent.column() > 0)
-		return 0;
-
 	const auto* parentItem = parent.isValid() ? static_cast<IDataItem*>(parent.internalPointer()) : m_data.get();
 	return static_cast<int>(parentItem->GetChildCount());
 }

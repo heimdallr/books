@@ -183,30 +183,6 @@
     </layout>
    </item>
   </layout>
-  <action name="actionLanguageCheckAll">
-   <property name="text">
-    <string>Check all</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionLanguageUncheckAll">
-   <property name="text">
-    <string>Uncheck all</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionLanguageInvertChecks">
-   <property name="text">
-    <string>Invert checks</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>

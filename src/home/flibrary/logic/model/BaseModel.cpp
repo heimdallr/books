@@ -108,6 +108,9 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 		case Role::IsRemoved:
 			return item->IsRemoved();
 
+		case Role::ChildCount:
+			return item->GetChildCount();
+
 		case Role::Remap:
 			return item->RemapColumn(index.column());
 

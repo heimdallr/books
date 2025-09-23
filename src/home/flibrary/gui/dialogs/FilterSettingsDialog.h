@@ -27,14 +27,14 @@ public:
 	                     std::shared_ptr<const IModelProvider> modelProvider,
 	                     std::shared_ptr<ISettings> settings,
 	                     std::shared_ptr<IFilterController> filterController,
-	                     std::shared_ptr<IFilterDataProvider> filterDataProvider,
+	                     std::shared_ptr<IFilterDataProvider> dataProvider,
 	                     std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
 	                     std::shared_ptr<ScrollBarController> scrollBarController,
 	                     QWidget* parent = nullptr);
 	~FilterSettingsDialog() override;
 
 private:
-	struct Impl;
+	class Impl;
 	PropagateConstPtr<Impl> m_impl;
 };
 

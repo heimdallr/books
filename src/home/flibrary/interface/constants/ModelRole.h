@@ -25,6 +25,7 @@ struct Role
 
 			// global
 			Count,
+		ChildCount,
 		Checkable,
 		Languages,
 		TextFilter,

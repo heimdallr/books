@@ -63,4 +63,11 @@ constexpr auto EXPORT = "Export";
 constexpr auto SELECT_INPX_FILE = QT_TRANSLATE_NOOP("Export", "Save index file");
 constexpr auto SELECT_INPX_FILE_FILTER = QT_TRANSLATE_NOOP("Export", "Index files (*.inpx);;All files (*.*)");
 
+constexpr auto CONTEXT_MENU = "ContextMenu";
+constexpr auto TREE_COLLAPSE_ALL = QT_TRANSLATE_NOOP("ContextMenu", "&Collapse all");
+constexpr auto TREE_EXPAND_ALL = QT_TRANSLATE_NOOP("ContextMenu", "&Expand all");
+constexpr auto CHECK_ALL = QT_TRANSLATE_NOOP("ContextMenu", "&Check all");
+constexpr auto UNCHECK_ALL = QT_TRANSLATE_NOOP("ContextMenu", "&Uncheck all");
+constexpr auto INVERT_CHECK = QT_TRANSLATE_NOOP("ContextMenu", "&Invert");
+
 } // namespace HomeCompa::Loc
