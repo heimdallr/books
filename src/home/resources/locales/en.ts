@@ -4377,6 +4377,13 @@ Try again?</source>
 	</message>
 </context>
 <context>
+	<name>Main</name>
+	<message>
+		<source>It looks like you're trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
 	<name>MainWindow</name>
 	<message>
 		<source>&amp;About...</source>
