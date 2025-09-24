@@ -34,7 +34,7 @@ private: // QSortFilterProxyModel
 	bool lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const override;
 
 private:
-	bool lessThanImpl(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const;
+	bool lessThanImpl(const QModelIndex& sourceLeft, const QModelIndex& sourceRight, int emptyStringWeight = std::numeric_limits<int>::max()) const;
 	bool FilterAcceptsText(const QModelIndex& index) const;
 	bool FilterAcceptsRemoved(const QModelIndex& index) const;
 	bool FilterAcceptsFlags(const QModelIndex& index) const;
