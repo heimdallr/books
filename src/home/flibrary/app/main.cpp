@@ -17,6 +17,7 @@
 #include "interface/ui/IMainWindow.h"
 #include "interface/ui/IMigrateWindow.h"
 #include "interface/ui/IStyleApplierFactory.h"
+#include "interface/ui/IUiFactory.h"
 
 #include "Hypodermic/Hypodermic.h"
 #include "logging/init.h"
@@ -33,8 +34,16 @@
 #include "config/git_hash.h"
 #include "config/version.h"
 
+using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
-using namespace Flibrary;
+
+namespace
+{
+constexpr auto CONTEXT = "Main";
+constexpr auto WRONG_DB_VERSION =
+	QT_TRANSLATE_NOOP("Main", "It looks like you're trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?");
+TR_DEF
+}
 
 int main(int argc, char* argv[])
 {
@@ -77,12 +86,26 @@ int main(int argc, char* argv[])
 			const auto colorSchemeLib = styleApplierFactory->CreateStyleApplier(IStyleApplier::Type::ColorScheme)->Set(app);
 			styleApplierFactory.reset();
 
-			if (const auto migrator = container->resolve<IDatabaseMigrator>(); migrator->NeedMigrate())
+			switch (const auto migrator = container->resolve<IDatabaseMigrator>(); migrator->NeedMigrate())
 			{
-				const auto migrateWindow = container->resolve<IMigrateWindow>();
-				migrateWindow->Show();
-				QApplication::exec();
-				continue;
+				default:
+					assert(false && "unexpected result");
+					[[fallthrough]];
+
+				case IDatabaseMigrator::NeedMigrateResult::Actual:
+					break;
+
+				case IDatabaseMigrator::NeedMigrateResult::NeedMigrate:
+				{
+					const auto migrateWindow = container->resolve<IMigrateWindow>();
+					migrateWindow->Show();
+					QApplication::exec();
+					continue;
+				}
+
+				case IDatabaseMigrator::NeedMigrateResult::Unexpected:
+					container->resolve<IUiFactory>()->ShowWarning(Tr(WRONG_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::No);
+					return EXIT_FAILURE;
 			}
 
 			container->resolve<ITaskQueue>()->Execute();
