@@ -139,7 +139,7 @@ bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelInd
 bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const
 {
 	if (m_impl->sort.empty())
-		return lessThanImpl(sourceLeft, sourceRight);
+		return false;
 
 	for (const auto& [column, order] : m_impl->sort)
 	{
@@ -158,23 +158,24 @@ bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelI
 			continue;
 		}
 
-		if (lessThanImpl(rhs, lhs))
+		if (lessThanImpl(rhs, lhs, std::numeric_limits<int>::min()))
 			return true;
 
-		if (lessThanImpl(lhs, rhs))
+		if (lessThanImpl(lhs, rhs, std::numeric_limits<int>::min()))
 			return false;
 	}
 
 	return false;
 }
 
-bool SortFilterProxyModel::lessThanImpl(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const
+bool SortFilterProxyModel::lessThanImpl(const QModelIndex& sourceLeft, const QModelIndex& sourceRight, const int emptyStringWeight) const
 {
 	const auto lhs = sourceLeft.data(), rhs = sourceRight.data();
 	const auto lhsType = lhs.typeId(), rhsType = rhs.typeId();
-	return lhsType != rhsType                  ? lhsType < rhsType
-	     : lhsType == QMetaType::Type::QString ? (assert(rhsType == QMetaType::Type::QString), Util::QStringWrapper { lhs.toString() } < Util::QStringWrapper { rhs.toString() })
-	                                           : QSortFilterProxyModel::lessThan(sourceLeft, sourceRight);
+	return lhsType != rhsType ? lhsType < rhsType
+	     : lhsType == QMetaType::Type::QString
+	         ? (assert(rhsType == QMetaType::Type::QString), Util::QStringWrapper::Compare(Util::QStringWrapper { lhs.toString() }, Util::QStringWrapper { rhs.toString() }, emptyStringWeight))
+	         : QSortFilterProxyModel::lessThan(sourceLeft, sourceRight);
 }
 
 bool SortFilterProxyModel::FilterAcceptsText(const QModelIndex& index) const
