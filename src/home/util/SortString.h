@@ -1,5 +1,7 @@
 #pragma once
 
+#include <limits>
+
 #include "export/util.h"
 
 class QString;
@@ -11,8 +13,10 @@ struct UTIL_EXPORT QStringWrapper
 {
 	const QString& data;
 
-	bool operator<(const QStringWrapper& rhs) const;
 	static void SetLocale(const QString& locale);
+	static bool Compare(const QStringWrapper& lhs, const QStringWrapper& rhs, int emptyStringWeight = std::numeric_limits<int>::max());
+
+	bool operator<(const QStringWrapper& rhs) const;
 };
 
 }
