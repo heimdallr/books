@@ -361,28 +361,12 @@
 		<translation>От&amp;метка</translation>
 	</message>
 	<message>
-		<source>&amp;Check all</source>
-		<translation>Отметить &amp;все</translation>
-	</message>
-	<message>
-		<source>&amp;Collapse all</source>
-		<translation>&amp;Свернуть все</translation>
-	</message>
-	<message>
 		<source>&amp;Delete permanently</source>
 		<translation>Удалит&amp;ь навсегда</translation>
 	</message>
 	<message>
-		<source>&amp;Expand all</source>
-		<translation>&amp;Развернуть все</translation>
-	</message>
-	<message>
 		<source>&amp;Groups</source>
 		<translation>&amp;Группы</translation>
-	</message>
-	<message>
-		<source>&amp;Invert</source>
-		<translation>&amp;Инвертировать отметку</translation>
 	</message>
 	<message>
 		<source>&amp;My rate</source>
@@ -407,10 +391,6 @@
 	<message>
 		<source>&amp;Tree</source>
 		<translation>&amp;Дерево</translation>
-	</message>
-	<message>
-		<source>&amp;Uncheck all</source>
-		<translation>Сн&amp;ять отметки</translation>
 	</message>
 	<message>
 		<source>&amp;Undo deletion</source>
@@ -747,6 +727,29 @@ Restart now?</source>
 	</message>
 </context>
 <context>
+	<name>ContextMenu</name>
+	<message>
+		<source>&amp;Check all</source>
+		<translation>Отметить &amp;все</translation>
+	</message>
+	<message>
+		<source>&amp;Collapse all</source>
+		<translation>&amp;Свернуть все</translation>
+	</message>
+	<message>
+		<source>&amp;Expand all</source>
+		<translation>&amp;Развернуть все</translation>
+	</message>
+	<message>
+		<source>&amp;Invert</source>
+		<translation>&amp;Инвертировать отметку</translation>
+	</message>
+	<message>
+		<source>&amp;Uncheck all</source>
+		<translation>Сн&amp;ять отметки</translation>
+	</message>
+</context>
+<context>
 	<name>Dialog</name>
 	<message>
 		<source>&lt;p&gt;Personal &lt;a href='%1'&gt;%2&lt;/a&gt; build&lt;/p&gt;</source>
@@ -873,6 +876,44 @@ Restart now?</source>
 	<message>
 		<source>Save index file</source>
 		<translation>Сохранить индексный файл</translation>
+	</message>
+</context>
+<context>
+	<name>FilterModel</name>
+	<message>
+		<source>Books filtered</source>
+		<translation>Книги отфильтрованы</translation>
+	</message>
+	<message>
+		<source>Hidden</source>
+		<translation>Скрыто</translation>
+	</message>
+	<message>
+		<source>Title</source>
+		<translation>Название</translation>
+	</message>
+</context>
+<context>
+	<name>FilterSettingsDialog</name>
+	<message>
+		<source>Apply</source>
+		<translation>Применить</translation>
+	</message>
+	<message>
+		<source>Cancel</source>
+		<translation>Отмена</translation>
+	</message>
+	<message>
+		<source>Filter enabled</source>
+		<translation>Фильтр включен</translation>
+	</message>
+	<message>
+		<source>Filter settings</source>
+		<translation>Настройки фильтра</translation>
+	</message>
+	<message>
+		<source>Show checked only</source>
+		<translation>Показывать только помеченные</translation>
 	</message>
 </context>
 <context>
@@ -4858,12 +4899,28 @@ Try again?</source>
 		<translation>Новый поиск...</translation>
 	</message>
 	<message>
+		<source>Filter books</source>
+		<translation>Отфильтровать книги</translation>
+	</message>
+	<message>
+		<source>Filter settings...</source>
+		<translation>Настройки фильтра...</translation>
+	</message>
+	<message>
+		<source>Filters</source>
+		<translation>Фильтры</translation>
+	</message>
+	<message>
 		<source>Genres</source>
 		<translation>Жанры</translation>
 	</message>
 	<message>
 		<source>Groups</source>
 		<translation>Группы</translation>
+	</message>
+	<message>
+		<source>Hide</source>
+		<translation>Скрыть</translation>
 	</message>
 	<message>
 		<source>Keywords</source>

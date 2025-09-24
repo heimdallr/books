@@ -361,27 +361,11 @@
 		<translation></translation>
 	</message>
 	<message>
-		<source>&amp;Check all</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>&amp;Collapse all</source>
-		<translation></translation>
-	</message>
-	<message>
 		<source>&amp;Delete permanently</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>&amp;Expand all</source>
-		<translation></translation>
-	</message>
-	<message>
 		<source>&amp;Groups</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>&amp;Invert</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -406,10 +390,6 @@
 	</message>
 	<message>
 		<source>&amp;Tree</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>&amp;Uncheck all</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -737,6 +717,29 @@ Restart now?</source>
 	</message>
 </context>
 <context>
+	<name>ContextMenu</name>
+	<message>
+		<source>&amp;Check all</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>&amp;Collapse all</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>&amp;Expand all</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>&amp;Invert</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>&amp;Uncheck all</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
 	<name>Dialog</name>
 	<message>
 		<source>&lt;p&gt;Personal &lt;a href='%1'&gt;%2&lt;/a&gt; build&lt;/p&gt;</source>
@@ -862,6 +865,44 @@ Restart now?</source>
 	</message>
 	<message>
 		<source>Save index file</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
+	<name>FilterModel</name>
+	<message>
+		<source>Books filtered</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Hidden</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Title</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
+	<name>FilterSettingsDialog</name>
+	<message>
+		<source>Apply</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Cancel</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Filter enabled</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Filter settings</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Show checked only</source>
 		<translation></translation>
 	</message>
 </context>
@@ -4846,11 +4887,27 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>Filter books</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Filter settings...</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Filters</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>Genres</source>
 		<translation></translation>
 	</message>
 	<message>
 		<source>Groups</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Hide</source>
 		<translation></translation>
 	</message>
 	<message>

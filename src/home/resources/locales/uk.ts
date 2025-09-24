@@ -361,28 +361,12 @@
 		<translation>Поз&amp;начка</translation>
 	</message>
 	<message>
-		<source>&amp;Check all</source>
-		<translation>Відзначити &amp;все</translation>
-	</message>
-	<message>
-		<source>&amp;Collapse all</source>
-		<translation>&amp;Згорнути все</translation>
-	</message>
-	<message>
 		<source>&amp;Delete permanently</source>
 		<translation>Видалит&amp;и назавжди</translation>
 	</message>
 	<message>
-		<source>&amp;Expand all</source>
-		<translation>&amp;Розгорнути все</translation>
-	</message>
-	<message>
 		<source>&amp;Groups</source>
 		<translation>&amp;Групи</translation>
-	</message>
-	<message>
-		<source>&amp;Invert</source>
-		<translation>&amp;Інвертувати позначку</translation>
 	</message>
 	<message>
 		<source>&amp;My rate</source>
@@ -407,10 +391,6 @@
 	<message>
 		<source>&amp;Tree</source>
 		<translation>&amp;Дерево</translation>
-	</message>
-	<message>
-		<source>&amp;Uncheck all</source>
-		<translation>Зн&amp;яти позначки</translation>
 	</message>
 	<message>
 		<source>&amp;Undo deletion</source>
@@ -747,6 +727,29 @@ Restart now?</source>
 	</message>
 </context>
 <context>
+	<name>ContextMenu</name>
+	<message>
+		<source>&amp;Check all</source>
+		<translation>Відзначити &amp;все</translation>
+	</message>
+	<message>
+		<source>&amp;Collapse all</source>
+		<translation>&amp;Згорнути все</translation>
+	</message>
+	<message>
+		<source>&amp;Expand all</source>
+		<translation>&amp;Розгорнути все</translation>
+	</message>
+	<message>
+		<source>&amp;Invert</source>
+		<translation>&amp;Інвертувати позначку</translation>
+	</message>
+	<message>
+		<source>&amp;Uncheck all</source>
+		<translation>Зн&amp;яти позначки</translation>
+	</message>
+</context>
+<context>
 	<name>Dialog</name>
 	<message>
 		<source>&lt;p&gt;Personal &lt;a href='%1'&gt;%2&lt;/a&gt; build&lt;/p&gt;</source>
@@ -873,6 +876,44 @@ Restart now?</source>
 	<message>
 		<source>Save index file</source>
 		<translation>Зберегти індексний файл</translation>
+	</message>
+</context>
+<context>
+	<name>FilterModel</name>
+	<message>
+		<source>Books filtered</source>
+		<translation>Книги відфільтровані</translation>
+	</message>
+	<message>
+		<source>Hidden</source>
+		<translation>Приховано</translation>
+	</message>
+	<message>
+		<source>Title</source>
+		<translation>Назва</translation>
+	</message>
+</context>
+<context>
+	<name>FilterSettingsDialog</name>
+	<message>
+		<source>Apply</source>
+		<translation>Застосувати</translation>
+	</message>
+	<message>
+		<source>Cancel</source>
+		<translation>Скасувати</translation>
+	</message>
+	<message>
+		<source>Filter enabled</source>
+		<translation>Фільтр увімкнено</translation>
+	</message>
+	<message>
+		<source>Filter settings</source>
+		<translation>Налаштування фільтра</translation>
+	</message>
+	<message>
+		<source>Show checked only</source>
+		<translation>Показувати лише позначені</translation>
 	</message>
 </context>
 <context>
@@ -4858,12 +4899,28 @@ Try again?</source>
 		<translation>Новий пошук...</translation>
 	</message>
 	<message>
+		<source>Filter books</source>
+		<translation>Відфільтрувати книги</translation>
+	</message>
+	<message>
+		<source>Filter settings...</source>
+		<translation>Налаштування фільтра...</translation>
+	</message>
+	<message>
+		<source>Filters</source>
+		<translation>Фільтри</translation>
+	</message>
+	<message>
 		<source>Genres</source>
 		<translation>Жанри</translation>
 	</message>
 	<message>
 		<source>Groups</source>
 		<translation>Групи</translation>
+	</message>
+	<message>
+		<source>Hide</source>
+		<translation>Приховати</translation>
 	</message>
 	<message>
 		<source>Keywords</source>
