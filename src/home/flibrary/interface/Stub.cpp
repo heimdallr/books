@@ -414,7 +414,7 @@ static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(FILTERED_NA
 NAVIGATION_MODE_ITEMS_X_MACRO
 #undef NAVIGATION_MODE_ITEM
 
-}
+} // namespace
 
 const IFilterProvider::FilteredNavigation& IFilterProvider::GetFilteredNavigationDescription(const NavigationMode navigationMode)
 {

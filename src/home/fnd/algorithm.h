@@ -51,7 +51,6 @@ bool Set(T& oldValue, T&& newValue, const F& f)
 	return true;
 }
 
-
 // из отсортированного диапазона делает вектор диапазонов из идущих подряд элементов
 template <typename InputIterator, typename Value = typename std::iterator_traits<InputIterator>::value_type>
 std::vector<std::pair<Value, Value>> CreateRanges(InputIterator begin, InputIterator end)

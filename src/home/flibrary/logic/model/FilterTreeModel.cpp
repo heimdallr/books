@@ -1,4 +1,5 @@
 #include "FilterTreeModel.h"
+
 #include "log.h"
 
 using namespace HomeCompa;
@@ -29,5 +30,5 @@ Qt::ItemFlags FilterTreeModel::flags(const QModelIndex& index) const
 
 QVariant FilterTreeModel::IsChecked(const IDataItem& item, const IDataItem::Flags flags) const
 {
-	return item.GetChildCount() == 0 ? FilterModel::IsChecked(item, flags) : QVariant{};
+	return item.GetChildCount() == 0 ? FilterModel::IsChecked(item, flags) : QVariant {};
 }

@@ -9,10 +9,10 @@
 #include "interface/logic/IFilterController.h"
 #include "interface/logic/IModelProvider.h"
 
-#include "ItemViewToolTipper.h"
 #include "gutil/interface/IParentWidgetProvider.h"
 #include "util/ISettings.h"
 
+#include "ItemViewToolTipper.h"
 #include "ScrollBarController.h"
 
 namespace HomeCompa::Flibrary

@@ -21,7 +21,7 @@ public:
 	virtual void OnDelete(std::string_view dbName, std::string_view tableName, int64_t rowId) = 0;
 };
 
-class DatabaseFunctionContext  // NOLINT(cppcoreguidelines-special-member-functions)
+class DatabaseFunctionContext // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~DatabaseFunctionContext() = default;
@@ -31,7 +31,7 @@ public:
 
 using DatabaseFunction = std::function<void(DatabaseFunctionContext&)>;
 
-class IDatabase  // NOLINT(cppcoreguidelines-special-member-functions)
+class IDatabase // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	static constexpr auto DEFAULT_TEMPORARY_TABLE_FIELD = "id integer primary key not null";

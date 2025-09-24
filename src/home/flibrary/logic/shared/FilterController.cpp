@@ -143,7 +143,6 @@ void FilterController::Apply()
 											}
 
 											tr->Commit();
-
 										}
 										return [this, changed = std::move(changed)](size_t)
 										{
