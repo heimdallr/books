@@ -139,7 +139,7 @@ bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelInd
 bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const
 {
 	if (m_impl->sort.empty())
-		return lessThanImpl(sourceLeft, sourceRight);
+		return false;
 
 	for (const auto& [column, order] : m_impl->sort)
 	{
