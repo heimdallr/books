@@ -480,14 +480,14 @@ private: // IAnnotationController::IObserver
 	}
 
 private: // IAnnotationController::IUrlGenerator
-	QString GenerateUrl(const char* type, const QString& id, const QString& str) const override
+	QString GenerateUrl(const char* type, const QString& id, const QString& str, const bool textMode) const override
 	{
 		if (str.isEmpty())
 			return {};
 
 		const auto& navigation = FindSecond(TYPE_TO_NAVIGATION, type, NO_NAVIGATION, PszComparer {});
-		return !navigation.first || m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation.first), true) ? QString("<a href=%1//%2>%3</a>").arg(type, id, str)
-		                                                                                                                                   : QString("%1").arg(str);
+		return textMode || navigation.first && !m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation.first), true) ? QString("%1").arg(str)
+		                                                                                                                                               : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
 	}
 
 	QString GenerateStars(const int rate) const override

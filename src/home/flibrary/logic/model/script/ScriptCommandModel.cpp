@@ -112,10 +112,10 @@ private: // QAbstractItemModel
 			switch (role)
 			{
 				case Role::Observer:
-					return Util::Set(m_observer, value.value<ISourceModelObserver*>(), *this);
+					return Util::Set(m_observer, value.value<ISourceModelObserver*>());
 
 				case Role::Uid:
-					return Util::Set(m_uid, value.toString(), *this);
+					return Util::Set(m_uid, value.toString());
 
 				default:
 					break;

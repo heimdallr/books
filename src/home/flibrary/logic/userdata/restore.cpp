@@ -37,18 +37,19 @@ enum class Check
 
 ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::UserData::Check);
 
-#define RESTORE_ITEMS_X_MACRO \
-	RESTORE_ITEM(Books, 1)    \
-	RESTORE_ITEM(Books, 2)    \
-	RESTORE_ITEM(Books, 3)    \
-	RESTORE_ITEM(Books, 6)    \
-	RESTORE_ITEM(Groups, 1)   \
-	RESTORE_ITEM(Groups, 3)   \
-	RESTORE_ITEM(Groups, 7)   \
-	RESTORE_ITEM(Searches, 1) \
-	RESTORE_ITEM(Searches, 3) \
-	RESTORE_ITEM(Searches, 5) \
-	RESTORE_ITEM(ExportStat, 4)
+#define RESTORE_ITEMS_X_MACRO   \
+	RESTORE_ITEM(Books, 1)      \
+	RESTORE_ITEM(Books, 2)      \
+	RESTORE_ITEM(Books, 3)      \
+	RESTORE_ITEM(Books, 6)      \
+	RESTORE_ITEM(Groups, 1)     \
+	RESTORE_ITEM(Groups, 3)     \
+	RESTORE_ITEM(Groups, 7)     \
+	RESTORE_ITEM(Searches, 1)   \
+	RESTORE_ITEM(Searches, 3)   \
+	RESTORE_ITEM(Searches, 5)   \
+	RESTORE_ITEM(ExportStat, 4) \
+	RESTORE_ITEM(Filter, 8)
 
 namespace HomeCompa::Flibrary::UserData
 {
@@ -72,6 +73,7 @@ constexpr auto FLIBRARY_BACKUP_USER_DATA_BOOKS = "FlibraryBackup/FlibraryUserDat
 constexpr auto FLIBRARY_BACKUP_USER_DATA_GROUPS = "FlibraryBackup/FlibraryUserData/Groups";
 constexpr auto FLIBRARY_BACKUP_USER_DATA_SEARCHES = "FlibraryBackup/FlibraryUserData/Searches";
 constexpr auto FLIBRARY_BACKUP_USER_DATA_EXPORT_STAT = "FlibraryBackup/FlibraryUserData/ExportStat";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_FILTER = "FlibraryBackup/FlibraryUserData/Filter";
 
 class XmlParser final : public Util::SaxParser
 {
@@ -127,6 +129,7 @@ private: // Util::SaxParser
 			{      FLIBRARY_BACKUP_USER_DATA_GROUPS, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
 			{    FLIBRARY_BACKUP_USER_DATA_SEARCHES, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
 			{ FLIBRARY_BACKUP_USER_DATA_EXPORT_STAT, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
+			{      FLIBRARY_BACKUP_USER_DATA_FILTER, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
 		};
 
 		const auto result = Parse(*this, PARSERS, path, name, attributes);

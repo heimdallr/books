@@ -59,6 +59,8 @@ QVariant BaseModel::headerData(const int section, const Qt::Orientation orientat
 
 QVariant BaseModel::data(const QModelIndex& index, const int role) const
 {
+	assert(index.isValid());
+
 	const auto* item = GetInternalPointer(index);
 	if (item->GetType() == ItemType::Books)
 	{
@@ -100,8 +102,14 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 		case Role::IsTree:
 			return false;
 
+		case Role::Flags:
+			return QVariant::fromValue(item->GetFlags());
+
 		case Role::IsRemoved:
 			return item->IsRemoved();
+
+		case Role::ChildCount:
+			return item->GetChildCount();
 
 		case Role::Remap:
 			return item->RemapColumn(index.column());
@@ -131,6 +139,9 @@ bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const i
 
 			case Qt::EditRole:
 				return true;
+
+			case Role::Flags:
+				return item->SetFlags(value.value<IDataItem::Flags>()), true;
 
 			default:
 				return assert(false && "unexpected role"), false;

@@ -112,6 +112,17 @@ IDataItem& DataItem::SetId(QString id) noexcept
 	return *this;
 }
 
+IDataItem::Flags DataItem::GetFlags() const noexcept
+{
+	return m_flags;
+}
+
+IDataItem& DataItem::SetFlags(Flags flags) noexcept
+{
+	m_flags = flags;
+	return *this;
+}
+
 IDataItem& DataItem::SetData(QString value, const int column) noexcept
 {
 	assert(column >= 0 && column < static_cast<int>(std::size(m_data)));

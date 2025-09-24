@@ -13,8 +13,7 @@
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
 #include "dialogs/AddCollectionDialog.h"
-#include "dialogs/GenreFilterDialog.h"
-#include "dialogs/LanguageFilterDialog.h"
+#include "dialogs/FilterSettingsDialog.h"
 #include "dialogs/OpdsDialog.h"
 #include "util/localization.h"
 #include "version/AppVersion.h"
@@ -164,14 +163,9 @@ std::shared_ptr<QDialog> UiFactory::CreateOpdsDialog() const
 	return m_impl->container.resolve<OpdsDialog>();
 }
 
-std::shared_ptr<QDialog> UiFactory::CreateLanguageFilterDialog() const
+std::shared_ptr<QDialog> UiFactory::CreateFilterSettingsDialog() const
 {
-	return m_impl->container.resolve<LanguageFilterDialog>();
-}
-
-std::shared_ptr<QDialog> UiFactory::CreateGenreFilterDialog() const
-{
-	return m_impl->container.resolve<GenreFilterDialog>();
+	return m_impl->container.resolve<FilterSettingsDialog>();
 }
 
 std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString title) const

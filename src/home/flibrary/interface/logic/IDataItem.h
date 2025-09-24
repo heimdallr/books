@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+#include "fnd/EnumBitmask.h"
 #include "fnd/NonCopyMovable.h"
 
 class QString;
@@ -33,6 +34,15 @@ class IDataItem // NOLINT(cppcoreguidelines-special-member-functions)
 	NON_COPY_MOVABLE(IDataItem)
 
 public:
+	enum class Flags
+	{
+		None = 0,
+		Filtered = 1 << 0,
+		BooksFiltered = 1 << 1,
+		Multiple = 1 << 2,
+	};
+
+public:
 	virtual ~IDataItem() = default;
 	using Ptr = std::shared_ptr<IDataItem>;
 	using Items = std::vector<Ptr>;
@@ -57,6 +67,7 @@ public:
 	[[nodiscard]] virtual size_t GetChildCount() const noexcept = 0;
 	[[nodiscard]] virtual size_t GetRow() const noexcept = 0;
 	[[nodiscard]] virtual const QString& GetId() const noexcept = 0;
+	[[nodiscard]] virtual Flags GetFlags() const noexcept = 0;
 	[[nodiscard]] virtual const QString& GetData(int column = 0) const noexcept = 0;
 	[[nodiscard]] virtual const QString& GetRawData(int column = 0) const noexcept = 0;
 
@@ -67,6 +78,7 @@ public:
 	[[nodiscard]] virtual int GetColumnCount() const noexcept = 0;
 
 	virtual IDataItem& SetId(QString id) noexcept = 0;
+	virtual IDataItem& SetFlags(Flags flags) noexcept = 0;
 	virtual IDataItem& SetData(QString value, int column = 0) noexcept = 0;
 
 	[[nodiscard]] virtual ItemType GetType() const noexcept = 0;
@@ -116,3 +128,5 @@ struct BookInfo
 using BookInfoList = std::vector<BookInfo>;
 
 } // namespace HomeCompa::Flibrary
+
+ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::IDataItem::Flags);

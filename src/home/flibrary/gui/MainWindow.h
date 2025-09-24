@@ -6,7 +6,6 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/IAnnotationController.h"
-#include "interface/logic/IBooksFilterProvider.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ICollectionUpdateChecker.h"
 #include "interface/logic/ICommandLine.h"
@@ -61,8 +60,6 @@ public:
 	           std::shared_ptr<const IDatabaseChecker> databaseChecker,
 	           std::shared_ptr<const IDatabaseUser> databaseUser,
 	           std::shared_ptr<IAlphabetPanel> alphabetPanel,
-	           std::shared_ptr<ILanguageFilterController> languageFilterController,
-	           std::shared_ptr<IGenreFilterController> genreFilterController,
 	           QWidget* parent = nullptr);
 	~MainWindow() override;
 

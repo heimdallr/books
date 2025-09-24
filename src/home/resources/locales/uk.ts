@@ -361,28 +361,12 @@
 		<translation>Поз&amp;начка</translation>
 	</message>
 	<message>
-		<source>&amp;Check all</source>
-		<translation>Відзначити &amp;все</translation>
-	</message>
-	<message>
-		<source>&amp;Collapse all</source>
-		<translation>&amp;Згорнути все</translation>
-	</message>
-	<message>
 		<source>&amp;Delete permanently</source>
 		<translation>Видалит&amp;и назавжди</translation>
 	</message>
 	<message>
-		<source>&amp;Expand all</source>
-		<translation>&amp;Розгорнути все</translation>
-	</message>
-	<message>
 		<source>&amp;Groups</source>
 		<translation>&amp;Групи</translation>
-	</message>
-	<message>
-		<source>&amp;Invert</source>
-		<translation>&amp;Інвертувати позначку</translation>
 	</message>
 	<message>
 		<source>&amp;My rate</source>
@@ -407,10 +391,6 @@
 	<message>
 		<source>&amp;Tree</source>
 		<translation>&amp;Дерево</translation>
-	</message>
-	<message>
-		<source>&amp;Uncheck all</source>
-		<translation>Зн&amp;яти позначки</translation>
 	</message>
 	<message>
 		<source>&amp;Undo deletion</source>
@@ -747,6 +727,29 @@ Restart now?</source>
 	</message>
 </context>
 <context>
+	<name>ContextMenu</name>
+	<message>
+		<source>&amp;Check all</source>
+		<translation>Відзначити &amp;все</translation>
+	</message>
+	<message>
+		<source>&amp;Collapse all</source>
+		<translation>&amp;Згорнути все</translation>
+	</message>
+	<message>
+		<source>&amp;Expand all</source>
+		<translation>&amp;Розгорнути все</translation>
+	</message>
+	<message>
+		<source>&amp;Invert</source>
+		<translation>&amp;Інвертувати позначку</translation>
+	</message>
+	<message>
+		<source>&amp;Uncheck all</source>
+		<translation>Зн&amp;яти позначки</translation>
+	</message>
+</context>
+<context>
 	<name>Dialog</name>
 	<message>
 		<source>&lt;p&gt;Personal &lt;a href='%1'&gt;%2&lt;/a&gt; build&lt;/p&gt;</source>
@@ -873,6 +876,44 @@ Restart now?</source>
 	<message>
 		<source>Save index file</source>
 		<translation>Зберегти індексний файл</translation>
+	</message>
+</context>
+<context>
+	<name>FilterModel</name>
+	<message>
+		<source>Books filtered</source>
+		<translation>Книги відфільтровані</translation>
+	</message>
+	<message>
+		<source>Hidden</source>
+		<translation>Приховано</translation>
+	</message>
+	<message>
+		<source>Title</source>
+		<translation>Назва</translation>
+	</message>
+</context>
+<context>
+	<name>FilterSettingsDialog</name>
+	<message>
+		<source>Apply</source>
+		<translation>Застосувати</translation>
+	</message>
+	<message>
+		<source>Cancel</source>
+		<translation>Скасувати</translation>
+	</message>
+	<message>
+		<source>Filter enabled</source>
+		<translation>Фільтр увімкнено</translation>
+	</message>
+	<message>
+		<source>Filter settings</source>
+		<translation>Налаштування фільтра</translation>
+	</message>
+	<message>
+		<source>Show checked only</source>
+		<translation>Показувати лише позначені</translation>
 	</message>
 </context>
 <context>
@@ -2364,29 +2405,6 @@ Restart now?</source>
 	<message>
 		<source>ya</source>
 		<translation>Підліткова література</translation>
-	</message>
-</context>
-<context>
-	<name>GenreFilterDialog</name>
-	<message>
-		<source>Check all</source>
-		<translation>Виділити все</translation>
-	</message>
-	<message>
-		<source>Filter enabled</source>
-		<translation>Фільтр увімкнено</translation>
-	</message>
-	<message>
-		<source>Genre filter settings</source>
-		<translation>Налаштування фільтру жанрів</translation>
-	</message>
-	<message>
-		<source>Invert checks</source>
-		<translation>Інвертувати виділення</translation>
-	</message>
-	<message>
-		<source>Uncheck all</source>
-		<translation>Зняти виділення</translation>
 	</message>
 </context>
 <context>
@@ -4325,29 +4343,6 @@ Try again?</source>
 	</message>
 </context>
 <context>
-	<name>LanguageFilterDialog</name>
-	<message>
-		<source>Check all</source>
-		<translation>Виділити все</translation>
-	</message>
-	<message>
-		<source>Filter enabled</source>
-		<translation>Фільтр увімкнено</translation>
-	</message>
-	<message>
-		<source>Invert checks</source>
-		<translation>Інвертувати виділення</translation>
-	</message>
-	<message>
-		<source>Language filter settings</source>
-		<translation>Налаштування мовного фільтра</translation>
-	</message>
-	<message>
-		<source>Uncheck all</source>
-		<translation>Зняти виділення</translation>
-	</message>
-</context>
-<context>
 	<name>LanguageModel</name>
 	<message>
 		<source>Code</source>
@@ -4440,8 +4435,8 @@ Try again?</source>
 		<translation>&amp;Файл</translation>
 	</message>
 	<message>
-		<source>&amp;Filters</source>
-		<translation>&amp;Фільтри</translation>
+		<source>&amp;Filters...</source>
+		<translation>&amp;Фільтри...</translation>
 	</message>
 	<message>
 		<source>&amp;Font</source>
@@ -4548,14 +4543,6 @@ Try again?</source>
 		<translation>Шаблон експорту книг</translation>
 	</message>
 	<message>
-		<source>By &amp;genres...</source>
-		<translation>По &amp;жанрах...</translation>
-	</message>
-	<message>
-		<source>By &amp;languages...</source>
-		<translation>За &amp;мовами...</translation>
-	</message>
-	<message>
 		<source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
 		<translation>Дозволяючи деструктивні операції, ви берете відповідальність за можливу втрату потрібних вам книг. Ви впевнені?</translation>
 	</message>
@@ -4586,10 +4573,6 @@ Try again?</source>
 	<message>
 		<source>Delete all themes</source>
 		<translation>Видалити всі теми</translation>
-	</message>
-	<message>
-		<source>Disable &amp;all filters</source>
-		<translation>Вимкнути &amp;всі фільтри</translation>
 	</message>
 	<message>
 		<source>Disable all</source>
@@ -4916,12 +4899,28 @@ Try again?</source>
 		<translation>Новий пошук...</translation>
 	</message>
 	<message>
+		<source>Filter books</source>
+		<translation>Відфільтрувати книги</translation>
+	</message>
+	<message>
+		<source>Filter settings...</source>
+		<translation>Налаштування фільтра...</translation>
+	</message>
+	<message>
+		<source>Filters</source>
+		<translation>Фільтри</translation>
+	</message>
+	<message>
 		<source>Genres</source>
 		<translation>Жанри</translation>
 	</message>
 	<message>
 		<source>Groups</source>
 		<translation>Групи</translation>
+	</message>
+	<message>
+		<source>Hide</source>
+		<translation>Приховати</translation>
 	</message>
 	<message>
 		<source>Keywords</source>

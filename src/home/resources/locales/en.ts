@@ -361,27 +361,11 @@
 		<translation></translation>
 	</message>
 	<message>
-		<source>&amp;Check all</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>&amp;Collapse all</source>
-		<translation></translation>
-	</message>
-	<message>
 		<source>&amp;Delete permanently</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>&amp;Expand all</source>
-		<translation></translation>
-	</message>
-	<message>
 		<source>&amp;Groups</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>&amp;Invert</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -406,10 +390,6 @@
 	</message>
 	<message>
 		<source>&amp;Tree</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>&amp;Uncheck all</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -737,6 +717,29 @@ Restart now?</source>
 	</message>
 </context>
 <context>
+	<name>ContextMenu</name>
+	<message>
+		<source>&amp;Check all</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>&amp;Collapse all</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>&amp;Expand all</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>&amp;Invert</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>&amp;Uncheck all</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
 	<name>Dialog</name>
 	<message>
 		<source>&lt;p&gt;Personal &lt;a href='%1'&gt;%2&lt;/a&gt; build&lt;/p&gt;</source>
@@ -862,6 +865,44 @@ Restart now?</source>
 	</message>
 	<message>
 		<source>Save index file</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
+	<name>FilterModel</name>
+	<message>
+		<source>Books filtered</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Hidden</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Title</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
+	<name>FilterSettingsDialog</name>
+	<message>
+		<source>Apply</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Cancel</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Filter enabled</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Filter settings</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Show checked only</source>
 		<translation></translation>
 	</message>
 </context>
@@ -2354,29 +2395,6 @@ Restart now?</source>
 	<message>
 		<source>ya</source>
 		<translation>Teen</translation>
-	</message>
-</context>
-<context>
-	<name>GenreFilterDialog</name>
-	<message>
-		<source>Check all</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Filter enabled</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Genre filter settings</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Invert checks</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Uncheck all</source>
-		<translation></translation>
 	</message>
 </context>
 <context>
@@ -4313,29 +4331,6 @@ Try again?</source>
 	</message>
 </context>
 <context>
-	<name>LanguageFilterDialog</name>
-	<message>
-		<source>Check all</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Filter enabled</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Invert checks</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Language filter settings</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Uncheck all</source>
-		<translation></translation>
-	</message>
-</context>
-<context>
 	<name>LanguageModel</name>
 	<message>
 		<source>Code</source>
@@ -4428,7 +4423,7 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>&amp;Filters</source>
+		<source>&amp;Filters...</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -4536,14 +4531,6 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>By &amp;genres...</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>By &amp;languages...</source>
-		<translation></translation>
-	</message>
-	<message>
 		<source>By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?</source>
 		<translation></translation>
 	</message>
@@ -4573,10 +4560,6 @@ Try again?</source>
 	</message>
 	<message>
 		<source>Delete all themes</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Disable &amp;all filters</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -4904,11 +4887,27 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>Filter books</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Filter settings...</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Filters</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>Genres</source>
 		<translation></translation>
 	</message>
 	<message>
 		<source>Groups</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Hide</source>
 		<translation></translation>
 	</message>
 	<message>

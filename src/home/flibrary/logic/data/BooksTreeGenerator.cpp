@@ -20,6 +20,7 @@
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IFilterProvider.h"
 
 #include "database/DatabaseUtil.h"
 #include "inpx/src/util/constant.h"
@@ -42,23 +43,6 @@ constexpr const char* BOOKS_COLUMN_NAMES[] {
 	BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 };
-
-constexpr auto BOOKS_QUERY = R"(
-%4select
-	%1,
-	a.AuthorID, a.LastName, a.FirstName, a.MiddleName, g.GenreCode, g.GenreAlias, g.FB2Code, coalesce(b.SeriesID, -1), s.SeriesTitle %5
-		from Books b
-		join Author_List al on al.BookID = b.BookID
-		join Authors a on a.AuthorID = al.AuthorID
-		join Genre_List gl on gl.BookID = b.BookID
-		join Genres g on g.GenreCode = gl.GenreCode
-		join Folders f on f.FolderID = b.FolderID
-		%2
-		left join Series s on s.SeriesID = b.SeriesID
-		left join Books_User bu on bu.BookID = b.BookID
-		%3
-		order by b.BookID, al.OrdNum, gl.OrdNum
-)";
 
 auto ToAuthorItemComparable(const IDataItem::Ptr& author)
 {
@@ -84,13 +68,6 @@ struct UnorderedSetHash
 	}
 };
 
-constexpr size_t BOOK_QUERY_TO_AUTHOR[] {
-	BookQueryFields::AuthorID, BookQueryFields::AuthorLastName, BookQueryFields::AuthorLastName, BookQueryFields::AuthorFirstName, BookQueryFields::AuthorMiddleName,
-};
-
-constexpr size_t BOOKS_QUERY_INDEX_SERIES[] { BookQueryFields::SeriesId, BookQueryFields::SeriesTitle };
-constexpr size_t BOOKS_QUERY_INDEX_GENRE[] { BookQueryFields::GenreCode, BookQueryFields::GenreTitle, BookQueryFields::GenreFB2Code };
-
 IDataItem::Ptr CreateBooksRoot(const std::vector<const char*>& additionalColumns = {})
 {
 	IDataItem::Ptr root(BookItem::Create(nullptr, additionalColumns.size()));
@@ -100,51 +77,14 @@ IDataItem::Ptr CreateBooksRoot(const std::vector<const char*>& additionalColumns
 	return root;
 }
 
-template <typename KeyType, typename BindType = KeyType>
-std::optional<KeyType> UpdateDictionary(
-	std::unordered_map<KeyType, IDataItem::Ptr>& dictionary,
-	const DB::IQuery& query,
-	const QueryInfo& queryInfo,
-	const std::function<bool(const IDataItem&)>& filter = [](const IDataItem&) { return true; })
-{
-	auto key = query.Get<BindType>(queryInfo.index[0]);
-	const auto it = dictionary.find(key);
-	if (it != dictionary.end())
-		return it->first;
-
-	auto item = queryInfo.extractor(query, queryInfo.index, queryInfo.removedIndex);
-	return filter(*item) ? std::optional<KeyType>(dictionary.emplace(key, std::move(item)).first->first) : std::nullopt;
-}
+template <typename KeyType>
+using UniqueIdList = std::pair<std::unordered_set<KeyType>, std::multimap<int, KeyType>>;
 
 template <typename KeyType>
-using UniqueIdList = std::pair<std::unordered_set<KeyType>, std::vector<KeyType>>;
-
-template <typename KeyType>
-void Add(UniqueIdList<KeyType>& uniqueIdList, std::optional<KeyType> key)
+void Add(UniqueIdList<KeyType>& uniqueIdList, KeyType&& key, const int order)
 {
-	if (key && uniqueIdList.first.emplace(*key).second)
-		uniqueIdList.second.emplace_back(*key);
-}
-
-template <typename T>
-QString Join(const std::unordered_map<T, IDataItem::Ptr>& dictionary, const std::vector<T>& keyIds)
-{
-	IDataItem::Items values;
-	values.reserve(std::size(keyIds));
-	std::ranges::transform(keyIds,
-	                       std::back_inserter(values),
-	                       [&](const T& id)
-	                       {
-							   const auto it = dictionary.find(id);
-							   assert(it != dictionary.end());
-							   return it->second;
-						   });
-
-	QString result;
-	for (const auto& value : values)
-		AppendTitle(result, value->GetData(0), ", ");
-
-	return result;
+	if (uniqueIdList.first.emplace(key).second)
+		uniqueIdList.second.emplace(order, std::forward<KeyType>(key));
 }
 
 } // namespace
@@ -157,11 +97,13 @@ public:
 	mutable IDataItem::Ptr rootCached;
 	const NavigationMode navigationMode;
 	const QString navigationId;
+	const IFilterProvider& filterProvider;
 	ViewMode viewMode { ViewMode::Unknown };
 
-	Impl(const Collection& activeCollection, DB::IDatabase& db, const NavigationMode navigationMode, QString navigationId, const QueryDescription& description)
+	Impl(const Collection& activeCollection, DB::IDatabase& db, const NavigationMode navigationMode, QString navigationId, const QueryDescription& description, const IFilterProvider& filterProvider)
 		: navigationMode { navigationMode }
 		, navigationId { std::move(navigationId) }
+		, filterProvider { filterProvider }
 	{
 		if (!this->navigationId.isEmpty())
 			std::invoke(description.bookSelector, static_cast<IBookSelector&>(*this), std::cref(activeCollection), std::ref(db), std::cref(description));
@@ -298,8 +240,8 @@ public:
 
 		BookInfo bookInfo { book };
 
-		std::ranges::transform(idAuthors.second, std::back_inserter(bookInfo.authors), [&](const auto idAuthor) { return m_authors.at(idAuthor); });
-		std::ranges::transform(idGenres.second, std::back_inserter(bookInfo.genres), [&](const auto& idGenre) { return m_genres.at(idGenre); });
+		std::ranges::transform(idAuthors.second | std::views::values, std::back_inserter(bookInfo.authors), [&](const auto idAuthor) { return m_authors.at(idAuthor); });
+		std::ranges::transform(idGenres.second | std::views::values, std::back_inserter(bookInfo.genres), [&](const auto& idGenre) { return m_genres.at(idGenre); });
 
 		return bookInfo;
 	}
@@ -307,12 +249,7 @@ public:
 private: // IBookSelector
 	void SelectBooks(const Collection&, DB::IDatabase& db, const QueryDescription& description) override
 	{
-		const auto queryText =
-			QString(BOOKS_QUERY).arg(QString(IDatabaseUser::BOOKS_QUERY_FIELDS).arg(description.seqNumberTableAlias)).arg(description.joinClause, description.whereClause, description.with, "").toStdString();
-		const auto query = db.CreateQuery(queryText);
-		[[maybe_unused]] const auto result = description.binder(*query, navigationId);
-		assert(result == 0);
-		CreateSelectedBookItems(*query);
+		CreateSelectedBookItems(db, description.queryClause);
 	}
 
 	void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription& description) override
@@ -321,13 +258,13 @@ private: // IBookSelector
 		if (!QFile::exists(folder))
 			return;
 
-		const auto tr = db.CreateTransaction();
-		const auto tmpTable = tr->CreateTemporaryTable({ "LibID VARCHAR (200)", "Name VARCHAR (200)", "Time VARCHAR (20)", "Text BLOB (1024)", "ReviewID INTEGER" });
+		const auto tmpTable = db.CreateTemporaryTable({ "LibID VARCHAR (200)", "ReviewID INTEGER" });
 
 		{
-			const auto insertCommand = tr->CreateCommand(QString("insert into %1(LibID, Name, Time, Text, ReviewID) values(?, ?, ?, ?, ?)").arg(tmpTable->GetName().data()).toStdString());
+			const auto tr = db.CreateTransaction();
+			const auto insertCommand = tr->CreateCommand(QString("insert into %1(LibID, ReviewID) values(?, ?)").arg(tmpTable->GetName().data()).toStdString());
 			Zip zip(folder);
-			for (int reviewId = 0; const auto& file : zip.GetFileNameList())
+			for (long long reviewId = 0; const auto& file : zip.GetFileNameList())
 			{
 				QJsonParseError parseError;
 				const auto doc = QJsonDocument::fromJson(zip.Read(file)->GetStream().readAll(), &parseError);
@@ -343,64 +280,190 @@ private: // IBookSelector
 					assert(recordValue.isObject());
 					const auto recordObject = recordValue.toObject();
 					insertCommand->Bind(0, file.toStdString());
-					insertCommand->Bind(1, recordObject[Constant::NAME].toString().toStdString());
-					insertCommand->Bind(2, recordObject[Constant::TIME].toString().toStdString());
-					insertCommand->Bind(3, recordObject[Constant::TEXT].toString().toStdString());
-					insertCommand->Bind(4, ++reviewId);
+					insertCommand->Bind(1, ++reviewId);
 					insertCommand->Execute();
+
+					auto& reviewItem = m_reviews.try_emplace(reviewId, ReviewItem::Create()).first->second;
+					reviewItem->SetData(recordObject[Constant::NAME].toString(), ReviewItem::Column::Name);
+					reviewItem->SetData(recordObject[Constant::TIME].toString(), ReviewItem::Column::Time);
+					reviewItem->SetData(recordObject[Constant::TEXT].toString(), ReviewItem::Column::Comment);
+					if (reviewItem->GetData(ReviewItem::Column::Name).isEmpty())
+						reviewItem->SetData(Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS), ReviewItem::Column::Name);
 				}
 			}
+			tr->CreateCommand(std::format("CREATE INDEX {}.IX_LibID ON {} (LibID)", tmpTable->GetSchemaName(), tmpTable->GetTableName()))->Execute();
+			tr->Commit();
 		}
 
-		const auto queryText = QString(BOOKS_QUERY)
-		                           .arg(QString(IDatabaseUser::BOOKS_QUERY_FIELDS).arg(description.seqNumberTableAlias))
-		                           .arg(QString("join %1 t on t.LibID = b.LibID").arg(tmpTable->GetName().data()), "", "", ", t.Name, t.Time, t.Text, t.ReviewID")
-		                           .toStdString();
-		const auto query = tr->CreateQuery(queryText);
-		CreateSelectedBookItems(*query,
-		                        [&](const SelectedBookItem& selectedItem)
+		CreateSelectedBookItems(db,
+		                        description.queryClause,
+		                        [&](const DB::IQuery& query, const SelectedBookItem& selectedItem)
 		                        {
-									auto& reviewItem = m_reviews[query->Get<long long>(static_cast<int>(BookQueryFields::Last) + static_cast<int>(ReviewItem::Column::Last))];
-									if (reviewItem)
-										return;
+									const auto it = m_reviews.find(query.Get<long long>(BookQueryFields::Last));
+									assert(it != m_reviews.end());
 
-									reviewItem = ReviewItem::Create();
-									const auto bookItem = reviewItem->AppendChild(std::get<0>(selectedItem));
+									auto& reviewItem = it->second;
+									const auto& bookItem = reviewItem->AppendChild(std::get<0>(selectedItem));
 									reviewItem->SetId(bookItem->GetId());
-									for (int i = 0; i < ReviewItem::Column::Last; ++i)
-										reviewItem->SetData(query->Get<const char*>(BookQueryFields::Last + i), i);
-									if (reviewItem->GetData(ReviewItem::Column::Name).isEmpty())
-										reviewItem->SetData(Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS), ReviewItem::Column::Name);
 								});
 	}
 
 private:
-	void CreateSelectedBookItems(DB::IQuery& query, const std::function<void(SelectedBookItem&)>& additional = [](auto&) {})
+	bool IsFiltered(const IDataItem& item) const
 	{
-		for (query.Execute(); !query.Eof(); query.Next())
+		return filterProvider.IsFilterEnabled() && !!(item.GetFlags() & IDataItem::Flags::Filtered);
+	}
+
+	template <typename T, std::ranges::range U>
+	QString Join(const std::unordered_map<T, IDataItem::Ptr>& dictionary, const U& keyIds)
+	{
+		IDataItem::Items values;
+		values.reserve(std::size(keyIds));
+		std::ranges::transform(keyIds,
+		                       std::back_inserter(values),
+		                       [&](const T& id)
+		                       {
+								   const auto it = dictionary.find(id);
+								   assert(it != dictionary.end());
+								   return it->second;
+							   });
+
+		QString result;
+		for (const auto& value : values | std::views::filter([this](const auto& item) { return !IsFiltered(*item); }))
+			AppendTitle(result, value->GetData(0), ", ");
+
+		return result;
+	}
+
+	void CreateSelectedBookItems(DB::IDatabase& db, const QueryClause& queryClause, const std::function<void(const DB::IQuery&, const SelectedBookItem&)>& additional = [](const DB::IQuery&, const auto&) {})
+	{
+		const auto with = QString(queryClause.with).arg(navigationId).toStdString();
+
 		{
-			auto& book = m_books[query.Get<long long>(BookQueryFields::BookId)];
-			std::get<1>(book) =
-				UpdateDictionary<long long>(m_series, query, QueryInfo { &DatabaseUtil::CreateSimpleListItem, BOOKS_QUERY_INDEX_SERIES }, [](const IDataItem& item) { return item.GetId() != "-1"; });
-			Add(std::get<2>(book), UpdateDictionary<long long>(m_authors, query, QueryInfo { &DatabaseUtil::CreateFullAuthorItem, BOOK_QUERY_TO_AUTHOR }));
-			Add(std::get<3>(book),
-			    UpdateDictionary<QString, const char*>(m_genres,
-			                                           query,
-			                                           QueryInfo { &DatabaseUtil::CreateGenreItem, BOOKS_QUERY_INDEX_GENRE },
-			                                           [](const IDataItem& item) { return !(item.GetData().isEmpty() || item.GetData()[0].isDigit()); }));
+			const auto query =
+				db.CreateQuery(std::format(DatabaseUtil::BOOKS_QUERY, with, queryClause.additionalFields, queryClause.booksFrom, QString(queryClause.booksWhere).arg(navigationId).toStdString()));
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				auto& book = m_books[query->Get<long long>(BookQueryFields::BookId)];
+				if (!std::get<0>(book))
+					std::get<0>(book) = DatabaseUtil::CreateBookItem(*query);
+				additional(*query, book);
+			}
+		}
 
-			if (!std::get<0>(book))
-				std::get<0>(book) = DatabaseUtil::CreateBookItem(query);
+		const auto addFlag = [](IDataItem& book, const IDataItem::Flags flags)
+		{
+			if (!(flags & IDataItem::Flags::BooksFiltered))
+				return;
 
-			additional(book);
+			auto toSet = IDataItem::Flags::Filtered;
+			if (!!(book.GetFlags() & IDataItem::Flags::Filtered))
+				toSet |= IDataItem::Flags::Multiple;
+			book.SetFlags(toSet);
+		};
+
+		const auto where = QString(queryClause.navigationWhere).arg(navigationId).toStdString();
+
+		{
+			static constexpr auto queryText = R"({}
+select s.SeriesID, s.SeriesTitle, s.IsDeleted, s.Flags, l.BookID, l.OrdNum
+{}
+join Series_List l on l.BookID = b.BookID
+join Series s on s.SeriesID = l.SeriesID
+{}
+)";
+			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				const auto id = query->Get<long long>(0);
+				auto& item = m_series[id];
+				if (!item)
+					item = DatabaseUtil::CreateSimpleListItem(*query);
+
+				auto& book = m_books[query->Get<long long>(4)];
+				assert(std::get<0>(book));
+				std::get<1>(book).emplace(id);
+				addFlag(*std::get<0>(book), item->GetFlags());
+				if (!IsFiltered(*item) && std::get<0>(book)->GetData(BookItem::Column::Series).isEmpty())
+					std::get<0>(book)->SetData(item->GetData(DataItem::Column::Title), BookItem::Column::Series);
+			}
+		}
+
+		{
+			static constexpr auto queryText = R"({}
+select a.AuthorID, a.LastName, a.FirstName, a.MiddleName, a.IsDeleted, a.Flags, l.BookID, l.OrdNum
+{}
+join Author_List l on l.BookID = b.BookID
+join Authors a on a.AuthorID = l.AuthorID
+{}
+)";
+			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				auto id = query->Get<long long>(0);
+				auto& item = m_authors[id];
+				if (!item)
+					item = DatabaseUtil::CreateFullAuthorItem(*query);
+
+				auto& book = m_books[query->Get<long long>(6)];
+				assert(std::get<0>(book));
+				Add(std::get<2>(book), static_cast<long long&&>(id), query->Get<int>(7));
+				addFlag(*std::get<0>(book), item->GetFlags());
+			}
+		}
+		{
+			static constexpr auto queryText = R"({}
+select g.GenreCode, g.GenreAlias, g.FB2Code, g.IsDeleted, g.Flags, l.BookID, l.OrdNum
+{}
+join Genre_List l on l.BookID = b.BookID
+join Genres g on g.GenreCode = l.GenreCode
+{}
+)";
+			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				QString id = query->Get<const char*>(0);
+				auto& item = m_genres[id];
+				if (!item)
+					item = DatabaseUtil::CreateGenreItem(*query);
+
+				auto& book = m_books[query->Get<long long>(5)];
+				assert(std::get<0>(book));
+				Add(std::get<3>(book), std::move(id), query->Get<int>(6));
+				addFlag(*std::get<0>(book), item->GetFlags());
+			}
+		}
+		{
+			static constexpr auto queryText = R"({}
+select k.Flags, l.BookID, l.OrdNum
+{}
+join Keyword_List l on l.BookID = b.BookID
+join Keywords k on k.KeywordID = l.KeywordID
+{}
+)";
+			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				auto& book = m_books[query->Get<long long>(1)];
+				assert(std::get<0>(book));
+				addFlag(*std::get<0>(book), static_cast<IDataItem::Flags>(query->Get<int>(0)));
+			}
 		}
 
 		for (auto& [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
 		{
-			assert(!authorIds.second.empty());
-			const auto& author = m_authors.find(authorIds.second.front())->second;
-			auto authorStr = GetAuthorFull(*author);
-			book->SetData(std::move(authorStr), BookItem::Column::AuthorFull);
+			for (const auto authorId : authorIds.second | std::views::values)
+			{
+				const auto it = m_authors.find(authorId);
+				assert(it != m_authors.end());
+				const auto& author = *it->second;
+				if (!IsFiltered(author))
+				{
+					auto authorStr = GetAuthorFull(author);
+					book->SetData(std::move(authorStr), BookItem::Column::AuthorFull);
+					break;
+				}
+			}
 		}
 
 		for (const auto& author : m_authors | std::views::values)
@@ -408,8 +471,8 @@ private:
 
 		for (auto& [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
 		{
-			book->SetData(std::size(authorIds.second) > 1 ? Join(m_authors, authorIds.second) : book->GetRawData(BookItem::Column::AuthorFull), BookItem::Column::Author);
-			book->SetData(Join(m_genres, genreIds.second), BookItem::Column::Genre);
+			book->SetData(std::size(authorIds.second) > 1 ? Join(m_authors, authorIds.second | std::views::values) : book->GetRawData(BookItem::Column::AuthorFull), BookItem::Column::Author);
+			book->SetData(Join(m_genres, genreIds.second | std::views::values), BookItem::Column::Genre);
 		}
 	}
 
@@ -460,8 +523,13 @@ private:
 	std::unordered_map<QString, IDataItem::Ptr> m_genres;
 };
 
-BooksTreeGenerator::BooksTreeGenerator(const Collection& activeCollection, DB::IDatabase& db, const NavigationMode navigationMode, QString navigationId, const QueryDescription& description)
-	: m_impl(activeCollection, db, navigationMode, std::move(navigationId), description)
+BooksTreeGenerator::BooksTreeGenerator(const Collection& activeCollection,
+                                       DB::IDatabase& db,
+                                       const NavigationMode navigationMode,
+                                       QString navigationId,
+                                       const QueryDescription& description,
+                                       const IFilterProvider& filterProvider)
+	: m_impl(activeCollection, db, navigationMode, std::move(navigationId), description, filterProvider)
 {
 	PLOGV << "BooksTreeGenerator created";
 }

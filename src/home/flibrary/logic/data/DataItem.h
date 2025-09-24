@@ -35,6 +35,7 @@ protected: // IDataItem
 	[[nodiscard]] size_t GetChildCount() const noexcept override;
 	[[nodiscard]] size_t GetRow() const noexcept override;
 	[[nodiscard]] const QString& GetId() const noexcept override;
+	[[nodiscard]] Flags GetFlags() const noexcept override;
 	[[nodiscard]] const QString& GetData(int column = 0) const noexcept override;
 	[[nodiscard]] const QString& GetRawData(int column = 0) const noexcept override;
 
@@ -45,6 +46,7 @@ protected: // IDataItem
 	[[nodiscard]] int GetColumnCount() const noexcept override;
 
 	IDataItem& SetId(QString id) noexcept override;
+	IDataItem& SetFlags(Flags flags) noexcept override;
 	IDataItem& SetData(QString value, int column = 0) noexcept override;
 
 	[[nodiscard]] Qt::CheckState GetCheckState() const noexcept override;
@@ -61,6 +63,7 @@ protected:
 	IDataItem* m_parent { nullptr };
 	Items m_children;
 	QString m_id;
+	Flags m_flags { Flags::None };
 	std::vector<QString> m_data;
 	bool m_removed { false };
 };
@@ -173,21 +176,19 @@ class LOGIC_EXPORT BookItem final : public DataItem
 #define BOOKS_COLUMN_ITEMS_X_MACRO \
 	BOOKS_COLUMN_ITEM(Author)      \
 	BOOKS_COLUMN_ITEM(Title)       \
-	BOOKS_COLUMN_ITEM(Series)      \
 	BOOKS_COLUMN_ITEM(SeqNumber)   \
-	BOOKS_COLUMN_ITEM(Size)        \
-	BOOKS_COLUMN_ITEM(Genre)       \
+	BOOKS_COLUMN_ITEM(UpdateDate)  \
+	BOOKS_COLUMN_ITEM(LibRate)     \
+	BOOKS_COLUMN_ITEM(Lang)        \
+	BOOKS_COLUMN_ITEM(Year)        \
 	BOOKS_COLUMN_ITEM(Folder)      \
 	BOOKS_COLUMN_ITEM(FileName)    \
-	BOOKS_COLUMN_ITEM(LibRate)     \
+	BOOKS_COLUMN_ITEM(Size)        \
 	BOOKS_COLUMN_ITEM(UserRate)    \
-	BOOKS_COLUMN_ITEM(UpdateDate)  \
-	BOOKS_COLUMN_ITEM(Year)        \
-	BOOKS_COLUMN_ITEM(Lang)        \
-	BOOKS_COLUMN_ITEM(AuthorFull)  \
 	BOOKS_COLUMN_ITEM(LibID)       \
-	BOOKS_COLUMN_ITEM(FolderID)    \
-	BOOKS_COLUMN_ITEM(UpdateID)
+	BOOKS_COLUMN_ITEM(Series)      \
+	BOOKS_COLUMN_ITEM(Genre)       \
+	BOOKS_COLUMN_ITEM(AuthorFull)
 
 public:
 	struct Column
@@ -258,6 +259,8 @@ public:
 			Id,
 			Parameter,
 			Enabled,
+			Checkable,
+			Checked,
 			HasError,
 			Last
 		};

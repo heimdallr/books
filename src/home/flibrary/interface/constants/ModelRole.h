@@ -17,6 +17,7 @@ struct Role
 		Type,
 		CheckState,
 		IsRemoved,
+		Flags,
 
 #define BOOKS_COLUMN_ITEM(NAME) NAME,
 		BOOKS_COLUMN_ITEMS_X_MACRO
@@ -24,13 +25,15 @@ struct Role
 
 			// global
 			Count,
+		ChildCount,
 		Checkable,
 		Languages,
 		TextFilter,
 		LanguageFilter,
-		PermanentLanguageFilter,
 		ShowRemovedFilter,
-		GenreFilter,
+		NavigationItemFiltered,
+		UniFilterEnabled,
+		UniFilterChanged,
 		VisibleColumns,
 		Selected,
 		SortOrder,
@@ -41,6 +44,8 @@ struct Role
 		HeaderName,
 		HeaderTitle,
 		Remap,
+		NavigationMode,
+		Last
 	};
 };
 

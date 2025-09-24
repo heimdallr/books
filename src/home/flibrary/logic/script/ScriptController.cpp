@@ -157,7 +157,7 @@ bool ScriptController::RemoveScripts(const int row, const int count)
 {
 	bool result = false;
 	for (size_t i = 0; i < static_cast<size_t>(count); ++i)
-		result = Util::Set(m_impl->scripts[static_cast<size_t>(row) + i].mode, Mode::Removed, *this) || result;
+		result = Util::Set(m_impl->scripts[static_cast<size_t>(row) + i].mode, Mode::Removed) || result;
 
 	return result;
 }
@@ -218,7 +218,7 @@ bool ScriptController::RemoveCommand(const int row, const int count)
 {
 	bool result = false;
 	for (size_t i = 0; i < static_cast<size_t>(count); ++i)
-		result = Util::Set(m_impl->commands[static_cast<size_t>(row) + i].mode, Mode::Removed, *this) || result;
+		result = Util::Set(m_impl->commands[static_cast<size_t>(row) + i].mode, Mode::Removed) || result;
 
 	return result;
 }

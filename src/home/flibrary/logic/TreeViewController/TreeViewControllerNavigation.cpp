@@ -34,19 +34,16 @@ constexpr auto CONTEXT = "Navigation";
 constexpr auto REMOVE = QT_TRANSLATE_NOOP("Navigation", "Remove");
 
 using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, bool) const;
-using MenuRequester = IDataItem::Ptr (*)(DB::IDatabase& db, const QString& id, ITreeViewController::RequestContextMenuOptions options);
 using Callback = std::function<void()>;
 
-IDataItem::Ptr MenuRequesterStub(DB::IDatabase&, const QString&, ITreeViewController::RequestContextMenuOptions)
-{
-	return {};
-}
+TR_DEF
 
-GroupController::Ids GetSelected(const QModelIndex& index, const QList<QModelIndex>& indexList)
+template <typename T>
+std::unordered_set<T> GetSelected(const QModelIndex& index, const QList<QModelIndex>& indexList)
 {
-	GroupController::Ids ids { index.data(Role::Id).toLongLong() };
+	std::unordered_set<T> ids { index.data(Role::Id).value<T>() };
 	ids.reserve(indexList.size() + 1);
-	std::ranges::transform(indexList, std::inserter(ids, ids.end()), [](const auto& item) { return item.data(Role::Id).toLongLong(); });
+	std::ranges::transform(indexList, std::inserter(ids, ids.end()), [](const auto& item) { return item.data(Role::Id).template value<T>(); });
 	return ids;
 }
 
@@ -93,111 +90,6 @@ auto GetSubscribedTable(const std::string_view name)
 	return FindSecond(SUBSCRIBED_TABLES, name, nullptr);
 }
 
-IDataItem::Ptr TreeMenuRequester(DB::IDatabase&, const QString&, const ITreeViewController::RequestContextMenuOptions options)
-{
-	if (!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
-		return {};
-
-	auto item = MenuItem::Create();
-	BooksContextMenuProvider::AddTreeMenuItems(item, options);
-	return item;
-}
-
-IDataItem::Ptr MenuRequesterGroups(DB::IDatabase& db, const QString& groupId, const ITreeViewController::RequestContextMenuOptions options)
-{
-	const auto hasSelection = !!(options & ITreeViewController::RequestContextMenuOptions::HasSelection);
-	auto result = MenuItem::Create();
-	AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Create new group..."), MenuAction::CreateNewGroup);
-	AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Rename group..."), MenuAction::RenameGroup)->SetData(QVariant(hasSelection).toString(), MenuItem::Column::Enabled);
-	AddMenuItem(result, REMOVE, MenuAction::RemoveGroup)->SetData(QVariant(hasSelection).toString(), MenuItem::Column::Enabled);
-	auto removeFromGroup = AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Remove from group"));
-	if (
-		[&]
-		{
-			const auto query = db.CreateQuery("select exists (select 42 from Books b join Groups_List_User glu on glu.ObjectID = b.BookID and glu.GroupID = ?)");
-			query->Bind(0, groupId.toInt());
-			query->Execute();
-			assert(!query->Eof());
-			return query->Get<int>(0) != 0;
-		}())
-		AddMenuItem(removeFromGroup, QT_TRANSLATE_NOOP("Navigation", "All books"), MenuAction::RemoveFromGroupAllBooks);
-
-	const auto addRemoveFromGroupItems = [&](const char* queryText, QString subMenuTitle, const int removeAllCommandId)
-	{
-		const auto query = db.CreateQuery(queryText);
-		query->Bind(0, groupId.toInt());
-		query->Execute();
-		if (query->Eof())
-			return;
-
-		auto subMenu = AddMenuItem(removeFromGroup, std::move(subMenuTitle));
-		for (; !query->Eof(); query->Next())
-			AddMenuItem(subMenu, query->Get<const char*>(1), MenuAction::RemoveFromGroupOneItem)->SetData(QString::number(query->Get<long long>(0)), MenuItem::Column::Parameter);
-
-		if (subMenu->GetChildCount() < 2)
-			return;
-
-		subMenu->SortChildren([](const IDataItem& lhs, const IDataItem& rhs) { return Util::QStringWrapper { lhs.GetData() } < Util::QStringWrapper { rhs.GetData() }; });
-
-		AddMenuItem(subMenu);
-		AddMenuItem(subMenu, QT_TRANSLATE_NOOP("Navigation", "All"), removeAllCommandId);
-	};
-
-	constexpr auto authorsQueryText =
-		"select a.AuthorID, a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '') from Authors a join Groups_List_User glu on "
-		"glu.ObjectID = a.AuthorID and glu.GroupID = ?";
-	constexpr auto seriesQueryText = "select s.SeriesID, s.SeriesTitle from Series s join Groups_List_User glu on glu.ObjectID = s.SeriesID and glu.GroupID = ?";
-	constexpr auto keywordsQueryText = "select k.KeywordID, k.KeywordTitle from Keywords k join Groups_List_User glu on glu.ObjectID = k.KeywordID and glu.GroupID = ?";
-
-	addRemoveFromGroupItems(authorsQueryText, Loc::Authors, MenuAction::RemoveFromGroupAllAuthors);
-	addRemoveFromGroupItems(seriesQueryText, Loc::Series, MenuAction::RemoveFromGroupAllSeries);
-	addRemoveFromGroupItems(keywordsQueryText, Loc::Keywords, MenuAction::RemoveFromGroupAllKeywords);
-
-	return result;
-}
-
-IDataItem::Ptr MenuRequesterSearches(DB::IDatabase&, const QString&, const ITreeViewController::RequestContextMenuOptions options)
-{
-	auto result = MenuItem::Create();
-	AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Create new search..."), MenuAction::CreateNewSearch);
-	AddMenuItem(result, REMOVE, MenuAction::RemoveSearch)->SetData(QVariant(!!(options & ITreeViewController::RequestContextMenuOptions::HasSelection)).toString(), MenuItem::Column::Enabled);
-
-	return result;
-}
-
-IDataItem::Ptr MenuRequesterGroupNavigation(DB::IDatabase& db, const QString& id, const ITreeViewController::RequestContextMenuOptions options)
-{
-	if (!(options & ITreeViewController::RequestContextMenuOptions::HasSelection))
-		return {};
-
-	auto result = MenuItem::Create();
-	CreateGroupMenu(result, id, db);
-	return result;
-}
-
-IDataItem::Ptr MenuRequesterAuthors(DB::IDatabase& db, const QString& id, const ITreeViewController::RequestContextMenuOptions options)
-{
-	auto result = MenuRequesterGroupNavigation(db, id, options);
-	if (!result)
-		return {};
-	{
-		const auto query = db.CreateQuery("select exists (select 42 from Reviews)");
-		query->Execute();
-		assert(!query->Eof());
-		if (!query->Get<int>(0))
-			return result;
-	}
-
-	const auto query = db.CreateQuery("select exists (select 42 from Reviews r join Books_View b on b.BookID = r.BookID and b.IsDeleted != ? join Author_List a on a.BookID = r.BookID and a.AuthorID = ?)");
-	query->Bind(0, !(options & ITreeViewController::RequestContextMenuOptions::ShowRemoved) ? 1 : 2);
-	query->Bind(1, id.toLongLong());
-	query->Execute();
-	assert(!query->Eof());
-
-	AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Reviews"), MenuAction::AuthorReview)->SetData(QVariant(query->Get<int>(0) != 0).toString(), MenuItem::Column::Enabled);
-	return result;
-}
-
 class IContextMenuHandler // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
@@ -231,6 +123,23 @@ public:
 	virtual bool IsFolderExists(const ModeDescriptor&) const = 0;
 };
 
+class IContextMenuProvider // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~IContextMenuProvider() = default;
+#define NAVIGATION_MODE_ITEM(NAME) virtual IDataItem::Ptr Create##NAME##ContextMenu(DB::IDatabase& db, const QString& id, ITreeViewController::RequestContextMenuOptions options) = 0;
+	NAVIGATION_MODE_ITEMS_X_MACRO
+#undef NAVIGATION_MODE_ITEM
+};
+
+using MenuRequester = IDataItem::Ptr (IContextMenuProvider::*)(DB::IDatabase& db, const QString& id, ITreeViewController::RequestContextMenuOptions options);
+
+constexpr MenuRequester MENU_REQUESTERS[] {
+#define NAVIGATION_MODE_ITEM(NAME) &IContextMenuProvider::Create##NAME##ContextMenu,
+	NAVIGATION_MODE_ITEMS_X_MACRO
+#undef NAVIGATION_MODE_ITEM
+};
+
 struct ModeDescriptor
 { //-V802
 
@@ -241,82 +150,94 @@ struct ModeDescriptor
 	NavigationMode navigationMode { NavigationMode::Unknown };
 	Filter filterInvoker { &INavigationFilter::Stub };
 	const char* filterParameter { nullptr };
-	MenuRequester menuRequester { &MenuRequesterStub };
 	ContextMenuHandlerFunction createNewAction { nullptr };
 	ContextMenuHandlerFunction createRemoveAction { nullptr };
 };
 
 constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
 	{	  Loc::Authors,
-     { ViewMode::List,
+     {
+     ViewMode::List,
      &IModelProvider::CreateAuthorsListModel,
      NavigationMode::Authors,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Authors where AuthorId > (select min(AuthorId) from Authors))",
-     &MenuRequesterAuthors }																																											   },
+     }																																			   },
 	{	   Loc::Series,
-     { ViewMode::List,
+     {
+     ViewMode::List,
      &IModelProvider::CreateListModel,
      NavigationMode::Series,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Series where SeriesId > (select min(SeriesId) from Series))",
-     &MenuRequesterGroupNavigation }																																									   },
+     }																																			   },
 	{	   Loc::Genres,
-     { ViewMode::Tree,
+     {
+     ViewMode::Tree,
      &IModelProvider::CreateTreeModel,
      NavigationMode::Genres,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Genres g join Genre_List l on l.GenreCode = g.GenreCode where g.rowid > (select min(g.rowid) from Genres g join Genre_List l on l.GenreCode = g.GenreCode))",
-     &TreeMenuRequester }																																												  },
+     }																																			   },
 	{ Loc::PublishYears,
-     { ViewMode::List,
+     {
+     ViewMode::List,
      &IModelProvider::CreateListModel,
      NavigationMode::PublishYear,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Books where Year IS NOT NULL)",
-     &TreeMenuRequester }																																												  },
+     }																																			   },
 	{     Loc::Keywords,
-     { ViewMode::List,
+     {
+     ViewMode::List,
      &IModelProvider::CreateListModel,
      NavigationMode::Keywords,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Keywords where KeywordId > (select min(KeywordId) from Keywords))",
-     &MenuRequesterGroupNavigation }																																									   },
+     }																																			   },
 	{	  Loc::Updates,
-     { ViewMode::Tree,
+     {
+     ViewMode::Tree,
      &IModelProvider::CreateTreeModel,
      NavigationMode::Updates,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Updates u join Books b on b.UpdateID = u.UpdateID where u.UpdateID > (select min(u.UpdateID) from Updates u join Books b on b.UpdateID = u.UpdateID))",
-     &TreeMenuRequester }																																												  },
+     }																																			   },
 	{     Loc::Archives,
      { ViewMode::List,
      &IModelProvider::CreateListModel,
      NavigationMode::Archives,
      &INavigationFilter::IsRecordExists,
-     "select exists (select 42 from Folders where FolderId > (select min(FolderId) from Folders))" }                                                                                                       },
+     "select exists (select 42 from Folders where FolderId > (select min(FolderId) from Folders))" }                                                 },
+
 	{    Loc::Languages,
-     { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::Languages, &INavigationFilter::IsRecordExists, "select exists (select 42 from Books where Lang > (select min(Lang) from Books))" } },
+     {
+     ViewMode::List,
+     &IModelProvider::CreateListModel,
+     NavigationMode::Languages,
+     &INavigationFilter::IsRecordExists,
+     "select exists (select 42 from Books where Lang > (select min(Lang) from Books))",
+     }																																			   },
 	{	   Loc::Groups,
      { ViewMode::List,
      &IModelProvider::CreateListModel,
      NavigationMode::Groups,
      &INavigationFilter::Stub,
      nullptr,
-     &MenuRequesterGroups,
      &IContextMenuHandler::OnCreateNewGroupTriggered,
-     &IContextMenuHandler::OnRemoveGroupTriggered }																																						},
+     &IContextMenuHandler::OnRemoveGroupTriggered }																								  },
+
 	{	   Loc::Search,
      { ViewMode::List,
      &IModelProvider::CreateSearchListModel,
      NavigationMode::Search,
      &INavigationFilter::Stub,
      nullptr,
-     &MenuRequesterSearches,
      &IContextMenuHandler::OnCreateNewSearchTriggered,
-     &IContextMenuHandler::OnRemoveSearchTriggered }																																					   },
-	{	  Loc::Reviews,													   { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Reviews, &INavigationFilter::IsFolderExists, "reviews" } },
-	{     Loc::AllBooks,																									 { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
+     &IContextMenuHandler::OnRemoveSearchTriggered }																								 },
+
+	{	  Loc::Reviews, { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Reviews, &INavigationFilter::IsFolderExists, "reviews" } },
+	{     Loc::AllBooks,											   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
@@ -329,15 +250,17 @@ struct TreeViewControllerNavigation::Impl final
 	, virtual private DB::IDatabaseObserver
 	, virtual private ITableSubscriptionHandler
 	, virtual private INavigationFilter
+	, virtual private IContextMenuProvider
 {
 	TreeViewControllerNavigation& self;
-	std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
+	mutable std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
 	std::weak_ptr<const ILogicFactory> logicFactory;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 	PropagateConstPtr<INavigationInfoProvider, std::shared_ptr> dataProvider;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> uiFactory;
 	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> authorAnnotationController;
+	std::shared_ptr<IFilterController> filterController;
 	const std::vector<std::pair<const char*, int>> modes { GetModes() };
 	Util::FunctorExecutionForwarder forwarder;
 	int mode { -1 };
@@ -348,7 +271,8 @@ struct TreeViewControllerNavigation::Impl final
 	     std::shared_ptr<INavigationInfoProvider> dataProvider,
 	     std::shared_ptr<IUiFactory> uiFactory,
 	     std::shared_ptr<IDatabaseController> databaseController,
-	     std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
+	     std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
+	     std::shared_ptr<IFilterController> filterController)
 		: self { self }
 		, logicFactory { logicFactory }
 		, collectionProvider { std::move(collectionProvider) }
@@ -356,6 +280,7 @@ struct TreeViewControllerNavigation::Impl final
 		, uiFactory { std::move(uiFactory) }
 		, databaseController { std::move(databaseController) }
 		, authorAnnotationController { std::move(authorAnnotationController) }
+		, filterController { std::move(filterController) }
 	{
 		for ([[maybe_unused]] const auto& _ : MODE_DESCRIPTORS)
 			models.emplace_back(std::shared_ptr<QAbstractItemModel>());
@@ -366,6 +291,15 @@ struct TreeViewControllerNavigation::Impl final
 	~Impl() override
 	{
 		this->databaseController->UnregisterObserver(this);
+	}
+
+	void RequestContextMenu(const QModelIndex& index, RequestContextMenuOptions options, RequestContextMenuCallback callback)
+	{
+		assert(static_cast<size_t>(mode) < std::size(MENU_REQUESTERS));
+		auto id = index.data(Role::Id).toString();
+		const auto db = databaseController->GetDatabase(true);
+		if (auto item = std::invoke(MENU_REQUESTERS[mode], static_cast<IContextMenuProvider*>(this), std::ref(*db), std::cref(id), options))
+			forwarder.Forward([callback = std::move(callback), id = std::move(id), item = std::move(item)] { callback(id, item); });
 	}
 
 private: // IContextMenuHandler
@@ -450,6 +384,37 @@ private: // IContextMenuHandler
 		forwarder.Forward(std::move(callback));
 	}
 
+	void OnShowFilterSettingsTriggered(const QList<QModelIndex>&, const QModelIndex&, const IDataItem::Ptr&, Callback callback) const override
+	{
+		uiFactory->CreateFilterSettingsDialog()->exec();
+		forwarder.Forward(std::move(callback));
+	}
+
+	void OnHideNavigationItemTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& /*item*/, Callback callback) const override
+	{
+		for (const auto& indexListItem : indexList)
+			models[static_cast<size_t>(mode)]->setData(indexListItem, QVariant::fromValue(IDataItem::Flags::Filtered), Role::Flags);
+
+		QStringList ids;
+		std::ranges::move(GetSelected<QString>(index, indexList), std::back_inserter(ids));
+		filterController->SetNavigationItemFlags(static_cast<NavigationMode>(mode), std::move(ids), IDataItem::Flags::Filtered, std::move(callback));
+	}
+
+	void OnFilterNavigationItemBooksTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
+	{
+		for (const auto& indexListItem : indexList)
+			models[static_cast<size_t>(mode)]->setData(indexListItem, QVariant::fromValue(IDataItem::Flags::BooksFiltered), Role::Flags);
+
+		QStringList ids;
+		std::ranges::move(GetSelected<QString>(index, indexList), std::back_inserter(ids));
+
+		const auto& str = item->GetData(MenuItem::Column::Checked);
+		const auto checked = !str.isEmpty() && QVariant(str).toBool();
+		const auto invoker = checked ? &IFilterController::ClearNavigationItemFlags : &IFilterController::SetNavigationItemFlags;
+
+		std::invoke(invoker, *filterController, static_cast<NavigationMode>(mode), std::move(ids), IDataItem::Flags::BooksFiltered, std::move(callback));
+	}
+
 private: // DatabaseController::IObserver
 	void AfterDatabaseCreated(DB::IDatabase& db) override
 	{
@@ -519,13 +484,149 @@ private: // INavigationFilter
 		const auto query = db->CreateQuery(descriptor.filterParameter);
 		query->Execute();
 		assert(!query->Eof());
-		return query->template Get<int>(0) != 0;
+		return query->Get<int>(0) != 0;
 	}
 
 	bool IsFolderExists(const ModeDescriptor& descriptor) const override
 	{
 		return descriptor.filterParameter && collectionProvider && collectionProvider->ActiveCollectionExists()
 		    && QDir(collectionProvider->GetActiveCollection().folder + "/" + descriptor.filterParameter).exists();
+	}
+
+private: // IContextMenuProvider
+	IDataItem::Ptr CreateAuthorsContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
+	{
+		auto result = MenuRequesterGroupNavigation(db, id, options);
+
+		if (!result)
+			return {};
+		{
+			const auto query = db.CreateQuery("select exists (select 42 from Reviews)");
+			query->Execute();
+			assert(!query->Eof());
+			if (!query->Get<int>(0))
+				return result;
+		}
+
+		const auto query =
+			db.CreateQuery("select exists (select 42 from Reviews r join Books_View b on b.BookID = r.BookID and b.IsDeleted != ? join Author_List a on a.BookID = r.BookID and a.AuthorID = ?)");
+		query->Bind(0, !(options & RequestContextMenuOptions::ShowRemoved) ? 1 : 2);
+		query->Bind(1, id.toLongLong());
+		query->Execute();
+		assert(!query->Eof());
+
+		AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Reviews"), MenuAction::AuthorReview)->SetData(QVariant(query->Get<int>(0) != 0).toString(), MenuItem::Column::Enabled);
+		return result;
+	}
+
+	IDataItem::Ptr CreateSeriesContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
+	{
+		return MenuRequesterGroupNavigation(db, id, options);
+	}
+
+	IDataItem::Ptr CreateGenresContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
+	{
+		auto result = MenuRequesterFilter(db, id, options);
+		return TreeMenuRequester(db, id, options, std::move(result));
+	}
+
+	IDataItem::Ptr CreatePublishYearContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
+	{
+		return TreeMenuRequester(db, id, options);
+	}
+
+	IDataItem::Ptr CreateKeywordsContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override //-V524
+	{
+		return MenuRequesterGroupNavigation(db, id, options);
+	}
+
+	IDataItem::Ptr CreateUpdatesContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override //-V524
+	{
+		return TreeMenuRequester(db, id, options);
+	}
+
+	IDataItem::Ptr CreateArchivesContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, RequestContextMenuOptions /*options*/) override
+	{
+		return {};
+	}
+
+	IDataItem::Ptr CreateLanguagesContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
+	{
+		return MenuRequesterFilter(db, id, options);
+	}
+
+	IDataItem::Ptr CreateGroupsContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
+	{
+		const auto hasSelection = !!(options & RequestContextMenuOptions::HasSelection);
+		auto result = MenuItem::Create();
+
+		AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Create new group..."), MenuAction::CreateNewGroup);
+		AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Rename group..."), MenuAction::RenameGroup)->SetData(QVariant(hasSelection).toString(), MenuItem::Column::Enabled);
+		AddMenuItem(result, REMOVE, MenuAction::RemoveGroup)->SetData(QVariant(hasSelection).toString(), MenuItem::Column::Enabled);
+		auto removeFromGroup = AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Remove from group"));
+		if (
+			[&]
+			{
+				const auto query = db.CreateQuery("select exists (select 42 from Books b join Groups_List_User glu on glu.ObjectID = b.BookID and glu.GroupID = ?)");
+				query->Bind(0, id.toInt());
+				query->Execute();
+				assert(!query->Eof());
+				return query->Get<int>(0) != 0;
+			}())
+			AddMenuItem(removeFromGroup, QT_TRANSLATE_NOOP("Navigation", "All books"), MenuAction::RemoveFromGroupAllBooks);
+
+		const auto addRemoveFromGroupItems = [&](const char* queryText, QString subMenuTitle, const int removeAllCommandId)
+		{
+			const auto query = db.CreateQuery(queryText);
+			query->Bind(0, id.toInt());
+			query->Execute();
+			if (query->Eof())
+				return;
+
+			auto subMenu = AddMenuItem(removeFromGroup, std::move(subMenuTitle));
+			for (; !query->Eof(); query->Next())
+				AddMenuItem(subMenu, query->Get<const char*>(1), MenuAction::RemoveFromGroupOneItem)->SetData(QString::number(query->Get<long long>(0)), MenuItem::Column::Parameter);
+
+			if (subMenu->GetChildCount() < 2)
+				return;
+
+			subMenu->SortChildren([](const IDataItem& lhs, const IDataItem& rhs) { return Util::QStringWrapper { lhs.GetData() } < Util::QStringWrapper { rhs.GetData() }; });
+
+			AddMenuItem(subMenu);
+			AddMenuItem(subMenu, QT_TRANSLATE_NOOP("Navigation", "All"), removeAllCommandId);
+		};
+
+		constexpr auto authorsQueryText =
+			"select a.AuthorID, a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '') from Authors a join Groups_List_User glu on "
+			"glu.ObjectID = a.AuthorID and glu.GroupID = ?";
+		constexpr auto seriesQueryText = "select s.SeriesID, s.SeriesTitle from Series s join Groups_List_User glu on glu.ObjectID = s.SeriesID and glu.GroupID = ?";
+		constexpr auto keywordsQueryText = "select k.KeywordID, k.KeywordTitle from Keywords k join Groups_List_User glu on glu.ObjectID = k.KeywordID and glu.GroupID = ?";
+
+		addRemoveFromGroupItems(authorsQueryText, Loc::Authors, MenuAction::RemoveFromGroupAllAuthors);
+		addRemoveFromGroupItems(seriesQueryText, Loc::Series, MenuAction::RemoveFromGroupAllSeries);
+		addRemoveFromGroupItems(keywordsQueryText, Loc::Keywords, MenuAction::RemoveFromGroupAllKeywords);
+
+		return result;
+	}
+
+	IDataItem::Ptr CreateSearchContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, const RequestContextMenuOptions options) override
+	{
+		auto result = MenuItem::Create();
+
+		AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Create new search..."), MenuAction::CreateNewSearch);
+		AddMenuItem(result, REMOVE, MenuAction::RemoveSearch)->SetData(QVariant(!!(options & RequestContextMenuOptions::HasSelection)).toString(), MenuItem::Column::Enabled);
+
+		return result;
+	}
+
+	IDataItem::Ptr CreateReviewsContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
+	{
+		return TreeMenuRequester(db, id, options);
+	}
+
+	IDataItem::Ptr CreateAllBooksContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, RequestContextMenuOptions /*options*/) override
+	{
+		return {};
 	}
 
 private:
@@ -605,7 +706,7 @@ private:
 		ExecuteGroupAction(controllerRef,
 		                   invoker,
 		                   id,
-		                   GetSelected(index, indexList),
+		                   GetSelected<GroupController::Id>(index, indexList),
 		                   [callback = std::move(callback), controller = std::move(controller)](auto) mutable
 		                   {
 							   callback();
@@ -628,9 +729,60 @@ private:
 						   });
 	}
 
-	void OnTableChanged(const NavigationMode tableMode)
+	void OnTableChanged(const NavigationMode tableMode) const
 	{
 		static_cast<NavigationMode>(mode) == tableMode ? self.RequestNavigation(true) : models[static_cast<size_t>(tableMode)].reset();
+	}
+
+	static IDataItem::Ptr TreeMenuRequester(DB::IDatabase&, const QString&, const RequestContextMenuOptions options, IDataItem::Ptr result = {})
+	{
+		if (!(options & RequestContextMenuOptions::IsTree))
+			return {};
+
+		if (!result)
+			result = MenuItem::Create();
+
+		BooksContextMenuProvider::AddTreeMenuItems(result, options);
+		return result;
+	}
+
+	IDataItem::Ptr MenuRequesterFilter(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options, IDataItem::Ptr result = {}) const
+	{
+		if (!(options & RequestContextMenuOptions::HasSelection))
+			return {};
+
+		if (!result)
+			result = MenuItem::Create();
+
+		const auto& description = IFilterController::GetFilteredNavigationDescription(static_cast<NavigationMode>(mode));
+		assert(description.table && description.idField);
+		const auto query = db.CreateQuery(std::format("select Flags from {} where {} = ?", description.table, description.idField));
+		description.queueBinder(*query, 0, id);
+		query->Execute();
+		assert(!query->Eof());
+		const auto booksFiltered = !!(static_cast<IDataItem::Flags>(query->Get<int>(0)) & IDataItem::Flags::BooksFiltered);
+
+		const auto parent = AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Filters"));
+		const auto filterEnabled = QVariant(!!(options & RequestContextMenuOptions::UniFilterEnabled)).toString();
+
+		AddMenuItem(parent, QT_TRANSLATE_NOOP("Navigation", "Hide"), MenuAction::HideNavigationItem)->SetData(filterEnabled, MenuItem::Column::Enabled);
+		AddMenuItem(parent, QT_TRANSLATE_NOOP("Navigation", "Filter books"), MenuAction::FilterNavigationItemBooks)
+			->SetData(QVariant(true).toString(), MenuItem::Column::Checkable)
+			.SetData(QVariant(booksFiltered).toString(), MenuItem::Column::Checked)
+			.SetData(filterEnabled, MenuItem::Column::Enabled);
+		AddMenuItem(parent, QT_TRANSLATE_NOOP("Navigation", "Filter settings..."), MenuAction::ShowFilterSettings);
+		return result;
+	}
+
+	IDataItem::Ptr MenuRequesterGroupNavigation(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options, IDataItem::Ptr result = {}) const
+	{
+		if (!(options & RequestContextMenuOptions::HasSelection))
+			return {};
+
+		result = MenuRequesterFilter(db, id, options, std::move(result));
+
+		CreateGroupMenu(result, id, db);
+		return result;
 	}
 
 	NON_COPY_MOVABLE(Impl)
@@ -643,9 +795,17 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISett
                                                            std::shared_ptr<INavigationInfoProvider> dataProvider,
                                                            std::shared_ptr<IUiFactory> uiFactory,
                                                            std::shared_ptr<IDatabaseController> databaseController,
-                                                           std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
+                                                           std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
+                                                           std::shared_ptr<IFilterController> filterController)
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
-	, m_impl(*this, logicFactory, std::move(collectionProvider), std::move(dataProvider), std::move(uiFactory), std::move(databaseController), std::move(authorAnnotationController))
+	, m_impl(*this,
+             logicFactory,
+             std::move(collectionProvider),
+             std::move(dataProvider),
+             std::move(uiFactory),
+             std::move(databaseController),
+             std::move(authorAnnotationController),
+             std::move(filterController))
 {
 	static_cast<ITreeViewController*>(this)->RegisterObserver(modelProvider.get());
 	Setup();
@@ -736,12 +896,9 @@ ViewMode TreeViewControllerNavigation::GetViewMode() const noexcept
 	return MODE_DESCRIPTORS[m_impl->mode].second.viewMode;
 }
 
-void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex& index, const RequestContextMenuOptions options, const RequestContextMenuCallback callback) //-V801
+void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex& index, const RequestContextMenuOptions options, RequestContextMenuCallback callback)
 {
-	const auto id = index.data(Role::Id).toString();
-	const auto db = m_impl->databaseController->GetDatabase(true);
-	if (const auto item = MODE_DESCRIPTORS[m_impl->mode].second.menuRequester(*db, id, options))
-		callback(id, item);
+	m_impl->RequestContextMenu(index, options, std::move(callback));
 }
 
 void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel*, const QModelIndex& index, const QList<QModelIndex>& indexList, const IDataItem::Ptr item) //-V801

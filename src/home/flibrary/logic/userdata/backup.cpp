@@ -11,9 +11,11 @@
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/IFilterProvider.h"
 
 #include "constants/ExportStat.h"
 #include "constants/books.h"
+#include "constants/filter.h"
 #include "constants/groups.h"
 #include "constants/searches.h"
 #include "util/IExecutor.h"
@@ -189,12 +191,31 @@ void BackupUserDataExportStat(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query)).WriteEndElement();
 }
 
+void BackupUserDataFilter(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
+{
+	auto range = IFilterProvider::GetDescriptions();
+	(void)std::ranges::for_each(range,
+	                            [&](const IFilterProvider::FilteredNavigation& description)
+	                            {
+									const auto index = static_cast<size_t>(description.navigationMode);
+									assert(!Constant::UserData::Filter::FIELD_NAMES[index].empty());
+									const auto query = db.CreateQuery(std::format("select {}, Flags from {} where Flags != 0", Constant::UserData::Filter::FIELD_NAMES[index], description.table));
+									query->Execute();
+									if (query->Eof())
+										return;
+
+									const auto navigationTitleGuard = xmlWriter.Guard(description.navigationTitle);
+									for (; !query->Eof(); query->Next())
+										navigationTitleGuard->WriteStartElement(Constant::ITEM)
+											.WriteAttribute(Constant::UserData::Filter::Title, query->Get<const char*>(0))
+											.WriteAttribute(Constant::UserData::Filter::Flag, query->Get<const char*>(1))
+											.WriteEndElement();
+								});
+}
+
 constexpr std::pair<const char*, BackupFunction> BACKUPERS[] {
 #define ITEM(NAME) { Constant::UserData::NAME::RootNode, &BackupUserData##NAME }
-	ITEM(Books),
-	ITEM(Groups),
-	ITEM(Searches),
-	ITEM(ExportStat),
+	ITEM(Books), ITEM(Groups), ITEM(Searches), ITEM(ExportStat), ITEM(Filter),
 #undef ITEM
 };
 

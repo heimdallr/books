@@ -14,6 +14,7 @@ class IQuery : virtual public ICommand
 public:
 	virtual bool Eof() = 0;
 	virtual void Next() = 0;
+	virtual void Reset() = 0;
 
 	virtual size_t ColumnCount() const = 0;
 	virtual std::string ColumnName(size_t index) const = 0;

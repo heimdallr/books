@@ -100,7 +100,7 @@ bool ScriptModel::setData(const QModelIndex& index, const QVariant& value, const
 				return m_scriptController->Save(), true;
 
 			case Role::Observer:
-				return Util::Set(m_observer, value.value<ISourceModelObserver*>(), *this);
+				return Util::Set(m_observer, value.value<ISourceModelObserver*>());
 
 			default:
 				break;

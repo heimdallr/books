@@ -13,6 +13,7 @@ class IDatabase;
 
 namespace HomeCompa::Flibrary
 {
+class IFilterProvider;
 struct Collection;
 
 class IBooksListCreator // NOLINT(cppcoreguidelines-special-member-functions)
@@ -63,13 +64,16 @@ public:
 	virtual void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&) = 0;
 };
 
-using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query, const size_t* index, size_t removedIndex);
+using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query);
 
-struct QueryInfo
+struct QueryClause
 {
-	QueryDataExtractor extractor;
-	const size_t* index;
-	size_t removedIndex;
+	const char* booksFrom { "" };
+	const char* booksWhere { "" };
+	const char* navigationFrom { "" };
+	const char* navigationWhere { "" };
+	const char* additionalFields { "" };
+	const char* with { "" };
 };
 
 struct QueryDescription
@@ -77,17 +81,13 @@ struct QueryDescription
 	using Binder = int (*)(DB::IQuery&, const QString&);
 	using MappingGetter = const BookItem::Mapping& (QueryDescription::*)() const noexcept;
 
-	const char* query { nullptr };
-	const QueryInfo& queryInfo;
-	const char* whereClause { nullptr };
-	const char* joinClause { nullptr };
-	Binder binder { nullptr };
+	const char* navigationQuery { nullptr };
+	QueryDataExtractor navigationExtractor { nullptr };
+	QueryClause queryClause;
 	IBooksListCreator::Creator listCreator { nullptr };
 	IBooksTreeCreator::Creator treeCreator { nullptr };
 	BookItem::Mapping listMapping;
 	BookItem::Mapping treeMapping;
-	const char* seqNumberTableAlias { "b" };
-	const char* with { nullptr };
 	IBookSelector::Selector bookSelector { &IBookSelector::SelectBooks };
 
 	constexpr const BookItem::Mapping& GetListMapping() const noexcept
@@ -109,7 +109,12 @@ class BooksTreeGenerator final
 	NON_COPY_MOVABLE(BooksTreeGenerator)
 
 public:
-	BooksTreeGenerator(const Collection& activeCollection, DB::IDatabase& db, enum class NavigationMode navigationMode, QString navigationId, const QueryDescription& description);
+	BooksTreeGenerator(const Collection& activeCollection,
+	                   DB::IDatabase& db,
+	                   enum class NavigationMode navigationMode,
+	                   QString navigationId,
+	                   const QueryDescription& description,
+	                   const IFilterProvider& filterProvider);
 	~BooksTreeGenerator() override;
 
 public:

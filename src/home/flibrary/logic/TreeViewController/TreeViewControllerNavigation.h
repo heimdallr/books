@@ -7,6 +7,7 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDataProvider.h"
 #include "interface/logic/IDatabaseController.h"
+#include "interface/logic/IFilterController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
 
@@ -27,7 +28,8 @@ public:
 	                             std::shared_ptr<INavigationInfoProvider> dataProvider,
 	                             std::shared_ptr<IUiFactory> uiFactory,
 	                             std::shared_ptr<IDatabaseController> databaseController,
-	                             std::shared_ptr<IAuthorAnnotationController> authorAnnotationController);
+	                             std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
+	                             std::shared_ptr<IFilterController> filterController);
 	~TreeViewControllerNavigation() override;
 
 public:

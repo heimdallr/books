@@ -28,8 +28,7 @@ public:
 		, m_readerController { std::move(readerController) }
 	{
 		m_ui.setupUi(&self);
-		connect(m_ui.btnClose, &QAbstractButton::clicked, [&] { self.StateChanged(State::Finished); });
-		self.addAction(m_ui.actionClose);
+		connect(m_ui.btnClose, &QAbstractButton::clicked, self.closeAction, &QAction::trigger);
 
 		m_ui.view->setModel(m_model.get());
 		m_model->setData({}, uiFactory.GetAuthorId(), AuthorReviewModelRole::AuthorId);

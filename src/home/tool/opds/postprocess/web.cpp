@@ -76,7 +76,7 @@ public:
 	}
 
 private: // IAnnotationController::IUrlGenerator
-	QString GenerateUrl(const char* type, const QString& id, const QString& str) const override
+	QString GenerateUrl(const char* type, const QString& id, const QString& str, bool) const override
 	{
 		if (str.isEmpty() || PszComparer {}(type, Constant::BOOK))
 			return {};

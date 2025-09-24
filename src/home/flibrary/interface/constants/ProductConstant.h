@@ -18,10 +18,10 @@ constexpr auto TEXT = "text";
 constexpr auto FlibraryBackup = "FlibraryBackup";
 
 constexpr auto FlibraryBackupVersion = "FlibraryBackupVersion";
-constexpr auto FlibraryBackupVersionNumber = 7;
+constexpr auto FlibraryBackupVersionNumber = 8;
 constexpr auto FlibraryUserData = "FlibraryUserData";
 
-constexpr auto FlibraryDatabaseVersionNumber = 6;
+constexpr auto FlibraryDatabaseVersionNumber = 7;
 
 constexpr int APP_FAILED = 1;
 constexpr int RESTART_APP = 1234;

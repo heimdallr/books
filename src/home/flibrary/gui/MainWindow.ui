@@ -440,20 +440,11 @@
      <addaction name="actionBrowseHttpWeb"/>
      <addaction name="actionBrowseHttpOpds"/>
     </widget>
-    <widget class="QMenu" name="menuFilters">
-     <property name="title">
-      <string>&amp;Filters</string>
-     </property>
-     <addaction name="actionLanguageFilter"/>
-     <addaction name="actionGenreFilter"/>
-     <addaction name="separator"/>
-     <addaction name="actionDisableAllFilters"/>
-    </widget>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
     <addaction name="menuExport"/>
     <addaction name="menuHttp"/>
-    <addaction name="menuFilters"/>
+    <addaction name="actionFilters"/>
     <addaction name="actionScripts"/>
     <addaction name="separator"/>
     <addaction name="actionRestoreDefaultSettings"/>
@@ -976,14 +967,6 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionGenreFilter">
-   <property name="text">
-    <string>By &amp;genres...</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
   <action name="actionAddNewAlphabet">
    <property name="text">
     <string>&amp;Add new alphabet...</string>
@@ -992,17 +975,12 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionLanguageFilter">
+  <action name="actionFilters">
    <property name="text">
-    <string>By &amp;languages...</string>
+    <string>&amp;Filters...</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionDisableAllFilters">
-   <property name="text">
-    <string>Disable &amp;all filters</string>
    </property>
   </action>
  </widget>

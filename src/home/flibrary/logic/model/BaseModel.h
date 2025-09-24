@@ -8,7 +8,6 @@
 
 namespace HomeCompa::Flibrary
 {
-class IGenreFilterProvider;
 class ILibRateProvider;
 
 class BaseModel : public QAbstractItemModel

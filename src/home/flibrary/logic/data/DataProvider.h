@@ -10,6 +10,7 @@
 #include "interface/logic/IDataItem.h"
 #include "interface/logic/IDataProvider.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IFilterProvider.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 
 class QString;
@@ -17,13 +18,16 @@ class QString;
 namespace HomeCompa::Flibrary
 {
 
-class DataProvider final : public IDataProvider
+class DataProvider final
+	: public IDataProvider
+	, public IFilterDataProvider
 {
 	NON_COPY_MOVABLE(DataProvider)
 
 public:
 	DataProvider(std::shared_ptr<const ICollectionProvider> collectionProvider,
 	             std::shared_ptr<const IDatabaseUser> databaseUser,
+	             std::shared_ptr<const IFilterProvider> filterProvider,
 	             std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
 	             std::shared_ptr<IAuthorAnnotationController> authorAnnotationController);
 	~DataProvider() override;

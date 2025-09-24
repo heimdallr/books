@@ -42,14 +42,9 @@ constexpr auto SEND_AS_SINGLE_INPX = QT_TRANSLATE_NOOP("BookContextMenu", "Gener
 constexpr auto MY_RATE = QT_TRANSLATE_NOOP("BookContextMenu", "&My rate");
 constexpr auto REMOVE_MY_RATE = QT_TRANSLATE_NOOP("BookContextMenu", "&Remove my rate");
 constexpr auto CHECK = QT_TRANSLATE_NOOP("BookContextMenu", "&Check");
-constexpr auto CHECK_ALL = QT_TRANSLATE_NOOP("BookContextMenu", "&Check all");
-constexpr auto UNCHECK_ALL = QT_TRANSLATE_NOOP("BookContextMenu", "&Uncheck all");
-constexpr auto INVERT_CHECK = QT_TRANSLATE_NOOP("BookContextMenu", "&Invert");
 constexpr auto TREE = QT_TRANSLATE_NOOP("BookContextMenu", "&Tree");
 constexpr auto TREE_COLLAPSE = QT_TRANSLATE_NOOP("BookContextMenu", "C&ollapse");
 constexpr auto TREE_EXPAND = QT_TRANSLATE_NOOP("BookContextMenu", "E&xpand");
-constexpr auto TREE_COLLAPSE_ALL = QT_TRANSLATE_NOOP("BookContextMenu", "&Collapse all");
-constexpr auto TREE_EXPAND_ALL = QT_TRANSLATE_NOOP("BookContextMenu", "&Expand all");
 constexpr auto REMOVE_BOOK = QT_TRANSLATE_NOOP("BookContextMenu", "R&emove");
 constexpr auto REMOVE_BOOK_UNDO = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
 constexpr auto REMOVE_BOOK_FROM_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "&Delete permanently");
@@ -136,9 +131,9 @@ void CreateSendMenu(const IDataItem::Ptr& root, const ITreeViewController::Reque
 void CreateCheckMenu(const IDataItem::Ptr& root)
 {
 	const auto parent = AddMenuItem(root, Tr(CHECK));
-	AddMenuItem(parent, Tr(CHECK_ALL), BooksMenuAction::CheckAll);
-	AddMenuItem(parent, Tr(UNCHECK_ALL), BooksMenuAction::UncheckAll);
-	AddMenuItem(parent, Tr(INVERT_CHECK), BooksMenuAction::InvertCheck);
+	AddMenuItem(parent, Loc::Tr(Loc::CONTEXT_MENU, Loc::CHECK_ALL), BooksMenuAction::CheckAll);
+	AddMenuItem(parent, Loc::Tr(Loc::CONTEXT_MENU, Loc::UNCHECK_ALL), BooksMenuAction::UncheckAll);
+	AddMenuItem(parent, Loc::Tr(Loc::CONTEXT_MENU, Loc::INVERT_CHECK), BooksMenuAction::InvertCheck);
 }
 
 void CreateChangeLangMenu(const IDataItem::Ptr& root, const QString& currentLocale)
@@ -609,9 +604,10 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr& parent, co
 		AddMenuItem(parent, Tr(TREE_EXPAND), BooksMenuAction::Expand);
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::NodeExpanded))
 		AddMenuItem(parent, Tr(TREE_COLLAPSE), BooksMenuAction::Collapse);
-	if (const auto item = AddMenuItem(parent, Tr(TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll); !(options & ITreeViewController::RequestContextMenuOptions::HasExpanded)) //-V821
+	if (const auto item = AddMenuItem(parent, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll);
+	    !(options & ITreeViewController::RequestContextMenuOptions::HasExpanded)) //-V821
 		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
-	if (const auto item = AddMenuItem(parent, Tr(TREE_EXPAND_ALL), BooksMenuAction::ExpandAll); !(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed)) //-V821
+	if (const auto item = AddMenuItem(parent, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_EXPAND_ALL), BooksMenuAction::ExpandAll); !(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed)) //-V821
 		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
 }
 

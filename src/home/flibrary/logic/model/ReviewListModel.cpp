@@ -64,7 +64,7 @@ QVariant ReviewListModel::data(const QModelIndex& index, const int role) const
 		{
 			case Qt::DisplayRole:
 			case Qt::ToolTipRole:
-				return GetValue(*item, index.column() - item->GetChild(0)->GetColumnCount());
+				return item->GetData(index.column() - item->GetChild(0)->GetColumnCount());
 
 			case Role::Remap:
 				return index.column();

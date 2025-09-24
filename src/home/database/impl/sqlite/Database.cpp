@@ -11,6 +11,7 @@
 
 #include "IDatabase.h"
 #include "IQuery.h"
+#include "ITemporaryTable.h"
 #include "ITransaction.h"
 #include "log.h"
 #include "sqlite3ppext.h"
@@ -20,6 +21,7 @@ namespace HomeCompa::DB::Impl::Sqlite
 
 std::unique_ptr<ITransaction> CreateTransactionImpl(std::mutex& mutex, sqlite3pp::database& db);
 std::unique_ptr<IQuery> CreateQueryImpl(std::mutex& mutex, sqlite3pp::database& db, std::string_view query);
+std::unique_ptr<ITemporaryTable> CreateTemporaryTableImpl(IDatabase& db, const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional);
 
 namespace
 {
@@ -162,6 +164,11 @@ private: // Database
 	[[nodiscard]] std::unique_ptr<IQuery> CreateQuery(const std::string_view query) override
 	{
 		return CreateQueryImpl(m_guard, m_db, query);
+	}
+
+	[[nodiscard]] std::unique_ptr<ITemporaryTable> CreateTemporaryTable(const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional) override
+	{
+		return CreateTemporaryTableImpl(*this, fields, additional);
 	}
 
 	void CreateFunction(const std::string_view name, DatabaseFunction function) override

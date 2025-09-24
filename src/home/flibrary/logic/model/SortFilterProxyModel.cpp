@@ -1,6 +1,6 @@
 #include "SortFilterProxyModel.h"
 
-#include <unordered_set>
+#include "fnd/algorithm.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
@@ -9,22 +9,6 @@
 
 using namespace HomeCompa;
 using namespace Flibrary;
-
-namespace
-{
-
-template <typename T>
-bool Set(T& oldValue, T&& newValue, const std::function<void()>& f = [] {})
-{
-	if (oldValue == newValue)
-		return false;
-
-	oldValue = std::forward<T>(newValue);
-	f();
-	return true;
-}
-
-}
 
 AbstractSortFilterProxyModel::AbstractSortFilterProxyModel(QObject* parent)
 	: QSortFilterProxyModel(parent)
@@ -35,11 +19,11 @@ struct SortFilterProxyModel::Impl final
 {
 	QString m_filter;
 	QString m_languageFilter;
-	std::unordered_set<QString> m_permanentLanguageFilter;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
 	bool m_showRemoved { true };
+	bool m_navigationFiltered { false };
+	bool m_uniFilterEnabled { false };
 	QVector<int> m_visibleColumns;
-	std::unordered_set<QString> m_filteredGenres;
 	std::vector<std::pair<int, Qt::SortOrder>> sort;
 
 	explicit Impl(const IModelProvider& modelProvider)
@@ -105,28 +89,31 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 		switch (role)
 		{
 			case Role::TextFilter:
-				return Set(m_impl->m_filter, value.toString().simplified(), [&] { invalidateFilter(); });
+				return Util::Set(m_impl->m_filter, value.toString().simplified(), [&] { invalidateFilter(); });
 
 			case Role::VisibleColumns:
-				return Set(m_impl->m_visibleColumns, value.value<QVector<int>>(), [&] { invalidateFilter(); });
+				return Util::Set(m_impl->m_visibleColumns, value.value<QVector<int>>(), [&] { invalidateFilter(); });
 
 			case Role::ShowRemovedFilter:
-				return Set(m_impl->m_showRemoved, value.toBool(), [&] { invalidateFilter(); });
+				return Util::Set(m_impl->m_showRemoved, value.toBool(), [&] { invalidateFilter(); });
 
-			case Role::GenreFilter:
-				return Set(m_impl->m_filteredGenres, value.value<std::unordered_set<QString>>(), [&] { invalidateFilter(); });
+			case Role::NavigationItemFiltered:
+				return Util::Set(m_impl->m_navigationFiltered, value.toBool(), [&] { invalidateFilter(); });
+
+			case Role::UniFilterEnabled:
+				return Util::Set(m_impl->m_uniFilterEnabled, value.toBool(), [&] { invalidateFilter(); });
+
+			case Role::UniFilterChanged:
+				return invalidateFilter(), true;
 
 			case Role::LanguageFilter:
-				if (Set(m_impl->m_languageFilter, value.toString().simplified(), [&] { invalidateFilter(); }))
+				if (Util::Set(m_impl->m_languageFilter, value.toString().simplified(), [&] { invalidateFilter(); }))
 				{
 					emit headerDataChanged(Qt::Horizontal, 0, columnCount() - 1);
 					return true;
 				}
 
 				return false;
-
-			case Role::PermanentLanguageFilter:
-				return Set(m_impl->m_permanentLanguageFilter, value.value<std::unordered_set<QString>>(), [&] { invalidateFilter(); });
 
 			case Role::SortOrder:
 				m_impl->sort = value.value<std::vector<std::pair<int, Qt::SortOrder>>>();
@@ -146,7 +133,7 @@ bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelInd
 {
 	const auto itemIndex = m_impl->m_sourceModel->index(sourceRow, 0, sourceParent);
 	assert(itemIndex.isValid());
-	return FilterAcceptsText(itemIndex) && FilterAcceptsLanguage(itemIndex) && FilterAcceptsRemoved(itemIndex) && FilterAcceptsGenres(itemIndex);
+	return FilterAcceptsRemoved(itemIndex) && FilterAcceptsFlags(itemIndex) && FilterAcceptsText(itemIndex);
 }
 
 bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const
@@ -206,27 +193,16 @@ bool SortFilterProxyModel::FilterAcceptsText(const QModelIndex& index) const
 							   });
 }
 
-bool SortFilterProxyModel::FilterAcceptsLanguage(const QModelIndex& index) const
-{
-	const auto& filter = m_impl->m_languageFilter;
-	const auto& permanentFilter = m_impl->m_permanentLanguageFilter;
-	if (filter.isEmpty() && permanentFilter.empty() || index.data(Role::Type).value<ItemType>() != ItemType::Books)
-		return true;
-
-	const auto lang = index.data(Role::Lang).toString();
-	if (!permanentFilter.empty() && !permanentFilter.contains(lang))
-		return false;
-
-	return filter.isEmpty() || lang == filter;
-}
-
 bool SortFilterProxyModel::FilterAcceptsRemoved(const QModelIndex& index) const
 {
 	return m_impl->m_showRemoved || !index.data(Role::IsRemoved).toBool();
 }
 
-bool SortFilterProxyModel::FilterAcceptsGenres(const QModelIndex& index) const
+bool SortFilterProxyModel::FilterAcceptsFlags(const QModelIndex& index) const
 {
-	return m_impl->m_filteredGenres.empty() || index.data(Role::Type).value<ItemType>() != ItemType::Books
-	    || std::ranges::none_of(index.data(Role::Genre).toString().split(", "), [&filtered = m_impl->m_filteredGenres](const auto& item) { return filtered.contains(item); });
+	if (!m_impl->m_uniFilterEnabled)
+		return true;
+
+	const auto flags = index.data(Role::Flags).value<IDataItem::Flags>();
+	return ((!(flags & IDataItem::Flags::Filtered)) || (index.data(Role::Type).value<ItemType>() == ItemType::Books && m_impl->m_navigationFiltered && !(flags & IDataItem::Flags::Multiple)));
 }

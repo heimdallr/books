@@ -24,9 +24,6 @@ public:
 	};
 
 public:
-	static constexpr auto BOOKS_QUERY_FIELDS =
-		"b.BookID, b.Title, coalesce(%1.SeqNumber, -1), b.UpdateDate, b.LibRate, b.Lang, b.Year, f.FolderTitle, b.FileName || b.Ext, b.BookSize, coalesce(bu.userRate, 0), "
-		"coalesce(bu.IsDeleted, b.IsDeleted, 0), b.FolderID, b.UpdateID, b.LibID";
 	static constexpr auto SELECT_LAST_ID_QUERY = "select last_insert_rowid()";
 
 	FLINT_EXPORT static QString GetDatabaseVersionStatement();
@@ -60,19 +57,9 @@ struct BookQueryFields
 		FileName,
 		Size,
 		UserRate,
-		IsDeleted,
-		FolderID,
-		UpdateID,
 		LibID,
-		AuthorID,
-		AuthorLastName,
-		AuthorFirstName,
-		AuthorMiddleName,
-		GenreCode,
-		GenreTitle,
-		GenreFB2Code,
-		SeriesId,
-		SeriesTitle,
+		IsDeleted,
+		Flags,
 		Last
 	};
 };

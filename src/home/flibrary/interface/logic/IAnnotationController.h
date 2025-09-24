@@ -18,6 +18,7 @@ enum class Type;
 
 namespace HomeCompa::Flibrary
 {
+enum class NavigationMode;
 
 class IAnnotationController // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -52,6 +53,8 @@ public:
 		[[nodiscard]] virtual const IDataItem& GetGenres() const noexcept = 0;
 		[[nodiscard]] virtual const IDataItem& GetGroups() const noexcept = 0;
 		[[nodiscard]] virtual const IDataItem& GetKeywords() const noexcept = 0;
+		[[nodiscard]] virtual const IDataItem& GetFolder() const noexcept = 0;
+		[[nodiscard]] virtual const IDataItem& GetUpdate() const noexcept = 0;
 
 		[[nodiscard]] virtual const QString& GetError() const noexcept = 0;
 		[[nodiscard]] virtual const QString& GetAnnotation() const noexcept = 0;
@@ -72,6 +75,8 @@ public:
 		[[nodiscard]] virtual const QString& GetPublishIsbn() const noexcept = 0;
 		[[nodiscard]] virtual const ExportStatistics& GetExportStatistics() const noexcept = 0;
 		[[nodiscard]] virtual const Reviews& GetReviews() const noexcept = 0;
+
+		[[nodiscard]] virtual std::vector<IDataItem::Flags> GetFlags(NavigationMode navigationMode, const std::vector<QString>& ids) const = 0;
 	};
 
 	class IObserver : public Observer
@@ -105,7 +110,7 @@ public:
 
 	public:
 		virtual ~IStrategy() = default;
-		virtual QString GenerateUrl(const char* type, const QString& id, const QString& str) const = 0;
+		virtual QString GenerateUrl(const char* type, const QString& id, const QString& str, bool textMode = false) const = 0;
 		virtual QString GenerateStars(int rate) const = 0;
 
 		virtual void Add(const Section section, QString& text, const QString& str, const char* pattern = "%1") const

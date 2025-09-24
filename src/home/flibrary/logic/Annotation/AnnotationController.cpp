@@ -52,18 +52,17 @@ constexpr auto REVIEWS = QT_TRANSLATE_NOOP("Annotation", "Readers' Reviews");
 
 TR_DEF
 
-using Extractor = IDataItem::Ptr (*)(const DB::IQuery& query, const size_t* index, size_t removedIndex);
-constexpr size_t QUERY_INDEX_SIMPLE_LIST_ITEM[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9 };
+using Extractor = IDataItem::Ptr (*)(const DB::IQuery& query);
 
-constexpr auto BOOK_QUERY =
-	"select %1, NULL, NULL, NULL, NULL, NULL, NULL, NULL, coalesce(b.SeqNumber, -1), s.SeriesTitle from Books b join Folders f on f.FolderID = b.FolderID left join Books_User bu on bu.BookID = b.BookID "
-	"left join Series s on s.SeriesID = b.SeriesID where b.BookID = :id";
-constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle, sl.SeqNumber from Series s join Series_List sl on sl.SeriesID = s.SeriesID and sl.BookID = :id order by sl.OrdNum";
-constexpr auto AUTHORS_QUERY = "select a.AuthorID, a.LastName, a.LastName, a.FirstName, a.MiddleName from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = :id order by al.OrdNum";
-constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id order by gl.OrdNum";
+constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle, sl.SeqNumber from Series s join Series_List sl on sl.SeriesID = s.SeriesID and sl.BookID = :id where s.Flags & {} = 0 order by sl.OrdNum";
+constexpr auto AUTHORS_QUERY =
+	"select a.AuthorID, a.LastName, a.LastName, a.FirstName, a.MiddleName from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = :id where a.Flags & {} = 0 order by al.OrdNum";
+constexpr auto GENRES_QUERY = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id  where g.Flags & {} = 0 order by gl.OrdNum";
 constexpr auto GROUPS_QUERY = "select g.GroupID, g.Title from Groups_User g join Groups_List_User_View gl on gl.GroupID = g.GroupID and gl.BookID = :id";
-constexpr auto KEYWORDS_QUERY = "select k.KeywordID, k.KeywordTitle from Keywords k join Keyword_List kl on kl.KeywordID = k.KeywordID and kl.BookID = :id order by kl.OrdNum";
+constexpr auto KEYWORDS_QUERY = "select k.KeywordID, k.KeywordTitle from Keywords k join Keyword_List kl on kl.KeywordID = k.KeywordID and kl.BookID = :id where k.Flags & {} = 0 order by kl.OrdNum";
 constexpr auto REVIEWS_QUERY = "select b.LibID, r.Folder from Reviews r join Books b on b.BookID = r.BookID where r.BookID = :id";
+constexpr auto FOLDER_QUERY = "select f.FolderID, f.FolderTitle from Folders f join Books b on b.FolderID = f.FolderID and b.BookID = :id";
+constexpr auto UPDATE_QUERY = "select u.UpdateID, b.UpdateDate from Updates u join Books b on b.UpdateID = u.UpdateID and b.BookID = :id";
 
 constexpr auto ERROR_PATTERN = R"(<p style="font-style:italic;">%1</p>)";
 constexpr auto TITLE_PATTERN = "<p align=center><b>%1</b></p>";
@@ -179,33 +178,34 @@ QString TranslateLang(const QString& code)
 Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, const IAnnotationController::IStrategy& strategy)
 {
 	const auto& book = dataProvider.GetBook();
-	const auto& folder = book.GetRawData(BookItem::Column::Folder);
 	const auto& keywords = dataProvider.GetKeywords();
 	const auto& lang = book.GetRawData(BookItem::Column::Lang);
 	const auto& fbLang = dataProvider.GetLanguage();
 	const auto& fbSourceLang = dataProvider.GetSourceLanguage();
 
+	const auto langFlags = dataProvider.GetFlags(NavigationMode::Languages, { lang, fbLang, fbSourceLang });
+
 	const auto langTr = TranslateLang(lang);
-	auto langStr = strategy.GenerateUrl(Loc::LANGUAGE, lang, langTr);
+	auto langStr = strategy.GenerateUrl(Loc::LANGUAGE, lang, langTr, !!(langFlags[0] & IDataItem::Flags::Filtered));
 
 	if (!fbLang.isEmpty())
 		if (const auto fbLangTr = TranslateLang(fbLang); fbLangTr != langTr && fbLangTr != Loc::Tr(LANGUAGES_CONTEXT, UNDEFINED))
-			langStr.append(Tr(OR).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbLang, fbLangTr)));
+			langStr.append(Tr(OR).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbLang, fbLangTr, !!(langFlags[1] & IDataItem::Flags::Filtered))));
 
 	if (!fbSourceLang.isEmpty() && fbSourceLang != lang && fbSourceLang != fbLang)
 		if (const auto fbSourceLangTr = TranslateLang(fbSourceLang); fbSourceLangTr != langTr)
-			langStr.append(Tr(TRANSLATION_FROM).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbSourceLang, fbSourceLangTr)));
+			langStr.append(Tr(TRANSLATION_FROM).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbSourceLang, fbSourceLangTr, !!(langFlags[2] & IDataItem::Flags::Filtered))));
 
 	Table table(strategy);
 	table.Add(Loc::AUTHORS, Urls(strategy, Loc::AUTHORS, dataProvider.GetAuthors(), &GetTitleAuthor))
 		.Add(Loc::SERIES, Urls(strategy, Loc::SERIES, dataProvider.GetSeries()))
 		.Add(Loc::GENRES, Urls(strategy, Loc::GENRES, dataProvider.GetGenres()))
 		.Add(Loc::PUBLISH_YEAR, strategy.GenerateUrl(Loc::PUBLISH_YEAR, book.GetRawData(BookItem::Column::Year), book.GetRawData(BookItem::Column::Year)))
-		.Add(Loc::ARCHIVE, strategy.GenerateUrl(Loc::ARCHIVE, book.GetRawData(BookItem::Column::FolderID), folder))
+		.Add(Loc::ARCHIVE, Urls(strategy, Loc::ARCHIVE, dataProvider.GetFolder()))
 		.Add(Loc::GROUPS, Urls(strategy, Loc::GROUPS, dataProvider.GetGroups()))
 		.Add(Loc::KEYWORDS, Urls(strategy, Loc::KEYWORDS, keywords))
 		.Add(Loc::LANGUAGE, langStr)
-		.Add(Loc::UPDATES, strategy.GenerateUrl(Loc::UPDATES, book.GetRawData(BookItem::Column::UpdateID), book.GetRawData(BookItem::Column::UpdateDate)));
+		.Add(Loc::UPDATES, Urls(strategy, Loc::UPDATES, dataProvider.GetUpdate()));
 
 	return table;
 }
@@ -253,11 +253,13 @@ public:
 	Impl(const std::shared_ptr<const ILogicFactory>& logicFactory,
 	     std::shared_ptr<const ICollectionProvider> collectionProvider,
 	     std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
-	     std::shared_ptr<const IDatabaseUser> databaseUser)
+	     std::shared_ptr<const IDatabaseUser> databaseUser,
+	     std::shared_ptr<const IFilterProvider> filterProvider)
 		: m_logicFactory { logicFactory }
 		, m_collectionProvider { std::move(collectionProvider) }
 		, m_jokeRequesterFactory { std::move(jokeRequesterFactory) }
 		, m_databaseUser { std::move(databaseUser) }
+		, m_filterProvider { std::move(filterProvider) }
 		, m_executor { logicFactory->GetExecutor() }
 		, m_jokeRequesterClientImpl(JokeRequesterClientImpl::Create(*this))
 	{
@@ -323,6 +325,16 @@ private: // IDataProvider
 	[[nodiscard]] const IDataItem& GetKeywords() const noexcept override
 	{
 		return *m_keywords;
+	}
+
+	[[nodiscard]] const IDataItem& GetFolder() const noexcept override
+	{
+		return *m_folder;
+	}
+
+	[[nodiscard]] const IDataItem& GetUpdate() const noexcept override
+	{
+		return *m_update;
 	}
 
 	[[nodiscard]] const QString& GetError() const noexcept override
@@ -413,6 +425,11 @@ private: // IDataProvider
 	[[nodiscard]] const Reviews& GetReviews() const noexcept override
 	{
 		return m_reviews;
+	}
+
+	[[nodiscard]] std::vector<IDataItem::Flags> GetFlags(const NavigationMode navigationMode, const std::vector<QString>& ids) const override
+	{
+		return m_filterProvider->GetFlags(navigationMode, ids);
 	}
 
 private: // IProgressController::IObserver
@@ -513,11 +530,13 @@ private:
 		                          {
 									  const auto db = m_databaseUser->Database();
 									  const auto bookId = book->GetId().toLongLong();
-									  auto series = CreateDictionary(*db, SERIES_QUERY, bookId, &DatabaseUtil::CreateSeriesItem);
-									  auto authors = CreateDictionary(*db, AUTHORS_QUERY, bookId, &DatabaseUtil::CreateFullAuthorItem);
-									  auto genres = CreateDictionary(*db, GENRES_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
+									  auto series = CreateDictionary(*db, std::format(SERIES_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSeriesItem);
+									  auto authors = CreateDictionary(*db, std::format(AUTHORS_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateFullAuthorItem);
+									  auto genres = CreateDictionary(*db, std::format(GENRES_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSimpleListItem);
 									  auto groups = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
-									  auto keywords = CreateDictionary(*db, KEYWORDS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
+									  auto keywords = CreateDictionary(*db, std::format(KEYWORDS_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSimpleListItem);
+									  auto folder = CreateDictionary(*db, FOLDER_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
+									  auto update = CreateDictionary(*db, UPDATE_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
 
 									  ExportStatistics exportStatistics;
 									  {
@@ -536,6 +555,8 @@ private:
 			                                  groups = std::move(groups),
 			                                  keywords = std::move(keywords),
 			                                  exportStatistics = std::move(exportStatistics),
+			                                  folder = std::move(folder),
+			                                  update = std::move(update),
 			                                  reviews = CollectReviews(*db, bookId)](size_t) mutable
 									  {
 										  if (book->GetId() != m_currentBookId)
@@ -548,6 +569,8 @@ private:
 										  m_groups = std::move(groups);
 										  m_keywords = std::move(keywords);
 										  m_exportStatistics = std::move(exportStatistics);
+										  m_folder = std::move(folder);
+										  m_update = std::move(update);
 										  m_reviews = std::move(reviews);
 										  m_ready |= Ready::Database;
 
@@ -604,20 +627,20 @@ private:
 
 	static IDataItem::Ptr CreateBook(DB::IDatabase& db, const long long id)
 	{
-		const auto query = db.CreateQuery(QString(BOOK_QUERY).arg(QString(IDatabaseUser::BOOKS_QUERY_FIELDS).arg("b")).toStdString());
+		const auto query = db.CreateQuery(std::format(DatabaseUtil::BOOKS_QUERY, "", "", "from Books_View b", "where b.BookID = :id"));
 		query->Bind(":id", id);
 		query->Execute();
 		return query->Eof() ? NavigationItem::Create() : DatabaseUtil::CreateBookItem(*query);
 	}
 
-	static IDataItem::Ptr CreateDictionary(DB::IDatabase& db, const char* queryText, const long long id, const Extractor extractor)
+	static IDataItem::Ptr CreateDictionary(DB::IDatabase& db, const std::string_view queryText, const long long id, const Extractor extractor)
 	{
 		auto root = NavigationItem::Create();
 		const auto query = db.CreateQuery(queryText);
 		query->Bind(":id", id);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
-			auto child = extractor(*query, QUERY_INDEX_SIMPLE_LIST_ITEM, 0);
+			auto child = extractor(*query);
 			child->Reduce();
 			root->AppendChild(std::move(child));
 		}
@@ -640,6 +663,7 @@ private:
 	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
 	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
+	std::shared_ptr<const IFilterProvider> m_filterProvider;
 
 	std::vector<std::pair<IJokeRequesterFactory::Implementation, PropagateConstPtr<IJokeRequester, std::shared_ptr>>> m_jokeRequesters;
 	PropagateConstPtr<Util::IExecutor> m_executor;
@@ -659,6 +683,8 @@ private:
 	IDataItem::Ptr m_genres;
 	IDataItem::Ptr m_groups;
 	IDataItem::Ptr m_keywords;
+	IDataItem::Ptr m_folder;
+	IDataItem::Ptr m_update;
 
 	ExportStatistics m_exportStatistics;
 	Reviews m_reviews;
@@ -675,8 +701,9 @@ private:
 AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory,
                                            std::shared_ptr<const ICollectionProvider> collectionProvider,
                                            std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
-                                           std::shared_ptr<const IDatabaseUser> databaseUser)
-	: m_impl(logicFactory, std::move(collectionProvider), std::move(jokeRequesterFactory), std::move(databaseUser))
+                                           std::shared_ptr<const IDatabaseUser> databaseUser,
+                                           std::shared_ptr<const IFilterProvider> filterProvider)
+	: m_impl(logicFactory, std::move(collectionProvider), std::move(jokeRequesterFactory), std::move(databaseUser), std::move(filterProvider))
 {
 	PLOGV << "AnnotationController created";
 }

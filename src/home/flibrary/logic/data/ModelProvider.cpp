@@ -9,6 +9,8 @@
 
 #include "model/AuthorReviewModel.h"
 #include "model/AuthorsModel.h"
+#include "model/FilterListModel.h"
+#include "model/FilterTreeModel.h"
 #include "model/FilteredProxyModel.h"
 #include "model/ListModel.h"
 #include "model/ReviewListModel.h"
@@ -150,6 +152,20 @@ std::shared_ptr<QAbstractItemModel> ModelProvider::CreateScriptCommandModel() co
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateAuthorReviewModel() const
 {
 	return m_impl->container.resolve<AuthorReviewModel>();
+}
+
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateFilterListModel(IDataItem::Ptr data) const
+{
+	m_impl->data = std::move(data);
+	m_impl->sourceModel = m_impl->container.resolve<FilterListModel>();
+	return m_impl->CreateSortFilterProxyModel(false);
+}
+
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateFilterTreeModel(IDataItem::Ptr data) const
+{
+	m_impl->data = std::move(data);
+	m_impl->sourceModel = m_impl->container.resolve<FilterTreeModel>();
+	return m_impl->CreateSortFilterProxyModel(false);
 }
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const

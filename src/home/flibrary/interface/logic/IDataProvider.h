@@ -38,9 +38,17 @@ public:
 	virtual BookInfo GetBookInfo(long long id) const = 0;
 };
 
-class IDataProvider
+class IAbstractDataProvider
 	: public INavigationInfoProvider
 	, public IBookInfoProvider
+{
+};
+
+class IDataProvider : public IAbstractDataProvider
+{
+};
+
+class IFilterDataProvider : public INavigationInfoProvider
 {
 };
 

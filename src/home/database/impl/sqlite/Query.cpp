@@ -43,6 +43,12 @@ private: // Query
 		++m_it;
 	}
 
+	void Reset() override
+	{
+		m_it = m_query.end();
+		m_query.reset();
+	}
+
 	size_t ColumnCount() const override
 	{
 		assert(m_query.column_count() >= 0);
