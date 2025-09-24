@@ -104,8 +104,8 @@ int main(int argc, char* argv[])
 				}
 
 				case IDatabaseMigrator::NeedMigrateResult::Unexpected:
-					container->resolve<IUiFactory>()->ShowWarning(Tr(WRONG_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::No);
-					return EXIT_FAILURE;
+					if (container->resolve<IUiFactory>()->ShowWarning(Tr(WRONG_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::No) == QMessageBox::No)
+						return EXIT_FAILURE;
 			}
 
 			container->resolve<ITaskQueue>()->Execute();
