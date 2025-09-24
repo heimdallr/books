@@ -2,8 +2,6 @@
 
 #include "FilterSettingsDialog.h"
 
-#include <ranges>
-
 #include <QMenu>
 #include <QSortFilterProxyModel>
 #include <QTimer>
@@ -175,9 +173,8 @@ private:
 	{
 		std::vector<NavigationMode> indexToMode;
 
-		std::ranges::transform(std::views::iota(size_t { 0 }, static_cast<size_t>(NavigationMode::Last))
-		                           | std::views::transform([](const auto index) { return IFilterController::GetFilteredNavigationDescription(static_cast<NavigationMode>(index)); })
-		                           | std::views::filter([](const auto& description) { return !!description.table; }),
+		auto range = IFilterProvider::GetDescriptions();
+		std::ranges::transform(range,
 		                       std::back_inserter(indexToMode),
 		                       [this](const auto& description)
 		                       {

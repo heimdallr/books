@@ -1,12 +1,14 @@
 #pragma once
 
-#include "fnd/observer.h"
+#include <ranges>
 
-#include "interface/logic/IModelProvider.h"
-#include "interface/constants/Enums.h"
+#include "fnd/observer.h"
 
 #include "database/interface/ICommand.h"
 #include "database/interface/IQuery.h"
+
+#include "interface/constants/Enums.h"
+#include "interface/logic/IModelProvider.h"
 
 #include "export/flint.h"
 
@@ -45,6 +47,13 @@ public:
 
 public:
 	FLINT_EXPORT static const FilteredNavigation& GetFilteredNavigationDescription(NavigationMode navigationMode);
+
+	static constexpr auto GetDescriptions()
+	{
+		return std::views::iota(size_t { 0 }, static_cast<size_t>(NavigationMode::Last))
+		     | std::views::transform([](const auto index) { return GetFilteredNavigationDescription(static_cast<NavigationMode>(index)); })
+		     | std::views::filter([](const auto& description) { return !!description.table; });
+	}
 
 public:
 	virtual ~IFilterProvider() = default;
