@@ -1,5 +1,6 @@
 #include "Dialog.h"
 
+#include <QApplication>
 #include <QInputDialog>
 #include <QTimer>
 
@@ -32,7 +33,7 @@ Dialog::Show(const QMessageBox::Icon icon, const QString& title, const QString& 
 {
 	auto* parent = m_parentProvider->GetWidget();
 	QMessageBox msgBox(parent);
-	msgBox.setFont(parent->font());
+	msgBox.setFont(parent ? parent->font() : QApplication::font());
 	msgBox.setIcon(icon);
 	msgBox.setWindowTitle(title);
 	msgBox.setTextFormat(Qt::RichText);

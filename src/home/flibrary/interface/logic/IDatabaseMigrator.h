@@ -8,6 +8,13 @@ namespace HomeCompa::Flibrary
 class IDatabaseMigrator // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
+	enum class NeedMigrateResult
+	{
+		Actual,
+		NeedMigrate,
+		Unexpected,
+	};
+public:
 	class IObserver : public Observer
 	{
 	public:
@@ -16,7 +23,7 @@ public:
 
 public:
 	virtual ~IDatabaseMigrator() = default;
-	virtual bool NeedMigrate() const = 0;
+	virtual NeedMigrateResult NeedMigrate() const = 0;
 	virtual void Migrate() = 0;
 
 	virtual void RegisterObserver(IObserver* observer) = 0;

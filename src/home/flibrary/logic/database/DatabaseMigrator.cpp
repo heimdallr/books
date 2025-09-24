@@ -37,9 +37,16 @@ DatabaseMigrator::~DatabaseMigrator()
 	PLOGV << "DatabaseMigrator destroyed";
 }
 
-bool DatabaseMigrator::NeedMigrate() const
+IDatabaseMigrator::NeedMigrateResult DatabaseMigrator::NeedMigrate() const
 {
-	return m_impl->collectionProvider->ActiveCollectionExists() && m_impl->databaseUser->GetSetting(IDatabaseUser::Key::DatabaseVersion).toInt() != Constant::FlibraryDatabaseVersionNumber;
+	if (!m_impl->collectionProvider->ActiveCollectionExists())
+		return NeedMigrateResult::Actual;
+
+	const auto dbVersion = m_impl->databaseUser->GetSetting(IDatabaseUser::Key::DatabaseVersion).toInt();
+
+	return dbVersion == Constant::FlibraryDatabaseVersionNumber ? NeedMigrateResult::Actual
+	     : dbVersion < Constant::FlibraryDatabaseVersionNumber  ? NeedMigrateResult::NeedMigrate
+	                                                            : (assert(dbVersion > Constant::FlibraryDatabaseVersionNumber && "unexpected result"), NeedMigrateResult::Unexpected);
 }
 
 void DatabaseMigrator::Migrate()
