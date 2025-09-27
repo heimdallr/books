@@ -38,50 +38,39 @@ constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[] {
     {      BookQueryFields::LibID,      BookItem::Column::LibID },
 };
 
+void UpdateItem(IDataItem& item, const DB::IQuery& query, const std::initializer_list<const size_t>& index, const size_t removedIndex, const size_t flagsIndex)
+{
+	item.SetId(query.Get<const char*>(0));
+	for (int column = 0; const auto i : index)
+		item.SetData(query.Get<const char*>(i), column++);
+
+	if (query.ColumnCount() > removedIndex)
+		item.SetRemoved(query.Get<int>(removedIndex));
+
+	if (query.ColumnCount() > flagsIndex)
+		item.SetFlags(static_cast<IDataItem::Flags>(query.Get<int>(flagsIndex)));
+}
+
 }
 
 IDataItem::Ptr CreateSimpleListItem(const DB::IQuery& query)
 {
 	auto item = IDataItem::Ptr(NavigationItem::Create());
-
-	item->SetId(query.Get<const char*>(0));
-	item->SetData(query.Get<const char*>(1));
-
-	if (query.ColumnCount() > 2)
-		item->SetRemoved(query.Get<int>(2));
-
-	if (query.ColumnCount() > 3)
-		item->SetFlags(static_cast<IDataItem::Flags>(query.Get<int>(3)));
-
+	UpdateItem(*item, query, { 1 }, 2, 3);
 	return item;
 }
 
 IDataItem::Ptr CreateSeriesItem(const DB::IQuery& query)
 {
 	auto item = IDataItem::Ptr(SeriesItem::Create());
-
-	item->SetId(query.Get<const char*>(0));
-	item->SetData(query.Get<const char*>(1), SeriesItem::Column::Title);
-	item->SetData(query.Get<const char*>(2), SeriesItem::Column::SeqNum);
-
-	if (query.ColumnCount() > 3)
-		item->SetRemoved(query.Get<int>(3));
-
-	if (query.ColumnCount() > 4)
-		item->SetFlags(static_cast<IDataItem::Flags>(query.Get<int>(4)));
-
+	UpdateItem(*item, query, { 1, 2 }, 3, 4);
 	return item;
 }
 
 IDataItem::Ptr CreateGenreItem(const DB::IQuery& query)
 {
 	auto item = IDataItem::Ptr(GenreItem::Create());
-
-	item->SetId(query.Get<const char*>(0));
-	if (query.ColumnCount() > 3)
-		item->SetRemoved(query.Get<int>(3));
-	if (query.ColumnCount() > 4)
-		item->SetFlags(static_cast<IDataItem::Flags>(query.Get<int>(4)));
+	UpdateItem(*item, query, {}, 3, 4);
 
 	const auto* fbCode = query.Get<const char*>(2);
 	const auto translated = Loc::Tr(GENRE, fbCode);
@@ -97,12 +86,7 @@ IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query)
 	static const auto languages = GetLanguagesMap();
 
 	auto item = IDataItem::Ptr(NavigationItem::Create());
-
-	item->SetId(query.Get<const char*>(0));
-	if (query.ColumnCount() > 1)
-		item->SetRemoved(query.Get<int>(1));
-	if (query.ColumnCount() > 2)
-		item->SetFlags(static_cast<IDataItem::Flags>(query.Get<int>(2)));
+	UpdateItem(*item, query, {}, 1, 2);
 
 	const auto it = languages.find(item->GetId());
 
@@ -114,17 +98,7 @@ IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query)
 IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery& query)
 {
 	auto item = AuthorItem::Create();
-
-	item->SetId(QString::number(query.Get<long long>(0)));
-	item->SetData(query.Get<const char*>(1), AuthorItem::Column::Name);
-	item->SetData(query.Get<const char*>(1), AuthorItem::Column::LastName);
-	item->SetData(query.Get<const char*>(2), AuthorItem::Column::FirstName);
-	item->SetData(query.Get<const char*>(3), AuthorItem::Column::MiddleName);
-	if (query.ColumnCount() > 4)
-		item->SetRemoved(query.Get<int>(4));
-	if (query.ColumnCount() > 5)
-		item->SetFlags(static_cast<IDataItem::Flags>(query.Get<int>(5)));
-
+	UpdateItem(*item, query, { 1, 1, 2, 3 }, 4, 5);
 	return item;
 }
 

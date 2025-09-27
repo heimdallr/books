@@ -91,7 +91,20 @@ void Add(UniqueIdList<KeyType>& uniqueIdList, KeyType&& key, const int order)
 
 class BooksTreeGenerator::Impl final : virtual IBookSelector
 {
-	using SelectedBookItem = std::tuple<IDataItem::Ptr, std::optional<long long>, UniqueIdList<long long>, UniqueIdList<QString>>;
+	struct SelectedSeriesItem
+	{
+		long long id;
+		int seqNum;
+		int ordNum;
+	};
+
+	struct SelectedBookItem
+	{
+		IDataItem::Ptr book;
+		std::optional<SelectedSeriesItem> series;
+		UniqueIdList<long long> authors;
+		UniqueIdList<QString> genres;
+	};
 
 public:
 	mutable IDataItem::Ptr rootCached;
@@ -124,7 +137,7 @@ public:
 	{
 		IDataItem::Items items;
 		items.reserve(std::size(m_books));
-		std::ranges::transform(m_books | std::views::values, std::back_inserter(items), [](const auto& item) { return std::get<0>(item); });
+		std::ranges::transform(m_books | std::views::values, std::back_inserter(items), [](const auto& item) { return item.book; });
 
 		rootCached = CreateBooksRoot();
 		rootCached->SetChildren(std::move(items));
@@ -149,7 +162,7 @@ public:
 				continue;
 			}
 
-			const auto it = m_series.find(*seriesId);
+			const auto it = m_series.find(seriesId->id);
 			assert(it != m_series.end());
 			it->second->AppendChild(book);
 		}
@@ -161,7 +174,7 @@ public:
 	{
 		std::unordered_map<IdsSet, IdsSet, UnorderedSetHash<long long>> authorToBooks;
 		for (const auto& [id, book] : m_books)
-			authorToBooks[std::get<2>(book).first].insert(id);
+			authorToBooks[book.authors.first].insert(id);
 
 		rootCached = CreateBooksRoot();
 		for (const auto& [authorIds, bookIds] : authorToBooks)
@@ -201,9 +214,9 @@ public:
 		std::unordered_map<IdsSet, std::pair<SeriesToBooks, IdsSet>, UnorderedSetHash<long long>> authorToBooks;
 		for (const auto& [id, book] : m_books)
 		{
-			auto& [series, books] = authorToBooks[std::get<2>(book).first];
-			const auto& seriesId = std::get<1>(book);
-			auto& bookIds = seriesId ? series[*seriesId] : books;
+			auto& [series, books] = authorToBooks[book.authors.first];
+			const auto& seriesId = book.series;
+			auto& bookIds = seriesId ? series[seriesId->id] : books;
 			bookIds.insert(id);
 		}
 
@@ -303,7 +316,7 @@ private: // IBookSelector
 									assert(it != m_reviews.end());
 
 									auto& reviewItem = it->second;
-									const auto& bookItem = reviewItem->AppendChild(std::get<0>(selectedItem));
+									const auto& bookItem = reviewItem->AppendChild(selectedItem.book);
 									reviewItem->SetId(bookItem->GetId());
 								});
 	}
@@ -345,8 +358,8 @@ private:
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto& book = m_books[query->Get<long long>(BookQueryFields::BookId)];
-				if (!std::get<0>(book))
-					std::get<0>(book) = DatabaseUtil::CreateBookItem(*query);
+				if (!book.book)
+					book.book = DatabaseUtil::CreateBookItem(*query);
 				additional(*query, book);
 			}
 		}
@@ -366,7 +379,7 @@ private:
 
 		{
 			static constexpr auto queryText = R"({}
-select s.SeriesID, s.SeriesTitle, s.IsDeleted, s.Flags, l.BookID, l.OrdNum
+select s.SeriesID, s.SeriesTitle, s.IsDeleted, s.Flags, l.BookID, coalesce(l.SeqNumber, -1), l.OrdNum
 {}
 join Series_List l on l.BookID = b.BookID
 join Series s on s.SeriesID = l.SeriesID
@@ -381,11 +394,16 @@ join Series s on s.SeriesID = l.SeriesID
 					item = DatabaseUtil::CreateSimpleListItem(*query);
 
 				auto& book = m_books[query->Get<long long>(4)];
-				assert(std::get<0>(book));
-				std::get<1>(book).emplace(id);
-				addFlag(*std::get<0>(book), item->GetFlags());
-				if (!IsFiltered(*item) && std::get<0>(book)->GetData(BookItem::Column::Series).isEmpty())
-					std::get<0>(book)->SetData(item->GetData(DataItem::Column::Title), BookItem::Column::Series);
+				assert(book.book);
+				addFlag(*book.book, item->GetFlags());
+
+				if (IsFiltered(*item))
+					continue;
+
+				const auto seqNum = query->Get<int>(5);
+				const auto ordNum = query->Get<int>(6);
+				if (!book.series || book.series->ordNum > ordNum)
+					book.series.emplace(id, seqNum, ordNum);
 			}
 		}
 
@@ -406,9 +424,9 @@ join Authors a on a.AuthorID = l.AuthorID
 					item = DatabaseUtil::CreateFullAuthorItem(*query);
 
 				auto& book = m_books[query->Get<long long>(6)];
-				assert(std::get<0>(book));
-				Add(std::get<2>(book), static_cast<long long&&>(id), query->Get<int>(7));
-				addFlag(*std::get<0>(book), item->GetFlags());
+				assert(book.book);
+				Add(book.authors, static_cast<long long&&>(id), query->Get<int>(7));
+				addFlag(*book.book, item->GetFlags());
 			}
 		}
 		{
@@ -428,9 +446,9 @@ join Genres g on g.GenreCode = l.GenreCode
 					item = DatabaseUtil::CreateGenreItem(*query);
 
 				auto& book = m_books[query->Get<long long>(5)];
-				assert(std::get<0>(book));
-				Add(std::get<3>(book), std::move(id), query->Get<int>(6));
-				addFlag(*std::get<0>(book), item->GetFlags());
+				assert(book.book);
+				Add(book.genres, std::move(id), query->Get<int>(6));
+				addFlag(*book.book, item->GetFlags());
 			}
 		}
 		{
@@ -445,8 +463,8 @@ join Keywords k on k.KeywordID = l.KeywordID
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto& book = m_books[query->Get<long long>(1)];
-				assert(std::get<0>(book));
-				addFlag(*std::get<0>(book), static_cast<IDataItem::Flags>(query->Get<int>(0)));
+				assert(book.book);
+				addFlag(*book.book, static_cast<IDataItem::Flags>(query->Get<int>(0)));
 			}
 		}
 
@@ -473,6 +491,11 @@ join Keywords k on k.KeywordID = l.KeywordID
 		{
 			book->SetData(std::size(authorIds.second) > 1 ? Join(m_authors, authorIds.second | std::views::values) : book->GetRawData(BookItem::Column::AuthorFull), BookItem::Column::Author);
 			book->SetData(Join(m_genres, genreIds.second | std::views::values), BookItem::Column::Genre);
+			if (!seriesId)
+				continue;
+
+			book->SetData(seriesId->seqNum > 0 ? QString::number(seriesId->seqNum) : QString {}, BookItem::Column::SeqNumber);
+			book->SetData(m_series.find(seriesId->id)->second->GetData(), BookItem::Column::Series);
 		}
 	}
 
@@ -485,7 +508,7 @@ join Keywords k on k.KeywordID = l.KeywordID
 		                       {
 								   const auto it = m_books.find(id);
 								   assert(it != m_books.end());
-								   return std::get<0>(it->second);
+								   return it->second.book;
 							   });
 		return books;
 	}
