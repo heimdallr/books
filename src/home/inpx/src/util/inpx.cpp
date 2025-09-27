@@ -133,6 +133,28 @@ private:
 	sqlite3pp::ext::function m_func;
 };
 
+template <typename R, typename S, typename T>
+R Try(const S& name, const T functor, const std::string_view file, const int line)
+{
+	try
+	{
+		PLOGV << name << " started";
+		auto result = functor();
+		PLOGV << name << " finished";
+		return std::forward<R>(result);
+	}
+	catch (const std::exception& ex)
+	{
+		PLOGE << std::format("{}, {}: {}", file, line, ex.what());
+	}
+	catch (...)
+	{
+		PLOGE << std::format("{}, {}: unknown error", file, line);
+	}
+
+	return R {};
+}
+
 auto LoadGenres(const Path& genresIniFileName)
 {
 	Genres genres;
@@ -348,19 +370,16 @@ InpxContent ExtractInpxFileNames(const Path& inpxFileName)
 void GetDecodedStream(const Zip& zip, const std::wstring& file, const std::function<void(QIODevice&)>& f)
 {
 	PLOGI << file;
-	try
-	{
-		const auto stream = zip.Read(QString::fromStdWString(file));
-		f(stream->GetStream());
-	}
-	catch (const std::exception& ex)
-	{
-		PLOGE << file << ": " << ex.what();
-	}
-	catch (...)
-	{
-		PLOGE << file << ": unknown error";
-	}
+	Try<int>(
+		"get decoded stream",
+		[&]
+		{
+			const auto stream = zip.Read(QString::fromStdWString(file));
+			f(stream->GetStream());
+			return 0;
+		},
+		__FILE__,
+		__LINE__);
 }
 
 bool ExecuteScript(const std::wstring& action, const Path& dbFileName, const Path& scriptFileName)
@@ -440,82 +459,63 @@ void WriteDatabaseVersion(const Path& dbFileName, const std::wstring& statement)
 	assert(rc == 0);
 }
 
-template <typename R, typename S, typename T>
-R Try(const S& name, const T functor)
-{
-	try
-	{
-		PLOGV << name << " started";
-		auto result = functor();
-		PLOGV << name << " finished";
-		return std::forward<R>(result);
-	}
-	catch (const std::exception& ex)
-	{
-		PLOGE << ex.what();
-	}
-	catch (...)
-	{
-		PLOGE << "Unknown error";
-	}
-
-	return R {};
-}
-
 template <typename Container, typename Functor>
 size_t StoreRange(const Path& dbFileName, std::string_view process, const std::string_view query, const Container& container, Functor&& f, const std::string_view queryAfter = {})
 {
-	return Try<size_t>(process,
-	                   [&]
-	                   {
-						   const auto rowsTotal = std::size(container);
-						   if (rowsTotal == 0)
-							   return rowsTotal;
+	return Try<size_t>(
+		process,
+		[&]
+		{
+			const auto rowsTotal = std::size(container);
+			if (rowsTotal == 0)
+				return rowsTotal;
 
-						   Util::Timer t(ToWide(std::format("store {0} {1}", process, rowsTotal)));
-						   size_t rowsInserted = 0;
+			Util::Timer t(ToWide(std::format("store {0} {1}", process, rowsTotal)));
+			size_t rowsInserted = 0;
 
-						   DatabaseWrapper db(dbFileName);
-						   sqlite3pp::transaction tr(db);
-						   sqlite3pp::command cmd(db, query.data());
+			DatabaseWrapper db(dbFileName);
+			sqlite3pp::transaction tr(db);
+			sqlite3pp::command cmd(db, query.data());
 
-						   const auto log = [rowsTotal, &rowsInserted] { PLOGD << std::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal); };
+			const auto log = [rowsTotal, &rowsInserted] { PLOGD << std::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal); };
 
-						   const auto result = std::accumulate(std::cbegin(container),
-		                                                       std::cend(container),
-		                                                       static_cast<size_t>(0),
-		                                                       [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log](const size_t init, const auto& value)
-		                                                       {
-																   const auto localResult = f(cmd, value) + cmd.reset();
+			const auto result = std::accumulate(std::cbegin(container),
+		                                        std::cend(container),
+		                                        static_cast<size_t>(0),
+		                                        [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log](const size_t init, const auto& value)
+		                                        {
+													const auto localResult = f(cmd, value) + cmd.reset();
 
-																   if (localResult == 0)
-																   {
-																	   if (++rowsInserted % LOG_INTERVAL == 0)
-																		   log();
-																   }
-																   else
-																   {
-																	   assert(false);
-																	   PLOGE << db->error_code() << ": " << db->error_msg();
-																   }
+													if (localResult == 0)
+													{
+														if (++rowsInserted % LOG_INTERVAL == 0)
+															log();
+													}
+													else
+													{
+														assert(false);
+														PLOGE << db->error_code() << ": " << db->error_msg();
+													}
 
-																   return init + static_cast<size_t>(localResult);
-															   });
+													return init + static_cast<size_t>(localResult);
+												});
 
-						   log();
-						   if (rowsTotal != rowsInserted)
-							   PLOGE << rowsTotal - rowsInserted << " rows lost";
+			log();
+			if (rowsTotal != rowsInserted)
+				PLOGE << rowsTotal - rowsInserted << " rows lost";
 
-						   if (!queryAfter.empty())
-							   sqlite3pp::command(db, queryAfter.data()).execute();
+			if (!queryAfter.empty())
+				sqlite3pp::command(db, queryAfter.data()).execute();
 
-						   {
-							   Util::Timer tc(L"commit");
-							   tr.commit();
-						   }
+			{
+				Util::Timer tc(L"commit");
+				tr.commit();
+			}
 
-						   return result;
-					   });
+			return result;
+		},
+		__FILE__,
+		__LINE__);
 }
 
 size_t Store(const Path& dbFileName, Data& data)
@@ -1071,21 +1071,19 @@ public:
 		(*m_executor)({ "Create collection",
 		                [&]
 		                {
-							std::string error;
-							try
-							{
-								ProcessImpl();
-							}
-							catch (const std::exception& ex)
-							{
-								PLOGE << (error = ex.what());
-							}
-							catch (...)
-							{
-								PLOGE << (error = "Unknown error");
-							}
+							const auto ok = Try<bool>(
+								"create collection",
+								[&]
+								{
+									bool processed = false;
+									ProcessImpl(processed);
+									return processed;
+								},
+								__FILE__,
+								__LINE__);
+
 							const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [](const Genre& genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
-							return [this, genres, hasError = !error.empty()](size_t)
+							return [this, genres, hasError = !ok](size_t)
 							{ m_callback(UpdateResult { m_data.bookFolders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, false, hasError }); };
 						} });
 	}
@@ -1095,22 +1093,7 @@ public:
 		(*m_executor)({ "Update collection",
 		                [&]
 		                {
-							auto foldersCount = [&]() -> std::optional<size_t>
-							{
-								try
-								{
-									return UpdateDatabaseImpl();
-								}
-								catch (const std::exception& ex)
-								{
-									PLOGE << ex.what();
-								}
-								catch (...)
-								{
-									PLOGE << "Unknown error";
-								}
-								return std::nullopt;
-							}();
+							auto foldersCount = Try<std::optional<size_t>>("update collection", [this] { return UpdateDatabaseImpl(); }, __FILE__, __LINE__);
 							const auto genres = static_cast<size_t>(std::ranges::count_if(m_data.genres, [](const Genre& genre) { return genre.newGenre && !genre.dateGenre; })) - 1;
 							return [this, foldersCount, genres](size_t)
 							{
@@ -1145,28 +1128,31 @@ private: // IPool
 					m_foldersToParseCondition.notify_one();
 			}
 
-			Try<int>(QString("parsing %1").arg(QString::fromStdWString(folder)),
-			         [&]
-			         {
-						 const QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
-						 const auto archiveFileName = archiveFileInfo.filePath();
-						 const auto zip = Try<std::unique_ptr<Zip>>(QString("open %1").arg(archiveFileName), [&] { return std::make_unique<Zip>(archiveFileName); });
-						 if (!zip)
-							 return -1;
+			Try<int>(
+				QString("parsing %1").arg(QString::fromStdWString(folder)),
+				[&]
+				{
+					const QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
+					const auto archiveFileName = archiveFileInfo.filePath();
+					const auto zip = Try<std::unique_ptr<Zip>>(QString("open %1").arg(archiveFileName), [&] { return std::make_unique<Zip>(archiveFileName); }, __FILE__, __LINE__);
+					if (!zip)
+						return -1;
 
-						 const auto zipFileList = zip->GetFileNameList();
-						 for (size_t counter = 0; const auto& fileName : zipFileList)
-						 {
-							 ++counter;
-							 if (QFileInfo(fileName).suffix() != "fb2")
-								 continue;
+					const auto zipFileList = zip->GetFileNameList();
+					for (size_t counter = 0; const auto& fileName : zipFileList)
+					{
+						++counter;
+						if (QFileInfo(fileName).suffix() != "fb2")
+							continue;
 
-							 PLOGD << "parsing " << folder << "/" << fileName << "  " << counter << " (" << zipFileList.size() << ") " << 100 * counter / zipFileList.size() << "%";
-							 Try<bool>(QString("parse %1").arg(fileName), [&] { return ParseFile(folder, *zip, fileName, archiveFileInfo.birthTime()); });
-						 }
+						PLOGD << "parsing " << folder << "/" << fileName << "  " << counter << " (" << zipFileList.size() << ") " << 100 * counter / zipFileList.size() << "%";
+						Try<bool>(QString("parse %1").arg(fileName), [&] { return ParseFile(folder, *zip, fileName, archiveFileInfo.birthTime()); }, __FILE__, __LINE__);
+					}
 
-						 return 0;
-					 });
+					return 0;
+				},
+				__FILE__,
+				__LINE__);
 		}
 	}
 
@@ -1200,8 +1186,9 @@ private:
 		assert(std::size(m_langs) == std::size(LANGUAGES));
 	}
 
-	void ProcessImpl()
+	void ProcessImpl(bool& ok)
 	{
+		ok = false;
 		Util::Timer t(L"work");
 
 		const auto& dbFileName = m_ini(DB_PATH);
@@ -1210,11 +1197,12 @@ private:
 		WriteDatabaseVersion(dbFileName, m_ini(SET_DATABASE_VERSION_STATEMENT));
 
 		Parse();
-		if (const auto failsCount = Try<size_t>("store", [&] { return Store(dbFileName, m_data); }); failsCount != 0)
+		if (const auto failsCount = Try<size_t>("store", [&] { return Store(dbFileName, m_data); }, __FILE__, __LINE__); failsCount != 0)
 			PLOGE << "Something went wrong";
 
-		Try<bool>("update database", [&] { return ExecuteScript(L"update database", dbFileName, m_ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT)); });
-		Try<int>("analyze", [&] { return Analyze(dbFileName); });
+		Try<bool>("update database", [&] { return ExecuteScript(L"update database", dbFileName, m_ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT)); }, __FILE__, __LINE__);
+		Try<int>("analyze", [&] { return Analyze(dbFileName); }, __FILE__, __LINE__);
+		ok = true;
 	}
 
 	void SetUnknownGenreId()
@@ -1421,7 +1409,7 @@ private:
 					return std::unique_ptr<Zip> {};
 
 				const auto fileName = QString::fromStdWString(inpxFileName.generic_wstring());
-				return Try<std::unique_ptr<Zip>>(QString("open %1").arg(fileName), [&] { return std::make_unique<Zip>(fileName); });
+				return Try<std::unique_ptr<Zip>>(QString("open %1").arg(fileName), [&] { return std::make_unique<Zip>(fileName); }, __FILE__, __LINE__);
 			}();
 
 			if (zip)
@@ -1432,24 +1420,33 @@ private:
 
 		GetFieldList();
 
-		Try<int>("AddUnIndexedBooks",
-		         [this]
-		         {
-					 AddUnIndexedBooks();
-					 return 0;
-				 });
-		Try<int>("ScanUnIndexedFolders",
-		         [this]
-		         {
-					 ScanUnIndexedFolders();
-					 return 0;
-				 });
-		Try<int>("CollectReviews",
-		         [this]
-		         {
-					 CollectReviews();
-					 return 0;
-				 });
+		Try<int>(
+			"AddUnIndexedBooks",
+			[this]
+			{
+				AddUnIndexedBooks();
+				return 0;
+			},
+			__FILE__,
+			__LINE__);
+		Try<int>(
+			"ScanUnIndexedFolders",
+			[this]
+			{
+				ScanUnIndexedFolders();
+				return 0;
+			},
+			__FILE__,
+			__LINE__);
+		Try<int>(
+			"CollectReviews",
+			[this]
+			{
+				CollectReviews();
+				return 0;
+			},
+			__FILE__,
+			__LINE__);
 	}
 
 	void CollectReviews()
@@ -1462,7 +1459,7 @@ private:
 		for (const auto& entry : std::filesystem::directory_iterator(reviewsFolder))
 		{
 			auto fileName = QString::fromStdWString(entry.path());
-			const auto zip = Try<std::unique_ptr<Zip>>(QString("open %1").arg(fileName), [&] { return std::make_unique<Zip>(fileName); });
+			const auto zip = Try<std::unique_ptr<Zip>>(QString("open %1").arg(fileName), [&] { return std::make_unique<Zip>(fileName); }, __FILE__, __LINE__);
 			if (!zip)
 				continue;
 
@@ -1487,7 +1484,7 @@ private:
 
 			QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
 			const auto archiveFileName = archiveFileInfo.filePath();
-			const auto zip = Try<std::unique_ptr<Zip>>(QString("open %1").arg(archiveFileName), [&] { return std::make_unique<Zip>(archiveFileName); });
+			const auto zip = Try<std::unique_ptr<Zip>>(QString("open %1").arg(archiveFileName), [&] { return std::make_unique<Zip>(archiveFileName); }, __FILE__, __LINE__);
 			if (!zip)
 				continue;
 
@@ -1495,7 +1492,7 @@ private:
 			{
 				PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
 				const auto fileNameStr = QString::fromStdWString(fileName);
-				Try<bool>(QString("parse %1").arg(fileNameStr), [&] { return ParseFile(folder, *zip, fileNameStr, archiveFileInfo.birthTime()); });
+				Try<bool>(QString("parse %1").arg(fileNameStr), [&] { return ParseFile(folder, *zip, fileNameStr, archiveFileInfo.birthTime()); }, __FILE__, __LINE__);
 			}
 		}
 	}
@@ -1527,7 +1524,9 @@ private:
 										  }),
 			                      std::back_inserter(result));
 				return result;
-			});
+			},
+			__FILE__,
+			__LINE__);
 		std::ranges::for_each(std::move(folders), [this](auto&& item) { m_foldersToParse.push(std::forward<std::wstring>(item)); });
 
 		if (m_foldersToParse.empty())
@@ -1838,91 +1837,77 @@ Parser::~Parser() = default;
 
 void Parser::CreateNewCollection(IniMap data, const CreateCollectionMode mode, Callback callback)
 {
-	try
-	{
-		PLOGI << "Create collection mode: " << static_cast<int>(mode);
-		std::make_unique<Impl>(Ini(std::move(data)), mode, std::move(callback)).swap(m_impl);
-		m_impl->Process();
-	}
-	catch (const std::exception& ex)
-	{
-		PLOGE << ex.what();
-	}
-	catch (...)
-	{
-		PLOGE << "unknown error";
-	}
+	Try<int>(
+		"create collection",
+		[&]
+		{
+			PLOGI << "mode: " << static_cast<int>(mode);
+			std::make_unique<Impl>(Ini(std::move(data)), mode, std::move(callback)).swap(m_impl);
+			m_impl->Process();
+			return 0;
+		},
+		__FILE__,
+		__LINE__);
 }
 
 void Parser::UpdateCollection(IniMap data, const CreateCollectionMode mode, Callback callback)
 {
-	try
-	{
-		PLOGI << "Update collection mode: " << static_cast<int>(mode);
-		std::make_unique<Impl>(Ini(std::move(data)), mode, std::move(callback)).swap(m_impl);
-		m_impl->UpdateDatabase();
-	}
-	catch (const std::exception& ex)
-	{
-		PLOGE << ex.what();
-	}
-	catch (...)
-	{
-		PLOGE << "unknown error";
-	}
+	Try<int>(
+		"create collection",
+		[&]
+		{
+			PLOGI << "mode: " << static_cast<int>(mode);
+			std::make_unique<Impl>(Ini(std::move(data)), mode, std::move(callback)).swap(m_impl);
+			m_impl->UpdateDatabase();
+			return 0;
+		},
+		__FILE__,
+		__LINE__);
 }
 
 void Parser::FillInpx(const Path& collectionFolder, DB::ITransaction& transaction)
 {
-	try
-	{
-		const auto folders = GetInpxFolder(collectionFolder, true);
-
-		const auto command = transaction.CreateCommand("INSERT INTO Inpx (Folder, File, Hash) VALUES (?, ?, ?)");
-		for (const auto& [first, second] : folders)
+	Try<int>(
+		"fill inpx",
+		[&]
 		{
-			const auto folder = ToMultiByte(first.first);
-			const auto file = ToMultiByte(first.second);
-			command->Bind(0, folder);
-			command->Bind(1, file);
-			command->Bind(2, second);
-			command->Execute();
-		}
-	}
-	catch (const std::exception& ex)
-	{
-		PLOGE << ex.what();
-	}
-	catch (...)
-	{
-		PLOGE << "unknown error";
-	}
+			const auto folders = GetInpxFolder(collectionFolder, true);
+
+			const auto command = transaction.CreateCommand("INSERT INTO Inpx (Folder, File, Hash) VALUES (?, ?, ?)");
+			for (const auto& [first, second] : folders)
+			{
+				const auto folder = ToMultiByte(first.first);
+				const auto file = ToMultiByte(first.second);
+				command->Bind(0, folder);
+				command->Bind(1, file);
+				command->Bind(2, second);
+				command->Execute();
+			}
+
+			return 0;
+		},
+		__FILE__,
+		__LINE__);
 }
 
 bool Parser::CheckForUpdate(const Path& collectionFolder, DB::IDatabase& database)
 {
-	try
-	{
-		const auto inpxFolders = GetInpxFolder(collectionFolder, false);
+	return Try<int>(
+		"fill inpx",
+		[&]
+		{
+			const auto inpxFolders = GetInpxFolder(collectionFolder, false);
 
-		InpxFolders dbFolders;
-		const auto query = database.CreateQuery("select Folder, File, Hash from Inpx");
-		for (query->Execute(); !query->Eof(); query->Next())
-			dbFolders.try_emplace(std::make_pair(ToWide(query->Get<const char*>(0)), ToWide(query->Get<const char*>(1))), query->Get<const char*>(2));
+			InpxFolders dbFolders;
+			const auto query = database.CreateQuery("select Folder, File, Hash from Inpx");
+			for (query->Execute(); !query->Eof(); query->Next())
+				dbFolders.try_emplace(std::make_pair(ToWide(query->Get<const char*>(0)), ToWide(query->Get<const char*>(1))), query->Get<const char*>(2));
 
-		InpxFolders diff;
-		const auto proj = [](const auto& item) { return item.first; };
-		std::ranges::set_difference(inpxFolders, dbFolders, std::inserter(diff, diff.end()), {}, proj, proj);
-		return !diff.empty();
-	}
-	catch (const std::exception& ex)
-	{
-		PLOGE << ex.what();
-	}
-	catch (...)
-	{
-		PLOGE << "unknown error";
-	}
-
-	return false;
+			InpxFolders diff;
+			const auto proj = [](const auto& item) { return item.first; };
+			std::ranges::set_difference(inpxFolders, dbFolders, std::inserter(diff, diff.end()), {}, proj, proj);
+			return !diff.empty();
+		},
+		__FILE__,
+		__LINE__);
 }
