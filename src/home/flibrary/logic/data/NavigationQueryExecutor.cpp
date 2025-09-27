@@ -259,7 +259,7 @@ void RequestNavigationUpdates(NavigationMode navigationMode,
 															 {
 																 auto item = queryDescription.navigationExtractor(*query);
 																 const auto id = item->GetId().toLongLong();
-																 const auto parentIt = items.find(query->Get<long long>(3));
+																 const auto parentIt = items.find(query->Get<long long>(4));
 																 assert(parentIt != items.end());
 																 parentIt->second->AppendChild(items.try_emplace(id, std::move(item)).first->second);
 															 }
@@ -408,7 +408,7 @@ from PublishYears y)",
 
 	{     NavigationMode::Updates,
      { &RequestNavigationUpdates,
-     { "select UpdateID, UpdateTitle, IsDeleted, ParentId, 0 Flags from Updates order by ParentId",
+     { "select UpdateID, UpdateTitle, IsDeleted, 0 Flags, ParentId from Updates order by ParentId",
      &DatabaseUtil::CreateSimpleListItem,
      { .booksFrom = "from Books_View b", .booksWhere = "where b.UpdateID = %1", .navigationFrom = "from Books_View b", .navigationWhere = "where b.UpdateID = %1" },
      &IBooksListCreator::CreateGeneralList,
