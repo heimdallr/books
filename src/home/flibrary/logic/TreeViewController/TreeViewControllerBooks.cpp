@@ -109,7 +109,7 @@ std::vector<std::pair<const char*, int>> TreeViewControllerBooks::GetModeNames()
 	return result;
 }
 
-void TreeViewControllerBooks::SetCurrentId(const ItemType type, QString id)
+void TreeViewControllerBooks::SetCurrentId(const ItemType type, QString id, bool /*force*/)
 {
 	m_impl->annotationController->SetCurrentBookId(type == ItemType::Books ? std::move(id) : QString {});
 }

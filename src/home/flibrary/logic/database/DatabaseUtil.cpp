@@ -26,7 +26,6 @@ namespace
 
 constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[] {
 	{  BookQueryFields::BookTitle,      BookItem::Column::Title },
-    {  BookQueryFields::SeqNumber,  BookItem::Column::SeqNumber },
     { BookQueryFields::UpdateDate, BookItem::Column::UpdateDate },
 	{    BookQueryFields::LibRate,    BookItem::Column::LibRate },
     {       BookQueryFields::Lang,       BookItem::Column::Lang },

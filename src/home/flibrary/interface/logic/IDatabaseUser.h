@@ -48,7 +48,6 @@ struct BookQueryFields
 	{
 		BookId = 0,
 		BookTitle,
-		SeqNumber,
 		UpdateDate,
 		LibRate,
 		Lang,

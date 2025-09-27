@@ -489,12 +489,17 @@ private: // IFilterProvider::IObserver
 			return;
 
 		OnCountChanged();
-		m_controller->SetCurrentId(ItemType::Navigation, m_currentId);
+		m_controller->SetCurrentId(ItemType::Navigation, m_currentId, true);
 	}
 
 	void OnFilterNavigationChanged(const NavigationMode navigationMode) override
 	{
-		if (!IsNavigation() || m_controller->GetModeIndex() != static_cast<int>(navigationMode))
+		if (!IsNavigation())
+			return;
+
+		m_controller->SetCurrentId(ItemType::Navigation, m_currentId, true);
+
+		if (m_controller->GetModeIndex() != static_cast<int>(navigationMode))
 			return;
 
 		m_ui.treeView->model()->setData({}, {}, Role::UniFilterChanged);
@@ -504,7 +509,7 @@ private: // IFilterProvider::IObserver
 	void OnFilterBooksChanged() override
 	{
 		if (IsNavigation())
-			m_controller->SetCurrentId(ItemType::Navigation, m_currentId);
+			m_controller->SetCurrentId(ItemType::Navigation, m_currentId, true);
 	}
 
 private: //	ModeComboBox::IValueApplier

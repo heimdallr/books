@@ -55,8 +55,11 @@ public:
 		m_navigationMode = navigationMode;
 	}
 
-	void SetNavigationId(QString id)
+	void SetNavigationId(QString id, const bool force)
 	{
+		if (force)
+			m_booksGenerator.reset();
+
 		m_navigationId = std::move(id);
 		if (m_booksViewMode != ViewMode::Unknown)
 			m_booksTimer->start();
@@ -219,9 +222,9 @@ void DataProvider::SetNavigationMode(const NavigationMode navigationMode)
 	m_impl->SetNavigationMode(navigationMode);
 }
 
-void DataProvider::SetNavigationId(QString id)
+void DataProvider::SetNavigationId(QString id, const bool force)
 {
-	m_impl->SetNavigationId(std::move(id));
+	m_impl->SetNavigationId(std::move(id), force);
 }
 
 void DataProvider::SetBooksViewMode(const ViewMode viewMode)

@@ -24,7 +24,7 @@ public:
 class INavigationInfoProvider : virtual public IDataProviderDetails::IDataProvider
 {
 public:
-	virtual void SetNavigationId(QString id) = 0;
+	virtual void SetNavigationId(QString id, bool force = false) = 0;
 	virtual void SetNavigationMode(enum class NavigationMode navigationMode) = 0;
 	virtual void SetNavigationRequestCallback(Callback callback) = 0;
 	virtual void RequestNavigation(bool force = false) const = 0;

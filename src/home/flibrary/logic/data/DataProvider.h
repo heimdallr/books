@@ -33,7 +33,7 @@ public:
 	~DataProvider() override;
 
 private: // IDataProvider
-	void SetNavigationId(QString id) override;
+	void SetNavigationId(QString id, bool force) override;
 	void SetNavigationMode(NavigationMode navigationMode) override;
 	void SetNavigationRequestCallback(Callback callback) override;
 	void RequestNavigation(bool force) const override;
