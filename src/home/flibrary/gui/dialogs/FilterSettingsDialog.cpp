@@ -338,8 +338,17 @@ private:
 
 	void OnShowCheckedOnlyChangedImpl()
 	{
-		if (m_model)
-			m_model->setData({}, m_ui.checkBoxShowCheckedOnly->isChecked(), SortFilterProxyModel::Role::CheckedOnly);
+		if (!m_model)
+			return;
+
+		const auto id = [this]
+		{
+			const auto index = m_ui.view->currentIndex();
+			return index.isValid() ? index.data(Role::Id) : QVariant{};
+		}();
+		m_model->setData({}, m_ui.checkBoxShowCheckedOnly->isChecked(), SortFilterProxyModel::Role::CheckedOnly);
+		if (id.isValid())
+			FindImpl(id, Role::Id);
 	}
 
 	void Apply()
