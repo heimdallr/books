@@ -604,8 +604,8 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr& parent, co
 		AddMenuItem(parent, Tr(TREE_EXPAND), BooksMenuAction::Expand);
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::NodeExpanded))
 		AddMenuItem(parent, Tr(TREE_COLLAPSE), BooksMenuAction::Collapse);
-	if (const auto item = AddMenuItem(parent, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll);
-	    !(options & ITreeViewController::RequestContextMenuOptions::HasExpanded)) //-V821
+	if (const auto item = AddMenuItem(parent, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll); //-V821
+	    !(options & ITreeViewController::RequestContextMenuOptions::HasExpanded))
 		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
 	if (const auto item = AddMenuItem(parent, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_EXPAND_ALL), BooksMenuAction::ExpandAll); !(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed)) //-V821
 		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
