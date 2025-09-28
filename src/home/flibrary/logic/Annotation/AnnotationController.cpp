@@ -273,11 +273,11 @@ void SortReviews(IAnnotationController::IDataProvider::Reviews& reviews)
 }
 
 constexpr std::pair<const char*, void (*)(IAnnotationController::IDataProvider::Reviews&)> REVIEW_SORTERS[] {
-	{	  "TimeAsc",    &SortReviews<std::less<QDateTime>, TimeProj<IAnnotationController::IDataProvider::Review>> },
+	{		 "Time",    &SortReviews<std::less<QDateTime>, TimeProj<IAnnotationController::IDataProvider::Review>> },
 	{     "TimeDesc", &SortReviews<std::greater<QDateTime>, TimeProj<IAnnotationController::IDataProvider::Review>> },
-	{  "ReviewerAsc",      &SortReviews<std::less<QString>, NameProj<IAnnotationController::IDataProvider::Review>> },
+	{     "Reviewer",      &SortReviews<std::less<QString>, NameProj<IAnnotationController::IDataProvider::Review>> },
 	{ "ReviewerDesc",   &SortReviews<std::greater<QString>, NameProj<IAnnotationController::IDataProvider::Review>> },
-	{	  "TextAsc",      &SortReviews<std::less<QString>, TextProj<IAnnotationController::IDataProvider::Review>> },
+	{		 "Text",      &SortReviews<std::less<QString>, TextProj<IAnnotationController::IDataProvider::Review>> },
 	{     "TextDesc",   &SortReviews<std::greater<QString>, TextProj<IAnnotationController::IDataProvider::Review>> },
 };
 constexpr auto REVIEW_SORTER_DEFAULT = REVIEW_SORTERS[0].second;
@@ -666,7 +666,7 @@ private:
 			}
 		}
 
-		const auto reviewsSortMode = m_settings->Get("ui/View/AnnotationReviewSortMode", QString { "TimeAsc" }).toStdString();
+		const auto reviewsSortMode = m_settings->Get("ui/View/AnnotationReviewSortMode", QString { "Time" }).toStdString();
 		const auto invoker = FindSecond(REVIEW_SORTERS, reviewsSortMode.data(), REVIEW_SORTER_DEFAULT, PszComparer {});
 		std::invoke(invoker, std::ref(reviews));
 
