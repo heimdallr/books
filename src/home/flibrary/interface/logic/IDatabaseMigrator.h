@@ -14,6 +14,7 @@ public:
 		NeedMigrate,
 		Unexpected,
 	};
+
 public:
 	class IObserver : public Observer
 	{
@@ -30,4 +31,4 @@ public:
 	virtual void UnregisterObserver(IObserver* observer) = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary
