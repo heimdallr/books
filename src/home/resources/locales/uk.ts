@@ -912,6 +912,10 @@ Restart now?</source>
 		<translation>Налаштування фільтра</translation>
 	</message>
 	<message>
+		<source>Hide items whose books are all filtered</source>
+		<translation>Приховати елементи, усі книги яких відфільтровані</translation>
+	</message>
+	<message>
 		<source>Show checked only</source>
 		<translation>Показувати лише позначені</translation>
 	</message>

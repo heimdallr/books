@@ -45,6 +45,8 @@ struct Role
 		HeaderTitle,
 		Remap,
 		NavigationMode,
+		HideFiltered,
+		HideFilteredCallback,
 		Last
 	};
 };

@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fnd/ScopedCall.h"
 #include "fnd/algorithm.h"
 
 #include "interface/constants/ModelRole.h"
@@ -74,25 +75,71 @@ protected: // QAbstractItemModel
 	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
 	{
 		if (!index.isValid())
-			return role == Role::NavigationMode ? Util::Set(navigationMode, value.value<NavigationMode>()) : BaseType::setData(index, value, role);
+		{
+			switch (role)
+			{
+				case Role::NavigationMode:
+					return Util::Set(navigationMode, value.value<NavigationMode>());
+
+				case Role::HideFiltered:
+					return filterController->HideFiltered(navigationMode, this, value.value<IFilterController::ICallback*>()->Ptr()), true;
+
+				case Role::HideFilteredCallback:
+					return HideFilteredCallback(value);
+
+				default:
+					break;
+			}
+			return BaseType::setData(index, value, role);
+		}
 
 		auto item = this->GetInternalPointer(index);
-		if (role == Qt::CheckStateRole)
+		switch (role)
 		{
-			const auto checkState = value.value<Qt::CheckState>();
-			const auto flag = index.column() == 1 ? IDataItem::Flags::Filtered : index.column() == 2 ? IDataItem::Flags::BooksFiltered : IDataItem::Flags::None;
-			item->SetFlags(checkState == Qt::Checked ? item->GetFlags() | flag : item->GetFlags() & ~flag);
-			filterController->SetFlags(navigationMode, item->GetId(), item->GetFlags());
-			return true;
+			case Qt::CheckStateRole:
+			{
+				const auto checkState = value.value<Qt::CheckState>();
+				const auto flag = index.column() == 1 ? IDataItem::Flags::Filtered : index.column() == 2 ? IDataItem::Flags::BooksFiltered : IDataItem::Flags::None;
+				item->SetFlags(checkState == Qt::Checked ? item->GetFlags() | flag : item->GetFlags() & ~flag);
+				filterController->SetFlags(navigationMode, item->GetId(), item->GetFlags());
+				return true;
+			}
+
+			case Role::Flags:
+				if (BaseType::setData(index, value, role))
+					return filterController->SetFlags(navigationMode, item->GetId(), item->GetFlags()), true;
+				return false;
+
+			default:
+				break;
 		}
 
 		return BaseType::setData(index, value, role);
 	}
 
 protected:
+	virtual std::vector<IDataItem::Ptr> GetHideFilteredChanged(const std::unordered_set<QString>& ids) const = 0;
+
 	virtual QVariant IsChecked(const IDataItem& item, const IDataItem::Flags flags) const
 	{
 		return !!(item.GetFlags() & flags) ? Qt::CheckState::Checked : Qt::CheckState::Unchecked;
+	}
+
+private:
+	bool HideFilteredCallback(const QVariant& value)
+	{
+		const auto changed = GetHideFilteredChanged(value.value<std::unordered_set<QString>>());
+		if (changed.empty())
+			return false;
+
+		const ScopedCall resetGuard([&] { this->beginResetModel(); }, [&] { this->endResetModel(); });
+		for (auto& item : changed)
+		{
+			item->SetFlags(item->GetFlags() | IDataItem::Flags::Filtered);
+			filterController->SetFlags(navigationMode, item->GetId(), item->GetFlags());
+		}
+
+		return true;
 	}
 
 protected:
