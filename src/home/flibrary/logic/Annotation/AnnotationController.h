@@ -9,6 +9,8 @@
 #include "interface/logic/IFilterProvider.h"
 #include "interface/logic/ILogicFactory.h"
 
+#include "util/ISettings.h"
+
 namespace HomeCompa::Flibrary
 {
 
@@ -18,6 +20,7 @@ class AnnotationController final : virtual public IAnnotationController
 
 public:
 	AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory,
+	                     std::shared_ptr<const ISettings> settings,
 	                     std::shared_ptr<const ICollectionProvider> collectionProvider,
 	                     std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
 	                     std::shared_ptr<const IDatabaseUser> databaseUser,

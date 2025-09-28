@@ -41,7 +41,7 @@ namespace
 constexpr auto CONTEXT = "Annotation";
 constexpr auto KEYWORDS_FB2 = QT_TRANSLATE_NOOP("Annotation", "Keywords: %1");
 constexpr auto FILENAME = QT_TRANSLATE_NOOP("Annotation", "File:");
-constexpr auto SIZE = QT_TRANSLATE_NOOP("Annotation", "Size:");
+constexpr auto BOOK_SIZE = QT_TRANSLATE_NOOP("Annotation", "Size:");
 constexpr auto IMAGES = QT_TRANSLATE_NOOP("Annotation", "Images:");
 constexpr auto TRANSLATORS = QT_TRANSLATE_NOOP("Annotation", "Translators:");
 constexpr auto TEXT_SIZE = QT_TRANSLATE_NOOP("Annotation", "%L1 letters (%2%3 pages, %2%L4 words)");
@@ -239,6 +239,49 @@ private:
 	IClient& m_impl;
 };
 
+template <typename T>
+struct TimeProj
+{
+	constexpr QDateTime operator()(const T& obj) noexcept
+	{
+		return obj.time;
+	}
+};
+
+template <typename T>
+struct NameProj
+{
+	constexpr QString operator()(const T& obj) noexcept
+	{
+		return obj.name;
+	}
+};
+
+template <typename T>
+struct TextProj
+{
+	constexpr QString operator()(const T& obj) noexcept
+	{
+		return obj.text;
+	}
+};
+
+template <typename Comp, typename Proj>
+void SortReviews(IAnnotationController::IDataProvider::Reviews& reviews)
+{
+	std::ranges::sort(reviews, Comp {}, Proj {});
+}
+
+constexpr std::pair<const char*, void (*)(IAnnotationController::IDataProvider::Reviews&)> REVIEW_SORTERS[] {
+	{	  "TimeAsc",    &SortReviews<std::less<QDateTime>, TimeProj<IAnnotationController::IDataProvider::Review>> },
+	{     "TimeDesc", &SortReviews<std::greater<QDateTime>, TimeProj<IAnnotationController::IDataProvider::Review>> },
+	{  "ReviewerAsc",      &SortReviews<std::less<QString>, NameProj<IAnnotationController::IDataProvider::Review>> },
+	{ "ReviewerDesc",   &SortReviews<std::greater<QString>, NameProj<IAnnotationController::IDataProvider::Review>> },
+	{	  "TextAsc",      &SortReviews<std::less<QString>, TextProj<IAnnotationController::IDataProvider::Review>> },
+	{     "TextDesc",   &SortReviews<std::greater<QString>, TextProj<IAnnotationController::IDataProvider::Review>> },
+};
+constexpr auto REVIEW_SORTER_DEFAULT = REVIEW_SORTERS[0].second;
+
 } // namespace
 
 ENABLE_BITMASK_OPERATORS(Ready);
@@ -251,11 +294,13 @@ class AnnotationController::Impl final
 {
 public:
 	Impl(const std::shared_ptr<const ILogicFactory>& logicFactory,
+	     std::shared_ptr<const ISettings> settings,
 	     std::shared_ptr<const ICollectionProvider> collectionProvider,
 	     std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
 	     std::shared_ptr<const IDatabaseUser> databaseUser,
 	     std::shared_ptr<const IFilterProvider> filterProvider)
 		: m_logicFactory { logicFactory }
+		, m_settings { std::move(settings) }
 		, m_collectionProvider { std::move(collectionProvider) }
 		, m_jokeRequesterFactory { std::move(jokeRequesterFactory) }
 		, m_databaseUser { std::move(databaseUser) }
@@ -620,7 +665,10 @@ private:
 					review.name = Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS);
 			}
 		}
-		std::ranges::sort(reviews, {}, [](const auto& item) { return item.time; });
+
+		const auto reviewsSortMode = m_settings->Get("ui/View/AnnotationReviewSortMode", QString { "TimeAsc" }).toStdString();
+		const auto invoker = FindSecond(REVIEW_SORTERS, reviewsSortMode.data(), REVIEW_SORTER_DEFAULT, PszComparer {});
+		std::invoke(invoker, std::ref(reviews));
 
 		return reviews;
 	}
@@ -660,6 +708,7 @@ private:
 
 private:
 	std::weak_ptr<const ILogicFactory> m_logicFactory;
+	std::shared_ptr<const ISettings> m_settings;
 	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
 	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
@@ -699,11 +748,12 @@ private:
 };
 
 AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory,
+                                           std::shared_ptr<const ISettings> settings,
                                            std::shared_ptr<const ICollectionProvider> collectionProvider,
                                            std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
                                            std::shared_ptr<const IDatabaseUser> databaseUser,
                                            std::shared_ptr<const IFilterProvider> filterProvider)
-	: m_impl(logicFactory, std::move(collectionProvider), std::move(jokeRequesterFactory), std::move(databaseUser), std::move(filterProvider))
+	: m_impl(logicFactory, std::move(settings), std::move(collectionProvider), std::move(jokeRequesterFactory), std::move(databaseUser), std::move(filterProvider))
 {
 	PLOGV << "AnnotationController created";
 }
@@ -750,7 +800,7 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 	{
 		auto info = Table(strategy).Add(FILENAME, book.GetRawData(BookItem::Column::FileName));
 		if (dataProvider.GetTextSize() > 0)
-			info.Add(SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))).arg(Round(dataProvider.GetWordCount(), -3)));
+			info.Add(BOOK_SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))).arg(Round(dataProvider.GetWordCount(), -3)));
 		info.Add(Loc::RATE, strategy.GenerateStars(book.GetRawData(BookItem::Column::LibRate).toInt()));
 		info.Add(Loc::USER_RATE, strategy.GenerateStars(book.GetRawData(BookItem::Column::UserRate).toInt()));
 
