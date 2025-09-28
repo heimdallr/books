@@ -333,18 +333,22 @@ struct InpxContent
 	std::vector<std::wstring> inpx;
 };
 
-InpxContent ExtractInpxFileNames(const Path& inpxFileName)
+InpxContent ExtractInpxFileNames(const Path& inpxPath)
 {
-	if (!exists(inpxFileName))
+	if (!exists(inpxPath))
 	{
-		PLOGW << QString::fromStdWString(inpxFileName) << " not found";
+		PLOGW << QString::fromStdWString(inpxPath) << " not found";
 		return {};
 	}
 
 	InpxContent inpxContent;
 
-	const Zip zip(QString::fromStdWString(inpxFileName.generic_wstring()));
-	for (const auto& fileName : zip.GetFileNameList())
+	const auto inpxFileName = QString::fromStdWString(inpxPath);
+	const auto zip = Try<std::unique_ptr<Zip>>(QString("open %1").arg(inpxFileName), [&] { return std::make_unique<Zip>(inpxFileName); }, __FILE__, __LINE__);
+	if (!zip)
+		return inpxContent;
+
+	for (const auto& fileName : zip->GetFileNameList())
 	{
 		auto folder = ToWide(fileName.toStdString());
 
@@ -358,11 +362,7 @@ InpxContent ExtractInpxFileNames(const Path& inpxFileName)
 			PLOGI << folder << L" skipped";
 	}
 
-	PLOGD << QString("%1 content: connection info: %2, version info: %3, inp: %4")
-				 .arg(QString::fromStdWString(inpxFileName.generic_wstring()))
-				 .arg(inpxContent.collectionInfo.size())
-				 .arg(inpxContent.versionInfo.size())
-				 .arg(inpxContent.inpx.size());
+	PLOGD << QString("%1 content: connection info: %2, version info: %3, inp: %4").arg(inpxFileName).arg(inpxContent.collectionInfo.size()).arg(inpxContent.versionInfo.size()).arg(inpxContent.inpx.size());
 
 	return inpxContent;
 }
@@ -854,28 +854,31 @@ InpxFolders GetInpxFolder(const Path& inpxFolder, const bool needHashes)
 	InpxFolders folders;
 	for (const auto& inpxFileNameEntry : GetInpxFilesInFolder(inpxFolder))
 	{
-		const auto& inpxFileName = inpxFileNameEntry.path();
-		PLOGV << "check " << inpxFileName.string() << " started";
+		const auto inpxFileName = QString::fromStdWString(inpxFileNameEntry.path());
+		PLOGV << "check " << inpxFileName << " started";
 
-		Zip zip(QString::fromStdWString(inpxFileName));
-		for (const auto& fileName : zip.GetFileNameList())
+		const auto zip = Try<std::unique_ptr<Zip>>(QString("open %1").arg(inpxFileName), [&] { return std::make_unique<Zip>(inpxFileName); }, __FILE__, __LINE__);
+		if (!zip)
+			continue;
+
+		for (const auto& fileName : zip->GetFileNameList())
 		{
 			if (QFileInfo(fileName).suffix() != "inp")
 				continue;
 
 			auto hash = needHashes ? [&]
 			{
-				const auto bytes = zip.Read(fileName)->GetStream().readAll();
+				const auto bytes = zip->Read(fileName)->GetStream().readAll();
 				QCryptographicHash engine(QCryptographicHash::Md5);
 				engine.addData(bytes);
 				return QString::fromUtf8(engine.result().toHex()).toUpper().toStdString();
 			}()
 			                       : std::string {};
 
-			folders.try_emplace(std::make_pair(inpxFileName.filename().wstring(), fileName.toStdWString()), std::move(hash));
+			folders.try_emplace(std::make_pair(inpxFileNameEntry.path().filename().wstring(), fileName.toStdWString()), std::move(hash));
 		}
 
-		PLOGV << "check " << inpxFileName.string() << " finished";
+		PLOGV << "check " << inpxFileName << " finished";
 	}
 	return folders;
 }
@@ -1357,13 +1360,17 @@ private:
 		const auto newInpxFolders = GetNewInpxFolders();
 		for (const auto& inpxFileNameEntry : GetInpxFilesInFolder(m_ini(INPX_FOLDER)))
 		{
-			const auto& inpxFileName = inpxFileNameEntry.path();
-			const auto it = newInpxFolders.find(inpxFileName.filename());
+			const auto& inpxPath = inpxFileNameEntry.path();
+			const auto it = newInpxFolders.find(inpxPath.filename());
 			if (it == newInpxFolders.end())
 				continue;
 
-			const Zip zip(QString::fromStdWString(inpxFileName));
-			ParseInpxFiles(inpxFileName, &zip, it->second);
+			const auto inpxFileName = QString::fromStdWString(inpxPath);
+			const auto zip = Try<std::unique_ptr<Zip>>(QString("open %1").arg(inpxFileName), [&] { return std::make_unique<Zip>(inpxFileName); }, __FILE__, __LINE__);
+			if (!zip)
+				continue;
+
+			ParseInpxFiles(inpxPath, zip.get(), it->second);
 			result += it->second.size();
 		}
 
