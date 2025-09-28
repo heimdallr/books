@@ -912,6 +912,10 @@ Restart now?</source>
 		<translation>Настройки фильтра</translation>
 	</message>
 	<message>
+		<source>Hide items whose books are all filtered</source>
+		<translation>Скрыть элементы, все книги которых отфильтрованы</translation>
+	</message>
+	<message>
 		<source>Show checked only</source>
 		<translation>Показывать только помеченные</translation>
 	</message>

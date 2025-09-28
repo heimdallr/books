@@ -25,6 +25,10 @@ using namespace HomeCompa;
 namespace
 {
 
+constexpr auto CONTEXT = "FilterSettingsDialog";
+constexpr auto HIDE_NAVIGATION_WITH_ALL_BOOKS_FILTERED = QT_TRANSLATE_NOOP("FilterSettingsDialog", "Hide items whose books are all filtered");
+TR_DEF
+
 constexpr auto FIELD_WIDTH_KEY = "ui/View/UniFilter/columnWidths";
 constexpr auto RECENT_TAB_KEY = "ui/View/UniFilter/recentTab";
 constexpr auto RECENT_VALUE_MODE_KEY = "ui/View/UniFilter/valueMode";
@@ -336,7 +340,7 @@ private:
 		menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::UNCHECK_ALL), [this] { OnCheckActionTriggered([](IDataItem::Flags& dst, const IDataItem::Flags src) { dst &= ~src; }); });
 		menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::INVERT_CHECK), [this] { OnCheckActionTriggered([](IDataItem::Flags& dst, const IDataItem::Flags src) { dst ^= src; }); });
 		if (m_sectionClicked == 1)
-			if (auto* action = menu.addAction(tr("Hide items with all books are filtered"), [this] { m_model->setData({}, QVariant::fromValue<ICallback*>(this), Role::HideFiltered); }); m_hideFilteredStarted)
+			if (auto* action = menu.addAction(Tr(HIDE_NAVIGATION_WITH_ALL_BOOKS_FILTERED), [this] { m_model->setData({}, QVariant::fromValue<ICallback*>(this), Role::HideFiltered); }); m_hideFilteredStarted)
 				action->setEnabled(false);
 
 		menu.exec(QCursor::pos());

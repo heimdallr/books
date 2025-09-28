@@ -902,6 +902,10 @@ Restart now?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>Hide items whose books are all filtered</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>Show checked only</source>
 		<translation></translation>
 	</message>
