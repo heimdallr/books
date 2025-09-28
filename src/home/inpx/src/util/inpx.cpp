@@ -1471,7 +1471,7 @@ private:
 				continue;
 
 			for (const auto& file : zip->GetFileNameList())
-				m_data.reviews[file.toULongLong()].emplace(fileName.toStdWString());
+				m_data.reviews[file.toULongLong()].emplace(entry.path().filename());
 		}
 	}
 
