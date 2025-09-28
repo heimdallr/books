@@ -21,6 +21,9 @@ public:
 
 private: // QAbstractItemModel
 	Qt::ItemFlags flags(const QModelIndex& index) const override;
+
+private: // FilterModel
+	std::vector<IDataItem::Ptr> GetHideFilteredChanged(const std::unordered_set<QString>& ids) const override;
 };
 
 } // namespace HomeCompa::Flibrary

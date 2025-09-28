@@ -33,6 +33,7 @@ private: // IFilterController
 	void SetFlags(NavigationMode navigationMode, QString id, IDataItem::Flags flags) override;
 	void SetNavigationItemFlags(NavigationMode navigationMode, QStringList navigationIds, IDataItem::Flags flags, Callback callback) override;
 	void ClearNavigationItemFlags(NavigationMode navigationMode, QStringList navigationIds, IDataItem::Flags flags, Callback callback) override;
+	void HideFiltered(NavigationMode navigationMode, QPointer<QAbstractItemModel> model, std::weak_ptr<ICallback> callback) override;
 
 private:
 	struct Impl;

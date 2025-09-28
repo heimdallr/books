@@ -23,6 +23,7 @@ private: // QAbstractItemModel
 	Qt::ItemFlags flags(const QModelIndex& index) const override;
 
 private: // FilterModel
+	std::vector<IDataItem::Ptr> GetHideFilteredChanged(const std::unordered_set<QString>& ids) const override;
 	QVariant IsChecked(const IDataItem& item, IDataItem::Flags flags) const override;
 };
 

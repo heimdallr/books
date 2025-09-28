@@ -14,6 +14,7 @@
 
 #include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
+#include "util/FunctorExecutionForwarder.h"
 #include "util/localization.h"
 
 #include "log.h"
@@ -35,7 +36,8 @@ struct SortFilterProxyModel final : QSortFilterProxyModel
 	{
 		enum
 		{
-			CheckedOnly = Flibrary::Role::Last
+			CheckedOnly = Flibrary::Role::Last,
+			FilterDataChanged,
 		};
 	};
 
@@ -56,7 +58,19 @@ struct SortFilterProxyModel final : QSortFilterProxyModel
 private:
 	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
 	{
-		return role == Role::CheckedOnly ? Util::Set(checkedOnly, value.toBool(), [this] { invalidateFilter(); }) : QSortFilterProxyModel::setData(index, value, role);
+		switch (role)
+		{
+			case Role::CheckedOnly:
+				return Util::Set(checkedOnly, value.toBool(), [this] { invalidateFilter(); });
+
+			case Role::FilterDataChanged:
+				return invalidateFilter(), true;
+
+			default:
+				break;
+		}
+
+		return QSortFilterProxyModel::setData(index, value, role);
 	}
 
 private: // QSortFilterProxyModel
@@ -89,6 +103,8 @@ class FilterSettingsDialog::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
 	, ModeComboBox::IValueApplier
+	, public IFilterController::ICallback
+	, public std::enable_shared_from_this<Impl>
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -133,6 +149,27 @@ private: //	ModeComboBox::IValueApplier
 		m_filterTimer.start();
 	}
 
+private: // IFilterController::ICallback
+	void OnStarted() override
+	{
+		SetHideFilteredStarted(true);
+	}
+
+	void OnFinished() override
+	{
+		SetHideFilteredStarted(false);
+	}
+
+	bool Stopped() const override
+	{
+		return !m_hideFilteredStarted;
+	}
+
+	std::weak_ptr<ICallback> Ptr() noexcept override
+	{
+		return weak_from_this();
+	}
+
 private:
 	void Init()
 	{
@@ -156,6 +193,7 @@ private:
 		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, &m_self, [&] { OnValueModeIndexChanged(); });
 		connect(m_ui.view, &QWidget::customContextMenuRequested, &m_self, [this] { OnViewContextMenuRequested(); });
 		connect(m_ui.view->header(), &QWidget::customContextMenuRequested, &m_self, [this](const QPoint& pos) { OnHeaderViewContextMenuRequested(pos); });
+		connect(m_ui.btnStop, &QAbstractButton::clicked, &m_self, [this] { m_hideFilteredStarted = false; });
 
 		if (const auto index = m_settings->Get(RECENT_TAB_KEY, 0))
 			m_ui.tabs->setCurrentIndex(index);
@@ -297,6 +335,10 @@ private:
 		menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::CHECK_ALL), [this] { OnCheckActionTriggered([](IDataItem::Flags& dst, const IDataItem::Flags src) { dst |= src; }); });
 		menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::UNCHECK_ALL), [this] { OnCheckActionTriggered([](IDataItem::Flags& dst, const IDataItem::Flags src) { dst &= ~src; }); });
 		menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::INVERT_CHECK), [this] { OnCheckActionTriggered([](IDataItem::Flags& dst, const IDataItem::Flags src) { dst ^= src; }); });
+		if (m_sectionClicked == 1)
+			if (auto* action = menu.addAction(tr("Hide items with all books are filtered"), [this] { m_model->setData({}, QVariant::fromValue<ICallback*>(this), Role::HideFiltered); }); m_hideFilteredStarted)
+				action->setEnabled(false);
+
 		menu.exec(QCursor::pos());
 	}
 
@@ -328,6 +370,9 @@ private:
 		};
 
 		enumerate({}, skip, process, enumerate);
+
+		if (m_ui.checkBoxShowCheckedOnly)
+			m_model->setData({}, {}, SortFilterProxyModel::Role::FilterDataChanged);
 	}
 
 	void OnShowCheckedOnlyChanged()
@@ -344,7 +389,7 @@ private:
 		const auto id = [this]
 		{
 			const auto index = m_ui.view->currentIndex();
-			return index.isValid() ? index.data(Role::Id) : QVariant{};
+			return index.isValid() ? index.data(Role::Id) : QVariant {};
 		}();
 		m_model->setData({}, m_ui.checkBoxShowCheckedOnly->isChecked(), SortFilterProxyModel::Role::CheckedOnly);
 		if (id.isValid())
@@ -364,6 +409,17 @@ private:
 			widget->setFont(m_self.parentWidget()->font());
 	}
 
+	void SetHideFilteredStarted(const bool started)
+	{
+		m_hideFilteredStarted = started;
+		m_forwarder.Forward(
+			[this]
+			{
+				m_ui.applyWidget->setVisible(!m_hideFilteredStarted);
+				m_ui.progressBarWidget->setVisible(m_hideFilteredStarted);
+			});
+	}
+
 private:
 	QDialog& m_self;
 	std::shared_ptr<const IModelProvider> m_modelProvider;
@@ -376,6 +432,10 @@ private:
 	const IFilterController::FilteredNavigation* m_filteredNavigation { nullptr };
 	QTimer m_filterTimer;
 	int m_sectionClicked { -1 };
+
+	std::atomic_bool m_hideFilteredStarted { false };
+	Util::FunctorExecutionForwarder m_forwarder;
+
 	Ui::FilterSettingsDialog m_ui {};
 };
 
