@@ -67,68 +67,68 @@ constexpr std::pair<const char*, std::unique_ptr<Flibrary::IAnnotationController
 #undef OPDS_REQUEST_ROOT_ITEM
 };
 
-constexpr auto CONTEXT = "Requester";
+constexpr auto CONTEXT       = "Requester";
 constexpr auto BOOKS_COUNTER = QT_TRANSLATE_NOOP("Requester", "Books: %1");
-constexpr auto BOOKS = QT_TRANSLATE_NOOP("Requester", "Books");
+constexpr auto BOOKS         = QT_TRANSLATE_NOOP("Requester", "Books");
 
-constexpr auto SEARCH_RESULTS_BOOKS = QT_TRANSLATE_NOOP("Requester", R"(Books found for the request "%1": %2)");
-constexpr auto SEARCH_RESULTS_AUTHORS = QT_TRANSLATE_NOOP("Requester", R"(Authors found for the request "%1": %2)");
-constexpr auto SEARCH_RESULTS_SERIES = QT_TRANSLATE_NOOP("Requester", R"(Series found for the request "%1": %2)");
-constexpr auto NOTHING_FOUND = QT_TRANSLATE_NOOP("Requester", R"(No books found for the request "%1")");
+constexpr auto SEARCH_RESULTS_BOOKS    = QT_TRANSLATE_NOOP("Requester", R"(Books found for the request "%1": %2)");
+constexpr auto SEARCH_RESULTS_AUTHORS  = QT_TRANSLATE_NOOP("Requester", R"(Authors found for the request "%1": %2)");
+constexpr auto SEARCH_RESULTS_SERIES   = QT_TRANSLATE_NOOP("Requester", R"(Series found for the request "%1": %2)");
+constexpr auto NOTHING_FOUND           = QT_TRANSLATE_NOOP("Requester", R"(No books found for the request "%1")");
 constexpr auto SPECIFY_SEARCH_CATEGORY = QT_TRANSLATE_NOOP("Requester", R"(Specify what to search for your request "%1")");
-constexpr auto PREVIOUS = QT_TRANSLATE_NOOP("Requester", "[Previous page]");
-constexpr auto NEXT = QT_TRANSLATE_NOOP("Requester", "[Next page]");
-constexpr auto FIRST = QT_TRANSLATE_NOOP("Requester", "[First page]");
-constexpr auto LAST = QT_TRANSLATE_NOOP("Requester", "[Last page]");
+constexpr auto PREVIOUS                = QT_TRANSLATE_NOOP("Requester", "[Previous page]");
+constexpr auto NEXT                    = QT_TRANSLATE_NOOP("Requester", "[Next page]");
+constexpr auto FIRST                   = QT_TRANSLATE_NOOP("Requester", "[First page]");
+constexpr auto LAST                    = QT_TRANSLATE_NOOP("Requester", "[Last page]");
 
-constexpr auto BOOK = "BookInfo";
-constexpr auto ENTRY = "entry";
-constexpr auto TITLE = "title";
-constexpr auto CONTENT = "content";
-constexpr auto SEARCH = "search";
-constexpr auto START = "start";
-constexpr auto STARTS = "starts";
-constexpr auto SEPARATED = "separated";
-constexpr auto OPDS_BOOK_LIMIT_KEY = "opds/BookEntryLimit";
+constexpr auto BOOK                    = "BookInfo";
+constexpr auto ENTRY                   = "entry";
+constexpr auto TITLE                   = "title";
+constexpr auto CONTENT                 = "content";
+constexpr auto SEARCH                  = "search";
+constexpr auto START                   = "start";
+constexpr auto STARTS                  = "starts";
+constexpr auto SEPARATED               = "separated";
+constexpr auto OPDS_BOOK_LIMIT_KEY     = "opds/BookEntryLimit";
 constexpr auto OPDS_BOOK_LIMIT_DEFAULT = 25;
-constexpr auto OPDS_SEPARATED_SEARCH = "opds/SeparatedSearch";
+constexpr auto OPDS_SEPARATED_SEARCH   = "opds/SeparatedSearch";
 
 TR_DEF
 
 #define FULL_AUTHOR_NAME " a.LastName || coalesce(' ' || nullif(a.FirstName, '') || coalesce(' ' || nullif(a.middleName, ''), ''), '') "
 
-constexpr auto AUTHOR_COUNT = "with WithTable(Id) as (select distinct l.AuthorID from Author_List l %1) select '%2', count(42) from WithTable";
-constexpr auto SERIES_COUNT = "with WithTable(Id) as (select distinct l.SeriesID from Series_List l %1) select '%2', count(42) from WithTable";
-constexpr auto GENRE_COUNT = "with WithTable(Id) as (select distinct l.GenreCode from Genre_List l %1) select '%2', count(42) from WithTable";
+constexpr auto AUTHOR_COUNT  = "with WithTable(Id) as (select distinct l.AuthorID from Author_List l %1) select '%2', count(42) from WithTable";
+constexpr auto SERIES_COUNT  = "with WithTable(Id) as (select distinct l.SeriesID from Series_List l %1) select '%2', count(42) from WithTable";
+constexpr auto GENRE_COUNT   = "with WithTable(Id) as (select distinct l.GenreCode from Genre_List l %1) select '%2', count(42) from WithTable";
 constexpr auto KEYWORD_COUNT = "with WithTable(Id) as (select distinct l.KeywordID from Keyword_List l %1) select '%2', count(42) from WithTable";
-constexpr auto UPDATE_COUNT = "with WithTable(Id) as (select distinct l.UpdateID from Books l  %1) select '%2', count(42) from WithTable";
-constexpr auto FOLDER_COUNT = "with WithTable(Id) as (select distinct l.FolderID from Books l  %1) select '%2', count(42) from WithTable";
-constexpr auto BOOK_COUNT = "select count(42) from Books l %1";
+constexpr auto UPDATE_COUNT  = "with WithTable(Id) as (select distinct l.UpdateID from Books l  %1) select '%2', count(42) from WithTable";
+constexpr auto FOLDER_COUNT  = "with WithTable(Id) as (select distinct l.FolderID from Books l  %1) select '%2', count(42) from WithTable";
+constexpr auto BOOK_COUNT    = "select count(42) from Books l %1";
 
-constexpr auto AUTHOR_JOIN_PARAMETERS = "join Author_List al on al.BookID = l.BookID and al.AuthorID = %1";
-constexpr auto SERIES_JOIN_PARAMETERS = "join Series_List sl on sl.BookID = l.BookID and sl.SeriesID = %1";
-constexpr auto GENRE_JOIN_PARAMETERS = "join Genre_List gl on gl.BookID = l.BookID and gl.GenreCode = '%1'";
+constexpr auto AUTHOR_JOIN_PARAMETERS  = "join Author_List al on al.BookID = l.BookID and al.AuthorID = %1";
+constexpr auto SERIES_JOIN_PARAMETERS  = "join Series_List sl on sl.BookID = l.BookID and sl.SeriesID = %1";
+constexpr auto GENRE_JOIN_PARAMETERS   = "join Genre_List gl on gl.BookID = l.BookID and gl.GenreCode = '%1'";
 constexpr auto KEYWORD_JOIN_PARAMETERS = "join Keyword_List kl on kl.BookID = l.BookID and kl.KeywordID = %1";
-constexpr auto UPDATE_JOIN_PARAMETERS = "join Books ul on ul.BookID = l.BookID and ul.UpdateID = %1";
-constexpr auto FOLDER_JOIN_PARAMETERS = "join Books fl on fl.BookID = l.BookID and fl.FolderID = %1";
-constexpr auto GROUP_JOIN_PARAMETERS = "join Groups_List_User_View glu on glu.BookID = l.BookID and glu.GroupID = %1";
+constexpr auto UPDATE_JOIN_PARAMETERS  = "join Books ul on ul.BookID = l.BookID and ul.UpdateID = %1";
+constexpr auto FOLDER_JOIN_PARAMETERS  = "join Books fl on fl.BookID = l.BookID and fl.FolderID = %1";
+constexpr auto GROUP_JOIN_PARAMETERS   = "join Groups_List_User_View glu on glu.BookID = l.BookID and glu.GroupID = %1";
 
-constexpr auto AUTHOR_JOIN_SELECT = "join Author_List l on l.AuthorID = a.AuthorID";
-constexpr auto SERIES_JOIN_SELECT = "join Series_List l on l.SeriesID = s.SeriesID";
-constexpr auto GENRE_JOIN_SELECT = "join Genre_List l on l.GenreCode = g.GenreCode";
+constexpr auto AUTHOR_JOIN_SELECT  = "join Author_List l on l.AuthorID = a.AuthorID";
+constexpr auto SERIES_JOIN_SELECT  = "join Series_List l on l.SeriesID = s.SeriesID";
+constexpr auto GENRE_JOIN_SELECT   = "join Genre_List l on l.GenreCode = g.GenreCode";
 constexpr auto KEYWORD_JOIN_SELECT = "join Keyword_List l on l.KeywordID = k.KeywordID";
-constexpr auto UPDATE_JOIN_SELECT = "join Books l on l.UpdateID = u.UpdateID";
-constexpr auto FOLDER_JOIN_SELECT = "join Books l on l.FolderID = f.FolderID";
-constexpr auto GROUP_JOIN_SELECT = "join Groups_List_User_View glu on glu.GroupID = gu.GroupID";
-constexpr auto BOOK_JOIN_SELECT = "from Books l";
+constexpr auto UPDATE_JOIN_SELECT  = "join Books l on l.UpdateID = u.UpdateID";
+constexpr auto FOLDER_JOIN_SELECT  = "join Books l on l.FolderID = f.FolderID";
+constexpr auto GROUP_JOIN_SELECT   = "join Groups_List_User_View glu on glu.GroupID = gu.GroupID";
+constexpr auto BOOK_JOIN_SELECT    = "from Books l";
 
-constexpr auto AUTHOR_SELECT = "select" FULL_AUTHOR_NAME "from Authors a where a.AuthorID = ?";
-constexpr auto SERIES_SELECT = "select s.SeriesTitle from Series s where s.SeriesID = ?";
-constexpr auto GENRE_SELECT = "select g.FB2Code from Genres g where g.GenreCode = ?";
+constexpr auto AUTHOR_SELECT  = "select" FULL_AUTHOR_NAME "from Authors a where a.AuthorID = ?";
+constexpr auto SERIES_SELECT  = "select s.SeriesTitle from Series s where s.SeriesID = ?";
+constexpr auto GENRE_SELECT   = "select g.FB2Code from Genres g where g.GenreCode = ?";
 constexpr auto KEYWORD_SELECT = "select k.KeywordTitle from Keywords k where k.KeywordID = ?";
-constexpr auto UPDATE_SELECT = "select u.UpdateTitle, p.UpdateTitle from Updates u left join Updates p on p.UpdateID = u.ParentID where u.UpdateID = ?";
-constexpr auto FOLDER_SELECT = "select f.FolderTitle from Folders f where f.FolderID = ?";
-constexpr auto GROUP_SELECT = "select gu.Title from Groups_User gu where gu.GroupID = ?";
+constexpr auto UPDATE_SELECT  = "select u.UpdateTitle, p.UpdateTitle from Updates u left join Updates p on p.UpdateID = u.ParentID where u.UpdateID = ?";
+constexpr auto FOLDER_SELECT  = "select f.FolderTitle from Folders f where f.FolderID = ?";
+constexpr auto GROUP_SELECT   = "select gu.Title from Groups_User gu where gu.GroupID = ?";
 
 constexpr auto AUTHOR_COUNT_STARTS_WITH = R"(
 	select count(distinct a.AuthorID) 
@@ -206,22 +206,22 @@ constexpr auto SERIES_SELECT_SINGLE = "select distinct s.SeriesID, s.SeriesTitle
 constexpr auto KEYWORD_SELECT_SINGLE =
 	"select distinct k.KeywordID, k.KeywordTitle from Keywords k %3 where k.IsDeleted != %1 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%2')";
 constexpr auto FOLDER_SELECT_SINGLE = "select f.FolderID, f.FolderTitle from Folders f %3 where f.IsDeleted != %1 and ('%2' = '%2' and :starts = :starts and :starts_like = :starts_like)";
-constexpr auto BOOK_SELECT_SINGLE = "select l.BookID, l.Title %3 where b.IsDeleted != %1 and (b.SearchTitle = :starts or b.SearchTitle like :starts_like||'%' ESCAPE '%2')";
+constexpr auto BOOK_SELECT_SINGLE   = "select l.BookID, l.Title %3 where b.IsDeleted != %1 and (b.SearchTitle = :starts or b.SearchTitle like :starts_like||'%' ESCAPE '%2')";
 
-constexpr auto AUTHOR_SELECT_EQUAL = "select distinct a.AuthorID," FULL_AUTHOR_NAME "from Authors a %2 where a.IsDeleted != %1 and a.SearchName = :starts";
-constexpr auto SERIES_SELECT_EQUAL = "select distinct s.SeriesID, s.SeriesTitle from Series s %2 where s.IsDeleted != %1 and s.SearchTitle = :starts";
-constexpr auto GENRE_SELECT_EQUAL = "select g.GenreCode from Genres g where exists (select 42 from Genre_List l %1 where l.GenreCode = g.GenreCode)";
+constexpr auto AUTHOR_SELECT_EQUAL  = "select distinct a.AuthorID," FULL_AUTHOR_NAME "from Authors a %2 where a.IsDeleted != %1 and a.SearchName = :starts";
+constexpr auto SERIES_SELECT_EQUAL  = "select distinct s.SeriesID, s.SeriesTitle from Series s %2 where s.IsDeleted != %1 and s.SearchTitle = :starts";
+constexpr auto GENRE_SELECT_EQUAL   = "select g.GenreCode from Genres g where exists (select 42 from Genre_List l %1 where l.GenreCode = g.GenreCode)";
 constexpr auto KEYWORD_SELECT_EQUAL = "select distinct k.KeywordID, k.KeywordTitle from Keywords k %2 where k.IsDeleted != %1 and k.SearchTitle = :starts";
-constexpr auto UPDATE_SELECT_EQUAL = "select u.UpdateID from Updates u where exists (select 42 from Books l %1 where l.UpdateID = u.UpdateID)";
-constexpr auto BOOK_SELECT_EQUAL = "select b.BookID, b.Title %2 where b.IsDeleted != %1 and b.SearchTitle = :starts";
+constexpr auto UPDATE_SELECT_EQUAL  = "select u.UpdateID from Updates u where exists (select 42 from Books l %1 where l.UpdateID = u.UpdateID)";
+constexpr auto BOOK_SELECT_EQUAL    = "select b.BookID, b.Title %2 where b.IsDeleted != %1 and b.SearchTitle = :starts";
 
-constexpr auto AUTHOR_CONTENT = "select count (42) from Authors a %1 where l.AuthorID = ?";
-constexpr auto SERIES_CONTENT = "select count (42) from Series s %1 where l.SeriesID = ?";
-constexpr auto GENRE_CONTENT = "select count(42) from Genre_List l %1 where l.GenreCode = ?";
+constexpr auto AUTHOR_CONTENT  = "select count (42) from Authors a %1 where l.AuthorID = ?";
+constexpr auto SERIES_CONTENT  = "select count (42) from Series s %1 where l.SeriesID = ?";
+constexpr auto GENRE_CONTENT   = "select count(42) from Genre_List l %1 where l.GenreCode = ?";
 constexpr auto KEYWORD_CONTENT = "select count (42) from Keywords k %1 where k.KeywordID = ?";
-constexpr auto UPDATE_CONTENT = "select count (42) from Books l %1 where l.UpdateID = ?";
-constexpr auto FOLDER_CONTENT = "select count (42) from Folders f %1 where f.FolderID = ?";
-constexpr auto BOOK_CONTENT = R"(
+constexpr auto UPDATE_CONTENT  = "select count (42) from Books l %1 where l.UpdateID = ?";
+constexpr auto FOLDER_CONTENT  = "select count (42) from Folders f %1 where f.FolderID = ?";
+constexpr auto BOOK_CONTENT    = R"(
 select 
 	(select a.LastName || coalesce(' ' || nullif(substr(a.FirstName, 1, 1), '') || '.' || coalesce(nullif(substr(a.middleName, 1, 1), '') || '.', ''), '')
 		from Authors a
@@ -283,22 +283,24 @@ select b.BookID, b.Title
 struct Node
 {
 	using Attributes = std::vector<std::pair<QString, QString>>;
-	using Children = std::vector<Node>;
-	QString name;
-	QString value;
+	using Children   = std::vector<Node>;
+	QString    name;
+	QString    value;
 	Attributes attributes;
-	Children children;
+	Children   children;
 
 	QString title;
 
 	QString author;
 	QString series;
-	int seqNum;
+	int     seqNum;
 };
 
 QString& GetContent(Node& node)
 {
-	const auto it = std::ranges::find(node.children, CONTENT, [](auto& item) { return item.name; });
+	const auto it = std::ranges::find(node.children, CONTENT, [](auto& item) {
+		return item.name;
+	});
 	assert(it != node.children.end());
 	return it->value;
 }
@@ -322,9 +324,13 @@ bool operator<(const Node& lhs, const Node& rhs)
 Util::XmlWriter& operator<<(Util::XmlWriter& writer, const Node& node)
 {
 	const auto nodeGuard = writer.Guard(node.name);
-	std::ranges::for_each(node.attributes, [&](const auto& item) { writer.WriteAttribute(item.first, item.second); });
+	std::ranges::for_each(node.attributes, [&](const auto& item) {
+		writer.WriteAttribute(item.first, item.second);
+	});
 	writer.WriteCharacters(node.value);
-	std::ranges::for_each(node.children, [&](const auto& item) { writer << item; });
+	std::ranges::for_each(node.children, [&](const auto& item) {
+		writer << item;
+	});
 	return writer;
 }
 
@@ -332,7 +338,9 @@ QString GetHref(const QString& root, const QString& path, const IRequester::Para
 {
 	QStringList list;
 	list.reserve(static_cast<int>(parameters.size()));
-	std::ranges::transform(parameters, std::back_inserter(list), [](const auto& item) { return QString("%1=%2").arg(item.first, item.second); });
+	std::ranges::transform(parameters, std::back_inserter(list), [](const auto& item) {
+		return QString("%1=%2").arg(item.first, item.second);
+	});
 	return QString("%1%2%3").arg(root, path.isEmpty() ? QString {} : "/" + path, list.isEmpty() ? QString {} : "?" + list.join('&'));
 }
 
@@ -353,17 +361,21 @@ Node& WriteEntry(Node::Children& children, const QString& root, const QString& p
 	if (isCatalog)
 	{
 		const auto href = GetHref(root, path, parameters);
-		entry.children.emplace_back("link",
-		                            QString {
+		entry.children.emplace_back(
+			"link",
+			QString {
         },
-		                            Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+			Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
+		);
 	}
 	if (!content.isEmpty())
-		entry.children.emplace_back(CONTENT,
-		                            std::move(content),
-		                            Node::Attributes {
-										{ "type", "text/html" }
-        });
+		entry.children.emplace_back(
+			CONTENT,
+			std::move(content),
+			Node::Attributes {
+				{ "type", "text/html" }
+        }
+		);
 
 	return entry;
 }
@@ -375,37 +387,39 @@ void WriteNavigationEntries(Node::Children&, const QString&, IRequester::Paramet
 class INavigationProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	virtual ~INavigationProvider() = default;
-	virtual Node GetNavigationMain(const QString& root, const IRequester::Parameters& parameters, const NavigationDescription& d) const = 0;
-	virtual Node GetNavigationGenre(const QString& root, const IRequester::Parameters& parameters, const NavigationDescription& d) const = 0;
+	virtual ~INavigationProvider()                                                                                                        = default;
+	virtual Node GetNavigationMain(const QString& root, const IRequester::Parameters& parameters, const NavigationDescription& d) const   = 0;
+	virtual Node GetNavigationGenre(const QString& root, const IRequester::Parameters& parameters, const NavigationDescription& d) const  = 0;
 	virtual Node GetNavigationUpdate(const QString& root, const IRequester::Parameters& parameters, const NavigationDescription& d) const = 0;
 };
 
 using GetNavigation = Node (INavigationProvider::*)(const QString& root, const IRequester::Parameters& parameters, const NavigationDescription& d) const;
-using WriteEntries = void (*)(Node::Children& children,
-                              const QString& root,
-                              IRequester::Parameters parameters,
-                              const NavigationDescription& d,
-                              DB::IDatabase& db,
-                              int removedFlag,
-                              QString join,
-                              std::map<QString, QString>& ones);
+using WriteEntries  = void (*)(
+    Node::Children&              children,
+    const QString&               root,
+    IRequester::Parameters       parameters,
+    const NavigationDescription& d,
+    DB::IDatabase&               db,
+    int                          removedFlag,
+    QString                      join,
+    std::map<QString, QString>&  ones
+);
 
 struct NavigationDescription
 {
-	const char* type { nullptr };
-	const char* count { nullptr };
-	const char* joinParameters { nullptr };
-	const char* joinSelect { nullptr };
-	const char* select { nullptr };
-	const char* selectTrContext { nullptr };
-	const char* countStartsWith { nullptr };
-	const char* startsWith { nullptr };
-	const char* selectSingle { nullptr };
-	const char* selectEqual { nullptr };
-	const char* content { nullptr };
+	const char*   type { nullptr };
+	const char*   count { nullptr };
+	const char*   joinParameters { nullptr };
+	const char*   joinSelect { nullptr };
+	const char*   select { nullptr };
+	const char*   selectTrContext { nullptr };
+	const char*   countStartsWith { nullptr };
+	const char*   startsWith { nullptr };
+	const char*   selectSingle { nullptr };
+	const char*   selectEqual { nullptr };
+	const char*   content { nullptr };
 	GetNavigation getNavigation { &INavigationProvider::GetNavigationMain };
-	WriteEntries writeEntries { &WriteNavigationEntries };
+	WriteEntries  writeEntries { &WriteNavigationEntries };
 };
 
 // clang-format off
@@ -440,7 +454,9 @@ QString CreateSelf(const QString& root, const QString& path, const IRequester::P
 {
 	QStringList list;
 	list.reserve(static_cast<int>(parameters.size()));
-	std::ranges::transform(parameters, std::back_inserter(list), [](const auto& item) { return QString("%1=%2").arg(item.first, item.second); });
+	std::ranges::transform(parameters, std::back_inserter(list), [](const auto& item) {
+		return QString("%1=%2").arg(item.first, item.second);
+	});
 	return QString("%1%2%3").arg(root, path.isEmpty() ? QString {} : QString("/%1").arg(path), list.isEmpty() ? QString {} : "?" + list.join('&'));
 }
 
@@ -455,10 +471,10 @@ void WriteBookEntries(Node::Children& children, const QString& root, IRequester:
 		query->Bind(0, navigationId.toStdString());
 		query->Execute();
 		assert(!query->Eof());
-		QString author = query->Get<const char*>(0);
-		QString series = query->Get<const char*>(1);
-		const int seqNum = query->Get<int>(2);
-		auto content = QString("%1 %2").arg(needAuthor ? author : QString {}, GetSeriesTitle(series, QString::number(seqNum)));
+		QString   author  = query->Get<const char*>(0);
+		QString   series  = query->Get<const char*>(1);
+		const int seqNum  = query->Get<int>(2);
+		auto      content = QString("%1 %2").arg(needAuthor ? author : QString {}, GetSeriesTitle(series, QString::number(seqNum)));
 
 		auto& entry = WriteEntry(children, root, BOOK, parameters, QString("%1/%2").arg(d.type, navigationId), std::move(title), content.simplified(), false);
 
@@ -468,7 +484,8 @@ void WriteBookEntries(Node::Children& children, const QString& root, IRequester:
 			"link",
 			QString {
         },
-			Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=acquisition" } });
+			Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=acquisition" } }
+		);
 
 		entry.author = std::move(author);
 		entry.series = std::move(series);
@@ -476,14 +493,16 @@ void WriteBookEntries(Node::Children& children, const QString& root, IRequester:
 	}
 }
 
-void WriteNavigationEntries(Node::Children& children,
-                            const QString& root,
-                            IRequester::Parameters parameters,
-                            const NavigationDescription& d,
-                            DB::IDatabase& db,
-                            const int removedFlag,
-                            QString join,
-                            std::map<QString, QString>& ones)
+void WriteNavigationEntries(
+	Node::Children&              children,
+	const QString&               root,
+	IRequester::Parameters       parameters,
+	const NavigationDescription& d,
+	DB::IDatabase&               db,
+	const int                    removedFlag,
+	QString                      join,
+	std::map<QString, QString>&  ones
+)
 {
 	if (join.isEmpty())
 		join = QString("join Books_View b on b.BookID = l.BookID and b.IsDeleted != %1\n%2").arg(removedFlag).arg(d.joinSelect);
@@ -502,7 +521,9 @@ void WriteNavigationEntries(Node::Children& children,
 std::pair<QString, char> PrepareForLike(QString arg)
 {
 	static constexpr char ESCAPE[] { '\\', '|', '#', '@', '~', '^' };
-	const auto it = std::ranges::find_if(ESCAPE, [&](const auto ch) { return !arg.contains(ch); });
+	const auto            it = std::ranges::find_if(ESCAPE, [&](const auto ch) {
+        return !arg.contains(ch);
+    });
 	assert(it != std::end(ESCAPE));
 	arg.replace('_', QString("%1_").arg(*it));
 	arg.replace('%', QString("%1%").arg(*it));
@@ -512,22 +533,30 @@ std::pair<QString, char> PrepareForLike(QString arg)
 Node GetHead(QString id, QString title, QString root, QString self)
 {
 	auto standardNodes = GetStandardNodes(std::move(id), std::move(title));
-	standardNodes.emplace_back("link",
-	                           QString {
+	standardNodes.emplace_back(
+		"link",
+		QString {
     },
-	                           Node::Attributes { { "href", root }, { "rel", "start" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
-	standardNodes.emplace_back("link",
-	                           QString {
+		Node::Attributes { { "href", root }, { "rel", "start" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
+	);
+	standardNodes.emplace_back(
+		"link",
+		QString {
     },
-	                           Node::Attributes { { "href", std::move(self) }, { "rel", "self" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
-	standardNodes.emplace_back("link",
-	                           QString {
+		Node::Attributes { { "href", std::move(self) }, { "rel", "self" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
+	);
+	standardNodes.emplace_back(
+		"link",
+		QString {
     },
-	                           Node::Attributes { { "href", QString("%1/opensearch").arg(root) }, { "rel", "search" }, { "type", "application/opensearchdescription+xml" } });
-	standardNodes.emplace_back("link",
-	                           QString {
+		Node::Attributes { { "href", QString("%1/opensearch").arg(root) }, { "rel", "search" }, { "type", "application/opensearchdescription+xml" } }
+	);
+	standardNodes.emplace_back(
+		"link",
+		QString {
     },
-	                           Node::Attributes { { "href", QString("%1/search?q={searchTerms}").arg(root) }, { "rel", "search" }, { "type", "application/atom+xml" } });
+		Node::Attributes { { "href", QString("%1/search?q={searchTerms}").arg(root) }, { "rel", "search" }, { "type", "application/atom+xml" } }
+	);
 	return Node {
 		"feed",
 		{},
@@ -552,9 +581,15 @@ QString GetJoin(const IRequester::Parameters& parameters)
 		return {};
 
 	QStringList list;
-	std::ranges::transform(NAVIGATION_DESCRIPTION | std::views::filter([&](const auto& item) { return item.joinParameters && parameters.contains(item.type); }),
-	                       std::back_inserter(list),
-	                       [&](const auto& item) { return QString(item.joinParameters).arg(parameters.at(item.type)); });
+	std::ranges::transform(
+		NAVIGATION_DESCRIPTION | std::views::filter([&](const auto& item) {
+			return item.joinParameters && parameters.contains(item.type);
+		}),
+		std::back_inserter(list),
+		[&](const auto& item) {
+			return QString(item.joinParameters).arg(parameters.at(item.type));
+		}
+	);
 	if (list.isEmpty())
 		return {};
 
@@ -572,19 +607,22 @@ struct TitleHelper
 QString GetTitle(DB::IDatabase& db, const IRequester::Parameters& parameters, TitleHelper helper)
 {
 	QStringList list;
-	std::ranges::transform(NAVIGATION_DESCRIPTION | std::views::filter([&](const auto& item) { return item.select && parameters.contains(item.type); }),
-	                       std::back_inserter(list),
-	                       [&](const auto& item)
-	                       {
-							   const auto query = db.CreateQuery(item.select);
-							   query->Bind(0, parameters.at(item.type).toStdString());
-							   query->Execute();
-							   assert(!query->Eof());
-							   auto result = item.selectTrContext ? QString(Loc::Tr(item.selectTrContext, query->template Get<const char*>(0))) : query->template Get<const char*>(0);
-							   if (query->ColumnCount() > 1)
-								   result.append(' ').append(query->template Get<const char*>(1));
-							   return result;
-						   });
+	std::ranges::transform(
+		NAVIGATION_DESCRIPTION | std::views::filter([&](const auto& item) {
+			return item.select && parameters.contains(item.type);
+		}),
+		std::back_inserter(list),
+		[&](const auto& item) {
+			const auto query = db.CreateQuery(item.select);
+			query->Bind(0, parameters.at(item.type).toStdString());
+			query->Execute();
+			assert(!query->Eof());
+			auto result = item.selectTrContext ? QString(Loc::Tr(item.selectTrContext, query->template Get<const char*>(0))) : query->template Get<const char*>(0);
+			if (query->ColumnCount() > 1)
+				result.append(' ').append(query->template Get<const char*>(1));
+			return result;
+		}
+	);
 	if (!helper.additionalTitle.isEmpty())
 		list.emplaceBack(std::move(helper.additionalTitle));
 
@@ -647,7 +685,7 @@ QByteArray PostProcess(const ContentType contentType, const QString& root, const
 	QBuffer buffer(&src);
 	buffer.open(QIODevice::ReadOnly);
 	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
-	auto result = postprocessor(callback, buffer, contentType, parameters, settings);
+	auto       result        = postprocessor(callback, buffer, contentType, parameters, settings);
 
 #ifndef NDEBUG
 	PLOGV << result;
@@ -660,10 +698,12 @@ std::pair<QString, QString> ParseSearchString(const IRequester::Parameters& para
 {
 	const auto searchTerms = parameters.at("q");
 
-	auto terms = searchTerms.split(QRegularExpression(R"(\s+|\+)"), Qt::SkipEmptyParts);
+	auto terms    = searchTerms.split(QRegularExpression(R"(\s+|\+)"), Qt::SkipEmptyParts);
 	auto termsGui = terms.join(' ');
 
-	std::ranges::transform(terms, terms.begin(), [](const auto& item) { return item + '*'; });
+	std::ranges::transform(terms, terms.begin(), [](const auto& item) {
+		return item + '*';
+	});
 
 	return std::make_pair(terms.join(' '), std::move(termsGui));
 }
@@ -671,20 +711,21 @@ std::pair<QString, QString> ParseSearchString(const IRequester::Parameters& para
 Node SeparatedSearch(const QString& root, const IRequester::Parameters& parameters)
 {
 	const auto [_, termsGui] = ParseSearchString(parameters);
-	auto head = GetHead(SEARCH, Tr(SPECIFY_SEARCH_CATEGORY).arg(termsGui), root, CreateSelf(root, SEARCH, parameters));
+	auto head                = GetHead(SEARCH, Tr(SPECIFY_SEARCH_CATEGORY).arg(termsGui), root, CreateSelf(root, SEARCH, parameters));
 
-	const auto addEntry = [&](const char* category)
-	{
-		auto& entry = head.children.emplace_back(ENTRY, QString {}, Node::Attributes {}, GetStandardNodes(category, Loc::Tr(Loc::NAVIGATION, category)));
-		entry.title = Tr(category);
-		auto p = parameters;
+	const auto addEntry = [&](const char* category) {
+		auto& entry  = head.children.emplace_back(ENTRY, QString {}, Node::Attributes {}, GetStandardNodes(category, Loc::Tr(Loc::NAVIGATION, category)));
+		entry.title  = Tr(category);
+		auto p       = parameters;
 		p[SEPARATED] = category;
 
 		const QUrl url(CreateSelf(root, SEARCH, p));
-		entry.children.emplace_back("link",
-		                            QString {
+		entry.children.emplace_back(
+			"link",
+			QString {
         },
-		                            Node::Attributes { { "href", url.toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+			Node::Attributes { { "href", url.toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
+		);
 	};
 
 	addEntry(Loc::Authors);
@@ -716,14 +757,16 @@ private: // IPostProcessCallback
 	}
 
 public:
-	Impl(std::shared_ptr<const ISettings> settings,
-	     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-	     std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
-	     std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
-	     std::shared_ptr<const ICoverCache> coverCache,
-	     std::shared_ptr<const IBookExtractor> bookExtractor,
-	     std::shared_ptr<const INoSqlRequester> noSqlRequester,
-	     std::shared_ptr<Flibrary::IAnnotationController> annotationController)
+	Impl(
+		std::shared_ptr<const ISettings>                             settings,
+		std::shared_ptr<const Flibrary::ICollectionProvider>         collectionProvider,
+		std::shared_ptr<const Flibrary::IDatabaseController>         databaseController,
+		std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
+		std::shared_ptr<const ICoverCache>                           coverCache,
+		std::shared_ptr<const IBookExtractor>                        bookExtractor,
+		std::shared_ptr<const INoSqlRequester>                       noSqlRequester,
+		std::shared_ptr<Flibrary::IAnnotationController>             annotationController
+	)
 		: m_settings { std::move(settings) }
 		, m_collectionProvider { std::move(collectionProvider) }
 		, m_databaseController { std::move(databaseController) }
@@ -743,7 +786,7 @@ public:
 	Node GetRoot(const QString& root, const Parameters& parameters) const
 	{
 		const auto removedFlag = GetRemovedFlag();
-		const auto db = m_databaseController->GetDatabase(true);
+		const auto db          = m_databaseController->GetDatabase(true);
 
 		static constexpr std::pair<Flibrary::NavigationMode, const char*> navigationTypes[] {
 #define OPDS_INVOKER_ITEM(NAME) { Flibrary::NavigationMode::NAME, Loc::NAME },
@@ -758,13 +801,16 @@ public:
 			join = join.arg(removedFlag);
 
 		QStringList dbStatQueryTextItems;
-		std::ranges::transform(navigationTypes | std::views::filter([&](const auto& item) { return NAVIGATION_DESCRIPTION[static_cast<size_t>(item.first)].count && !parameters.contains(item.second); }),
-		                       std::back_inserter(dbStatQueryTextItems),
-		                       [&](const auto& item)
-		                       {
-								   const auto& d = NAVIGATION_DESCRIPTION[static_cast<size_t>(item.first)];
-								   return QString(d.count).arg(join).arg(d.type);
-							   });
+		std::ranges::transform(
+			navigationTypes | std::views::filter([&](const auto& item) {
+				return NAVIGATION_DESCRIPTION[static_cast<size_t>(item.first)].count && !parameters.contains(item.second);
+			}),
+			std::back_inserter(dbStatQueryTextItems),
+			[&](const auto& item) {
+				const auto& d = NAVIGATION_DESCRIPTION[static_cast<size_t>(item.first)];
+				return QString(d.count).arg(join).arg(d.type);
+			}
+		);
 
 		{
 			if (!parameters.empty())
@@ -789,7 +835,7 @@ public:
 				query->Execute();
 				assert(!query->Eof());
 
-				auto& books = head.children[childCount - 1];
+				auto& books       = head.children[childCount - 1];
 				GetContent(books) = QString::number(query->Get<long long>(0));
 			}
 		}
@@ -799,7 +845,7 @@ public:
 			const auto query = db->CreateQuery(QString(GROUPS_SELECT).arg(removedFlag).arg(join).toStdString());
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
-				auto p = parameters;
+				auto       p  = parameters;
 				const auto id = QString("%1/%2").arg(Loc::Groups).arg(p[Loc::Groups] = query->Get<const char*>(0));
 				WriteEntry(head.children, root, "", p, id, query->Get<const char*>(1), Tr(BOOKS_COUNTER).arg(query->Get<int>(2)));
 			}
@@ -815,7 +861,9 @@ public:
 		auto head = GetHead(BOOKS, GetTitle(*db, parameters, {}), root, CreateSelf(root, BOOKS, parameters));
 		FoldNavigation(head.children, root, parameters, BOOK_DESCRIPTION);
 
-		const auto entryBegin = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
+		const auto entryBegin = std::ranges::find(head.children, ENTRY, [](const auto& item) {
+			return item.name;
+		});
 		std::sort(entryBegin, head.children.end());
 
 		return head;
@@ -827,70 +875,82 @@ public:
 
 		QEventLoop eventLoop;
 
-		AnnotationControllerObserver observer(
-			[&](const Flibrary::IAnnotationController::IDataProvider& dataProvider)
-			{
-				ScopedCall eventLoopGuard([&] { eventLoop.exit(); });
-
-				const auto db = m_databaseController->GetDatabase(true);
-				const auto& book = dataProvider.GetBook();
-
-				head = GetHead(book.GetId(), book.GetRawData(Flibrary::BookItem::Column::Title), root, CreateSelf(root, BOOKS, parameters));
-
-				const auto strategyCreator = FindSecond(ANNOTATION_CONTROLLER_STRATEGY_CREATORS, root.toStdString().data(), PszComparer {});
-				const auto strategy = strategyCreator(*m_settings);
-				auto annotation = m_annotationController->CreateAnnotation(dataProvider, *strategy);
-
-				auto& entry = WriteEntry(head.children, root, "", parameters, book.GetId(), book.GetRawData(Flibrary::BookItem::Column::Title), annotation, false);
-				for (size_t i = 0, sz = dataProvider.GetAuthors().GetChildCount(); i < sz; ++i)
-				{
-					const auto& authorItem = dataProvider.GetAuthors().GetChild(i);
-					auto& author = entry.children.emplace_back("author");
-					author.children.emplace_back("name",
-				                                 QString("%1 %2 %3")
-				                                     .arg(authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName),
-				                                          authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName),
-				                                          authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName)));
-					author.children.emplace_back("uri", QString("%1/%2/%3").arg(root, Loc::Authors, authorItem->GetId()));
-				}
-				for (size_t i = 0, sz = dataProvider.GetGenres().GetChildCount(); i < sz; ++i)
-				{
-					const auto& genreItem = dataProvider.GetGenres().GetChild(i);
-					const auto& title = genreItem->GetRawData(Flibrary::NavigationItem::Column::Title);
-					entry.children.emplace_back("category",
-				                                QString {
-                    },
-				                                Node::Attributes { { "term", title }, { "label", title } });
-				}
-				const auto format = QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).suffix();
-				entry.children.emplace_back("dc:language", book.GetRawData(Flibrary::BookItem::Column::Lang));
-				entry.children.emplace_back("dc:format", format);
-				entry.children.emplace_back(
-					"link",
-					QString {
-                },
-					Node::Attributes { { "href", QString("/Images/fb2/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/acquisition" }, { "type", QString("application/%1").arg(format) } });
-				entry.children.emplace_back(
-					"link",
-					QString {
-                },
-					Node::Attributes { { "href", QString("/Images/zip/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/acquisition" }, { "type", QString("application/%1+zip").arg(format) } });
-
-				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
-				{
-					entry.children.emplace_back("link",
-				                                QString {
-                    },
-				                                Node::Attributes { { "href", QString("/Images/covers/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/image" }, { "type", "image/jpeg" } });
-
-					entry.children.emplace_back("link",
-				                                QString {
-                    },
-				                                Node::Attributes { { "href", QString("/Images/covers/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/image/thumbnail" }, { "type", "image/jpeg" } });
-
-					m_coverCache->Set(book.GetId(), std::move(Flibrary::Recode(covers.front().bytes).first));
-				}
+		AnnotationControllerObserver observer([&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
+			ScopedCall eventLoopGuard([&] {
+				eventLoop.exit();
 			});
+
+			const auto  db   = m_databaseController->GetDatabase(true);
+			const auto& book = dataProvider.GetBook();
+
+			head = GetHead(book.GetId(), book.GetRawData(Flibrary::BookItem::Column::Title), root, CreateSelf(root, BOOKS, parameters));
+
+			const auto strategyCreator = FindSecond(ANNOTATION_CONTROLLER_STRATEGY_CREATORS, root.toStdString().data(), PszComparer {});
+			const auto strategy        = strategyCreator(*m_settings);
+			auto       annotation      = m_annotationController->CreateAnnotation(dataProvider, *strategy);
+
+			auto& entry = WriteEntry(head.children, root, "", parameters, book.GetId(), book.GetRawData(Flibrary::BookItem::Column::Title), annotation, false);
+			for (size_t i = 0, sz = dataProvider.GetAuthors().GetChildCount(); i < sz; ++i)
+			{
+				const auto& authorItem = dataProvider.GetAuthors().GetChild(i);
+				auto&       author     = entry.children.emplace_back("author");
+				author.children.emplace_back(
+					"name",
+					QString("%1 %2 %3")
+						.arg(
+							authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName),
+							authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName),
+							authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName)
+						)
+				);
+				author.children.emplace_back("uri", QString("%1/%2/%3").arg(root, Loc::Authors, authorItem->GetId()));
+			}
+			for (size_t i = 0, sz = dataProvider.GetGenres().GetChildCount(); i < sz; ++i)
+			{
+				const auto& genreItem = dataProvider.GetGenres().GetChild(i);
+				const auto& title     = genreItem->GetRawData(Flibrary::NavigationItem::Column::Title);
+				entry.children.emplace_back(
+					"category",
+					QString {
+                },
+					Node::Attributes { { "term", title }, { "label", title } }
+				);
+			}
+			const auto format = QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).suffix();
+			entry.children.emplace_back("dc:language", book.GetRawData(Flibrary::BookItem::Column::Lang));
+			entry.children.emplace_back("dc:format", format);
+			entry.children.emplace_back(
+				"link",
+				QString {
+            },
+				Node::Attributes { { "href", QString("/Images/fb2/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/acquisition" }, { "type", QString("application/%1").arg(format) } }
+			);
+			entry.children.emplace_back(
+				"link",
+				QString {
+            },
+				Node::Attributes { { "href", QString("/Images/zip/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/acquisition" }, { "type", QString("application/%1+zip").arg(format) } }
+			);
+
+			if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
+			{
+				entry.children.emplace_back(
+					"link",
+					QString {
+                },
+					Node::Attributes { { "href", QString("/Images/covers/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/image" }, { "type", "image/jpeg" } }
+				);
+
+				entry.children.emplace_back(
+					"link",
+					QString {
+                },
+					Node::Attributes { { "href", QString("/Images/covers/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/image/thumbnail" }, { "type", "image/jpeg" } }
+				);
+
+				m_coverCache->Set(book.GetId(), std::move(Flibrary::Recode(covers.front().bytes).first));
+			}
+		});
 
 		m_annotationController->RegisterObserver(&observer);
 		m_annotationController->SetCurrentBookId(parameters.at(BOOKS), true);
@@ -929,8 +989,8 @@ public:
 
 		const auto n = head.children.size();
 
-		const auto removedFlag = GetRemovedFlag();
-		const auto db = m_databaseController->GetDatabase(true);
+		const auto                 removedFlag = GetRemovedFlag();
+		const auto                 db          = m_databaseController->GetDatabase(true);
 		std::map<QString, QString> ones;
 		{
 			const auto query = db->CreateQuery(QString(queryText).arg(removedFlag).toStdString());
@@ -947,37 +1007,41 @@ public:
 
 		if (n != head.children.size())
 		{
-			const auto it = std::ranges::find(head.children, TITLE, [](const auto& item) { return item.name; });
+			const auto it = std::ranges::find(head.children, TITLE, [](const auto& item) {
+				return item.name;
+			});
 			assert(it != head.children.end());
 			it->value = Tr(foundMessage).arg(termsGui).arg(head.children.size() - n);
 		}
 		{
-			const auto it = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
+			const auto it              = std::ranges::find(head.children, ENTRY, [](const auto& item) {
+                return item.name;
+            });
 			const auto startEntryIndex = std::distance(head.children.begin(), it);
 			std::sort(it, head.children.end());
 
-			const auto start = GetParameter(parameters, START);
-			const auto selectionSize = static_cast<ptrdiff_t>(head.children.size());
-			const auto maxResultSize = GetMaxResultSize();
+			const auto start            = GetParameter(parameters, START);
+			const auto selectionSize    = static_cast<ptrdiff_t>(head.children.size());
+			const auto maxResultSize    = GetMaxResultSize();
 			const auto startResultIndex = start.isEmpty() ? 0 : std::clamp(start.toLongLong(), 0LL, selectionSize - startEntryIndex - 1);
-			const auto tailSize = selectionSize - (startEntryIndex + startResultIndex + maxResultSize);
+			const auto tailSize         = selectionSize - (startEntryIndex + startResultIndex + maxResultSize);
 
 			if (tailSize > 0)
 				head.children.erase(std::next(head.children.begin(), selectionSize - tailSize), head.children.end());
 			head.children.erase(std::next(head.children.begin(), startEntryIndex), std::next(head.children.begin(), startEntryIndex + startResultIndex));
 
-			const auto writeNextPage = [&](QString title, const ptrdiff_t nextPageIndex, const ptrdiff_t pos)
-			{
-				auto p = parameters;
+			const auto writeNextPage = [&](QString title, const ptrdiff_t nextPageIndex, const ptrdiff_t pos) {
+				auto p   = parameters;
 				p[START] = QString::number(nextPageIndex);
 				const QUrl url(CreateSelf(root, SEARCH, p));
-				auto& entry = *head.children.emplace(std::next(head.children.begin(), pos), ENTRY, QString {}, Node::Attributes {}, GetStandardNodes(QString::number(nextPageIndex), title));
-				entry.title = std::move(title);
+				auto&      entry = *head.children.emplace(std::next(head.children.begin(), pos), ENTRY, QString {}, Node::Attributes {}, GetStandardNodes(QString::number(nextPageIndex), title));
+				entry.title      = std::move(title);
 				entry.children.emplace_back(
 					"link",
 					QString {
                 },
-					Node::Attributes { { "href", url.toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+					Node::Attributes { { "href", url.toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
+				);
 			};
 
 			if (startResultIndex > 0)
@@ -1017,11 +1081,18 @@ public:
 			return {};
 
 		QByteArray bytes;
-		QBuffer buffer(&bytes);
+		QBuffer    buffer(&bytes);
 		try
 		{
-			const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
-			const auto node = std::invoke(getter, *this, std::cref(root), std::cref(parameters), std::cref(args)...);
+			const ScopedCall bufferGuard(
+				[&] {
+					buffer.open(QIODevice::WriteOnly);
+				},
+				[&] {
+					buffer.close();
+				}
+			);
+			const auto      node = std::invoke(getter, *this, std::cref(root), std::cref(parameters), std::cref(args)...);
 			Util::XmlWriter writer(buffer);
 			writer << node;
 		}
@@ -1047,12 +1118,16 @@ public:
 private: // INavigationProvider
 	Node GetNavigationMain(const QString& root, const Parameters& parameters, const NavigationDescription& d) const override
 	{
-		const auto db = m_databaseController->GetDatabase(true);
-		auto head = GetHead(d.type, GetTitle(*db, parameters, { .additionalTitle = Loc::Tr(Loc::NAVIGATION, d.type) }), root, CreateSelf(root, d.type, parameters));
+		const auto db   = m_databaseController->GetDatabase(true);
+		auto       head = GetHead(d.type, GetTitle(*db, parameters, { .additionalTitle = Loc::Tr(Loc::NAVIGATION, d.type) }), root, CreateSelf(root, d.type, parameters));
 		FoldNavigation(head.children, root, parameters, d);
 
-		const auto entryBegin = std::ranges::find(head.children, ENTRY, [](const auto& item) { return item.name; });
-		std::sort(entryBegin, head.children.end(), [](const auto& lhs, const auto& rhs) { return Util::QStringWrapper { lhs.title } < Util::QStringWrapper { rhs.title }; });
+		const auto entryBegin = std::ranges::find(head.children, ENTRY, [](const auto& item) {
+			return item.name;
+		});
+		std::sort(entryBegin, head.children.end(), [](const auto& lhs, const auto& rhs) {
+			return Util::QStringWrapper { lhs.title } < Util::QStringWrapper { rhs.title };
+		});
 
 		return head;
 	}
@@ -1061,10 +1136,9 @@ private: // INavigationProvider
 	Node GetNavigationT(const QString& root, const Parameters& parameters, const NavigationDescription& d) const
 	{
 		const auto removedFlag = GetRemovedFlag();
-		const auto db = m_databaseController->GetDatabase(true);
+		const auto db          = m_databaseController->GetDatabase(true);
 
-		auto join = [&]
-		{
+		auto join = [&] {
 			auto p = parameters;
 			p.erase(d.type);
 			auto result = GetJoin(p).arg(removedFlag);
@@ -1081,7 +1155,7 @@ private: // INavigationProvider
 				itemsWithBooks.emplace(query->template Get<DBCodeType>(0));
 		}
 
-		auto rootItem = T::Load(*db, itemsWithBooks);
+		auto        rootItem   = T::Load(*db, itemsWithBooks);
 		const auto* parentItem = &rootItem;
 		if (const auto it = parameters.find(d.type); it != parameters.end())
 			parentItem = T::Find(parentItem, ToItemCode<typename T::CodeType>(it->second));
@@ -1097,16 +1171,15 @@ private: // INavigationProvider
 		for (const auto& childItem : parentItem->children)
 		{
 			typedParameters[d.type] = ToString(childItem.code);
-			auto [path, content] = [&]() -> std::pair<QString, QString>
-			{
-				if (!childItem.children.empty())
-					return std::make_pair(QString(d.type), GetContent(childItem));
+			auto [path, content]    = [&]() -> std::pair<QString, QString> {
+                if (!childItem.children.empty())
+                    return std::make_pair(QString(d.type), GetContent(childItem));
 
-				const auto query = db->CreateQuery(QString(d.content).arg(join).toStdString());
-				BindImpl(*query, 0, childItem.code);
-				query->Execute();
-				assert(!query->Eof());
-				return std::make_pair(QString {}, Tr(BOOKS_COUNTER).arg(query->template Get<int>(0)));
+                const auto query = db->CreateQuery(QString(d.content).arg(join).toStdString());
+                BindImpl(*query, 0, childItem.code);
+                query->Execute();
+                assert(!query->Eof());
+                return std::make_pair(QString {}, Tr(BOOKS_COUNTER).arg(query->template Get<int>(0)));
 			}();
 			WriteEntry(head.children, root, path, typedParameters, QString("%1/%2").arg(d.type).arg(childItem.code), childItem.name, std::move(content));
 		}
@@ -1128,23 +1201,22 @@ private:
 	void FoldNavigation(Node::Children& children, const QString& root, const Parameters& parameters, const NavigationDescription& d) const
 	{
 		const auto removedFlag = GetRemovedFlag();
-		const auto db = m_databaseController->GetDatabase(true);
+		const auto db          = m_databaseController->GetDatabase(true);
 
-		ptrdiff_t equalCount = 0;
-		QStringList equal;
-		std::map<QString, QString> ones;
+		ptrdiff_t                                         equalCount = 0;
+		QStringList                                       equal;
+		std::map<QString, QString>                        ones;
 		std::multimap<long long, QString, std::greater<>> buffer;
 
 		const auto startsWithGlobal = GetParameter(parameters, STARTS);
-		auto join = GetJoin(parameters);
+		auto       join             = GetJoin(parameters);
 		if (!join.isEmpty())
 			join = QString("%1\n%2").arg(d.joinSelect, join.arg(removedFlag));
 
-		const auto countTotal = [&]
-		{
+		const auto countTotal = [&] {
 			const auto [startsWithLike, escape] = PrepareForLike(startsWithGlobal);
-			const auto queryText = QString(d.countStartsWith).arg(removedFlag).arg(escape).arg(join);
-			const auto query = db->CreateQuery(queryText.toStdString());
+			const auto queryText                = QString(d.countStartsWith).arg(removedFlag).arg(escape).arg(join);
+			const auto query                    = db->CreateQuery(queryText.toStdString());
 			query->Bind(":starts", startsWithGlobal.toStdString());
 			query->Bind(":starts_like", startsWithLike.toStdString());
 			query->Execute();
@@ -1152,8 +1224,7 @@ private:
 			return query->Get<long long>(0);
 		}();
 
-		const auto selectOne = [&](const QString& queryText, const std::vector<std::pair<QString, QString>>& params)
-		{
+		const auto selectOne = [&](const QString& queryText, const std::vector<std::pair<QString, QString>>& params) {
 			const auto query = db->CreateQuery(queryText.toStdString());
 			for (const auto& [key, value] : params)
 				query->Bind(key.toStdString(), value.toStdString());
@@ -1166,26 +1237,27 @@ private:
 		if (countTotal <= maxSize)
 		{
 			const auto [startsWithLike, escape] = PrepareForLike(startsWithGlobal);
-			const auto queryText = QString(d.selectSingle).arg(removedFlag).arg(escape).arg(join);
-			selectOne(queryText,
-			          {
-						  {      ":starts", startsWithGlobal },
-						  { ":starts_like",   startsWithLike },
-            });
+			const auto queryText                = QString(d.selectSingle).arg(removedFlag).arg(escape).arg(join);
+			selectOne(
+				queryText,
+				{
+					{      ":starts", startsWithGlobal },
+					{ ":starts_like",   startsWithLike },
+            }
+			);
 		}
 		else
 		{
-			const auto selectStarts = [&](const auto startsWith)
-			{
+			const auto selectStarts = [&](const auto startsWith) {
 				const auto [startsWithLike, escape] = PrepareForLike(startsWith);
-				const auto queryText = QString(d.startsWith).arg(removedFlag).arg(escape).arg(join);
-				const auto query = db->CreateQuery(queryText.toStdString());
+				const auto queryText                = QString(d.startsWith).arg(removedFlag).arg(escape).arg(join);
+				const auto query                    = db->CreateQuery(queryText.toStdString());
 				query->Bind(":length", startsWith.length() + 1);
 				query->Bind(":starts", startsWith.toStdString());
 				query->Bind(":starts_like", startsWithLike.toStdString());
 				for (query->Execute(); !query->Eof(); query->Next())
 				{
-					QString s = query->template Get<const char*>(0);
+					QString    s     = query->template Get<const char*>(0);
 					const auto count = query->template Get<long long>(1);
 					if (s == startsWith)
 					{
@@ -1203,7 +1275,7 @@ private:
 
 			while (!buffer.empty() && equalCount + static_cast<ptrdiff_t>(buffer.size()) < maxSize)
 			{
-				auto it = buffer.begin();
+				auto       it         = buffer.begin();
 				const auto startsWith = std::move(it->second);
 				buffer.erase(it);
 				selectStarts(startsWith);
@@ -1212,7 +1284,7 @@ private:
 
 		for (auto&& [count, startsWith] : buffer)
 		{
-			Parameters p = parameters;
+			Parameters  p = parameters;
 			const auto& s = (p[STARTS] = std::move(startsWith));
 			WriteEntry(children, root, d.type, p, QString("%1/starts/%2").arg(d.type, s), QString("%1~").arg(s), QString::number(count));
 		}
@@ -1220,10 +1292,12 @@ private:
 		for (const auto& s : equal)
 		{
 			const auto queryText = QString(d.selectEqual).arg(removedFlag).arg(join);
-			selectOne(queryText,
-			          {
-						  { ":starts", s },
-            });
+			selectOne(
+				queryText,
+				{
+					{ ":starts", s },
+            }
+			);
 		}
 
 		Parameters typedParameters = parameters;
@@ -1254,36 +1328,40 @@ private:
 	}
 
 private:
-	std::shared_ptr<const ISettings> m_settings;
-	std::shared_ptr<const Flibrary::ICollectionProvider> m_collectionProvider;
-	std::shared_ptr<const Flibrary::IDatabaseController> m_databaseController;
+	std::shared_ptr<const ISettings>                             m_settings;
+	std::shared_ptr<const Flibrary::ICollectionProvider>         m_collectionProvider;
+	std::shared_ptr<const Flibrary::IDatabaseController>         m_databaseController;
 	std::shared_ptr<const Flibrary::IAuthorAnnotationController> m_authorAnnotationController;
-	std::shared_ptr<const ICoverCache> m_coverCache;
-	std::shared_ptr<const IBookExtractor> m_bookExtractor;
-	std::shared_ptr<const INoSqlRequester> m_noSqlRequester;
-	std::shared_ptr<Flibrary::IAnnotationController> m_annotationController;
+	std::shared_ptr<const ICoverCache>                           m_coverCache;
+	std::shared_ptr<const IBookExtractor>                        m_bookExtractor;
+	std::shared_ptr<const INoSqlRequester>                       m_noSqlRequester;
+	std::shared_ptr<Flibrary::IAnnotationController>             m_annotationController;
 };
 
 namespace
 {
 } // namespace
 
-Requester::Requester(std::shared_ptr<const ISettings> settings,
-                     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-                     std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
-                     std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
-                     std::shared_ptr<const ICoverCache> coverCache,
-                     std::shared_ptr<const IBookExtractor> bookExtractor,
-                     std::shared_ptr<const INoSqlRequester> noSqlRequester,
-                     std::shared_ptr<Flibrary::IAnnotationController> annotationController)
-	: m_impl(std::move(settings),
-             std::move(collectionProvider),
-             std::move(databaseController),
-             std::move(authorAnnotationController),
-             std::move(coverCache),
-             std::move(bookExtractor),
-             std::move(noSqlRequester),
-             std::move(annotationController))
+Requester::Requester(
+	std::shared_ptr<const ISettings>                             settings,
+	std::shared_ptr<const Flibrary::ICollectionProvider>         collectionProvider,
+	std::shared_ptr<const Flibrary::IDatabaseController>         databaseController,
+	std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
+	std::shared_ptr<const ICoverCache>                           coverCache,
+	std::shared_ptr<const IBookExtractor>                        bookExtractor,
+	std::shared_ptr<const INoSqlRequester>                       noSqlRequester,
+	std::shared_ptr<Flibrary::IAnnotationController>             annotationController
+)
+	: m_impl(
+		  std::move(settings),
+		  std::move(collectionProvider),
+		  std::move(databaseController),
+		  std::move(authorAnnotationController),
+		  std::move(coverCache),
+		  std::move(bookExtractor),
+		  std::move(noSqlRequester),
+		  std::move(annotationController)
+	  )
 {
 	PLOGV << "Requester created";
 }

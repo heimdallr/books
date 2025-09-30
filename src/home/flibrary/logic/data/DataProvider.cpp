@@ -23,7 +23,7 @@ namespace
 
 struct BooksViewModeDescription
 {
-	IBooksRootGenerator::Generator generator;
+	IBooksRootGenerator::Generator  generator;
 	QueryDescription::MappingGetter mapping;
 };
 
@@ -37,11 +37,13 @@ constexpr std::pair<ViewMode, BooksViewModeDescription> BOOKS_GENERATORS[] {
 class DataProvider::Impl
 {
 public:
-	Impl(std::shared_ptr<const ICollectionProvider> collectionProvider,
-	     std::shared_ptr<const IDatabaseUser> databaseUser,
-	     std::shared_ptr<const IFilterProvider> filterProvider,
-	     std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
-	     std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
+	Impl(
+		std::shared_ptr<const ICollectionProvider>   collectionProvider,
+		std::shared_ptr<const IDatabaseUser>         databaseUser,
+		std::shared_ptr<const IFilterProvider>       filterProvider,
+		std::shared_ptr<INavigationQueryExecutor>    navigationQueryExecutor,
+		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController
+	)
 		: m_collectionProvider { std::move(collectionProvider) }
 		, m_databaseUser { std::move(databaseUser) }
 		, m_filterProvider { std::move(filterProvider) }
@@ -110,7 +112,13 @@ public:
 private:
 	void RequestNavigationImpl()
 	{
-		m_navigationQueryExecutor->RequestNavigation(m_navigationMode, [&](const NavigationMode mode, IDataItem::Ptr root) { SendNavigationCallback(mode, std::move(root)); }, m_requestNavigationForce);
+		m_navigationQueryExecutor->RequestNavigation(
+			m_navigationMode,
+			[&](const NavigationMode mode, IDataItem::Ptr root) {
+				SendNavigationCallback(mode, std::move(root));
+			},
+			m_requestNavigationForce
+		);
 	}
 
 	void RequestBooksImpl()
@@ -120,7 +128,7 @@ private:
 
 		const auto booksGeneratorReady = m_booksGenerator && m_booksGenerator->GetNavigationMode() == m_navigationMode && m_booksGenerator->GetNavigationId() == m_navigationId;
 
-		const auto& description = m_navigationQueryExecutor->GetQueryDescription(m_navigationMode);
+		const auto& description                    = m_navigationQueryExecutor->GetQueryDescription(m_navigationMode);
 		const auto& [booksGenerator, columnMapper] = FindSecond(BOOKS_GENERATORS, m_booksViewMode);
 
 		if (booksGeneratorReady && m_booksGenerator->GetBooksViewMode() == m_booksViewMode)
@@ -130,20 +138,19 @@ private:
 			{ "Get books",
 		      [this,
 		       navigationMode = m_navigationMode,
-		       navigationId = m_navigationId,
-		       viewMode = m_booksViewMode,
-		       generator = std::move(m_booksGenerator),
+		       navigationId   = m_navigationId,
+		       viewMode       = m_booksViewMode,
+		       generator      = std::move(m_booksGenerator),
 		       booksGeneratorReady,
 		       &description,
 		       &booksGenerator,
-		       &columnMapper]() mutable
-		      {
+		       &columnMapper]() mutable {
 				  QString authorName;
 				  if (!booksGeneratorReady)
 				  {
 					  const auto& activeCollection = m_collectionProvider->GetActiveCollection();
-					  const auto db = m_databaseUser->Database();
-					  generator = std::make_unique<BooksTreeGenerator>(activeCollection, *db, navigationMode, navigationId, description, *m_filterProvider);
+					  const auto  db               = m_databaseUser->Database();
+					  generator                    = std::make_unique<BooksTreeGenerator>(activeCollection, *db, navigationMode, navigationId, description, *m_filterProvider);
 
 					  if (navigationMode == NavigationMode::Authors && !navigationId.isEmpty())
 					  {
@@ -156,16 +163,16 @@ private:
 
 				  generator->SetBooksViewMode(viewMode);
 				  auto root = std::invoke(booksGenerator, *generator, std::cref(description));
-				  return
-					  [this, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator), authorName = std::move(authorName), &description, &columnMapper](size_t) mutable
-				  {
+				  return [this, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator), authorName = std::move(authorName), &description, &columnMapper](size_t
+			             ) mutable {
 					  m_booksGenerator = std::move(generator);
 					  SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());
 					  if (!authorName.isEmpty())
 						  m_authorAnnotationController->SetAuthor(navigationId.toLongLong(), std::move(authorName));
 				  };
 			  } },
-			2);
+			2
+		);
 	}
 
 	void SendNavigationCallback(const NavigationMode mode, IDataItem::Ptr root) const
@@ -185,28 +192,34 @@ private:
 
 private:
 	NavigationMode m_navigationMode { NavigationMode::Unknown };
-	ViewMode m_booksViewMode { ViewMode::Unknown };
-	QString m_navigationId;
-	Callback m_navigationRequestCallback;
-	Callback m_booksRequestCallback;
+	ViewMode       m_booksViewMode { ViewMode::Unknown };
+	QString        m_navigationId;
+	Callback       m_navigationRequestCallback;
+	Callback       m_booksRequestCallback;
 
-	mutable bool m_requestNavigationForce { false };
+	mutable bool                                m_requestNavigationForce { false };
 	mutable std::shared_ptr<BooksTreeGenerator> m_booksGenerator;
 
-	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
-	std::shared_ptr<const IDatabaseUser> m_databaseUser;
-	std::shared_ptr<const IFilterProvider> m_filterProvider;
-	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> m_navigationQueryExecutor;
+	std::shared_ptr<const ICollectionProvider>                      m_collectionProvider;
+	std::shared_ptr<const IDatabaseUser>                            m_databaseUser;
+	std::shared_ptr<const IFilterProvider>                          m_filterProvider;
+	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr>    m_navigationQueryExecutor;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> m_authorAnnotationController;
-	std::unique_ptr<QTimer> m_navigationTimer { Util::CreateUiTimer([&] { RequestNavigationImpl(); }) };
-	std::unique_ptr<QTimer> m_booksTimer { Util::CreateUiTimer([&] { RequestBooksImpl(); }) };
+	std::unique_ptr<QTimer>                                         m_navigationTimer { Util::CreateUiTimer([&] {
+        RequestNavigationImpl();
+    }) };
+	std::unique_ptr<QTimer> m_booksTimer { Util::CreateUiTimer([&] {
+		RequestBooksImpl();
+	}) };
 };
 
-DataProvider::DataProvider(std::shared_ptr<const ICollectionProvider> collectionProvider,
-                           std::shared_ptr<const IDatabaseUser> databaseUser,
-                           std::shared_ptr<const IFilterProvider> filterProvider,
-                           std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
-                           std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
+DataProvider::DataProvider(
+	std::shared_ptr<const ICollectionProvider>   collectionProvider,
+	std::shared_ptr<const IDatabaseUser>         databaseUser,
+	std::shared_ptr<const IFilterProvider>       filterProvider,
+	std::shared_ptr<INavigationQueryExecutor>    navigationQueryExecutor,
+	std::shared_ptr<IAuthorAnnotationController> authorAnnotationController
+)
 	: m_impl(std::move(collectionProvider), std::move(databaseUser), std::move(filterProvider), std::move(navigationQueryExecutor), std::move(authorAnnotationController))
 {
 	PLOGV << "DataProvider created";

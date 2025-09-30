@@ -71,7 +71,7 @@ HRESULT OutMemStream::QueryInterface(REFIID iid, void** ppvObject) //-V835
 
 	if (iid == IID_IStreamSetRestriction)
 	{
-		auto obj = StreamSetRestriction::Create();
+		auto obj   = StreamSetRestriction::Create();
 		*ppvObject = obj.Detach();
 	}
 
@@ -90,7 +90,7 @@ HRESULT OutMemStream::Write(const void* data, const UInt32 size, UInt32* process
 		return E_ABORT;
 
 	const auto* byte_data = static_cast<const char*>(data);
-	const auto realSize = m_stream.write(byte_data, size);
+	const auto  realSize  = m_stream.write(byte_data, size);
 	if (processedSize)
 		*processedSize = realSize;
 

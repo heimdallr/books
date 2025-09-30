@@ -9,7 +9,7 @@ using namespace HomeCompa::Flibrary;
 struct AbstractTreeViewController::Impl final
 {
 	AbstractTreeViewController& self;
-	QString settingsModeKey { QString(Constant::Settings::VIEW_MODE_KEY_TEMPLATE).arg(self.m_context) };
+	QString                     settingsModeKey { QString(Constant::Settings::VIEW_MODE_KEY_TEMPLATE).arg(self.m_context) };
 
 	explicit Impl(AbstractTreeViewController& self)
 		: self(self)

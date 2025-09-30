@@ -56,7 +56,7 @@ int FixCategoryRu(const uchar ch)
 	return ch == 4 ? 0 : 1;
 }
 
-using FixCategoryGetter = int (*)(uchar);
+using FixCategoryGetter               = int (*)(uchar);
 FixCategoryGetter FIX_CATEGORY_GETTER = &FixCategoryDefault;
 
 int Category(const QString& s, const int emptyStringWeight) noexcept

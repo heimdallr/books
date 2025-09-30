@@ -23,9 +23,9 @@ namespace
 {
 QStringList SplitStringWithQuotes(const QString& str)
 {
-	QRegularExpression regex("\"([^\"]*)\"|([^\\s,]+)");
+	QRegularExpression              regex("\"([^\"]*)\"|([^\\s,]+)");
 	QRegularExpressionMatchIterator it = regex.globalMatch(str);
-	QStringList result;
+	QStringList                     result;
 	while (it.hasNext())
 	{
 		QRegularExpressionMatch match = it.next();
@@ -39,7 +39,7 @@ QStringList SplitStringWithQuotes(const QString& str)
 
 bool EmbeddedCommandDownload(const QString& argStr)
 {
-	bool outputFileMode = false;
+	bool    outputFileMode = false;
 	QString outputFileName;
 	QString url;
 	for (const auto& arg : SplitStringWithQuotes(argStr))
@@ -51,7 +51,7 @@ bool EmbeddedCommandDownload(const QString& argStr)
 		}
 
 		(outputFileMode ? outputFileName : url) = arg;
-		outputFileMode = false;
+		outputFileMode                          = false;
 	}
 
 	if (outputFileName.isEmpty())
@@ -69,16 +69,13 @@ bool EmbeddedCommandDownload(const QString& argStr)
 	{
 		QBuffer buffer(&bytes);
 		buffer.open(QIODevice::WriteOnly);
-		QEventLoop eventLoop;
+		QEventLoop          eventLoop;
 		Network::Downloader downloader;
-		downloader.Download(url,
-		                    buffer,
-		                    [&](size_t, const int code, const QString& message)
-		                    {
-								if (!message.isEmpty())
-									PLOGE << QString("Download %1 failed: %2. %3").arg(url).arg(code).arg(message);
-								eventLoop.exit(code);
-							});
+		downloader.Download(url, buffer, [&](size_t, const int code, const QString& message) {
+			if (!message.isEmpty())
+				PLOGE << QString("Download %1 failed: %2. %3").arg(url).arg(code).arg(message);
+			eventLoop.exit(code);
+		});
 		const auto result = eventLoop.exec();
 		if (result != 0)
 			return false;
@@ -133,15 +130,15 @@ bool ShellExecute(const std::wstring& file, const std::wstring& parameters, cons
 	const auto& [show, wait] = FindSecond(TYPES, type);
 
 	SHELLEXECUTEINFO lpExecInfo {};
-	lpExecInfo.cbSize = sizeof(SHELLEXECUTEINFO);
-	lpExecInfo.lpFile = file.data();
-	lpExecInfo.fMask = SEE_MASK_DOENVSUBST | SEE_MASK_NOCLOSEPROCESS;
-	lpExecInfo.hwnd = nullptr;
-	lpExecInfo.lpVerb = L"open";
+	lpExecInfo.cbSize       = sizeof(SHELLEXECUTEINFO);
+	lpExecInfo.lpFile       = file.data();
+	lpExecInfo.fMask        = SEE_MASK_DOENVSUBST | SEE_MASK_NOCLOSEPROCESS;
+	lpExecInfo.hwnd         = nullptr;
+	lpExecInfo.lpVerb       = L"open";
 	lpExecInfo.lpParameters = parameters.data();
-	lpExecInfo.lpDirectory = nullptr;
-	lpExecInfo.nShow = show;
-	lpExecInfo.hInstApp = reinterpret_cast<HINSTANCE>(SE_ERR_DDEFAIL);
+	lpExecInfo.lpDirectory  = nullptr;
+	lpExecInfo.nShow        = show;
+	lpExecInfo.hInstApp     = reinterpret_cast<HINSTANCE>(SE_ERR_DDEFAIL);
 	ShellExecuteEx(&lpExecInfo);
 
 	if (lpExecInfo.hProcess == nullptr)
@@ -156,15 +153,23 @@ bool ShellExecute(const std::wstring& file, const std::wstring& parameters, cons
 
 bool CreateProcess(const std::wstring& file, const std::wstring& parameters)
 {
-	QProcess process;
+	QProcess   process;
 	QEventLoop eventLoop;
 	const auto args = SplitStringWithQuotes(QString::fromStdWString(parameters));
 
 	QByteArray fixed;
-	QObject::connect(&process, &QProcess::started, [&] { PLOGV << QString("%1 %2 launched").arg(file, args.join(" ")); });
-	QObject::connect(&process, &QProcess::finished, [&](const int code, const QProcess::ExitStatus) { eventLoop.exit(code); });
-	QObject::connect(&process, &QProcess::readyReadStandardError, [&] { PLOGV << process.readAllStandardError(); });
-	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&] { PLOGV << process.readAllStandardOutput(); });
+	QObject::connect(&process, &QProcess::started, [&] {
+		PLOGV << QString("%1 %2 launched").arg(file, args.join(" "));
+	});
+	QObject::connect(&process, &QProcess::finished, [&](const int code, const QProcess::ExitStatus) {
+		eventLoop.exit(code);
+	});
+	QObject::connect(&process, &QProcess::readyReadStandardError, [&] {
+		PLOGV << process.readAllStandardError();
+	});
+	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&] {
+		PLOGV << process.readAllStandardOutput();
+	});
 
 	process.start(QString::fromStdWString(file), args, QIODevice::ReadWrite);
 	process.closeWriteChannel();
@@ -184,7 +189,7 @@ bool CommandExecutor::ExecuteSystem(const IScriptController::Command& command) c
 bool CommandExecutor::ExecuteLaunchConsoleApp(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::LaunchConsoleApp);
-	const auto file = QDir::toNativeSeparators(command.command).toStdWString();
+	const auto file       = QDir::toNativeSeparators(command.command).toStdWString();
 	const auto parameters = command.args.toStdWString();
 	return CreateProcess(file, parameters);
 }
@@ -192,7 +197,7 @@ bool CommandExecutor::ExecuteLaunchConsoleApp(const IScriptController::Command& 
 bool CommandExecutor::ExecuteLaunchGuiApp(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::LaunchGuiApp);
-	const auto file = QDir::toNativeSeparators(command.command).toStdWString();
+	const auto file       = QDir::toNativeSeparators(command.command).toStdWString();
 	const auto parameters = command.args.toStdWString();
 	return ShellExecute(file, parameters, IScriptController::Command::Type::LaunchGuiApp);
 }

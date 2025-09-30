@@ -1,34 +1,34 @@
 #pragma once
 
-constexpr wchar_t COMMENT_START = '#';
-constexpr wchar_t DATE_SEPARATOR = '-';
+constexpr wchar_t COMMENT_START   = '#';
+constexpr wchar_t DATE_SEPARATOR  = '-';
 constexpr wchar_t GENRE_SEPARATOR = '|';
-constexpr wchar_t INI_SEPARATOR = '=';
+constexpr wchar_t INI_SEPARATOR   = '=';
 
-constexpr auto COLLECTION_INFO = L"collection.info";
-constexpr auto DB_CREATE_SCRIPT = L"db_create_script";
-constexpr auto DB_PATH = L"db_path";
-constexpr auto DB_UPDATE_SCRIPT = L"db_update_script";
-constexpr auto DEFAULT_DB_CREATE_SCRIPT = L"CreateCollection.sql";
-constexpr auto DEFAULT_DB_UPDATE_SCRIPT = L"UpdateCollection.sql";
-constexpr auto DEFAULT_GENRES = L"genres.lst";
-constexpr auto DEFAULT_ARCHIVE_TYPE = L"default_archive_type";
-constexpr auto GENRES = L"genres";
-constexpr auto LANGUAGES_MAPPING = L"languages_mapping";
-constexpr auto DEFAULT_LANGUAGES_MAPPING = L"LanguagesMapping.json";
-constexpr auto INI_EXT = L"ini";
-constexpr auto INPX_EXT = L".inpx";
-constexpr auto INPX_FOLDER = L"inpx_folder";
-constexpr auto REVIEWS_FOLDER = L"reviews";
-constexpr auto REVIEWS_ADDITIONAL_ARCHIVE_NAME = L"additional.zip";
+constexpr auto COLLECTION_INFO                    = L"collection.info";
+constexpr auto DB_CREATE_SCRIPT                   = L"db_create_script";
+constexpr auto DB_PATH                            = L"db_path";
+constexpr auto DB_UPDATE_SCRIPT                   = L"db_update_script";
+constexpr auto DEFAULT_DB_CREATE_SCRIPT           = L"CreateCollection.sql";
+constexpr auto DEFAULT_DB_UPDATE_SCRIPT           = L"UpdateCollection.sql";
+constexpr auto DEFAULT_GENRES                     = L"genres.lst";
+constexpr auto DEFAULT_ARCHIVE_TYPE               = L"default_archive_type";
+constexpr auto GENRES                             = L"genres";
+constexpr auto LANGUAGES_MAPPING                  = L"languages_mapping";
+constexpr auto DEFAULT_LANGUAGES_MAPPING          = L"LanguagesMapping.json";
+constexpr auto INI_EXT                            = L"ini";
+constexpr auto INPX_EXT                           = L".inpx";
+constexpr auto INPX_FOLDER                        = L"inpx_folder";
+constexpr auto REVIEWS_FOLDER                     = L"reviews";
+constexpr auto REVIEWS_ADDITIONAL_ARCHIVE_NAME    = L"additional.zip";
 constexpr auto REVIEWS_ADDITIONAL_BOOKS_FILE_NAME = "books.json";
-constexpr auto AUTHORS_FOLDER = L"authors";
-constexpr auto MHL_TRIGGERS_ON = L"mhl_triggers_on";
-constexpr auto VERSION_INFO = L"version.info";
-constexpr auto SET_DATABASE_VERSION_STATEMENT = L"set_database_version";
-constexpr auto AUTHOR_UNKNOWN = L"Unknown author";
-constexpr auto GENRE_NOT_SPECIFIED = L"unordered:";
-constexpr auto STRUCTURE_INFO = "structure.info";
+constexpr auto AUTHORS_FOLDER                     = L"authors";
+constexpr auto MHL_TRIGGERS_ON                    = L"mhl_triggers_on";
+constexpr auto VERSION_INFO                       = L"version.info";
+constexpr auto SET_DATABASE_VERSION_STATEMENT     = L"set_database_version";
+constexpr auto AUTHOR_UNKNOWN                     = L"Unknown author";
+constexpr auto GENRE_NOT_SPECIFIED                = L"unordered:";
+constexpr auto STRUCTURE_INFO                     = "structure.info";
 
 constexpr auto INP_EXT = L".inp";
 

@@ -18,13 +18,13 @@ public:
 	~LogController() override;
 
 private:
-	QAbstractItemModel* GetModel() const noexcept override;
-	void Clear() override;
+	QAbstractItemModel*      GetModel() const noexcept override;
+	void                     Clear() override;
 	std::vector<const char*> GetSeverities() const override;
-	int GetSeverity() const override;
-	void SetSeverity(int value) override;
-	void ShowCollectionStatistics() const override;
-	void TestColors() const override;
+	int                      GetSeverity() const override;
+	void                     SetSeverity(int value) override;
+	void                     ShowCollectionStatistics() const override;
+	void                     TestColors() const override;
 
 private:
 	struct Impl;

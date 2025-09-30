@@ -76,7 +76,7 @@ private: // QAbstractItemModel
 			return {};
 
 		auto* parentItem = parent.isValid() ? static_cast<Genre*>(parent.internalPointer()) : &m_root;
-		auto& childItem = parentItem->children[static_cast<size_t>(row)];
+		auto& childItem  = parentItem->children[static_cast<size_t>(row)];
 
 		return createIndex(row, column, &childItem);
 	}
@@ -86,7 +86,7 @@ private: // QAbstractItemModel
 		if (!index.isValid())
 			return {};
 
-		auto* childItem = static_cast<Genre*>(index.internalPointer());
+		auto* childItem  = static_cast<Genre*>(index.internalPointer());
 		auto* parentItem = childItem->parent;
 
 		return parentItem != &m_root ? createIndex(static_cast<int>(parentItem->row), 0, parentItem) : QModelIndex {};
@@ -112,12 +112,10 @@ private: // QAbstractItemModel
 		{
 			assert(role == Role::SelectedList);
 			QStringList result;
-			Enumerate<const Genre&>(m_root,
-			                        [&](const Genre&, const Genre& item)
-			                        {
-										if (item.children.empty() && item.checked)
-											result << item.code;
-									});
+			Enumerate<const Genre&>(m_root, [&](const Genre&, const Genre& item) {
+				if (item.children.empty() && item.checked)
+					result << item.code;
+			});
 			return result;
 		}
 
@@ -137,7 +135,9 @@ private: // QAbstractItemModel
 			{
 				QStringList result;
 				result.reserve(static_cast<int>(genre->children.size()));
-				std::ranges::transform(genre->children, std::back_inserter(result), [](const auto& item) { return item.code; });
+				std::ranges::transform(genre->children, std::back_inserter(result), [](const auto& item) {
+					return item.code;
+				});
 				return result;
 			}
 
@@ -152,7 +152,7 @@ private: // QAbstractItemModel
 		if (index.isValid())
 		{
 			assert(role == Qt::CheckStateRole);
-			auto* genre = static_cast<Genre*>(index.internalPointer());
+			auto* genre    = static_cast<Genre*>(index.internalPointer());
 			genre->checked = value.value<Qt::CheckState>() == Qt::CheckState::Checked;
 			return true;
 		}
@@ -160,11 +160,23 @@ private: // QAbstractItemModel
 		switch (role)
 		{
 			case Role::CheckAll:
-				return SetChecks([](const auto&) { return true; }, value.isValid() ? value.value<std::unordered_set<QString>>() : std::unordered_set<QString> {});
+				return SetChecks(
+					[](const auto&) {
+						return true;
+					},
+					value.isValid() ? value.value<std::unordered_set<QString>>() : std::unordered_set<QString> {}
+				);
 			case Role::UncheckAll:
-				return SetChecks([](const auto&) { return false; }, value.isValid() ? value.value<std::unordered_set<QString>>() : std::unordered_set<QString> {});
+				return SetChecks(
+					[](const auto&) {
+						return false;
+					},
+					value.isValid() ? value.value<std::unordered_set<QString>>() : std::unordered_set<QString> {}
+				);
 			case Role::RevertChecks:
-				return SetChecks([](const auto& item) { return !item.checked; });
+				return SetChecks([](const auto& item) {
+					return !item.checked;
+				});
 			case Role::SelectedList:
 				return Util::Set(m_checked, value.toStringList());
 			default:
@@ -182,15 +194,12 @@ private: // QAbstractItemModel
 private:
 	bool SetChecks(const std::function<bool(const Genre&)>& f, const std::unordered_set<QString>& codes = {})
 	{
-		Enumerate<Genre&>(m_root,
-		                  [&](Genre&, Genre& item)
-		                  {
-							  if (item.children.empty() && (codes.empty() || codes.contains(item.code)))
-								  item.checked = f(item);
-						  });
+		Enumerate<Genre&>(m_root, [&](Genre&, Genre& item) {
+			if (item.children.empty() && (codes.empty() || codes.contains(item.code)))
+				item.checked = f(item);
+		});
 
-		const auto update = [this](const QModelIndex& parent, const auto& updateRef) -> void
-		{
+		const auto update = [this](const QModelIndex& parent, const auto& updateRef) -> void {
 			const auto sz = rowCount(parent);
 			if (sz == 0)
 				return;
@@ -207,27 +216,29 @@ private:
 	void CreateGenreTree(std::shared_ptr<const IDatabaseUser> databaseUser)
 	{
 		const auto& databaseUserRef = *databaseUser;
-		databaseUserRef.Execute({ "Create genre list",
-		                          [&, databaseUser = std::move(databaseUser)]() mutable
-		                          {
-									  auto root = Genre::Load(*databaseUser->Database());
-									  return [this, root = std::move(root)](size_t) mutable
-									  {
-										  const ScopedCall modelGuard([this] { beginResetModel(); }, [this] { endResetModel(); });
-										  m_root = std::move(root);
-										  std::unordered_set checked(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
-										  Enumerate<Genre&>(m_root,
-				                                            [&](Genre& parent, Genre& item)
-				                                            {
-																item.parent = &parent;
-																item.checked = checked.contains(item.code);
-															});
-									  };
-								  } });
+		databaseUserRef.Execute({ "Create genre list", [&, databaseUser = std::move(databaseUser)]() mutable {
+									 auto root = Genre::Load(*databaseUser->Database());
+									 return [this, root = std::move(root)](size_t) mutable {
+										 const ScopedCall modelGuard(
+											 [this] {
+												 beginResetModel();
+											 },
+											 [this] {
+												 endResetModel();
+											 }
+										 );
+										 m_root = std::move(root);
+										 std::unordered_set checked(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
+										 Enumerate<Genre&>(m_root, [&](Genre& parent, Genre& item) {
+											 item.parent  = &parent;
+											 item.checked = checked.contains(item.code);
+										 });
+									 };
+								 } });
 	}
 
 private:
-	Genre m_root;
+	Genre       m_root;
 	QStringList m_checked;
 };
 
@@ -295,9 +306,13 @@ private: // QSortFilterProxyModel
 			return true;
 
 		const auto sourceIndex = sourceModel()->index(sourceRow, 0, sourceParent);
-		return sourceModel()->rowCount(sourceIndex)
-		         ? std::ranges::any_of(sourceIndex.data(IGenreModel::Role::ChildrenCodes).toStringList(), [this](const QString& code) { return m_visibleGenres.contains(code); })
-		         : m_visibleGenres.contains(sourceIndex.data(IGenreModel::Role::Code).toString());
+		return sourceModel()->rowCount(sourceIndex) ? std::ranges::any_of(
+														  sourceIndex.data(IGenreModel::Role::ChildrenCodes).toStringList(),
+														  [this](const QString& code) {
+															  return m_visibleGenres.contains(code);
+														  }
+													  )
+		                                            : m_visibleGenres.contains(sourceIndex.data(IGenreModel::Role::Code).toString());
 	}
 
 private:
@@ -319,7 +334,7 @@ private:
 
 private:
 	PropagateConstPtr<QAbstractItemModel> m_sourceModel;
-	std::unordered_set<QString> m_visibleGenres;
+	std::unordered_set<QString>           m_visibleGenres;
 };
 
 } // namespace

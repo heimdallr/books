@@ -26,13 +26,15 @@ class TreeView final : public QWidget
 	NON_COPY_MOVABLE(TreeView)
 
 public:
-	TreeView(std::shared_ptr<const ICollectionProvider> collectionProvider,
-	         std::shared_ptr<ISettings> settings,
-	         std::shared_ptr<IUiFactory> uiFactory,
-	         std::shared_ptr<IFilterProvider> filterProvider,
-	         std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
-	         std::shared_ptr<ScrollBarController> scrollBarController,
-	         QWidget* parent = nullptr);
+	TreeView(
+		std::shared_ptr<const ICollectionProvider> collectionProvider,
+		std::shared_ptr<ISettings>                 settings,
+		std::shared_ptr<IUiFactory>                uiFactory,
+		std::shared_ptr<IFilterProvider>           filterProvider,
+		std::shared_ptr<ItemViewToolTipper>        itemViewToolTipper,
+		std::shared_ptr<ScrollBarController>       scrollBarController,
+		QWidget*                                   parent = nullptr
+	);
 	~TreeView() override;
 
 signals:
@@ -42,10 +44,10 @@ signals:
 	void CurrentNavigationItemChanged(const QModelIndex& index) const;
 
 public:
-	void SetNavigationModeName(QString navigationModeName);
-	void ShowRemoved(bool showRemoved);
+	void               SetNavigationModeName(QString navigationModeName);
+	void               ShowRemoved(bool showRemoved);
 	QAbstractItemView* GetView() const;
-	void SetMode(int mode, const QString& id);
+	void               SetMode(int mode, const QString& id);
 
 private slots:
 	void OnBookTitleToSearchVisibleChanged() const;

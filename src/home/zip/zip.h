@@ -21,18 +21,18 @@ public:
 	{
 	};
 
-	using Format = ZipDetails::Format;
-	using PropertyId = ZipDetails::PropertyId;
-	using CompressionLevel = ZipDetails::CompressionLevel;
+	using Format            = ZipDetails::Format;
+	using PropertyId        = ZipDetails::PropertyId;
+	using CompressionLevel  = ZipDetails::CompressionLevel;
 	using CompressionMethod = ZipDetails::CompressionMethod;
 
-	static Format FormatFromString(const QString& str);
+	static Format  FormatFromString(const QString& str);
 	static QString FormatToString(Format format);
 
 	static std::shared_ptr<IZipFileController> CreateZipFileController();
 
 public:
-	static bool IsArchive(const QString& filename);
+	static bool        IsArchive(const QString& filename);
 	static QStringList GetTypes();
 
 public:
@@ -42,8 +42,8 @@ public:
 	Zip(QIODevice& stream, Format format, bool appendMode = false, std::shared_ptr<ProgressCallback> progress = {});
 	~Zip();
 
-	[[nodiscard]] QStringList GetFileNameList() const;
-	[[nodiscard]] size_t GetFileSize(const QString& filename) const;
+	[[nodiscard]] QStringList      GetFileNameList() const;
+	[[nodiscard]] size_t           GetFileSize(const QString& filename) const;
 	[[nodiscard]] const QDateTime& GetFileTime(const QString& filename) const;
 
 	[[nodiscard]] std::unique_ptr<Stream> Read(const QString& filename) const;
@@ -54,10 +54,10 @@ public:
 	bool Remove(const std::vector<QString>& fileNames);
 
 public:
-	Zip(const Zip&) = delete;
-	Zip(Zip&&) = default;
+	Zip(const Zip&)            = delete;
+	Zip(Zip&&)                 = default;
 	Zip& operator=(const Zip&) = delete;
-	Zip& operator=(Zip&&) = default;
+	Zip& operator=(Zip&&)      = default;
 
 private:
 	class Impl;

@@ -23,11 +23,11 @@ public:
 	};
 
 public:
-	virtual ~IDatabaseMigrator() = default;
+	virtual ~IDatabaseMigrator()                  = default;
 	virtual NeedMigrateResult NeedMigrate() const = 0;
-	virtual void Migrate() = 0;
+	virtual void              Migrate()           = 0;
 
-	virtual void RegisterObserver(IObserver* observer) = 0;
+	virtual void RegisterObserver(IObserver* observer)   = 0;
 	virtual void UnregisterObserver(IObserver* observer) = 0;
 };
 

@@ -6,7 +6,7 @@
 
 void ICU_Transliterate(const char* id, const std::u32string* src, std::u32string* dst)
 {
-	UErrorCode status = U_ZERO_ERROR;
+	UErrorCode              status  = U_ZERO_ERROR;
 	icu_77::Transliterator* myTrans = icu_77::Transliterator::createInstance(id, UTRANS_FORWARD, status);
 	assert(myTrans);
 

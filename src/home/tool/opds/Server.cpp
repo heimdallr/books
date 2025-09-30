@@ -31,20 +31,20 @@ using namespace Opds;
 namespace
 {
 
-constexpr auto ARG = "<arg>";
-constexpr auto FAVICON = "/favicon.ico";
+constexpr auto ARG        = "<arg>";
+constexpr auto FAVICON    = "/favicon.ico";
 constexpr auto OPENSEARCH = "/opds/opensearch";
 
-constexpr auto GET_BOOKS_API = "/main/getBooks/%1";
-constexpr auto GET_BOOKS_API_ASSETS = "/assets/%1";
-constexpr auto GET_BOOKS_API_COVER = "/Images/covers/%1";
-constexpr auto GET_BOOKS_API_BOOK_DATA = "/Images/fb2/%1";
-constexpr auto GET_BOOKS_API_BOOK_ZIP = "/Images/zip/%1";
+constexpr auto GET_BOOKS_API                   = "/main/getBooks/%1";
+constexpr auto GET_BOOKS_API_ASSETS            = "/assets/%1";
+constexpr auto GET_BOOKS_API_COVER             = "/Images/covers/%1";
+constexpr auto GET_BOOKS_API_BOOK_DATA         = "/Images/fb2/%1";
+constexpr auto GET_BOOKS_API_BOOK_ZIP          = "/Images/zip/%1";
 constexpr auto GET_BOOKS_API_BOOK_DATA_COMPACT = "/Images/fb2compact/%1";
 
-const auto CONTEXT = "Http";
+const auto CONTEXT       = "Http";
 const auto AUTH_REQUIRED = QT_TRANSLATE_NOOP("Http", "Authentication required");
-const auto AUTH_FAILED = QT_TRANSLATE_NOOP("Http", "Authentication failed");
+const auto AUTH_FAILED   = QT_TRANSLATE_NOOP("Http", "Authentication failed");
 TR_DEF
 
 #define OPDS_REQUEST_ROOT_ITEM(NAME) constexpr auto(NAME) = "/" #NAME;
@@ -82,7 +82,7 @@ constexpr AuthChecker AUTH_CHECKERS[] {
 
 void ReplaceOrAppendHeader(QHttpServerResponse& response, const QHttpHeaders::WellKnownHeader key, const QString& value)
 {
-	auto h = response.headers();
+	auto                        h  = response.headers();
 	[[maybe_unused]] const auto ok = h.replaceOrAppend(key, value);
 	assert(ok);
 	response.setHeaders(std::move(h));
@@ -90,7 +90,7 @@ void ReplaceOrAppendHeader(QHttpServerResponse& response, const QHttpHeaders::We
 
 void ReplaceOrAppendHeader(QHttpServerResponse& response, const QString& key, const QString& value)
 {
-	auto h = response.headers();
+	auto                        h  = response.headers();
 	[[maybe_unused]] const auto ok = h.replaceOrAppend(key, value);
 	assert(ok);
 	response.setHeaders(std::move(h));
@@ -111,7 +111,9 @@ constexpr const char* CONTENT_TYPES[][std::size(ROOTS)] {
 
 void SetContentType(QHttpServerResponse& response, const QString& root, const MessageType type)
 {
-	const auto rootIndex = std::distance(std::begin(ROOTS), std::ranges::find_if(ROOTS, [root = root.toStdString()](const char* item) { return root == item; }));
+	const auto  rootIndex   = std::distance(std::begin(ROOTS), std::ranges::find_if(ROOTS, [root = root.toStdString()](const char* item) {
+                                             return root == item;
+                                         }));
 	const auto* contentType = CONTENT_TYPES[static_cast<size_t>(type)][rootIndex];
 	assert(contentType);
 	ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
@@ -124,8 +126,15 @@ QHttpServerResponse EncodeContent(QByteArray src, const QString& acceptEncoding)
 
 	QByteArray zipped;
 	{
-		QBuffer stream(&zipped);
-		const ScopedCall streamGuard([&] { stream.open(QIODevice::WriteOnly); }, [&] { stream.close(); });
+		QBuffer          stream(&zipped);
+		const ScopedCall streamGuard(
+			[&] {
+				stream.open(QIODevice::WriteOnly);
+			},
+			[&] {
+				stream.close();
+			}
+		);
 		Zip zip(stream, Zip::Format::GZip);
 		zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Deflate));
 		zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Fast));
@@ -139,8 +148,15 @@ QHttpServerResponse EncodeContent(QByteArray src, const QString& acceptEncoding)
 	return result;
 }
 
-std::optional<QHttpServerResponse>
-FromFile(const QString& fileName, const QString& acceptEncoding, const QString& contentType, const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) { return data; })
+std::optional<QHttpServerResponse> FromFile(
+	const QString&                               fileName,
+	const QString&                               acceptEncoding,
+	const QString&                               contentType,
+	const std::function<QByteArray(QByteArray)>& dataUpdater =
+		[](QByteArray data) {
+			return data;
+		}
+)
 {
 	QFile file(fileName);
 	if (!file.exists())
@@ -155,7 +171,14 @@ FromFile(const QString& fileName, const QString& acceptEncoding, const QString& 
 	return response;
 }
 
-std::optional<QHttpServerResponse> FromWebsite(const QString& fileName, const QString& acceptEncoding, const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) { return data; })
+std::optional<QHttpServerResponse> FromWebsite(
+	const QString&                               fileName,
+	const QString&                               acceptEncoding,
+	const std::function<QByteArray(QByteArray)>& dataUpdater =
+		[](QByteArray data) {
+			return data;
+		}
+)
 {
 	static constexpr std::pair<const char*, const char*> types[] {
 		{ "html", "text/html; charset=utf-8" },
@@ -178,7 +201,9 @@ template <typename T>
 T GetParameters(const QHttpServerRequest& request)
 {
 	T result;
-	std::ranges::transform(request.query().queryItems(QUrl::FullyDecoded), std::inserter(result, result.end()), [](const auto& item) { return std::make_pair(item.first, item.second); });
+	std::ranges::transform(request.query().queryItems(QUrl::FullyDecoded), std::inserter(result, result.end()), [](const auto& item) {
+		return std::make_pair(item.first, item.second);
+	});
 	return result;
 }
 
@@ -186,13 +211,16 @@ template <typename T>
 T GetParameters(const QString& data)
 {
 	T result;
-	std::ranges::transform(data.split('&', Qt::SkipEmptyParts) | std::views::filter([](const auto& item) { return item.contains('='); }),
-	                       std::inserter(result, result.end()),
-	                       [](const auto& item)
-	                       {
-							   const auto values = item.split('=');
-							   return std::make_pair(QUrl::fromPercentEncoding(values.front().toUtf8()), QUrl::fromPercentEncoding(values.back().toUtf8()));
-						   });
+	std::ranges::transform(
+		data.split('&', Qt::SkipEmptyParts) | std::views::filter([](const auto& item) {
+			return item.contains('=');
+		}),
+		std::inserter(result, result.end()),
+		[](const auto& item) {
+			const auto values = item.split('=');
+			return std::make_pair(QUrl::fromPercentEncoding(values.front().toUtf8()), QUrl::fromPercentEncoding(values.back().toUtf8()));
+		}
+	);
 	return result;
 }
 
@@ -201,19 +229,20 @@ T GetParameters(const QString& data)
 class Server::Impl
 {
 public:
-	Impl(std::shared_ptr<const ISettings> settings,
-	     std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-	     std::shared_ptr<const IRequester> requester,
-	     std::shared_ptr<const IReactAppRequester> reactAppRequester,
-	     std::shared_ptr<const INoSqlRequester> noSqlRequester)
+	Impl(
+		std::shared_ptr<const ISettings>                     settings,
+		std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+		std::shared_ptr<const IRequester>                    requester,
+		std::shared_ptr<const IReactAppRequester>            reactAppRequester,
+		std::shared_ptr<const INoSqlRequester>               noSqlRequester
+	)
 		: m_settings { std::move(settings) }
 		, m_collectionProvider { std::move(collectionProvider) }
 		, m_requester { std::move(requester) }
 		, m_reactAppRequester { std::move(reactAppRequester) }
 		, m_noSqlRequester { std::move(noSqlRequester) }
 	{
-		const auto host = [this]() -> QHostAddress
-		{
+		const auto host = [this]() -> QHostAddress {
 			const auto address = m_settings->Get(Flibrary::Constant::Settings::OPDS_HOST_KEY, Flibrary::Constant::Settings::OPDS_HOST_DEFAULT);
 			return address == Flibrary::Constant::Settings::OPDS_HOST_DEFAULT ? QHostAddress::Any : QHostAddress { address };
 		}();
@@ -222,27 +251,21 @@ public:
 		if (!m_localServer.listen(Flibrary::Constant::OPDS_SERVER_NAME))
 			throw std::runtime_error(std::format("Cannot listen pipe {}", Flibrary::Constant::OPDS_SERVER_NAME));
 
-		QObject::connect(&m_localServer,
-		                 &QLocalServer::newConnection,
-		                 [this]
-		                 {
-							 auto* socket = m_localServer.nextPendingConnection();
-							 QObject::connect(socket, &QLocalSocket::disconnected, socket, &QObject::deleteLater);
-							 QObject::connect(socket,
-			                                  &QIODevice::readyRead,
-			                                  [socket]
-			                                  {
-												  const auto data = socket->readAll();
+		QObject::connect(&m_localServer, &QLocalServer::newConnection, [this] {
+			auto* socket = m_localServer.nextPendingConnection();
+			QObject::connect(socket, &QLocalSocket::disconnected, socket, &QObject::deleteLater);
+			QObject::connect(socket, &QIODevice::readyRead, [socket] {
+				const auto data = socket->readAll();
 #ifndef NDEBUG
-												  PLOGD << data << " received";
+				PLOGD << data << " received";
 #endif
-												  if (data.compare(Flibrary::Constant::OPDS_SERVER_COMMAND_STOP) == 0)
-													  return QCoreApplication::exit(0);
+				if (data.compare(Flibrary::Constant::OPDS_SERVER_COMMAND_STOP) == 0)
+					return QCoreApplication::exit(0);
 
-												  if (data.compare(Flibrary::Constant::OPDS_SERVER_COMMAND_RESTART) == 0)
-													  return QCoreApplication::exit(Flibrary::Constant::RESTART_APP);
-											  });
-						 });
+				if (data.compare(Flibrary::Constant::OPDS_SERVER_COMMAND_RESTART) == 0)
+					return QCoreApplication::exit(Flibrary::Constant::RESTART_APP);
+			});
+		});
 	}
 
 private:
@@ -250,17 +273,15 @@ private:
 
 	auto GetBook(BookGetter getter, QString value, QString acceptEncoding, QString contentType, const bool restoreImages) const
 	{
-		return QtConcurrent::run(
-			[this, getter, value = std::move(value), acceptEncoding = std::move(acceptEncoding), contentType = std::move(contentType), restoreImages]
-			{
-				auto [fileName, body] = std::invoke(getter, *m_noSqlRequester, std::cref(value), restoreImages);
-				auto response = EncodeContent(std::move(body), acceptEncoding);
-				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
-				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(QUrl::toPercentEncoding(fileName)));
-				ReplaceOrAppendHeader(response, "content-description", "File Transfer");
-				ReplaceOrAppendHeader(response, "content-transfer-encoding", "binary");
-				return response;
-			});
+		return QtConcurrent::run([this, getter, value = std::move(value), acceptEncoding = std::move(acceptEncoding), contentType = std::move(contentType), restoreImages] {
+			auto [fileName, body] = std::invoke(getter, *m_noSqlRequester, std::cref(value), restoreImages);
+			auto response         = EncodeContent(std::move(body), acceptEncoding);
+			ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
+			ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(QUrl::toPercentEncoding(fileName)));
+			ReplaceOrAppendHeader(response, "content-description", "File Transfer");
+			ReplaceOrAppendHeader(response, "content-transfer-encoding", "binary");
+			return response;
+		});
 	}
 
 	void InitHttp(const QHostAddress& host, const uint16_t port)
@@ -273,69 +294,52 @@ private:
 
 		(void)tcpServer.release();
 
-		m_server.addAfterRequestHandler(
-			&m_server,
-			[this](const QHttpServerRequest& request, QHttpServerResponse& resp)
-			{
-				const auto log = QString("%1 requests %2%3").arg(request.remoteAddress().toString(), request.url().path(), request.query().isEmpty() ? "" : QString("?%1").arg(request.query().toString()));
-				PLOGD << log;
+		m_server.addAfterRequestHandler(&m_server, [this](const QHttpServerRequest& request, QHttpServerResponse& resp) {
+			const auto log = QString("%1 requests %2%3").arg(request.remoteAddress().toString(), request.url().path(), request.query().isEmpty() ? "" : QString("?%1").arg(request.query().toString()));
+			PLOGD << log;
 
-				ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Server, "FLibrary HTTP Server");
-				ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Date, QDateTime::currentDateTime().toUTC().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
-				ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Connection, "keep-alive");
-				ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::KeepAlive, "timeout=5");
-			});
+			ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Server, "FLibrary HTTP Server");
+			ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Date, QDateTime::currentDateTime().toUTC().toString("ddd, dd MMM yyyy hh:mm:ss") + " GMT");
+			ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::Connection, "keep-alive");
+			ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::KeepAlive, "timeout=5");
+		});
 
 		Route(host, port);
 	}
 
 	void Route(const QHostAddress& host, const uint16_t port)
 	{
-		m_server.route(FAVICON,
-		               [this]
-		               {
-						   return QtConcurrent::run(
-							   [this]
-							   {
-								   auto response = *FromFile(":/icons/main.ico", "", "image/x-icon");
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/x-icon");
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::CacheControl, "public, max-age=0");
-								   return response;
-							   });
-					   });
+		m_server.route(FAVICON, [this] {
+			return QtConcurrent::run([this] {
+				auto response = *FromFile(":/icons/main.ico", "", "image/x-icon");
+				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/x-icon");
+				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::CacheControl, "public, max-age=0");
+				return response;
+			});
+		});
 
-		m_server.route(opds,
-		               [this](const QHttpServerRequest& request)
-		               {
-						   if (auto auth = AuthorizationOpds(request); auth.isValid())
-							   return auth;
+		m_server.route(opds, [this](const QHttpServerRequest& request) {
+			if (auto auth = AuthorizationOpds(request); auth.isValid())
+				return auth;
 
-						   return QtConcurrent::run(
-							   [this, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)]
-							   {
-								   auto response = EncodeContent(m_requester->GetRoot(opds, parameters), acceptEncoding);
-								   SetContentType(response, opds, MessageType::Atom);
-								   return response;
-							   });
-					   });
+			return QtConcurrent::run([this, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)] {
+				auto response = EncodeContent(m_requester->GetRoot(opds, parameters), acceptEncoding);
+				SetContentType(response, opds, MessageType::Atom);
+				return response;
+			});
+		});
 
-		m_server.route(web,
-		               [this](const QHttpServerRequest& request)
-		               {
-						   return AuthorizationWeb(request,
-			                                       web,
-			                                       [&](const IRequester::Parameters& parameters, const QString& acceptEncoding)
-			                                       {
-													   auto response = EncodeContent(m_requester->GetRoot(web, parameters), acceptEncoding);
-													   SetContentType(response, web, MessageType::Atom);
-													   return response;
-												   });
-					   });
+		m_server.route(web, [this](const QHttpServerRequest& request) {
+			return AuthorizationWeb(request, web, [&](const IRequester::Parameters& parameters, const QString& acceptEncoding) {
+				auto response = EncodeContent(m_requester->GetRoot(web, parameters), acceptEncoding);
+				SetContentType(response, web, MessageType::Atom);
+				return response;
+			});
+		});
 
-		m_server.route(
-			OPENSEARCH,
-			[host = host.toString(), port]
-			{ return QString(R"(<Url type="application/atom+xml;profile=opds-catalog" xmlns:atom="http://www.w3.org/2005/Atom" template="http://%1:%2/search?q={searchTerms}" />)").arg(host).arg(port); });
+		m_server.route(OPENSEARCH, [host = host.toString(), port] {
+			return QString(R"(<Url type="application/atom+xml;profile=opds-catalog" xmlns:atom="http://www.w3.org/2005/Atom" template="http://%1:%2/search?q={searchTerms}" />)").arg(host).arg(port);
+		});
 
 		for (const auto& root : {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) "/" #NAME,
@@ -359,39 +363,34 @@ private:
 		};
 
 		for (const auto& [path, invoker] : descriptions)
-			m_server.route(QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString {}),
-			               [this, root, path, invoker](const QHttpServerRequest& request)
-			               {
-							   if (!path)
-								   if (auto auth = AuthorizationOpds(request); auth.isValid())
-									   return auth;
+			m_server.route(QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString {}), [this, root, path, invoker](const QHttpServerRequest& request) {
+				if (!path)
+					if (auto auth = AuthorizationOpds(request); auth.isValid())
+						return auth;
 
-							   return QtConcurrent::run(
-								   [this, root, invoker, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)]
-								   {
-									   auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), std::cref(parameters)), acceptEncoding);
-									   SetContentType(response, root, MessageType::Atom);
-									   return response;
-								   });
-						   });
+				return QtConcurrent::run([this, root, invoker, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)] {
+					auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), std::cref(parameters)), acceptEncoding);
+					SetContentType(response, root, MessageType::Atom);
+					return response;
+				});
+			});
 	}
 
 	void RouteReactApp()
 	{
-		m_server.route(
-			"/",
-			[this](const QHttpServerRequest& request)
-			{
-				return AuthorizationWeb(
-					request,
-					"/",
-					[this](const IRequester::Parameters&, const QString& acceptEncoding)
-					{ return *FromWebsite("index.html", acceptEncoding, [this](QByteArray data) { return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8()); }); });
+		m_server.route("/", [this](const QHttpServerRequest& request) {
+			return AuthorizationWeb(request, "/", [this](const IRequester::Parameters&, const QString& acceptEncoding) {
+				return *FromWebsite("index.html", acceptEncoding, [this](QByteArray data) {
+					return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8());
+				});
 			});
+		});
 
-		m_server.route(QString(GET_BOOKS_API_ASSETS).arg(ARG),
-		               [this](const QString& fileName, const QHttpServerRequest& request)
-		               { return QtConcurrent::run([this, fileName, acceptEncoding = GetAcceptEncoding(request)] { return *FromWebsite("assets/" + fileName, acceptEncoding); }); });
+		m_server.route(QString(GET_BOOKS_API_ASSETS).arg(ARG), [this](const QString& fileName, const QHttpServerRequest& request) {
+			return QtConcurrent::run([this, fileName, acceptEncoding = GetAcceptEncoding(request)] {
+				return *FromWebsite("assets/" + fileName, acceptEncoding);
+			});
+		});
 
 		using Requester = QByteArray (IReactAppRequester::*)(const std::unordered_map<QString, QString>&) const;
 		static constexpr std::tuple<const char*, Requester> booksApiDescription[] {
@@ -402,70 +401,71 @@ private:
 
 		for (const auto& [name, requester] : booksApiDescription)
 		{
-			m_server.route(QString(GET_BOOKS_API).arg(name),
-			               [this, requester](const QHttpServerRequest& request)
-			               {
-							   return QtConcurrent::run(
-								   [this, requester, parameters = GetParameters<IReactAppRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)]
-								   {
-									   auto response = EncodeContent(std::invoke(requester, *m_reactAppRequester, std::cref(parameters)), acceptEncoding);
-									   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/json");
-									   return response;
-								   });
-						   });
+			m_server.route(QString(GET_BOOKS_API).arg(name), [this, requester](const QHttpServerRequest& request) {
+				return QtConcurrent::run([this, requester, parameters = GetParameters<IReactAppRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)] {
+					auto response = EncodeContent(std::invoke(requester, *m_reactAppRequester, std::cref(parameters)), acceptEncoding);
+					ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/json");
+					return response;
+				});
+			});
 		}
-		m_server.route(QString(GET_BOOKS_API_COVER).arg(ARG),
-		               [this](const QString& value)
-		               {
-						   return QtConcurrent::run(
-							   [this, value]
-							   {
-								   QHttpServerResponse response(m_noSqlRequester->GetCover(value));
-								   ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/jpeg");
-								   return response;
-							   });
-					   });
+		m_server.route(QString(GET_BOOKS_API_COVER).arg(ARG), [this](const QString& value) {
+			return QtConcurrent::run([this, value] {
+				QHttpServerResponse response(m_noSqlRequester->GetCover(value));
+				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/jpeg");
+				return response;
+			});
+		});
 
-		m_server.route(QString(GET_BOOKS_API_BOOK_DATA_COMPACT).arg(ARG),
-		               [this](const QString& value, const QHttpServerRequest& request) { return GetBook(&INoSqlRequester::GetBook, value, GetAcceptEncoding(request), "application/fb2", false); });
+		m_server.route(QString(GET_BOOKS_API_BOOK_DATA_COMPACT).arg(ARG), [this](const QString& value, const QHttpServerRequest& request) {
+			return GetBook(&INoSqlRequester::GetBook, value, GetAcceptEncoding(request), "application/fb2", false);
+		});
 
-		m_server.route(QString(GET_BOOKS_API_BOOK_DATA).arg(ARG),
-		               [this](const QString& value, const QHttpServerRequest& request) { return GetBook(&INoSqlRequester::GetBook, value, GetAcceptEncoding(request), "application/fb2", true); });
+		m_server.route(QString(GET_BOOKS_API_BOOK_DATA).arg(ARG), [this](const QString& value, const QHttpServerRequest& request) {
+			return GetBook(&INoSqlRequester::GetBook, value, GetAcceptEncoding(request), "application/fb2", true);
+		});
 
-		m_server.route(QString(GET_BOOKS_API_BOOK_ZIP).arg(ARG), [this](const QString& value) { return GetBook(&INoSqlRequester::GetBookZip, value, "", "application/zip", true); });
+		m_server.route(QString(GET_BOOKS_API_BOOK_ZIP).arg(ARG), [this](const QString& value) {
+			return GetBook(&INoSqlRequester::GetBookZip, value, "", "application/zip", true);
+		});
 	}
 
 	QFuture<QHttpServerResponse> AuthorizationWeb(const QHttpServerRequest& request, QString url, std::function<QHttpServerResponse(const IRequester::Parameters&, const QString&)> allow) const
 	{
 		auto acceptEncoding = GetAcceptEncoding(request);
-		auto expectedAuth = m_settings->Get(Flibrary::Constant::Settings::OPDS_AUTH, QString {});
+		auto expectedAuth   = m_settings->Get(Flibrary::Constant::Settings::OPDS_AUTH, QString {});
 
 		if (expectedAuth.isEmpty())
-			return QtConcurrent::run([this, allow = std::move(allow), parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = std::move(acceptEncoding)]
-			                         { return allow(parameters, acceptEncoding); });
-
-		return QtConcurrent::run(
-			[this,
-		     url = std::move(url),
-		     allow = std::move(allow),
-		     parameters = GetParameters<IRequester::Parameters>(QString::fromUtf8(request.body())),
-		     acceptEncoding = std::move(acceptEncoding),
-		     expectedAuth = std::move(expectedAuth)]
-			{
-				auto requestAuth = [&](const QString& title)
-				{
-					auto response = EncodeContent(m_noSqlRequester->RequestAuth(title, url), acceptEncoding);
-					SetContentType(response, web, MessageType::Atom);
-					return response;
-				};
-
-				const auto itUser = parameters.find("user"), itPassword = parameters.find("password");
-				if (IsOneOf(parameters.end(), itUser, itPassword))
-					return requestAuth(Tr(AUTH_REQUIRED));
-
-				const auto receivedAuth = QString("%1:%2").arg(itUser->second, itPassword->second).toUtf8();
-				return std::ranges::any_of(AUTH_CHECKERS, [&](const auto checker) { return checker(expectedAuth, receivedAuth); }) ? allow(parameters, acceptEncoding) : requestAuth(Tr(AUTH_FAILED));
+			return QtConcurrent::run([this, allow = std::move(allow), parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = std::move(acceptEncoding)] {
+				return allow(parameters, acceptEncoding);
 			});
+
+		return QtConcurrent::run([this,
+		                          url            = std::move(url),
+		                          allow          = std::move(allow),
+		                          parameters     = GetParameters<IRequester::Parameters>(QString::fromUtf8(request.body())),
+		                          acceptEncoding = std::move(acceptEncoding),
+		                          expectedAuth   = std::move(expectedAuth)] {
+			auto requestAuth = [&](const QString& title) {
+				auto response = EncodeContent(m_noSqlRequester->RequestAuth(title, url), acceptEncoding);
+				SetContentType(response, web, MessageType::Atom);
+				return response;
+			};
+
+			const auto itUser = parameters.find("user"), itPassword = parameters.find("password");
+			if (IsOneOf(parameters.end(), itUser, itPassword))
+				return requestAuth(Tr(AUTH_REQUIRED));
+
+			const auto receivedAuth = QString("%1:%2").arg(itUser->second, itPassword->second).toUtf8();
+			return std::ranges::any_of(
+					   AUTH_CHECKERS,
+					   [&](const auto checker) {
+						   return checker(expectedAuth, receivedAuth);
+					   }
+				   )
+			         ? allow(parameters, acceptEncoding)
+			         : requestAuth(Tr(AUTH_FAILED));
+		});
 	}
 
 	QFuture<QHttpServerResponse> AuthorizationOpds(const QHttpServerRequest& request) const
@@ -474,38 +474,46 @@ private:
 		if (expected.isEmpty())
 			return {};
 
-		const auto& headers = request.headers();
-		const auto authorization = headers.value("authorization").toByteArray();
+		const auto& headers       = request.headers();
+		const auto  authorization = headers.value("authorization").toByteArray();
 		if (authorization.isEmpty())
 		{
 			PLOGW << "Attempt connection without authorization";
-			return QtConcurrent::run([] { return QHttpServerResponse { AUTH_REQUIRED, QHttpServerResponder::StatusCode::NetworkAuthenticationRequired }; });
+			return QtConcurrent::run([] {
+				return QHttpServerResponse { AUTH_REQUIRED, QHttpServerResponder::StatusCode::NetworkAuthenticationRequired };
+			});
 		}
 
-		if (std::ranges::none_of(AUTH_CHECKERS, [&](const auto checker) { return checker(expected, authorization); }))
+		if (std::ranges::none_of(AUTH_CHECKERS, [&](const auto checker) {
+				return checker(expected, authorization);
+			}))
 		{
 			PLOGW << "Attempt connection with wrong authorization: " << authorization;
-			return QtConcurrent::run([] { return QHttpServerResponse { AUTH_FAILED, QHttpServerResponder::StatusCode::Unauthorized }; });
+			return QtConcurrent::run([] {
+				return QHttpServerResponse { AUTH_FAILED, QHttpServerResponder::StatusCode::Unauthorized };
+			});
 		}
 
 		return {};
 	}
 
 private:
-	QLocalServer m_localServer;
-	QHttpServer m_server;
-	std::shared_ptr<const ISettings> m_settings;
+	QLocalServer                                         m_localServer;
+	QHttpServer                                          m_server;
+	std::shared_ptr<const ISettings>                     m_settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> m_collectionProvider;
-	std::shared_ptr<const IRequester> m_requester;
-	std::shared_ptr<const IReactAppRequester> m_reactAppRequester;
-	std::shared_ptr<const INoSqlRequester> m_noSqlRequester;
+	std::shared_ptr<const IRequester>                    m_requester;
+	std::shared_ptr<const IReactAppRequester>            m_reactAppRequester;
+	std::shared_ptr<const INoSqlRequester>               m_noSqlRequester;
 };
 
-Server::Server(std::shared_ptr<const ISettings> settings,
-               std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-               std::shared_ptr<const IRequester> requester,
-               std::shared_ptr<const IReactAppRequester> reactAppRequester,
-               std::shared_ptr<const INoSqlRequester> noSqlRequester)
+Server::Server(
+	std::shared_ptr<const ISettings>                     settings,
+	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+	std::shared_ptr<const IRequester>                    requester,
+	std::shared_ptr<const IReactAppRequester>            reactAppRequester,
+	std::shared_ptr<const INoSqlRequester>               noSqlRequester
+)
 	: m_impl(std::move(settings), std::move(collectionProvider), std::move(requester), std::move(reactAppRequester), std::move(noSqlRequester))
 {
 	PLOGV << "Server created";

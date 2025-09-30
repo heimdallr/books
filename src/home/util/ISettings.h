@@ -31,17 +31,17 @@ public:
 
 public:
 	[[nodiscard]] virtual QVariant Get(const QString& key, const QVariant& defaultValue = {}) const = 0;
-	virtual void Set(const QString& key, const QVariant& value) = 0;
+	virtual void                   Set(const QString& key, const QVariant& value)                   = 0;
 
-	[[nodiscard]] virtual bool HasKey(const QString& key) const = 0;
+	[[nodiscard]] virtual bool HasKey(const QString& key) const     = 0;
 	[[nodiscard]] virtual bool HasGroup(const QString& group) const = 0;
 
-	[[nodiscard]] virtual QStringList GetKeys() const = 0;
+	[[nodiscard]] virtual QStringList GetKeys() const   = 0;
 	[[nodiscard]] virtual QStringList GetGroups() const = 0;
 
 	virtual void Remove(const QString& key) = 0;
 
-	virtual void RegisterObserver(ISettingsObserver* observer) = 0;
+	virtual void RegisterObserver(ISettingsObserver* observer)   = 0;
 	virtual void UnregisterObserver(ISettingsObserver* observer) = 0;
 
 	template <IsString T>
@@ -65,7 +65,7 @@ public:
 	template <IsInt T>
 	[[nodiscard]] T Get(const QString& key, const T& defaultValue) const
 	{
-		bool ok = false;
+		bool       ok    = false;
 		const auto value = Get(key, QVariant::fromValue(defaultValue)).toLongLong(&ok);
 		return ok ? static_cast<T>(value) : defaultValue;
 	}
@@ -73,14 +73,14 @@ public:
 	template <IsFloatingPoint T>
 	[[nodiscard]] T Get(const QString& key, const T& defaultValue) const
 	{
-		bool ok = false;
+		bool ok    = false;
 		auto value = Get(key, QVariant::fromValue(defaultValue)).toDouble(&ok);
 		return ok ? static_cast<T>(value) : defaultValue;
 	}
 
 private:
 	virtual std::recursive_mutex& BeginGroup(const QString& group) const = 0;
-	virtual void EndGroup() const = 0;
+	virtual void                  EndGroup() const                       = 0;
 	friend class SettingsGroup;
 };
 
@@ -101,7 +101,7 @@ public:
 	}
 
 private:
-	const ISettings& m_settings;
+	const ISettings&                      m_settings;
 	std::lock_guard<std::recursive_mutex> m_lock;
 };
 

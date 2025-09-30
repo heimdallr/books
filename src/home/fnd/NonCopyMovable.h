@@ -2,14 +2,14 @@
 
 #define NON_COPYABLE(NAME)                 \
 public:                                    \
-	NAME(const NAME&) = delete;            \
+	NAME(const NAME&)            = delete; \
 	NAME& operator=(const NAME&) = delete; \
                                            \
 private:
 
 #define NON_MOVABLE(NAME)                      \
 public:                                        \
-	NAME(NAME&&) noexcept = delete;            \
+	NAME(NAME&&) noexcept            = delete; \
 	NAME& operator=(NAME&&) noexcept = delete; \
                                                \
 private:

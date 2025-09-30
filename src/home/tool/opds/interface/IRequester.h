@@ -27,8 +27,8 @@ public:
 	using Parameters = std::unordered_map<QString, QString>;
 
 public:
-	virtual ~IRequester() = default;
-	virtual QByteArray Search(const QString& root, const Parameters& parameters) const = 0;
+	virtual ~IRequester()                                                                   = default;
+	virtual QByteArray Search(const QString& root, const Parameters& parameters) const      = 0;
 	virtual QByteArray GetBookText(const QString& root, const Parameters& parameters) const = 0;
 
 #define OPDS_INVOKER_ITEM(NAME) virtual QByteArray Get##NAME(const QString& root, const Parameters& parameters) const = 0;

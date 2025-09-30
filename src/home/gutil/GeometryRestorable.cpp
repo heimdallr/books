@@ -16,37 +16,39 @@ namespace
 {
 constexpr auto GEOMETRY_KEY_TEMPLATE = "ui/%1/Geometry";
 constexpr auto SPLITTER_KEY_TEMPLATE = "ui/%1/%2";
-constexpr auto FONT_KEY = "ui/Font";
+constexpr auto FONT_KEY              = "ui/Font";
 
 void InitSplitter(QSplitter* splitter)
 {
-	QTimer::singleShot(0,
-	                   [=]
-	                   {
-						   QList<int> sizes = splitter->sizes();
-						   const auto width = std::accumulate(sizes.cbegin(), sizes.cend(), 0);
+	QTimer::singleShot(0, [=] {
+		QList<int> sizes = splitter->sizes();
+		const auto width = std::accumulate(sizes.cbegin(), sizes.cend(), 0);
 
-						   QList<int> stretch;
-						   if (splitter->orientation() == Qt::Horizontal)
-							   for (int i = 0, sz = splitter->count(); i < sz; ++i)
-								   stretch << splitter->widget(i)->sizePolicy().horizontalStretch();
-						   else
-							   for (int i = 0, sz = splitter->count(); i < sz; ++i)
-								   stretch << splitter->widget(i)->sizePolicy().verticalStretch();
+		QList<int> stretch;
+		if (splitter->orientation() == Qt::Horizontal)
+			for (int i = 0, sz = splitter->count(); i < sz; ++i)
+				stretch << splitter->widget(i)->sizePolicy().horizontalStretch();
+		else
+			for (int i = 0, sz = splitter->count(); i < sz; ++i)
+				stretch << splitter->widget(i)->sizePolicy().verticalStretch();
 
-						   const auto weightSum = std::accumulate(stretch.cbegin(), stretch.cend(), 0);
-						   if (weightSum == 0)
-							   return;
+		const auto weightSum = std::accumulate(stretch.cbegin(), stretch.cend(), 0);
+		if (weightSum == 0)
+			return;
 
-						   std::ranges::transform(stretch, sizes.begin(), [=](const auto weight) { return width * weight / weightSum; });
+		std::ranges::transform(stretch, sizes.begin(), [=](const auto weight) {
+			return width * weight / weightSum;
+		});
 
-						   splitter->setSizes(sizes);
-					   });
+		splitter->setSizes(sizes);
+	});
 }
 
 void SetGeometry(QWidget& widget, QRect rect)
 {
-	if (std::ranges::none_of(QGuiApplication::screens(), [center = rect.center()](const auto* screen) { return screen->availableGeometry().contains(center); }))
+	if (std::ranges::none_of(QGuiApplication::screens(), [center = rect.center()](const auto* screen) {
+			return screen->availableGeometry().contains(center);
+		}))
 		rect.moveCenter(QGuiApplication::primaryScreen()->availableGeometry().center());
 
 	widget.setGeometry(rect);
@@ -82,8 +84,7 @@ public:
 #ifndef NDEBUG
 							   uniqueList = std::unordered_set<QString> {}
 #endif
-		](const QString& name) mutable -> const QString&
-		{
+		](const QString& name) mutable -> const QString& {
 #ifndef NDEBUG
 			assert(uniqueList.insert(name).second && "names must be unique");
 #endif
@@ -141,10 +142,12 @@ private:
 	void OnFontChanged()
 	{
 		const SettingsGroup group(*m_settings, FONT_KEY);
-		auto font = m_observer.GetWidget().font();
+		auto                font = m_observer.GetWidget().font();
 		Deserialize(font, *m_settings);
 
-		EnumerateWidgets(m_observer.GetWidget(), [&](QWidget& widget) { widget.setFont(font); });
+		EnumerateWidgets(m_observer.GetWidget(), [&](QWidget& widget) {
+			widget.setFont(font);
+		});
 
 		m_observer.OnFontChanged(font);
 	}
@@ -157,11 +160,13 @@ private:
 	}
 
 private:
-	IObserver& m_observer;
+	IObserver&                                    m_observer;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
-	const QString m_name;
-	bool m_initialized { false };
-	PropagateConstPtr<QTimer> m_fontTimer { CreateUiTimer([&] { OnFontChanged(); }) };
+	const QString                                 m_name;
+	bool                                          m_initialized { false };
+	PropagateConstPtr<QTimer>                     m_fontTimer { CreateUiTimer([&] {
+        OnFontChanged();
+    }) };
 };
 
 GeometryRestorable::GeometryRestorable(IObserver& observer, std::shared_ptr<ISettings> settings, QString name)

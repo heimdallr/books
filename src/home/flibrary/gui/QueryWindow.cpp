@@ -35,12 +35,24 @@ public:
 
 		m_ui.actionExplainQueryPlan->setChecked(m_settings->Get(EXPLAIN_QUERY_PLAN, m_ui.actionExplainQueryPlan->isChecked()));
 
-		connect(m_ui.actionStartTransaction, &QAction::triggered, [this] { StartTransaction(); });
-		connect(m_ui.actionCommit, &QAction::triggered, [this] { Commit(); });
-		connect(m_ui.actionRollback, &QAction::triggered, [this] { Rollback(); });
-		connect(m_ui.actionExecute, &QAction::triggered, [this] { Execute(); });
-		connect(m_ui.actionExplainQueryPlan, &QAction::triggered, [this](const bool checked) { m_settings->Set(EXPLAIN_QUERY_PLAN, checked); });
-		connect(m_ui.actionExit, &QAction::triggered, [self] { self->hide(); });
+		connect(m_ui.actionStartTransaction, &QAction::triggered, [this] {
+			StartTransaction();
+		});
+		connect(m_ui.actionCommit, &QAction::triggered, [this] {
+			Commit();
+		});
+		connect(m_ui.actionRollback, &QAction::triggered, [this] {
+			Rollback();
+		});
+		connect(m_ui.actionExecute, &QAction::triggered, [this] {
+			Execute();
+		});
+		connect(m_ui.actionExplainQueryPlan, &QAction::triggered, [this](const bool checked) {
+			m_settings->Set(EXPLAIN_QUERY_PLAN, checked);
+		});
+		connect(m_ui.actionExit, &QAction::triggered, [self] {
+			self->hide();
+		});
 
 		self->addAction(m_ui.actionStartTransaction);
 		self->addAction(m_ui.actionCommit);
@@ -101,17 +113,16 @@ private:
 
 	void ExecuteQuery() const
 	{
-		m_databaseUser->Execute({ "Execute query",
-		                          [this]
-		                          {
-									  ExecuteQueryImpl();
-									  return [](size_t) {};
-								  } });
+		m_databaseUser->Execute({ "Execute query", [this] {
+									 ExecuteQueryImpl();
+									 return [](size_t) {
+									 };
+								 } });
 	}
 
 	void ExecuteQueryImpl() const
 	{
-		const auto db = m_databaseUser->Database();
+		const auto db    = m_databaseUser->Database();
 		const auto query = db->CreateQuery(GetQueryText());
 		query->Execute();
 		{
@@ -145,9 +156,9 @@ private:
 	}
 
 private:
-	Ui::QueryWindow m_ui {};
-	std::shared_ptr<ISettings> m_settings;
-	std::shared_ptr<IDatabaseUser> m_databaseUser;
+	Ui::QueryWindow                   m_ui {};
+	std::shared_ptr<ISettings>        m_settings;
+	std::shared_ptr<IDatabaseUser>    m_databaseUser;
 	std::shared_ptr<DB::ITransaction> m_transaction;
 };
 

@@ -49,7 +49,7 @@ public:
 	HRESULT Detach(PROPVARIANT* pDest);
 
 	HRESULT InternalClear();
-	void InternalCopy(const PROPVARIANT* pSrc);
+	void    InternalCopy(const PROPVARIANT* pSrc);
 
 	int Compare(const CPropVariant& a1) const;
 };

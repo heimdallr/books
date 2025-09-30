@@ -48,7 +48,7 @@ public:
 
 private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
-	const QString m_key;
+	const QString                                 m_key;
 };
 
 } // namespace
@@ -82,11 +82,13 @@ QWidget* UiFactory::GetParentWidget(QWidget* defaultWidget) const noexcept
 	return m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(defaultWidget);
 }
 
-QMessageBox::ButtonRole UiFactory::ShowCustomDialog(const QMessageBox::Icon icon,
-                                                    const QString& title,
-                                                    const QString& text,
-                                                    const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
-                                                    const QMessageBox::ButtonRole defaultButton) const
+QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
+	const QMessageBox::Icon                                         icon,
+	const QString&                                                  title,
+	const QString&                                                  text,
+	const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
+	const QMessageBox::ButtonRole                                   defaultButton
+) const
 {
 	auto* parentWidget = m_impl->container.resolve<IParentWidgetProvider>()->GetWidget();
 	m_impl->container.resolve<ISettings>();
@@ -99,15 +101,12 @@ QMessageBox::ButtonRole UiFactory::ShowCustomDialog(const QMessageBox::Icon icon
 
 	std::vector<std::pair<QAbstractButton*, QMessageBox::ButtonRole>> msgBoxButtons;
 	msgBoxButtons.reserve(buttons.size());
-	std::ranges::transform(buttons,
-	                       std::back_inserter(msgBoxButtons),
-	                       [&](const auto& item)
-	                       {
-							   auto* button = msgBox.addButton(item.second, item.first);
-							   if (item.first == defaultButton)
-								   msgBox.setDefaultButton(button);
-							   return std::make_pair(button, item.first);
-						   });
+	std::ranges::transform(buttons, std::back_inserter(msgBoxButtons), [&](const auto& item) {
+		auto* button = msgBox.addButton(item.second, item.first);
+		if (item.first == defaultButton)
+			msgBox.setDefaultButton(button);
+		return std::make_pair(button, item.first);
+	});
 
 	msgBox.exec();
 
@@ -153,16 +152,16 @@ std::optional<QFont> UiFactory::GetFont(const QString& title, const QFont& font,
 QString GetFileSystemObj(std::shared_ptr<ISettings> settings, const QString& key, const QString& dir, const std::function<QString(const QString&)>& f)
 {
 	RecentDir recentDir(std::move(settings), key);
-	auto result = f(recentDir.GetDir(dir));
+	auto      result = f(recentDir.GetDir(dir));
 	recentDir.SetDir(result);
 	return result;
 }
 
 QStringList UiFactory::GetOpenFileNames(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
 {
-	auto settings = m_impl->container.resolve<ISettings>();
+	auto      settings = m_impl->container.resolve<ISettings>();
 	RecentDir recentDir(std::move(settings), key);
-	auto result = QFileDialog::getOpenFileNames(m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(), title, recentDir.GetDir(dir), filter, nullptr, options);
+	auto      result = QFileDialog::getOpenFileNames(m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(), title, recentDir.GetDir(dir), filter, nullptr, options);
 	if (!result.isEmpty())
 		recentDir.SetDir(result.front());
 	return result;
@@ -170,28 +169,23 @@ QStringList UiFactory::GetOpenFileNames(const QString& key, const QString& title
 
 QString UiFactory::GetOpenFileName(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
 {
-	return GetFileSystemObj(m_impl->container.resolve<ISettings>(),
-	                        key,
-	                        dir,
-	                        [&](const QString& recentDir)
-	                        { return QFileDialog::getOpenFileName(m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(), title, recentDir, filter, nullptr, options); });
+	return GetFileSystemObj(m_impl->container.resolve<ISettings>(), key, dir, [&](const QString& recentDir) {
+		return QFileDialog::getOpenFileName(m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(), title, recentDir, filter, nullptr, options);
+	});
 }
 
 QString UiFactory::GetSaveFileName(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
 {
-	return GetFileSystemObj(m_impl->container.resolve<ISettings>(),
-	                        key,
-	                        dir,
-	                        [&](const QString& recentDir)
-	                        { return QFileDialog::getSaveFileName(m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(), title, recentDir, filter, nullptr, options); });
+	return GetFileSystemObj(m_impl->container.resolve<ISettings>(), key, dir, [&](const QString& recentDir) {
+		return QFileDialog::getSaveFileName(m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(), title, recentDir, filter, nullptr, options);
+	});
 }
 
 QString UiFactory::GetExistingDirectory(const QString& key, const QString& title, const QString& dir, const QFileDialog::Options& options) const
 {
-	return GetFileSystemObj(m_impl->container.resolve<ISettings>(),
-	                        key,
-	                        dir,
-	                        [&](const QString& recentDir) { return QFileDialog::getExistingDirectory(m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(), title, recentDir, options); });
+	return GetFileSystemObj(m_impl->container.resolve<ISettings>(), key, dir, [&](const QString& recentDir) {
+		return QFileDialog::getExistingDirectory(m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(), title, recentDir, options);
+	});
 }
 
 } // namespace HomeCompa::Util

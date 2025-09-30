@@ -87,7 +87,7 @@ public:
 
 private:
 	mutable std::optional<QString> m_key;
-	QStringList m_data;
+	QStringList                    m_data;
 };
 
 class BinInputStream final : public xercesc_3_3::BinInputStream
@@ -126,9 +126,9 @@ private: // xercesc::BinInputStream
 	}
 
 private:
-	QIODevice& m_source;
+	QIODevice&    m_source;
 	const int64_t m_maxChunkSize;
-	bool m_stopped { false };
+	bool          m_stopped { false };
 };
 
 class InputSource final : public xercesc::InputSource
@@ -248,7 +248,9 @@ private:
 		if (m_inputSource.IsStopped())
 			return;
 
-		ScopedCall clearGuard([&] { m_characters.clear(); });
+		ScopedCall clearGuard([&] {
+			m_characters.clear();
+		});
 
 		if (m_characters.simplified().isEmpty())
 			return;
@@ -258,12 +260,12 @@ private:
 	}
 
 private:
-	XmlStack m_stack;
+	XmlStack          m_stack;
 	XmlAttributesImpl m_attributes {};
 
-	SaxParser& m_parser;
+	SaxParser&   m_parser;
 	InputSource& m_inputSource;
-	QString m_characters;
+	QString      m_characters;
 };
 
 } // namespace
@@ -293,9 +295,9 @@ public:
 
 private:
 	XMLPlatformInitializer m_initializer;
-	xercesc::SAXParser m_saxParser;
-	SaxParser& m_self;
-	InputSource m_inputSource;
+	xercesc::SAXParser     m_saxParser;
+	SaxParser&             m_self;
+	InputSource            m_inputSource;
 };
 
 SaxParser::SaxParser(QIODevice& stream, const int64_t maxChunkSize)

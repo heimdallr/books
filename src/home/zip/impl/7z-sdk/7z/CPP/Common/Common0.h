@@ -63,8 +63,8 @@ predefined macros defined in "Common.h".
 				#pragma warning(disable : 5027) // move assignment operator was implicitly defined as deleted
 			#endif
 			#if _MSC_VER >= 1912
-				#pragma warning( \
-					disable : 5039) // pointer or reference to potentially throwing function passed to 'extern "C"' function under - EHc.Undefined behavior may occur if this function throws an exception.
+				#pragma warning(disable : 5039 \
+				) // pointer or reference to potentially throwing function passed to 'extern "C"' function under - EHc.Undefined behavior may occur if this function throws an exception.
 			#endif
 			#if _MSC_VER >= 1925
 			// #pragma warning(disable : 5204) // 'ISequentialInStream' : class has virtual functions, but its trivial destructor is not virtual; instances of objects derived from this class may not be destructed correctly

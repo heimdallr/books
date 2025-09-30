@@ -18,7 +18,7 @@ public:
 	~CoverCache() override;
 
 private: // ICoverCache
-	void Set(QString id, QByteArray data) const override;
+	void       Set(QString id, QByteArray data) const override;
 	QByteArray Get(const QString& id) const override;
 
 private:

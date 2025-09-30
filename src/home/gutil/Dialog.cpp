@@ -31,7 +31,7 @@ Dialog::~Dialog()
 QMessageBox::StandardButton
 Dialog::Show(const QMessageBox::Icon icon, const QString& title, const QString& text, const QMessageBox::StandardButtons& buttons, const QMessageBox::StandardButton defaultButton) const
 {
-	auto* parent = m_parentProvider->GetWidget();
+	auto*       parent = m_parentProvider->GetWidget();
 	QMessageBox msgBox(parent);
 	msgBox.setFont(parent ? parent->font() : QApplication::font());
 	msgBox.setIcon(icon);
@@ -63,12 +63,14 @@ NO_GET_TEXT(Question)
 NO_GET_TEXT(Warning)
 #undef NO_GET_TEXT
 
-#define NO_SHOW(NAME)                                                                                                           \
-	QMessageBox::StandardButton NAME##Dialog::Show(const QString& /*text*/ = {},                                                \
-	                                               const QMessageBox::StandardButtons& /*buttons*/ = QMessageBox::Ok,           \
-	                                               QMessageBox::StandardButton /*defaultButton*/ = QMessageBox::NoButton) const \
-	{                                                                                                                           \
-		throw std::runtime_error("not implemented");                                                                            \
+#define NO_SHOW(NAME)                                                           \
+	QMessageBox::StandardButton NAME##Dialog::Show(                             \
+		const QString& /*text*/                         = {},                   \
+		const QMessageBox::StandardButtons& /*buttons*/ = QMessageBox::Ok,      \
+		QMessageBox::StandardButton /*defaultButton*/   = QMessageBox::NoButton \
+	) const                                                                     \
+	{                                                                           \
+		throw std::runtime_error("not implemented");                            \
 	}
 NO_SHOW(InputText)
 #undef NO_SHOW
@@ -95,7 +97,7 @@ QMessageBox::StandardButton ErrorDialog::Show(const QString& text, const QMessag
 
 QString InputTextDialog::GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, const QLineEdit::EchoMode mode) const
 {
-	auto* parent = m_parentProvider->GetWidget();
+	auto*        parent = m_parentProvider->GetWidget();
 	QInputDialog inputDialog(parent);
 	inputDialog.setFont(parent->font());
 	inputDialog.setWindowTitle(title);
@@ -106,12 +108,12 @@ QString InputTextDialog::GetText(const QString& title, const QString& label, con
 	if (!comboBoxItems.isEmpty())
 		inputDialog.setComboBoxItems(comboBoxItems);
 
-	QObject::connect(&inputDialog, &QDialog::finished, &inputDialog, [&] { m_settings->Set(INPUT_DIALOG_GEOMETRY_KEY, inputDialog.geometry()); });
-	QTimer::singleShot(0,
-	                   [&]
-	                   {
-						   if (auto geometry = m_settings->Get(INPUT_DIALOG_GEOMETRY_KEY); geometry.isValid())
-							   inputDialog.setGeometry(geometry.toRect());
-					   });
+	QObject::connect(&inputDialog, &QDialog::finished, &inputDialog, [&] {
+		m_settings->Set(INPUT_DIALOG_GEOMETRY_KEY, inputDialog.geometry());
+	});
+	QTimer::singleShot(0, [&] {
+		if (auto geometry = m_settings->Get(INPUT_DIALOG_GEOMETRY_KEY); geometry.isValid())
+			inputDialog.setGeometry(geometry.toRect());
+	});
 	return inputDialog.exec() == QDialog::Accepted ? inputDialog.textValue() : QString {};
 }

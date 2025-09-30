@@ -21,8 +21,8 @@ public:
 	~BookExtractor() override;
 
 private: // IBookExtractor
-	QString GetFileName(const QString& bookId) const override;
-	QString GetFileName(const Flibrary::ILogicFactory::ExtractedBook& book) const override;
+	QString                                GetFileName(const QString& bookId) const override;
+	QString                                GetFileName(const Flibrary::ILogicFactory::ExtractedBook& book) const override;
 	Flibrary::ILogicFactory::ExtractedBook GetExtractedBook(const QString& bookId) const override;
 
 private:

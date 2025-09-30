@@ -29,7 +29,7 @@ namespace
 
 struct Item
 {
-	QString message;
+	QString        message;
 	plog::Severity severity;
 };
 
@@ -39,9 +39,9 @@ class ILogAppenderObserver : public Observer
 {
 public:
 	virtual void OnInsertBegin(size_t begin, size_t end) = 0;
-	virtual void OnInsertEnd() = 0;
+	virtual void OnInsertEnd()                           = 0;
 	virtual void OnRemoveBegin(size_t begin, size_t end) = 0;
-	virtual void OnRemoveEnd() = 0;
+	virtual void OnRemoveEnd()                           = 0;
 };
 
 class LogAppenderImpl final
@@ -55,10 +55,10 @@ private: // plog::IAppender
 		if (!record.getMessage())
 			return;
 
-		const auto severity = record.getSeverity();
-		const auto time = record.getTime().time;
+		const auto severity   = record.getSeverity();
+		const auto time       = record.getTime().time;
 		const auto millieTime = record.getTime().millitm;
-		const auto tId = record.getTid();
+		const auto tId        = record.getTid();
 
 		tm t {};
 		plog::util::localtime_s(&t, &time);
@@ -75,7 +75,9 @@ private: // plog::IAppender
 			m_items.emplace_back(std::move(str), severity);
 		}
 
-		m_forwarder.Forward([&, force = std::size(m_items) > 100] { force ? OnLogUpdated() : m_timer->start(); });
+		m_forwarder.Forward([&, force = std::size(m_items) > 100] {
+			force ? OnLogUpdated() : m_timer->start();
+		});
 	}
 
 private:
@@ -104,9 +106,11 @@ private:
 	}
 
 private:
-	std::mutex m_itemsGuard;
+	std::mutex                      m_itemsGuard;
 	Util::FunctorExecutionForwarder m_forwarder {};
-	std::unique_ptr<QTimer> m_timer { Util::CreateUiTimer([&] { OnLogUpdated(); }) };
+	std::unique_ptr<QTimer>         m_timer { Util::CreateUiTimer([&] {
+        OnLogUpdated();
+    }) };
 	std::vector<Item> m_items;
 };
 
@@ -246,7 +250,7 @@ private: // QSortFilterProxyModel
 
 private:
 	Model m_model;
-	int m_logLevel { plog::Severity::info };
+	int   m_logLevel { plog::Severity::info };
 };
 
 } // namespace
@@ -264,22 +268,22 @@ public:
 	Impl()
 	{
 		s_logAppenderImpl = &m_logAppenderImpl;
-		s_items = &m_items;
+		s_items           = &m_items;
 	}
 
 	~Impl()
 	{
-		s_items = nullptr;
+		s_items           = nullptr;
 		s_logAppenderImpl = nullptr;
 	}
 
 private:
-	LogAppenderImpl m_logAppenderImpl;
+	LogAppenderImpl        m_logAppenderImpl;
 	const Log::LogAppender m_logAppender { &m_logAppenderImpl };
-	std::vector<Item> m_items;
+	std::vector<Item>      m_items;
 };
 
-LogModelAppender::LogModelAppender() = default;
+LogModelAppender::LogModelAppender()  = default;
 LogModelAppender::~LogModelAppender() = default;
 
 } // namespace HomeCompa::Flibrary

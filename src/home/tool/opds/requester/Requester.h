@@ -24,14 +24,16 @@ class Requester final : virtual public IRequester
 	NON_COPY_MOVABLE(Requester)
 
 public:
-	Requester(std::shared_ptr<const ISettings> settings,
-	          std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-	          std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
-	          std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
-	          std::shared_ptr<const ICoverCache> coverCache,
-	          std::shared_ptr<const IBookExtractor> bookExtractor,
-	          std::shared_ptr<const INoSqlRequester> noSqlRequester,
-	          std::shared_ptr<Flibrary::IAnnotationController> annotationController);
+	Requester(
+		std::shared_ptr<const ISettings>                             settings,
+		std::shared_ptr<const Flibrary::ICollectionProvider>         collectionProvider,
+		std::shared_ptr<const Flibrary::IDatabaseController>         databaseController,
+		std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
+		std::shared_ptr<const ICoverCache>                           coverCache,
+		std::shared_ptr<const IBookExtractor>                        bookExtractor,
+		std::shared_ptr<const INoSqlRequester>                       noSqlRequester,
+		std::shared_ptr<Flibrary::IAnnotationController>             annotationController
+	);
 	~Requester() override;
 
 private: // IRequester

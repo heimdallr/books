@@ -19,7 +19,12 @@ void DiGUtil(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<QuestionDialog>().as<IQuestionDialog>();
 	builder.registerType<WarningDialog>().as<IWarningDialog>();
 
-	builder.registerInstanceFactory([&](Hypodermic::ComponentContext&) { return std::make_shared<UiFactory>(*container); }).as<IUiFactory>().singleInstance();
+	builder
+		.registerInstanceFactory([&](Hypodermic::ComponentContext&) {
+			return std::make_shared<UiFactory>(*container);
+		})
+		.as<IUiFactory>()
+		.singleInstance();
 }
 
 }

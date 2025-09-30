@@ -85,18 +85,18 @@ XmlValidator::~XmlValidator() = default;
 
 QString XmlValidator::Validate(QIODevice& input) const
 {
-	static const XMLCh gLS[] = { xercesc::chLatin_L, xercesc::chLatin_S, xercesc::chNull };
-	xercesc::DOMImplementation* impl = xercesc::DOMImplementationRegistry::getDOMImplementation(gLS);
-	xercesc::DOMLSParser* parser = impl->createLSParser(xercesc::DOMImplementationLS::MODE_SYNCHRONOUS, nullptr);
-	xercesc::DOMConfiguration* config = parser->getDomConfig();
+	static const XMLCh          gLS[]  = { xercesc::chLatin_L, xercesc::chLatin_S, xercesc::chNull };
+	xercesc::DOMImplementation* impl   = xercesc::DOMImplementationRegistry::getDOMImplementation(gLS);
+	xercesc::DOMLSParser*       parser = impl->createLSParser(xercesc::DOMImplementationLS::MODE_SYNCHRONOUS, nullptr);
+	xercesc::DOMConfiguration*  config = parser->getDomConfig();
 	config->setParameter(xercesc::XMLUni::fgDOMNamespaces, true);
 	config->setParameter(xercesc::XMLUni::fgXercesHandleMultipleImports, true);
 
 	const ErrorHandler errorHandler;
 	config->setParameter(xercesc::XMLUni::fgDOMErrorHandler, &errorHandler);
 
-	const auto body = input.readAll();
-	xercesc::MemBufInputSource inputSource(reinterpret_cast<const unsigned char*>(body.data()), body.size(), "");
+	const auto                         body = input.readAll();
+	xercesc::MemBufInputSource         inputSource(reinterpret_cast<const unsigned char*>(body.data()), body.size(), "");
 	const xercesc::Wrapper4InputSource domInput(&inputSource, false);
 
 	parser->resetDocumentPool();

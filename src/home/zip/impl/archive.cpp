@@ -72,7 +72,7 @@ CComPtr<IInArchive> CreateInputArchiveImpl(const Lib& lib, CComPtr<IStream> stre
 		return {};
 
 	stream->Seek({}, STREAM_SEEK_SET, nullptr);
-	const auto file = InStreamWrapper::Create(std::move(stream));
+	const auto file         = InStreamWrapper::Create(std::move(stream));
 	const auto openCallback = ArchiveOpenCallback::Create();
 
 	if (const auto hr = archive->Open(file, nullptr, openCallback); hr == S_OK)
@@ -105,7 +105,7 @@ CComPtr<IOutArchive> CreateOutputArchive(IInArchive* inArchive)
 CComPtr<IOutArchive> CreateOutputArchive(const Lib& lib, const Format format)
 {
 	CComPtr<IOutArchive> archive;
-	const auto guid = bit7z::format_guid(GetInOutFormat(format));
+	const auto           guid = bit7z::format_guid(GetInOutFormat(format));
 
 	lib.CreateObject(guid, IID_IOutArchive, reinterpret_cast<void**>(&archive));
 	return archive;
@@ -126,11 +126,11 @@ std::wstring GetCompressionMethodName(const CompressionMethod method)
 	return FindSecond(methods, method);
 }
 
-constexpr auto CompressionLevelName = L"x";
-constexpr auto CompressionMethodName = L"m";
+constexpr auto CompressionLevelName          = L"x";
+constexpr auto CompressionMethodName         = L"m";
 constexpr auto CompressionMethodNameSevenZip = L"0";
-constexpr auto SolidModeName = L"s";
-constexpr auto ThreadCountName = L"mt";
+constexpr auto SolidModeName                 = L"s";
+constexpr auto ThreadCountName               = L"mt";
 
 void SetArchiveProperties(IOutArchive& archive, const bit7z::BitInOutFormat& format, const std::unordered_map<PropertyId, QVariant>& properties)
 {
@@ -138,13 +138,12 @@ void SetArchiveProperties(IOutArchive& archive, const bit7z::BitInOutFormat& for
 	if (archive.QueryInterface(IID_ISetProperties, reinterpret_cast<void**>(&setProperties)) != S_OK)
 		return;
 
-	const auto getProperty = [&](const PropertyId id)
-	{
+	const auto getProperty = [&](const PropertyId id) {
 		const auto it = properties.find(id);
 		return it != properties.end() ? it->second : QVariant {};
 	};
 	std::vector<const wchar_t*> names;
-	std::vector<CPropVariant> values;
+	std::vector<CPropVariant>   values;
 
 	if (const auto value = getProperty(PropertyId::CompressionLevel); value.isValid() && format.hasFeature(bit7z::FormatFeatures::CompressionLevel))
 	{
@@ -177,7 +176,7 @@ void SetArchiveProperties(IOutArchive& archive, const bit7z::BitInOutFormat& for
 struct ArchiveWrapper
 {
 	const bit7z::BitInFormat& format;
-	CComPtr<IInArchive> archive;
+	CComPtr<IInArchive>       archive;
 
 	ArchiveWrapper(const bit7z::BitInFormat& f = bit7z::BitFormat::Auto)
 		: format { f }
@@ -231,18 +230,16 @@ FileStorage CreateFileList(CComPtr<IInArchive> archive)
 	for (UInt32 i = 0; i < numItems; i++)
 	{
 		CPropVariant prop;
-		const bool isDir = [&]
-		{
-			archive->GetProperty(i, kpidIsDir, &prop);
-			return prop.boolVal != VARIANT_FALSE;
+		const bool   isDir = [&] {
+            archive->GetProperty(i, kpidIsDir, &prop);
+            return prop.boolVal != VARIANT_FALSE;
 		}();
 
 		archive->GetProperty(i, kpidSize, &prop);
 		const auto size = prop.uhVal.QuadPart;
 
-		auto time = [&]
-		{
-			prop = CPropVariant {};
+		auto time = [&] {
+			prop    = CPropVariant {};
 			auto hr = archive->GetProperty(i, kpidCTime, &prop);
 			if (FAILED(hr) || prop.vt == VT_EMPTY || (prop.filetime.dwHighDateTime == 0 && prop.filetime.dwLowDateTime == 0))
 			{
@@ -267,8 +264,8 @@ FileStorage CreateFileList(CComPtr<IInArchive> archive)
 		archive->GetProperty(i, kpidPath, &prop);
 		assert(prop.vt == VT_BSTR);
 
-		auto fileName = QDir::fromNativeSeparators(QString::fromStdWString(prop.bstrVal));
-		const auto it = result.index.try_emplace(fileName, result.files.size());
+		auto       fileName = QDir::fromNativeSeparators(QString::fromStdWString(prop.bstrVal));
+		const auto it       = result.index.try_emplace(fileName, result.files.size());
 		if (it.second)
 			result.files.emplace_back(i, std::move(fileName), size, std::move(time), isDir);
 		else
@@ -296,7 +293,15 @@ private: // IZip
 	{
 		QStringList files;
 		files.reserve(static_cast<int>(m_files.files.size()));
-		std::ranges::transform(m_files.files | std::views::filter([](const auto& item) { return !item.isDir; }), std::back_inserter(files), [](const auto& item) { return item.name; });
+		std::ranges::transform(
+			m_files.files | std::views::filter([](const auto& item) {
+				return !item.isDir;
+			}),
+			std::back_inserter(files),
+			[](const auto& item) {
+				return item.name;
+			}
+		);
 		return files;
 	}
 
@@ -328,10 +333,10 @@ private: // IZip
 	}
 
 protected:
-	Lib m_lib;
-	std::unique_ptr<ArchiveWrapper> m_archive;
-	FileStorage m_files;
-	std::shared_ptr<ProgressCallback> m_progress;
+	Lib                                      m_lib;
+	std::unique_ptr<ArchiveWrapper>          m_archive;
+	FileStorage                              m_files;
+	std::shared_ptr<ProgressCallback>        m_progress;
 	std::unordered_map<PropertyId, QVariant> m_properties {
 		{ PropertyId::CompressionLevel,               QVariant::fromValue(CompressionLevel::Ultra) },
 		{     PropertyId::ThreadsCount, static_cast<uint32_t>(std::thread::hardware_concurrency()) },
@@ -346,7 +351,7 @@ public:
 		, m_filename { std::move(filename) }
 	{
 		m_archive = CreateInputArchive(m_lib, m_filename);
-		m_files = CreateFileList(m_archive->archive);
+		m_files   = CreateFileList(m_archive->archive);
 	}
 
 protected:
@@ -361,7 +366,7 @@ public:
 		, m_bytes { stream.isReadable() ? stream.readAll() : QByteArray {} }
 	{
 		m_archive = CreateInputArchive(m_lib, reinterpret_cast<const BYTE*>(m_bytes.constData()), static_cast<UINT>(m_bytes.size()));
-		m_files = CreateFileList(m_archive->archive);
+		m_files   = CreateFileList(m_archive->archive);
 	}
 
 protected:
@@ -395,16 +400,16 @@ private: // IZip
 
 	bool Remove(const std::vector<QString>& fileNames) override
 	{
-		const auto n = m_files.files.size();
+		const auto n      = m_files.files.size();
 		const auto result = File::Remove(m_files, *m_outArchive, *m_ioDevice, fileNames, *m_progress);
 		PLOGI << m_filename << ". Files removed: " << n - m_files.files.size() << " out of " << n;
 		return result;
 	}
 
 private:
-	const Format m_format;
+	const Format               m_format;
 	std::unique_ptr<QIODevice> m_ioDevice;
-	CComPtr<IOutArchive> m_outArchive;
+	CComPtr<IOutArchive>       m_outArchive;
 };
 
 class WriterStream final : public ReaderStream
@@ -435,15 +440,15 @@ private: // IZip
 
 	bool Remove(const std::vector<QString>& fileNames) override
 	{
-		const auto n = m_files.files.size();
+		const auto n      = m_files.files.size();
 		const auto result = File::Remove(m_files, *m_outArchive, m_ioDevice, fileNames, *m_progress);
 		PLOGI << "files removed: " << n - m_files.files.size() << " out of " << n;
 		return result;
 	}
 
 private:
-	const Format m_format;
-	QIODevice& m_ioDevice;
+	const Format         m_format;
+	QIODevice&           m_ioDevice;
 	CComPtr<IOutArchive> m_outArchive;
 };
 

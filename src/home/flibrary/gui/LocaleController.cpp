@@ -15,7 +15,7 @@ namespace HomeCompa::Flibrary
 namespace
 {
 constexpr auto LOCALE = "ui/locale";
-constexpr auto NAME = "name";
+constexpr auto NAME   = "name";
 
 }
 
@@ -43,7 +43,9 @@ public:
 		Util::QStringWrapper::SetLocale(currentLocale);
 		for (const auto* locale : locales)
 		{
-			auto* action = menu.addAction(Loc::Tr(Loc::Ctx::LANG, locale), [&, locale] { SetLocale(locale); });
+			auto* action = menu.addAction(Loc::Tr(Loc::Ctx::LANG, locale), [&, locale] {
+				SetLocale(locale);
+			});
 			action->setProperty(NAME, QString(locale));
 			m_actionGroup.addAction(action);
 			action->setCheckable(true);
@@ -65,10 +67,10 @@ private:
 	}
 
 private:
-	LocaleController& m_self;
-	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
+	LocaleController&                              m_self;
+	PropagateConstPtr<ISettings, std::shared_ptr>  m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
-	QActionGroup m_actionGroup { nullptr };
+	QActionGroup                                   m_actionGroup { nullptr };
 };
 
 LocaleController::LocaleController(std::shared_ptr<ISettings> settings, std::shared_ptr<IUiFactory> uiFactory, QObject* parent)

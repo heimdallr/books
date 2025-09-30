@@ -35,31 +35,29 @@ private: // IRestorer
 
 	void Restore(DB::IDatabase& db) const override
 	{
-		const auto tr = db.CreateTransaction();
-		auto range = IFilterProvider::GetDescriptions();
-		(void)std::ranges::for_each(range,
-		                            [&](const IFilterProvider::FilteredNavigation& description)
-		                            {
-										const auto it = m_data.find(description.navigationTitle);
-										if (it == m_data.end())
-											return;
+		const auto tr    = db.CreateTransaction();
+		auto       range = IFilterProvider::GetDescriptions();
+		(void)std::ranges::for_each(range, [&](const IFilterProvider::FilteredNavigation& description) {
+			const auto it = m_data.find(description.navigationTitle);
+			if (it == m_data.end())
+				return;
 
-										const auto index = static_cast<size_t>(description.navigationMode);
-										assert(!FIELD_NAMES[index].empty());
-										tr->CreateCommand(std::format("update {} set Flags = 0", description.table))->Execute();
-										const auto command = tr->CreateCommand(std::format("update {} set Flags = ? where {} = ?", description.table, FIELD_NAMES[index]));
-										for (const auto& [title, flags] : it->second)
-										{
-											command->Bind(0, flags);
-											command->Bind(1, title.toStdString());
-											command->Execute();
-										}
-									});
+			const auto index = static_cast<size_t>(description.navigationMode);
+			assert(!FIELD_NAMES[index].empty());
+			tr->CreateCommand(std::format("update {} set Flags = 0", description.table))->Execute();
+			const auto command = tr->CreateCommand(std::format("update {} set Flags = ? where {} = ?", description.table, FIELD_NAMES[index]));
+			for (const auto& [title, flags] : it->second)
+			{
+				command->Bind(0, flags);
+				command->Bind(1, title.toStdString());
+				command->Execute();
+			}
+		});
 		tr->Commit();
 	}
 
 private:
-	DataValues* m_dataValues { nullptr };
+	DataValues*                             m_dataValues { nullptr };
 	std::unordered_map<QString, DataValues> m_data;
 };
 

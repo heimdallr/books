@@ -31,18 +31,18 @@ public:
 			QString isbn;
 		};
 
-		QString annotation;
-		QString epigraph;
-		QString epigraphAuthor;
-		QString language, sourceLanguage;
-		std::vector<QString> keywords;
+		QString                                      annotation;
+		QString                                      epigraph;
+		QString                                      epigraphAuthor;
+		QString                                      language, sourceLanguage;
+		std::vector<QString>                         keywords;
 		IAnnotationController::IDataProvider::Covers covers;
-		IDataItem::Ptr content { NavigationItem::Create() };
-		IDataItem::Ptr translators { NavigationItem::Create() };
-		PublishInfo publishInfo;
-		QString error;
-		size_t textSize { 0 };
-		size_t wordCount { 0 };
+		IDataItem::Ptr                               content { NavigationItem::Create() };
+		IDataItem::Ptr                               translators { NavigationItem::Create() };
+		PublishInfo                                  publishInfo;
+		QString                                      error;
+		size_t                                       textSize { 0 };
+		size_t                                       wordCount { 0 };
 	};
 
 public:
@@ -51,8 +51,8 @@ public:
 
 public:
 	[[nodiscard]] std::shared_ptr<class IProgressController> GetProgressController() const;
-	[[nodiscard]] Data Parse(const IDataItem& dataItem) const;
-	void Stop() const;
+	[[nodiscard]] Data                                       Parse(const IDataItem& dataItem) const;
+	void                                                     Stop() const;
 
 private:
 	class Impl;

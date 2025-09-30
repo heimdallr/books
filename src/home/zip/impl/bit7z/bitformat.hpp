@@ -25,12 +25,12 @@ namespace bit7z
  */
 enum struct FormatFeatures : unsigned
 {
-	MultipleFiles = 1u << 0, ///< The format can compress/extract multiple files         (2^0 = 0000001)
-	SolidArchive = 1u << 1, ///< The format supports solid archives                     (2^1 = 0000010)
+	MultipleFiles    = 1u << 0, ///< The format can compress/extract multiple files         (2^0 = 0000001)
+	SolidArchive     = 1u << 1, ///< The format supports solid archives                     (2^1 = 0000010)
 	CompressionLevel = 1u << 2, ///< The format is able to use different compression levels (2^2 = 0000100)
-	Encryption = 1u << 3, ///< The format supports archive encryption                 (2^3 = 0001000)
+	Encryption       = 1u << 3, ///< The format supports archive encryption                 (2^3 = 0001000)
 	HeaderEncryption = 1u << 4, ///< The format can encrypt the file names                  (2^4 = 0010000)
-	MultipleMethods = 1u << 5 ///< The format can use different compression methods       (2^6 = 0100000)
+	MultipleMethods  = 1u << 5 ///< The format can use different compression methods       (2^6 = 0100000)
 };
 
 template <typename Enum>
@@ -171,9 +171,9 @@ public:
 	auto defaultMethod() const noexcept -> BitCompressionMethod;
 
 private:
-	const tchar* mExtension;
+	const tchar*         mExtension;
 	BitCompressionMethod mDefaultMethod;
-	FormatFeatures mFeatures;
+	FormatFeatures       mFeatures;
 };
 
 /**

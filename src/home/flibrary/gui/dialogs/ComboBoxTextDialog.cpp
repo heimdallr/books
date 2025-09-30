@@ -54,7 +54,9 @@ ComboBoxTextDialog::ComboBoxTextDialog(const std::shared_ptr<const IUiFactory>& 
 	ui.setupUi(this);
 	setWindowTitle(uiFactory->GetTitle());
 
-	auto setOkButtonEnabled = [this](const QString& text) { m_impl->ui.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!text.isEmpty()); };
+	auto setOkButtonEnabled = [this](const QString& text) {
+		m_impl->ui.buttonBox->button(QDialogButtonBox::Ok)->setEnabled(!text.isEmpty());
+	};
 	setOkButtonEnabled(ui.lineEdit->text());
 	connect(ui.lineEdit, &QLineEdit::textChanged, std::move(setOkButtonEnabled));
 }

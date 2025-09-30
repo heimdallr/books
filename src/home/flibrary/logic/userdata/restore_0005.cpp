@@ -41,8 +41,8 @@ private: // IRestorer
 	void AddElement([[maybe_unused]] const QString& name, const Util::XmlAttributes& attributes) override
 	{
 		assert(name == Constant::ITEM);
-		auto& item = m_items.emplace_back();
-		item.title = attributes.GetAttribute(Constant::TITLE);
+		auto& item     = m_items.emplace_back();
+		item.title     = attributes.GetAttribute(Constant::TITLE);
 		item.createdAt = attributes.GetAttribute(Constant::UserData::Books::CreatedAt);
 	}
 

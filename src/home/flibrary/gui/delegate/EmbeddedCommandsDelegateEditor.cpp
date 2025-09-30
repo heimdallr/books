@@ -15,7 +15,7 @@ using namespace Flibrary;
 
 namespace
 {
-constexpr auto CONTEXT = "ScriptController";
+constexpr auto        CONTEXT = "ScriptController";
 constexpr const char* EMBEDDED_COMMANDS[] {
 	{ QT_TRANSLATE_NOOP("ScriptController", "Download") },
 	{ QT_TRANSLATE_NOOP("ScriptController", "OpenLink") },

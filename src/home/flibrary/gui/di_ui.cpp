@@ -25,8 +25,18 @@ void DiUi(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermi
 	builder.registerType<ScriptDialog>().as<IScriptDialog>();
 	builder.registerType<AlphabetPanel>().as<IAlphabetPanel>();
 
-	builder.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) { return std::make_shared<StyleApplierFactory>(*container, ctx.resolve<ISettings>()); }).as<IStyleApplierFactory>().singleInstance();
-	builder.registerInstanceFactory([&](Hypodermic::ComponentContext&) { return std::make_shared<UiFactory>(*container); }).as<IUiFactory>().singleInstance();
+	builder
+		.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) {
+			return std::make_shared<StyleApplierFactory>(*container, ctx.resolve<ISettings>());
+		})
+		.as<IStyleApplierFactory>()
+		.singleInstance();
+	builder
+		.registerInstanceFactory([&](Hypodermic::ComponentContext&) {
+			return std::make_shared<UiFactory>(*container);
+		})
+		.as<IUiFactory>()
+		.singleInstance();
 }
 
 }

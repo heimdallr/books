@@ -24,7 +24,9 @@ namespace
 auto GetInpxImpl(const QString& folder)
 {
 	std::set<QString> result;
-	std::ranges::transform(QDir(folder).entryList({ "*.inpx" }), std::inserter(result, result.end()), [&](const auto& item) { return QString("%1/%2").arg(folder, item); });
+	std::ranges::transform(QDir(folder).entryList({ "*.inpx" }), std::inserter(result, result.end()), [&](const auto& item) {
+		return QString("%1/%2").arg(folder, item);
+	});
 	return result;
 }
 
@@ -45,22 +47,24 @@ public:
 
 	Collection& GetActiveCollection() noexcept
 	{
-		const auto id = GetActiveCollectionId();
-		auto collection = FindCollectionById(id);
+		const auto id         = GetActiveCollectionId();
+		auto       collection = FindCollectionById(id);
 		assert(collection);
 		return *collection;
 	}
 
 	bool ActiveCollectionExists() noexcept
 	{
-		const auto id = GetActiveCollectionId();
+		const auto id         = GetActiveCollectionId();
 		const auto collection = FindCollectionById(id);
 		return !!collection;
 	}
 
 	Collection* FindCollectionById(const QString& id) noexcept
 	{
-		const auto it = std::ranges::find(m_collections, id, [&](const auto& item) { return item->id; });
+		const auto it = std::ranges::find(m_collections, id, [&](const auto& item) {
+			return item->id;
+		});
 		if (it == std::cend(m_collections))
 			return nullptr;
 
@@ -75,7 +79,7 @@ public:
 
 private:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
-	Collections m_collections { CollectionImpl::Deserialize(*m_settings) };
+	Collections                                   m_collections { CollectionImpl::Deserialize(*m_settings) };
 };
 
 CollectionProvider::CollectionProvider(std::shared_ptr<ISettings> settings)
@@ -96,7 +100,9 @@ bool CollectionProvider::IsEmpty() const noexcept
 
 bool CollectionProvider::IsCollectionNameExists(const QString& name) const
 {
-	return std::ranges::any_of(GetCollections(), [&](const auto& item) { return item->name == name; });
+	return std::ranges::any_of(GetCollections(), [&](const auto& item) {
+		return item->name == name;
+	});
 }
 
 QString CollectionProvider::GetCollectionDatabaseName(const QString& databaseFileName) const
@@ -168,8 +174,7 @@ void CollectionProvider::OnNewCollectionCreating(const bool value)
 ICollectionProvider::IniMapPair CollectionProvider::GetIniMap(const QString& db, const QString& inpxFolder, bool createFiles) const
 {
 	IniMapPair result { createFiles ? std::make_shared<QTemporaryDir>() : nullptr, Inpx::Parser::IniMap {} };
-	const auto getFile = [&tempDir = *result.first, createFiles](const QString& name)
-	{
+	const auto getFile = [&tempDir = *result.first, createFiles](const QString& name) {
 		auto fileName = QDir::fromNativeSeparators(QCoreApplication::applicationDirPath() + QDir::separator() + name);
 		if (!createFiles || QFile(fileName).exists())
 			return fileName;

@@ -21,18 +21,18 @@ protected:
 	~BaseConnection() override;
 
 protected: // IConnection
-	void Get(const std::string& request) final;
+	void               Get(const std::string& request) final;
 	const std::string& Url() const noexcept final;
-	const Headers& GetHeaders() const noexcept final;
-	void Register(IObserver* observer) final;
-	void Unregister(IObserver* observer) final;
+	const Headers&     GetHeaders() const noexcept final;
+	void               Register(IObserver* observer) final;
+	void               Unregister(IObserver* observer) final;
 
 private:
 	virtual Headers GetPage(const std::string& request) = 0;
 
 protected:
 	const std::string& GetAddress() const noexcept;
-	void OnDataReceived(const QJsonDocument& json);
+	void               OnDataReceived(const QJsonDocument& json);
 
 private:
 	struct Impl;

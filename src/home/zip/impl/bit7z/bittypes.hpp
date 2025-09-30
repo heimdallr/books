@@ -41,7 +41,7 @@ using byte_t = unsigned char;
 
 /** @cond */
 using buffer_t = std::vector<byte_t>;
-using index_t = std::ptrdiff_t; //like gsl::index (https://github.com/microsoft/GSL)
+using index_t  = std::ptrdiff_t; //like gsl::index (https://github.com/microsoft/GSL)
 
 template <class Char>
 struct StringTraits;

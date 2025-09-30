@@ -24,17 +24,17 @@ bool ItemViewToolTipper::eventFilter(QObject* obj, QEvent* event)
 
 	const auto* helpEvent = static_cast<const QHelpEvent*>(event); // NOLINT(cppcoreguidelines-pro-type-static-cast-downcast)
 
-	const auto pos = helpEvent->pos();
+	const auto pos   = helpEvent->pos();
 	const auto index = view->indexAt(pos);
 	if (!index.isValid())
 		return false;
 
-	const auto& model = *view->model();
-	const auto itemTooltip = model.data(index, Qt::ToolTipRole).toString();
+	const auto& model       = *view->model();
+	const auto  itemTooltip = model.data(index, Qt::ToolTipRole).toString();
 	if (itemTooltip.isEmpty())
 		return false;
 
-	const auto itemText = model.data(index).toString();
+	const auto itemText             = model.data(index).toString();
 	const auto authorAnnotationMode = itemText == Constant::INFO;
 
 	auto font = view->font();
@@ -44,8 +44,8 @@ bool ItemViewToolTipper::eventFilter(QObject* obj, QEvent* event)
 	{
 		const int itemTextWidth = QFontMetrics(font).horizontalAdvance(itemText);
 
-		const auto rect = view->visualRect(index);
-		auto rectWidth = rect.width();
+		const auto rect      = view->visualRect(index);
+		auto       rectWidth = rect.width();
 
 		if (model.flags(index) & Qt::ItemIsUserCheckable)
 			rectWidth -= rect.height();

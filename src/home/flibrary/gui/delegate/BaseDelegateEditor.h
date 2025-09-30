@@ -15,19 +15,19 @@ protected:
 
 public:
 	QWidget* GetWidget() const noexcept;
-	void SetParent(QWidget* parent);
+	void     SetParent(QWidget* parent);
 
 public:
-	virtual QString GetText() const = 0;
-	virtual void SetText(const QString& value) = 0;
-	virtual void SetModel(QAbstractItemModel* model, const QModelIndex& index);
-	virtual void OnSetModelData(const QString& value);
+	virtual QString GetText() const               = 0;
+	virtual void    SetText(const QString& value) = 0;
+	virtual void    SetModel(QAbstractItemModel* model, const QModelIndex& index);
+	virtual void    OnSetModelData(const QString& value);
 
 protected:
-	QWidget* m_self { nullptr };
+	QWidget*            m_self { nullptr };
 	QAbstractItemModel* m_model { nullptr };
-	int m_row { -1 };
-	int m_column { -1 };
+	int                 m_row { -1 };
+	int                 m_column { -1 };
 };
 
 } // namespace HomeCompa::Flibrary

@@ -21,8 +21,8 @@ class GroupController
 
 public:
 	using Callback = std::function<void(long long)>;
-	using Id = long long;
-	using Ids = std::unordered_set<Id>;
+	using Id       = long long;
+	using Ids      = std::unordered_set<Id>;
 
 public:
 	GroupController(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<IUiFactory> uiFactory);

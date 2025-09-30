@@ -16,7 +16,9 @@ public:
 		, m_progressController(std::move(progressController))
 	{
 		m_ui.setupUi(&m_self);
-		connect(m_ui.button, &QAbstractButton::clicked, &m_self, [&] { m_progressController->Stop(); });
+		connect(m_ui.button, &QAbstractButton::clicked, &m_self, [&] {
+			m_progressController->Stop();
+		});
 		m_progressController->RegisterObserver(this);
 
 		OnStartedChanged();
@@ -38,7 +40,7 @@ private: // IProgressController::IObserver
 	void OnValueChanged() override
 	{
 		const auto logicValue = m_progressController->GetValue();
-		const auto uiValue = static_cast<int>(m_ui.bar->minimum() + logicValue * (m_ui.bar->maximum() - m_ui.bar->minimum()) + std::numeric_limits<double>::epsilon());
+		const auto uiValue    = static_cast<int>(m_ui.bar->minimum() + logicValue * (m_ui.bar->maximum() - m_ui.bar->minimum()) + std::numeric_limits<double>::epsilon());
 		if (const auto loggedValue = uiValue / 10; m_loggedValue != loggedValue)
 			PLOGV << (m_loggedValue = loggedValue) * 10 << "%";
 
@@ -51,10 +53,10 @@ private: // IProgressController::IObserver
 	}
 
 private:
-	ProgressBar& m_self;
+	ProgressBar&                                            m_self;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
-	Ui::ProgressBar m_ui {};
-	int m_loggedValue { 0 };
+	Ui::ProgressBar                                         m_ui {};
+	int                                                     m_loggedValue { 0 };
 };
 
 ProgressBar::ProgressBar(std::shared_ptr<IBooksExtractorProgressController> progressController, QWidget* parent)

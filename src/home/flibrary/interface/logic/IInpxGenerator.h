@@ -12,8 +12,8 @@ public:
 	virtual ~IInpxGenerator() = default;
 
 	virtual void ExtractAsInpxCollection(QString folder, const std::vector<QString>& idList, const class IBookInfoProvider& dataProvider, Callback callback) = 0;
-	virtual void GenerateInpx(QString inpxFileName, const std::vector<QString>& idList, const IBookInfoProvider& dataProvider, Callback callback) = 0;
-	virtual void GenerateInpx(QString inpxFileName, Callback callback) = 0;
+	virtual void GenerateInpx(QString inpxFileName, const std::vector<QString>& idList, const IBookInfoProvider& dataProvider, Callback callback)            = 0;
+	virtual void GenerateInpx(QString inpxFileName, Callback callback)                                                                                       = 0;
 };
 
 } // namespace HomeCompa::Flibrary

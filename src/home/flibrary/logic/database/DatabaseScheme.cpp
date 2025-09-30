@@ -38,9 +38,11 @@ void DropTriggers(DB::ITransaction& transaction)
 bool FieldExists(DB::ITransaction& transaction, const QString& table, const QString& column)
 {
 	std::set<std::string> booksUserFields;
-	const auto booksUserFieldsQuery = transaction.CreateQuery(QString("PRAGMA table_info(%1)").arg(table).toStdString());
-	auto range = std::views::iota(std::size_t { 0 }, booksUserFieldsQuery->ColumnCount());
-	const auto it = std::ranges::find(range, "name", [&](const size_t n) { return booksUserFieldsQuery->ColumnName(n); });
+	const auto            booksUserFieldsQuery = transaction.CreateQuery(QString("PRAGMA table_info(%1)").arg(table).toStdString());
+	auto                  range                = std::views::iota(std::size_t { 0 }, booksUserFieldsQuery->ColumnCount());
+	const auto            it                   = std::ranges::find(range, "name", [&](const size_t n) {
+        return booksUserFieldsQuery->ColumnName(n);
+    });
 	assert(it != std::end(range));
 	for (booksUserFieldsQuery->Execute(); !booksUserFieldsQuery->Eof(); booksUserFieldsQuery->Next())
 		booksUserFields.emplace(booksUserFieldsQuery->GetString(*it));
@@ -73,7 +75,7 @@ void OnBooksFolderIDAdded(DB::ITransaction& transaction)
 {
 	auto maxId = GetNextID(transaction);
 
-	std::unordered_map<std::string, long long> folders;
+	std::unordered_map<std::string, long long>     folders;
 	std::vector<std::pair<long long, std::string>> books;
 
 	{
@@ -247,33 +249,43 @@ void AddTableFields(DB::ITransaction& transaction)
 	AddUserTableField(transaction, "Groups_User", "CreatedAt", "DATETIME");
 	AddUserTableField(transaction, "Groups_List_User", "CreatedAt", "DATETIME");
 	AddUserTableField(transaction, "Searches_User", "CreatedAt", "DATETIME");
-	AddUserTableField(transaction,
-	                  "Authors",
-	                  "SearchName",
-	                  "VARCHAR (128) COLLATE NOCASE",
-	                  { "UPDATE Authors SET SearchName = MHL_UPPER(LastName)", "CREATE INDEX IX_Authors_SearchName ON Authors(SearchName COLLATE NOCASE)" });
-	AddUserTableField(transaction,
-	                  "Books",
-	                  "SearchTitle",
-	                  "VARCHAR (150) COLLATE NOCASE",
-	                  { "UPDATE Books SET SearchTitle = MHL_UPPER(Title)", "CREATE INDEX IX_Book_SearchTitle ON Books(SearchTitle COLLATE NOCASE)" });
-	AddUserTableField(transaction,
-	                  "Keywords",
-	                  "SearchTitle",
-	                  "VARCHAR (150) COLLATE NOCASE",
-	                  { "UPDATE Keywords SET SearchTitle = MHL_UPPER(KeywordTitle)", "CREATE INDEX IX_Keywords_SearchTitle ON Keywords(SearchTitle COLLATE NOCASE)" });
-	AddUserTableField(transaction,
-	                  "Series",
-	                  "SearchTitle",
-	                  "VARCHAR (80) COLLATE NOCASE",
-	                  { "UPDATE Series SET SearchTitle = MHL_UPPER(SeriesTitle)", "CREATE INDEX IX_Series_SearchTitle ON Series(SearchTitle COLLATE NOCASE)" });
-	if (AddUserTableField(transaction,
-	                      "Books",
-	                      "FolderID",
-	                      "INTEGER",
-	                      { "CREATE INDEX IX_Books_FolderID ON Books(FolderID)",
-	                        "CREATE UNIQUE INDEX UIX_Folders_PrimaryKey ON Folders (FolderID)",
-	                        "CREATE INDEX IX_Folders_FolderTitle ON Folders(FolderTitle COLLATE NOCASE)" }))
+	AddUserTableField(
+		transaction,
+		"Authors",
+		"SearchName",
+		"VARCHAR (128) COLLATE NOCASE",
+		{ "UPDATE Authors SET SearchName = MHL_UPPER(LastName)", "CREATE INDEX IX_Authors_SearchName ON Authors(SearchName COLLATE NOCASE)" }
+	);
+	AddUserTableField(
+		transaction,
+		"Books",
+		"SearchTitle",
+		"VARCHAR (150) COLLATE NOCASE",
+		{ "UPDATE Books SET SearchTitle = MHL_UPPER(Title)", "CREATE INDEX IX_Book_SearchTitle ON Books(SearchTitle COLLATE NOCASE)" }
+	);
+	AddUserTableField(
+		transaction,
+		"Keywords",
+		"SearchTitle",
+		"VARCHAR (150) COLLATE NOCASE",
+		{ "UPDATE Keywords SET SearchTitle = MHL_UPPER(KeywordTitle)", "CREATE INDEX IX_Keywords_SearchTitle ON Keywords(SearchTitle COLLATE NOCASE)" }
+	);
+	AddUserTableField(
+		transaction,
+		"Series",
+		"SearchTitle",
+		"VARCHAR (80) COLLATE NOCASE",
+		{ "UPDATE Series SET SearchTitle = MHL_UPPER(SeriesTitle)", "CREATE INDEX IX_Series_SearchTitle ON Series(SearchTitle COLLATE NOCASE)" }
+	);
+	if (AddUserTableField(
+			transaction,
+			"Books",
+			"FolderID",
+			"INTEGER",
+			{ "CREATE INDEX IX_Books_FolderID ON Books(FolderID)",
+	          "CREATE UNIQUE INDEX UIX_Folders_PrimaryKey ON Folders (FolderID)",
+	          "CREATE INDEX IX_Folders_FolderTitle ON Folders(FolderTitle COLLATE NOCASE)" }
+		))
 		OnBooksFolderIDAdded(transaction);
 	AddUserTableField(transaction, "Books", "UpdateID", "INTEGER NOT NULL DEFAULT(0)", { "CREATE INDEX IX_Books_UpdateID ON Books(UpdateID)" });
 	AddUserTableField(transaction, "Authors", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
@@ -288,12 +300,13 @@ void AddTableFields(DB::ITransaction& transaction)
 	AddUserTableField(transaction, "Genre_List", "OrdNum", "INTEGER NOT NULL DEFAULT (0)");
 	AddUserTableField(transaction, "Author_List", "OrdNum", "INTEGER NOT NULL DEFAULT (0)");
 	AddUserTableField(transaction, "Keyword_List", "OrdNum", "INTEGER NOT NULL DEFAULT (0)");
-	AddUserTableField(transaction,
-	                  "Groups_List_User",
-	                  "ObjectID",
-	                  "INTEGER",
-	                  {
-						  R"(CREATE TABLE Groups_List_User_Tmp (
+	AddUserTableField(
+		transaction,
+		"Groups_List_User",
+		"ObjectID",
+		"INTEGER",
+		{
+			R"(CREATE TABLE Groups_List_User_Tmp (
     GroupID   INTEGER  NOT NULL,
     ObjectID  INTEGER  NOT NULL,
     CreatedAt DATETIME,
@@ -307,11 +320,11 @@ void AddTableFields(DB::ITransaction& transaction)
     REFERENCES Groups_User (GroupID) ON DELETE CASCADE
 )
 )",
-						  "insert into Groups_List_User_Tmp(GroupID, ObjectID, CreatedAt) select GroupID, BookID, CreatedAt from Groups_List_User",
-						  "DROP TABLE Groups_List_User",
-						  "ALTER TABLE Groups_List_User_Tmp RENAME TO Groups_List_User",
-						  "CREATE INDEX IX_Groups_List_User_ObjectID ON Groups_List_User(ObjectID)",
-						  R"(
+			"insert into Groups_List_User_Tmp(GroupID, ObjectID, CreatedAt) select GroupID, BookID, CreatedAt from Groups_List_User",
+			"DROP TABLE Groups_List_User",
+			"ALTER TABLE Groups_List_User_Tmp RENAME TO Groups_List_User",
+			"CREATE INDEX IX_Groups_List_User_ObjectID ON Groups_List_User(ObjectID)",
+			R"(
 CREATE VIEW IF NOT EXISTS Groups_List_User_View (
     GroupID,
     BookID
@@ -341,14 +354,16 @@ AS
            JOIN
            Keyword_List kl ON kl.KeywordID = glu.ObjectID
 )",
-					  });
-	AddUserTableField(transaction,
-	                  "Books",
-	                  "Year",
-	                  "INTEGER",
-	                  { "CREATE INDEX IX_Books_Year ON Books (Year)",
-	                    " DROP VIEW IF EXISTS Books_View ",
-	                    R"(
+		}
+	);
+	AddUserTableField(
+		transaction,
+		"Books",
+		"Year",
+		"INTEGER",
+		{ "CREATE INDEX IX_Books_Year ON Books (Year)",
+	      " DROP VIEW IF EXISTS Books_View ",
+	      R"(
 CREATE VIEW IF NOT EXISTS Books_View (
 		BookID,
 		LibID,
@@ -386,7 +401,8 @@ AS SELECT
 		b.SearchTitle
 	FROM Books b
 	LEFT JOIN Books_User bu ON bu.BookID = b.BookID
-)" });
+)" }
+	);
 	AddUserTableField(transaction, "Authors", "Flags", "INTEGER NOT NULL DEFAULT (0)");
 	AddUserTableField(transaction, "Genres", "Flags", "INTEGER NOT NULL DEFAULT (0)");
 	AddUserTableField(transaction, "Keywords", "Flags", "INTEGER NOT NULL DEFAULT (0)");

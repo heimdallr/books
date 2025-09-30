@@ -28,7 +28,7 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& col
 		return {};
 
 	const auto connectionString = std::string("path=") + databaseName + ";extension=MyHomeLibSQLIteExt" + (readOnly ? ";flag=READONLY" : "");
-	auto db = Create(DB::Factory::Impl::Sqlite, connectionString);
+	auto       db               = Create(DB::Factory::Impl::Sqlite, connectionString);
 
 	db->CreateQuery("PRAGMA foreign_keys = ON;")->Execute();
 
@@ -89,11 +89,13 @@ public:
 			return m_db;
 
 		auto db = CreateDatabaseImpl(*m_collectionProvider, readOnly);
-		m_db = std::move(db);
+		m_db    = std::move(db);
 
 		if (m_db)
 		{
-			m_forwarder.Forward([&, db = m_db] { const_cast<Impl*>(this)->Perform(&IObserver::AfterDatabaseCreated, std::ref(*db)); });
+			m_forwarder.Forward([&, db = m_db] {
+				const_cast<Impl*>(this)->Perform(&IObserver::AfterDatabaseCreated, std::ref(*db));
+			});
 		}
 
 		return m_db;
@@ -114,10 +116,10 @@ private: // ICollectionsObserver
 	}
 
 private:
-	mutable std::mutex m_dbGuard;
-	mutable std::shared_ptr<DB::IDatabase> m_db;
+	mutable std::mutex                                      m_dbGuard;
+	mutable std::shared_ptr<DB::IDatabase>                  m_db;
 	PropagateConstPtr<ICollectionProvider, std::shared_ptr> m_collectionProvider;
-	Util::FunctorExecutionForwarder m_forwarder;
+	Util::FunctorExecutionForwarder                         m_forwarder;
 };
 
 DatabaseController::DatabaseController(std::shared_ptr<ICollectionProvider> collectionProvider)

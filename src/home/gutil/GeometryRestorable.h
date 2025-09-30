@@ -20,7 +20,7 @@ public:
 	class IObserver // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
-		virtual ~IObserver() = default;
+		virtual ~IObserver()                  = default;
 		virtual QWidget& GetWidget() noexcept = 0;
 
 		virtual void OnFontChanged(const QFont&)

@@ -42,9 +42,9 @@ std::pair<QString, QString> ColorSchemeApplier::GetChecked() const
 std::unique_ptr<Util::DyLib> ColorSchemeApplier::Set(QApplication&) const
 {
 	using Scheme = std::tuple<Qt::ColorScheme, const char*>;
-	constexpr Scheme unknown { Qt::ColorScheme::Unknown, nullptr };
-	constexpr auto iconsLight = "icolight";
-	constexpr auto iconsDark = "icodark";
+	constexpr Scheme                         unknown { Qt::ColorScheme::Unknown, nullptr };
+	constexpr auto                           iconsLight = "icolight";
+	constexpr auto                           iconsDark  = "icodark";
 	constexpr std::pair<const char*, Scheme> schemes[] {
 		{ "System",								unknown },
 		{  "Light", { Qt::ColorScheme::Light, iconsLight } },
@@ -52,24 +52,26 @@ std::unique_ptr<Util::DyLib> ColorSchemeApplier::Set(QApplication&) const
 	};
 
 	const auto colorSchemeName = m_settings->Get(COLOR_SCHEME_KEY, APP_COLOR_SCHEME_DEFAULT);
-	auto [scheme, iconSet] = FindSecond(schemes, colorSchemeName.toStdString().data(), unknown, PszComparer {});
+	auto [scheme, iconSet]     = FindSecond(schemes, colorSchemeName.toStdString().data(), unknown, PszComparer {});
 
 	if (m_settings->Get(THEME_TYPE_KEY, THEME_KEY_DEFAULT) == TypeToString(Type::PluginStyle))
 	{
 		QGuiApplication::styleHints()->setColorScheme(scheme);
 
 		if (scheme == Qt::ColorScheme::Unknown)
-			QObject::connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, [] { QCoreApplication::exit(Constant::RESTART_APP); });
+			QObject::connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, [] {
+				QCoreApplication::exit(Constant::RESTART_APP);
+			});
 		else
 			QGuiApplication::styleHints()->disconnect();
 	}
 
 	if (!iconSet)
 	{
-		const auto palette = QGuiApplication::palette();
-		const auto textLightness = palette.color(QPalette::WindowText).lightness();
+		const auto palette         = QGuiApplication::palette();
+		const auto textLightness   = palette.color(QPalette::WindowText).lightness();
 		const auto windowLightness = palette.color(QPalette::Window).lightness();
-		iconSet = textLightness > windowLightness ? iconsDark : iconsLight;
+		iconSet                    = textLightness > windowLightness ? iconsDark : iconsLight;
 	}
 
 	return std::make_unique<Util::DyLib>(iconSet);

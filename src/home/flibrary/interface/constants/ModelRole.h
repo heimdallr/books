@@ -53,8 +53,8 @@ struct Role
 
 struct SelectedRequest
 {
-	QModelIndex current;
-	QModelIndexList selected;
+	QModelIndex      current;
+	QModelIndexList  selected;
 	QModelIndexList* result { nullptr };
 };
 

@@ -120,17 +120,17 @@ enum
 
 extern const Byte k7z_PROPID_To_VARTYPE[kpid_NUM_DEFINED]; // VARTYPE
 
-const UInt32 kpv_ErrorFlags_IsNotArc = 1 << 0;
-const UInt32 kpv_ErrorFlags_HeadersError = 1 << 1;
+const UInt32 kpv_ErrorFlags_IsNotArc              = 1 << 0;
+const UInt32 kpv_ErrorFlags_HeadersError          = 1 << 1;
 const UInt32 kpv_ErrorFlags_EncryptedHeadersError = 1 << 2;
-const UInt32 kpv_ErrorFlags_UnavailableStart = 1 << 3;
-const UInt32 kpv_ErrorFlags_UnconfirmedStart = 1 << 4;
-const UInt32 kpv_ErrorFlags_UnexpectedEnd = 1 << 5;
-const UInt32 kpv_ErrorFlags_DataAfterEnd = 1 << 6;
-const UInt32 kpv_ErrorFlags_UnsupportedMethod = 1 << 7;
-const UInt32 kpv_ErrorFlags_UnsupportedFeature = 1 << 8;
-const UInt32 kpv_ErrorFlags_DataError = 1 << 9;
-const UInt32 kpv_ErrorFlags_CrcError = 1 << 10;
+const UInt32 kpv_ErrorFlags_UnavailableStart      = 1 << 3;
+const UInt32 kpv_ErrorFlags_UnconfirmedStart      = 1 << 4;
+const UInt32 kpv_ErrorFlags_UnexpectedEnd         = 1 << 5;
+const UInt32 kpv_ErrorFlags_DataAfterEnd          = 1 << 6;
+const UInt32 kpv_ErrorFlags_UnsupportedMethod     = 1 << 7;
+const UInt32 kpv_ErrorFlags_UnsupportedFeature    = 1 << 8;
+const UInt32 kpv_ErrorFlags_DataError             = 1 << 9;
+const UInt32 kpv_ErrorFlags_CrcError              = 1 << 10;
 // const UInt32 kpv_ErrorFlags_Unsupported           = 1 << 11;
 
 /*

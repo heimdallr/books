@@ -14,9 +14,9 @@ using namespace HomeCompa::Flibrary;
 
 struct SimplePicsJokeRequester::Impl
 {
-	const QString fieldName;
+	const QString                                     fieldName;
 	std::unordered_map<size_t, std::unique_ptr<Item>> requests;
-	Network::Downloader downloader;
+	Network::Downloader                               downloader;
 };
 
 SimplePicsJokeRequester::SimplePicsJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, QString fieldName, QHttpHeaders headers)
@@ -29,8 +29,7 @@ SimplePicsJokeRequester::~SimplePicsJokeRequester() = default;
 
 bool SimplePicsJokeRequester::Process(const QJsonValue& value, std::weak_ptr<IClient> client)
 {
-	const auto jsonObject = [&]() -> QJsonObject
-	{
+	const auto jsonObject = [&]() -> QJsonObject {
 		if (value.isObject())
 			return value.toObject();
 
@@ -54,8 +53,10 @@ bool SimplePicsJokeRequester::Process(const QJsonValue& value, std::weak_ptr<ICl
 	if (!uri.isString())
 		return false;
 
-	auto item = std::make_unique<Item>(std::move(client));
-	const auto id = m_impl->downloader.Download(uri.toString(), item->stream, [this](const size_t idMessage, const int code, const QString& message) { OnImageReceived(idMessage, code, message); });
+	auto       item = std::make_unique<Item>(std::move(client));
+	const auto id   = m_impl->downloader.Download(uri.toString(), item->stream, [this](const size_t idMessage, const int code, const QString& message) {
+        OnImageReceived(idMessage, code, message);
+    });
 	m_impl->requests.try_emplace(id, std::move(item));
 	return true;
 }
@@ -64,7 +65,9 @@ void SimplePicsJokeRequester::OnImageReceived(const size_t id, const int code, c
 {
 	const auto it = m_impl->requests.find(id);
 	assert(it != m_impl->requests.end());
-	const ScopedCall requestGuard([&] { m_impl->requests.erase(it); });
+	const ScopedCall requestGuard([&] {
+		m_impl->requests.erase(it);
+	});
 
 	if (code != QNetworkReply::NetworkError::NoError)
 		PLOGE << message;

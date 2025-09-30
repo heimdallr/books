@@ -19,7 +19,7 @@ constexpr InstallerDescription MODES[] {
 InstallerDescription GetInstallerDescription()
 {
 	const auto fileNamePortable = QString("%1/installer_mode").arg(QCoreApplication::applicationDirPath());
-	QFile file(QString("%1/installer_mode").arg(QCoreApplication::applicationDirPath()));
+	QFile      file(QString("%1/installer_mode").arg(QCoreApplication::applicationDirPath()));
 	if (!file.open(QIODevice::ReadOnly))
 	{
 		PLOGD << "Installer mode: exe";
@@ -28,7 +28,9 @@ InstallerDescription GetInstallerDescription()
 
 	const auto bytes = file.readAll();
 	PLOGD << "Installer mode: " << bytes;
-	const auto it = std::ranges::find_if(MODES, [&](const auto& item) { return bytes.startsWith(item.name); });
+	const auto it = std::ranges::find_if(MODES, [&](const auto& item) {
+		return bytes.startsWith(item.name);
+	});
 	return it != std::end(MODES) ? *it : MODES[0];
 }
 

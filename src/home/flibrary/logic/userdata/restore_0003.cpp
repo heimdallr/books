@@ -103,8 +103,7 @@ private: // IRestorer
 
 		const auto command = transaction->CreateCommand(commandText);
 
-		const auto bind = [&](const size_t index, const QString& value)
-		{
+		const auto bind = [&](const size_t index, const QString& value) {
 			if (value.isEmpty())
 				return (void)command->Bind(index);
 
@@ -177,11 +176,10 @@ private: // IRestorer
 		const auto transaction = db.CreateTransaction();
 		transaction->CreateCommand("delete from Groups_User")->Execute();
 
-		const auto createGroupCommand = transaction->CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
+		const auto createGroupCommand    = transaction->CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
 		const auto addBookToGroupCommand = transaction->CreateCommand(addBookToGroupCommandText);
 
-		const auto addBooksToGroup = [&](const Books& books)
-		{
+		const auto addBooksToGroup = [&](const Books& books) {
 			const auto getLastIdQuery = transaction->CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
 			getLastIdQuery->Execute();
 			const auto groupId = getLastIdQuery->Get<long long>(0);
@@ -210,8 +208,8 @@ private: // IRestorer
 private:
 	void AddGroup(const Util::XmlAttributes& attributes)
 	{
-		auto& item = m_items.emplace_back();
-		item.title = attributes.GetAttribute(Constant::TITLE);
+		auto& item     = m_items.emplace_back();
+		item.title     = attributes.GetAttribute(Constant::TITLE);
 		item.createdAt = attributes.GetAttribute(Constant::UserData::Books::CreatedAt);
 	}
 
@@ -231,8 +229,8 @@ private: // IRestorer
 	void AddElement([[maybe_unused]] const QString& name, const Util::XmlAttributes& attributes) override
 	{
 		assert(name == Constant::ITEM);
-		auto& item = m_items.emplace_back();
-		item.title = attributes.GetAttribute(Constant::TITLE);
+		auto& item     = m_items.emplace_back();
+		item.title     = attributes.GetAttribute(Constant::TITLE);
 		item.createdAt = attributes.GetAttribute(Constant::UserData::Books::CreatedAt);
 	}
 

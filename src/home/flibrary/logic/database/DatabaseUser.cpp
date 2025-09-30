@@ -24,7 +24,7 @@ class IApplicationCursorController // NOLINT(cppcoreguidelines-special-member-fu
 {
 public:
 	virtual ~IApplicationCursorController() = default;
-	virtual void Set(bool value) = 0;
+	virtual void Set(bool value)            = 0;
 };
 
 class ApplicationCursorControllerStub : public IApplicationCursorController
@@ -71,7 +71,7 @@ std::unique_ptr<IApplicationCursorController> APPLICATION_CURSOR_CONTROLLER { Ap
 struct DatabaseUser::Impl
 {
 	PropagateConstPtr<IDatabaseController, std::shared_ptr> databaseController;
-	std::shared_ptr<Util::IExecutor> executor;
+	std::shared_ptr<Util::IExecutor>                        executor;
 
 	Impl(const ILogicFactory& logicFactory, std::shared_ptr<IDatabaseController> databaseController)
 		: databaseController(std::move(databaseController))
@@ -81,7 +81,17 @@ struct DatabaseUser::Impl
 
 	std::unique_ptr<Util::IExecutor> CreateExecutor(const ILogicFactory& logicFactory) const
 	{
-		return logicFactory.GetExecutor({ 1, [] {}, [this] { APPLICATION_CURSOR_CONTROLLER->Set(true); }, [this] { APPLICATION_CURSOR_CONTROLLER->Set(false); }, [] {} });
+		return logicFactory.GetExecutor({ 1,
+		                                  [] {
+										  },
+		                                  [this] {
+											  APPLICATION_CURSOR_CONTROLLER->Set(true);
+										  },
+		                                  [this] {
+											  APPLICATION_CURSOR_CONTROLLER->Set(false);
+										  },
+		                                  [] {
+										  } });
 	}
 };
 
@@ -127,7 +137,7 @@ QVariant DatabaseUser::GetSetting(const Key key, QVariant defaultValueSrc) const
 
 	try
 	{
-		const auto db = m_impl->databaseController->GetDatabase();
+		const auto db    = m_impl->databaseController->GetDatabase();
 		const auto query = db->CreateQuery("select SettingValue from Settings where SettingID = ?");
 		query->Bind(0, static_cast<long long>(key));
 		query->Execute();
@@ -141,8 +151,8 @@ QVariant DatabaseUser::GetSetting(const Key key, QVariant defaultValueSrc) const
 
 void DatabaseUser::SetSetting(const Key key, const QVariant& value) const
 {
-	const auto db = m_impl->databaseController->GetDatabase();
-	const auto tr = db->CreateTransaction();
+	const auto db      = m_impl->databaseController->GetDatabase();
+	const auto tr      = db->CreateTransaction();
 	const auto command = tr->CreateCommand("insert or replace into Settings(SettingID, SettingValue) values(?, ?)");
 	command->Bind(0, static_cast<long long>(key));
 	command->Bind(1, value.toString().toStdString());

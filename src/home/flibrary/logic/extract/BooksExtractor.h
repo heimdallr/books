@@ -22,15 +22,17 @@ class BooksExtractor
 
 public:
 	using Callback = std::function<void(bool)>;
-	using Extract = void (BooksExtractor::*)(QString, const QString&, ILogicFactory::ExtractedBooks&&, QString, Callback);
+	using Extract  = void (BooksExtractor::*)(QString, const QString&, ILogicFactory::ExtractedBooks&&, QString, Callback);
 
 public:
-	BooksExtractor(std::shared_ptr<const ISettings> settings,
-	               std::shared_ptr<ICollectionController> collectionController,
-	               std::shared_ptr<IBooksExtractorProgressController> progressController,
-	               const std::shared_ptr<const ILogicFactory>& logicFactory,
-	               std::shared_ptr<const IScriptController> scriptController,
-	               std::shared_ptr<IDatabaseUser> databaseUser);
+	BooksExtractor(
+		std::shared_ptr<const ISettings>                   settings,
+		std::shared_ptr<ICollectionController>             collectionController,
+		std::shared_ptr<IBooksExtractorProgressController> progressController,
+		const std::shared_ptr<const ILogicFactory>&        logicFactory,
+		std::shared_ptr<const IScriptController>           scriptController,
+		std::shared_ptr<IDatabaseUser>                     databaseUser
+	);
 	~BooksExtractor();
 
 public:

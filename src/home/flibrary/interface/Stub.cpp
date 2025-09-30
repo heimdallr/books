@@ -32,12 +32,11 @@ namespace
 void SetMacroImpl(QString& str, const IScriptController::Macro macro, const QString& value)
 {
 	const QString macroStr = IScriptController::GetMacro(macro);
-	const auto start = str.indexOf(macroStr, 0, Qt::CaseInsensitive);
+	const auto    start    = str.indexOf(macroStr, 0, Qt::CaseInsensitive);
 	if (start < 0)
 		return;
 
-	const auto replace = [&](const QString& s, const qsizetype startPos, const qsizetype endPos)
-	{
+	const auto replace = [&](const QString& s, const qsizetype startPos, const qsizetype endPos) {
 		str.erase(std::next(str.begin(), startPos), std::next(str.begin(), endPos));
 		str.insert(startPos, s);
 	};
@@ -45,15 +44,12 @@ void SetMacroImpl(QString& str, const IScriptController::Macro macro, const QStr
 	if (start == 0 || str[start - 1] != '[')
 		return replace(value, start, start + macroStr.length());
 
-	const auto itEnd = std::find_if(std::next(str.cbegin(), start),
-	                                str.cend(),
-	                                [n = 1](const QChar ch) mutable
-	                                {
-										if (ch == '[')
-											++n;
+	const auto itEnd = std::find_if(std::next(str.cbegin(), start), str.cend(), [n = 1](const QChar ch) mutable {
+		if (ch == '[')
+			++n;
 
-										return ch == ']' && --n == 0;
-									});
+		return ch == ']' && --n == 0;
+	});
 
 	if (itEnd == str.cend())
 		return replace(value, start, start + macroStr.length());
@@ -240,14 +236,12 @@ void IScriptController::ExecuteContextMenu(QLineEdit* lineEdit)
 	for (const auto& item : s_commandMacros | std::views::values)
 	{
 		const auto menuItemTitle = QString("%1\t%2").arg(Loc::Tr(s_context, item), item);
-		menu.addAction(menuItemTitle,
-		               [=, value = QString(item)]
-		               {
-						   auto currentText = lineEdit->text();
-						   const auto currentPosition = lineEdit->cursorPosition();
-						   lineEdit->setText(currentText.insert(currentPosition, value));
-						   lineEdit->setCursorPosition(currentPosition + static_cast<int>(value.size()));
-					   });
+		menu.addAction(menuItemTitle, [=, value = QString(item)] {
+			auto       currentText     = lineEdit->text();
+			const auto currentPosition = lineEdit->cursorPosition();
+			lineEdit->setText(currentText.insert(currentPosition, value));
+			lineEdit->setCursorPosition(currentPosition + static_cast<int>(value.size()));
+		});
 	}
 	menu.setFont(lineEdit->font());
 	menu.exec(QCursor::pos());
@@ -271,21 +265,20 @@ std::vector<std::vector<QString>> ILogicFactory::GetSelectedBookIds(QAbstractIte
 
 	std::vector<std::vector<QString>> result;
 	result.reserve(selected.size());
-	std::ranges::transform(selected,
-	                       std::back_inserter(result),
-	                       [&](const auto& selectedIndex)
-	                       {
-							   std::vector<QString> resultItem;
-							   std::ranges::transform(roles, std::back_inserter(resultItem), [&](const int role) { return selectedIndex.data(role).toString(); });
-							   return resultItem;
-						   });
+	std::ranges::transform(selected, std::back_inserter(result), [&](const auto& selectedIndex) {
+		std::vector<QString> resultItem;
+		std::ranges::transform(roles, std::back_inserter(resultItem), [&](const int role) {
+			return selectedIndex.data(role).toString();
+		});
+		return resultItem;
+	});
 
 	return result;
 }
 
 void ILogicFactory::FillScriptTemplate(DB::IDatabase& db, QString& scriptTemplate, const ExtractedBook& book)
 {
-	const auto authorNameSplitted = Util::RemoveIllegalPathCharacters(book.author).split(' ', Qt::SkipEmptyParts);
+	const auto      authorNameSplitted = Util::RemoveIllegalPathCharacters(book.author).split(' ', Qt::SkipEmptyParts);
 	const QFileInfo fileInfo(book.file);
 	for (const auto [macro, applier] : MACRO_APPLIERS)
 	{
@@ -340,11 +333,25 @@ QString IAnnotationController::IStrategy::AddTableRowImpl(const char* name, cons
 
 QString IAnnotationController::IStrategy::AddTableRowImpl(const QStringList& values)
 {
-	QString str;
-	ScopedCall tr([&] { str.append("<tr>"); }, [&] { str.append("</tr>"); });
+	QString    str;
+	ScopedCall tr(
+		[&] {
+			str.append("<tr>");
+		},
+		[&] {
+			str.append("</tr>");
+		}
+	);
 	for (const auto& value : values)
 	{
-		ScopedCall td([&] { str.append(R"(<td style="vertical-align: top; padding-right: 7px;">)"); }, [&] { str.append("</td>"); });
+		ScopedCall td(
+			[&] {
+				str.append(R"(<td style="vertical-align: top; padding-right: 7px;">)");
+			},
+			[&] {
+				str.append("</td>");
+			}
+		);
 		str.append(value);
 	}
 	return str;
@@ -357,15 +364,15 @@ QString IAnnotationController::IStrategy::TableRowsToStringImpl(const QStringLis
 
 namespace
 {
-constexpr auto AUTHORS = "Authors";
-constexpr auto AUTHOR_ID = "AuthorID";
-constexpr auto SERIES = "Series";
-constexpr auto SERIES_ID = "SeriesID";
-constexpr auto GENRES = "Genres";
-constexpr auto GENRE_CODE = "GenreCode";
-constexpr auto KEYWORDS = "Keywords";
-constexpr auto KEYWORD_ID = "KeywordID";
-constexpr auto LANGUAGES = "Languages";
+constexpr auto AUTHORS     = "Authors";
+constexpr auto AUTHOR_ID   = "AuthorID";
+constexpr auto SERIES      = "Series";
+constexpr auto SERIES_ID   = "SeriesID";
+constexpr auto GENRES      = "Genres";
+constexpr auto GENRE_CODE  = "GenreCode";
+constexpr auto KEYWORDS    = "Keywords";
+constexpr auto KEYWORD_ID  = "KeywordID";
+constexpr auto LANGUAGES   = "Languages";
 constexpr auto LANGUAGE_ID = "LanguageCode";
 
 template <typename StatementType, typename>

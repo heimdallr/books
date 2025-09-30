@@ -38,7 +38,7 @@ private: // ICryptoGetTextPassword2
 	HRESULT CryptoGetTextPassword2(Int32* passwordIsDefined, BSTR* password) noexcept override
 	{
 		*passwordIsDefined = 0;
-		*password = SysAllocString(L"");
+		*password          = SysAllocString(L"");
 		return S_OK;
 	}
 };
@@ -95,14 +95,14 @@ private: // IUnknown
 
 		if (iid == IID_ICryptoGetTextPassword2)
 		{
-			auto obj = CryptoGetTextPassword::Create();
+			auto obj   = CryptoGetTextPassword::Create();
 			*ppvObject = obj.Detach();
 			return S_OK;
 		}
 
 		if (iid == IID_IArchiveExtractCallbackMessage2)
 		{
-			auto obj = ArchiveExtractCallbackMessage::Create();
+			auto obj   = ArchiveExtractCallbackMessage::Create();
 			*ppvObject = obj.Detach();
 			return S_OK;
 		}
@@ -147,8 +147,7 @@ private: // IArchiveUpdateCallback
 	HRESULT GetProperty(UInt32 /*index*/, PROPID propId, PROPVARIANT* value) noexcept override
 	try
 	{
-		CPropVariant prop = [&, propId]() -> CPropVariant
-		{
+		CPropVariant prop = [&, propId]() -> CPropVariant {
 			switch (propId)
 			{
 				case kpidIsAnti:
@@ -166,7 +165,7 @@ private: // IArchiveUpdateCallback
 			}
 		}();
 
-		*value = prop;
+		*value       = prop;
 		prop.bstrVal = nullptr;
 		return S_OK;
 	}
@@ -192,7 +191,7 @@ private: // IArchiveUpdateCallback
 	}
 
 private:
-	FileStorage& m_files;
+	FileStorage&      m_files;
 	ProgressCallback& m_progress;
 };
 
@@ -206,16 +205,18 @@ bool Remove(FileStorage& files, IOutArchive& zip, QIODevice& oStream, const std:
 	for (const auto& fileName : fileNames)
 	{
 		const auto rx = QRegularExpression::fromWildcard(fileName, Qt::CaseInsensitive);
-		std::erase_if(files.files, [&](const auto& file) { return rx.match(file.name).hasMatch(); });
+		std::erase_if(files.files, [&](const auto& file) {
+			return rx.match(file.name).hasMatch();
+		});
 	}
 
 	if (files.files.size() == files.index.size())
 		return true;
 
 	ProgressCallbackStub progressCallbackStub;
-	auto sequentialOutStream = OutMemStream::Create(oStream, progressCallbackStub);
-	auto archiveUpdateCallback = ArchiveUpdateCallback::Create(files, progress);
-	const auto result = zip.UpdateItems(std::move(sequentialOutStream), static_cast<UInt32>(files.files.size()), std::move(archiveUpdateCallback));
+	auto                 sequentialOutStream   = OutMemStream::Create(oStream, progressCallbackStub);
+	auto                 archiveUpdateCallback = ArchiveUpdateCallback::Create(files, progress);
+	const auto           result                = zip.UpdateItems(std::move(sequentialOutStream), static_cast<UInt32>(files.files.size()), std::move(archiveUpdateCallback));
 	files.index.clear();
 	for (size_t i = 0, sz = files.files.size(); i < sz; ++i)
 	{

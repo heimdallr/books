@@ -19,13 +19,13 @@ namespace
 {
 constexpr auto LABEL_LINK_TEMPLATE = R"(<a href="%1">%2</a>)";
 
-constexpr auto CONTEXT = "OpdsDialog";
-constexpr auto ADDRESS_COPIED = QT_TRANSLATE_NOOP("OpdsDialog", "Address has been copied to the clipboard");
+constexpr auto CONTEXT                     = "OpdsDialog";
+constexpr auto ADDRESS_COPIED              = QT_TRANSLATE_NOOP("OpdsDialog", "Address has been copied to the clipboard");
 constexpr auto NO_NETWORK_INTERFACES_FOUND = QT_TRANSLATE_NOOP("OpdsDialog", "No network interfaces found");
-constexpr auto ANY = QT_TRANSLATE_NOOP("OpdsDialog", "Any");
-constexpr auto SITE = QT_TRANSLATE_NOOP("OpdsDialog", "Site Address");
-constexpr auto OPDS = QT_TRANSLATE_NOOP("OpdsDialog", "OPDS Address");
-constexpr auto WEB = QT_TRANSLATE_NOOP("OpdsDialog", "Web Address");
+constexpr auto ANY                         = QT_TRANSLATE_NOOP("OpdsDialog", "Any");
+constexpr auto SITE                        = QT_TRANSLATE_NOOP("OpdsDialog", "Site Address");
+constexpr auto OPDS                        = QT_TRANSLATE_NOOP("OpdsDialog", "OPDS Address");
+constexpr auto WEB                         = QT_TRANSLATE_NOOP("OpdsDialog", "Web Address");
 TR_DEF
 }
 
@@ -34,9 +34,9 @@ struct OpdsDialog::Impl final
 	, Util::GeometryRestorableObserver
 	, IOpdsController::IObserver
 {
-	Ui::OpdsDialog ui {};
-	QWidget& self;
-	PropagateConstPtr<ISettings, std::shared_ptr> settings;
+	Ui::OpdsDialog                                      ui {};
+	QWidget&                                            self;
+	PropagateConstPtr<ISettings, std::shared_ptr>       settings;
 	PropagateConstPtr<IOpdsController, std::shared_ptr> opdsController;
 
 	Impl(QDialog& self, std::shared_ptr<ISettings> settings, std::shared_ptr<IOpdsController> opdsController)
@@ -61,41 +61,40 @@ struct OpdsDialog::Impl final
 		ui.checkBoxAddToSturtup->setChecked(this->opdsController->InStartup());
 		ui.checkBoxAuth->setChecked(!this->settings->Get(Constant::Settings::OPDS_AUTH, QString {}).isEmpty());
 
-		connect(ui.spinBoxPort, &QSpinBox::valueChanged, &self, [this] { OnConnectionChanged(); });
-		connect(ui.comboBoxHosts, &QComboBox::currentIndexChanged, &self, [this] { OnConnectionChanged(); });
-		connect(ui.btnStop, &QAbstractButton::clicked, &self, [this] { this->opdsController->Stop(); });
-		connect(ui.btnStart,
-		        &QAbstractButton::clicked,
-		        &self,
-		        [this]
-		        {
-					this->settings->Set(Constant::Settings::OPDS_PORT_KEY, ui.spinBoxPort->value());
-					this->settings->Set(Constant::Settings::OPDS_HOST_KEY, ui.comboBoxHosts->currentData());
-					this->opdsController->Start();
-				});
+		connect(ui.spinBoxPort, &QSpinBox::valueChanged, &self, [this] {
+			OnConnectionChanged();
+		});
+		connect(ui.comboBoxHosts, &QComboBox::currentIndexChanged, &self, [this] {
+			OnConnectionChanged();
+		});
+		connect(ui.btnStop, &QAbstractButton::clicked, &self, [this] {
+			this->opdsController->Stop();
+		});
+		connect(ui.btnStart, &QAbstractButton::clicked, &self, [this] {
+			this->settings->Set(Constant::Settings::OPDS_PORT_KEY, ui.spinBoxPort->value());
+			this->settings->Set(Constant::Settings::OPDS_HOST_KEY, ui.comboBoxHosts->currentData());
+			this->opdsController->Start();
+		});
 
-		connect(ui.checkBoxAddToSturtup, &QAbstractButton::toggled, &self, [this](const bool checked) { checked ? this->opdsController->AddToStartup() : this->opdsController->RemoveFromStartup(); });
-		connect(ui.lineEditOpdsUser, &QLineEdit::editingFinished, &self, [this] { SetAuth(); });
-		connect(ui.lineEditOpdsPassword, &QLineEdit::editingFinished, &self, [this] { SetAuth(); });
-		connect(ui.checkBoxAuth,
-		        &QAbstractButton::toggled,
-		        &self,
-		        [this](const bool checked)
-		        {
-					if (!checked)
-						this->settings->Remove(Constant::Settings::OPDS_AUTH);
-				});
+		connect(ui.checkBoxAddToSturtup, &QAbstractButton::toggled, &self, [this](const bool checked) {
+			checked ? this->opdsController->AddToStartup() : this->opdsController->RemoveFromStartup();
+		});
+		connect(ui.lineEditOpdsUser, &QLineEdit::editingFinished, &self, [this] {
+			SetAuth();
+		});
+		connect(ui.lineEditOpdsPassword, &QLineEdit::editingFinished, &self, [this] {
+			SetAuth();
+		});
+		connect(ui.checkBoxAuth, &QAbstractButton::toggled, &self, [this](const bool checked) {
+			if (!checked)
+				this->settings->Remove(Constant::Settings::OPDS_AUTH);
+		});
 
-		const auto actionSetup = [&self](QAction* action, QLineEdit* lineEdit)
-		{
-			connect(action,
-			        &QAction::triggered,
-			        &self,
-			        [=]
-			        {
-						QApplication::clipboard()->setText(lineEdit->text());
-						QToolTip::showText(QCursor::pos(), Tr(ADDRESS_COPIED));
-					});
+		const auto actionSetup = [&self](QAction* action, QLineEdit* lineEdit) {
+			connect(action, &QAction::triggered, &self, [=] {
+				QApplication::clipboard()->setText(lineEdit->text());
+				QToolTip::showText(QCursor::pos(), Tr(ADDRESS_COPIED));
+			});
 			lineEdit->addAction(action, QLineEdit::TrailingPosition);
 		};
 		actionSetup(ui.actionCopyOpds, ui.lineEditOpdsAddress);

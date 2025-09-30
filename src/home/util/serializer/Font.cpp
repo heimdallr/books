@@ -9,21 +9,21 @@ namespace HomeCompa::Util
 
 namespace
 {
-constexpr auto FAMILY = "family";
-constexpr auto POINT_SIZE_F = "pointSizeF";
-constexpr auto PIXEL_SIZE = "pixelSize";
-constexpr auto STYLE_HINT = "styleHint";
-constexpr auto WEIGHT = "weight";
-constexpr auto STYLE = "style";
-constexpr auto UNDERLINE = "underline";
-constexpr auto STRIKE_OUT = "strikeOut";
-constexpr auto FIXED_PITCH = "fixedPitch";
-constexpr auto CAPITALIZATION = "capitalization";
+constexpr auto FAMILY              = "family";
+constexpr auto POINT_SIZE_F        = "pointSizeF";
+constexpr auto PIXEL_SIZE          = "pixelSize";
+constexpr auto STYLE_HINT          = "styleHint";
+constexpr auto WEIGHT              = "weight";
+constexpr auto STYLE               = "style";
+constexpr auto UNDERLINE           = "underline";
+constexpr auto STRIKE_OUT          = "strikeOut";
+constexpr auto FIXED_PITCH         = "fixedPitch";
+constexpr auto CAPITALIZATION      = "capitalization";
 constexpr auto LETTER_SPACING_TYPE = "letterSpacingType";
-constexpr auto LETTER_SPACING = "letterSpacing";
-constexpr auto WORD_SPACING = "wordSpacing";
-constexpr auto STRETCH = "stretch";
-constexpr auto STYLE_STRATEGY = "styleStrategy";
+constexpr auto LETTER_SPACING      = "letterSpacing";
+constexpr auto WORD_SPACING        = "wordSpacing";
+constexpr auto STRETCH             = "stretch";
+constexpr auto STYLE_STRATEGY      = "styleStrategy";
 }
 
 void Serialize(const QFont& font, ISettings& settings)

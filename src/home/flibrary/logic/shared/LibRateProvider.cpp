@@ -37,16 +37,16 @@ std::unordered_map<QString, double> ReadRates(const ISettings& settings, const I
 		return {};
 	try
 	{
-		const Zip zip(additionalFileName);
+		const Zip       zip(additionalFileName);
 		QJsonParseError jsonParseError;
-		const auto doc = QJsonDocument::fromJson(zip.Read(REVIEWS_ADDITIONAL_BOOKS_FILE_NAME)->GetStream().readAll(), &jsonParseError);
+		const auto      doc = QJsonDocument::fromJson(zip.Read(REVIEWS_ADDITIONAL_BOOKS_FILE_NAME)->GetStream().readAll(), &jsonParseError);
 		if (jsonParseError.error != QJsonParseError::NoError)
 		{
 			PLOGW << jsonParseError.errorString();
 			return {};
 		}
 
-		const auto obj = doc.object();
+		const auto                          obj = doc.object();
 		std::unordered_map<QString, double> rate;
 		for (auto it = obj.constBegin(); it != obj.constEnd(); ++it)
 			rate.try_emplace(it.key(), it.value().toObject()["libRate"].toDouble());
@@ -113,9 +113,9 @@ QVariant LibRateProviderSimple::GetForegroundBrush(const QString& /*libId*/, con
 struct LibRateProviderDouble::Impl
 {
 	const std::unordered_map<QString, double> rate;
-	const std::map<double, uint32_t> colors;
-	const int precision;
-	const int power { GetPower(precision) };
+	const std::map<double, uint32_t>          colors;
+	const int                                 precision;
+	const int                                 power { GetPower(precision) };
 
 	Impl(const ISettings& settings, const ICollectionProvider& collectionProvider)
 		: rate { ReadRates(settings, collectionProvider) }
@@ -153,12 +153,11 @@ QVariant LibRateProviderDouble::GetForegroundBrush(const QString& libId, const Q
 	rateValue = std::lround(rateValue * m_impl->power) * 1.0 / m_impl->power;
 
 	const auto& colors = m_impl->colors;
-	const auto it = colors.upper_bound(rateValue);
+	const auto  it     = colors.upper_bound(rateValue);
 	assert(!IsOneOf(it, colors.begin(), colors.end()));
 
-	const auto get = [&](const int bits)
-	{
-		const auto prev = std::prev(it);
+	const auto get = [&](const int bits) {
+		const auto   prev = std::prev(it);
 		const Linear l(prev->first, static_cast<float>((prev->second >> bits) & 0xFF), it->first, static_cast<float>((it->second >> bits) & 0xFF));
 		return static_cast<uint32_t>(l(rateValue)) << bits;
 	};

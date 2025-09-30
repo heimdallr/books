@@ -37,18 +37,18 @@
 		// WINAPI is __stdcall in Windows-MSVC in windef.h
 		#define WINAPI
 
-typedef char CHAR;
+typedef char          CHAR;
 typedef unsigned char UCHAR;
 
 		#undef BYTE
 typedef unsigned char BYTE;
 
-typedef short SHORT;
+typedef short          SHORT;
 typedef unsigned short USHORT;
 
 		#undef WORD
 typedef unsigned short WORD;
-typedef short VARIANT_BOOL;
+typedef short          VARIANT_BOOL;
 
 		#define LOWORD(l) ((WORD)((DWORD_PTR)(l) & 0xffff))
 		#define HIWORD(l) ((WORD)((DWORD_PTR)(l) >> 16))
@@ -67,7 +67,7 @@ typedef int BOOL;
 // typedef uintptr_t UINT_PTR;
 // typedef ptrdiff_t UINT_PTR;
 
-typedef Int64 LONGLONG;
+typedef Int64  LONGLONG;
 typedef UInt64 ULONGLONG;
 
 typedef struct
@@ -80,15 +80,15 @@ typedef struct
 	ULONGLONG QuadPart;
 } ULARGE_INTEGER;
 
-typedef const CHAR* LPCSTR;
-typedef CHAR TCHAR;
-typedef const TCHAR* LPCTSTR;
-typedef wchar_t WCHAR;
-typedef WCHAR OLECHAR;
-typedef const WCHAR* LPCWSTR;
-typedef OLECHAR* BSTR;
+typedef const CHAR*    LPCSTR;
+typedef CHAR           TCHAR;
+typedef const TCHAR*   LPCTSTR;
+typedef wchar_t        WCHAR;
+typedef WCHAR          OLECHAR;
+typedef const WCHAR*   LPCWSTR;
+typedef OLECHAR*       BSTR;
 typedef const OLECHAR* LPCOLESTR;
-typedef OLECHAR* LPOLESTR;
+typedef OLECHAR*       LPOLESTR;
 
 typedef struct
 {
@@ -99,7 +99,7 @@ typedef struct
 		#define SUCCEEDED(hr) ((HRESULT)(hr) >= 0)
 		#define FAILED(hr) ((HRESULT)(hr) < 0)
 typedef ULONG PROPID;
-typedef LONG SCODE;
+typedef LONG  SCODE;
 
 		#define S_OK ((HRESULT)0x00000000L)
 		#define S_FALSE ((HRESULT)0x00000001L)
@@ -179,8 +179,8 @@ DEFINE_GUID(IID_IUnknown, 0x00000000, 0x0000, 0x0000, 0xC0, 0x00, 0x00, 0x00, 0x
 struct IUnknown
 {
 	STDMETHOD(QueryInterface)(REFIID iid, void** outObject) = 0;
-	STDMETHOD_(ULONG, AddRef)() = 0;
-	STDMETHOD_(ULONG, Release)() = 0;
+	STDMETHOD_(ULONG, AddRef)()                             = 0;
+	STDMETHOD_(ULONG, Release)()                            = 0;
 			#ifdef Z7_USE_VIRTUAL_DESTRUCTOR_IN_IUNKNOWN
 	virtual ~IUnknown()
 	{
@@ -199,69 +199,69 @@ Z7_PURE_INTERFACES_END
 
 enum VARENUM
 {
-	VT_EMPTY = 0,
-	VT_NULL = 1,
-	VT_I2 = 2,
-	VT_I4 = 3,
-	VT_R4 = 4,
-	VT_R8 = 5,
-	VT_CY = 6,
-	VT_DATE = 7,
-	VT_BSTR = 8,
+	VT_EMPTY    = 0,
+	VT_NULL     = 1,
+	VT_I2       = 2,
+	VT_I4       = 3,
+	VT_R4       = 4,
+	VT_R8       = 5,
+	VT_CY       = 6,
+	VT_DATE     = 7,
+	VT_BSTR     = 8,
 	VT_DISPATCH = 9,
-	VT_ERROR = 10,
-	VT_BOOL = 11,
-	VT_VARIANT = 12,
-	VT_UNKNOWN = 13,
-	VT_DECIMAL = 14,
+	VT_ERROR    = 10,
+	VT_BOOL     = 11,
+	VT_VARIANT  = 12,
+	VT_UNKNOWN  = 13,
+	VT_DECIMAL  = 14,
 
-	VT_I1 = 16,
-	VT_UI1 = 17,
-	VT_UI2 = 18,
-	VT_UI4 = 19,
-	VT_I8 = 20,
-	VT_UI8 = 21,
-	VT_INT = 22,
-	VT_UINT = 23,
-	VT_VOID = 24,
-	VT_HRESULT = 25,
+	VT_I1       = 16,
+	VT_UI1      = 17,
+	VT_UI2      = 18,
+	VT_UI4      = 19,
+	VT_I8       = 20,
+	VT_UI8      = 21,
+	VT_INT      = 22,
+	VT_UINT     = 23,
+	VT_VOID     = 24,
+	VT_HRESULT  = 25,
 	VT_FILETIME = 64
 };
 
 typedef unsigned short VARTYPE;
-typedef WORD PROPVAR_PAD1;
-typedef WORD PROPVAR_PAD2;
-typedef WORD PROPVAR_PAD3;
+typedef WORD           PROPVAR_PAD1;
+typedef WORD           PROPVAR_PAD2;
+typedef WORD           PROPVAR_PAD3;
 
 typedef struct tagPROPVARIANT
 {
-	VARTYPE vt;
+	VARTYPE      vt;
 	PROPVAR_PAD1 wReserved1;
 	PROPVAR_PAD2 wReserved2;
 	PROPVAR_PAD3 wReserved3;
 
 	union
 	{
-		CHAR cVal;
-		UCHAR bVal;
-		SHORT iVal;
-		USHORT uiVal;
-		LONG lVal;
-		ULONG ulVal;
-		INT intVal;
-		UINT uintVal;
-		LARGE_INTEGER hVal;
+		CHAR           cVal;
+		UCHAR          bVal;
+		SHORT          iVal;
+		USHORT         uiVal;
+		LONG           lVal;
+		ULONG          ulVal;
+		INT            intVal;
+		UINT           uintVal;
+		LARGE_INTEGER  hVal;
 		ULARGE_INTEGER uhVal;
-		VARIANT_BOOL boolVal;
-		SCODE scode;
-		FILETIME filetime;
-		BSTR bstrVal;
+		VARIANT_BOOL   boolVal;
+		SCODE          scode;
+		FILETIME       filetime;
+		BSTR           bstrVal;
 	};
 } PROPVARIANT;
 
 typedef PROPVARIANT tagVARIANT;
-typedef tagVARIANT VARIANT;
-typedef VARIANT VARIANTARG;
+typedef tagVARIANT  VARIANT;
+typedef VARIANT     VARIANTARG;
 
 EXTERN_C HRESULT VariantClear(VARIANTARG* prop);
 EXTERN_C HRESULT VariantCopy(VARIANTARG* dest, const VARIANTARG* src);
@@ -269,8 +269,8 @@ EXTERN_C HRESULT VariantCopy(VARIANTARG* dest, const VARIANTARG* src);
 typedef struct tagSTATPROPSTG
 {
 	LPOLESTR lpwstrName;
-	PROPID propid;
-	VARTYPE vt;
+	PROPID   propid;
+	VARTYPE  vt;
 } STATPROPSTG;
 
 EXTERN_C BSTR SysAllocStringByteLen(LPCSTR psz, UINT len);
@@ -281,8 +281,8 @@ EXTERN_C UINT SysStringByteLen(BSTR bstr);
 EXTERN_C UINT SysStringLen(BSTR bstr);
 
 EXTERN_C DWORD GetLastError();
-EXTERN_C void SetLastError(DWORD dwCode);
-EXTERN_C LONG CompareFileTime(const FILETIME* ft1, const FILETIME* ft2);
+EXTERN_C void  SetLastError(DWORD dwCode);
+EXTERN_C LONG  CompareFileTime(const FILETIME* ft1, const FILETIME* ft2);
 
 EXTERN_C DWORD GetCurrentThreadId();
 EXTERN_C DWORD GetCurrentProcessId();

@@ -12,15 +12,15 @@ using namespace HomeCompa::ZipDetails;
 namespace
 {
 
-constexpr auto CANNOT_OPEN_FILE = QT_TRANSLATE_NOOP("Error", "Cannot open file '%1'");
-constexpr auto CANNOT_OPEN_ARCHIVE = QT_TRANSLATE_NOOP("Error", "Cannot open archive '%1'");
-constexpr auto CANNOT_FIND = QT_TRANSLATE_NOOP("Error", "Cannot find file '%1'");
-constexpr auto CANNOT_EXTRACT = QT_TRANSLATE_NOOP("Error", "Cannot extract file '%1'");
-constexpr auto CANNOT_CREATE_ARCHIVE = QT_TRANSLATE_NOOP("Error", "Cannot create file '%1'");
+constexpr auto CANNOT_OPEN_FILE           = QT_TRANSLATE_NOOP("Error", "Cannot open file '%1'");
+constexpr auto CANNOT_OPEN_ARCHIVE        = QT_TRANSLATE_NOOP("Error", "Cannot open archive '%1'");
+constexpr auto CANNOT_FIND                = QT_TRANSLATE_NOOP("Error", "Cannot find file '%1'");
+constexpr auto CANNOT_EXTRACT             = QT_TRANSLATE_NOOP("Error", "Cannot extract file '%1'");
+constexpr auto CANNOT_CREATE_ARCHIVE      = QT_TRANSLATE_NOOP("Error", "Cannot create file '%1'");
 constexpr auto CANNOT_ADD_FILE_TO_ARCHIVE = QT_TRANSLATE_NOOP("Error", "Cannot add file '%1' to archive");
-constexpr auto LOAD_LIBRARY_FAILED = QT_TRANSLATE_NOOP("Error", "Cannot load %1");
-constexpr auto GET_PROC_FAILED = QT_TRANSLATE_NOOP("Error", "Cannon find entry point '%1'");
-constexpr auto CANNOT_CREATE_OBJECT = QT_TRANSLATE_NOOP("Error", "Cannot  create object");
+constexpr auto LOAD_LIBRARY_FAILED        = QT_TRANSLATE_NOOP("Error", "Cannot load %1");
+constexpr auto GET_PROC_FAILED            = QT_TRANSLATE_NOOP("Error", "Cannon find entry point '%1'");
+constexpr auto CANNOT_CREATE_OBJECT       = QT_TRANSLATE_NOOP("Error", "Cannot  create object");
 
 [[noreturn]] void Throw(const char* str, const QString& filename = {})
 {

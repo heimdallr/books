@@ -27,17 +27,17 @@ namespace
 
 using Covers = std::unordered_map<QString, QByteArray>;
 
-constexpr auto BINARY = "binary";
-constexpr auto ID = "id";
+constexpr auto BINARY       = "binary";
+constexpr auto ID           = "id";
 constexpr auto CONTENT_TYPE = "content-type";
-constexpr auto JPEG = "jpeg";
-constexpr auto PNG = "png";
-constexpr auto JPEG_XL = "jpeg xl";
+constexpr auto JPEG         = "jpeg";
+constexpr auto PNG          = "png";
+constexpr auto JPEG_XL      = "jpeg xl";
 
-constexpr auto FICTION_BOOK = "FictionBook";
-constexpr auto DESCRIPTION = "FictionBook/description";
+constexpr auto FICTION_BOOK  = "FictionBook";
+constexpr auto DESCRIPTION   = "FictionBook/description";
 constexpr auto DOCUMENT_INFO = "FictionBook/description/document-info";
-constexpr auto PROGRAM_USED = "FictionBook/description/document-info/program-used";
+constexpr auto PROGRAM_USED  = "FictionBook/description/document-info/program-used";
 
 using Decoder = QPixmap (*)(const QByteArray&);
 using Recoder = std::pair<QByteArray, const char*> (*)(const QByteArray& bytes, const char* type);
@@ -64,8 +64,8 @@ std::pair<QByteArray, const char*> QtRecoder(const QByteArray& data, const char*
 std::pair<QByteArray, const char*> JxlRecoder(const QByteArray& data, const char*)
 {
 	std::pair<QByteArray, const char*> result;
-	auto image = JXL::Decode(data);
-	QByteArray bytes;
+	auto                               image = JXL::Decode(data);
+	QByteArray                         bytes;
 	{
 		QBuffer buffer(&bytes);
 		buffer.open(QIODevice::WriteOnly);
@@ -81,8 +81,8 @@ struct ImageFormatDescription
 {
 	const char* mediaType;
 	const char* format;
-	Decoder decoder;
-	Recoder recoder;
+	Decoder     decoder;
+	Recoder     recoder;
 };
 
 constexpr ImageFormatDescription DEFAULT_DESCRIPTION { IMAGE_JPEG, JPEG, &QtDecoder, &QtRecoder };
@@ -176,8 +176,7 @@ private: // Util::SaxParser
 private:
 	void WriteImage(const QString& imageFileName)
 	{
-		const auto data = [&]
-		{
+		const auto data = [&] {
 			try
 			{
 				const auto it = m_covers.find(imageFileName);
@@ -216,15 +215,15 @@ private:
 
 private:
 	Util::XmlWriter m_writer;
-	Covers m_covers;
-	bool m_hasError { false };
-	bool m_hasProgramUsed { false };
+	Covers          m_covers;
+	bool            m_hasError { false };
+	bool            m_hasProgramUsed { false };
 };
 
 QByteArray RestoreImagesImpl(QIODevice& stream, Covers covers)
 {
 	QByteArray byteArray;
-	QBuffer buffer(&byteArray);
+	QBuffer    buffer(&byteArray);
 	buffer.open(QIODevice::WriteOnly);
 	const SaxPrinter saxPrinter(stream, buffer, std::move(covers));
 	return saxPrinter.HasError() ? QByteArray {} : byteArray;
@@ -232,7 +231,9 @@ QByteArray RestoreImagesImpl(QIODevice& stream, Covers covers)
 
 void ConvertToGrayscale(QByteArray& srcImageBody, const int quality)
 {
-	const auto it = std::ranges::find_if(SIGNATURES, [&](const auto& item) { return srcImageBody.startsWith(item.first); });
+	const auto  it     = std::ranges::find_if(SIGNATURES, [&](const auto& item) {
+        return srcImageBody.startsWith(item.first);
+    });
 	const auto* format = it != std::end(SIGNATURES) ? it->second.format : nullptr;
 
 	QPixmap pixmap;
@@ -258,12 +259,12 @@ QByteArray RestoreImagesImpl(QIODevice& stream, const QString& folder, const QSt
 	ExtractBookImages(
 		folder,
 		fileName,
-		[&covers](auto name, auto body)
-		{
+		[&covers](auto name, auto body) {
 			covers.try_emplace(std::move(name), std::move(body));
 			return false;
 		},
-		settings);
+		settings
+	);
 	if (covers.empty())
 		return stream.readAll();
 
@@ -279,14 +280,14 @@ bool ParseCover(const QString& folder, const QString& fileName, const ExtractBoo
 	if (!QFile::exists(folder))
 		return false;
 
-	const Zip zip(folder);
+	const Zip  zip(folder);
 	const auto fileList = zip.GetFileNameList();
-	const auto file = QFileInfo(fileName).completeBaseName();
+	const auto file     = QFileInfo(fileName).completeBaseName();
 	if (!fileList.contains(file))
 		return false;
 
 	const auto stream = zip.Read(file);
-	auto body = stream->GetStream().readAll();
+	auto       body   = stream->GetStream().readAll();
 	if (grayscale)
 		ConvertToGrayscale(body, 50);
 	stop = callback(Global::COVER, std::move(body));
@@ -298,10 +299,16 @@ void ParseImages(const QString& folder, const QString& fileName, const ExtractBo
 	if (!QFile::exists(folder))
 		return;
 
-	const Zip zip(folder);
-	auto fileList = zip.GetFileNameList();
+	const Zip  zip(folder);
+	auto       fileList   = zip.GetFileNameList();
 	const auto filePrefix = QString("%1/").arg(QFileInfo(fileName).completeBaseName());
-	if (const auto [begin, end] = std::ranges::remove_if(fileList, [&](const auto& item) { return !item.startsWith(filePrefix) /*|| item == filePrefix*/; }); begin != end)
+	if (const auto [begin, end] = std::ranges::remove_if(
+			fileList,
+			[&](const auto& item) {
+				return !item.startsWith(filePrefix) /*|| item == filePrefix*/;
+			}
+		);
+	    begin != end)
 		fileList.erase(begin, end);
 
 	for (const auto& file : fileList)
@@ -322,7 +329,9 @@ namespace HomeCompa::Flibrary
 QPixmap Decode(const QByteArray& bytes)
 {
 	assert(!bytes.isEmpty());
-	const auto it = std::ranges::find_if(SIGNATURES, [&](const auto& item) { return bytes.startsWith(item.first); });
+	const auto it      = std::ranges::find_if(SIGNATURES, [&](const auto& item) {
+        return bytes.startsWith(item.first);
+    });
 	const auto decoder = it != std::end(SIGNATURES) ? it->second.decoder : &QtDecoder;
 	return decoder(bytes);
 }
@@ -330,7 +339,9 @@ QPixmap Decode(const QByteArray& bytes)
 std::pair<QByteArray, const char*> Recode(const QByteArray& bytes)
 {
 	assert(!bytes.isEmpty());
-	const auto it = std::ranges::find_if(SIGNATURES, [&](const auto& item) { return bytes.startsWith(item.first); });
+	const auto  it          = std::ranges::find_if(SIGNATURES, [&](const auto& item) {
+        return bytes.startsWith(item.first);
+    });
 	const auto& description = it != std::end(SIGNATURES) ? it->second : DEFAULT_DESCRIPTION;
 	return description.recoder(bytes, description.mediaType);
 }
@@ -352,7 +363,9 @@ QImage HasAlpha(const QImage& image, const char* data)
 	for (int i = 0, h = argb.height(), w = argb.width(); i < h; ++i)
 	{
 		const auto* pixels = reinterpret_cast<const QRgb*>(argb.constScanLine(i));
-		if (std::any_of(pixels, pixels + static_cast<size_t>(w), [](const QRgb pixel) { return qAlpha(pixel) < UCHAR_MAX; }))
+		if (std::any_of(pixels, pixels + static_cast<size_t>(w), [](const QRgb pixel) {
+				return qAlpha(pixel) < UCHAR_MAX;
+			}))
 		{
 			return argb;
 		}
@@ -372,11 +385,13 @@ void ExtractBookImages(const QString& folder, const QString& fileName, const Ext
 	{
 		try
 		{
-			ParseCover(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext),
-			           fileName,
-			           callback,
-			           stop,
-			           settings && settings->Get(Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY, false));
+			ParseCover(
+				QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext),
+				fileName,
+				callback,
+				stop,
+				settings && settings->Get(Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY, false)
+			);
 		}
 		catch (const std::exception& ex)
 		{
@@ -392,10 +407,12 @@ void ExtractBookImages(const QString& folder, const QString& fileName, const Ext
 	{
 		try
 		{
-			ParseImages(QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::IMAGES, fileInfo.completeBaseName(), ext),
-			            fileName,
-			            callback,
-			            settings && settings->Get(Constant::Settings::EXPORT_GRAYSCALE_IMAGES_KEY, false));
+			ParseImages(
+				QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::IMAGES, fileInfo.completeBaseName(), ext),
+				fileName,
+				callback,
+				settings && settings->Get(Constant::Settings::EXPORT_GRAYSCALE_IMAGES_KEY, false)
+			);
 		}
 		catch (const std::exception& ex)
 		{

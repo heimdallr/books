@@ -46,9 +46,11 @@ constexpr const char* BOOKS_COLUMN_NAMES[] {
 
 auto ToAuthorItemComparable(const IDataItem::Ptr& author)
 {
-	return std::make_tuple(Util::QStringWrapper { author->GetData(AuthorItem::Column::LastName) },
-	                       Util::QStringWrapper { author->GetData(AuthorItem::Column::FirstName) },
-	                       Util::QStringWrapper { author->GetData(AuthorItem::Column::MiddleName) });
+	return std::make_tuple(
+		Util::QStringWrapper { author->GetData(AuthorItem::Column::LastName) },
+		Util::QStringWrapper { author->GetData(AuthorItem::Column::FirstName) },
+		Util::QStringWrapper { author->GetData(AuthorItem::Column::MiddleName) }
+	);
 }
 
 struct AuthorComparator
@@ -64,16 +66,22 @@ struct UnorderedSetHash
 {
 	size_t operator()(const std::unordered_set<T>& key) const
 	{
-		return std::accumulate(std::cbegin(key), std::cend(key), static_cast<size_t>(0), [](const size_t init, const T& item) { return std::rotr(init, 1) ^ std::hash<T>()(item); });
+		return std::accumulate(std::cbegin(key), std::cend(key), static_cast<size_t>(0), [](const size_t init, const T& item) {
+			return std::rotr(init, 1) ^ std::hash<T>()(item);
+		});
 	}
 };
 
 IDataItem::Ptr CreateBooksRoot(const std::vector<const char*>& additionalColumns = {})
 {
 	IDataItem::Ptr root(BookItem::Create(nullptr, additionalColumns.size()));
-	int n = 0;
-	std::ranges::for_each(BOOKS_COLUMN_NAMES, [&](const auto* columnName) mutable { root->SetData(columnName, n++); });
-	std::ranges::for_each(additionalColumns, [&](const auto* columnName) mutable { root->SetData(columnName, n++); });
+	int            n = 0;
+	std::ranges::for_each(BOOKS_COLUMN_NAMES, [&](const auto* columnName) mutable {
+		root->SetData(columnName, n++);
+	});
+	std::ranges::for_each(additionalColumns, [&](const auto* columnName) mutable {
+		root->SetData(columnName, n++);
+	});
 	return root;
 }
 
@@ -94,24 +102,24 @@ class BooksTreeGenerator::Impl final : virtual IBookSelector
 	struct SelectedSeriesItem
 	{
 		long long id;
-		int seqNum;
-		int ordNum;
+		int       seqNum;
+		int       ordNum;
 	};
 
 	struct SelectedBookItem
 	{
-		IDataItem::Ptr book;
+		IDataItem::Ptr                    book;
 		std::optional<SelectedSeriesItem> series;
-		UniqueIdList<long long> authors;
-		UniqueIdList<QString> genres;
+		UniqueIdList<long long>           authors;
+		UniqueIdList<QString>             genres;
 	};
 
 public:
 	mutable IDataItem::Ptr rootCached;
-	const NavigationMode navigationMode;
-	const QString navigationId;
+	const NavigationMode   navigationMode;
+	const QString          navigationId;
 	const IFilterProvider& filterProvider;
-	ViewMode viewMode { ViewMode::Unknown };
+	ViewMode               viewMode { ViewMode::Unknown };
 
 	Impl(const Collection& activeCollection, DB::IDatabase& db, const NavigationMode navigationMode, QString navigationId, const QueryDescription& description, const IFilterProvider& filterProvider)
 		: navigationMode { navigationMode }
@@ -137,7 +145,9 @@ public:
 	{
 		IDataItem::Items items;
 		items.reserve(std::size(m_books));
-		std::ranges::transform(m_books | std::views::values, std::back_inserter(items), [](const auto& item) { return item.book; });
+		std::ranges::transform(m_books | std::views::values, std::back_inserter(items), [](const auto& item) {
+			return item.book;
+		});
 
 		rootCached = CreateBooksRoot();
 		rootCached->SetChildren(std::move(items));
@@ -215,15 +225,15 @@ public:
 		for (const auto& [id, book] : m_books)
 		{
 			auto& [series, books] = authorToBooks[book.authors.first];
-			const auto& seriesId = book.series;
-			auto& bookIds = seriesId ? series[seriesId->id] : books;
+			const auto& seriesId  = book.series;
+			auto&       bookIds   = seriesId ? series[seriesId->id] : books;
 			bookIds.insert(id);
 		}
 
 		rootCached = CreateBooksRoot();
 		for (const auto& [authorIds, authorData] : authorToBooks)
 		{
-			auto authorsNode = CreateAuthorsNode(authorIds);
+			auto authorsNode                       = CreateAuthorsNode(authorIds);
 			auto& [seriesToBooks, noSeriesBookIds] = authorData;
 
 			for (const auto& [seriesId, bookIds] : seriesToBooks)
@@ -253,8 +263,12 @@ public:
 
 		BookInfo bookInfo { book };
 
-		std::ranges::transform(idAuthors.second | std::views::values, std::back_inserter(bookInfo.authors), [&](const auto idAuthor) { return m_authors.at(idAuthor); });
-		std::ranges::transform(idGenres.second | std::views::values, std::back_inserter(bookInfo.genres), [&](const auto& idGenre) { return m_genres.at(idGenre); });
+		std::ranges::transform(idAuthors.second | std::views::values, std::back_inserter(bookInfo.authors), [&](const auto idAuthor) {
+			return m_authors.at(idAuthor);
+		});
+		std::ranges::transform(idGenres.second | std::views::values, std::back_inserter(bookInfo.genres), [&](const auto& idGenre) {
+			return m_genres.at(idGenre);
+		});
 
 		return bookInfo;
 	}
@@ -274,13 +288,13 @@ private: // IBookSelector
 		const auto tmpTable = db.CreateTemporaryTable({ "LibID VARCHAR (200)", "ReviewID INTEGER" });
 
 		{
-			const auto tr = db.CreateTransaction();
+			const auto tr            = db.CreateTransaction();
 			const auto insertCommand = tr->CreateCommand(QString("insert into %1(LibID, ReviewID) values(?, ?)").arg(tmpTable->GetName().data()).toStdString());
-			Zip zip(folder);
+			Zip        zip(folder);
 			for (long long reviewId = 0; const auto& file : zip.GetFileNameList())
 			{
 				QJsonParseError parseError;
-				const auto doc = QJsonDocument::fromJson(zip.Read(file)->GetStream().readAll(), &parseError);
+				const auto      doc = QJsonDocument::fromJson(zip.Read(file)->GetStream().readAll(), &parseError);
 				if (parseError.error != QJsonParseError::NoError)
 				{
 					PLOGW << parseError.errorString();
@@ -308,17 +322,14 @@ private: // IBookSelector
 			tr->Commit();
 		}
 
-		CreateSelectedBookItems(db,
-		                        description.queryClause,
-		                        [&](const DB::IQuery& query, const SelectedBookItem& selectedItem)
-		                        {
-									const auto it = m_reviews.find(query.Get<long long>(BookQueryFields::Last));
-									assert(it != m_reviews.end());
+		CreateSelectedBookItems(db, description.queryClause, [&](const DB::IQuery& query, const SelectedBookItem& selectedItem) {
+			const auto it = m_reviews.find(query.Get<long long>(BookQueryFields::Last));
+			assert(it != m_reviews.end());
 
-									auto& reviewItem = it->second;
-									const auto& bookItem = reviewItem->AppendChild(selectedItem.book);
-									reviewItem->SetId(bookItem->GetId());
-								});
+			auto&       reviewItem = it->second;
+			const auto& bookItem   = reviewItem->AppendChild(selectedItem.book);
+			reviewItem->SetId(bookItem->GetId());
+		});
 	}
 
 private:
@@ -332,25 +343,30 @@ private:
 	{
 		IDataItem::Items values;
 		values.reserve(std::size(keyIds));
-		std::ranges::transform(keyIds,
-		                       std::back_inserter(values),
-		                       [&](const T& id)
-		                       {
-								   const auto it = dictionary.find(id);
-								   assert(it != dictionary.end());
-								   return it->second;
-							   });
+		std::ranges::transform(keyIds, std::back_inserter(values), [&](const T& id) {
+			const auto it = dictionary.find(id);
+			assert(it != dictionary.end());
+			return it->second;
+		});
 
 		QString result;
-		for (const auto& value : values | std::views::filter([this](const auto& item) { return !IsFiltered(*item); }))
+		for (const auto& value : values | std::views::filter([this](const auto& item) {
+									 return !IsFiltered(*item);
+								 }))
 			AppendTitle(result, value->GetData(0), ", ");
 
 		return result;
 	}
 
-	void CreateSelectedBookItems(DB::IDatabase& db, const QueryClause& queryClause, const std::function<void(const DB::IQuery&, const SelectedBookItem&)>& additional = [](const DB::IQuery&, const auto&) {})
+	void CreateSelectedBookItems(
+		DB::IDatabase&                                                         db,
+		const QueryClause&                                                     queryClause,
+		const std::function<void(const DB::IQuery&, const SelectedBookItem&)>& additional =
+			[](const DB::IQuery&, const auto&) {
+			}
+	)
 	{
-		const auto with = queryClause.with && queryClause.with[0] ? QString(queryClause.with).arg(navigationId).toStdString() : std::string{};
+		const auto with = queryClause.with && queryClause.with[0] ? QString(queryClause.with).arg(navigationId).toStdString() : std::string {};
 
 		{
 			const auto query =
@@ -364,8 +380,7 @@ private:
 			}
 		}
 
-		const auto addFlag = [](IDataItem& book, const IDataItem::Flags flags)
-		{
+		const auto addFlag = [](IDataItem& book, const IDataItem::Flags flags) {
 			if (!(flags & IDataItem::Flags::BooksFiltered))
 				return;
 
@@ -385,11 +400,11 @@ join Series_List l on l.BookID = b.BookID
 join Series s on s.SeriesID = l.SeriesID
 {}
 )";
-			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+			const auto            query     = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
-				const auto id = query->Get<long long>(0);
-				auto& item = m_series[id];
+				const auto id   = query->Get<long long>(0);
+				auto&      item = m_series[id];
 				if (!item)
 					item = DatabaseUtil::CreateSimpleListItem(*query);
 
@@ -415,10 +430,10 @@ join Author_List l on l.BookID = b.BookID
 join Authors a on a.AuthorID = l.AuthorID
 {}
 )";
-			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+			const auto            query     = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
-				auto id = query->Get<long long>(0);
+				auto  id   = query->Get<long long>(0);
 				auto& item = m_authors[id];
 				if (!item)
 					item = DatabaseUtil::CreateFullAuthorItem(*query);
@@ -437,11 +452,11 @@ join Genre_List l on l.BookID = b.BookID
 join Genres g on g.GenreCode = l.GenreCode
 {}
 )";
-			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+			const auto            query     = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
-				QString id = query->Get<const char*>(0);
-				auto& item = m_genres[id];
+				QString id   = query->Get<const char*>(0);
+				auto&   item = m_genres[id];
 				if (!item)
 					item = DatabaseUtil::CreateGenreItem(*query);
 
@@ -459,7 +474,7 @@ join Keyword_List l on l.BookID = b.BookID
 join Keywords k on k.KeywordID = l.KeywordID
 {}
 )";
-			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+			const auto            query     = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto& book = m_books[query->Get<long long>(1)];
@@ -502,28 +517,22 @@ join Keywords k on k.KeywordID = l.KeywordID
 	IDataItem::Items CreateBookItems(const IdsSet& idsSet) const
 	{
 		IDataItem::Items books;
-		std::ranges::transform(idsSet,
-		                       std::back_inserter(books),
-		                       [&](const long long id)
-		                       {
-								   const auto it = m_books.find(id);
-								   assert(it != m_books.end());
-								   return it->second.book;
-							   });
+		std::ranges::transform(idsSet, std::back_inserter(books), [&](const long long id) {
+			const auto it = m_books.find(id);
+			assert(it != m_books.end());
+			return it->second.book;
+		});
 		return books;
 	}
 
 	IDataItem::Ptr CreateAuthorsNode(const IdsSet& idsSet) const
 	{
 		IDataItem::Items authors;
-		std::ranges::transform(idsSet,
-		                       std::back_inserter(authors),
-		                       [&](const long long id)
-		                       {
-								   const auto it = m_authors.find(id);
-								   assert(it != m_authors.end());
-								   return it->second;
-							   });
+		std::ranges::transform(idsSet, std::back_inserter(authors), [&](const long long id) {
+			const auto it = m_authors.find(id);
+			assert(it != m_authors.end());
+			return it->second;
+		});
 
 		std::ranges::sort(authors, AuthorComparator {});
 		QString authorsStr;
@@ -539,19 +548,21 @@ join Keywords k on k.KeywordID = l.KeywordID
 	}
 
 private:
-	std::unordered_map<long long, IDataItem::Ptr> m_reviews;
+	std::unordered_map<long long, IDataItem::Ptr>   m_reviews;
 	std::unordered_map<long long, SelectedBookItem> m_books;
-	std::unordered_map<long long, IDataItem::Ptr> m_series;
-	std::unordered_map<long long, IDataItem::Ptr> m_authors;
-	std::unordered_map<QString, IDataItem::Ptr> m_genres;
+	std::unordered_map<long long, IDataItem::Ptr>   m_series;
+	std::unordered_map<long long, IDataItem::Ptr>   m_authors;
+	std::unordered_map<QString, IDataItem::Ptr>     m_genres;
 };
 
-BooksTreeGenerator::BooksTreeGenerator(const Collection& activeCollection,
-                                       DB::IDatabase& db,
-                                       const NavigationMode navigationMode,
-                                       QString navigationId,
-                                       const QueryDescription& description,
-                                       const IFilterProvider& filterProvider)
+BooksTreeGenerator::BooksTreeGenerator(
+	const Collection&       activeCollection,
+	DB::IDatabase&          db,
+	const NavigationMode    navigationMode,
+	QString                 navigationId,
+	const QueryDescription& description,
+	const IFilterProvider&  filterProvider
+)
 	: m_impl(activeCollection, db, navigationMode, std::move(navigationId), description, filterProvider)
 {
 	PLOGV << "BooksTreeGenerator created";

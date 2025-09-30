@@ -94,7 +94,7 @@ private: // IUnknown
 		if (iid == IID_ICryptoGetTextPassword)
 		{
 			auto cryptoGetTextPassword = CryptoGetTextPasswordImpl::Create();
-			*ppvObject = cryptoGetTextPassword.Detach();
+			*ppvObject                 = cryptoGetTextPassword.Detach();
 			return S_OK;
 		}
 
@@ -139,7 +139,7 @@ private: // IArchiveExtractCallback
 		if (!m_isDir)
 		{
 			auto outStreamLoc = OutMemStream::Create(m_outStream, m_progress);
-			*outStream = outStreamLoc.Detach();
+			*outStream        = outStreamLoc.Detach();
 		}
 
 		return CheckBreak();
@@ -167,7 +167,7 @@ private:
 
 	void GetPropertyFilePath(const UInt32 index)
 	{
-		CPropVariant prop;
+		CPropVariant  prop;
 		const HRESULT hr = m_zip.GetProperty(index, kpidPath, &prop);
 		if (hr != S_OK)
 			_com_issue_error(hr);
@@ -182,7 +182,7 @@ private:
 
 	void GetPropertyIsDir(const UInt32 index)
 	{
-		CPropVariant prop;
+		CPropVariant  prop;
 		const HRESULT hr = m_zip.GetProperty(index, kpidIsDir, &prop);
 		if (hr != S_OK)
 			_com_issue_error(hr);
@@ -201,12 +201,12 @@ private:
 	}
 
 private:
-	IInArchive& m_zip;
-	QIODevice& m_outStream;
+	IInArchive&       m_zip;
+	QIODevice&        m_outStream;
 	ProgressCallback& m_progress;
 
 	QString m_filePath;
-	bool m_isDir { false };
+	bool    m_isDir { false };
 };
 
 class StreamImpl final : public Stream
@@ -215,9 +215,16 @@ public:
 	StreamImpl(IInArchive& zip, const FileItem& fileItem, ProgressCallback& progress)
 		: m_outStream(&m_bytes)
 	{
-		const ScopedCall ioDeviceGuard([this] { m_outStream.open(QIODevice::WriteOnly); }, [this] { m_outStream.close(); });
-		const UInt32 indices[] = { fileItem.index };
-		auto archiveExtractCallback = ArchiveExtractCallback::Create(zip, m_outStream, progress);
+		const ScopedCall ioDeviceGuard(
+			[this] {
+				m_outStream.open(QIODevice::WriteOnly);
+			},
+			[this] {
+				m_outStream.close();
+			}
+		);
+		const UInt32 indices[]              = { fileItem.index };
+		auto         archiveExtractCallback = ArchiveExtractCallback::Create(zip, m_outStream, progress);
 		zip.Extract(indices, 1, 0, std::move(archiveExtractCallback));
 	}
 
@@ -230,8 +237,8 @@ private: // Stream
 	}
 
 private:
-	QBuffer m_outStream;
-	QByteArray m_bytes;
+	QBuffer                  m_outStream;
+	QByteArray               m_bytes;
 	std::unique_ptr<QBuffer> m_buffer;
 };
 
@@ -257,8 +264,8 @@ private: // IFile
 	}
 
 private:
-	IInArchive& m_zip;
-	const FileItem& m_fileItem;
+	IInArchive&       m_zip;
+	const FileItem&   m_fileItem;
 	ProgressCallback& m_progress;
 };
 

@@ -54,9 +54,9 @@ CREATE TABLE Image (
 
 std::unique_ptr<DB::IDatabase> CreateDatabase(const std::string_view fileName)
 {
-	const auto dbExists = QFile(QString::fromStdString(fileName.data())).exists();
+	const auto dbExists     = QFile(QString::fromStdString(fileName.data())).exists();
 	const auto dbParameters = std::format("path={};flag={}", fileName, dbExists ? "READWRITE" : "CREATE");
-	auto db = Create(DB::Factory::Impl::Sqlite, dbParameters);
+	auto       db           = Create(DB::Factory::Impl::Sqlite, dbParameters);
 	if (!dbExists)
 		CreateDatabaseSchema(*db);
 	return db;
@@ -94,8 +94,8 @@ void go(const int argc, char* argv[])
 		long long percents = 0;
 
 		QTextStream stream(&inp);
-		QString line;
-		size_t counter = 0;
+		QString     line;
+		size_t      counter = 0;
 		while (stream.readLineInto(&line))
 		{
 			if (line.startsWith('#'))
@@ -125,7 +125,7 @@ void go(const int argc, char* argv[])
 				PLOGE << "error line: " << counter;
 			++counter;
 
-			const auto position = inp.pos();
+			const auto position        = inp.pos();
 			const auto currentPercents = 100LL * position / totalSize;
 			if (percents == currentPercents)
 				continue;
@@ -141,9 +141,9 @@ void go(const int argc, char* argv[])
 
 int main(const int argc, char* argv[])
 {
-	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
+	Log::LoggingInitializer                          logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
 	plog::ConsoleAppender<Util::LogConsoleFormatter> consoleAppender;
-	Log::LogAppender logConsoleAppender(&consoleAppender);
+	Log::LogAppender                                 logConsoleAppender(&consoleAppender);
 
 	try
 	{

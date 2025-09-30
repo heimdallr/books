@@ -25,7 +25,7 @@ public:
 	};
 
 public:
-	virtual ~IModel() = default;
+	virtual ~IModel()                               = default;
 	virtual QAbstractItemModel* GetModel() noexcept = 0;
 };
 

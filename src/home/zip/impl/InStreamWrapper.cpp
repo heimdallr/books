@@ -49,8 +49,8 @@ HRESULT STDMETHODCALLTYPE InStreamWrapper::QueryInterface(REFIID iid, void** ppv
 
 STDMETHODIMP InStreamWrapper::Read(void* data, const UInt32 size, UInt32* processedSize)
 {
-	ULONG read = 0;
-	const HRESULT hr = m_baseStream->Read(data, size, &read);
+	ULONG         read = 0;
+	const HRESULT hr   = m_baseStream->Read(data, size, &read);
 	if (processedSize)
 		*processedSize = read;
 
@@ -59,10 +59,10 @@ STDMETHODIMP InStreamWrapper::Read(void* data, const UInt32 size, UInt32* proces
 
 STDMETHODIMP InStreamWrapper::Seek(const Int64 offset, const UInt32 seekOrigin, UInt64* newPosition)
 {
-	LARGE_INTEGER move;
+	LARGE_INTEGER  move;
 	ULARGE_INTEGER newPos;
 
-	move.QuadPart = offset;
+	move.QuadPart    = offset;
 	const HRESULT hr = m_baseStream->Seek(move, seekOrigin, &newPos);
 	if (newPosition)
 		*newPosition = newPos.QuadPart;
@@ -72,7 +72,7 @@ STDMETHODIMP InStreamWrapper::Seek(const Int64 offset, const UInt32 seekOrigin, 
 
 STDMETHODIMP InStreamWrapper::GetSize(UInt64* size)
 {
-	STATSTG statInfo;
+	STATSTG       statInfo;
 	const HRESULT hr = m_baseStream->Stat(&statInfo, STATFLAG_NONAME);
 	if (SUCCEEDED(hr))
 		*size = statInfo.cbSize.QuadPart;

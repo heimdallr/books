@@ -22,12 +22,12 @@ private: // QObject
 
 private:
 	QTimer* CreateTimer(const ISettings& settings, void (ScrollBarController::*)() const);
-	void OnTimeoutV() const;
-	void OnTimeoutH() const;
+	void    OnTimeoutV() const;
+	void    OnTimeoutH() const;
 
 private:
-	QTimer* m_timerV;
-	QTimer* m_timerH;
+	QTimer*                       m_timerV;
+	QTimer*                       m_timerH;
 	QPointer<QAbstractScrollArea> m_area;
 };
 

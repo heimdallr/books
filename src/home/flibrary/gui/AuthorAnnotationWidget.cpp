@@ -59,10 +59,12 @@ class AuthorAnnotationWidget::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(QFrame* self,
-	     std::shared_ptr<IAuthorAnnotationController> annotationController,
-	     std::shared_ptr<ScrollBarController> scrollBarControllerText,
-	     std::shared_ptr<ScrollBarController> scrollBarControllerImages)
+	Impl(
+		QFrame*                                      self,
+		std::shared_ptr<IAuthorAnnotationController> annotationController,
+		std::shared_ptr<ScrollBarController>         scrollBarControllerText,
+		std::shared_ptr<ScrollBarController>         scrollBarControllerImages
+	)
 		: m_self { self }
 		, m_annotationController { std::move(annotationController) }
 		, m_scrollBarControllerText { std::move(scrollBarControllerText) }
@@ -82,8 +84,12 @@ public:
 
 		m_annotationController->RegisterObserver(this);
 
-		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&](const QString& link) { QDesktopServices::openUrl(link); });
-		connect(m_ui.info, &QLabel::linkHovered, m_ui.info, [&](const QString& link) { PLOGI_IF(!link.isEmpty()) << link; });
+		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&](const QString& link) {
+			QDesktopServices::openUrl(link);
+		});
+		connect(m_ui.info, &QLabel::linkHovered, m_ui.info, [&](const QString& link) {
+			PLOGI_IF(!link.isEmpty()) << link;
+		});
 	}
 
 	~Impl() override
@@ -114,22 +120,22 @@ private: // IAuthorAnnotationController::IObserver
 	{
 		m_ui.info->setText(text);
 
-		const ScopedCall resetGuard([this] { beginResetModel(); },
-		                            [this]
-		                            {
-										endResetModel();
-										UpdateGallerySize(*m_ui.gallery);
-										m_ui.gallery->setVisible(!m_images.empty());
-									});
+		const ScopedCall resetGuard(
+			[this] {
+				beginResetModel();
+			},
+			[this] {
+				endResetModel();
+				UpdateGallerySize(*m_ui.gallery);
+				m_ui.gallery->setVisible(!m_images.empty());
+			}
+		);
 		m_images.clear();
-		std::ranges::transform(images,
-		                       std::back_inserter(m_images),
-		                       [](const auto& item)
-		                       {
-								   QPixmap pixmap;
-								   pixmap.loadFromData(item);
-								   return pixmap;
-							   });
+		std::ranges::transform(images, std::back_inserter(m_images), [](const auto& item) {
+			QPixmap pixmap;
+			pixmap.loadFromData(item);
+			return pixmap;
+		});
 	}
 
 private: // QAbstractItemModel
@@ -147,7 +153,7 @@ private: // QAbstractItemModel
 	{
 		assert(index.column() < columnCount());
 
-		auto pixmap = m_images[static_cast<size_t>(index.column())];
+		auto       pixmap = m_images[static_cast<size_t>(index.column())];
 		const auto height = m_ui.gallery->height();
 
 		switch (role)
@@ -168,23 +174,27 @@ private: // QAbstractItemModel
 private:
 	void SetVisible() const
 	{
-		QTimer::singleShot(0, [this] { m_self->parentWidget()->setVisible(m_show && m_annotationController->IsReady()); });
+		QTimer::singleShot(0, [this] {
+			m_self->parentWidget()->setVisible(m_show && m_annotationController->IsReady());
+		});
 	}
 
 private:
-	QFrame* m_self;
+	QFrame*                                                         m_self;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> m_annotationController;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerText;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerImages;
-	bool m_show { true };
-	std::vector<QPixmap> m_images;
-	Ui::AuthorAnnotationWidget m_ui {};
+	PropagateConstPtr<ScrollBarController, std::shared_ptr>         m_scrollBarControllerText;
+	PropagateConstPtr<ScrollBarController, std::shared_ptr>         m_scrollBarControllerImages;
+	bool                                                            m_show { true };
+	std::vector<QPixmap>                                            m_images;
+	Ui::AuthorAnnotationWidget                                      m_ui {};
 };
 
-AuthorAnnotationWidget::AuthorAnnotationWidget(std::shared_ptr<IAuthorAnnotationController> annotationController,
-                                               std::shared_ptr<ScrollBarController> scrollBarControllerText,
-                                               std::shared_ptr<ScrollBarController> scrollBarControllerImages,
-                                               QWidget* parent)
+AuthorAnnotationWidget::AuthorAnnotationWidget(
+	std::shared_ptr<IAuthorAnnotationController> annotationController,
+	std::shared_ptr<ScrollBarController>         scrollBarControllerText,
+	std::shared_ptr<ScrollBarController>         scrollBarControllerImages,
+	QWidget*                                     parent
+)
 	: QFrame(parent)
 	, m_impl(this, std::move(annotationController), std::move(scrollBarControllerText), std::move(scrollBarControllerImages))
 {

@@ -17,13 +17,13 @@ static_assert(plog::Severity::info == 4);
 static_assert(plog::Severity::debug == 5);
 static_assert(plog::Severity::verbose == 6);
 
-constexpr auto NONE = QT_TRANSLATE_NOOP("Logging", "NONE");
+constexpr auto NONE  = QT_TRANSLATE_NOOP("Logging", "NONE");
 constexpr auto FATAL = QT_TRANSLATE_NOOP("Logging", "FATAL");
 constexpr auto ERROR = QT_TRANSLATE_NOOP("Logging", "ERROR");
-constexpr auto WARN = QT_TRANSLATE_NOOP("Logging", "WARN");
-constexpr auto INFO = QT_TRANSLATE_NOOP("Logging", "INFO");
+constexpr auto WARN  = QT_TRANSLATE_NOOP("Logging", "WARN");
+constexpr auto INFO  = QT_TRANSLATE_NOOP("Logging", "INFO");
 constexpr auto DEBUG = QT_TRANSLATE_NOOP("Logging", "DEBUG");
-constexpr auto VERB = QT_TRANSLATE_NOOP("Logging", "VERB");
+constexpr auto VERB  = QT_TRANSLATE_NOOP("Logging", "VERB");
 
 constexpr std::pair<const char*, QColor> SEVERITIES[] {
 	{  NONE, QColor(0xff, 0xff, 0xff) },

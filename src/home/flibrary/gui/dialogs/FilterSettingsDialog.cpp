@@ -25,12 +25,12 @@ using namespace HomeCompa;
 namespace
 {
 
-constexpr auto CONTEXT = "FilterSettingsDialog";
+constexpr auto CONTEXT                                 = "FilterSettingsDialog";
 constexpr auto HIDE_NAVIGATION_WITH_ALL_BOOKS_FILTERED = QT_TRANSLATE_NOOP("FilterSettingsDialog", "Hide items whose books are all filtered");
 TR_DEF
 
-constexpr auto FIELD_WIDTH_KEY = "ui/View/UniFilter/columnWidths";
-constexpr auto RECENT_TAB_KEY = "ui/View/UniFilter/recentTab";
+constexpr auto FIELD_WIDTH_KEY       = "ui/View/UniFilter/columnWidths";
+constexpr auto RECENT_TAB_KEY        = "ui/View/UniFilter/recentTab";
 constexpr auto RECENT_VALUE_MODE_KEY = "ui/View/UniFilter/valueMode";
 constexpr auto SHOW_CHECKED_ONLY_KEY = "ui/View/UniFilter/showCheckedOnly";
 
@@ -46,7 +46,7 @@ struct SortFilterProxyModel final : QSortFilterProxyModel
 	};
 
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> sourceModel;
-	bool checkedOnly { false };
+	bool                                                   checkedOnly { false };
 
 	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<QAbstractItemModel> sourceModel)
 	{
@@ -65,7 +65,9 @@ private:
 		switch (role)
 		{
 			case Role::CheckedOnly:
-				return Util::Set(checkedOnly, value.toBool(), [this] { invalidateFilter(); });
+				return Util::Set(checkedOnly, value.toBool(), [this] {
+					invalidateFilter();
+				});
 
 			case Role::FilterDataChanged:
 				return invalidateFilter(), true;
@@ -83,11 +85,10 @@ private: // QSortFilterProxyModel
 		if (!checkedOnly)
 			return true;
 
-		auto check = [&](const int column)
-		{
-			const auto sourceIndex = sourceModel->index(sourceRow, column, sourceParent);
-			[[maybe_unused]] const auto id = sourceIndex.data(Flibrary::Role::Id);
-			const auto checked = sourceIndex.data(Qt::CheckStateRole);
+		auto check = [&](const int column) {
+			const auto                  sourceIndex = sourceModel->index(sourceRow, column, sourceParent);
+			[[maybe_unused]] const auto id          = sourceIndex.data(Flibrary::Role::Id);
+			const auto                  checked     = sourceIndex.data(Qt::CheckStateRole);
 			if (checked.isValid())
 				return checked.value<Qt::CheckState>() == Qt::Checked;
 
@@ -113,13 +114,15 @@ class FilterSettingsDialog::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(QDialog& self,
-	     std::shared_ptr<const IModelProvider> modelProvider,
-	     std::shared_ptr<ISettings> settings,
-	     std::shared_ptr<IFilterController> filterController,
-	     std::shared_ptr<IFilterDataProvider> dataProvider,
-	     std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
-	     std::shared_ptr<ScrollBarController> scrollBarController)
+	Impl(
+		QDialog&                              self,
+		std::shared_ptr<const IModelProvider> modelProvider,
+		std::shared_ptr<ISettings>            settings,
+		std::shared_ptr<IFilterController>    filterController,
+		std::shared_ptr<IFilterDataProvider>  dataProvider,
+		std::shared_ptr<ItemViewToolTipper>   itemViewToolTipper,
+		std::shared_ptr<ScrollBarController>  scrollBarController
+	)
 		: GeometryRestorable(*this, settings, "FilterSettingsDialog")
 		, GeometryRestorableObserver(self)
 		, m_self { self }
@@ -179,7 +182,9 @@ private:
 	{
 		m_ui.checkBoxFilterEnabled->setChecked(m_filterController->IsFilterEnabled());
 		m_ui.checkBoxShowCheckedOnly->setChecked(m_settings->Get(SHOW_CHECKED_ONLY_KEY, m_ui.checkBoxShowCheckedOnly->isChecked()));
-		m_dataProvider->SetNavigationRequestCallback([this](IDataItem::Ptr root) { OnSetNavigationRequestCallback(std::move(root)); });
+		m_dataProvider->SetNavigationRequestCallback([this](IDataItem::Ptr root) {
+			OnSetNavigationRequestCallback(std::move(root));
+		});
 		m_filterTimer.setSingleShot(true);
 		m_filterTimer.setInterval(std::chrono::milliseconds(200));
 		m_scrollBarController->SetScrollArea(m_ui.view);
@@ -187,24 +192,49 @@ private:
 		m_ui.view->viewport()->installEventFilter(m_scrollBarController.get());
 		m_ui.view->header()->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
 
-		connect(&m_filterTimer, &QTimer::timeout, &m_self, [&] { FilterImpl(); });
-		connect(m_ui.tabs, &QTabWidget::currentChanged, [this, indexToMode = CreateTabs()](const int tabIndex) { OnTabChanged(indexToMode, tabIndex); });
-		connect(m_ui.tabs, &QTabWidget::tabCloseRequested, [this](const int index) { OnTabCloseRequest(index); });
-		connect(m_ui.checkBoxShowCheckedOnly, &QCheckBox::toggled, &m_self, [this] { OnShowCheckedOnlyChanged(); });
+		connect(&m_filterTimer, &QTimer::timeout, &m_self, [&] {
+			FilterImpl();
+		});
+		connect(m_ui.tabs, &QTabWidget::currentChanged, [this, indexToMode = CreateTabs()](const int tabIndex) {
+			OnTabChanged(indexToMode, tabIndex);
+		});
+		connect(m_ui.tabs, &QTabWidget::tabCloseRequested, [this](const int index) {
+			OnTabCloseRequest(index);
+		});
+		connect(m_ui.checkBoxShowCheckedOnly, &QCheckBox::toggled, &m_self, [this] {
+			OnShowCheckedOnlyChanged();
+		});
 		connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, &QDialog::reject);
-		connect(m_ui.btnApply, &QAbstractButton::clicked, [this] { Apply(); });
-		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [&] { OnValueChanged(); });
-		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, &m_self, [&] { OnValueModeIndexChanged(); });
-		connect(m_ui.view, &QWidget::customContextMenuRequested, &m_self, [this] { OnViewContextMenuRequested(); });
-		connect(m_ui.view->header(), &QWidget::customContextMenuRequested, &m_self, [this](const QPoint& pos) { OnHeaderViewContextMenuRequested(pos); });
-		connect(m_ui.btnStop, &QAbstractButton::clicked, &m_self, [this] { m_hideFilteredStarted = false; });
+		connect(m_ui.btnApply, &QAbstractButton::clicked, [this] {
+			Apply();
+		});
+		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [&] {
+			OnValueChanged();
+		});
+		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, &m_self, [&] {
+			OnValueModeIndexChanged();
+		});
+		connect(m_ui.view, &QWidget::customContextMenuRequested, &m_self, [this] {
+			OnViewContextMenuRequested();
+		});
+		connect(m_ui.view->header(), &QWidget::customContextMenuRequested, &m_self, [this](const QPoint& pos) {
+			OnHeaderViewContextMenuRequested(pos);
+		});
+		connect(m_ui.btnStop, &QAbstractButton::clicked, &m_self, [this] {
+			m_hideFilteredStarted = false;
+		});
 
 		if (const auto index = m_settings->Get(RECENT_TAB_KEY, 0))
 			m_ui.tabs->setCurrentIndex(index);
 		else
 			m_ui.tabs->currentChanged(index);
 
-		if (const auto it = std::ranges::find_if(ModeComboBox::VALUE_MODES, [mode = m_settings->Get(RECENT_VALUE_MODE_KEY).toString()](const auto& item) { return mode == item.first; });
+		if (const auto it = std::ranges::find_if(
+				ModeComboBox::VALUE_MODES,
+				[mode = m_settings->Get(RECENT_VALUE_MODE_KEY).toString()](const auto& item) {
+					return mode == item.first;
+				}
+			);
 		    it != std::cend(ModeComboBox::VALUE_MODES))
 			m_ui.cbValueMode->setCurrentIndex(static_cast<int>(std::distance(std::cbegin(ModeComboBox::VALUE_MODES), it)));
 
@@ -216,16 +246,13 @@ private:
 		std::vector<NavigationMode> indexToMode;
 
 		auto range = IFilterProvider::GetDescriptions();
-		std::ranges::transform(range,
-		                       std::back_inserter(indexToMode),
-		                       [this](const auto& description)
-		                       {
-								   auto* widget = new QWidget(&m_self);
-								   widget->setLayout(new QVBoxLayout);
-								   widget->layout()->setContentsMargins(0, 0, 0, 0);
-								   m_ui.tabs->addTab(widget, Loc::Tr(Loc::NAVIGATION, description.navigationTitle));
-								   return description.navigationMode;
-							   });
+		std::ranges::transform(range, std::back_inserter(indexToMode), [this](const auto& description) {
+			auto* widget = new QWidget(&m_self);
+			widget->setLayout(new QVBoxLayout);
+			widget->layout()->setContentsMargins(0, 0, 0, 0);
+			m_ui.tabs->addTab(widget, Loc::Tr(Loc::NAVIGATION, description.navigationTitle));
+			return description.navigationMode;
+		});
 
 		return indexToMode;
 	}
@@ -234,7 +261,7 @@ private:
 	{
 		m_ui.view->setModel(nullptr);
 		m_model.reset();
-		const auto index = static_cast<size_t>(tabIndex);
+		const auto index     = static_cast<size_t>(tabIndex);
 		m_filteredNavigation = &IFilterController::GetFilteredNavigationDescription(indexToMode[index]);
 		assert(m_filteredNavigation);
 		m_dataProvider->SetNavigationMode(indexToMode[index]);
@@ -283,8 +310,7 @@ private:
 		if (!m_model)
 			return;
 
-		auto currentId = [this]
-		{
+		auto currentId = [this] {
 			const auto currentIndex = m_ui.view->currentIndex();
 			return currentIndex.isValid() ? currentIndex.data(Role::Id) : QVariant {};
 		}();
@@ -298,7 +324,9 @@ private:
 	void FindImpl(const QVariant& value, const int role) const
 	{
 		assert(m_model);
-		const auto setCurrentIndex = [this](const QModelIndex& index) { m_ui.view->setCurrentIndex(index); };
+		const auto setCurrentIndex = [this](const QModelIndex& index) {
+			m_ui.view->setCurrentIndex(index);
+		};
 		if (const auto matched = m_model->match(m_model->index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive);
 		    !matched.isEmpty())
 			setCurrentIndex(matched.front());
@@ -314,8 +342,7 @@ private:
 		if (m_filteredNavigation->navigationMode != NavigationMode::Genres)
 			return;
 
-		const auto has = [this](const bool value)
-		{
+		const auto has = [this](const bool value) {
 			for (int row = 0, count = m_model->rowCount(); row < count; ++row)
 				if (m_ui.view->isExpanded(m_model->index(row, 0)) == value)
 					return true;
@@ -324,8 +351,18 @@ private:
 
 		QMenu menu;
 		menu.setFont(m_self.font());
-		menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL), [this] { m_ui.view->collapseAll(); })->setEnabled(has(true));
-		menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_EXPAND_ALL), [this] { m_ui.view->expandAll(); })->setEnabled(has(false));
+		menu.addAction(
+				Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL),
+				[this] {
+					m_ui.view->collapseAll();
+				}
+		)->setEnabled(has(true));
+		menu.addAction(
+				Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_EXPAND_ALL),
+				[this] {
+					m_ui.view->expandAll();
+				}
+		)->setEnabled(has(false));
 		menu.exec(QCursor::pos());
 	}
 
@@ -336,11 +373,29 @@ private:
 
 		QMenu menu;
 		menu.setFont(m_self.font());
-		menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::CHECK_ALL), [this] { OnCheckActionTriggered([](IDataItem::Flags& dst, const IDataItem::Flags src) { dst |= src; }); });
-		menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::UNCHECK_ALL), [this] { OnCheckActionTriggered([](IDataItem::Flags& dst, const IDataItem::Flags src) { dst &= ~src; }); });
-		menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::INVERT_CHECK), [this] { OnCheckActionTriggered([](IDataItem::Flags& dst, const IDataItem::Flags src) { dst ^= src; }); });
+		menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::CHECK_ALL), [this] {
+			OnCheckActionTriggered([](IDataItem::Flags& dst, const IDataItem::Flags src) {
+				dst |= src;
+			});
+		});
+		menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::UNCHECK_ALL), [this] {
+			OnCheckActionTriggered([](IDataItem::Flags& dst, const IDataItem::Flags src) {
+				dst &= ~src;
+			});
+		});
+		menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::INVERT_CHECK), [this] {
+			OnCheckActionTriggered([](IDataItem::Flags& dst, const IDataItem::Flags src) {
+				dst ^= src;
+			});
+		});
 		if (m_sectionClicked == 1)
-			if (auto* action = menu.addAction(Tr(HIDE_NAVIGATION_WITH_ALL_BOOKS_FILTERED), [this] { m_model->setData({}, QVariant::fromValue<ICallback*>(this), Role::HideFiltered); }); m_hideFilteredStarted)
+			if (auto* action = menu.addAction(
+					Tr(HIDE_NAVIGATION_WITH_ALL_BOOKS_FILTERED),
+					[this] {
+						m_model->setData({}, QVariant::fromValue<ICallback*>(this), Role::HideFiltered);
+					}
+				);
+			    m_hideFilteredStarted)
 				action->setEnabled(false);
 
 		menu.exec(QCursor::pos());
@@ -348,8 +403,7 @@ private:
 
 	void OnCheckActionTriggered(const std::function<void(IDataItem::Flags& dst, IDataItem::Flags src)>& operation)
 	{
-		const auto enumerate = [this](const QModelIndex& index, const auto& skip, const auto& functor, const auto& recursion) -> void
-		{
+		const auto enumerate = [this](const QModelIndex& index, const auto& skip, const auto& functor, const auto& recursion) -> void {
 			if (skip(index))
 				return;
 
@@ -362,9 +416,10 @@ private:
 		};
 
 		const auto flags = m_sectionClicked == 1 ? IDataItem::Flags::Filtered : m_sectionClicked == 2 ? IDataItem::Flags::BooksFiltered : (assert(false && "unexpected section"), IDataItem::Flags::None);
-		const auto skip = [this](const QModelIndex& index) { return m_filteredNavigation->navigationMode == NavigationMode::Genres && index.isValid() && !m_ui.view->isExpanded(index); };
-		const auto process = [&](const QModelIndex& index)
-		{
+		const auto skip  = [this](const QModelIndex& index) {
+            return m_filteredNavigation->navigationMode == NavigationMode::Genres && index.isValid() && !m_ui.view->isExpanded(index);
+		};
+		const auto process = [&](const QModelIndex& index) {
 			if (index.data(Role::ChildCount).toInt() > 0)
 				return;
 
@@ -390,8 +445,7 @@ private:
 		if (!m_model)
 			return;
 
-		const auto id = [this]
-		{
+		const auto id = [this] {
 			const auto index = m_ui.view->currentIndex();
 			return index.isValid() ? index.data(Role::Id) : QVariant {};
 		}();
@@ -416,41 +470,41 @@ private:
 	void SetHideFilteredStarted(const bool started)
 	{
 		m_hideFilteredStarted = started;
-		m_forwarder.Forward(
-			[this]
-			{
-				m_ui.applyWidget->setVisible(!m_hideFilteredStarted);
-				m_ui.progressBarWidget->setVisible(m_hideFilteredStarted);
-			});
+		m_forwarder.Forward([this] {
+			m_ui.applyWidget->setVisible(!m_hideFilteredStarted);
+			m_ui.progressBarWidget->setVisible(m_hideFilteredStarted);
+		});
 	}
 
 private:
-	QDialog& m_self;
-	std::shared_ptr<const IModelProvider> m_modelProvider;
-	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
-	PropagateConstPtr<IFilterController, std::shared_ptr> m_filterController;
+	QDialog&                                                m_self;
+	std::shared_ptr<const IModelProvider>                   m_modelProvider;
+	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
+	PropagateConstPtr<IFilterController, std::shared_ptr>   m_filterController;
 	PropagateConstPtr<IFilterDataProvider, std::shared_ptr> m_dataProvider;
-	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> m_itemViewToolTipper;
+	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
-	PropagateConstPtr<QAbstractItemModel> m_model { std::unique_ptr<QAbstractItemModel> {} };
-	const IFilterController::FilteredNavigation* m_filteredNavigation { nullptr };
-	QTimer m_filterTimer;
-	int m_sectionClicked { -1 };
+	PropagateConstPtr<QAbstractItemModel>                   m_model { std::unique_ptr<QAbstractItemModel> {} };
+	const IFilterController::FilteredNavigation*            m_filteredNavigation { nullptr };
+	QTimer                                                  m_filterTimer;
+	int                                                     m_sectionClicked { -1 };
 
-	std::atomic_bool m_hideFilteredStarted { false };
+	std::atomic_bool                m_hideFilteredStarted { false };
 	Util::FunctorExecutionForwarder m_forwarder;
 
 	Ui::FilterSettingsDialog m_ui {};
 };
 
-FilterSettingsDialog::FilterSettingsDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
-                                           std::shared_ptr<const IModelProvider> modelProvider,
-                                           std::shared_ptr<ISettings> settings,
-                                           std::shared_ptr<IFilterController> filterController,
-                                           std::shared_ptr<IFilterDataProvider> dataProvider,
-                                           std::shared_ptr<ItemViewToolTipper> itemViewToolTipper,
-                                           std::shared_ptr<ScrollBarController> scrollBarController,
-                                           QWidget* parent)
+FilterSettingsDialog::FilterSettingsDialog(
+	const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
+	std::shared_ptr<const IModelProvider>               modelProvider,
+	std::shared_ptr<ISettings>                          settings,
+	std::shared_ptr<IFilterController>                  filterController,
+	std::shared_ptr<IFilterDataProvider>                dataProvider,
+	std::shared_ptr<ItemViewToolTipper>                 itemViewToolTipper,
+	std::shared_ptr<ScrollBarController>                scrollBarController,
+	QWidget*                                            parent
+)
 	: QDialog(parentWidgetProvider->GetWidget(parent))
 	, m_impl(*this, std::move(modelProvider), std::move(settings), std::move(filterController), std::move(dataProvider), std::move(itemViewToolTipper), std::move(scrollBarController))
 {

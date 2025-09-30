@@ -43,7 +43,7 @@ protected:
 	template <typename Obj, typename Value, size_t ArraySize, typename... ARGS>
 	bool Parse(Obj& obj, Value (&array)[ArraySize], const QString& key, const ARGS&... args)
 	{
-		m_processed = true;
+		m_processed       = true;
 		const auto parser = FindSecond(array, key.toStdString().data(), &SaxParser::Stub<ARGS...>, PszComparerEndsWithCaseInsensitive {});
 		return std::invoke(parser, obj, std::cref(args)...);
 	}

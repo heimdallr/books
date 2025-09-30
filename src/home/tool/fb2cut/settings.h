@@ -27,13 +27,13 @@ struct ImageSettings
 {
 	using ImageNameGetter = QString (*)(const QString& file, const QString& image);
 
-	const char* type { nullptr };
+	const char*     type { nullptr };
 	ImageNameGetter fileNameGetter { nullptr };
 
 	QSize maxSize { MAX_SIZE, MAX_SIZE };
-	int quality { -1 };
-	bool save { true };
-	bool grayscale { false };
+	int   quality { -1 };
+	bool  save { true };
+	bool  grayscale { false };
 
 	bool operator==(const ImageSettings& rhs) const noexcept
 	{
@@ -43,19 +43,19 @@ struct ImageSettings
 
 struct Settings
 {
-	QStringList inputWildcards;
+	QStringList   inputWildcards;
 	ImageSettings cover { Global::COVER, &GetCoverFileName }, image { Global::IMAGE, &GetImageFileName };
-	int maxThreadCount { static_cast<int>(std::thread::hardware_concurrency()) };
-	int minImageFileSize { 1024 };
-	bool saveFb2 { true };
-	bool archiveFb2 { true };
-	QDir dstDir;
-	QString ffmpeg;
-	QString imageStatistics;
-	QString archiver;
-	QString archiverOptions;
-	int totalFileCount { 0 };
-	Zip::Format format { Zip::Format::SevenZip };
+	int           maxThreadCount { static_cast<int>(std::thread::hardware_concurrency()) };
+	int           minImageFileSize { 1024 };
+	bool          saveFb2 { true };
+	bool          archiveFb2 { true };
+	QDir          dstDir;
+	QString       ffmpeg;
+	QString       imageStatistics;
+	QString       archiver;
+	QString       archiverOptions;
+	int           totalFileCount { 0 };
+	Zip::Format   format { Zip::Format::SevenZip };
 };
 
 } // namespace HomeCompa::fb2cut

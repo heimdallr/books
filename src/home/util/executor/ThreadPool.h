@@ -18,7 +18,9 @@ public:
 	explicit ThreadPool(const int numThreads = static_cast<int>(std::thread::hardware_concurrency()))
 	{
 		m_threads.reserve(static_cast<size_t>(numThreads));
-		std::ranges::transform(std::views::iota(0, numThreads), std::back_inserter(m_threads), [this](auto) { return std::thread(&ThreadPool::work, this); });
+		std::ranges::transform(std::views::iota(0, numThreads), std::back_inserter(m_threads), [this](auto) {
+			return std::thread(&ThreadPool::work, this);
+		});
 	}
 
 	~ThreadPool()
@@ -48,7 +50,9 @@ private:
 	std::function<void()> getTask()
 	{
 		std::unique_lock lock(m_tasksGuard);
-		m_condition.wait(lock, [this] { return !m_tasks.empty() || m_stopped; });
+		m_condition.wait(lock, [this] {
+			return !m_tasks.empty() || m_stopped;
+		});
 
 		if (m_stopped && m_tasks.empty())
 			return {};
@@ -66,11 +70,11 @@ private:
 	}
 
 private:
-	std::vector<std::thread> m_threads;
+	std::vector<std::thread>          m_threads;
 	std::queue<std::function<void()>> m_tasks;
-	std::mutex m_tasksGuard;
-	std::condition_variable m_condition;
-	std::atomic_bool m_stopped { false };
+	std::mutex                        m_tasksGuard;
+	std::condition_variable           m_condition;
+	std::atomic_bool                  m_stopped { false };
 };
 
 } // namespace HomeCompa::Util

@@ -50,7 +50,9 @@ public:
 private: // ICollectionAutoUpdater::IObserver
 	void OnCollectionUpdated() override
 	{
-		QTimer::singleShot(0, [] { QCoreApplication::exit(Flibrary::Constant::RESTART_APP); });
+		QTimer::singleShot(0, [] {
+			QCoreApplication::exit(Flibrary::Constant::RESTART_APP);
+		});
 	}
 
 private:
@@ -76,16 +78,16 @@ int run(int argc, char* argv[])
 		Flibrary::Genre::SetSortMode(*settings);
 
 		std::shared_ptr<Flibrary::ICollectionAutoUpdater> collectionAutoUpdater;
-		std::unique_ptr<CollectionAutoUpdaterObserver> collectionAutoUpdaterObserver;
+		std::unique_ptr<CollectionAutoUpdaterObserver>    collectionAutoUpdaterObserver;
 		if (settings->Get(Flibrary::Constant::Settings::OPDS_AUTOUPDATE_COLLECTION, false))
 		{
-			collectionAutoUpdater = container->resolve<Flibrary::ICollectionAutoUpdater>();
+			collectionAutoUpdater         = container->resolve<Flibrary::ICollectionAutoUpdater>();
 			collectionAutoUpdaterObserver = std::make_unique<CollectionAutoUpdaterObserver>(*collectionAutoUpdater);
 		}
 
 		Util::QStringWrapper::SetLocale(Loc::GetLocale(*settings));
 		const auto translators = Loc::LoadLocales(*settings); //-V808
-		const auto server = container->resolve<IServer>();
+		const auto server      = container->resolve<IServer>();
 
 		if (const auto code = QCoreApplication::exec(); code != Flibrary::Constant::RESTART_APP)
 		{

@@ -30,10 +30,10 @@ QString GetOutputFileNameTemplate(const ISettings& settings)
 
 struct BookExtractor::Impl
 {
-	std::shared_ptr<const ISettings> settings;
+	std::shared_ptr<const ISettings>                     settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
 	std::shared_ptr<const Flibrary::IDatabaseController> databaseController;
-	const QString m_outputFileNameTemplate { GetOutputFileNameTemplate(*settings) };
+	const QString                                        m_outputFileNameTemplate { GetOutputFileNameTemplate(*settings) };
 
 	Impl(std::shared_ptr<const ISettings> settings, std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider, std::shared_ptr<const Flibrary::IDatabaseController> databaseController)
 		: settings { std::move(settings) }
@@ -44,7 +44,7 @@ struct BookExtractor::Impl
 
 	Flibrary::ILogicFactory::ExtractedBook GetExtractedBook(const QString& bookId) const
 	{
-		const auto db = databaseController->GetDatabase(true);
+		const auto db    = databaseController->GetDatabase(true);
 		const auto query = db->CreateQuery(R"(
 select
     f.FolderTitle,
@@ -72,7 +72,7 @@ where b.BookID = ?
 	QString GetFileName(const Flibrary::ILogicFactory::ExtractedBook& book) const
 	{
 		auto outputFileName = m_outputFileNameTemplate;
-		auto db = databaseController->GetDatabase(true);
+		auto db             = databaseController->GetDatabase(true);
 		Flibrary::ILogicFactory::FillScriptTemplate(*db, outputFileName, book);
 		if (!settings->Get(OPDS_TRANSLITERATE, false))
 			return outputFileName;
@@ -98,12 +98,14 @@ private:
 	}
 
 	mutable std::unique_ptr<Util::DyLib> m_icuLib;
-	mutable ICU::TransliterateType m_icuTransliterate { nullptr };
+	mutable ICU::TransliterateType       m_icuTransliterate { nullptr };
 };
 
-BookExtractor::BookExtractor(std::shared_ptr<const ISettings> settings,
-                             std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-                             std::shared_ptr<const Flibrary::IDatabaseController> databaseController)
+BookExtractor::BookExtractor(
+	std::shared_ptr<const ISettings>                     settings,
+	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+	std::shared_ptr<const Flibrary::IDatabaseController> databaseController
+)
 	: m_impl { std::move(settings), std::move(collectionProvider), std::move(databaseController) }
 {
 }

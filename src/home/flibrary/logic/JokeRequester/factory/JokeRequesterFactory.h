@@ -22,8 +22,8 @@ public:
 
 private: // IJokeRequesterFactory
 	[[nodiscard]] std::vector<ImplementationDescription> GetImplementations() const override;
-	[[nodiscard]] std::shared_ptr<IJokeRequester> Create(Implementation impl) const override;
-	[[nodiscard]] std::shared_ptr<Network::Downloader> GetDownloader() const override;
+	[[nodiscard]] std::shared_ptr<IJokeRequester>        Create(Implementation impl) const override;
+	[[nodiscard]] std::shared_ptr<Network::Downloader>   GetDownloader() const override;
 
 private:
 	struct Impl;

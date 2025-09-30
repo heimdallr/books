@@ -26,14 +26,16 @@ class ScriptDialog final
 	NON_COPY_MOVABLE(ScriptDialog)
 
 public:
-	ScriptDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
-	             const std::shared_ptr<const IModelProvider>& modelProvider,
-	             std::shared_ptr<ISettings> settings,
-	             std::shared_ptr<ScriptComboBoxDelegate> scriptTypeDelegate,
-	             std::shared_ptr<CommandComboBoxDelegate> commandTypeDelegate,
-	             std::shared_ptr<ScriptNameDelegate> scriptNameLineEditDelegate,
-	             std::shared_ptr<CommandDelegate> commandDelegate,
-	             std::shared_ptr<CommandArgDelegate> commandArgLineEditDelegate);
+	ScriptDialog(
+		const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
+		const std::shared_ptr<const IModelProvider>&  modelProvider,
+		std::shared_ptr<ISettings>                    settings,
+		std::shared_ptr<ScriptComboBoxDelegate>       scriptTypeDelegate,
+		std::shared_ptr<CommandComboBoxDelegate>      commandTypeDelegate,
+		std::shared_ptr<ScriptNameDelegate>           scriptNameLineEditDelegate,
+		std::shared_ptr<CommandDelegate>              commandDelegate,
+		std::shared_ptr<CommandArgDelegate>           commandArgLineEditDelegate
+	);
 	~ScriptDialog() override;
 
 private: // IScriptDialog
