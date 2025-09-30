@@ -15,7 +15,7 @@ namespace
 {
 
 constexpr auto LIBRARY_NAME = L"7z.dll";
-constexpr auto ENTRY_POINT = "CreateObject";
+constexpr auto ENTRY_POINT  = "CreateObject";
 
 using ObjectCreator = UINT32(WINAPI*)(const GUID* clsID, const GUID* interfaceID, void** outObject);
 
@@ -54,7 +54,7 @@ struct EntryPoint
 
 struct Lib::Impl
 {
-	Dll dll;
+	Dll        dll;
 	EntryPoint func { dll };
 };
 

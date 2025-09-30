@@ -19,24 +19,31 @@ using namespace Opds;
 
 namespace
 {
-const auto CONTEXT = "Http";
-const auto LOGIN = QT_TRANSLATE_NOOP("Http", "Login");
-const auto PASSWORD = QT_TRANSLATE_NOOP("Http", "Password");
-const auto ENTER_LOGIN = QT_TRANSLATE_NOOP("Http", "Enter Username");
+const auto CONTEXT        = "Http";
+const auto LOGIN          = QT_TRANSLATE_NOOP("Http", "Login");
+const auto PASSWORD       = QT_TRANSLATE_NOOP("Http", "Password");
+const auto ENTER_LOGIN    = QT_TRANSLATE_NOOP("Http", "Enter Username");
 const auto ENTER_PASSWORD = QT_TRANSLATE_NOOP("Http", "Enter Password");
 TR_DEF
 
 QByteArray Decompress(const QString& path, const QString& archive, const QString& fileName, const bool restoreImages)
 {
-	const Zip unzip(path + "/" + archive);
+	const Zip  unzip(path + "/" + archive);
 	const auto stream = unzip.Read(fileName);
 	if (!restoreImages)
 		return stream->GetStream().readAll();
 
 	QByteArray data;
 	{
-		QBuffer buffer(&data);
-		const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
+		QBuffer          buffer(&data);
+		const ScopedCall bufferGuard(
+			[&] {
+				buffer.open(QIODevice::WriteOnly);
+			},
+			[&] {
+				buffer.close();
+			}
+		);
 		buffer.write(Flibrary::RestoreImages(stream->GetStream(), path + "/" + archive, fileName));
 	}
 	return data;
@@ -46,10 +53,17 @@ QByteArray Compress(QByteArray data, QString fileName)
 {
 	QByteArray zippedData;
 	{
-		QBuffer buffer(&zippedData);
-		const ScopedCall bufferGuard([&] { buffer.open(QIODevice::WriteOnly); }, [&] { buffer.close(); });
+		QBuffer          buffer(&zippedData);
+		const ScopedCall bufferGuard(
+			[&] {
+				buffer.open(QIODevice::WriteOnly);
+			},
+			[&] {
+				buffer.close();
+			}
+		);
 		buffer.open(QIODevice::WriteOnly);
-		Zip zip(buffer, Zip::Format::Zip);
+		Zip  zip(buffer, Zip::Format::Zip);
 		auto zipFiles = Zip::CreateZipFileController();
 		zipFiles->AddFile(std::move(fileName), std::move(data));
 		zip.Write(std::move(zipFiles));
@@ -62,9 +76,9 @@ QByteArray Compress(QByteArray data, QString fileName)
 struct NoSqlRequester::Impl
 {
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
-	std::shared_ptr<const ICoverCache> coverCache;
-	std::shared_ptr<const IBookExtractor> bookExtractor;
-	std::shared_ptr<Flibrary::IAnnotationController> annotationController;
+	std::shared_ptr<const ICoverCache>                   coverCache;
+	std::shared_ptr<const IBookExtractor>                bookExtractor;
+	std::shared_ptr<Flibrary::IAnnotationController>     annotationController;
 
 	QByteArray GetCoverThumbnail(const QString& bookId) const
 	{
@@ -74,18 +88,18 @@ struct NoSqlRequester::Impl
 		QEventLoop eventLoop;
 		QByteArray result;
 
-		AnnotationControllerObserver observer(
-			[&](const Flibrary::IAnnotationController::IDataProvider& dataProvider)
-			{
-				ScopedCall eventLoopGuard([&] { eventLoop.exit(); });
-				if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
-					return (void)(result = std::move(Flibrary::Recode(covers.front().bytes).first));
-
-				QFile file(":/images/book.png");
-				[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
-				assert(ok);
-				result = file.readAll();
+		AnnotationControllerObserver observer([&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
+			ScopedCall eventLoopGuard([&] {
+				eventLoop.exit();
 			});
+			if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
+				return (void)(result = std::move(Flibrary::Recode(covers.front().bytes).first));
+
+			QFile                       file(":/images/book.png");
+			[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
+			assert(ok);
+			result = file.readAll();
+		});
 
 		annotationController->RegisterObserver(&observer);
 		annotationController->SetCurrentBookId(bookId, true);
@@ -96,18 +110,20 @@ struct NoSqlRequester::Impl
 
 	std::tuple<QString, QString, QByteArray> GetBook(const QString& bookId, const bool restoreImages) const
 	{
-		auto book = bookExtractor->GetExtractedBook(bookId);
+		auto book           = bookExtractor->GetExtractedBook(bookId);
 		auto outputFileName = bookExtractor->GetFileName(book);
-		auto data = Decompress(collectionProvider->GetActiveCollection().folder, book.folder, book.file, restoreImages);
+		auto data           = Decompress(collectionProvider->GetActiveCollection().folder, book.folder, book.file, restoreImages);
 
 		return std::make_tuple(std::move(book.file), QFileInfo(outputFileName).fileName(), std::move(data));
 	}
 };
 
-NoSqlRequester::NoSqlRequester(std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-                               std::shared_ptr<const ICoverCache> coverCache,
-                               std::shared_ptr<const IBookExtractor> bookExtractor,
-                               std::shared_ptr<Flibrary::IAnnotationController> annotationController)
+NoSqlRequester::NoSqlRequester(
+	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+	std::shared_ptr<const ICoverCache>                   coverCache,
+	std::shared_ptr<const IBookExtractor>                bookExtractor,
+	std::shared_ptr<Flibrary::IAnnotationController>     annotationController
+)
 	: m_impl { std::move(collectionProvider), std::move(coverCache), std::move(bookExtractor), std::move(annotationController) }
 {
 }
@@ -133,7 +149,7 @@ std::pair<QString, QByteArray> NoSqlRequester::GetBook(const QString& bookId, co
 std::pair<QString, QByteArray> NoSqlRequester::GetBookZip(const QString& bookId, const bool restoreImages) const
 {
 	auto [fileName, title, data] = m_impl->GetBook(bookId, restoreImages);
-	data = Compress(std::move(data), std::move(fileName));
+	data                         = Compress(std::move(data), std::move(fileName));
 	return std::make_pair(QFileInfo(title).completeBaseName() + ".zip", std::move(data));
 }
 

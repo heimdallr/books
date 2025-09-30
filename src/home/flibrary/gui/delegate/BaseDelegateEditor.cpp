@@ -26,8 +26,8 @@ void BaseDelegateEditor::SetParent(QWidget* parent)
 
 void BaseDelegateEditor::SetModel(QAbstractItemModel* model, const QModelIndex& index)
 {
-	m_model = model;
-	m_row = index.row();
+	m_model  = model;
+	m_row    = index.row();
 	m_column = index.column();
 }
 

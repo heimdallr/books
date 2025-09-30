@@ -71,8 +71,8 @@ IDataItem::Ptr CreateGenreItem(const DB::IQuery& query)
 	auto item = IDataItem::Ptr(GenreItem::Create());
 	UpdateItem(*item, query, {}, 3, 4);
 
-	const auto* fbCode = query.Get<const char*>(2);
-	const auto translated = Loc::Tr(GENRE, fbCode);
+	const auto* fbCode     = query.Get<const char*>(2);
+	const auto  translated = Loc::Tr(GENRE, fbCode);
 
 	item->SetData(fbCode, GenreItem::Column::Fb2Code);
 	item->SetData(translated != fbCode ? translated : query.Get<const char*>(1));
@@ -118,10 +118,10 @@ IDataItem::Ptr CreateBookItem(const DB::IQuery& query)
 
 bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& ids, const bool remove, const std::shared_ptr<IProgressController>& progressController)
 {
-	auto progressItem = progressController ? progressController->Add(static_cast<int64_t>(11 * ids.size() / 10)) : std::make_unique<IProgressController::ProgressItemStub>();
-	bool ok = true;
-	const auto tempTable = db.CreateTemporaryTable();
-	const auto transaction = db.CreateTransaction();
+	auto       progressItem = progressController ? progressController->Add(static_cast<int64_t>(11 * ids.size() / 10)) : std::make_unique<IProgressController::ProgressItemStub>();
+	bool       ok           = true;
+	const auto tempTable    = db.CreateTemporaryTable();
+	const auto transaction  = db.CreateTransaction();
 	{
 		const auto command = transaction->CreateCommand(std::format("insert into {} (id) values (?)", tempTable->GetName()));
 		for (const auto id : ids)

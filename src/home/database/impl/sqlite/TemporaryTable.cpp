@@ -34,7 +34,7 @@ public:
 		statement.append(");");
 
 		const auto tr = db.CreateTransaction();
-		auto ok = tr->CreateCommand(statement)->Execute();
+		auto       ok = tr->CreateCommand(statement)->Execute();
 		assert(ok);
 
 		for (const auto add : additional)
@@ -67,7 +67,7 @@ private: // Transaction
 	}
 
 private:
-	IDatabase& m_db;
+	IDatabase&        m_db;
 	const std::string m_schemaName { "tmp" };
 	const std::string m_tableName { std::format("tab_{}", ++id) };
 	const std::string m_name { std::format("{}.{}", m_schemaName, m_tableName) };

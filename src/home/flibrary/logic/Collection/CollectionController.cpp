@@ -26,16 +26,16 @@ namespace
 
 constexpr int MAX_OVERWRITE_CONFIRM_COUNT = 10;
 
-constexpr auto CONTEXT = "CollectionController";
-constexpr auto CONFIRM_OVERWRITE_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "The existing database file will be overwritten. Continue?");
-constexpr auto CONFIRM_REMOVE_COLLECTION = QT_TRANSLATE_NOOP("CollectionController", "Are you sure you want to delete the collection?");
-constexpr auto CONFIRM_REMOVE_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "Delete collection database as well?");
-constexpr auto CANNOT_WRITE_TO_DATABASE = QT_TRANSLATE_NOOP("CollectionController", "No write access to %1");
-constexpr auto ERROR = QT_TRANSLATE_NOOP("CollectionController", "The collection was not %1 due to errors. See log.");
-constexpr auto COLLECTION_UPDATED = QT_TRANSLATE_NOOP("CollectionController", "Looks like the collection has been updated. Apply changes?");
+constexpr auto CONTEXT                          = "CollectionController";
+constexpr auto CONFIRM_OVERWRITE_DATABASE       = QT_TRANSLATE_NOOP("CollectionController", "The existing database file will be overwritten. Continue?");
+constexpr auto CONFIRM_REMOVE_COLLECTION        = QT_TRANSLATE_NOOP("CollectionController", "Are you sure you want to delete the collection?");
+constexpr auto CONFIRM_REMOVE_DATABASE          = QT_TRANSLATE_NOOP("CollectionController", "Delete collection database as well?");
+constexpr auto CANNOT_WRITE_TO_DATABASE         = QT_TRANSLATE_NOOP("CollectionController", "No write access to %1");
+constexpr auto ERROR                            = QT_TRANSLATE_NOOP("CollectionController", "The collection was not %1 due to errors. See log.");
+constexpr auto COLLECTION_UPDATED               = QT_TRANSLATE_NOOP("CollectionController", "Looks like the collection has been updated. Apply changes?");
 constexpr auto COLLECTION_UPDATE_ACTION_CREATED = QT_TRANSLATE_NOOP("CollectionController", "created");
 constexpr auto COLLECTION_UPDATE_ACTION_UPDATED = QT_TRANSLATE_NOOP("CollectionController", "updated");
-constexpr auto COLLECTION_UPDATE_RESULT_GENRES = QT_TRANSLATE_NOOP("CollectionController", "<tr><td>Genres:</td><td align='right'>%1</td></tr>");
+constexpr auto COLLECTION_UPDATE_RESULT_GENRES  = QT_TRANSLATE_NOOP("CollectionController", "<tr><td>Genres:</td><td align='right'>%1</td></tr>");
 constexpr auto COLLECTION_NEED_RECREATE =
 	QT_TRANSLATE_NOOP("CollectionController", "<p><p>Warning! A change to previous data was detected, it is recommended to recreate the collection again. Don't forget to save user data</p></p>");
 constexpr auto COLLECTION_UPDATE_RESULT = QT_TRANSLATE_NOOP("CollectionController", R"("%1" collection %2. Added:<p>
@@ -65,7 +65,9 @@ public:
 	{
 		Register(m_collectionProvider.get());
 		const auto& collections = m_collectionProvider->GetCollections();
-		if (std::ranges::none_of(collections, [id = CollectionImpl::GetActive(*m_settings)](const auto& item) { return item->id == id; }))
+		if (std::ranges::none_of(collections, [id = CollectionImpl::GetActive(*m_settings)](const auto& item) {
+				return item->id == id;
+			}))
 			SetActiveCollection(collections.empty() ? QString {} : collections.front()->id);
 	}
 
@@ -88,7 +90,7 @@ public:
 	{
 		const auto dialog = m_uiFactory->CreateAddCollectionDialog(inpx);
 		const auto action = dialog->Exec();
-		const auto mode = Inpx::CreateCollectionMode::None | (dialog->AddUnIndexedBooks() ? Inpx::CreateCollectionMode::AddUnIndexedFiles : Inpx::CreateCollectionMode::None)
+		const auto mode   = Inpx::CreateCollectionMode::None | (dialog->AddUnIndexedBooks() ? Inpx::CreateCollectionMode::AddUnIndexedFiles : Inpx::CreateCollectionMode::None)
 		                | (dialog->MarkUnIndexedBooksAsDeleted() ? Inpx::CreateCollectionMode::MarkUnIndexedFilesAsDeleted : Inpx::CreateCollectionMode::None)
 		                | (dialog->ScanUnIndexedFolders() ? Inpx::CreateCollectionMode::ScanUnIndexedFolders : Inpx::CreateCollectionMode::None)
 		                | (dialog->SkipLostBooks() ? Inpx::CreateCollectionMode::SkipLostBooks : Inpx::CreateCollectionMode::None);
@@ -115,23 +117,22 @@ public:
 			return;
 
 		const auto& collection = GetActiveCollection();
-		const auto id = collection.id;
-		auto db = collection.database;
-		std::erase_if(m_collectionProvider->GetCollections(), [&](const auto& item) { return item->id == id; });
+		const auto  id         = collection.id;
+		auto        db         = collection.database;
+		std::erase_if(m_collectionProvider->GetCollections(), [&](const auto& item) {
+			return item->id == id;
+		});
 		CollectionImpl::Remove(*m_settings, id);
 
 		if (m_uiFactory->ShowWarning(Tr(CONFIRM_REMOVE_DATABASE), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
 		{
-			ITaskQueue::Lock(m_taskQueue)
-				->Enqueue(
-					[db = std::move(db)]
-					{
-						for (int i = 0; i < 20; ++i, std::this_thread::sleep_for(std::chrono::milliseconds(50)))
-							if (QFile::remove(db) && !QFile::exists(db))
-								return true;
+			ITaskQueue::Lock(m_taskQueue)->Enqueue([db = std::move(db)] {
+				for (int i = 0; i < 20; ++i, std::this_thread::sleep_for(std::chrono::milliseconds(50)))
+					if (QFile::remove(db) && !QFile::exists(db))
+						return true;
 
-						return false;
-					});
+				return false;
+			});
 		}
 
 		if (m_collectionProvider->IsEmpty())
@@ -168,7 +169,7 @@ public:
 	void AllowDestructiveOperation(const bool value)
 	{
 		assert(ActiveCollectionExists());
-		auto& collection = m_collectionProvider->GetActiveCollection();
+		auto& collection                        = m_collectionProvider->GetActiveCollection();
 		collection.destructiveOperationsAllowed = value;
 		CollectionImpl::Serialize(collection, *m_settings);
 	}
@@ -235,15 +236,16 @@ private:
 			return;
 		}
 
-		auto parser = std::make_shared<Inpx::Parser>();
-		auto& parserRef = *parser;
+		auto  parser       = std::make_shared<Inpx::Parser>();
+		auto& parserRef    = *parser;
 		auto [tmpDir, ini] = m_collectionProvider->GetIniMap(db, folder, true);
 		ini.try_emplace(DEFAULT_ARCHIVE_TYPE, defaultArchiveType.toStdWString());
 
 		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement().toStdWString());
-		auto callback = [this, parser = std::move(parser), name, db, folder, mode, tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable
-		{
-			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable { parser.reset(); });
+		auto callback = [this, parser = std::move(parser), name, db, folder, mode, tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
+			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
+				parser.reset();
+			});
 			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
 			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_CREATED);
 			if (!updateResult.error)
@@ -266,16 +268,17 @@ private:
 	void UpdateCollection(const Collection& updatedCollection)
 	{
 		const auto& collection = GetActiveCollection();
-		auto parser = std::make_shared<Inpx::Parser>();
-		auto& parserRef = *parser;
-		auto [tmpDir, ini] = m_collectionProvider->GetIniMap(collection.database, collection.folder, true);
-		auto callback = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable
-		{
-			if (updateResult.oldDataUpdateFound)
-				PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
-			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable { parser.reset(); });
-			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
-			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
+		auto        parser     = std::make_shared<Inpx::Parser>();
+		auto&       parserRef  = *parser;
+		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.database, collection.folder, true);
+		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable {
+            if (updateResult.oldDataUpdateFound)
+                PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
+            const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
+                parser.reset();
+            });
+            Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
+            ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.UpdateCollection(ini, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
@@ -304,16 +307,18 @@ private:
 
 private:
 	PropagateConstPtr<ICollectionProvider, std::shared_ptr> m_collectionProvider;
-	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
-	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
-	std::weak_ptr<ITaskQueue> m_taskQueue;
-	int m_overwriteConfirmCount { 0 };
+	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
+	PropagateConstPtr<IUiFactory, std::shared_ptr>          m_uiFactory;
+	std::weak_ptr<ITaskQueue>                               m_taskQueue;
+	int                                                     m_overwriteConfirmCount { 0 };
 };
 
-CollectionController::CollectionController(std::shared_ptr<ICollectionProvider> collectionProvider,
-                                           std::shared_ptr<ISettings> settings,
-                                           std::shared_ptr<IUiFactory> uiFactory,
-                                           const std::shared_ptr<ITaskQueue>& taskQueue)
+CollectionController::CollectionController(
+	std::shared_ptr<ICollectionProvider> collectionProvider,
+	std::shared_ptr<ISettings>           settings,
+	std::shared_ptr<IUiFactory>          uiFactory,
+	const std::shared_ptr<ITaskQueue>&   taskQueue
+)
 	: m_impl(std::move(collectionProvider), std::move(settings), std::move(uiFactory), taskQueue)
 {
 	PLOGV << "CollectionController created";

@@ -21,9 +21,9 @@ public:
 	using Callback = std::function<void(NavigationMode mode, IDataItem::Ptr root)>;
 
 public:
-	virtual ~INavigationQueryExecutor() = default;
-	virtual void RequestNavigation(NavigationMode navigationMode, Callback callback, bool force = false) const = 0;
-	virtual const QueryDescription& GetQueryDescription(NavigationMode navigationMode) const = 0;
+	virtual ~INavigationQueryExecutor()                                                                                           = default;
+	virtual void                    RequestNavigation(NavigationMode navigationMode, Callback callback, bool force = false) const = 0;
+	virtual const QueryDescription& GetQueryDescription(NavigationMode navigationMode) const                                      = 0;
 };
 
 }

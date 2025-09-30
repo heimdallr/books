@@ -49,9 +49,9 @@
 	#if defined(_MSC_VER) && _MSC_VER <= 1200 && !defined(_WIN64)
 		#ifndef _W64
 
-typedef long LONG_PTR, *PLONG_PTR;
+typedef long          LONG_PTR, *PLONG_PTR;
 typedef unsigned long ULONG_PTR, *PULONG_PTR;
-typedef ULONG_PTR DWORD_PTR, *PDWORD_PTR;
+typedef ULONG_PTR     DWORD_PTR, *PDWORD_PTR;
 
 			#define Z7_OLD_WIN_SDK
 		#endif // _W64

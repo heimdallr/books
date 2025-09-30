@@ -29,17 +29,17 @@ struct Release
 	QString name;
 	QString tag_name;
 	QString html_url;
-	Assets assets;
+	Assets  assets;
 
 	static void ParseGetLatestRelease(IClient& client, const QJsonValue& data);
 
 	explicit Release(const QJsonValue& data);
-	Release() = default;
-	~Release() = default;
-	Release(const Release&) = default;
-	Release(Release&&) = default;
+	Release()                          = default;
+	~Release()                         = default;
+	Release(const Release&)            = default;
+	Release(Release&&)                 = default;
 	Release& operator=(const Release&) = default;
-	Release& operator=(Release&&) = default;
+	Release& operator=(Release&&)      = default;
 };
 
 } // namespace HomeCompa::RestAPI::Github

@@ -21,7 +21,7 @@ void AbstractThemeApplier::Apply(const QString& name, const QString& file)
 std::pair<QString, QString> AbstractThemeApplier::GetChecked() const
 {
 	const auto currentType = m_settings->Get(THEME_TYPE_KEY, THEME_KEY_DEFAULT);
-	const auto thisType = TypeToString(GetType());
+	const auto thisType    = TypeToString(GetType());
 	return currentType == thisType ? std::make_pair(m_settings->Get(THEME_NAME_KEY, THEME_NAME_DEFAULT), m_settings->Get(THEME_FILE_KEY).toString()) : std::pair<QString, QString> {};
 }
 

@@ -26,9 +26,9 @@ public:
 	class IObserver // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
-		virtual ~IObserver() = default;
+		virtual ~IObserver()                      = default;
 		virtual void OnIncremented(int64_t value) = 0;
-		virtual void OnDestroyed() = 0;
+		virtual void OnDestroyed()                = 0;
 	};
 
 public:
@@ -48,7 +48,7 @@ public:
 private: // IProgressController::IProgressItem
 	void Increment(int64_t value) override
 	{
-		value = std::min(value, m_maximum - m_value);
+		value    = std::min(value, m_maximum - m_value);
 		m_value += value;
 		if (value)
 			m_observer.OnIncremented(value);
@@ -61,9 +61,9 @@ private: // IProgressController::IProgressItem
 
 private:
 	std::atomic_bool& m_stopped;
-	IObserver& m_observer;
-	const int64_t m_maximum;
-	int64_t m_value { 0 };
+	IObserver&        m_observer;
+	const int64_t     m_maximum;
+	int64_t           m_value { 0 };
 };
 
 } // namespace
@@ -72,10 +72,10 @@ struct ProgressController::Impl final
 	: Observable<IObserver>
 	, ProgressItem::IObserver
 {
-	std::atomic_bool stopped { false };
-	int64_t globalMaximum { 0 };
-	std::atomic_int64_t count { 0 };
-	std::atomic_int64_t globalValue { 0 };
+	std::atomic_bool                stopped { false };
+	int64_t                         globalMaximum { 0 };
+	std::atomic_int64_t             count { 0 };
+	std::atomic_int64_t             globalValue { 0 };
 	Util::FunctorExecutionForwarder forwarder;
 
 	void OnIncremented(const int64_t value) override
@@ -84,7 +84,9 @@ struct ProgressController::Impl final
 			return;
 
 		globalValue += value;
-		forwarder.Forward([&] { Perform(&IProgressController::IObserver::OnValueChanged); });
+		forwarder.Forward([&] {
+			Perform(&IProgressController::IObserver::OnValueChanged);
+		});
 	}
 
 	void OnDestroyed() override
@@ -92,13 +94,11 @@ struct ProgressController::Impl final
 		if (--count != 0)
 			return;
 
-		forwarder.Forward(
-			[&, maximum = globalMaximum, value = globalValue.load()]
-			{
-				globalMaximum -= maximum;
-				globalValue -= value;
-				Perform(&IProgressController::IObserver::OnStartedChanged);
-			});
+		forwarder.Forward([&, maximum = globalMaximum, value = globalValue.load()] {
+			globalMaximum -= maximum;
+			globalValue   -= value;
+			Perform(&IProgressController::IObserver::OnStartedChanged);
+		});
 	}
 };
 
@@ -135,7 +135,9 @@ std::unique_ptr<IProgressController::IProgressItem> ProgressController::Add(cons
 	if (justStarted)
 	{
 		m_impl->stopped = false;
-		m_impl->forwarder.Forward([&] { m_impl->Perform(&IObserver::OnStartedChanged); });
+		m_impl->forwarder.Forward([&] {
+			m_impl->Perform(&IObserver::OnStartedChanged);
+		});
 	}
 	return std::make_unique<ProgressItem>(m_impl->stopped, *m_impl, value);
 }

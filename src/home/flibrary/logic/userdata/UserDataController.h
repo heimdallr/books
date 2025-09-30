@@ -43,7 +43,7 @@ private:
 
 private:
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
-	std::shared_ptr<const IUiFactory> m_uiFactory;
+	std::shared_ptr<const IUiFactory>    m_uiFactory;
 };
 
 }

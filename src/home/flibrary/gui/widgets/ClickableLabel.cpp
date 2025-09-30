@@ -20,7 +20,9 @@ struct ClickableLabel::Impl
 ClickableLabel::ClickableLabel(QWidget* parent)
 	: QLabel(parent)
 {
-	connect(&m_impl->timer, &QTimer::timeout, [this] { emit clicked(m_impl->pos); });
+	connect(&m_impl->timer, &QTimer::timeout, [this] {
+		emit clicked(m_impl->pos);
+	});
 }
 
 ClickableLabel::~ClickableLabel() = default;

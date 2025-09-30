@@ -21,9 +21,9 @@ BaseJokeRequester::Item::Item(std::weak_ptr<IClient> client)
 
 struct BaseJokeRequester::Impl
 {
-	std::shared_ptr<Network::Downloader> downloader;
-	const QString uri;
-	QHttpHeaders headers;
+	std::shared_ptr<Network::Downloader>              downloader;
+	const QString                                     uri;
+	QHttpHeaders                                      headers;
 	std::unordered_map<size_t, std::unique_ptr<Item>> requests;
 };
 
@@ -36,9 +36,16 @@ BaseJokeRequester::~BaseJokeRequester() = default;
 
 void BaseJokeRequester::Request(std::weak_ptr<IClient> client)
 {
-	auto item = std::make_unique<Item>(std::move(client));
-	const auto id =
-		m_impl->downloader->Download(m_impl->uri, item->stream, [this](const size_t idMessage, const int code, const QString& message) { OnResponse(idMessage, code, message); }, {}, m_impl->headers);
+	auto       item = std::make_unique<Item>(std::move(client));
+	const auto id   = m_impl->downloader->Download(
+        m_impl->uri,
+        item->stream,
+        [this](const size_t idMessage, const int code, const QString& message) {
+            OnResponse(idMessage, code, message);
+        },
+        {},
+        m_impl->headers
+    );
 	m_impl->requests.try_emplace(id, std::move(item));
 }
 
@@ -46,22 +53,22 @@ void BaseJokeRequester::OnResponse(const size_t id, const int code, const QStrin
 {
 	const auto it = m_impl->requests.find(id);
 	assert(it != m_impl->requests.end());
-	const ScopedCall requestGuard([&] { m_impl->requests.erase(it); });
+	const ScopedCall requestGuard([&] {
+		m_impl->requests.erase(it);
+	});
 
 	const auto client = it->second->client.lock();
 	if (!client)
 		return;
 
-	auto errorMessage = message;
-	const ScopedCall errorGuard(
-		[this, &errorMessage, client]
-		{
-			if (errorMessage.isEmpty())
-				return;
+	auto             errorMessage = message;
+	const ScopedCall errorGuard([this, &errorMessage, client] {
+		if (errorMessage.isEmpty())
+			return;
 
-			PLOGE << errorMessage;
-			client->OnTextReceived(QString(R"(<p>%1 failed:</p><p style="color:Red;">%2</p>)").arg(m_impl->uri, errorMessage));
-		});
+		PLOGE << errorMessage;
+		client->OnTextReceived(QString(R"(<p>%1 failed:</p><p style="color:Red;">%2</p>)").arg(m_impl->uri, errorMessage));
+	});
 
 	if (code != QNetworkReply::NetworkError::NoError)
 		return;
@@ -70,7 +77,7 @@ void BaseJokeRequester::OnResponse(const size_t id, const int code, const QStrin
 		return;
 
 	QJsonParseError parseError;
-	const auto doc = QJsonDocument::fromJson(it->second->data, &parseError);
+	const auto      doc = QJsonDocument::fromJson(it->second->data, &parseError);
 	if (parseError.error != QJsonParseError::NoError)
 		return (void)(errorMessage = parseError.errorString());
 

@@ -23,8 +23,8 @@ class Fb2InpxParser
 	NON_COPY_MOVABLE(Fb2InpxParser)
 
 public:
-	static constexpr wchar_t LIST_SEPARATOR = ':';
-	static constexpr wchar_t NAMES_SEPARATOR = ',';
+	static constexpr wchar_t LIST_SEPARATOR   = ':';
+	static constexpr wchar_t NAMES_SEPARATOR  = ',';
 	static constexpr wchar_t FIELDS_SEPARATOR = '\x04';
 
 public:
@@ -39,14 +39,14 @@ public:
 
 		using Authors = std::vector<Author>;
 
-		Authors authors;
+		Authors     authors;
 		QStringList genres;
-		QString title;
-		QString lang;
-		QString series;
-		QString keywords;
-		QString seqNumber;
-		QString year;
+		QString     title;
+		QString     lang;
+		QString     series;
+		QString     keywords;
+		QString     seqNumber;
+		QString     year;
 
 		QString error;
 	};

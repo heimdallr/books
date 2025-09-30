@@ -9,7 +9,7 @@ class ScopedCall
 public:
 	using Function = std::function<void()>;
 
-	ScopedCall() = default;
+	ScopedCall()                      = default;
 	ScopedCall(const ScopedCall& rhs) = delete;
 
 	ScopedCall(ScopedCall&& rhs) noexcept
@@ -44,9 +44,9 @@ public:
 	{
 		ScopeLeave();
 
-		m_is_initialized = rhs.m_is_initialized;
-		m_init = std::move(rhs.m_init);
-		m_deinit = std::move(rhs.m_deinit);
+		m_is_initialized     = rhs.m_is_initialized;
+		m_init               = std::move(rhs.m_init);
+		m_deinit             = std::move(rhs.m_deinit);
 		rhs.m_is_initialized = false;
 
 		return *this;
@@ -70,7 +70,7 @@ private:
 	}
 
 private:
-	bool m_is_initialized { false };
+	bool     m_is_initialized { false };
 	Function m_init;
 	Function m_deinit;
 };

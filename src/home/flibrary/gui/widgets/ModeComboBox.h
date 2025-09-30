@@ -12,8 +12,8 @@ public:
 	{
 	public:
 		virtual ~IValueApplier() = default;
-		virtual void Find() = 0;
-		virtual void Filter() = 0;
+		virtual void Find()      = 0;
+		virtual void Filter()    = 0;
 	};
 
 	using ApplyValue = void (IValueApplier::*)();

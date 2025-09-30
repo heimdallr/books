@@ -12,7 +12,7 @@ public:
 	virtual ~IParentWidgetProvider() = default;
 
 public:
-	virtual void SetWidget(QPointer<QWidget> widget) = 0;
+	virtual void     SetWidget(QPointer<QWidget> widget)              = 0;
 	virtual QWidget* GetWidget(QWidget* parentWidget = nullptr) const = 0;
 };
 

@@ -93,7 +93,7 @@ public:
 	void DoRequest(std::weak_ptr<IClient> client, const std::string& request, const RequestType type)
 	{
 		m_client = std::move(client);
-		m_type = type;
+		m_type   = type;
 		m_connection->Get(request);
 	}
 
@@ -110,8 +110,8 @@ private: // IConnection::IObserver
 
 private:
 	PropagateConstPtr<IConnection> m_connection;
-	std::weak_ptr<IClient> m_client;
-	RequestType m_type { RequestType::None };
+	std::weak_ptr<IClient>         m_client;
+	RequestType                    m_type { RequestType::None };
 };
 
 Requester::Requester(std::unique_ptr<IConnection> connection)

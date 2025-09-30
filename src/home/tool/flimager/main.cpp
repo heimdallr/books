@@ -37,31 +37,31 @@ namespace
 constexpr auto APP_ID = "flimager";
 
 constexpr auto IMAGE_ARCHIVE_WILDCARD_OPTION_NAME = "archives";
-constexpr auto QUALITY_OPTION_NAME = "quality";
-constexpr auto MAX_SIZE_OPTION_NAME = "max-size";
-constexpr auto MAX_WIDTH_OPTION_NAME = "max-width";
-constexpr auto MAX_HEIGHT_OPTION_NAME = "max-height";
-constexpr auto GRAYSCALE_OPTION_NAME = "grayscale";
-constexpr auto MAX_THREAD_COUNT_OPTION_NAME = "threads";
-constexpr auto FOLDER = "folder";
-constexpr auto QUALITY = "quality [-1]";
-constexpr auto SIZE = "size [INT_MAX]";
-constexpr auto THREADS = "threads [%1]";
-constexpr auto FORMAT = "format";
+constexpr auto QUALITY_OPTION_NAME                = "quality";
+constexpr auto MAX_SIZE_OPTION_NAME               = "max-size";
+constexpr auto MAX_WIDTH_OPTION_NAME              = "max-width";
+constexpr auto MAX_HEIGHT_OPTION_NAME             = "max-height";
+constexpr auto GRAYSCALE_OPTION_NAME              = "grayscale";
+constexpr auto MAX_THREAD_COUNT_OPTION_NAME       = "threads";
+constexpr auto FOLDER                             = "folder";
+constexpr auto QUALITY                            = "quality [-1]";
+constexpr auto SIZE                               = "size [INT_MAX]";
+constexpr auto THREADS                            = "threads [%1]";
+constexpr auto FORMAT                             = "format";
 
 using Queue = std::queue<QString>;
 
 struct Settings
 {
-	QDir outputDir;
-	QString inputDir;
+	QDir        outputDir;
+	QString     inputDir;
 	QStringList inputFiles;
-	QString format { JXL::FORMAT };
-	int quality { -1 };
-	bool grayScale { false };
-	QSize size { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
-	size_t maxThreadCount { static_cast<size_t>(std::thread::hardware_concurrency()) };
-	int totalImageCount { 0 };
+	QString     format { JXL::FORMAT };
+	int         quality { -1 };
+	bool        grayScale { false };
+	QSize       size { std::numeric_limits<int>::max(), std::numeric_limits<int>::max() };
+	size_t      maxThreadCount { static_cast<size_t>(std::thread::hardware_concurrency()) };
+	int         totalImageCount { 0 };
 };
 
 QByteArray Encode(const QImage& image, const char* format, const int quality)
@@ -174,17 +174,15 @@ private:
 		const QFileInfo fileInfo(fileName);
 
 		std::vector<std::tuple<QString, QByteArray, QDateTime>> result;
-		const Zip zip(fileInfo.filePath());
+		const Zip                                               zip(fileInfo.filePath());
 		for (auto imageFile : zip.GetFileNameList())
 		{
-			const ScopedCall fileCountGuard(
-				[&, percents = m_imageCount * 100 / m_settings.totalImageCount]()
-				{
-					int imageCount = ++m_imageCount;
-					const auto currentPercents = imageCount * 100 / m_settings.totalImageCount;
-					if (percents != currentPercents || imageCount % 100 == 0)
-						PLOGV << QString("%1, %2 (%3) %4%").arg(fileName.last(fileName.length() - m_settings.inputDir.length())).arg(imageCount).arg(m_settings.totalImageCount).arg(currentPercents);
-				});
+			const ScopedCall fileCountGuard([&, percents = m_imageCount * 100 / m_settings.totalImageCount]() {
+				int        imageCount      = ++m_imageCount;
+				const auto currentPercents = imageCount * 100 / m_settings.totalImageCount;
+				if (percents != currentPercents || imageCount % 100 == 0)
+					PLOGV << QString("%1, %2 (%3) %4%").arg(fileName.last(fileName.length() - m_settings.inputDir.length())).arg(imageCount).arg(m_settings.totalImageCount).arg(currentPercents);
+			});
 
 			const auto imageBody = zip.Read(imageFile)->GetStream().readAll();
 			if (auto recoded = Recode(imageBody); !recoded.isEmpty())
@@ -223,12 +221,12 @@ private:
 	}
 
 private:
-	const Settings& m_settings;
-	std::mutex& m_queueGuard;
-	Queue& m_queue;
+	const Settings&   m_settings;
+	std::mutex&       m_queueGuard;
+	Queue&            m_queue;
 	std::atomic_bool& m_hasError;
-	std::atomic_int& m_imageCount;
-	std::thread m_thread;
+	std::atomic_int&  m_imageCount;
+	std::thread       m_thread;
 	using Encoder = QByteArray (*)(const QImage& image, int quality);
 	Encoder m_encoder { nullptr };
 };
@@ -238,8 +236,8 @@ bool ProcessArchives(const Settings& settings)
 	std::atomic_bool hasError { false };
 
 	{
-		std::mutex queueGuard;
-		Queue queue;
+		std::mutex      queueGuard;
+		Queue           queue;
 		std::atomic_int imageCount { 0 };
 
 		for (const auto& archive : settings.inputFiles)
@@ -276,17 +274,15 @@ void GetArchives(Settings& settings, const QStringList& wildCards)
 	}
 
 	if (!settings.inputDir.isEmpty())
-		std::ranges::transform(settings.inputFiles, settings.inputFiles.begin(), [n = settings.inputDir.length()](const QString& item) { return item.last(item.length() - n); });
+		std::ranges::transform(settings.inputFiles, settings.inputFiles.begin(), [n = settings.inputDir.length()](const QString& item) {
+			return item.last(item.length() - n);
+		});
 
 	PLOGD << "Total image count calculation";
-	settings.totalImageCount = std::accumulate(settings.inputFiles.cbegin(),
-	                                           settings.inputFiles.cend(),
-	                                           settings.totalImageCount,
-	                                           [&](const auto init, const QString& file)
-	                                           {
-												   const Zip zip(settings.inputDir + file);
-												   return init + zip.GetFileNameList().size();
-											   });
+	settings.totalImageCount = std::accumulate(settings.inputFiles.cbegin(), settings.inputFiles.cend(), settings.totalImageCount, [&](const auto init, const QString& file) {
+		const Zip zip(settings.inputDir + file);
+		return init + zip.GetFileNameList().size();
+	});
 	PLOGI << "Total image count: " << settings.totalImageCount;
 }
 
@@ -375,9 +371,9 @@ bool run(int argc, char* argv[])
 
 int main(const int argc, char* argv[])
 {
-	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
+	Log::LoggingInitializer                          logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
 	plog::ConsoleAppender<Util::LogConsoleFormatter> consoleAppender;
-	Log::LogAppender logConsoleAppender(&consoleAppender);
+	Log::LogAppender                                 logConsoleAppender(&consoleAppender);
 	PLOGI << QString("%1 started").arg(APP_ID);
 
 	try

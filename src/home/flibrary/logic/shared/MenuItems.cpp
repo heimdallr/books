@@ -16,11 +16,11 @@ namespace HomeCompa::Flibrary
 namespace
 {
 
-constexpr auto CONTEXT = "BookContextMenu";
-constexpr auto GROUPS = QT_TRANSLATE_NOOP("BookContextMenu", "&Groups");
-constexpr auto GROUPS_ADD_TO = QT_TRANSLATE_NOOP("BookContextMenu", "&Add to");
-constexpr auto GROUPS_ADD_TO_NEW = QT_TRANSLATE_NOOP("BookContextMenu", "&New group...");
-constexpr auto GROUPS_REMOVE_FROM = QT_TRANSLATE_NOOP("BookContextMenu", "&Remove from");
+constexpr auto CONTEXT                = "BookContextMenu";
+constexpr auto GROUPS                 = QT_TRANSLATE_NOOP("BookContextMenu", "&Groups");
+constexpr auto GROUPS_ADD_TO          = QT_TRANSLATE_NOOP("BookContextMenu", "&Add to");
+constexpr auto GROUPS_ADD_TO_NEW      = QT_TRANSLATE_NOOP("BookContextMenu", "&New group...");
+constexpr auto GROUPS_REMOVE_FROM     = QT_TRANSLATE_NOOP("BookContextMenu", "&Remove from");
 constexpr auto GROUPS_REMOVE_FROM_ALL = QT_TRANSLATE_NOOP("BookContextMenu", "&All");
 
 TR_DEF
@@ -46,11 +46,10 @@ left join Groups_List_User_View gw on gw.GroupID = g.GroupID and gw.BookID = :id
 
 	const auto parent = AddMenuItem(root, Tr(GROUPS));
 
-	const auto add = AddMenuItem(parent, Tr(GROUPS_ADD_TO), GroupsMenuAction::AddToGroup);
+	const auto add    = AddMenuItem(parent, Tr(GROUPS_ADD_TO), GroupsMenuAction::AddToGroup);
 	const auto remove = AddMenuItem(parent, Tr(GROUPS_REMOVE_FROM), GroupsMenuAction::RemoveFromGroup);
 
-	const auto createMenuItem = [&](const DB::IQuery& query) -> IDataItem::Ptr
-	{
+	const auto createMenuItem = [&](const DB::IQuery& query) -> IDataItem::Ptr {
 		if (const auto itemExistsInLinkTable = query.Get<long long>(2) >= 0; itemExistsInLinkTable)
 			return AddMenuItem(remove, query.Get<const char*>(1), GroupsMenuAction::RemoveFromGroup);
 

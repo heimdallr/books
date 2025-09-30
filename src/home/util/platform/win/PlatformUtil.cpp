@@ -7,7 +7,7 @@ namespace HomeCompa::Util
 
 bool IsRegisteredExtension(const QString& extension)
 {
-	QSettings m("HKEY_CLASSES_ROOT", QSettings::NativeFormat);
+	QSettings  m("HKEY_CLASSES_ROOT", QSettings::NativeFormat);
 	const auto fileType = m.value(QString(".%1/.").arg(extension)).toString();
 	if (fileType.isEmpty())
 	{

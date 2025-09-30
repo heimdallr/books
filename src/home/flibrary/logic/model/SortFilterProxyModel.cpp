@@ -17,14 +17,14 @@ AbstractSortFilterProxyModel::AbstractSortFilterProxyModel(QObject* parent)
 
 struct SortFilterProxyModel::Impl final
 {
-	QString m_filter;
-	QString m_languageFilter;
+	QString                                                m_filter;
+	QString                                                m_languageFilter;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
-	bool m_showRemoved { true };
-	bool m_navigationFiltered { false };
-	bool m_uniFilterEnabled { false };
-	QVector<int> m_visibleColumns;
-	std::vector<std::pair<int, Qt::SortOrder>> sort;
+	bool                                                   m_showRemoved { true };
+	bool                                                   m_navigationFiltered { false };
+	bool                                                   m_uniFilterEnabled { false };
+	QVector<int>                                           m_visibleColumns;
+	std::vector<std::pair<int, Qt::SortOrder>>             sort;
 
 	explicit Impl(const IModelProvider& modelProvider)
 		: m_sourceModel(modelProvider.GetSourceModel())
@@ -89,25 +89,37 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 		switch (role)
 		{
 			case Role::TextFilter:
-				return Util::Set(m_impl->m_filter, value.toString().simplified(), [&] { invalidateFilter(); });
+				return Util::Set(m_impl->m_filter, value.toString().simplified(), [&] {
+					invalidateFilter();
+				});
 
 			case Role::VisibleColumns:
-				return Util::Set(m_impl->m_visibleColumns, value.value<QVector<int>>(), [&] { invalidateFilter(); });
+				return Util::Set(m_impl->m_visibleColumns, value.value<QVector<int>>(), [&] {
+					invalidateFilter();
+				});
 
 			case Role::ShowRemovedFilter:
-				return Util::Set(m_impl->m_showRemoved, value.toBool(), [&] { invalidateFilter(); });
+				return Util::Set(m_impl->m_showRemoved, value.toBool(), [&] {
+					invalidateFilter();
+				});
 
 			case Role::NavigationItemFiltered:
-				return Util::Set(m_impl->m_navigationFiltered, value.toBool(), [&] { invalidateFilter(); });
+				return Util::Set(m_impl->m_navigationFiltered, value.toBool(), [&] {
+					invalidateFilter();
+				});
 
 			case Role::UniFilterEnabled:
-				return Util::Set(m_impl->m_uniFilterEnabled, value.toBool(), [&] { invalidateFilter(); });
+				return Util::Set(m_impl->m_uniFilterEnabled, value.toBool(), [&] {
+					invalidateFilter();
+				});
 
 			case Role::UniFilterChanged:
 				return invalidateFilter(), true;
 
 			case Role::LanguageFilter:
-				if (Util::Set(m_impl->m_languageFilter, value.toString().simplified(), [&] { invalidateFilter(); }))
+				if (Util::Set(m_impl->m_languageFilter, value.toString().simplified(), [&] {
+						invalidateFilter();
+					}))
 				{
 					emit headerDataChanged(Qt::Horizontal, 0, columnCount() - 1);
 					return true;
@@ -186,12 +198,10 @@ bool SortFilterProxyModel::FilterAcceptsText(const QModelIndex& index) const
 	if (index.data(Role::Type).value<ItemType>() == ItemType::Navigation)
 		return index.data().toString().simplified().contains(m_impl->m_filter, Qt::CaseInsensitive);
 
-	return std::ranges::any_of(m_impl->m_visibleColumns,
-	                           [&](const auto n)
-	                           {
-								   auto value = index.data(Role::Author + BookItem::Remap(n)).toString();
-								   return value.simplified().contains(m_impl->m_filter, Qt::CaseInsensitive);
-							   });
+	return std::ranges::any_of(m_impl->m_visibleColumns, [&](const auto n) {
+		auto value = index.data(Role::Author + BookItem::Remap(n)).toString();
+		return value.simplified().contains(m_impl->m_filter, Qt::CaseInsensitive);
+	});
 }
 
 bool SortFilterProxyModel::FilterAcceptsRemoved(const QModelIndex& index) const

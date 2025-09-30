@@ -21,7 +21,7 @@ public:
 	~FilterController() override;
 
 private: // IFilterProvider
-	[[nodiscard]] bool IsFilterEnabled() const noexcept override;
+	[[nodiscard]] bool                          IsFilterEnabled() const noexcept override;
 	[[nodiscard]] std::vector<IDataItem::Flags> GetFlags(const NavigationMode navigationMode, const std::vector<QString>& ids) const override;
 
 	void RegisterObserver(IObserver* observer) override;

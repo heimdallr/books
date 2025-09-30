@@ -88,7 +88,7 @@ bool DyLib::Open(std::filesystem::path moduleName)
 	void* const handle = InnerOpen(moduleName);
 	if (!handle)
 	{
-		const auto innerDescription = InnerGetErrorDescription();
+		const auto         innerDescription = InnerGetErrorDescription();
 		std::ostringstream stream;
 		stream << "Cannot load module '" << moduleName.generic_string() << "', additional info: " << innerDescription;
 		m_errorDescription = stream.str();
@@ -97,7 +97,7 @@ bool DyLib::Open(std::filesystem::path moduleName)
 
 	m_errorDescription.clear();
 	m_moduleName = std::move(moduleName);
-	m_handle = handle;
+	m_handle     = handle;
 	return true;
 }
 

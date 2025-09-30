@@ -103,12 +103,12 @@ Z7_IFACE_CONSTR_STREAM(IStreamGetProps, 0x08)
 
 struct CStreamFileProps
 {
-	UInt64 Size;
-	UInt64 VolID;
-	UInt64 FileID_Low;
-	UInt64 FileID_High;
-	UInt32 NumLinks;
-	UInt32 Attrib;
+	UInt64   Size;
+	UInt64   VolID;
+	UInt64   FileID_Low;
+	UInt64   FileID_High;
+	UInt32   NumLinks;
+	UInt32   Attrib;
 	FILETIME CTime;
 	FILETIME ATime;
 	FILETIME MTime;

@@ -20,9 +20,9 @@ public:
 
 private: // IDatabaseMigrator
 	NeedMigrateResult NeedMigrate() const override;
-	void Migrate() override;
-	void RegisterObserver(IObserver* observer) override;
-	void UnregisterObserver(IObserver* observer) override;
+	void              Migrate() override;
+	void              RegisterObserver(IObserver* observer) override;
+	void              UnregisterObserver(IObserver* observer) override;
 
 private:
 	struct Impl;

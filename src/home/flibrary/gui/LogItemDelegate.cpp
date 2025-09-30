@@ -11,7 +11,7 @@ using namespace HomeCompa::Flibrary;
 LogItemDelegate::LogItemDelegate(QObject* parent)
 	: QStyledItemDelegate(parent)
 {
-	const auto palette = QGuiApplication::palette();
+	const auto  palette    = QGuiApplication::palette();
 	const auto& severities = palette.color(QPalette::WindowText).lightness() > palette.color(QPalette::Window).lightness() ? SEVERITIES_DARK : SEVERITIES;
 	std::ranges::copy(severities | std::views::values, std::begin(m_colors));
 }

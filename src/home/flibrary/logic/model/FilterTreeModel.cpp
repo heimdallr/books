@@ -32,8 +32,7 @@ std::vector<IDataItem::Ptr> FilterTreeModel::GetHideFilteredChanged(const std::u
 {
 	std::vector<IDataItem::Ptr> changed;
 
-	const auto enumerate = [&](const IDataItem::Ptr& item, const auto& r) -> void
-	{
+	const auto enumerate = [&](const IDataItem::Ptr& item, const auto& r) -> void {
 		if (item->GetChildCount() == 0)
 		{
 			if (ids.contains(item->GetId()) && !(item->GetFlags() & IDataItem::Flags::Filtered))

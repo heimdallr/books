@@ -13,9 +13,9 @@ using namespace HomeCompa::Flibrary;
 
 struct AuthorsModel::Impl : private IAuthorAnnotationController::IObserver
 {
-	QAbstractItemModel* self;
+	QAbstractItemModel*                                             self;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> authorAnnotationController;
-	bool isReady { authorAnnotationController->IsReady() };
+	bool                                                            isReady { authorAnnotationController->IsReady() };
 
 	Impl(QAbstractItemModel* self, std::shared_ptr<IAuthorAnnotationController> authorAnnotationController)
 		: self { self }

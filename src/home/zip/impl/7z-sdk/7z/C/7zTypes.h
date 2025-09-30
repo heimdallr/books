@@ -60,15 +60,15 @@ typedef int WRes;
 		}
 #endif
 
-typedef unsigned char Byte;
-typedef short Int16;
+typedef unsigned char  Byte;
+typedef short          Int16;
 typedef unsigned short UInt16;
 
 #ifdef _LZMA_UINT32_IS_ULONG
-typedef long Int32;
+typedef long          Int32;
 typedef unsigned long UInt32;
 #else
-typedef int Int32;
+typedef int          Int32;
 typedef unsigned int UInt32;
 #endif
 
@@ -77,17 +77,17 @@ typedef unsigned int UInt32;
 /* define _SZ_NO_INT_64, if your compiler doesn't support 64-bit integers.
    NOTES: Some code will work incorrectly in that case! */
 
-typedef long Int64;
+typedef long          Int64;
 typedef unsigned long UInt64;
 
 #else
 
 	#if defined(_MSC_VER) || defined(__BORLANDC__)
-typedef __int64 Int64;
+typedef __int64          Int64;
 typedef unsigned __int64 UInt64;
 		#define UINT64_CONST(n) n
 	#else
-typedef long long int Int64;
+typedef long long int          Int64;
 typedef unsigned long long int UInt64;
 		#define UINT64_CONST(n) n##ULL
 	#endif
@@ -198,11 +198,11 @@ SRes LookInStream_Read(ILookInStream* stream, void* buf, size_t size);
 
 typedef struct
 {
-	ILookInStream s;
+	ILookInStream  s;
 	ISeekInStream* realStream;
-	size_t pos;
-	size_t size;
-	Byte buf[LookToRead_BUF_SIZE];
+	size_t         pos;
+	size_t         size;
+	Byte           buf[LookToRead_BUF_SIZE];
 } CLookToRead;
 
 void LookToRead_CreateVTable(CLookToRead* p, int lookahead);
@@ -210,7 +210,7 @@ void LookToRead_Init(CLookToRead* p);
 
 typedef struct
 {
-	ISeqInStream s;
+	ISeqInStream   s;
 	ILookInStream* realStream;
 } CSecToLook;
 
@@ -218,7 +218,7 @@ void SecToLook_CreateVTable(CSecToLook* p);
 
 typedef struct
 {
-	ISeqInStream s;
+	ISeqInStream   s;
 	ILookInStream* realStream;
 } CSecToRead;
 

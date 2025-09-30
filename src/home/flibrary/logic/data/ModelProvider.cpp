@@ -60,10 +60,10 @@ private:
 
 struct ModelProvider::Impl
 {
-	Hypodermic::Container& container;
-	mutable IDataItem::Ptr data;
+	Hypodermic::Container&                      container;
+	mutable IDataItem::Ptr                      data;
 	mutable std::shared_ptr<QAbstractItemModel> sourceModel;
-	NavigationMode navigationMode { NavigationMode::Unknown };
+	NavigationMode                              navigationMode { NavigationMode::Unknown };
 
 	explicit Impl(Hypodermic::Container& container)
 		: container(container)
@@ -81,7 +81,7 @@ struct ModelProvider::Impl
 	template <typename T>
 	std::shared_ptr<QAbstractItemModel> CreateModel(IDataItem::Ptr d, const bool autoAcceptChildRows) const
 	{
-		data = std::move(d);
+		data        = std::move(d);
 		sourceModel = container.resolve<T>();
 		sourceModel = CreateSortFilterProxyModel(autoAcceptChildRows); //-V519
 		return container.resolve<AbstractFilteredProxyModel>();
@@ -156,14 +156,14 @@ std::shared_ptr<QAbstractItemModel> ModelProvider::CreateAuthorReviewModel() con
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateFilterListModel(IDataItem::Ptr data) const
 {
-	m_impl->data = std::move(data);
+	m_impl->data        = std::move(data);
 	m_impl->sourceModel = m_impl->container.resolve<FilterListModel>();
 	return m_impl->CreateSortFilterProxyModel(false);
 }
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateFilterTreeModel(IDataItem::Ptr data) const
 {
-	m_impl->data = std::move(data);
+	m_impl->data        = std::move(data);
 	m_impl->sourceModel = m_impl->container.resolve<FilterTreeModel>();
 	return m_impl->CreateSortFilterProxyModel(false);
 }

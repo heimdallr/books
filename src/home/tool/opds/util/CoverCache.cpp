@@ -12,22 +12,19 @@ using namespace HomeCompa::Opds;
 
 struct CoverCache::Impl
 {
-	QTimer coversTimer;
-	std::mutex coversGuard;
+	QTimer                                  coversTimer;
+	std::mutex                              coversGuard;
 	std::unordered_map<QString, QByteArray> covers;
-	Util::FunctorExecutionForwarder forwarder;
+	Util::FunctorExecutionForwarder         forwarder;
 
 	Impl()
 	{
 		coversTimer.setInterval(std::chrono::minutes(1));
 		coversTimer.setSingleShot(true);
-		QObject::connect(&coversTimer,
-		                 &QTimer::timeout,
-		                 [this]
-		                 {
-							 std::lock_guard lock(coversGuard);
-							 covers.clear();
-						 });
+		QObject::connect(&coversTimer, &QTimer::timeout, [this] {
+			std::lock_guard lock(coversGuard);
+			covers.clear();
+		});
 	}
 };
 
@@ -40,17 +37,19 @@ CoverCache::~CoverCache() = default;
 
 void CoverCache::Set(QString id, QByteArray data) const
 {
-	auto& impl = *m_impl;
+	auto&           impl = *m_impl;
 	std::lock_guard lock(impl.coversGuard);
 	impl.covers.try_emplace(std::move(id), std::move(data));
-	impl.forwarder.Forward([&] { impl.coversTimer.start(); });
+	impl.forwarder.Forward([&] {
+		impl.coversTimer.start();
+	});
 }
 
 QByteArray CoverCache::Get(const QString& id) const
 {
-	auto& impl = *m_impl;
+	auto&           impl = *m_impl;
 	std::lock_guard lock(impl.coversGuard);
-	auto it = impl.covers.find(id);
+	auto            it = impl.covers.find(id);
 	if (it == impl.covers.end())
 		return {};
 

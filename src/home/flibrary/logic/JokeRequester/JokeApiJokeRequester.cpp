@@ -14,7 +14,7 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto CONTEXT = "JokeRequester";
+constexpr auto CONTEXT  = "JokeRequester";
 constexpr auto CATEGORY = QT_TRANSLATE_NOOP("JokeRequester", "Category");
 #if 0
 QT_TRANSLATE_NOOP("JokeRequester", "Programming");
@@ -69,12 +69,12 @@ bool JokeApiJokeRequester::Process(const QJsonValue& value, std::weak_ptr<IClien
 		return false;
 
 	const auto jsonObject = value.toObject();
-	const auto type = jsonObject["type"];
+	const auto type       = jsonObject["type"];
 	if (!type.isString())
 		return false;
 
 	const auto invoker = FindSecond(PARSERS, type.toString().toStdString().data(), &stub, PszComparer {});
-	const auto result = invoker(jsonObject);
+	const auto result  = invoker(jsonObject);
 	if (result.isEmpty())
 		return false;
 

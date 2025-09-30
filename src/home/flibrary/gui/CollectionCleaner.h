@@ -28,17 +28,19 @@ class CollectionCleaner final : public StackedPage
 	NON_COPY_MOVABLE(CollectionCleaner)
 
 public:
-	CollectionCleaner(const std::shared_ptr<const ICollectionProvider>& collectionProvider,
-	                  std::shared_ptr<const IUiFactory> uiFactory,
-	                  std::shared_ptr<const IReaderController> readerController,
-	                  std::shared_ptr<const ICollectionCleaner> collectionCleaner,
-	                  std::shared_ptr<const IBookInfoProvider> dataProvider,
-	                  std::shared_ptr<ISettings> settings,
-	                  std::shared_ptr<IGenreModel> genreModel,
-	                  std::shared_ptr<ILanguageModel> languageModel,
-	                  std::shared_ptr<ScrollBarController> scrollBarControllerGenre,
-	                  std::shared_ptr<ScrollBarController> scrollBarControllerLanguage,
-	                  QWidget* parent = nullptr);
+	CollectionCleaner(
+		const std::shared_ptr<const ICollectionProvider>& collectionProvider,
+		std::shared_ptr<const IUiFactory>                 uiFactory,
+		std::shared_ptr<const IReaderController>          readerController,
+		std::shared_ptr<const ICollectionCleaner>         collectionCleaner,
+		std::shared_ptr<const IBookInfoProvider>          dataProvider,
+		std::shared_ptr<ISettings>                        settings,
+		std::shared_ptr<IGenreModel>                      genreModel,
+		std::shared_ptr<ILanguageModel>                   languageModel,
+		std::shared_ptr<ScrollBarController>              scrollBarControllerGenre,
+		std::shared_ptr<ScrollBarController>              scrollBarControllerLanguage,
+		QWidget*                                          parent = nullptr
+	);
 	~CollectionCleaner() override;
 
 private:

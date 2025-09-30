@@ -39,15 +39,15 @@ public:
 	struct ImplementationDescription
 	{
 		Implementation implementation;
-		QString name;
-		QString title;
-		QString disclaimer;
+		QString        name;
+		QString        title;
+		QString        disclaimer;
 	};
 
 public:
-	virtual ~IJokeRequesterFactory() = default;
-	[[nodiscard]] virtual std::vector<ImplementationDescription> GetImplementations() const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IJokeRequester> Create(Implementation impl) const = 0;
+	virtual ~IJokeRequesterFactory()                                                               = default;
+	[[nodiscard]] virtual std::vector<ImplementationDescription> GetImplementations() const        = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IJokeRequester>  Create(Implementation impl) const = 0;
 
 public: // special
 	[[nodiscard]] virtual std::shared_ptr<Network::Downloader> GetDownloader() const = 0;

@@ -92,10 +92,9 @@ private: // IRestorer
 												"select BookID, ?, ?, ?, ? "
 												"from Books "
 												"where FolderID = (select FolderID from Folders where FolderTitle = ?) and FileName = ?";
-			const auto command = transaction->CreateCommand(commandText);
+			const auto            command     = transaction->CreateCommand(commandText);
 
-			const auto bind = [&](const size_t index, const QString& value)
-			{
+			const auto bind = [&](const size_t index, const QString& value) {
 				if (value.isEmpty())
 					return (void)command->Bind(index);
 

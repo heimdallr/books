@@ -193,52 +193,52 @@ auto find_format_by_extension(const tstring& extension) -> const BitInFormat*
  *         format. However, the switch case is faster and has less memory footprint. */
 auto find_format_by_signature(uint64_t signature) noexcept -> const BitInFormat*
 {
-	constexpr auto kRarSignature = 0x526172211A070000ULL; // Rar! 0x1A 0x07 0x00
-	constexpr auto kRar5Signature = 0x526172211A070100ULL; // Rar! 0x1A 0x07 0x01 0x00
-	constexpr auto kSevenzipSignature = 0x377ABCAF271C0000ULL; // 7z 0xBC 0xAF 0x27 0x1C
-	constexpr auto kBzip2Signature = 0x425A680000000000ULL; // BZh
-	constexpr auto kGzipSignature = 0x1F8B080000000000ULL; // 0x1F 0x8B 0x08
-	constexpr auto kWimSignature = 0x4D5357494D000000ULL; // MSWIM 0x00 0x00 0x00
-	constexpr auto kXzSignature = 0xFD377A585A000000ULL; // 0xFD 7zXZ 0x00
-	constexpr auto kZipSignature = 0x504B000000000000ULL; // PK
-	constexpr auto kApmSignature = 0x4552000000000000ULL; // ER
-	constexpr auto kArjSignature = 0x60EA000000000000ULL; // `EA
-	constexpr auto kCabSignature = 0x4D53434600000000ULL; // MSCF 0x00 0x00 0x00 0x00
-	constexpr auto kChmSignature = 0x4954534603000000ULL; // ITSF 0x03
-	constexpr auto kCompoundSignature = 0xD0CF11E0A1B11AE1ULL; // 0xD0 0xCF 0x11 0xE0 0xA1 0xB1 0x1A 0xE1
-	constexpr auto kCpioSignature1 = 0xC771000000000000ULL; // 0xC7 q
-	constexpr auto kCpioSignature2 = 0x71C7000000000000ULL; // q 0xC7
-	constexpr auto kCpioSignature3 = 0x3037303730000000ULL; // 07070
-	constexpr auto kDebSignature = 0x213C617263683E00ULL; // !<arch>0A
-	constexpr auto kElfSignature = 0x7F454C4600000000ULL; // 0x7F ELF
-	constexpr auto kPeSignature = 0x4D5A000000000000ULL; // MZ
-	constexpr auto kFlvSignature = 0x464C560100000000ULL; // FLV 0x01
-	constexpr auto kLzmaSignature = 0x5D00000000000000ULL; //
-	constexpr auto kLzma86Signature = 0x015D000000000000ULL; //
-	constexpr auto kMachoSignature1 = 0xCEFAEDFE00000000ULL; // 0xCE 0xFA 0xED 0xFE
-	constexpr auto kMachoSignature2 = 0xCFFAEDFE00000000ULL; // 0xCF 0xFA 0xED 0xFE
-	constexpr auto kMachoSignature3 = 0xFEEDFACE00000000ULL; // 0xFE 0xED 0xFA 0xCE
-	constexpr auto kMachoSignature4 = 0xFEEDFACF00000000ULL; // 0xFE 0xED 0xFA 0xCF
-	constexpr auto kMubSignature1 = 0xCAFEBABE00000000ULL; // 0xCA 0xFE 0xBA 0xBE 0x00 0x00 0x00
-	constexpr auto kMubSignature2 = 0xB9FAF10E00000000ULL; // 0xB9 0xFA 0xF1 0x0E
-	constexpr auto kMslzSignature = 0x535A444488F02733ULL; // SZDD 0x88 0xF0 '3
-	constexpr auto kPpmdSignature = 0x8FAFAC8400000000ULL; // 0x8F 0xAF 0xAC 0x84
-	constexpr auto kQcowSignature = 0x514649FB00000000ULL; // QFI 0xFB 0x00 0x00 0x00
-	constexpr auto kRpmSignature = 0xEDABEEDB00000000ULL; // 0xED 0xAB 0xEE 0xDB
+	constexpr auto kRarSignature       = 0x526172211A070000ULL; // Rar! 0x1A 0x07 0x00
+	constexpr auto kRar5Signature      = 0x526172211A070100ULL; // Rar! 0x1A 0x07 0x01 0x00
+	constexpr auto kSevenzipSignature  = 0x377ABCAF271C0000ULL; // 7z 0xBC 0xAF 0x27 0x1C
+	constexpr auto kBzip2Signature     = 0x425A680000000000ULL; // BZh
+	constexpr auto kGzipSignature      = 0x1F8B080000000000ULL; // 0x1F 0x8B 0x08
+	constexpr auto kWimSignature       = 0x4D5357494D000000ULL; // MSWIM 0x00 0x00 0x00
+	constexpr auto kXzSignature        = 0xFD377A585A000000ULL; // 0xFD 7zXZ 0x00
+	constexpr auto kZipSignature       = 0x504B000000000000ULL; // PK
+	constexpr auto kApmSignature       = 0x4552000000000000ULL; // ER
+	constexpr auto kArjSignature       = 0x60EA000000000000ULL; // `EA
+	constexpr auto kCabSignature       = 0x4D53434600000000ULL; // MSCF 0x00 0x00 0x00 0x00
+	constexpr auto kChmSignature       = 0x4954534603000000ULL; // ITSF 0x03
+	constexpr auto kCompoundSignature  = 0xD0CF11E0A1B11AE1ULL; // 0xD0 0xCF 0x11 0xE0 0xA1 0xB1 0x1A 0xE1
+	constexpr auto kCpioSignature1     = 0xC771000000000000ULL; // 0xC7 q
+	constexpr auto kCpioSignature2     = 0x71C7000000000000ULL; // q 0xC7
+	constexpr auto kCpioSignature3     = 0x3037303730000000ULL; // 07070
+	constexpr auto kDebSignature       = 0x213C617263683E00ULL; // !<arch>0A
+	constexpr auto kElfSignature       = 0x7F454C4600000000ULL; // 0x7F ELF
+	constexpr auto kPeSignature        = 0x4D5A000000000000ULL; // MZ
+	constexpr auto kFlvSignature       = 0x464C560100000000ULL; // FLV 0x01
+	constexpr auto kLzmaSignature      = 0x5D00000000000000ULL; //
+	constexpr auto kLzma86Signature    = 0x015D000000000000ULL; //
+	constexpr auto kMachoSignature1    = 0xCEFAEDFE00000000ULL; // 0xCE 0xFA 0xED 0xFE
+	constexpr auto kMachoSignature2    = 0xCFFAEDFE00000000ULL; // 0xCF 0xFA 0xED 0xFE
+	constexpr auto kMachoSignature3    = 0xFEEDFACE00000000ULL; // 0xFE 0xED 0xFA 0xCE
+	constexpr auto kMachoSignature4    = 0xFEEDFACF00000000ULL; // 0xFE 0xED 0xFA 0xCF
+	constexpr auto kMubSignature1      = 0xCAFEBABE00000000ULL; // 0xCA 0xFE 0xBA 0xBE 0x00 0x00 0x00
+	constexpr auto kMubSignature2      = 0xB9FAF10E00000000ULL; // 0xB9 0xFA 0xF1 0x0E
+	constexpr auto kMslzSignature      = 0x535A444488F02733ULL; // SZDD 0x88 0xF0 '3
+	constexpr auto kPpmdSignature      = 0x8FAFAC8400000000ULL; // 0x8F 0xAF 0xAC 0x84
+	constexpr auto kQcowSignature      = 0x514649FB00000000ULL; // QFI 0xFB 0x00 0x00 0x00
+	constexpr auto kRpmSignature       = 0xEDABEEDB00000000ULL; // 0xED 0xAB 0xEE 0xDB
 	constexpr auto kSquashfsSignature1 = 0x7371736800000000ULL; // sqsh
 	constexpr auto kSquashfsSignature2 = 0x6873717300000000ULL; // hsqs
 	constexpr auto kSquashfsSignature3 = 0x7368737100000000ULL; // shsq
 	constexpr auto kSquashfsSignature4 = 0x7173687300000000ULL; // qshs
-	constexpr auto kSwfSignature = 0x4657530000000000ULL; // FWS
-	constexpr auto kSwfcSignature1 = 0x4357530000000000ULL; // CWS
-	constexpr auto kSwfcSignature2 = 0x5A57530000000000ULL; // ZWS
-	constexpr auto kTeSignature = 0x565A000000000000ULL; // VZ
-	constexpr auto kVmdkSignature = 0x4B444D0000000000ULL; // KDMV
-	constexpr auto kVdiSignature = 0x3C3C3C2000000000ULL; // Alternatively, 0x7F10DABE at offset 0x40
-	constexpr auto kVhdSignature = 0x636F6E6563746978ULL; // conectix
-	constexpr auto kXarSignature = 0x78617221001C0000ULL; // xar! 0x00 0x1C
-	constexpr auto kZSignature1 = 0x1F9D000000000000ULL; // 0x1F 0x9D
-	constexpr auto kZSignature2 = 0x1FA0000000000000ULL; // 0x1F 0xA0
+	constexpr auto kSwfSignature       = 0x4657530000000000ULL; // FWS
+	constexpr auto kSwfcSignature1     = 0x4357530000000000ULL; // CWS
+	constexpr auto kSwfcSignature2     = 0x5A57530000000000ULL; // ZWS
+	constexpr auto kTeSignature        = 0x565A000000000000ULL; // VZ
+	constexpr auto kVmdkSignature      = 0x4B444D0000000000ULL; // KDMV
+	constexpr auto kVdiSignature       = 0x3C3C3C2000000000ULL; // Alternatively, 0x7F10DABE at offset 0x40
+	constexpr auto kVhdSignature       = 0x636F6E6563746978ULL; // conectix
+	constexpr auto kXarSignature       = 0x78617221001C0000ULL; // xar! 0x00 0x1C
+	constexpr auto kZSignature1        = 0x1F9D000000000000ULL; // 0x1F 0x9D
+	constexpr auto kZSignature2        = 0x1FA0000000000000ULL; // 0x1F 0xA0
 
 	switch (signature)
 	{
@@ -334,9 +334,9 @@ auto find_format_by_signature(uint64_t signature) noexcept -> const BitInFormat*
 
 struct OffsetSignature
 {
-	uint64_t signature;
-	std::streamoff offset;
-	uint32_t size;
+	uint64_t           signature;
+	std::streamoff     offset;
+	uint32_t           size;
 	const BitInFormat& format;
 };
 
@@ -373,9 +373,9 @@ auto to_large_integer(const std::streamoff offset)
 // Note: the left shifting of the signature mask might overflow, but it is intentional, so we suppress the sanitizer.
 auto detect_format_from_signature(IStream* stream) -> const BitInFormat&
 {
-	constexpr auto kSignatureSize = 8U;
+	constexpr auto kSignatureSize     = 8U;
 	constexpr auto kBaseSignatureMask = 0xFFFFFFFFFFFFFFFFULL;
-	constexpr auto kByteShift = 8ULL;
+	constexpr auto kByteShift         = 8ULL;
 
 	uint64_t fileSignature = read_signature(stream, kSignatureSize);
 	uint64_t signatureMask = kBaseSignatureMask;
@@ -388,7 +388,7 @@ auto detect_format_from_signature(IStream* stream) -> const BitInFormat&
 			return *format;
 		}
 		signatureMask <<= kByteShift; // left shifting the mask of one byte, so that
-		fileSignature &= signatureMask; // the least significant i bytes are masked (set to 0)
+		fileSignature  &= signatureMask; // the least significant i bytes are masked (set to 0)
 	}
 
 	static const OffsetSignature commonSignaturesWithOffset[] = {
@@ -420,9 +420,9 @@ auto detect_format_from_signature(IStream* stream) -> const BitInFormat&
 	}
 
 	// Detecting ISO/UDF
-	constexpr auto kBeaSignature = 0x4245413031000000; // BEA01 (beginning of the extended descriptor section)
-	constexpr auto kIsoSignature = 0x4344303031000000; // CD001 (ISO format signature)
-	constexpr auto kIsoSignatureSize = 5ULL;
+	constexpr auto kBeaSignature       = 0x4245413031000000; // BEA01 (beginning of the extended descriptor section)
+	constexpr auto kIsoSignature       = 0x4344303031000000; // CD001 (ISO format signature)
+	constexpr auto kIsoSignatureSize   = 5ULL;
 	constexpr auto kIsoSignatureOffset = 0x8001;
 
 	// Checking for ISO signature
@@ -432,10 +432,10 @@ auto detect_format_from_signature(IStream* stream) -> const BitInFormat&
 	const bool isIso = fileSignature == kIsoSignature;
 	if (isIso || fileSignature == kBeaSignature)
 	{
-		constexpr auto kMaxVolumeDescriptors = 16;
+		constexpr auto kMaxVolumeDescriptors    = 16;
 		constexpr auto kIsoVolumeDescriptorSize = 0x800; //2048
 
-		constexpr auto kUdfSignature = 0x4E53523000000000; //NSR0
+		constexpr auto kUdfSignature     = 0x4E53523000000000; //NSR0
 		constexpr auto kUdfSignatureSize = 4U;
 
 		for (auto descriptorIndex = 1; descriptorIndex < kMaxVolumeDescriptors; ++descriptorIndex)

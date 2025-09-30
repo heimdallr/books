@@ -12,7 +12,7 @@ public:
 	virtual ~IDialog() = default;
 
 	[[nodiscard]] virtual QMessageBox::StandardButton
-	Show(const QString& text = {}, const QMessageBox::StandardButtons& buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
+								  Show(const QString& text = {}, const QMessageBox::StandardButtons& buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const   = 0;
 	[[nodiscard]] virtual QString GetText(const QString& title, const QString& label, const QString& text = {}, const QStringList& comboBoxItems = {}, QLineEdit::EchoMode mode = QLineEdit::Normal) const = 0;
 };
 

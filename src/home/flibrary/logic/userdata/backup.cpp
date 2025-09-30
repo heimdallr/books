@@ -41,7 +41,9 @@ public:
 	XmlAttributes(const R& r, DB::IQuery& query)
 	{
 		m_values.reserve(std::size(r));
-		std::ranges::transform(r, std::back_inserter(m_values), [&, n = 0](const auto& value) mutable { return std::pair(value, query.Get<const char*>(n++)); });
+		std::ranges::transform(r, std::back_inserter(m_values), [&, n = 0](const auto& value) mutable {
+			return std::pair(value, query.Get<const char*>(n++));
+		});
 	}
 
 	XmlAttributes() = default;
@@ -76,7 +78,7 @@ private: // Util::XmlAttributes
 
 private:
 	std::vector<std::pair<QString, QString>> m_values;
-	const QString s_empty;
+	const QString                            s_empty;
 };
 
 void BackupUserDataBooks(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
@@ -111,27 +113,30 @@ void BackupUserDataGroups(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 								 "order by g.GroupID ";
 
 	std::unique_ptr<ScopedCall> group;
-	QString currentTitle;
-	const auto query = db.CreateQuery(text);
+	QString                     currentTitle;
+	const auto                  query = db.CreateQuery(text);
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
-		QString title = query->Get<const char*>(0);
+		QString title          = query->Get<const char*>(0);
 		QString groupCreatedAt = query->Get<const char*>(1);
 		if (currentTitle != title)
 		{
 			currentTitle = std::move(title);
 			group.reset();
 			std::make_unique<ScopedCall>(
-				[&]
-				{
-					xmlWriter.WriteStartElement(Constant::UserData::Groups::GroupNode,
-				                                XmlAttributes({
-													{                      Constant::TITLE,   currentTitle },
-													{ Constant::UserData::Books::CreatedAt, groupCreatedAt },
-                    }));
+				[&] {
+					xmlWriter.WriteStartElement(
+						Constant::UserData::Groups::GroupNode,
+						XmlAttributes({
+							{                      Constant::TITLE,   currentTitle },
+							{ Constant::UserData::Books::CreatedAt, groupCreatedAt },
+                    })
+					);
 				},
-				[&] { xmlWriter.WriteEndElement(); })
-				.swap(group);
+				[&] {
+					xmlWriter.WriteEndElement();
+				}
+			).swap(group);
 		}
 
 		if (const auto* fileName = query->Get<const char*>(3))
@@ -194,23 +199,21 @@ void BackupUserDataExportStat(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 void BackupUserDataFilter(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 {
 	auto range = IFilterProvider::GetDescriptions();
-	(void)std::ranges::for_each(range,
-	                            [&](const IFilterProvider::FilteredNavigation& description)
-	                            {
-									const auto index = static_cast<size_t>(description.navigationMode);
-									assert(!Constant::UserData::Filter::FIELD_NAMES[index].empty());
-									const auto query = db.CreateQuery(std::format("select {}, Flags from {} where Flags != 0", Constant::UserData::Filter::FIELD_NAMES[index], description.table));
-									query->Execute();
-									if (query->Eof())
-										return;
+	(void)std::ranges::for_each(range, [&](const IFilterProvider::FilteredNavigation& description) {
+		const auto index = static_cast<size_t>(description.navigationMode);
+		assert(!Constant::UserData::Filter::FIELD_NAMES[index].empty());
+		const auto query = db.CreateQuery(std::format("select {}, Flags from {} where Flags != 0", Constant::UserData::Filter::FIELD_NAMES[index], description.table));
+		query->Execute();
+		if (query->Eof())
+			return;
 
-									const auto navigationTitleGuard = xmlWriter.Guard(description.navigationTitle);
-									for (; !query->Eof(); query->Next())
-										navigationTitleGuard->WriteStartElement(Constant::ITEM)
-											.WriteAttribute(Constant::UserData::Filter::Title, query->Get<const char*>(0))
-											.WriteAttribute(Constant::UserData::Filter::Flag, query->Get<const char*>(1))
-											.WriteEndElement();
-								});
+		const auto navigationTitleGuard = xmlWriter.Guard(description.navigationTitle);
+		for (; !query->Eof(); query->Next())
+			navigationTitleGuard->WriteStartElement(Constant::ITEM)
+				.WriteAttribute(Constant::UserData::Filter::Title, query->Get<const char*>(0))
+				.WriteAttribute(Constant::UserData::Filter::Flag, query->Get<const char*>(1))
+				.WriteEndElement();
+	});
 }
 
 constexpr std::pair<const char*, BackupFunction> BACKUPERS[] {
@@ -223,40 +226,67 @@ constexpr std::pair<const char*, BackupFunction> BACKUPERS[] {
 
 void Backup(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName, Callback callback)
 {
-	executor({ "Backup user data",
-	           [&db, fileName = std::move(fileName), callback = std::move(callback)]() mutable
-	           {
-				   std::function<void(size_t)> result;
+	executor({ "Backup user data", [&db, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
+				  std::function<void(size_t)> result;
 
-				   QFile out(fileName);
-				   if (!out.open(QIODevice::WriteOnly))
-				   {
-					   auto error = QString(CANNOT_WRITE).arg(fileName);
-					   PLOGE << error;
-					   result = [error = std::move(error), callback = std::move(callback)](size_t) { callback(error); };
-					   return result;
-				   }
+				  QFile out(fileName);
+				  if (!out.open(QIODevice::WriteOnly))
+				  {
+					  auto error = QString(CANNOT_WRITE).arg(fileName);
+					  PLOGE << error;
+					  result = [error = std::move(error), callback = std::move(callback)](size_t) {
+						  callback(error);
+					  };
+					  return result;
+				  }
 
-				   Util::XmlWriter xmlWriter(out);
-				   ScopedCall rootElement([&] { xmlWriter.WriteStartElement(Constant::FlibraryBackup, XmlAttributes {}); }, [&] { xmlWriter.WriteEndElement(); });
-				   ScopedCall(
-					   [&]
-					   {
-						   xmlWriter.WriteStartElement(Constant::FlibraryBackupVersion,
-			                                           XmlAttributes({
-														   { Constant::VALUE, QString::number(Constant::FlibraryBackupVersionNumber) },
-                           }));
-					   },
-					   [&] { xmlWriter.WriteEndElement(); });
-				   ScopedCall userData([&] { xmlWriter.WriteStartElement(Constant::FlibraryUserData, XmlAttributes {}); }, [&] { xmlWriter.WriteEndElement(); });
-				   for (const auto& [name, functor] : BACKUPERS)
-				   {
-					   ScopedCall item([&] { xmlWriter.WriteStartElement(name, XmlAttributes {}); }, [&] { xmlWriter.WriteEndElement(); });
-					   functor(db, xmlWriter);
-				   }
+				  Util::XmlWriter xmlWriter(out);
+				  ScopedCall      rootElement(
+                      [&] {
+                          xmlWriter.WriteStartElement(Constant::FlibraryBackup, XmlAttributes {});
+                      },
+                      [&] {
+                          xmlWriter.WriteEndElement();
+                      }
+                  );
+				  ScopedCall(
+					  [&] {
+						  xmlWriter.WriteStartElement(
+							  Constant::FlibraryBackupVersion,
+							  XmlAttributes({
+								  { Constant::VALUE, QString::number(Constant::FlibraryBackupVersionNumber) },
+                          })
+						  );
+					  },
+					  [&] {
+						  xmlWriter.WriteEndElement();
+					  }
+				  );
+				  ScopedCall userData(
+					  [&] {
+						  xmlWriter.WriteStartElement(Constant::FlibraryUserData, XmlAttributes {});
+					  },
+					  [&] {
+						  xmlWriter.WriteEndElement();
+					  }
+				  );
+				  for (const auto& [name, functor] : BACKUPERS)
+				  {
+					  ScopedCall item(
+						  [&] {
+							  xmlWriter.WriteStartElement(name, XmlAttributes {});
+						  },
+						  [&] {
+							  xmlWriter.WriteEndElement();
+						  }
+					  );
+					  functor(db, xmlWriter);
+				  }
 
-				   return result = [callback = std::move(callback)](size_t) { callback({}); };
-			   } });
+				  return result = [callback = std::move(callback)](size_t) {
+					  callback({});
+				  };
+			  } });
 }
 
 } // namespace HomeCompa::Flibrary::UserData

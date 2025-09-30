@@ -12,13 +12,13 @@ public:
 	class IClient // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
-		virtual ~IClient() = default;
-		virtual void OnTextReceived(const QString& value) = 0;
+		virtual ~IClient()                                    = default;
+		virtual void OnTextReceived(const QString& value)     = 0;
 		virtual void OnImageReceived(const QByteArray& value) = 0;
 	};
 
 public:
-	virtual ~IJokeRequester() = default;
+	virtual ~IJokeRequester()                           = default;
 	virtual void Request(std::weak_ptr<IClient> client) = 0;
 };
 

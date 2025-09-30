@@ -19,10 +19,12 @@ class UpdateChecker final : virtual public IUpdateChecker
 	NON_COPY_MOVABLE(UpdateChecker)
 
 public:
-	UpdateChecker(const std::shared_ptr<const ILogicFactory>& logicFactory,
-	              std::shared_ptr<ISettings> settings,
-	              std::shared_ptr<IUiFactory> uiFactory,
-	              std::shared_ptr<IBooksExtractorProgressController> progressController);
+	UpdateChecker(
+		const std::shared_ptr<const ILogicFactory>&        logicFactory,
+		std::shared_ptr<ISettings>                         settings,
+		std::shared_ptr<IUiFactory>                        uiFactory,
+		std::shared_ptr<IBooksExtractorProgressController> progressController
+	);
 	~UpdateChecker() override;
 
 private: // IUpdateChecker

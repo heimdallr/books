@@ -48,7 +48,7 @@ TR_DEF
 int main(int argc, char* argv[])
 {
 	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, PRODUCT_ID).toStdWString());
-	LogModelAppender logModelAppender;
+	LogModelAppender        logModelAppender;
 
 	PLOGI << "App started";
 	PLOGI << "Version: " << GetApplicationVersion();
@@ -78,16 +78,16 @@ int main(int argc, char* argv[])
 			}
 			PLOGD << "DI-container created";
 
-			const auto settings = container->resolve<ISettings>();
+			const auto settings    = container->resolve<ISettings>();
 			const auto translators = Loc::LoadLocales(*settings); //-V808
 
 			Genre::SetSortMode(*settings);
 			if (!settings->HasKey(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks)))
 				settings->Set(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks), false);
 
-			auto styleApplierFactory = container->resolve<IStyleApplierFactory>();
-			const auto themeLib = styleApplierFactory->CreateThemeApplier()->Set(app);
-			const auto colorSchemeLib = styleApplierFactory->CreateStyleApplier(IStyleApplier::Type::ColorScheme)->Set(app);
+			auto       styleApplierFactory = container->resolve<IStyleApplierFactory>();
+			const auto themeLib            = styleApplierFactory->CreateThemeApplier()->Set(app);
+			const auto colorSchemeLib      = styleApplierFactory->CreateStyleApplier(IStyleApplier::Type::ColorScheme)->Set(app);
 			styleApplierFactory.reset();
 
 			switch (const auto migrator = container->resolve<IDatabaseMigrator>(); migrator->NeedMigrate())

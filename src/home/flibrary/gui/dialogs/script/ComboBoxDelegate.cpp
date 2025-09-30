@@ -26,7 +26,7 @@ QWidget* ComboBoxDelegate::createEditor(QWidget* parent, const QStyleOptionViewI
 
 void ComboBoxDelegate::setEditorData(QWidget* editor, const QModelIndex& index) const
 {
-	auto* comboBox = qobject_cast<QComboBox*>(editor);
+	auto*      comboBox     = qobject_cast<QComboBox*>(editor);
 	const auto currentIndex = comboBox->findData(index.data(Role::Type));
 	comboBox->setCurrentIndex(currentIndex);
 }

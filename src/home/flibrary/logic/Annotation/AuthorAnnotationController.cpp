@@ -45,17 +45,17 @@ public:
 			return;
 
 		assert(m_executor);
-		(*m_executor)({ "Extract author's annotation",
-		                [this, id, name = std::move(name)]() mutable
-		                {
-							auto annotation = GetAnnotation(name);
-							return [this, id, annotation = std::move(annotation)](size_t)
-							{
-								if (id == m_authorId)
-									Perform(&IObserver::OnAuthorChanged, std::cref(annotation.first), std::cref(annotation.second));
-							};
-						} },
-		              1000);
+		(*m_executor)(
+			{ "Extract author's annotation",
+		      [this, id, name = std::move(name)]() mutable {
+				  auto annotation = GetAnnotation(name);
+				  return [this, id, annotation = std::move(annotation)](size_t) {
+					  if (id == m_authorId)
+						  Perform(&IObserver::OnAuthorChanged, std::cref(annotation.first), std::cref(annotation.second));
+				  };
+			  } },
+			1000
+		);
 	}
 
 	bool CheckAuthor(const QString& name) const
@@ -89,8 +89,8 @@ private:
 	{
 		QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
 		hash.addData(name.split(' ', Qt::SkipEmptyParts).join(' ').toLower().simplified().toUtf8());
-		auto hashed = hash.result().toHex();
-		const auto it = m_authorToArchive.find(hashed);
+		auto       hashed = hash.result().toHex();
+		const auto it     = m_authorToArchive.find(hashed);
 
 		return std::make_pair(std::move(hashed), it != m_authorToArchive.end() ? it->second : -1);
 	}
@@ -105,27 +105,27 @@ private:
 			return;
 
 		m_executor = logicFactory.GetExecutor();
-		(*m_executor)({ "Create author's annotations map",
-		                [this]
-		                {
-							std::unordered_map<QString, int> authorToArchive;
-							for (const auto& file : m_authorsDir.entryList(QDir::Files))
-							{
-								Zip zip(m_authorsDir.filePath(file));
-								std::ranges::transform(zip.GetFileNameList(),
-				                                       std::inserter(authorToArchive, authorToArchive.end()),
-				                                       [&](const auto& item) { return std::make_pair(item, QFileInfo(file).baseName().toInt()); });
-							}
-							return [this, authorToArchive = std::move(authorToArchive)](size_t) mutable
-							{
-								if (authorToArchive.empty())
-									return m_executor.reset();
+		(*m_executor)(
+			{ "Create author's annotations map",
+		      [this] {
+				  std::unordered_map<QString, int> authorToArchive;
+				  for (const auto& file : m_authorsDir.entryList(QDir::Files))
+				  {
+					  Zip zip(m_authorsDir.filePath(file));
+					  std::ranges::transform(zip.GetFileNameList(), std::inserter(authorToArchive, authorToArchive.end()), [&](const auto& item) {
+						  return std::make_pair(item, QFileInfo(file).baseName().toInt());
+					  });
+				  }
+				  return [this, authorToArchive = std::move(authorToArchive)](size_t) mutable {
+					  if (authorToArchive.empty())
+						  return m_executor.reset();
 
-								m_authorToArchive = std::move(authorToArchive);
-								Perform(&IObserver::OnReadyChanged);
-							};
-						} },
-		              1000);
+					  m_authorToArchive = std::move(authorToArchive);
+					  Perform(&IObserver::OnReadyChanged);
+				  };
+			  } },
+			1000
+		);
 	}
 
 	std::pair<QString, std::vector<QByteArray>> GetAnnotation(const QString& name) const
@@ -151,17 +151,23 @@ private:
 			return {};
 
 		std::vector<QByteArray> result;
-		Zip zip(imagesFileName);
-		std::ranges::transform(zip.GetFileNameList() | std::views::filter([&](const auto& item) { return item.startsWith(name); }),
-		                       std::back_inserter(result),
-		                       [&](const auto& item) { return zip.Read(item)->GetStream().readAll(); });
+		Zip                     zip(imagesFileName);
+		std::ranges::transform(
+			zip.GetFileNameList() | std::views::filter([&](const auto& item) {
+				return item.startsWith(name);
+			}),
+			std::back_inserter(result),
+			[&](const auto& item) {
+				return zip.Read(item)->GetStream().readAll();
+			}
+		);
 		return result;
 	}
 
 private:
 	bool m_authorsMode { false };
 
-	QDir m_authorsDir;
+	QDir                             m_authorsDir;
 	std::unique_ptr<Util::IExecutor> m_executor;
 
 	std::unordered_map<QString, int> m_authorToArchive;

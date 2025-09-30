@@ -47,7 +47,7 @@ Connection::~Connection() = default;
 IConnection::Headers Connection::GetPage(const std::string& page)
 {
 	QNetworkRequest request = m_impl->PrepareRequest();
-	const QUrl url(QString::fromStdString(page));
+	const QUrl      url(QString::fromStdString(page));
 	request.setUrl(url);
 
 	QNetworkReply* reply = m_impl->networkManager.get(request);
@@ -60,12 +60,11 @@ IConnection::Headers Connection::GetPage(const std::string& page)
 		reply,
 		&QNetworkReply::readChannelFinished,
 		&m_impl->networkManager,
-		[&, reply]()
-		{
+		[&, reply]() {
 			const QByteArray rawData = reply->readAll();
 
 			QJsonParseError error;
-			const auto doc = QJsonDocument::fromJson(rawData, &error);
+			const auto      doc = QJsonDocument::fromJson(rawData, &error);
 			if (error.error == QJsonParseError::NoError)
 				OnDataReceived(doc);
 
@@ -76,21 +75,19 @@ IConnection::Headers Connection::GetPage(const std::string& page)
 
 			eventLoop.exit();
 		},
-		Qt::DirectConnection);
+		Qt::DirectConnection
+	);
 
-	QObject::connect(reply,
-	                 &QNetworkReply::errorOccurred,
-	                 [reply, &page](const QNetworkReply::NetworkError code) { PLOGE << QString("Error (%1 - %2) occurred when processing request %3").arg(code).arg(reply->errorString()).arg(page.c_str()); });
+	QObject::connect(reply, &QNetworkReply::errorOccurred, [reply, &page](const QNetworkReply::NetworkError code) {
+		PLOGE << QString("Error (%1 - %2) occurred when processing request %3").arg(code).arg(reply->errorString()).arg(page.c_str());
+	});
 
-	QObject::connect(reply,
-	                 &QNetworkReply::sslErrors,
-	                 [&page](const QList<QSslError>& errors)
-	                 {
-						 PLOGE << QString("Ssl errors occurred when processing request %1:").arg(page.c_str());
+	QObject::connect(reply, &QNetworkReply::sslErrors, [&page](const QList<QSslError>& errors) {
+		PLOGE << QString("Ssl errors occurred when processing request %1:").arg(page.c_str());
 
-						 for (const auto& error : std::as_const(errors))
-							 PLOGE << error.errorString();
-					 });
+		for (const auto& error : std::as_const(errors))
+			PLOGE << error.errorString();
+	});
 
 	eventLoop.exec();
 

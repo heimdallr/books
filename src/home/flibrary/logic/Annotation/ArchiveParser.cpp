@@ -24,38 +24,38 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto CONTEXT = "Annotation";
-constexpr auto CONTENT = QT_TRANSLATE_NOOP("Annotation", "Content");
+constexpr auto CONTEXT    = "Annotation";
+constexpr auto CONTENT    = QT_TRANSLATE_NOOP("Annotation", "Content");
 constexpr auto FILE_EMPTY = QT_TRANSLATE_NOOP("Annotation", "File is empty");
 TR_DEF
 
-constexpr auto ID = "id";
-constexpr auto A = "a";
-constexpr auto P = "p";
-constexpr auto EMPHASIS = "emphasis";
-constexpr auto TRANSLATOR = "FictionBook/description/title-info/translator";
-constexpr auto TRANSLATOR_FIRST_NAME = "FictionBook/description/title-info/translator/first-name";
+constexpr auto ID                     = "id";
+constexpr auto A                      = "a";
+constexpr auto P                      = "p";
+constexpr auto EMPHASIS               = "emphasis";
+constexpr auto TRANSLATOR             = "FictionBook/description/title-info/translator";
+constexpr auto TRANSLATOR_FIRST_NAME  = "FictionBook/description/title-info/translator/first-name";
 constexpr auto TRANSLATOR_MIDDLE_NAME = "FictionBook/description/title-info/translator/middle-name";
-constexpr auto TRANSLATOR_LAST_NAME = "FictionBook/description/title-info/translator/last-name";
-constexpr auto ANNOTATION = "FictionBook/description/title-info/annotation";
-constexpr auto KEYWORDS = "FictionBook/description/title-info/keywords";
-constexpr auto LANG = "FictionBook/description/title-info/lang";
-constexpr auto LANG_SRC = "FictionBook/description/title-info/src-lang";
-constexpr auto BINARY = "FictionBook/binary";
-constexpr auto COVERPAGE_IMAGE = "FictionBook/description/title-info/coverpage/image";
-constexpr auto SECTION = "section";
-constexpr auto SECTION_TITLE = "section/title";
-constexpr auto SECTION_TITLE_P = "section/title/p";
+constexpr auto TRANSLATOR_LAST_NAME   = "FictionBook/description/title-info/translator/last-name";
+constexpr auto ANNOTATION             = "FictionBook/description/title-info/annotation";
+constexpr auto KEYWORDS               = "FictionBook/description/title-info/keywords";
+constexpr auto LANG                   = "FictionBook/description/title-info/lang";
+constexpr auto LANG_SRC               = "FictionBook/description/title-info/src-lang";
+constexpr auto BINARY                 = "FictionBook/binary";
+constexpr auto COVERPAGE_IMAGE        = "FictionBook/description/title-info/coverpage/image";
+constexpr auto SECTION                = "section";
+constexpr auto SECTION_TITLE          = "section/title";
+constexpr auto SECTION_TITLE_P        = "section/title/p";
 constexpr auto SECTION_TITLE_P_STRONG = "section/title/p/strong";
-constexpr auto EPIGRAPH = "FictionBook/body/epigraph";
-constexpr auto EPIGRAPH_P = "FictionBook/body/epigraph/p";
-constexpr auto EPIGRAPH_AUTHOR = "FictionBook/body/epigraph/text-author";
+constexpr auto EPIGRAPH               = "FictionBook/body/epigraph";
+constexpr auto EPIGRAPH_P             = "FictionBook/body/epigraph/p";
+constexpr auto EPIGRAPH_AUTHOR        = "FictionBook/body/epigraph/text-author";
 constexpr auto PUBLISH_INFO_PUBLISHER = "FictionBook/description/publish-info/publisher";
-constexpr auto PUBLISH_INFO_CITY = "FictionBook/description/publish-info/city";
-constexpr auto PUBLISH_INFO_YEAR = "FictionBook/description/publish-info/year";
-constexpr auto PUBLISH_INFO_ISBN = "FictionBook/description/publish-info/isbn";
-constexpr auto BODY = "FictionBook/body/";
-constexpr auto FICTION_BOOK = "FictionBook";
+constexpr auto PUBLISH_INFO_CITY      = "FictionBook/description/publish-info/city";
+constexpr auto PUBLISH_INFO_YEAR      = "FictionBook/description/publish-info/year";
+constexpr auto PUBLISH_INFO_ISBN      = "FictionBook/description/publish-info/isbn";
+constexpr auto BODY                   = "FictionBook/body/";
+constexpr auto FICTION_BOOK           = "FictionBook";
 
 constexpr std::pair<const char*, const char*> ANNOTATION_REPLACE_TAGS[] {
 	{ EMPHASIS, "em" },
@@ -68,7 +68,9 @@ constexpr std::pair<const char*, const char*> ANNOTATION_REPLACE_ATTRIBUTE_NAME[
 
 QString AnnotationReplaceAttributeName(const QString& name)
 {
-	const auto it = std::ranges::find(ANNOTATION_REPLACE_ATTRIBUTE_NAME, name, [](const auto& item) { return item.first; });
+	const auto it = std::ranges::find(ANNOTATION_REPLACE_ATTRIBUTE_NAME, name, [](const auto& item) {
+		return item.first;
+	});
 	return it == std::end(ANNOTATION_REPLACE_ATTRIBUTE_NAME) ? name : it->second;
 }
 
@@ -95,32 +97,41 @@ public:
 		m_progressItem = std::move(progressItem);
 
 		SaxParser::Parse();
-		if (const auto it = std::ranges::find_if(m_covers, [&](const auto& item) { return item.first == m_coverpage; }); it != m_covers.end())
+		if (const auto it = std::ranges::find_if(
+				m_covers,
+				[&](const auto& item) {
+					return item.first == m_coverpage;
+				}
+			);
+		    it != m_covers.end())
 			m_data.covers.emplace_back(std::move(it->first), std::move(it->second));
 
 		std::multimap<int, QByteArray> covers;
 
-		ExtractBookImages(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)),
-		                  book.GetRawData(BookItem::Column::FileName),
-		                  [this, &covers](QString name, QByteArray data)
-		                  {
-							  bool ok = false;
-							  const auto id = name.toInt(&ok);
-							  if (ok)
-								  covers.emplace(id, std::move(data));
-							  else
-								  m_data.covers.emplace_back(std::move(name), std::move(data));
+		ExtractBookImages(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)), book.GetRawData(BookItem::Column::FileName), [this, &covers](QString name, QByteArray data) {
+			bool       ok = false;
+			const auto id = name.toInt(&ok);
+			if (ok)
+				covers.emplace(id, std::move(data));
+			else
+				m_data.covers.emplace_back(std::move(name), std::move(data));
 
-							  return false;
-						  });
+			return false;
+		});
 
-		std::ranges::transform(std::move(covers),
-		                       std::back_inserter(m_data.covers),
-		                       [](auto&& item) { return IAnnotationController::IDataProvider::Cover { QString::number(item.first), std::move(item.second) }; });
+		std::ranges::transform(std::move(covers), std::back_inserter(m_data.covers), [](auto&& item) {
+			return IAnnotationController::IDataProvider::Cover { QString::number(item.first), std::move(item.second) };
+		});
 
-		std::ranges::transform(std::move(m_covers) | std::views::filter([](const auto& item) { return !item.second.isNull(); }),
-		                       std::back_inserter(m_data.covers),
-		                       [](auto&& item) { return IAnnotationController::IDataProvider::Cover { std::move(item.first), std::move(item.second) }; });
+		std::ranges::transform(
+			std::move(m_covers) | std::views::filter([](const auto& item) {
+				return !item.second.isNull();
+			}),
+			std::back_inserter(m_data.covers),
+			[](auto&& item) {
+				return IAnnotationController::IDataProvider::Cover { std::move(item.first), std::move(item.second) };
+			}
+		);
 
 		return m_data;
 	}
@@ -133,10 +144,19 @@ private: // Util::SaxParser
 
 		if (m_annotationMode)
 		{
-			const auto it = std::ranges::find(ANNOTATION_REPLACE_TAGS, name, [](const auto& item) { return item.first; });
+			const auto it = std::ranges::find(ANNOTATION_REPLACE_TAGS, name, [](const auto& item) {
+				return item.first;
+			});
 			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name : it->second; !replacedName.isEmpty())
 			{
-				const ScopedCall nodeGuard([&] { m_data.annotation.append(QString("<%1").arg(replacedName)); }, [&] { m_data.annotation.append(QString(">")); });
+				const ScopedCall nodeGuard(
+					[&] {
+						m_data.annotation.append(QString("<%1").arg(replacedName));
+					},
+					[&] {
+						m_data.annotation.append(QString(">"));
+					}
+				);
 				for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
 					m_data.annotation.append(QString(R"( %1="%2")").arg(AnnotationReplaceAttributeName(attributes.GetName(i)), attributes.GetValue(i)));
 			}
@@ -145,7 +165,7 @@ private: // Util::SaxParser
 		m_textMode = path.startsWith(BODY) && (name.compare(P, Qt::CaseInsensitive) == 0 || name.compare(EMPHASIS, Qt::CaseInsensitive) == 0);
 
 		using ParseElementFunction = bool (XmlParser::*)(const Util::XmlAttributes&);
-		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{    FICTION_BOOK,    &XmlParser::OnStartElementFictionBook },
             { COVERPAGE_IMAGE, &XmlParser::OnStartElementCoverpageImage },
@@ -168,7 +188,7 @@ private: // Util::SaxParser
 		}
 
 		using ParseElementFunction = bool (XmlParser::*)();
-		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{    SECTION,    &XmlParser::OnEndElementSection },
 			{ ANNOTATION, &XmlParser::OnEndElementAnnotation },
@@ -178,7 +198,9 @@ private: // Util::SaxParser
 
 		if (m_annotationMode)
 		{
-			const auto it = std::ranges::find(ANNOTATION_REPLACE_TAGS, name, [](const auto& item) { return item.first; });
+			const auto it = std::ranges::find(ANNOTATION_REPLACE_TAGS, name, [](const auto& item) {
+				return item.first;
+			});
 			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name : it->second; !replacedName.isEmpty())
 				m_data.annotation.append(QString("</%1>").arg(replacedName));
 		}
@@ -189,7 +211,7 @@ private: // Util::SaxParser
 	bool OnCharacters(const QString& path, const QString& value) override
 	{
 		using ParseCharacterFunction = bool (XmlParser::*)(const QString&);
-		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
+		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
 			{             ANNOTATION,           &XmlParser::ParseAnnotation },
 			{			   KEYWORDS,             &XmlParser::ParseKeywords },
@@ -213,7 +235,7 @@ private: // Util::SaxParser
 
 		if (m_textMode)
 		{
-			m_data.textSize += value.length();
+			m_data.textSize  += value.length();
 			m_data.wordCount += value.split(' ', Qt::SkipEmptyParts).size();
 		}
 
@@ -257,9 +279,11 @@ private:
 
 	bool OnStartElementCoverpageImage(const Util::XmlAttributes& attributes)
 	{
-		m_coverpage = attributes.GetAttribute(m_hrefLink);
-		const auto it = std::ranges::find_if(m_coverpage, [](const auto ch) { return ch != '#'; });
-		m_coverpage = m_coverpage.last(std::distance(it, m_coverpage.end()));
+		m_coverpage   = attributes.GetAttribute(m_hrefLink);
+		const auto it = std::ranges::find_if(m_coverpage, [](const auto ch) {
+			return ch != '#';
+		});
+		m_coverpage   = m_coverpage.last(std::distance(it, m_coverpage.end()));
 
 		return true;
 	}
@@ -290,7 +314,7 @@ private:
 
 	bool OnEndElementSection()
 	{
-		auto title = m_currentContentItem->GetData(NavigationItem::Column::Title).simplified();
+		auto       title  = m_currentContentItem->GetData(NavigationItem::Column::Title).simplified();
 		const auto remove = title.isEmpty();
 		m_currentContentItem->SetData(std::move(title), NavigationItem::Column::Title);
 		m_currentContentItem = m_currentContentItem->GetParent();
@@ -338,7 +362,9 @@ private:
 
 	bool ParseSectionTitle(const QString& value)
 	{
-		if (std::ranges::all_of(value, [](auto c) { return c.isDigit(); }))
+		if (std::ranges::all_of(value, [](auto c) {
+				return c.isDigit();
+			}))
 			return true;
 
 		auto currentValue = m_currentContentItem->GetData(NavigationItem::Column::Title);
@@ -407,19 +433,19 @@ private:
 	}
 
 private:
-	QIODevice& m_ioDevice;
-	int64_t m_total;
+	QIODevice&                                          m_ioDevice;
+	int64_t                                             m_total;
 	std::unique_ptr<IProgressController::IProgressItem> m_progressItem;
 
-	ArchiveParser::Data m_data;
-	QString m_hrefLink;
-	QString m_href;
-	QString m_coverpage;
-	IDataItem* m_currentContentItem { m_data.content.get() };
+	ArchiveParser::Data                         m_data;
+	QString                                     m_hrefLink;
+	QString                                     m_href;
+	QString                                     m_coverpage;
+	IDataItem*                                  m_currentContentItem { m_data.content.get() };
 	std::vector<std::pair<QString, QByteArray>> m_covers;
-	int64_t m_percents { 0 };
-	bool m_textMode { false };
-	bool m_annotationMode { false };
+	int64_t                                     m_percents { 0 };
+	bool                                        m_textMode { false };
+	bool                                        m_annotationMode { false };
 };
 
 } // namespace
@@ -469,7 +495,7 @@ private:
 	Data ParseFb2(const IDataItem& book) const
 	{
 		const auto& collection = m_collectionProvider->GetActiveCollection();
-		const auto folder = QString("%1/%2").arg(collection.folder, book.GetRawData(BookItem::Column::Folder));
+		const auto  folder     = QString("%1/%2").arg(collection.folder, book.GetRawData(BookItem::Column::Folder));
 		if (!QFile::exists(folder))
 		{
 			PLOGW << folder << " not found";
@@ -478,7 +504,7 @@ private:
 
 		auto parseProgressItem = m_progressController->Add(100);
 
-		const Zip zip(folder, m_logicFactory->CreateZipProgressCallback(m_progressController));
+		const Zip  zip(folder, m_logicFactory->CreateZipProgressCallback(m_progressController));
 		const auto stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
 
 		XmlParser parser(stream->GetStream());
@@ -487,8 +513,8 @@ private:
 
 private:
 	PropagateConstPtr<const ICollectionProvider, std::shared_ptr> m_collectionProvider;
-	std::shared_ptr<IProgressController> m_progressController;
-	std::shared_ptr<const ILogicFactory> m_logicFactory;
+	std::shared_ptr<IProgressController>                          m_progressController;
+	std::shared_ptr<const ILogicFactory>                          m_logicFactory;
 };
 
 ArchiveParser::ArchiveParser(std::shared_ptr<ICollectionProvider> collectionProvider, std::shared_ptr<IAnnotationProgressController> progressController, std::shared_ptr<const ILogicFactory> logicFactory)

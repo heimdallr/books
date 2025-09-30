@@ -24,13 +24,13 @@ namespace HomeCompa::Flibrary::UserData
 
 enum class Check
 {
-	None = 0,
-	RootNodeFound = 1 << 0,
-	VersionNodeFound = 1 << 1,
-	VersionAttributeFound = 1 << 2,
+	None                          = 0,
+	RootNodeFound                 = 1 << 0,
+	VersionNodeFound              = 1 << 1,
+	VersionAttributeFound         = 1 << 2,
 	VersionAttributeMustBeInteger = 1 << 3,
-	VersionNumberMustBeActual = 1 << 4,
-	UserDataNodeFound = 1 << 5,
+	VersionNumberMustBeActual     = 1 << 4,
+	UserDataNodeFound             = 1 << 5,
 };
 
 }
@@ -61,19 +61,19 @@ RESTORE_ITEMS_X_MACRO
 namespace
 {
 
-constexpr auto CONTEXT = "UserData";
+constexpr auto CONTEXT          = "UserData";
 constexpr auto CANNOT_READ_FROM = QT_TRANSLATE_NOOP("UserData", "Cannot read from %1");
 
 TR_DEF
 
-constexpr auto FLIBRARY_BACKUP = "FlibraryBackup";
-constexpr auto FLIBRARY_BACKUP_VERSION = "FlibraryBackup/FlibraryBackupVersion";
-constexpr auto FLIBRARY_BACKUP_USER_DATA = "FlibraryBackup/FlibraryUserData";
-constexpr auto FLIBRARY_BACKUP_USER_DATA_BOOKS = "FlibraryBackup/FlibraryUserData/Books";
-constexpr auto FLIBRARY_BACKUP_USER_DATA_GROUPS = "FlibraryBackup/FlibraryUserData/Groups";
-constexpr auto FLIBRARY_BACKUP_USER_DATA_SEARCHES = "FlibraryBackup/FlibraryUserData/Searches";
+constexpr auto FLIBRARY_BACKUP                       = "FlibraryBackup";
+constexpr auto FLIBRARY_BACKUP_VERSION               = "FlibraryBackup/FlibraryBackupVersion";
+constexpr auto FLIBRARY_BACKUP_USER_DATA             = "FlibraryBackup/FlibraryUserData";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_BOOKS       = "FlibraryBackup/FlibraryUserData/Books";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_GROUPS      = "FlibraryBackup/FlibraryUserData/Groups";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_SEARCHES    = "FlibraryBackup/FlibraryUserData/Searches";
 constexpr auto FLIBRARY_BACKUP_USER_DATA_EXPORT_STAT = "FlibraryBackup/FlibraryUserData/ExportStat";
-constexpr auto FLIBRARY_BACKUP_USER_DATA_FILTER = "FlibraryBackup/FlibraryUserData/Filter";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_FILTER      = "FlibraryBackup/FlibraryUserData/Filter";
 
 class XmlParser final : public Util::SaxParser
 {
@@ -120,7 +120,7 @@ private: // Util::SaxParser
 	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
 		using ParseElementFunction = bool (XmlParser::*)(const QString&, const Util::XmlAttributes&);
-		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{					   FLIBRARY_BACKUP,             &XmlParser::OnStartElementFlibraryBackup },
 			{			   FLIBRARY_BACKUP_VERSION,      &XmlParser::OnStartElementFlibraryBackupVersion },
@@ -182,7 +182,7 @@ private:
 			return false;
 		m_check |= Check::VersionAttributeFound;
 
-		bool ok = false;
+		bool ok   = false;
 		m_version = versionValue.toInt(&ok);
 		if (!ok)
 			return false;
@@ -219,12 +219,24 @@ private:
 	{
 		using ErrorGetter = std::function<QString()>;
 		const ErrorGetter check_errors[] {
-			[] { return Tr(QT_TRANSLATE_NOOP("UserData", "Invalid root node name, must be %1")).arg(Constant::FlibraryBackup); },
-			[] { return Tr(QT_TRANSLATE_NOOP("UserData", "Cannot find version node, must be %1")).arg(Constant::FlibraryBackupVersion); },
-			[] { return Tr(QT_TRANSLATE_NOOP("UserData", "Cannot find version attribute, must be %1")).arg(Constant::VALUE); },
-			[] { return Tr(QT_TRANSLATE_NOOP("UserData", "%1: must be integer")).arg(Constant::VALUE); },
-			[this] { return Tr(QT_TRANSLATE_NOOP("UserData", "Version %1 must be greater than 0 and less than %2")).arg(m_version).arg(Constant::FlibraryBackupVersionNumber + 1); },
-			[] { return Tr(QT_TRANSLATE_NOOP("UserData", "Cannot find user data node, must be %1")).arg(Constant::FlibraryUserData); },
+			[] {
+				return Tr(QT_TRANSLATE_NOOP("UserData", "Invalid root node name, must be %1")).arg(Constant::FlibraryBackup);
+			},
+			[] {
+				return Tr(QT_TRANSLATE_NOOP("UserData", "Cannot find version node, must be %1")).arg(Constant::FlibraryBackupVersion);
+			},
+			[] {
+				return Tr(QT_TRANSLATE_NOOP("UserData", "Cannot find version attribute, must be %1")).arg(Constant::VALUE);
+			},
+			[] {
+				return Tr(QT_TRANSLATE_NOOP("UserData", "%1: must be integer")).arg(Constant::VALUE);
+			},
+			[this] {
+				return Tr(QT_TRANSLATE_NOOP("UserData", "Version %1 must be greater than 0 and less than %2")).arg(m_version).arg(Constant::FlibraryBackupVersionNumber + 1);
+			},
+			[] {
+				return Tr(QT_TRANSLATE_NOOP("UserData", "Cannot find user data node, must be %1")).arg(Constant::FlibraryUserData);
+			},
 		};
 
 		for (int i = 0, sz = static_cast<int>(std::size(check_errors)); i < sz; ++i)
@@ -239,34 +251,33 @@ private:
 
 private:
 	std::vector<std::unique_ptr<IRestorer>> m_restorers;
-	Check m_check { Check::None };
+	Check                                   m_check { Check::None };
 	using RestorerCreator = std::unique_ptr<IRestorer> (*)();
 	std::unordered_map<QString, std::map<int, RestorerCreator>> m_restorerCreators;
 
-	int m_version { -1 };
+	int     m_version { -1 };
 	QString m_error;
 };
 
 void RestoreImpl(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName, Callback callback)
 {
-	executor({ "Restore user data",
-	           [&db, fileName = std::move(fileName), callback = std::move(callback)]() mutable
-	           {
-				   auto createResult = [callback = std::move(callback)](QString error = {}) mutable
-				   {
-					   if (!error.isEmpty())
-						   PLOGE << error;
+	executor({ "Restore user data", [&db, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
+				  auto createResult = [callback = std::move(callback)](QString error = {}) mutable {
+					  if (!error.isEmpty())
+						  PLOGE << error;
 
-					   return [callback = std::move(callback), error = std::move(error)](size_t) { callback(error); };
-				   };
+					  return [callback = std::move(callback), error = std::move(error)](size_t) {
+						  callback(error);
+					  };
+				  };
 
-				   QFile inp(fileName);
-				   if (!inp.open(QIODevice::ReadOnly))
-					   return createResult(QString(CANNOT_READ_FROM).arg(fileName));
+				  QFile inp(fileName);
+				  if (!inp.open(QIODevice::ReadOnly))
+					  return createResult(QString(CANNOT_READ_FROM).arg(fileName));
 
-				   const XmlParser parser(inp, db);
-				   return createResult(parser.GetError());
-			   } });
+				  const XmlParser parser(inp, db);
+				  return createResult(parser.GetError());
+			  } });
 }
 
 } // namespace

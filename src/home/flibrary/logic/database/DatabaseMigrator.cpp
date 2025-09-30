@@ -11,7 +11,7 @@ using namespace HomeCompa::Flibrary;
 
 struct DatabaseMigrator::Impl : Observable<IDatabaseMigrator::IObserver>
 {
-	std::shared_ptr<const IDatabaseUser> databaseUser;
+	std::shared_ptr<const IDatabaseUser>       databaseUser;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 
 	Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
@@ -51,17 +51,14 @@ IDatabaseMigrator::NeedMigrateResult DatabaseMigrator::NeedMigrate() const
 
 void DatabaseMigrator::Migrate()
 {
-	m_impl->databaseUser->Execute({ "Database migration",
-	                                [this]
-	                                {
-										const auto db = m_impl->databaseUser->Database();
-										DatabaseScheme::Update(*db, *m_impl->collectionProvider);
-										return [this](size_t)
-										{
-											m_impl->databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, Constant::FlibraryDatabaseVersionNumber);
-											m_impl->Perform(&IObserver::OnMigrationFinished);
-										};
-									} });
+	m_impl->databaseUser->Execute({ "Database migration", [this] {
+									   const auto db = m_impl->databaseUser->Database();
+									   DatabaseScheme::Update(*db, *m_impl->collectionProvider);
+									   return [this](size_t) {
+										   m_impl->databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, Constant::FlibraryDatabaseVersionNumber);
+										   m_impl->Perform(&IObserver::OnMigrationFinished);
+									   };
+								   } });
 }
 
 void DatabaseMigrator::RegisterObserver(IObserver* observer)

@@ -12,7 +12,7 @@
 namespace HomeCompa::Flibrary
 {
 
-constexpr auto CONTEXT = "FilterModel";
+constexpr auto        CONTEXT = "FilterModel";
 constexpr const char* HEADERS[] {
 	QT_TRANSLATE_NOOP("FilterModel", "Title"),
 	QT_TRANSLATE_NOOP("FilterModel", "Hidden"),
@@ -99,7 +99,7 @@ protected: // QAbstractItemModel
 			case Qt::CheckStateRole:
 			{
 				const auto checkState = value.value<Qt::CheckState>();
-				const auto flag = index.column() == 1 ? IDataItem::Flags::Filtered : index.column() == 2 ? IDataItem::Flags::BooksFiltered : IDataItem::Flags::None;
+				const auto flag       = index.column() == 1 ? IDataItem::Flags::Filtered : index.column() == 2 ? IDataItem::Flags::BooksFiltered : IDataItem::Flags::None;
 				item->SetFlags(checkState == Qt::Checked ? item->GetFlags() | flag : item->GetFlags() & ~flag);
 				filterController->SetFlags(navigationMode, item->GetId(), item->GetFlags());
 				return true;
@@ -132,7 +132,14 @@ private:
 		if (changed.empty())
 			return false;
 
-		const ScopedCall resetGuard([&] { this->beginResetModel(); }, [&] { this->endResetModel(); });
+		const ScopedCall resetGuard(
+			[&] {
+				this->beginResetModel();
+			},
+			[&] {
+				this->endResetModel();
+			}
+		);
 		for (auto& item : changed)
 		{
 			item->SetFlags(item->GetFlags() | IDataItem::Flags::Filtered);
@@ -144,7 +151,7 @@ private:
 
 protected:
 	PropagateConstPtr<IFilterController, std::shared_ptr> filterController;
-	NavigationMode navigationMode { NavigationMode::Unknown };
+	NavigationMode                                        navigationMode { NavigationMode::Unknown };
 };
 
 } // namespace HomeCompa::Flibrary

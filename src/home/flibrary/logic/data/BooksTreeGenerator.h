@@ -22,7 +22,7 @@ public:
 	using Creator = IDataItem::Ptr (IBooksListCreator::*)() const;
 
 public:
-	virtual ~IBooksListCreator() = default;
+	virtual ~IBooksListCreator()                                   = default;
 	[[nodiscard]] virtual IDataItem::Ptr CreateReviewsList() const = 0;
 	[[nodiscard]] virtual IDataItem::Ptr CreateGeneralList() const = 0;
 };
@@ -33,9 +33,9 @@ public:
 	using Creator = IDataItem::Ptr (IBooksTreeCreator::*)() const;
 
 public:
-	virtual ~IBooksTreeCreator() = default;
+	virtual ~IBooksTreeCreator()                                   = default;
 	[[nodiscard]] virtual IDataItem::Ptr CreateAuthorsTree() const = 0;
-	[[nodiscard]] virtual IDataItem::Ptr CreateSeriesTree() const = 0;
+	[[nodiscard]] virtual IDataItem::Ptr CreateSeriesTree() const  = 0;
 	[[nodiscard]] virtual IDataItem::Ptr CreateReviewsTree() const = 0;
 	[[nodiscard]] virtual IDataItem::Ptr CreateGeneralTree() const = 0;
 };
@@ -48,7 +48,7 @@ public:
 	using Generator = IDataItem::Ptr (IBooksRootGenerator::*)(const QueryDescription&) const;
 
 public:
-	virtual ~IBooksRootGenerator() = default;
+	virtual ~IBooksRootGenerator()                                = default;
 	virtual IDataItem::Ptr GetList(const QueryDescription&) const = 0;
 	virtual IDataItem::Ptr GetTree(const QueryDescription&) const = 0;
 };
@@ -59,8 +59,8 @@ public:
 	using Selector = void (IBookSelector::*)(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&);
 
 public:
-	virtual ~IBookSelector() = default;
-	virtual void SelectBooks(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&) = 0;
+	virtual ~IBookSelector()                                                                                   = default;
+	virtual void SelectBooks(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&)   = 0;
 	virtual void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&) = 0;
 };
 
@@ -78,17 +78,17 @@ struct QueryClause
 
 struct QueryDescription
 {
-	using Binder = int (*)(DB::IQuery&, const QString&);
+	using Binder        = int (*)(DB::IQuery&, const QString&);
 	using MappingGetter = const BookItem::Mapping& (QueryDescription::*)() const noexcept;
 
-	const char* navigationQuery { nullptr };
-	QueryDataExtractor navigationExtractor { nullptr };
-	QueryClause queryClause;
+	const char*                navigationQuery { nullptr };
+	QueryDataExtractor         navigationExtractor { nullptr };
+	QueryClause                queryClause;
 	IBooksListCreator::Creator listCreator { nullptr };
 	IBooksTreeCreator::Creator treeCreator { nullptr };
-	BookItem::Mapping listMapping;
-	BookItem::Mapping treeMapping;
-	IBookSelector::Selector bookSelector { &IBookSelector::SelectBooks };
+	BookItem::Mapping          listMapping;
+	BookItem::Mapping          treeMapping;
+	IBookSelector::Selector    bookSelector { &IBookSelector::SelectBooks };
 
 	constexpr const BookItem::Mapping& GetListMapping() const noexcept
 	{
@@ -109,21 +109,23 @@ class BooksTreeGenerator final
 	NON_COPY_MOVABLE(BooksTreeGenerator)
 
 public:
-	BooksTreeGenerator(const Collection& activeCollection,
-	                   DB::IDatabase& db,
-	                   enum class NavigationMode navigationMode,
-	                   QString navigationId,
-	                   const QueryDescription& description,
-	                   const IFilterProvider& filterProvider);
+	BooksTreeGenerator(
+		const Collection&         activeCollection,
+		DB::IDatabase&            db,
+		enum class NavigationMode navigationMode,
+		QString                   navigationId,
+		const QueryDescription&   description,
+		const IFilterProvider&    filterProvider
+	);
 	~BooksTreeGenerator() override;
 
 public:
-	NavigationMode GetNavigationMode() const noexcept;
-	const QString& GetNavigationId() const noexcept;
+	NavigationMode      GetNavigationMode() const noexcept;
+	const QString&      GetNavigationId() const noexcept;
 	enum class ViewMode GetBooksViewMode() const noexcept;
-	IDataItem::Ptr GetCached() const noexcept;
-	void SetBooksViewMode(ViewMode viewMode) noexcept;
-	BookInfo GetBookInfo(long long id) const;
+	IDataItem::Ptr      GetCached() const noexcept;
+	void                SetBooksViewMode(ViewMode viewMode) noexcept;
+	BookInfo            GetBookInfo(long long id) const;
 
 private: // IBooksRootGenerator
 	[[nodiscard]] IDataItem::Ptr GetList(const QueryDescription&) const override;

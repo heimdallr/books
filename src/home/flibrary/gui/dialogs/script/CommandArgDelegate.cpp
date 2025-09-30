@@ -15,6 +15,8 @@ QWidget* CommandArgDelegate::createEditor(QWidget* parent, const QStyleOptionVie
 {
 	auto* editor = LineEditDelegate::createEditor(parent, option, index);
 	editor->setContextMenuPolicy(Qt::CustomContextMenu);
-	connect(editor, &QWidget::customContextMenuRequested, this, [editor] { IScriptController::ExecuteContextMenu(qobject_cast<QLineEdit*>(editor)); });
+	connect(editor, &QWidget::customContextMenuRequested, this, [editor] {
+		IScriptController::ExecuteContextMenu(qobject_cast<QLineEdit*>(editor));
+	});
 	return editor;
 }

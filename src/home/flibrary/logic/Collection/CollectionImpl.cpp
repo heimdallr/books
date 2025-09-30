@@ -17,12 +17,12 @@ namespace HomeCompa::Flibrary
 namespace
 {
 
-constexpr auto CURRENT = "current";
-constexpr auto DATABASE = "database";
+constexpr auto CURRENT          = "current";
+constexpr auto DATABASE         = "database";
 constexpr auto DISCARDED_UPDATE = "discardedUpdate";
-constexpr auto FOLDER = "folder";
-constexpr auto NAME = "name";
-constexpr auto CREATION_MODE = "creationMode";
+constexpr auto FOLDER           = "folder";
+constexpr auto NAME             = "name";
+constexpr auto CREATION_MODE    = "creationMode";
 
 Collection::Ptr DeserializeImpl(const ISettings& settings, QString id)
 {
@@ -45,8 +45,8 @@ Collection::Ptr DeserializeImpl(const ISettings& settings, QString id)
 	if ((collection->folder = settings.Get(FOLDER, QString {})).isEmpty())
 		return collection;
 
-	collection->discardedUpdate = settings.Get(DISCARDED_UPDATE, QString {});
-	collection->createCollectionMode = settings.Get(CREATION_MODE, 0);
+	collection->discardedUpdate              = settings.Get(DISCARDED_UPDATE, QString {});
+	collection->createCollectionMode         = settings.Get(CREATION_MODE, 0);
 	collection->destructiveOperationsAllowed = settings.Get(Constant::Settings::DESTRUCTIVE_OPERATIONS_ALLOWED_KEY, false);
 
 	return collection;
@@ -56,10 +56,10 @@ Collection::Ptr DeserializeImpl(const ISettings& settings, QString id)
 
 CollectionImpl::CollectionImpl(QString name_, QString database_, QString folder_)
 {
-	id = Util::md5(database_.toUtf8());
-	name = std::move(name_);
+	id       = Util::md5(database_.toUtf8());
+	name     = std::move(name_);
 	database = std::move(database_);
-	folder = std::move(folder_);
+	folder   = std::move(folder_);
 
 	database.replace("\\", "/");
 	folder.replace("\\", "/");
@@ -88,19 +88,19 @@ void CollectionImpl::Serialize(const Collection& collection, ISettings& settings
 
 Collections CollectionImpl::Deserialize(ISettings& settings)
 {
-	Collections collections;
+	Collections   collections;
 	SettingsGroup settingsGroup(settings, Constant::Settings::COLLECTIONS);
-	std::ranges::transform(settings.GetGroups(), std::back_inserter(collections), [&](QString groupId) { return DeserializeImpl(settings, std::move(groupId)); });
+	std::ranges::transform(settings.GetGroups(), std::back_inserter(collections), [&](QString groupId) {
+		return DeserializeImpl(settings, std::move(groupId));
+	});
 
-	std::erase_if(collections,
-	              [&](const auto& item)
-	              {
-					  if (QFile::exists(item->database))
-						  return false;
+	std::erase_if(collections, [&](const auto& item) {
+		if (QFile::exists(item->database))
+			return false;
 
-					  settings.Remove(item->id);
-					  return true;
-				  });
+		settings.Remove(item->id);
+		return true;
+	});
 
 	return collections;
 }

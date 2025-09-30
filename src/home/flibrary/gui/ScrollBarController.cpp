@@ -77,12 +77,12 @@ void ScrollBarController::OnTimeoutV() const
 	if (!m_area)
 		return;
 
-	auto& area = *m_area;
+	auto&       area     = *m_area;
 	const auto& viewport = *area.viewport();
 
-	const auto threshold = QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent);
-	const auto x = viewport.geometry().width() - threshold - (area.verticalScrollBar()->isVisible() ? 0 : threshold);
-	const auto topLeft = viewport.mapToGlobal(QPoint { x, std::numeric_limits<int>::min() / 100 });
+	const auto threshold   = QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent);
+	const auto x           = viewport.geometry().width() - threshold - (area.verticalScrollBar()->isVisible() ? 0 : threshold);
+	const auto topLeft     = viewport.mapToGlobal(QPoint { x, std::numeric_limits<int>::min() / 100 });
 	const auto bottomRight = viewport.mapToGlobal(QPoint { x + 5 * threshold / 2, std::numeric_limits<int>::max() / 100 });
 
 	if (const auto pos = QCursor::pos(); QRect(topLeft, bottomRight).contains(pos))
@@ -97,12 +97,12 @@ void ScrollBarController::OnTimeoutH() const
 	if (!m_area)
 		return;
 
-	auto& area = *m_area;
+	auto&       area     = *m_area;
 	const auto& viewport = *area.viewport();
 
-	const auto threshold = QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent);
-	const auto y = viewport.geometry().height() - threshold - (area.horizontalScrollBar()->isVisible() ? 0 : threshold);
-	const auto topLeft = viewport.mapToGlobal(QPoint { std::numeric_limits<int>::min() / 100, y });
+	const auto threshold   = QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent);
+	const auto y           = viewport.geometry().height() - threshold - (area.horizontalScrollBar()->isVisible() ? 0 : threshold);
+	const auto topLeft     = viewport.mapToGlobal(QPoint { std::numeric_limits<int>::min() / 100, y });
 	const auto bottomRight = viewport.mapToGlobal(QPoint { std::numeric_limits<int>::max() / 100, y + 5 * threshold / 2 });
 
 	if (const auto pos = QCursor::pos(); QRect(topLeft, bottomRight).contains(pos))

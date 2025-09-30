@@ -16,25 +16,27 @@ using namespace HomeCompa::fb2cut;
 namespace
 {
 
-constexpr auto KEY_INPUT_FILES = "ui/fb2cut/inputFiles";
-constexpr auto KEY_DST_FOLDER = "ui/fb2cut/outputFolder";
-constexpr auto KEY_EXT_ARCHIVER = "ui/fb2cut/externalArchiver";
+constexpr auto KEY_INPUT_FILES           = "ui/fb2cut/inputFiles";
+constexpr auto KEY_DST_FOLDER            = "ui/fb2cut/outputFolder";
+constexpr auto KEY_EXT_ARCHIVER          = "ui/fb2cut/externalArchiver";
 constexpr auto KEY_EXT_ARCHIVER_CMD_LINE = "ui/fb2cut/externalArchiverCmdLine";
-constexpr auto KEY_ARCHIVE_FORMAT = "ui/fb2cut/format";
-constexpr auto KEY_FFMPEG = "ui/fb2cut/externalFfmpeg";
-constexpr auto KEY_SAVE_FB2 = "ui/fb2cut/saveFb2";
-constexpr auto KEY_ARCHIVE_FB2 = "ui/fb2cut/archiveFb2";
-constexpr auto KEY_MIN_IMAGE_FILE_SIZE = "ui/fb2cut/minImageFileSize";
-constexpr auto KEY_MAX_THREAD_COUNT = "ui/fb2cut/maxThreadCount";
+constexpr auto KEY_ARCHIVE_FORMAT        = "ui/fb2cut/format";
+constexpr auto KEY_FFMPEG                = "ui/fb2cut/externalFfmpeg";
+constexpr auto KEY_SAVE_FB2              = "ui/fb2cut/saveFb2";
+constexpr auto KEY_ARCHIVE_FB2           = "ui/fb2cut/archiveFb2";
+constexpr auto KEY_MIN_IMAGE_FILE_SIZE   = "ui/fb2cut/minImageFileSize";
+constexpr auto KEY_MAX_THREAD_COUNT      = "ui/fb2cut/maxThreadCount";
 
 }
 
-MainWindow::MainWindow(std::shared_ptr<ISettings> settingsManager,
-                       std::shared_ptr<const Util::IUiFactory> uiFactory,
-                       std::shared_ptr<ImageSettingsWidget> common,
-                       std::shared_ptr<ImageSettingsWidget> covers,
-                       std::shared_ptr<ImageSettingsWidget> images,
-                       QWidget* parent)
+MainWindow::MainWindow(
+	std::shared_ptr<ISettings>              settingsManager,
+	std::shared_ptr<const Util::IUiFactory> uiFactory,
+	std::shared_ptr<ImageSettingsWidget>    common,
+	std::shared_ptr<ImageSettingsWidget>    covers,
+	std::shared_ptr<ImageSettingsWidget>    images,
+	QWidget*                                parent
+)
 	: QMainWindow(parent)
 	, GeometryRestorable(*this, settingsManager, "fb2cut/MainWindow")
 	, GeometryRestorableObserver(static_cast<QWidget&>(*this))
@@ -76,7 +78,9 @@ MainWindow::MainWindow(std::shared_ptr<ISettings> settingsManager,
 	connect(m_ui->editDstFolder, &QLineEdit::textChanged, this, &MainWindow::OnDstFolderChanged);
 	connect(m_ui->editExternalArchiver, &QLineEdit::textChanged, this, &MainWindow::OnExternalArchiverChanged);
 	connect(m_ui->editFfmpeg, &QLineEdit::textChanged, this, &MainWindow::OnFfmpegChanged);
-	connect(m_ui->saveFb2, &QAbstractButton::toggled, this, [this](const bool checked) { m_ui->format->setEnabled(checked && m_ui->archiveFb2->isChecked()); });
+	connect(m_ui->saveFb2, &QAbstractButton::toggled, this, [this](const bool checked) {
+		m_ui->format->setEnabled(checked && m_ui->archiveFb2->isChecked());
+	});
 
 	const Settings defaultSettings;
 
@@ -161,18 +165,18 @@ void MainWindow::OnStartClicked()
 	m_images->ApplySettings();
 
 	m_settings->inputWildcards = { m_ui->editInputFiles->text() };
-	m_settings->dstDir = m_ui->editDstFolder->text();
-	m_settings->ffmpeg = m_ui->editFfmpeg->text();
-	m_settings->format = Zip::FormatFromString(m_ui->format->currentText());
-	m_settings->archiver = m_ui->editExternalArchiver->text();
+	m_settings->dstDir         = m_ui->editDstFolder->text();
+	m_settings->ffmpeg         = m_ui->editFfmpeg->text();
+	m_settings->format         = Zip::FormatFromString(m_ui->format->currentText());
+	m_settings->archiver       = m_ui->editExternalArchiver->text();
 	if (!m_ui->editArchiverCommandLine->text().isEmpty())
 		m_settings->archiverOptions = m_ui->editArchiverCommandLine->text();
 
-	m_settings->saveFb2 = m_ui->saveFb2->isChecked();
+	m_settings->saveFb2    = m_ui->saveFb2->isChecked();
 	m_settings->archiveFb2 = m_ui->archiveFb2->isChecked();
 
 	m_settings->minImageFileSize = m_ui->minImageFileSize->value();
-	m_settings->maxThreadCount = m_ui->maxThreadCount->value();
+	m_settings->maxThreadCount   = m_ui->maxThreadCount->value();
 
 	m_settingsManager->Set(KEY_INPUT_FILES, m_ui->editInputFiles->text());
 	m_settingsManager->Set(KEY_DST_FOLDER, m_ui->editDstFolder->text());

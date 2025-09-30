@@ -23,21 +23,21 @@ public:
 	~LogicFactory() override;
 
 private: // ILogicFactory
-	[[nodiscard]] std::shared_ptr<ITreeViewController> GetTreeViewController(ItemType type) const override;
-	[[nodiscard]] std::shared_ptr<ArchiveParser> CreateArchiveParser() const override;
-	[[nodiscard]] std::unique_ptr<Util::IExecutor> GetExecutor(Util::ExecutorInitializer initializer) const override;
-	[[nodiscard]] std::shared_ptr<GroupController> CreateGroupController() const override;
-	[[nodiscard]] std::shared_ptr<IBookSearchController> CreateSearchController() const override;
+	[[nodiscard]] std::shared_ptr<ITreeViewController>      GetTreeViewController(ItemType type) const override;
+	[[nodiscard]] std::shared_ptr<ArchiveParser>            CreateArchiveParser() const override;
+	[[nodiscard]] std::unique_ptr<Util::IExecutor>          GetExecutor(Util::ExecutorInitializer initializer) const override;
+	[[nodiscard]] std::shared_ptr<GroupController>          CreateGroupController() const override;
+	[[nodiscard]] std::shared_ptr<IBookSearchController>    CreateSearchController() const override;
 	[[nodiscard]] std::shared_ptr<BooksContextMenuProvider> CreateBooksContextMenuProvider() const override;
-	[[nodiscard]] std::shared_ptr<IUserDataController> CreateUserDataController() const override;
-	[[nodiscard]] std::shared_ptr<BooksExtractor> CreateBooksExtractor() const override;
-	[[nodiscard]] std::shared_ptr<IInpxGenerator> CreateInpxGenerator() const override;
-	[[nodiscard]] std::shared_ptr<IUpdateChecker> CreateUpdateChecker() const override;
-	[[nodiscard]] std::shared_ptr<ICollectionCleaner> CreateCollectionCleaner() const override;
-	[[nodiscard]] std::shared_ptr<IOpdsController> CreateOpdsController() const override;
-	[[nodiscard]] std::shared_ptr<Zip::ProgressCallback> CreateZipProgressCallback(std::shared_ptr<IProgressController> progressController) const override;
-	[[nodiscard]] std::shared_ptr<ITemporaryDir> CreateTemporaryDir(bool singleInstance) const override;
-	[[nodiscard]] ExtractedBooks GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList) const override;
+	[[nodiscard]] std::shared_ptr<IUserDataController>      CreateUserDataController() const override;
+	[[nodiscard]] std::shared_ptr<BooksExtractor>           CreateBooksExtractor() const override;
+	[[nodiscard]] std::shared_ptr<IInpxGenerator>           CreateInpxGenerator() const override;
+	[[nodiscard]] std::shared_ptr<IUpdateChecker>           CreateUpdateChecker() const override;
+	[[nodiscard]] std::shared_ptr<ICollectionCleaner>       CreateCollectionCleaner() const override;
+	[[nodiscard]] std::shared_ptr<IOpdsController>          CreateOpdsController() const override;
+	[[nodiscard]] std::shared_ptr<Zip::ProgressCallback>    CreateZipProgressCallback(std::shared_ptr<IProgressController> progressController) const override;
+	[[nodiscard]] std::shared_ptr<ITemporaryDir>            CreateTemporaryDir(bool singleInstance) const override;
+	[[nodiscard]] ExtractedBooks                            GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList) const override;
 
 public: // special
 	[[nodiscard]] std::shared_ptr<IProgressController> GetProgressController() const override;

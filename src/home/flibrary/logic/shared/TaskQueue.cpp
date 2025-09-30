@@ -11,7 +11,7 @@ struct TaskQueue::Impl
 	std::queue<Task> tasks;
 };
 
-TaskQueue::TaskQueue() = default;
+TaskQueue::TaskQueue()  = default;
 TaskQueue::~TaskQueue() = default;
 
 void TaskQueue::Enqueue(Task task)

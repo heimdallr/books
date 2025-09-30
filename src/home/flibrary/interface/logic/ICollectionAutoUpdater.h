@@ -17,7 +17,7 @@ public:
 public:
 	virtual ~ICollectionAutoUpdater() = default;
 
-	virtual void RegisterObserver(IObserver* observer) = 0;
+	virtual void RegisterObserver(IObserver* observer)   = 0;
 	virtual void UnregisterObserver(IObserver* observer) = 0;
 };
 

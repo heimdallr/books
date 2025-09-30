@@ -28,8 +28,8 @@ protected:
 	struct Item
 	{
 		std::weak_ptr<IClient> client;
-		QByteArray data;
-		QBuffer stream { &data };
+		QByteArray             data;
+		QBuffer                stream { &data };
 
 		explicit Item(std::weak_ptr<IClient> client);
 	};
@@ -42,7 +42,7 @@ private: // IJokeRequester
 	void Request(std::weak_ptr<IClient> client) override;
 
 private:
-	void OnResponse(size_t id, int code, const QString& message);
+	void         OnResponse(size_t id, int code, const QString& message);
 	virtual bool Process(const QJsonValue& value, std::weak_ptr<IClient> client);
 	virtual bool Process(const QByteArray& data, std::weak_ptr<IClient> client);
 

@@ -21,7 +21,7 @@ class NETWORK_EXPORT Downloader
 	NON_COPY_MOVABLE(Downloader)
 
 public:
-	using OnFinish = std::function<void(size_t id, int code, const QString& message)>;
+	using OnFinish   = std::function<void(size_t id, int code, const QString& message)>;
 	using OnProgress = std::function<void(int64_t bytesReceived, int64_t bytesTotal, bool& stopped)>;
 
 public:

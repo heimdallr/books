@@ -29,8 +29,8 @@ class ModelImpl : public QAbstractTableModel
 	struct Item
 	{
 		QString language;
-		int count { 0 };
-		bool checked { false };
+		int     count { 0 };
+		bool    checked { false };
 	};
 
 	using Items = std::vector<Item>;
@@ -39,17 +39,17 @@ public:
 	explicit ModelImpl(std::shared_ptr<const IDatabaseUser> databaseUser)
 	{
 		const auto& databaseUserRef = *databaseUser;
-		databaseUserRef.Execute({ "Create language list",
-		                          [&, databaseUser = std::move(databaseUser)]() mutable
-		                          {
-									  const auto db = databaseUser->Database();
-									  const auto query = db->CreateQuery("select Lang, count(42) from Books group by Lang");
-									  Items items;
-									  for (query->Execute(); !query->Eof(); query->Next())
-										  items.emplace_back(query->Get<const char*>(0), query->Get<int>(1));
+		databaseUserRef.Execute({ "Create language list", [&, databaseUser = std::move(databaseUser)]() mutable {
+									 const auto db    = databaseUser->Database();
+									 const auto query = db->CreateQuery("select Lang, count(42) from Books group by Lang");
+									 Items      items;
+									 for (query->Execute(); !query->Eof(); query->Next())
+										 items.emplace_back(query->Get<const char*>(0), query->Get<int>(1));
 
-									  return [this, items = std::move(items)](size_t) mutable { Reset(std::move(items)); };
-								  } });
+									 return [this, items = std::move(items)](size_t) mutable {
+										 Reset(std::move(items));
+									 };
+								 } });
 	}
 
 private: // QAbstractItemModel
@@ -80,7 +80,15 @@ private: // QAbstractItemModel
 		{
 			assert(role == Role::SelectedList);
 			QStringList result;
-			std::ranges::transform(m_items | std::views::filter([](const Item& item) { return item.checked; }), std::back_inserter(result), [](const Item& item) { return item.language; });
+			std::ranges::transform(
+				m_items | std::views::filter([](const Item& item) {
+					return item.checked;
+				}),
+				std::back_inserter(result),
+				[](const Item& item) {
+					return item.language;
+				}
+			);
 			return result;
 		}
 
@@ -119,7 +127,7 @@ private: // QAbstractItemModel
 		if (index.isValid())
 		{
 			assert(role == Qt::CheckStateRole);
-			auto& item = m_items[static_cast<size_t>(index.row())];
+			auto& item   = m_items[static_cast<size_t>(index.row())];
 			item.checked = value.value<Qt::CheckState>() == Qt::CheckState::Checked;
 			return true;
 		}
@@ -127,11 +135,17 @@ private: // QAbstractItemModel
 		switch (role)
 		{
 			case Role::CheckAll:
-				return SetChecks([](const auto&) { return true; });
+				return SetChecks([](const auto&) {
+					return true;
+				});
 			case Role::UncheckAll:
-				return SetChecks([](const auto&) { return false; });
+				return SetChecks([](const auto&) {
+					return false;
+				});
 			case Role::RevertChecks:
-				return SetChecks([](const auto& item) { return !item.checked; });
+				return SetChecks([](const auto& item) {
+					return !item.checked;
+				});
 			case Role::SelectedList:
 				if (!Util::Set(m_checked, value.toStringList()))
 					return false;
@@ -154,13 +168,11 @@ private:
 	bool SetChecks(const std::function<bool(const Item&)>& f)
 	{
 		std::vector<int> indices;
-		std::ranges::for_each(m_items,
-		                      [&, n = 0](Item& item) mutable
-		                      {
-								  if (Util::Set(item.checked, f(item)))
-									  indices.emplace_back(n);
-								  ++n;
-							  });
+		std::ranges::for_each(m_items, [&, n = 0](Item& item) mutable {
+			if (Util::Set(item.checked, f(item)))
+				indices.emplace_back(n);
+			++n;
+		});
 
 		for (const auto [begin, end] : Util::CreateRanges(indices))
 			emit dataChanged(index(begin, 0), index(end - 1, 0), { Qt::CheckStateRole });
@@ -170,7 +182,14 @@ private:
 
 	void Reset(Items items = {})
 	{
-		const ScopedCall resetGuard([this] { beginResetModel(); }, [this] { endResetModel(); });
+		const ScopedCall resetGuard(
+			[this] {
+				beginResetModel();
+			},
+			[this] {
+				endResetModel();
+			}
+		);
 		if (!items.empty())
 			m_items = std::move(items);
 
@@ -180,9 +199,9 @@ private:
 	}
 
 private:
-	Items m_items;
+	Items                                          m_items;
 	const std::unordered_map<QString, const char*> m_translations { GetLanguagesMap() };
-	QStringList m_checked;
+	QStringList                                    m_checked;
 };
 
 } // namespace

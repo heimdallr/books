@@ -11,7 +11,7 @@ template <typename T>
 class ValueGuard
 {
 	const T m_oldVal;
-	T& m_val;
+	T&      m_val;
 
 public:
 	ValueGuard(T& oldVal, const T& newVal = T())

@@ -24,7 +24,9 @@ QVariant ReviewTreeModel::headerData(const int section, const Qt::Orientation or
 	if (orientation != Qt::Horizontal)
 		return TreeModel::headerData(section, orientation, role);
 
-	const auto getHeader = [&] { return section < m_data->GetColumnCount() ? m_data->GetData(section) : m_data->GetRawData(section - m_data->GetColumnCount() + BookItem::Column::Last + 1); };
+	const auto getHeader = [&] {
+		return section < m_data->GetColumnCount() ? m_data->GetData(section) : m_data->GetRawData(section - m_data->GetColumnCount() + BookItem::Column::Last + 1);
+	};
 
 	switch (role)
 	{
@@ -59,7 +61,7 @@ int ReviewTreeModel::columnCount(const QModelIndex& /*parent*/) const
 	const auto reviewerItem = m_data->GetChild(0);
 	assert(reviewerItem->GetChildCount());
 	const auto reviewItem = reviewerItem->GetChild(0);
-	auto count = reviewItem->GetColumnCount() + m_data->GetColumnCount() - 1;
+	auto       count      = reviewItem->GetColumnCount() + m_data->GetColumnCount() - 1;
 	return count;
 }
 

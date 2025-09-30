@@ -37,14 +37,14 @@ QString PassThruDelegate(const QVariant& value)
 
 QString NumberDelegate(const QVariant& value)
 {
-	bool ok = false;
+	bool       ok     = false;
 	const auto result = value.toInt(&ok);
 	return ok && result > 0 ? QString::number(result) : QString {};
 }
 
 QString SizeDelegate(const QVariant& value)
 {
-	bool ok = false;
+	bool       ok     = false;
 	const auto result = value.toULongLong(&ok);
 	return ok && result > 0 ? Measure::GetSize(result) : QString {};
 }
@@ -58,7 +58,7 @@ constexpr std::pair<int, TreeViewDelegateBooks::TextDelegate> DELEGATES[] {
 class IBookRenderer // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	virtual ~IBookRenderer() = default;
+	virtual ~IBookRenderer()                                                                        = default;
 	virtual void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const = 0;
 };
 
@@ -93,7 +93,7 @@ private: // IRateRenderer
 	void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
 	{
 		const auto rate = index.data(m_role).toInt();
-		o.text = rate < 1 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
+		o.text          = rate < 1 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
 		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
 	}
 
@@ -151,7 +151,7 @@ private: // QStyledItemDelegate
 			return;
 
 		const auto* header = m_view.header();
-		int width = 0;
+		int         width  = 0;
 		for (auto i = 0, sz = header->count(); i < sz; ++i)
 			width += header->sectionSize(i);
 		width -= o.rect.x();
@@ -169,23 +169,25 @@ private:
 	void RenderBooks(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const
 	{
 		const auto column = index.data(Role::Remap).toInt();
-		if (std::ranges::any_of(DELEGATES | std::views::keys, [=](const auto item) { return item == column; }))
+		if (std::ranges::any_of(DELEGATES | std::views::keys, [=](const auto item) {
+				return item == column;
+			}))
 			o.displayAlignment = Qt::AlignRight;
 
 		if (index.data(Role::IsRemoved).toBool())
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
-		ValueGuard valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
+		ValueGuard  valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
 		const auto* renderer = FindSecond(m_rateRenderers, column, m_defaultRenderer.get());
 		renderer->Render(painter, o, index);
 	}
 
 private:
-	QTreeView& m_view;
-	mutable TextDelegate m_textDelegate;
-	std::unique_ptr<const IBookRenderer> m_defaultRenderer { std::make_unique<BookRendererDefault>(*this) };
-	std::unique_ptr<const IBookRenderer> m_libRateRenderer;
-	std::unique_ptr<const IBookRenderer> m_userRateRenderer;
+	QTreeView&                                              m_view;
+	mutable TextDelegate                                    m_textDelegate;
+	std::unique_ptr<const IBookRenderer>                    m_defaultRenderer { std::make_unique<BookRendererDefault>(*this) };
+	std::unique_ptr<const IBookRenderer>                    m_libRateRenderer;
+	std::unique_ptr<const IBookRenderer>                    m_userRateRenderer;
 	const std::vector<std::pair<int, const IBookRenderer*>> m_rateRenderers {
 		{  BookItem::Column::LibRate,  m_libRateRenderer.get() },
 		{ BookItem::Column::UserRate, m_userRateRenderer.get() },

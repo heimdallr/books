@@ -27,18 +27,20 @@ class AnnotationWidget final : public QWidget
 	NON_COPY_MOVABLE(AnnotationWidget)
 
 public:
-	AnnotationWidget(const std::shared_ptr<const IModelProvider>& modelProvider,
-	                 const std::shared_ptr<const ILogicFactory>& logicFactory,
-	                 const std::shared_ptr<ICollectionController>& collectionController,
-	                 std::shared_ptr<const IReaderController> readerController,
-	                 std::shared_ptr<ISettings> settings,
-	                 std::shared_ptr<IAnnotationController> annotationController,
-	                 std::shared_ptr<IUiFactory> uiFactory,
-	                 std::shared_ptr<IBooksExtractorProgressController> progressController,
-	                 std::shared_ptr<ItemViewToolTipper> itemViewToolTipperContent,
-	                 std::shared_ptr<ScrollBarController> scrollBarControllerContent,
-	                 std::shared_ptr<ScrollBarController> scrollBarControllerAnnotation,
-	                 QWidget* parent = nullptr);
+	AnnotationWidget(
+		const std::shared_ptr<const IModelProvider>&       modelProvider,
+		const std::shared_ptr<const ILogicFactory>&        logicFactory,
+		const std::shared_ptr<ICollectionController>&      collectionController,
+		std::shared_ptr<const IReaderController>           readerController,
+		std::shared_ptr<ISettings>                         settings,
+		std::shared_ptr<IAnnotationController>             annotationController,
+		std::shared_ptr<IUiFactory>                        uiFactory,
+		std::shared_ptr<IBooksExtractorProgressController> progressController,
+		std::shared_ptr<ItemViewToolTipper>                itemViewToolTipperContent,
+		std::shared_ptr<ScrollBarController>               scrollBarControllerContent,
+		std::shared_ptr<ScrollBarController>               scrollBarControllerAnnotation,
+		QWidget*                                           parent = nullptr
+	);
 	~AnnotationWidget() override;
 
 public:

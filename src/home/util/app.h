@@ -20,8 +20,8 @@ enum class InstallerType
 struct InstallerDescription
 {
 	InstallerType type;
-	const char* name;
-	const char* ext;
+	const char*   name;
+	const char*   ext;
 };
 
 UTIL_EXPORT InstallerDescription GetInstallerDescription();

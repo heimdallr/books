@@ -12,7 +12,7 @@ using namespace Flibrary;
 namespace
 {
 constexpr auto CONTEXT = "JokeRequester";
-constexpr auto PREFIX = QT_TRANSLATE_NOOP("JokeRequester", "From dad");
+constexpr auto PREFIX  = QT_TRANSLATE_NOOP("JokeRequester", "From dad");
 TR_DEF
 
 QHttpHeaders GetHeaders()

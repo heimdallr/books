@@ -36,7 +36,7 @@ inline const char* MultiByteData(const char* data)
 template <typename StringType>
 std::wstring ToWide(const StringType& str)
 {
-	const auto size = static_cast<std::wstring::size_type>(MultiByteToWideChar(CP_UTF8, 0, MultiByteData(str), StrSize<int>(str), nullptr, 0));
+	const auto   size = static_cast<std::wstring::size_type>(MultiByteToWideChar(CP_UTF8, 0, MultiByteData(str), StrSize<int>(str), nullptr, 0));
 	std::wstring result(size, 0);
 	MultiByteToWideChar(CP_UTF8, 0, MultiByteData(str), StrSize<int>(str), result.data(), StrSize<int>(result));
 
@@ -60,7 +60,7 @@ concept WideStringType = std::is_same_v<T, const std::wstring&> || std::is_same_
 template <WideStringType StringType>
 std::string ToMultiByte(const StringType& str)
 {
-	const auto size = static_cast<std::wstring::size_type>(WideCharToMultiByte(CP_UTF8, 0, WideData(str), StrSize<int>(str), nullptr, 0, nullptr, nullptr));
+	const auto  size = static_cast<std::wstring::size_type>(WideCharToMultiByte(CP_UTF8, 0, WideData(str), StrSize<int>(str), nullptr, 0, nullptr, nullptr));
 	std::string result(size, 0);
 	WideCharToMultiByte(CP_UTF8, 0, WideData(str), StrSize<int>(str), result.data(), StrSize<int>(result), nullptr, nullptr);
 
@@ -82,8 +82,8 @@ bool IsStringLess(LhsType&& lhs, RhsType&& rhs)
 template <class T = void>
 struct StringLess
 {
-	typedef T _FIRST_ARGUMENT_TYPE_NAME;
-	typedef T _SECOND_ARGUMENT_TYPE_NAME;
+	typedef T    _FIRST_ARGUMENT_TYPE_NAME;
+	typedef T    _SECOND_ARGUMENT_TYPE_NAME;
 	typedef bool _RESULT_TYPE_NAME;
 
 	constexpr bool operator()(const T& lhs, const T& rhs) const
@@ -114,8 +114,10 @@ T To(const std::wstring_view value, T defaultValue = 0)
 template <typename It>
 std::wstring_view Next(It& beg, const It end, const wchar_t separator)
 {
-	beg = std::find_if(beg, end, [](const wchar_t c) { return !iswspace(c); });
-	auto next = std::find(beg, end, separator);
+	beg                          = std::find_if(beg, end, [](const wchar_t c) {
+        return !iswspace(c);
+    });
+	auto                    next = std::find(beg, end, separator);
 	const std::wstring_view result(beg, next);
 	beg = next != end ? std::next(next) : end;
 	return result;

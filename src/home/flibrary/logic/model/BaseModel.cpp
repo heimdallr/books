@@ -180,7 +180,7 @@ QVariant BaseModel::GetValue(const IDataItem& item, const int column)
 {
 	if (item.GetType() == ItemType::Books && IsOneOf(column, BookItem::Column::SeqNumber, BookItem::Column::Size))
 	{
-		bool ok = false;
+		bool       ok     = false;
 		const auto result = item.GetRawData(column).toLongLong(&ok);
 		return ok ? result : -1;
 	}

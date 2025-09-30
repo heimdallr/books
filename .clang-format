@@ -12,14 +12,21 @@
 
   AccessModifierOffset: -4
 
-  AlignAfterOpenBracket: Align
   AlignArrayOfStructures: Right
-  AlignConsecutiveAssignments: None
-  AlignConsecutiveDeclarations: None
+  AlignAfterOpenBracket: BlockIndent
   AlignConsecutiveMacros: None
   AlignEscapedNewlines: Left
   AlignOperands: AlignAfterOperator
   AlignTrailingComments: false
+
+  AlignConsecutiveAssignments:
+    Enabled: true
+    AcrossEmptyLines: false
+    AlignCompound: true
+
+  AlignConsecutiveDeclarations:
+    Enabled: true
+    AcrossEmptyLines: false
 
   AllowAllArgumentsOnNextLine: false
   AllowAllConstructorInitializersOnNextLine: false
@@ -28,7 +35,7 @@
   AllowShortCaseLabelsOnASingleLine: false
   AllowShortFunctionsOnASingleLine: None
   AllowShortIfStatementsOnASingleLine: Never
-  AllowShortLambdasOnASingleLine: All
+  AllowShortLambdasOnASingleLine: None
   AllowShortLoopsOnASingleLine: false
   AlwaysBreakAfterReturnType: None
   AlwaysBreakBeforeMultilineStrings: false
@@ -43,8 +50,22 @@
   BreakBeforeTernaryOperators: true
   BreakConstructorInitializers: BeforeComma
   BreakInheritanceList: BeforeComma
-  BreakStringLiterals: true 
-  BreakBeforeBraces: Allman
+  BreakStringLiterals: true
+  
+  BreakBeforeBraces: Custom
+  BraceWrapping:
+    AfterCaseLabel: true
+    AfterClass: true
+    AfterControlStatement: Always
+    AfterEnum: true
+    AfterFunction: true
+    AfterNamespace: true
+    AfterStruct: true
+    AfterUnion: true
+    AfterExternBlock: true
+    BeforeCatch: true
+    BeforeElse: true
+    BeforeWhile: true
 
   CommentPragmas: '^ IWYU pragma:'
   CompactNamespaces: true
@@ -57,7 +78,7 @@
   EmptyLineBeforeAccessModifier: LogicalBlock
   ExperimentalAutoDetectBinPacking: false
   FixNamespaceComments: true
-  ForEachMacros: [ foreach, Q_FOREACH, BOOST_FOREACH, KBFOREACH, KBEXTFOREACH ]
+  ForEachMacros: [ foreach, Q_FOREACH, BOOST_FOREACH ]
 
   IndentCaseLabels: true
   IndentWrappedFunctionNames: false
