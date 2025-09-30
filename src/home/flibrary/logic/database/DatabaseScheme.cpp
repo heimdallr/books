@@ -172,6 +172,7 @@ void FillLanguage(DB::ITransaction& transaction)
 		return;
 
 	PLOGI << "Update languages table";
+	transaction.CreateCommand("update Books set Lang = lower(Lang)")->Execute();
 	transaction.CreateCommand("insert into Languages(LanguageCode) select distinct Lang from Books")->Execute();
 }
 
