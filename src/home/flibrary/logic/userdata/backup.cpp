@@ -46,8 +46,8 @@ public:
 
 	XmlAttributes() = default;
 
-	XmlAttributes(std::vector<std::pair<QString, QString>> values)
-		: m_values(std::move(values))
+	explicit XmlAttributes(std::vector<std::pair<QString, QString>> values)
+		: m_values { std::move(values) }
 	{
 	}
 

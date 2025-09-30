@@ -350,7 +350,7 @@ private:
 
 	void CreateSelectedBookItems(DB::IDatabase& db, const QueryClause& queryClause, const std::function<void(const DB::IQuery&, const SelectedBookItem&)>& additional = [](const DB::IQuery&, const auto&) {})
 	{
-		const auto with = QString(queryClause.with).arg(navigationId).toStdString();
+		const auto with = queryClause.with && queryClause.with[0] ? QString(queryClause.with).arg(navigationId).toStdString() : std::string{};
 
 		{
 			const auto query =
