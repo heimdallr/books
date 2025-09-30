@@ -36,38 +36,31 @@ std::unique_ptr<QSettings> GetStartupSettings()
 struct OpdsController::Impl : Observable<IObserver>
 {
 	QLocalSocket socket;
-	QTimer timer;
+	QTimer       timer;
 
 	Impl(const IOpdsController& /*controller*/)
 	{
-		QObject::connect(&socket,
-		                 &QLocalSocket::connected,
-		                 [&]
-		                 {
-							 PLOGD << "OPDS connected";
-							 Perform(&IObserver::OnRunningChanged);
-							 timer.stop();
-						 });
+		QObject::connect(&socket, &QLocalSocket::connected, [&] {
+			PLOGD << "OPDS connected";
+			Perform(&IObserver::OnRunningChanged);
+			timer.stop();
+		});
 
-		QObject::connect(&socket,
-		                 &QLocalSocket::disconnected,
-		                 [&]
-		                 {
-							 PLOGD << "OPDS disconnected";
-							 Perform(&IObserver::OnRunningChanged);
-						 });
+		QObject::connect(&socket, &QLocalSocket::disconnected, [&] {
+			PLOGD << "OPDS disconnected";
+			Perform(&IObserver::OnRunningChanged);
+		});
 
-		QObject::connect(&socket,
-		                 &QLocalSocket::errorOccurred,
-		                 [&]
-		                 {
-							 PLOGD << "OPDS error occurred: " << socket.errorString();
-							 Perform(&IObserver::OnRunningChanged);
-						 });
+		QObject::connect(&socket, &QLocalSocket::errorOccurred, [&] {
+			PLOGD << "OPDS error occurred: " << socket.errorString();
+			Perform(&IObserver::OnRunningChanged);
+		});
 
 		timer.setInterval(std::chrono::seconds(1));
 		timer.setSingleShot(false);
-		QObject::connect(&timer, &QTimer::timeout, [this] { socket.connectToServer(Constant::OPDS_SERVER_NAME); });
+		QObject::connect(&timer, &QTimer::timeout, [this] {
+			socket.connectToServer(Constant::OPDS_SERVER_NAME);
+		});
 	}
 };
 

@@ -34,10 +34,10 @@ class Model final : public QAbstractListModel
 	struct Item
 	{
 		long long id;
-		QString time;
-		QString name;
-		QString title;
-		QString text;
+		QString   time;
+		QString   name;
+		QString   title;
+		QString   text;
 	};
 
 	using Items = std::vector<Item>;
@@ -45,9 +45,11 @@ class Model final : public QAbstractListModel
 public:
 	static std::unique_ptr<QAbstractItemModel> Create(const ISettings& settings, const ICollectionProvider& collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)
 	{
-		return std::make_unique<Model>(settings.Get(Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false),
-		                               collectionProvider.ActiveCollectionExists() ? collectionProvider.GetActiveCollection().folder : QString {},
-		                               std::move(databaseUser));
+		return std::make_unique<Model>(
+			settings.Get(Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false),
+			collectionProvider.ActiveCollectionExists() ? collectionProvider.GetActiveCollection().folder : QString {},
+			std::move(databaseUser)
+		);
 	}
 
 	Model(const bool showRemoved, const QString& folder, std::shared_ptr<const IDatabaseUser> databaseUser)
@@ -95,15 +97,19 @@ private:
 	void Reset(const long long authorId)
 	{
 		auto db = m_databaseUser->Database();
-		m_databaseUser->Execute({ "Get author reviews",
-		                          [this, authorId, db = std::move(db)]
-		                          {
-									  return [this, items = GetReviews(authorId, *db)](size_t) mutable
-									  {
-										  ScopedCall resetGuard([this] { beginResetModel(); }, [this] { endResetModel(); });
-										  m_items = std::move(items);
-									  };
-								  } });
+		m_databaseUser->Execute({ "Get author reviews", [this, authorId, db = std::move(db)] {
+									 return [this, items = GetReviews(authorId, *db)](size_t) mutable {
+										 ScopedCall resetGuard(
+											 [this] {
+												 beginResetModel();
+											 },
+											 [this] {
+												 endResetModel();
+											 }
+										 );
+										 m_items = std::move(items);
+									 };
+								 } });
 	}
 
 	Items GetReviews(const long long authorId, DB::IDatabase& db) const
@@ -121,25 +127,24 @@ select r.Folder, b.BookID, b.LibID, b.Title
 		Items items;
 
 		std::shared_ptr<const Zip> zip;
-		QString folder;
-		const auto getZip = [&]
-		{
-			if (!Util::Set(folder, QString(query->Get<const char*>(0))))
-				return assert(zip);
+		QString                    folder;
+		const auto                 getZip = [&] {
+            if (!Util::Set(folder, QString(query->Get<const char*>(0))))
+                return assert(zip);
 
-			try
-			{
-				zip.reset();
-				zip = std::make_shared<Zip>(m_folder.filePath(folder));
-			}
-			catch (const std::exception& ex)
-			{
-				PLOGE << ex.what();
-			}
-			catch (...)
-			{
-				PLOGE << "unknown error";
-			}
+            try
+            {
+                zip.reset();
+                zip = std::make_shared<Zip>(m_folder.filePath(folder));
+            }
+            catch (const std::exception& ex)
+            {
+                PLOGE << ex.what();
+            }
+            catch (...)
+            {
+                PLOGE << "unknown error";
+            }
 		};
 
 		for (query->Execute(); !query->Eof(); query->Next())
@@ -151,9 +156,9 @@ select r.Folder, b.BookID, b.LibID, b.Title
 
 	void GetReviews(Items& items, const DB::IQuery& query, const Zip& zip) const
 	{
-		const auto bookId = query.Get<long long>(1);
-		const QString libId = query.Get<const char*>(2);
-		QString title = query.Get<const char*>(3);
+		const auto    bookId = query.Get<long long>(1);
+		const QString libId  = query.Get<const char*>(2);
+		QString       title  = query.Get<const char*>(3);
 
 		const auto stream = zip.Read(libId);
 		if (!stream)
@@ -163,18 +168,17 @@ select r.Folder, b.BookID, b.LibID, b.Title
 		}
 
 		QJsonParseError parseError;
-		const auto doc = QJsonDocument::fromJson(stream->GetStream().readAll(), &parseError);
+		const auto      doc = QJsonDocument::fromJson(stream->GetStream().readAll(), &parseError);
 		if (parseError.error != QJsonParseError::NoError)
 		{
 			PLOGE << parseError.errorString();
 			return;
 		}
 
-		auto toItem = [bookId, title = std::move(title)](auto&& reviewValue)
-		{
+		auto toItem = [bookId, title = std::move(title)](auto&& reviewValue) {
 			assert(reviewValue.isObject());
 			const auto reviewObject = reviewValue.toObject();
-			auto name = reviewObject[Constant::NAME].toString();
+			auto       name         = reviewObject[Constant::NAME].toString();
 			return Item { bookId,
 				          reviewObject[Constant::TIME].toString(),
 				          name.isEmpty() ? Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS) : std::move(name),
@@ -187,18 +191,20 @@ select r.Folder, b.BookID, b.LibID, b.Title
 	}
 
 private:
-	const bool m_showRemoved;
-	const QDir m_folder;
+	const bool                                 m_showRemoved;
+	const QDir                                 m_folder;
 	const std::shared_ptr<const IDatabaseUser> m_databaseUser;
-	Items m_items;
+	Items                                      m_items;
 };
 
 } // namespace
 
-AuthorReviewModel::AuthorReviewModel(const std::shared_ptr<const ISettings>& settings,
-                                     const std::shared_ptr<const ICollectionProvider>& collectionProvider,
-                                     std::shared_ptr<const IDatabaseUser> databaseUser,
-                                     QObject* parent)
+AuthorReviewModel::AuthorReviewModel(
+	const std::shared_ptr<const ISettings>&           settings,
+	const std::shared_ptr<const ICollectionProvider>& collectionProvider,
+	std::shared_ptr<const IDatabaseUser>              databaseUser,
+	QObject*                                          parent
+)
 	: QSortFilterProxyModel(parent)
 	, m_source { Model::Create(*settings, *collectionProvider, std::move(databaseUser)) }
 {

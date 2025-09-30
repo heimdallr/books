@@ -11,6 +11,7 @@
 
 #include "IDatabase.h"
 #include "IQuery.h"
+#include "ITemporaryTable.h"
 #include "ITransaction.h"
 #include "log.h"
 #include "sqlite3ppext.h"
@@ -18,15 +19,16 @@
 namespace HomeCompa::DB::Impl::Sqlite
 {
 
-std::unique_ptr<ITransaction> CreateTransactionImpl(std::mutex& mutex, sqlite3pp::database& db);
-std::unique_ptr<IQuery> CreateQueryImpl(std::mutex& mutex, sqlite3pp::database& db, std::string_view query);
+std::unique_ptr<ITransaction>    CreateTransactionImpl(std::mutex& mutex, sqlite3pp::database& db);
+std::unique_ptr<IQuery>          CreateQueryImpl(std::mutex& mutex, sqlite3pp::database& db, std::string_view query);
+std::unique_ptr<ITemporaryTable> CreateTemporaryTableImpl(IDatabase& db, const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional);
 
 namespace
 {
 
-constexpr auto PATH = "path";
+constexpr auto PATH      = "path";
 constexpr auto EXTENSION = "extension";
-constexpr auto FLAG = "flag";
+constexpr auto FLAG      = "flag";
 
 using ConnectionParameters = std::multimap<std::string, std::string, std::less<>>;
 
@@ -48,8 +50,8 @@ constexpr std::pair<const char*, int> g_openFlags[] {
 std::vector<std::string> Split(const std::string& src, const char separator)
 {
 	std::vector<std::string> result;
-	std::istringstream stream(src);
-	std::string s;
+	std::istringstream       stream(src);
+	std::string              s;
 	while (std::getline(stream, s, separator))
 		result.push_back(s);
 
@@ -74,7 +76,9 @@ ConnectionParameters ParseConnectionString(const std::string& connection)
 int GetOpenFlags(const ConnectionParameters& parameters)
 {
 	auto [begin, end] = parameters.equal_range(FLAG);
-	auto result = std::accumulate(begin, end, 0, [](const int init, const auto& item) { return init | FindSecond(g_openFlags, item.second.data(), 0, PszComparer {}); });
+	auto result       = std::accumulate(begin, end, 0, [](const int init, const auto& item) {
+        return init | FindSecond(g_openFlags, item.second.data(), 0, PszComparer {});
+    });
 	if (result & SQLITE_OPEN_CREATE)
 		result |= SQLITE_OPEN_READWRITE;
 
@@ -140,7 +144,9 @@ public:
 		for (auto [begin, end] = m_connectionParameters.equal_range(EXTENSION); begin != end; ++begin)
 			m_db.load_extension(begin->second.data());
 
-		m_db.set_update_handler([&](const int opCode, const char* dbName, const char* tableName, const int64_t rowId) { m_observer.OnUpdate(opCode, dbName, tableName, rowId); });
+		m_db.set_update_handler([&](const int opCode, const char* dbName, const char* tableName, const int64_t rowId) {
+			m_observer.OnUpdate(opCode, dbName, tableName, rowId);
+		});
 
 		[[maybe_unused]] const auto ok = Database::CreateQuery("ATTACH DATABASE ':memory:' AS tmp;")->Execute();
 		assert(ok);
@@ -164,15 +170,17 @@ private: // Database
 		return CreateQueryImpl(m_guard, m_db, query);
 	}
 
+	[[nodiscard]] std::unique_ptr<ITemporaryTable> CreateTemporaryTable(const std::vector<std::string_view>& fields, const std::vector<std::string_view>& additional) override
+	{
+		return CreateTemporaryTableImpl(*this, fields, additional);
+	}
+
 	void CreateFunction(const std::string_view name, DatabaseFunction function) override
 	{
-		m_functions.try_emplace(std::string(name), std::make_unique<sqlite3pp::ext::function>(m_db))
-			.first->second->create(name.data(),
-		                           [function = std::move(function)](sqlite3pp::ext::context& ctx)
-		                           {
-									   DatabaseFunctionContext context(ctx);
-									   function(context);
-								   });
+		m_functions.try_emplace(std::string(name), std::make_unique<sqlite3pp::ext::function>(m_db)).first->second->create(name.data(), [function = std::move(function)](sqlite3pp::ext::context& ctx) {
+			DatabaseFunctionContext context(ctx);
+			function(context);
+		});
 	}
 
 	void RegisterObserver(IDatabaseObserver* observer) override
@@ -186,10 +194,10 @@ private: // Database
 	}
 
 private:
-	ConnectionParameters m_connectionParameters;
-	std::mutex m_guard;
-	sqlite3pp::database m_db;
-	ObserverImpl m_observer;
+	ConnectionParameters                                                          m_connectionParameters;
+	std::mutex                                                                    m_guard;
+	sqlite3pp::database                                                           m_db;
+	ObserverImpl                                                                  m_observer;
 	std::map<std::string, std::unique_ptr<sqlite3pp::ext::function>, std::less<>> m_functions;
 };
 

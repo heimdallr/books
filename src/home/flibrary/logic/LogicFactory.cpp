@@ -82,12 +82,12 @@ private:
 
 struct LogicFactory::Impl final
 {
-	Hypodermic::Container& container;
+	Hypodermic::Container&                      container;
 	std::shared_ptr<AbstractTreeViewController> controllers[static_cast<size_t>(ItemType::Last)];
 	std::vector<std::shared_ptr<ITemporaryDir>> temporaryDirs;
-	std::shared_ptr<ITemporaryDir> singleTemporaryDir;
+	std::shared_ptr<ITemporaryDir>              singleTemporaryDir;
 
-	std::mutex progressControllerGuard;
+	std::mutex                           progressControllerGuard;
 	std::shared_ptr<IProgressController> progressController;
 	std::unordered_map<QString, QString> genreParents;
 
@@ -102,11 +102,10 @@ struct LogicFactory::Impl final
 			return;
 
 		const auto databaseUser = container.resolve<IDatabaseUser>();
-		const auto db = databaseUser->CheckDatabase();
-		const auto genres = Genre::Load(*db);
+		const auto db           = databaseUser->CheckDatabase();
+		const auto genres       = Genre::Load(*db);
 
-		const auto process = [this](const std::vector<Genre>& children, const auto& f) -> void
-		{
+		const auto process = [this](const std::vector<Genre>& children, const auto& f) -> void {
 			for (const auto& genre : children)
 			{
 				assert(genre.parent);
@@ -231,30 +230,28 @@ ILogicFactory::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel
 	m_impl->UpdateGenreParents();
 	ExtractedBooks books;
 
-	const std::vector<int> roles { Role::Id, Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title, Role::Genre, Role::LibID };
-	const auto selected = GetSelectedBookIds(model, index, indexList, roles);
-	std::ranges::transform(selected,
-	                       std::back_inserter(books),
-	                       [&](auto&& book)
-	                       {
-							   assert(book.size() == roles.size());
-							   auto genres = book[8].split(", ", Qt::SkipEmptyParts);
-							   ExtractedBook result { .id = book[0].toLongLong(),
-			                                          .folder = std::move(book[1]),
-			                                          .file = std::move(book[2]),
-			                                          .size = book[3].toLongLong(),
-			                                          .author = std::move(book[4]),
-			                                          .series = std::move(book[5]),
-			                                          .seqNumber = book[6].toInt(),
-			                                          .title = std::move(book[7]),
-			                                          .genre = genres.isEmpty() ? QString {} : std::move(genres.front()),
-			                                          .libId = book[9].toLongLong() };
+	const std::vector<int> roles { Role::Id, Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title, Role::Genre, Role::LibID, Role::Lang };
+	const auto             selected = GetSelectedBookIds(model, index, indexList, roles);
+	std::ranges::transform(selected, std::back_inserter(books), [&](auto&& book) {
+		assert(book.size() == roles.size());
+		auto          genres = book[8].split(", ", Qt::SkipEmptyParts);
+		ExtractedBook result { .id        = book[0].toLongLong(),
+			                   .folder    = std::move(book[1]),
+			                   .file      = std::move(book[2]),
+			                   .size      = book[3].toLongLong(),
+			                   .author    = std::move(book[4]),
+			                   .series    = std::move(book[5]),
+			                   .seqNumber = book[6].toInt(),
+			                   .title     = std::move(book[7]),
+			                   .genre     = genres.isEmpty() ? QString {} : std::move(genres.front()),
+			                   .libId     = book[9].toLongLong(),
+			                   .lang      = book[10] };
 
-							   for (auto genre = result.genre; !genre.isEmpty(); genre = m_impl->genreParents.at(genre))
-								   result.genreTree.push_front(genre);
+		for (auto genre = result.genre; !genre.isEmpty(); genre = m_impl->genreParents.at(genre))
+			result.genreTree.push_front(genre);
 
-							   return result;
-						   });
+		return result;
+	});
 
 	return books;
 }

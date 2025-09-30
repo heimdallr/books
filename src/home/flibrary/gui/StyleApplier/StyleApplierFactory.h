@@ -26,7 +26,7 @@ public:
 private: // IStyleApplierFactory
 	std::shared_ptr<IStyleApplier> CreateStyleApplier(IStyleApplier::Type type) const override;
 	std::shared_ptr<IStyleApplier> CreateThemeApplier() const override;
-	void CheckAction(const std::vector<QAction*>& actions) const override;
+	void                           CheckAction(const std::vector<QAction*>& actions) const override;
 
 private:
 	struct Impl;

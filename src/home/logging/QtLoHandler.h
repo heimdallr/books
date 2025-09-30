@@ -13,9 +13,9 @@ public:
 
 private:
 	static void HandleStatic(QtMsgType type, const QMessageLogContext& ctx, const QString& message);
-	void Handle(QtMsgType type, const QMessageLogContext& ctx, const QString& message) const;
+	void        Handle(QtMsgType type, const QMessageLogContext& ctx, const QString& message) const;
 
 private:
-	QtMessageHandler m_qtLogHandlerPrev;
+	QtMessageHandler     m_qtLogHandlerPrev;
 	static QtLogHandler* s_qtLogHandler;
 };

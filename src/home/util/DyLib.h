@@ -15,10 +15,10 @@ public:
 	explicit DyLib(std::filesystem::path moduleName);
 	~DyLib();
 
-	bool IsOpen() const; ///< @return true - модуль загружен.
-	void Detach(); ///< Отсоединиться от модуля. Модуль остается загруженным.
-	bool Open(std::filesystem::path moduleName); ///< Загрузить модуль. @return true - модуль успешно загружен.
-	void Close(); ///< Выгрузить модуль.
+	bool  IsOpen() const; ///< @return true - модуль загружен.
+	void  Detach(); ///< Отсоединиться от модуля. Модуль остается загруженным.
+	bool  Open(std::filesystem::path moduleName); ///< Загрузить модуль. @return true - модуль успешно загружен.
+	void  Close(); ///< Выгрузить модуль.
 	void* GetProc(const std::string& procName); ///< Получить адрес функции
 
 	template <typename ProcType>
@@ -34,9 +34,9 @@ public:
 	}
 
 private:
-	void* m_handle { nullptr };
+	void*                 m_handle { nullptr };
 	std::filesystem::path m_moduleName;
-	std::string m_errorDescription;
+	std::string           m_errorDescription;
 };
 
 class AutoDetach
@@ -60,7 +60,7 @@ public:
 	}
 
 private:
-	bool m_detach;
+	bool   m_detach;
 	DyLib& m_module;
 };
 

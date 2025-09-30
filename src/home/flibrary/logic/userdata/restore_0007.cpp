@@ -95,7 +95,7 @@ class GroupsRestorer final : virtual public IRestorer
 		}
 	};
 
-	using Groups = std::vector<Group>;
+	using Groups   = std::vector<Group>;
 	using GroupRef = std::reference_wrapper<const Group>;
 
 private: // IRestorer
@@ -114,18 +114,18 @@ private: // IRestorer
 
 	void Restore(DB::IDatabase& db) const override
 	{
-		static constexpr auto commandTextBooks = "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) "
-												 "select ?, BookID, ? "
-												 "from Books "
-												 "where FolderID = (select FolderID from Folders where FolderTitle = ?) and FileName = ?";
-		static constexpr auto commandTextAuthors = "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) "
-												   "select ?, AuthorID, ? "
-												   "from Authors "
-												   "where LastName||','||FirstName||','||MiddleName = ?";
-		static constexpr auto commandTextSeries = "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) "
-												  "select ?, SeriesID, ? "
-												  "from Series "
-												  "where SeriesTitle = ?";
+		static constexpr auto commandTextBooks    = "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) "
+													"select ?, BookID, ? "
+													"from Books "
+													"where FolderID = (select FolderID from Folders where FolderTitle = ?) and FileName = ?";
+		static constexpr auto commandTextAuthors  = "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) "
+													"select ?, AuthorID, ? "
+													"from Authors "
+													"where LastName||','||FirstName||','||MiddleName = ?";
+		static constexpr auto commandTextSeries   = "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) "
+													"select ?, SeriesID, ? "
+													"from Series "
+													"where SeriesTitle = ?";
 		static constexpr auto commandTextKeywords = "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) "
 													"select ?, KeywordID, ? "
 													"from Keywords "
@@ -147,16 +147,13 @@ private:
 	std::vector<std::pair<GroupRef, long long>> WriteGroups(DB::ITransaction& tr) const
 	{
 		std::vector<std::pair<GroupRef, long long>> groups;
-		const auto command = tr.CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
-		std::ranges::transform(m_groups,
-		                       std::back_inserter(groups),
-		                       [&](const Group& group)
-		                       {
-								   group.Write(*command);
-								   const auto getLastIdQuery = tr.CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
-								   getLastIdQuery->Execute();
-								   return std::make_pair(GroupRef { group }, getLastIdQuery->Get<long long>(0));
-							   });
+		const auto                                  command = tr.CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
+		std::ranges::transform(m_groups, std::back_inserter(groups), [&](const Group& group) {
+			group.Write(*command);
+			const auto getLastIdQuery = tr.CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
+			getLastIdQuery->Execute();
+			return std::make_pair(GroupRef { group }, getLastIdQuery->Get<long long>(0));
+		});
 		return groups;
 	}
 

@@ -12,12 +12,12 @@ namespace
 {
 
 constexpr ImageSettings DEFAULT_SETTINGS;
-constexpr auto QUALITY = "quality";
-constexpr auto WIDTH = "width";
-constexpr auto HEIGHT = "height";
-constexpr auto GRAYSCALE = "grayscale";
-constexpr auto SKIP = "skip";
-constexpr auto LOCK_SIZE = "lockSize";
+constexpr auto          QUALITY   = "quality";
+constexpr auto          WIDTH     = "width";
+constexpr auto          HEIGHT    = "height";
+constexpr auto          GRAYSCALE = "grayscale";
+constexpr auto          SKIP      = "skip";
+constexpr auto          LOCK_SIZE = "lockSize";
 
 QString GetKey(const QString& section, const QString& key)
 {
@@ -32,24 +32,16 @@ ImageSettingsWidget::ImageSettingsWidget(std::shared_ptr<ISettings> settingsMana
 {
 	m_ui->setupUi(this);
 
-	connect(m_ui->btnFixSize,
-	        &QAbstractButton::toggled,
-	        this,
-	        [this](const bool checked)
-	        {
-				m_ui->height->setEnabled(!checked);
-				if (checked)
-					m_ui->height->setValue(m_ui->width->value());
-			});
+	connect(m_ui->btnFixSize, &QAbstractButton::toggled, this, [this](const bool checked) {
+		m_ui->height->setEnabled(!checked);
+		if (checked)
+			m_ui->height->setValue(m_ui->width->value());
+	});
 
-	connect(m_ui->width,
-	        &QSpinBox::valueChanged,
-	        this,
-	        [this](const int value)
-	        {
-				if (m_ui->btnFixSize->isChecked())
-					m_ui->height->setValue(value);
-			});
+	connect(m_ui->width, &QSpinBox::valueChanged, this, [this](const int value) {
+		if (m_ui->btnFixSize->isChecked())
+			m_ui->height->setValue(value);
+	});
 
 	connect(m_ui->quality, &QSpinBox::valueChanged, this, &ImageSettingsWidget::Changed);
 	connect(m_ui->width, &QSpinBox::valueChanged, this, &ImageSettingsWidget::Changed);
@@ -110,9 +102,9 @@ void ImageSettingsWidget::SetImageSettings(ImageSettings& settings)
 void ImageSettingsWidget::ApplySettings()
 {
 	assert(m_settings);
-	m_settings->maxSize = { m_ui->width->value(), m_ui->height->value() };
-	m_settings->quality = m_ui->quality->value();
-	m_settings->save = !m_ui->skip->isChecked();
+	m_settings->maxSize   = { m_ui->width->value(), m_ui->height->value() };
+	m_settings->quality   = m_ui->quality->value();
+	m_settings->save      = !m_ui->skip->isChecked();
 	m_settings->grayscale = m_ui->grayscale->isChecked();
 
 	m_settingsManager->Set(GetKey(m_settings->type, LOCK_SIZE), m_ui->btnFixSize->isChecked());

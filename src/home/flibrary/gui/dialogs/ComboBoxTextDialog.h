@@ -24,7 +24,7 @@ public:
 	~ComboBoxTextDialog() override;
 
 private:
-	QDialog& GetDialog() override;
+	QDialog&   GetDialog() override;
 	QComboBox& GetComboBox() override;
 	QLineEdit& GetLineEdit() override;
 

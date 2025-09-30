@@ -15,9 +15,9 @@ using Role = IScriptController::RoleBase;
 
 bool MoveRow(QSortFilterProxyModel& model, const QModelIndex& index, const int offset)
 {
-	const auto from = index.data(Role::Number).toInt();
+	const auto from    = index.data(Role::Number).toInt();
 	const auto indexTo = model.index(index.row() + offset, index.column(), index.parent());
-	const auto to = indexTo.data(Role::Number).toInt();
+	const auto to      = indexTo.data(Role::Number).toInt();
 
 	const auto result = model.setData(index, to, Role::Number) && model.setData(indexTo, from, Role::Number);
 

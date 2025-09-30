@@ -18,18 +18,21 @@ public:
 
 	struct Task
 	{
-		std::string name;
-		std::function<TaskResult()> task { [] { return [](size_t) {}; } };
+		std::string                 name;
+		std::function<TaskResult()> task { [] {
+			return [](size_t) {
+			};
+		} };
 		size_t id { ++s_id };
 	};
 
 public:
-	IExecutor() = default;
-	IExecutor(const IExecutor&) = delete;
-	IExecutor(IExecutor&&) = default;
-	IExecutor& operator=(const IExecutor&) = delete;
-	IExecutor& operator=(IExecutor&&) = default;
-	virtual ~IExecutor() = default;
+	IExecutor()                                              = default;
+	IExecutor(const IExecutor&)                              = delete;
+	IExecutor(IExecutor&&)                                   = default;
+	IExecutor& operator=(const IExecutor&)                   = delete;
+	IExecutor& operator=(IExecutor&&)                        = default;
+	virtual ~IExecutor()                                     = default;
 	virtual size_t operator()(Task&& task, int priority = 0) = 0;
 
 	size_t operator()(Task&& task, const int priority = 0) const

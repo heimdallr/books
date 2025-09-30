@@ -16,15 +16,15 @@ using namespace HomeCompa::Flibrary;
 namespace
 {
 
-constexpr auto SCRIPTS = "Scripts";
-constexpr auto SCRIPT_KEY_TEMPLATE = "%1/%2";
-constexpr auto SCRIPT_VALUE_KEY_TEMPLATE = "Scripts/%1/%2";
+constexpr auto SCRIPTS                    = "Scripts";
+constexpr auto SCRIPT_KEY_TEMPLATE        = "%1/%2";
+constexpr auto SCRIPT_VALUE_KEY_TEMPLATE  = "Scripts/%1/%2";
 constexpr auto COMMAND_VALUE_KEY_TEMPLATE = "Scripts/%1/%2/%3";
-constexpr auto NAME = "Name";
-constexpr auto NUMBER = "Number";
-constexpr auto TYPE = "Type";
-constexpr auto COMMAND = "Command";
-constexpr auto ARGUMENTS = "Arguments";
+constexpr auto NAME                       = "Name";
+constexpr auto NUMBER                     = "Number";
+constexpr auto TYPE                       = "Type";
+constexpr auto COMMAND                    = "Command";
+constexpr auto ARGUMENTS                  = "Arguments";
 
 struct CommandDescriptionComparer
 {
@@ -40,22 +40,26 @@ private:
 template <typename T>
 auto GetModeFilter(const IScriptController::Mode mode)
 {
-	return std::views::filter([=](const T& item) { return item.mode == mode; });
+	return std::views::filter([=](const T& item) {
+		return item.mode == mode;
+	});
 }
 
 auto GetScriptUidFilter(const QString& uid)
 {
-	return std::views::filter([&](const IScriptController::Command& item) { return item.scriptUid == uid; });
+	return std::views::filter([&](const IScriptController::Command& item) {
+		return item.scriptUid == uid;
+	});
 }
 
 } // namespace
 
 struct ScriptController::Impl
 {
-	Scripts scripts;
-	Commands commands;
+	Scripts                                       scripts;
+	Commands                                      commands;
 	PropagateConstPtr<ISettings, std::shared_ptr> settings;
-	std::weak_ptr<const ICommandExecutor> commandExecutor;
+	std::weak_ptr<const ICommandExecutor>         commandExecutor;
 
 	Impl(std::shared_ptr<ISettings> settings, const std::shared_ptr<const ICommandExecutor>& commandExecutor)
 		: settings(std::move(settings))
@@ -80,36 +84,32 @@ private:
 	void Init()
 	{
 		const SettingsGroup scriptsGuard(*settings, SCRIPTS);
-		std::ranges::transform(settings->GetGroups(),
-		                       std::back_inserter(scripts),
-		                       [&](const QString& uid)
-		                       {
-								   const SettingsGroup scriptGuard(*settings, uid);
-								   Script script {
-									   { uid, settings->Get(NUMBER).toInt() },
-									   settings->Get(NAME).toString(),
-									   FindFirst(s_scriptTypes, settings->Get(TYPE).toString().toStdString().data(), Script::Type::Undefined, PszComparer {}
-                                       )
-								   };
-								   std::ranges::transform(settings->GetGroups(),
-			                                              std::back_inserter(commands),
-			                                              [this, &uid](const QString& commandUid)
-			                                              {
-															  const SettingsGroup commandGuard(*settings, commandUid);
-															  return Command {
-																  { commandUid, settings->Get(NUMBER).toInt() },
-																  uid,
-																  settings->Get(COMMAND).toString(),
-																  settings->Get(ARGUMENTS).toString(),
-																  FindFirst(s_commandTypes, CommandDescription { settings->Get(TYPE).toString().toStdString().data() },
-                                                                  CommandDescriptionComparer {}
-                                                                  )
-															  };
-														  });
-								   return script;
-							   });
+		std::ranges::transform(settings->GetGroups(), std::back_inserter(scripts), [&](const QString& uid) {
+			const SettingsGroup scriptGuard(*settings, uid);
+			Script              script {
+							 { uid, settings->Get(NUMBER).toInt() },
+                settings->Get(NAME).toString(),
+                FindFirst(s_scriptTypes, settings->Get(TYPE).toString().toStdString().data(), Script::Type::Undefined, PszComparer {}
+                             )
+			};
+			std::ranges::transform(settings->GetGroups(), std::back_inserter(commands), [this, &uid](const QString& commandUid) {
+				const SettingsGroup commandGuard(*settings, commandUid);
+				return Command {
+					{ commandUid, settings->Get(NUMBER).toInt() },
+					uid,
+					settings->Get(COMMAND).toString(),
+					settings->Get(ARGUMENTS).toString(),
+					FindFirst(s_commandTypes, CommandDescription { settings->Get(TYPE).toString().toStdString().data() },
+                    CommandDescriptionComparer {}
+                    )
+				};
+			});
+			return script;
+		});
 
-		const auto undefined = [](const Script& item) { return item.type == Script::Type::Undefined; };
+		const auto undefined = [](const Script& item) {
+			return item.type == Script::Type::Undefined;
+		};
 		for (const auto& script : scripts | std::views::filter(undefined))
 			settings->Remove(script.uid);
 		if (const auto [begin, end] = std::ranges::remove_if(scripts, undefined); begin != end)
@@ -135,20 +135,19 @@ const IScriptController::Scripts& ScriptController::GetScripts() const noexcept
 
 bool ScriptController::InsertScripts(const int row, const int count)
 {
-	const auto it = std::ranges::max_element(m_impl->scripts, [](const auto& lhs, const auto& rhs) { return lhs.number < rhs.number; });
+	const auto it = std::ranges::max_element(m_impl->scripts, [](const auto& lhs, const auto& rhs) {
+		return lhs.number < rhs.number;
+	});
 
 	Scripts scripts;
 	scripts.reserve(static_cast<size_t>(count));
-	std::generate_n(std::back_inserter(scripts),
-	                count,
-	                [n = it == m_impl->scripts.end() ? 0 : it->number]() mutable
-	                {
-						return Script {
-							{ QUuid::createUuid().toString(QUuid::WithoutBraces), ++n, Mode::Updated },
-							{},
-							Script::Type::ExportToDevice
-						};
-					});
+	std::generate_n(std::back_inserter(scripts), count, [n = it == m_impl->scripts.end() ? 0 : it->number]() mutable {
+		return Script {
+			{ QUuid::createUuid().toString(QUuid::WithoutBraces), ++n, Mode::Updated },
+			{},
+			Script::Type::ExportToDevice
+		};
+	});
 	m_impl->scripts.insert(std::next(m_impl->scripts.begin(), row), std::make_move_iterator(scripts.begin()), std::make_move_iterator(scripts.end()));
 	return true;
 }
@@ -157,7 +156,7 @@ bool ScriptController::RemoveScripts(const int row, const int count)
 {
 	bool result = false;
 	for (size_t i = 0; i < static_cast<size_t>(count); ++i)
-		result = Util::Set(m_impl->scripts[static_cast<size_t>(row) + i].mode, Mode::Removed, *this) || result;
+		result = Util::Set(m_impl->scripts[static_cast<size_t>(row) + i].mode, Mode::Removed) || result;
 
 	return result;
 }
@@ -194,22 +193,21 @@ IScriptController::Commands ScriptController::GetCommands(const QString& scriptU
 
 bool ScriptController::InsertCommand(const QString& uid, const int row, const int count)
 {
-	auto filtered = m_impl->commands | GetScriptUidFilter(uid);
-	const auto it = std::ranges::max_element(filtered, [](const auto& lhs, const auto& rhs) { return lhs.number < rhs.number; });
-	Commands commands;
+	auto       filtered = m_impl->commands | GetScriptUidFilter(uid);
+	const auto it       = std::ranges::max_element(filtered, [](const auto& lhs, const auto& rhs) {
+        return lhs.number < rhs.number;
+    });
+	Commands   commands;
 	commands.reserve(static_cast<size_t>(count));
-	std::generate_n(std::back_inserter(commands),
-	                count,
-	                [&, n = it == std::ranges::end(filtered) ? 0 : it->number]() mutable
-	                {
-						return Command {
-							{ QUuid::createUuid().toString(QUuid::WithoutBraces), ++n, Mode::Updated },
-							uid,
-							{},
-							{},
-							Command::Type::LaunchConsoleApp
-						};
-					});
+	std::generate_n(std::back_inserter(commands), count, [&, n = it == std::ranges::end(filtered) ? 0 : it->number]() mutable {
+		return Command {
+			{ QUuid::createUuid().toString(QUuid::WithoutBraces), ++n, Mode::Updated },
+			uid,
+			{},
+			{},
+			Command::Type::LaunchConsoleApp
+		};
+	});
 	m_impl->commands.insert(std::next(m_impl->commands.begin(), row), std::make_move_iterator(commands.begin()), std::make_move_iterator(commands.end()));
 	return true;
 }
@@ -218,7 +216,7 @@ bool ScriptController::RemoveCommand(const int row, const int count)
 {
 	bool result = false;
 	for (size_t i = 0; i < static_cast<size_t>(count); ++i)
-		result = Util::Set(m_impl->commands[static_cast<size_t>(row) + i].mode, Mode::Removed, *this) || result;
+		result = Util::Set(m_impl->commands[static_cast<size_t>(row) + i].mode, Mode::Removed) || result;
 
 	return result;
 }
@@ -294,6 +292,6 @@ std::shared_ptr<IScriptController> ScriptControllerProvider::GetScriptController
 		return controller;
 
 	auto controller = m_container.resolve<IScriptController>();
-	m_controller = controller;
+	m_controller    = controller;
 	return controller;
 }

@@ -52,9 +52,9 @@ private: // QStyledItemDelegate
 		btn->setIcon(QIcon(":/icons/remove.svg"));
 		btn->setAutoRaise(true);
 		QPersistentModelIndex persistentIndex { index };
-		connect(btn,
-		        &QAbstractButton::clicked,
-		        [this_ = const_cast<Impl*>(this), persistentIndex = std::move(persistentIndex)] { this_->Perform(&IObserver::OnButtonClicked, std::cref(static_cast<const QModelIndex&>(persistentIndex))); });
+		connect(btn, &QAbstractButton::clicked, [this_ = const_cast<Impl*>(this), persistentIndex = std::move(persistentIndex)] {
+			this_->Perform(&IObserver::OnButtonClicked, std::cref(static_cast<const QModelIndex&>(persistentIndex)));
+		});
 
 		return btn;
 	}
@@ -99,10 +99,10 @@ private:
 	}
 
 private:
-	QAbstractItemView& m_view;
+	QAbstractItemView&      m_view;
 	QMetaObject::Connection m_connection;
-	bool m_enabled { false };
-	std::unique_ptr<int> m_height { std::make_unique<int>() };
+	bool                    m_enabled { false };
+	std::unique_ptr<int>    m_height { std::make_unique<int>() };
 };
 
 TreeViewDelegateNavigation::TreeViewDelegateNavigation(const std::shared_ptr<const IUiFactory>& uiFactory)

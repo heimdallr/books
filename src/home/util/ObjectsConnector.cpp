@@ -10,7 +10,7 @@ namespace HomeCompa::Util
 
 namespace
 {
-using MetaPair = std::pair<const QObject*, std::string>;
+using MetaPair    = std::pair<const QObject*, std::string>;
 using MetaObjects = std::unordered_map<QString, std::list<MetaPair>>;
 MetaObjects g_signals, g_slots; // NOLINT(clang-diagnostic-exit-time-destructors)
 
@@ -22,7 +22,9 @@ void registerMetaType(MetaObjects& metaObjects, QString id, MetaPair metaPair)
 {
 	metaObjects[id].emplace_back(metaPair);
 	auto* object = metaPair.first;
-	QObject::connect(object, &QObject::destroyed, [&metaObjects, id = std::move(id), metaPair = std::move(metaPair)] { metaObjects[id].remove(metaPair); });
+	QObject::connect(object, &QObject::destroyed, [&metaObjects, id = std::move(id), metaPair = std::move(metaPair)] {
+		metaObjects[id].remove(metaPair);
+	});
 }
 
 std::string GetMetaName(const QString& name, const QChar prefix)

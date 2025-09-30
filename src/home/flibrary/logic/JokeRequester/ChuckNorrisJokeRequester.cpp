@@ -10,7 +10,7 @@ using namespace Flibrary;
 namespace
 {
 constexpr auto CONTEXT = "JokeRequester";
-constexpr auto PREFIX = QT_TRANSLATE_NOOP("JokeRequester", "Important fact about Chuck Norris");
+constexpr auto PREFIX  = QT_TRANSLATE_NOOP("JokeRequester", "Important fact about Chuck Norris");
 TR_DEF
 }
 

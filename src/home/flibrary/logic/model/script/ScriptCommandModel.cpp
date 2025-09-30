@@ -112,10 +112,10 @@ private: // QAbstractItemModel
 			switch (role)
 			{
 				case Role::Observer:
-					return Util::Set(m_observer, value.value<ISourceModelObserver*>(), *this);
+					return Util::Set(m_observer, value.value<ISourceModelObserver*>());
 
 				case Role::Uid:
-					return Util::Set(m_uid, value.toString(), *this);
+					return Util::Set(m_uid, value.toString());
 
 				default:
 					break;
@@ -160,25 +160,30 @@ private: // QAbstractItemModel
 
 	bool insertRows(const int row, const int count, const QModelIndex& parent) override
 	{
-		const ScopedCall insertGuard([&] { beginInsertRows(parent, row, row + count - 1); }, [&] { endInsertRows(); });
+		const ScopedCall insertGuard(
+			[&] {
+				beginInsertRows(parent, row, row + count - 1);
+			},
+			[&] {
+				endInsertRows();
+			}
+		);
 		return m_scriptController->InsertCommand(m_uid, row, count);
 	}
 
 	bool removeRows(const int row, const int count, const QModelIndex& /*parent*/) override
 	{
-		const ScopedCall removeGuard(
-			[&]
-			{
-				if (m_observer)
-					m_observer->OnRowsRemoved(row, count);
-			});
+		const ScopedCall removeGuard([&] {
+			if (m_observer)
+				m_observer->OnRowsRemoved(row, count);
+		});
 		return m_scriptController->RemoveCommand(row, count);
 	}
 
 private:
 	PropagateConstPtr<IScriptController, std::shared_ptr> m_scriptController;
-	ISourceModelObserver* m_observer { nullptr };
-	QString m_uid;
+	ISourceModelObserver*                                 m_observer { nullptr };
+	QString                                               m_uid;
 };
 
 } // namespace

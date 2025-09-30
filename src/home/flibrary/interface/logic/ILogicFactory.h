@@ -41,24 +41,25 @@ public:
 	class ITemporaryDir // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
-		virtual ~ITemporaryDir() = default;
+		virtual ~ITemporaryDir()                                = default;
 		virtual QString filePath(const QString& fileName) const = 0;
-		virtual QString path() const = 0;
+		virtual QString path() const                            = 0;
 	};
 
 	struct ExtractedBook
 	{
-		long long id;
-		QString folder;
-		QString file;
-		int64_t size;
-		QString author;
-		QString series;
-		int seqNumber;
-		QString title;
-		QString genre;
+		long long   id;
+		QString     folder;
+		QString     file;
+		int64_t     size;
+		QString     author;
+		QString     series;
+		int         seqNumber;
+		QString     title;
+		QString     genre;
 		QStringList genreTree;
-		long long libId;
+		long long   libId;
+		QString     lang;
 	};
 
 	using ExtractedBooks = std::vector<ExtractedBook>;
@@ -67,27 +68,27 @@ public:
 	virtual ~ILogicFactory() = default;
 
 public:
-	[[nodiscard]] virtual std::shared_ptr<class ITreeViewController> GetTreeViewController(enum class ItemType type) const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class ArchiveParser> CreateArchiveParser() const = 0;
-	[[nodiscard]] virtual std::unique_ptr<Util::IExecutor> GetExecutor(Util::ExecutorInitializer initializer = {}) const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class GroupController> CreateGroupController() const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IBookSearchController> CreateSearchController() const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class BooksContextMenuProvider> CreateBooksContextMenuProvider() const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IUserDataController> CreateUserDataController() const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class BooksExtractor> CreateBooksExtractor() const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IInpxGenerator> CreateInpxGenerator() const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IUpdateChecker> CreateUpdateChecker() const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class ICollectionCleaner> CreateCollectionCleaner() const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IOpdsController> CreateOpdsController() const = 0;
-	[[nodiscard]] virtual std::shared_ptr<Zip::ProgressCallback> CreateZipProgressCallback(std::shared_ptr<class IProgressController> progressController) const = 0;
-	[[nodiscard]] virtual std::shared_ptr<ITemporaryDir> CreateTemporaryDir(bool singleInstance = false) const = 0;
-	[[nodiscard]] virtual ExtractedBooks GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList = {}) const = 0;
+	[[nodiscard]] virtual std::shared_ptr<class ITreeViewController>      GetTreeViewController(enum class ItemType type) const                                                                  = 0;
+	[[nodiscard]] virtual std::shared_ptr<class ArchiveParser>            CreateArchiveParser() const                                                                                            = 0;
+	[[nodiscard]] virtual std::unique_ptr<Util::IExecutor>                GetExecutor(Util::ExecutorInitializer initializer = {}) const                                                          = 0;
+	[[nodiscard]] virtual std::shared_ptr<class GroupController>          CreateGroupController() const                                                                                          = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IBookSearchController>    CreateSearchController() const                                                                                         = 0;
+	[[nodiscard]] virtual std::shared_ptr<class BooksContextMenuProvider> CreateBooksContextMenuProvider() const                                                                                 = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IUserDataController>      CreateUserDataController() const                                                                                       = 0;
+	[[nodiscard]] virtual std::shared_ptr<class BooksExtractor>           CreateBooksExtractor() const                                                                                           = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IInpxGenerator>           CreateInpxGenerator() const                                                                                            = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IUpdateChecker>           CreateUpdateChecker() const                                                                                            = 0;
+	[[nodiscard]] virtual std::shared_ptr<class ICollectionCleaner>       CreateCollectionCleaner() const                                                                                        = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IOpdsController>          CreateOpdsController() const                                                                                           = 0;
+	[[nodiscard]] virtual std::shared_ptr<Zip::ProgressCallback>          CreateZipProgressCallback(std::shared_ptr<class IProgressController> progressController) const                         = 0;
+	[[nodiscard]] virtual std::shared_ptr<ITemporaryDir>                  CreateTemporaryDir(bool singleInstance = false) const                                                                  = 0;
+	[[nodiscard]] virtual ExtractedBooks                                  GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList = {}) const = 0;
 
 public: // special
 	[[nodiscard]] virtual std::shared_ptr<IProgressController> GetProgressController() const = 0;
 
 	FLINT_EXPORT static std::vector<std::vector<QString>> GetSelectedBookIds(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, const std::vector<int>& roles);
-	FLINT_EXPORT static void FillScriptTemplate(QString& scriptTemplate, const ExtractedBook& book);
+	FLINT_EXPORT static void                              FillScriptTemplate(DB::IDatabase& db, QString& scriptTemplate, const ExtractedBook& book);
 };
 
 } // namespace HomeCompa::Flibrary

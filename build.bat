@@ -31,8 +31,6 @@ set /p SEVEN_ZIP_PATH=<%BUILD_DIR%\path\7z
 
 %SEVEN_ZIP_PATH%7z a %~dp0build\installer\FLibrary_portable_%PRODUCT_VERSION%.7z %~dp0build\%BUILD_TYPE%\bin\*
 %SEVEN_ZIP_PATH%7z a %~dp0build\installer\FLibrary_portable_%PRODUCT_VERSION%.7z %~dp0build\%BUILD_TYPE%\config\installer_mode
-%SEVEN_ZIP_PATH%7z d %~dp0build\installer\FLibrary_portable_%PRODUCT_VERSION%.7z fliparser.exe
-%SEVEN_ZIP_PATH%7z d %~dp0build\installer\FLibrary_portable_%PRODUCT_VERSION%.7z fliscaner.exe
 %SEVEN_ZIP_PATH%7z d %~dp0build\installer\FLibrary_portable_%PRODUCT_VERSION%.7z flistat.exe
 
 goto End

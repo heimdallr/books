@@ -17,6 +17,7 @@ struct Role
 		Type,
 		CheckState,
 		IsRemoved,
+		Flags,
 
 #define BOOKS_COLUMN_ITEM(NAME) NAME,
 		BOOKS_COLUMN_ITEMS_X_MACRO
@@ -24,12 +25,15 @@ struct Role
 
 			// global
 			Count,
+		ChildCount,
 		Checkable,
 		Languages,
 		TextFilter,
 		LanguageFilter,
 		ShowRemovedFilter,
-		GenreFilter,
+		NavigationItemFiltered,
+		UniFilterEnabled,
+		UniFilterChanged,
 		VisibleColumns,
 		Selected,
 		SortOrder,
@@ -37,16 +41,20 @@ struct Role
 		UncheckAll,
 		InvertCheck,
 		IsTree,
+		HeaderName,
 		HeaderTitle,
-		AllGenreCodes,
 		Remap,
+		NavigationMode,
+		HideFiltered,
+		HideFilteredCallback,
+		Last
 	};
 };
 
 struct SelectedRequest
 {
-	QModelIndex current;
-	QModelIndexList selected;
+	QModelIndex      current;
+	QModelIndexList  selected;
 	QModelIndexList* result { nullptr };
 };
 

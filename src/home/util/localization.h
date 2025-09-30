@@ -19,10 +19,10 @@ class ISettings;
 namespace HomeCompa::Loc::Ctx
 {
 
-constexpr auto COMMON = "Common";
-constexpr auto ERROR = "Error";
-constexpr auto LANG = "Language";
-constexpr auto BOOK = "Book";
+constexpr auto COMMON  = "Common";
+constexpr auto ERROR   = "Error";
+constexpr auto LANG    = "Language";
+constexpr auto BOOK    = "Book";
 constexpr auto LOGGING = "Logging";
 
 }
@@ -36,16 +36,16 @@ constexpr const char* LOCALES[] {
 	QT_TRANSLATE_NOOP("Language", "uk"),
 };
 
-constexpr auto ERROR = QT_TRANSLATE_NOOP("Common", "Error!");
-constexpr auto INFORMATION = QT_TRANSLATE_NOOP("Common", "Information");
-constexpr auto QUESTION = QT_TRANSLATE_NOOP("Common", "Question");
-constexpr auto WARNING = QT_TRANSLATE_NOOP("Common", "Warning!");
+constexpr auto ERROR           = QT_TRANSLATE_NOOP("Common", "Error!");
+constexpr auto INFORMATION     = QT_TRANSLATE_NOOP("Common", "Information");
+constexpr auto QUESTION        = QT_TRANSLATE_NOOP("Common", "Question");
+constexpr auto WARNING         = QT_TRANSLATE_NOOP("Common", "Warning!");
 constexpr auto CONFIRM_RESTART = QT_TRANSLATE_NOOP("Common", "You must restart the application to apply the changes.\nRestart now?");
-constexpr auto ANONYMOUS = QT_TRANSLATE_NOOP("Common", "Anonymous");
+constexpr auto ANONYMOUS       = QT_TRANSLATE_NOOP("Common", "Anonymous");
 
 UTIL_EXPORT QString Tr(const char* context, const char* str);
 UTIL_EXPORT std::vector<const char*> GetLocales();
-UTIL_EXPORT QString GetLocale(const ISettings& settings);
+UTIL_EXPORT QString                  GetLocale(const ISettings& settings);
 UTIL_EXPORT std::vector<PropagateConstPtr<QTranslator>> LoadLocales(const ISettings& settings);
 UTIL_EXPORT std::vector<PropagateConstPtr<QTranslator>> LoadLocales(const QString& locale);
 
@@ -92,14 +92,14 @@ QT_TRANSLATE_NOOP("Month", "2147483647")
 #endif
 
 constexpr auto LANGUAGES_CONTEXT = "Language";
-constexpr auto UNDEFINED_KEY = "un";
-constexpr auto UNDEFINED = QT_TRANSLATE_NOOP("Language", "[Undetermined]");
+constexpr auto UNDEFINED_KEY     = "un";
+constexpr auto UNDEFINED         = QT_TRANSLATE_NOOP("Language", "[Undetermined]");
 
 struct Language
 {
 	const char* key { nullptr };
 	const char* title { nullptr };
-	int priority { std::numeric_limits<int>::max() };
+	int         priority { std::numeric_limits<int>::max() };
 };
 
 constexpr Language LANGUAGES[] {
@@ -529,14 +529,16 @@ constexpr Language LANGUAGES[] {
 inline std::unordered_map<QString, const char*> GetLanguagesMap()
 {
 	std::unordered_map<QString, const char*> result;
-	std::ranges::transform(LANGUAGES, std::inserter(result, result.end()), [](const auto& item) { return std::make_pair(QString { item.key }, item.title); });
+	std::ranges::transform(LANGUAGES, std::inserter(result, result.end()), [](const auto& item) {
+		return std::make_pair(QString { item.key }, item.title);
+	});
 	return result;
 }
 
 } // namespace HomeCompa
 
-#define TR_DEF                        \
-	QString Tr(const char* str)       \
-	{                                 \
-		return Loc::Tr(CONTEXT, str); \
+#define TR_DEF                         \
+	inline QString Tr(const char* str) \
+	{                                  \
+		return Loc::Tr(CONTEXT, str);  \
 	}

@@ -100,7 +100,7 @@ bool ScriptModel::setData(const QModelIndex& index, const QVariant& value, const
 				return m_scriptController->Save(), true;
 
 			case Role::Observer:
-				return Util::Set(m_observer, value.value<ISourceModelObserver*>(), *this);
+				return Util::Set(m_observer, value.value<ISourceModelObserver*>());
 
 			default:
 				break;
@@ -142,17 +142,22 @@ Qt::ItemFlags ScriptModel::flags(const QModelIndex& index) const
 
 bool ScriptModel::insertRows(const int row, const int count, const QModelIndex& parent)
 {
-	const ScopedCall insertGuard([&] { beginInsertRows(parent, row, row + count - 1); }, [&] { endInsertRows(); });
+	const ScopedCall insertGuard(
+		[&] {
+			beginInsertRows(parent, row, row + count - 1);
+		},
+		[&] {
+			endInsertRows();
+		}
+	);
 	return m_scriptController->InsertScripts(row, count);
 }
 
 bool ScriptModel::removeRows(const int row, const int count, const QModelIndex& /*parent*/)
 {
-	const ScopedCall removeGuard(
-		[&]
-		{
-			if (m_observer)
-				m_observer->OnRowsRemoved(row, count);
-		});
+	const ScopedCall removeGuard([&] {
+		if (m_observer)
+			m_observer->OnRowsRemoved(row, count);
+	});
 	return m_scriptController->RemoveScripts(row, count);
 }

@@ -26,7 +26,7 @@ struct Settings::Impl final : Observable<ISettingsObserver>
 		return group.back() + (group.back().isEmpty() ? "" : "/") + key;
 	}
 
-	QSettings settings;
+	QSettings            settings;
 	std::vector<QString> group { 1 };
 	std::recursive_mutex mutex;
 };

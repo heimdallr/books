@@ -37,12 +37,14 @@ class MainWindow final
 	NON_COPY_MOVABLE(MainWindow)
 
 public:
-	MainWindow(std::shared_ptr<ISettings> settingsManager,
-	           std::shared_ptr<const Util::IUiFactory> uiFactory,
-	           std::shared_ptr<ImageSettingsWidget> common,
-	           std::shared_ptr<ImageSettingsWidget> covers,
-	           std::shared_ptr<ImageSettingsWidget> images,
-	           QWidget* parent = nullptr);
+	MainWindow(
+		std::shared_ptr<ISettings>              settingsManager,
+		std::shared_ptr<const Util::IUiFactory> uiFactory,
+		std::shared_ptr<ImageSettingsWidget>    common,
+		std::shared_ptr<ImageSettingsWidget>    covers,
+		std::shared_ptr<ImageSettingsWidget>    images,
+		QWidget*                                parent = nullptr
+	);
 	~MainWindow() override;
 
 public:
@@ -63,13 +65,13 @@ private:
 	void OnFfmpegChanged();
 
 	QString GetExecutableFileName(const QString& key, const QString& title) const;
-	void Set7zDefaultSettings();
+	void    Set7zDefaultSettings();
 
 private:
-	PropagateConstPtr<Ui::MainWindowClass> m_ui;
-	Settings* m_settings { nullptr };
-	PropagateConstPtr<ISettings, std::shared_ptr> m_settingsManager;
-	std::shared_ptr<const Util::IUiFactory> m_uiFactory;
+	PropagateConstPtr<Ui::MainWindowClass>                  m_ui;
+	Settings*                                               m_settings { nullptr };
+	PropagateConstPtr<ISettings, std::shared_ptr>           m_settingsManager;
+	std::shared_ptr<const Util::IUiFactory>                 m_uiFactory;
 	PropagateConstPtr<ImageSettingsWidget, std::shared_ptr> m_common;
 	PropagateConstPtr<ImageSettingsWidget, std::shared_ptr> m_covers;
 	PropagateConstPtr<ImageSettingsWidget, std::shared_ptr> m_images;

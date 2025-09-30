@@ -26,43 +26,46 @@ protected:
 	explicit DataItem(size_t columnCount, IDataItem* parent = nullptr);
 
 protected: // IDataItem
-	[[nodiscard]] IDataItem* GetParent() noexcept override;
-	Ptr& AppendChild(Ptr child) override;
-	void RemoveChild(size_t row = INVALID_INDEX) override;
-	void RemoveAllChildren() override;
-	void SetChildren(Items children) noexcept override;
-	[[nodiscard]] Ptr GetChild(size_t row) const noexcept override;
-	[[nodiscard]] size_t GetChildCount() const noexcept override;
-	[[nodiscard]] size_t GetRow() const noexcept override;
+	[[nodiscard]] IDataItem*     GetParent() noexcept override;
+	Ptr&                         AppendChild(Ptr child) override;
+	void                         RemoveChild(size_t row = INVALID_INDEX) override;
+	void                         RemoveAllChildren() override;
+	void                         SetChildren(Items children) noexcept override;
+	[[nodiscard]] Ptr            GetChild(size_t row) const noexcept override;
+	[[nodiscard]] size_t         GetChildCount() const noexcept override;
+	[[nodiscard]] size_t         GetRow() const noexcept override;
 	[[nodiscard]] const QString& GetId() const noexcept override;
+	[[nodiscard]] Flags          GetFlags() const noexcept override;
 	[[nodiscard]] const QString& GetData(int column = 0) const noexcept override;
 	[[nodiscard]] const QString& GetRawData(int column = 0) const noexcept override;
 
 	[[nodiscard]] bool IsRemoved() const noexcept override;
-	void SetRemoved(bool value) noexcept override;
+	void               SetRemoved(bool value) noexcept override;
 
 	[[nodiscard]] int RemapColumn(int column) const noexcept override;
 	[[nodiscard]] int GetColumnCount() const noexcept override;
 
 	IDataItem& SetId(QString id) noexcept override;
+	IDataItem& SetFlags(Flags flags) noexcept override;
 	IDataItem& SetData(QString value, int column = 0) noexcept override;
 
 	[[nodiscard]] Qt::CheckState GetCheckState() const noexcept override;
-	void SetCheckState(Qt::CheckState state) noexcept override;
-	void Reduce() override;
+	void                         SetCheckState(Qt::CheckState state) noexcept override;
+	void                         Reduce() override;
 
-	Ptr FindChild(const std::function<bool(const IDataItem&)>& functor) const override;
+	Ptr  FindChild(const std::function<bool(const IDataItem&)>& functor) const override;
 	void SortChildren(const std::function<bool(const IDataItem& lhs, const IDataItem& rhs)>& comparer) override;
 
 	DataItem* ToDataItem() noexcept override;
 
 protected:
-	size_t m_row { 0 };
-	IDataItem* m_parent { nullptr };
-	Items m_children;
-	QString m_id;
+	size_t               m_row { 0 };
+	IDataItem*           m_parent { nullptr };
+	Items                m_children;
+	QString              m_id;
+	Flags                m_flags { Flags::None };
 	std::vector<QString> m_data;
-	bool m_removed { false };
+	bool                 m_removed { false };
 };
 
 class NavigationItem final : public DataItem
@@ -72,7 +75,7 @@ public:
 	explicit NavigationItem(IDataItem* parent);
 
 private: // DataItem
-	NavigationItem* ToNavigationItem() noexcept override;
+	NavigationItem*        ToNavigationItem() noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
@@ -94,7 +97,7 @@ public:
 	explicit GenreItem(IDataItem* parent);
 
 private: // DataItem
-	GenreItem* ToGenreItem() noexcept override;
+	GenreItem*             ToGenreItem() noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
@@ -118,8 +121,8 @@ public:
 	explicit AuthorItem(IDataItem* parent);
 
 private: // DataItem
-	AuthorItem* ToAuthorItem() noexcept override;
-	void Reduce() override;
+	AuthorItem*            ToAuthorItem() noexcept override;
+	void                   Reduce() override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
@@ -141,7 +144,7 @@ public:
 	explicit SeriesItem(IDataItem* parent);
 
 private: // DataItem
-	SeriesItem* ToSeriesItem() noexcept override;
+	SeriesItem*            ToSeriesItem() noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
@@ -164,7 +167,7 @@ public:
 	explicit ReviewItem(IDataItem* parent);
 
 private: // DataItem
-	ReviewItem* ToReviewItem() noexcept override;
+	ReviewItem*            ToReviewItem() noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
@@ -173,21 +176,19 @@ class LOGIC_EXPORT BookItem final : public DataItem
 #define BOOKS_COLUMN_ITEMS_X_MACRO \
 	BOOKS_COLUMN_ITEM(Author)      \
 	BOOKS_COLUMN_ITEM(Title)       \
-	BOOKS_COLUMN_ITEM(Series)      \
 	BOOKS_COLUMN_ITEM(SeqNumber)   \
-	BOOKS_COLUMN_ITEM(Size)        \
-	BOOKS_COLUMN_ITEM(Genre)       \
+	BOOKS_COLUMN_ITEM(UpdateDate)  \
+	BOOKS_COLUMN_ITEM(LibRate)     \
+	BOOKS_COLUMN_ITEM(Lang)        \
+	BOOKS_COLUMN_ITEM(Year)        \
 	BOOKS_COLUMN_ITEM(Folder)      \
 	BOOKS_COLUMN_ITEM(FileName)    \
-	BOOKS_COLUMN_ITEM(LibRate)     \
+	BOOKS_COLUMN_ITEM(Size)        \
 	BOOKS_COLUMN_ITEM(UserRate)    \
-	BOOKS_COLUMN_ITEM(UpdateDate)  \
-	BOOKS_COLUMN_ITEM(Year)        \
-	BOOKS_COLUMN_ITEM(Lang)        \
-	BOOKS_COLUMN_ITEM(AuthorFull)  \
 	BOOKS_COLUMN_ITEM(LibID)       \
-	BOOKS_COLUMN_ITEM(FolderID)    \
-	BOOKS_COLUMN_ITEM(UpdateID)
+	BOOKS_COLUMN_ITEM(Series)      \
+	BOOKS_COLUMN_ITEM(Genre)       \
+	BOOKS_COLUMN_ITEM(AuthorFull)
 
 public:
 	struct Column
@@ -213,7 +214,7 @@ public:
 	struct Mapping
 	{
 		const int* const columns;
-		const size_t size;
+		const size_t     size;
 		template <size_t Size>
 		using Data = const int[Size];
 
@@ -230,21 +231,21 @@ public:
 		}
 	};
 
-	Qt::CheckState checkState { Qt::Unchecked };
+	Qt::CheckState        checkState { Qt::Unchecked };
 	static const Mapping* mapping;
 
 	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr, size_t additionalFieldCount = 0);
-	static int Remap(int column) noexcept;
+	static int                        Remap(int column) noexcept;
 
 	BookItem(IDataItem* parent, size_t additionalFieldCount);
 
 private: // DataItem
-	[[nodiscard]] int RemapColumn(int column) const noexcept override;
-	[[nodiscard]] int GetColumnCount() const noexcept override;
-	BookItem* ToBookItem() noexcept override;
+	[[nodiscard]] int            RemapColumn(int column) const noexcept override;
+	[[nodiscard]] int            GetColumnCount() const noexcept override;
+	BookItem*                    ToBookItem() noexcept override;
 	[[nodiscard]] Qt::CheckState GetCheckState() const noexcept override;
-	void SetCheckState(Qt::CheckState state) noexcept override;
-	[[nodiscard]] ItemType GetType() const noexcept override;
+	void                         SetCheckState(Qt::CheckState state) noexcept override;
+	[[nodiscard]] ItemType       GetType() const noexcept override;
 };
 
 class MenuItem final : public DataItem
@@ -258,6 +259,8 @@ public:
 			Id,
 			Parameter,
 			Enabled,
+			Checkable,
+			Checked,
 			HasError,
 			Last
 		};
@@ -267,11 +270,11 @@ public:
 	explicit MenuItem(IDataItem* parent);
 
 private: // DataItem
-	MenuItem* ToMenuItem() noexcept override;
+	MenuItem*              ToMenuItem() noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
 };
 
-LOGIC_EXPORT void AppendTitle(QString& title, const QString& str, const QString& delimiter = " ");
+LOGIC_EXPORT void    AppendTitle(QString& title, const QString& str, const QString& delimiter = " ");
 LOGIC_EXPORT QString GetAuthorFull(const IDataItem& author);
 
 } // namespace HomeCompa::Flibrary

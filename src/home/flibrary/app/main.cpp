@@ -17,6 +17,7 @@
 #include "interface/ui/IMainWindow.h"
 #include "interface/ui/IMigrateWindow.h"
 #include "interface/ui/IStyleApplierFactory.h"
+#include "interface/ui/IUiFactory.h"
 
 #include "Hypodermic/Hypodermic.h"
 #include "logging/init.h"
@@ -33,17 +34,29 @@
 #include "config/git_hash.h"
 #include "config/version.h"
 
+using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
-using namespace Flibrary;
+
+namespace
+{
+constexpr auto CONTEXT = "Main";
+constexpr auto WRONG_DB_VERSION =
+	QT_TRANSLATE_NOOP("Main", "It looks like you're trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?");
+TR_DEF
+}
 
 int main(int argc, char* argv[])
 {
 	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, PRODUCT_ID).toStdWString());
-	LogModelAppender logModelAppender;
+	LogModelAppender        logModelAppender;
 
 	PLOGI << "App started";
 	PLOGI << "Version: " << GetApplicationVersion();
 	PLOGI << "Commit hash: " << GIT_HASH;
+	// ReSharper disable CppCompileTimeConstantCanBeReplacedWithBooleanConstant
+	if constexpr (PERSONAL_BUILD_NAME && PERSONAL_BUILD_NAME[0]) //-V560
+		PLOGI << "Personal build: " << PERSONAL_BUILD_NAME;
+	// ReSharper restore CppCompileTimeConstantCanBeReplacedWithBooleanConstant
 
 	try
 	{
@@ -65,24 +78,38 @@ int main(int argc, char* argv[])
 			}
 			PLOGD << "DI-container created";
 
-			const auto settings = container->resolve<ISettings>();
+			const auto settings    = container->resolve<ISettings>();
 			const auto translators = Loc::LoadLocales(*settings); //-V808
 
 			Genre::SetSortMode(*settings);
 			if (!settings->HasKey(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks)))
 				settings->Set(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks), false);
 
-			auto styleApplierFactory = container->resolve<IStyleApplierFactory>();
-			const auto themeLib = styleApplierFactory->CreateThemeApplier()->Set(app);
-			const auto colorSchemeLib = styleApplierFactory->CreateStyleApplier(IStyleApplier::Type::ColorScheme)->Set(app);
+			auto       styleApplierFactory = container->resolve<IStyleApplierFactory>();
+			const auto themeLib            = styleApplierFactory->CreateThemeApplier()->Set(app);
+			const auto colorSchemeLib      = styleApplierFactory->CreateStyleApplier(IStyleApplier::Type::ColorScheme)->Set(app);
 			styleApplierFactory.reset();
 
-			if (const auto migrator = container->resolve<IDatabaseMigrator>(); migrator->NeedMigrate())
+			switch (const auto migrator = container->resolve<IDatabaseMigrator>(); migrator->NeedMigrate())
 			{
-				const auto migrateWindow = container->resolve<IMigrateWindow>();
-				migrateWindow->Show();
-				QApplication::exec();
-				continue;
+				default:
+					assert(false && "unexpected result");
+					[[fallthrough]];
+
+				case IDatabaseMigrator::NeedMigrateResult::Actual:
+					break;
+
+				case IDatabaseMigrator::NeedMigrateResult::NeedMigrate:
+				{
+					const auto migrateWindow = container->resolve<IMigrateWindow>();
+					migrateWindow->Show();
+					QApplication::exec();
+					continue;
+				}
+
+				case IDatabaseMigrator::NeedMigrateResult::Unexpected:
+					if (container->resolve<IUiFactory>()->ShowWarning(Tr(WRONG_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::No) == QMessageBox::No)
+						return EXIT_FAILURE;
 			}
 
 			container->resolve<ITaskQueue>()->Execute();

@@ -8,10 +8,15 @@
 #include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
 
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
+
+#include "constants/Localization.h"
 #include "constants/ModelRole.h"
 #include "constants/ProductConstant.h"
 #include "logic/IAnnotationController.h"
 #include "logic/IDatabaseUser.h"
+#include "logic/IFilterProvider.h"
 #include "logic/ILogicFactory.h"
 #include "logic/IScriptController.h"
 #include "ui/IStyleApplier.h"
@@ -27,12 +32,11 @@ namespace
 void SetMacroImpl(QString& str, const IScriptController::Macro macro, const QString& value)
 {
 	const QString macroStr = IScriptController::GetMacro(macro);
-	const auto start = str.indexOf(macroStr, 0, Qt::CaseInsensitive);
+	const auto    start    = str.indexOf(macroStr, 0, Qt::CaseInsensitive);
 	if (start < 0)
 		return;
 
-	const auto replace = [&](const QString& s, const qsizetype startPos, const qsizetype endPos)
-	{
+	const auto replace = [&](const QString& s, const qsizetype startPos, const qsizetype endPos) {
 		str.erase(std::next(str.begin(), startPos), std::next(str.begin(), endPos));
 		str.insert(startPos, s);
 	};
@@ -40,15 +44,12 @@ void SetMacroImpl(QString& str, const IScriptController::Macro macro, const QStr
 	if (start == 0 || str[start - 1] != '[')
 		return replace(value, start, start + macroStr.length());
 
-	const auto itEnd = std::find_if(std::next(str.cbegin(), start),
-	                                str.cend(),
-	                                [n = 1](const QChar ch) mutable
-	                                {
-										if (ch == '[')
-											++n;
+	const auto itEnd = std::find_if(std::next(str.cbegin(), start), str.cend(), [n = 1](const QChar ch) mutable {
+		if (ch == '[')
+			++n;
 
-										return ch == ']' && --n == 0;
-									});
+		return ch == ']' && --n == 0;
+	});
 
 	if (itEnd == str.cend())
 		return replace(value, start, start + macroStr.length());
@@ -61,42 +62,42 @@ void SetMacroImpl(QString& str, const IScriptController::Macro macro, const QStr
 	return replace(value, start - 1, start + macroStr.length() - 1);
 }
 
-QString ApplyMacroSourceFile(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)
+QString ApplyMacroSourceFile(DB::IDatabase&, const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)
 {
 	return {};
 }
 
-QString ApplyMacroUserDestinationFolder(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)
+QString ApplyMacroUserDestinationFolder(DB::IDatabase&, const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)
 {
 	return {};
 }
 
-QString ApplyMacroTitle(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+QString ApplyMacroTitle(DB::IDatabase&, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
 	return Util::RemoveIllegalPathCharacters(book.title);
 }
 
-QString ApplyMacroFileName(const ILogicFactory::ExtractedBook&, const QFileInfo& fileInfo, const QStringList&)
+QString ApplyMacroFileName(DB::IDatabase&, const ILogicFactory::ExtractedBook&, const QFileInfo& fileInfo, const QStringList&)
 {
 	return Util::RemoveIllegalPathCharacters(fileInfo.fileName());
 }
 
-QString ApplyMacroFileExt(const ILogicFactory::ExtractedBook&, const QFileInfo& fileInfo, const QStringList&)
+QString ApplyMacroFileExt(DB::IDatabase&, const ILogicFactory::ExtractedBook&, const QFileInfo& fileInfo, const QStringList&)
 {
 	return Util::RemoveIllegalPathCharacters(fileInfo.suffix());
 }
 
-QString ApplyMacroBaseFileName(const ILogicFactory::ExtractedBook&, const QFileInfo& fileInfo, const QStringList&)
+QString ApplyMacroBaseFileName(DB::IDatabase&, const ILogicFactory::ExtractedBook&, const QFileInfo& fileInfo, const QStringList&)
 {
 	return Util::RemoveIllegalPathCharacters(fileInfo.completeBaseName());
 }
 
-QString ApplyMacroAuthor(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+QString ApplyMacroAuthor(DB::IDatabase&, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
 	return Util::RemoveIllegalPathCharacters(book.author);
 }
 
-QString ApplyMacroAuthorLastFM(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
+QString ApplyMacroAuthorLastFM(DB::IDatabase&, const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
 {
 	return QString("%1 %2%3")
 	    .arg(!authorNameSplitted.empty() ? authorNameSplitted[0] : QString {})
@@ -105,74 +106,97 @@ QString ApplyMacroAuthorLastFM(const ILogicFactory::ExtractedBook&, const QFileI
 	    .simplified();
 }
 
-QString ApplyMacroAuthorLastName(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
+QString ApplyMacroAuthorLastName(DB::IDatabase&, const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
 {
 	return !authorNameSplitted.empty() ? authorNameSplitted[0] : QString {};
 }
 
-QString ApplyMacroAuthorFirstName(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
+QString ApplyMacroAuthorFirstName(DB::IDatabase&, const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
 {
 	return authorNameSplitted.size() > 1 ? authorNameSplitted[1] : QString {};
 }
 
-QString ApplyMacroAuthorMiddleName(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
+QString ApplyMacroAuthorMiddleName(DB::IDatabase&, const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
 {
 	return authorNameSplitted.size() > 2 ? authorNameSplitted[2] : QString {};
 }
 
-QString ApplyMacroAuthorF(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
+QString ApplyMacroAuthorF(DB::IDatabase&, const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
 {
 	return authorNameSplitted.size() > 1 ? authorNameSplitted[1][0] : QString {};
 }
 
-QString ApplyMacroAuthorM(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
+QString ApplyMacroAuthorM(DB::IDatabase&, const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
 {
 	return authorNameSplitted.size() > 2 ? authorNameSplitted[2][0] : QString {};
 }
 
-QString ApplyMacroSeries(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+QString ApplyMacroSeries(DB::IDatabase&, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
 	return Util::RemoveIllegalPathCharacters(book.series);
 }
 
-QString ApplyMacroSeqNumber(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+QString ApplyMacroSeqNumber(DB::IDatabase&, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
 	return book.seqNumber > 0 ? QString::number(book.seqNumber) : QString {};
 }
 
-QString ApplyMacroFileSize(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+QString ApplyMacroFileSize(DB::IDatabase&, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
 	return QString::number(book.size);
 }
 
-QString ApplyMacroGenre(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+QString ApplyMacroGenre(DB::IDatabase&, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
 	return Util::RemoveIllegalPathCharacters(book.genre);
 }
 
-QString ApplyMacroGenreTree(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+QString ApplyMacroGenreTree(DB::IDatabase&, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
 	QStringList genreTree;
 	std::ranges::transform(book.genreTree, std::back_inserter(genreTree), &Util::RemoveIllegalPathCharacters);
-	return genreTree.join("/");
+	return genreTree.join('/');
 }
 
-QString ApplyMacroId(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+QString ApplyMacroLanguage(DB::IDatabase&, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	return book.lang;
+}
+
+QString ApplyQuery(DB::IDatabase& db, const ILogicFactory::ExtractedBook& book, const std::string_view queryText)
+{
+	const auto query = db.CreateQuery(queryText);
+	query->Bind(0, book.id);
+	query->Execute();
+	return query->Eof() ? QString {} : Util::RemoveIllegalPathCharacters(query->Get<const char*>(0));
+}
+
+QString ApplyMacroKeyword(DB::IDatabase& db, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	return ApplyQuery(db, book, "select k.KeywordTitle from Keywords k join Keyword_List l on l.KeywordID = k.KeywordID and l.BookID = ? order by l.OrdNum limit 1");
+}
+
+QString ApplyMacroAllKeywords(DB::IDatabase& db, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+{
+	return ApplyQuery(db, book, "select group_concat(k.KeywordTitle, '_') from Keywords k join Keyword_List l on l.KeywordID = k.KeywordID and l.BookID = ? order by l.OrdNum");
+}
+
+QString ApplyMacroId(DB::IDatabase&, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
 	return QString::number(book.id);
 }
 
-QString ApplyMacroLibId(const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
+QString ApplyMacroLibId(DB::IDatabase&, const ILogicFactory::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
 	return QString::number(book.libId);
 }
 
-QString ApplyMacroUid(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)
+QString ApplyMacroUid(DB::IDatabase&, const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)
 {
 	return QUuid::createUuid().toString(QUuid::WithoutBraces);
 }
 
-constexpr std::pair<IScriptController::Macro, QString (*)(const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)> MACRO_APPLIERS[] {
+constexpr std::pair<IScriptController::Macro, QString (*)(DB::IDatabase& db, const ILogicFactory::ExtractedBook&, const QFileInfo&, const QStringList&)> MACRO_APPLIERS[] {
 #define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(NAME) { IScriptController::Macro::NAME, &ApplyMacro##NAME },
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO
 #undef SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM
@@ -212,14 +236,12 @@ void IScriptController::ExecuteContextMenu(QLineEdit* lineEdit)
 	for (const auto& item : s_commandMacros | std::views::values)
 	{
 		const auto menuItemTitle = QString("%1\t%2").arg(Loc::Tr(s_context, item), item);
-		menu.addAction(menuItemTitle,
-		               [=, value = QString(item)]
-		               {
-						   auto currentText = lineEdit->text();
-						   const auto currentPosition = lineEdit->cursorPosition();
-						   lineEdit->setText(currentText.insert(currentPosition, value));
-						   lineEdit->setCursorPosition(currentPosition + static_cast<int>(value.size()));
-					   });
+		menu.addAction(menuItemTitle, [=, value = QString(item)] {
+			auto       currentText     = lineEdit->text();
+			const auto currentPosition = lineEdit->cursorPosition();
+			lineEdit->setText(currentText.insert(currentPosition, value));
+			lineEdit->setCursorPosition(currentPosition + static_cast<int>(value.size()));
+		});
 	}
 	menu.setFont(lineEdit->font());
 	menu.exec(QCursor::pos());
@@ -243,25 +265,24 @@ std::vector<std::vector<QString>> ILogicFactory::GetSelectedBookIds(QAbstractIte
 
 	std::vector<std::vector<QString>> result;
 	result.reserve(selected.size());
-	std::ranges::transform(selected,
-	                       std::back_inserter(result),
-	                       [&](const auto& selectedIndex)
-	                       {
-							   std::vector<QString> resultItem;
-							   std::ranges::transform(roles, std::back_inserter(resultItem), [&](const int role) { return selectedIndex.data(role).toString(); });
-							   return resultItem;
-						   });
+	std::ranges::transform(selected, std::back_inserter(result), [&](const auto& selectedIndex) {
+		std::vector<QString> resultItem;
+		std::ranges::transform(roles, std::back_inserter(resultItem), [&](const int role) {
+			return selectedIndex.data(role).toString();
+		});
+		return resultItem;
+	});
 
 	return result;
 }
 
-void ILogicFactory::FillScriptTemplate(QString& scriptTemplate, const ExtractedBook& book)
+void ILogicFactory::FillScriptTemplate(DB::IDatabase& db, QString& scriptTemplate, const ExtractedBook& book)
 {
-	const auto authorNameSplitted = Util::RemoveIllegalPathCharacters(book.author).split(' ', Qt::SkipEmptyParts);
+	const auto      authorNameSplitted = Util::RemoveIllegalPathCharacters(book.author).split(' ', Qt::SkipEmptyParts);
 	const QFileInfo fileInfo(book.file);
 	for (const auto [macro, applier] : MACRO_APPLIERS)
 	{
-		const auto value = std::invoke(applier, std::cref(book), std::cref(fileInfo), std::cref(authorNameSplitted));
+		const auto value = std::invoke(applier, std::ref(db), std::cref(book), std::cref(fileInfo), std::cref(authorNameSplitted));
 		IScriptController::SetMacro(scriptTemplate, macro, value);
 	}
 }
@@ -312,11 +333,25 @@ QString IAnnotationController::IStrategy::AddTableRowImpl(const char* name, cons
 
 QString IAnnotationController::IStrategy::AddTableRowImpl(const QStringList& values)
 {
-	QString str;
-	ScopedCall tr([&] { str.append("<tr>"); }, [&] { str.append("</tr>"); });
+	QString    str;
+	ScopedCall tr(
+		[&] {
+			str.append("<tr>");
+		},
+		[&] {
+			str.append("</tr>");
+		}
+	);
 	for (const auto& value : values)
 	{
-		ScopedCall td([&] { str.append(R"(<td style="vertical-align: top; padding-right: 7px;">)"); }, [&] { str.append("</td>"); });
+		ScopedCall td(
+			[&] {
+				str.append(R"(<td style="vertical-align: top; padding-right: 7px;">)");
+			},
+			[&] {
+				str.append("</td>");
+			}
+		);
 		str.append(value);
 	}
 	return str;
@@ -325,6 +360,74 @@ QString IAnnotationController::IStrategy::AddTableRowImpl(const QStringList& val
 QString IAnnotationController::IStrategy::TableRowsToStringImpl(const QStringList& values)
 {
 	return values.isEmpty() ? QString {} : QString("<table>%1</table>\n").arg(values.join("\n"));
+}
+
+namespace
+{
+constexpr auto AUTHORS     = "Authors";
+constexpr auto AUTHOR_ID   = "AuthorID";
+constexpr auto SERIES      = "Series";
+constexpr auto SERIES_ID   = "SeriesID";
+constexpr auto GENRES      = "Genres";
+constexpr auto GENRE_CODE  = "GenreCode";
+constexpr auto KEYWORDS    = "Keywords";
+constexpr auto KEYWORD_ID  = "KeywordID";
+constexpr auto LANGUAGES   = "Languages";
+constexpr auto LANGUAGE_ID = "LanguageCode";
+
+template <typename StatementType, typename>
+struct Binder
+{
+	static void Bind(StatementType& s, size_t index, const QString& value) = delete;
+};
+
+template <typename StatementType>
+struct Binder<StatementType, int>
+{
+	static void Bind(StatementType& s, size_t index, const QString& value)
+	{
+		s.Bind(index, value.toInt());
+	}
+};
+
+template <typename StatementType>
+struct Binder<StatementType, std::string>
+{
+	static void Bind(StatementType& s, size_t index, const QString& value)
+	{
+		s.Bind(index, value.toStdString());
+	}
+};
+
+constexpr IFilterProvider::FilteredNavigation FILTERED_NAVIGATION_DESCRIPTION[] {
+	// clang-format off
+		{ NavigationMode::Authors    , Loc::Authors     , &IModelProvider::CreateFilterListModel, AUTHORS  , AUTHOR_ID  , &Binder<DB::ICommand, int        >::Bind, &Binder<DB::IQuery, int        >::Bind },
+		{ NavigationMode::Series     , Loc::Series      , &IModelProvider::CreateFilterListModel, SERIES   , SERIES_ID  , &Binder<DB::ICommand, int        >::Bind, &Binder<DB::IQuery, int        >::Bind },
+		{ NavigationMode::Genres     , Loc::Genres      , &IModelProvider::CreateFilterTreeModel, GENRES   , GENRE_CODE , &Binder<DB::ICommand, std::string>::Bind, &Binder<DB::IQuery, std::string>::Bind },
+		{ NavigationMode::PublishYear, Loc::PublishYears, &IModelProvider::CreateFilterTreeModel },
+		{ NavigationMode::Keywords   , Loc::Keywords    , &IModelProvider::CreateFilterListModel, KEYWORDS , KEYWORD_ID , &Binder<DB::ICommand, int        >::Bind, &Binder<DB::IQuery, int        >::Bind },
+		{ NavigationMode::Updates    , Loc::Updates     , &IModelProvider::CreateFilterTreeModel },
+		{ NavigationMode::Archives   , Loc::Archives    , &IModelProvider::CreateFilterListModel },
+		{ NavigationMode::Languages  , Loc::Languages   , &IModelProvider::CreateFilterListModel, LANGUAGES, LANGUAGE_ID, &Binder<DB::ICommand, std::string>::Bind, &Binder<DB::IQuery, std::string>::Bind },
+		{ NavigationMode::Groups     , Loc::Groups      , &IModelProvider::CreateFilterListModel },
+		{ NavigationMode::Search     , Loc::Search      , &IModelProvider::CreateFilterListModel },
+		{ NavigationMode::Reviews    , Loc::Reviews     , &IModelProvider::CreateFilterListModel },
+		{ NavigationMode::AllBooks   , Loc::AllBooks    , &IModelProvider::CreateFilterListModel },
+	// clang-format on
+};
+
+static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(FILTERED_NAVIGATION_DESCRIPTION));
+#define NAVIGATION_MODE_ITEM(NAME) static_assert(NavigationMode::NAME == FILTERED_NAVIGATION_DESCRIPTION[static_cast<size_t>(NavigationMode::NAME)].navigationMode);
+NAVIGATION_MODE_ITEMS_X_MACRO
+#undef NAVIGATION_MODE_ITEM
+
+} // namespace
+
+const IFilterProvider::FilteredNavigation& IFilterProvider::GetFilteredNavigationDescription(const NavigationMode navigationMode)
+{
+	const auto index = static_cast<size_t>(navigationMode);
+	assert(index < std::size(FILTERED_NAVIGATION_DESCRIPTION));
+	return FILTERED_NAVIGATION_DESCRIPTION[index];
 }
 
 } // namespace HomeCompa::Flibrary

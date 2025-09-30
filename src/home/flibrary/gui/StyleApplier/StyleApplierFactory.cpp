@@ -14,7 +14,7 @@ using namespace HomeCompa::Flibrary;
 
 struct StyleApplierFactory::Impl
 {
-	Hypodermic::Container& container;
+	Hypodermic::Container&     container;
 	std::shared_ptr<ISettings> settings;
 
 	Impl(Hypodermic::Container& container, std::shared_ptr<ISettings> settings)
@@ -64,7 +64,7 @@ std::shared_ptr<IStyleApplier> StyleApplierFactory::CreateStyleApplier(const ISt
 std::shared_ptr<IStyleApplier> StyleApplierFactory::CreateThemeApplier() const
 {
 	const auto currentType = m_impl->settings->Get(IStyleApplier::THEME_TYPE_KEY, IStyleApplier::THEME_KEY_DEFAULT);
-	const auto type = IStyleApplier::TypeFromString(currentType.toStdString().data());
+	const auto type        = IStyleApplier::TypeFromString(currentType.toStdString().data());
 	return CreateStyleApplier(type);
 }
 
@@ -76,12 +76,13 @@ void StyleApplierFactory::CheckAction(const std::vector<QAction*>& actions) cons
 
 	for (auto& [type, actionsToCheck] : typedActions)
 	{
-		std::ranges::for_each(actionsToCheck, [](auto* action) { action->setEnabled(true); });
+		std::ranges::for_each(actionsToCheck, [](auto* action) {
+			action->setEnabled(true);
+		});
 		auto [name, data] = CreateStyleApplier(type)->GetChecked();
-		const auto it =
-			std::ranges::find_if(actionsToCheck,
-		                         [&](const QAction* action)
-		                         { return action->property(IStyleApplier::ACTION_PROPERTY_THEME_NAME).toString() == name && action->property(IStyleApplier::ACTION_PROPERTY_THEME_FILE).toString() == data; });
+		const auto it     = std::ranges::find_if(actionsToCheck, [&](const QAction* action) {
+            return action->property(IStyleApplier::ACTION_PROPERTY_THEME_NAME).toString() == name && action->property(IStyleApplier::ACTION_PROPERTY_THEME_FILE).toString() == data;
+        });
 		if (it == actionsToCheck.end())
 			continue;
 

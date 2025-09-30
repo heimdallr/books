@@ -11,7 +11,7 @@ using namespace HomeCompa::Flibrary;
 
 struct DatabaseMigrator::Impl : Observable<IDatabaseMigrator::IObserver>
 {
-	std::shared_ptr<const IDatabaseUser> databaseUser;
+	std::shared_ptr<const IDatabaseUser>       databaseUser;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 
 	Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
@@ -37,24 +37,28 @@ DatabaseMigrator::~DatabaseMigrator()
 	PLOGV << "DatabaseMigrator destroyed";
 }
 
-bool DatabaseMigrator::NeedMigrate() const
+IDatabaseMigrator::NeedMigrateResult DatabaseMigrator::NeedMigrate() const
 {
-	return m_impl->collectionProvider->ActiveCollectionExists() && m_impl->databaseUser->GetSetting(IDatabaseUser::Key::DatabaseVersion).toInt() != Constant::FlibraryDatabaseVersionNumber;
+	if (!m_impl->collectionProvider->ActiveCollectionExists())
+		return NeedMigrateResult::Actual;
+
+	const auto dbVersion = m_impl->databaseUser->GetSetting(IDatabaseUser::Key::DatabaseVersion).toInt();
+
+	return dbVersion == Constant::FlibraryDatabaseVersionNumber ? NeedMigrateResult::Actual
+	     : dbVersion < Constant::FlibraryDatabaseVersionNumber  ? NeedMigrateResult::NeedMigrate
+	                                                            : (assert(dbVersion > Constant::FlibraryDatabaseVersionNumber && "unexpected result"), NeedMigrateResult::Unexpected);
 }
 
 void DatabaseMigrator::Migrate()
 {
-	m_impl->databaseUser->Execute({ "Database migration",
-	                                [this]
-	                                {
-										const auto db = m_impl->databaseUser->Database();
-										DatabaseScheme::Update(*db, *m_impl->collectionProvider);
-										return [this](size_t)
-										{
-											m_impl->databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, Constant::FlibraryDatabaseVersionNumber);
-											m_impl->Perform(&IObserver::OnMigrationFinished);
-										};
-									} });
+	m_impl->databaseUser->Execute({ "Database migration", [this] {
+									   const auto db = m_impl->databaseUser->Database();
+									   DatabaseScheme::Update(*db, *m_impl->collectionProvider);
+									   return [this](size_t) {
+										   m_impl->databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, Constant::FlibraryDatabaseVersionNumber);
+										   m_impl->Perform(&IObserver::OnMigrationFinished);
+									   };
+								   } });
 }
 
 void DatabaseMigrator::RegisterObserver(IObserver* observer)

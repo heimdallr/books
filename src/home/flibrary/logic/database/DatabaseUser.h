@@ -21,13 +21,13 @@ public:
 	~DatabaseUser() override;
 
 public:
-	size_t Execute(Util::IExecutor::Task&& task, int priority = 0) const override;
-	std::shared_ptr<DB::IDatabase> Database() const override;
-	std::shared_ptr<DB::IDatabase> CheckDatabase() const override;
+	size_t                           Execute(Util::IExecutor::Task&& task, int priority = 0) const override;
+	std::shared_ptr<DB::IDatabase>   Database() const override;
+	std::shared_ptr<DB::IDatabase>   CheckDatabase() const override;
 	std::shared_ptr<Util::IExecutor> Executor() const override;
-	void EnableApplicationCursorChange(bool value) override;
-	QVariant GetSetting(Key key, QVariant defaultValue) const override;
-	void SetSetting(Key key, const QVariant& value) const override;
+	void                             EnableApplicationCursorChange(bool value) override;
+	QVariant                         GetSetting(Key key, QVariant defaultValue) const override;
+	void                             SetSetting(Key key, const QVariant& value) const override;
 
 private:
 	struct Impl;

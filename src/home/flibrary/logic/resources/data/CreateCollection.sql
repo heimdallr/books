@@ -61,6 +61,15 @@ DROP TABLE IF EXISTS Updates;
 DROP TABLE IF EXISTS Reviews;
 --@@
 
+DROP TABLE IF EXISTS Languages;
+--@@
+
+CREATE TABLE Languages (
+  LanguageCode VARCHAR (3) NOT NULL,
+  Flags        INTEGER     NOT NULL DEFAULT (0)
+);
+--@@
+
 CREATE TABLE Reviews (
   BookID INTEGER      NOT NULL,
   Folder VARCHAR (10) NOT NULL
@@ -86,6 +95,7 @@ CREATE TABLE Series (
   SeriesID    INTEGER     NOT NULL,
   SeriesTitle VARCHAR(80) NOT NULL COLLATE MHL_SYSTEM_NOCASE,
   SearchTitle VARCHAR (80)         COLLATE NOCASE,
+  Flags       INTEGER     NOT NULL DEFAULT(0),
   IsDeleted   INTEGER     NOT NULL DEFAULT(0)
 );
 --@@
@@ -95,6 +105,7 @@ CREATE TABLE Genres (
   ParentCode VARCHAR(20)          COLLATE NOCASE,
   FB2Code    VARCHAR(20)          COLLATE NOCASE,
   GenreAlias VARCHAR(50) NOT NULL COLLATE MHL_SYSTEM_NOCASE,
+  Flags      INTEGER     NOT NULL DEFAULT(0),
   IsDeleted  INTEGER     NOT NULL DEFAULT(0)
 );
 --@@
@@ -105,7 +116,17 @@ CREATE TABLE Authors (
   FirstName  VARCHAR(128)          COLLATE MHL_SYSTEM_NOCASE,
   MiddleName VARCHAR(128)          COLLATE MHL_SYSTEM_NOCASE,
   SearchName VARCHAR (128)         COLLATE NOCASE,
+  Flags      INTEGER      NOT NULL DEFAULT(0),
   IsDeleted  INTEGER      NOT NULL DEFAULT(0)
+);
+--@@
+
+CREATE TABLE Keywords (
+  KeywordID     INTEGER       NOT NULL,
+  KeywordTitle  VARCHAR(150)  NOT NULL COLLATE MHL_SYSTEM_NOCASE,
+  SearchTitle   VARCHAR(150)           COLLATE NOCASE,
+  Flags         INTEGER       NOT NULL DEFAULT(0),
+  IsDeleted     INTEGER       NOT NULL DEFAULT(0)
 );
 --@@
 
@@ -148,7 +169,7 @@ CREATE TABLE Genre_List (
 CREATE TABLE Author_List (
   AuthorID INTEGER NOT NULL,
   BookID   INTEGER NOT NULL,
-  OrdNum   INTEGER NOT NULL DEFAULT (0) 
+  OrdNum   INTEGER NOT NULL DEFAULT (0)
 );
 --@@
 
@@ -166,7 +187,7 @@ CREATE TABLE Groups_User (
   GroupID   INTEGER       NOT NULL PRIMARY KEY AUTOINCREMENT,
   Title     VARCHAR (150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE,
   CreatedAt DATETIME,
-  IsDeleted  INTEGER      NOT NULL DEFAULT(0)
+  IsDeleted INTEGER      NOT NULL DEFAULT(0)
 );
 --@@
 
@@ -182,14 +203,6 @@ CREATE TABLE Searches_User (
   SearchID    INTEGER       NOT NULL PRIMARY KEY AUTOINCREMENT,
   Title       VARCHAR (150) NOT NULL UNIQUE COLLATE MHL_SYSTEM_NOCASE,
   CreatedAt   DATETIME
-);
---@@
-
-CREATE TABLE Keywords (
-  KeywordID     INTEGER       NOT NULL,
-  KeywordTitle  VARCHAR(150)  NOT NULL COLLATE MHL_SYSTEM_NOCASE,
-  SearchTitle   VARCHAR(150)           COLLATE NOCASE,
-  IsDeleted     INTEGER       NOT NULL DEFAULT(0)
 );
 --@@
 

@@ -11,16 +11,16 @@ public:
 	explicit QStdStreamBuf(QIODevice& dev);
 
 protected: // std::streambuf
-	std::streamsize xsgetn(std::streambuf::char_type* str, std::streamsize n) override;
-	std::streamsize xsputn(const std::streambuf::char_type* str, std::streamsize n) override;
+	std::streamsize          xsgetn(std::streambuf::char_type* str, std::streamsize n) override;
+	std::streamsize          xsputn(const std::streambuf::char_type* str, std::streamsize n) override;
 	std::streambuf::pos_type seekoff(std::streambuf::off_type off, std::ios_base::seekdir dir, std::ios_base::openmode __mode) override;
 	std::streambuf::pos_type seekpos(std::streambuf::pos_type off, std::ios_base::openmode /*__mode*/) override;
 	std::streambuf::int_type underflow() override;
 
 private:
 	static constexpr std::streamsize BUFFER_SIZE = 1024;
-	std::streambuf::char_type m_inBuf[BUFFER_SIZE] {};
-	QIODevice& m_dev;
+	std::streambuf::char_type        m_inBuf[BUFFER_SIZE] {};
+	QIODevice&                       m_dev;
 };
 
 QStdStreamBuf::QStdStreamBuf(QIODevice& dev)
@@ -33,7 +33,7 @@ QStdStreamBuf::QStdStreamBuf(QIODevice& dev)
 std::streamsize QStdStreamBuf::xsgetn(std::streambuf::char_type* str, const std::streamsize n)
 {
 	[[maybe_unused]] const auto isOpen = m_dev.isOpen();
-	[[maybe_unused]] const auto pos = m_dev.pos();
+	[[maybe_unused]] const auto pos    = m_dev.pos();
 
 	return m_dev.read(str, n);
 }

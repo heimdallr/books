@@ -11,7 +11,7 @@ namespace HomeCompa::Flibrary
 class ISourceModelObserver // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	virtual ~ISourceModelObserver() = default;
+	virtual ~ISourceModelObserver()                = default;
 	virtual void OnRowsRemoved(int row, int count) = 0;
 };
 

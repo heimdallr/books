@@ -23,11 +23,12 @@ public:
 	explicit ListModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent = nullptr);
 	~ListModel() override;
 
-private: // QAbstractItemModel
+protected: // QAbstractItemModel
 	QModelIndex index(int row, int column, const QModelIndex& parent = QModelIndex()) const override;
 	QModelIndex parent(const QModelIndex& child) const override;
-	int rowCount(const QModelIndex& parent = QModelIndex()) const override;
-	int columnCount(const QModelIndex& parent = QModelIndex()) const override;
+	int         rowCount(const QModelIndex& parent = QModelIndex()) const override;
+	int         columnCount(const QModelIndex& parent = QModelIndex()) const override;
+	QVariant    data(const QModelIndex& index, int role) const override;
 };
 
 } // namespace HomeCompa::Flibrary

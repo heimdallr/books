@@ -7,7 +7,7 @@ void ParentWidgetProvider::SetWidget(QPointer<QWidget> widget)
 	m_widget = std::move(widget);
 }
 
-QWidget* ParentWidgetProvider::GetWidget() const
+QWidget* ParentWidgetProvider::GetWidget(QWidget* parentWidget) const
 {
-	return m_widget;
+	return m_widget ? m_widget.data() : parentWidget;
 }

@@ -18,14 +18,14 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto CONTEXT = "SearchController";
-constexpr auto INPUT_NEW_SEARCH = QT_TRANSLATE_NOOP("SearchController", "Search books");
-constexpr auto SEARCH_QUERY = QT_TRANSLATE_NOOP("SearchController", "Search query");
+constexpr auto CONTEXT               = "SearchController";
+constexpr auto INPUT_NEW_SEARCH      = QT_TRANSLATE_NOOP("SearchController", "Search books");
+constexpr auto SEARCH_QUERY          = QT_TRANSLATE_NOOP("SearchController", "Search query");
 constexpr auto REMOVE_SEARCH_CONFIRM = QT_TRANSLATE_NOOP("SearchController", "Are you sure you want to delete the search results (%1)?");
-constexpr auto CANNOT_CREATE_SEARCH = QT_TRANSLATE_NOOP("SearchController", "Cannot create search query (%1)");
-constexpr auto CANNOT_REMOVE_SEARCH = QT_TRANSLATE_NOOP("SearchController", "Cannot remove search query");
-constexpr auto TOO_SHORT_SEARCH = QT_TRANSLATE_NOOP("SearchController", "Search query is too short. At least %1 characters required.\nTry again?");
-constexpr auto SEARCH_TOO_LONG = QT_TRANSLATE_NOOP("SearchController", "Search query too long.\nTry again?");
+constexpr auto CANNOT_CREATE_SEARCH  = QT_TRANSLATE_NOOP("SearchController", "Cannot create search query (%1)");
+constexpr auto CANNOT_REMOVE_SEARCH  = QT_TRANSLATE_NOOP("SearchController", "Cannot remove search query");
+constexpr auto TOO_SHORT_SEARCH      = QT_TRANSLATE_NOOP("SearchController", "Search query is too short. At least %1 characters required.\nTry again?");
+constexpr auto SEARCH_TOO_LONG       = QT_TRANSLATE_NOOP("SearchController", "Search query too long.\nTry again?");
 constexpr auto SEARCH_ALREADY_EXISTS = QT_TRANSLATE_NOOP("SearchController", "Search query \"%1\" already exists.\nTry again?");
 
 constexpr auto REMOVE_SEARCH_QUERY = "delete from Searches_User where SearchId = ?";
@@ -38,7 +38,9 @@ using Names = std::unordered_map<QString, long long>;
 QString GetSearchString(const QString& str)
 {
 	auto splitted = str.split(' ', Qt::SkipEmptyParts);
-	std::ranges::transform(splitted, splitted.begin(), [](const QString& item) { return item + "*"; });
+	std::ranges::transform(splitted, splitted.begin(), [](const QString& item) {
+		return item + "*";
+	});
 	return splitted.join(' ');
 }
 
@@ -61,15 +63,17 @@ TR_DEF
 
 struct SearchController::Impl
 {
-	std::shared_ptr<const IDatabaseUser> databaseUser;
+	std::shared_ptr<const IDatabaseUser>                         databaseUser;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> navigationQueryExecutor;
-	std::shared_ptr<const IUiFactory> uiFactory;
-	const QString currentCollectionId;
+	std::shared_ptr<const IUiFactory>                            uiFactory;
+	const QString                                                currentCollectionId;
 
-	explicit Impl(const ICollectionController& collectionController,
-	              std::shared_ptr<const IDatabaseUser> databaseUser,
-	              std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
-	              std::shared_ptr<const IUiFactory> uiFactory)
+	explicit Impl(
+		const ICollectionController&              collectionController,
+		std::shared_ptr<const IDatabaseUser>      databaseUser,
+		std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
+		std::shared_ptr<const IUiFactory>         uiFactory
+	)
 		: databaseUser { std::move(databaseUser) }
 		, navigationQueryExecutor { std::move(navigationQueryExecutor) }
 		, uiFactory { std::move(uiFactory) }
@@ -79,18 +83,16 @@ struct SearchController::Impl
 
 	void GetAllSearches(std::function<void(const Names&)> callback) const
 	{
-		navigationQueryExecutor->RequestNavigation(NavigationMode::Search,
-		                                           [callback = std::move(callback)](NavigationMode, const IDataItem::Ptr& root)
-		                                           {
-													   Names names;
-													   for (size_t i = 0, sz = root->GetChildCount(); i < sz; ++i)
-													   {
-														   const auto childPtr = root->GetChild(i);
-														   const auto& child = *childPtr;
-														   names.try_emplace(child.GetData().toUpper(), child.GetId().toLongLong());
-													   }
-													   callback(names);
-												   });
+		navigationQueryExecutor->RequestNavigation(NavigationMode::Search, [callback = std::move(callback)](NavigationMode, const IDataItem::Ptr& root) {
+			Names names;
+			for (size_t i = 0, sz = root->GetChildCount(); i < sz; ++i)
+			{
+				const auto  childPtr = root->GetChild(i);
+				const auto& child    = *childPtr;
+				names.try_emplace(child.GetData().toUpper(), child.GetId().toLongLong());
+			}
+			callback(names);
+		});
 	}
 
 	void CreateNewSearch(const Names& names, Callback callback)
@@ -104,21 +106,18 @@ struct SearchController::Impl
 
 	void CreateNewSearch(Callback callback, QString searchString)
 	{
-		databaseUser->Execute({ "Create search string",
-		                        [&, searchString = std::move(searchString), callback = std::move(callback)]() mutable
-		                        {
-									const auto db = databaseUser->Database();
-									const auto transaction = db->CreateTransaction();
-									const auto id = CreateNewSearchImpl(*transaction, searchString);
-									transaction->Commit();
+		databaseUser->Execute({ "Create search string", [&, searchString = std::move(searchString), callback = std::move(callback)]() mutable {
+								   const auto db          = databaseUser->Database();
+								   const auto transaction = db->CreateTransaction();
+								   const auto id          = CreateNewSearchImpl(*transaction, searchString);
+								   transaction->Commit();
 
-									return [this, id, searchString = std::move(searchString), callback = std::move(callback)](size_t)
-									{
-										if (!id)
-											uiFactory->ShowError(Tr(CANNOT_CREATE_SEARCH).arg(searchString));
-										callback(id);
-									};
-								} });
+								   return [this, id, searchString = std::move(searchString), callback = std::move(callback)](size_t) {
+									   if (!id)
+										   uiFactory->ShowError(Tr(CANNOT_CREATE_SEARCH).arg(searchString));
+									   callback(id);
+								   };
+							   } });
 	}
 
 	void FindOrCreateNewSearch(const Names& names, QString searchString, Callback callback)
@@ -169,10 +168,12 @@ struct SearchController::Impl
 	}
 };
 
-SearchController::SearchController(const std::shared_ptr<const ICollectionController>& collectionController,
-                                   std::shared_ptr<IDatabaseUser> databaseUser,
-                                   std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
-                                   std::shared_ptr<IUiFactory> uiFactory)
+SearchController::SearchController(
+	const std::shared_ptr<const ICollectionController>& collectionController,
+	std::shared_ptr<IDatabaseUser>                      databaseUser,
+	std::shared_ptr<INavigationQueryExecutor>           navigationQueryExecutor,
+	std::shared_ptr<IUiFactory>                         uiFactory
+)
 	: m_impl(*collectionController, std::move(databaseUser), std::move(navigationQueryExecutor), std::move(uiFactory))
 {
 	PLOGV << "SearchController created";
@@ -185,7 +186,9 @@ SearchController::~SearchController()
 
 void SearchController::CreateNew(Callback callback)
 {
-	m_impl->GetAllSearches([&, callback = std::move(callback)](const Names& names) mutable { m_impl->CreateNewSearch(names, std::move(callback)); });
+	m_impl->GetAllSearches([&, callback = std::move(callback)](const Names& names) mutable {
+		m_impl->CreateNewSearch(names, std::move(callback));
+	});
 }
 
 void SearchController::Remove(Ids ids, Callback callback) const
@@ -193,35 +196,29 @@ void SearchController::Remove(Ids ids, Callback callback) const
 	if (ids.empty() || m_impl->uiFactory->ShowQuestion(Tr(REMOVE_SEARCH_CONFIRM).arg(ids.size()), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
 		return;
 
-	m_impl->databaseUser->Execute({ "Remove search string",
-	                                [&, ids = std::move(ids), callback = std::move(callback)]() mutable
-	                                {
-										const auto db = m_impl->databaseUser->Database();
-										const auto transaction = db->CreateTransaction();
-										const auto command = transaction->CreateCommand(REMOVE_SEARCH_QUERY);
+	m_impl->databaseUser->Execute({ "Remove search string", [&, ids = std::move(ids), callback = std::move(callback)]() mutable {
+									   const auto db          = m_impl->databaseUser->Database();
+									   const auto transaction = db->CreateTransaction();
+									   const auto command     = transaction->CreateCommand(REMOVE_SEARCH_QUERY);
 
-										auto ok = std::accumulate(ids.cbegin(),
-		                                                          ids.cend(),
-		                                                          true,
-		                                                          [&](const bool init, const Id id)
-		                                                          {
-																	  command->Bind(0, id);
-																	  return command->Execute() && init;
-																  });
-										ok = transaction->Commit() && ok;
+									   auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&](const bool init, const Id id) {
+										   command->Bind(0, id);
+										   return command->Execute() && init;
+									   });
+									   ok      = transaction->Commit() && ok;
 
-										return [this, callback = std::move(callback), ok](size_t)
-										{
-											if (!ok)
-												m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_SEARCH));
+									   return [this, callback = std::move(callback), ok](size_t) {
+										   if (!ok)
+											   m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_SEARCH));
 
-											callback(-1);
-										};
-									} });
+										   callback(-1);
+									   };
+								   } });
 }
 
 void SearchController::Search(QString searchString, Callback callback)
 {
-	m_impl->GetAllSearches([&, searchString = std::move(searchString), callback = std::move(callback)](const Names& names) mutable
-	                       { m_impl->FindOrCreateNewSearch(names, std::move(searchString), std::move(callback)); });
+	m_impl->GetAllSearches([&, searchString = std::move(searchString), callback = std::move(callback)](const Names& names) mutable {
+		m_impl->FindOrCreateNewSearch(names, std::move(searchString), std::move(callback));
+	});
 }

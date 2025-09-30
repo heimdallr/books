@@ -43,6 +43,12 @@ private: // Query
 		++m_it;
 	}
 
+	void Reset() override
+	{
+		m_it = m_query.end();
+		m_query.reset();
+	}
+
 	size_t ColumnCount() const override
 	{
 		assert(m_query.column_count() >= 0);
@@ -143,8 +149,8 @@ private:
 
 private:
 	std::lock_guard<std::mutex> m_lock;
-	sqlite3pp::query m_query;
-	sqlite3pp::query::iterator m_it;
+	sqlite3pp::query            m_query;
+	sqlite3pp::query::iterator  m_it;
 };
 
 } // namespace

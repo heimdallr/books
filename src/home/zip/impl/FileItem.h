@@ -9,16 +9,16 @@ namespace HomeCompa::ZipDetails::SevenZip
 
 struct FileItem
 {
-	uint32_t index { 0 };
-	QString name;
-	size_t size { 0 };
+	uint32_t  index { 0 };
+	QString   name;
+	size_t    size { 0 };
 	QDateTime time;
-	bool isDir { false };
+	bool      isDir { false };
 };
 
 struct FileStorage
 {
-	std::vector<FileItem> files;
+	std::vector<FileItem>               files;
 	std::unordered_map<QString, size_t> index;
 
 	const FileItem& GetFile(const QString& name) const

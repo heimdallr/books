@@ -24,7 +24,7 @@ bool SimpleJokeRequester::Process(const QJsonValue& value, std::weak_ptr<IClient
 		return false;
 
 	const auto jsonObject = value.toObject();
-	auto textValue = jsonObject[m_fieldName];
+	auto       textValue  = jsonObject[m_fieldName];
 	if (!textValue.isString())
 		return false;
 

@@ -19,7 +19,7 @@ public:
 	~NavigationQueryExecutor() override;
 
 private: // INavigationQueryExecutor
-	void RequestNavigation(NavigationMode navigationMode, Callback callback, bool force) const override;
+	void                    RequestNavigation(NavigationMode navigationMode, Callback callback, bool force) const override;
 	const QueryDescription& GetQueryDescription(NavigationMode navigationMode) const override;
 
 private:

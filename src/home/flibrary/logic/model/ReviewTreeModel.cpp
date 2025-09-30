@@ -22,22 +22,26 @@ ReviewTreeModel::~ReviewTreeModel()
 QVariant ReviewTreeModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
 {
 	if (orientation != Qt::Horizontal)
-		return {};
+		return TreeModel::headerData(section, orientation, role);
+
+	const auto getHeader = [&] {
+		return section < m_data->GetColumnCount() ? m_data->GetData(section) : m_data->GetRawData(section - m_data->GetColumnCount() + BookItem::Column::Last + 1);
+	};
 
 	switch (role)
 	{
 		case Qt::DisplayRole:
 		case Role::HeaderTitle:
-		{
-			const auto data = section < m_data->GetColumnCount() ? m_data->GetData(section) : m_data->GetRawData(section - m_data->GetColumnCount() + BookItem::Column::Last + 1);
-			return Loc::Tr(Loc::Ctx::BOOK, data.toUtf8().data());
-		}
+			return Loc::Tr(Loc::Ctx::BOOK, getHeader().toUtf8().data());
+
+		case Role::HeaderName:
+			return getHeader();
 
 		default:
 			break;
 	}
 
-	return {};
+	return TreeModel::headerData(section, orientation, role);
 }
 
 int ReviewTreeModel::rowCount(const QModelIndex& parent) const
@@ -57,12 +61,15 @@ int ReviewTreeModel::columnCount(const QModelIndex& /*parent*/) const
 	const auto reviewerItem = m_data->GetChild(0);
 	assert(reviewerItem->GetChildCount());
 	const auto reviewItem = reviewerItem->GetChild(0);
-	auto count = reviewItem->GetColumnCount() + m_data->GetColumnCount() - 1;
+	auto       count      = reviewItem->GetColumnCount() + m_data->GetColumnCount() - 1;
 	return count;
 }
 
 QVariant ReviewTreeModel::data(const QModelIndex& index, const int role) const
 {
+	if (!index.isValid())
+		return TreeModel::data(index, role);
+
 	const auto* item = GetInternalPointer(index);
 	if (item->To<ReviewItem>())
 	{
@@ -70,7 +77,7 @@ QVariant ReviewTreeModel::data(const QModelIndex& index, const int role) const
 		{
 			case Qt::DisplayRole:
 			case Qt::ToolTipRole:
-				return GetValue(*item, index.column() - item->GetChild(0)->GetColumnCount() + 1);
+				return item->GetData(index.column() - item->GetChild(0)->GetColumnCount() + 1);
 
 			case Role::Remap:
 				return index.column();

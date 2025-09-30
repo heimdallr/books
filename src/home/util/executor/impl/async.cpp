@@ -22,7 +22,7 @@ namespace
 class IPool // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	virtual ~IPool() = default;
+	virtual ~IPool()                                                                           = default;
 	virtual void Work(std::promise<void>& initializePromise, std::promise<void>& startPromise) = 0;
 };
 
@@ -47,7 +47,7 @@ public:
 private:
 	std::promise<void> m_initializePromise;
 	std::promise<void> m_startPromise;
-	std::thread m_thread;
+	std::thread        m_thread;
 };
 
 class Executor final
@@ -61,15 +61,12 @@ public:
 		: m_initializer { std::move(initializer) }
 		, m_forwarder { new FunctorExecutionForwarder }
 	{
-		const auto cpuCount = static_cast<int>(std::thread::hardware_concurrency());
+		const auto cpuCount       = static_cast<int>(std::thread::hardware_concurrency());
 		const auto maxThreadCount = std::min(std::max(cpuCount - 2, 1), m_initializer.maxThreadCount);
-		std::generate_n(std::back_inserter(m_threads),
-		                maxThreadCount,
-		                [&]()
-		                {
-							auto thread = std::make_unique<Thread>(*this);
-							return thread;
-						});
+		std::generate_n(std::back_inserter(m_threads), maxThreadCount, [&]() {
+			auto thread = std::make_unique<Thread>(*this);
+			return thread;
+		});
 
 		PLOGD << std::format("{} thread(s) executor created", std::size(m_threads));
 	}
@@ -79,7 +76,9 @@ public:
 		Stop();
 		PLOGD << std::format("{} thread(s) executor destroyed", std::size(m_threads));
 		m_threads.clear();
-		QTimer::singleShot(0, [forwarder = m_forwarder] { delete forwarder; });
+		QTimer::singleShot(0, [forwarder = m_forwarder] {
+			delete forwarder;
+		});
 	}
 
 private: // Util::IExecutor
@@ -114,28 +113,25 @@ private:
 		{
 			{
 				std::unique_lock lockStart(m_startMutex);
-				m_startCondition.wait(lockStart,
-				                      [this]()
-				                      {
-										  if (!m_running)
-											  return true;
+				m_startCondition.wait(lockStart, [this]() {
+					if (!m_running)
+						return true;
 
-										  std::lock_guard lockTasks(m_tasksGuard);
-										  return !m_tasks.empty();
-									  });
+					std::lock_guard lockTasks(m_tasksGuard);
+					return !m_tasks.empty();
+				});
 			}
 
 			if (!m_running)
 				continue;
 
-			auto task = [this]()
-			{
+			auto task = [this]() {
 				std::lock_guard lock(m_tasksGuard);
 				if (m_tasks.empty())
 					return Task {};
 
-				const auto it = m_tasks.begin();
-				auto returnedTask = std::move(it->second);
+				const auto it           = m_tasks.begin();
+				auto       returnedTask = std::move(it->second);
 				m_tasks.erase(it);
 				return returnedTask;
 			}();
@@ -147,7 +143,9 @@ private:
 				auto taskResult = task.task();
 				PLOGD << task.name << " finished";
 
-				m_forwarder->Forward([id = task.id, taskResult = std::move(taskResult)] { taskResult(id); });
+				m_forwarder->Forward([id = task.id, taskResult = std::move(taskResult)] {
+					taskResult(id);
+				});
 			}
 			catch (const std::exception& ex)
 			{
@@ -164,14 +162,14 @@ private:
 	}
 
 private:
-	const ExecutorInitializer m_initializer;
-	std::atomic_bool m_running { true };
-	std::mutex m_startMutex;
-	std::condition_variable m_startCondition;
-	std::mutex m_tasksGuard;
-	std::map<int, Task> m_tasks;
-	FunctorExecutionForwarder* m_forwarder;
-	int m_priority { 1024 };
+	const ExecutorInitializer            m_initializer;
+	std::atomic_bool                     m_running { true };
+	std::mutex                           m_startMutex;
+	std::condition_variable              m_startCondition;
+	std::mutex                           m_tasksGuard;
+	std::map<int, Task>                  m_tasks;
+	FunctorExecutionForwarder*           m_forwarder;
+	int                                  m_priority { 1024 };
 	std::vector<std::unique_ptr<Thread>> m_threads;
 };
 

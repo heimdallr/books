@@ -21,8 +21,8 @@ bool SimpleSetupPunchlineJokeRequester::Process(const QJsonValue& value, std::we
 		return false;
 
 	const auto jsonObject = value.toObject();
-	const auto setup = jsonObject[m_setupField];
-	const auto punchline = jsonObject[m_punchlineField];
+	const auto setup      = jsonObject[m_setupField];
+	const auto punchline  = jsonObject[m_punchlineField];
 	if (!setup.isString() || !punchline.isString())
 		return false;
 

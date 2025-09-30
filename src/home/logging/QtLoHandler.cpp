@@ -46,7 +46,9 @@ void QtLogHandler::HandleStatic(const QtMsgType type, const QMessageLogContext& 
 
 void QtLogHandler::Handle(const QtMsgType type, const QMessageLogContext& ctx, const QString& message) const
 {
-	if (std::ranges::any_of(IGNORED, [&](const auto* item) { return message.startsWith(item); }))
+	if (std::ranges::any_of(IGNORED, [&](const auto* item) {
+			return message.startsWith(item);
+		}))
 		return;
 
 	const auto context = QString("[%1@%2] ").arg(FileName(ctx)).arg(ctx.line);

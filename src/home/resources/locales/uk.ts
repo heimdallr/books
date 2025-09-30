@@ -361,28 +361,12 @@
 		<translation>Поз&amp;начка</translation>
 	</message>
 	<message>
-		<source>&amp;Check all</source>
-		<translation>Відзначити &amp;все</translation>
-	</message>
-	<message>
-		<source>&amp;Collapse all</source>
-		<translation>&amp;Згорнути все</translation>
-	</message>
-	<message>
 		<source>&amp;Delete permanently</source>
 		<translation>Видалит&amp;и назавжди</translation>
 	</message>
 	<message>
-		<source>&amp;Expand all</source>
-		<translation>&amp;Розгорнути все</translation>
-	</message>
-	<message>
 		<source>&amp;Groups</source>
 		<translation>&amp;Групи</translation>
-	</message>
-	<message>
-		<source>&amp;Invert</source>
-		<translation>&amp;Інвертувати позначку</translation>
 	</message>
 	<message>
 		<source>&amp;My rate</source>
@@ -407,10 +391,6 @@
 	<message>
 		<source>&amp;Tree</source>
 		<translation>&amp;Дерево</translation>
-	</message>
-	<message>
-		<source>&amp;Uncheck all</source>
-		<translation>Зн&amp;яти позначки</translation>
 	</message>
 	<message>
 		<source>&amp;Undo deletion</source>
@@ -747,6 +727,29 @@ Restart now?</source>
 	</message>
 </context>
 <context>
+	<name>ContextMenu</name>
+	<message>
+		<source>&amp;Check all</source>
+		<translation>Відзначити &amp;все</translation>
+	</message>
+	<message>
+		<source>&amp;Collapse all</source>
+		<translation>&amp;Згорнути все</translation>
+	</message>
+	<message>
+		<source>&amp;Expand all</source>
+		<translation>&amp;Розгорнути все</translation>
+	</message>
+	<message>
+		<source>&amp;Invert</source>
+		<translation>&amp;Інвертувати позначку</translation>
+	</message>
+	<message>
+		<source>&amp;Uncheck all</source>
+		<translation>Зн&amp;яти позначки</translation>
+	</message>
+</context>
+<context>
 	<name>Dialog</name>
 	<message>
 		<source>&lt;p&gt;Personal &lt;a href='%1'&gt;%2&lt;/a&gt; build&lt;/p&gt;</source>
@@ -873,6 +876,48 @@ Restart now?</source>
 	<message>
 		<source>Save index file</source>
 		<translation>Зберегти індексний файл</translation>
+	</message>
+</context>
+<context>
+	<name>FilterModel</name>
+	<message>
+		<source>Books filtered</source>
+		<translation>Книги відфільтровані</translation>
+	</message>
+	<message>
+		<source>Hidden</source>
+		<translation>Приховано</translation>
+	</message>
+	<message>
+		<source>Title</source>
+		<translation>Назва</translation>
+	</message>
+</context>
+<context>
+	<name>FilterSettingsDialog</name>
+	<message>
+		<source>Apply</source>
+		<translation>Застосувати</translation>
+	</message>
+	<message>
+		<source>Cancel</source>
+		<translation>Скасувати</translation>
+	</message>
+	<message>
+		<source>Filter enabled</source>
+		<translation>Фільтр увімкнено</translation>
+	</message>
+	<message>
+		<source>Filter settings</source>
+		<translation>Налаштування фільтра</translation>
+	</message>
+	<message>
+		<source>Hide items whose books are all filtered</source>
+		<translation>Приховати елементи, усі книги яких відфільтровані</translation>
+	</message>
+	<message>
+		<source>Show checked only</source>
+		<translation>Показувати лише позначені</translation>
 	</message>
 </context>
 <context>
@@ -2367,25 +2412,6 @@ Restart now?</source>
 	</message>
 </context>
 <context>
-	<name>GenreFilterDialog</name>
-	<message>
-		<source>Check all</source>
-		<translation>Виділити все</translation>
-	</message>
-	<message>
-		<source>Genre filter settings</source>
-		<translation>Налаштування фільтру жанрів</translation>
-	</message>
-	<message>
-		<source>Invert checks</source>
-		<translation>Інвертувати виділення</translation>
-	</message>
-	<message>
-		<source>Uncheck all</source>
-		<translation>Зняти виділення</translation>
-	</message>
-</context>
-<context>
 	<name>GroupController</name>
 	<message>
 		<source>Are you sure you want to delete the groups (%1)?</source>
@@ -2478,6 +2504,33 @@ Try again?</source>
 	<message>
 		<source>Select output folder</source>
 		<translation>Вкажіть папку призначення</translation>
+	</message>
+</context>
+<context>
+	<name>Http</name>
+	<message>
+		<source>Authentication failed</source>
+		<translation>Помилка автентифікації</translation>
+	</message>
+	<message>
+		<source>Authentication required</source>
+		<translation>Потрібна автентифікація</translation>
+	</message>
+	<message>
+		<source>Enter Password</source>
+		<translation>Введіть пароль</translation>
+	</message>
+	<message>
+		<source>Enter Username</source>
+		<translation>Введіть ім'я користувача</translation>
+	</message>
+	<message>
+		<source>Login</source>
+		<translation>Логін</translation>
+	</message>
+	<message>
+		<source>Password</source>
+		<translation>Пароль</translation>
 	</message>
 </context>
 <context>
@@ -4340,6 +4393,13 @@ Try again?</source>
 	</message>
 </context>
 <context>
+	<name>Main</name>
+	<message>
+		<source>It looks like you're trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?</source>
+		<translation>Схоже, ви намагаєтеся використати стару версію програми з колекцією нової версії. Робота у такому режимі може бути нестабільною. Впевнені, що хочете продовжувати?</translation>
+	</message>
+</context>
+<context>
 	<name>MainWindow</name>
 	<message>
 		<source>&amp;About...</source>
@@ -4386,16 +4446,12 @@ Try again?</source>
 		<translation>&amp;Файл</translation>
 	</message>
 	<message>
-		<source>&amp;Filters</source>
-		<translation>&amp;Фільтри</translation>
+		<source>&amp;Filters...</source>
+		<translation>&amp;Фільтри...</translation>
 	</message>
 	<message>
 		<source>&amp;Font</source>
 		<translation>&amp;Шрифт</translation>
-	</message>
-	<message>
-		<source>&amp;Genres filter</source>
-		<translation>Фільтр &amp;жанрів</translation>
 	</message>
 	<message>
 		<source>&amp;Help</source>
@@ -4416,10 +4472,6 @@ Try again?</source>
 	<message>
 		<source>&amp;Log</source>
 		<translation>&amp;Журнал</translation>
-	</message>
-	<message>
-		<source>&amp;Permanent language filter</source>
-		<translation>&amp;Постійний мовний фільтр</translation>
 	</message>
 	<message>
 		<source>&amp;Remove collection</source>
@@ -4548,14 +4600,6 @@ Try again?</source>
 	<message>
 		<source>Enable all</source>
 		<translation>Включити все</translation>
-	</message>
-	<message>
-		<source>Filter &amp;enabled</source>
-		<translation>Фільтр &amp;активний</translation>
-	</message>
-	<message>
-		<source>Filter &amp;settings...</source>
-		<translation>&amp;Налаштування фільтра...</translation>
 	</message>
 	<message>
 		<source>Font &amp;settings...</source>
@@ -4866,12 +4910,28 @@ Try again?</source>
 		<translation>Новий пошук...</translation>
 	</message>
 	<message>
+		<source>Filter books</source>
+		<translation>Відфільтрувати книги</translation>
+	</message>
+	<message>
+		<source>Filter settings...</source>
+		<translation>Налаштування фільтра...</translation>
+	</message>
+	<message>
+		<source>Filters</source>
+		<translation>Фільтри</translation>
+	</message>
+	<message>
 		<source>Genres</source>
 		<translation>Жанри</translation>
 	</message>
 	<message>
 		<source>Groups</source>
 		<translation>Групи</translation>
+	</message>
+	<message>
+		<source>Hide</source>
+		<translation>Приховати</translation>
 	</message>
 	<message>
 		<source>Keywords</source>
@@ -4929,6 +4989,10 @@ Try again?</source>
 		<translation>Будь-який</translation>
 	</message>
 	<message>
+		<source>Authorization</source>
+		<translation>Авторизація</translation>
+	</message>
+	<message>
 		<source>Autostart</source>
 		<translation>Автозапуск</translation>
 	</message>
@@ -4953,6 +5017,10 @@ Try again?</source>
 		<translation>Адреса OPDS</translation>
 	</message>
 	<message>
+		<source>Password</source>
+		<translation>Пароль</translation>
+	</message>
+	<message>
 		<source>Port</source>
 		<translation>Порт</translation>
 	</message>
@@ -4971,6 +5039,10 @@ Try again?</source>
 	<message>
 		<source>Stop</source>
 		<translation>Стоп</translation>
+	</message>
+	<message>
+		<source>User</source>
+		<translation>Користувач</translation>
 	</message>
 	<message>
 		<source>Web Address</source>
@@ -5122,6 +5194,10 @@ Try again?</source>
 <context>
 	<name>ScriptController</name>
 	<message>
+		<source>%all_keywords%</source>
+		<translation>Список ключових слів</translation>
+	</message>
+	<message>
 		<source>%author%</source>
 		<translation>Прізвище Ім'я По батькові автора</translation>
 	</message>
@@ -5178,6 +5254,14 @@ Try again?</source>
 		<translation>Жанр, піджанр тощо</translation>
 	</message>
 	<message>
+		<source>%keyword%</source>
+		<translation>Ключове слово</translation>
+	</message>
+	<message>
+		<source>%language%</source>
+		<translation>Мова</translation>
+	</message>
+	<message>
 		<source>%lib_id%</source>
 		<translation>Ідентифікатор книги з мережевої бібліотеки-джерела</translation>
 	</message>
@@ -5224,6 +5308,10 @@ Try again?</source>
 	<message>
 		<source>LaunchGuiApp</source>
 		<translation>Запуск GUI програми</translation>
+	</message>
+	<message>
+		<source>OpenLink</source>
+		<translation>Перейти за посиланням</translation>
 	</message>
 	<message>
 		<source>System</source>

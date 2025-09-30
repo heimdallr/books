@@ -37,9 +37,9 @@ class ZipFileController final : public IZipFileController
 private:
 	struct Item
 	{
-		QString name;
-		QByteArray body;
-		QDateTime time;
+		QString                    name;
+		QByteArray                 body;
+		QDateTime                  time;
 		std::unique_ptr<QFileInfo> info;
 	};
 
@@ -86,7 +86,7 @@ private: // IZipFileController
 	void AddFile(const QString& path) override
 	{
 		assert(QFile::exists(path));
-		auto info = std::make_unique<QFileInfo>(path);
+		auto info                                                                                        = std::make_unique<QFileInfo>(path);
 		m_items.emplace_back(info->fileName(), QByteArray {}, info->fileTime(QFile::FileBirthTime)).info = std::move(info);
 	}
 
@@ -161,7 +161,7 @@ public:
 	}
 
 private:
-	PropagateConstPtr<IZip> m_zip;
+	PropagateConstPtr<IZip>  m_zip;
 	PropagateConstPtr<IFile> m_file;
 };
 

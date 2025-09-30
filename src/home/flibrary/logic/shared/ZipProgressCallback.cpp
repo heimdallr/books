@@ -8,13 +8,13 @@ using namespace HomeCompa::Flibrary;
 
 struct ZipProgressCallback::Impl
 {
-	std::shared_ptr<IProgressController> progressController;
+	std::shared_ptr<IProgressController>                progressController;
 	std::unique_ptr<IProgressController::IProgressItem> progressItem;
 
 	std::atomic_bool stopped { false };
-	int64_t total { 0 };
-	int64_t progress { 0 };
-	int percents { 0 };
+	int64_t          total { 0 };
+	int64_t          progress { 0 };
+	int              percents { 0 };
 
 	void Stop()
 	{
@@ -62,7 +62,7 @@ void ZipProgressCallback::OnSetCompleted(const int64_t bytes)
 	if (!m_impl->total)
 		return;
 
-	m_impl->progress = std::min(bytes, m_impl->total);
+	m_impl->progress    = std::min(bytes, m_impl->total);
 	const auto percents = static_cast<int>(100 * m_impl->progress / m_impl->total);
 	if (m_impl->percents == percents)
 		return;

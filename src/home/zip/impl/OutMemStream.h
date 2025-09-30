@@ -39,9 +39,9 @@ private: // IUnknown
 	HRESULT SetSize(UInt64 newSize) noexcept override;
 
 private:
-	QIODevice& m_stream;
+	QIODevice&        m_stream;
 	ProgressCallback& m_progress;
-	int64_t m_maxPos { 0 };
+	int64_t           m_maxPos { 0 };
 };
 
 } // namespace HomeCompa::ZipDetails::SevenZip

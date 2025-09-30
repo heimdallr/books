@@ -5,7 +5,6 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
-#include "interface/logic/IGenreFilterProvider.h"
 #include "interface/logic/ILibRateProvider.h"
 #include "interface/logic/IModelProvider.h"
 
@@ -31,7 +30,6 @@ void Enumerate(const IDataItem& root, const F& f)
 BaseModel::BaseModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent)
 	: QAbstractItemModel(parent)
 	, m_data { modelProvider->GetData() }
-	, m_genreFilterProvider { modelProvider->GetGenreFilterProvider() }
 	, m_libRateProvider { modelProvider->GetLibRateProvider() }
 {
 }
@@ -45,6 +43,9 @@ QVariant BaseModel::headerData(const int section, const Qt::Orientation orientat
 
 	switch (role)
 	{
+		case Role::HeaderName:
+			return m_data->GetData(section);
+
 		case Qt::DisplayRole:
 		case Role::HeaderTitle:
 			return Loc::Tr(Loc::Ctx::BOOK, m_data->GetData(section).toUtf8().data());
@@ -58,8 +59,7 @@ QVariant BaseModel::headerData(const int section, const Qt::Orientation orientat
 
 QVariant BaseModel::data(const QModelIndex& index, const int role) const
 {
-	if (!index.isValid())
-		return role == Role::AllGenreCodes ? GetAllGenreCodes() : QVariant {};
+	assert(index.isValid());
 
 	const auto* item = GetInternalPointer(index);
 	if (item->GetType() == ItemType::Books)
@@ -102,8 +102,14 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 		case Role::IsTree:
 			return false;
 
+		case Role::Flags:
+			return QVariant::fromValue(item->GetFlags());
+
 		case Role::IsRemoved:
 			return item->IsRemoved();
+
+		case Role::ChildCount:
+			return item->GetChildCount();
 
 		case Role::Remap:
 			return item->RemapColumn(index.column());
@@ -133,6 +139,9 @@ bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const i
 
 			case Qt::EditRole:
 				return true;
+
+			case Role::Flags:
+				return item->SetFlags(value.value<IDataItem::Flags>()), true;
 
 			default:
 				return assert(false && "unexpected role"), false;
@@ -171,28 +180,10 @@ QVariant BaseModel::GetValue(const IDataItem& item, const int column)
 {
 	if (item.GetType() == ItemType::Books && IsOneOf(column, BookItem::Column::SeqNumber, BookItem::Column::Size))
 	{
-		bool ok = false;
+		bool       ok     = false;
 		const auto result = item.GetRawData(column).toLongLong(&ok);
 		return ok ? result : -1;
 	}
 
 	return item.GetRawData(column);
-}
-
-QVariant BaseModel::GetAllGenreCodes() const
-{
-	std::unordered_set<QString> uniqueCodes;
-
-	Enumerate(*m_data,
-	          [&uniqueCodes, &genresNameToCode = m_genreFilterProvider->GetGenreNameToCodeMap()](const IDataItem& item)
-	          {
-				  if (item.GetType() != ItemType::Books)
-					  return;
-
-				  for (const auto& name : item.GetRawData(BookItem::Column::Genre).split(", ", Qt::SkipEmptyParts))
-					  if (const auto it = genresNameToCode.find(name); it != genresNameToCode.end())
-						  uniqueCodes.insert(it->second);
-			  });
-
-	return QVariant::fromValue(uniqueCodes);
 }

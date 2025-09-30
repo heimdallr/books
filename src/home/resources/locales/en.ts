@@ -361,27 +361,11 @@
 		<translation></translation>
 	</message>
 	<message>
-		<source>&amp;Check all</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>&amp;Collapse all</source>
-		<translation></translation>
-	</message>
-	<message>
 		<source>&amp;Delete permanently</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>&amp;Expand all</source>
-		<translation></translation>
-	</message>
-	<message>
 		<source>&amp;Groups</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>&amp;Invert</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -406,10 +390,6 @@
 	</message>
 	<message>
 		<source>&amp;Tree</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>&amp;Uncheck all</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -737,6 +717,29 @@ Restart now?</source>
 	</message>
 </context>
 <context>
+	<name>ContextMenu</name>
+	<message>
+		<source>&amp;Check all</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>&amp;Collapse all</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>&amp;Expand all</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>&amp;Invert</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>&amp;Uncheck all</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
 	<name>Dialog</name>
 	<message>
 		<source>&lt;p&gt;Personal &lt;a href='%1'&gt;%2&lt;/a&gt; build&lt;/p&gt;</source>
@@ -862,6 +865,48 @@ Restart now?</source>
 	</message>
 	<message>
 		<source>Save index file</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
+	<name>FilterModel</name>
+	<message>
+		<source>Books filtered</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Hidden</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Title</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
+	<name>FilterSettingsDialog</name>
+	<message>
+		<source>Apply</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Cancel</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Filter enabled</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Filter settings</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Hide items whose books are all filtered</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Show checked only</source>
 		<translation></translation>
 	</message>
 </context>
@@ -2357,25 +2402,6 @@ Restart now?</source>
 	</message>
 </context>
 <context>
-	<name>GenreFilterDialog</name>
-	<message>
-		<source>Check all</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Genre filter settings</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Invert checks</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Uncheck all</source>
-		<translation></translation>
-	</message>
-</context>
-<context>
 	<name>GroupController</name>
 	<message>
 		<source>Are you sure you want to delete the groups (%1)?</source>
@@ -2465,6 +2491,33 @@ Try again?</source>
 	</message>
 	<message>
 		<source>Select output folder</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
+	<name>Http</name>
+	<message>
+		<source>Authentication failed</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Authentication required</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Enter Password</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Enter Username</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Login</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Password</source>
 		<translation></translation>
 	</message>
 </context>
@@ -4328,6 +4381,13 @@ Try again?</source>
 	</message>
 </context>
 <context>
+	<name>Main</name>
+	<message>
+		<source>It looks like you're trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?</source>
+		<translation></translation>
+	</message>
+</context>
+<context>
 	<name>MainWindow</name>
 	<message>
 		<source>&amp;About...</source>
@@ -4374,15 +4434,11 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>&amp;Filters</source>
+		<source>&amp;Filters...</source>
 		<translation></translation>
 	</message>
 	<message>
 		<source>&amp;Font</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>&amp;Genres filter</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -4403,10 +4459,6 @@ Try again?</source>
 	</message>
 	<message>
 		<source>&amp;Log</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>&amp;Permanent language filter</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -4535,14 +4587,6 @@ Try again?</source>
 	</message>
 	<message>
 		<source>Enable all</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Filter &amp;enabled</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Filter &amp;settings...</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -4854,11 +4898,27 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>Filter books</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Filter settings...</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Filters</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>Genres</source>
 		<translation></translation>
 	</message>
 	<message>
 		<source>Groups</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Hide</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -4917,6 +4977,10 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>Authorization</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>Autostart</source>
 		<translation></translation>
 	</message>
@@ -4941,6 +5005,10 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>Password</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>Port</source>
 		<translation></translation>
 	</message>
@@ -4958,6 +5026,10 @@ Try again?</source>
 	</message>
 	<message>
 		<source>Stop</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>User</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -5110,6 +5182,10 @@ Try again?</source>
 <context>
 	<name>ScriptController</name>
 	<message>
+		<source>%all_keywords%</source>
+		<translation>List of keywords</translation>
+	</message>
+	<message>
 		<source>%author%</source>
 		<translation>Author's Surname Firstname. Middlename</translation>
 	</message>
@@ -5166,6 +5242,14 @@ Try again?</source>
 		<translation>Genre, subgenre, etc.</translation>
 	</message>
 	<message>
+		<source>%keyword%</source>
+		<translation>Keyword</translation>
+	</message>
+	<message>
+		<source>%language%</source>
+		<translation>Language</translation>
+	</message>
+	<message>
 		<source>%lib_id%</source>
 		<translation>Book ID from the source online library</translation>
 	</message>
@@ -5212,6 +5296,10 @@ Try again?</source>
 	<message>
 		<source>LaunchGuiApp</source>
 		<translation>Launch GUI application</translation>
+	</message>
+	<message>
+		<source>OpenLink</source>
+		<translation>Open link</translation>
 	</message>
 	<message>
 		<source>System</source>

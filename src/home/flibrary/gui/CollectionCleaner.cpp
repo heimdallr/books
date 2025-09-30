@@ -12,6 +12,7 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "gutil/GeometryRestorable.h"
+#include "gutil/util.h"
 #include "util/ISettingsObserver.h"
 #include "util/localization.h"
 
@@ -22,31 +23,31 @@ namespace
 {
 using Role = IModel::Role;
 
-constexpr auto CONTEXT = ICollectionCleaner::CONTEXT;
-constexpr auto BOOKS_NOT_FOUND = QT_TRANSLATE_NOOP("CollectionCleaner", "No books were found in the collection according to the specified criteria");
-constexpr auto BOOKS_TO_DELETE = QT_TRANSLATE_NOOP("CollectionCleaner", "There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them%2?");
-constexpr auto PERMANENTLY = QT_TRANSLATE_NOOP("CollectionCleaner", " permanently, without the possibility of recovery");
-constexpr auto ANALYZING = QT_TRANSLATE_NOOP("CollectionCleaner", "Wait. Collection analysis in progress...");
-constexpr auto WRONG_SIZES = QT_TRANSLATE_NOOP("CollectionCleaner", "Strange values for minimum and maximum book sizes. Do you want to delete all books?");
+constexpr auto CONTEXT                 = ICollectionCleaner::CONTEXT;
+constexpr auto BOOKS_NOT_FOUND         = QT_TRANSLATE_NOOP("CollectionCleaner", "No books were found in the collection according to the specified criteria");
+constexpr auto BOOKS_TO_DELETE         = QT_TRANSLATE_NOOP("CollectionCleaner", "There are %1 book(s) found in the collection matching your criteria. Are you sure you want to delete them%2?");
+constexpr auto PERMANENTLY             = QT_TRANSLATE_NOOP("CollectionCleaner", " permanently, without the possibility of recovery");
+constexpr auto ANALYZING               = QT_TRANSLATE_NOOP("CollectionCleaner", "Wait. Collection analysis in progress...");
+constexpr auto WRONG_SIZES             = QT_TRANSLATE_NOOP("CollectionCleaner", "Strange values for minimum and maximum book sizes. Do you want to delete all books?");
 constexpr auto LOGICAL_REMOVING_RESULT = QT_TRANSLATE_NOOP("CollectionCleaner", "%1 book(s) deleted");
 
-constexpr auto DELETE_DELETED_KEY = "ui/Cleaner/DeleteDeleted";
-constexpr auto DELETE_DUPLICATE_KEY = "ui/Cleaner/DeleteDuplicate";
-constexpr auto DELETE_BY_GENRE_KEY = "ui/Cleaner/DeleteByGenre";
-constexpr auto DELETE_BY_GENRE_MODE_KEY = "ui/Cleaner/DeleteByGenreMode";
-constexpr auto DELETE_BY_LANGUAGE_KEY = "ui/Cleaner/DeleteByLanguage";
-constexpr auto GENRE_LIST_KEY = "ui/Cleaner/Genres";
-constexpr auto LANGUAGE_LIST_KEY = "ui/Cleaner/Languages";
-constexpr auto LANGUAGE_FIELD_WIDTH_KEY = "ui/Cleaner/LanguageFieldWidths";
+constexpr auto DELETE_DELETED_KEY             = "ui/Cleaner/DeleteDeleted";
+constexpr auto DELETE_DUPLICATE_KEY           = "ui/Cleaner/DeleteDuplicate";
+constexpr auto DELETE_BY_GENRE_KEY            = "ui/Cleaner/DeleteByGenre";
+constexpr auto DELETE_BY_GENRE_MODE_KEY       = "ui/Cleaner/DeleteByGenreMode";
+constexpr auto DELETE_BY_LANGUAGE_KEY         = "ui/Cleaner/DeleteByLanguage";
+constexpr auto GENRE_LIST_KEY                 = "ui/Cleaner/Genres";
+constexpr auto LANGUAGE_LIST_KEY              = "ui/Cleaner/Languages";
+constexpr auto LANGUAGE_FIELD_WIDTH_KEY       = "ui/Cleaner/LanguageFieldWidths";
 constexpr auto LANGUAGE_SORT_INDICATOR_COLUMN = "ui/Cleaner/LanguageSortColumn";
-constexpr auto LANGUAGE_SORT_INDICATOR_ORDER = "ui/Cleaner/LanguageSortOrder";
-constexpr auto MAXIMUM_SIZE = "ui/Cleaner/MaximumSize";
-constexpr auto MAXIMUM_SIZE_ENABLED = "ui/Cleaner/MaximumSizeEnabled";
-constexpr auto MINIMUM_SIZE = "ui/Cleaner/MinimumSize";
-constexpr auto MINIMUM_SIZE_ENABLED = "ui/Cleaner/MinimumSizeEnabled";
-constexpr auto MINIMUM_RATE = "ui/Cleaner/MinimumRate";
-constexpr auto DELETE_BY_RATE = "ui/Cleaner/DeleteByRate";
-constexpr auto DELETE_UNRATED = "ui/Cleaner/DeleteUnrated";
+constexpr auto LANGUAGE_SORT_INDICATOR_ORDER  = "ui/Cleaner/LanguageSortOrder";
+constexpr auto MAXIMUM_SIZE                   = "ui/Cleaner/MaximumSize";
+constexpr auto MAXIMUM_SIZE_ENABLED           = "ui/Cleaner/MaximumSizeEnabled";
+constexpr auto MINIMUM_SIZE                   = "ui/Cleaner/MinimumSize";
+constexpr auto MINIMUM_SIZE_ENABLED           = "ui/Cleaner/MinimumSizeEnabled";
+constexpr auto MINIMUM_RATE                   = "ui/Cleaner/MinimumRate";
+constexpr auto DELETE_BY_RATE                 = "ui/Cleaner/DeleteByRate";
+constexpr auto DELETE_UNRATED                 = "ui/Cleaner/DeleteUnrated";
 
 TR_DEF
 
@@ -73,17 +74,19 @@ class CollectionCleaner::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(CollectionCleaner& self,
-	     const ICollectionProvider& collectionProvider,
-	     std::shared_ptr<const IUiFactory> uiFactory,
-	     std::shared_ptr<const IReaderController> readerController,
-	     std::shared_ptr<const ICollectionCleaner> collectionCleaner,
-	     std::shared_ptr<const IBookInfoProvider> dataProvider,
-	     std::shared_ptr<ISettings> settings,
-	     std::shared_ptr<IGenreModel> genreModel,
-	     std::shared_ptr<ILanguageModel> languageModel,
-	     std::shared_ptr<ScrollBarController> scrollBarControllerGenre,
-	     std::shared_ptr<ScrollBarController> scrollBarControllerLanguage)
+	Impl(
+		CollectionCleaner&                        self,
+		const ICollectionProvider&                collectionProvider,
+		std::shared_ptr<const IUiFactory>         uiFactory,
+		std::shared_ptr<const IReaderController>  readerController,
+		std::shared_ptr<const ICollectionCleaner> collectionCleaner,
+		std::shared_ptr<const IBookInfoProvider>  dataProvider,
+		std::shared_ptr<ISettings>                settings,
+		std::shared_ptr<IGenreModel>              genreModel,
+		std::shared_ptr<ILanguageModel>           languageModel,
+		std::shared_ptr<ScrollBarController>      scrollBarControllerGenre,
+		std::shared_ptr<ScrollBarController>      scrollBarControllerLanguage
+	)
 		: GeometryRestorable(*this, settings, CONTEXT)
 		, GeometryRestorableObserver(self)
 		, m_self { self }
@@ -99,7 +102,6 @@ public:
 		, m_destructiveOperationsAllowedKey { QString("%1/%2/%3").arg(Constant::Settings::COLLECTIONS, collectionProvider.GetActiveCollectionId(), Constant::Settings::DESTRUCTIVE_OPERATIONS_ALLOWED_KEY) }
 	{
 		m_ui.setupUi(&self);
-		self.addAction(m_ui.actionCancel);
 
 		m_ui.genres->setModel(m_genreModel->GetModel());
 		m_ui.genres->viewport()->installEventFilter(m_scrollBarControllerGenre.get());
@@ -112,22 +114,48 @@ public:
 
 		m_ui.progressBar->setVisible(false);
 
-		connect(m_ui.genres, &QWidget::customContextMenuRequested, &m_self, [&] { OnGenresContextMenuRequested(); });
-		connect(m_ui.languages, &QWidget::customContextMenuRequested, &m_self, [&] { OnLanguagesContextMenuRequested(); });
+		connect(m_ui.genres, &QWidget::customContextMenuRequested, &m_self, [&] {
+			OnGenresContextMenuRequested();
+		});
+		connect(m_ui.languages, &QWidget::customContextMenuRequested, &m_self, [&] {
+			OnLanguagesContextMenuRequested();
+		});
 		connect(m_ui.languages, &QAbstractItemView::doubleClicked, m_ui.actionLanguageReadRandomBook, &QAction::trigger);
 
-		connect(m_ui.actionLanguageReadRandomBook, &QAction::triggered, &m_self, [&] { OpenRandomBook(); });
-		connect(m_ui.actionLanguageCheckAll, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.languages->model(), Role::CheckAll); });
-		connect(m_ui.actionLanguageUncheckAll, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.languages->model(), Role::UncheckAll); });
-		connect(m_ui.actionLanguageInvertChecks, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.languages->model(), Role::RevertChecks); });
-		connect(m_ui.actionGenreCheckAll, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.genres->model(), Role::CheckAll); });
-		connect(m_ui.actionGenreUncheckAll, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.genres->model(), Role::UncheckAll); });
-		connect(m_ui.actionGenreInvertChecks, &QAction::triggered, &m_self, [&] { SetModelData(*m_ui.genres->model(), Role::RevertChecks); });
-		connect(m_ui.btnCancel, &QAbstractButton::clicked, &self, [&] { OnCancelClicked(); });
-		connect(m_ui.btnAnalyze, &QAbstractButton::clicked, &self, [&] { Analyze(); });
+		connect(m_ui.actionLanguageReadRandomBook, &QAction::triggered, &m_self, [&] {
+			OpenRandomBook();
+		});
+		connect(m_ui.actionLanguageCheckAll, &QAction::triggered, &m_self, [&] {
+			SetModelData(*m_ui.languages->model(), Role::CheckAll);
+		});
+		connect(m_ui.actionLanguageUncheckAll, &QAction::triggered, &m_self, [&] {
+			SetModelData(*m_ui.languages->model(), Role::UncheckAll);
+		});
+		connect(m_ui.actionLanguageInvertChecks, &QAction::triggered, &m_self, [&] {
+			SetModelData(*m_ui.languages->model(), Role::RevertChecks);
+		});
+		connect(m_ui.actionGenreCheckAll, &QAction::triggered, &m_self, [&] {
+			SetModelData(*m_ui.genres->model(), Role::CheckAll);
+		});
+		connect(m_ui.actionGenreUncheckAll, &QAction::triggered, &m_self, [&] {
+			SetModelData(*m_ui.genres->model(), Role::UncheckAll);
+		});
+		connect(m_ui.actionGenreInvertChecks, &QAction::triggered, &m_self, [&] {
+			SetModelData(*m_ui.genres->model(), Role::RevertChecks);
+		});
+		connect(m_ui.btnCancel, &QAbstractButton::clicked, &self, [&] {
+			OnCancelClicked();
+		});
+		connect(m_ui.btnAnalyze, &QAbstractButton::clicked, &self, [&] {
+			Analyze();
+		});
 
-		connect(m_ui.minimumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) { m_ui.minimumSize->setSingleStep(std::max(1, value / 2)); });
-		connect(m_ui.maximumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) { m_ui.maximumSize->setSingleStep(std::max(1, value / 2)); });
+		connect(m_ui.minimumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) {
+			m_ui.minimumSize->setSingleStep(std::max(1, value / 2));
+		});
+		connect(m_ui.maximumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) {
+			m_ui.maximumSize->setSingleStep(std::max(1, value / 2));
+		});
 
 		m_ui.removeForever->setEnabled(collectionProvider.ActiveCollectionExists() && collectionProvider.GetActiveCollection().destructiveOperationsAllowed);
 
@@ -167,33 +195,36 @@ private: // ICollectionCleaner::IAnalyzeObserver
 		if (m_uiFactory->ShowQuestion(Tr(BOOKS_TO_DELETE).arg(count).arg(m_ui.removeForever->isChecked() ? Tr(PERMANENTLY) : ""), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
 			return;
 
-		auto dialogGuard = std::make_shared<ScopedCall>([this] { m_self.StateChanged(State::Started); }, [this] { m_self.StateChanged(State::Finished); });
+		auto dialogGuard = std::make_shared<ScopedCall>(
+			[this] {
+				m_self.StateChanged(State::Started);
+			},
+			[this] {
+				m_self.StateChanged(State::Finished);
+			}
+		);
 
 		QEventLoop eventLoop;
 
 		if (m_ui.removeForever->isChecked())
 		{
-			m_collectionCleaner->RemovePermanently(std::move(books),
-			                                       [this, dialogGuard = std::move(dialogGuard), count, &eventLoop](const bool ok)
-			                                       {
-													   if (ok)
-														   m_uiFactory->ShowInfo(Tr(ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
+			m_collectionCleaner->RemovePermanently(std::move(books), [this, dialogGuard = std::move(dialogGuard), count, &eventLoop](const bool ok) {
+				if (ok)
+					m_uiFactory->ShowInfo(Tr(ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
 
-													   eventLoop.exit();
-												   });
+				eventLoop.exit();
+			});
 		}
 		else
 		{
-			m_collectionCleaner->Remove(std::move(books),
-			                            [this, dialogGuard = std::move(dialogGuard), count, &eventLoop](const bool ok)
-			                            {
-											if (ok)
-												m_uiFactory->ShowInfo(Tr(LOGICAL_REMOVING_RESULT).arg(count));
+			m_collectionCleaner->Remove(std::move(books), [this, dialogGuard = std::move(dialogGuard), count, &eventLoop](const bool ok) {
+				if (ok)
+					m_uiFactory->ShowInfo(Tr(LOGICAL_REMOVING_RESULT).arg(count));
 
-											eventLoop.exit();
-											if (ok)
-												m_dataProvider->RequestBooks(true);
-										});
+				eventLoop.exit();
+				if (ok)
+					m_dataProvider->RequestBooks(true);
+			});
 		}
 
 		eventLoop.exec();
@@ -291,7 +322,7 @@ private:
 	{
 		m_ui.btnCancel->setEnabled(false);
 		m_analyzeCanceled = true;
-		m_ui.progressBar->isVisible() ? m_collectionCleaner->AnalyzeCancel() : m_self.StateChanged(State::Canceled);
+		m_ui.progressBar->isVisible() ? m_collectionCleaner->AnalyzeCancel() : m_self.closeAction->trigger();
 	}
 
 	void Analyze()
@@ -312,10 +343,12 @@ private:
 
 	void Load()
 	{
-		switch (FindFirst(CLEAN_GENRE_MODE,
-		                  m_settings->Get(DELETE_BY_GENRE_MODE_KEY, FindSecond(CLEAN_GENRE_MODE, GetCleanGenreMode())).toStdString().data(),
-		                  ICollectionCleaner::CleanGenreMode::None,
-		                  PszComparer {}))
+		switch (FindFirst(
+			CLEAN_GENRE_MODE,
+			m_settings->Get(DELETE_BY_GENRE_MODE_KEY, FindSecond(CLEAN_GENRE_MODE, GetCleanGenreMode())).toStdString().data(),
+			ICollectionCleaner::CleanGenreMode::None,
+			PszComparer {}
+		))
 		{
 			case ICollectionCleaner::CleanGenreMode::Full:
 				m_ui.genresMatchFull->setChecked(true);
@@ -344,12 +377,7 @@ private:
 		m_ui.unrated->setChecked(m_settings->Get(DELETE_UNRATED, m_ui.unrated->isChecked()));
 		m_ui.minimumRate->setValue(m_settings->Get(MINIMUM_RATE, m_ui.minimumRate->value()));
 
-		if (const auto var = m_settings->Get(LANGUAGE_FIELD_WIDTH_KEY, QVariant {}); var.isValid())
-		{
-			const auto widths = var.value<QVector<int>>();
-			for (auto i = 0, sz = std::min(header->count() - 1, static_cast<int>(widths.size())); i < sz; ++i)
-				header->resizeSection(i, widths[static_cast<qsizetype>(i)]);
-		}
+		Util::LoadHeaderSectionWidth(*header, *m_settings, LANGUAGE_FIELD_WIDTH_KEY);
 	}
 
 	void Save()
@@ -373,51 +401,52 @@ private:
 		m_settings->Set(DELETE_UNRATED, m_ui.unrated->isChecked());
 		m_settings->Set(MINIMUM_RATE, m_ui.minimumRate->value());
 
-		QVector<int> widths;
-		for (auto i = 0, sz = header->count() - 1; i < sz; ++i)
-			widths << header->sectionSize(i);
-		m_settings->Set(LANGUAGE_FIELD_WIDTH_KEY, QVariant::fromValue(widths));
+		Util::SaveHeaderSectionWidth(*header, *m_settings, LANGUAGE_FIELD_WIDTH_KEY);
 	}
 
 private:
-	StackedPage& m_self;
-	Ui::CollectionCleaner m_ui;
-	std::shared_ptr<const IUiFactory> m_uiFactory;
-	std::shared_ptr<const IReaderController> m_readerController;
-	std::shared_ptr<const ICollectionCleaner> m_collectionCleaner;
-	std::shared_ptr<const IBookInfoProvider> m_dataProvider;
-	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
-	PropagateConstPtr<IModel, std::shared_ptr> m_genreModel;
-	PropagateConstPtr<IModel, std::shared_ptr> m_languageModel;
+	StackedPage&                                            m_self;
+	Ui::CollectionCleaner                                   m_ui;
+	std::shared_ptr<const IUiFactory>                       m_uiFactory;
+	std::shared_ptr<const IReaderController>                m_readerController;
+	std::shared_ptr<const ICollectionCleaner>               m_collectionCleaner;
+	std::shared_ptr<const IBookInfoProvider>                m_dataProvider;
+	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
+	PropagateConstPtr<IModel, std::shared_ptr>              m_genreModel;
+	PropagateConstPtr<IModel, std::shared_ptr>              m_languageModel;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerGenre;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerLanguage;
-	const QString m_destructiveOperationsAllowedKey;
-	bool m_analyzeCanceled { false };
+	const QString                                           m_destructiveOperationsAllowedKey;
+	bool                                                    m_analyzeCanceled { false };
 };
 
-CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ICollectionProvider>& collectionProvider,
-                                     std::shared_ptr<const IUiFactory> uiFactory,
-                                     std::shared_ptr<const IReaderController> readerController,
-                                     std::shared_ptr<const ICollectionCleaner> collectionCleaner,
-                                     std::shared_ptr<const IBookInfoProvider> dataProvider,
-                                     std::shared_ptr<ISettings> settings,
-                                     std::shared_ptr<IGenreModel> genreModel,
-                                     std::shared_ptr<ILanguageModel> languageModel,
-                                     std::shared_ptr<ScrollBarController> scrollBarControllerGenre,
-                                     std::shared_ptr<ScrollBarController> scrollBarControllerLanguage,
-                                     QWidget* parent)
+CollectionCleaner::CollectionCleaner(
+	const std::shared_ptr<const ICollectionProvider>& collectionProvider,
+	std::shared_ptr<const IUiFactory>                 uiFactory,
+	std::shared_ptr<const IReaderController>          readerController,
+	std::shared_ptr<const ICollectionCleaner>         collectionCleaner,
+	std::shared_ptr<const IBookInfoProvider>          dataProvider,
+	std::shared_ptr<ISettings>                        settings,
+	std::shared_ptr<IGenreModel>                      genreModel,
+	std::shared_ptr<ILanguageModel>                   languageModel,
+	std::shared_ptr<ScrollBarController>              scrollBarControllerGenre,
+	std::shared_ptr<ScrollBarController>              scrollBarControllerLanguage,
+	QWidget*                                          parent
+)
 	: StackedPage(uiFactory->GetParentWidget(parent))
-	, m_impl(*this,
-             *collectionProvider,
-             std::move(uiFactory),
-             std::move(readerController),
-             std::move(collectionCleaner),
-             std::move(dataProvider),
-             std::move(settings),
-             std::move(genreModel),
-             std::move(languageModel),
-             std::move(scrollBarControllerGenre),
-             std::move(scrollBarControllerLanguage))
+	, m_impl(
+		  *this,
+		  *collectionProvider,
+		  std::move(uiFactory),
+		  std::move(readerController),
+		  std::move(collectionCleaner),
+		  std::move(dataProvider),
+		  std::move(settings),
+		  std::move(genreModel),
+		  std::move(languageModel),
+		  std::move(scrollBarControllerGenre),
+		  std::move(scrollBarControllerLanguage)
+	  )
 {
 }
 

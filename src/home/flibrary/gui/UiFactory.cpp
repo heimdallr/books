@@ -13,7 +13,7 @@
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
 #include "dialogs/AddCollectionDialog.h"
-#include "dialogs/GenreFilterDialog.h"
+#include "dialogs/FilterSettingsDialog.h"
 #include "dialogs/OpdsDialog.h"
 #include "util/localization.h"
 #include "version/AppVersion.h"
@@ -32,16 +32,16 @@ using namespace Flibrary;
 
 namespace
 {
-constexpr auto CONTEXT = "Dialog";
-constexpr auto ABOUT_TITLE = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
-constexpr auto ABOUT_DESCRIPTION = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger");
-constexpr auto ABOUT_VERSION = QT_TRANSLATE_NOOP("Dialog", "Version: %1 (%2)");
-constexpr auto ABOUT_LICENSE = QT_TRANSLATE_NOOP("Dialog", "Distributed under license %1");
-constexpr auto PERSONAL_BUILD = QT_TRANSLATE_NOOP("Dialog", "<p>Personal <a href='%1'>%2</a> build</p>");
-constexpr const char* COMPONENTS[] = {
-	"<hr><table style='font-size:50%'>",
-	QT_TRANSLATE_NOOP("Dialog", "<tr><td style='text-align: center'>Components / Libraries</td></tr>"),
-	// clang-format off
+constexpr auto        CONTEXT           = "Dialog";
+constexpr auto        ABOUT_TITLE       = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
+constexpr auto        ABOUT_DESCRIPTION = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger");
+constexpr auto        ABOUT_VERSION     = QT_TRANSLATE_NOOP("Dialog", "Version: %1 (%2)");
+constexpr auto        ABOUT_LICENSE     = QT_TRANSLATE_NOOP("Dialog", "Distributed under license %1");
+constexpr auto        PERSONAL_BUILD    = QT_TRANSLATE_NOOP("Dialog", "<p>Personal <a href='%1'>%2</a> build</p>");
+constexpr const char* COMPONENTS[]      = {
+    "<hr><table style='font-size:50%'>",
+    QT_TRANSLATE_NOOP("Dialog", "<tr><td style='text-align: center'>Components / Libraries</td></tr>"),
+    // clang-format off
 	"<tr><td><a href='https://wiki.qt.io/Main'>Qt</a> &copy; 2024 The Qt Company Ltd <a href='https://www.gnu.org/licenses/lgpl-3.0.html#license-text'>GNU LGPL v3</a></td></tr>",
 	"<tr><td><a href='https://github.com/ybainier/Hypodermic'>Hypodermic</a> &copy; 2016 Hypodermic Project <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
 	"<tr><td><a href='https://github.com/SergiusTheBest/plog'>plog</a> &copy; 2022 <a href='https://github.com/SergiusTheBest'>Sergey Podobry</a> <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
@@ -56,8 +56,8 @@ constexpr const char* COMPONENTS[] = {
 	"<tr><td><a href='https://github.com/heimdallr/MyHomeLib/tree/master/Utils/MHLSQLiteExt'>MyHomeLib SQLite extension library</a> &copy; 2010 Nick Rymanov <a href='https://www.gnu.org/licenses/gpl-3.0.html#license-text'>GNU GPL</a></td></tr>",
 	"<tr><td><a href='https://icu.unicode.org/'>ICU</a> &copy; 2016-2025 Unicode, Inc. <a href='https://www.unicode.org/copyright.html#License'>Open Source License</a></td></tr>",
 	"<tr><td><a href='https://uxwing.com/'>UXWing</a> &copy; 2025 UXWing <a href='https://uxwing.com/license/'>License</a></td></tr>",
-	// clang-format on
-	"</table>"
+    // clang-format on
+    "</table>"
 };
 constexpr auto ABOUT_TEXT = "%1<p>%2<p><a href='%3'>%3</a><p>%4%5";
 TR_DEF
@@ -74,19 +74,19 @@ QString GetPersonalBuildString()
 template <typename T>
 void CreateStackedPage(Hypodermic::Container& container, const QObject* signalReceiver)
 {
-	auto collectionCleaner = container.resolve<T>();
+	auto  collectionCleaner    = container.resolve<T>();
 	auto* collectionCleanerPtr = collectionCleaner.get();
-	auto connection = std::make_shared<QMetaObject::Connection>();
-	*connection = QObject::connect(
-		collectionCleanerPtr,
-		qOverload<std::shared_ptr<QWidget>, int>(&StackedPage::StateChanged),
-		signalReceiver,
-		[collectionCleaner = std::move(collectionCleaner), connection]([[maybe_unused]] const std::shared_ptr<QWidget>& widget, [[maybe_unused]] const int state) mutable
-		{
-			assert(widget.get() == collectionCleaner.get() && state == StackedPage::State::Created);
-			QObject::disconnect(*connection);
-		},
-		Qt::QueuedConnection);
+	auto  connection           = std::make_shared<QMetaObject::Connection>();
+	*connection                = QObject::connect(
+        collectionCleanerPtr,
+        qOverload<std::shared_ptr<QWidget>, int>(&StackedPage::StateChanged),
+        signalReceiver,
+        [collectionCleaner = std::move(collectionCleaner), connection]([[maybe_unused]] const std::shared_ptr<QWidget>& widget, [[maybe_unused]] const int state) mutable {
+            assert(widget.get() == collectionCleaner.get() && state == StackedPage::State::Created);
+            QObject::disconnect(*connection);
+        },
+        Qt::QueuedConnection
+    );
 }
 
 } // namespace
@@ -95,13 +95,12 @@ struct UiFactory::Impl
 {
 	Hypodermic::Container& container;
 
-	mutable std::filesystem::path inpxFolder;
+	mutable std::filesystem::path                inpxFolder;
 	mutable std::shared_ptr<ITreeViewController> treeViewController;
-	mutable QTreeView* treeView { nullptr };
-	mutable QAbstractItemView* abstractItemView { nullptr };
-	mutable QString title;
-	mutable std::unordered_set<QString> visibleGenres;
-	mutable long long authorId { -1 };
+	mutable QTreeView*                           treeView { nullptr };
+	mutable QAbstractItemView*                   abstractItemView { nullptr };
+	mutable QString                              title;
+	mutable long long                            authorId { -1 };
 
 	explicit Impl(Hypodermic::Container& container)
 		: container(container)
@@ -164,10 +163,9 @@ std::shared_ptr<QDialog> UiFactory::CreateOpdsDialog() const
 	return m_impl->container.resolve<OpdsDialog>();
 }
 
-std::shared_ptr<QDialog> UiFactory::CreateGenreFilterDialog(std::unordered_set<QString> visibleGenres) const
+std::shared_ptr<QDialog> UiFactory::CreateFilterSettingsDialog() const
 {
-	m_impl->visibleGenres = std::move(visibleGenres);
-	return m_impl->container.resolve<GenreFilterDialog>();
+	return m_impl->container.resolve<FilterSettingsDialog>();
 }
 
 std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString title) const
@@ -195,30 +193,36 @@ void UiFactory::CreateAuthorReview(const long long id) const
 
 void UiFactory::ShowAbout() const
 {
-	auto* parent = m_impl->container.resolve<IParentWidgetProvider>()->GetWidget();
+	auto*       parent = m_impl->container.resolve<IParentWidgetProvider>()->GetWidget();
 	QMessageBox msgBox(parent);
 	msgBox.setFont(parent->font());
 	msgBox.setIcon(QMessageBox::Information);
 	msgBox.setWindowTitle(Tr(ABOUT_TITLE));
 	msgBox.setTextFormat(Qt::RichText);
 	msgBox.setText(QString(ABOUT_TEXT)
-	                   .arg(Tr(ABOUT_DESCRIPTION),
-	                        Tr(ABOUT_VERSION).arg(GetApplicationVersion(), GIT_HASH),
-	                        "https://github.com/heimdallr/books",
-	                        Tr(ABOUT_LICENSE).arg("<a href='https://opensource.org/license/mit'>MIT</a>"),
-	                        GetPersonalBuildString()));
+	                   .arg(
+						   Tr(ABOUT_DESCRIPTION),
+						   Tr(ABOUT_VERSION).arg(GetApplicationVersion(), GIT_HASH),
+						   "https://github.com/heimdallr/books",
+						   Tr(ABOUT_LICENSE).arg("<a href='https://opensource.org/license/mit'>MIT</a>"),
+						   GetPersonalBuildString()
+					   ));
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	QStringList text;
-	std::ranges::transform(COMPONENTS, std::back_inserter(text), [](const char* str) { return Loc::Tr(CONTEXT, str); });
+	std::ranges::transform(COMPONENTS, std::back_inserter(text), [](const char* str) {
+		return Loc::Tr(CONTEXT, str);
+	});
 	msgBox.setInformativeText(text.join(""));
 	msgBox.exec();
 }
 
-QMessageBox::ButtonRole UiFactory::ShowCustomDialog(const QMessageBox::Icon icon,
-                                                    const QString& title,
-                                                    const QString& text,
-                                                    const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
-                                                    const QMessageBox::ButtonRole defaultButton) const
+QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
+	const QMessageBox::Icon                                         icon,
+	const QString&                                                  title,
+	const QString&                                                  text,
+	const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
+	const QMessageBox::ButtonRole                                   defaultButton
+) const
 {
 	return m_impl->container.resolve<Util::IUiFactory>()->ShowCustomDialog(icon, title, text, buttons, defaultButton);
 }
@@ -275,7 +279,7 @@ QString UiFactory::GetExistingDirectory(const QString& key, const QString& title
 
 std::filesystem::path UiFactory::GetNewCollectionInpxFolder() const noexcept
 {
-	auto result = std::move(m_impl->inpxFolder);
+	auto result        = std::move(m_impl->inpxFolder);
 	m_impl->inpxFolder = std::filesystem::path {};
 	return result;
 }
@@ -303,17 +307,10 @@ QString UiFactory::GetTitle() const noexcept
 	return std::move(m_impl->title);
 }
 
-std::unordered_set<QString> UiFactory::GetVisibleGenres() const noexcept
-{
-	auto visibleGenres = std::move(m_impl->visibleGenres);
-	m_impl->visibleGenres = {};
-	return visibleGenres;
-}
-
 long long UiFactory::GetAuthorId() const noexcept
 {
 	assert(m_impl->authorId >= 0);
 	const auto result = m_impl->authorId;
-	m_impl->authorId = -1;
+	m_impl->authorId  = -1;
 	return result;
 }

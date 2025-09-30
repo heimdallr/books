@@ -1,7 +1,5 @@
 #include "DatabaseUtil.h"
 
-#include <QHash>
-
 #include <format>
 
 #include "database/interface/IDatabase.h"
@@ -13,6 +11,7 @@
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IProgressController.h"
 
+#include "data/BooksTreeGenerator.h"
 #include "data/DataItem.h"
 #include "inpx/src/util/constant.h"
 #include "util/localization.h"
@@ -26,97 +25,79 @@ namespace
 {
 
 constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[] {
-	{   BookQueryFields::BookTitle,      BookItem::Column::Title },
-    { BookQueryFields::SeriesTitle,     BookItem::Column::Series },
-    {   BookQueryFields::SeqNumber,  BookItem::Column::SeqNumber },
-	{	  BookQueryFields::Folder,     BookItem::Column::Folder },
-    {    BookQueryFields::FileName,   BookItem::Column::FileName },
-    {        BookQueryFields::Size,       BookItem::Column::Size },
-	{     BookQueryFields::LibRate,    BookItem::Column::LibRate },
-    {    BookQueryFields::UserRate,   BookItem::Column::UserRate },
-    {  BookQueryFields::UpdateDate, BookItem::Column::UpdateDate },
-	{		BookQueryFields::Year,       BookItem::Column::Year },
-    {        BookQueryFields::Lang,       BookItem::Column::Lang },
-    {    BookQueryFields::FolderID,   BookItem::Column::FolderID },
-	{    BookQueryFields::UpdateID,   BookItem::Column::UpdateID },
-    {       BookQueryFields::LibID,      BookItem::Column::LibID },
+	{  BookQueryFields::BookTitle,      BookItem::Column::Title },
+    { BookQueryFields::UpdateDate, BookItem::Column::UpdateDate },
+	{    BookQueryFields::LibRate,    BookItem::Column::LibRate },
+    {       BookQueryFields::Lang,       BookItem::Column::Lang },
+	{	   BookQueryFields::Year,       BookItem::Column::Year },
+    {     BookQueryFields::Folder,     BookItem::Column::Folder },
+	{   BookQueryFields::FileName,   BookItem::Column::FileName },
+    {       BookQueryFields::Size,       BookItem::Column::Size },
+	{   BookQueryFields::UserRate,   BookItem::Column::UserRate },
+    {      BookQueryFields::LibID,      BookItem::Column::LibID },
 };
 
+void UpdateItem(IDataItem& item, const DB::IQuery& query, const std::initializer_list<const size_t>& index, const size_t removedIndex, const size_t flagsIndex)
+{
+	item.SetId(query.Get<const char*>(0));
+	for (int column = 0; const auto i : index)
+		item.SetData(query.Get<const char*>(i), column++);
+
+	if (query.ColumnCount() > removedIndex)
+		item.SetRemoved(query.Get<int>(removedIndex));
+
+	if (query.ColumnCount() > flagsIndex)
+		item.SetFlags(static_cast<IDataItem::Flags>(query.Get<int>(flagsIndex)));
 }
 
-IDataItem::Ptr CreateSimpleListItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
+}
+
+IDataItem::Ptr CreateSimpleListItem(const DB::IQuery& query)
 {
 	auto item = IDataItem::Ptr(NavigationItem::Create());
-
-	item->SetId(query.Get<const char*>(index[0]));
-	item->SetData(query.Get<const char*>(index[1]));
-
-	if (removedIndex)
-		item->SetRemoved(query.Get<int>(removedIndex));
-
+	UpdateItem(*item, query, { 1 }, 2, 3);
 	return item;
 }
 
-IDataItem::Ptr CreateSeriesItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
+IDataItem::Ptr CreateSeriesItem(const DB::IQuery& query)
 {
 	auto item = IDataItem::Ptr(SeriesItem::Create());
-
-	item->SetId(query.Get<const char*>(index[0]));
-	item->SetData(query.Get<const char*>(index[1]), SeriesItem::Column::Title);
-	item->SetData(query.Get<const char*>(index[2]), SeriesItem::Column::SeqNum);
-
-	if (removedIndex)
-		item->SetRemoved(query.Get<int>(removedIndex));
-
+	UpdateItem(*item, query, { 1, 2 }, 3, 4);
 	return item;
 }
 
-IDataItem::Ptr CreateGenreItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
+IDataItem::Ptr CreateGenreItem(const DB::IQuery& query)
 {
 	auto item = IDataItem::Ptr(GenreItem::Create());
+	UpdateItem(*item, query, {}, 3, 4);
 
-	item->SetId(query.Get<const char*>(index[0]));
-	if (removedIndex)
-		item->SetRemoved(query.Get<int>(removedIndex));
-
-	const auto* fbCode = query.Get<const char*>(index[2]);
-	const auto translated = Loc::Tr(GENRE, fbCode);
+	const auto* fbCode     = query.Get<const char*>(2);
+	const auto  translated = Loc::Tr(GENRE, fbCode);
 
 	item->SetData(fbCode, GenreItem::Column::Fb2Code);
-	item->SetData(translated != fbCode ? translated : query.Get<const char*>(index[1]));
+	item->SetData(translated != fbCode ? translated : query.Get<const char*>(1));
 
 	return item;
 }
 
-IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
+IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query)
 {
 	static const auto languages = GetLanguagesMap();
 
 	auto item = IDataItem::Ptr(NavigationItem::Create());
+	UpdateItem(*item, query, {}, 1, 2);
 
-	item->SetId(query.Get<const char*>(index[0]));
-	if (removedIndex)
-		item->SetRemoved(query.Get<int>(removedIndex));
+	const auto it = languages.find(item->GetId());
 
-	QString language = query.Get<const char*>(index[1]);
-	const auto it = languages.find(language);
-
-	item->SetData(it != languages.end() ? Loc::Tr(LANGUAGES_CONTEXT, it->second) : std::move(language));
+	item->SetData(it != languages.end() ? Loc::Tr(LANGUAGES_CONTEXT, it->second) : item->GetId());
 
 	return item;
 }
 
-IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery& query, const size_t* index, const size_t removedIndex)
+IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery& query)
 {
 	auto item = AuthorItem::Create();
-
-	item->SetId(QString::number(query.Get<long long>(index[0])));
-	if (removedIndex)
-		item->SetRemoved(query.Get<int>(removedIndex));
-
-	for (int i = 0; i < AuthorItem::Column::Last; ++i)
-		item->SetData(query.Get<const char*>(index[i + 1]), i);
-
+	UpdateItem(*item, query, { 1, 1, 2, 3 }, 4, 5);
 	return item;
 }
 
@@ -128,6 +109,8 @@ IDataItem::Ptr CreateBookItem(const DB::IQuery& query)
 	for (const auto& [queryIndex, dataIndex] : BOOK_QUERY_TO_DATA)
 		item->SetData(query.Get<const char*>(queryIndex), dataIndex);
 
+	if (const auto flags = static_cast<IDataItem::Flags>(query.Get<int>(BookQueryFields::Flags)); !!(flags & IDataItem::Flags::BooksFiltered))
+		item->SetFlags(IDataItem::Flags::Filtered);
 	item->SetRemoved(query.Get<int>(BookQueryFields::IsDeleted));
 
 	return item;
@@ -135,10 +118,10 @@ IDataItem::Ptr CreateBookItem(const DB::IQuery& query)
 
 bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& ids, const bool remove, const std::shared_ptr<IProgressController>& progressController)
 {
-	auto progressItem = progressController ? progressController->Add(static_cast<int64_t>(11 * ids.size() / 10)) : std::make_unique<IProgressController::ProgressItemStub>();
-	bool ok = true;
-	const auto transaction = db.CreateTransaction();
-	const auto tempTable = transaction->CreateTemporaryTable();
+	auto       progressItem = progressController ? progressController->Add(static_cast<int64_t>(11 * ids.size() / 10)) : std::make_unique<IProgressController::ProgressItemStub>();
+	bool       ok           = true;
+	const auto tempTable    = db.CreateTemporaryTable();
+	const auto transaction  = db.CreateTransaction();
 	{
 		const auto command = transaction->CreateCommand(std::format("insert into {} (id) values (?)", tempTable->GetName()));
 		for (const auto id : ids)

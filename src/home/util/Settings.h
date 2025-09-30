@@ -25,7 +25,7 @@ public:
 
 public:
 	[[nodiscard]] QVariant Get(const QString& key, const QVariant& defaultValue = {}) const override;
-	void Set(const QString& key, const QVariant& value) override;
+	void                   Set(const QString& key, const QVariant& value) override;
 
 	[[nodiscard]] bool HasKey(const QString& key) const override;
 	[[nodiscard]] bool HasGroup(const QString& group) const override;
@@ -36,7 +36,7 @@ public:
 	void Remove(const QString& key) override;
 
 	std::recursive_mutex& BeginGroup(const QString& group) const override;
-	void EndGroup() const override;
+	void                  EndGroup() const override;
 
 	void RegisterObserver(ISettingsObserver* observer) override;
 	void UnregisterObserver(ISettingsObserver* observer) override;

@@ -9,6 +9,8 @@
 
 #include "model/AuthorReviewModel.h"
 #include "model/AuthorsModel.h"
+#include "model/FilterListModel.h"
+#include "model/FilterTreeModel.h"
 #include "model/FilteredProxyModel.h"
 #include "model/ListModel.h"
 #include "model/ReviewListModel.h"
@@ -19,7 +21,6 @@
 #include "model/script/ScriptModel.h"
 #include "model/script/ScriptSortFilterModel.h"
 
-#include "GenreFilterProvider.h"
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
@@ -59,10 +60,10 @@ private:
 
 struct ModelProvider::Impl
 {
-	Hypodermic::Container& container;
-	mutable IDataItem::Ptr data;
+	Hypodermic::Container&                      container;
+	mutable IDataItem::Ptr                      data;
 	mutable std::shared_ptr<QAbstractItemModel> sourceModel;
-	NavigationMode navigationMode { NavigationMode::Unknown };
+	NavigationMode                              navigationMode { NavigationMode::Unknown };
 
 	explicit Impl(Hypodermic::Container& container)
 		: container(container)
@@ -80,7 +81,7 @@ struct ModelProvider::Impl
 	template <typename T>
 	std::shared_ptr<QAbstractItemModel> CreateModel(IDataItem::Ptr d, const bool autoAcceptChildRows) const
 	{
-		data = std::move(d);
+		data        = std::move(d);
 		sourceModel = container.resolve<T>();
 		sourceModel = CreateSortFilterProxyModel(autoAcceptChildRows); //-V519
 		return container.resolve<AbstractFilteredProxyModel>();
@@ -153,6 +154,20 @@ std::shared_ptr<QAbstractItemModel> ModelProvider::CreateAuthorReviewModel() con
 	return m_impl->container.resolve<AuthorReviewModel>();
 }
 
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateFilterListModel(IDataItem::Ptr data) const
+{
+	m_impl->data        = std::move(data);
+	m_impl->sourceModel = m_impl->container.resolve<FilterListModel>();
+	return m_impl->CreateSortFilterProxyModel(false);
+}
+
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateFilterTreeModel(IDataItem::Ptr data) const
+{
+	m_impl->data        = std::move(data);
+	m_impl->sourceModel = m_impl->container.resolve<FilterTreeModel>();
+	return m_impl->CreateSortFilterProxyModel(false);
+}
+
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const
 {
 	return m_impl->CreateModel<TreeModel>(std::move(data), autoAcceptChildRows);
@@ -183,11 +198,6 @@ IDataItem::Ptr ModelProvider::GetData() const noexcept
 std::shared_ptr<const ILibRateProvider> ModelProvider::GetLibRateProvider() const
 {
 	return m_impl->container.resolve<ILibRateProvider>();
-}
-
-std::shared_ptr<const IGenreFilterProvider> ModelProvider::GetGenreFilterProvider() const
-{
-	return m_impl->container.resolve<IGenreFilterProvider>();
 }
 
 void ModelProvider::OnModeChanged(const int index)

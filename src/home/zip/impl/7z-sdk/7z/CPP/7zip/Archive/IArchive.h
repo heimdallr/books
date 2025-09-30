@@ -41,7 +41,7 @@ namespace NFileTimeType
 enum EEnum
 {
 	kNotDefined = -1,
-	kWindows = 0,
+	kWindows    = 0,
 	kUnix,
 	kDOS,
 	k1ns
@@ -50,26 +50,26 @@ enum EEnum
 
 namespace NArcInfoFlags
 {
-const UInt32 kKeepName = 1 << 0; // keep name of file in archive name
-const UInt32 kAltStreams = 1 << 1; // the handler supports alt streams
-const UInt32 kNtSecure = 1 << 2; // the handler supports NT security
-const UInt32 kFindSignature = 1 << 3; // the handler can find start of archive
-const UInt32 kMultiSignature = 1 << 4; // there are several signatures
+const UInt32 kKeepName        = 1 << 0; // keep name of file in archive name
+const UInt32 kAltStreams      = 1 << 1; // the handler supports alt streams
+const UInt32 kNtSecure        = 1 << 2; // the handler supports NT security
+const UInt32 kFindSignature   = 1 << 3; // the handler can find start of archive
+const UInt32 kMultiSignature  = 1 << 4; // there are several signatures
 const UInt32 kUseGlobalOffset = 1 << 5; // the seek position of stream must be set as global offset
-const UInt32 kStartOpen = 1 << 6; // call handler for each start position
-const UInt32 kPureStartOpen = 1 << 7; // call handler only for start of file
-const UInt32 kBackwardOpen = 1 << 8; // archive can be open backward
-const UInt32 kPreArc = 1 << 9; // such archive can be stored before real archive (like SFX stub)
-const UInt32 kSymLinks = 1 << 10; // the handler supports symbolic links
-const UInt32 kHardLinks = 1 << 11; // the handler supports hard links
-const UInt32 kByExtOnlyOpen = 1 << 12; // call handler only if file extension matches
-const UInt32 kHashHandler = 1 << 13; // the handler contains the hashes (checksums)
-const UInt32 kCTime = 1 << 14;
-const UInt32 kCTime_Default = 1 << 15;
-const UInt32 kATime = 1 << 16;
-const UInt32 kATime_Default = 1 << 17;
-const UInt32 kMTime = 1 << 18;
-const UInt32 kMTime_Default = 1 << 19;
+const UInt32 kStartOpen       = 1 << 6; // call handler for each start position
+const UInt32 kPureStartOpen   = 1 << 7; // call handler only for start of file
+const UInt32 kBackwardOpen    = 1 << 8; // archive can be open backward
+const UInt32 kPreArc          = 1 << 9; // such archive can be stored before real archive (like SFX stub)
+const UInt32 kSymLinks        = 1 << 10; // the handler supports symbolic links
+const UInt32 kHardLinks       = 1 << 11; // the handler supports hard links
+const UInt32 kByExtOnlyOpen   = 1 << 12; // call handler only if file extension matches
+const UInt32 kHashHandler     = 1 << 13; // the handler contains the hashes (checksums)
+const UInt32 kCTime           = 1 << 14;
+const UInt32 kCTime_Default   = 1 << 15;
+const UInt32 kATime           = 1 << 16;
+const UInt32 kATime_Default   = 1 << 17;
+const UInt32 kMTime           = 1 << 18;
+const UInt32 kMTime_Default   = 1 << 19;
 // const UInt32 kTTime_Reserved         = 1 << 20;
 // const UInt32 kTTime_Reserved_Default = 1 << 21;
 } // namespace NArcInfoFlags
@@ -77,10 +77,10 @@ const UInt32 kMTime_Default = 1 << 19;
 namespace NArcInfoTimeFlags
 {
 const unsigned kTime_Prec_Mask_bit_index = 0;
-const unsigned kTime_Prec_Mask_num_bits = 26;
+const unsigned kTime_Prec_Mask_num_bits  = 26;
 
 const unsigned kTime_Prec_Default_bit_index = 27;
-const unsigned kTime_Prec_Default_num_bits = 5;
+const unsigned kTime_Prec_Default_num_bits  = 5;
 }
 
 #define TIME_PREC_TO_ARC_FLAGS_MASK(v) ((UInt32)1 << (NArcInfoTimeFlags::kTime_Prec_Mask_bit_index + (v)))
@@ -313,15 +313,15 @@ namespace NPropDataType
 {
 const UInt32 kMask_ZeroEnd = 1 << 4;
 // const UInt32 kMask_BigEndian = 1 << 5;
-const UInt32 kMask_Utf = 1 << 6;
-const UInt32 kMask_Utf8 = kMask_Utf | 0;
+const UInt32 kMask_Utf   = 1 << 6;
+const UInt32 kMask_Utf8  = kMask_Utf | 0;
 const UInt32 kMask_Utf16 = kMask_Utf | 1;
 // const UInt32 kMask_Utf32 = kMask_Utf | 2;
 
 const UInt32 kNotDefined = 0;
-const UInt32 kRaw = 1;
+const UInt32 kRaw        = 1;
 
-const UInt32 kUtf8z = kMask_Utf8 | kMask_ZeroEnd;
+const UInt32 kUtf8z  = kMask_Utf8 | kMask_ZeroEnd;
 const UInt32 kUtf16z = kMask_Utf16 | kMask_ZeroEnd;
 }
 
@@ -520,14 +520,14 @@ namespace NRequestMemoryUseFlags
 {
 const UInt32 k_AllowedSize_WasForced = 1 << 0; // (*allowedSize) was forced by -mmemx or -smemx
 const UInt32 k_DefaultLimit_Exceeded = 1 << 1; // default limit of archive format was exceeded
-const UInt32 k_MLimit_Exceeded = 1 << 2; // -mmemx value was exceeded
-const UInt32 k_SLimit_Exceeded = 1 << 3; // -smemx value was exceeded
+const UInt32 k_MLimit_Exceeded       = 1 << 2; // -mmemx value was exceeded
+const UInt32 k_SLimit_Exceeded       = 1 << 3; // -smemx value was exceeded
 
 const UInt32 k_NoErrorMessage = 1 << 10; // do not show error message, and show only request
-const UInt32 k_IsReport = 1 << 11; // only report is required, without user request
+const UInt32 k_IsReport       = 1 << 11; // only report is required, without user request
 
 const UInt32 k_SkipArc_IsExpected = 1 << 12; // NRequestMemoryAnswerFlags::k_SkipArc flag answer is expected
-const UInt32 k_Report_SkipArc = 1 << 13; // report about SkipArc operation
+const UInt32 k_Report_SkipArc     = 1 << 13; // report about SkipArc operation
 
 // const UInt32 k_SkipBigFile_IsExpected   = 1 << 14; // NRequestMemoryAnswerFlags::k_SkipBigFiles flag answer is expected (unused)
 // const UInt32 k_Report_SkipBigFile       = 1 << 15; // report about SkipFile operation (unused)
@@ -538,8 +538,8 @@ const UInt32 k_Report_SkipArc = 1 << 13; // report about SkipArc operation
 
 namespace NRequestMemoryAnswerFlags
 {
-const UInt32 k_Allow = 1 << 0; // allow further archive extraction
-const UInt32 k_Stop = 1 << 1; // for exit (and return_code == E_ABORT is used)
+const UInt32 k_Allow   = 1 << 0; // allow further archive extraction
+const UInt32 k_Stop    = 1 << 1; // for exit (and return_code == E_ABORT is used)
 const UInt32 k_SkipArc = 1 << 2; // skip current archive extraction
 // const UInt32 k_SkipBigFile    = 1 << 4;  // skip extracting of files that exceed limit (unused)
 // const UInt32 k_SkipBigFiles   = 1 << 5;  // skip extracting of files that exceed limit (unused)
@@ -567,8 +567,8 @@ Z7_IFACE_CONSTR_ARCHIVE(IArchiveRequestMemoryUseCallback, 0x09)
 struct CStatProp
 {
 	const char* Name;
-	UInt32 PropID;
-	VARTYPE vt;
+	UInt32      PropID;
+	VARTYPE     vt;
 };
 
 namespace NWindows
@@ -591,19 +591,19 @@ BSTR AllocBstrFromAscii(const char* s) throw();
 		if (index >= Z7_ARRAY_SIZE(k))                                                    \
 			return E_INVALIDARG;
 
-#define IMP_IInArchive_GetProp_NO_NAME(fn, f, k)              \
-	IMP_IInArchive_GetProp_Base(fn, f, k)* propID = k[index]; \
-	*varType = k7z_PROPID_To_VARTYPE[(unsigned)*propID];      \
-	*name = NULL;                                             \
-	return S_OK;                                              \
+#define IMP_IInArchive_GetProp_NO_NAME(fn, f, k)                                              \
+	IMP_IInArchive_GetProp_Base(fn, f, k)* propID = k[index];                                 \
+	*varType                                      = k7z_PROPID_To_VARTYPE[(unsigned)*propID]; \
+	*name                                         = NULL;                                     \
+	return S_OK;                                                                              \
 	}
 
-#define IMP_IInArchive_GetProp_WITH_NAME(fn, f, k)                          \
-	IMP_IInArchive_GetProp_Base(fn, f, k) const CStatProp& prop = k[index]; \
-	*propID = (PROPID)prop.PropID;                                          \
-	*varType = prop.vt;                                                     \
-	*name = NWindows::NCOM::AllocBstrFromAscii(prop.Name);                  \
-	return S_OK;                                                            \
+#define IMP_IInArchive_GetProp_WITH_NAME(fn, f, k)                                                               \
+	IMP_IInArchive_GetProp_Base(fn, f, k) const CStatProp& prop = k[index];                                      \
+	*propID                                                     = (PROPID)prop.PropID;                           \
+	*varType                                                    = prop.vt;                                       \
+	*name                                                       = NWindows::NCOM::AllocBstrFromAscii(prop.Name); \
+	return S_OK;                                                                                                 \
 	}
 
 #define IMP_IInArchive_Props IMP_IInArchive_GetProp_NO_NAME(GetNumberOfProperties, GetPropertyInfo, kProps)

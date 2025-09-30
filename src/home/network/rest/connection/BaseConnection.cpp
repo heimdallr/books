@@ -22,7 +22,7 @@ std::string GetNextPage(const IConnection::Headers& headers)
 		return {};
 
 	const std::regex nextPageRegex(R"(^.*<([^>]+)>; rel="next".*)");
-	std::smatch nextPageMatch;
+	std::smatch      nextPageMatch;
 	if (std::regex_match(it->second, nextPageMatch, nextPageRegex))
 		return nextPageMatch[1];
 
@@ -33,8 +33,8 @@ std::string GetNextPage(const IConnection::Headers& headers)
 
 struct BaseConnection::Impl final : Observable<IObserver>
 {
-	const std::string address;
-	Headers headers;
+	const std::string       address;
+	Headers                 headers;
 	std::vector<QJsonValue> data;
 
 	Impl(std::string address, Headers headers)
@@ -57,7 +57,7 @@ void BaseConnection::Get(const std::string& request)
 	for (auto page = m_impl->address + "/" + request; !page.empty();)
 	{
 		const auto headers = GetPage(page);
-		page = GetNextPage(headers);
+		page               = GetNextPage(headers);
 	}
 
 	if (m_impl->data.empty())

@@ -25,11 +25,11 @@ public:
 public:
 	virtual ~IConnection() = default;
 
-	virtual void Get(const std::string& request) = 0;
-	virtual const std::string& Url() const noexcept = 0;
-	virtual const Headers& GetHeaders() const = 0;
+	virtual void               Get(const std::string& request) = 0;
+	virtual const std::string& Url() const noexcept            = 0;
+	virtual const Headers&     GetHeaders() const              = 0;
 
-	virtual void Register(IObserver* observer) = 0;
+	virtual void Register(IObserver* observer)   = 0;
 	virtual void Unregister(IObserver* observer) = 0;
 };
 

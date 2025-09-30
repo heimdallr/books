@@ -28,7 +28,7 @@ public:
 
 private:
 	const std::chrono::steady_clock::time_point m_t;
-	const std::wstring m_process;
+	const std::wstring                          m_process;
 };
 
 }

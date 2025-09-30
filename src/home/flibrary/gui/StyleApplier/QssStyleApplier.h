@@ -16,7 +16,7 @@ public:
 	~QssStyleApplier() override;
 
 private:
-	Type GetType() const noexcept override;
+	Type                         GetType() const noexcept override;
 	std::unique_ptr<Util::DyLib> Set(QApplication& app) const override;
 };
 

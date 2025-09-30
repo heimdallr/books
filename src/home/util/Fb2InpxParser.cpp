@@ -16,28 +16,31 @@ using namespace Util;
 namespace
 {
 
-constexpr auto NAME = "name";
-constexpr auto NUMBER = "number";
-constexpr auto DESCRIPTION = "FictionBook/description";
-constexpr auto GENRE = "FictionBook/description/title-info/genre";
-constexpr auto AUTHOR = "FictionBook/description/title-info/author";
-constexpr auto AUTHOR_FIRST_NAME = "FictionBook/description/title-info/author/first-name";
-constexpr auto AUTHOR_LAST_NAME = "FictionBook/description/title-info/author/last-name";
-constexpr auto AUTHOR_MIDDLE_NAME = "FictionBook/description/title-info/author/middle-name";
-constexpr auto AUTHOR_DOC = "FictionBook/description/document-info/author";
-constexpr auto AUTHOR_FIRST_NAME_DOC = "FictionBook/description/document-info/author/first-name";
-constexpr auto AUTHOR_LAST_NAME_DOC = "FictionBook/description/document-info/author/last-name";
+constexpr auto NAME                   = "name";
+constexpr auto NUMBER                 = "number";
+constexpr auto DESCRIPTION            = "FictionBook/description";
+constexpr auto GENRE                  = "FictionBook/description/title-info/genre";
+constexpr auto AUTHOR                 = "FictionBook/description/title-info/author";
+constexpr auto AUTHOR_FIRST_NAME      = "FictionBook/description/title-info/author/first-name";
+constexpr auto AUTHOR_LAST_NAME       = "FictionBook/description/title-info/author/last-name";
+constexpr auto AUTHOR_MIDDLE_NAME     = "FictionBook/description/title-info/author/middle-name";
+constexpr auto AUTHOR_DOC             = "FictionBook/description/document-info/author";
+constexpr auto AUTHOR_FIRST_NAME_DOC  = "FictionBook/description/document-info/author/first-name";
+constexpr auto AUTHOR_LAST_NAME_DOC   = "FictionBook/description/document-info/author/last-name";
 constexpr auto AUTHOR_MIDDLE_NAME_DOC = "FictionBook/description/document-info/author/middle-name";
-constexpr auto BOOK_TITLE = "FictionBook/description/title-info/book-title";
-constexpr auto LANG = "FictionBook/description/title-info/lang";
-constexpr auto SEQUENCE = "FictionBook/description/title-info/sequence";
-constexpr auto KEYWORDS = "FictionBook/description/title-info/keywords";
+constexpr auto BOOK_TITLE             = "FictionBook/description/title-info/book-title";
+constexpr auto LANG                   = "FictionBook/description/title-info/lang";
+constexpr auto SEQUENCE               = "FictionBook/description/title-info/sequence";
+constexpr auto KEYWORDS               = "FictionBook/description/title-info/keywords";
+constexpr auto PUBLISH_INFO_YEAR      = "FictionBook/description/publish-info/year";
 
 QString AuthorsToString(const Fb2InpxParser::Data::Authors& authors)
 {
 	QStringList values;
 	values.reserve(static_cast<int>(authors.size()));
-	std::ranges::transform(authors, std::back_inserter(values), [](const auto& author) { return (QStringList() << author.last << author.first << author.middle).join(Fb2InpxParser::NAMES_SEPARATOR); });
+	std::ranges::transform(authors, std::back_inserter(values), [](const auto& author) {
+		return (QStringList() << author.last << author.first << author.middle).join(Fb2InpxParser::NAMES_SEPARATOR);
+	});
 	return values.join(Fb2InpxParser::LIST_SEPARATOR) + Fb2InpxParser::LIST_SEPARATOR;
 }
 
@@ -62,7 +65,7 @@ public:
 		Parse();
 
 		auto data = std::move(m_data);
-		m_data = {};
+		m_data    = {};
 		return data;
 	}
 
@@ -70,7 +73,7 @@ private: // SaxParser
 	bool OnStartElement(const QString& /*name*/, const QString& path, const XmlAttributes& attributes) override
 	{
 		using ParseElementFunction = bool (Impl::*)(const XmlAttributes&);
-		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{     AUTHOR,    &Impl::OnStartElementAuthor },
 			{ AUTHOR_DOC, &Impl::OnStartElementAuthorDoc },
@@ -83,7 +86,7 @@ private: // SaxParser
 	bool OnEndElement(const QString& /*name*/, const QString& path) override
 	{
 		using ParseElementFunction = bool (Impl::*)();
-		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{ DESCRIPTION, &Impl::OnEndElementDescription },
 			{      AUTHOR,      &Impl::OnEndElementAuthor },
@@ -96,7 +99,7 @@ private: // SaxParser
 	bool OnCharacters(const QString& path, const QString& value) override
 	{
 		using ParseCharacterFunction = bool (Impl::*)(const QString&);
-		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
+		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
 			{				  GENRE,            &Impl::ParseGenre },
 			{      AUTHOR_FIRST_NAME,  &Impl::ParseAuthorFirstName },
@@ -108,6 +111,7 @@ private: // SaxParser
 			{             BOOK_TITLE,        &Impl::ParseBookTitle },
 			{				   LANG,             &Impl::ParseLang },
 			{			   KEYWORDS,         &Impl::ParseKeywords },
+			{      PUBLISH_INFO_YEAR,      &Impl::ParsePublishYear },
 		};
 
 		return Parse(*this, PARSERS, path, value);
@@ -146,7 +150,7 @@ private:
 
 	bool OnStartElementSequence(const XmlAttributes& attributes)
 	{
-		m_data.series = attributes.GetAttribute(NAME);
+		m_data.series    = attributes.GetAttribute(NAME);
 		m_data.seqNumber = GetSeqNumber(attributes.GetAttribute(NUMBER));
 		return true;
 	}
@@ -215,10 +219,16 @@ private:
 		return true;
 	}
 
+	bool ParsePublishYear(const QString& value)
+	{
+		m_data.year = value;
+		return true;
+	}
+
 private:
 	const QString& m_fileName;
-	Data m_data {};
-	bool m_insertAuthorMode { false };
+	Data           m_data {};
+	bool           m_insertAuthorMode { false };
 };
 
 Fb2InpxParser::Fb2InpxParser(QIODevice& stream, const QString& fileName)
@@ -232,10 +242,10 @@ QString Fb2InpxParser::Parse(const QString& folder, const Zip& zip, const QStrin
 {
 	try
 	{
-		QFileInfo fileInfo(fileName);
-		const auto stream = zip.Read(fileName);
+		QFileInfo     fileInfo(fileName);
+		const auto    stream = zip.Read(fileName);
 		Fb2InpxParser parser(stream->GetStream(), fileName);
-		const auto parserData = parser.m_impl->GetData();
+		const auto    parserData = parser.m_impl->GetData();
 
 		if (!parserData.error.isEmpty())
 		{
@@ -253,11 +263,11 @@ QString Fb2InpxParser::Parse(const QString& folder, const Zip& zip, const QStrin
 			PLOGW << QString("%1/%2: file empty").arg(folder, fileName);
 
 		const auto& fileDateTime = zip.GetFileTime(fileName);
-		auto dateTime = (fileDateTime.isValid() ? fileDateTime : zipDateTime).toString("yyyy-MM-dd");
+		auto        dateTime     = (fileDateTime.isValid() ? fileDateTime : zipDateTime).toString("yyyy-MM-dd");
 
 		const auto values = QStringList() << AuthorsToString(parserData.authors) << GenresToString(parserData.genres) << parserData.title << parserData.series << parserData.seqNumber
 		                                  << fileInfo.completeBaseName() << QString::number(zip.GetFileSize(fileName)) << fileInfo.completeBaseName() << (isDeleted ? "1" : "0") << fileInfo.suffix()
-		                                  << std::move(dateTime) << parserData.lang << "0" << parserData.keywords;
+		                                  << std::move(dateTime) << parserData.lang << "0" << parserData.keywords << parserData.year;
 
 		return values.join(FIELDS_SEPARATOR);
 	}

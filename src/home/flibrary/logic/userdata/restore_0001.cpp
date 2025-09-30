@@ -92,7 +92,7 @@ class GroupsRestorer final : virtual public IRestorer
 	struct Item
 	{
 		QString title;
-		Books books;
+		Books   books;
 	};
 
 	using Items = std::vector<Item>;
@@ -122,7 +122,7 @@ private: // IRestorer
 		const auto transaction = db.CreateTransaction();
 		transaction->CreateCommand("delete from Groups_User")->Execute();
 
-		const auto createGroupCommand = transaction->CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
+		const auto createGroupCommand    = transaction->CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
 		const auto addBookToGroupCommand = transaction->CreateCommand(addBookToGroupCommandText);
 
 		for (const auto& [group, books] : m_items)

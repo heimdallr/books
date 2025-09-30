@@ -11,7 +11,7 @@ public:
 	explicit AbstractThemeApplier(std::shared_ptr<ISettings> settings);
 
 private: // IStyleApplier
-	void Apply(const QString& name, const QString& file) override;
+	void                        Apply(const QString& name, const QString& file) override;
 	std::pair<QString, QString> GetChecked() const override;
 
 protected:

@@ -27,17 +27,17 @@ public:
 private: // QAbstractItemModel
 	QVariant headerData(int section, Qt::Orientation orientation, int role) const override;
 	QVariant data(const QModelIndex& index, int role) const override;
-	bool setData(const QModelIndex& index, const QVariant& value, int role) override;
+	bool     setData(const QModelIndex& index, const QVariant& value, int role) override;
 
 private: // QSortFilterProxyModel
 	bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override;
 	bool lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const override;
 
 private:
+	bool lessThanImpl(const QModelIndex& sourceLeft, const QModelIndex& sourceRight, int emptyStringWeight = std::numeric_limits<int>::max()) const;
 	bool FilterAcceptsText(const QModelIndex& index) const;
-	bool FilterAcceptsLanguage(const QModelIndex& index) const;
 	bool FilterAcceptsRemoved(const QModelIndex& index) const;
-	bool FilterAcceptsGenres(const QModelIndex& index) const;
+	bool FilterAcceptsFlags(const QModelIndex& index) const;
 
 private:
 	struct Impl;

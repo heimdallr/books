@@ -17,11 +17,13 @@ class CollectionCleaner : public ICollectionCleaner
 {
 	NON_COPY_MOVABLE(CollectionCleaner)
 public:
-	CollectionCleaner(const std::shared_ptr<const ILogicFactory>& logicFactory,
-	                  std::shared_ptr<const IDatabaseUser> databaseUser,
-	                  std::shared_ptr<const ICollectionProvider> collectionProvider,
-	                  std::shared_ptr<const ILibRateProvider> libRateProvider,
-	                  std::shared_ptr<IBooksExtractorProgressController> progressController);
+	CollectionCleaner(
+		const std::shared_ptr<const ILogicFactory>&        logicFactory,
+		std::shared_ptr<const IDatabaseUser>               databaseUser,
+		std::shared_ptr<const ICollectionProvider>         collectionProvider,
+		std::shared_ptr<const ILibRateProvider>            libRateProvider,
+		std::shared_ptr<IBooksExtractorProgressController> progressController
+	);
 	~CollectionCleaner() override;
 
 private: // ICollectionCleaner

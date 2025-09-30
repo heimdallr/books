@@ -21,8 +21,8 @@ public:
 
 private: // BaseDelegateEditor
 	QString GetText() const override;
-	void SetText(const QString& value) override;
-	void OnSetModelData(const QString& value) override;
+	void    SetText(const QString& value) override;
+	void    OnSetModelData(const QString& value) override;
 
 private:
 	std::unique_ptr<QComboBox> m_impl;

@@ -20,7 +20,7 @@ public:
 	~AuthorsModel() override;
 
 private: // QAbstractItemModel
-	int columnCount(const QModelIndex& parent) const override;
+	int      columnCount(const QModelIndex& parent) const override;
 	QVariant data(const QModelIndex& index, int role) const override;
 
 private:

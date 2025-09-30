@@ -26,10 +26,10 @@ protected:
 
 private: // ITreeViewController
 	[[nodiscard]] const char* TrContext() const noexcept override;
-	[[nodiscard]] int GetModeIndex() const override;
-	void RegisterObserver(IObserver* observer) override;
-	void UnregisterObserver(IObserver* observer) override;
-	void SetMode(const QString& mode) override;
+	[[nodiscard]] int         GetModeIndex() const override;
+	void                      RegisterObserver(IObserver* observer) override;
+	void                      UnregisterObserver(IObserver* observer) override;
+	void                      SetMode(const QString& mode) override;
 
 	void OnDoubleClicked(const QModelIndex&) const override
 	{
@@ -49,13 +49,13 @@ protected:
 	void Setup();
 
 protected:
-	virtual void OnModeChanged(const QString& mode) = 0;
+	virtual void              OnModeChanged(const QString& mode)      = 0;
 	[[nodiscard]] virtual int GetModeIndex(const QString& mode) const = 0;
 
 protected:
-	const char* const m_context;
+	const char* const                             m_context;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
-	std::weak_ptr<IModelProvider> m_modelProvider;
+	std::weak_ptr<IModelProvider>                 m_modelProvider;
 
 private:
 	struct Impl;

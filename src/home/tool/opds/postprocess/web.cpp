@@ -30,21 +30,21 @@ namespace
 {
 
 constexpr auto CONTEXT = "opds";
-constexpr auto HOME = QT_TRANSLATE_NOOP("opds", "Home");
-constexpr auto READ = QT_TRANSLATE_NOOP("opds", "Read");
-constexpr auto SEARCH = QT_TRANSLATE_NOOP("opds", "Search");
-constexpr auto MORE = QT_TRANSLATE_NOOP("opds", "more");
+constexpr auto HOME    = QT_TRANSLATE_NOOP("opds", "Home");
+constexpr auto READ    = QT_TRANSLATE_NOOP("opds", "Read");
+constexpr auto SEARCH  = QT_TRANSLATE_NOOP("opds", "Search");
+constexpr auto MORE    = QT_TRANSLATE_NOOP("opds", "more");
 TR_DEF
 
-constexpr auto FEED = "feed";
-constexpr auto FEED_ID = "feed/id";
-constexpr auto FEED_TITLE = "feed/title";
-constexpr auto ENTRY = "feed/entry";
-constexpr auto ENTRY_TITLE = "feed/entry/title";
-constexpr auto ENTRY_LINK = "feed/entry/link";
+constexpr auto FEED          = "feed";
+constexpr auto FEED_ID       = "feed/id";
+constexpr auto FEED_TITLE    = "feed/title";
+constexpr auto ENTRY         = "feed/entry";
+constexpr auto ENTRY_TITLE   = "feed/entry/title";
+constexpr auto ENTRY_LINK    = "feed/entry/link";
 constexpr auto ENTRY_CONTENT = "feed/entry/content";
-constexpr auto AUTHOR_NAME = "feed/entry/author/name";
-constexpr auto AUTHOR_LINK = "feed/entry/author/uri";
+constexpr auto AUTHOR_NAME   = "feed/entry/author/name";
+constexpr auto AUTHOR_LINK   = "feed/entry/author/uri";
 
 constexpr auto MAX_WIDTH = 720;
 
@@ -76,7 +76,7 @@ public:
 	}
 
 private: // IAnnotationController::IUrlGenerator
-	QString GenerateUrl(const char* type, const QString& id, const QString& str) const override
+	QString GenerateUrl(const char* type, const QString& id, const QString& str, bool) const override
 	{
 		if (str.isEmpty() || PszComparer {}(type, Constant::BOOK))
 			return {};
@@ -155,8 +155,8 @@ private:
 	}
 
 protected:
-	const QString m_root;
-	std::unique_ptr<QBuffer> m_output { CreateStream() };
+	const QString                m_root;
+	std::unique_ptr<QBuffer>     m_output { CreateStream() };
 	PropagateConstPtr<XmlWriter> m_writer { std::make_unique<XmlWriter>(*m_output, XmlWriter::Type::Html) };
 };
 
@@ -173,7 +173,7 @@ protected:
 	bool OnStartElement(const QString& /*name*/, const QString& path, const XmlAttributes& attributes) override
 	{
 		using ParseElementFunction = bool (ParserOpds::*)(const XmlAttributes&);
-		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{ ENTRY, &ParserOpds::OnStartElementFeedEntry },
 		};
@@ -184,7 +184,7 @@ protected:
 	bool OnCharacters(const QString& path, const QString& value) override
 	{
 		using ParseCharacterFunction = bool (ParserOpds::*)(const QString&);
-		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
+		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
 			{       FEED_ID,       &ParserOpds::ParseFeedId },
 			{    FEED_TITLE,    &ParserOpds::ParseFeedTitle },
@@ -203,7 +203,9 @@ protected:
 
 	void WriteHeadOnce()
 	{
-		std::call_once(m_headWritten, [this] { WriteHttpHead(); });
+		std::call_once(m_headWritten, [this] {
+			WriteHttpHead();
+		});
 	}
 
 private:
@@ -277,7 +279,7 @@ private: // SaxParser
 			return result;
 
 		using ParseElementFunction = bool (ParserNavigation::*)(const XmlAttributes&);
-		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{ ENTRY_LINK, &ParserNavigation::OnStartElementEntryLink },
 		};
@@ -288,7 +290,7 @@ private: // SaxParser
 	bool OnEndElement(const QString& /*name*/, const QString& path) override
 	{
 		using ParseElementFunction = bool (ParserNavigation::*)();
-		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{  FEED,  &ParserNavigation::OnEndElementFeed },
 			{ ENTRY, &ParserNavigation::OnEndElementEntry },
@@ -338,10 +340,10 @@ private:
 		if (info.isEmpty())
 			return;
 
-		const auto table = m_writer->Guard("table");
-		const auto tr = m_writer->Guard("tr");
-		const auto td = m_writer->Guard("td");
-		const auto p = m_writer->Guard("p");
+		const auto                               table = m_writer->Guard("table");
+		const auto                               tr    = m_writer->Guard("tr");
+		const auto                               td    = m_writer->Guard("td");
+		const auto                               p     = m_writer->Guard("p");
 		std::unique_ptr<XmlWriter::XmlNodeGuard> imgGuard;
 		if (!images.empty())
 		{
@@ -370,7 +372,7 @@ private:
 	}
 
 private:
-	QString m_link;
+	QString                                  m_link;
 	std::unique_ptr<XmlWriter::XmlNodeGuard> m_tableGuard;
 };
 
@@ -382,9 +384,9 @@ class ParserBookInfo final : public ParserOpds
 
 	static QString CreateReadTemplate(const ISettings& settings)
 	{
-		auto readTemplate = settings.Get(Constant::Settings::OPDS_READ_URL_TEMPLATE, QString("/web/read?book=%1"));
-		const auto host = settings.Get(Constant::Settings::OPDS_HOST_KEY, Constant::Settings::OPDS_HOST_DEFAULT);
-		const auto port = settings.Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT);
+		auto       readTemplate = settings.Get(Constant::Settings::OPDS_READ_URL_TEMPLATE, QString("/web/read?book=%1"));
+		const auto host         = settings.Get(Constant::Settings::OPDS_HOST_KEY, Constant::Settings::OPDS_HOST_DEFAULT);
+		const auto port         = settings.Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT);
 		readTemplate.replace("%HTTP_HOST%", host);
 		readTemplate.replace("%HTTP_PORT%", QString::number(port));
 		return readTemplate;
@@ -412,7 +414,7 @@ private: // SaxParser
 			return result;
 
 		using ParseElementFunction = bool (ParserBookInfo::*)(const XmlAttributes&);
-		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{ ENTRY_LINK, &ParserBookInfo::OnStartElementEntryLink },
 		};
@@ -423,7 +425,7 @@ private: // SaxParser
 	bool OnEndElement(const QString& /*name*/, const QString& path) override
 	{
 		using ParseElementFunction = bool (ParserBookInfo::*)();
-		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{ FEED, &ParserBookInfo::OnEndElementFeed },
 		};
@@ -438,7 +440,7 @@ private: // SaxParser
 			return result;
 
 		using ParseCharacterFunction = bool (ParserBookInfo::*)(const QString&);
-		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
+		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
 			{ ENTRY_CONTENT, &ParserBookInfo::ParseEntryContent },
 			{   AUTHOR_NAME,   &ParserBookInfo::ParseAuthorName },
@@ -451,8 +453,8 @@ private: // SaxParser
 private:
 	bool OnStartElementEntryLink(const XmlAttributes& attributes)
 	{
-		const auto rel = attributes.GetAttribute("rel");
-		auto href = attributes.GetAttribute("href");
+		const auto rel  = attributes.GetAttribute("rel");
+		auto       href = attributes.GetAttribute("href");
 
 		if (rel == "http://opds-spec.org/image")
 			return m_coverLink = std::move(href), true;
@@ -483,8 +485,7 @@ private:
 					td->WriteAttribute("style", "vertical-align: top;").Guard("img")->WriteAttribute("src", m_coverLink).WriteAttribute("width", "360");
 				}
 
-				const auto createLink = [&](const QString& url, const QFileInfo& fileInfo, const bool isZip)
-				{
+				const auto createLink = [&](const QString& url, const QFileInfo& fileInfo, const bool isZip) {
 					if (url.isEmpty())
 						return;
 
@@ -499,14 +500,13 @@ private:
 				m_output->write(contents.front().toUtf8());
 				m_writer->Guard("a")->WriteAttribute("href", m_readTemplate.arg(m_feedId)).WriteCharacters(Tr(READ));
 
-				const auto createLinks = [&](const QFileInfo& fileInfo)
-				{
+				const auto createLinks = [&](const QFileInfo& fileInfo) {
 					m_writer->Guard("br");
 					createLink(m_downloadLinkFb2, fileInfo, false);
 					createLink(m_downloadLinkZip, fileInfo, true);
 				};
 
-				const auto fileName = m_callback.GetFileName(m_feedId);
+				const auto      fileName = m_callback.GetFileName(m_feedId);
 				const QFileInfo fileInfo(fileName);
 				createLinks(fileInfo);
 			}
@@ -539,7 +539,9 @@ private: // AbstractParser
 	{
 		{
 			auto h2 = m_writer->Guard("h2");
-			for (int n = 0; const auto& [name, link] : m_authors | std::views::filter([](const auto& item) { return !item.first.isEmpty() && !item.second.isEmpty(); }))
+			for (int n = 0; const auto& [name, link] : m_authors | std::views::filter([](const auto& item) {
+														   return !item.first.isEmpty() && !item.second.isEmpty();
+													   }))
 			{
 				if (++n != 1)
 					m_output->write(", ");
@@ -550,11 +552,11 @@ private: // AbstractParser
 	}
 
 private:
-	const QString m_readTemplate;
+	const QString                            m_readTemplate;
 	std::vector<std::pair<QString, QString>> m_authors;
-	QString m_downloadLinkFb2;
-	QString m_downloadLinkZip;
-	QString m_coverLink;
+	QString                                  m_downloadLinkFb2;
+	QString                                  m_downloadLinkZip;
+	QString                                  m_coverLink;
 };
 
 class ParserFb2 final : public AbstractParser
@@ -576,37 +578,37 @@ class ParserFb2 final : public AbstractParser
 		QString body;
 	};
 
-	static constexpr auto FICTION_BOOK = "FictionBook";
-	static constexpr auto AUTHOR = "FictionBook/description/title-info/author";
-	static constexpr auto AUTHOR_FIRST_NAME = "FictionBook/description/title-info/author/first-name";
-	static constexpr auto AUTHOR_LAST_NAME = "FictionBook/description/title-info/author/last-name";
-	static constexpr auto AUTHOR_MIDDLE_NAME = "FictionBook/description/title-info/author/middle-name";
-	static constexpr auto BOOK_TITLE = "FictionBook/description/title-info/book-title";
-	static constexpr auto BODY = "FictionBook/body";
-	static constexpr auto BODY_TITLE = "FictionBook/body/title";
-	static constexpr auto BODY_TITLE_P = "FictionBook/body/title/p";
-	static constexpr auto BODY_TITLE_P_STRONG = "FictionBook/body/title/p/strong";
-	static constexpr auto EPIGRAPH = "FictionBook/body/epigraph";
-	static constexpr auto EPIGRAPH_P = "FictionBook/body/epigraph/p";
-	static constexpr auto EPIGRAPH_TEXT_AUTHOR = "FictionBook/body/epigraph/text-author";
-	static constexpr auto SECTION = "FictionBook/body/section";
-	static constexpr auto SECTION_TITLE = "FictionBook/body/section/title";
-	static constexpr auto SECTION_TITLE_P = "FictionBook/body/section/title/p";
-	static constexpr auto SECTION_EPIGRAPH = "FictionBook/body/section/epigraph";
-	static constexpr auto SECTION_EPIGRAPH_P = "FictionBook/body/section/epigraph/p";
+	static constexpr auto FICTION_BOOK                 = "FictionBook";
+	static constexpr auto AUTHOR                       = "FictionBook/description/title-info/author";
+	static constexpr auto AUTHOR_FIRST_NAME            = "FictionBook/description/title-info/author/first-name";
+	static constexpr auto AUTHOR_LAST_NAME             = "FictionBook/description/title-info/author/last-name";
+	static constexpr auto AUTHOR_MIDDLE_NAME           = "FictionBook/description/title-info/author/middle-name";
+	static constexpr auto BOOK_TITLE                   = "FictionBook/description/title-info/book-title";
+	static constexpr auto BODY                         = "FictionBook/body";
+	static constexpr auto BODY_TITLE                   = "FictionBook/body/title";
+	static constexpr auto BODY_TITLE_P                 = "FictionBook/body/title/p";
+	static constexpr auto BODY_TITLE_P_STRONG          = "FictionBook/body/title/p/strong";
+	static constexpr auto EPIGRAPH                     = "FictionBook/body/epigraph";
+	static constexpr auto EPIGRAPH_P                   = "FictionBook/body/epigraph/p";
+	static constexpr auto EPIGRAPH_TEXT_AUTHOR         = "FictionBook/body/epigraph/text-author";
+	static constexpr auto SECTION                      = "FictionBook/body/section";
+	static constexpr auto SECTION_TITLE                = "FictionBook/body/section/title";
+	static constexpr auto SECTION_TITLE_P              = "FictionBook/body/section/title/p";
+	static constexpr auto SECTION_EPIGRAPH             = "FictionBook/body/section/epigraph";
+	static constexpr auto SECTION_EPIGRAPH_P           = "FictionBook/body/section/epigraph/p";
 	static constexpr auto SECTION_EPIGRAPH_TEXT_AUTHOR = "FictionBook/body/section/epigraph/text-author";
-	static constexpr auto BINARY = "FictionBook/binary";
+	static constexpr auto BINARY                       = "FictionBook/binary";
 
 	static constexpr auto EMPTY_LINE = "empty-line";
-	static constexpr auto A = "a";
-	static constexpr auto POEM = "poem";
-	static constexpr auto STANZA = "stanza";
-	static constexpr auto P = "p";
-	static constexpr auto V = "v";
-	static constexpr auto NOTE = "note";
-	static constexpr auto NOTES = "notes";
-	static constexpr auto EMPHASIS = "emphasis";
-	static constexpr auto IMAGE = "image";
+	static constexpr auto A          = "a";
+	static constexpr auto POEM       = "poem";
+	static constexpr auto STANZA     = "stanza";
+	static constexpr auto P          = "p";
+	static constexpr auto V          = "v";
+	static constexpr auto NOTE       = "note";
+	static constexpr auto NOTES      = "notes";
+	static constexpr auto EMPHASIS   = "emphasis";
+	static constexpr auto IMAGE      = "image";
 
 public:
 	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback&, QIODevice& stream, const QStringList& parameters, const ISettings&)
@@ -649,7 +651,7 @@ private: // SaxParser
 		const auto path = ReduceSections(pathSrc);
 
 		using ParseElementFunction = bool (ParserFb2::*)(const XmlAttributes&);
-		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{ FICTION_BOOK, &ParserFb2::OnStartElementFictionBook },
             {       AUTHOR,      &ParserFb2::OnStartElementAuthor },
@@ -678,9 +680,9 @@ private: // SaxParser
 		if (name == V && m_poem)
 			return (m_stream << "</div>\n"), true;
 
-		const auto path = ReduceSections(pathSrc);
+		const auto path            = ReduceSections(pathSrc);
 		using ParseElementFunction = bool (ParserFb2::*)();
-		using ParseElementItem = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{  FICTION_BOOK,  &ParserFb2::OnEndElementFictionBook },
 			{        AUTHOR,       &ParserFb2::OnEndElementAuthor },
@@ -693,9 +695,9 @@ private: // SaxParser
 
 	bool OnCharacters(const QString& pathSrc, const QString& value) override
 	{
-		const auto path = ReduceSections(pathSrc);
+		const auto path              = ReduceSections(pathSrc);
 		using ParseCharacterFunction = bool (ParserFb2::*)(const QString&);
-		using ParseCharacterItem = std::pair<const char*, ParseCharacterFunction>;
+		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
 			{            AUTHOR_FIRST_NAME,    &ParserFb2::ParseAuthorFirstName },
 			{           AUTHOR_MIDDLE_NAME,   &ParserFb2::ParseAuthorMiddleName },
@@ -751,7 +753,7 @@ private:
 
 	bool OnStartElementBody(const XmlAttributes& attributes)
 	{
-		m_body = true;
+		m_body     = true;
 		m_bodyName = attributes.GetAttribute("name");
 		if (!m_bodyName.isEmpty())
 			return true;
@@ -873,7 +875,15 @@ private:
 	{
 		if (m_link)
 		{
-			const auto linkGuard = m_link->type == NOTE ? std::make_unique<ScopedCall>([&] { m_stream << "<sup>"; }, [&] { m_stream << "</sup>"; }) : std::unique_ptr<ScopedCall> {};
+			const auto linkGuard = m_link->type == NOTE ? std::make_unique<ScopedCall>(
+															  [&] {
+																  m_stream << "<sup>";
+															  },
+															  [&] {
+																  m_stream << "</sup>";
+															  }
+														  )
+			                                            : std::unique_ptr<ScopedCall> {};
 			m_stream << QString(R"(<a href="%1">%2</a>)").arg(m_link->href, value);
 			return true;
 		}
@@ -913,18 +923,18 @@ private: // AbstractParser
 private:
 	QTextStream m_stream { m_output.get() };
 
-	const QString m_bookId;
-	QStringList m_author;
-	QStringList m_authors;
-	bool m_body { false };
-	QString m_bodyName;
-	QString m_bookTitle;
-	QString m_sectionId;
-	QString m_sectionTitle;
-	QString m_linkNs;
+	const QString         m_bookId;
+	QStringList           m_author;
+	QStringList           m_authors;
+	bool                  m_body { false };
+	QString               m_bodyName;
+	QString               m_bookTitle;
+	QString               m_sectionId;
+	QString               m_sectionTitle;
+	QString               m_linkNs;
 	std::unique_ptr<Link> m_link;
-	bool m_poem { false };
-	std::vector<Binary> m_binary;
+	bool                  m_poem { false };
+	std::vector<Binary>   m_binary;
 };
 
 constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(const IPostProcessCallback&, QIODevice&, const QStringList&, const ISettings&)> PARSER_CREATORS[] {
@@ -937,7 +947,7 @@ constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(const IPost
 QByteArray PostProcess_web(const IPostProcessCallback& callback, QIODevice& stream, const ContentType contentType, const QStringList& parameters, const ISettings& settings)
 {
 	const auto parserCreator = FindSecond(PARSER_CREATORS, contentType, &ParserNavigation::Create);
-	const auto parser = parserCreator(callback, stream, parameters, settings);
+	const auto parser        = parserCreator(callback, stream, parameters, settings);
 	parser->Parse();
 	return parser->GetResult();
 }

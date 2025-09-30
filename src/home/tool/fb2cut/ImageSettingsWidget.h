@@ -41,10 +41,10 @@ private:
 	void CopyFromCommon();
 
 private:
-	PropagateConstPtr<Ui::ImageSettingsWidget> m_ui;
+	PropagateConstPtr<Ui::ImageSettingsWidget>    m_ui;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settingsManager;
-	const ImageSettingsWidget* m_commonImageSettingsWidget { nullptr };
-	ImageSettings* m_settings { nullptr };
+	const ImageSettingsWidget*                    m_commonImageSettingsWidget { nullptr };
+	ImageSettings*                                m_settings { nullptr };
 };
 
 } // namespace HomeCompa::fb2cut

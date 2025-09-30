@@ -27,7 +27,7 @@ QString GetFileHash(const std::set<QString>& fileNames)
 			return {};
 
 		constexpr auto size = 1024ll * 32;
-		const auto buf = std::make_unique<char[]>(size);
+		const auto     buf  = std::make_unique<char[]>(size);
 
 		while (const auto readSize = file.read(buf.get(), size))
 			hash.addData(QByteArrayView(buf.get(), static_cast<int>(readSize)));
@@ -41,7 +41,7 @@ QString GetFileHash(const std::set<QString>& fileNames)
 struct CollectionUpdateChecker::Impl
 {
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
-	std::shared_ptr<const IDatabaseUser> databaseUser;
+	std::shared_ptr<const IDatabaseUser>       databaseUser;
 
 	Impl(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)
 		: collectionProvider { std::move(collectionProvider) }
@@ -67,26 +67,31 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 		return callback(false, Collection {});
 
 	auto db = m_impl->databaseUser->Database();
-	m_impl->databaseUser->Execute({ "Check for collection index updated",
-	                                [&, db = std::move(db), callback = std::move(callback)]() mutable
-	                                {
-										std::function<void(size_t)> result;
+	m_impl->databaseUser->Execute(
+		{ "Check for collection index updated",
+	      [&, db = std::move(db), callback = std::move(callback)]() mutable {
+			  std::function<void(size_t)> result;
 
-										const auto& collection = m_impl->collectionProvider->GetActiveCollection();
-										const auto collectionFolder = collection.folder;
-										const auto inpxFiles = m_impl->collectionProvider->GetInpxFiles(collectionFolder);
+			  const auto& collection       = m_impl->collectionProvider->GetActiveCollection();
+			  const auto  collectionFolder = collection.folder;
+			  const auto  inpxFiles        = m_impl->collectionProvider->GetInpxFiles(collectionFolder);
 
-										Collection updatedCollection = collection;
-										if (updatedCollection.discardedUpdate = GetFileHash(inpxFiles); updatedCollection.discardedUpdate == collection.discardedUpdate)
-										{
-											result = [&updatedCollection, callback = std::move(callback)](size_t) { callback(false, updatedCollection); };
-											return result;
-										}
+			  Collection updatedCollection = collection;
+			  if (updatedCollection.discardedUpdate = GetFileHash(inpxFiles); updatedCollection.discardedUpdate == collection.discardedUpdate)
+			  {
+				  result = [&updatedCollection, callback = std::move(callback)](size_t) {
+					  callback(false, updatedCollection);
+				  };
+				  return result;
+			  }
 
-										const auto checkResult = Inpx::Parser::CheckForUpdate(collectionFolder.toStdWString(), *db);
-										result = [checkResult, updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) mutable { callback(checkResult, updatedCollection); };
+			  const auto checkResult = Inpx::Parser::CheckForUpdate(collectionFolder.toStdWString(), *db);
+			  result                 = [checkResult, updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) mutable {
+                  callback(checkResult, updatedCollection);
+			  };
 
-										return result;
-									} },
-	                              100);
+			  return result;
+		  } },
+		100
+	);
 }

@@ -166,16 +166,16 @@ private:
 	}
 
 private:
-	QIODevice& m_stream;
-	const bool m_indented;
-	XMLFormatter m_formatter;
+	QIODevice&          m_stream;
+	const bool          m_indented;
+	XMLFormatter        m_formatter;
 	std::stack<QString> m_elements;
-	bool m_tagOpened { false };
-	QString m_lastElement;
-	size_t m_characterDepth { 0 };
+	bool                m_tagOpened { false };
+	QString             m_lastElement;
+	size_t              m_characterDepth { 0 };
 
 	std::set<QString> m_unbreakableTags { "a", "emphasis", "strong", "sub", "sup", "strikethrough", "code", "image" };
-	int m_unbreakableCount { 0 };
+	int               m_unbreakableCount { 0 };
 };
 
 XmlWriter::XmlWriter(QIODevice& stream, const Type type, const bool indented)

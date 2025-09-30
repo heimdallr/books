@@ -27,11 +27,11 @@ private: // QWidget
 	void showEvent(QShowEvent* event) override;
 
 private: // IAlphabetPanel
-	QWidget* GetWidget() noexcept override;
+	QWidget*        GetWidget() noexcept override;
 	const ToolBars& GetToolBars() const override;
-	bool Visible(const QToolBar* toolBar) const override;
-	void SetVisible(QToolBar* toolBar, bool visible) override;
-	void AddNewAlphabet() override;
+	bool            Visible(const QToolBar* toolBar) const override;
+	void            SetVisible(QToolBar* toolBar, bool visible) override;
+	void            AddNewAlphabet() override;
 
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;

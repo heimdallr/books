@@ -26,16 +26,16 @@ namespace
 
 struct AnalyzedBook
 {
-	QString folder;
-	QString file;
-	QString lang;
-	bool deleted;
-	QString date;
-	QString title;
-	size_t size;
-	QString libId;
-	double libRate;
-	std::set<QString> genres;
+	QString             folder;
+	QString             file;
+	QString             lang;
+	bool                deleted;
+	QString             date;
+	QString             title;
+	size_t              size;
+	QString             libId;
+	double              libRate;
+	std::set<QString>   genres;
 	std::set<long long> authors;
 };
 
@@ -49,43 +49,44 @@ select b.BookID, f.FolderTitle, b.FileName || b.Ext, b.Lang, coalesce(bu.IsDelet
 	%5
 )";
 
-constexpr auto EMPTY_FIELD = "42";
-constexpr auto GENRE_JOIN = "\n	join Genre_List gl on gl.BookID = b.BookID";
-constexpr auto GENRE_FIELD = "gl.GenreCode";
-constexpr auto AUTHOR_JOIN = "\n	join Author_List al on al.BookID = b.BookID";
-constexpr auto AUTHOR_FIELD = "al.AuthorID";
+constexpr auto EMPTY_FIELD       = "42";
+constexpr auto GENRE_JOIN        = "\n	join Genre_List gl on gl.BookID = b.BookID";
+constexpr auto GENRE_FIELD       = "gl.GenreCode";
+constexpr auto AUTHOR_JOIN       = "\n	join Author_List al on al.BookID = b.BookID";
+constexpr auto AUTHOR_FIELD      = "al.AuthorID";
 constexpr auto WHERE_NOT_DELETED = "where coalesce(bu.IsDeleted, b.IsDeleted, 0) = 0";
 
 bool RemoveBooksImpl(const ICollectionCleaner::Books& books, DB::ITransaction& transaction, std::unique_ptr<IProgressController::IProgressItem> progressItem)
 {
 	PLOGI << "Removing database books records started";
 
-	return std::accumulate(books.cbegin(),
-	                       books.cend(),
-	                       true,
-	                       [&,
-	                        progressItem = std::move(progressItem),
-	                        command = transaction.CreateCommand("delete from Books where BookID = ?"),
-	                        total = books.size(),
-	                        currentPct = 0,
-	                        lastPct = 0,
-	                        lastPctLog = 0,
-	                        n = size_t { 0 }](const bool init, const auto& book) mutable
-	                       {
-							   ++n;
-							   currentPct = static_cast<int>(100U * n / total);
-							   progressItem->Increment(currentPct - lastPct);
-							   lastPct = currentPct;
+	return std::accumulate(
+		books.cbegin(),
+		books.cend(),
+		true,
+		[&,
+	     progressItem = std::move(progressItem),
+	     command      = transaction.CreateCommand("delete from Books where BookID = ?"),
+	     total        = books.size(),
+	     currentPct   = 0,
+	     lastPct      = 0,
+	     lastPctLog   = 0,
+	     n            = size_t { 0 }](const bool init, const auto& book) mutable {
+			++n;
+			currentPct = static_cast<int>(100U * n / total);
+			progressItem->Increment(currentPct - lastPct);
+			lastPct = currentPct;
 
-							   if (!(lastPct % 10) && lastPctLog != lastPct)
-							   {
-								   lastPctLog = lastPct;
-								   PLOGV << lastPct << '%';
-							   }
+			if (!(lastPct % 10) && lastPctLog != lastPct)
+			{
+				lastPctLog = lastPct;
+				PLOGV << lastPct << '%';
+			}
 
-							   command->Bind(0, book.id);
-							   return command->Execute() && init;
-						   });
+			command->Bind(0, book.id);
+			return command->Execute() && init;
+		}
+	);
 }
 
 bool CleanupNavigationItems(DB::ITransaction& transaction)
@@ -111,25 +112,21 @@ not exists (select 42 from Keywords k where k.KeywordID = Groups_List_User.Objec
 		{   "Authors_Search",														  "insert into Authors_Search(Authors_Search) values('rebuild')" },
 		{    "Series_Search",															"insert into Series_Search(Series_Search) values('rebuild')" },
 	};
-	return std::accumulate(std::cbegin(commands),
-	                       std::cend(commands),
-	                       true,
-	                       [&](const bool init, const auto& command)
-	                       {
-							   PLOGD << "removing from " << command.first;
-							   return transaction.CreateCommand(command.second)->Execute() && init;
-						   });
+	return std::accumulate(std::cbegin(commands), std::cend(commands), true, [&](const bool init, const auto& command) {
+		PLOGD << "removing from " << command.first;
+		return transaction.CreateCommand(command.second)->Execute() && init;
+	});
 }
 
 using AllFilesItem = std::tuple<std::vector<QString>, std::shared_ptr<Zip::ProgressCallback>>;
-using AllFiles = std::unordered_map<QString, AllFilesItem>;
+using AllFiles     = std::unordered_map<QString, AllFilesItem>;
 
 AllFiles CollectBookFiles(ICollectionCleaner::Books& books, const ILogicFactory& logicFactory, const std::shared_ptr<IProgressController>& progressController)
 {
 	AllFiles result;
 	for (auto&& [id, folder, file] : books)
 	{
-		auto [it, ok] = result.try_emplace(std::move(folder), AllFilesItem {});
+		auto [it, ok]           = result.try_emplace(std::move(folder), AllFilesItem {});
 		auto& [files, progress] = it->second;
 		files.emplace_back(std::move(file));
 		if (ok)
@@ -160,7 +157,9 @@ AllFiles CollectImageFiles(const AllFiles& bookFiles, const QString& collectionF
 			if (QFile::exists(GetFolderPath(collectionFolder, imageFolderName)))
 			{
 				auto& [files, progress] = result[imageFolderName];
-				std::ranges::transform(std::get<0>(archiveItem), std::back_inserter(files), [=](const QString& file) { return QFileInfo(file).completeBaseName() + replacedExt; });
+				std::ranges::transform(std::get<0>(archiveItem), std::back_inserter(files), [=](const QString& file) {
+					return QFileInfo(file).completeBaseName() + replacedExt;
+				});
 				progress = logicFactory.CreateZipProgressCallback(progressController);
 			}
 		}
@@ -175,9 +174,7 @@ void RemoveFiles(AllFiles& allFiles, const QString& collectionFolder)
 	for (auto&& [folder, archiveItem] : toCleanup)
 	{
 		const auto archive = GetFolderPath(collectionFolder, folder);
-		if (
-			[&]
-			{
+		if ([&] {
 				auto&& [files, progressCallback] = archiveItem;
 				Zip zip(archive, Zip::Format::Auto, true, std::move(progressCallback));
 				zip.Remove(files);
@@ -205,14 +202,14 @@ AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db, const ILibRateProvider& libRat
 		auto [it, inserted] = analyzedBooks.try_emplace(query->Get<long long>(0), AnalyzedBook {});
 		if (inserted)
 		{
-			it->second.folder = query->Get<const char*>(1);
-			it->second.file = query->Get<const char*>(2);
-			it->second.lang = query->Get<const char*>(3);
+			it->second.folder  = query->Get<const char*>(1);
+			it->second.file    = query->Get<const char*>(2);
+			it->second.lang    = query->Get<const char*>(3);
 			it->second.deleted = query->Get<int>(4);
-			it->second.date = query->Get<const char*>(5);
-			it->second.title = QString(query->Get<const char*>(6)).toLower();
-			it->second.size = query->Get<long long>(7);
-			it->second.libId = query->Get<const char*>(8);
+			it->second.date    = query->Get<const char*>(5);
+			it->second.title   = QString(query->Get<const char*>(6)).toLower();
+			it->second.size    = query->Get<long long>(7);
+			it->second.libId   = query->Get<const char*>(8);
 			it->second.libRate = libRateProvider.GetLibRate(it->second.libId, Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(9)));
 		}
 
@@ -232,7 +229,9 @@ void RemoveDuplicates(const AnalyzedBooks& analysedBooks, std::unordered_set<lon
 		if (!toDelete.contains(id))
 			duplicates[book.title].emplace(QString(book.date).append("/").append(book.file), id);
 
-	for (auto& dup : duplicates | std::views::values | std::views::filter([](const auto& item) { return item.size() > 1; }))
+	for (auto& dup : duplicates | std::views::values | std::views::filter([](const auto& item) {
+						 return item.size() > 1;
+					 }))
 	{
 		while (!dup.empty())
 		{
@@ -262,105 +261,120 @@ void RemoveDuplicates(const AnalyzedBooks& analysedBooks, std::unordered_set<lon
 
 struct CollectionCleaner::Impl
 {
-	std::weak_ptr<const ILogicFactory> logicFactory;
-	std::shared_ptr<const IDatabaseUser> databaseUser;
-	std::shared_ptr<const ICollectionProvider> collectionProvider;
-	std::shared_ptr<const ILibRateProvider> libRateProvider;
+	std::weak_ptr<const ILogicFactory>                 logicFactory;
+	std::shared_ptr<const IDatabaseUser>               databaseUser;
+	std::shared_ptr<const ICollectionProvider>         collectionProvider;
+	std::shared_ptr<const ILibRateProvider>            libRateProvider;
 	std::shared_ptr<IBooksExtractorProgressController> progressController;
-	std::atomic_bool analyzeCanceled { false };
+	std::atomic_bool                                   analyzeCanceled { false };
 
 	void Analyze(IAnalyzeObserver& observer) const
 	{
-		databaseUser->Execute({ "Analyze",
-		                        [&]
-		                        {
-									std::function result { [&](size_t) { observer.AnalyzeFinished({}); } };
-									auto genres = observer.GetGenres();
-									auto languages = observer.GetLanguages();
-									if (genres.isEmpty() && languages.isEmpty() && !observer.NeedDeleteDuplicates() && !observer.NeedDeleteMarkedAsDeleted() && !observer.GetMinimumBookSize()
-			                            && !observer.GetMaximumBookSize() && !observer.NeedDeleteUnrated() && !observer.GetMinimumLibRate())
-										return result;
+		databaseUser->Execute({ "Analyze", [&] {
+								   std::function result { [&](size_t) {
+									   observer.AnalyzeFinished({});
+								   } };
+								   auto genres    = observer.GetGenres();
+								   auto languages = observer.GetLanguages();
+								   if (genres.isEmpty() && languages.isEmpty() && !observer.NeedDeleteDuplicates() && !observer.NeedDeleteMarkedAsDeleted() && !observer.GetMinimumBookSize()
+			                           && !observer.GetMaximumBookSize() && !observer.NeedDeleteUnrated() && !observer.GetMinimumLibRate())
+									   return result;
 
-									const auto db = databaseUser->Database();
-									PLOGI << "get books info";
-									auto analysedBooks = GetAnalysedBooks(*db, *libRateProvider, observer, !genres.isEmpty(), analyzeCanceled);
-									PLOGI << "total books found: " << analysedBooks.size();
+								   const auto db = databaseUser->Database();
+								   PLOGI << "get books info";
+								   auto analysedBooks = GetAnalysedBooks(*db, *libRateProvider, observer, !genres.isEmpty(), analyzeCanceled);
+								   PLOGI << "total books found: " << analysedBooks.size();
 
-									std::unordered_set<long long> toDelete;
+								   std::unordered_set<long long> toDelete;
 
-									const auto addToDelete = [&](const QString& name, const auto filter)
-									{
-										const auto n = toDelete.size();
-										std::ranges::transform(analysedBooks | std::views::filter(filter), std::inserter(toDelete, toDelete.end()), [](const auto& item) { return item.first; });
-										PLOGI << name << " found: " << toDelete.size() - n;
-									};
+								   const auto addToDelete = [&](const QString& name, const auto filter) {
+									   const auto n = toDelete.size();
+									   std::ranges::transform(analysedBooks | std::views::filter(filter), std::inserter(toDelete, toDelete.end()), [](const auto& item) {
+										   return item.first;
+									   });
+									   PLOGI << name << " found: " << toDelete.size() - n;
+								   };
 
-									if (observer.NeedDeleteMarkedAsDeleted())
-										addToDelete("marked as deleted", [](const auto& item) { return item.second.deleted; });
+								   if (observer.NeedDeleteMarkedAsDeleted())
+									   addToDelete("marked as deleted", [](const auto& item) {
+										   return item.second.deleted;
+									   });
 
-									if (observer.NeedDeleteUnrated())
-										addToDelete("unrated", [](const auto& item) { return item.second.libRate < 1.0; });
+								   if (observer.NeedDeleteUnrated())
+									   addToDelete("unrated", [](const auto& item) {
+										   return item.second.libRate < 1.0;
+									   });
 
-									if (auto value = observer.GetMinimumLibRate())
-										addToDelete("rated less then minimum",
-				                                    [value = *value - std::numeric_limits<double>::epsilon()](const auto& item)
-				                                    { return item.second.libRate > std::numeric_limits<double>::epsilon() && item.second.libRate < value; });
+								   if (auto value = observer.GetMinimumLibRate())
+									   addToDelete("rated less then minimum", [value = *value - std::numeric_limits<double>::epsilon()](const auto& item) {
+										   return item.second.libRate > std::numeric_limits<double>::epsilon() && item.second.libRate < value;
+									   });
 
-									if (auto value = observer.GetMinimumBookSize())
-										addToDelete("smaller then minimum", [value = *value](const auto& item) { return item.second.size < value; });
+								   if (auto value = observer.GetMinimumBookSize())
+									   addToDelete("smaller then minimum", [value = *value](const auto& item) {
+										   return item.second.size < value;
+									   });
 
-									if (auto value = observer.GetMaximumBookSize())
-										addToDelete("larger then maximum", [value = *value](const auto& item) { return item.second.size > value; });
+								   if (auto value = observer.GetMaximumBookSize())
+									   addToDelete("larger then maximum", [value = *value](const auto& item) {
+										   return item.second.size > value;
+									   });
 
-									if (!languages.isEmpty())
-										addToDelete("on specified languages",
-				                                    [languages = std::unordered_set(std::make_move_iterator(languages.begin()), std::make_move_iterator(languages.end()))](const auto& item)
-				                                    { return languages.contains(item.second.lang); });
-									languages.clear();
+								   if (!languages.isEmpty())
+									   addToDelete(
+										   "on specified languages",
+										   [languages = std::unordered_set(std::make_move_iterator(languages.begin()), std::make_move_iterator(languages.end()))](const auto& item) {
+											   return languages.contains(item.second.lang);
+										   }
+									   );
+								   languages.clear();
 
-									if (!genres.isEmpty())
-									{
-										const auto indexedGenres = std::set(std::make_move_iterator(genres.begin()), std::make_move_iterator(genres.end()));
-										switch (observer.GetCleanGenreMode()) // NOLINT(clang-diagnostic-switch-enum)
-										{
-											case CleanGenreMode::Full:
-												addToDelete("in specified genres full", [&](const auto& item) { return std::ranges::includes(indexedGenres, item.second.genres); });
-												break;
-											case CleanGenreMode::Partial:
-												addToDelete("in specified genres partial", [&](const auto& item) { return Util::Intersect(indexedGenres, item.second.genres); });
-												break;
-											default: // NOLINT(clang-diagnostic-covered-switch-default)
-												assert(false && "unexpected mode");
-												break;
-										}
-										genres.clear();
-									}
+								   if (!genres.isEmpty())
+								   {
+									   const auto indexedGenres = std::set(std::make_move_iterator(genres.begin()), std::make_move_iterator(genres.end()));
+									   switch (observer.GetCleanGenreMode()) // NOLINT(clang-diagnostic-switch-enum)
+									   {
+										   case CleanGenreMode::Full:
+											   addToDelete("in specified genres full", [&](const auto& item) {
+												   return std::ranges::includes(indexedGenres, item.second.genres);
+											   });
+											   break;
+										   case CleanGenreMode::Partial:
+											   addToDelete("in specified genres partial", [&](const auto& item) {
+												   return Util::Intersect(indexedGenres, item.second.genres);
+											   });
+											   break;
+										   default: // NOLINT(clang-diagnostic-covered-switch-default)
+											   assert(false && "unexpected mode");
+											   break;
+									   }
+									   genres.clear();
+								   }
 
-									if (observer.NeedDeleteDuplicates())
-									{
-										const auto n = toDelete.size();
-										RemoveDuplicates(analysedBooks, toDelete);
-										PLOGI << "duplicates found: " << toDelete.size() - n;
-									}
+								   if (observer.NeedDeleteDuplicates())
+								   {
+									   const auto n = toDelete.size();
+									   RemoveDuplicates(analysedBooks, toDelete);
+									   PLOGI << "duplicates found: " << toDelete.size() - n;
+								   }
 
-									Books books;
-									books.reserve(toDelete.size());
-									std::ranges::transform(toDelete,
-			                                               std::back_inserter(books),
-			                                               [&](const long long id)
-			                                               {
-															   const auto it = analysedBooks.find(id);
-															   assert(it != analysedBooks.end());
-															   return Book { id, std::move(it->second.folder), std::move(it->second.file) };
-														   });
+								   Books books;
+								   books.reserve(toDelete.size());
+								   std::ranges::transform(toDelete, std::back_inserter(books), [&](const long long id) {
+									   const auto it = analysedBooks.find(id);
+									   assert(it != analysedBooks.end());
+									   return Book { id, std::move(it->second.folder), std::move(it->second.file) };
+								   });
 
-									analysedBooks.clear();
-									toDelete.clear();
+								   analysedBooks.clear();
+								   toDelete.clear();
 
-									result = [&, books = std::move(books)](size_t) mutable { observer.AnalyzeFinished(std::move(books)); };
+								   result = [&, books = std::move(books)](size_t) mutable {
+									   observer.AnalyzeFinished(std::move(books));
+								   };
 
-									return result;
-								} });
+								   return result;
+							   } });
 	}
 
 	void AnalyzeCancel()
@@ -370,47 +384,51 @@ struct CollectionCleaner::Impl
 
 	void Remove(Books books, Callback callback) const
 	{
-		databaseUser->Execute({ "Delete books permanently",
-		                        [this, books = std::move(books), callback = std::move(callback)]() mutable
-		                        {
-									std::unordered_set<long long> ids;
-									std::ranges::transform(books, std::inserter(ids, ids.end()), [](const auto& book) { return book.id; });
-									const bool ok = DatabaseUtil::ChangeBookRemoved(*databaseUser->Database(), ids, true, progressController);
-									return [callback = std::move(callback), ok](size_t) { callback(ok); };
-								} });
+		databaseUser->Execute({ "Delete books permanently", [this, books = std::move(books), callback = std::move(callback)]() mutable {
+								   std::unordered_set<long long> ids;
+								   std::ranges::transform(books, std::inserter(ids, ids.end()), [](const auto& book) {
+									   return book.id;
+								   });
+								   const bool ok = DatabaseUtil::ChangeBookRemoved(*databaseUser->Database(), ids, true, progressController);
+								   return [callback = std::move(callback), ok](size_t) {
+									   callback(ok);
+								   };
+							   } });
 	}
 
 	void RemovePermanently(Books books, Callback callback) const
 	{
-		databaseUser->Execute({ "Delete books permanently",
-		                        [this, books = std::move(books), callback = std::move(callback), collectionFolder = collectionProvider->GetActiveCollection().folder]() mutable
-		                        {
-									auto progressItem = progressController->Add(100);
+		databaseUser->Execute({ "Delete books permanently", [this, books = std::move(books), callback = std::move(callback), collectionFolder = collectionProvider->GetActiveCollection().folder]() mutable {
+								   auto progressItem = progressController->Add(100);
 
-									auto logicFactoryPtr = ILogicFactory::Lock(logicFactory);
-									auto allFiles = CollectBookFiles(books, *logicFactoryPtr, progressController);
-									auto images = CollectImageFiles(allFiles, collectionFolder, *logicFactoryPtr, progressController);
+								   auto logicFactoryPtr = ILogicFactory::Lock(logicFactory);
+								   auto allFiles        = CollectBookFiles(books, *logicFactoryPtr, progressController);
+								   auto images          = CollectImageFiles(allFiles, collectionFolder, *logicFactoryPtr, progressController);
 
-									std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
-									RemoveFiles(allFiles, collectionFolder);
+								   std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
+								   RemoveFiles(allFiles, collectionFolder);
 
-									const auto db = databaseUser->Database();
-									const auto transaction = db->CreateTransaction();
+								   const auto db          = databaseUser->Database();
+								   const auto transaction = db->CreateTransaction();
 
-									auto ok = RemoveBooksImpl(books, *transaction, std::move(progressItem));
-									ok = CleanupNavigationItems(*transaction) && ok;
-									ok = transaction->Commit() && ok;
+								   auto ok = RemoveBooksImpl(books, *transaction, std::move(progressItem));
+								   ok      = CleanupNavigationItems(*transaction) && ok;
+								   ok      = transaction->Commit() && ok;
 
-									return [callback = std::move(callback), ok](size_t) { callback(ok); };
-								} });
+								   return [callback = std::move(callback), ok](size_t) {
+									   callback(ok);
+								   };
+							   } });
 	}
 };
 
-CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ILogicFactory>& logicFactory,
-                                     std::shared_ptr<const IDatabaseUser> databaseUser,
-                                     std::shared_ptr<const ICollectionProvider> collectionProvider,
-                                     std::shared_ptr<const ILibRateProvider> libRateProvider,
-                                     std::shared_ptr<IBooksExtractorProgressController> progressController)
+CollectionCleaner::CollectionCleaner(
+	const std::shared_ptr<const ILogicFactory>&        logicFactory,
+	std::shared_ptr<const IDatabaseUser>               databaseUser,
+	std::shared_ptr<const ICollectionProvider>         collectionProvider,
+	std::shared_ptr<const ILibRateProvider>            libRateProvider,
+	std::shared_ptr<IBooksExtractorProgressController> progressController
+)
 	: m_impl { std::make_unique<Impl>(logicFactory, std::move(databaseUser), std::move(collectionProvider), std::move(libRateProvider), std::move(progressController)) }
 {
 }

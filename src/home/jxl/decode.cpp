@@ -13,7 +13,7 @@ namespace HomeCompa::JXL
 
 QImage Decode(const QByteArray& bytes)
 {
-	QImage image;
+	QImage     image;
 	const auto runner = JxlResizableParallelRunnerMake(nullptr);
 
 	const auto dec = JxlDecoderMake(nullptr);
@@ -29,7 +29,7 @@ QImage Decode(const QByteArray& bytes)
 		return {};
 	}
 
-	JxlBasicInfo info;
+	JxlBasicInfo   info;
 	JxlPixelFormat format;
 
 	JxlDecoderSetInput(dec.get(), reinterpret_cast<const uint8_t*>(bytes.constData()), static_cast<size_t>(bytes.size()));
@@ -54,7 +54,7 @@ QImage Decode(const QByteArray& bytes)
 					return {};
 				}
 
-				image = QImage(static_cast<int>(info.xsize), static_cast<int>(info.ysize), info.num_extra_channels ? QImage::Format_RGBA8888 : QImage::Format_RGB888);
+				image  = QImage(static_cast<int>(info.xsize), static_cast<int>(info.ysize), info.num_extra_channels ? QImage::Format_RGBA8888 : QImage::Format_RGB888);
 				format = JxlPixelFormat { image.pixelFormat().channelCount(), JXL_TYPE_UINT8, JXL_NATIVE_ENDIAN, static_cast<size_t>(image.bytesPerLine()) };
 
 				JxlResizableParallelRunnerSetThreads(runner.get(), JxlResizableParallelRunnerSuggestThreads(info.xsize, info.ysize));
@@ -63,7 +63,7 @@ QImage Decode(const QByteArray& bytes)
 			case JXL_DEC_NEED_IMAGE_OUT_BUFFER:
 			{
 				const auto imageDataSize = static_cast<size_t>(image.height() * image.bytesPerLine());
-				size_t bufferSize;
+				size_t     bufferSize;
 				if (JXL_DEC_SUCCESS != JxlDecoderImageOutBufferSize(dec.get(), &format, &bufferSize))
 				{
 					PLOGE << "JxlDecoderImageOutBufferSize failed";

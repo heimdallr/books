@@ -8,7 +8,7 @@ namespace HomeCompa::ZipDetails::SevenZip
 CPropVariant::CPropVariant()
 	: PROPVARIANT()
 {
-	vt = VT_EMPTY;
+	vt         = VT_EMPTY;
 	wReserved1 = 0;
 }
 
@@ -20,57 +20,57 @@ CPropVariant::~CPropVariant()
 CPropVariant::CPropVariant(bool bSrc)
 	: PROPVARIANT()
 {
-	vt = VT_BOOL;
+	vt         = VT_BOOL;
 	wReserved1 = 0;
-	boolVal = (bSrc ? VARIANT_TRUE : VARIANT_FALSE);
+	boolVal    = (bSrc ? VARIANT_TRUE : VARIANT_FALSE);
 }
 
 CPropVariant::CPropVariant(Byte value)
 	: PROPVARIANT()
 {
-	vt = VT_UI1;
+	vt         = VT_UI1;
 	wReserved1 = 0;
-	bVal = value;
+	bVal       = value;
 }
 
 CPropVariant::CPropVariant(Int16 value)
 	: PROPVARIANT()
 {
-	vt = VT_I2;
+	vt         = VT_I2;
 	wReserved1 = 0;
-	iVal = value;
+	iVal       = value;
 }
 
 CPropVariant::CPropVariant(Int32 value)
 	: PROPVARIANT()
 {
-	vt = VT_I4;
+	vt         = VT_I4;
 	wReserved1 = 0;
-	lVal = value;
+	lVal       = value;
 }
 
 CPropVariant::CPropVariant(UInt32 value)
 	: PROPVARIANT()
 {
-	vt = VT_UI4;
+	vt         = VT_UI4;
 	wReserved1 = 0;
-	ulVal = value;
+	ulVal      = value;
 }
 
 CPropVariant::CPropVariant(UInt64 value)
 	: PROPVARIANT()
 {
-	vt = VT_UI8;
-	wReserved1 = 0;
+	vt             = VT_UI8;
+	wReserved1     = 0;
 	uhVal.QuadPart = value;
 }
 
 CPropVariant::CPropVariant(FILETIME value)
 	: PROPVARIANT()
 {
-	vt = VT_FILETIME;
+	vt         = VT_FILETIME;
 	wReserved1 = 0;
-	filetime = value;
+	filetime   = value;
 }
 
 CPropVariant::CPropVariant(const PROPVARIANT& varSrc)
@@ -92,21 +92,21 @@ CPropVariant::CPropVariant(CPropVariant&&) noexcept = default;
 CPropVariant::CPropVariant(BSTR bstrSrc)
 	: PROPVARIANT()
 {
-	vt = VT_EMPTY;
+	vt    = VT_EMPTY;
 	*this = bstrSrc;
 }
 
 CPropVariant::CPropVariant(LPCOLESTR lpszSrc)
 	: PROPVARIANT()
 {
-	vt = VT_EMPTY;
+	vt    = VT_EMPTY;
 	*this = lpszSrc;
 }
 
 CPropVariant::CPropVariant(const std::wstring& value)
 	: PROPVARIANT()
 {
-	vt = VT_EMPTY;
+	vt    = VT_EMPTY;
 	*this = value.data();
 }
 
@@ -135,9 +135,9 @@ static const char* kMemException = "out of memory";
 CPropVariant& CPropVariant::operator=(const LPCOLESTR lpszSrc)
 {
 	InternalClear();
-	vt = VT_BSTR;
+	vt         = VT_BSTR;
 	wReserved1 = 0;
-	bstrVal = ::SysAllocString(lpszSrc);
+	bstrVal    = ::SysAllocString(lpszSrc);
 	if (!bstrVal && !lpszSrc)
 		throw kMemException;
 
@@ -147,10 +147,10 @@ CPropVariant& CPropVariant::operator=(const LPCOLESTR lpszSrc)
 CPropVariant& CPropVariant::operator=(const char* s)
 {
 	InternalClear();
-	vt = VT_BSTR;
-	wReserved1 = 0;
+	vt             = VT_BSTR;
+	wReserved1     = 0;
 	const auto len = strlen(s);
-	bstrVal = ::SysAllocStringByteLen(nullptr, static_cast<UINT>(len * sizeof(OLECHAR)));
+	bstrVal        = ::SysAllocStringByteLen(nullptr, static_cast<UINT>(len * sizeof(OLECHAR)));
 	if (!bstrVal)
 		throw kMemException;
 
@@ -210,7 +210,7 @@ static HRESULT MyPropVariantClear(PROPVARIANT* prop)
 		case VT_R8:
 		case VT_CY:
 		case VT_DATE:
-			prop->vt = VT_EMPTY;
+			prop->vt         = VT_EMPTY;
 			prop->wReserved1 = 0;
 			return S_OK;
 	}
@@ -276,7 +276,7 @@ HRESULT CPropVariant::InternalClear()
 	const HRESULT hr = Clear();
 	if (FAILED(hr))
 	{
-		vt = VT_ERROR;
+		vt    = VT_ERROR;
 		scode = hr;
 	}
 	return hr;
@@ -289,7 +289,7 @@ void CPropVariant::InternalCopy(const PROPVARIANT* pSrc)
 	{
 		if (hr == E_OUTOFMEMORY)
 			throw kMemException;
-		vt = VT_ERROR;
+		vt    = VT_ERROR;
 		scode = hr;
 	}
 }

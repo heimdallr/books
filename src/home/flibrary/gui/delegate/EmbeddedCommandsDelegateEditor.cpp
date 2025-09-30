@@ -15,9 +15,10 @@ using namespace Flibrary;
 
 namespace
 {
-constexpr auto CONTEXT = "ScriptController";
+constexpr auto        CONTEXT = "ScriptController";
 constexpr const char* EMBEDDED_COMMANDS[] {
 	{ QT_TRANSLATE_NOOP("ScriptController", "Download") },
+	{ QT_TRANSLATE_NOOP("ScriptController", "OpenLink") },
 };
 static_assert(std::size(EMBEDDED_COMMANDS) == static_cast<size_t>(IScriptController::EmbeddedCommand::Last));
 

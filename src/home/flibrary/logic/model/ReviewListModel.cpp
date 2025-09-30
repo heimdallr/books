@@ -22,22 +22,26 @@ ReviewListModel::~ReviewListModel()
 QVariant ReviewListModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
 {
 	if (orientation != Qt::Horizontal)
-		return {};
+		return ListModel::headerData(section, orientation, role);
+
+	const auto getHeader = [&] {
+		return section < m_data->GetColumnCount() ? m_data->GetData(section) : m_data->GetRawData(section - m_data->GetColumnCount() + BookItem::Column::Last);
+	};
 
 	switch (role)
 	{
 		case Qt::DisplayRole:
 		case Role::HeaderTitle:
-		{
-			const auto data = section < m_data->GetColumnCount() ? m_data->GetData(section) : m_data->GetRawData(section - m_data->GetColumnCount() + BookItem::Column::Last);
-			return Loc::Tr(Loc::Ctx::BOOK, data.toUtf8().data());
-		}
+			return Loc::Tr(Loc::Ctx::BOOK, getHeader().toUtf8().data());
+
+		case Role::HeaderName:
+			return getHeader();
 
 		default:
 			break;
 	}
 
-	return {};
+	return ListModel::headerData(section, orientation, role);
 }
 
 int ReviewListModel::columnCount(const QModelIndex& /*parent*/) const
@@ -46,12 +50,15 @@ int ReviewListModel::columnCount(const QModelIndex& /*parent*/) const
 		return 0;
 
 	const auto reviewItem = m_data->GetChild(0);
-	auto count = reviewItem->GetColumnCount() + m_data->GetColumnCount();
+	auto       count      = reviewItem->GetColumnCount() + m_data->GetColumnCount();
 	return count;
 }
 
 QVariant ReviewListModel::data(const QModelIndex& index, const int role) const
 {
+	if (!index.isValid())
+		return ListModel::data(index, role);
+
 	const auto* item = GetInternalPointer(index);
 	if (item->To<ReviewItem>())
 	{
@@ -59,7 +66,7 @@ QVariant ReviewListModel::data(const QModelIndex& index, const int role) const
 		{
 			case Qt::DisplayRole:
 			case Qt::ToolTipRole:
-				return GetValue(*item, index.column() - item->GetChild(0)->GetColumnCount());
+				return item->GetData(index.column() - item->GetChild(0)->GetColumnCount());
 
 			case Role::Remap:
 				return index.column();
@@ -75,6 +82,6 @@ QVariant ReviewListModel::data(const QModelIndex& index, const int role) const
 IDataItem* ReviewListModel::GetInternalPointer(const QModelIndex& index) const
 {
 	auto* reviewItem = BaseModel::GetInternalPointer(index);
-	auto bookItem = reviewItem->GetChild(0);
+	auto  bookItem   = reviewItem->GetChild(0);
 	return index.column() < bookItem->GetColumnCount() ? bookItem.get() : reviewItem;
 }

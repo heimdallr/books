@@ -12,18 +12,19 @@ T GetImpl(const IQuery& query, size_t index) = delete;
 class IQuery : virtual public ICommand
 {
 public:
-	virtual bool Eof() = 0;
-	virtual void Next() = 0;
+	virtual bool Eof()   = 0;
+	virtual void Next()  = 0;
+	virtual void Reset() = 0;
 
-	virtual size_t ColumnCount() const = 0;
+	virtual size_t      ColumnCount() const            = 0;
 	virtual std::string ColumnName(size_t index) const = 0;
 
-	virtual bool IsNull(size_t index) const = 0;
-	virtual int GetInt(size_t index) const = 0;
-	virtual long long int GetLong(size_t index) const = 0;
-	virtual double GetDouble(size_t index) const = 0;
-	virtual std::string GetString(size_t index) const = 0;
-	virtual const char* GetRawString(size_t index) const = 0;
+	virtual bool          IsNull(size_t index) const       = 0;
+	virtual int           GetInt(size_t index) const       = 0;
+	virtual long long int GetLong(size_t index) const      = 0;
+	virtual double        GetDouble(size_t index) const    = 0;
+	virtual std::string   GetString(size_t index) const    = 0;
+	virtual const char*   GetRawString(size_t index) const = 0;
 
 	template <typename T>
 	T Get(const size_t index) const

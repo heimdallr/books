@@ -6,6 +6,7 @@
 #include <memory>
 #include <vector>
 
+#include "fnd/EnumBitmask.h"
 #include "fnd/NonCopyMovable.h"
 
 class QString;
@@ -33,9 +34,18 @@ class IDataItem // NOLINT(cppcoreguidelines-special-member-functions)
 	NON_COPY_MOVABLE(IDataItem)
 
 public:
-	virtual ~IDataItem() = default;
-	using Ptr = std::shared_ptr<IDataItem>;
-	using Items = std::vector<Ptr>;
+	enum class Flags
+	{
+		None          = 0,
+		Filtered      = 1 << 0,
+		BooksFiltered = 1 << 1,
+		Multiple      = 1 << 2,
+	};
+
+public:
+	virtual ~IDataItem()                = default;
+	using Ptr                           = std::shared_ptr<IDataItem>;
+	using Items                         = std::vector<Ptr>;
 	static constexpr auto INVALID_INDEX = std::numeric_limits<size_t>::max();
 
 protected:
@@ -49,32 +59,34 @@ public:
 		return const_cast<IDataItem*>(this)->GetParent();
 	}
 
-	virtual Ptr& AppendChild(Ptr child) = 0;
-	virtual void RemoveChild(size_t row = INVALID_INDEX) = 0;
-	virtual void RemoveAllChildren() = 0;
-	virtual void SetChildren(Items children) noexcept = 0;
-	[[nodiscard]] virtual Ptr GetChild(size_t row) const noexcept = 0;
-	[[nodiscard]] virtual size_t GetChildCount() const noexcept = 0;
-	[[nodiscard]] virtual size_t GetRow() const noexcept = 0;
-	[[nodiscard]] virtual const QString& GetId() const noexcept = 0;
-	[[nodiscard]] virtual const QString& GetData(int column = 0) const noexcept = 0;
+	virtual Ptr&                         AppendChild(Ptr child)                    = 0;
+	virtual void                         RemoveChild(size_t row = INVALID_INDEX)   = 0;
+	virtual void                         RemoveAllChildren()                       = 0;
+	virtual void                         SetChildren(Items children) noexcept      = 0;
+	[[nodiscard]] virtual Ptr            GetChild(size_t row) const noexcept       = 0;
+	[[nodiscard]] virtual size_t         GetChildCount() const noexcept            = 0;
+	[[nodiscard]] virtual size_t         GetRow() const noexcept                   = 0;
+	[[nodiscard]] virtual const QString& GetId() const noexcept                    = 0;
+	[[nodiscard]] virtual Flags          GetFlags() const noexcept                 = 0;
+	[[nodiscard]] virtual const QString& GetData(int column = 0) const noexcept    = 0;
 	[[nodiscard]] virtual const QString& GetRawData(int column = 0) const noexcept = 0;
 
-	[[nodiscard]] virtual bool IsRemoved() const noexcept = 0;
-	virtual void SetRemoved(bool value) noexcept = 0;
+	[[nodiscard]] virtual bool IsRemoved() const noexcept      = 0;
+	virtual void               SetRemoved(bool value) noexcept = 0;
 
 	[[nodiscard]] virtual int RemapColumn(int column) const noexcept = 0;
-	[[nodiscard]] virtual int GetColumnCount() const noexcept = 0;
+	[[nodiscard]] virtual int GetColumnCount() const noexcept        = 0;
 
-	virtual IDataItem& SetId(QString id) noexcept = 0;
+	virtual IDataItem& SetId(QString id) noexcept                      = 0;
+	virtual IDataItem& SetFlags(Flags flags) noexcept                  = 0;
 	virtual IDataItem& SetData(QString value, int column = 0) noexcept = 0;
 
-	[[nodiscard]] virtual ItemType GetType() const noexcept = 0;
-	[[nodiscard]] virtual Qt::CheckState GetCheckState() const noexcept = 0;
-	virtual void SetCheckState(Qt::CheckState state) noexcept = 0;
-	virtual void Reduce() = 0;
+	[[nodiscard]] virtual ItemType       GetType() const noexcept                     = 0;
+	[[nodiscard]] virtual Qt::CheckState GetCheckState() const noexcept               = 0;
+	virtual void                         SetCheckState(Qt::CheckState state) noexcept = 0;
+	virtual void                         Reduce()                                     = 0;
 
-	virtual Ptr FindChild(const std::function<bool(const IDataItem&)>& functor) const = 0;
+	virtual Ptr  FindChild(const std::function<bool(const IDataItem&)>& functor) const                         = 0;
 	virtual void SortChildren(const std::function<bool(const IDataItem& lhs, const IDataItem& rhs)>& comparer) = 0;
 
 public:
@@ -108,7 +120,7 @@ private:
 
 struct BookInfo
 {
-	IDataItem::Ptr book;
+	IDataItem::Ptr              book;
 	std::vector<IDataItem::Ptr> authors;
 	std::vector<IDataItem::Ptr> genres;
 };
@@ -116,3 +128,5 @@ struct BookInfo
 using BookInfoList = std::vector<BookInfo>;
 
 } // namespace HomeCompa::Flibrary
+
+ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::IDataItem::Flags);

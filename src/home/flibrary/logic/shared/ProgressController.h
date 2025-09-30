@@ -19,10 +19,10 @@ public:
 	~ProgressController() override;
 
 private: // IProgressController
-	bool IsStarted() const noexcept override;
+	bool                           IsStarted() const noexcept override;
 	std::unique_ptr<IProgressItem> Add(int64_t value) override;
-	double GetValue() const noexcept override;
-	void Stop() override;
+	double                         GetValue() const noexcept override;
+	void                           Stop() override;
 
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;

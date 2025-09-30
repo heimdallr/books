@@ -23,7 +23,7 @@ public:
 	{
 		observer->RegisterObservableHelper(this);
 		[[maybe_unused]] auto inserted = m_observers.emplace(observer).second;
-		inserted = m_observersMap.emplace(observer, observer).second && inserted;
+		inserted                       = m_observersMap.emplace(observer, observer).second && inserted;
 		assert(inserted);
 	}
 
@@ -61,7 +61,7 @@ private:
 	}
 
 private:
-	std::unordered_set<T*> m_observers;
+	std::unordered_set<T*>            m_observers;
 	std::unordered_map<Observer*, T*> m_observersMap;
 };
 

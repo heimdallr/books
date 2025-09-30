@@ -66,6 +66,9 @@ public:
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileSize)              \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Genre)                 \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(GenreTree)             \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Keyword)               \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AllKeywords)           \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Language)              \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Id)                    \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(LibId)                 \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Uid)
@@ -78,7 +81,9 @@ public:
 			Last
 	};
 
-#define SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEMS_X_MACRO SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM(Download)
+#define SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEMS_X_MACRO \
+	SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM(Download)    \
+	SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM(OpenLink)
 
 	enum class EmbeddedCommand
 	{
@@ -91,8 +96,8 @@ public:
 	struct Base
 	{
 		QString uid;
-		int number { -1 };
-		Mode mode { Mode::None };
+		int     number { -1 };
+		Mode    mode { Mode::None };
 
 		void SetUpdated() noexcept
 		{
@@ -109,7 +114,7 @@ public:
 		};
 
 		QString name;
-		Type type { Type::ExportToDevice };
+		Type    type { Type::ExportToDevice };
 	};
 
 	using Scripts = std::vector<Script>;
@@ -128,13 +133,13 @@ public:
 		QString scriptUid;
 		QString command;
 		QString args;
-		Type type { Type::LaunchConsoleApp };
+		Type    type { Type::LaunchConsoleApp };
 	};
 
 	using Commands = std::vector<Command>;
 
 public:
-	static constexpr auto s_context = "ScriptController";
+	static constexpr auto                                 s_context = "ScriptController";
 	static constexpr std::pair<Script::Type, const char*> s_scriptTypes[] {
 		{ Script::Type::ExportToDevice, QT_TRANSLATE_NOOP("ScriptController", "ExportToDevice") },
 	};
@@ -142,18 +147,18 @@ public:
 	class ICommandExecutor : public Lockable<ICommandExecutor> // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
-		virtual ~ICommandExecutor() = default;
-		virtual bool ExecuteSystem(const Command& command) const = 0;
+		virtual ~ICommandExecutor()                                        = default;
+		virtual bool ExecuteSystem(const Command& command) const           = 0;
 		virtual bool ExecuteLaunchConsoleApp(const Command& command) const = 0;
-		virtual bool ExecuteLaunchGuiApp(const Command& command) const = 0;
-		virtual bool ExecuteEmbeddedCommand(const Command& command) const = 0;
+		virtual bool ExecuteLaunchGuiApp(const Command& command) const     = 0;
+		virtual bool ExecuteEmbeddedCommand(const Command& command) const  = 0;
 	};
 
 	using CommandExecutorFunctor = bool (ICommandExecutor::*)(const Command& command) const;
 
 	struct CommandDescription
 	{
-		const char* type { nullptr };
+		const char*            type { nullptr };
 		CommandExecutorFunctor executor { nullptr };
 	};
 
@@ -184,6 +189,9 @@ public:
 		{			  Macro::FileSize, QT_TRANSLATE_NOOP("ScriptController",               "%file_size%") },
 		{				 Macro::Genre, QT_TRANSLATE_NOOP("ScriptController",                   "%genre%") },
 		{			 Macro::GenreTree, QT_TRANSLATE_NOOP("ScriptController",              "%genre_tree%") },
+		{			   Macro::Keyword, QT_TRANSLATE_NOOP("ScriptController",                 "%keyword%") },
+		{		   Macro::AllKeywords, QT_TRANSLATE_NOOP("ScriptController",            "%all_keywords%") },
+		{			  Macro::Language, QT_TRANSLATE_NOOP("ScriptController",                "%language%") },
 		{					Macro::Id, QT_TRANSLATE_NOOP("ScriptController",                   "%db_id%") },
 		{				 Macro::LibId, QT_TRANSLATE_NOOP("ScriptController",                  "%lib_id%") },
 		{				   Macro::Uid, QT_TRANSLATE_NOOP("ScriptController",                     "%uid%") },
@@ -191,30 +199,30 @@ public:
 	static_assert(std::size(s_commandMacros) == static_cast<size_t>(Macro::Last));
 
 public:
-	FLINT_EXPORT static bool HasMacro(const QString& str, Macro macro);
-	FLINT_EXPORT static QString& SetMacro(QString& str, Macro macro, const QString& value);
+	FLINT_EXPORT static bool        HasMacro(const QString& str, Macro macro);
+	FLINT_EXPORT static QString&    SetMacro(QString& str, Macro macro, const QString& value);
 	FLINT_EXPORT static const char* GetMacro(Macro macro);
-	FLINT_EXPORT static void ExecuteContextMenu(QLineEdit* lineEdit);
-	FLINT_EXPORT static QString GetDefaultOutputFileNameTemplate();
+	FLINT_EXPORT static void        ExecuteContextMenu(QLineEdit* lineEdit);
+	FLINT_EXPORT static QString     GetDefaultOutputFileNameTemplate();
 
 public:
 	virtual ~IScriptController() = default;
 
-	virtual const Scripts& GetScripts() const noexcept = 0;
-	virtual bool InsertScripts(int row, int count) = 0;
-	virtual bool RemoveScripts(int row, int count) = 0;
-	virtual bool SetScriptType(int n, Script::Type value) = 0;
-	virtual bool SetScriptName(int n, QString value) = 0;
-	virtual bool SetScriptNumber(int n, int value) = 0;
+	virtual const Scripts& GetScripts() const noexcept              = 0;
+	virtual bool           InsertScripts(int row, int count)        = 0;
+	virtual bool           RemoveScripts(int row, int count)        = 0;
+	virtual bool           SetScriptType(int n, Script::Type value) = 0;
+	virtual bool           SetScriptName(int n, QString value)      = 0;
+	virtual bool           SetScriptNumber(int n, int value)        = 0;
 
-	virtual const Commands& GetCommands() const noexcept = 0;
-	virtual Commands GetCommands(const QString& scriptUid) const = 0;
-	virtual bool InsertCommand(const QString& uid, int row, int count) = 0;
-	virtual bool RemoveCommand(int row, int count) = 0;
-	virtual bool SetCommandType(int n, Command::Type value) = 0;
-	virtual bool SetCommandCommand(int n, QString value) = 0;
-	virtual bool SetCommandArgs(int n, QString value) = 0;
-	virtual bool SetCommandNumber(int n, int value) = 0;
+	virtual const Commands& GetCommands() const noexcept                          = 0;
+	virtual Commands        GetCommands(const QString& scriptUid) const           = 0;
+	virtual bool            InsertCommand(const QString& uid, int row, int count) = 0;
+	virtual bool            RemoveCommand(int row, int count)                     = 0;
+	virtual bool            SetCommandType(int n, Command::Type value)            = 0;
+	virtual bool            SetCommandCommand(int n, QString value)               = 0;
+	virtual bool            SetCommandArgs(int n, QString value)                  = 0;
+	virtual bool            SetCommandNumber(int n, int value)                    = 0;
 
 	virtual bool Execute(const Command& command) const = 0;
 
@@ -224,7 +232,7 @@ public:
 class IScriptControllerProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	virtual ~IScriptControllerProvider() = default;
+	virtual ~IScriptControllerProvider()                             = default;
 	virtual std::shared_ptr<IScriptController> GetScriptController() = 0;
 };
 

@@ -26,31 +26,32 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto CONTEXT = "JokeRequester";
-constexpr auto CatFactJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "CatFacts");
-constexpr auto CatPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "CatPictures");
-constexpr auto ChuckNorrisJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "ChuckNorrisFacts");
-constexpr auto DadJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "DadJokes");
-constexpr auto DogPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "DogPictures");
-constexpr auto FoxPicsJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "FoxPictures");
-constexpr auto JokeApiJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Jokes");
-constexpr auto QuoteJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "Quotes");
-constexpr auto QuotePicJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "QuotePics");
-constexpr auto SetupPunchlineJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "PunchlineJokes");
-constexpr auto UselessFactJokeRequesterTitle = QT_TRANSLATE_NOOP("JokeRequester", "UselessFacts");
-constexpr auto CatFactJokeRequesterDisclaimer = "";
-constexpr auto CatPicsJokeRequesterDisclaimer = "";
+constexpr auto CONTEXT                            = "JokeRequester";
+constexpr auto CatFactJokeRequesterTitle          = QT_TRANSLATE_NOOP("JokeRequester", "CatFacts");
+constexpr auto CatPicsJokeRequesterTitle          = QT_TRANSLATE_NOOP("JokeRequester", "CatPictures");
+constexpr auto ChuckNorrisJokeRequesterTitle      = QT_TRANSLATE_NOOP("JokeRequester", "ChuckNorrisFacts");
+constexpr auto DadJokeRequesterTitle              = QT_TRANSLATE_NOOP("JokeRequester", "DadJokes");
+constexpr auto DogPicsJokeRequesterTitle          = QT_TRANSLATE_NOOP("JokeRequester", "DogPictures");
+constexpr auto FoxPicsJokeRequesterTitle          = QT_TRANSLATE_NOOP("JokeRequester", "FoxPictures");
+constexpr auto JokeApiJokeRequesterTitle          = QT_TRANSLATE_NOOP("JokeRequester", "Jokes");
+constexpr auto QuoteJokeRequesterTitle            = QT_TRANSLATE_NOOP("JokeRequester", "Quotes");
+constexpr auto QuotePicJokeRequesterTitle         = QT_TRANSLATE_NOOP("JokeRequester", "QuotePics");
+constexpr auto SetupPunchlineJokeRequesterTitle   = QT_TRANSLATE_NOOP("JokeRequester", "PunchlineJokes");
+constexpr auto UselessFactJokeRequesterTitle      = QT_TRANSLATE_NOOP("JokeRequester", "UselessFacts");
+constexpr auto CatFactJokeRequesterDisclaimer     = "";
+constexpr auto CatPicsJokeRequesterDisclaimer     = "";
 constexpr auto ChuckNorrisJokeRequesterDisclaimer = "";
-constexpr auto DadJokeRequesterDisclaimer = "";
-constexpr auto DogPicsJokeRequesterDisclaimer = "";
-constexpr auto FoxPicsJokeRequesterDisclaimer = "";
-constexpr auto JokeApiJokeRequesterDisclaimer = QT_TRANSLATE_NOOP(
-	"JokeRequester",
-	R"(<center><b>Warning!</b></center><br/></br>Jokes in this section may be rude, unsafe for work environment, religiously or politically offensive, sexist, or explicit. By clicking "Yes" you accept all responsibility for reading them. Otherwise you must click "No".<br/><br/>Do you still want to read such jokes?)");
-constexpr auto QuoteJokeRequesterDisclaimer = "";
-constexpr auto QuotePicJokeRequesterDisclaimer = "";
+constexpr auto DadJokeRequesterDisclaimer         = "";
+constexpr auto DogPicsJokeRequesterDisclaimer     = "";
+constexpr auto FoxPicsJokeRequesterDisclaimer     = "";
+constexpr auto JokeApiJokeRequesterDisclaimer     = QT_TRANSLATE_NOOP(
+    "JokeRequester",
+    R"(<center><b>Warning!</b></center><br/></br>Jokes in this section may be rude, unsafe for work environment, religiously or politically offensive, sexist, or explicit. By clicking "Yes" you accept all responsibility for reading them. Otherwise you must click "No".<br/><br/>Do you still want to read such jokes?)"
+);
+constexpr auto QuoteJokeRequesterDisclaimer          = "";
+constexpr auto QuotePicJokeRequesterDisclaimer       = "";
 constexpr auto SetupPunchlineJokeRequesterDisclaimer = "";
-constexpr auto UselessFactJokeRequesterDisclaimer = "";
+constexpr auto UselessFactJokeRequesterDisclaimer    = "";
 TR_DEF
 
 template <typename T>
@@ -73,7 +74,7 @@ constexpr std::pair<IJokeRequesterFactory::Implementation, std::tuple<const char
 
 struct JokeRequesterFactory::Impl
 {
-	Hypodermic::Container& container;
+	Hypodermic::Container&               container;
 	std::shared_ptr<Network::Downloader> downloader;
 };
 
@@ -88,11 +89,9 @@ std::vector<IJokeRequesterFactory::ImplementationDescription> JokeRequesterFacto
 {
 	std::vector<ImplementationDescription> result;
 	result.reserve(std::size(IMPLEMENTATIONS));
-	std::ranges::transform(
-		IMPLEMENTATIONS,
-		std::back_inserter(result),
-		[](const auto& item)
-		{ return ImplementationDescription { .implementation = item.first, .name = std::get<0>(item.second), .title = Tr(std::get<0>(item.second)), .disclaimer = Tr(std::get<1>(item.second)) }; });
+	std::ranges::transform(IMPLEMENTATIONS, std::back_inserter(result), [](const auto& item) {
+		return ImplementationDescription { .implementation = item.first, .name = std::get<0>(item.second), .title = Tr(std::get<0>(item.second)), .disclaimer = Tr(std::get<1>(item.second)) };
+	});
 	return result;
 }
 

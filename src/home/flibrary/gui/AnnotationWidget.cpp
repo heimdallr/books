@@ -52,16 +52,16 @@ constexpr std::pair<const char*, std::pair<const char*, bool>> TYPE_TO_NAVIGATIO
 };
 static_assert(std::size(TYPE_TO_NAVIGATION) == static_cast<size_t>(NavigationMode::Last));
 
-constexpr auto CONTEXT = "Annotation";
-constexpr auto SELECT_IMAGE_FILE_NAME = QT_TRANSLATE_NOOP("Annotation", "Select image file name");
-constexpr auto SELECT_IMAGE_FOLDER = QT_TRANSLATE_NOOP("Annotation", "Select images folder");
-constexpr auto IMAGE_FILE_NAME_FILTER = QT_TRANSLATE_NOOP("Annotation", "Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)");
+constexpr auto CONTEXT                   = "Annotation";
+constexpr auto SELECT_IMAGE_FILE_NAME    = QT_TRANSLATE_NOOP("Annotation", "Select image file name");
+constexpr auto SELECT_IMAGE_FOLDER       = QT_TRANSLATE_NOOP("Annotation", "Select images folder");
+constexpr auto IMAGE_FILE_NAME_FILTER    = QT_TRANSLATE_NOOP("Annotation", "Jpeg images (*.jpg *.jpeg);;PNG images (*.png);;All files (*.*)");
 constexpr auto SAVE_ALL_PICS_ACTION_TEXT = QT_TRANSLATE_NOOP("Annotation", "Save &all images (%1)...");
-constexpr auto SAVED_ALL = QT_TRANSLATE_NOOP("Annotation", "All %1 images were successfully saved");
-constexpr auto SAVED_PARTIALLY = QT_TRANSLATE_NOOP("Annotation", "%1 out of %2 images were saved");
-constexpr auto SAVED_WITH_ERRORS = QT_TRANSLATE_NOOP("Annotation", "%1 images out of %2 could not be saved");
-constexpr auto CANNOT_SAVE_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot save image to %1");
-constexpr auto CANNOT_OPEN_IMAGE = QT_TRANSLATE_NOOP("Annotation", "Cannot open %1");
+constexpr auto SAVED_ALL                 = QT_TRANSLATE_NOOP("Annotation", "All %1 images were successfully saved");
+constexpr auto SAVED_PARTIALLY           = QT_TRANSLATE_NOOP("Annotation", "%1 out of %2 images were saved");
+constexpr auto SAVED_WITH_ERRORS         = QT_TRANSLATE_NOOP("Annotation", "%1 images out of %2 could not be saved");
+constexpr auto CANNOT_SAVE_IMAGE         = QT_TRANSLATE_NOOP("Annotation", "Cannot save image to %1");
+constexpr auto CANNOT_OPEN_IMAGE         = QT_TRANSLATE_NOOP("Annotation", "Cannot open %1");
 
 #if (false) // NOLINT(readability-avoid-unconditional-preprocessor-if)
 QT_TRANSLATE_NOOP("Annotation", "Read")
@@ -120,18 +120,20 @@ class AnnotationWidget::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(AnnotationWidget& self,
-	     const std::shared_ptr<const IModelProvider>& modelProvider,
-	     const std::shared_ptr<const ILogicFactory>& logicFactory,
-	     const std::shared_ptr<ICollectionController>& collectionController,
-	     std::shared_ptr<const IReaderController> readerController,
-	     std::shared_ptr<ISettings> settings,
-	     std::shared_ptr<IAnnotationController> annotationController,
-	     std::shared_ptr<IUiFactory> uiFactory,
-	     std::shared_ptr<IBooksExtractorProgressController> progressController,
-	     std::shared_ptr<ItemViewToolTipper> itemViewToolTipperContent,
-	     std::shared_ptr<ScrollBarController> scrollBarControllerContent,
-	     std::shared_ptr<ScrollBarController> scrollBarControllerAnnotation)
+	Impl(
+		AnnotationWidget&                                  self,
+		const std::shared_ptr<const IModelProvider>&       modelProvider,
+		const std::shared_ptr<const ILogicFactory>&        logicFactory,
+		const std::shared_ptr<ICollectionController>&      collectionController,
+		std::shared_ptr<const IReaderController>           readerController,
+		std::shared_ptr<ISettings>                         settings,
+		std::shared_ptr<IAnnotationController>             annotationController,
+		std::shared_ptr<IUiFactory>                        uiFactory,
+		std::shared_ptr<IBooksExtractorProgressController> progressController,
+		std::shared_ptr<ItemViewToolTipper>                itemViewToolTipperContent,
+		std::shared_ptr<ScrollBarController>               scrollBarControllerContent,
+		std::shared_ptr<ScrollBarController>               scrollBarControllerAnnotation
+	)
 		: m_self { self }
 		, m_readerController { std::move(readerController) }
 		, m_settings { std::move(settings) }
@@ -156,8 +158,7 @@ public:
 		m_ui.info->installEventFilter(m_scrollBarControllerAnnotation.get());
 		m_scrollBarControllerAnnotation->SetScrollArea(m_ui.scrollArea);
 
-		const auto setCustomPalette = [](QWidget& widget)
-		{
+		const auto setCustomPalette = [](QWidget& widget) {
 			auto palette = widget.palette();
 			palette.setColor(QPalette::ColorRole::Window, palette.color(QPalette::ColorRole::Base));
 			widget.setPalette(palette);
@@ -176,11 +177,14 @@ public:
 
 		m_ui.cover->setStyleSheet("background-color: white;");
 
-		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&](const QString& link) { OnLinkActivated(link); });
-		connect(m_ui.info, &QLabel::linkHovered, m_ui.info, [&](const QString& link) { PLOGI_IF(!link.isEmpty()) << link; });
+		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&](const QString& link) {
+			OnLinkActivated(link);
+		});
+		connect(m_ui.info, &QLabel::linkHovered, m_ui.info, [&](const QString& link) {
+			PLOGI_IF(!link.isEmpty()) << link;
+		});
 
-		const auto onCoverClicked = [&](const QPoint& pos)
-		{
+		const auto onCoverClicked = [&](const QPoint& pos) {
 			if (m_covers.size() < 2)
 				return;
 
@@ -210,25 +214,20 @@ public:
 			OnResize();
 		};
 		connect(m_ui.cover, &ClickableLabel::clicked, onCoverClicked);
-		connect(m_ui.cover,
-		        &QWidget::customContextMenuRequested,
-		        &m_self,
-		        [this](const QPoint& pos)
-		        {
-					QMenu menu;
-					menu.addAction(m_ui.actionOpenImage);
-					menu.addAction(m_ui.actionCopyImage);
-					menu.addAction(m_ui.actionSaveImageAs);
-					menu.addAction(m_ui.actionSaveAllImages);
-					menu.setFont(m_self.font());
-					menu.exec(m_ui.cover->mapToGlobal(pos));
-				});
+		connect(m_ui.cover, &QWidget::customContextMenuRequested, &m_self, [this](const QPoint& pos) {
+			QMenu menu;
+			menu.addAction(m_ui.actionOpenImage);
+			menu.addAction(m_ui.actionCopyImage);
+			menu.addAction(m_ui.actionSaveImageAs);
+			menu.addAction(m_ui.actionSaveAllImages);
+			menu.setFont(m_self.font());
+			menu.exec(m_ui.cover->mapToGlobal(pos));
+		});
 
-		const auto openImage = [this]
-		{
+		const auto openImage = [this] {
 			assert(!m_covers.empty());
 			const auto& [name, bytes] = m_covers[m_currentCoverIndex];
-			auto path = m_logicFactory.lock()->CreateTemporaryDir()->filePath(name);
+			auto path                 = m_logicFactory.lock()->CreateTemporaryDir()->filePath(name);
 
 			if (!SaveImage(path, bytes))
 				return m_uiFactory->ShowError(Tr(CANNOT_SAVE_IMAGE).arg(path));
@@ -237,80 +236,70 @@ public:
 		};
 		connect(m_ui.cover, &ClickableLabel::doubleClicked, &m_self, openImage);
 
-		connect(m_ui.cover, &ClickableLabel::mouseEnter, &m_self, [this] { OnCoverEnter(); });
-		connect(m_ui.cover, &ClickableLabel::mouseLeave, &m_self, [this] { OnCoverLeave(); });
+		connect(m_ui.cover, &ClickableLabel::mouseEnter, &m_self, [this] {
+			OnCoverEnter();
+		});
+		connect(m_ui.cover, &ClickableLabel::mouseLeave, &m_self, [this] {
+			OnCoverLeave();
+		});
 
 		connect(m_ui.actionOpenImage, &QAction::triggered, &m_self, openImage);
 
-		connect(m_ui.actionCopyImage,
-		        &QAction::triggered,
-		        &m_self,
-		        [this]
-		        {
-					assert(!m_covers.empty());
-					const auto pixmap = Decode(m_covers[m_currentCoverIndex].bytes);
-					QGuiApplication::clipboard()->setImage(pixmap.toImage());
-				});
+		connect(m_ui.actionCopyImage, &QAction::triggered, &m_self, [this] {
+			assert(!m_covers.empty());
+			const auto pixmap = Decode(m_covers[m_currentCoverIndex].bytes);
+			QGuiApplication::clipboard()->setImage(pixmap.toImage());
+		});
 
-		connect(m_ui.actionSaveImageAs,
-		        &QAction::triggered,
-		        &m_self,
-		        [this]
-		        {
-					assert(!m_covers.empty());
-					if (auto fileName = m_uiFactory->GetSaveFileName(DIALOG_KEY, Tr(SELECT_IMAGE_FILE_NAME), IMAGE_FILE_NAME_FILTER); !fileName.isEmpty())
-						SaveImage(fileName, m_covers[m_currentCoverIndex].bytes);
-				});
+		connect(m_ui.actionSaveImageAs, &QAction::triggered, &m_self, [this] {
+			assert(!m_covers.empty());
+			if (auto fileName = m_uiFactory->GetSaveFileName(DIALOG_KEY, Tr(SELECT_IMAGE_FILE_NAME), IMAGE_FILE_NAME_FILTER); !fileName.isEmpty())
+				SaveImage(fileName, m_covers[m_currentCoverIndex].bytes);
+		});
 
-		connect(m_ui.actionSaveAllImages,
-		        &QAction::triggered,
-		        &m_self,
-		        [this]
-		        {
-					auto folder = m_uiFactory->GetExistingDirectory(DIALOG_KEY, Tr(SELECT_IMAGE_FOLDER));
-					if (folder.isEmpty())
-						return;
+		connect(m_ui.actionSaveAllImages, &QAction::triggered, &m_self, [this] {
+			auto folder = m_uiFactory->GetExistingDirectory(DIALOG_KEY, Tr(SELECT_IMAGE_FOLDER));
+			if (folder.isEmpty())
+				return;
 
-					std::shared_ptr progressItem = m_progressController->Add(static_cast<int>(m_covers.size()));
-					std::shared_ptr executor = ILogicFactory::Lock(m_logicFactory)->GetExecutor();
+			std::shared_ptr progressItem = m_progressController->Add(static_cast<int>(m_covers.size()));
+			std::shared_ptr executor     = ILogicFactory::Lock(m_logicFactory)->GetExecutor();
 
-					(*executor)({ "Save images",
-			                      [this, executor, folder = std::move(folder), covers = m_covers, progressItem = std::move(progressItem)]() mutable
-			                      {
-									  size_t savedCount = 0;
-									  for (const auto& [name, bytes] : covers)
-									  {
-										  auto path = QString("%1/%2").arg(folder).arg(name);
-										  if (SaveImage(path, bytes))
-											  ++savedCount;
+			(*executor)({ "Save images", [this, executor, folder = std::move(folder), covers = m_covers, progressItem = std::move(progressItem)]() mutable {
+							 size_t savedCount = 0;
+							 for (const auto& [name, bytes] : covers)
+							 {
+								 auto path = QString("%1/%2").arg(folder).arg(name);
+								 if (SaveImage(path, bytes))
+									 ++savedCount;
 
-										  progressItem->Increment(1);
-										  if (progressItem->IsStopped())
-											  break;
-									  }
+								 progressItem->Increment(1);
+								 if (progressItem->IsStopped())
+									 break;
+							 }
 
-									  return [this, executor = std::move(executor), progressItem = std::move(progressItem), savedCount, totalCount = covers.size()](size_t) mutable
-									  {
-										  if (savedCount == totalCount)
-											  m_uiFactory->ShowInfo(Tr(SAVED_ALL).arg(savedCount));
-										  else if (progressItem->IsStopped())
-											  m_uiFactory->ShowInfo(Tr(SAVED_PARTIALLY).arg(savedCount).arg(totalCount));
-										  else
-											  m_uiFactory->ShowWarning(Tr(SAVED_WITH_ERRORS).arg(totalCount - savedCount).arg(totalCount));
+							 return [this, executor = std::move(executor), progressItem = std::move(progressItem), savedCount, totalCount = covers.size()](size_t) mutable {
+								 if (savedCount == totalCount)
+									 m_uiFactory->ShowInfo(Tr(SAVED_ALL).arg(savedCount));
+								 else if (progressItem->IsStopped())
+									 m_uiFactory->ShowInfo(Tr(SAVED_PARTIALLY).arg(savedCount).arg(totalCount));
+								 else
+									 m_uiFactory->ShowWarning(Tr(SAVED_WITH_ERRORS).arg(totalCount - savedCount).arg(totalCount));
 
-										  progressItem.reset();
-										  executor.reset();
-									  };
-								  } });
-				});
+								 progressItem.reset();
+								 executor.reset();
+							 };
+						 } });
+		});
 
-		const auto createCoverButton = [this, onCoverClicked](const QString& iconFileName, const QAction* action)
-		{
+		const auto createCoverButton = [this, onCoverClicked](const QString& iconFileName, const QAction* action) {
 			auto* btn = new QToolButton(&m_self);
 			btn->setVisible(false);
 			btn->setToolTip(action->shortcut().toString());
 			btn->setIcon(QIcon(iconFileName));
-			connect(btn, &QAbstractButton::clicked, &m_self, [this, onCoverClicked] { onCoverClicked(m_ui.cover->mapFromGlobal(QCursor::pos())); });
+			connect(btn, &QAbstractButton::clicked, &m_self, [this, onCoverClicked] {
+				onCoverClicked(m_ui.cover->mapFromGlobal(QCursor::pos()));
+			});
 			m_coverButtons.push_back(btn);
 		};
 
@@ -319,9 +308,15 @@ public:
 		createCoverButton(":/icons/right.svg", m_ui.actionImageNext);
 
 		m_ui.cover->addActions({ m_ui.actionImagePrev, m_ui.actionImageNext, m_ui.actionImageHome });
-		connect(m_ui.actionImagePrev, &QAction::triggered, [this, onCoverClicked] { onCoverClicked(QPoint(1, 1)); });
-		connect(m_ui.actionImageNext, &QAction::triggered, [this, onCoverClicked] { onCoverClicked(QPoint(m_ui.cover->width() - 1, 1)); });
-		connect(m_ui.actionImageHome, &QAction::triggered, [this, onCoverClicked] { onCoverClicked(QPoint(m_ui.cover->width() / 2, 1)); });
+		connect(m_ui.actionImagePrev, &QAction::triggered, [this, onCoverClicked] {
+			onCoverClicked(QPoint(1, 1));
+		});
+		connect(m_ui.actionImageNext, &QAction::triggered, [this, onCoverClicked] {
+			onCoverClicked(QPoint(m_ui.cover->width() - 1, 1));
+		});
+		connect(m_ui.actionImageHome, &QAction::triggered, [this, onCoverClicked] {
+			onCoverClicked(QPoint(m_ui.cover->width() / 2, 1));
+		});
 	}
 
 	~Impl() override
@@ -359,7 +354,7 @@ public:
 		}
 
 		auto imgHeight = m_ui.mainWidget->height();
-		auto imgWidth = m_ui.mainWidget->width() / 3;
+		auto imgWidth  = m_ui.mainWidget->width() / 3;
 
 		if (const auto pixmap = Decode(m_covers[m_currentCoverIndex].bytes); !pixmap.isNull())
 		{
@@ -373,8 +368,8 @@ public:
 		else
 		{
 			const QIcon icon(":/icons/unsupported-image.svg");
-			const auto defaultSize = icon.availableSizes().front();
-			imgWidth = imgHeight * defaultSize.width() / defaultSize.height();
+			const auto  defaultSize = icon.availableSizes().front();
+			imgWidth                = imgHeight * defaultSize.width() / defaultSize.height();
 			m_ui.cover->setPixmap(icon.pixmap(imgWidth, imgHeight));
 		}
 
@@ -385,9 +380,9 @@ public:
 		m_ui.coverArea->setMaximumWidth(imgWidth);
 
 		const QFontMetrics metrics(m_self.font());
-		const auto height = 3 * metrics.lineSpacing() / 2;
-		const QSize size { height, height };
-		const auto top = imgHeight - height - height / 8;
+		const auto         height = 3 * metrics.lineSpacing() / 2;
+		const QSize        size { height, height };
+		const auto         top = imgHeight - height - height / 8;
 		m_coverButtons[CoverButtonType::Previous]->setGeometry(QRect {
 			QPoint { height / 8, top },
 			size
@@ -464,30 +459,28 @@ private: // IAnnotationController::IObserver
 
 	void OnArchiveParserProgress(const int percents) override
 	{
-		m_forwarder.Forward(
-			[&, percents]
+		m_forwarder.Forward([&, percents] {
+			if (percents)
 			{
-				if (percents)
-				{
-					if (!m_progressTimer.isActive())
-						m_ui.info->setText(percents == 100 ? QString {} : QString("%1%").arg(percents));
-				}
-				else
-				{
-					m_progressTimer.start();
-				}
-			});
+				if (!m_progressTimer.isActive())
+					m_ui.info->setText(percents == 100 ? QString {} : QString("%1%").arg(percents));
+			}
+			else
+			{
+				m_progressTimer.start();
+			}
+		});
 	}
 
 private: // IAnnotationController::IUrlGenerator
-	QString GenerateUrl(const char* type, const QString& id, const QString& str) const override
+	QString GenerateUrl(const char* type, const QString& id, const QString& str, const bool textMode) const override
 	{
 		if (str.isEmpty())
 			return {};
 
 		const auto& navigation = FindSecond(TYPE_TO_NAVIGATION, type, NO_NAVIGATION, PszComparer {});
-		return !navigation.first || m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation.first), true) ? QString("<a href=%1//%2>%3</a>").arg(type, id, str)
-		                                                                                                                                   : QString("%1").arg(str);
+		return textMode || navigation.first && !m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation.first), true) ? QString("%1").arg(str)
+		                                                                                                                                               : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
 	}
 
 	QString GenerateStars(const int rate) const override
@@ -504,7 +497,9 @@ private:
 		{
 			return m_readerController->Read(url.back().toLongLong());
 		}
-		if (std::ranges::none_of(TYPE_TO_NAVIGATION, [&](const auto& schema) { return schema.second.second && QString(schema.first).startsWith(url.front()); }))
+		if (std::ranges::none_of(TYPE_TO_NAVIGATION, [&](const auto& schema) {
+				return schema.second.second && QString(schema.first).startsWith(url.front());
+			}))
 		{
 			QDesktopServices::openUrl(link);
 			return;
@@ -526,7 +521,9 @@ private:
 
 	void OnCoverLeave() const
 	{
-		if (std::ranges::any_of(m_coverButtons, [widget = QApplication::widgetAt(QCursor::pos())](const auto* item) { return widget == item; }))
+		if (std::ranges::any_of(m_coverButtons, [widget = QApplication::widgetAt(QCursor::pos())](const auto* item) {
+				return widget == item;
+			}))
 			return;
 
 		for (auto* btn : m_coverButtons)
@@ -534,60 +531,64 @@ private:
 	}
 
 private:
-	AnnotationWidget& m_self;
-	std::shared_ptr<const IReaderController> m_readerController;
-	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
-	PropagateConstPtr<IAnnotationController, std::shared_ptr> m_annotationController;
-	std::weak_ptr<const IModelProvider> m_modelProvider;
-	std::weak_ptr<const ILogicFactory> m_logicFactory;
-	PropagateConstPtr<IUiFactory, std::shared_ptr> m_uiFactory;
+	AnnotationWidget&                                                     m_self;
+	std::shared_ptr<const IReaderController>                              m_readerController;
+	PropagateConstPtr<ISettings, std::shared_ptr>                         m_settings;
+	PropagateConstPtr<IAnnotationController, std::shared_ptr>             m_annotationController;
+	std::weak_ptr<const IModelProvider>                                   m_modelProvider;
+	std::weak_ptr<const ILogicFactory>                                    m_logicFactory;
+	PropagateConstPtr<IUiFactory, std::shared_ptr>                        m_uiFactory;
 	PropagateConstPtr<IBooksExtractorProgressController, std::shared_ptr> m_progressController;
-	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr> m_itemViewToolTipperContent;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerContent;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerAnnotation;
+	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>                m_itemViewToolTipperContent;
+	PropagateConstPtr<ScrollBarController, std::shared_ptr>               m_scrollBarControllerContent;
+	PropagateConstPtr<ScrollBarController, std::shared_ptr>               m_scrollBarControllerAnnotation;
 
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationController;
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_contentModel { std::shared_ptr<QAbstractItemModel> {} };
-	Ui::AnnotationWidget m_ui {};
-	IAnnotationController::IDataProvider::Covers m_covers;
-	const QString m_currentCollectionId;
-	size_t m_currentCoverIndex { 0 };
-	bool m_showContent { true };
-	bool m_showCover { true };
-	Util::FunctorExecutionForwarder m_forwarder;
-	QTimer m_progressTimer;
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_contentModel { std::shared_ptr<QAbstractItemModel> {} };
+	Ui::AnnotationWidget                                    m_ui {};
+	IAnnotationController::IDataProvider::Covers            m_covers;
+	const QString                                           m_currentCollectionId;
+	size_t                                                  m_currentCoverIndex { 0 };
+	bool                                                    m_showContent { true };
+	bool                                                    m_showCover { true };
+	Util::FunctorExecutionForwarder                         m_forwarder;
+	QTimer                                                  m_progressTimer;
 
 	std::vector<QAbstractButton*> m_coverButtons;
-	bool m_coverButtonsEnabled { false };
-	bool m_coverButtonsVisible { true };
-	const int m_starSymbol { m_settings->Get(Constant::Settings::LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) };
+	bool                          m_coverButtonsEnabled { false };
+	bool                          m_coverButtonsVisible { true };
+	const int                     m_starSymbol { m_settings->Get(Constant::Settings::LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) };
 };
 
-AnnotationWidget::AnnotationWidget(const std::shared_ptr<const IModelProvider>& modelProvider,
-                                   const std::shared_ptr<const ILogicFactory>& logicFactory,
-                                   const std::shared_ptr<ICollectionController>& collectionController,
-                                   std::shared_ptr<const IReaderController> readerController,
-                                   std::shared_ptr<ISettings> settings,
-                                   std::shared_ptr<IAnnotationController> annotationController,
-                                   std::shared_ptr<IUiFactory> uiFactory,
-                                   std::shared_ptr<IBooksExtractorProgressController> progressController,
-                                   std::shared_ptr<ItemViewToolTipper> itemViewToolTipperContent,
-                                   std::shared_ptr<ScrollBarController> scrollBarControllerContent,
-                                   std::shared_ptr<ScrollBarController> scrollBarControllerAnnotation,
-                                   QWidget* parent)
+AnnotationWidget::AnnotationWidget(
+	const std::shared_ptr<const IModelProvider>&       modelProvider,
+	const std::shared_ptr<const ILogicFactory>&        logicFactory,
+	const std::shared_ptr<ICollectionController>&      collectionController,
+	std::shared_ptr<const IReaderController>           readerController,
+	std::shared_ptr<ISettings>                         settings,
+	std::shared_ptr<IAnnotationController>             annotationController,
+	std::shared_ptr<IUiFactory>                        uiFactory,
+	std::shared_ptr<IBooksExtractorProgressController> progressController,
+	std::shared_ptr<ItemViewToolTipper>                itemViewToolTipperContent,
+	std::shared_ptr<ScrollBarController>               scrollBarControllerContent,
+	std::shared_ptr<ScrollBarController>               scrollBarControllerAnnotation,
+	QWidget*                                           parent
+)
 	: QWidget(parent)
-	, m_impl(*this,
-             modelProvider,
-             logicFactory,
-             collectionController,
-             std::move(readerController),
-             std::move(settings),
-             std::move(annotationController),
-             std::move(uiFactory),
-             std::move(progressController),
-             std::move(itemViewToolTipperContent),
-             std::move(scrollBarControllerContent),
-             std::move(scrollBarControllerAnnotation))
+	, m_impl(
+		  *this,
+		  modelProvider,
+		  logicFactory,
+		  collectionController,
+		  std::move(readerController),
+		  std::move(settings),
+		  std::move(annotationController),
+		  std::move(uiFactory),
+		  std::move(progressController),
+		  std::move(itemViewToolTipperContent),
+		  std::move(scrollBarControllerContent),
+		  std::move(scrollBarControllerAnnotation)
+	  )
 {
 	PLOGV << "AnnotationWidget created";
 }

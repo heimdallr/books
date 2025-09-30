@@ -10,7 +10,7 @@ using namespace HomeCompa::Flibrary;
 namespace
 {
 
-const QString EMPTY_STRING;
+const QString               EMPTY_STRING;
 constexpr BookItem::Mapping FULL { BookItem::ALL };
 
 }
@@ -28,9 +28,9 @@ IDataItem* DataItem::GetParent() noexcept
 
 IDataItem::Ptr& DataItem::AppendChild(Ptr child)
 {
-	auto* typed = child->To<DataItem>();
+	auto* typed     = child->To<DataItem>();
 	typed->m_parent = this;
-	typed->m_row = GetChildCount();
+	typed->m_row    = GetChildCount();
 	return m_children.emplace_back(std::move(child));
 }
 
@@ -41,7 +41,9 @@ void DataItem::RemoveChild(size_t row)
 		row = GetChildCount() - 1;
 
 	m_children.erase(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)));
-	std::for_each(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)), std::end(m_children), [](auto& item) { --item->template To<DataItem>()->m_row; });
+	std::for_each(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)), std::end(m_children), [](auto& item) {
+		--item->template To<DataItem>()->m_row;
+	});
 }
 
 void DataItem::RemoveAllChildren()
@@ -112,6 +114,17 @@ IDataItem& DataItem::SetId(QString id) noexcept
 	return *this;
 }
 
+IDataItem::Flags DataItem::GetFlags() const noexcept
+{
+	return m_flags;
+}
+
+IDataItem& DataItem::SetFlags(Flags flags) noexcept
+{
+	m_flags = flags;
+	return *this;
+}
+
 IDataItem& DataItem::SetData(QString value, const int column) noexcept
 {
 	assert(column >= 0 && column < static_cast<int>(std::size(m_data)));
@@ -126,12 +139,26 @@ Qt::CheckState DataItem::GetCheckState() const noexcept
 
 	if (m_children.front()->GetCheckState() == Qt::Checked)
 	{
-		return std::ranges::all_of(m_children | std::views::drop(1), [](const auto& item) { return item->GetCheckState() == Qt::Checked; }) ? Qt::Checked : Qt::PartiallyChecked;
+		return std::ranges::all_of(
+				   m_children | std::views::drop(1),
+				   [](const auto& item) {
+					   return item->GetCheckState() == Qt::Checked;
+				   }
+			   )
+		         ? Qt::Checked
+		         : Qt::PartiallyChecked;
 	}
 
 	if (m_children.front()->GetCheckState() == Qt::Unchecked)
 	{
-		return std::ranges::all_of(m_children | std::views::drop(1), [](const auto& item) { return item->GetCheckState() == Qt::Unchecked; }) ? Qt::Unchecked : Qt::PartiallyChecked;
+		return std::ranges::all_of(
+				   m_children | std::views::drop(1),
+				   [](const auto& item) {
+					   return item->GetCheckState() == Qt::Unchecked;
+				   }
+			   )
+		         ? Qt::Unchecked
+		         : Qt::PartiallyChecked;
 	}
 
 	return Qt::PartiallyChecked;
@@ -147,13 +174,17 @@ void DataItem::Reduce()
 
 IDataItem::Ptr DataItem::FindChild(const std::function<bool(const IDataItem&)>& functor) const
 {
-	const auto it = std::ranges::find_if(m_children, [&](const auto& item) { return functor(*item); });
+	const auto it = std::ranges::find_if(m_children, [&](const auto& item) {
+		return functor(*item);
+	});
 	return it == m_children.end() ? Ptr {} : *it;
 }
 
 void DataItem::SortChildren(const std::function<bool(const IDataItem& lhs, const IDataItem& rhs)>& comparer)
 {
-	std::ranges::sort(m_children, [&](const auto& lhs, const auto& rhs) { return comparer(*lhs, *rhs); });
+	std::ranges::sort(m_children, [&](const auto& lhs, const auto& rhs) {
+		return comparer(*lhs, *rhs);
+	});
 }
 
 DataItem* DataItem::ToDataItem() noexcept
@@ -218,8 +249,8 @@ AuthorItem* AuthorItem::ToAuthorItem() noexcept
 
 void AuthorItem::Reduce()
 {
-	QString last = GetRawData(Column::LastName);
-	QString first = GetRawData(Column::FirstName);
+	QString last   = GetRawData(Column::LastName);
+	QString first  = GetRawData(Column::FirstName);
 	QString middle = GetRawData(Column::MiddleName);
 
 	for (int i = 0; i < 2; ++i)
@@ -227,8 +258,8 @@ void AuthorItem::Reduce()
 		if (!last.isEmpty())
 			break;
 
-		last = std::move(first);
-		first = std::move(middle);
+		last   = std::move(first);
+		first  = std::move(middle);
 		middle = QString(); //-V815
 	}
 
@@ -237,8 +268,7 @@ void AuthorItem::Reduce()
 
 	auto name = last;
 
-	const auto append = [&](const QString& str)
-	{
+	const auto append = [&](const QString& str) {
 		if (str.isEmpty())
 			return;
 

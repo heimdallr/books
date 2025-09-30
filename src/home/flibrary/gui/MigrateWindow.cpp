@@ -36,7 +36,9 @@ struct MigrateWindow::Impl
 private: // IDatabaseMigrator::IObserver
 	void OnMigrationFinished() override
 	{
-		QTimer::singleShot(0, [] { QCoreApplication::exit(); });
+		QTimer::singleShot(0, [] {
+			QCoreApplication::exit();
+		});
 	}
 
 	NON_COPY_MOVABLE(Impl)

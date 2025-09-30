@@ -22,22 +22,24 @@ class AddCollectionDialog final
 	NON_COPY_MOVABLE(AddCollectionDialog)
 
 public:
-	AddCollectionDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
-	                    std::shared_ptr<ISettings> settings,
-	                    std::shared_ptr<ICollectionController> collectionController,
-	                    std::shared_ptr<const IUiFactory> uiFactory);
+	AddCollectionDialog(
+		const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
+		std::shared_ptr<ISettings>                    settings,
+		std::shared_ptr<ICollectionController>        collectionController,
+		std::shared_ptr<const IUiFactory>             uiFactory
+	);
 	~AddCollectionDialog() override;
 
 private: // IAddCollectionDialog
-	[[nodiscard]] int Exec() override;
+	[[nodiscard]] int     Exec() override;
 	[[nodiscard]] QString GetName() const override;
 	[[nodiscard]] QString GetDatabaseFileName() const override;
 	[[nodiscard]] QString GetArchiveFolder() const override;
 	[[nodiscard]] QString GetDefaultArchiveType() const override;
-	[[nodiscard]] bool AddUnIndexedBooks() const override;
-	[[nodiscard]] bool ScanUnIndexedFolders() const override;
-	[[nodiscard]] bool SkipLostBooks() const override;
-	[[nodiscard]] bool MarkUnIndexedBooksAsDeleted() const override;
+	[[nodiscard]] bool    AddUnIndexedBooks() const override;
+	[[nodiscard]] bool    ScanUnIndexedFolders() const override;
+	[[nodiscard]] bool    SkipLostBooks() const override;
+	[[nodiscard]] bool    MarkUnIndexedBooksAsDeleted() const override;
 
 private:
 	class Impl;

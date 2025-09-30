@@ -28,9 +28,9 @@
 
 struct GUID
 {
-	UInt32 Data1;
-	UInt16 Data2;
-	UInt16 Data3;
+	UInt32                       Data1;
+	UInt16                       Data2;
+	UInt16                       Data3;
 	std::array<unsigned char, 8> Data4;
 };
 
@@ -39,7 +39,7 @@ struct GUID
 	#endif
 
 using REFGUID = const GUID&;
-using REFIID = REFGUID;
+using REFIID  = REFGUID;
 
 inline auto operator==(REFGUID guid1, REFGUID guid2) -> bool
 {

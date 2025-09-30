@@ -69,8 +69,7 @@ private: // IRestorer
 
 		const auto command = transaction->CreateCommand(commandText);
 
-		const auto bind = [&](const size_t index, const QString& value)
-		{
+		const auto bind = [&](const size_t index, const QString& value) {
 			bool ok = false;
 			if (const auto userRate = value.toInt(&ok); ok)
 				command->Bind(index, userRate);
