@@ -145,7 +145,7 @@ bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelInd
 {
 	const auto itemIndex = m_impl->m_sourceModel->index(sourceRow, 0, sourceParent);
 	assert(itemIndex.isValid());
-	return FilterAcceptsRemoved(itemIndex) && FilterAcceptsFlags(itemIndex) && FilterAcceptsText(itemIndex);
+	return FilterAcceptsRemoved(itemIndex) && FilterAcceptsFlags(itemIndex) && FilterAcceptsLanguage(itemIndex) && FilterAcceptsText(itemIndex);
 }
 
 bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const
@@ -216,4 +216,9 @@ bool SortFilterProxyModel::FilterAcceptsFlags(const QModelIndex& index) const
 
 	const auto flags = index.data(Role::Flags).value<IDataItem::Flags>();
 	return ((!(flags & IDataItem::Flags::Filtered)) || (index.data(Role::Type).value<ItemType>() == ItemType::Books && m_impl->m_navigationFiltered && !(flags & IDataItem::Flags::Multiple)));
+}
+
+bool SortFilterProxyModel::FilterAcceptsLanguage(const QModelIndex& index) const
+{
+	return m_impl->m_languageFilter.isEmpty() || index.data(Role::Type).value<ItemType>() == ItemType::Navigation || index.data(Role::Lang).toString() == m_impl->m_languageFilter;
 }
