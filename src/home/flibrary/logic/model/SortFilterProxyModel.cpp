@@ -215,7 +215,7 @@ bool SortFilterProxyModel::FilterAcceptsFlags(const QModelIndex& index) const
 		return true;
 
 	const auto flags = index.data(Role::Flags).value<IDataItem::Flags>();
-	return ((!(flags & IDataItem::Flags::Filtered)) || (index.data(Role::Type).value<ItemType>() == ItemType::Books && m_impl->m_navigationFiltered && !(flags & IDataItem::Flags::Multiple)));
+	return !(flags & IDataItem::Flags::Filtered) || (index.data(Role::Type).value<ItemType>() == ItemType::Books && m_impl->m_navigationFiltered && !(flags & IDataItem::Flags::Multiple));
 }
 
 bool SortFilterProxyModel::FilterAcceptsLanguage(const QModelIndex& index) const
