@@ -56,7 +56,7 @@ using Extractor = IDataItem::Ptr (*)(const DB::IQuery& query);
 
 constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle, sl.SeqNumber from Series s join Series_List sl on sl.SeriesID = s.SeriesID and sl.BookID = :id where s.Flags & {} = 0 order by sl.OrdNum";
 constexpr auto AUTHORS_QUERY =
-	"select a.AuthorID, a.LastName, a.LastName, a.FirstName, a.MiddleName from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = :id where a.Flags & {} = 0 order by al.OrdNum";
+	"select a.AuthorID, a.LastName, a.FirstName, a.MiddleName from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = :id where a.Flags & {} = 0 order by al.OrdNum";
 constexpr auto GENRES_QUERY   = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id  where g.Flags & {} = 0 order by gl.OrdNum";
 constexpr auto GROUPS_QUERY   = "select g.GroupID, g.Title from Groups_User g join Groups_List_User_View gl on gl.GroupID = g.GroupID and gl.BookID = :id";
 constexpr auto KEYWORDS_QUERY = "select k.KeywordID, k.KeywordTitle from Keywords k join Keyword_List kl on kl.KeywordID = k.KeywordID and kl.BookID = :id where k.Flags & {} = 0 order by kl.OrdNum";
