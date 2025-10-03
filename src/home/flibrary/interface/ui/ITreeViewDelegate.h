@@ -14,7 +14,6 @@ public:
 	class IObserver : public Observer
 	{
 	public:
-		virtual void OnLineHeightChanged(int height)     = 0;
 		virtual void OnButtonClicked(const QModelIndex&) = 0;
 	};
 

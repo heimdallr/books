@@ -117,7 +117,7 @@
     </layout>
    </item>
    <item>
-    <widget class="QTreeView" name="treeView">
+    <widget class="HomeCompa::Flibrary::CustomTreeView" name="treeView">
      <property name="contextMenuPolicy">
       <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
      </property>
@@ -162,6 +162,11 @@
    <class>HomeCompa::Flibrary::FComboBox</class>
    <extends>QComboBox</extends>
    <header>widgets/FComboBox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>HomeCompa::Flibrary::CustomTreeView</class>
+   <extends>QTreeView</extends>
+   <header>widgets/TreeView.h</header>
   </customwidget>
  </customwidgets>
  <resources>
