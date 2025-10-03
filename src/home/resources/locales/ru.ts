@@ -5419,8 +5419,8 @@ Try again?</source>
 <context>
 	<name>UpdateChecker</name>
 	<message>
-		<source>%1 released!</source>
-		<translation>Новая версия: %1!</translation>
+		<source>%1 released!&lt;br/&gt;&lt;a href='%2'&gt;&lt;font size='%3px'&gt;Visit release page&lt;/font&gt;&lt;/a&gt;</source>
+		<translation>Новая версия: %1!&lt;br/&gt;&lt;a href='%2'&gt;&lt;font size='%3px'&gt;Перейти на страницу новой версии&lt;/font&gt;&lt;/a&gt;</translation>
 	</message>
 	<message>
 		<source>Cancel</source>
@@ -5435,12 +5435,12 @@ Try again?</source>
 		<translation>Скачать</translation>
 	</message>
 	<message>
-		<source>Last version %1, your version %2. Did a miracle happen?</source>
-		<translation>Последняя версия %1, ваша версия %2. Случилось чудо?</translation>
+		<source>Install %1</source>
+		<translation>Установить %1</translation>
 	</message>
 	<message>
-		<source>Latest version package downloaded succesfully. Open the folder with the archive?</source>
-		<translation>Новая версия успешно скачана. Открыть папку с архивом?</translation>
+		<source>Last version %1, your version %2. Did a miracle happen?</source>
+		<translation>Последняя версия %1, ваша версия %2. Случилось чудо?</translation>
 	</message>
 	<message>
 		<source>Run the installer?</source>
@@ -5451,8 +5451,8 @@ Try again?</source>
 		<translation>Укажите папку для скачивания инсталлятора</translation>
 	</message>
 	<message>
-		<source>Skip this version</source>
-		<translation>Пропустить это обновление</translation>
+		<source>Skip</source>
+		<translation>Пропустить</translation>
 	</message>
 	<message>
 		<source>Something strange, the installer file is missing. Visit download page?</source>
@@ -5461,10 +5461,6 @@ Try again?</source>
 	<message>
 		<source>Update check failed</source>
 		<translation>Ошибка проверки обновлений</translation>
-	</message>
-	<message>
-		<source>Visit download page</source>
-		<translation>Перейти на страницу новой версии</translation>
 	</message>
 </context>
 <context>
