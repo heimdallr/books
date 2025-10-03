@@ -499,12 +499,6 @@ private: // ITreeViewController::IObserver
 	}
 
 private: // ITreeViewDelegate::IObserver
-	void OnLineHeightChanged(const int height) override
-	{
-		m_lineHeight = height;
-		UpdateSectionSize();
-	}
-
 	void OnButtonClicked(const QModelIndex&) override
 	{
 		assert(m_removeItems);
@@ -1136,7 +1130,7 @@ private:
 
 	void UpdateSectionSize() const
 	{
-		if (!m_lineHeight || m_controller->GetItemType() != ItemType::Navigation)
+		if (m_controller->GetItemType() != ItemType::Navigation)
 			return;
 
 		auto* header = m_ui.treeView->header();
@@ -1145,10 +1139,7 @@ private:
 
 		header->setSectionResizeMode(0, QHeaderView::Stretch);
 		if (header->count() > 1 && m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Authors))
-		{
-			header->setSectionResizeMode(1, QHeaderView::Interactive);
-			header->resizeSection(1, m_lineHeight);
-		}
+			m_ui.treeView->UpdateSectionSize();
 	}
 
 	void OnCountChanged() const
@@ -1205,7 +1196,6 @@ private:
 	QString                                                 m_currentId;
 	std::shared_ptr<QMenu>                                  m_languageContextMenu;
 	bool                                                    m_showRemoved { false };
-	int                                                     m_lineHeight { 0 };
 	QString                                                 m_lastRestoredLayoutKey;
 	ITreeViewController::RemoveItems                        m_removeItems;
 	MenuEventFilter                                         m_menuEventFilter;
