@@ -5404,7 +5404,7 @@ Try again?</source>
 <context>
 	<name>UpdateChecker</name>
 	<message>
-		<source>%1 released!</source>
+		<source>%1 released!&lt;br/&gt;&lt;a href='%2'&gt;&lt;font size='%3px'&gt;Visit release page&lt;/font&gt;&lt;/a&gt;</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -5420,11 +5420,11 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>Last version %1, your version %2. Did a miracle happen?</source>
+		<source>Install %1</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>Latest version package downloaded succesfully. Open the folder with the archive?</source>
+		<source>Last version %1, your version %2. Did a miracle happen?</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -5436,7 +5436,7 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>Skip this version</source>
+		<source>Skip</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -5445,10 +5445,6 @@ Try again?</source>
 	</message>
 	<message>
 		<source>Update check failed</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Visit download page</source>
 		<translation></translation>
 	</message>
 </context>
