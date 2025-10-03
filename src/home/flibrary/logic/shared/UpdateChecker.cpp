@@ -3,6 +3,7 @@
 #include <QCoreApplication>
 #include <QDesktopServices>
 #include <QProcess>
+#include <QStandardPaths>
 #include <QTimer>
 
 #include "interface/constants/Localization.h"
@@ -30,17 +31,16 @@ constexpr auto LAST_UPDATE_CHECK_KEY = "ui/Update/LastCheck";
 constexpr auto DIALOG_KEY            = "Installer";
 
 constexpr auto CONTEXT             = "UpdateChecker";
+constexpr auto INSTALL             = QT_TRANSLATE_NOOP("UpdateChecker", "Install %1");
 constexpr auto DOWNLOAD            = QT_TRANSLATE_NOOP("UpdateChecker", "Download");
-constexpr auto VISIT_HOME          = QT_TRANSLATE_NOOP("UpdateChecker", "Visit download page");
-constexpr auto SKIP                = QT_TRANSLATE_NOOP("UpdateChecker", "Skip this version");
+constexpr auto SKIP                = QT_TRANSLATE_NOOP("UpdateChecker", "Skip");
 constexpr auto CANCEL              = QT_TRANSLATE_NOOP("UpdateChecker", "Cancel");
-constexpr auto RELEASED            = QT_TRANSLATE_NOOP("UpdateChecker", "%1 released!");
+constexpr auto RELEASED            = QT_TRANSLATE_NOOP("UpdateChecker", "%1 released!<br/><a href='%2'><font size='%3px'>Visit release page</font></a>");
 constexpr auto INSTALLER_FOLDER    = QT_TRANSLATE_NOOP("UpdateChecker", "Select folder for app installer");
 constexpr auto START_INSTALLER     = QT_TRANSLATE_NOOP("UpdateChecker", "Run the installer?");
 constexpr auto CHECK_FAILED        = QT_TRANSLATE_NOOP("UpdateChecker", "Update check failed");
 constexpr auto VERSION_ACTUAL      = QT_TRANSLATE_NOOP("UpdateChecker", "Current version %1 is actual");
 constexpr auto VERSION_MIRACLE     = QT_TRANSLATE_NOOP("UpdateChecker", "Last version %1, your version %2. Did a miracle happen?");
-constexpr auto ARCHIVE_READY       = QT_TRANSLATE_NOOP("UpdateChecker", "Latest version package downloaded succesfully. Open the folder with the archive?");
 constexpr auto INSTALLER_NOT_FOUND = QT_TRANSLATE_NOOP("UpdateChecker", "Something strange, the installer file is missing. Visit download page?");
 
 TR_DEF
@@ -59,11 +59,16 @@ enum class CheckResult
 class UpdateChecker::Impl final : virtual public IClient
 {
 public:
-	Impl(std::shared_ptr<ISettings> settings, const std::shared_ptr<const ILogicFactory>& logicFactory, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<IProgressController> progressController)
-		: m_settings(std::move(settings))
-		, m_logicFactory(logicFactory)
-		, m_uiFactory(std::move(uiFactory))
-		, m_progressController(std::move(progressController))
+	Impl(
+		const std::shared_ptr<const ILogicFactory>& logicFactory,
+		std::shared_ptr<const Util::IUiFactory>     uiFactory,
+		std::shared_ptr<ISettings>                  settings,
+		std::shared_ptr<IProgressController>        progressController
+	)
+		: m_logicFactory { logicFactory }
+		, m_uiFactory { std::move(uiFactory) }
+		, m_settings { std::move(settings) }
+		, m_progressController { std::move(progressController) }
 	{
 	}
 
@@ -102,7 +107,7 @@ private:
 		if (const auto lastCheckVar = m_settings->Get(LAST_UPDATE_CHECK_KEY); lastCheckVar.isValid())
 			if (const auto lastCheckDateTime = QDateTime::fromString(lastCheckVar.toString(), Qt::ISODate); lastCheckDateTime.isValid() && lastCheckDateTime > currentDateTime.addDays(-1))
 				return false;
-
+		
 		m_settings->Set(LAST_UPDATE_CHECK_KEY, currentDateTime.toString(Qt::ISODate));
 		return true;
 	}
@@ -112,10 +117,10 @@ private:
 		m_nameSplitted = m_release.name.split(' ', Qt::SkipEmptyParts);
 		if (m_nameSplitted.size() != 2)
 			return CheckResult::Error;
-
+		
 		if (m_settings->Get(DISCARDED_UPDATE_KEY, -1) == m_release.id)
 			return CheckResult::Discard;
-
+		
 		std::vector<int> latestVersion;
 		if (!std::ranges::all_of(m_nameSplitted.back().split('.', Qt::SkipEmptyParts), [&](const QString& item) {
 				bool ok = false;
@@ -123,7 +128,7 @@ private:
 				return ok;
 			}))
 			return CheckResult::Error;
-
+		
 		std::vector<int> currentVersion;
 		std::ranges::transform(QString(PRODUCT_VERSION).split('.', Qt::SkipEmptyParts), std::back_inserter(currentVersion), [](const QString& item) {
 			bool       ok    = false;
@@ -131,10 +136,10 @@ private:
 			assert(ok);
 			return value;
 		});
-
+		
 		if (latestVersion.size() != currentVersion.size())
 			return CheckResult::Error;
-
+		
 		return std::ranges::lexicographical_compare(currentVersion, latestVersion) ? CheckResult::NeedUpdate
 		     : std::ranges::lexicographical_compare(latestVersion, currentVersion) ? CheckResult::MoreActual
 		                                                                           : CheckResult::Actual;
@@ -176,30 +181,37 @@ private:
 
 	void ShowUpdateMessage()
 	{
+		const auto installer = Util::GetInstallerDescription();
+
 		std::vector<std::pair<QMessageBox::ButtonRole, QString>> buttons;
 		if (!m_release.assets.empty() && !m_release.assets.front().browser_download_url.isEmpty())
-			buttons.emplace_back(QMessageBox::AcceptRole, Tr(DOWNLOAD));
+		{
+			if (installer.type != Util::InstallerType::portable)
+				buttons.emplace_back(QMessageBox::AcceptRole, Tr(INSTALL).arg(m_release.name));
+			buttons.emplace_back(QMessageBox::DestructiveRole, Tr(DOWNLOAD));
+		}
 
 		static constexpr std::pair<QMessageBox::ButtonRole, const char*> buttonSettings[] {
-			{ QMessageBox::DestructiveRole, VISIT_HOME },
-			{      QMessageBox::ActionRole,       SKIP },
-			{      QMessageBox::RejectRole,     CANCEL },
+			{ QMessageBox::ActionRole,   SKIP },
+			{ QMessageBox::RejectRole, CANCEL },
 		};
 		buttons.reserve(buttons.size() + std::size(buttonSettings));
 		std::ranges::transform(buttonSettings, std::back_inserter(buttons), [](auto item) {
 			return std::make_pair(item.first, Tr(item.second));
 		});
 
-		const auto defaultRole = buttons.front().first;
-
-		switch (m_uiFactory->ShowCustomDialog(QMessageBox::Information, Loc::Tr(Loc::Ctx::COMMON, Loc::WARNING), Tr(RELEASED).arg(m_release.name), buttons, defaultRole)
-		) // NOLINT(clang-diagnostic-switch-enum)
+		switch (m_uiFactory->ShowCustomDialog( // NOLINT(clang-diagnostic-switch-enum)
+			QMessageBox::Information,
+			Loc::Tr(Loc::Ctx::COMMON, Loc::WARNING),
+			Tr(RELEASED).arg(m_release.name, m_release.html_url).arg(m_uiFactory->GetParentWidget()->font().pointSize() * 9 / 10),
+			buttons,
+			buttons.front().first
+		))
 		{
 			case QMessageBox::AcceptRole:
-				return Download();
+				return Download(true);
 			case QMessageBox::DestructiveRole:
-				QDesktopServices::openUrl(m_release.html_url);
-				break;
+				return Download();
 			case QMessageBox::ActionRole:
 				m_settings->Set(DISCARDED_UPDATE_KEY, m_release.id);
 				break;
@@ -213,7 +225,7 @@ private:
 		m_callback();
 	}
 
-	void Download()
+	void Download(const bool startSilent = false)
 	{
 		const auto installer = Util::GetInstallerDescription();
 		const auto it        = std::ranges::find_if(m_release.assets, [=](const Asset& asset) {
@@ -228,7 +240,7 @@ private:
 		}
 
 		auto downloader     = std::make_shared<Network::Downloader>();
-		auto downloadFolder = m_uiFactory->GetExistingDirectory(DIALOG_KEY, Tr(INSTALLER_FOLDER));
+		auto downloadFolder = startSilent ? QStandardPaths::writableLocation(QStandardPaths::TempLocation) : m_uiFactory->GetExistingDirectory(DIALOG_KEY, Tr(INSTALLER_FOLDER));
 		if (downloadFolder.isEmpty())
 			return m_callback();
 
@@ -238,7 +250,7 @@ private:
 		downloader->Download(
 			it->browser_download_url,
 			*file,
-			[this, downloader, installer, file, downloadFolder = std::move(downloadFolder), downloadFileName = std::move(downloadFileName)](size_t, const int code, const QString& error) mutable {
+			[this, startSilent, downloader, installer, file, downloadFolder = std::move(downloadFolder), downloadFileName = std::move(downloadFileName)](size_t, const int code, const QString& error) mutable {
 				file->close();
 				file.reset();
 				if (code != 0)
@@ -248,9 +260,8 @@ private:
 						(void)m_uiFactory->ShowWarning(error);
 				}
 
-				const auto startInstaller =
-					installer.type != Util::InstallerType::portable && code == 0 && m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes;
-				const auto startUnPacker = installer.type == Util::InstallerType::portable && code == 0;
+				const auto startInstaller = installer.type != Util::InstallerType::portable && code == 0
+			                             && (startSilent || m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes);
 
 				QTimer::singleShot(
 					0,
@@ -260,22 +271,16 @@ private:
 			         downloader       = std::move(downloader),
 			         callback         = std::move(m_callback),
 			         installer,
-			         startInstaller,
-			         startUnPacker]() mutable {
+			         startInstaller]() mutable {
 						downloader.reset();
 						callback();
-						if (startInstaller)
-						{
-							installer.type == Util::InstallerType::exe   ? QProcess::startDetached(downloadFileName)
-							: installer.type == Util::InstallerType::msi ? QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder))
-																		 : (assert(false), false);
-							QCoreApplication::exit();
-						}
-						else if (startUnPacker)
-						{
-							if (uiFactory->ShowQuestion(Tr(ARCHIVE_READY), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
-								QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder));
-						}
+						if (startInstaller
+				            && (installer.type == Util::InstallerType::exe   ? QProcess::startDetached(downloadFileName)
+				                : installer.type == Util::InstallerType::msi ? QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFileName))
+				                                                             : (assert(false), false)))
+							return QCoreApplication::exit();
+
+						QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder));
 					}
 				);
 			},
@@ -299,9 +304,9 @@ private:
 	}
 
 private:
-	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
 	std::weak_ptr<const ILogicFactory>                      m_logicFactory;
-	std::shared_ptr<const IUiFactory>                       m_uiFactory;
+	std::shared_ptr<const Util::IUiFactory>                 m_uiFactory;
+	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
 	Callback                                                m_callback;
 	Release                                                 m_release;
@@ -310,11 +315,11 @@ private:
 
 UpdateChecker::UpdateChecker(
 	const std::shared_ptr<const ILogicFactory>&        logicFactory,
+	std::shared_ptr<const Util::IUiFactory>            uiFactory,
 	std::shared_ptr<ISettings>                         settings,
-	std::shared_ptr<IUiFactory>                        uiFactory,
 	std::shared_ptr<IBooksExtractorProgressController> progressController
 )
-	: m_impl(std::make_shared<Impl>(std::move(settings), logicFactory, std::move(uiFactory), std::move(progressController)))
+	: m_impl(std::make_shared<Impl>(logicFactory, std::move(uiFactory), std::move(settings), std::move(progressController)))
 {
 	PLOGV << "UpdateChecker created";
 }
