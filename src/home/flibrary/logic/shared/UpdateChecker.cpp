@@ -107,7 +107,7 @@ private:
 		if (const auto lastCheckVar = m_settings->Get(LAST_UPDATE_CHECK_KEY); lastCheckVar.isValid())
 			if (const auto lastCheckDateTime = QDateTime::fromString(lastCheckVar.toString(), Qt::ISODate); lastCheckDateTime.isValid() && lastCheckDateTime > currentDateTime.addDays(-1))
 				return false;
-		
+
 		m_settings->Set(LAST_UPDATE_CHECK_KEY, currentDateTime.toString(Qt::ISODate));
 		return true;
 	}
@@ -117,10 +117,10 @@ private:
 		m_nameSplitted = m_release.name.split(' ', Qt::SkipEmptyParts);
 		if (m_nameSplitted.size() != 2)
 			return CheckResult::Error;
-		
+
 		if (m_settings->Get(DISCARDED_UPDATE_KEY, -1) == m_release.id)
 			return CheckResult::Discard;
-		
+
 		std::vector<int> latestVersion;
 		if (!std::ranges::all_of(m_nameSplitted.back().split('.', Qt::SkipEmptyParts), [&](const QString& item) {
 				bool ok = false;
@@ -128,7 +128,7 @@ private:
 				return ok;
 			}))
 			return CheckResult::Error;
-		
+
 		std::vector<int> currentVersion;
 		std::ranges::transform(QString(PRODUCT_VERSION).split('.', Qt::SkipEmptyParts), std::back_inserter(currentVersion), [](const QString& item) {
 			bool       ok    = false;
@@ -136,10 +136,10 @@ private:
 			assert(ok);
 			return value;
 		});
-		
+
 		if (latestVersion.size() != currentVersion.size())
 			return CheckResult::Error;
-		
+
 		return std::ranges::lexicographical_compare(currentVersion, latestVersion) ? CheckResult::NeedUpdate
 		     : std::ranges::lexicographical_compare(latestVersion, currentVersion) ? CheckResult::MoreActual
 		                                                                           : CheckResult::Actual;
@@ -225,7 +225,7 @@ private:
 		m_callback();
 	}
 
-	void Download(const bool startSilent = false)
+	void Download(const bool silent = false)
 	{
 		const auto installer = Util::GetInstallerDescription();
 		const auto it        = std::ranges::find_if(m_release.assets, [=](const Asset& asset) {
@@ -240,7 +240,7 @@ private:
 		}
 
 		auto downloader     = std::make_shared<Network::Downloader>();
-		auto downloadFolder = startSilent ? QStandardPaths::writableLocation(QStandardPaths::TempLocation) : m_uiFactory->GetExistingDirectory(DIALOG_KEY, Tr(INSTALLER_FOLDER));
+		auto downloadFolder = silent ? QStandardPaths::writableLocation(QStandardPaths::TempLocation) : m_uiFactory->GetExistingDirectory(DIALOG_KEY, Tr(INSTALLER_FOLDER));
 		if (downloadFolder.isEmpty())
 			return m_callback();
 
@@ -250,7 +250,7 @@ private:
 		downloader->Download(
 			it->browser_download_url,
 			*file,
-			[this, startSilent, downloader, installer, file, downloadFolder = std::move(downloadFolder), downloadFileName = std::move(downloadFileName)](size_t, const int code, const QString& error) mutable {
+			[this, silent, downloader, installer, file, downloadFolder = std::move(downloadFolder), downloadFileName = std::move(downloadFileName)](size_t, const int code, const QString& error) mutable {
 				file->close();
 				file.reset();
 				if (code != 0)
@@ -261,7 +261,7 @@ private:
 				}
 
 				const auto startInstaller = installer.type != Util::InstallerType::portable && code == 0
-			                             && (startSilent || m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes);
+			                             && (silent || m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes);
 
 				QTimer::singleShot(
 					0,

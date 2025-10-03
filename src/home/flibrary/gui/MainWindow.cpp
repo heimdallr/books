@@ -213,7 +213,7 @@ public:
 			});
 		});
 
-		if (m_checkForUpdateOnStartEnabled)
+		if (m_checkForUpdateOnStartEnabled && m_collectionController->ActiveCollectionExists())
 			CheckForUpdates(false);
 	}
 
