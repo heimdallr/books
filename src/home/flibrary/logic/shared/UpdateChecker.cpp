@@ -5,6 +5,7 @@
 #include <QProcess>
 #include <QStandardPaths>
 #include <QTimer>
+#include <QUuid>
 
 #include "interface/constants/Localization.h"
 
@@ -26,8 +27,8 @@ using namespace Github;
 
 namespace
 {
-constexpr auto DISCARDED_UPDATE_KEY  = "ui/Update/SkippedVersion";
-constexpr auto LAST_UPDATE_CHECK_KEY = "ui/Update/LastCheck";
+constexpr auto DISCARDED_UPDATE_KEY  = "Update/SkippedVersion";
+constexpr auto LAST_UPDATE_CHECK_KEY = "Update/LastCheck";
 constexpr auto DIALOG_KEY            = "Installer";
 
 constexpr auto CONTEXT             = "UpdateChecker";
@@ -53,6 +54,32 @@ enum class CheckResult
 	Actual,
 	MoreActual,
 };
+
+bool Reinstall(const QString& fileName, const char* batchText)
+{
+	const auto batchFileName =
+		QDir::toNativeSeparators(QString("%1/%2-setup-%3.bat").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), PRODUCT_ID, QUuid::createUuid().toString(QUuid::StringFormat::Id128)));
+	{
+		QFile file(batchFileName);
+		file.open(QIODevice::WriteOnly);
+		QTextStream stream(&file);
+		stream << QString(batchText).arg(PRODUCT_UID, QDir::toNativeSeparators(fileName), batchFileName, batchFileName + ".log", QDir::toNativeSeparators(QCoreApplication::applicationFilePath()));
+	}
+
+	return QDesktopServices::openUrl(QUrl::fromLocalFile(batchFileName));
+}
+
+bool ReinstallMsi(const QString& fileName)
+{
+	static constexpr auto batchText = R"(start "" /wait MsiExec.exe /x{%1} /passive /norestart /log "%4"
+start "" /wait MsiExec.exe /i "%2" /passive /norestart /log "%4"
+start "" "%5"
+del "%2" >> "%4"
+del "%3" >> "%4"
+)";
+
+	return Reinstall(fileName, batchText);
+}
 
 } // namespace
 
@@ -260,8 +287,10 @@ private:
 						(void)m_uiFactory->ShowWarning(error);
 				}
 
-				const auto startInstaller = installer.type != Util::InstallerType::portable && code == 0
-			                             && (silent || m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes);
+				const auto startInstaller =
+					code == 0
+					&& (silent || installer.type == Util::InstallerType::msi
+			            || (installer.type == Util::InstallerType::exe && m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes));
 
 				QTimer::singleShot(
 					0,
@@ -271,12 +300,13 @@ private:
 			         downloader       = std::move(downloader),
 			         callback         = std::move(m_callback),
 			         installer,
-			         startInstaller]() mutable {
+			         startInstaller,
+			         silent]() mutable {
 						downloader.reset();
 						callback();
 						if (startInstaller
 				            && (installer.type == Util::InstallerType::exe   ? QProcess::startDetached(downloadFileName)
-				                : installer.type == Util::InstallerType::msi ? QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFileName))
+				                : installer.type == Util::InstallerType::msi ? (silent ? ReinstallMsi(downloadFileName) : QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder)))
 				                                                             : (assert(false), false)))
 							return QCoreApplication::exit();
 
