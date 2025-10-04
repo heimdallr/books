@@ -193,6 +193,10 @@ public:
 		StartDelayed([this, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable {
 			if (m_collectionController->IsEmpty() || !commandLine->GetInpxDir().empty())
 			{
+				m_self.showNormal();
+				m_self.raise();
+				m_self.activateWindow();
+
 				if (!m_ui.actionShowLog->isChecked())
 					m_ui.actionShowLog->trigger();
 				return m_collectionController->AddCollection(commandLine->GetInpxDir());
