@@ -6,4 +6,5 @@ constexpr auto PRODUCT_VERSION = "@CMAKE_PROJECT_VERSION@";
 constexpr auto PRODUCT_ID = "@PROJECT_NAME@";
 constexpr auto PERSONAL_BUILD_NAME = "@PERSONAL_BUILD_NAME@";
 constexpr auto PERSONAL_BUILD_URI = "@PERSONAL_BUILD_URI@";
+constexpr auto PRODUCT_UID = "@PRODUCT_UID@";
 }
