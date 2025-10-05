@@ -14,7 +14,6 @@
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
-#include "database/interface/ITransaction.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/GenresLocalization.h"
@@ -134,21 +133,21 @@ constexpr auto AUTHOR_COUNT_STARTS_WITH = R"(
 	select count(distinct a.AuthorID) 
 	from Authors a 
 	%2 
-	where a.IsDeleted != #IS_DELETED# and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%1')
+	where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%1')
 )";
 
 constexpr auto SERIES_COUNT_STARTS_WITH = R"(
 	select count(distinct s.SeriesID) 
 	from Series s 
 	%2 
-	where s.IsDeleted != #IS_DELETED# and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%1')
+	where s.IsDeleted != #IS_DELETED# and s.Flags & #FLAGS# = 0 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%1')
 )";
 
 constexpr auto KEYWORD_COUNT_STARTS_WITH = R"(
 	select count(distinct k.KeywordID) 
 	from Keywords k 
 	%2 
-	where k.IsDeleted != #IS_DELETED# and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%1')
+	where k.IsDeleted != #IS_DELETED# and k.Flags & #FLAGS# = 0 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%1')
 )";
 
 constexpr auto UPDATE_COUNT_STARTS_WITH = "select 0";
@@ -164,7 +163,7 @@ constexpr auto AUTHOR_STARTS_WITH = R"(
 	select substr(a.SearchName, 1, :length), count(distinct a.AuthorID) 
 	from Authors a 
 	%2 
-	where a.IsDeleted != #IS_DELETED# and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%1')
+	where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%1')
 	group by substr(a.SearchName, 1, :length)
 )";
 
@@ -172,7 +171,7 @@ constexpr auto SERIES_STARTS_WITH = R"(
 	select substr(s.SearchTitle, 1, :length), count(distinct s.SeriesID) 
 	from Series s 
 	%2 
-	where s.IsDeleted != #IS_DELETED# and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%1')
+	where s.IsDeleted != #IS_DELETED# and s.Flags & #FLAGS# = 0 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%1')
 	group by substr(s.SearchTitle, 1, :length)
 )";
 
@@ -180,7 +179,7 @@ constexpr auto KEYWORD_STARTS_WITH = R"(
 	select substr(k.SearchTitle, 1, :length), count(distinct k.KeywordID) 
 	from Keywords k 
 	%2 
-	where k.IsDeleted != #IS_DELETED# and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%1')
+	where k.IsDeleted != #IS_DELETED# and k.Flags & #FLAGS# = 0 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%1')
 	group by substr(k.SearchTitle, 1, :length)
 )";
 
@@ -200,18 +199,19 @@ constexpr auto GROUPS_SELECT = R"(
 	group by g.GroupID
 )";
 
-constexpr auto AUTHOR_SELECT_SINGLE =
-	"select distinct a.AuthorID," FULL_AUTHOR_NAME "from Authors a %2 where a.IsDeleted != #IS_DELETED# and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%1')";
-constexpr auto SERIES_SELECT_SINGLE = "select distinct s.SeriesID, s.SeriesTitle from Series s %2 where s.IsDeleted != #IS_DELETED# and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%1')";
-constexpr auto KEYWORD_SELECT_SINGLE =
-	"select distinct k.KeywordID, k.KeywordTitle from Keywords k %2 where k.IsDeleted != #IS_DELETED# and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%1')";
-constexpr auto FOLDER_SELECT_SINGLE = "select f.FolderID, f.FolderTitle from Folders f %2 where f.IsDeleted != #IS_DELETED# and ('%1' = '%1' and :starts = :starts and :starts_like = :starts_like)";
-constexpr auto BOOK_SELECT_SINGLE   = "select l.BookID, l.Title %2 where b.IsDeleted != #IS_DELETED# and (b.SearchTitle = :starts or b.SearchTitle like :starts_like||'%' ESCAPE '%1')";
+constexpr auto AUTHOR_SELECT_SINGLE = "select distinct a.AuthorID," FULL_AUTHOR_NAME
+									  "from Authors a %2 where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%1')";
+constexpr auto SERIES_SELECT_SINGLE =
+	"select distinct s.SeriesID, s.SeriesTitle from Series s %2 where s.IsDeleted != #IS_DELETED# and s.Flags & #FLAGS# = 0 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%1')";
+constexpr auto KEYWORD_SELECT_SINGLE = "select distinct k.KeywordID, k.KeywordTitle from Keywords k %2 where k.IsDeleted != #IS_DELETED# and k.Flags & #FLAGS# = 0 and (k.SearchTitle = :starts or "
+                                       "k.SearchTitle like :starts_like||'%' ESCAPE '%1')";
+constexpr auto FOLDER_SELECT_SINGLE  = "select f.FolderID, f.FolderTitle from Folders f %2 where f.IsDeleted != #IS_DELETED# and ('%1' = '%1' and :starts = :starts and :starts_like = :starts_like)";
+constexpr auto BOOK_SELECT_SINGLE    = "select l.BookID, l.Title %2 where b.IsDeleted != #IS_DELETED# and (b.SearchTitle = :starts or b.SearchTitle like :starts_like||'%' ESCAPE '%1')";
 
-constexpr auto AUTHOR_SELECT_EQUAL  = "select distinct a.AuthorID," FULL_AUTHOR_NAME "from Authors a %1 where a.IsDeleted != #IS_DELETED# and a.SearchName = :starts";
-constexpr auto SERIES_SELECT_EQUAL  = "select distinct s.SeriesID, s.SeriesTitle from Series s %1 where s.IsDeleted != #IS_DELETED# and s.SearchTitle = :starts";
-constexpr auto GENRE_SELECT_EQUAL   = "select g.GenreCode from Genres g where exists (select 42 from Genre_List l %1 where l.GenreCode = g.GenreCode)";
-constexpr auto KEYWORD_SELECT_EQUAL = "select distinct k.KeywordID, k.KeywordTitle from Keywords k %1 where k.IsDeleted != #IS_DELETED# and k.SearchTitle = :starts";
+constexpr auto AUTHOR_SELECT_EQUAL = "select distinct a.AuthorID," FULL_AUTHOR_NAME "from Authors a %1 where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0 and a.SearchName = :starts";
+constexpr auto SERIES_SELECT_EQUAL = "select distinct s.SeriesID, s.SeriesTitle from Series s %1 where s.IsDeleted != #IS_DELETED# and s.Flags & #FLAGS# = 0 and s.SearchTitle = :starts";
+constexpr auto GENRE_SELECT_EQUAL  = "select g.GenreCode from Genres g where g.IsDeleted != #IS_DELETED# and g.Flags & #FLAGS# = 0 and exists (select 42 from Genre_List l %1 where l.GenreCode = g.GenreCode)";
+constexpr auto KEYWORD_SELECT_EQUAL = "select distinct k.KeywordID, k.KeywordTitle from Keywords k %1 where k.IsDeleted != #IS_DELETED# and k.Flags & #FLAGS# = 0 and k.SearchTitle = :starts";
 constexpr auto UPDATE_SELECT_EQUAL  = "select u.UpdateID from Updates u where exists (select 42 from Books l %1 where l.UpdateID = u.UpdateID)";
 constexpr auto BOOK_SELECT_EQUAL    = "select b.BookID, b.Title %1 where b.IsDeleted != #IS_DELETED# and b.SearchTitle = :starts";
 
@@ -263,14 +263,14 @@ select b.BookID, b.Title
 constexpr auto SEARCH_QUERY_TEXT_AUTHORS = "select a.AuthorID, " FULL_AUTHOR_NAME R"(
 	from Authors a
 	join Authors_Search s on s.rowid = a.AuthorID and Authors_Search match ?
-	where a.IsDeleted != #IS_DELETED#
+	where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0
 )";
 
 constexpr auto SEARCH_QUERY_TEXT_SERIES = R"(
 select a.SeriesID, a.SeriesTitle
 	from Series a
 	join Series_Search s on s.rowid = a.SeriesID and Series_Search match ?
-	where a.IsDeleted != #IS_DELETED#
+	where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0
 )";
 
 constexpr auto SEARCH_QUERY_TEXT_BOOKS = R"(
@@ -1169,10 +1169,15 @@ private: // INavigationProvider
 				itemsWithBooks.emplace(query->template Get<DBCodeType>(0));
 		}
 
-		auto        rootItem   = T::Load(*db, itemsWithBooks);
-		const auto* parentItem = &rootItem;
+		auto  rootItem   = T::Load(*db, itemsWithBooks);
+		auto* parentItem = &rootItem;
 		if (const auto it = parameters.find(d.type); it != parameters.end())
 			parentItem = T::Find(parentItem, ToItemCode<typename T::CodeType>(it->second));
+
+		if (m_filterProvider->IsFilterEnabled())
+			std::erase_if(parentItem->children, [](const auto& item) {
+				return !!(item.flags & Flibrary::IDataItem::Flags::Filtered);
+			});
 
 		TitleHelper titleHelper { .defaultTitle = Loc::Tr(Loc::NAVIGATION, d.type) };
 		if (!parameters.contains(d.type))
@@ -1214,7 +1219,9 @@ private: // INavigationProvider
 private: // IQueryTextFilter
 	std::string FilterQueryText(QString queryText) const override
 	{
-		queryText.replace("#IS_DELETED#", ShowRemoved() ? "2" : "1");
+		const auto showRemoved = m_settings->Get(Flibrary::Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false);
+		queryText.replace("#IS_DELETED#", showRemoved ? "2" : "1");
+		queryText.replace("#FLAGS#", QString::number(static_cast<int>(m_filterProvider->IsFilterEnabled() ? Flibrary::IDataItem::Flags::Filtered : Flibrary::IDataItem::Flags::None)));
 		return queryText.toStdString();
 	}
 
@@ -1323,11 +1330,6 @@ private:
 		Parameters typedParameters = parameters;
 		typedParameters.erase(STARTS);
 		d.writeEntries(children, root, std::move(typedParameters), d, *db, *this, std::move(join), ones);
-	}
-
-	bool ShowRemoved() const
-	{
-		return m_settings->Get(Flibrary::Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false);
 	}
 
 	ptrdiff_t GetMaxResultSize() const
