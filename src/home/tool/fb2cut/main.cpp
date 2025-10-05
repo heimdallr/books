@@ -485,21 +485,20 @@ private:
 
 		auto binaryCallback = [&](QString&& name, const bool isCover, QByteArray body) {
 			const auto& settings = isCover ? m_settings.cover : m_settings.image;
-			if (!settings.save && m_settings.imageStatistics.isEmpty())
-				return;
 
-			int                              width       = 0;
-			int                              height      = 0;
 			ImageStatisticsItem::PixelSchema pixelSchema = ImageStatisticsItem::PixelSchema::Unknown;
-			const char*                      fail        = nullptr;
-			ScopedCall                       statGuard([&, name]() mutable {
+
+			int         width  = 0;
+			int         height = 0;
+			const char* fail   = nullptr;
+			ScopedCall  statGuard([&, name]() mutable {
                 if (m_settings.imageStatistics.isEmpty())
                     return;
 
                 m_hash.reset();
                 m_hash.addData(body);
                 m_imageStatistics.emplace_back(m_folder, completeFileName, std::move(name), fail, isCover, body.size(), width, height, pixelSchema, QString::fromUtf8(m_hash.result().toHex()));
-								  });
+			 });
 
 			auto image = ReadImage(body, settings.type, settings.fileNameGetter(completeFileName, name), fail);
 			if (image.isNull())
@@ -522,9 +521,6 @@ private:
 			if (pixelSchema == ImageStatisticsItem::PixelSchema::Unknown)
 				pixelSchema = hasAlpha ? ImageStatisticsItem::PixelSchema::Alpha : ImageStatisticsItem::PixelSchema::Normal;
 
-			if (!settings.save)
-				return;
-
 			if (image.width() > settings.maxSize.width() || image.height() > settings.maxSize.height())
 				image = image.scaled(settings.maxSize.width(), settings.maxSize.height(), Qt::KeepAspectRatio, hasAlpha ? Qt::FastTransformation : Qt::SmoothTransformation);
 
@@ -545,6 +541,9 @@ private:
 			const auto num       = uniqueData.try_emplace(std::move(hash), isCover ? -1 : static_cast<int>(uniqueData.size())).first->second;
 			auto       imageFile = settings.fileNameGetter(completeFileName, isCover ? name : QString::number(num));
 			idToNum.try_emplace(std::move(name), num);
+
+			if (!settings.save)
+				return;
 
 			auto encoded = encode(settings, imageFile, image, body);
 
