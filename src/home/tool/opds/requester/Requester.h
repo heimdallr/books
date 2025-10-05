@@ -11,6 +11,7 @@
 #include "interface/logic/IAuthorAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
+#include "interface/logic/IFilterProvider.h"
 
 #include "util/ISettings.h"
 
@@ -29,6 +30,7 @@ public:
 		std::shared_ptr<const Flibrary::ICollectionProvider>         collectionProvider,
 		std::shared_ptr<const Flibrary::IDatabaseController>         databaseController,
 		std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
+		std::shared_ptr<const Flibrary::IFilterProvider>             filterProvider,
 		std::shared_ptr<const ICoverCache>                           coverCache,
 		std::shared_ptr<const IBookExtractor>                        bookExtractor,
 		std::shared_ptr<const INoSqlRequester>                       noSqlRequester,
