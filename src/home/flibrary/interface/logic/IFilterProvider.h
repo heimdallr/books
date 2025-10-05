@@ -61,8 +61,8 @@ public:
 public:
 	virtual ~IFilterProvider() = default;
 
-	[[nodiscard]] virtual bool                          IsFilterEnabled() const noexcept                                                     = 0;
-	[[nodiscard]] virtual std::vector<IDataItem::Flags> GetFlags(const NavigationMode navigationMode, const std::vector<QString>& ids) const = 0;
+	[[nodiscard]] virtual bool                          IsFilterEnabled() const noexcept                                               = 0;
+	[[nodiscard]] virtual std::vector<IDataItem::Flags> GetFlags(NavigationMode navigationMode, const std::vector<QString>& ids) const = 0;
 
 	virtual void RegisterObserver(IObserver* observer)   = 0;
 	virtual void UnregisterObserver(IObserver* observer) = 0;
