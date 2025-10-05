@@ -14,6 +14,7 @@
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
+#include "database/interface/ITransaction.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/GenresLocalization.h"
@@ -255,7 +256,7 @@ with Ids(BookID) as (
         join Search s on Series_Search match s.Title
 )
 select b.BookID, b.Title
-	from Books_View b
+	from #BOOKS_VIEW# b
 	join Ids i on i.BookID = b.BookID
 	where b.IsDeleted != #IS_DELETED#
 )";
@@ -275,9 +276,66 @@ select a.SeriesID, a.SeriesTitle
 
 constexpr auto SEARCH_QUERY_TEXT_BOOKS = R"(
 select b.BookID, b.Title
-	from Books_View b
+	from #BOOKS_VIEW# b
 	join Books_Search s on s.rowid = b.BookID and Books_Search match ?
 	where b.IsDeleted != #IS_DELETED#
+)";
+
+constexpr auto DROP_BOOKS_VIEW_FLAGS_COMMAND_TEXT = "drop view if exists Books_View_Filtered";
+
+constexpr auto CREATE_BOOKS_VIEW_FLAGS_COMMAND_TEXT = R"(
+CREATE VIEW IF NOT EXISTS Books_View_Filtered
+(
+	BookID,
+	LibID,
+	Title,
+	SeriesID,
+	SeqNumber,
+	UpdateDate,
+	LibRate,
+	Lang,
+	Year,
+	FolderID,
+	FileName,
+	BookSize,
+	UpdateID,
+	IsDeleted,
+	UserRate,
+	SearchTitle
+)
+AS
+with Filtered(BookID) as
+(
+	select b.BookID
+	from Books b
+	where not
+	(      exists (select 42 from Languages m                  where m.LanguageCode = b.Lang                                and m.Flags & 2 != 0)
+		or exists (select 42 from Authors   m join Author_List  l on l.AuthorID     = m.AuthorID  and l.BookID = b.BookID where m.Flags & 2 != 0)
+		or exists (select 42 from Series    m join Series_List  l on l.SeriesID     = m.SeriesID  and l.BookID = b.BookID where m.Flags & 2 != 0)
+		or exists (select 42 from Genres    m join Genre_List   l on l.GenreCode    = m.GenreCode and l.BookID = b.BookID where m.Flags & 2 != 0)
+		or exists (select 42 from Keywords  m join Keyword_List l on l.KeywordID    = m.KeywordID and l.BookID = b.BookID where m.Flags & 2 != 0)
+    )
+)
+SELECT
+		b.BookID,
+		b.LibID,
+		b.Title,
+		b.SeriesID,
+		b.SeqNumber,
+		b.UpdateDate,
+		b.LibRate,
+		b.Lang,
+		b.Year,
+		b.FolderID,
+		b.FileName || b.Ext AS FileName,
+		b.BookSize,
+		b.UpdateID,
+		coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted,
+		bu.UserRate,
+		b.SearchTitle
+	FROM Books b
+    JOIN Filtered f on f.BookID = b.BookId
+	LEFT JOIN Books_User bu ON bu.BookID = b.BookID
 )";
 
 class IQueryTextFilter // NOLINT(cppcoreguidelines-special-member-functions)
@@ -521,7 +579,7 @@ void WriteNavigationEntries(
 )
 {
 	if (join.isEmpty())
-		join = QString("join Books_View b on b.BookID = l.BookID and b.IsDeleted != #IS_DELETED#\n%1").arg(d.joinSelect);
+		join = QString("join #BOOKS_VIEW# b on b.BookID = l.BookID and b.IsDeleted != #IS_DELETED#\n%1").arg(d.joinSelect);
 
 	for (auto&& [navigationId, title] : ones)
 	{
@@ -609,7 +667,7 @@ QString GetJoin(const IRequester::Parameters& parameters)
 	if (list.isEmpty())
 		return {};
 
-	list << "join Books_View b on b.BookID = l.BookID and b.IsDeleted != #IS_DELETED#";
+	list << "join #BOOKS_VIEW# b on b.BookID = l.BookID and b.IsDeleted != #IS_DELETED#";
 
 	return list.join("\n");
 }
@@ -795,6 +853,11 @@ public:
 		, m_noSqlRequester { std::move(noSqlRequester) }
 		, m_annotationController { std::move(annotationController) }
 	{
+		const auto db = m_databaseController->GetDatabase();
+		const auto tr = db->CreateTransaction();
+		tr->CreateCommand(DROP_BOOKS_VIEW_FLAGS_COMMAND_TEXT)->Execute();
+		tr->CreateCommand(CREATE_BOOKS_VIEW_FLAGS_COMMAND_TEXT)->Execute();
+		tr->Commit();
 	}
 
 	const Flibrary::ICollectionProvider& GetCollectionProvider() const
@@ -1157,7 +1220,7 @@ private: // INavigationProvider
 			p.erase(d.type);
 			auto result = GetJoin(p);
 			if (result.isEmpty())
-				return QString("join Books_View b on b.BookID = l.BookID and b.IsDeleted != #IS_DELETED#");
+				return QString("join #BOOKS_VIEW# b on b.BookID = l.BookID and b.IsDeleted != #IS_DELETED#");
 			return result;
 		}();
 
@@ -1222,6 +1285,7 @@ private: // IQueryTextFilter
 		const auto showRemoved = m_settings->Get(Flibrary::Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false);
 		queryText.replace("#IS_DELETED#", showRemoved ? "2" : "1");
 		queryText.replace("#FLAGS#", QString::number(static_cast<int>(m_filterProvider->IsFilterEnabled() ? Flibrary::IDataItem::Flags::Filtered : Flibrary::IDataItem::Flags::None)));
+		queryText.replace("#BOOKS_VIEW#", m_filterProvider->IsFilterEnabled() ? "Books_View_Filtered" : "Books_View");
 		return queryText.toStdString();
 	}
 
