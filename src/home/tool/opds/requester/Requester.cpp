@@ -205,7 +205,7 @@ constexpr auto AUTHOR_SELECT_SINGLE = "select distinct a.AuthorID," FULL_AUTHOR_
 constexpr auto SERIES_SELECT_SINGLE =
 	"select distinct s.SeriesID, s.SeriesTitle from Series s %2 where s.IsDeleted != #IS_DELETED# and s.Flags & #FLAGS# = 0 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%1')";
 constexpr auto KEYWORD_SELECT_SINGLE = "select distinct k.KeywordID, k.KeywordTitle from Keywords k %2 where k.IsDeleted != #IS_DELETED# and k.Flags & #FLAGS# = 0 and (k.SearchTitle = :starts or "
-                                       "k.SearchTitle like :starts_like||'%' ESCAPE '%1')";
+									   "k.SearchTitle like :starts_like||'%' ESCAPE '%1')";
 constexpr auto FOLDER_SELECT_SINGLE  = "select f.FolderID, f.FolderTitle from Folders f %2 where f.IsDeleted != #IS_DELETED# and ('%1' = '%1' and :starts = :starts and :starts_like = :starts_like)";
 constexpr auto BOOK_SELECT_SINGLE    = "select l.BookID, l.Title %2 where b.IsDeleted != #IS_DELETED# and (b.SearchTitle = :starts or b.SearchTitle like :starts_like||'%' ESCAPE '%1')";
 

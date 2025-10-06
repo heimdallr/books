@@ -89,7 +89,7 @@ struct Book
 			.deleted  = l[8] == "1",
 			.ext      = std::move(l[9]),
 			.date     = std::move(l[10]),
-			.lang    = QString::fromStdWString(Inpx::Parser::GetLang(l[11].toLower().toStdWString())),
+			.lang     = QString::fromStdWString(Inpx::Parser::GetLang(l[11].toLower().toStdWString())),
 			.rate     = l[12].toDouble(),
 			.keywords = std::move(l[13]),
 			.year     = std::move(l[14]),
