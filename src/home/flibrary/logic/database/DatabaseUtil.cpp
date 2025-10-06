@@ -13,7 +13,7 @@
 
 #include "data/BooksTreeGenerator.h"
 #include "data/DataItem.h"
-#include "inpx/src/util/constant.h"
+#include "inpx/constant.h"
 #include "util/localization.h"
 
 #include "log.h"

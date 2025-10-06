@@ -23,7 +23,7 @@
 #include "interface/logic/IFilterProvider.h"
 
 #include "database/DatabaseUtil.h"
-#include "inpx/src/util/constant.h"
+#include "inpx/constant.h"
 #include "util/SortString.h"
 #include "util/localization.h"
 

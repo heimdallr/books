@@ -15,7 +15,7 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/AuthorReviewModelRole.h"
 
-#include "inpx/src/util/constant.h"
+#include "inpx/constant.h"
 #include "util/localization.h"
 
 #include "log.h"

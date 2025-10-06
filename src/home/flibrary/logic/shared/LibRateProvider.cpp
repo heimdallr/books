@@ -13,7 +13,7 @@
 
 #include "interface/constants/SettingsConstant.h"
 
-#include "inpx/src/util/constant.h"
+#include "inpx/constant.h"
 
 #include "log.h"
 #include "zip.h"

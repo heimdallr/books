@@ -6,7 +6,7 @@
 
 #include "database/interface/IDatabase.h"
 
-#include "inpx/src/util/inpx.h"
+#include "inpx/inpx.h"
 
 #include "log.h"
 #include "zip.h"
