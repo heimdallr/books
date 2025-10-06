@@ -1013,6 +1013,60 @@ void SetNextId(sqlite3pp::database& db)
 	PLOGD << "Next Id: " << g_id;
 }
 
+struct LanguageMapping
+{
+	static const std::wstring UNDEFINED_LANG;
+
+	std::unordered_set<std::wstring>               langs;
+	std::unordered_map<std::wstring, std::wstring> langMap;
+
+	explicit LanguageMapping(const Path& langMappingFile)
+	{
+		QFile file(langMappingFile);
+		if (!file.open(QIODevice::ReadOnly))
+			return;
+
+		QJsonParseError error;
+		const auto      jDocument = QJsonDocument::fromJson(file.readAll(), &error);
+		if (error.error != QJsonParseError::NoError)
+		{
+			PLOGE << error.errorString();
+			return;
+		}
+
+		const auto jObject = jDocument.object();
+		for (auto langIt = jObject.constBegin(), end = jObject.constEnd(); langIt != end; ++langIt)
+		{
+			const auto lang       = langIt.key().toStdWString();
+			const auto langValues = langIt.value();
+			assert(langValues.isArray());
+			for (const auto key : langValues.toArray())
+				langMap.try_emplace(key.toString().toStdWString(), lang);
+		}
+
+		std::ranges::transform(LANGUAGES, std::inserter(langs, langs.end()), [](const auto& item) {
+			return ToWide(item.key);
+		});
+		assert(std::size(langs) == std::size(LANGUAGES));
+	}
+
+	const std::wstring& GetLang(const std::wstring& src) const
+	{
+		if (src.empty())
+			return UNDEFINED_LANG;
+
+		if (langs.contains(src))
+			return src;
+
+		if (const auto it = langMap.find(src); it != langMap.end())
+			return it->second;
+
+		return UNDEFINED_LANG;
+	}
+};
+
+const std::wstring LanguageMapping::UNDEFINED_LANG = L"un";
+
 class IPool // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
@@ -1050,12 +1104,12 @@ class Parser::Impl final : virtual public IPool
 
 public:
 	Impl(Ini ini, const CreateCollectionMode mode, Callback callback)
-		: m_ini(std::move(ini))
-		, m_mode(mode)
-		, m_callback(std::move(callback))
-		, m_executor(Util::ExecutorFactory::Create(Util::ExecutorImpl::Async))
+		: m_ini { std::move(ini) }
+		, m_mode { mode }
+		, m_callback { std::move(callback) }
+		, m_executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async) }
+		, m_languageMapping { m_ini(LANGUAGES_MAPPING) }
 	{
-		ReadLangMapping();
 	}
 
 	~Impl() override
@@ -1183,37 +1237,6 @@ private: // IPool
 	}
 
 private:
-	void ReadLangMapping()
-	{
-		const auto langMappingFile = m_ini(LANGUAGES_MAPPING);
-		QFile      file(langMappingFile);
-		if (!file.open(QIODevice::ReadOnly))
-			return;
-
-		QJsonParseError error;
-		const auto      jDocument = QJsonDocument::fromJson(file.readAll(), &error);
-		if (error.error != QJsonParseError::NoError)
-		{
-			PLOGE << error.errorString();
-			return;
-		}
-
-		const auto jObject = jDocument.object();
-		for (auto langIt = jObject.constBegin(), end = jObject.constEnd(); langIt != end; ++langIt)
-		{
-			const auto lang       = langIt.key().toStdWString();
-			const auto langValues = langIt.value();
-			assert(langValues.isArray());
-			for (const auto key : langValues.toArray())
-				m_langMap.try_emplace(key.toString().toStdWString(), lang);
-		}
-
-		std::ranges::transform(LANGUAGES, std::inserter(m_langs, m_langs.end()), [](const auto& item) {
-			return ToWide(item.key);
-		});
-		assert(std::size(m_langs) == std::size(LANGUAGES));
-	}
-
 	void ProcessImpl(bool& ok)
 	{
 		ok = false;
@@ -1868,22 +1891,8 @@ private:
 			To<int>(buf.YEAR, -1)
 		);
 
-		if (book.language.empty())
-		{
-			book.language = L"un";
-		}
-		else if (!m_langs.contains(book.language))
-		{
-			if (const auto it = m_langMap.find(book.language); it != m_langMap.end())
-			{
-				book.language = it->second;
-			}
-			else
-			{
-				PLOGW << "Unexpected lang: " << book.language << " for " << std::wstring(buf.FOLDER) << "/" << book.fileName << book.format << ": " << book.title;
-				book.language = L"un";
-			}
-		}
+		if (book.language = m_languageMapping.GetLang(book.language); book.language == LanguageMapping::UNDEFINED_LANG)
+			PLOGW << "Unexpected lang: " << book.language << " for " << std::wstring(buf.FOLDER) << "/" << book.fileName << book.format << ": " << book.title;
 
 		PLOGI_IF((++m_n % LOG_INTERVAL) == 0) << m_n << " books added";
 
@@ -1915,8 +1924,7 @@ private:
 	std::unordered_set<size_t>                                                                                                                                       m_newUpdates;
 	std::unordered_map<QString, std::wstring>                                                                                                                        m_uniqueKeywords;
 	std::unordered_map<std::pair<size_t, std::string>, size_t, PairHash<size_t, std::string>>                                                                        m_uniqueFiles;
-	std::unordered_set<std::wstring>                                                                                                                                 m_langs;
-	std::unordered_map<std::wstring, std::wstring>                                                                                                                   m_langMap;
+	LanguageMapping                                                                                                                                                  m_languageMapping;
 	std::unordered_map<std::wstring, std::unordered_map<std::wstring, std::pair<size_t, int>, CaseInsensitiveHash<std::wstring>>, CaseInsensitiveHash<std::wstring>> m_foldersContent;
 	bool                                                                                                                                                             m_oldDataUpdateFound { false };
 
@@ -2011,4 +2019,10 @@ bool Parser::CheckForUpdate(const Path& collectionFolder, DB::IDatabase& databas
 		__FILE__,
 		__LINE__
 	);
+}
+
+const std::wstring& Parser::GetLang(const std::wstring& src)
+{
+	static const LanguageMapping mapping(Path(":/data") / DEFAULT_LANGUAGES_MAPPING);
+	return mapping.GetLang(src);
 }
