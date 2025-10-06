@@ -11,7 +11,7 @@
 
 #include "interface/constants/Enums.h"
 
-#include "inpx/src/util/constant.h"
+#include "inpx/constant.h"
 #include "util/IExecutor.h"
 
 #include "Constant.h"

@@ -30,7 +30,7 @@
 
 #include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
-#include "inpx/src/util/constant.h"
+#include "inpx/constant.h"
 #include "logging/LogAppender.h"
 #include "util/DyLib.h"
 #include "util/FunctorExecutionForwarder.h"

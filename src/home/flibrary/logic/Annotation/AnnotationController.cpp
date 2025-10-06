@@ -25,7 +25,7 @@
 
 #include "data/DataItem.h"
 #include "database/DatabaseUtil.h"
-#include "inpx/src/util/constant.h"
+#include "inpx/constant.h"
 #include "util/UiTimer.h"
 #include "util/localization.h"
 

@@ -12,7 +12,7 @@
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
 
-#include "inpx/src/util/constant.h"
+#include "inpx/constant.h"
 #include "util/IExecutor.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"

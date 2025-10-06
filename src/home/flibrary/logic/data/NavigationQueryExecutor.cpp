@@ -17,7 +17,7 @@
 
 #include "data/Genre.h"
 #include "database/DatabaseUtil.h"
-#include "inpx/src/util/constant.h"
+#include "inpx/constant.h"
 #include "util/SortString.h"
 
 #include "BooksTreeGenerator.h"

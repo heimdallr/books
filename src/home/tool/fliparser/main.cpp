@@ -24,8 +24,9 @@
 #include "interface/constants/ProductConstant.h"
 
 #include "database/factory/Factory.h"
-#include "inpx/src/util/constant.h"
-#include "inpx/src/util/types.h"
+#include "inpx/constant.h"
+#include "inpx/inpx.h"
+#include "inpx/types.h"
 #include "logging/LogAppender.h"
 #include "logging/init.h"
 #include "util/Fb2InpxParser.h"
@@ -68,6 +69,32 @@ struct Book
 	double              rate;
 	QString             keywords;
 	QString             year;
+
+	static Book fromString(const QString& str)
+	{
+		if (str.isEmpty())
+			return {};
+
+		//"AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;YEAR;"
+		auto l = str.split('\04');
+		assert(l.size() == 15);
+		return Book {
+			.author   = std::move(l[0]),
+			.genre    = std::move(l[1]),
+			.title    = std::move(l[2]),
+			.series   = { { std::move(l[3]), std::move(l[4]) } },
+			.file     = std::move(l[5]),
+			.size     = std::move(l[6]),
+			.libId    = std::move(l[7]),
+			.deleted  = l[8] == "1",
+			.ext      = std::move(l[9]),
+			.date     = std::move(l[10]),
+			.lang    = QString::fromStdWString(Inpx::Parser::GetLang(l[11].toLower().toStdWString())),
+			.rate     = l[12].toDouble(),
+			.keywords = std::move(l[13]),
+			.year     = std::move(l[14]),
+		};
+	}
 };
 
 QByteArray& operator<<(QByteArray& bytes, const Book& book)
@@ -117,7 +144,8 @@ QByteArray& operator<<(QByteArray& bytes, const Book& book)
 	return bytes;
 }
 
-using InpData = std::unordered_map<QString, Book, CaseInsensitiveHash<QString>>;
+using InpData      = std::unordered_map<QString, Book, CaseInsensitiveHash<QString>>;
+using FileToFolder = std::unordered_map<QString, QStringList>;
 
 constexpr auto APP_ID = "fliparser";
 
@@ -455,7 +483,7 @@ left join libfilename f on f.BookId=b.BookID
 							 .deleted  = deleted && *deleted != '0',
 							 .ext      = std::move(type),
 							 .date     = QString::fromUtf8(query->Get<const char*>(10), 10),
-							 .lang     = query->Get<const char*>(11),
+							 .lang     = QString::fromStdWString(Inpx::Parser::GetLang(QString(query->Get<const char*>(11)).toLower().toStdWString())),
 							 .rate     = query->Get<double>(12),
 							 .keywords = query->Get<const char*>(13),
 							 .year     = query->Get<const char*>(14),
@@ -559,12 +587,12 @@ Book CheckCustom(const Zip& zip, const QString& fileName, const QJsonObject& unI
 	};
 }
 
-QByteArray ParseBook(const QString& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
+Book ParseBook(const QString& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
 {
-	return Util::Fb2InpxParser::Parse(folder, zip, fileName, zipDateTime, true).toUtf8();
+	return Book::fromString(Util::Fb2InpxParser::Parse(folder, zip, fileName, zipDateTime, true));
 }
 
-std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpData, const std::filesystem::path& archivesPath, const std::filesystem::path& outputFolder)
+std::unordered_set<long long> CreateInpx(DB::IDatabase& db, InpData& inpData, const std::filesystem::path& archivesPath, const std::filesystem::path& outputFolder, FileToFolder& fileToFolder)
 {
 	std::unordered_set<long long> libIds;
 
@@ -614,10 +642,12 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 				else if (auto customBook = CheckCustom(zip, bookFile, unIndexed); !customBook.title.isEmpty())
 				{
 					file << customBook;
+					inpData[bookFile] = std::move(customBook);
 				}
-				else if (auto parsedBytes = ParseBook(QString::fromStdWString(path.filename()), zip, bookFile, zipFileInfo.birthTime()); !parsedBytes.isEmpty())
+				else if (auto parsedBook = ParseBook(QString::fromStdWString(path.filename()), zip, bookFile, zipFileInfo.birthTime()); !parsedBook.title.isEmpty())
 				{
-					file.append(parsedBytes).append("\x0d\x0a");
+					file << parsedBook;
+					inpData[bookFile] = std::move(parsedBook);
 				}
 				else
 				{
@@ -637,6 +667,7 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, const InpData& inpDa
 				}
 
 				maxTime = std::max(maxTime, zip.GetFileTime(bookFile));
+				fileToFolder[bookFile].emplace_back(zipFileInfo.fileName());
 			}
 
 			zipFileController->AddFile(QString::fromStdWString(path.filename().replace_extension("inp")), std::move(file), QDateTime::currentDateTime());
@@ -831,6 +862,70 @@ std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db,
 	threadPool.reset();
 
 	return archives;
+}
+
+void CreateBookList(const InpData& inpData, const FileToFolder& fileToFolder, const std::filesystem::path& outputFolder)
+{
+	PLOGI << "write contents";
+
+	const auto getSortedString = [](const QString& src) {
+		return src.isEmpty() ? QString(QChar { 0xffff }) : src.toLower().simplified();
+	};
+	const auto getSortedNum = [](const QString& src) {
+		if (src.isEmpty())
+			return std::numeric_limits<int>::max();
+
+		bool       ok    = false;
+		const auto value = src.toInt(&ok);
+		return ok ? value : std::numeric_limits<int>::max();
+	};
+
+	std::unordered_map<QString, std::vector<std::pair<const Book*, std::tuple<QString, QString, int, QString>>>> langs;
+	for (const auto& book : inpData | std::views::values)
+		if (fileToFolder.contains(book.file + "." + book.ext))
+			langs[book.lang].emplace_back(
+				&book,
+				std::make_tuple(getSortedString(book.author), getSortedString(book.series.front().title), getSortedNum(book.series.front().serNo), getSortedString(book.title))
+			);
+
+	auto zipFiles = Zip::CreateZipFileController();
+	std::ranges::for_each(langs, [&](auto& value) {
+		QByteArray data;
+		std::ranges::sort(value.second, {}, [](const auto& item) {
+			return item.second;
+		});
+
+		for (const Book* book : value.second | std::views::keys)
+		{
+			const auto fileName = book->file + "." + book->ext;
+			const auto it       = fileToFolder.find(fileName);
+			if (it == fileToFolder.end())
+				continue;
+
+			data.append(book->author.toUtf8()).append("\t").append(book->title.toUtf8()).append("\t");
+			if (!book->series.empty())
+			{
+				if (const auto& series = book->series.front(); !series.title.isEmpty())
+				{
+					data.append("[").append(series.title.toUtf8());
+					if (!series.serNo.isEmpty())
+						data.append(" #").append(series.serNo.toUtf8());
+					data.append("]");
+				}
+			}
+			data.append("\t").append(it->second.join(',').toUtf8()).append("\t").append(fileName.toUtf8()).append("\x0d\x0a");
+		}
+
+		zipFiles->AddFile(value.first + ".txt", std::move(data));
+	});
+
+	PLOGI << "archive contents";
+	remove(outputFolder / "contents.7z");
+
+	Zip zip(QString::fromStdWString(outputFolder / "contents.7z"), Zip::Format::SevenZip);
+	zip.SetProperty(ZipDetails::PropertyId::SolidArchive, false);
+	zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Ppmd));
+	zip.Write(std::move(zipFiles));
 }
 
 void CreateReview(DB::IDatabase& db, const InpData& inpData, const std::unordered_set<long long>& libIds, const std::filesystem::path& outputFolder)
@@ -1038,8 +1133,12 @@ int main(const int argc, char* argv[])
 	}
 
 	const auto db      = CreateDatabase(argv[1], argv[2], argv[3]);
-	const auto inpData = GenerateInpData(*db);
-	const auto libIds  = CreateInpx(*db, inpData, argv[2], argv[3]);
+	auto       inpData = GenerateInpData(*db);
+
+	FileToFolder fileToFolder;
+	const auto   libIds = CreateInpx(*db, inpData, argv[2], argv[3], fileToFolder);
+	CreateBookList(inpData, fileToFolder, argv[3]);
+
 	CreateReview(*db, inpData, libIds, argv[3]);
 	CreateAuthorAnnotations(*db, argv[1], argv[3]);
 
