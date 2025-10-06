@@ -1061,6 +1061,7 @@ struct LanguageMapping
 		if (const auto it = langMap.find(src); it != langMap.end())
 			return it->second;
 
+		PLOGW << "Unknown language: " << src;
 		return UNDEFINED_LANG;
 	}
 };
@@ -1891,8 +1892,7 @@ private:
 			To<int>(buf.YEAR, -1)
 		);
 
-		if (book.language = m_languageMapping.GetLang(book.language); book.language == LanguageMapping::UNDEFINED_LANG)
-			PLOGW << "Unexpected lang: " << book.language << " for " << std::wstring(buf.FOLDER) << "/" << book.fileName << book.format << ": " << book.title;
+		book.language = m_languageMapping.GetLang(book.language);
 
 		PLOGI_IF((++m_n % LOG_INTERVAL) == 0) << m_n << " books added";
 
