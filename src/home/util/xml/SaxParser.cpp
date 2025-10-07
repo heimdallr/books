@@ -159,7 +159,17 @@ private:
 	BinInputStream* m_binInputStream;
 };
 
-class SaxHandler final : public xercesc::HandlerBase
+class IDeclHandler
+{
+public:
+	virtual ~IDeclHandler() = default;
+
+	virtual void XMLDecl(const XMLCh* const versionStr, const XMLCh* const encodingStr, const XMLCh* const standaloneStr, const XMLCh* const actualEncodingStr) = 0;
+};
+
+class SaxHandler final
+	: public xercesc::HandlerBase
+	, public IDeclHandler
 {
 public:
 	SaxHandler(SaxParser& parser, InputSource& inputSource)
@@ -242,6 +252,16 @@ private: // xercesc::ErrorHandler
 			m_inputSource.SetStopped(true);
 	}
 
+private: // IDeclHandler
+	void XMLDecl(const XMLCh* const versionStr, const XMLCh* const encodingStr, const XMLCh* const standaloneStr, const XMLCh* const actualEncodingStr) override
+	{
+		if (m_inputSource.IsStopped())
+			return;
+
+		if (!m_parser.OnXMLDecl(QString::fromStdU16String(versionStr), QString::fromStdU16String(encodingStr), QString::fromStdU16String(standaloneStr), QString::fromStdU16String(actualEncodingStr)))
+			m_inputSource.SetStopped(true);
+	}
+
 private:
 	void ProcessCharacters()
 	{
@@ -268,6 +288,25 @@ private:
 	QString      m_characters;
 };
 
+class SAXParserImpl : public xercesc::SAXParser
+{
+public:
+	void SetDeclHandler(IDeclHandler* const declHandler) noexcept
+	{
+		m_declHandler = declHandler;
+	}
+
+private: // xercesc::SAXParser
+	void XMLDecl(const XMLCh* const versionStr, const XMLCh* const encodingStr, const XMLCh* const standaloneStr, const XMLCh* const actualEncodingStr) override
+	{
+		assert(m_declHandler);
+		m_declHandler->XMLDecl(versionStr, encodingStr, standaloneStr, actualEncodingStr);
+	}
+
+private:
+	IDeclHandler* m_declHandler { nullptr };
+};
+
 } // namespace
 
 class SaxParser::Impl
@@ -289,13 +328,14 @@ public:
 		SaxHandler handler(m_self, m_inputSource);
 		m_saxParser.setDocumentHandler(&handler);
 		m_saxParser.setErrorHandler(&handler);
+		m_saxParser.SetDeclHandler(&handler);
 
 		m_saxParser.parse(m_inputSource);
 	}
 
 private:
 	XMLPlatformInitializer m_initializer;
-	xercesc::SAXParser     m_saxParser;
+	SAXParserImpl          m_saxParser;
 	SaxParser&             m_self;
 	InputSource            m_inputSource;
 };
@@ -315,6 +355,16 @@ void SaxParser::Parse()
 bool SaxParser::IsLastItemProcessed() const noexcept
 {
 	return m_processed;
+}
+
+bool SaxParser::OnProcessingInstruction(const QString& /*target*/, const QString& /*data*/)
+{
+	return true;
+}
+
+bool SaxParser::OnXMLDecl(const QString& /*versionStr*/, const QString& /*encodingStr*/, const QString& /*standaloneStr*/, const QString& /*actualEncodingStr*/)
+{
+	return true;
 }
 
 bool SaxParser::OnStartElement(const QString& /*name*/, const QString& /*path*/, const XmlAttributes& /*attributes*/)

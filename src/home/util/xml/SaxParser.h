@@ -63,10 +63,8 @@ public:
 	void Parse();
 
 public:
-	virtual bool OnProcessingInstruction(const QString& /*target*/, const QString& /*data*/)
-	{
-		return true;
-	}
+	virtual bool OnProcessingInstruction(const QString& target, const QString& data);
+	virtual bool OnXMLDecl(const QString& versionStr, const QString& encodingStr, const QString& standaloneStr, const QString& actualEncodingStr);
 
 	virtual bool OnStartElement(const QString& name, const QString& path, const XmlAttributes& attributes);
 	virtual bool OnEndElement(const QString& name, const QString& path);

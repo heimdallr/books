@@ -7,6 +7,7 @@
 #include <QIODevice>
 #include <QString>
 #include <QTextStream>
+#include <QRegularExpression>
 
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
@@ -49,12 +50,51 @@ const std::pair<QString, QString> REPLACE_CHAR[] {
     { "quot;", "\"" },
 };
 
+class Fb2EncodingParserImpl final : public Util::SaxParser
+{
+public:
+	explicit Fb2EncodingParserImpl(QIODevice& input)
+		: SaxParser(input)
+	{
+		Parse();
+	}
+
+	QString GetEncoding() const
+	{
+		return m_encoding;
+	}
+
+private: // SaxParser
+	bool OnXMLDecl(const QString& /*versionStr*/, const QString& encodingStr, const QString& /*standaloneStr*/, const QString& /*actualEncodingStr*/) override
+	{
+		m_encoding = encodingStr;
+		return false;
+	}
+
+	bool OnFatalError(size_t /*line*/, size_t /*column*/, const QString& text) override
+	{
+		QRegularExpression rx("unable to create converter for '(.+?)' encoding");
+		if (const auto match = rx.match(text); match.hasMatch())
+			m_encoding = match.captured(1);
+
+		return false;
+	}
+
+private:
+	QString m_encoding;
+};
+
+}
+
+QString Fb2EncodingParser::GetEncoding(QIODevice& input)
+{
+	return Fb2EncodingParserImpl(input).GetEncoding();
 }
 
 class Fb2ImageParser::Impl final : public Util::SaxParser
 {
 public:
-	explicit Impl(QIODevice& input, OnBinaryFound binaryCallback)
+	Impl(QIODevice& input, OnBinaryFound binaryCallback)
 		: SaxParser(input, 512)
 		, m_binaryCallback { std::move(binaryCallback) }
 	{

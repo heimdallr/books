@@ -10,6 +10,11 @@ class QIODevice;
 namespace HomeCompa::fb2cut
 {
 
+struct Fb2EncodingParser
+{
+static QString GetEncoding(QIODevice& input);
+};
+
 class Fb2ImageParser
 {
 	NON_COPY_MOVABLE(Fb2ImageParser)
