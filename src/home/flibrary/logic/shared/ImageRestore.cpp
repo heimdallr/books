@@ -232,13 +232,8 @@ QByteArray RestoreImagesImpl(QIODevice& stream, Covers covers)
 
 void ConvertToGrayscale(QByteArray& srcImageBody, const int quality)
 {
-	const auto  it     = std::ranges::find_if(SIGNATURES, [&](const auto& item) {
-        return srcImageBody.startsWith(item.first);
-    });
-	const auto* format = it != std::end(SIGNATURES) ? it->second.format : nullptr;
-
-	QPixmap pixmap;
-	if (!pixmap.loadFromData(srcImageBody, format))
+	const auto pixmap = Decode(srcImageBody);
+	if (pixmap.isNull())
 		return;
 
 	auto image = pixmap.toImage();
@@ -247,7 +242,7 @@ void ConvertToGrayscale(QByteArray& srcImageBody, const int quality)
 	QByteArray result;
 	{
 		QBuffer imageOutput(&result);
-		if (!image.save(&imageOutput, format ? format : JPEG, quality))
+		if (!image.save(&imageOutput, image.pixelFormat().alphaUsage() == QPixelFormat::AlphaUsage::UsesAlpha ? PNG : JPEG, quality))
 			return;
 	}
 
