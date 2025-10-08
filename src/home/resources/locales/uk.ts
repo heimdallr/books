@@ -4574,8 +4574,16 @@ Try again?</source>
 		<translation>&amp;Обкладинки та ілюстрації</translation>
 	</message>
 	<message>
+		<source>Convert to grayscale</source>
+		<translation>Перетворювати на відтінки сірого</translation>
+	</message>
+	<message>
 		<source>Cover navigation &amp;buttons</source>
 		<translation>&amp;Кнопки навігації на обкладинці</translation>
+	</message>
+	<message>
+		<source>Covers</source>
+		<translation>Обкладинки</translation>
 	</message>
 	<message>
 		<source>Database file "%1" is probably corrupted</source>
@@ -4622,20 +4630,20 @@ Try again?</source>
 		<translation>Перехід на &amp;Web</translation>
 	</message>
 	<message>
-		<source>Grayscale &amp;cover</source>
-		<translation>Чорно-біла &amp;обкладинка</translation>
-	</message>
-	<message>
-		<source>Grayscale &amp;images</source>
-		<translation>Чорно-білі &amp;ілюстрації</translation>
-	</message>
-	<message>
 		<source>Http server management</source>
 		<translation>Керування сервером Http</translation>
 	</message>
 	<message>
 		<source>I&amp;mport</source>
 		<translation>&amp;Імпорт</translation>
+	</message>
+	<message>
+		<source>Illustrations</source>
+		<translation>Ілюстрації</translation>
+	</message>
+	<message>
+		<source>Images</source>
+		<translation>Зображення</translation>
 	</message>
 	<message>
 		<source>Log &amp;verbosity level</source>
@@ -4652,6 +4660,10 @@ Try again?</source>
 	<message>
 		<source>Readers' &amp;Reviews</source>
 		<translation>Відгуки &amp;читачів</translation>
+	</message>
+	<message>
+		<source>Remove</source>
+		<translation>Вилучати</translation>
 	</message>
 	<message>
 		<source>S&amp;tatus line</source>

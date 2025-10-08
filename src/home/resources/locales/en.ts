@@ -4562,7 +4562,15 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>Convert to grayscale</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>Cover navigation &amp;buttons</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Covers</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -4610,19 +4618,19 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>Grayscale &amp;cover</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Grayscale &amp;images</source>
-		<translation></translation>
-	</message>
-	<message>
 		<source>Http server management</source>
 		<translation></translation>
 	</message>
 	<message>
 		<source>I&amp;mport</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Illustrations</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Images</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -4639,6 +4647,10 @@ Try again?</source>
 	</message>
 	<message>
 		<source>Readers' &amp;Reviews</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Remove</source>
 		<translation></translation>
 	</message>
 	<message>
