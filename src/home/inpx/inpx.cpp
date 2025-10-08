@@ -24,6 +24,7 @@
 #pragma warning(pop)
 
 #include "fnd/IsOneOf.h"
+#include "fnd/try.h"
 
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
@@ -136,28 +137,6 @@ private:
 	sqlite3pp::database      m_db;
 	sqlite3pp::ext::function m_func;
 };
-
-template <typename R, typename S, typename T>
-R Try(const S& name, const T functor, const std::string_view file, const int line)
-{
-	try
-	{
-		PLOGV << name << " started";
-		auto result = functor();
-		PLOGV << name << " finished";
-		return std::forward<R>(result);
-	}
-	catch (const std::exception& ex)
-	{
-		PLOGE << std::format("{}, {}: {}", file, line, ex.what());
-	}
-	catch (...)
-	{
-		PLOGE << std::format("{}, {}: unknown error", file, line);
-	}
-
-	return R {};
-}
 
 auto LoadGenres(const Path& genresIniFileName)
 {
@@ -372,7 +351,7 @@ InpxContent ExtractInpxFileNames(const Path& inpxPath)
 	InpxContent inpxContent;
 
 	const auto inpxFileName = QString::fromStdWString(inpxPath);
-	const auto zip          = Try<std::unique_ptr<Zip>>(
+	const auto zip          = Util::Try<std::unique_ptr<Zip>>(
         QString("open %1").arg(inpxFileName),
         [&] {
             return std::make_unique<Zip>(inpxFileName);
@@ -405,7 +384,7 @@ InpxContent ExtractInpxFileNames(const Path& inpxPath)
 void GetDecodedStream(const Zip& zip, const std::wstring& file, const std::function<void(QIODevice&)>& f)
 {
 	PLOGI << file;
-	Try<int>(
+	Util::Try<int>(
 		"get decoded stream",
 		[&] {
 			const auto stream = zip.Read(QString::fromStdWString(file));
@@ -497,7 +476,7 @@ void WriteDatabaseVersion(const Path& dbFileName, const std::wstring& statement)
 template <typename Container, typename Functor>
 size_t StoreRange(const Path& dbFileName, std::string_view process, const std::string_view query, const Container& container, Functor&& f, const std::string_view queryAfter = {})
 {
-	return Try<size_t>(
+	return Util::Try<size_t>(
 		process,
 		[&] {
 			const auto rowsTotal = std::size(container);
@@ -852,7 +831,7 @@ InpxFolders GetInpxFolder(const Path& inpxFolder, const bool needHashes)
 		const auto inpxFileName = QString::fromStdWString(inpxFileNameEntry.path());
 		PLOGV << "check " << inpxFileName << " started";
 
-		const auto zip = Try<std::unique_ptr<Zip>>(
+		const auto zip = Util::Try<std::unique_ptr<Zip>>(
 			QString("open %1").arg(inpxFileName),
 			[&] {
 				return std::make_unique<Zip>(inpxFileName);
@@ -1121,7 +1100,7 @@ public:
 	void Process()
 	{
 		(*m_executor)({ "Create collection", [&] {
-						   const auto ok = Try<bool>(
+						   const auto ok = Util::Try<bool>(
 							   "create collection",
 							   [&] {
 								   bool processed = false;
@@ -1148,7 +1127,7 @@ public:
 	void UpdateDatabase()
 	{
 		(*m_executor)({ "Update collection", [&] {
-						   auto foldersCount = Try<std::optional<size_t>>(
+						   auto foldersCount = Util::Try<std::optional<size_t>>(
 							   "update collection",
 							   [this] {
 								   return UpdateDatabaseImpl();
@@ -1195,12 +1174,12 @@ private: // IPool
 					m_foldersToParseCondition.notify_one();
 			}
 
-			Try<int>(
+			Util::Try<int>(
 				QString("parsing %1").arg(QString::fromStdWString(folder)),
 				[&] {
 					const QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
 					const auto      archiveFileName = archiveFileInfo.filePath();
-					const auto      zip             = Try<std::unique_ptr<Zip>>(
+					const auto      zip             = Util::Try<std::unique_ptr<Zip>>(
                         QString("open %1").arg(archiveFileName),
                         [&] {
                             return std::make_unique<Zip>(archiveFileName);
@@ -1219,7 +1198,7 @@ private: // IPool
 							continue;
 
 						PLOGD << "parsing " << folder << "/" << fileName << "  " << counter << " (" << zipFileList.size() << ") " << 100 * counter / zipFileList.size() << "%";
-						Try<bool>(
+						Util::Try<bool>(
 							QString("parse %1").arg(fileName),
 							[&] {
 								return ParseFile(folder, *zip, fileName, archiveFileInfo.birthTime());
@@ -1249,7 +1228,7 @@ private:
 		WriteDatabaseVersion(dbFileName, m_ini(SET_DATABASE_VERSION_STATEMENT));
 
 		Parse();
-		if (const auto failsCount = Try<size_t>(
+		if (const auto failsCount = Util::Try<size_t>(
 				"store",
 				[&] {
 					return Store(dbFileName, m_data);
@@ -1260,7 +1239,7 @@ private:
 		    failsCount != 0)
 			PLOGE << "Something went wrong";
 
-		Try<bool>(
+		Util::Try<bool>(
 			"update database",
 			[&] {
 				return ExecuteScript(L"update database", dbFileName, m_ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT));
@@ -1268,7 +1247,7 @@ private:
 			__FILE__,
 			__LINE__
 		);
-		Try<int>(
+		Util::Try<int>(
 			"analyze",
 			[&] {
 				return Analyze(dbFileName);
@@ -1434,7 +1413,7 @@ private:
 				continue;
 
 			const auto inpxFileName = QString::fromStdWString(inpxPath);
-			const auto zip          = Try<std::unique_ptr<Zip>>(
+			const auto zip          = Util::Try<std::unique_ptr<Zip>>(
                 QString("open %1").arg(inpxFileName),
                 [&] {
                     return std::make_unique<Zip>(inpxFileName);
@@ -1494,7 +1473,7 @@ private:
 					return std::unique_ptr<Zip> {};
 
 				const auto fileName = QString::fromStdWString(inpxFileName.generic_wstring());
-				return Try<std::unique_ptr<Zip>>(
+				return Util::Try<std::unique_ptr<Zip>>(
 					QString("open %1").arg(fileName),
 					[&] {
 						return std::make_unique<Zip>(fileName);
@@ -1512,7 +1491,7 @@ private:
 
 		GetFieldList();
 
-		Try<int>(
+		Util::Try<int>(
 			"AddUnIndexedBooks",
 			[this] {
 				AddUnIndexedBooks();
@@ -1521,7 +1500,7 @@ private:
 			__FILE__,
 			__LINE__
 		);
-		Try<int>(
+		Util::Try<int>(
 			"ScanUnIndexedFolders",
 			[this] {
 				ScanUnIndexedFolders();
@@ -1530,7 +1509,7 @@ private:
 			__FILE__,
 			__LINE__
 		);
-		Try<int>(
+		Util::Try<int>(
 			"CollectReviews",
 			[this] {
 				CollectReviews();
@@ -1551,7 +1530,7 @@ private:
 		for (const auto& entry : std::filesystem::directory_iterator(reviewsFolder))
 		{
 			auto       fileName = QString::fromStdWString(entry.path());
-			const auto zip      = Try<std::unique_ptr<Zip>>(
+			const auto zip      = Util::Try<std::unique_ptr<Zip>>(
                 QString("open %1").arg(fileName),
                 [&] {
                     return std::make_unique<Zip>(fileName);
@@ -1585,7 +1564,7 @@ private:
 
 			QFileInfo  archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
 			const auto archiveFileName = archiveFileInfo.filePath();
-			const auto zip             = Try<std::unique_ptr<Zip>>(
+			const auto zip             = Util::Try<std::unique_ptr<Zip>>(
                 QString("open %1").arg(archiveFileName),
                 [&] {
                     return std::make_unique<Zip>(archiveFileName);
@@ -1600,7 +1579,7 @@ private:
 			{
 				PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
 				const auto fileNameStr = QString::fromStdWString(fileName);
-				Try<bool>(
+				Util::Try<bool>(
 					QString("parse %1").arg(fileNameStr),
 					[&] {
 						return ParseFile(folder, *zip, fileNameStr, archiveFileInfo.birthTime());
@@ -1618,7 +1597,7 @@ private:
 			return;
 
 		const auto inpxFolder = m_ini(INPX_FOLDER);
-		auto       folders    = Try<std::vector<std::wstring>>(
+		auto       folders    = Util::Try<std::vector<std::wstring>>(
             std::format("iterate {}", inpxFolder.generic_string()),
             [&] {
                 std::vector<std::wstring> result;
@@ -1944,7 +1923,7 @@ Parser::~Parser() = default;
 
 void Parser::CreateNewCollection(IniMap data, const CreateCollectionMode mode, Callback callback)
 {
-	Try<int>(
+	Util::Try<int>(
 		"create collection",
 		[&] {
 			PLOGI << "mode: " << static_cast<int>(mode);
@@ -1959,7 +1938,7 @@ void Parser::CreateNewCollection(IniMap data, const CreateCollectionMode mode, C
 
 void Parser::UpdateCollection(IniMap data, const CreateCollectionMode mode, Callback callback)
 {
-	Try<int>(
+	Util::Try<int>(
 		"create collection",
 		[&] {
 			PLOGI << "mode: " << static_cast<int>(mode);
@@ -1974,7 +1953,7 @@ void Parser::UpdateCollection(IniMap data, const CreateCollectionMode mode, Call
 
 void Parser::FillInpx(const Path& collectionFolder, DB::ITransaction& transaction)
 {
-	Try<int>(
+	Util::Try<int>(
 		"fill inpx",
 		[&] {
 			const auto folders = GetInpxFolder(collectionFolder, true);
@@ -1999,7 +1978,7 @@ void Parser::FillInpx(const Path& collectionFolder, DB::ITransaction& transactio
 
 bool Parser::CheckForUpdate(const Path& collectionFolder, DB::IDatabase& database)
 {
-	return Try<int>(
+	return Util::Try<int>(
 		"fill inpx",
 		[&] {
 			const auto inpxFolders = GetInpxFolder(collectionFolder, false);
