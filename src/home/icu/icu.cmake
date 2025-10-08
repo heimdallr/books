@@ -6,6 +6,7 @@ AddTarget(flicu			shared_lib
 		ICU::io
 		ICU::dt
 		ICU::uc
+		Qt${QT_MAJOR_VERSION}::Core
 	LINK_TARGETS
 		logging
 )

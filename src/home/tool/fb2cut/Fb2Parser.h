@@ -2,37 +2,24 @@
 
 #include <QString>
 
-#include "fnd/NonCopyMovable.h"
-#include "fnd/memory.h"
-
 class QIODevice;
 
 namespace HomeCompa::fb2cut
 {
 
-class Fb2ImageParser
+struct Fb2EncodingParser
 {
-	NON_COPY_MOVABLE(Fb2ImageParser)
-
-public:
-	using OnBinaryFound = std::function<void(QString&&, bool isCover, const QByteArray& data)>;
-
-	static bool Parse(QIODevice& input, OnBinaryFound binaryCallback);
-
-private:
-	Fb2ImageParser(QIODevice& input, OnBinaryFound binaryCallback);
-	~Fb2ImageParser();
-
-private:
-	class Impl;
-	PropagateConstPtr<Impl> m_impl;
+	static QString GetEncoding(QIODevice& input);
 };
 
-class Fb2Parser
+struct Fb2ImageParser
 {
-	NON_COPY_MOVABLE(Fb2Parser)
+	using OnBinaryFound = std::function<void(QString&&, bool isCover, const QByteArray& data)>;
+	static bool Parse(QIODevice& input, OnBinaryFound binaryCallback);
+};
 
-public:
+struct Fb2Parser
+{
 	static constexpr const char* FB2_TAGS[] {
 		"p",
 		"fictionbook",
@@ -118,16 +105,7 @@ public:
 		"col",
 	};
 
-public:
 	static void Parse(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId);
-
-private:
-	Fb2Parser(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId);
-	~Fb2Parser();
-
-private:
-	class Impl;
-	PropagateConstPtr<Impl> m_impl;
 };
 
 } // namespace HomeCompa::fb2cut

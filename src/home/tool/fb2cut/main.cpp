@@ -24,6 +24,7 @@
 
 #include "Hypodermic/Hypodermic.h"
 #include "gutil/interface/IUiFactory.h"
+#include "icu/icu.h"
 #include "jxl/jxl.h"
 #include "logging/LogAppender.h"
 #include "logging/init.h"
@@ -161,58 +162,78 @@ QString Validate(const Util::XmlValidator& validator, QByteArray& body)
 	return validator.Validate(buffer);
 }
 
-QByteArray Decode(QByteArray inputFileBody)
+class Decoder
+{
+	NON_COPY_MOVABLE(Decoder)
+
+public:
+	Decoder() = default;
+
+	~Decoder()
+	{
+		for (const auto& decoder : m_decoders | std::views::keys)
+			PLOGV << decoder;
+	}
+
+	std::string Decode(const QString& id, const std::string_view src) const
+	{
+		return GetDecoder(id).Decode(src);
+	}
+
+private:
+	const ICU::IDecoder& GetDecoder(const QString& id) const
+	{
+		std::lock_guard lock(m_decodersGuard);
+
+		const auto it = m_decoders.find(id);
+		return *(it != m_decoders.end() ? it->second : m_decoders.try_emplace(id, ICU::IDecoder::Create(id.toStdString().data())).first->second);
+	}
+
+private:
+	mutable std::mutex                                      m_decodersGuard;
+	mutable std::unordered_map<QString, ICU::IDecoder::Ptr> m_decoders;
+};
+
+QByteArray Decode(const Decoder& decoder, QByteArray inputFileBody)
 {
 	if (inputFileBody.size() < 100)
 		return {};
 
-	auto str = [&inputFileBody]() -> QString {
-		if (inputFileBody.startsWith("\xff\xfe") || inputFileBody.startsWith("\xfe\xff"))
+	auto str = [&]() -> QString {
+		const auto encoding = [&inputFileBody]() -> QString {
+			static constexpr std::pair<const char*, const char*> UTF16[] {
+				{ "\xff\xfe", "UTF16LE" },
+				{ "\xfe\xff", "UTF16BE" },
+			};
+			const auto it = std::ranges::find_if(UTF16, [&](const auto& item) {
+				return inputFileBody.startsWith(item.first);
+			});
+
+			if (it != std::end(UTF16))
+				return it->second;
+
+			QBuffer buf(&inputFileBody);
+			buf.open(QIODevice::ReadOnly);
+			return Fb2EncodingParser::GetEncoding(buf).toUpper();
+		}();
+
+		if (encoding.isEmpty())
 		{
-			inputFileBody.append("\0\0", 2);
-			auto result = QString::fromUtf16(std::bit_cast<const char16_t*>(inputFileBody.constData()));
-			return result.replace(QRegularExpression(R"(encoding=".*?")"), R"(encoding="UTF-8")");
+			PLOGW << "encoding not found";
+			return inputFileBody;
 		}
 
-		const auto               index = static_cast<qsizetype>(std::string(inputFileBody.data(), 100).find(R"(?>)") + 2);
-		auto                     head  = QString::fromLatin1(inputFileBody.data(), index);
-		const QRegularExpression rx(R"(^<\?xml +version=".*?" +encoding="windows-.*?" *?\?>$)", QRegularExpression::CaseInsensitiveOption);
-		if (const auto match = rx.match(head); match.hasMatch())
-		{
-			head      = R"(<?xml version="1.0" encoding="UTF-8"?>)";
-			auto body = QString::fromLocal8Bit(inputFileBody.data() + index, inputFileBody.size() - index);
-			return head.append("\x0d\x0a").append(body);
-		}
+		if (IsOneOf(encoding, "UTF-8", "UTF8"))
+			return inputFileBody;
 
-		if (inputFileBody.startsWith(R"(<?xml version="1.0" encoding="iso-8859-15"?>)"))
-		{
-			auto encoded = QString::fromLocal8Bit(inputFileBody, inputFileBody.size());
-			encoded.replace(R"(encoding="iso-8859-15")", R"(encoding="UTF-8")", Qt::CaseInsensitive);
-			QString result;
-			for (qsizetype i = 0, sz = encoded.length(); i < sz; ++i)
-			{
-				if (encoded[i] != '&')
-				{
-					result.append(encoded[i]);
-					continue;
-				}
+		auto result = QString::fromStdString(decoder.Decode(encoding, { inputFileBody.data(), static_cast<size_t>(inputFileBody.size()) }));
 
-				if (encoded[i + 1] != '#' || encoded[i + 6] != ';')
-					continue;
-
-				auto                  ref  = QStringView { encoded.data() + i + 2, 4 };
-				[[maybe_unused]] bool ok   = false;
-				const auto            code = ref.toInt(&ok);
-				assert(ok);
-				result.append(QChar { code });
-
-				i += 6;
-			}
-			return result;
-		}
-
-		return QString::fromUtf8(inputFileBody);
+		const auto index = result.indexOf("?>") + 2;
+		return index < 2 ? result : R"(<?xml version="1.0" encoding="utf-8"?>)" + result.mid(index);
 	}();
+
+	if (str.isEmpty())
+		return {};
 
 	const auto addEnd = [&](const qsizetype index) {
 		str.resize(index);
@@ -360,7 +381,8 @@ public:
 		std::atomic_bool&        hasError,
 		std::atomic_int&         queueSize,
 		std::atomic_int&         fileCount,
-		IClient&                 client
+		IClient&                 client,
+		const Decoder&           decoder
 	)
 		: m_settings { settings }
 		, m_folder { std::move(folder) }
@@ -372,6 +394,7 @@ public:
 		, m_queueSize { queueSize }
 		, m_fileCount { fileCount }
 		, m_client { client }
+		, m_decoder { decoder }
 		, m_thread { &Worker::Process, this }
 	{
 	}
@@ -416,7 +439,7 @@ private:
 
 	bool ProcessFile(const QString& inputFilePath, const QByteArray& inputFileBody, const QDateTime& dateTime)
 	{
-		auto fixedInputFileBody = Decode(inputFileBody);
+		auto fixedInputFileBody = Decode(m_decoder, inputFileBody);
 		if (const auto errorText = Validate(m_validator, fixedInputFileBody); !errorText.isEmpty())
 		{
 			PLOGW << errorText << " trying to fix";
@@ -434,14 +457,14 @@ private:
 		PLOGV << QString("%1, %2 (%3) %4%").arg(inputFilePath).arg(m_fileCount.load()).arg(m_settings.totalFileCount).arg(m_fileCount * 100 / m_settings.totalFileCount);
 
 		if (bodyOutput.isEmpty())
-			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Cannot parse %1").arg(outputFilePath), "fb2", false), true;
+			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Cannot parse %1").arg(outputFilePath), true, "fb2", false), true;
 
 #ifndef NDEBUG
-		AddError("fb2", fileInfo.completeBaseName() + "_fix", fixedInputFileBody, QString("Validation %1 failed: %2").arg(outputFilePath, ""), "fb2", false);
-		AddError("fb2", fileInfo.completeBaseName() + "_out", bodyOutput, QString("Validation %1 failed: %2").arg(outputFilePath, ""), "fb2", false);
+		AddError("fb2", fileInfo.completeBaseName() + "_fix", fixedInputFileBody, QString("Validation %1 failed: %2").arg(outputFilePath, ""), true, "fb2", false);
+		AddError("fb2", fileInfo.completeBaseName() + "_out", bodyOutput, QString("Validation %1 failed: %2").arg(outputFilePath, ""), true, "fb2", false);
 #endif
 		if (const auto errorText = Validate(m_validator, bodyOutput); !errorText.isEmpty())
-			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Validation %1 failed: %2").arg(outputFilePath, errorText), "fb2", false), true;
+			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Validation %1 failed: %2").arg(outputFilePath, errorText), true, "fb2", false), true;
 
 		if (!m_settings.saveFb2)
 			return false;
@@ -476,7 +499,7 @@ private:
 			if (auto bytes = JXL::Encode(image, settings.quality); !bytes.isEmpty())
 				return bytes;
 
-			(void)AddError(settings.type, fileName, body, QString("Cannot compress %1 %2").arg(settings.type).arg(fileName), {}, false);
+			(void)AddError(settings.type, fileName, body, QString("Cannot compress %1 %2").arg(settings.type).arg(fileName), true, {}, false);
 			return {};
 		};
 
@@ -500,7 +523,7 @@ private:
                 m_imageStatistics.emplace_back(m_folder, completeFileName, std::move(name), fail, isCover, body.size(), width, height, pixelSchema, QString::fromUtf8(m_hash.result().toHex()));
 			 });
 
-			auto image = ReadImage(body, settings.type, settings.fileNameGetter(completeFileName, name), fail);
+			auto image = ReadImage(body, settings.type, settings.fileNameGetter(completeFileName, name), fail, settings.save);
 			if (image.isNull())
 				return;
 
@@ -559,7 +582,7 @@ private:
 		return bodyOutput;
 	}
 
-	QImage ReadImage(QByteArray& body, const char* imageType, const QString& imageFile, const char*& fail) const
+	QImage ReadImage(QByteArray& body, const char* imageType, const QString& imageFile, const char*& fail, const bool needSaveBody) const
 	{
 		struct Signature
 		{
@@ -597,7 +620,7 @@ private:
 				}
 			);
 		    it != std::end(signatures))
-			return fail = it->extension, AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), it->extension);
+			return fail = it->extension, AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), needSaveBody, it->extension);
 
 		if (const auto it = std::ranges::find_if(
 				unsupportedSignatures,
@@ -606,7 +629,7 @@ private:
 				}
 			);
 		    it != std::end(unsupportedSignatures))
-			return fail = it->extension, AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), it->extension);
+			return fail = it->extension, AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), needSaveBody, it->extension);
 
 		if (const auto it = std::ranges::find_if(
 				knownSignatures,
@@ -615,22 +638,23 @@ private:
 				}
 			);
 		    it != std::end(knownSignatures))
-			return fail = it->extension, AddError(imageType, imageFile, body, QString("%1 %2 is %3").arg(imageType).arg(imageFile).arg(it->extension), it->extension, false);
+			return fail = it->extension, AddError(imageType, imageFile, body, QString("%1 %2 is %3").arg(imageType).arg(imageFile).arg(it->extension), needSaveBody, it->extension, false);
 
 		if (QString::fromUtf8(body).contains("!doctype html", Qt::CaseInsensitive))
-			return fail = knownSignatures[0].extension, AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), "html", false);
+			return fail = knownSignatures[0].extension, AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), needSaveBody, "html", false);
 
-		return AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString));
+		return AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), needSaveBody);
 	}
 
-	QImage AddError(const char* imageType, const QString& file, const QByteArray& body, const QString& errorText, const QString& ext = {}, const bool tryToFix = true) const
+	QImage AddError(const char* imageType, const QString& file, const QByteArray& body, const QString& errorText, const bool needSaveBody, const QString& ext = {}, const bool tryToFix = true) const
 	{
 		if (tryToFix)
 			if (auto fixed = TryToFix(imageType, file, body); !fixed.isNull())
 				return fixed;
 
 		PLOGW << errorText;
-		WriteError(m_settings.dstDir, m_fileSystemGuard, file, ext, body);
+		if (needSaveBody)
+			WriteError(m_settings.dstDir, m_fileSystemGuard, file, ext, body);
 		m_hasError = true;
 		return {};
 	}
@@ -698,7 +722,8 @@ private:
 
 	const Util::XmlValidator m_validator;
 
-	IClient& m_client;
+	IClient&       m_client;
+	const Decoder& m_decoder;
 
 	std::thread m_thread;
 };
@@ -719,7 +744,8 @@ public:
 		std::mutex&              queueGuard,
 		const int                poolSize,
 		std::atomic_int&         fileCount,
-		QTextStream*             imageStatisticsStream
+		QTextStream*             imageStatisticsStream,
+		const Decoder&           decoder
 	)
 		: m_queueCondition { queueCondition }
 		, m_queueGuard { queueGuard }
@@ -730,7 +756,7 @@ public:
 		, m_imageStatisticsStream { imageStatisticsStream }
 	{
 		for (int i = 0; i < poolSize; ++i)
-			m_workers.push_back(std::make_unique<Worker>(settings, folder, m_queueCondition, m_queueGuard, m_queue, m_fileSystemGuard, m_hasError, m_queueSize, fileCount, *this));
+			m_workers.push_back(std::make_unique<Worker>(settings, folder, m_queueCondition, m_queueGuard, m_queue, m_fileSystemGuard, m_hasError, m_queueSize, fileCount, *this, decoder));
 	}
 
 public:
@@ -922,7 +948,7 @@ bool ArchiveFb2(const Settings& settings)
 	return !result;
 }
 
-bool ProcessArchiveImpl(const QString& archive, Settings settings, std::atomic_int& fileCount, QTextStream* imageStatisticsStream)
+bool ProcessArchiveImpl(const QString& archive, Settings settings, std::atomic_int& fileCount, QTextStream* imageStatisticsStream, const Decoder& decoder)
 {
 	const QFileInfo fileInfo(archive);
 	settings.dstDir = QDir(settings.dstDir.filePath(fileInfo.completeBaseName()));
@@ -943,7 +969,7 @@ bool ProcessArchiveImpl(const QString& archive, Settings settings, std::atomic_i
 
 		std::condition_variable queueCondition;
 		std::mutex              queueGuard;
-		FileProcessor           fileProcessor(settings, fileInfo.completeBaseName(), queueCondition, queueGuard, maxThreadCount, fileCount, imageStatisticsStream);
+		FileProcessor           fileProcessor(settings, fileInfo.completeBaseName(), queueCondition, queueGuard, maxThreadCount, fileCount, imageStatisticsStream, decoder);
 
 		while (!fileList.isEmpty())
 		{
@@ -994,11 +1020,11 @@ bool ProcessArchiveImpl(const QString& archive, Settings settings, std::atomic_i
 	return hasError;
 }
 
-bool ProcessArchive(const QString& file, const Settings& settings, std::atomic_int& fileCount, QTextStream* imageStatisticsStream)
+bool ProcessArchive(const QString& file, const Settings& settings, std::atomic_int& fileCount, QTextStream* imageStatisticsStream, const Decoder& decoder)
 {
 	try
 	{
-		return ProcessArchiveImpl(file, settings, fileCount, imageStatisticsStream);
+		return ProcessArchiveImpl(file, settings, fileCount, imageStatisticsStream, decoder);
 	}
 	catch (const std::exception& ex)
 	{
@@ -1045,10 +1071,12 @@ QStringList ProcessArchives(Settings& settings)
 		imageStatisticsStream->flush();
 	}
 
+	const Decoder decoder;
+
 	std::atomic_int fileCount;
 	QStringList     failed;
 	for (auto&& file : files)
-		if (ProcessArchive(file, settings, fileCount, imageStatisticsStream.get()))
+		if (ProcessArchive(file, settings, fileCount, imageStatisticsStream.get(), decoder))
 			failed << std::move(file);
 
 	return failed;

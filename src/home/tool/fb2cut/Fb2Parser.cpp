@@ -5,6 +5,7 @@
 #include <unordered_set>
 
 #include <QIODevice>
+#include <QRegularExpression>
 #include <QString>
 #include <QTextStream>
 
@@ -49,12 +50,44 @@ const std::pair<QString, QString> REPLACE_CHAR[] {
     { "quot;", "\"" },
 };
 
-}
-
-class Fb2ImageParser::Impl final : public Util::SaxParser
+class Fb2EncodingParserImpl final : public Util::SaxParser
 {
 public:
-	explicit Impl(QIODevice& input, OnBinaryFound binaryCallback)
+	explicit Fb2EncodingParserImpl(QIODevice& input)
+		: SaxParser(input)
+	{
+		Parse();
+	}
+
+	QString GetEncoding() const
+	{
+		return m_encoding;
+	}
+
+private: // SaxParser
+	bool OnXMLDecl(const QString& /*versionStr*/, const QString& encodingStr, const QString& /*standaloneStr*/, const QString& /*actualEncodingStr*/) override
+	{
+		m_encoding = encodingStr;
+		return false;
+	}
+
+	bool OnFatalError(size_t /*line*/, size_t /*column*/, const QString& text) override
+	{
+		QRegularExpression rx("unable to create converter for '(.+?)' encoding");
+		if (const auto match = rx.match(text); match.hasMatch())
+			m_encoding = match.captured(1);
+
+		return false;
+	}
+
+private:
+	QString m_encoding;
+};
+
+class Fb2ImageParserImpl final : public Util::SaxParser
+{
+public:
+	Fb2ImageParserImpl(QIODevice& input, Fb2ImageParser::OnBinaryFound binaryCallback)
 		: SaxParser(input, 512)
 		, m_binaryCallback { std::move(binaryCallback) }
 	{
@@ -131,41 +164,17 @@ private: // Util::SaxParser
 	}
 
 private:
-	bool          m_isBinary { false };
-	OnBinaryFound m_binaryCallback;
-	QString       m_coverPage;
-	QString       m_picId;
+	Fb2ImageParser::OnBinaryFound m_binaryCallback;
+
+	bool    m_isBinary { false };
+	QString m_coverPage;
+	QString m_picId;
 };
 
-bool Fb2ImageParser::Parse(QIODevice& input, OnBinaryFound binaryCallback)
-{
-	try
-	{
-		const Fb2ImageParser parser(input, std::move(binaryCallback));
-		return true;
-	}
-	catch (const std::exception& ex)
-	{
-		PLOGE << ex.what();
-	}
-	catch (...)
-	{
-		PLOGE << "unknown error";
-	}
-	return false;
-}
-
-Fb2ImageParser::Fb2ImageParser(QIODevice& input, OnBinaryFound binaryCallback)
-	: m_impl(input, std::move(binaryCallback))
-{
-}
-
-Fb2ImageParser::~Fb2ImageParser() = default;
-
-class Fb2Parser::Impl final : public Util::SaxParser
+class Fb2ParserImpl final : public Util::SaxParser
 {
 public:
-	Impl(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId)
+	Fb2ParserImpl(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId)
 		: SaxParser(input, 512)
 		, m_fileName { std::move(fileName) }
 		, m_replaceId { replaceId }
@@ -329,32 +338,41 @@ private:
 		value = it->second == -1 ? QString { "#cover" } : QString("#%1").arg(it->second);
 	}
 
-	bool OnStartElementBinary(const Util::XmlAttributes& attributes)
+private:
+	const QString                           m_fileName;
+	const std::unordered_map<QString, int>& m_replaceId;
+	Util::XmlWriter                         m_writer;
+	bool                                    m_hasProgramUsed { false };
+	std::stack<QString>                     m_tags;
+	bool                                    m_isCustomInfo { false };
+};
+
+} // namespace
+
+QString Fb2EncodingParser::GetEncoding(QIODevice& input)
+{
+	return Fb2EncodingParserImpl(input).GetEncoding();
+}
+
+bool Fb2ImageParser::Parse(QIODevice& input, OnBinaryFound binaryCallback)
+{
+	try
 	{
-		m_binaryId = attributes.GetAttribute(ID);
+		const Fb2ImageParserImpl parser(input, std::move(binaryCallback));
 		return true;
 	}
-
-private:
-	const QString                                                            m_fileName;
-	const std::unordered_map<QString, int>&                                  m_replaceId;
-	Util::XmlWriter                                                          m_writer;
-	QString                                                                  m_binaryId;
-	QString                                                                  m_coverpage;
-	std::unordered_map<QString, size_t, std::hash<QString>, std::equal_to<>> m_imageNames;
-	bool                                                                     m_hasProgramUsed { false };
-	std::stack<QString>                                                      m_tags;
-	bool                                                                     m_isCustomInfo { false };
-};
+	catch (const std::exception& ex)
+	{
+		PLOGE << ex.what();
+	}
+	catch (...)
+	{
+		PLOGE << "unknown error";
+	}
+	return false;
+}
 
 void Fb2Parser::Parse(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId)
 {
-	const Fb2Parser parser(std::move(fileName), input, output, replaceId);
+	[[maybe_unused]] const Fb2ParserImpl parser(std::move(fileName), input, output, replaceId);
 }
-
-Fb2Parser::Fb2Parser(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId)
-	: m_impl(std::move(fileName), input, output, replaceId)
-{
-}
-
-Fb2Parser::~Fb2Parser() = default;
