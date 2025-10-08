@@ -37,6 +37,7 @@
 #include "util/ObjectsConnector.h"
 #include "util/serializer/Font.h"
 
+#include "Constant.h"
 #include "StackedPage.h"
 #include "TreeView.h"
 #include "log.h"
@@ -734,8 +735,16 @@ private:
 			m_lineOption->Register(this);
 			m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
 		});
-		ConnectSettings(m_ui.actionConvertCoverToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY);
-		ConnectSettings(m_ui.actionConvertImagesToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_IMAGES_KEY);
+
+		m_ui.menuImages->setEnabled(
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().folder + "/" + Global::COVERS).exists()
+			&& QDir(m_collectionController->GetActiveCollection().folder + "/" + Global::IMAGES).exists()
+		);
+
+		ConnectSettings(m_ui.actionExportConvertCoverToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY);
+		ConnectSettings(m_ui.actionExportConvertImagesToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_IMAGES_KEY);
+		ConnectSettings(m_ui.actionExportRemoveCover, Constant::Settings::EXPORT_REMOVE_COVER_KEY);
+		ConnectSettings(m_ui.actionExportRemoveImages, Constant::Settings::EXPORT_REMOVE_IMAGES_KEY);
 	}
 
 	void ConnectActionsSettingsView()
