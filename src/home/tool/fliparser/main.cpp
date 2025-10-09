@@ -547,13 +547,26 @@ std::unique_ptr<DB::IDatabase> CreateDatabase(const std::filesystem::path& sqlPa
 	return db;
 }
 
-Book CheckCustom(const Zip& zip, const QString& fileName, const QJsonObject& unIndexed)
+struct FileInfo
 {
-	const auto         fileData = zip.Read(fileName)->GetStream().readAll();
+	QByteArray hash;
+	qsizetype  size;
+};
+
+FileInfo GetFileHash(const Zip& zip, const QString& fileName)
+{
+	const auto fileData = zip.Read(fileName)->GetStream().readAll();
+
 	QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
 	hash.addData(fileData);
-	const auto key = hash.result().toHex();
-	const auto it  = unIndexed.constFind(key);
+	return { hash.result().toHex(), fileData.size() };
+}
+
+Book CheckCustom(const Zip& zip, const QString& fileName, const QJsonObject& unIndexed)
+{
+	const auto [key, size] = GetFileHash(zip, fileName);
+
+	const auto it = unIndexed.constFind(key);
 	if (it == unIndexed.constEnd())
 		return {};
 
@@ -576,7 +589,7 @@ Book CheckCustom(const Zip& zip, const QString& fileName, const QJsonObject& unI
 		.title    = value["title"].toString(),
 		.series   = std::move(series),
 		.file     = fileInfo.baseName(),
-		.size     = QString::number(fileData.size()),
+		.size     = QString::number(size),
 		.libId    = fileInfo.baseName(),
 		.deleted  = true,
 		.ext      = fileInfo.suffix(),
@@ -589,7 +602,13 @@ Book CheckCustom(const Zip& zip, const QString& fileName, const QJsonObject& unI
 
 Book ParseBook(const QString& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
 {
-	return fileName.endsWith(".fb2", Qt::CaseInsensitive) ? Book::fromString(Util::Fb2InpxParser::Parse(folder, zip, fileName, zipDateTime, true)) : Book {};
+	if (!fileName.endsWith(".fb2", Qt::CaseInsensitive))
+		return {};
+
+	const auto hash = GetFileHash(zip, fileName).hash;
+	PLOGV << "parse " << fileName << ", hash: " << hash;
+
+	return Book::fromString(Util::Fb2InpxParser::Parse(folder, zip, fileName, zipDateTime, true));
 }
 
 std::unordered_set<long long>
