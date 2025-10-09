@@ -29,6 +29,8 @@ conan install ^
 --build=missing 2>&1 | %tee_name% conan.log
 if %errorlevel% NEQ 0 goto end
 
+set QT_DIR="D:/sdk/Qt/Qt6/6.10.0/msvc2022_64/lib/cmake/Qt6"
+
 cmake ^
 --no-warn-unused-cli ^
 -DCMAKE_GENERATOR_PLATFORM=x64 ^
@@ -38,6 +40,7 @@ cmake ^
 -DCMAKE_TOOLCHAIN_FILE="%BUILD_DIR%\conan_toolchain.cmake" ^
 -DCMAKE_POLICY_DEFAULT_CMP0091=NEW ^
 -DPRODUCT_UID=%PRODUCT_GUID% ^
+-DQt6_DIR=%QT_DIR% ^
 %* ^
 -G "Visual Studio 17 2022" %~dp0 2>&1 | %tee_name% generate_solution.log
 
