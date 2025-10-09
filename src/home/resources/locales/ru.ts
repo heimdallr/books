@@ -5439,6 +5439,10 @@ Try again?</source>
 		<translation>Отмена</translation>
 	</message>
 	<message>
+		<source>Cannot write to '%1'</source>
+		<translation>Ошибка записи в %1</translation>
+	</message>
+	<message>
 		<source>Current version %1 is actual</source>
 		<translation>Текущая версия %1 актуальна</translation>
 	</message>
