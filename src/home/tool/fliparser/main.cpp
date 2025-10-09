@@ -670,7 +670,8 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, InpData& inpData, co
 				fileToFolder[bookFile].emplace_back(zipFileInfo.fileName());
 			}
 
-			zipFileController->AddFile(QString::fromStdWString(path.filename().replace_extension("inp")), std::move(file), QDateTime::currentDateTime());
+			if (!file.isEmpty())
+				zipFileController->AddFile(QString::fromStdWString(path.filename().replace_extension("inp")), std::move(file), QDateTime::currentDateTime());
 		}
 	);
 
