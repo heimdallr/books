@@ -43,6 +43,7 @@ constexpr auto CHECK_FAILED        = QT_TRANSLATE_NOOP("UpdateChecker", "Update 
 constexpr auto VERSION_ACTUAL      = QT_TRANSLATE_NOOP("UpdateChecker", "Current version %1 is actual");
 constexpr auto VERSION_MIRACLE     = QT_TRANSLATE_NOOP("UpdateChecker", "Last version %1, your version %2. Did a miracle happen?");
 constexpr auto INSTALLER_NOT_FOUND = QT_TRANSLATE_NOOP("UpdateChecker", "Something strange, the installer file is missing. Visit download page?");
+constexpr auto CANNOT_OPEN_WRITE   = QT_TRANSLATE_NOOP("UpdateChecker", "Cannot write to '%1'");
 
 TR_DEF
 
@@ -61,7 +62,11 @@ bool Reinstall(const QString& fileName, const char* batchText)
 		QDir::toNativeSeparators(QString("%1/%2-setup-%3.bat").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), PRODUCT_ID, QUuid::createUuid().toString(QUuid::StringFormat::Id128)));
 	{
 		QFile file(batchFileName);
-		file.open(QIODevice::WriteOnly);
+		if (!file.open(QIODevice::WriteOnly))
+		{
+			PLOGE << "Cannot write to " << batchFileName;
+			return false;
+		}
 		QTextStream stream(&file);
 		stream << QString(batchText).arg(PRODUCT_UID, QDir::toNativeSeparators(fileName), batchFileName, batchFileName + ".log", QDir::toNativeSeparators(QCoreApplication::applicationFilePath()));
 	}
@@ -273,7 +278,12 @@ private:
 
 		auto downloadFileName = QString("%1/%2").arg(downloadFolder, it->name);
 		auto file             = std::make_shared<QFile>(downloadFileName);
-		file->open(QIODevice::WriteOnly);
+		if (!file->open(QIODevice::WriteOnly))
+		{
+			PLOGE << "Cannot write to " << downloadFileName;
+			return m_uiFactory->ShowError(Tr(CANNOT_OPEN_WRITE));
+		}
+
 		downloader->Download(
 			it->browser_download_url,
 			*file,

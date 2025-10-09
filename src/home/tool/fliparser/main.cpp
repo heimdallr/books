@@ -936,9 +936,10 @@ void CreateReview(DB::IDatabase& db, const InpData& inpData, const std::unordere
 
 	for (const auto& [fileName, data] : CreateReviewData(db, inpData, libIds, outputFolder))
 	{
-		QFile output(fileName);
-		output.open(QIODevice::WriteOnly);
-		output.write(data);
+		if (QFile output(fileName); output.open(QIODevice::WriteOnly))
+			output.write(data);
+		else
+			PLOGE << "Cannot write to " << fileName;
 	}
 }
 
@@ -1102,9 +1103,10 @@ void CreateAuthorAnnotations(DB::IDatabase& db, const std::filesystem::path& sql
 			if (const auto archivePath = std::filesystem::path(archiveName.toStdWString()); exists(archivePath))
 				remove(archivePath);
 
-			QFile output(archiveName);
-			output.open(QIODevice::WriteOnly);
-			output.write(annotation);
+			if (QFile output(archiveName); output.open(QIODevice::WriteOnly))
+				output.write(annotation);
+			else
+				PLOGE << "Cannot write to " << archiveName;
 		}
 		if (!images.isEmpty())
 		{
@@ -1112,9 +1114,10 @@ void CreateAuthorAnnotations(DB::IDatabase& db, const std::filesystem::path& sql
 			if (const auto archivePath = std::filesystem::path(archiveName.toStdWString()); exists(archivePath))
 				remove(archivePath);
 
-			QFile output(archiveName);
-			output.open(QIODevice::WriteOnly);
-			output.write(images);
+			if (QFile output(archiveName); output.open(QIODevice::WriteOnly))
+				output.write(images);
+			else
+				PLOGE << "Cannot write to " << archiveName;
 		}
 	}
 }
