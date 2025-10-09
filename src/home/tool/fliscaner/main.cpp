@@ -271,9 +271,9 @@ int main(int argc, char* argv[])
 		else
 		{
 			QFile inp(":/config/config.json");
-			inp.open(QIODevice::ReadOnly);
+			(void)inp.open(QIODevice::ReadOnly);
 			QFile outp(GetDownloadFileName("config.json"));
-			outp.open(QIODevice::WriteOnly);
+			(void)outp.open(QIODevice::WriteOnly);
 			outp.write(inp.readAll());
 		}
 	}

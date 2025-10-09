@@ -5424,6 +5424,10 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
+		<source>Cannot write to '%1'</source>
+		<translation></translation>
+	</message>
+	<message>
 		<source>Current version %1 is actual</source>
 		<translation></translation>
 	</message>
