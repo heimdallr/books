@@ -592,7 +592,8 @@ Book ParseBook(const QString& folder, const Zip& zip, const QString& fileName, c
 	return Book::fromString(Util::Fb2InpxParser::Parse(folder, zip, fileName, zipDateTime, true));
 }
 
-std::unordered_set<long long> CreateInpx(DB::IDatabase& db, InpData& inpData, const std::filesystem::path& archivesPath, const std::filesystem::path& outputFolder, FileToFolder& fileToFolder)
+std::unordered_set<long long>
+CreateInpx(DB::IDatabase& db, InpData& inpData, const std::filesystem::path& infoFile, const std::filesystem::path& archivesPath, const std::filesystem::path& outputFolder, FileToFolder& fileToFolder)
 {
 	std::unordered_set<long long> libIds;
 
@@ -675,35 +676,20 @@ std::unordered_set<long long> CreateInpx(DB::IDatabase& db, InpData& inpData, co
 		}
 	);
 
-	if (const auto itFile = std::find_if(
-			std::filesystem::directory_iterator { archivesPath },
-			std::filesystem::directory_iterator {},
-			[](const auto& entry) {
-				return !entry.is_directory() && entry.path().extension() == ".inpx";
-			}
-		);
-	    itFile != std::filesystem::directory_iterator {})
-	{
-		const auto& path = itFile->path();
-		PLOGV << path.string();
+	zipFileController->AddFile(STRUCTURE_INFO, "AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;YEAR;", QDateTime::currentDateTime());
+	zipFileController->AddFile(QString::fromStdWString(VERSION_INFO), maxTime.toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
+	zipFileController->AddFile(
+		QString::fromStdWString(COLLECTION_INFO),
+		[&]() -> QString {
+			QFile file(infoFile);
+			if (file.open(QIODevice::ReadOnly))
+				return QString::fromUtf8(file.readAll()).arg(maxTime.toString("yyyy-MM-dd"), maxTime.toString("yyyyMMdd"));
 
-		Zip zip(QString::fromStdWString(path));
-		std::ranges::for_each(
-			zip.GetFileNameList() | std::views::filter([](const auto& item) {
-				return QFileInfo(item).suffix() != "inp" && item != STRUCTURE_INFO;
-			}),
-			[&](const auto& item) {
-				zipFileController->AddFile(
-					item,
-					[&] {
-						return item == "version.info" ? maxTime.toString("yyyyMMdd").toUtf8() : zip.Read(item)->GetStream().readAll();
-					}(),
-					QDateTime::currentDateTime()
-				);
-			}
-		);
-		zipFileController->AddFile(STRUCTURE_INFO, "AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;YEAR;", QDateTime::currentDateTime());
-	}
+			return {};
+		}()
+					 .toUtf8(),
+		QDateTime::currentDateTime()
+	);
 
 	{
 		Zip inpx(QString::fromStdWString(inpxFileName), ZipDetails::Format::Zip);
@@ -1127,21 +1113,21 @@ int main(const int argc, char* argv[])
 	Log::LogAppender                                 logConsoleAppender(&consoleAppender);
 	Util::XMLPlatformInitializer                     xmlPlatformInitializer;
 
-	if (argc < 4)
+	if (argc < 5)
 	{
-		PLOGE << "\n" << "usage:" << "\n" << "fliparser.exe sql_path archives_path output_folder";
+		PLOGE << "\n" << "usage:" << "\n" << "fliparser.exe sql_path info_file archives_path output_folder";
 		return 1;
 	}
 
-	const auto db      = CreateDatabase(argv[1], argv[2], argv[3]);
+	const auto db      = CreateDatabase(argv[1], argv[3], argv[4]);
 	auto       inpData = GenerateInpData(*db);
 
 	FileToFolder fileToFolder;
-	const auto   libIds = CreateInpx(*db, inpData, argv[2], argv[3], fileToFolder);
-	CreateBookList(inpData, fileToFolder, argv[3]);
+	const auto   libIds = CreateInpx(*db, inpData, argv[2], argv[3], argv[4], fileToFolder);
+	CreateBookList(inpData, fileToFolder, argv[4]);
 
-	CreateReview(*db, inpData, libIds, argv[3]);
-	CreateAuthorAnnotations(*db, argv[1], argv[3]);
+	CreateReview(*db, inpData, libIds, argv[4]);
+	CreateAuthorAnnotations(*db, argv[1], argv[4]);
 
 	return 0;
 }
