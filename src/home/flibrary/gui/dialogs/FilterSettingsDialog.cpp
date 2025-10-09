@@ -65,12 +65,19 @@ private:
 		switch (role)
 		{
 			case Role::CheckedOnly:
-				return Util::Set(checkedOnly, value.toBool(), [this] {
-					invalidateFilter();
-				});
+				return Util::Set(
+					checkedOnly,
+					value.toBool(),
+					[this] {
+						beginFilterChange();
+					},
+					[this] {
+						endFilterChange(Direction::Rows);
+					}
+				);
 
 			case Role::FilterDataChanged:
-				return invalidateFilter(), true;
+				return beginFilterChange(), endFilterChange(Direction::Rows), true;
 
 			default:
 				break;

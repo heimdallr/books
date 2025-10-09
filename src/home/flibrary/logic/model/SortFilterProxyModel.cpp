@@ -89,37 +89,79 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 		switch (role)
 		{
 			case Role::TextFilter:
-				return Util::Set(m_impl->m_filter, value.toString().simplified(), [&] {
-					invalidateFilter();
-				});
+				return Util::Set(
+					m_impl->m_filter,
+					value.toString().simplified(),
+					[this] {
+						beginFilterChange();
+					},
+					[this] {
+						endFilterChange(Direction::Rows);
+					}
+				);
 
 			case Role::VisibleColumns:
-				return Util::Set(m_impl->m_visibleColumns, value.value<QVector<int>>(), [&] {
-					invalidateFilter();
-				});
+				return Util::Set(
+					m_impl->m_visibleColumns,
+					value.value<QVector<int>>(),
+					[this] {
+						beginFilterChange();
+					},
+					[this] {
+						endFilterChange(Direction::Rows);
+					}
+				);
 
 			case Role::ShowRemovedFilter:
-				return Util::Set(m_impl->m_showRemoved, value.toBool(), [&] {
-					invalidateFilter();
-				});
+				return Util::Set(
+					m_impl->m_showRemoved,
+					value.toBool(),
+					[this] {
+						beginFilterChange();
+					},
+					[this] {
+						endFilterChange(Direction::Rows);
+					}
+				);
 
 			case Role::NavigationItemFiltered:
-				return Util::Set(m_impl->m_navigationFiltered, value.toBool(), [&] {
-					invalidateFilter();
-				});
+				return Util::Set(
+					m_impl->m_navigationFiltered,
+					value.toBool(),
+					[this] {
+						beginFilterChange();
+					},
+					[this] {
+						endFilterChange(Direction::Rows);
+					}
+				);
 
 			case Role::UniFilterEnabled:
-				return Util::Set(m_impl->m_uniFilterEnabled, value.toBool(), [&] {
-					invalidateFilter();
-				});
+				return Util::Set(
+					m_impl->m_uniFilterEnabled,
+					value.toBool(),
+					[this] {
+						beginFilterChange();
+					},
+					[this] {
+						endFilterChange(Direction::Rows);
+					}
+				);
 
 			case Role::UniFilterChanged:
-				return invalidateFilter(), true;
+				return beginFilterChange(), endFilterChange(Direction::Rows), true;
 
 			case Role::LanguageFilter:
-				if (Util::Set(m_impl->m_languageFilter, value.toString().simplified(), [&] {
-						invalidateFilter();
-					}))
+				if (Util::Set(
+						m_impl->m_languageFilter,
+						value.toString().simplified(),
+						[this] {
+							beginFilterChange();
+						},
+						[this] {
+							endFilterChange(Direction::Rows);
+						}
+					))
 				{
 					emit headerDataChanged(Qt::Horizontal, 0, columnCount() - 1);
 					return true;
