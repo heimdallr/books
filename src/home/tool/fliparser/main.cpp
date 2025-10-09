@@ -589,7 +589,7 @@ Book CheckCustom(const Zip& zip, const QString& fileName, const QJsonObject& unI
 
 Book ParseBook(const QString& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
 {
-	return Book::fromString(Util::Fb2InpxParser::Parse(folder, zip, fileName, zipDateTime, true));
+	return fileName.endsWith(".fb2", Qt::CaseInsensitive) ? Book::fromString(Util::Fb2InpxParser::Parse(folder, zip, fileName, zipDateTime, true)) : Book {};
 }
 
 std::unordered_set<long long>
