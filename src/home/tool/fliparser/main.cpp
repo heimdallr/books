@@ -676,20 +676,16 @@ CreateInpx(DB::IDatabase& db, InpData& inpData, const std::filesystem::path& inf
 		}
 	);
 
+	const auto collectionInfo = [&]() -> QString {
+		if (QFile file(infoFile); file.open(QIODevice::ReadOnly))
+			return QString::fromUtf8(file.readAll()).arg(maxTime.toString("yyyy-MM-dd"), maxTime.toString("yyyyMMdd"));
+
+		return {};
+	}();
+
 	zipFileController->AddFile(STRUCTURE_INFO, "AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;YEAR;", QDateTime::currentDateTime());
 	zipFileController->AddFile(QString::fromStdWString(VERSION_INFO), maxTime.toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
-	zipFileController->AddFile(
-		QString::fromStdWString(COLLECTION_INFO),
-		[&]() -> QString {
-			QFile file(infoFile);
-			if (file.open(QIODevice::ReadOnly))
-				return QString::fromUtf8(file.readAll()).arg(maxTime.toString("yyyy-MM-dd"), maxTime.toString("yyyyMMdd"));
-
-			return {};
-		}()
-					 .toUtf8(),
-		QDateTime::currentDateTime()
-	);
+	zipFileController->AddFile(QString::fromStdWString(COLLECTION_INFO), collectionInfo.toUtf8(), QDateTime::currentDateTime());
 
 	{
 		Zip inpx(QString::fromStdWString(inpxFileName), ZipDetails::Format::Zip);
