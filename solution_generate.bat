@@ -29,7 +29,7 @@ conan install ^
 --build=missing 2>&1 | %tee_name% conan.log
 if %errorlevel% NEQ 0 goto end
 
-set QT_DIR=%QT_PATH%/lib/cmake/Qt6
+set QT_DIR="D:/sdk/Qt/Qt6/6.10.0/msvc2022_64/lib/cmake/Qt6"
 
 cmake ^
 --no-warn-unused-cli ^
