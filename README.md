@@ -113,7 +113,7 @@ fb2cut.exe --help
 ### Windows  
 Не запустится на винде ниже 10-ки, т.к. исползуется [Qt6](https://doc.qt.io/qt-6/windows.html)  
 Собиралось только на MS Visual Studio 2022, прочие IDE не тестировались  
-Используется C++20  
+Используется C++23  
 
 #### Установить и настроить conan  
 [Инструкция](https://docs.conan.io/2/installation.html)  
