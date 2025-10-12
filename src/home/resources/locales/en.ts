@@ -4606,16 +4606,12 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>Go to &amp;OPDS</source>
+		<source>Go to the &amp;ReactApp web interface</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>Go to &amp;Site</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Go to &amp;Web</source>
-		<translation></translation>
+		<source>Go to the simple &amp;web interface</source>
+		<translation>Go to the &amp;simplified web interface</translation>
 	</message>
 	<message>
 		<source>Http server management</source>
@@ -4683,6 +4679,10 @@ Try again?</source>
 	</message>
 	<message>
 		<source>Sho&amp;w</source>
+		<translation></translation>
+	</message>
+	<message>
+		<source>Show &amp;OPDS in browser</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -5013,7 +5013,7 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>OPDS Address</source>
+		<source>OPDS</source>
 		<translation></translation>
 	</message>
 	<message>
@@ -5025,8 +5025,12 @@ Try again?</source>
 		<translation></translation>
 	</message>
 	<message>
-		<source>Site Address</source>
+		<source>ReactApp web interface</source>
 		<translation></translation>
+	</message>
+	<message>
+		<source>Simple web interface</source>
+		<translation>Simplified web interface</translation>
 	</message>
 	<message>
 		<source>Start</source>
@@ -5042,10 +5046,6 @@ Try again?</source>
 	</message>
 	<message>
 		<source>User</source>
-		<translation></translation>
-	</message>
-	<message>
-		<source>Web Address</source>
 		<translation></translation>
 	</message>
 </context>

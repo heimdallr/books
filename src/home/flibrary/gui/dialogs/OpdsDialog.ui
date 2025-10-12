@@ -42,52 +42,6 @@
        </property>
       </widget>
      </item>
-     <item row="4" column="0">
-      <widget class="QLabel" name="labelWeb">
-       <property name="text">
-        <string>Web Address</string>
-       </property>
-       <property name="textFormat">
-        <enum>Qt::TextFormat::RichText</enum>
-       </property>
-       <property name="openExternalLinks">
-        <bool>true</bool>
-       </property>
-       <property name="textInteractionFlags">
-        <set>Qt::TextInteractionFlag::TextBrowserInteraction</set>
-       </property>
-      </widget>
-     </item>
-     <item row="4" column="1">
-      <widget class="QLineEdit" name="lineEditWebAddress">
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="0">
-      <widget class="QLabel" name="labelOpds">
-       <property name="text">
-        <string>OPDS Address</string>
-       </property>
-       <property name="textFormat">
-        <enum>Qt::TextFormat::RichText</enum>
-       </property>
-       <property name="openExternalLinks">
-        <bool>true</bool>
-       </property>
-       <property name="textInteractionFlags">
-        <set>Qt::TextInteractionFlag::TextBrowserInteraction</set>
-       </property>
-      </widget>
-     </item>
-     <item row="5" column="1">
-      <widget class="QLineEdit" name="lineEditOpdsAddress">
-       <property name="readOnly">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="0">
       <widget class="QLabel" name="label_5">
        <property name="text">
@@ -101,7 +55,7 @@
      <item row="3" column="0">
       <widget class="QLabel" name="labelSite">
        <property name="text">
-        <string>Site Address</string>
+        <string notr="true">ReactApp web interface</string>
        </property>
        <property name="textFormat">
         <enum>Qt::TextFormat::RichText</enum>
@@ -114,10 +68,7 @@
        </property>
       </widget>
      </item>
-     <item row="3" column="1">
-      <widget class="QLineEdit" name="lineEditSiteAddress"/>
-     </item>
-     <item row="6" column="1">
+     <item row="7" column="1">
       <widget class="QWidget" name="auth" native="true">
        <property name="enabled">
         <bool>false</bool>
@@ -162,7 +113,7 @@
        </layout>
       </widget>
      </item>
-     <item row="6" column="0">
+     <item row="7" column="0">
       <widget class="QCheckBox" name="checkBoxAuth">
        <property name="layoutDirection">
         <enum>Qt::LayoutDirection::RightToLeft</enum>
@@ -173,7 +124,7 @@
       </widget>
      </item>
      <item row="2" column="1">
-      <layout class="QHBoxLayout" name="horizontalLayout">
+      <layout class="QHBoxLayout" name="_7">
        <item>
         <widget class="QCheckBox" name="checkBoxAddToSturtup">
          <property name="layoutDirection">
@@ -203,6 +154,97 @@
       <widget class="QLabel" name="label_2">
        <property name="text">
         <string>Autostart</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <layout class="QHBoxLayout" name="_6">
+       <item>
+        <widget class="QCheckBox" name="checkBoxReactApp">
+         <property name="text">
+          <string notr="true"/>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEditReactApp"/>
+       </item>
+      </layout>
+     </item>
+     <item row="4" column="1">
+      <layout class="QHBoxLayout" name="_8">
+       <item>
+        <widget class="QCheckBox" name="checkBoxSimpleWeb">
+         <property name="text">
+          <string notr="true"/>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEditSimpleWeb">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="4" column="0">
+      <widget class="QLabel" name="labelWeb">
+       <property name="text">
+        <string notr="true">Simple web interface</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::TextFormat::RichText</enum>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::TextInteractionFlag::TextBrowserInteraction</set>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <layout class="QHBoxLayout" name="_9">
+       <item>
+        <widget class="QCheckBox" name="checkBoxOpds">
+         <property name="text">
+          <string notr="true"/>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEditOpds">
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+     <item row="5" column="0">
+      <widget class="QLabel" name="labelOpds">
+       <property name="text">
+        <string notr="true">OPDS</string>
+       </property>
+       <property name="textFormat">
+        <enum>Qt::TextFormat::RichText</enum>
+       </property>
+       <property name="openExternalLinks">
+        <bool>true</bool>
+       </property>
+       <property name="textInteractionFlags">
+        <set>Qt::TextInteractionFlag::TextBrowserInteraction</set>
        </property>
       </widget>
      </item>

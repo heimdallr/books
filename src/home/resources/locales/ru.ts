@@ -4618,16 +4618,12 @@ Try again?</source>
 		<translation>Генерировать &amp;индекс (*.inpx)</translation>
 	</message>
 	<message>
-		<source>Go to &amp;OPDS</source>
-		<translation>Переход на &amp;OPDS</translation>
+		<source>Go to the &amp;ReactApp web interface</source>
+		<translation>Перейти к веб-интерфейсу &amp;ReactApp</translation>
 	</message>
 	<message>
-		<source>Go to &amp;Site</source>
-		<translation>Переход на &amp;сайт</translation>
-	</message>
-	<message>
-		<source>Go to &amp;Web</source>
-		<translation>Переход на &amp;Web</translation>
+		<source>Go to the simple &amp;web interface</source>
+		<translation>Перейти к у&amp;прощенному веб-интерфейсу</translation>
 	</message>
 	<message>
 		<source>Http server management</source>
@@ -4696,6 +4692,10 @@ Try again?</source>
 	<message>
 		<source>Sho&amp;w</source>
 		<translation>Пока&amp;зать</translation>
+	</message>
+	<message>
+		<source>Show &amp;OPDS in browser</source>
+		<translation>Показать &amp;OPDS в браузере</translation>
 	</message>
 	<message>
 		<source>Show collection s&amp;tatistics</source>
@@ -5025,8 +5025,8 @@ Try again?</source>
 		<translation>Сетевые интерфейсы не найдены</translation>
 	</message>
 	<message>
-		<source>OPDS Address</source>
-		<translation>Адрес OPDS</translation>
+		<source>OPDS</source>
+		<translation></translation>
 	</message>
 	<message>
 		<source>Password</source>
@@ -5037,8 +5037,12 @@ Try again?</source>
 		<translation>Порт</translation>
 	</message>
 	<message>
-		<source>Site Address</source>
-		<translation>Адрес сайта</translation>
+		<source>ReactApp web interface</source>
+		<translation>Веб-интерфейс ReactApp</translation>
+	</message>
+	<message>
+		<source>Simple web interface</source>
+		<translation>Упрощенный веб-интерфейс</translation>
 	</message>
 	<message>
 		<source>Start</source>
@@ -5055,10 +5059,6 @@ Try again?</source>
 	<message>
 		<source>User</source>
 		<translation>Пользователь</translation>
-	</message>
-	<message>
-		<source>Web Address</source>
-		<translation>Веб-адрес</translation>
 	</message>
 </context>
 <context>
