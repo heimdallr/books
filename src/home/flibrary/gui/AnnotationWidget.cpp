@@ -479,8 +479,8 @@ private: // IAnnotationController::IUrlGenerator
 			return {};
 
 		const auto& navigation = FindSecond(TYPE_TO_NAVIGATION, type, NO_NAVIGATION, PszComparer {});
-		return textMode || navigation.first && !m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation.first), true) ? QString("%1").arg(str)
-		                                                                                                                                               : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
+		return textMode || (navigation.first && !m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation.first), true)) ? QString("%1").arg(str)
+		                                                                                                                                                 : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
 	}
 
 	QString GenerateStars(const int rate) const override

@@ -5,6 +5,7 @@
 #include <regex>
 
 #include <QBuffer>
+#include <QCommandLineParser>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -44,6 +45,25 @@ using namespace HomeCompa;
 
 namespace
 {
+
+constexpr auto SQL                      = "sql";
+constexpr auto COLLECTION_INFO_TEMPLATE = "collection-info-template";
+constexpr auto ARCHIVES                 = "archives";
+constexpr auto OUTPUT                   = "output";
+constexpr auto FOLDER                   = "folder";
+constexpr auto PATH                     = "path";
+constexpr auto HASH                     = "hash";
+
+struct Settings
+{
+	std::filesystem::path sqlFolder;
+	std::filesystem::path archivesFolder;
+	std::filesystem::path outputFolder;
+	std::filesystem::path collectionInfoTemplateFile;
+
+	std::unordered_map<QString, QString> fileToHash;
+	std::unordered_map<QString, QString> hashToFile;
+};
 
 struct Series
 {
@@ -508,9 +528,9 @@ left join libfilename f on f.BookId=b.BookID
 	return inpData;
 }
 
-std::unique_ptr<DB::IDatabase> CreateDatabase(const std::filesystem::path& sqlPath, const std::filesystem::path& archivesPath, const std::filesystem::path& outputFolder)
+std::unique_ptr<DB::IDatabase> CreateDatabase(const Settings& settings)
 {
-	const auto dbPath   = outputFolder / (archivesPath.filename().wstring() + L".db");
+	const auto dbPath   = settings.outputFolder / (settings.archivesFolder.filename().wstring() + L".db");
 	const auto dbExists = exists(dbPath);
 
 	auto db = Create(DB::Factory::Impl::Sqlite, std::format("path={};flag={}", dbPath.string(), dbExists ? "READONLY" : "CREATE"));
@@ -524,7 +544,7 @@ std::unique_ptr<DB::IDatabase> CreateDatabase(const std::filesystem::path& sqlPa
 		tr->Commit();
 	}
 
-	std::ranges::for_each(std::filesystem::directory_iterator { sqlPath }, [&](const auto& entry) {
+	std::ranges::for_each(std::filesystem::directory_iterator { settings.sqlFolder }, [&](const auto& entry) {
 		if (entry.is_directory())
 			return;
 
@@ -611,8 +631,24 @@ Book ParseBook(const QString& folder, const Zip& zip, const QString& fileName, c
 	return Book::fromString(Util::Fb2InpxParser::Parse(folder, zip, fileName, zipDateTime, true));
 }
 
-std::unordered_set<long long>
-CreateInpx(DB::IDatabase& db, InpData& inpData, const std::filesystem::path& infoFile, const std::filesystem::path& archivesPath, const std::filesystem::path& outputFolder, FileToFolder& fileToFolder)
+Book CheckDuplicate(const Settings& settings, const QString& file, const InpData& inpData)
+{
+	const auto hashIt = settings.fileToHash.find(file);
+	if (hashIt == settings.fileToHash.end())
+		return {};
+
+	const auto fileIt = settings.hashToFile.find(hashIt->second);
+	if (fileIt == settings.hashToFile.end())
+		return {};
+
+	const auto bookIt = inpData.find(fileIt->second);
+	if (bookIt == inpData.end())
+		return {};
+
+	return bookIt->second;
+}
+
+std::unordered_set<long long> CreateInpx(const Settings& settings, DB::IDatabase& db, InpData& inpData, FileToFolder& fileToFolder)
 {
 	std::unordered_set<long long> libIds;
 
@@ -635,7 +671,7 @@ CreateInpx(DB::IDatabase& db, InpData& inpData, const std::filesystem::path& inf
 		return doc.object();
 	}();
 
-	const auto inpxFileName = outputFolder / (archivesPath.filename().wstring() + L".inpx");
+	const auto inpxFileName = settings.outputFolder / (settings.archivesFolder.filename().wstring() + L".inpx");
 	if (exists(inpxFileName))
 		remove(inpxFileName);
 
@@ -643,7 +679,7 @@ CreateInpx(DB::IDatabase& db, InpData& inpData, const std::filesystem::path& inf
 	QDateTime maxTime;
 
 	std::ranges::for_each(
-		std::filesystem::directory_iterator { archivesPath } | std::views::filter([](const auto& entry) {
+		std::filesystem::directory_iterator { settings.archivesFolder } | std::views::filter([](const auto& entry) {
 			return !entry.is_directory() && Zip::IsArchive(QString::fromStdWString(entry.path()));
 		}),
 		[&](const auto& entry) {
@@ -658,6 +694,11 @@ CreateInpx(DB::IDatabase& db, InpData& inpData, const std::filesystem::path& inf
 				if (const auto it = inpData.find(bookFile); it != inpData.end())
 				{
 					file << it->second;
+				}
+				else if (auto duplicateBook = CheckDuplicate(settings, bookFile, inpData); !duplicateBook.title.isEmpty())
+				{
+					file << duplicateBook;
+					inpData[bookFile] = std::move(duplicateBook);
 				}
 				else if (auto customBook = CheckCustom(zip, bookFile, unIndexed); !customBook.title.isEmpty())
 				{
@@ -696,7 +737,7 @@ CreateInpx(DB::IDatabase& db, InpData& inpData, const std::filesystem::path& inf
 	);
 
 	const auto collectionInfo = [&]() -> QString {
-		if (QFile file(infoFile); file.open(QIODevice::ReadOnly))
+		if (QFile file(settings.collectionInfoTemplateFile); file.open(QIODevice::ReadOnly))
 			return QString::fromUtf8(file.readAll()).arg(maxTime.toString("yyyy-MM-dd"), maxTime.toString("yyyyMMdd"));
 
 		return {};
@@ -704,7 +745,8 @@ CreateInpx(DB::IDatabase& db, InpData& inpData, const std::filesystem::path& inf
 
 	zipFileController->AddFile(STRUCTURE_INFO, "AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;YEAR;", QDateTime::currentDateTime());
 	zipFileController->AddFile(QString::fromStdWString(VERSION_INFO), maxTime.toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
-	zipFileController->AddFile(QString::fromStdWString(COLLECTION_INFO), collectionInfo.toUtf8(), QDateTime::currentDateTime());
+	if (!collectionInfo.isEmpty())
+		zipFileController->AddFile(QString::fromStdWString(COLLECTION_INFO), collectionInfo.toUtf8(), QDateTime::currentDateTime());
 
 	{
 		Zip inpx(QString::fromStdWString(inpxFileName), ZipDetails::Format::Zip);
@@ -866,7 +908,7 @@ std::vector<std::tuple<QString, QByteArray>> CreateReviewData(DB::IDatabase& db,
 	return archives;
 }
 
-void CreateBookList(const InpData& inpData, const FileToFolder& fileToFolder, const std::filesystem::path& outputFolder)
+void CreateBookList(const Settings& settings, const InpData& inpData, const FileToFolder& fileToFolder)
 {
 	PLOGI << "write contents";
 
@@ -922,19 +964,20 @@ void CreateBookList(const InpData& inpData, const FileToFolder& fileToFolder, co
 	});
 
 	PLOGI << "archive contents";
-	remove(outputFolder / "contents.7z");
+	const auto contentsFile = settings.outputFolder / "contents.7z";
+	remove(contentsFile);
 
-	Zip zip(QString::fromStdWString(outputFolder / "contents.7z"), Zip::Format::SevenZip);
+	Zip zip(QString::fromStdWString(contentsFile), Zip::Format::SevenZip);
 	zip.SetProperty(ZipDetails::PropertyId::SolidArchive, false);
 	zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Ppmd));
 	zip.Write(std::move(zipFiles));
 }
 
-void CreateReview(DB::IDatabase& db, const InpData& inpData, const std::unordered_set<long long>& libIds, const std::filesystem::path& outputFolder)
+void CreateReview(const Settings& settings, DB::IDatabase& db, const InpData& inpData, const std::unordered_set<long long>& libIds)
 {
 	PLOGI << "write reviews";
 
-	for (const auto& [fileName, data] : CreateReviewData(db, inpData, libIds, outputFolder))
+	for (const auto& [fileName, data] : CreateReviewData(db, inpData, libIds, settings.outputFolder))
 	{
 		if (QFile output(fileName); output.open(QIODevice::WriteOnly))
 			output.write(data);
@@ -1085,17 +1128,17 @@ order by n.nid
 	return archives;
 }
 
-void CreateAuthorAnnotations(DB::IDatabase& db, const std::filesystem::path& sqlPath, const std::filesystem::path& outputFolder)
+void CreateAuthorAnnotations(const Settings& settings, DB::IDatabase& db)
 {
 	PLOGI << "write author annotations";
 
-	const auto authorsFolder = outputFolder / AUTHORS_FOLDER;
+	const auto authorsFolder = settings.outputFolder / AUTHORS_FOLDER;
 	create_directory(authorsFolder);
 
 	const auto authorImagesFolder = authorsFolder / Global::PICTURES;
 	create_directory(authorImagesFolder);
 
-	for (const auto& [id, annotation, images] : CreateAuthorAnnotationsData(db, sqlPath))
+	for (const auto& [id, annotation, images] : CreateAuthorAnnotationsData(db, settings.sqlFolder))
 	{
 		if (!annotation.isEmpty())
 		{
@@ -1122,30 +1165,104 @@ void CreateAuthorAnnotations(DB::IDatabase& db, const std::filesystem::path& sql
 	}
 }
 
+void ReadHash(Settings& settings, const QString& fileName)
+{
+	if (fileName.isEmpty())
+		return;
+
+	PLOGI << "reading hash file";
+
+	QFile inp(fileName);
+	if (!inp.open(QIODevice::ReadOnly))
+	{
+		PLOGE << "Cannot read from " << fileName;
+		return;
+	}
+
+	QTextStream stream(&inp);
+	QString     hash, folder, file;
+	while (!stream.atEnd())
+	{
+		stream >> hash >> folder >> file;
+		settings.fileToHash.try_emplace(std::move(file), std::move(hash));
+	}
+}
+
+void CreateHashToFile(Settings& settings, const InpData& inpData)
+{
+	if (settings.fileToHash.empty())
+		return;
+
+	PLOGI << "collection of current book descriptions";
+
+	for (const auto& [file, book] : inpData)
+	{
+		const auto it = settings.fileToHash.find(file);
+		if (it == settings.fileToHash.end())
+			continue;
+
+		auto& currentFile = settings.hashToFile[it->second];
+		if (currentFile.isEmpty())
+		{
+			currentFile = file;
+			continue;
+		}
+
+		const auto currentBookIt = inpData.find(currentFile);
+		if (currentBookIt == inpData.end())
+			continue;
+
+		if (currentBookIt->second.deleted && !book.deleted || currentBookIt->second.date < book.date)
+			currentFile = file;
+	}
+}
+
 } // namespace
 
-int main(const int argc, char* argv[])
+int main(int argc, char* argv[])
 {
+	const QCoreApplication app(argc, argv);
+
 	Log::LoggingInitializer                          logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
 	plog::ConsoleAppender<Util::LogConsoleFormatter> consoleAppender;
 	Log::LogAppender                                 logConsoleAppender(&consoleAppender);
 	Util::XMLPlatformInitializer                     xmlPlatformInitializer;
 
-	if (argc < 5)
-	{
-		PLOGE << "\n" << "usage:" << "\n" << "fliparser.exe sql_path info_file archives_path output_folder";
-		return 1;
-	}
+	Settings settings {};
 
-	const auto db      = CreateDatabase(argv[1], argv[3], argv[4]);
+	QCommandLineParser parser;
+	parser.setApplicationDescription(QString("%1 creates inpx for flibusta collections").arg(APP_ID));
+	parser.addHelpOption();
+	parser.addVersionOption();
+	parser.addOptions({
+		{					  { "s", SQL },     "Folder with sql files (required)", FOLDER },
+		{				 { "a", ARCHIVES }, "Folder with book archives (required)", FOLDER },
+		{				   { "o", OUTPUT },             "Output folder (required)", FOLDER },
+		{ { "i", COLLECTION_INFO_TEMPLATE },             "Collection info template",   PATH },
+		{							  HASH,							"Hash file",   PATH },
+	});
+	parser.process(app);
+
+	settings.sqlFolder                  = parser.value(SQL).toStdWString();
+	settings.archivesFolder             = parser.value(ARCHIVES).toStdWString();
+	settings.outputFolder               = parser.value(OUTPUT).toStdWString();
+	settings.collectionInfoTemplateFile = parser.value(COLLECTION_INFO_TEMPLATE).toStdWString();
+
+	if (settings.sqlFolder.empty() || settings.archivesFolder.empty() || settings.outputFolder.empty())
+		parser.showHelp(1);
+
+	ReadHash(settings, parser.value(HASH));
+
+	const auto db      = CreateDatabase(settings);
 	auto       inpData = GenerateInpData(*db);
+	CreateHashToFile(settings, inpData);
 
 	FileToFolder fileToFolder;
-	const auto   libIds = CreateInpx(*db, inpData, argv[2], argv[3], argv[4], fileToFolder);
-	CreateBookList(inpData, fileToFolder, argv[4]);
+	const auto   libIds = CreateInpx(settings, *db, inpData, fileToFolder);
+	CreateBookList(settings, inpData, fileToFolder);
 
-	CreateReview(*db, inpData, libIds, argv[4]);
-	CreateAuthorAnnotations(*db, argv[1], argv[4]);
+	CreateReview(settings, *db, inpData, libIds);
+	CreateAuthorAnnotations(settings, *db);
 
 	return 0;
 }
