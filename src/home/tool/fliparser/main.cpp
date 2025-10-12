@@ -52,6 +52,7 @@ constexpr auto ARCHIVES                 = "archives";
 constexpr auto OUTPUT                   = "output";
 constexpr auto FOLDER                   = "folder";
 constexpr auto PATH                     = "path";
+constexpr auto HASH                     = "hash";
 
 struct Settings
 {
@@ -59,6 +60,9 @@ struct Settings
 	std::filesystem::path archivesFolder;
 	std::filesystem::path outputFolder;
 	std::filesystem::path collectionInfoTemplateFile;
+
+	std::unordered_map<QString, QString> fileToHash;
+	std::unordered_map<QString, QString> hashToFile;
 };
 
 struct Series
@@ -627,6 +631,23 @@ Book ParseBook(const QString& folder, const Zip& zip, const QString& fileName, c
 	return Book::fromString(Util::Fb2InpxParser::Parse(folder, zip, fileName, zipDateTime, true));
 }
 
+Book CheckDuplicate(const Settings& settings, const QString& file, const InpData& inpData)
+{
+	const auto hashIt = settings.fileToHash.find(file);
+	if (hashIt == settings.fileToHash.end())
+		return {};
+
+	const auto fileIt = settings.hashToFile.find(hashIt->second);
+	if (fileIt == settings.hashToFile.end())
+		return {};
+
+	const auto bookIt = inpData.find(fileIt->second);
+	if (bookIt == inpData.end())
+		return {};
+
+	return bookIt->second;
+}
+
 std::unordered_set<long long> CreateInpx(const Settings& settings, DB::IDatabase& db, InpData& inpData, FileToFolder& fileToFolder)
 {
 	std::unordered_set<long long> libIds;
@@ -673,6 +694,11 @@ std::unordered_set<long long> CreateInpx(const Settings& settings, DB::IDatabase
 				if (const auto it = inpData.find(bookFile); it != inpData.end())
 				{
 					file << it->second;
+				}
+				else if (auto duplicateBook = CheckDuplicate(settings, bookFile, inpData); !duplicateBook.title.isEmpty())
+				{
+					file << duplicateBook;
+					inpData[bookFile] = std::move(duplicateBook);
 				}
 				else if (auto customBook = CheckCustom(zip, bookFile, unIndexed); !customBook.title.isEmpty())
 				{
@@ -1139,6 +1165,58 @@ void CreateAuthorAnnotations(const Settings& settings, DB::IDatabase& db)
 	}
 }
 
+void ReadHash(Settings& settings, const QString& fileName)
+{
+	if (fileName.isEmpty())
+		return;
+
+	PLOGI << "reading hash file";
+
+	QFile inp(fileName);
+	if (!inp.open(QIODevice::ReadOnly))
+	{
+		PLOGE << "Cannot read from " << fileName;
+		return;
+	}
+
+	QTextStream stream(&inp);
+	QString     hash, folder, file;
+	while (!stream.atEnd())
+	{
+		stream >> hash >> folder >> file;
+		settings.fileToHash.try_emplace(std::move(file), std::move(hash));
+	}
+}
+
+void CreateHashToFile(Settings& settings, const InpData& inpData)
+{
+	if (settings.fileToHash.empty())
+		return;
+
+	PLOGI << "collection of current book descriptions";
+
+	for (const auto& [file, book] : inpData)
+	{
+		const auto it = settings.fileToHash.find(file);
+		if (it == settings.fileToHash.end())
+			continue;
+
+		auto& currentFile = settings.hashToFile[it->second];
+		if (currentFile.isEmpty())
+		{
+			currentFile = file;
+			continue;
+		}
+
+		const auto currentBookIt = inpData.find(currentFile);
+		if (currentBookIt == inpData.end())
+			continue;
+
+		if (currentBookIt->second.deleted && !book.deleted || currentBookIt->second.date < book.date)
+			currentFile = file;
+	}
+}
+
 } // namespace
 
 int main(int argc, char* argv[])
@@ -1161,6 +1239,7 @@ int main(int argc, char* argv[])
 		{				 { "a", ARCHIVES }, "Folder with book archives (required)", FOLDER },
 		{				   { "o", OUTPUT },             "Output folder (required)", FOLDER },
 		{ { "i", COLLECTION_INFO_TEMPLATE },             "Collection info template",   PATH },
+		{							  HASH,							"Hash file",   PATH },
 	});
 	parser.process(app);
 
@@ -1172,8 +1251,11 @@ int main(int argc, char* argv[])
 	if (settings.sqlFolder.empty() || settings.archivesFolder.empty() || settings.outputFolder.empty())
 		parser.showHelp(1);
 
+	ReadHash(settings, parser.value(HASH));
+
 	const auto db      = CreateDatabase(settings);
 	auto       inpData = GenerateInpData(*db);
+	CreateHashToFile(settings, inpData);
 
 	FileToFolder fileToFolder;
 	const auto   libIds = CreateInpx(settings, *db, inpData, fileToFolder);
