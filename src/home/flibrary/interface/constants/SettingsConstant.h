@@ -28,6 +28,9 @@ constexpr auto OPDS_PORT_DEFAULT          = 12791;
 constexpr auto OPDS_READ_URL_TEMPLATE     = "opds/ReadUrlTemplate";
 constexpr auto OPDS_AUTOUPDATE_COLLECTION = "opds/AutoupdateCollection";
 constexpr auto OPDS_AUTH                  = "opds/Authentication";
+constexpr auto OPDS_WEB_ENABLED           = "opds/SimpleWebEnabled";
+constexpr auto OPDS_REACT_APP_ENABLED     = "opds/ReactAppEnabled";
+constexpr auto OPDS_OPDS_ENABLED          = "opds/OpdsEnabled";
 
 constexpr auto EXPORT_DIALOG_KEY = "Export";
 
