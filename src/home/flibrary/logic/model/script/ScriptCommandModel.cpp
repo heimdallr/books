@@ -208,7 +208,7 @@ bool ScriptCommandModel::setData(const QModelIndex& index, const QVariant& value
 	if (result && role == Role::Uid)
 	{
 		beginFilterChange();
-		endFilterChange(Direction::Rows);		
+		endFilterChange(Direction::Rows);
 	}
 
 	return result;

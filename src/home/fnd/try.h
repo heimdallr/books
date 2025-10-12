@@ -27,6 +27,6 @@ R Try(const S& name, const T& functor, const std::string_view file, const int li
 	return R {};
 }
 
-}
+} // namespace HomeCompa::Util
 
 #define TRY(NAME, FUNCTOR) HomeCompa::Util::Try<std::invoke_result_t<decltype(FUNCTOR)>>(NAME, FUNCTOR, __FILE__, __LINE__)
