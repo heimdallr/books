@@ -965,7 +965,7 @@
   </action>
   <action name="actionBrowseHttpSite">
    <property name="text">
-    <string>Go to &amp;Site</string>
+    <string>Go to the &amp;ReactApp web interface</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -973,7 +973,7 @@
   </action>
   <action name="actionBrowseHttpWeb">
    <property name="text">
-    <string>Go to &amp;Web</string>
+    <string>Go to the simple &amp;web interface</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -981,7 +981,7 @@
   </action>
   <action name="actionBrowseHttpOpds">
    <property name="text">
-    <string>Go to &amp;OPDS</string>
+    <string>Show &amp;OPDS in browser</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
