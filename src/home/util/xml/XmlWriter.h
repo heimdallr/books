@@ -22,6 +22,7 @@ public:
 	{
 		Xml,
 		Html,
+		Headless,
 	};
 
 	class XmlNodeGuard

@@ -44,9 +44,14 @@ void HtmlStarter(XMLFormatter& formatter)
 	formatter << gHTMLDecl;
 }
 
+void HeadlessStarter(XMLFormatter&)
+{
+}
+
 constexpr std::pair<XmlWriter::Type, void (*)(XMLFormatter&)> STARTERS[] {
-	{  XmlWriter::Type::Xml,  &XmlStarter },
-	{ XmlWriter::Type::Html, &HtmlStarter },
+	{	  XmlWriter::Type::Xml,      &XmlStarter },
+	{     XmlWriter::Type::Html,     &HtmlStarter },
+	{ XmlWriter::Type::Headless, &HeadlessStarter },
 };
 
 } // namespace
@@ -59,7 +64,8 @@ public:
 		, m_indented { indented }
 		, m_formatter("utf-8", this, XMLFormatter::NoEscapes, XMLFormatter::UnRep_CharRef)
 	{
-		FindSecond(STARTERS, type)(m_formatter);
+		if (stream.isOpen())
+			FindSecond(STARTERS, type)(m_formatter);
 	}
 
 	void WriteProcessingInstruction(const QString& target, const QString& data)
