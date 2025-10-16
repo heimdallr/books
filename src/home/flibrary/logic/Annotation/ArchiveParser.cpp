@@ -37,6 +37,7 @@ constexpr auto TRANSLATOR             = "FictionBook/description/title-info/tran
 constexpr auto TRANSLATOR_FIRST_NAME  = "FictionBook/description/title-info/translator/first-name";
 constexpr auto TRANSLATOR_MIDDLE_NAME = "FictionBook/description/title-info/translator/middle-name";
 constexpr auto TRANSLATOR_LAST_NAME   = "FictionBook/description/title-info/translator/last-name";
+constexpr auto TRANSLATOR_NICKNAME    = "FictionBook/description/title-info/translator/nickname";
 constexpr auto ANNOTATION             = "FictionBook/description/title-info/annotation";
 constexpr auto KEYWORDS               = "FictionBook/description/title-info/keywords";
 constexpr auto LANG                   = "FictionBook/description/title-info/lang";
@@ -227,6 +228,7 @@ private: // Util::SaxParser
 			{  TRANSLATOR_FIRST_NAME,  &XmlParser::ParseTranslatorFirstName },
 			{   TRANSLATOR_LAST_NAME,   &XmlParser::ParseTranslatorLastName },
 			{ TRANSLATOR_MIDDLE_NAME, &XmlParser::ParseTranslatorMiddleName },
+			{    TRANSLATOR_NICKNAME,   &XmlParser::ParseTranslatorNickname },
 			{ PUBLISH_INFO_PUBLISHER, &XmlParser::ParsePublishInfoPublisher },
 			{      PUBLISH_INFO_CITY,      &XmlParser::ParsePublishInfoCity },
 			{      PUBLISH_INFO_YEAR,      &XmlParser::ParsePublishInfoYear },
@@ -399,6 +401,11 @@ private:
 		return ParseTranslatorName(value, AuthorItem::Column::MiddleName);
 	}
 
+	bool ParseTranslatorNickname(const QString& value)
+	{
+		return ParseTranslatorName(value, AuthorItem::Column::LastName, true);
+	}
+
 	bool ParsePublishInfoPublisher(const QString& value)
 	{
 		m_data.publishInfo.publisher = value;
@@ -424,11 +431,12 @@ private:
 	}
 
 private:
-	bool ParseTranslatorName(const QString& value, const int column) const
+	bool ParseTranslatorName(const QString& value, const int column, const bool ifEmpty = false) const
 	{
 		assert(m_data.translators->GetChildCount() > 0);
 		const auto translator = m_data.translators->GetChild(m_data.translators->GetChildCount() - 1);
-		translator->SetData(value, column);
+		if (!ifEmpty || translator->GetData(column).isEmpty())
+			translator->SetData(value, column);
 		return true;
 	}
 
