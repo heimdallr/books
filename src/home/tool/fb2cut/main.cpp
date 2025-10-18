@@ -1193,9 +1193,18 @@ QStringList ProcessArchives(Settings& settings)
 	for (const auto& wildCard : settings.inputWildcards)
 		files << Util::ResolveWildcard(wildCard);
 
+	std::multimap<int, QString> sorted;
+
+	QRegularExpression rx("^.*?fb2.*?([0-9]+).*?$");
+	std::ranges::transform(std::move(files), std::inserter(sorted, sorted.end()), [&](QString file) {
+		const auto fileName = QFileInfo(file).completeBaseName();
+		const auto match    = rx.match(fileName);
+		return std::make_pair(match.hasMatch() ? match.captured(1).toInt() : 0, std::move(file));
+	});
+
 	PLOGD << "Total file count calculation";
-	settings.totalFileCount = std::accumulate(files.cbegin(), files.cend(), settings.totalFileCount, [](const auto init, const QString& file) {
-		const Zip zip(file);
+	settings.totalFileCount = std::accumulate(sorted.cbegin(), sorted.cend(), settings.totalFileCount, [](const auto init, const auto& item) {
+		const Zip zip(item.second);
 		return init + zip.GetFileNameList().size();
 	});
 	PLOGI << "Total file count: " << settings.totalFileCount;
@@ -1217,7 +1226,7 @@ QStringList ProcessArchives(Settings& settings)
 
 	std::atomic_int fileCount;
 	QStringList     failed;
-	for (auto&& file : files)
+	for (auto&& file : sorted | std::views::values | std::views::reverse)
 		if (ProcessArchive(file, settings, fileCount, imageStatisticsStream.get(), decoder, uniqueFileStorage))
 			failed << std::move(file);
 
