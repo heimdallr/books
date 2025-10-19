@@ -112,8 +112,7 @@ public:
 		}
 		else
 		{
-			if (name != m_lastElement)
-				BreakLine(name);
+			BreakLine(name);
 			m_formatter << XMLFormatter::NoEscapes << gEndElement << name.toStdU16String().data() << chCloseAngle;
 		}
 
