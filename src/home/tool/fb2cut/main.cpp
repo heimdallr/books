@@ -1,6 +1,5 @@
 #include <QCryptographicHash>
 
-#include <expected>
 #include <queue>
 #include <ranges>
 
@@ -36,6 +35,7 @@
 #include "util/localization.h"
 #include "util/xml/Initializer.h"
 #include "util/xml/Validator.h"
+#include "util/xml/XmlWriter.h"
 
 #include "Fb2Parser.h"
 #include "ImageSettingsWidget.h"
@@ -90,17 +90,6 @@ constexpr auto SIZE        = "size [INT_MAX,INT_MAX]";
 
 const std::vector<QString> FB2_TAGS { std::begin(Fb2Parser::FB2_TAGS), std::end(Fb2Parser::FB2_TAGS) };
 
-enum class ParseFileError
-{
-	error,
-	duplicate,
-};
-
-constexpr const char* ERROR_FOLDERS[] {
-	"error",
-	"duplicate",
-};
-
 struct DataItem
 {
 	QString    fileName;
@@ -110,97 +99,367 @@ struct DataItem
 
 using DataItems = std::queue<DataItem>;
 
-struct UniqueFile
+struct ImageItem
 {
-	QString folder;
-	QString file;
+	QString    fileName;
+	QByteArray body;
+	QDateTime  dateTime;
+	QString    hash;
+
+	bool operator<(const ImageItem& rhs) const
+	{
+		return hash < rhs.hash;
+	}
 };
 
-using UniqueFiles = std::unordered_map<QString, UniqueFile>;
+using ImageItems = std::vector<ImageItem>;
+
+struct UniqueFile
+{
+	enum class ImagesCompareResult
+	{
+		Equal,
+		Inner,
+		Outer,
+		Varied,
+	};
+
+	QString             title;
+	QString             folder;
+	QString             file;
+	QString             hashText;
+	QStringList         hashSections;
+	ImageItem           cover;
+	std::set<ImageItem> images;
+
+	int order { 0 };
+
+	bool operator<(const UniqueFile& rhs) const
+	{
+		assert(folder == rhs.folder);
+		return order > rhs.order;
+	}
+
+	[[nodiscard]] ImagesCompareResult CompareImages(const UniqueFile& rhs) const
+	{
+		if (title != rhs.title)
+		{
+			PLOGW << QString("same hash, different titles: %1/%2 %3 vs %4/%5 %6").arg(folder, file, title, rhs.folder, rhs.file, rhs.title);
+			return ImagesCompareResult::Varied;
+		}
+
+		auto result = ImagesCompareResult::Equal;
+		if (cover.hash != rhs.cover.hash)
+		{
+			if (cover.hash.isEmpty())
+				result = ImagesCompareResult::Inner;
+			else if (rhs.cover.hash.isEmpty())
+				result = ImagesCompareResult::Outer;
+			else
+				return ImagesCompareResult::Varied;
+		}
+
+		auto lIt = images.cbegin(), rIt = rhs.images.cbegin();
+		while (lIt != images.cend() && rIt != rhs.images.cend())
+		{
+			if (lIt->hash < rIt->hash)
+			{
+				if (result == ImagesCompareResult::Inner)
+					return ImagesCompareResult::Varied;
+
+				result = ImagesCompareResult::Outer;
+				++lIt;
+				continue;
+			}
+
+			if (lIt->hash > rIt->hash)
+			{
+				if (result == ImagesCompareResult::Outer)
+					return ImagesCompareResult::Varied;
+
+				result = ImagesCompareResult::Inner;
+				++rIt;
+				continue;
+			}
+			++lIt;
+			++rIt;
+		}
+
+		if (lIt != images.cend())
+			return result == ImagesCompareResult::Inner ? ImagesCompareResult::Varied : ImagesCompareResult::Outer;
+
+		if (rIt != rhs.images.cend())
+			return result == ImagesCompareResult::Outer ? ImagesCompareResult::Varied : ImagesCompareResult::Inner;
+
+		return result;
+	}
+
+	void ClearImages()
+	{
+		cover.body.clear();
+		decltype(images) tmp;
+		std::ranges::transform(images, std::inserter(tmp, tmp.end()), [](const auto& image) {
+			return ImageItem { .hash = image.hash };
+		});
+		images = std::move(tmp);
+	}
+};
 
 class UniqueFileStorage
 {
-	NON_COPY_MOVABLE(UniqueFileStorage)
-
-public:
-	explicit UniqueFileStorage(QString fileName)
-		: m_fileName { std::move(fileName) }
+	struct Dup
 	{
-		if (m_fileName.isEmpty())
-			return;
+		QString    hash;
+		UniqueFile file;
+		UniqueFile origin;
+	};
 
-		QFile inp(m_fileName);
-		if (!inp.open(QIODevice::ReadOnly))
+	class ISerializer // NOLINT(cppcoreguidelines-special-member-functions)
+	{
+	public:
+		virtual ~ISerializer()                                                   = default;
+		virtual void Serialize(const UniqueFile& file, const UniqueFile& origin) = 0;
+	};
+
+	class SerializerStub final : public ISerializer
+	{
+	public:
+		static std::unique_ptr<ISerializer> Create()
 		{
-			PLOGE << "Cannot read from " << m_fileName;
-			return;
+			return std::make_unique<SerializerStub>();
 		}
 
-		QTextStream stream(&inp);
-		QString     hash, folder, file;
-		while (!stream.atEnd())
+	private: // ISerializer
+		void Serialize(const UniqueFile&, const UniqueFile&) override
 		{
-			stream >> hash >> folder >> file;
-			m_old.try_emplace(std::move(hash), UniqueFile { std::move(folder), std::move(file) });
 		}
-	}
+	};
 
-	~UniqueFileStorage()
+	class Serializer final : public ISerializer
 	{
-		Save();
+	public:
+		static std::unique_ptr<ISerializer> Create(const QString& fileName)
+		{
+			if (const auto dir = QFileInfo(fileName).dir(); !dir.exists())
+				(void)dir.mkpath(".");
+
+			if (auto file = std::make_unique<QFile>(fileName); file->open(QIODevice::WriteOnly))
+				return std::make_unique<Serializer>(std::move(file));
+
+			PLOGE << "Cannot write to " << fileName;
+			return SerializerStub::Create();
+		}
+
+		explicit Serializer(std::unique_ptr<QIODevice> ioDevice)
+			: m_ioDevice { std::move(ioDevice) }
+		{
+		}
+
+	private: // ISerializer
+		void Serialize(const UniqueFile& file, const UniqueFile& origin) override
+		{
+			const auto book = m_writer.Guard("book");
+			book->WriteAttribute("id", file.hashText).WriteAttribute("folder", file.folder).WriteAttribute("file", file.file).WriteAttribute("title", file.title);
+			if (!file.cover.fileName.isEmpty())
+				book->Guard("cover")->WriteCharacters(file.cover.hash);
+			for (const auto& image : file.images)
+				book->Guard("image")->WriteCharacters(image.hash);
+			if (!origin.file.isEmpty())
+				book->Guard("duplicates")->WriteAttribute("folder", origin.folder).WriteAttribute("file", origin.file);
+
+			qsizetype depth = -1;
+			for (const auto& str : file.hashSections)
+			{
+				const auto split    = str.split('\t');
+				auto       newDepth = split.size() - 2;
+				const auto last     = split.rbegin();
+
+				const auto write = [&] {
+					m_writer.WriteStartElement("section").WriteAttribute("id", *std::next(last)).WriteAttribute("count", *last);
+				};
+
+				if (depth == newDepth)
+				{
+					m_writer.WriteEndElement();
+					write();
+					continue;
+				}
+
+				if (depth < newDepth)
+				{
+					write();
+					depth = newDepth;
+					continue;
+				}
+
+				m_writer.WriteEndElement();
+				for (; newDepth < depth; --depth)
+					m_writer.WriteEndElement();
+
+				write();
+			}
+
+			for (; depth >= 0; --depth)
+				m_writer.WriteEndElement();
+		}
+
+	private:
+		std::unique_ptr<QIODevice> m_ioDevice;
+		Util::XmlWriter            m_writer { *m_ioDevice };
+	};
+
+public:
+	explicit UniqueFileStorage(QString dstDir)
+		: m_dstDir { std::move(dstDir) }
+	{
+		if (m_dstDir.isEmpty())
+			return;
+		//if (m_fileName.isEmpty())
+		//	return;
+
+		//		QFile inp(m_fileName);
+		//		if (!inp.open(QIODevice::ReadOnly))
+		//		{
+		//			PLOGE << "Cannot read from " << m_fileName;
+		//			return;
+		//		}
+		//
+		//		PLOGI << "reading hash";
+		//
+		//		QTextStream stream(&inp);
+		//		while (!stream.atEnd())
+		//		{
+		//			const auto str = stream.readLine();
+		//			if (str.startsWith('\t'))
+		//				continue;
+		//
+		//			auto split = str.split('\t');
+		//			m_old.try_emplace(std::move(split[0]), UniqueFile { .folder = std::move(split[1]), .file = std::move(split[2]) });
+		//		}
+
+		PLOGI << "ready books found: " << m_old.size();
 	}
 
 public:
-	bool Add(QString hash, UniqueFile file)
+	void Add(QString hash, UniqueFile file)
 	{
 		std::lock_guard lock(m_guard);
 
-		const auto found = [&](const auto& it) {
-			PLOGW << QString("%1/%2 duplicates %3/%4").arg(file.folder, file.file, it->second.folder, it->second.file);
-			m_dup.emplace_back(std::move(hash), std::move(file));
-			return false;
+		if (m_dstDir.isEmpty())
+			return (void)m_new.emplace(std::move(hash), std::make_pair(std::move(file), std::vector<UniqueFile> {}));
+
+		const auto log = [&](const UniqueFile& old) {
+			PLOGV << QString("duplicates detected: %1/%2 vs %3/%4, %5").arg(file.folder, file.file, old.folder, old.file, file.title);
 		};
 
-		if (const auto it = m_old.find(hash); it != m_old.end())
-			return found(it);
-
-		const auto [it, inserted] = m_new.try_emplace(std::move(hash), std::move(file));
-		return inserted || found(it);
-	}
-
-	void Save()
-	{
-		if (m_fileName.isEmpty() || m_new.empty())
-			return;
-
-		QFile outp(m_fileName);
-		if (!outp.open(QIODevice::Append))
+		for (auto [it, end] = m_old.equal_range(hash); it != end; ++it)
 		{
-			PLOGE << "Cannot write to " << m_fileName;
+			const auto imagesCompareResult = it->second.CompareImages(file);
+			if (imagesCompareResult == UniqueFile::ImagesCompareResult::Varied)
+				continue;
+
+			if (imagesCompareResult == UniqueFile::ImagesCompareResult::Inner)
+			{
+				PLOGW << QString("old duplicate detected by %1/%2: %3/%4, %5").arg(file.folder, file.file, it->second.folder, it->second.file, file.title);
+				continue;
+			}
+
+			log(it->second);
+			m_dup.emplace_back(std::move(hash), std::move(file), it->second).file.ClearImages();
 			return;
 		}
 
-		QTextStream stream(&outp);
+		for (auto [it, end] = m_new.equal_range(hash); it != end; ++it)
+		{
+			const auto imagesCompareResult = it->second.first.CompareImages(file);
+			if (imagesCompareResult == UniqueFile::ImagesCompareResult::Varied)
+				continue;
 
-		const auto save = [&](const auto& files) {
-			for (const auto& [hash, file] : files)
-				stream << hash << "\t" << file.folder << "\t" << file.file << "\n";
+			log(it->second.first);
+
+			if (imagesCompareResult == UniqueFile::ImagesCompareResult::Outer || (imagesCompareResult == UniqueFile::ImagesCompareResult::Equal && it->second.first.order > file.order))
+			{
+				it->second.second.emplace_back(std::move(file)).ClearImages();
+				return;
+			}
+
+			it->second.second.emplace_back(std::move(it->second.first)).ClearImages();
+			it->second.first = std::move(file);
+			return;
+		}
+
+		m_new.emplace(std::move(hash), std::make_pair(std::move(file), std::vector<UniqueFile> {}));
+	}
+
+	std::pair<ImageItems, ImageItems> GetNewImages()
+	{
+		ImageItems covers, images;
+
+		for (auto&& [hash, item] : m_new)
+		{
+			if (!item.first.cover.fileName.isEmpty())
+				covers.emplace_back(item.first.cover);
+			std::ranges::copy(item.first.images, std::back_inserter(images));
+		}
+
+		return std::make_pair(std::move(covers), std::move(images));
+	}
+
+	void Save(const QString& folder)
+	{
+		if (m_new.empty() && m_dup.empty())
+			return;
+
+		if (m_dstDir.isEmpty())
+			return m_new.clear();
+
+		const QDir dstDir(m_dstDir);
+		const auto serializer = Serializer::Create(dstDir.filePath(QString("hash/%1.xml").arg(folder)));
+
+		const auto save = [&](UniqueFile& item, const UniqueFile& origin = {}) {
+			serializer->Serialize(item, origin);
+			item.hashText.clear();
+			item.hashSections.clear();
 		};
-		save(m_new);
-		save(m_dup);
 
-		std::ranges::move(std::move(m_new), std::inserter(m_old, m_old.end()));
+		const QDir srcDir     = dstDir.filePath(folder);
+		const QDir duplicates = srcDir.filePath("duplicates");
+
+		for (auto&& [hash, newItems] : m_new)
+		{
+			const auto it = m_old.emplace(hash, std::move(newItems.first));
+			it->second.ClearImages();
+
+			save(it->second);
+
+			if (!newItems.second.empty())
+			{
+				if (!duplicates.exists())
+					duplicates.mkpath(".");
+
+				std::ranges::transform(newItems.second, std::back_inserter(m_dup), [&](auto&& item) {
+					[[maybe_unused]] const auto ok = QFile::rename(srcDir.filePath(item.file), duplicates.filePath(item.file));
+					return Dup { hash, std::forward<UniqueFile>(item), it->second };
+				});
+			}
+		}
+
+		std::ranges::for_each(m_dup, [&](Dup& dup) {
+			save(dup.file, dup.origin);
+		});
+
 		m_new.clear();
 		m_dup.clear();
 	}
 
 private:
-	const QString m_fileName;
+	const QString m_dstDir;
 	std::mutex    m_guard;
 
-	UniqueFiles                                 m_old;
-	UniqueFiles                                 m_new;
-	std::vector<std::pair<QString, UniqueFile>> m_dup;
+	std::vector<Dup>                             m_dup;
+	std::unordered_multimap<QString, UniqueFile> m_old;
+
+	std::unordered_multimap<QString, std::pair<UniqueFile, std::vector<UniqueFile>>> m_new;
 };
 
 struct ImageStatisticsItem
@@ -226,11 +485,11 @@ struct ImageStatisticsItem
 
 using ImageStatistics = std::vector<ImageStatisticsItem>;
 
-void WriteError(const QDir& dir, std::mutex& guard, const QString& name, const QString& ext, const QByteArray& body, const ParseFileError parseFileError = ParseFileError::error)
+void WriteError(const QDir& dir, std::mutex& guard, const QString& name, const QString& ext, const QByteArray& body)
 {
 	std::scoped_lock lock(guard);
 
-	const auto filePath = dir.filePath(QString("%1/%2.%3").arg(ERROR_FOLDERS[static_cast<size_t>(parseFileError)], name, !ext.isEmpty() ? ext : "bad"));
+	const auto filePath = dir.filePath(QString("error/%1.%2").arg(name, !ext.isEmpty() ? ext : "bad"));
 	const QDir imgDir   = QFileInfo(filePath).dir();
 	if (!imgDir.exists() && !imgDir.mkpath("."))
 	{
@@ -474,7 +733,7 @@ public:
 	public:
 		virtual ~IClient() = default;
 
-		virtual void OnWorkFinished(std::vector<DataItem> covers, std::vector<DataItem> images, ImageStatistics imageStatistics) = 0;
+		virtual void OnWorkFinished(ImageStatistics imageStatistics) = 0;
 	};
 
 public:
@@ -543,7 +802,7 @@ private:
 			m_hasError = ProcessFile(name, body, dateTime) || m_hasError;
 		}
 
-		m_client.OnWorkFinished(std::move(m_covers), std::move(m_images), std::move(m_imageStatistics));
+		m_client.OnWorkFinished(std::move(m_imageStatistics));
 	}
 
 	bool ProcessFile(const QString& inputFilePath, const QByteArray& inputFileBody, const QDateTime& dateTime)
@@ -561,18 +820,16 @@ private:
 		const QFileInfo fileInfo(inputFilePath);
 		const auto      outputFilePath = m_settings.dstDir.filePath(fileInfo.fileName());
 
-		auto parseFileResult = ParseFile(inputFilePath, input, dateTime);
+		auto bodyOutput = ParseFile(inputFilePath, input, dateTime);
 		++m_fileCount;
 		PLOGV << QString("%1, %2 (%3) %4%").arg(inputFilePath).arg(m_fileCount.load()).arg(m_settings.totalFileCount).arg(m_fileCount * 100 / m_settings.totalFileCount);
 
-		if (!parseFileResult.has_value())
-			return WriteError(m_settings.dstDir, m_fileSystemGuard, fileInfo.completeBaseName(), "fb2", inputFileBody, parseFileResult.error()), false;
-
-		auto bodyOutput = parseFileResult.value();
+		if (bodyOutput.isEmpty())
+			return WriteError(m_settings.dstDir, m_fileSystemGuard, fileInfo.completeBaseName(), "fb2", inputFileBody), false;
 
 #ifndef NDEBUG
-		AddError("fb2", fileInfo.completeBaseName() + "_fix", fixedInputFileBody, QString("Validation %1 failed: %2").arg(outputFilePath, ""), true, "fb2", false);
-		AddError("fb2", fileInfo.completeBaseName() + "_out", bodyOutput, QString("Validation %1 failed: %2").arg(outputFilePath, ""), true, "fb2", false);
+//		AddError("fb2", fileInfo.completeBaseName() + "_fix", fixedInputFileBody, QString("Validation %1 failed: %2").arg(outputFilePath, ""), true, "fb2", false);
+//		AddError("fb2", fileInfo.completeBaseName() + "_out", bodyOutput, QString("Validation %1 failed: %2").arg(outputFilePath, ""), true, "fb2", false);
 #endif
 		if (const auto errorText = Validate(m_validator, bodyOutput); !errorText.isEmpty())
 			return AddError("fb2", fileInfo.completeBaseName(), inputFileBody, QString("Validation %1 failed: %2").arg(outputFilePath, errorText), true, "fb2", false), true;
@@ -594,7 +851,7 @@ private:
 		return !bodyFile.setFileTime(dateTime, QFile::FileTime::FileBirthTime);
 	}
 
-	std::expected<QByteArray, ParseFileError> ParseFile(const QString& inputFilePath, QIODevice& input, const QDateTime& dateTime)
+	QByteArray ParseFile(const QString& inputFilePath, QIODevice& input, const QDateTime& dateTime)
 	{
 		const QFileInfo fileInfo(inputFilePath);
 		const auto      completeFileName = fileInfo.completeBaseName();
@@ -617,8 +874,8 @@ private:
 		std::unordered_map<QString, int> uniqueData;
 		std::unordered_map<QString, int> idToNum;
 
-		std::vector<DataItem> covers;
-		std::vector<DataItem> images;
+		ImageItem           cover;
+		std::set<ImageItem> images;
 
 		auto binaryCallback = [&](QString&& name, const bool isCover, QByteArray body) {
 			const auto& settings = isCover ? m_settings.cover : m_settings.image;
@@ -675,33 +932,53 @@ private:
 				return;
 			}
 
-			const auto num       = uniqueData.try_emplace(std::move(hash), isCover ? -1 : static_cast<int>(uniqueData.size())).first->second;
+			const auto [it, added] = uniqueData.try_emplace(std::move(hash), isCover ? -1 : static_cast<int>(uniqueData.size()));
+
+			const auto num       = it->second;
 			auto       imageFile = settings.fileNameGetter(completeFileName, isCover ? name : QString::number(num));
 			idToNum.try_emplace(std::move(name), num);
 
-			if (!settings.save)
-				return;
+			ImageItem imageItem { .fileName = std::move(imageFile), .body = std::move(body), .dateTime = dateTime, .hash = it->first };
 
-			auto encoded = encode(settings, imageFile, image, body);
+			if (settings.save)
+			{
+				if (auto encoded = encode(settings, imageItem.fileName, image, imageItem.body); encoded.size() < imageItem.body.size())
+					imageItem.body = std::move(encoded);
+			}
+			else
+			{
+				imageItem.body = {};
+			}
 
-			(isCover ? covers : images).emplace_back(imageFile, encoded.size() < body.size() ? std::move(encoded) : std::move(body), dateTime);
+			if (isCover)
+				cover = std::move(imageItem);
+			else
+				images.emplace(std::move(imageItem));
 		};
 
 		if (!Fb2ImageParser::Parse(input, std::move(binaryCallback)))
-			return std::unexpected { ParseFileError::error };
+			return {};
 
 		input.seek(0);
-		Fb2Parser::Parse(inputFilePath, input, output, idToNum);
+		auto parseResult = Fb2Parser::Parse(inputFilePath, input, output, idToNum);
 		if (bodyOutput.isEmpty())
-			return std::unexpected { ParseFileError::error };
+			return {};
 
-		m_hash.reset();
-		m_hash.addData(bodyOutput);
-		if (!m_uniqueFileStorage.Add(QString::fromUtf8(m_hash.result().toHex()), { m_folder, inputFilePath }))
-			return std::unexpected { ParseFileError::duplicate };
+		auto hash = parseResult.hashText;
 
-		std::ranges::move(covers, std::back_inserter(m_covers));
-		std::ranges::move(images, std::back_inserter(m_images));
+		m_uniqueFileStorage.Add(
+			std::move(hash),
+			{
+				.title        = parseResult.title.toLower(),
+				.folder       = m_folder,
+				.file         = inputFilePath,
+				.hashText     = std::move(parseResult.hashText),
+				.hashSections = std::move(parseResult.hashSections),
+				.cover        = std::move(cover),
+				.images       = std::move(images),
+				.order        = QFileInfo(inputFilePath).baseName().toInt(),
+			}
+		);
 
 		return bodyOutput;
 	}
@@ -839,10 +1116,8 @@ private:
 	std::atomic_bool& m_hasError;
 	std::atomic_int & m_queueSize, &m_fileCount;
 
-	QCryptographicHash    m_hash { QCryptographicHash::Md5 };
-	std::vector<DataItem> m_covers;
-	std::vector<DataItem> m_images;
-	ImageStatistics       m_imageStatistics;
+	QCryptographicHash m_hash { QCryptographicHash::Md5 };
+	ImageStatistics    m_imageStatistics;
 
 	const Util::XmlValidator m_validator;
 
@@ -907,13 +1182,17 @@ public:
 	void Wait()
 	{
 		m_workers.clear();
-		ArchiveImages(m_saveImages, Global::IMAGES, m_images);
-		ArchiveImages(m_saveCovers, Global::COVERS, m_covers);
 		WriteImageStatistics();
 	}
 
+	void ArchiveImages(ImageItems& covers, ImageItems& images) const
+	{
+		ArchiveImages(m_saveImages, Global::IMAGES, images);
+		ArchiveImages(m_saveCovers, Global::COVERS, covers);
+	}
+
 private:
-	void ArchiveImages(const bool saveFlag, const char* type, std::vector<DataItem>& images) const //-V826
+	void ArchiveImages(const bool saveFlag, const char* type, ImageItems& images) const //-V826
 	{
 		if (!saveFlag || images.empty())
 			return;
@@ -972,13 +1251,9 @@ private:
 	}
 
 private: // Worker::IClient
-	void OnWorkFinished(std::vector<DataItem> covers, std::vector<DataItem> images, ImageStatistics imageStatistics) override
+	void OnWorkFinished(ImageStatistics imageStatistics) override
 	{
 		std::lock_guard lock(m_workClientGuard);
-		m_covers.reserve(m_covers.size() + covers.size());
-		std::ranges::move(covers, std::back_inserter(m_covers));
-		m_images.reserve(m_images.size() + images.size());
-		std::ranges::move(images, std::back_inserter(m_images));
 		m_imageStatistics.reserve(m_imageStatistics.size() + imageStatistics.size());
 		std::ranges::move(imageStatistics, std::back_inserter(m_imageStatistics));
 	}
@@ -998,10 +1273,8 @@ private:
 	const bool m_saveImages;
 	const int  m_maxThreadCount;
 
-	std::vector<DataItem> m_covers;
-	std::vector<DataItem> m_images;
-	ImageStatistics       m_imageStatistics;
-	QTextStream*          m_imageStatisticsStream;
+	ImageStatistics m_imageStatistics;
+	QTextStream*    m_imageStatisticsStream;
 
 	std::vector<std::unique_ptr<Worker>> m_workers;
 };
@@ -1139,7 +1412,9 @@ bool ProcessArchiveImpl(const QString& archive, Settings settings, std::atomic_i
 			fileProcessor.Enqueue({}, {}, {});
 
 		fileProcessor.Wait();
-		uniqueFileStorage.Save();
+		auto [covers, images] = uniqueFileStorage.GetNewImages();
+		fileProcessor.ArchiveImages(covers, images);
+		uniqueFileStorage.Save(fileInfo.completeBaseName());
 
 		return fileProcessor.HasError();
 	}();
@@ -1222,7 +1497,7 @@ QStringList ProcessArchives(Settings& settings)
 
 	const Decoder decoder;
 
-	UniqueFileStorage uniqueFileStorage(settings.hashFileName);
+	UniqueFileStorage uniqueFileStorage(settings.needHash ? settings.dstDir.path() : QString {});
 
 	std::atomic_int fileCount;
 	QStringList     failed;
@@ -1314,7 +1589,7 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication& app)
 		{ MIN_IMAGE_FILE_SIZE_OPTION_NAME, "Minimum image file size threshold for writing to error folder", QString("size [%1]").arg(settings.minImageFileSize) },
 		{ FFMPEG_OPTION_NAME, "Path to ffmpeg executable", PATH },
 		{ IMAGE_STATISTICS, "Image statistics output path", PATH },
-		{ HASH, "Hashes inpit/output path", PATH },
+		{ HASH, "Create hash files" },
 
 		{ { QString(GRAYSCALE_OPTION_NAME[0]), GRAYSCALE_OPTION_NAME }, "Convert all images to grayscale" },
 		{ COVER_GRAYSCALE_OPTION_NAME, "Convert covers to grayscale" },
@@ -1353,7 +1628,8 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication& app)
 	SetValue(parser, MIN_IMAGE_FILE_SIZE_OPTION_NAME, settings.minImageFileSize);
 
 	settings.imageStatistics = parser.value(IMAGE_STATISTICS);
-	settings.hashFileName    = parser.value(HASH);
+	if (parser.isSet(HASH))
+		settings.needHash = true;
 
 	settings.cover.grayscale = settings.image.grayscale = parser.isSet(GRAYSCALE_OPTION_NAME);
 	if (parser.isSet(COVER_GRAYSCALE_OPTION_NAME))
