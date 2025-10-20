@@ -360,19 +360,52 @@ private: // Util::SaxParser
 
 		m_writer.WriteCharacters(valueCopy);
 
+		valueCopy = valueCopy.toLower();
+		valueCopy.replace(QChar { 0x0451 }, QChar { 0x0435 });
+
 		if (path == TITLE)
-			return (m_title = valueCopy.simplified()), true;
+		{
+			valueCopy.removeIf([](const QChar ch) {
+				return ch != ' ' && !IsOneOf(ch.category(), QChar::Number_DecimalDigit, QChar::Letter_Lowercase);
+			});
+
+			QStringList digits;
+			auto split = valueCopy.split(' ');
+			for (auto& word : split)
+			{
+				QString digitsWord;
+				word.removeIf([&](const QChar ch) {
+					const auto c = ch.category();
+					if (c == QChar::Number_DecimalDigit)
+					{
+						digitsWord.append(ch);
+						return true;
+					}
+
+					return c != QChar::Letter_Lowercase;
+				});
+				if (!digitsWord.isEmpty())
+					digits << std::move(digitsWord);
+			}
+			std::ranges::move(std::move(digits), std::back_inserter(split));
+
+			return (m_title = split.join(' ')), true;
+		}
 
 		if (path.startsWith(BODY, Qt::CaseInsensitive) && !path.contains(SUBTITLE))
 		{
-			valueCopy = valueCopy.simplified().toLower();
 			for (auto&& word : valueCopy.split(' ', Qt::SkipEmptyParts))
+			{
+				word.removeIf([](const QChar ch) {
+					return ch.category() != QChar::Letter_Lowercase;
+				});
 				if (word.length() > 5)
 				{
 					++m_section.hist[word];
 					for (auto* section = m_currentSection; section; section = section->parent)
 						++section->hist[word];
 				}
+			}
 		}
 
 		return true;
@@ -437,6 +470,85 @@ private:
 	Section*                                m_currentSection { &m_section };
 };
 
+class HashParserImpl final : public Util::SaxParser
+{
+	static constexpr auto BOOK       = "books/book";
+	static constexpr auto COVER      = "books/book/cover";
+	static constexpr auto IMAGE      = "books/book/image";
+	static constexpr auto DUPLICATES = "books/book/duplicates";
+
+public:
+	HashParserImpl(QIODevice& input, HashParser::Callback callback)
+		: SaxParser(input, 512)
+		, m_callback { std::move(callback) }
+	{
+		Parse();
+	}
+
+private: // Util::SaxParser
+	bool OnStartElement(const QString& /*name*/, const QString& path, const Util::XmlAttributes& attributes) override
+	{
+		if (path == BOOK)
+		{
+#define HASH_PARSER_CALLBACK_ITEM(NAME) m_##NAME = attributes.GetAttribute(#NAME);
+			HASH_PARSER_CALLBACK_ITEMS_X_MACRO
+#undef HASH_PARSER_CALLBACK_ITEM
+		}
+		else if (path == DUPLICATES)
+		{
+#define HASH_PARSER_CALLBACK_ITEM(NAME) m_##NAME.clear();
+			HASH_PARSER_CALLBACK_ITEMS_X_MACRO
+#undef HASH_PARSER_CALLBACK_ITEM
+			m_cover.clear();
+			m_images.clear();
+		}
+
+		return true;
+	}
+
+	bool OnEndElement(const QString& /*name*/, const QString& path) override
+	{
+		if (path == BOOK)
+		{
+			if (!m_id.isEmpty())
+				m_callback(
+#define HASH_PARSER_CALLBACK_ITEM(NAME) std::move(m_##NAME),
+					HASH_PARSER_CALLBACK_ITEMS_X_MACRO
+#undef HASH_PARSER_CALLBACK_ITEM
+						std::move(m_cover),
+					std::move(m_images)
+				);
+
+#define HASH_PARSER_CALLBACK_ITEM(NAME) m_##NAME = {};
+			HASH_PARSER_CALLBACK_ITEMS_X_MACRO
+#undef HASH_PARSER_CALLBACK_ITEM
+
+			m_cover  = {};
+			m_images = {};
+		}
+
+		return true;
+	}
+
+	bool OnCharacters(const QString& path, const QString& value) override
+	{
+		if (path == COVER)
+			m_cover = value;
+		else if (path == IMAGE)
+			m_images << value;
+		return true;
+	}
+
+private:
+	HashParser::Callback m_callback;
+#define HASH_PARSER_CALLBACK_ITEM(NAME) QString m_##NAME;
+	HASH_PARSER_CALLBACK_ITEMS_X_MACRO
+#undef HASH_PARSER_CALLBACK_ITEM
+
+	QString     m_cover;
+	QStringList m_images;
+};
+
 } // namespace
 
 QString Fb2EncodingParser::GetEncoding(QIODevice& input)
@@ -466,4 +578,9 @@ Fb2Parser::ParseResult Fb2Parser::Parse(QString fileName, QIODevice& input, QIOD
 {
 	Fb2ParserImpl parser(std::move(fileName), input, output, replaceId);
 	return parser.GetResult();
+}
+
+void HashParser::Parse(QIODevice& input, Callback callback)
+{
+	[[maybe_unused]] const HashParserImpl parser(input, std::move(callback));
 }

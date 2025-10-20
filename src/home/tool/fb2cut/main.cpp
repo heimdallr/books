@@ -6,6 +6,7 @@
 #include <QApplication>
 #include <QBuffer>
 #include <QCommandLineParser>
+#include <QDir>
 #include <QImageReader>
 #include <QProcess>
 #include <QRegularExpression>
@@ -124,7 +125,7 @@ struct UniqueFile
 		Varied,
 	};
 
-	QString             title;
+	std::set<QString>   title;
 	QString             folder;
 	QString             file;
 	QString             hashText;
@@ -140,11 +141,17 @@ struct UniqueFile
 		return order > rhs.order;
 	}
 
+	QString GetTitle() const
+	{
+		const QStringList list { title.cbegin(), title.cend() };
+		return list.join(' ');
+	}
+
 	[[nodiscard]] ImagesCompareResult CompareImages(const UniqueFile& rhs) const
 	{
-		if (title != rhs.title)
+		if (!std::ranges::includes(title, rhs.title) && !std::ranges::includes(rhs.title, title))
 		{
-			PLOGW << QString("same hash, different titles: %1/%2 %3 vs %4/%5 %6").arg(folder, file, title, rhs.folder, rhs.file, rhs.title);
+			PLOGW << QString("same hash, different titles: %1/%2 %3 vs %4/%5 %6").arg(folder, file, GetTitle(), rhs.folder, rhs.file, rhs.GetTitle());
 			return ImagesCompareResult::Varied;
 		}
 
@@ -258,8 +265,8 @@ class UniqueFileStorage
 	private: // ISerializer
 		void Serialize(const UniqueFile& file, const UniqueFile& origin) override
 		{
-			const auto book = m_writer.Guard("book");
-			book->WriteAttribute("id", file.hashText).WriteAttribute("folder", file.folder).WriteAttribute("file", file.file).WriteAttribute("title", file.title);
+			const auto book = m_booksGuard->Guard("book");
+			book->WriteAttribute("id", file.hashText).WriteAttribute("folder", file.folder).WriteAttribute("file", file.file).WriteAttribute("title", file.GetTitle());
 			if (!file.cover.fileName.isEmpty())
 				book->Guard("cover")->WriteCharacters(file.cover.hash);
 			for (const auto& image : file.images)
@@ -304,8 +311,9 @@ class UniqueFileStorage
 		}
 
 	private:
-		std::unique_ptr<QIODevice> m_ioDevice;
-		Util::XmlWriter            m_writer { *m_ioDevice };
+		std::unique_ptr<QIODevice>    m_ioDevice;
+		Util::XmlWriter               m_writer { *m_ioDevice };
+		Util::XmlWriter::XmlNodeGuard m_booksGuard { m_writer.Guard("books") };
 	};
 
 public:
@@ -314,28 +322,40 @@ public:
 	{
 		if (m_dstDir.isEmpty())
 			return;
-		//if (m_fileName.isEmpty())
-		//	return;
 
-		//		QFile inp(m_fileName);
-		//		if (!inp.open(QIODevice::ReadOnly))
-		//		{
-		//			PLOGE << "Cannot read from " << m_fileName;
-		//			return;
-		//		}
-		//
-		//		PLOGI << "reading hash";
-		//
-		//		QTextStream stream(&inp);
-		//		while (!stream.atEnd())
-		//		{
-		//			const auto str = stream.readLine();
-		//			if (str.startsWith('\t'))
-		//				continue;
-		//
-		//			auto split = str.split('\t');
-		//			m_old.try_emplace(std::move(split[0]), UniqueFile { .folder = std::move(split[1]), .file = std::move(split[2]) });
-		//		}
+		const QDir srcDir(QDir(m_dstDir).filePath("hash"));
+		for (const auto& xml : srcDir.entryList({ "*.xml" }, QDir::Filter::Files))
+		{
+			QFile file(srcDir.filePath(xml));
+			if (!file.open(QIODevice::ReadOnly))
+				continue;
+
+			HashParser::Parse(
+				file,
+				[this](
+#define HASH_PARSER_CALLBACK_ITEM(NAME) [[maybe_unused]] QString NAME,
+					HASH_PARSER_CALLBACK_ITEMS_X_MACRO
+#undef HASH_PARSER_CALLBACK_ITEM
+					[[maybe_unused]] QString     cover,
+					[[maybe_unused]] QStringList images
+				) {
+					decltype(UniqueFile::images) imageItems;
+					std::ranges::transform(std::move(images) | std::views::as_rvalue, std::inserter(imageItems, imageItems.end()), [](QString&& hash) {
+						return ImageItem { .hash = std::move(hash) };
+					});
+					auto       split = title.split(' ', Qt::SkipEmptyParts);
+					UniqueFile uniqueFile {
+						.title    = { std::make_move_iterator(split.begin()), std::make_move_iterator(split.end()) },
+						.folder   = std::move(folder),
+						.file     = std::move(file),
+						.hashText = id,
+						.cover    = { .hash = std::move(cover) },
+						.images   = std::move(imageItems)
+					};
+					m_old.emplace(std::move(id), std::move(uniqueFile));
+				}
+			);
+		}
 
 		PLOGI << "ready books found: " << m_old.size();
 	}
@@ -349,7 +369,7 @@ public:
 			return (void)m_new.emplace(std::move(hash), std::make_pair(std::move(file), std::vector<UniqueFile> {}));
 
 		const auto log = [&](const UniqueFile& old) {
-			PLOGV << QString("duplicates detected: %1/%2 vs %3/%4, %5").arg(file.folder, file.file, old.folder, old.file, file.title);
+			PLOGV << QString("duplicates detected: %1/%2 vs %3/%4, %5").arg(file.folder, file.file, old.folder, old.file, file.GetTitle());
 		};
 
 		for (auto [it, end] = m_old.equal_range(hash); it != end; ++it)
@@ -360,7 +380,7 @@ public:
 
 			if (imagesCompareResult == UniqueFile::ImagesCompareResult::Inner)
 			{
-				PLOGW << QString("old duplicate detected by %1/%2: %3/%4, %5").arg(file.folder, file.file, it->second.folder, it->second.file, file.title);
+				PLOGW << QString("old duplicate detected by %1/%2: %3/%4, %5").arg(file.folder, file.file, it->second.folder, it->second.file, file.GetTitle());
 				continue;
 			}
 
@@ -439,12 +459,15 @@ public:
 
 				std::ranges::transform(newItems.second, std::back_inserter(m_dup), [&](auto&& item) {
 					[[maybe_unused]] const auto ok = QFile::rename(srcDir.filePath(item.file), duplicates.filePath(item.file));
+					assert(ok);
 					return Dup { hash, std::forward<UniqueFile>(item), it->second };
 				});
 			}
 		}
 
 		std::ranges::for_each(m_dup, [&](Dup& dup) {
+			[[maybe_unused]] const auto ok = QFile::rename(srcDir.filePath(dup.file.file), duplicates.filePath(dup.file.file));
+			assert(ok);
 			save(dup.file, dup.origin);
 		});
 
@@ -966,10 +989,12 @@ private:
 
 		auto hash = parseResult.hashText;
 
+		auto split = parseResult.title.split(' ', Qt::SkipEmptyParts);
+
 		m_uniqueFileStorage.Add(
 			std::move(hash),
 			{
-				.title        = parseResult.title.toLower(),
+				.title        = { std::make_move_iterator(split.begin()), std::make_move_iterator(split.end()) },
 				.folder       = m_folder,
 				.file         = inputFilePath,
 				.hashText     = std::move(parseResult.hashText),
@@ -977,7 +1002,7 @@ private:
 				.cover        = std::move(cover),
 				.images       = std::move(images),
 				.order        = QFileInfo(inputFilePath).baseName().toInt(),
-			}
+        }
 		);
 
 		return bodyOutput;
