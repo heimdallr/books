@@ -601,7 +601,7 @@ private:
 		else
 		{
 			m_ui.btnNew->setVisible(true);
-			m_ui.btnNew->disconnect();
+			m_ui.btnNew->disconnect(SIGNAL(clicked()));
 			connect(m_ui.btnNew, &QAbstractButton::clicked, &m_self, std::move(newItemCreator));
 
 			if (modelEmpty)

@@ -369,8 +369,11 @@ private:
 		const auto with = queryClause.with && queryClause.with[0] ? QString(queryClause.with).arg(navigationId).toStdString() : std::string {};
 
 		{
-			const auto query =
-				db.CreateQuery(std::format(DatabaseUtil::BOOKS_QUERY, with, queryClause.additionalFields, queryClause.booksFrom, QString(queryClause.booksWhere).arg(navigationId).toStdString()));
+			QString booksWhere = queryClause.booksWhere;
+			if (!booksWhere.isEmpty())
+				booksWhere = booksWhere.arg(navigationId);
+
+			const auto query = db.CreateQuery(std::format(DatabaseUtil::BOOKS_QUERY, with, queryClause.additionalFields, queryClause.booksFrom, booksWhere.toStdString()));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto& book = m_books[query->Get<long long>(BookQueryFields::BookId)];
@@ -390,7 +393,12 @@ private:
 			book.SetFlags(toSet);
 		};
 
-		const auto where = QString(queryClause.navigationWhere).arg(navigationId).toStdString();
+		auto where = [&] {
+			QString result(queryClause.navigationWhere);
+			if (!result.isEmpty())
+				result = result.arg(navigationId);
+			return result.toStdString();
+		}();
 
 		{
 			static constexpr auto queryText = R"({}
