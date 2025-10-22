@@ -59,7 +59,7 @@ QString Error(const char* str)
 	if (!str)
 		return {};
 
-	return Loc::Tr(Loc::Ctx::ERROR, str);
+	return Loc::Tr(Loc::Ctx::ERROR_CTX, str);
 }
 
 TR_DEF

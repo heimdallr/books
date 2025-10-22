@@ -19,11 +19,11 @@ class ISettings;
 namespace HomeCompa::Loc::Ctx
 {
 
-constexpr auto COMMON  = "Common";
-constexpr auto ERROR   = "Error";
-constexpr auto LANG    = "Language";
-constexpr auto BOOK    = "Book";
-constexpr auto LOGGING = "Logging";
+constexpr auto COMMON    = "Common";
+constexpr auto ERROR_CTX = "Error";
+constexpr auto LANG      = "Language";
+constexpr auto BOOK      = "Book";
+constexpr auto LOGGING   = "Logging";
 
 }
 
@@ -36,7 +36,7 @@ constexpr const char* LOCALES[] {
 	QT_TRANSLATE_NOOP("Language", "uk"),
 };
 
-constexpr auto ERROR           = QT_TRANSLATE_NOOP("Common", "Error!");
+constexpr auto ERROR_TEXT      = QT_TRANSLATE_NOOP("Common", "Error!");
 constexpr auto INFORMATION     = QT_TRANSLATE_NOOP("Common", "Information");
 constexpr auto QUESTION        = QT_TRANSLATE_NOOP("Common", "Question");
 constexpr auto WARNING         = QT_TRANSLATE_NOOP("Common", "Warning!");
@@ -51,7 +51,7 @@ UTIL_EXPORT std::vector<PropagateConstPtr<QTranslator>> LoadLocales(const QStrin
 
 inline QString Error()
 {
-	return Tr(Ctx::COMMON, ERROR);
+	return Tr(Ctx::COMMON, ERROR_TEXT);
 }
 
 inline QString Information()

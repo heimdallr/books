@@ -495,7 +495,7 @@ private: // ITreeViewController::IObserver
 		}
 
 		if (IsOneOf(item->GetData(MenuItem::Column::Id).toInt(), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs, BooksMenuAction::SendAsScript) && item->GetData(MenuItem::Column::HasError).toInt())
-			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR, Loc::BOOKS_EXTRACT_ERROR));
+			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR_CTX, Loc::BOOKS_EXTRACT_ERROR));
 	}
 
 private: // ITreeViewDelegate::IObserver

@@ -63,7 +63,7 @@ QString CreateAuthorTitle(const DB::IQuery& query)
 	AppendTitle(title, query.Get<const char*>(3));
 
 	if (title.isEmpty())
-		title = Loc::Tr(Loc::Ctx::ERROR, Loc::AUTHOR_NOT_SPECIFIED);
+		title = Loc::Tr(Loc::Ctx::ERROR_CTX, Loc::AUTHOR_NOT_SPECIFIED);
 
 	return title;
 }
