@@ -82,7 +82,7 @@ struct PairHash
 
 struct Book
 {
-	Book(
+	Book( //-V730
 		const size_t            id_,
 		const std::wstring_view libId_,
 		const std::wstring_view title_,
