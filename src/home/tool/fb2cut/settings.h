@@ -53,6 +53,7 @@ struct Settings
 	QString       ffmpeg;
 	QString       imageStatistics;
 	bool          needHash { false };
+	QString       skipFileName;
 	QString       archiver;
 	QString       archiverOptions;
 	int           totalFileCount { 0 };

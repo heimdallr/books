@@ -6,7 +6,6 @@
 #include <QApplication>
 #include <QBuffer>
 #include <QCommandLineParser>
-#include <QDir>
 #include <QImageReader>
 #include <QProcess>
 #include <QRegularExpression>
@@ -26,6 +25,7 @@
 #include "Hypodermic/Hypodermic.h"
 #include "gutil/interface/IUiFactory.h"
 #include "icu/icu.h"
+#include "inpx/types.h"
 #include "jxl/jxl.h"
 #include "logging/LogAppender.h"
 #include "logging/init.h"
@@ -79,6 +79,7 @@ constexpr auto MIN_IMAGE_FILE_SIZE_OPTION_NAME = "min-image-file-size";
 constexpr auto FORMAT                          = "format";
 constexpr auto IMAGE_STATISTICS                = "image-statistics";
 constexpr auto HASH                            = "hash";
+constexpr auto SKIP                            = "skip";
 
 constexpr auto GUI_MODE_OPTION_NAME = "gui";
 
@@ -372,6 +373,13 @@ public:
 			PLOGV << QString("duplicates detected: %1/%2 vs %3/%4, %5").arg(file.folder, file.file, old.folder, old.file, file.GetTitle());
 		};
 
+		if (const auto it = m_skip.find(std::make_pair(file.folder, file.file)); it != m_skip.end())
+		{
+			PLOGV << QString("%1/%2 skipped by %3/%4, %5").arg(file.folder, file.file, it->second.first, it->second.second, file.GetTitle());
+			m_dup.emplace_back(std::move(hash), std::move(file), UniqueFile { .folder = it->second.first, .file = it->second.second }).file.ClearImages();
+			return;
+		}
+
 		for (auto [it, end] = m_old.equal_range(hash); it != end; ++it)
 		{
 			const auto imagesCompareResult = it->second.CompareImages(file);
@@ -475,12 +483,33 @@ public:
 		m_dup.clear();
 	}
 
+	void Skip(const QString& fileName)
+	{
+		assert(!fileName.isEmpty());
+		QFile stream(fileName);
+		if (!stream.open(QIODevice::ReadOnly))
+		{
+			PLOGE << "cannot read " << fileName;
+			return;
+		}
+
+		QTextStream textStream(&stream);
+		while (!textStream.atEnd())
+		{
+			QString folder, file, duplicatesFolder, duplicatesFile;
+			textStream >> folder >> file >> duplicatesFolder >> duplicatesFile;
+			m_skip.try_emplace(std::make_pair(std::move(folder), std::move(file)), std::make_pair(std::move(duplicatesFolder), std::move(duplicatesFile)));
+		}
+	}
+
 private:
 	const QString m_dstDir;
 	std::mutex    m_guard;
 
-	std::vector<Dup>                             m_dup;
 	std::unordered_multimap<QString, UniqueFile> m_old;
+	std::vector<Dup>                             m_dup;
+
+	std::unordered_map<std::pair<QString, QString>, std::pair<QString, QString>, PairHash<QString, QString>> m_skip;
 
 	std::unordered_multimap<QString, std::pair<UniqueFile, std::vector<UniqueFile>>> m_new;
 };
@@ -1523,6 +1552,8 @@ QStringList ProcessArchives(Settings& settings)
 	const Decoder decoder;
 
 	UniqueFileStorage uniqueFileStorage(settings.needHash ? settings.dstDir.path() : QString {});
+	if (!settings.skipFileName.isEmpty())
+		uniqueFileStorage.Skip(settings.skipFileName);
 
 	std::atomic_int fileCount;
 	QStringList     failed;
@@ -1615,6 +1646,7 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication& app)
 		{ FFMPEG_OPTION_NAME, "Path to ffmpeg executable", PATH },
 		{ IMAGE_STATISTICS, "Image statistics output path", PATH },
 		{ HASH, "Create hash files" },
+		{ SKIP, "Skip files list", PATH },
 
 		{ { QString(GRAYSCALE_OPTION_NAME[0]), GRAYSCALE_OPTION_NAME }, "Convert all images to grayscale" },
 		{ COVER_GRAYSCALE_OPTION_NAME, "Convert covers to grayscale" },
@@ -1653,6 +1685,7 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication& app)
 	SetValue(parser, MIN_IMAGE_FILE_SIZE_OPTION_NAME, settings.minImageFileSize);
 
 	settings.imageStatistics = parser.value(IMAGE_STATISTICS);
+	settings.skipFileName    = parser.value(SKIP);
 	if (parser.isSet(HASH))
 		settings.needHash = true;
 
