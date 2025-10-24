@@ -1,0 +1,35 @@
+﻿cmake_minimum_required (VERSION 3.20)
+
+set(QT_LUPDATE_TOOL ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/lupdate)
+set(QT_LRELEASE_TOOL ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/lrelease)
+
+set(locales en ru uk)
+
+set(LOCALES_HEADER_CONTENT)
+set(COPY_LIST)
+set(LRELEASE_LIST)
+set(LUPDATE_LIST)
+
+foreach(locale ${locales})
+    set(LOCALES_HEADER_CONTENT "${LOCALES_HEADER_CONTENT}\tQT_TRANSLATE_NOOP(\"Language\", \"${locale}\"),\n")
+    list(APPEND COPY_LIST "${QT6_INSTALL_PREFIX}/translations/qtbase_${locale}.qm")
+    list(APPEND LRELEASE_LIST COMMAND "${QT_LRELEASE_TOOL}" "${CMAKE_CURRENT_LIST_DIR}/${locale}.ts" -qm "${CMAKE_BINARY_DIR}/bin/locales/FLibrary_${locale}.qm")
+    list(APPEND LUPDATE_LIST -ts "${CMAKE_CURRENT_LIST_DIR}/${locale}.ts")
+endforeach()
+
+configure_file("${CMAKE_CURRENT_LIST_DIR}/../../script/helpers/locales.h.in" "${CMAKE_BINARY_DIR}/config/locales.h" @ONLY)
+file(COPY ${COPY_LIST} DESTINATION "${CMAKE_BINARY_DIR}/bin/locales/")
+add_custom_target(locales ${LRELEASE_LIST})
+
+execute_process(
+    COMMAND
+        "${QT_LUPDATE_TOOL}"
+        "${CMAKE_BINARY_DIR}/config/locales.h"
+        -recursive ./
+        -locations none
+        -sort-messages
+        -extensions cpp,h,ui
+        ${LUPDATE_LIST}
+    WORKING_DIRECTORY
+        ${CMAKE_CURRENT_LIST_DIR}/../../
+)

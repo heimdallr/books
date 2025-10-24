@@ -30,12 +30,6 @@ constexpr auto LOGGING   = "Logging";
 namespace HomeCompa::Loc
 {
 
-constexpr const char* LOCALES[] {
-	QT_TRANSLATE_NOOP("Language", "en"),
-	QT_TRANSLATE_NOOP("Language", "ru"),
-	QT_TRANSLATE_NOOP("Language", "uk"),
-};
-
 constexpr auto ERROR_TEXT      = QT_TRANSLATE_NOOP("Common", "Error!");
 constexpr auto INFORMATION     = QT_TRANSLATE_NOOP("Common", "Information");
 constexpr auto QUESTION        = QT_TRANSLATE_NOOP("Common", "Question");

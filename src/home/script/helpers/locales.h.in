@@ -1,0 +1,8 @@
+#pragma once
+
+namespace HomeCompa::Loc {
+
+inline constexpr const char* LOCALES[] {
+@LOCALES_HEADER_CONTENT@};
+
+}

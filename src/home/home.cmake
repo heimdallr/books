@@ -32,3 +32,5 @@ execute_process(
 	)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/script/helpers/git_hash.h.in ${CMAKE_CURRENT_BINARY_DIR}/config/git_hash.h @ONLY)
 configure_file(${CMAKE_CURRENT_LIST_DIR}/script/helpers/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/config/version.h @ONLY)
+
+add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/resources/locales)
