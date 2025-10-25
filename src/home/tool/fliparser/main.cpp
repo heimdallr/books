@@ -1006,11 +1006,14 @@ void CreateBookList(const Settings& settings, const FileToFolder& fileToFolder)
 
 	std::unordered_map<QString, std::vector<std::pair<const Book*, std::tuple<QString, QString, int, QString>>>> langs;
 	for (const auto& book : settings.hashToBook | std::views::values)
+	{
+		assert(book);
 		if (fileToFolder.contains(book->file + "." + book->ext))
 			langs[book->lang].emplace_back(
 				book,
 				std::make_tuple(getSortedString(book->author), getSortedString(book->series.front().title), getSortedNum(book->series.front().serNo), getSortedString(book->title))
 			);
+	}
 
 	auto zipFiles = Zip::CreateZipFileController();
 	std::ranges::for_each(langs, [&](auto& value) {
@@ -1293,6 +1296,7 @@ void ReadHash(Settings& settings, InpData& inpData)
 
 	for (size_t id = 0; const auto& siblings : files | std::views::values)
 	{
+		assert(!siblings.empty());
 		auto& [hash, book] = *settings.hashToBook.try_emplace(QString::number(++id), static_cast<Book*>(nullptr)).first;
 
 		for (const auto& file : siblings)
@@ -1320,7 +1324,13 @@ void ReadHash(Settings& settings, InpData& inpData)
 			book->rate      = rate;
 			book->rateCount = rateCount;
 		}
+
+		if (!book)
+			settings.hashToBook.erase(hash);
 	}
+	assert(std::ranges::all_of(settings.hashToBook | std::views::values, [](const auto* item) {
+		return !!item;
+	}));
 }
 
 } // namespace
