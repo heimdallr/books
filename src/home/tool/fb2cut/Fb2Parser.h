@@ -1,6 +1,7 @@
 #pragma once
 
 #include <QString>
+#include <QStringList>
 
 class QIODevice;
 
@@ -105,7 +106,32 @@ struct Fb2Parser
 		"col",
 	};
 
-	static void Parse(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId);
+	struct ParseResult
+	{
+		QString     title;
+		QString     hashText;
+		QStringList hashSections;
+	};
+
+	static ParseResult Parse(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId);
+};
+
+struct HashParser
+{
+#define HASH_PARSER_CALLBACK_ITEMS_X_MACRO \
+	HASH_PARSER_CALLBACK_ITEM(id)          \
+	HASH_PARSER_CALLBACK_ITEM(folder)      \
+	HASH_PARSER_CALLBACK_ITEM(file)        \
+	HASH_PARSER_CALLBACK_ITEM(title)
+
+	using Callback = std::function<void(
+#define HASH_PARSER_CALLBACK_ITEM(NAME) QString NAME,
+		HASH_PARSER_CALLBACK_ITEMS_X_MACRO
+#undef HASH_PARSER_CALLBACK_ITEM
+			QString cover,
+		QStringList images
+	)>;
+	static void Parse(QIODevice& input, Callback callback);
 };
 
 } // namespace HomeCompa::fb2cut
