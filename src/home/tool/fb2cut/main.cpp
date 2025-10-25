@@ -1058,6 +1058,23 @@ private:
 			{  "svg",  R"(<svg)" },
 		};
 
+		static constexpr const char* base64Signatures[] {
+			"/9j/4A",
+			"iVBORw",
+		};
+
+		if (const auto it = std::ranges::find_if(
+				base64Signatures,
+				[&](const auto* item) {
+					return body.startsWith(item);
+				}
+			);
+		    it != std::end(base64Signatures))
+		{
+			body = QByteArray::fromBase64(body);
+			return ReadImage(body, imageType, imageFile, fail, needSaveBody);
+		}
+
 		auto [image, errorString] = ToImage(body);
 		if (!image.isNull())
 			return image;
