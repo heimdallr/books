@@ -1054,8 +1054,9 @@ private:
 	{
 		struct Signature
 		{
-			const char* extension;
-			const char* signature;
+			const char* extension { nullptr };
+			const char* signature { nullptr };
+			bool        needSaveBody { true };
 		};
 
 		static constexpr Signature signatures[] {
@@ -1066,9 +1067,9 @@ private:
 			{ "riff", R"(RIFF)" },
 		};
 		static constexpr Signature knownSignatures[] {
-			{ "html", R"(<html)" },
-			{  "xml", R"(<?xml)" },
-			{  "svg",  R"(<svg)" },
+			{ "html", R"(<html)", false },
+			{ "xml", R"(<?xml)" },
+			{ "svg", R"(<svg)" },
 		};
 
 		static constexpr const char* base64Signatures[] {
@@ -1105,7 +1106,8 @@ private:
 				}
 			);
 		    it != std::end(signatures))
-			return fail = it->extension, AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), needSaveBody, it->extension);
+			return (fail = it->extension),
+			       AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), needSaveBody && it->needSaveBody, it->extension);
 
 		if (const auto it = std::ranges::find_if(
 				unsupportedSignatures,
@@ -1114,7 +1116,8 @@ private:
 				}
 			);
 		    it != std::end(unsupportedSignatures))
-			return fail = it->extension, AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), needSaveBody, it->extension);
+			return (fail = it->extension),
+			       AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), needSaveBody && it->needSaveBody, it->extension);
 
 		if (const auto it = std::ranges::find_if(
 				knownSignatures,
@@ -1123,10 +1126,11 @@ private:
 				}
 			);
 		    it != std::end(knownSignatures))
-			return fail = it->extension, AddError(imageType, imageFile, body, QString("%1 %2 is %3").arg(imageType).arg(imageFile).arg(it->extension), needSaveBody, it->extension, false);
+			return (fail = it->extension),
+			       AddError(imageType, imageFile, body, QString("%1 %2 is %3").arg(imageType).arg(imageFile).arg(it->extension), needSaveBody && it->needSaveBody, it->extension, false);
 
 		if (QString::fromUtf8(body).contains("!doctype html", Qt::CaseInsensitive))
-			return fail = knownSignatures[0].extension, AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), needSaveBody, "html", false);
+			return fail = knownSignatures[0].extension, AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), false, "html", false);
 
 		return AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), needSaveBody);
 	}
