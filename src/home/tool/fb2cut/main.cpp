@@ -317,9 +317,18 @@ class UniqueFileStorage
 		Util::XmlWriter::XmlNodeGuard m_booksGuard { m_writer.Guard("books") };
 	};
 
+	static QString createSi()
+	{
+		QString result;
+		result.append(QChar { 0x0441 });
+		result.append(QChar { 0x0438 });
+		return result;
+	}
+
 public:
 	explicit UniqueFileStorage(QString dstDir)
 		: m_dstDir { std::move(dstDir) }
+		, m_si { createSi() }
 	{
 		if (m_dstDir.isEmpty())
 			return;
@@ -364,6 +373,8 @@ public:
 public:
 	void Add(QString hash, UniqueFile file)
 	{
+		file.title.erase(m_si);
+
 		std::lock_guard lock(m_guard);
 
 		if (m_dstDir.isEmpty())
@@ -512,6 +523,8 @@ private:
 	std::unordered_map<std::pair<QString, QString>, std::pair<QString, QString>, PairHash<QString, QString>> m_skip;
 
 	std::unordered_multimap<QString, std::pair<UniqueFile, std::vector<UniqueFile>>> m_new;
+
+	const QString m_si;
 };
 
 struct ImageStatisticsItem
@@ -930,6 +943,19 @@ private:
 		std::set<ImageItem> images;
 
 		auto binaryCallback = [&](QString&& name, const bool isCover, QByteArray body) {
+			const QFileInfo imageFileInfo(name);
+			if (IsOneOf(imageFileInfo.suffix().toLower(), "zip", "rar", "txt"))
+			{
+				auto      imageFile = m_settings.image.fileNameGetter(completeFileName, name);
+				ImageItem imageItem { .fileName = std::move(imageFile), .body = std::move(body), .dateTime = dateTime };
+
+				if (!m_settings.image.save)
+					imageItem.body = {};
+
+				images.emplace(std::move(imageItem));
+				return;
+			}
+
 			const auto& settings = isCover ? m_settings.cover : m_settings.image;
 
 			ImageStatisticsItem::PixelSchema pixelSchema = ImageStatisticsItem::PixelSchema::Unknown;
@@ -1041,8 +1067,9 @@ private:
 	{
 		struct Signature
 		{
-			const char* extension;
-			const char* signature;
+			const char* extension { nullptr };
+			const char* signature { nullptr };
+			bool        needSaveBody { true };
 		};
 
 		static constexpr Signature signatures[] {
@@ -1053,9 +1080,9 @@ private:
 			{ "riff", R"(RIFF)" },
 		};
 		static constexpr Signature knownSignatures[] {
-			{ "html", R"(<html)" },
-			{  "xml", R"(<?xml)" },
-			{  "svg",  R"(<svg)" },
+			{ "html", R"(<html)", false },
+			{ "xml", R"(<?xml)" },
+			{ "svg", R"(<svg)" },
 		};
 
 		static constexpr const char* base64Signatures[] {
@@ -1092,7 +1119,8 @@ private:
 				}
 			);
 		    it != std::end(signatures))
-			return fail = it->extension, AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), needSaveBody, it->extension);
+			return (fail = it->extension),
+			       AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), needSaveBody && it->needSaveBody, it->extension);
 
 		if (const auto it = std::ranges::find_if(
 				unsupportedSignatures,
@@ -1101,7 +1129,8 @@ private:
 				}
 			);
 		    it != std::end(unsupportedSignatures))
-			return fail = it->extension, AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), needSaveBody, it->extension);
+			return (fail = it->extension),
+			       AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg(it->extension), needSaveBody && it->needSaveBody, it->extension);
 
 		if (const auto it = std::ranges::find_if(
 				knownSignatures,
@@ -1110,10 +1139,11 @@ private:
 				}
 			);
 		    it != std::end(knownSignatures))
-			return fail = it->extension, AddError(imageType, imageFile, body, QString("%1 %2 is %3").arg(imageType).arg(imageFile).arg(it->extension), needSaveBody, it->extension, false);
+			return (fail = it->extension),
+			       AddError(imageType, imageFile, body, QString("%1 %2 is %3").arg(imageType).arg(imageFile).arg(it->extension), needSaveBody && it->needSaveBody, it->extension, false);
 
 		if (QString::fromUtf8(body).contains("!doctype html", Qt::CaseInsensitive))
-			return fail = knownSignatures[0].extension, AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), needSaveBody, "html", false);
+			return fail = knownSignatures[0].extension, AddError(imageType, imageFile, body, QString("possibly an %1 %2 in %3 format").arg(imageType).arg(imageFile).arg("html"), false, "html", false);
 
 		return AddError(imageType, imageFile, body, QString("%1 %2 may be damaged: %3").arg(imageType).arg(imageFile).arg(errorString), needSaveBody);
 	}
