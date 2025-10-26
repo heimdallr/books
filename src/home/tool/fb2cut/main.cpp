@@ -930,6 +930,19 @@ private:
 		std::set<ImageItem> images;
 
 		auto binaryCallback = [&](QString&& name, const bool isCover, QByteArray body) {
+			const QFileInfo imageFileInfo(name);
+			if (IsOneOf(imageFileInfo.suffix().toLower(), "zip", "rar", "txt"))
+			{
+				auto      imageFile = m_settings.image.fileNameGetter(completeFileName, name);
+				ImageItem imageItem { .fileName = std::move(imageFile), .body = std::move(body), .dateTime = dateTime };
+
+				if (!m_settings.image.save)
+					imageItem.body = {};
+
+				images.emplace(std::move(imageItem));
+				return;
+			}
+
 			const auto& settings = isCover ? m_settings.cover : m_settings.image;
 
 			ImageStatisticsItem::PixelSchema pixelSchema = ImageStatisticsItem::PixelSchema::Unknown;
