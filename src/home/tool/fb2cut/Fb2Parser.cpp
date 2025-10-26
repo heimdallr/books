@@ -372,7 +372,7 @@ private: // Util::SaxParser
 			});
 
 			QStringList digits;
-			auto split = valueCopy.split(' ');
+			auto        split = valueCopy.split(' ');
 			for (auto& word : split)
 			{
 				QString digitsWord;
