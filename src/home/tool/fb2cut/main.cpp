@@ -317,9 +317,18 @@ class UniqueFileStorage
 		Util::XmlWriter::XmlNodeGuard m_booksGuard { m_writer.Guard("books") };
 	};
 
+	static QString createSi()
+	{
+		QString result;
+		result.append(QChar { 0x0441 });
+		result.append(QChar { 0x0438 });
+		return result;
+	}
+
 public:
 	explicit UniqueFileStorage(QString dstDir)
 		: m_dstDir { std::move(dstDir) }
+		, m_si { createSi() }
 	{
 		if (m_dstDir.isEmpty())
 			return;
@@ -364,6 +373,8 @@ public:
 public:
 	void Add(QString hash, UniqueFile file)
 	{
+		file.title.erase(m_si);
+
 		std::lock_guard lock(m_guard);
 
 		if (m_dstDir.isEmpty())
@@ -512,6 +523,8 @@ private:
 	std::unordered_map<std::pair<QString, QString>, std::pair<QString, QString>, PairHash<QString, QString>> m_skip;
 
 	std::unordered_multimap<QString, std::pair<UniqueFile, std::vector<UniqueFile>>> m_new;
+
+	const QString m_si;
 };
 
 struct ImageStatisticsItem

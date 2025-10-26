@@ -362,6 +362,8 @@ private: // Util::SaxParser
 
 		valueCopy = valueCopy.toLower();
 		valueCopy.replace(QChar { 0x0451 }, QChar { 0x0435 });
+		valueCopy.replace(QChar { 0x0439 }, QChar { 0x0438 });
+		valueCopy.replace(QChar { 0x044A }, QChar { 0x044C });
 
 		if (path == TITLE)
 		{
