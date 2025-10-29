@@ -93,24 +93,25 @@ bool CleanupNavigationItems(DB::ITransaction& transaction)
 {
 	PLOGI << "Removing database book references records started";
 	constexpr std::pair<const char*, const char*> commands[] {
-		{      "Series_List",               "delete from Series_List where not exists (select 42 from Books where Books.BookID = Series_List.BookID)" },
-		{		   "Series",         "delete from Series where not exists (select 42 from Series_List where Series_List.SeriesID = Series.SeriesID)" },
-		{       "Genre_List",                 "delete from Genre_List where not exists (select 42 from Books where Books.BookID = Genre_List.BookID)" },
-		{      "Author_List",               "delete from Author_List where not exists (select 42 from Books where Books.BookID = Author_List.BookID)" },
-		{		  "Authors",       "delete from Authors where not exists (select 42 from Author_List where Author_List.AuthorID = Authors.AuthorID)" },
-		{     "Keyword_List",             "delete from Keyword_List where not exists (select 42 from Books where Books.BookID = Keyword_List.BookID)" },
-		{         "Keywords", "delete from Keywords where not exists (select 42 from Keyword_List where Keyword_List.KeywordID = Keywords.KeywordID)" },
-		{		  "Reviews",					   "delete from Reviews where not exists (select 42 from Books where Books.BookID = Reviews.BookID)" },
-		{ "Groups_List_User",																				  R"(delete from Groups_List_User where
+		{         "Series_List",               "delete from Series_List where not exists (select 42 from Books where Books.BookID = Series_List.BookID)" },
+		{			  "Series",         "delete from Series where not exists (select 42 from Series_List where Series_List.SeriesID = Series.SeriesID)" },
+		{		  "Genre_List",                 "delete from Genre_List where not exists (select 42 from Books where Books.BookID = Genre_List.BookID)" },
+		{         "Author_List",               "delete from Author_List where not exists (select 42 from Books where Books.BookID = Author_List.BookID)" },
+		{			 "Authors",       "delete from Authors where not exists (select 42 from Author_List where Author_List.AuthorID = Authors.AuthorID)" },
+		{        "Keyword_List",             "delete from Keyword_List where not exists (select 42 from Books where Books.BookID = Keyword_List.BookID)" },
+		{			"Keywords", "delete from Keywords where not exists (select 42 from Keyword_List where Keyword_List.KeywordID = Keywords.KeywordID)" },
+		{			 "Reviews",					   "delete from Reviews where not exists (select 42 from Books where Books.BookID = Reviews.BookID)" },
+		{    "Groups_List_User",																				  R"(delete from Groups_List_User where
 not exists (select 42 from Books b where b.BookID = Groups_List_User.ObjectID) and 
 not exists (select 42 from Authors a where a.AuthorID = Groups_List_User.ObjectID) and 
 not exists (select 42 from Series s where s.SeriesID = Groups_List_User.ObjectID) and 
 not exists (select 42 from Keywords k where k.KeywordID = Groups_List_User.ObjectID))" },
-		{    "Update months", "delete from Updates where ParentID != 0 and not exists (select 42 from Books where Updates.UpdateID = Books.UpdateID)" },
-		{     "Update years",  "delete from Updates where ParentID = 0 and not exists (select 42 from Updates u where u.ParentID = Updates.UpdateID)" },
-		{     "Books_Search",															  "insert into Books_Search(Books_Search) values('rebuild')" },
-		{   "Authors_Search",														  "insert into Authors_Search(Authors_Search) values('rebuild')" },
-		{    "Series_Search",															"insert into Series_Search(Series_Search) values('rebuild')" },
+		{       "Update months", "delete from Updates where ParentID != 0 and not exists (select 42 from Books where Updates.UpdateID = Books.UpdateID)" },
+		{        "Update years",  "delete from Updates where ParentID = 0 and not exists (select 42 from Updates u where u.ParentID = Updates.UpdateID)" },
+		{        "Books_Search",															  "insert into Books_Search(Books_Search) values('rebuild')" },
+		{      "Authors_Search",														  "insert into Authors_Search(Authors_Search) values('rebuild')" },
+		{       "Series_Search",															"insert into Series_Search(Series_Search) values('rebuild')" },
+		{ "Compilations_Search",												"insert into Compilations_Search(Compilations_Search) values('rebuild')" },
 	};
 	return std::accumulate(std::cbegin(commands), std::cend(commands), true, [&](const bool init, const auto& command) {
 		PLOGD << "removing from " << command.first;

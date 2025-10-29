@@ -64,6 +64,26 @@ DROP TABLE IF EXISTS Reviews;
 DROP TABLE IF EXISTS Languages;
 --@@
 
+DROP TABLE IF EXISTS Compilations;
+--@@
+
+DROP TABLE IF EXISTS Compilation_List;
+--@@
+
+CREATE TABLE Compilation_List (
+    CompilationID INTEGER REFERENCES Compilations (CompilationID) ON DELETE CASCADE,
+    BookId        INTEGER REFERENCES Books (BookID) ON DELETE CASCADE
+);
+--@@
+
+CREATE TABLE Compilations (
+  CompilationID INTEGER         PRIMARY KEY NOT NULL,
+  BookId        INTEGER         REFERENCES Books (BookID) ON DELETE CASCADE,
+  Title         VARCHAR (10240),
+  Covered       INTEGER         DEFAULT (0) 
+);
+--@@
+
 CREATE TABLE Languages (
   LanguageCode VARCHAR (3) NOT NULL,
   Flags        INTEGER     NOT NULL DEFAULT (0)
@@ -240,4 +260,7 @@ CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books,
 --@@
 
 CREATE VIRTUAL TABLE IF NOT EXISTS Series_Search USING fts5(SeriesTitle, content=Series, content_rowid=SeriesID);
+--@@
+
+CREATE VIRTUAL TABLE IF NOT EXISTS Compilations_Search USING fts5(Title, content=Compilations, content_rowid=CompilationID);
 --@@
