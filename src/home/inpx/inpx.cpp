@@ -1247,6 +1247,17 @@ private:
 			__FILE__,
 			__LINE__
 		);
+
+		Util::Try<int>(
+			"CollectCompilations",
+			[this] {
+				CollectCompilations();
+				return 0;
+			},
+			__FILE__,
+			__LINE__
+		);
+
 		Util::Try<int>(
 			"analyze",
 			[&] {
@@ -1429,7 +1440,15 @@ private:
 		}
 
 		m_data.reviews.clear();
-		CollectReviews();
+		Util::Try<int>(
+			"CollectReviews",
+			[this] {
+				CollectReviews();
+				return 0;
+			},
+			__FILE__,
+			__LINE__
+		);
 
 		const auto filter = [](auto& dst, const auto& src) {
 			std::erase_if(dst, [&](const auto& item) {
@@ -1448,7 +1467,24 @@ private:
 		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
 			PLOGE << "Something went wrong";
 
-		Analyze(dbFileName);
+		Util::Try<int>(
+			"CollectCompilations",
+			[this] {
+				CollectCompilations();
+				return 0;
+			},
+			__FILE__,
+			__LINE__
+		);
+
+		Util::Try<int>(
+			"analyze",
+			[&] {
+				return Analyze(dbFileName);
+			},
+			__FILE__,
+			__LINE__
+		);
 
 		return result;
 	}
@@ -1544,6 +1580,150 @@ private:
 			for (const auto& file : zip->GetFileNameList())
 				m_data.reviews[file.toULongLong()].emplace(entry.path().filename());
 		}
+	}
+
+	void CollectCompilations() const
+	{
+		const auto compilationsFileName = m_ini(INPX_FOLDER) / COMPILATIONS;
+		if (!exists(compilationsFileName))
+			return;
+
+		const auto fileName = QString::fromStdWString(compilationsFileName);
+		const auto zip      = Util::Try<std::unique_ptr<Zip>>(
+            QString("open %1").arg(fileName),
+            [&] {
+                return std::make_unique<Zip>(fileName);
+            },
+            __FILE__,
+            __LINE__
+        );
+		if (!zip)
+			return;
+
+		struct Compilation
+		{
+			size_t                      id;
+			size_t                      bookId;
+			bool                        covered;
+			std::unordered_set<QString> title;
+			std::vector<size_t>         books;
+		};
+
+		std::vector<Compilation> compilations;
+
+		DatabaseWrapper db(m_ini(DB_PATH));
+
+		PLOGI << "collect compilations info";
+
+		sqlite3pp::transaction tr(db);
+
+		sqlite3pp::command(db, "CREATE INDEX IF NOT EXISTS IX_Books_FileName ON Books(FileName)").execute();
+
+		sqlite3pp::query query(db, R"(select b.BookID, b.Title
+from Books b
+join Folders f on f.FolderID = b.FolderID and f.FolderTitle=?
+where b.FileName = ? and b.Ext = ?)");
+
+		const auto getBookInfo = [&](const QJsonObject& obj) {
+			const auto            folder = obj["folder"].toString().toStdString();
+			const auto            file   = obj["file"].toString().toStdWString();
+			std::filesystem::path path(file);
+			const auto            name = path.stem().string(), ext = path.extension().string();
+
+			query.bind(1, folder.data(), sqlite3pp::nocopy);
+			query.bind(2, name.data(), sqlite3pp::nocopy);
+			query.bind(3, ext.data(), sqlite3pp::nocopy);
+
+			const auto it = query.begin();
+
+			if (it == query.end())
+				return std::make_pair(0LL, QString {});
+
+			const auto bookId = (*it).get<long long>(0);
+			auto       title  = QString::fromStdString((*it).get<const char*>(1)).toLower();
+			query.reset();
+
+			title.removeIf([&](const QChar ch) {
+				return ch != ' ' && ch.category() != QChar::Letter_Lowercase;
+			});
+
+			return std::make_pair(bookId, std::move(title));
+		};
+
+		const auto doc = QJsonDocument::fromJson(zip->Read(COMPILATIONS_JSON)->GetStream().readAll());
+		assert(doc.isArray());
+		for (const auto compilationValue : doc.array())
+		{
+			assert(compilationValue.isObject());
+			const auto compilationObject = compilationValue.toObject();
+			const auto covered           = compilationObject["covered"].toBool();
+
+			const auto bookId = getBookInfo(compilationObject).first;
+			if (!bookId)
+				continue;
+
+			auto& compilation = compilations.emplace_back(GetId(), bookId, covered);
+			auto& books       = compilation.books;
+
+			for (const auto bookValue : compilationObject["compilation"].toArray())
+			{
+				assert(bookValue.isObject());
+				const auto [id, title] = getBookInfo(bookValue.toObject());
+				if (!id)
+					continue;
+
+				books.emplace_back(id);
+				std::ranges::copy(
+					title.split(' ') | std::views::filter([](const auto& s) {
+						return s.length() > 2;
+					}),
+					std::inserter(compilation.title, compilation.title.end())
+				);
+			}
+
+			if (books.empty())
+				compilations.pop_back();
+		}
+
+		PLOGI << "write compilations info";
+
+		sqlite3pp::command(db, "DROP INDEX IF EXISTS IX_Books_FileName").execute();
+		sqlite3pp::command(db, "delete from Compilations_Search").execute();
+		sqlite3pp::command(db, "delete from Compilations").execute();
+
+		{
+			sqlite3pp::command command(db, "insert into Compilations(CompilationID, BookId, Title, Covered) values(?, ?, ?, ?)");
+			for (const auto& compilation : compilations)
+			{
+				auto title = compilation.title.begin()->toStdString();
+				for (const auto& token : compilation.title | std::views::drop(1))
+					title.append(" ").append(token.toStdString());
+
+				command.bind(1, compilation.id);
+				command.bind(2, compilation.bookId);
+				command.bind(3, title, sqlite3pp::nocopy);
+				command.bind(4, compilation.covered ? 1 : 0);
+				command.execute();
+				command.reset();
+			}
+		}
+		{
+			sqlite3pp::command command(db, "insert into Compilation_List(CompilationID, BookId) values(?, ?)");
+			for (const auto& compilation : compilations)
+			{
+				for (const auto bookId : compilation.books)
+				{
+					command.bind(1, compilation.id);
+					command.bind(2, bookId);
+					command.execute();
+					command.reset();
+				}
+			}
+		}
+
+		sqlite3pp::command(db, "INSERT INTO Compilations_Search(Compilations_Search) VALUES('rebuild')").execute();
+
+		tr.commit();
 	}
 
 	void AddUnIndexedBooks()
