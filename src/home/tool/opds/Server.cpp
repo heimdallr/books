@@ -354,7 +354,7 @@ private:
 		});
 
 		for (const auto& root : roots)
-			RouteWithRoot("/" + root);
+			RouteWithRoot(root);
 
 		if (m_settings->Get(Flibrary::Constant::Settings::OPDS_REACT_APP_ENABLED, true))
 			RouteReactApp();
