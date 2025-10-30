@@ -198,12 +198,7 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 				if (!modelSorter)
 					modelSorter = m_impl.get();
 
-				if (Util::Set(m_impl->modelSorter, modelSorter))
-				{
-					invalidate();
-					return true;
-				}
-				return false;
+				return Util::Set(m_impl->modelSorter, modelSorter) && (invalidate(), true);
 			}
 
 			default:
