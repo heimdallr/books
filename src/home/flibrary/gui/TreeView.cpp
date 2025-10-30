@@ -23,6 +23,7 @@
 #include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IFilterProvider.h"
+#include "interface/logic/IModelSorter.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/ITreeViewDelegate.h"
 
@@ -332,6 +333,26 @@ private:
 	QString m_text;
 };
 
+class ArchiveSorter final : public IModelSorter
+{
+	auto sortable(const QModelIndex& index) const
+	{
+		auto       value = index.data().toString();
+		const auto match = m_rx.match(value);
+		const auto n     = match.hasMatch() ? match.captured(1).toInt() : std::numeric_limits<int>::max();
+		return std::make_pair(n, std::move(value));
+	}
+
+private: // IModelSorter
+	bool LessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight, int) const override
+	{
+		return sortable(sourceLeft) > sortable(sourceRight);
+	}
+
+private:
+	QRegularExpression m_rx { "^.*?fb2.*?([0-9]+).*?$" };
+};
+
 void TreeOperation(const QAbstractItemModel& model, const QModelIndex& index, const std::function<void(const QModelIndex&)>& f)
 {
 	f(index);
@@ -581,6 +602,14 @@ private:
 		if (IsNavigation())
 		{
 			m_delegate->SetEnabled(static_cast<bool>((m_removeItems = m_controller->GetRemoveItems())));
+			if (m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Archives))
+			{
+				model->setData({}, QVariant::fromValue<const IModelSorter*>(&m_archiveSorter), Role::ModelSorter);
+				std::vector<std::pair<int, Qt::SortOrder>> sort {
+					{ 0, Qt::SortOrder::AscendingOrder }
+				};
+				model->setData({}, QVariant::fromValue(std::move(sort)), Role::SortOrder);
+			}
 		}
 		else
 		{
@@ -1201,6 +1230,7 @@ private:
 	MenuEventFilter                                         m_menuEventFilter;
 	HeaderView*                                             m_booksHeaderView;
 	IDataItem::Flags                                        m_navigationItemFlags { IDataItem::Flags::None };
+	const ArchiveSorter                                     m_archiveSorter;
 };
 
 TreeView::TreeView(

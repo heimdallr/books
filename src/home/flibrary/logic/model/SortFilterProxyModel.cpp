@@ -4,6 +4,7 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/logic/IModelSorter.h"
 
 #include "util/SortString.h"
 
@@ -15,28 +16,44 @@ AbstractSortFilterProxyModel::AbstractSortFilterProxyModel(QObject* parent)
 {
 }
 
-struct SortFilterProxyModel::Impl final
+struct SortFilterProxyModel::Impl final : IModelSorter
 {
-	QString                                                m_filter;
-	QString                                                m_languageFilter;
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
-	bool                                                   m_showRemoved { true };
-	bool                                                   m_navigationFiltered { false };
-	bool                                                   m_uniFilterEnabled { false };
-	QVector<int>                                           m_visibleColumns;
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> sourceModel;
+	QString                                                filter;
+	QString                                                languageFilter;
+	bool                                                   showRemoved { true };
+	bool                                                   navigationFiltered { false };
+	bool                                                   uniFilterEnabled { false };
+	QVector<int>                                           visibleColumns;
 	std::vector<std::pair<int, Qt::SortOrder>>             sort;
+	const IModelSorter*                                    modelSorter { this };
 
-	explicit Impl(const IModelProvider& modelProvider)
-		: m_sourceModel(modelProvider.GetSourceModel())
+	Impl(SortFilterProxyModel& self, const IModelProvider& modelProvider)
+		: sourceModel { modelProvider.GetSourceModel() }
+		, m_self { self }
 	{
+		m_self.QSortFilterProxyModel::setSourceModel(sourceModel.get());
 	}
+
+private: // IModelSorter
+	bool LessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight, const int emptyStringWeight) const override
+	{
+		const auto lhs = sourceLeft.data(), rhs = sourceRight.data();
+		const auto lhsType = lhs.typeId(), rhsType = rhs.typeId();
+		return lhsType != rhsType ? lhsType < rhsType
+		     : lhsType == QMetaType::Type::QString
+		         ? (assert(rhsType == QMetaType::Type::QString), Util::QStringWrapper::Compare(Util::QStringWrapper { lhs.toString() }, Util::QStringWrapper { rhs.toString() }, emptyStringWeight))
+		         : m_self.QSortFilterProxyModel::lessThan(sourceLeft, sourceRight);
+	}
+
+private:
+	SortFilterProxyModel& m_self;
 };
 
 SortFilterProxyModel::SortFilterProxyModel(const std::shared_ptr<const IModelProvider>& modelProvider, QObject* parent)
 	: AbstractSortFilterProxyModel(parent)
-	, m_impl(*modelProvider)
+	, m_impl(*this, *modelProvider)
 {
-	QSortFilterProxyModel::setSourceModel(m_impl->m_sourceModel.get());
 	setRecursiveFilteringEnabled(true);
 }
 
@@ -50,10 +67,10 @@ QVariant SortFilterProxyModel::headerData(const int section, const Qt::Orientati
 	switch (role)
 	{
 		case Qt::DisplayRole:
-			return m_impl->m_languageFilter.isEmpty() ? QVariant {} : m_impl->m_languageFilter;
+			return m_impl->languageFilter.isEmpty() ? QVariant {} : m_impl->languageFilter;
 
 		case Qt::DecorationRole:
-			return m_impl->m_languageFilter.isEmpty() ? QString(":/icons/language.svg") : QVariant {};
+			return m_impl->languageFilter.isEmpty() ? QString(":/icons/language.svg") : QVariant {};
 
 		default:
 			break;
@@ -69,10 +86,10 @@ QVariant SortFilterProxyModel::data(const QModelIndex& index, const int role) co
 		switch (role)
 		{
 			case Role::TextFilter:
-				return m_impl->m_filter;
+				return m_impl->filter;
 
 			case Role::LanguageFilter:
-				return m_impl->m_languageFilter;
+				return m_impl->languageFilter;
 
 			default:
 				break;
@@ -90,7 +107,7 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 		{
 			case Role::TextFilter:
 				return Util::Set(
-					m_impl->m_filter,
+					m_impl->filter,
 					value.toString().simplified(),
 					[this] {
 						beginFilterChange();
@@ -102,7 +119,7 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 
 			case Role::VisibleColumns:
 				return Util::Set(
-					m_impl->m_visibleColumns,
+					m_impl->visibleColumns,
 					value.value<QVector<int>>(),
 					[this] {
 						beginFilterChange();
@@ -114,7 +131,7 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 
 			case Role::ShowRemovedFilter:
 				return Util::Set(
-					m_impl->m_showRemoved,
+					m_impl->showRemoved,
 					value.toBool(),
 					[this] {
 						beginFilterChange();
@@ -126,7 +143,7 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 
 			case Role::NavigationItemFiltered:
 				return Util::Set(
-					m_impl->m_navigationFiltered,
+					m_impl->navigationFiltered,
 					value.toBool(),
 					[this] {
 						beginFilterChange();
@@ -138,7 +155,7 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 
 			case Role::UniFilterEnabled:
 				return Util::Set(
-					m_impl->m_uniFilterEnabled,
+					m_impl->uniFilterEnabled,
 					value.toBool(),
 					[this] {
 						beginFilterChange();
@@ -153,7 +170,7 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 
 			case Role::LanguageFilter:
 				if (Util::Set(
-						m_impl->m_languageFilter,
+						m_impl->languageFilter,
 						value.toString().simplified(),
 						[this] {
 							beginFilterChange();
@@ -175,6 +192,15 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 				invalidate();
 				return true;
 
+			case Role::ModelSorter:
+			{
+				const auto* modelSorter = value.value<const IModelSorter*>();
+				if (!modelSorter)
+					modelSorter = m_impl.get();
+
+				return Util::Set(m_impl->modelSorter, modelSorter) && (invalidate(), true);
+			}
+
 			default:
 				break;
 		}
@@ -185,7 +211,7 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 
 bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelIndex& sourceParent) const
 {
-	const auto itemIndex = m_impl->m_sourceModel->index(sourceRow, 0, sourceParent);
+	const auto itemIndex = m_impl->sourceModel->index(sourceRow, 0, sourceParent);
 	assert(itemIndex.isValid());
 	return FilterAcceptsRemoved(itemIndex) && FilterAcceptsFlags(itemIndex) && FilterAcceptsLanguage(itemIndex) && FilterAcceptsText(itemIndex);
 }
@@ -224,43 +250,38 @@ bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelI
 
 bool SortFilterProxyModel::lessThanImpl(const QModelIndex& sourceLeft, const QModelIndex& sourceRight, const int emptyStringWeight) const
 {
-	const auto lhs = sourceLeft.data(), rhs = sourceRight.data();
-	const auto lhsType = lhs.typeId(), rhsType = rhs.typeId();
-	return lhsType != rhsType ? lhsType < rhsType
-	     : lhsType == QMetaType::Type::QString
-	         ? (assert(rhsType == QMetaType::Type::QString), Util::QStringWrapper::Compare(Util::QStringWrapper { lhs.toString() }, Util::QStringWrapper { rhs.toString() }, emptyStringWeight))
-	         : QSortFilterProxyModel::lessThan(sourceLeft, sourceRight);
+	return m_impl->modelSorter->LessThan(sourceLeft, sourceRight, emptyStringWeight);
 }
 
 bool SortFilterProxyModel::FilterAcceptsText(const QModelIndex& index) const
 {
-	if (m_impl->m_filter.isEmpty())
+	if (m_impl->filter.isEmpty())
 		return true;
 
 	if (index.data(Role::Type).value<ItemType>() == ItemType::Navigation)
-		return index.data().toString().simplified().contains(m_impl->m_filter, Qt::CaseInsensitive);
+		return index.data().toString().simplified().contains(m_impl->filter, Qt::CaseInsensitive);
 
-	return std::ranges::any_of(m_impl->m_visibleColumns, [&](const auto n) {
+	return std::ranges::any_of(m_impl->visibleColumns, [&](const auto n) {
 		auto value = index.data(Role::Author + BookItem::Remap(n)).toString();
-		return value.simplified().contains(m_impl->m_filter, Qt::CaseInsensitive);
+		return value.simplified().contains(m_impl->filter, Qt::CaseInsensitive);
 	});
 }
 
 bool SortFilterProxyModel::FilterAcceptsRemoved(const QModelIndex& index) const
 {
-	return m_impl->m_showRemoved || !index.data(Role::IsRemoved).toBool();
+	return m_impl->showRemoved || !index.data(Role::IsRemoved).toBool();
 }
 
 bool SortFilterProxyModel::FilterAcceptsFlags(const QModelIndex& index) const
 {
-	if (!m_impl->m_uniFilterEnabled)
+	if (!m_impl->uniFilterEnabled)
 		return true;
 
 	const auto flags = index.data(Role::Flags).value<IDataItem::Flags>();
-	return !(flags & IDataItem::Flags::Filtered) || (index.data(Role::Type).value<ItemType>() == ItemType::Books && m_impl->m_navigationFiltered && !(flags & IDataItem::Flags::Multiple));
+	return !(flags & IDataItem::Flags::Filtered) || (index.data(Role::Type).value<ItemType>() == ItemType::Books && m_impl->navigationFiltered && !(flags & IDataItem::Flags::Multiple));
 }
 
 bool SortFilterProxyModel::FilterAcceptsLanguage(const QModelIndex& index) const
 {
-	return m_impl->m_languageFilter.isEmpty() || index.data(Role::Type).value<ItemType>() == ItemType::Navigation || index.data(Role::Lang).toString() == m_impl->m_languageFilter;
+	return m_impl->languageFilter.isEmpty() || index.data(Role::Type).value<ItemType>() == ItemType::Navigation || index.data(Role::Lang).toString() == m_impl->languageFilter;
 }
