@@ -105,6 +105,18 @@ private: // Util::SaxParser
 	{
 		if (path == BOOK)
 		{
+			const auto enumerate = [](Section& parent, const auto& r) -> void {
+				const auto ids = parent.children | std::views::filter([](const auto& item) {
+									 return item.second->count < 100;
+								 })
+				               | std::views::keys | std::ranges::to<std::vector<QString>>();
+				for (const auto& id : ids)
+					parent.children.erase(id);
+				for (const auto& child : parent.children | std::views::values)
+					r(*child, r);
+			};
+			enumerate(*m_section, enumerate);
+
 			m_callback(std::move(m_file), std::move(m_duplicates), std::move(m_id), std::move(m_section));
 			m_id             = {};
 			m_file           = {};
