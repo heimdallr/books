@@ -4,6 +4,7 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/logic/IModelSorter.h"
 
 #include "util/SortString.h"
 
@@ -15,28 +16,44 @@ AbstractSortFilterProxyModel::AbstractSortFilterProxyModel(QObject* parent)
 {
 }
 
-struct SortFilterProxyModel::Impl final
+struct SortFilterProxyModel::Impl final : IModelSorter
 {
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
 	QString                                                m_filter;
 	QString                                                m_languageFilter;
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_sourceModel;
 	bool                                                   m_showRemoved { true };
 	bool                                                   m_navigationFiltered { false };
 	bool                                                   m_uniFilterEnabled { false };
 	QVector<int>                                           m_visibleColumns;
 	std::vector<std::pair<int, Qt::SortOrder>>             sort;
+	const IModelSorter*                                    modelSorter { this };
 
-	explicit Impl(const IModelProvider& modelProvider)
-		: m_sourceModel(modelProvider.GetSourceModel())
+	Impl(SortFilterProxyModel& self, const IModelProvider& modelProvider)
+		: m_sourceModel { modelProvider.GetSourceModel() }
+		, m_self { self }
 	{
+		m_self.QSortFilterProxyModel::setSourceModel(m_sourceModel.get());
 	}
+
+private: // IModelSorter
+	bool LessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight, const int emptyStringWeight) const override
+	{
+		const auto lhs = sourceLeft.data(), rhs = sourceRight.data();
+		const auto lhsType = lhs.typeId(), rhsType = rhs.typeId();
+		return lhsType != rhsType ? lhsType < rhsType
+		     : lhsType == QMetaType::Type::QString
+		         ? (assert(rhsType == QMetaType::Type::QString), Util::QStringWrapper::Compare(Util::QStringWrapper { lhs.toString() }, Util::QStringWrapper { rhs.toString() }, emptyStringWeight))
+		         : m_self.QSortFilterProxyModel::lessThan(sourceLeft, sourceRight);
+	}
+
+private:
+	SortFilterProxyModel& m_self;
 };
 
 SortFilterProxyModel::SortFilterProxyModel(const std::shared_ptr<const IModelProvider>& modelProvider, QObject* parent)
 	: AbstractSortFilterProxyModel(parent)
-	, m_impl(*modelProvider)
+	, m_impl(*this, *modelProvider)
 {
-	QSortFilterProxyModel::setSourceModel(m_impl->m_sourceModel.get());
 	setRecursiveFilteringEnabled(true);
 }
 
@@ -175,6 +192,20 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 				invalidate();
 				return true;
 
+			case Role::ModelSorter:
+			{
+				const auto* modelSorter = value.value<const IModelSorter*>();
+				if (!modelSorter)
+					modelSorter = m_impl.get();
+
+				if (Util::Set(m_impl->modelSorter, modelSorter))
+				{
+					invalidate();
+					return true;
+				}
+				return false;
+			}
+
 			default:
 				break;
 		}
@@ -224,12 +255,7 @@ bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelI
 
 bool SortFilterProxyModel::lessThanImpl(const QModelIndex& sourceLeft, const QModelIndex& sourceRight, const int emptyStringWeight) const
 {
-	const auto lhs = sourceLeft.data(), rhs = sourceRight.data();
-	const auto lhsType = lhs.typeId(), rhsType = rhs.typeId();
-	return lhsType != rhsType ? lhsType < rhsType
-	     : lhsType == QMetaType::Type::QString
-	         ? (assert(rhsType == QMetaType::Type::QString), Util::QStringWrapper::Compare(Util::QStringWrapper { lhs.toString() }, Util::QStringWrapper { rhs.toString() }, emptyStringWeight))
-	         : QSortFilterProxyModel::lessThan(sourceLeft, sourceRight);
+	return m_impl->modelSorter->LessThan(sourceLeft, sourceRight, emptyStringWeight);
 }
 
 bool SortFilterProxyModel::FilterAcceptsText(const QModelIndex& index) const

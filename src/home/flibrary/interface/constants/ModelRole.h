@@ -47,6 +47,7 @@ struct Role
 		NavigationMode,
 		HideFiltered,
 		HideFilteredCallback,
+		ModelSorter,
 		Last
 	};
 };
