@@ -568,6 +568,14 @@
         <translation></translation>
     </message>
     <message>
+        <source>Remove books duplicated by compilations</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Remove completely duplicated compilations</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Remove rated less than</source>
         <translation></translation>
     </message>
