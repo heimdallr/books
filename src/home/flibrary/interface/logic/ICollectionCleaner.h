@@ -33,16 +33,18 @@ public:
 		virtual ~IAnalyzeObserver()               = default;
 		virtual void AnalyzeFinished(Books books) = 0;
 
-		virtual bool                  IsPermanently() const             = 0;
-		virtual bool                  NeedDeleteMarkedAsDeleted() const = 0;
-		virtual bool                  NeedDeleteDuplicates() const      = 0;
-		virtual bool                  NeedDeleteUnrated() const         = 0;
-		virtual QStringList           GetLanguages() const              = 0;
-		virtual QStringList           GetGenres() const                 = 0;
-		virtual CleanGenreMode        GetCleanGenreMode() const         = 0;
-		virtual std::optional<size_t> GetMinimumBookSize() const        = 0;
-		virtual std::optional<size_t> GetMaximumBookSize() const        = 0;
-		virtual std::optional<double> GetMinimumLibRate() const         = 0;
+		virtual bool                  IsPermanently() const                              = 0;
+		virtual bool                  NeedDeleteMarkedAsDeleted() const                  = 0;
+		virtual bool                  NeedDeleteDuplicates() const                       = 0;
+		virtual bool                  NeedDeleteUnrated() const                          = 0;
+		virtual QStringList           GetLanguages() const                               = 0;
+		virtual QStringList           GetGenres() const                                  = 0;
+		virtual CleanGenreMode        GetCleanGenreMode() const                          = 0;
+		virtual std::optional<size_t> GetMinimumBookSize() const                         = 0;
+		virtual std::optional<size_t> GetMaximumBookSize() const                         = 0;
+		virtual std::optional<double> GetMinimumLibRate() const                          = 0;
+		virtual bool                  NeedDeleteCompletelyDuplicatedCompilations() const = 0;
+		virtual bool                  NeedDeleteBooksDuplicatedByCompilations() const    = 0;
 	};
 
 	using Callback = std::function<void(bool result)>;
