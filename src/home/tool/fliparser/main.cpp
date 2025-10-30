@@ -1465,7 +1465,7 @@ void ReadHash(Settings& settings, InpData& inpData)
 			const auto rate      = book->rate + it->second->rate;
 			const auto rateCount = book->rateCount + it->second->rateCount;
 
-			if ((book->deleted && !it->second->deleted) || book->file.toInt() < it->second->file.toInt())
+			if ((book->deleted && !it->second->deleted) || (book->deleted == it->second->deleted && book->file.toInt() < it->second->file.toInt()))
 			{
 				book->id.clear();
 				book->section.reset();
