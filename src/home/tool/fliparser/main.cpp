@@ -1138,7 +1138,7 @@ void ProcessCompilations(Settings& settings, const FileToFolder& fileToFolder)
 					continue;
 
 				found.append(QJsonObject {
-					//{     "id",									   id },
+					{   "part",                      std::ssize(idFound) },
 					{ "folder",                 folderIt->second.front() },
 					{   "file", it->second->file + '.' + it->second->ext },
 				});

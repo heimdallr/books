@@ -1602,11 +1602,11 @@ private:
 
 		struct Compilation
 		{
-			size_t                      id;
-			size_t                      bookId;
-			bool                        covered;
-			std::unordered_set<QString> title;
-			std::vector<size_t>         books;
+			size_t                              id;
+			size_t                              bookId;
+			bool                                covered;
+			std::unordered_set<QString>         title;
+			std::vector<std::pair<size_t, int>> books;
 		};
 
 		std::vector<Compilation> compilations;
@@ -1668,11 +1668,12 @@ where b.FileName = ? and b.Ext = ?)");
 			for (const auto bookValue : compilationObject["compilation"].toArray())
 			{
 				assert(bookValue.isObject());
-				const auto [id, title] = getBookInfo(bookValue.toObject());
+				const auto bookObject  = bookValue.toObject();
+				const auto [id, title] = getBookInfo(bookObject);
 				if (!id)
 					continue;
 
-				books.emplace_back(id);
+				books.emplace_back(id, bookObject["part"].toInt());
 				std::ranges::copy(
 					title.split(' ') | std::views::filter([](const auto& s) {
 						return s.length() > 2;
@@ -1708,13 +1709,14 @@ where b.FileName = ? and b.Ext = ?)");
 			}
 		}
 		{
-			sqlite3pp::command command(db, "insert into Compilation_List(CompilationID, BookId) values(?, ?)");
+			sqlite3pp::command command(db, "insert into Compilation_List(CompilationID, BookId, Part) values(?, ?, ?)");
 			for (const auto& compilation : compilations)
 			{
 				for (const auto bookId : compilation.books)
 				{
 					command.bind(1, compilation.id);
-					command.bind(2, bookId);
+					command.bind(2, bookId.first);
+					command.bind(3, bookId.second);
 					command.execute();
 					command.reset();
 				}

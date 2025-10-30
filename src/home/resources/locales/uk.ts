@@ -568,6 +568,14 @@
         <translation>Читати випадкову книгу</translation>
     </message>
     <message>
+        <source>Remove books duplicated by compilations</source>
+        <translation>Видалити книги, дубльовані збірниками</translation>
+    </message>
+    <message>
+        <source>Remove completely duplicated compilations</source>
+        <translation>Видалити збірники, що повністю дублюються</translation>
+    </message>
+    <message>
         <source>Remove rated less than</source>
         <translation>Видалити з рейтингом нижче</translation>
     </message>

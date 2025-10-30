@@ -71,16 +71,17 @@ DROP TABLE IF EXISTS Compilation_List;
 --@@
 
 CREATE TABLE Compilation_List (
-    CompilationID INTEGER REFERENCES Compilations (CompilationID) ON DELETE CASCADE,
-    BookId        INTEGER REFERENCES Books (BookID) ON DELETE CASCADE
+  CompilationID INTEGER REFERENCES Compilations (CompilationID) ON DELETE CASCADE NOT NULL,
+  BookId        INTEGER REFERENCES Books (BookID) ON DELETE CASCADE NOT NULL,
+  Part          INTEGER NOT NULL
 );
 --@@
 
 CREATE TABLE Compilations (
   CompilationID INTEGER         PRIMARY KEY NOT NULL,
-  BookId        INTEGER         REFERENCES Books (BookID) ON DELETE CASCADE,
-  Title         VARCHAR (10240),
-  Covered       INTEGER         DEFAULT (0) 
+  BookId        INTEGER         REFERENCES Books (BookID) ON DELETE CASCADE NOT NULL,
+  Title         VARCHAR (10240) NOT NULL,
+  Covered       INTEGER         NOT NULL DEFAULT (0) 
 );
 --@@
 

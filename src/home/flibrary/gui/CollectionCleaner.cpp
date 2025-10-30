@@ -48,6 +48,8 @@ constexpr auto MINIMUM_SIZE_ENABLED           = "ui/Cleaner/MinimumSizeEnabled";
 constexpr auto MINIMUM_RATE                   = "ui/Cleaner/MinimumRate";
 constexpr auto DELETE_BY_RATE                 = "ui/Cleaner/DeleteByRate";
 constexpr auto DELETE_UNRATED                 = "ui/Cleaner/DeleteUnrated";
+constexpr auto COMPILATIONS                   = "ui/Cleaner/DeleteCompletelyDuplicatedCompilations";
+constexpr auto COMPILATED                     = "ui/Cleaner/DeleteDuplicatedByCompilations";
 
 TR_DEF
 
@@ -282,6 +284,16 @@ private: // ICollectionCleaner::IAnalyzeObserver
 		return m_ui.ratedLess->isChecked() ? std::optional { m_ui.minimumRate->value() } : std::nullopt;
 	}
 
+	bool NeedDeleteCompletelyDuplicatedCompilations() const override
+	{
+		return m_ui.compilations->isChecked();
+	}
+
+	bool NeedDeleteBooksDuplicatedByCompilations() const override
+	{
+		return m_ui.compilated->isChecked();
+	}
+
 private: // ISettingsObserver
 	void HandleValueChanged(const QString& key, const QVariant& value) override
 	{
@@ -376,6 +388,8 @@ private:
 		m_ui.ratedLess->setChecked(m_settings->Get(DELETE_BY_RATE, m_ui.ratedLess->isChecked()));
 		m_ui.unrated->setChecked(m_settings->Get(DELETE_UNRATED, m_ui.unrated->isChecked()));
 		m_ui.minimumRate->setValue(m_settings->Get(MINIMUM_RATE, m_ui.minimumRate->value()));
+		m_ui.compilations->setChecked(m_settings->Get(COMPILATIONS, m_ui.compilations->isChecked()));
+		m_ui.compilated->setChecked(m_settings->Get(COMPILATED, m_ui.compilated->isChecked()));
 
 		Util::LoadHeaderSectionWidth(*header, *m_settings, LANGUAGE_FIELD_WIDTH_KEY);
 	}
@@ -400,6 +414,8 @@ private:
 		m_settings->Set(DELETE_BY_RATE, m_ui.ratedLess->isChecked());
 		m_settings->Set(DELETE_UNRATED, m_ui.unrated->isChecked());
 		m_settings->Set(MINIMUM_RATE, m_ui.minimumRate->value());
+		m_settings->Set(COMPILATIONS, m_ui.compilations->isChecked());
+		m_settings->Set(COMPILATED, m_ui.compilated->isChecked());
 
 		Util::SaveHeaderSectionWidth(*header, *m_settings, LANGUAGE_FIELD_WIDTH_KEY);
 	}
