@@ -414,7 +414,7 @@ struct CollectionCleaner::Impl
 
 				  if (observer.NeedDeleteBooksDuplicatedByCompilations())
 				  {
-					  const auto n     = toDelete.size();
+					  const auto n = toDelete.size();
 					  RemoveBooksDuplicatedByCompilations(*db, analyzedBooks, toDelete);
 					  PLOGI << "duplicated by compilations found: " << toDelete.size() - n;
 				  }
