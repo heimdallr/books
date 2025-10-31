@@ -23,6 +23,7 @@
 #include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IFilterProvider.h"
+#include "interface/logic/IModelSorter.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/ITreeViewDelegate.h"
 
@@ -332,6 +333,26 @@ private:
 	QString m_text;
 };
 
+class ArchiveSorter final : public IModelSorter
+{
+	auto sortable(const QModelIndex& index) const
+	{
+		auto       value = index.data().toString();
+		const auto match = m_rx.match(value);
+		const auto n     = match.hasMatch() ? match.captured(1).toInt() : std::numeric_limits<int>::max();
+		return std::make_pair(n, std::move(value));
+	}
+
+private: // IModelSorter
+	bool LessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight, int) const override
+	{
+		return sortable(sourceLeft) > sortable(sourceRight);
+	}
+
+private:
+	QRegularExpression m_rx { "^.*?fb2.*?([0-9]+).*?$" };
+};
+
 void TreeOperation(const QAbstractItemModel& model, const QModelIndex& index, const std::function<void(const QModelIndex&)>& f)
 {
 	f(index);
@@ -495,16 +516,10 @@ private: // ITreeViewController::IObserver
 		}
 
 		if (IsOneOf(item->GetData(MenuItem::Column::Id).toInt(), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs, BooksMenuAction::SendAsScript) && item->GetData(MenuItem::Column::HasError).toInt())
-			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR, Loc::BOOKS_EXTRACT_ERROR));
+			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR_CTX, Loc::BOOKS_EXTRACT_ERROR));
 	}
 
 private: // ITreeViewDelegate::IObserver
-	void OnLineHeightChanged(const int height) override
-	{
-		m_lineHeight = height;
-		UpdateSectionSize();
-	}
-
 	void OnButtonClicked(const QModelIndex&) override
 	{
 		assert(m_removeItems);
@@ -587,6 +602,14 @@ private:
 		if (IsNavigation())
 		{
 			m_delegate->SetEnabled(static_cast<bool>((m_removeItems = m_controller->GetRemoveItems())));
+			if (m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Archives))
+			{
+				model->setData({}, QVariant::fromValue<const IModelSorter*>(&m_archiveSorter), Role::ModelSorter);
+				std::vector<std::pair<int, Qt::SortOrder>> sort {
+					{ 0, Qt::SortOrder::AscendingOrder }
+				};
+				model->setData({}, QVariant::fromValue(std::move(sort)), Role::SortOrder);
+			}
 		}
 		else
 		{
@@ -607,7 +630,7 @@ private:
 		else
 		{
 			m_ui.btnNew->setVisible(true);
-			m_ui.btnNew->disconnect();
+			m_ui.btnNew->disconnect(SIGNAL(clicked()));
 			connect(m_ui.btnNew, &QAbstractButton::clicked, &m_self, std::move(newItemCreator));
 
 			if (modelEmpty)
@@ -1018,6 +1041,13 @@ private:
 
 		header->resizeSection(0, totalWidth);
 
+		auto absent = nameToIndex;
+		for (const auto& columnName : indices | std::views::values)
+			absent.erase(columnName);
+		for (const auto& [name, index] : absent)
+			if (index > 0 && index < std::ssize(indices))
+				indices.emplace_hint(indices.begin(), std::next(indices.begin(), index - 1)->first, name);
+
 		for (int n = 0; const auto& columnName : indices | std::views::values)
 			if (const auto it = nameToIndex.find(columnName); it != nameToIndex.end())
 				header->moveSection(header->visualIndex(it->second), ++n);
@@ -1136,7 +1166,7 @@ private:
 
 	void UpdateSectionSize() const
 	{
-		if (!m_lineHeight || m_controller->GetItemType() != ItemType::Navigation)
+		if (m_controller->GetItemType() != ItemType::Navigation)
 			return;
 
 		auto* header = m_ui.treeView->header();
@@ -1145,10 +1175,7 @@ private:
 
 		header->setSectionResizeMode(0, QHeaderView::Stretch);
 		if (header->count() > 1 && m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Authors))
-		{
-			header->setSectionResizeMode(1, QHeaderView::Interactive);
-			header->resizeSection(1, m_lineHeight);
-		}
+			m_ui.treeView->UpdateSectionSize();
 	}
 
 	void OnCountChanged() const
@@ -1205,12 +1232,12 @@ private:
 	QString                                                 m_currentId;
 	std::shared_ptr<QMenu>                                  m_languageContextMenu;
 	bool                                                    m_showRemoved { false };
-	int                                                     m_lineHeight { 0 };
 	QString                                                 m_lastRestoredLayoutKey;
 	ITreeViewController::RemoveItems                        m_removeItems;
 	MenuEventFilter                                         m_menuEventFilter;
 	HeaderView*                                             m_booksHeaderView;
 	IDataItem::Flags                                        m_navigationItemFlags { IDataItem::Flags::None };
+	const ArchiveSorter                                     m_archiveSorter;
 };
 
 TreeView::TreeView(

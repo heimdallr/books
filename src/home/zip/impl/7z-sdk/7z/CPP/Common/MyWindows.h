@@ -181,7 +181,7 @@ struct IUnknown
 	STDMETHOD(QueryInterface)(REFIID iid, void** outObject) = 0;
 	STDMETHOD_(ULONG, AddRef)()                             = 0;
 	STDMETHOD_(ULONG, Release)()                            = 0;
-			#ifdef Z7_USE_VIRTUAL_DESTRUCTOR_IN_IUNKNOWN
+            #ifdef Z7_USE_VIRTUAL_DESTRUCTOR_IN_IUNKNOWN
 	virtual ~IUnknown()
 	{
 	}

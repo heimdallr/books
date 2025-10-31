@@ -22,7 +22,7 @@ cd %originalDir%
 mkdir %~dp0build\installer
 move  %~dp0build\%BUILD_TYPE%\*.msi %~dp0build\installer\
 
-ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% %~dp0src\home\flibrary\app\resources\installer\flibrary.iss
+ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% /DMyAppUid=%PRODUCT_GUID% %~dp0src\home\script\innosetup\flibrary.iss
 if %errorlevel% NEQ 0 goto Error
 
 echo portable creating

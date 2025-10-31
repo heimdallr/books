@@ -16,21 +16,19 @@
   <layout class="QVBoxLayout" name="verticalLayout_3">
    <item>
     <layout class="QGridLayout" name="gridLayout">
-     <item row="0" column="7">
-      <spacer name="horizontalSpacer_4">
-       <property name="orientation">
-        <enum>Qt::Orientation::Horizontal</enum>
+     <item row="1" column="5">
+      <widget class="QCheckBox" name="unrated">
+       <property name="text">
+        <string>Remove unrated books</string>
        </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Policy::Expanding</enum>
+      </widget>
+     </item>
+     <item row="1" column="2">
+      <widget class="QCheckBox" name="maximumSizeEnabled">
+       <property name="text">
+        <string>Delete books larger than</string>
        </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
+      </widget>
      </item>
      <item row="0" column="6">
       <widget class="QDoubleSpinBox" name="minimumRate">
@@ -54,10 +52,58 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="5">
-      <widget class="QCheckBox" name="ratedLess">
+     <item row="0" column="4">
+      <spacer name="horizontalSpacer_2">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Policy::Preferred</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="0" column="1">
+      <spacer name="horizontalSpacer_3">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Policy::Preferred</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="0" column="7">
+      <spacer name="horizontalSpacer_4">
+       <property name="orientation">
+        <enum>Qt::Orientation::Horizontal</enum>
+       </property>
+       <property name="sizeType">
+        <enum>QSizePolicy::Policy::Expanding</enum>
+       </property>
+       <property name="sizeHint" stdset="0">
+        <size>
+         <width>40</width>
+         <height>20</height>
+        </size>
+       </property>
+      </spacer>
+     </item>
+     <item row="0" column="2">
+      <widget class="QCheckBox" name="minimumSizeEnabled">
        <property name="text">
-        <string>Remove rated less than</string>
+        <string>Delete books smaller than</string>
        </property>
       </widget>
      </item>
@@ -92,10 +138,10 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="2">
-      <widget class="QCheckBox" name="minimumSizeEnabled">
+     <item row="2" column="0">
+      <widget class="QCheckBox" name="compilations">
        <property name="text">
-        <string>Delete books smaller than</string>
+        <string>Remove completely duplicated compilations</string>
        </property>
       </widget>
      </item>
@@ -130,6 +176,16 @@
        </property>
       </widget>
      </item>
+     <item row="1" column="0">
+      <widget class="QCheckBox" name="duplicates">
+       <property name="text">
+        <string>Find and remove duplicate books</string>
+       </property>
+       <property name="checked">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
      <item row="0" column="0">
       <widget class="QCheckBox" name="removeRemoved">
        <property name="enabled">
@@ -143,61 +199,19 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="5">
-      <widget class="QCheckBox" name="unrated">
+     <item row="0" column="5">
+      <widget class="QCheckBox" name="ratedLess">
        <property name="text">
-        <string>Remove unrated books</string>
+        <string>Remove rated less than</string>
        </property>
       </widget>
      </item>
-     <item row="0" column="1">
-      <spacer name="horizontalSpacer_3">
-       <property name="orientation">
-        <enum>Qt::Orientation::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Policy::Preferred</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
-     </item>
-     <item row="1" column="0">
-      <widget class="QCheckBox" name="duplicates">
+     <item row="3" column="0">
+      <widget class="QCheckBox" name="compilated">
        <property name="text">
-        <string>Find and remove duplicate books</string>
-       </property>
-       <property name="checked">
-        <bool>false</bool>
+        <string>Remove books duplicated by compilations</string>
        </property>
       </widget>
-     </item>
-     <item row="1" column="2">
-      <widget class="QCheckBox" name="maximumSizeEnabled">
-       <property name="text">
-        <string>Delete books larger than</string>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="4">
-      <spacer name="horizontalSpacer_2">
-       <property name="orientation">
-        <enum>Qt::Orientation::Horizontal</enum>
-       </property>
-       <property name="sizeType">
-        <enum>QSizePolicy::Policy::Preferred</enum>
-       </property>
-       <property name="sizeHint" stdset="0">
-        <size>
-         <width>40</width>
-         <height>20</height>
-        </size>
-       </property>
-      </spacer>
      </item>
     </layout>
    </item>

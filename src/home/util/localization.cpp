@@ -9,6 +9,8 @@
 #include "ISettings.h"
 #include "log.h"
 
+#include "config/locales.h"
+
 namespace HomeCompa::Loc
 {
 

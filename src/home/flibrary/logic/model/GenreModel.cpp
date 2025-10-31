@@ -1,7 +1,5 @@
 #include "GenreModel.h"
 
-#include <ranges>
-
 #include <QSortFilterProxyModel>
 
 #include "fnd/ScopedCall.h"
@@ -288,9 +286,16 @@ private: // QAbstractItemModel
 		switch (role)
 		{
 			case Role::VisibleGenreCodes:
-				m_visibleGenres = value.value<std::unordered_set<QString>>();
-				invalidateFilter();
-				return true;
+				return Util::Set(
+					m_visibleGenres,
+					value.value<std::unordered_set<QString>>(),
+					[this] {
+						beginFilterChange();
+					},
+					[this] {
+						endFilterChange(Direction::Rows);
+					}
+				);
 
 			default:
 				break;

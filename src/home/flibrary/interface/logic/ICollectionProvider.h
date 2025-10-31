@@ -9,7 +9,7 @@
 
 #include "fnd/observer.h"
 
-#include "inpx/src/util/inpx.h"
+#include "inpx/inpx.h"
 
 class QTemporaryDir;
 

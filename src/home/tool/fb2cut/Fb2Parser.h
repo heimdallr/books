@@ -1,38 +1,26 @@
 #pragma once
 
 #include <QString>
-
-#include "fnd/NonCopyMovable.h"
-#include "fnd/memory.h"
+#include <QStringList>
 
 class QIODevice;
 
 namespace HomeCompa::fb2cut
 {
 
-class Fb2ImageParser
+struct Fb2EncodingParser
 {
-	NON_COPY_MOVABLE(Fb2ImageParser)
-
-public:
-	using OnBinaryFound = std::function<void(QString&&, bool isCover, const QByteArray& data)>;
-
-	static bool Parse(QIODevice& input, OnBinaryFound binaryCallback);
-
-private:
-	Fb2ImageParser(QIODevice& input, OnBinaryFound binaryCallback);
-	~Fb2ImageParser();
-
-private:
-	class Impl;
-	PropagateConstPtr<Impl> m_impl;
+	static QString GetEncoding(QIODevice& input);
 };
 
-class Fb2Parser
+struct Fb2ImageParser
 {
-	NON_COPY_MOVABLE(Fb2Parser)
+	using OnBinaryFound = std::function<void(QString&&, bool isCover, const QByteArray& data)>;
+	static bool Parse(QIODevice& input, OnBinaryFound binaryCallback);
+};
 
-public:
+struct Fb2Parser
+{
 	static constexpr const char* FB2_TAGS[] {
 		"p",
 		"fictionbook",
@@ -118,16 +106,32 @@ public:
 		"col",
 	};
 
-public:
-	static void Parse(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId);
+	struct ParseResult
+	{
+		QString     title;
+		QString     hashText;
+		QStringList hashSections;
+	};
 
-private:
-	Fb2Parser(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId);
-	~Fb2Parser();
+	static ParseResult Parse(QString fileName, QIODevice& input, QIODevice& output, const std::unordered_map<QString, int>& replaceId);
+};
 
-private:
-	class Impl;
-	PropagateConstPtr<Impl> m_impl;
+struct HashParser
+{
+#define HASH_PARSER_CALLBACK_ITEMS_X_MACRO \
+	HASH_PARSER_CALLBACK_ITEM(id)          \
+	HASH_PARSER_CALLBACK_ITEM(folder)      \
+	HASH_PARSER_CALLBACK_ITEM(file)        \
+	HASH_PARSER_CALLBACK_ITEM(title)
+
+	using Callback = std::function<void(
+#define HASH_PARSER_CALLBACK_ITEM(NAME) QString NAME,
+		HASH_PARSER_CALLBACK_ITEMS_X_MACRO
+#undef HASH_PARSER_CALLBACK_ITEM
+			QString cover,
+		QStringList images
+	)>;
+	static void Parse(QIODevice& input, Callback callback);
 };
 
 } // namespace HomeCompa::fb2cut

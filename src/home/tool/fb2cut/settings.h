@@ -52,6 +52,8 @@ struct Settings
 	QDir          dstDir;
 	QString       ffmpeg;
 	QString       imageStatistics;
+	bool          needHash { false };
+	QString       skipFileName;
 	QString       archiver;
 	QString       archiverOptions;
 	int           totalFileCount { 0 };

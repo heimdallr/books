@@ -14,7 +14,7 @@
 [Setup]
 ; NOTE: The value of AppId uniquely identifies this application. Do not use the same AppId value in installers for other applications.
 ; (To generate a new GUID, click Tools | Generate GUID inside the IDE.)
-AppId={{80B196FB-9529-459D-960E-0E0F00CE0981}
+AppId={#MyAppUid}
 AppName={#MyAppName}
 AppVersion={#MyAppVersion}
 ;AppVerName={#MyAppName} {#MyAppVersion}
@@ -34,13 +34,14 @@ Compression=lzma
 SolidCompression=yes
 WizardStyle=modern
 ArchitecturesInstallIn64BitMode=x64
-UsePreviousAppDir=no
+UsePreviousAppDir=yes
 UsePreviousGroup=no
 UsePreviousLanguage=no
 UsePreviousPrivileges=no
 UsePreviousSetupType=no
 UsePreviousTasks=no
 UsePreviousUserInfo=no
+DirExistsWarning=no
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl";           LicenseFile: {#RootDir}LICENSE_en.txt
@@ -56,6 +57,7 @@ Source: "{#RootDir}build\Release\bin\opds.exe"; DestDir: "{app}"; Flags: ignorev
 Source: "{#RootDir}build\Release\bin\fb2cut.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#RootDir}build\Release\bin\fliparser.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#RootDir}build\Release\bin\fliscaner.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#RootDir}build\Release\bin\flimager.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#RootDir}build\Release\bin\*.lst"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#RootDir}build\Release\bin\*.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#RootDir}build\Release\bin\*.qm" ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
@@ -90,4 +92,60 @@ end;
 procedure RegisterLanguage();
 begin
 	RegWriteStringValue(HKCU, 'Software\{#MyCompanyName}\{#MyAppName}\ui', 'locale', copy(ExpandConstant('{language}'), 1, 2));
+end;
+
+function GetUninstallString(): String;
+var
+  sUnInstPath: String;
+  sUnInstallString: String;
+begin
+  sUnInstPath := ExpandConstant('Software\Microsoft\Windows\CurrentVersion\Uninstall\{#emit SetupSetting("AppId")}_is1');
+  sUnInstallString := '';
+  if not RegQueryStringValue(HKLM, sUnInstPath, 'UninstallString', sUnInstallString) then
+    RegQueryStringValue(HKCU, sUnInstPath, 'UninstallString', sUnInstallString);
+  Result := sUnInstallString;
+end;
+
+function IsUpgrade(): Boolean;
+begin
+  Result := (GetUninstallString() <> '');
+end;
+
+
+function UnInstallOldVersion(): Integer;
+var
+  sUnInstallString: String;
+  iResultCode: Integer;
+begin
+// Return Values:
+// 1 - uninstall string is empty
+// 2 - error executing the UnInstallString
+// 3 - successfully executed the UnInstallString
+
+  // default return value
+  Result := 0;
+
+  InitializeUninstall();
+  
+  // get the uninstall string of the old app
+  sUnInstallString := GetUninstallString();
+  if sUnInstallString <> '' then begin
+    sUnInstallString := RemoveQuotes(sUnInstallString);
+    if Exec(sUnInstallString, '/VERYSILENT /NORESTART /SUPPRESSMSGBOXES','', SW_HIDE, ewWaitUntilTerminated, iResultCode) then
+      Result := 3
+    else
+      Result := 2;
+  end else
+    Result := 1;
+end;
+
+procedure CurStepChanged(CurStep: TSetupStep);
+begin
+  if (CurStep=ssInstall) then
+  begin
+    if (IsUpgrade()) then
+    begin
+      UnInstallOldVersion();
+    end;
+  end;
 end;

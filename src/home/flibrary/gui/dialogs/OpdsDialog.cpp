@@ -23,9 +23,9 @@ constexpr auto CONTEXT                     = "OpdsDialog";
 constexpr auto ADDRESS_COPIED              = QT_TRANSLATE_NOOP("OpdsDialog", "Address has been copied to the clipboard");
 constexpr auto NO_NETWORK_INTERFACES_FOUND = QT_TRANSLATE_NOOP("OpdsDialog", "No network interfaces found");
 constexpr auto ANY                         = QT_TRANSLATE_NOOP("OpdsDialog", "Any");
-constexpr auto SITE                        = QT_TRANSLATE_NOOP("OpdsDialog", "Site Address");
-constexpr auto OPDS                        = QT_TRANSLATE_NOOP("OpdsDialog", "OPDS Address");
-constexpr auto WEB                         = QT_TRANSLATE_NOOP("OpdsDialog", "Web Address");
+constexpr auto SITE                        = QT_TRANSLATE_NOOP("OpdsDialog", "ReactApp web interface");
+constexpr auto OPDS                        = QT_TRANSLATE_NOOP("OpdsDialog", "OPDS");
+constexpr auto WEB                         = QT_TRANSLATE_NOOP("OpdsDialog", "Simple web interface");
 TR_DEF
 }
 
@@ -61,6 +61,10 @@ struct OpdsDialog::Impl final
 		ui.checkBoxAddToSturtup->setChecked(this->opdsController->InStartup());
 		ui.checkBoxAuth->setChecked(!this->settings->Get(Constant::Settings::OPDS_AUTH, QString {}).isEmpty());
 
+		ui.checkBoxReactApp->setChecked(this->settings->Get(Constant::Settings::OPDS_REACT_APP_ENABLED, ui.checkBoxReactApp->isChecked()));
+		ui.checkBoxSimpleWeb->setChecked(this->settings->Get(Constant::Settings::OPDS_WEB_ENABLED, ui.checkBoxSimpleWeb->isChecked()));
+		ui.checkBoxOpds->setChecked(this->settings->Get(Constant::Settings::OPDS_OPDS_ENABLED, ui.checkBoxOpds->isChecked()));
+
 		connect(ui.spinBoxPort, &QSpinBox::valueChanged, &self, [this] {
 			OnConnectionChanged();
 		});
@@ -90,6 +94,20 @@ struct OpdsDialog::Impl final
 				this->settings->Remove(Constant::Settings::OPDS_AUTH);
 		});
 
+		const auto setChecked = [this](const QString& key, const bool isChecked) {
+			this->settings->Set(key, isChecked);
+		};
+
+		connect(ui.checkBoxReactApp, &QAbstractButton::toggled, &self, [=](const bool isChecked) {
+			setChecked(Constant::Settings::OPDS_REACT_APP_ENABLED, isChecked);
+		});
+		connect(ui.checkBoxSimpleWeb, &QAbstractButton::toggled, &self, [=](const bool isChecked) {
+			setChecked(Constant::Settings::OPDS_WEB_ENABLED, isChecked);
+		});
+		connect(ui.checkBoxOpds, &QAbstractButton::toggled, &self, [=](const bool isChecked) {
+			setChecked(Constant::Settings::OPDS_OPDS_ENABLED, isChecked);
+		});
+
 		const auto actionSetup = [&self](QAction* action, QLineEdit* lineEdit) {
 			connect(action, &QAction::triggered, &self, [=] {
 				QApplication::clipboard()->setText(lineEdit->text());
@@ -97,9 +115,9 @@ struct OpdsDialog::Impl final
 			});
 			lineEdit->addAction(action, QLineEdit::TrailingPosition);
 		};
-		actionSetup(ui.actionCopyOpds, ui.lineEditOpdsAddress);
-		actionSetup(ui.actionCopyWeb, ui.lineEditWebAddress);
-		actionSetup(ui.actionCopySite, ui.lineEditSiteAddress);
+		actionSetup(ui.actionCopyOpds, ui.lineEditOpds);
+		actionSetup(ui.actionCopyWeb, ui.lineEditSimpleWeb);
+		actionSetup(ui.actionCopySite, ui.lineEditReactApp);
 
 		OnConnectionChanged();
 		OnRunningChanged();
@@ -130,15 +148,22 @@ private: // IOpdsController::IObserver
 		const auto isRunning = opdsController->IsRunning();
 		ui.comboBoxHosts->setEnabled(!isRunning);
 		ui.spinBoxPort->setEnabled(!isRunning);
-		ui.lineEditOpdsAddress->setEnabled(isRunning);
-		ui.lineEditWebAddress->setEnabled(isRunning);
-		ui.lineEditSiteAddress->setEnabled(isRunning);
-		ui.labelOpds->setOpenExternalLinks(isRunning);
-		ui.labelWeb->setOpenExternalLinks(isRunning);
-		ui.labelSite->setOpenExternalLinks(isRunning);
-		ui.labelOpds->setEnabled(isRunning);
-		ui.labelWeb->setEnabled(isRunning);
-		ui.labelSite->setEnabled(isRunning);
+
+		ui.checkBoxSimpleWeb->setEnabled(!isRunning);
+		ui.checkBoxReactApp->setEnabled(!isRunning);
+		ui.checkBoxOpds->setEnabled(!isRunning);
+
+		ui.lineEditSimpleWeb->setEnabled(isRunning && ui.checkBoxSimpleWeb->isChecked());
+		ui.lineEditReactApp->setEnabled(isRunning && ui.checkBoxReactApp->isChecked());
+		ui.lineEditOpds->setEnabled(isRunning && ui.checkBoxOpds->isChecked());
+
+		ui.labelWeb->setOpenExternalLinks(isRunning && ui.checkBoxSimpleWeb->isChecked());
+		ui.labelSite->setOpenExternalLinks(isRunning && ui.checkBoxReactApp->isChecked());
+		ui.labelOpds->setOpenExternalLinks(isRunning && ui.checkBoxOpds->isChecked());
+
+		ui.labelWeb->setEnabled(isRunning && ui.checkBoxSimpleWeb->isChecked());
+		ui.labelSite->setEnabled(isRunning && ui.checkBoxReactApp->isChecked());
+		ui.labelOpds->setEnabled(isRunning && ui.checkBoxOpds->isChecked());
 
 		ui.btnStart->setVisible(!isRunning);
 		ui.btnStop->setVisible(isRunning);
@@ -153,27 +178,18 @@ private:
 	void OnConnectionChanged() const
 	{
 		const auto host = ui.comboBoxHosts->currentIndex() ? ui.comboBoxHosts->currentText() : ui.comboBoxHosts->itemText(1);
-		ui.lineEditSiteAddress->setText(QString("http://%1:%2/").arg(host).arg(ui.spinBoxPort->value()));
-		ui.lineEditOpdsAddress->setText(QString("http://%1:%2/opds").arg(host).arg(ui.spinBoxPort->value()));
-		ui.lineEditWebAddress->setText(QString("http://%1:%2/web").arg(host).arg(ui.spinBoxPort->value()));
+		ui.lineEditReactApp->setText(QString("http://%1:%2/").arg(host).arg(ui.spinBoxPort->value()));
+		ui.lineEditOpds->setText(QString("http://%1:%2/opds").arg(host).arg(ui.spinBoxPort->value()));
+		ui.lineEditSimpleWeb->setText(QString("http://%1:%2/web").arg(host).arg(ui.spinBoxPort->value()));
 
 		SelLabelLink(true);
 	}
 
 	void SelLabelLink(const bool isRunning) const
 	{
-		if (isRunning)
-		{
-			ui.labelSite->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditSiteAddress->text()).arg(Tr(SITE)));
-			ui.labelOpds->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditOpdsAddress->text()).arg(Tr(OPDS)));
-			ui.labelWeb->setText(QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditWebAddress->text()).arg(Tr(WEB)));
-		}
-		else
-		{
-			ui.labelSite->setText(Tr(SITE));
-			ui.labelOpds->setText(Tr(OPDS));
-			ui.labelWeb->setText(Tr(WEB));
-		}
+		ui.labelSite->setText(isRunning && ui.checkBoxReactApp->isChecked() ? QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditReactApp->text()).arg(Tr(SITE)) : Tr(SITE));
+		ui.labelOpds->setText(isRunning && ui.checkBoxOpds->isChecked() ? QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditOpds->text()).arg(Tr(OPDS)) : Tr(OPDS));
+		ui.labelWeb->setText(isRunning && ui.checkBoxSimpleWeb->isChecked() ? QString(LABEL_LINK_TEMPLATE).arg(ui.lineEditSimpleWeb->text()).arg(Tr(WEB)) : Tr(WEB));
 	}
 
 	void SetAuth()

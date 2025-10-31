@@ -206,7 +206,10 @@ bool ScriptCommandModel::setData(const QModelIndex& index, const QVariant& value
 {
 	const auto result = QSortFilterProxyModel::setData(index, value, role);
 	if (result && role == Role::Uid)
-		invalidateFilter();
+	{
+		beginFilterChange();
+		endFilterChange(Direction::Rows);
+	}
 
 	return result;
 }

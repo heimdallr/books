@@ -318,37 +318,46 @@ private:
 			});
 		});
 
-		m_server.route(opds, [this](const QHttpServerRequest& request) {
-			if (auto auth = AuthorizationOpds(request); auth.isValid())
-				return auth;
+		QStringList roots;
 
-			return QtConcurrent::run([this, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)] {
-				auto response = EncodeContent(m_requester->GetRoot(opds, parameters), acceptEncoding);
-				SetContentType(response, opds, MessageType::Atom);
-				return response;
-			});
-		});
+		if (m_settings->Get(Flibrary::Constant::Settings::OPDS_OPDS_ENABLED, true))
+		{
+			m_server.route(opds, [this](const QHttpServerRequest& request) {
+				if (auto auth = AuthorizationOpds(request); auth.isValid())
+					return auth;
 
-		m_server.route(web, [this](const QHttpServerRequest& request) {
-			return AuthorizationWeb(request, web, [&](const IRequester::Parameters& parameters, const QString& acceptEncoding) {
-				auto response = EncodeContent(m_requester->GetRoot(web, parameters), acceptEncoding);
-				SetContentType(response, web, MessageType::Atom);
-				return response;
+				return QtConcurrent::run([this, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)] {
+					auto response = EncodeContent(m_requester->GetRoot(opds, parameters), acceptEncoding);
+					SetContentType(response, opds, MessageType::Atom);
+					return response;
+				});
 			});
-		});
+
+			roots << opds;
+		}
+
+		if (m_settings->Get(Flibrary::Constant::Settings::OPDS_WEB_ENABLED, true))
+		{
+			m_server.route(web, [this](const QHttpServerRequest& request) {
+				return AuthorizationWeb(request, web, [&](const IRequester::Parameters& parameters, const QString& acceptEncoding) {
+					auto response = EncodeContent(m_requester->GetRoot(web, parameters), acceptEncoding);
+					SetContentType(response, web, MessageType::Atom);
+					return response;
+				});
+			});
+
+			roots << web;
+		}
 
 		m_server.route(OPENSEARCH, [host = host.toString(), port] {
 			return QString(R"(<Url type="application/atom+xml;profile=opds-catalog" xmlns:atom="http://www.w3.org/2005/Atom" template="http://%1:%2/search?q={searchTerms}" />)").arg(host).arg(port);
 		});
 
-		for (const auto& root : {
-#define OPDS_REQUEST_ROOT_ITEM(NAME) "/" #NAME,
-				 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
-#undef OPDS_REQUEST_ROOT_ITEM
-			 })
+		for (const auto& root : roots)
 			RouteWithRoot(root);
 
-		RouteReactApp();
+		if (m_settings->Get(Flibrary::Constant::Settings::OPDS_REACT_APP_ENABLED, true))
+			RouteReactApp();
 	}
 
 	void RouteWithRoot(const QString& root)

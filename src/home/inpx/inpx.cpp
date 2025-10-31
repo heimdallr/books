@@ -24,6 +24,7 @@
 #pragma warning(pop)
 
 #include "fnd/IsOneOf.h"
+#include "fnd/try.h"
 
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
@@ -136,28 +137,6 @@ private:
 	sqlite3pp::database      m_db;
 	sqlite3pp::ext::function m_func;
 };
-
-template <typename R, typename S, typename T>
-R Try(const S& name, const T functor, const std::string_view file, const int line)
-{
-	try
-	{
-		PLOGV << name << " started";
-		auto result = functor();
-		PLOGV << name << " finished";
-		return std::forward<R>(result);
-	}
-	catch (const std::exception& ex)
-	{
-		PLOGE << std::format("{}, {}: {}", file, line, ex.what());
-	}
-	catch (...)
-	{
-		PLOGE << std::format("{}, {}: unknown error", file, line);
-	}
-
-	return R {};
-}
 
 auto LoadGenres(const Path& genresIniFileName)
 {
@@ -372,7 +351,7 @@ InpxContent ExtractInpxFileNames(const Path& inpxPath)
 	InpxContent inpxContent;
 
 	const auto inpxFileName = QString::fromStdWString(inpxPath);
-	const auto zip          = Try<std::unique_ptr<Zip>>(
+	const auto zip          = Util::Try<std::unique_ptr<Zip>>(
         QString("open %1").arg(inpxFileName),
         [&] {
             return std::make_unique<Zip>(inpxFileName);
@@ -405,7 +384,7 @@ InpxContent ExtractInpxFileNames(const Path& inpxPath)
 void GetDecodedStream(const Zip& zip, const std::wstring& file, const std::function<void(QIODevice&)>& f)
 {
 	PLOGI << file;
-	Try<int>(
+	Util::Try<int>(
 		"get decoded stream",
 		[&] {
 			const auto stream = zip.Read(QString::fromStdWString(file));
@@ -497,7 +476,7 @@ void WriteDatabaseVersion(const Path& dbFileName, const std::wstring& statement)
 template <typename Container, typename Functor>
 size_t StoreRange(const Path& dbFileName, std::string_view process, const std::string_view query, const Container& container, Functor&& f, const std::string_view queryAfter = {})
 {
-	return Try<size_t>(
+	return Util::Try<size_t>(
 		process,
 		[&] {
 			const auto rowsTotal = std::size(container);
@@ -852,7 +831,7 @@ InpxFolders GetInpxFolder(const Path& inpxFolder, const bool needHashes)
 		const auto inpxFileName = QString::fromStdWString(inpxFileNameEntry.path());
 		PLOGV << "check " << inpxFileName << " started";
 
-		const auto zip = Try<std::unique_ptr<Zip>>(
+		const auto zip = Util::Try<std::unique_ptr<Zip>>(
 			QString("open %1").arg(inpxFileName),
 			[&] {
 				return std::make_unique<Zip>(inpxFileName);
@@ -1013,6 +992,61 @@ void SetNextId(sqlite3pp::database& db)
 	PLOGD << "Next Id: " << g_id;
 }
 
+struct LanguageMapping
+{
+	static const std::wstring UNDEFINED_LANG;
+
+	std::unordered_set<std::wstring>               langs;
+	std::unordered_map<std::wstring, std::wstring> langMap;
+
+	explicit LanguageMapping(const Path& langMappingFile)
+	{
+		QFile file(langMappingFile);
+		if (!file.open(QIODevice::ReadOnly))
+			return;
+
+		QJsonParseError error;
+		const auto      jDocument = QJsonDocument::fromJson(file.readAll(), &error);
+		if (error.error != QJsonParseError::NoError)
+		{
+			PLOGE << error.errorString();
+			return;
+		}
+
+		const auto jObject = jDocument.object();
+		for (auto langIt = jObject.constBegin(), end = jObject.constEnd(); langIt != end; ++langIt)
+		{
+			const auto lang       = langIt.key().toStdWString();
+			const auto langValues = langIt.value();
+			assert(langValues.isArray());
+			for (const auto key : langValues.toArray())
+				langMap.try_emplace(key.toString().toStdWString(), lang);
+		}
+
+		std::ranges::transform(LANGUAGES, std::inserter(langs, langs.end()), [](const auto& item) {
+			return ToWide(item.key);
+		});
+		assert(std::size(langs) == std::size(LANGUAGES));
+	}
+
+	const std::wstring& GetLang(const std::wstring& src) const
+	{
+		if (src.empty())
+			return UNDEFINED_LANG;
+
+		if (langs.contains(src))
+			return src;
+
+		if (const auto it = langMap.find(src); it != langMap.end())
+			return it->second;
+
+		PLOGW << "Unknown language: " << src;
+		return UNDEFINED_LANG;
+	}
+};
+
+const std::wstring LanguageMapping::UNDEFINED_LANG = L"un";
+
 class IPool // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
@@ -1050,12 +1084,12 @@ class Parser::Impl final : virtual public IPool
 
 public:
 	Impl(Ini ini, const CreateCollectionMode mode, Callback callback)
-		: m_ini(std::move(ini))
-		, m_mode(mode)
-		, m_callback(std::move(callback))
-		, m_executor(Util::ExecutorFactory::Create(Util::ExecutorImpl::Async))
+		: m_ini { std::move(ini) }
+		, m_mode { mode }
+		, m_callback { std::move(callback) }
+		, m_executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async) }
+		, m_languageMapping { m_ini(LANGUAGES_MAPPING) }
 	{
-		ReadLangMapping();
 	}
 
 	~Impl() override
@@ -1066,7 +1100,7 @@ public:
 	void Process()
 	{
 		(*m_executor)({ "Create collection", [&] {
-						   const auto ok = Try<bool>(
+						   const auto ok = Util::Try<bool>(
 							   "create collection",
 							   [&] {
 								   bool processed = false;
@@ -1093,7 +1127,7 @@ public:
 	void UpdateDatabase()
 	{
 		(*m_executor)({ "Update collection", [&] {
-						   auto foldersCount = Try<std::optional<size_t>>(
+						   auto foldersCount = Util::Try<std::optional<size_t>>(
 							   "update collection",
 							   [this] {
 								   return UpdateDatabaseImpl();
@@ -1140,12 +1174,12 @@ private: // IPool
 					m_foldersToParseCondition.notify_one();
 			}
 
-			Try<int>(
+			Util::Try<int>(
 				QString("parsing %1").arg(QString::fromStdWString(folder)),
 				[&] {
 					const QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
 					const auto      archiveFileName = archiveFileInfo.filePath();
-					const auto      zip             = Try<std::unique_ptr<Zip>>(
+					const auto      zip             = Util::Try<std::unique_ptr<Zip>>(
                         QString("open %1").arg(archiveFileName),
                         [&] {
                             return std::make_unique<Zip>(archiveFileName);
@@ -1164,7 +1198,7 @@ private: // IPool
 							continue;
 
 						PLOGD << "parsing " << folder << "/" << fileName << "  " << counter << " (" << zipFileList.size() << ") " << 100 * counter / zipFileList.size() << "%";
-						Try<bool>(
+						Util::Try<bool>(
 							QString("parse %1").arg(fileName),
 							[&] {
 								return ParseFile(folder, *zip, fileName, archiveFileInfo.birthTime());
@@ -1183,37 +1217,6 @@ private: // IPool
 	}
 
 private:
-	void ReadLangMapping()
-	{
-		const auto langMappingFile = m_ini(LANGUAGES_MAPPING);
-		QFile      file(langMappingFile);
-		if (!file.open(QIODevice::ReadOnly))
-			return;
-
-		QJsonParseError error;
-		const auto      jDocument = QJsonDocument::fromJson(file.readAll(), &error);
-		if (error.error != QJsonParseError::NoError)
-		{
-			PLOGE << error.errorString();
-			return;
-		}
-
-		const auto jObject = jDocument.object();
-		for (auto langIt = jObject.constBegin(), end = jObject.constEnd(); langIt != end; ++langIt)
-		{
-			const auto lang       = langIt.key().toStdWString();
-			const auto langValues = langIt.value();
-			assert(langValues.isArray());
-			for (const auto key : langValues.toArray())
-				m_langMap.try_emplace(key.toString().toStdWString(), lang);
-		}
-
-		std::ranges::transform(LANGUAGES, std::inserter(m_langs, m_langs.end()), [](const auto& item) {
-			return ToWide(item.key);
-		});
-		assert(std::size(m_langs) == std::size(LANGUAGES));
-	}
-
 	void ProcessImpl(bool& ok)
 	{
 		ok = false;
@@ -1225,7 +1228,7 @@ private:
 		WriteDatabaseVersion(dbFileName, m_ini(SET_DATABASE_VERSION_STATEMENT));
 
 		Parse();
-		if (const auto failsCount = Try<size_t>(
+		if (const auto failsCount = Util::Try<size_t>(
 				"store",
 				[&] {
 					return Store(dbFileName, m_data);
@@ -1236,7 +1239,7 @@ private:
 		    failsCount != 0)
 			PLOGE << "Something went wrong";
 
-		Try<bool>(
+		Util::Try<bool>(
 			"update database",
 			[&] {
 				return ExecuteScript(L"update database", dbFileName, m_ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT));
@@ -1244,7 +1247,18 @@ private:
 			__FILE__,
 			__LINE__
 		);
-		Try<int>(
+
+		Util::Try<int>(
+			"CollectCompilations",
+			[this] {
+				CollectCompilations();
+				return 0;
+			},
+			__FILE__,
+			__LINE__
+		);
+
+		Util::Try<int>(
 			"analyze",
 			[&] {
 				return Analyze(dbFileName);
@@ -1410,7 +1424,7 @@ private:
 				continue;
 
 			const auto inpxFileName = QString::fromStdWString(inpxPath);
-			const auto zip          = Try<std::unique_ptr<Zip>>(
+			const auto zip          = Util::Try<std::unique_ptr<Zip>>(
                 QString("open %1").arg(inpxFileName),
                 [&] {
                     return std::make_unique<Zip>(inpxFileName);
@@ -1426,7 +1440,15 @@ private:
 		}
 
 		m_data.reviews.clear();
-		CollectReviews();
+		Util::Try<int>(
+			"CollectReviews",
+			[this] {
+				CollectReviews();
+				return 0;
+			},
+			__FILE__,
+			__LINE__
+		);
 
 		const auto filter = [](auto& dst, const auto& src) {
 			std::erase_if(dst, [&](const auto& item) {
@@ -1445,7 +1467,24 @@ private:
 		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
 			PLOGE << "Something went wrong";
 
-		Analyze(dbFileName);
+		Util::Try<int>(
+			"CollectCompilations",
+			[this] {
+				CollectCompilations();
+				return 0;
+			},
+			__FILE__,
+			__LINE__
+		);
+
+		Util::Try<int>(
+			"analyze",
+			[&] {
+				return Analyze(dbFileName);
+			},
+			__FILE__,
+			__LINE__
+		);
 
 		return result;
 	}
@@ -1470,7 +1509,7 @@ private:
 					return std::unique_ptr<Zip> {};
 
 				const auto fileName = QString::fromStdWString(inpxFileName.generic_wstring());
-				return Try<std::unique_ptr<Zip>>(
+				return Util::Try<std::unique_ptr<Zip>>(
 					QString("open %1").arg(fileName),
 					[&] {
 						return std::make_unique<Zip>(fileName);
@@ -1488,7 +1527,7 @@ private:
 
 		GetFieldList();
 
-		Try<int>(
+		Util::Try<int>(
 			"AddUnIndexedBooks",
 			[this] {
 				AddUnIndexedBooks();
@@ -1497,7 +1536,7 @@ private:
 			__FILE__,
 			__LINE__
 		);
-		Try<int>(
+		Util::Try<int>(
 			"ScanUnIndexedFolders",
 			[this] {
 				ScanUnIndexedFolders();
@@ -1506,7 +1545,7 @@ private:
 			__FILE__,
 			__LINE__
 		);
-		Try<int>(
+		Util::Try<int>(
 			"CollectReviews",
 			[this] {
 				CollectReviews();
@@ -1527,7 +1566,7 @@ private:
 		for (const auto& entry : std::filesystem::directory_iterator(reviewsFolder))
 		{
 			auto       fileName = QString::fromStdWString(entry.path());
-			const auto zip      = Try<std::unique_ptr<Zip>>(
+			const auto zip      = Util::Try<std::unique_ptr<Zip>>(
                 QString("open %1").arg(fileName),
                 [&] {
                     return std::make_unique<Zip>(fileName);
@@ -1541,6 +1580,152 @@ private:
 			for (const auto& file : zip->GetFileNameList())
 				m_data.reviews[file.toULongLong()].emplace(entry.path().filename());
 		}
+	}
+
+	void CollectCompilations() const
+	{
+		const auto compilationsFileName = m_ini(INPX_FOLDER) / COMPILATIONS;
+		if (!exists(compilationsFileName))
+			return;
+
+		const auto fileName = QString::fromStdWString(compilationsFileName);
+		const auto zip      = Util::Try<std::unique_ptr<Zip>>(
+            QString("open %1").arg(fileName),
+            [&] {
+                return std::make_unique<Zip>(fileName);
+            },
+            __FILE__,
+            __LINE__
+        );
+		if (!zip)
+			return;
+
+		struct Compilation
+		{
+			size_t                              id;
+			size_t                              bookId;
+			bool                                covered;
+			std::unordered_set<QString>         title;
+			std::vector<std::pair<size_t, int>> books;
+		};
+
+		std::vector<Compilation> compilations;
+
+		DatabaseWrapper db(m_ini(DB_PATH));
+
+		PLOGI << "collect compilations info";
+
+		sqlite3pp::transaction tr(db);
+
+		sqlite3pp::command(db, "CREATE INDEX IF NOT EXISTS IX_Books_FileName ON Books(FileName)").execute();
+
+		sqlite3pp::query query(db, R"(select b.BookID, b.Title
+from Books b
+join Folders f on f.FolderID = b.FolderID and f.FolderTitle=?
+where b.FileName = ? and b.Ext = ?)");
+
+		const auto getBookInfo = [&](const QJsonObject& obj) {
+			const auto            folder = obj["folder"].toString().toStdString();
+			const auto            file   = obj["file"].toString().toStdWString();
+			std::filesystem::path path(file);
+			const auto            name = path.stem().string(), ext = path.extension().string();
+
+			query.bind(1, folder.data(), sqlite3pp::nocopy);
+			query.bind(2, name.data(), sqlite3pp::nocopy);
+			query.bind(3, ext.data(), sqlite3pp::nocopy);
+
+			const auto it = query.begin();
+
+			if (it == query.end())
+				return std::make_pair(0LL, QString {});
+
+			const auto bookId = (*it).get<long long>(0);
+			auto       title  = QString::fromStdString((*it).get<const char*>(1)).toLower();
+			query.reset();
+
+			title.removeIf([&](const QChar ch) {
+				return ch != ' ' && ch.category() != QChar::Letter_Lowercase;
+			});
+
+			return std::make_pair(bookId, std::move(title));
+		};
+
+		const auto doc = QJsonDocument::fromJson(zip->Read(COMPILATIONS_JSON)->GetStream().readAll());
+		assert(doc.isArray());
+		for (const auto compilationValue : doc.array())
+		{
+			assert(compilationValue.isObject());
+			const auto compilationObject = compilationValue.toObject();
+			const auto covered           = compilationObject["covered"].toBool();
+
+			const auto bookId = getBookInfo(compilationObject).first;
+			if (!bookId)
+				continue;
+
+			auto& compilation = compilations.emplace_back(GetId(), bookId, covered);
+			auto& books       = compilation.books;
+
+			for (const auto bookValue : compilationObject["compilation"].toArray())
+			{
+				assert(bookValue.isObject());
+				const auto bookObject  = bookValue.toObject();
+				const auto [id, title] = getBookInfo(bookObject);
+				if (!id)
+					continue;
+
+				books.emplace_back(id, bookObject["part"].toInt());
+				std::ranges::copy(
+					title.split(' ') | std::views::filter([](const auto& s) {
+						return s.length() > 2;
+					}),
+					std::inserter(compilation.title, compilation.title.end())
+				);
+			}
+
+			if (books.empty())
+				compilations.pop_back();
+		}
+
+		PLOGI << "write compilations info";
+
+		sqlite3pp::command(db, "DROP INDEX IF EXISTS IX_Books_FileName").execute();
+		sqlite3pp::command(db, "delete from Compilations_Search").execute();
+		sqlite3pp::command(db, "delete from Compilations").execute();
+
+		{
+			sqlite3pp::command command(db, "insert into Compilations(CompilationID, BookId, Title, Covered) values(?, ?, ?, ?)");
+			for (const auto& compilation : compilations)
+			{
+				auto title = compilation.title.begin()->toStdString();
+				for (const auto& token : compilation.title | std::views::drop(1))
+					title.append(" ").append(token.toStdString());
+
+				command.bind(1, compilation.id);
+				command.bind(2, compilation.bookId);
+				command.bind(3, title, sqlite3pp::nocopy);
+				command.bind(4, compilation.covered ? 1 : 0);
+				command.execute();
+				command.reset();
+			}
+		}
+		{
+			sqlite3pp::command command(db, "insert into Compilation_List(CompilationID, BookId, Part) values(?, ?, ?)");
+			for (const auto& compilation : compilations)
+			{
+				for (const auto bookId : compilation.books)
+				{
+					command.bind(1, compilation.id);
+					command.bind(2, bookId.first);
+					command.bind(3, bookId.second);
+					command.execute();
+					command.reset();
+				}
+			}
+		}
+
+		sqlite3pp::command(db, "INSERT INTO Compilations_Search(Compilations_Search) VALUES('rebuild')").execute();
+
+		tr.commit();
 	}
 
 	void AddUnIndexedBooks()
@@ -1561,7 +1746,7 @@ private:
 
 			QFileInfo  archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
 			const auto archiveFileName = archiveFileInfo.filePath();
-			const auto zip             = Try<std::unique_ptr<Zip>>(
+			const auto zip             = Util::Try<std::unique_ptr<Zip>>(
                 QString("open %1").arg(archiveFileName),
                 [&] {
                     return std::make_unique<Zip>(archiveFileName);
@@ -1576,7 +1761,7 @@ private:
 			{
 				PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
 				const auto fileNameStr = QString::fromStdWString(fileName);
-				Try<bool>(
+				Util::Try<bool>(
 					QString("parse %1").arg(fileNameStr),
 					[&] {
 						return ParseFile(folder, *zip, fileNameStr, archiveFileInfo.birthTime());
@@ -1594,7 +1779,7 @@ private:
 			return;
 
 		const auto inpxFolder = m_ini(INPX_FOLDER);
-		auto       folders    = Try<std::vector<std::wstring>>(
+		auto       folders    = Util::Try<std::vector<std::wstring>>(
             std::format("iterate {}", inpxFolder.generic_string()),
             [&] {
                 std::vector<std::wstring> result;
@@ -1868,22 +2053,7 @@ private:
 			To<int>(buf.YEAR, -1)
 		);
 
-		if (book.language.empty())
-		{
-			book.language = L"un";
-		}
-		else if (!m_langs.contains(book.language))
-		{
-			if (const auto it = m_langMap.find(book.language); it != m_langMap.end())
-			{
-				book.language = it->second;
-			}
-			else
-			{
-				PLOGW << "Unexpected lang: " << book.language << " for " << std::wstring(buf.FOLDER) << "/" << book.fileName << book.format << ": " << book.title;
-				book.language = L"un";
-			}
-		}
+		book.language = m_languageMapping.GetLang(book.language);
 
 		PLOGI_IF((++m_n % LOG_INTERVAL) == 0) << m_n << " books added";
 
@@ -1915,8 +2085,7 @@ private:
 	std::unordered_set<size_t>                                                                                                                                       m_newUpdates;
 	std::unordered_map<QString, std::wstring>                                                                                                                        m_uniqueKeywords;
 	std::unordered_map<std::pair<size_t, std::string>, size_t, PairHash<size_t, std::string>>                                                                        m_uniqueFiles;
-	std::unordered_set<std::wstring>                                                                                                                                 m_langs;
-	std::unordered_map<std::wstring, std::wstring>                                                                                                                   m_langMap;
+	LanguageMapping                                                                                                                                                  m_languageMapping;
 	std::unordered_map<std::wstring, std::unordered_map<std::wstring, std::pair<size_t, int>, CaseInsensitiveHash<std::wstring>>, CaseInsensitiveHash<std::wstring>> m_foldersContent;
 	bool                                                                                                                                                             m_oldDataUpdateFound { false };
 
@@ -1936,7 +2105,7 @@ Parser::~Parser() = default;
 
 void Parser::CreateNewCollection(IniMap data, const CreateCollectionMode mode, Callback callback)
 {
-	Try<int>(
+	Util::Try<int>(
 		"create collection",
 		[&] {
 			PLOGI << "mode: " << static_cast<int>(mode);
@@ -1951,7 +2120,7 @@ void Parser::CreateNewCollection(IniMap data, const CreateCollectionMode mode, C
 
 void Parser::UpdateCollection(IniMap data, const CreateCollectionMode mode, Callback callback)
 {
-	Try<int>(
+	Util::Try<int>(
 		"create collection",
 		[&] {
 			PLOGI << "mode: " << static_cast<int>(mode);
@@ -1966,7 +2135,7 @@ void Parser::UpdateCollection(IniMap data, const CreateCollectionMode mode, Call
 
 void Parser::FillInpx(const Path& collectionFolder, DB::ITransaction& transaction)
 {
-	Try<int>(
+	Util::Try<int>(
 		"fill inpx",
 		[&] {
 			const auto folders = GetInpxFolder(collectionFolder, true);
@@ -1991,7 +2160,7 @@ void Parser::FillInpx(const Path& collectionFolder, DB::ITransaction& transactio
 
 bool Parser::CheckForUpdate(const Path& collectionFolder, DB::IDatabase& database)
 {
-	return Try<int>(
+	return Util::Try<int>(
 		"fill inpx",
 		[&] {
 			const auto inpxFolders = GetInpxFolder(collectionFolder, false);
@@ -2011,4 +2180,10 @@ bool Parser::CheckForUpdate(const Path& collectionFolder, DB::IDatabase& databas
 		__FILE__,
 		__LINE__
 	);
+}
+
+const std::wstring& Parser::GetLang(const std::wstring& src)
+{
+	static const LanguageMapping mapping(Path(":/data") / DEFAULT_LANGUAGES_MAPPING);
+	return mapping.GetLang(src);
 }

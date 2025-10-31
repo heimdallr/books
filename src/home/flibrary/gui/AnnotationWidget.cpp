@@ -8,6 +8,7 @@
 #include <QGuiApplication>
 #include <QMenu>
 #include <QPainter>
+#include <QSvgRenderer>
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QToolButton>
@@ -356,7 +357,7 @@ public:
 		auto imgHeight = m_ui.mainWidget->height();
 		auto imgWidth  = m_ui.mainWidget->width() / 3;
 
-		if (const auto pixmap = Decode(m_covers[m_currentCoverIndex].bytes); !pixmap.isNull())
+		if (auto pixmap = Decode(m_covers[m_currentCoverIndex].bytes); !pixmap.isNull())
 		{
 			if (imgHeight * pixmap.width() > pixmap.height() * imgWidth)
 				imgHeight = pixmap.height() * imgWidth / pixmap.width();
@@ -367,10 +368,14 @@ public:
 		}
 		else
 		{
-			const QIcon icon(":/icons/unsupported-image.svg");
-			const auto  defaultSize = icon.availableSizes().front();
-			imgWidth                = imgHeight * defaultSize.width() / defaultSize.height();
-			m_ui.cover->setPixmap(icon.pixmap(imgWidth, imgHeight));
+			QSvgRenderer renderer(QString(":/icons/unsupported-image.svg"));
+			const auto   defaultSize = renderer.defaultSize();
+			imgWidth                 = imgHeight * defaultSize.width() / defaultSize.height();
+			pixmap                   = QPixmap(imgWidth, imgHeight);
+			pixmap.fill(Qt::transparent);
+			QPainter painter(&pixmap);
+			renderer.render(&painter);
+			m_ui.cover->setPixmap(pixmap);
 		}
 
 		if (m_covers.size() > 1)
@@ -479,8 +484,8 @@ private: // IAnnotationController::IUrlGenerator
 			return {};
 
 		const auto& navigation = FindSecond(TYPE_TO_NAVIGATION, type, NO_NAVIGATION, PszComparer {});
-		return textMode || navigation.first && !m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation.first), true) ? QString("%1").arg(str)
-		                                                                                                                                               : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
+		return textMode || (navigation.first && !m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation.first), true)) ? QString("%1").arg(str)
+		                                                                                                                                                 : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
 	}
 
 	QString GenerateStars(const int rate) const override

@@ -264,7 +264,7 @@ void AuthorItem::Reduce()
 	}
 
 	if (last.isEmpty())
-		last = Loc::Tr(Loc::Ctx::ERROR, Loc::AUTHOR_NOT_SPECIFIED);
+		last = Loc::Tr(Loc::Ctx::ERROR_CTX, Loc::AUTHOR_NOT_SPECIFIED);
 
 	auto name = last;
 

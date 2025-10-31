@@ -5,6 +5,8 @@
 #include <QFileInfo>
 #include <QPixmap>
 
+#include "fnd/try.h"
+
 #include "interface/constants/SettingsConstant.h"
 
 #include "common/Constant.h"
@@ -14,7 +16,6 @@
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"
 
-#include "log.h"
 #include "zip.h"
 
 #include "config/version.h"
@@ -231,13 +232,8 @@ QByteArray RestoreImagesImpl(QIODevice& stream, Covers covers)
 
 void ConvertToGrayscale(QByteArray& srcImageBody, const int quality)
 {
-	const auto  it     = std::ranges::find_if(SIGNATURES, [&](const auto& item) {
-        return srcImageBody.startsWith(item.first);
-    });
-	const auto* format = it != std::end(SIGNATURES) ? it->second.format : nullptr;
-
-	QPixmap pixmap;
-	if (!pixmap.loadFromData(srcImageBody, format))
+	const auto pixmap = Decode(srcImageBody);
+	if (pixmap.isNull())
 		return;
 
 	auto image = pixmap.toImage();
@@ -246,7 +242,7 @@ void ConvertToGrayscale(QByteArray& srcImageBody, const int quality)
 	QByteArray result;
 	{
 		QBuffer imageOutput(&result);
-		if (!image.save(&imageOutput, format ? format : JPEG, quality))
+		if (!image.save(&imageOutput, image.pixelFormat().alphaUsage() == QPixelFormat::AlphaUsage::UsesAlpha ? PNG : JPEG, quality))
 			return;
 	}
 
@@ -321,6 +317,48 @@ void ParseImages(const QString& folder, const QString& fileName, const ExtractBo
 	}
 }
 
+constexpr const char* EXTENSIONS[] { "zip", "7z" };
+
+void ExtractBookImagesCoverImpl(const QFileInfo& fileInfo, const QString& fileName, const ExtractBookImagesCallback& callback, const std::shared_ptr<const ISettings>& settings)
+{
+	if (settings && settings->Get(Constant::Settings::EXPORT_REMOVE_COVER_KEY, false))
+		return;
+
+	bool stop = false;
+	for (const auto* ext : EXTENSIONS)
+	{
+		TRY("parse cover", [&] {
+			ParseCover(
+				QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext),
+				fileName,
+				callback,
+				stop,
+				settings && settings->Get(Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY, false)
+			);
+			return true;
+		});
+	}
+}
+
+void ExtractBookImagesImagesImpl(const QFileInfo& fileInfo, const QString& fileName, const ExtractBookImagesCallback& callback, const std::shared_ptr<const ISettings>& settings)
+{
+	if (settings && settings->Get(Constant::Settings::EXPORT_REMOVE_IMAGES_KEY, false))
+		return;
+
+	for (const auto* ext : EXTENSIONS)
+	{
+		TRY("parse cover", [&] {
+			ParseImages(
+				QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::IMAGES, fileInfo.completeBaseName(), ext),
+				fileName,
+				callback,
+				settings && settings->Get(Constant::Settings::EXPORT_GRAYSCALE_IMAGES_KEY, false)
+			);
+			return true;
+		});
+	}
+}
+
 } // namespace
 
 namespace HomeCompa::Flibrary
@@ -376,53 +414,9 @@ QImage HasAlpha(const QImage& image, const char* data)
 
 void ExtractBookImages(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback, const std::shared_ptr<const ISettings>& settings)
 {
-	static constexpr const char* EXTENSIONS[] { "zip", "7z" };
-
 	const QFileInfo fileInfo(folder);
-
-	bool stop = false;
-	for (const auto* ext : EXTENSIONS)
-	{
-		try
-		{
-			ParseCover(
-				QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::COVERS, fileInfo.completeBaseName(), ext),
-				fileName,
-				callback,
-				stop,
-				settings && settings->Get(Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY, false)
-			);
-		}
-		catch (const std::exception& ex)
-		{
-			PLOGE << ex.what();
-		}
-		catch (...)
-		{
-			PLOGE << "unknown error";
-		}
-	}
-
-	for (const auto* ext : EXTENSIONS)
-	{
-		try
-		{
-			ParseImages(
-				QString("%1/%2/%3.%4").arg(fileInfo.dir().path(), Global::IMAGES, fileInfo.completeBaseName(), ext),
-				fileName,
-				callback,
-				settings && settings->Get(Constant::Settings::EXPORT_GRAYSCALE_IMAGES_KEY, false)
-			);
-		}
-		catch (const std::exception& ex)
-		{
-			PLOGE << ex.what();
-		}
-		catch (...)
-		{
-			PLOGE << "unknown error";
-		}
-	}
+	ExtractBookImagesCoverImpl(fileInfo, fileName, callback, settings);
+	ExtractBookImagesImagesImpl(fileInfo, fileName, callback, settings);
 }
 
 } // namespace HomeCompa::Flibrary

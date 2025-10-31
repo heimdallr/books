@@ -98,6 +98,7 @@ QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
 	msgBox.setIcon(icon);
 	msgBox.setWindowTitle(title);
 	msgBox.setText(text);
+	msgBox.setTextFormat(Qt::RichText);
 
 	std::vector<std::pair<QAbstractButton*, QMessageBox::ButtonRole>> msgBoxButtons;
 	msgBoxButtons.reserve(buttons.size());

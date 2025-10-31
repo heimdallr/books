@@ -93,24 +93,25 @@ bool CleanupNavigationItems(DB::ITransaction& transaction)
 {
 	PLOGI << "Removing database book references records started";
 	constexpr std::pair<const char*, const char*> commands[] {
-		{      "Series_List",               "delete from Series_List where not exists (select 42 from Books where Books.BookID = Series_List.BookID)" },
-		{		   "Series",         "delete from Series where not exists (select 42 from Series_List where Series_List.SeriesID = Series.SeriesID)" },
-		{       "Genre_List",                 "delete from Genre_List where not exists (select 42 from Books where Books.BookID = Genre_List.BookID)" },
-		{      "Author_List",               "delete from Author_List where not exists (select 42 from Books where Books.BookID = Author_List.BookID)" },
-		{		  "Authors",       "delete from Authors where not exists (select 42 from Author_List where Author_List.AuthorID = Authors.AuthorID)" },
-		{     "Keyword_List",             "delete from Keyword_List where not exists (select 42 from Books where Books.BookID = Keyword_List.BookID)" },
-		{         "Keywords", "delete from Keywords where not exists (select 42 from Keyword_List where Keyword_List.KeywordID = Keywords.KeywordID)" },
-		{		  "Reviews",					   "delete from Reviews where not exists (select 42 from Books where Books.BookID = Reviews.BookID)" },
-		{ "Groups_List_User",																				  R"(delete from Groups_List_User where
+		{         "Series_List",               "delete from Series_List where not exists (select 42 from Books where Books.BookID = Series_List.BookID)" },
+		{			  "Series",         "delete from Series where not exists (select 42 from Series_List where Series_List.SeriesID = Series.SeriesID)" },
+		{		  "Genre_List",                 "delete from Genre_List where not exists (select 42 from Books where Books.BookID = Genre_List.BookID)" },
+		{         "Author_List",               "delete from Author_List where not exists (select 42 from Books where Books.BookID = Author_List.BookID)" },
+		{			 "Authors",       "delete from Authors where not exists (select 42 from Author_List where Author_List.AuthorID = Authors.AuthorID)" },
+		{        "Keyword_List",             "delete from Keyword_List where not exists (select 42 from Books where Books.BookID = Keyword_List.BookID)" },
+		{			"Keywords", "delete from Keywords where not exists (select 42 from Keyword_List where Keyword_List.KeywordID = Keywords.KeywordID)" },
+		{			 "Reviews",					   "delete from Reviews where not exists (select 42 from Books where Books.BookID = Reviews.BookID)" },
+		{    "Groups_List_User",																				  R"(delete from Groups_List_User where
 not exists (select 42 from Books b where b.BookID = Groups_List_User.ObjectID) and 
 not exists (select 42 from Authors a where a.AuthorID = Groups_List_User.ObjectID) and 
 not exists (select 42 from Series s where s.SeriesID = Groups_List_User.ObjectID) and 
 not exists (select 42 from Keywords k where k.KeywordID = Groups_List_User.ObjectID))" },
-		{    "Update months", "delete from Updates where ParentID != 0 and not exists (select 42 from Books where Updates.UpdateID = Books.UpdateID)" },
-		{     "Update years",  "delete from Updates where ParentID = 0 and not exists (select 42 from Updates u where u.ParentID = Updates.UpdateID)" },
-		{     "Books_Search",															  "insert into Books_Search(Books_Search) values('rebuild')" },
-		{   "Authors_Search",														  "insert into Authors_Search(Authors_Search) values('rebuild')" },
-		{    "Series_Search",															"insert into Series_Search(Series_Search) values('rebuild')" },
+		{       "Update months", "delete from Updates where ParentID != 0 and not exists (select 42 from Books where Updates.UpdateID = Books.UpdateID)" },
+		{        "Update years",  "delete from Updates where ParentID = 0 and not exists (select 42 from Updates u where u.ParentID = Updates.UpdateID)" },
+		{        "Books_Search",															  "insert into Books_Search(Books_Search) values('rebuild')" },
+		{      "Authors_Search",														  "insert into Authors_Search(Authors_Search) values('rebuild')" },
+		{       "Series_Search",															"insert into Series_Search(Series_Search) values('rebuild')" },
+		{ "Compilations_Search",												"insert into Compilations_Search(Compilations_Search) values('rebuild')" },
 	};
 	return std::accumulate(std::cbegin(commands), std::cend(commands), true, [&](const bool init, const auto& command) {
 		PLOGD << "removing from " << command.first;
@@ -186,7 +187,7 @@ void RemoveFiles(AllFiles& allFiles, const QString& collectionFolder)
 	}
 }
 
-AnalyzedBooks GetAnalysedBooks(DB::IDatabase& db, const ILibRateProvider& libRateProvider, const ICollectionCleaner::IAnalyzeObserver& observer, const bool hasGenres, const std::atomic_bool& analyzeCanceled)
+AnalyzedBooks GetAnalyzedBooks(DB::IDatabase& db, const ILibRateProvider& libRateProvider, const ICollectionCleaner::IAnalyzeObserver& observer, const bool hasGenres, const std::atomic_bool& analyzeCanceled)
 {
 	const auto query = db.CreateQuery(QString(SELECT_ANALYZED_BOOKS_QUERY)
 	                                      .arg(hasGenres ? GENRE_FIELD : EMPTY_FIELD)
@@ -257,6 +258,53 @@ void RemoveDuplicates(const AnalyzedBooks& analysedBooks, std::unordered_set<lon
 	}
 }
 
+void RemoveCompletelyDuplicatedCompilations(DB::IDatabase& db, const AnalyzedBooks& analyzedBooks, std::unordered_set<long long>& toDelete)
+{
+	std::unordered_map<long long, std::pair<long long, std::vector<std::pair<long long, int>>>> compilation;
+
+	const auto query = db.CreateQuery(R"(select c.CompilationID, c.BookId, l.BookId, l.Part
+from Compilations c
+join Compilation_List l on l.CompilationID = c.CompilationID
+where c.Covered = 1)");
+	for (query->Execute(); !query->Eof(); query->Next())
+	{
+		auto& [bookId, parts] = compilation[query->Get<long long>(0)];
+		if (parts.empty())
+			bookId = query->Get<long long>(1);
+
+		parts.emplace_back(query->Get<long long>(2), query->Get<int>(3));
+	}
+	std::ranges::copy(
+		compilation | std::views::values | std::views::filter([&](const auto& item) {
+			if (!analyzedBooks.contains(item.first))
+				return false;
+
+			std::unordered_set<int> before, after;
+			std::ranges::copy(item.second | std::views::values, std::inserter(before, before.end()));
+			std::ranges::copy(
+				item.second | std::views::filter([&](const auto& pair) {
+					return !toDelete.contains(pair.first);
+				}) | std::views::values,
+				std::inserter(after, after.end())
+			);
+			return before.size() == after.size();
+		}) | std::views::keys,
+		std::inserter(toDelete, toDelete.end())
+	);
+}
+
+void RemoveBooksDuplicatedByCompilations(DB::IDatabase& db, const AnalyzedBooks& analyzedBooks, std::unordered_set<long long>& toDelete)
+{
+	const auto query = db.CreateQuery(R"(select c.BookId, l.BookId
+from Compilations c
+join Compilation_List l on c.CompilationID = l.CompilationID
+)");
+	for (query->Execute(); !query->Eof(); query->Next())
+		if (!toDelete.contains(query->Get<long long>(0)))
+			if (const auto id = query->Get<long long>(1); analyzedBooks.contains(id))
+				toDelete.emplace(id);
+}
+
 } // namespace
 
 struct CollectionCleaner::Impl
@@ -270,111 +318,125 @@ struct CollectionCleaner::Impl
 
 	void Analyze(IAnalyzeObserver& observer) const
 	{
-		databaseUser->Execute({ "Analyze", [&] {
-								   std::function result { [&](size_t) {
-									   observer.AnalyzeFinished({});
-								   } };
-								   auto genres    = observer.GetGenres();
-								   auto languages = observer.GetLanguages();
-								   if (genres.isEmpty() && languages.isEmpty() && !observer.NeedDeleteDuplicates() && !observer.NeedDeleteMarkedAsDeleted() && !observer.GetMinimumBookSize()
-			                           && !observer.GetMaximumBookSize() && !observer.NeedDeleteUnrated() && !observer.GetMinimumLibRate())
-									   return result;
+		databaseUser->Execute(
+			{ "Analyze",
+		      [&] {
+				  std::function result { [&](size_t) {
+					  observer.AnalyzeFinished({});
+				  } };
+				  auto genres    = observer.GetGenres();
+				  auto languages = observer.GetLanguages();
+				  if (genres.isEmpty() && languages.isEmpty() && !observer.NeedDeleteDuplicates() && !observer.NeedDeleteMarkedAsDeleted() && !observer.GetMinimumBookSize() && !observer.GetMaximumBookSize()
+			          && !observer.NeedDeleteUnrated() && !observer.GetMinimumLibRate() && !observer.NeedDeleteCompletelyDuplicatedCompilations() && !observer.NeedDeleteBooksDuplicatedByCompilations())
+					  return result;
 
-								   const auto db = databaseUser->Database();
-								   PLOGI << "get books info";
-								   auto analysedBooks = GetAnalysedBooks(*db, *libRateProvider, observer, !genres.isEmpty(), analyzeCanceled);
-								   PLOGI << "total books found: " << analysedBooks.size();
+				  const auto db = databaseUser->Database();
+				  PLOGI << "get books info";
+				  auto analyzedBooks = GetAnalyzedBooks(*db, *libRateProvider, observer, !genres.isEmpty(), analyzeCanceled);
+				  PLOGI << "total books found: " << analyzedBooks.size();
 
-								   std::unordered_set<long long> toDelete;
+				  std::unordered_set<long long> toDelete;
 
-								   const auto addToDelete = [&](const QString& name, const auto filter) {
-									   const auto n = toDelete.size();
-									   std::ranges::transform(analysedBooks | std::views::filter(filter), std::inserter(toDelete, toDelete.end()), [](const auto& item) {
-										   return item.first;
-									   });
-									   PLOGI << name << " found: " << toDelete.size() - n;
-								   };
+				  const auto addToDelete = [&](const QString& name, const auto filter) {
+					  const auto n = toDelete.size();
+					  std::ranges::transform(analyzedBooks | std::views::filter(filter), std::inserter(toDelete, toDelete.end()), [](const auto& item) {
+						  return item.first;
+					  });
+					  PLOGI << name << " found: " << toDelete.size() - n;
+				  };
 
-								   if (observer.NeedDeleteMarkedAsDeleted())
-									   addToDelete("marked as deleted", [](const auto& item) {
-										   return item.second.deleted;
-									   });
+				  if (observer.NeedDeleteMarkedAsDeleted())
+					  addToDelete("marked as deleted", [](const auto& item) {
+						  return item.second.deleted;
+					  });
 
-								   if (observer.NeedDeleteUnrated())
-									   addToDelete("unrated", [](const auto& item) {
-										   return item.second.libRate < 1.0;
-									   });
+				  if (observer.NeedDeleteUnrated())
+					  addToDelete("unrated", [](const auto& item) {
+						  return item.second.libRate < 1.0;
+					  });
 
-								   if (auto value = observer.GetMinimumLibRate())
-									   addToDelete("rated less then minimum", [value = *value - std::numeric_limits<double>::epsilon()](const auto& item) {
-										   return item.second.libRate > std::numeric_limits<double>::epsilon() && item.second.libRate < value;
-									   });
+				  if (auto value = observer.GetMinimumLibRate())
+					  addToDelete("rated less then minimum", [value = *value - std::numeric_limits<double>::epsilon()](const auto& item) {
+						  return item.second.libRate > std::numeric_limits<double>::epsilon() && item.second.libRate < value;
+					  });
 
-								   if (auto value = observer.GetMinimumBookSize())
-									   addToDelete("smaller then minimum", [value = *value](const auto& item) {
-										   return item.second.size < value;
-									   });
+				  if (auto value = observer.GetMinimumBookSize())
+					  addToDelete("smaller then minimum", [value = *value](const auto& item) {
+						  return item.second.size < value;
+					  });
 
-								   if (auto value = observer.GetMaximumBookSize())
-									   addToDelete("larger then maximum", [value = *value](const auto& item) {
-										   return item.second.size > value;
-									   });
+				  if (auto value = observer.GetMaximumBookSize())
+					  addToDelete("larger then maximum", [value = *value](const auto& item) {
+						  return item.second.size > value;
+					  });
 
-								   if (!languages.isEmpty())
-									   addToDelete(
-										   "on specified languages",
-										   [languages = std::unordered_set(std::make_move_iterator(languages.begin()), std::make_move_iterator(languages.end()))](const auto& item) {
-											   return languages.contains(item.second.lang);
-										   }
-									   );
-								   languages.clear();
+				  if (!languages.isEmpty())
+					  addToDelete("on specified languages", [languages = std::unordered_set(std::make_move_iterator(languages.begin()), std::make_move_iterator(languages.end()))](const auto& item) {
+						  return languages.contains(item.second.lang);
+					  });
+				  languages.clear();
 
-								   if (!genres.isEmpty())
-								   {
-									   const auto indexedGenres = std::set(std::make_move_iterator(genres.begin()), std::make_move_iterator(genres.end()));
-									   switch (observer.GetCleanGenreMode()) // NOLINT(clang-diagnostic-switch-enum)
-									   {
-										   case CleanGenreMode::Full:
-											   addToDelete("in specified genres full", [&](const auto& item) {
-												   return std::ranges::includes(indexedGenres, item.second.genres);
-											   });
-											   break;
-										   case CleanGenreMode::Partial:
-											   addToDelete("in specified genres partial", [&](const auto& item) {
-												   return Util::Intersect(indexedGenres, item.second.genres);
-											   });
-											   break;
-										   default: // NOLINT(clang-diagnostic-covered-switch-default)
-											   assert(false && "unexpected mode");
-											   break;
-									   }
-									   genres.clear();
-								   }
+				  if (!genres.isEmpty())
+				  {
+					  const auto indexedGenres = std::set(std::make_move_iterator(genres.begin()), std::make_move_iterator(genres.end()));
+					  switch (observer.GetCleanGenreMode()) // NOLINT(clang-diagnostic-switch-enum)
+					  {
+						  case CleanGenreMode::Full:
+							  addToDelete("in specified genres full", [&](const auto& item) {
+								  return std::ranges::includes(indexedGenres, item.second.genres);
+							  });
+							  break;
+						  case CleanGenreMode::Partial:
+							  addToDelete("in specified genres partial", [&](const auto& item) {
+								  return Util::Intersect(indexedGenres, item.second.genres);
+							  });
+							  break;
+						  default: // NOLINT(clang-diagnostic-covered-switch-default)
+							  assert(false && "unexpected mode");
+							  break;
+					  }
+					  genres.clear();
+				  }
 
-								   if (observer.NeedDeleteDuplicates())
-								   {
-									   const auto n = toDelete.size();
-									   RemoveDuplicates(analysedBooks, toDelete);
-									   PLOGI << "duplicates found: " << toDelete.size() - n;
-								   }
+				  if (observer.NeedDeleteDuplicates())
+				  {
+					  const auto n = toDelete.size();
+					  RemoveDuplicates(analyzedBooks, toDelete);
+					  PLOGI << "duplicates found: " << toDelete.size() - n;
+				  }
 
-								   Books books;
-								   books.reserve(toDelete.size());
-								   std::ranges::transform(toDelete, std::back_inserter(books), [&](const long long id) {
-									   const auto it = analysedBooks.find(id);
-									   assert(it != analysedBooks.end());
-									   return Book { id, std::move(it->second.folder), std::move(it->second.file) };
-								   });
+				  if (observer.NeedDeleteCompletelyDuplicatedCompilations())
+				  {
+					  const auto n = toDelete.size();
+					  RemoveCompletelyDuplicatedCompilations(*db, analyzedBooks, toDelete);
+					  PLOGI << "completely duplicated compilations found: " << toDelete.size() - n;
+				  }
 
-								   analysedBooks.clear();
-								   toDelete.clear();
+				  if (observer.NeedDeleteBooksDuplicatedByCompilations())
+				  {
+					  const auto n = toDelete.size();
+					  RemoveBooksDuplicatedByCompilations(*db, analyzedBooks, toDelete);
+					  PLOGI << "duplicated by compilations found: " << toDelete.size() - n;
+				  }
 
-								   result = [&, books = std::move(books)](size_t) mutable {
-									   observer.AnalyzeFinished(std::move(books));
-								   };
+				  Books books;
+				  books.reserve(toDelete.size());
+				  std::ranges::transform(toDelete, std::back_inserter(books), [&](const long long id) {
+					  const auto it = analyzedBooks.find(id);
+					  assert(it != analyzedBooks.end());
+					  return Book { id, std::move(it->second.folder), std::move(it->second.file) };
+				  });
 
-								   return result;
-							   } });
+				  analyzedBooks.clear();
+				  toDelete.clear();
+
+				  result = [&, books = std::move(books)](size_t) mutable {
+					  observer.AnalyzeFinished(std::move(books));
+				  };
+
+				  return result;
+			  } }
+		);
 	}
 
 	void AnalyzeCancel()

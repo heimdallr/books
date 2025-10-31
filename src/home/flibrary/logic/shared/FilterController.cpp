@@ -27,10 +27,11 @@ constexpr auto SET_FILTER_QUERY   = "update {} set Flags = ? where {} = ?";
 
 struct FilterController::Impl final : Observable<IObserver>
 {
-	std::shared_ptr<const IDatabaseUser>                                                                 databaseUser;
-	std::shared_ptr<ISettings>                                                                           settings;
-	bool                                                                                                 filterEnabled { settings->Get(FILTER_ENABLED_KEY, true) };
-	std::array<std::unordered_map<QString, IDataItem::Flags>, static_cast<size_t>(NavigationMode::Last)> changes;
+	using Changes = std::array<std::unordered_map<QString, IDataItem::Flags>, static_cast<size_t>(NavigationMode::Last)>;
+
+	std::shared_ptr<const IDatabaseUser> databaseUser;
+	std::shared_ptr<ISettings>           settings;
+	Changes                              changes;
 
 	Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<ISettings> settings)
 		: databaseUser { std::move(databaseUser) }
@@ -80,7 +81,7 @@ FilterController::~FilterController() = default;
 
 bool FilterController::IsFilterEnabled() const noexcept
 {
-	return m_impl->filterEnabled;
+	return m_impl->settings->Get(FILTER_ENABLED_KEY, true);
 }
 
 std::vector<IDataItem::Flags> FilterController::GetFlags(const NavigationMode navigationMode, const std::vector<QString>& ids) const
@@ -106,9 +107,6 @@ std::vector<IDataItem::Flags> FilterController::GetFlags(const NavigationMode na
 
 void FilterController::SetFilterEnabled(const bool enabled)
 {
-	if (!Util::Set(m_impl->filterEnabled, enabled))
-		return;
-
 	m_impl->settings->Set(FILTER_ENABLED_KEY, enabled);
 	m_impl->Perform(&IObserver::OnFilterEnabledChanged);
 }

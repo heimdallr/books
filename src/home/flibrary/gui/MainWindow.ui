@@ -426,9 +426,29 @@
      <property name="title">
       <string>&amp;Export</string>
      </property>
+     <widget class="QMenu" name="menuImages">
+      <property name="title">
+       <string>Images</string>
+      </property>
+      <widget class="QMenu" name="menuCovers">
+       <property name="title">
+        <string>Covers</string>
+       </property>
+       <addaction name="actionExportConvertCoverToGrayscale"/>
+       <addaction name="actionExportRemoveCover"/>
+      </widget>
+      <widget class="QMenu" name="menuIllustrations">
+       <property name="title">
+        <string>Illustrations</string>
+       </property>
+       <addaction name="actionExportConvertImagesToGrayscale"/>
+       <addaction name="actionExportRemoveImages"/>
+      </widget>
+      <addaction name="menuCovers"/>
+      <addaction name="menuIllustrations"/>
+     </widget>
      <addaction name="actionExportTemplate"/>
-     <addaction name="actionConvertCoverToGrayscale"/>
-     <addaction name="actionConvertImagesToGrayscale"/>
+     <addaction name="menuImages"/>
     </widget>
     <widget class="QMenu" name="menuHttp">
      <property name="title">
@@ -921,23 +941,23 @@
     <string>About the author</string>
    </property>
   </action>
-  <action name="actionConvertCoverToGrayscale">
+  <action name="actionExportConvertCoverToGrayscale">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Grayscale &amp;cover</string>
+    <string>Convert to grayscale</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionConvertImagesToGrayscale">
+  <action name="actionExportConvertImagesToGrayscale">
    <property name="checkable">
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Grayscale &amp;images</string>
+    <string>Convert to grayscale</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -945,7 +965,7 @@
   </action>
   <action name="actionBrowseHttpSite">
    <property name="text">
-    <string>Go to &amp;Site</string>
+    <string>Go to the &amp;ReactApp web interface</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -953,7 +973,7 @@
   </action>
   <action name="actionBrowseHttpWeb">
    <property name="text">
-    <string>Go to &amp;Web</string>
+    <string>Go to the simple &amp;web interface</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -961,7 +981,7 @@
   </action>
   <action name="actionBrowseHttpOpds">
    <property name="text">
-    <string>Go to &amp;OPDS</string>
+    <string>Show &amp;OPDS in browser</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -978,6 +998,28 @@
   <action name="actionFilters">
    <property name="text">
     <string>&amp;Filters...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionExportRemoveCover">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Remove</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionExportRemoveImages">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Remove</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

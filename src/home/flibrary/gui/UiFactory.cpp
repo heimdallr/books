@@ -212,7 +212,7 @@ void UiFactory::ShowAbout() const
 	std::ranges::transform(COMPONENTS, std::back_inserter(text), [](const char* str) {
 		return Loc::Tr(CONTEXT, str);
 	});
-	msgBox.setInformativeText(text.join(""));
+	msgBox.setInformativeText(QString(R"(<font size="%1px;">%2</font>)").arg(msgBox.font().pointSize() * 9 / 10).arg(text.join("")));
 	msgBox.exec();
 }
 

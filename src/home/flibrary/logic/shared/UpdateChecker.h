@@ -7,8 +7,8 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 #include "interface/logic/IUpdateChecker.h"
-#include "interface/ui/IUiFactory.h"
 
+#include "gutil/interface/IUiFactory.h"
 #include "util/ISettings.h"
 
 namespace HomeCompa::Flibrary
@@ -21,8 +21,8 @@ class UpdateChecker final : virtual public IUpdateChecker
 public:
 	UpdateChecker(
 		const std::shared_ptr<const ILogicFactory>&        logicFactory,
+		std::shared_ptr<const Util::IUiFactory>            uiFactory,
 		std::shared_ptr<ISettings>                         settings,
-		std::shared_ptr<IUiFactory>                        uiFactory,
 		std::shared_ptr<IBooksExtractorProgressController> progressController
 	);
 	~UpdateChecker() override;

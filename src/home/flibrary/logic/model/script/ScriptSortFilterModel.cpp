@@ -77,5 +77,6 @@ bool ScriptSortFilterModel::lessThan(const QModelIndex& left, const QModelIndex&
 
 void ScriptSortFilterModel::OnRowsRemoved(int /*row*/, int /*count*/)
 {
-	invalidateFilter();
+	beginFilterChange();
+	endFilterChange(Direction::Rows);
 }

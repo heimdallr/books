@@ -1,7 +1,8 @@
 rem @echo off
 
 set start_time=%DATE% %TIME%
-set PRODUCT_VERSION=2.5.2
+set PRODUCT_VERSION=2.5.3
+set PRODUCT_GUID=80B196FB-9529-459D-960E-0E0F00CE0981
 
 call src\ext\scripts\batch\check_executable.bat cmake
 if NOT [%ERRORLEVEL%]==[0] goto end
@@ -36,6 +37,7 @@ cmake ^
 -DPRODUCT_VERSION=%PRODUCT_VERSION% ^
 -DCMAKE_TOOLCHAIN_FILE="%BUILD_DIR%\conan_toolchain.cmake" ^
 -DCMAKE_POLICY_DEFAULT_CMP0091=NEW ^
+-DPRODUCT_UID=%PRODUCT_GUID% ^
 %* ^
 -G "Visual Studio 17 2022" %~dp0 2>&1 | %tee_name% generate_solution.log
 

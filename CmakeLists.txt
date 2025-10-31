@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.12)
 project(FLibrary VERSION ${PRODUCT_VERSION})
 
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 
 add_compile_options(
 	/MP     # multi-processor compilation
@@ -31,7 +31,6 @@ set(QT_MAJOR_VERSION 6)
 set(BUILDSCRIPTS_ROOT ${CMAKE_SOURCE_DIR}/src/ext/scripts)
 set(CMAKE_MODULE_PATH ${BUILDSCRIPTS_ROOT}/cmake/modules)
 include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)
-include(${BUILDSCRIPTS_ROOT}/cmake/GenerateTranslations.cmake)
 
 find_package(plog REQUIRED)
 find_package(Boost REQUIRED)
@@ -74,7 +73,7 @@ set(CPACK_PACKAGE_EXECUTABLES "FLibrary;FLibrary")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "FLibrary")
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_setup_${CMAKE_PROJECT_VERSION}")
 
-set(CPACK_WIX_PRODUCT_GUID "60ec502f-fdff-45c2-93f6-9ee8fb7be86e") 
+set(CPACK_WIX_PRODUCT_GUID ${PRODUCT_UID})
 set(CPACK_WIX_UPGRADE_GUID "c39e21ad-9c07-4af6-a36a-bc65ae265075")
 set(CPACK_WIX_PRODUCT_ICON "${CMAKE_CURRENT_LIST_DIR}/src/home/resources/icons/main.ico")
 set(CPACK_WIX_CULTURES "en-US,ru-RU")

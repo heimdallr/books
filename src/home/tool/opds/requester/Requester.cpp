@@ -133,22 +133,22 @@ constexpr auto GROUP_SELECT   = "select gu.Title from Groups_User gu where gu.Gr
 constexpr auto AUTHOR_COUNT_STARTS_WITH = R"(
 	select count(distinct a.AuthorID) 
 	from Authors a 
-	%3 
-	where a.IsDeleted != %1 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%2')
+	%2 
+	where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%1')
 )";
 
 constexpr auto SERIES_COUNT_STARTS_WITH = R"(
 	select count(distinct s.SeriesID) 
 	from Series s 
-	%3 
-	where s.IsDeleted != %1 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%2')
+	%2 
+	where s.IsDeleted != #IS_DELETED# and s.Flags & #FLAGS# = 0 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%1')
 )";
 
 constexpr auto KEYWORD_COUNT_STARTS_WITH = R"(
 	select count(distinct k.KeywordID) 
 	from Keywords k 
-	%3 
-	where k.IsDeleted != %1 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%2')
+	%2 
+	where k.IsDeleted != #IS_DELETED# and k.Flags & #FLAGS# = 0 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%1')
 )";
 
 constexpr auto UPDATE_COUNT_STARTS_WITH = "select 0";
@@ -156,38 +156,38 @@ constexpr auto FOLDER_COUNT_STARTS_WITH = "select 0";
 
 constexpr auto BOOK_COUNT_STARTS_WITH = R"(
 	select count(42) 
-	%3 
-	where b.IsDeleted != %1 and (b.SearchTitle = :starts or b.SearchTitle like :starts_like||'%' ESCAPE '%2')
+	%2 
+	where b.IsDeleted != #IS_DELETED# and (b.SearchTitle = :starts or b.SearchTitle like :starts_like||'%' ESCAPE '%1')
 )";
 
 constexpr auto AUTHOR_STARTS_WITH = R"(
 	select substr(a.SearchName, 1, :length), count(distinct a.AuthorID) 
 	from Authors a 
-	%3 
-	where a.IsDeleted != %1 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%2')
+	%2 
+	where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%1')
 	group by substr(a.SearchName, 1, :length)
 )";
 
 constexpr auto SERIES_STARTS_WITH = R"(
 	select substr(s.SearchTitle, 1, :length), count(distinct s.SeriesID) 
 	from Series s 
-	%3 
-	where s.IsDeleted != %1 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%2')
+	%2 
+	where s.IsDeleted != #IS_DELETED# and s.Flags & #FLAGS# = 0 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%1')
 	group by substr(s.SearchTitle, 1, :length)
 )";
 
 constexpr auto KEYWORD_STARTS_WITH = R"(
 	select substr(k.SearchTitle, 1, :length), count(distinct k.KeywordID) 
 	from Keywords k 
-	%3 
-	where k.IsDeleted != %1 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%2')
+	%2 
+	where k.IsDeleted != #IS_DELETED# and k.Flags & #FLAGS# = 0 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%1')
 	group by substr(k.SearchTitle, 1, :length)
 )";
 
 constexpr auto BOOK_STARTS_WITH = R"(
 	select substr(b.SearchTitle, 1, :length), count(42) 
-	%3 
-	where b.IsDeleted != %1 and (b.SearchTitle = :starts or b.SearchTitle like :starts_like||'%' ESCAPE '%2')
+	%2 
+	where b.IsDeleted != #IS_DELETED# and (b.SearchTitle = :starts or b.SearchTitle like :starts_like||'%' ESCAPE '%1')
 	group by substr(b.SearchTitle, 1, :length)
 )";
 
@@ -195,25 +195,26 @@ constexpr auto GROUPS_SELECT = R"(
 	select g.GroupID, g.Title, count(42)
 	from Groups_User g 
 	join Groups_List_User_View l on l.GroupID = g.GroupID 
-	%2
-	where g.IsDeleted != %1 
+	%1
+	where g.IsDeleted != #IS_DELETED# 
 	group by g.GroupID
 )";
 
-constexpr auto AUTHOR_SELECT_SINGLE =
-	"select distinct a.AuthorID," FULL_AUTHOR_NAME "from Authors a %3 where a.IsDeleted != %1 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%2')";
-constexpr auto SERIES_SELECT_SINGLE = "select distinct s.SeriesID, s.SeriesTitle from Series s %3 where s.IsDeleted != %1 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%2')";
-constexpr auto KEYWORD_SELECT_SINGLE =
-	"select distinct k.KeywordID, k.KeywordTitle from Keywords k %3 where k.IsDeleted != %1 and (k.SearchTitle = :starts or k.SearchTitle like :starts_like||'%' ESCAPE '%2')";
-constexpr auto FOLDER_SELECT_SINGLE = "select f.FolderID, f.FolderTitle from Folders f %3 where f.IsDeleted != %1 and ('%2' = '%2' and :starts = :starts and :starts_like = :starts_like)";
-constexpr auto BOOK_SELECT_SINGLE   = "select l.BookID, l.Title %3 where b.IsDeleted != %1 and (b.SearchTitle = :starts or b.SearchTitle like :starts_like||'%' ESCAPE '%2')";
+constexpr auto AUTHOR_SELECT_SINGLE = "select distinct a.AuthorID," FULL_AUTHOR_NAME
+									  "from Authors a %2 where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%1')";
+constexpr auto SERIES_SELECT_SINGLE =
+	"select distinct s.SeriesID, s.SeriesTitle from Series s %2 where s.IsDeleted != #IS_DELETED# and s.Flags & #FLAGS# = 0 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%1')";
+constexpr auto KEYWORD_SELECT_SINGLE = "select distinct k.KeywordID, k.KeywordTitle from Keywords k %2 where k.IsDeleted != #IS_DELETED# and k.Flags & #FLAGS# = 0 and (k.SearchTitle = :starts or "
+									   "k.SearchTitle like :starts_like||'%' ESCAPE '%1')";
+constexpr auto FOLDER_SELECT_SINGLE  = "select f.FolderID, f.FolderTitle from Folders f %2 where f.IsDeleted != #IS_DELETED# and ('%1' = '%1' and :starts = :starts and :starts_like = :starts_like)";
+constexpr auto BOOK_SELECT_SINGLE    = "select l.BookID, l.Title %2 where b.IsDeleted != #IS_DELETED# and (b.SearchTitle = :starts or b.SearchTitle like :starts_like||'%' ESCAPE '%1')";
 
-constexpr auto AUTHOR_SELECT_EQUAL  = "select distinct a.AuthorID," FULL_AUTHOR_NAME "from Authors a %2 where a.IsDeleted != %1 and a.SearchName = :starts";
-constexpr auto SERIES_SELECT_EQUAL  = "select distinct s.SeriesID, s.SeriesTitle from Series s %2 where s.IsDeleted != %1 and s.SearchTitle = :starts";
-constexpr auto GENRE_SELECT_EQUAL   = "select g.GenreCode from Genres g where exists (select 42 from Genre_List l %1 where l.GenreCode = g.GenreCode)";
-constexpr auto KEYWORD_SELECT_EQUAL = "select distinct k.KeywordID, k.KeywordTitle from Keywords k %2 where k.IsDeleted != %1 and k.SearchTitle = :starts";
+constexpr auto AUTHOR_SELECT_EQUAL = "select distinct a.AuthorID," FULL_AUTHOR_NAME "from Authors a %1 where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0 and a.SearchName = :starts";
+constexpr auto SERIES_SELECT_EQUAL = "select distinct s.SeriesID, s.SeriesTitle from Series s %1 where s.IsDeleted != #IS_DELETED# and s.Flags & #FLAGS# = 0 and s.SearchTitle = :starts";
+constexpr auto GENRE_SELECT_EQUAL  = "select g.GenreCode from Genres g where g.IsDeleted != #IS_DELETED# and g.Flags & #FLAGS# = 0 and exists (select 42 from Genre_List l %1 where l.GenreCode = g.GenreCode)";
+constexpr auto KEYWORD_SELECT_EQUAL = "select distinct k.KeywordID, k.KeywordTitle from Keywords k %1 where k.IsDeleted != #IS_DELETED# and k.Flags & #FLAGS# = 0 and k.SearchTitle = :starts";
 constexpr auto UPDATE_SELECT_EQUAL  = "select u.UpdateID from Updates u where exists (select 42 from Books l %1 where l.UpdateID = u.UpdateID)";
-constexpr auto BOOK_SELECT_EQUAL    = "select b.BookID, b.Title %2 where b.IsDeleted != %1 and b.SearchTitle = :starts";
+constexpr auto BOOK_SELECT_EQUAL    = "select b.BookID, b.Title %1 where b.IsDeleted != #IS_DELETED# and b.SearchTitle = :starts";
 
 constexpr auto AUTHOR_CONTENT  = "select count (42) from Authors a %1 where l.AuthorID = ?";
 constexpr auto SERIES_CONTENT  = "select count (42) from Series s %1 where l.SeriesID = ?";
@@ -253,32 +254,101 @@ with Ids(BookID) as (
         join Series_List l on l.BookID = b.BookID
         join Series_Search fts on fts.rowid = l.SeriesID
         join Search s on Series_Search match s.Title
+	union
+	select c.BookID
+		from Compilations c
+		join Compilations_Search fts on fts.rowid = c.CompilationID
+		join Search s on Compilations_Search match s.Title
 )
 select b.BookID, b.Title
-	from Books_View b
+	from #BOOKS_VIEW# b
 	join Ids i on i.BookID = b.BookID
-	where b.IsDeleted != %1
+	where b.IsDeleted != #IS_DELETED#
 )";
 
 constexpr auto SEARCH_QUERY_TEXT_AUTHORS = "select a.AuthorID, " FULL_AUTHOR_NAME R"(
 	from Authors a
 	join Authors_Search s on s.rowid = a.AuthorID and Authors_Search match ?
-	where a.IsDeleted != %1
+	where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0
 )";
 
 constexpr auto SEARCH_QUERY_TEXT_SERIES = R"(
 select a.SeriesID, a.SeriesTitle
 	from Series a
 	join Series_Search s on s.rowid = a.SeriesID and Series_Search match ?
-	where a.IsDeleted != %1
+	where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0
 )";
 
 constexpr auto SEARCH_QUERY_TEXT_BOOKS = R"(
 select b.BookID, b.Title
-	from Books_View b
+	from #BOOKS_VIEW# b
 	join Books_Search s on s.rowid = b.BookID and Books_Search match ?
-	where b.IsDeleted != %1
+	where b.IsDeleted != #IS_DELETED#
 )";
+
+constexpr auto DROP_BOOKS_VIEW_FLAGS_COMMAND_TEXT = "drop view if exists Books_View_Filtered";
+
+constexpr auto CREATE_BOOKS_VIEW_FLAGS_COMMAND_TEXT = R"(
+CREATE VIEW IF NOT EXISTS Books_View_Filtered
+(
+	BookID,
+	LibID,
+	Title,
+	SeriesID,
+	SeqNumber,
+	UpdateDate,
+	LibRate,
+	Lang,
+	Year,
+	FolderID,
+	FileName,
+	BookSize,
+	UpdateID,
+	IsDeleted,
+	UserRate,
+	SearchTitle
+)
+AS
+with Filtered(BookID) as
+(
+	select b.BookID
+	from Books b
+	where not
+	(      exists (select 42 from Languages m                  where m.LanguageCode = b.Lang                                and m.Flags & 2 != 0)
+		or exists (select 42 from Authors   m join Author_List  l on l.AuthorID     = m.AuthorID  and l.BookID = b.BookID where m.Flags & 2 != 0)
+		or exists (select 42 from Series    m join Series_List  l on l.SeriesID     = m.SeriesID  and l.BookID = b.BookID where m.Flags & 2 != 0)
+		or exists (select 42 from Genres    m join Genre_List   l on l.GenreCode    = m.GenreCode and l.BookID = b.BookID where m.Flags & 2 != 0)
+		or exists (select 42 from Keywords  m join Keyword_List l on l.KeywordID    = m.KeywordID and l.BookID = b.BookID where m.Flags & 2 != 0)
+    )
+)
+SELECT
+		b.BookID,
+		b.LibID,
+		b.Title,
+		b.SeriesID,
+		b.SeqNumber,
+		b.UpdateDate,
+		b.LibRate,
+		b.Lang,
+		b.Year,
+		b.FolderID,
+		b.FileName || b.Ext AS FileName,
+		b.BookSize,
+		b.UpdateID,
+		coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted,
+		bu.UserRate,
+		b.SearchTitle
+	FROM Books b
+    JOIN Filtered f on f.BookID = b.BookId
+	LEFT JOIN Books_User bu ON bu.BookID = b.BookID
+)";
+
+class IQueryTextFilter // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~IQueryTextFilter()                                  = default;
+	virtual std::string FilterQueryText(QString queryText) const = 0;
+};
 
 struct Node
 {
@@ -381,8 +451,8 @@ Node& WriteEntry(Node::Children& children, const QString& root, const QString& p
 }
 
 struct NavigationDescription;
-void WriteBookEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase& b, int, QString, std::map<QString, QString>&);
-void WriteNavigationEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase& b, int, QString, std::map<QString, QString>&);
+void WriteBookEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase&, const IQueryTextFilter&, QString, std::map<QString, QString>&);
+void WriteNavigationEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase&, const IQueryTextFilter&, QString, std::map<QString, QString>&);
 
 class INavigationProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -400,7 +470,7 @@ using WriteEntries  = void (*)(
     IRequester::Parameters       parameters,
     const NavigationDescription& d,
     DB::IDatabase&               db,
-    int                          removedFlag,
+    const IQueryTextFilter&      queryTextFilter,
     QString                      join,
     std::map<QString, QString>&  ones
 );
@@ -460,14 +530,23 @@ QString CreateSelf(const QString& root, const QString& path, const IRequester::P
 	return QString("%1%2%3").arg(root, path.isEmpty() ? QString {} : QString("/%1").arg(path), list.isEmpty() ? QString {} : "?" + list.join('&'));
 }
 
-void WriteBookEntries(Node::Children& children, const QString& root, IRequester::Parameters parameters, const NavigationDescription& d, DB::IDatabase& db, int, QString, std::map<QString, QString>& ones)
+void WriteBookEntries(
+	Node::Children&              children,
+	const QString&               root,
+	IRequester::Parameters       parameters,
+	const NavigationDescription& d,
+	DB::IDatabase&               db,
+	const IQueryTextFilter&      queryTextFilter,
+	QString,
+	std::map<QString, QString>& ones
+)
 {
 	const auto needAuthor = !parameters.contains(Loc::Authors);
 	for (auto&& [navigationId, title] : ones)
 	{
 		parameters[BOOKS] = navigationId;
 
-		const auto query = db.CreateQuery(d.content);
+		const auto query = db.CreateQuery(queryTextFilter.FilterQueryText(d.content));
 		query->Bind(0, navigationId.toStdString());
 		query->Execute();
 		assert(!query->Eof());
@@ -499,17 +578,17 @@ void WriteNavigationEntries(
 	IRequester::Parameters       parameters,
 	const NavigationDescription& d,
 	DB::IDatabase&               db,
-	const int                    removedFlag,
+	const IQueryTextFilter&      queryTextFilter,
 	QString                      join,
 	std::map<QString, QString>&  ones
 )
 {
 	if (join.isEmpty())
-		join = QString("join Books_View b on b.BookID = l.BookID and b.IsDeleted != %1\n%2").arg(removedFlag).arg(d.joinSelect);
+		join = QString("join #BOOKS_VIEW# b on b.BookID = l.BookID and b.IsDeleted != #IS_DELETED#\n%1").arg(d.joinSelect);
 
 	for (auto&& [navigationId, title] : ones)
 	{
-		const auto query = db.CreateQuery(QString(d.content).arg(join).toStdString());
+		const auto query = db.CreateQuery(queryTextFilter.FilterQueryText(QString(d.content).arg(join)));
 		query->Bind(0, navigationId.toStdString());
 		query->Execute();
 		assert(!query->Eof());
@@ -593,7 +672,7 @@ QString GetJoin(const IRequester::Parameters& parameters)
 	if (list.isEmpty())
 		return {};
 
-	list << "join Books_View b on b.BookID = l.BookID and b.IsDeleted != %1";
+	list << "join #BOOKS_VIEW# b on b.BookID = l.BookID and b.IsDeleted != #IS_DELETED#";
 
 	return list.join("\n");
 }
@@ -604,7 +683,7 @@ struct TitleHelper
 	QString additionalTitle;
 };
 
-QString GetTitle(DB::IDatabase& db, const IRequester::Parameters& parameters, TitleHelper helper)
+QString GetTitle(DB::IDatabase& db, const IQueryTextFilter& queryTextFilter, const IRequester::Parameters& parameters, TitleHelper helper)
 {
 	QStringList list;
 	std::ranges::transform(
@@ -613,7 +692,7 @@ QString GetTitle(DB::IDatabase& db, const IRequester::Parameters& parameters, Ti
 		}),
 		std::back_inserter(list),
 		[&](const auto& item) {
-			const auto query = db.CreateQuery(item.select);
+			const auto query = db.CreateQuery(queryTextFilter.FilterQueryText(item.select));
 			query->Bind(0, parameters.at(item.type).toStdString());
 			query->Execute();
 			assert(!query->Eof());
@@ -741,6 +820,7 @@ Node SeparatedSearch(const QString& root, const IRequester::Parameters& paramete
 class Requester::Impl final
 	: public IPostProcessCallback
 	, INavigationProvider
+	, IQueryTextFilter
 {
 private: // IPostProcessCallback
 	QString GetFileName(const QString& bookId) const override
@@ -762,6 +842,7 @@ public:
 		std::shared_ptr<const Flibrary::ICollectionProvider>         collectionProvider,
 		std::shared_ptr<const Flibrary::IDatabaseController>         databaseController,
 		std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
+		std::shared_ptr<const Flibrary::IFilterProvider>             filterProvider,
 		std::shared_ptr<const ICoverCache>                           coverCache,
 		std::shared_ptr<const IBookExtractor>                        bookExtractor,
 		std::shared_ptr<const INoSqlRequester>                       noSqlRequester,
@@ -771,11 +852,17 @@ public:
 		, m_collectionProvider { std::move(collectionProvider) }
 		, m_databaseController { std::move(databaseController) }
 		, m_authorAnnotationController { std::move(authorAnnotationController) }
+		, m_filterProvider { std::move(filterProvider) }
 		, m_coverCache { std::move(coverCache) }
 		, m_bookExtractor { std::move(bookExtractor) }
 		, m_noSqlRequester { std::move(noSqlRequester) }
 		, m_annotationController { std::move(annotationController) }
 	{
+		const auto db = m_databaseController->GetDatabase();
+		const auto tr = db->CreateTransaction();
+		tr->CreateCommand(DROP_BOOKS_VIEW_FLAGS_COMMAND_TEXT)->Execute();
+		tr->CreateCommand(CREATE_BOOKS_VIEW_FLAGS_COMMAND_TEXT)->Execute();
+		tr->Commit();
 	}
 
 	const Flibrary::ICollectionProvider& GetCollectionProvider() const
@@ -785,8 +872,7 @@ public:
 
 	Node GetRoot(const QString& root, const Parameters& parameters) const
 	{
-		const auto removedFlag = GetRemovedFlag();
-		const auto db          = m_databaseController->GetDatabase(true);
+		const auto db = m_databaseController->GetDatabase(true);
 
 		static constexpr std::pair<Flibrary::NavigationMode, const char*> navigationTypes[] {
 #define OPDS_INVOKER_ITEM(NAME) { Flibrary::NavigationMode::NAME, Loc::NAME },
@@ -794,11 +880,9 @@ public:
 #undef OPDS_INVOKER_ITEM
 		};
 
-		auto head = GetHead("root", GetTitle(*db, parameters, { .defaultTitle = m_collectionProvider->GetActiveCollection().name }), root, CreateSelf(root, "", parameters));
+		auto head = GetHead("root", GetTitle(*db, *this, parameters, { .defaultTitle = m_collectionProvider->GetActiveCollection().name }), root, CreateSelf(root, "", parameters));
 
-		auto join = GetJoin(parameters);
-		if (!join.isEmpty())
-			join = join.arg(removedFlag);
+		const auto join = GetJoin(parameters);
 
 		QStringList dbStatQueryTextItems;
 		std::ranges::transform(
@@ -819,7 +903,7 @@ public:
 			const auto childCount = head.children.size();
 			for (const auto& dbStatQueryText : dbStatQueryTextItems)
 			{
-				const auto query = db->CreateQuery(dbStatQueryText.toStdString());
+				const auto query = db->CreateQuery(FilterQueryText(dbStatQueryText));
 				query->Execute();
 				assert(!query->Eof());
 				const auto* id = query->Get<const char*>(0);
@@ -831,7 +915,7 @@ public:
 				if (childCount == head.children.size())
 					return GetBooks(root, parameters);
 
-				const auto query = db->CreateQuery(QString(BOOK_DESCRIPTION.count).arg(join).toStdString());
+				const auto query = db->CreateQuery(FilterQueryText(QString(BOOK_DESCRIPTION.count).arg(join)));
 				query->Execute();
 				assert(!query->Eof());
 
@@ -842,7 +926,7 @@ public:
 
 		if (!parameters.contains(Loc::Groups))
 		{
-			const auto query = db->CreateQuery(QString(GROUPS_SELECT).arg(removedFlag).arg(join).toStdString());
+			const auto query = db->CreateQuery(FilterQueryText(QString(GROUPS_SELECT).arg(join)));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto       p  = parameters;
@@ -858,7 +942,7 @@ public:
 	{
 		const auto db = m_databaseController->GetDatabase(true);
 
-		auto head = GetHead(BOOKS, GetTitle(*db, parameters, {}), root, CreateSelf(root, BOOKS, parameters));
+		auto head = GetHead(BOOKS, GetTitle(*db, *this, parameters, {}), root, CreateSelf(root, BOOKS, parameters));
 		FoldNavigation(head.children, root, parameters, BOOK_DESCRIPTION);
 
 		const auto entryBegin = std::ranges::find(head.children, ENTRY, [](const auto& item) {
@@ -989,11 +1073,10 @@ public:
 
 		const auto n = head.children.size();
 
-		const auto                 removedFlag = GetRemovedFlag();
-		const auto                 db          = m_databaseController->GetDatabase(true);
+		const auto                 db = m_databaseController->GetDatabase(true);
 		std::map<QString, QString> ones;
 		{
-			const auto query = db->CreateQuery(QString(queryText).arg(removedFlag).toStdString());
+			const auto query = db->CreateQuery(FilterQueryText(queryText));
 			query->Bind(0, terms.toStdString());
 			for (query->Execute(); !query->Eof(); query->Next())
 				ones.try_emplace(query->Get<const char*>(0), query->Get<const char*>(1));
@@ -1002,7 +1085,7 @@ public:
 			auto p = parameters;
 			p.erase("q");
 			p.erase(SEPARATED);
-			writeEntries(head.children, root, std::move(p), navigationDescription, *db, removedFlag, {}, ones);
+			writeEntries(head.children, root, std::move(p), navigationDescription, *db, *this, {}, ones);
 		}
 
 		if (n != head.children.size())
@@ -1119,7 +1202,7 @@ private: // INavigationProvider
 	Node GetNavigationMain(const QString& root, const Parameters& parameters, const NavigationDescription& d) const override
 	{
 		const auto db   = m_databaseController->GetDatabase(true);
-		auto       head = GetHead(d.type, GetTitle(*db, parameters, { .additionalTitle = Loc::Tr(Loc::NAVIGATION, d.type) }), root, CreateSelf(root, d.type, parameters));
+		auto       head = GetHead(d.type, GetTitle(*db, *this, parameters, { .additionalTitle = Loc::Tr(Loc::NAVIGATION, d.type) }), root, CreateSelf(root, d.type, parameters));
 		FoldNavigation(head.children, root, parameters, d);
 
 		const auto entryBegin = std::ranges::find(head.children, ENTRY, [](const auto& item) {
@@ -1135,35 +1218,39 @@ private: // INavigationProvider
 	template <typename T, typename DBCodeType>
 	Node GetNavigationT(const QString& root, const Parameters& parameters, const NavigationDescription& d) const
 	{
-		const auto removedFlag = GetRemovedFlag();
-		const auto db          = m_databaseController->GetDatabase(true);
+		const auto db = m_databaseController->GetDatabase(true);
 
 		auto join = [&] {
 			auto p = parameters;
 			p.erase(d.type);
-			auto result = GetJoin(p).arg(removedFlag);
+			auto result = GetJoin(p);
 			if (result.isEmpty())
-				return QString("join Books_View b on b.BookID = l.BookID and b.IsDeleted != %1").arg(removedFlag);
+				return QString("join #BOOKS_VIEW# b on b.BookID = l.BookID and b.IsDeleted != #IS_DELETED#");
 			return result;
 		}();
 
 		std::unordered_set<typename T::CodeType> itemsWithBooks;
 		if (!parameters.empty() && (parameters.size() > 1 || parameters.begin()->first != d.type))
 		{
-			const auto query = db->CreateQuery(QString(d.selectEqual).arg(join).toStdString());
+			const auto query = db->CreateQuery(FilterQueryText(QString(d.selectEqual).arg(join)));
 			for (query->Execute(); !query->Eof(); query->Next())
 				itemsWithBooks.emplace(query->template Get<DBCodeType>(0));
 		}
 
-		auto        rootItem   = T::Load(*db, itemsWithBooks);
-		const auto* parentItem = &rootItem;
+		auto  rootItem   = T::Load(*db, itemsWithBooks);
+		auto* parentItem = &rootItem;
 		if (const auto it = parameters.find(d.type); it != parameters.end())
 			parentItem = T::Find(parentItem, ToItemCode<typename T::CodeType>(it->second));
+
+		if (m_filterProvider->IsFilterEnabled())
+			std::erase_if(parentItem->children, [](const auto& item) {
+				return !!(item.flags & Flibrary::IDataItem::Flags::Filtered);
+			});
 
 		TitleHelper titleHelper { .defaultTitle = Loc::Tr(Loc::NAVIGATION, d.type) };
 		if (!parameters.contains(d.type))
 			titleHelper.additionalTitle = titleHelper.defaultTitle;
-		auto head = GetHead(d.type, GetTitle(*db, parameters, std::move(titleHelper)), root, CreateSelf(root, d.type, parameters));
+		auto head = GetHead(d.type, GetTitle(*db, *this, parameters, std::move(titleHelper)), root, CreateSelf(root, d.type, parameters));
 
 		Parameters typedParameters = parameters;
 		typedParameters.erase(STARTS);
@@ -1175,7 +1262,7 @@ private: // INavigationProvider
                 if (!childItem.children.empty())
                     return std::make_pair(QString(d.type), GetContent(childItem));
 
-                const auto query = db->CreateQuery(QString(d.content).arg(join).toStdString());
+                const auto query = db->CreateQuery(FilterQueryText(QString(d.content).arg(join)));
                 BindImpl(*query, 0, childItem.code);
                 query->Execute();
                 assert(!query->Eof());
@@ -1197,11 +1284,20 @@ private: // INavigationProvider
 		return GetNavigationT<Flibrary::Update, long long>(root, parameters, d);
 	}
 
+private: // IQueryTextFilter
+	std::string FilterQueryText(QString queryText) const override
+	{
+		const auto showRemoved = m_settings->Get(Flibrary::Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false);
+		queryText.replace("#IS_DELETED#", showRemoved ? "2" : "1");
+		queryText.replace("#FLAGS#", QString::number(static_cast<int>(m_filterProvider->IsFilterEnabled() ? Flibrary::IDataItem::Flags::Filtered : Flibrary::IDataItem::Flags::None)));
+		queryText.replace("#BOOKS_VIEW#", m_filterProvider->IsFilterEnabled() ? "Books_View_Filtered" : "Books_View");
+		return queryText.toStdString();
+	}
+
 private:
 	void FoldNavigation(Node::Children& children, const QString& root, const Parameters& parameters, const NavigationDescription& d) const
 	{
-		const auto removedFlag = GetRemovedFlag();
-		const auto db          = m_databaseController->GetDatabase(true);
+		const auto db = m_databaseController->GetDatabase(true);
 
 		ptrdiff_t                                         equalCount = 0;
 		QStringList                                       equal;
@@ -1211,12 +1307,12 @@ private:
 		const auto startsWithGlobal = GetParameter(parameters, STARTS);
 		auto       join             = GetJoin(parameters);
 		if (!join.isEmpty())
-			join = QString("%1\n%2").arg(d.joinSelect, join.arg(removedFlag));
+			join = QString("%1\n%2").arg(d.joinSelect, join);
 
 		const auto countTotal = [&] {
 			const auto [startsWithLike, escape] = PrepareForLike(startsWithGlobal);
-			const auto queryText                = QString(d.countStartsWith).arg(removedFlag).arg(escape).arg(join);
-			const auto query                    = db->CreateQuery(queryText.toStdString());
+			const auto queryText                = QString(d.countStartsWith).arg(escape).arg(join);
+			const auto query                    = db->CreateQuery(FilterQueryText(queryText));
 			query->Bind(":starts", startsWithGlobal.toStdString());
 			query->Bind(":starts_like", startsWithLike.toStdString());
 			query->Execute();
@@ -1225,7 +1321,7 @@ private:
 		}();
 
 		const auto selectOne = [&](const QString& queryText, const std::vector<std::pair<QString, QString>>& params) {
-			const auto query = db->CreateQuery(queryText.toStdString());
+			const auto query = db->CreateQuery(FilterQueryText(queryText));
 			for (const auto& [key, value] : params)
 				query->Bind(key.toStdString(), value.toStdString());
 
@@ -1237,7 +1333,7 @@ private:
 		if (countTotal <= maxSize)
 		{
 			const auto [startsWithLike, escape] = PrepareForLike(startsWithGlobal);
-			const auto queryText                = QString(d.selectSingle).arg(removedFlag).arg(escape).arg(join);
+			const auto queryText                = QString(d.selectSingle).arg(escape).arg(join);
 			selectOne(
 				queryText,
 				{
@@ -1250,8 +1346,8 @@ private:
 		{
 			const auto selectStarts = [&](const auto startsWith) {
 				const auto [startsWithLike, escape] = PrepareForLike(startsWith);
-				const auto queryText                = QString(d.startsWith).arg(removedFlag).arg(escape).arg(join);
-				const auto query                    = db->CreateQuery(queryText.toStdString());
+				const auto queryText                = QString(d.startsWith).arg(escape).arg(join);
+				const auto query                    = db->CreateQuery(FilterQueryText(queryText));
 				query->Bind(":length", startsWith.length() + 1);
 				query->Bind(":starts", startsWith.toStdString());
 				query->Bind(":starts_like", startsWithLike.toStdString());
@@ -1291,7 +1387,7 @@ private:
 
 		for (const auto& s : equal)
 		{
-			const auto queryText = QString(d.selectEqual).arg(removedFlag).arg(join);
+			const auto queryText = QString(d.selectEqual).arg(join);
 			selectOne(
 				queryText,
 				{
@@ -1302,17 +1398,7 @@ private:
 
 		Parameters typedParameters = parameters;
 		typedParameters.erase(STARTS);
-		d.writeEntries(children, root, std::move(typedParameters), d, *db, removedFlag, std::move(join), ones);
-	}
-
-	int GetRemovedFlag() const
-	{
-		return ShowRemoved() ? 2 : 1;
-	}
-
-	bool ShowRemoved() const
-	{
-		return m_settings->Get(Flibrary::Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false);
+		d.writeEntries(children, root, std::move(typedParameters), d, *db, *this, std::move(join), ones);
 	}
 
 	ptrdiff_t GetMaxResultSize() const
@@ -1332,6 +1418,7 @@ private:
 	std::shared_ptr<const Flibrary::ICollectionProvider>         m_collectionProvider;
 	std::shared_ptr<const Flibrary::IDatabaseController>         m_databaseController;
 	std::shared_ptr<const Flibrary::IAuthorAnnotationController> m_authorAnnotationController;
+	std::shared_ptr<const Flibrary::IFilterProvider>             m_filterProvider;
 	std::shared_ptr<const ICoverCache>                           m_coverCache;
 	std::shared_ptr<const IBookExtractor>                        m_bookExtractor;
 	std::shared_ptr<const INoSqlRequester>                       m_noSqlRequester;
@@ -1347,6 +1434,7 @@ Requester::Requester(
 	std::shared_ptr<const Flibrary::ICollectionProvider>         collectionProvider,
 	std::shared_ptr<const Flibrary::IDatabaseController>         databaseController,
 	std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
+	std::shared_ptr<const Flibrary::IFilterProvider>             filterProvider,
 	std::shared_ptr<const ICoverCache>                           coverCache,
 	std::shared_ptr<const IBookExtractor>                        bookExtractor,
 	std::shared_ptr<const INoSqlRequester>                       noSqlRequester,
@@ -1357,6 +1445,7 @@ Requester::Requester(
 		  std::move(collectionProvider),
 		  std::move(databaseController),
 		  std::move(authorAnnotationController),
+		  std::move(filterProvider),
 		  std::move(coverCache),
 		  std::move(bookExtractor),
 		  std::move(noSqlRequester),

@@ -17,7 +17,7 @@
 
 #include "data/Genre.h"
 #include "database/DatabaseUtil.h"
-#include "inpx/src/util/constant.h"
+#include "inpx/constant.h"
 #include "util/SortString.h"
 
 #include "BooksTreeGenerator.h"
@@ -51,6 +51,11 @@ with Ids as (
 		join Series_List l on l.BookID = b.BookID
 		join Series_Search fts on fts.rowid = l.SeriesID
 		join Search s on Series_Search match s.Title
+	union
+	select c.BookID
+		from Compilations c
+		join Compilations_Search fts on fts.rowid = c.CompilationID
+		join Search s on Compilations_Search match s.Title
 )
 )";
 
@@ -63,7 +68,7 @@ QString CreateAuthorTitle(const DB::IQuery& query)
 	AppendTitle(title, query.Get<const char*>(3));
 
 	if (title.isEmpty())
-		title = Loc::Tr(Loc::Ctx::ERROR, Loc::AUTHOR_NOT_SPECIFIED);
+		title = Loc::Tr(Loc::Ctx::ERROR_CTX, Loc::AUTHOR_NOT_SPECIFIED);
 
 	return title;
 }

@@ -10,6 +10,7 @@
 #include <plog/Appenders/IAppender.h>
 #include <plog/Severity.h>
 
+#include "fnd/algorithm.h"
 #include "fnd/observable.h"
 #include "fnd/observer.h"
 
@@ -228,9 +229,16 @@ private: // QAbstractListModel
 	{
 		if (!index.isValid() && role == Role::Severity)
 		{
-			m_logLevel = value.toInt();
-			invalidateFilter();
-			return true;
+			return Util::Set(
+				m_logLevel,
+				value.toInt(),
+				[this] {
+					beginFilterChange();
+				},
+				[this] {
+					endFilterChange(Direction::Rows);
+				}
+			);
 		}
 
 		return QSortFilterProxyModel::setData(index, value, role);

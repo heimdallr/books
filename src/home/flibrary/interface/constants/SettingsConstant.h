@@ -12,6 +12,8 @@ constexpr auto RECENT_NAVIGATION_ID_KEY          = "Collections/%1/Navigation/%2
 constexpr auto EXPORT_TEMPLATE_KEY               = "ui/Export/OutputTemplate";
 constexpr auto EXPORT_GRAYSCALE_COVER_KEY        = "ui/Export/GrayscaleCover";
 constexpr auto EXPORT_GRAYSCALE_IMAGES_KEY       = "ui/Export/GrayscaleImages";
+constexpr auto EXPORT_REMOVE_COVER_KEY           = "ui/Export/RemoveCover";
+constexpr auto EXPORT_REMOVE_IMAGES_KEY          = "ui/Export/RemoveImages";
 constexpr auto PERMANENT_LANG_FILTER_KEY         = "ui/permanentLanguageFilter";
 constexpr auto PERMANENT_LANG_FILTER_ENABLED_KEY = "ui/permanentLanguageFilterEnabled";
 constexpr auto HIDE_SCROLLBARS_KEY               = "ui/hideScrollBars";
@@ -26,6 +28,9 @@ constexpr auto OPDS_PORT_DEFAULT          = 12791;
 constexpr auto OPDS_READ_URL_TEMPLATE     = "opds/ReadUrlTemplate";
 constexpr auto OPDS_AUTOUPDATE_COLLECTION = "opds/AutoupdateCollection";
 constexpr auto OPDS_AUTH                  = "opds/Authentication";
+constexpr auto OPDS_WEB_ENABLED           = "opds/SimpleWebEnabled";
+constexpr auto OPDS_REACT_APP_ENABLED     = "opds/ReactAppEnabled";
+constexpr auto OPDS_OPDS_ENABLED          = "opds/OpdsEnabled";
 
 constexpr auto EXPORT_DIALOG_KEY = "Export";
 

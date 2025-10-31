@@ -62,18 +62,6 @@ AddTarget(${PROJECT_NAME}	app
 		qjpeg
 		qsvg
 		qschannelbackend
-)
-
-file(GLOB qt_ts "${CMAKE_CURRENT_LIST_DIR}/../../resources/locales/[^.]*\.ts")
-if (${QT_MAJOR_VERSION} STREQUAL 6)
-    foreach(ts ${qt_ts})
-        get_filename_component(ts ${ts} NAME_WE)
-        file(COPY ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_TRANSLATIONS}/qtbase_${ts}.qm DESTINATION ${CMAKE_BINARY_DIR}/bin/locales)
-    endforeach()
-endif()
-
-GenerateTranslations(
-	NAME ${PROJECT_NAME}
-	PATH "${CMAKE_CURRENT_LIST_DIR}/../../"
-	FILES ${qt_ts}
+	DEPENDENCIES
+		locales
 )

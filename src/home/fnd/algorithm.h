@@ -51,6 +51,18 @@ bool Set(T& oldValue, T&& newValue, const F& f)
 	return true;
 }
 
+template <typename T, std::invocable BeforeF, std::invocable AfterF>
+bool Set(T& oldValue, T&& newValue, const BeforeF& before, const AfterF& after)
+{
+	if (oldValue == newValue)
+		return false;
+
+	before();
+	oldValue = std::forward<T>(newValue);
+	after();
+	return true;
+}
+
 // из отсортированного диапазона делает вектор диапазонов из идущих подряд элементов
 template <typename InputIterator, typename Value = typename std::iterator_traits<InputIterator>::value_type>
 std::vector<std::pair<Value, Value>> CreateRanges(InputIterator begin, InputIterator end)
