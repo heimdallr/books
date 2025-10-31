@@ -1041,6 +1041,13 @@ private:
 
 		header->resizeSection(0, totalWidth);
 
+		auto absent = nameToIndex;
+		for (const auto& columnName : indices | std::views::values)
+			absent.erase(columnName);
+		for (const auto& [name, index] : absent)
+			if (index > 0 && index < std::ssize(indices))
+				indices.emplace_hint(indices.begin(), std::next(indices.begin(), index - 1)->first, name);
+
 		for (int n = 0; const auto& columnName : indices | std::views::values)
 			if (const auto it = nameToIndex.find(columnName); it != nameToIndex.end())
 				header->moveSection(header->visualIndex(it->second), ++n);
