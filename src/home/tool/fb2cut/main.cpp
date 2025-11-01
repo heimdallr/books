@@ -150,12 +150,6 @@ struct UniqueFile
 
 	[[nodiscard]] ImagesCompareResult CompareImages(const UniqueFile& rhs) const
 	{
-		if (!std::ranges::includes(title, rhs.title) && !std::ranges::includes(rhs.title, title))
-		{
-			PLOGW << QString("same hash, different titles: %1/%2 %3 vs %4/%5 %6").arg(folder, file, GetTitle(), rhs.folder, rhs.file, rhs.GetTitle());
-			return ImagesCompareResult::Varied;
-		}
-
 		auto result = ImagesCompareResult::Equal;
 		if (cover.hash != rhs.cover.hash)
 		{
@@ -193,13 +187,29 @@ struct UniqueFile
 			++rIt;
 		}
 
+		if (result == ImagesCompareResult::Varied)
+			return result;
+
 		if (lIt != images.cend())
-			return result == ImagesCompareResult::Inner ? ImagesCompareResult::Varied : ImagesCompareResult::Outer;
+			result = result == ImagesCompareResult::Inner ? ImagesCompareResult::Varied : ImagesCompareResult::Outer;
+
+		if (result == ImagesCompareResult::Varied)
+			return result;
 
 		if (rIt != rhs.images.cend())
-			return result == ImagesCompareResult::Outer ? ImagesCompareResult::Varied : ImagesCompareResult::Inner;
+			result = result == ImagesCompareResult::Outer ? ImagesCompareResult::Varied : ImagesCompareResult::Inner;
 
-		return result;
+		if (result == ImagesCompareResult::Varied)
+			return result;
+
+		if ((!images.empty() && !rhs.images.empty()) || (!cover.hash.isEmpty() && cover.hash == rhs.cover.hash))
+			return result;
+
+		if (std::ranges::includes(title, rhs.title) || std::ranges::includes(rhs.title, title))
+			return result;
+
+		PLOGW << QString("same hash, different titles: %1/%2 %3 vs %4/%5 %6").arg(folder, file, GetTitle(), rhs.folder, rhs.file, rhs.GetTitle());
+		return ImagesCompareResult::Varied;
 	}
 
 	void ClearImages()
@@ -336,6 +346,7 @@ public:
 		const QDir srcDir(QDir(m_dstDir).filePath("hash"));
 		for (const auto& xml : srcDir.entryList({ "*.xml" }, QDir::Filter::Files))
 		{
+			PLOGV << "parsing " << xml;
 			QFile file(srcDir.filePath(xml));
 			if (!file.open(QIODevice::ReadOnly))
 				continue;
