@@ -3,9 +3,9 @@
 #include <queue>
 #include <ranges>
 
-#include <QApplication>
 #include <QBuffer>
 #include <QCommandLineParser>
+#include <QCoreApplication>
 #include <QImageReader>
 #include <QProcess>
 #include <QRegularExpression>
@@ -39,7 +39,6 @@
 #include "util/xml/XmlWriter.h"
 
 #include "Fb2Parser.h"
-#include "di_app.h"
 #include "log.h"
 #include "settings.h"
 #include "zip.h"
@@ -78,8 +77,6 @@ constexpr auto FORMAT                          = "format";
 constexpr auto IMAGE_STATISTICS                = "image-statistics";
 constexpr auto HASH                            = "hash";
 constexpr auto SKIP                            = "skip";
-
-constexpr auto GUI_MODE_OPTION_NAME = "gui";
 
 constexpr auto QUALITY     = "quality [-1]";
 constexpr auto THREADS     = "threads [%1]";
@@ -1706,9 +1703,11 @@ Settings ProcessCommandLine(const QCoreApplication& app)
 		{ NO_FB2_OPTION_NAME, "Don't save fb2" },
 		{ NO_IMAGES_OPTION_NAME, "Don't save image" },
 		{ COVERS_ONLY_OPTION_NAME, "Save covers only" },
-		{ GUI_MODE_OPTION_NAME, "GUI mode" },
 	});
 	parser.process(app);
+
+	if (QCoreApplication::arguments().size() < 2)
+		parser.showHelp(0);
 
 	settings.dstDir = parser.value(FOLDER);
 
@@ -1760,7 +1759,7 @@ Settings ProcessCommandLine(const QCoreApplication& app)
 
 bool run(int argc, char* argv[])
 {
-	const QApplication app(argc, argv); //-V821
+	const QCoreApplication app(argc, argv); //-V821
 	QCoreApplication::setApplicationName(APP_ID);
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
 	Util::XMLPlatformInitializer xmlPlatformInitializer;
