@@ -2493,29 +2493,6 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>HomeCompa::fb2cut::MainWindow</name>
-    <message>
-        <source>Executables (*.exe);;All files (*.*)</source>
-        <translation>Виконувані файли (*.exe);; Усі файли (*.*)</translation>
-    </message>
-    <message>
-        <source>Select external archiver executable</source>
-        <translation>Вкажіть архіватор</translation>
-    </message>
-    <message>
-        <source>Select ffmpeg executable</source>
-        <translation>Вкажіть ffmpeg</translation>
-    </message>
-    <message>
-        <source>Select input archive</source>
-        <translation>Виберіть архів</translation>
-    </message>
-    <message>
-        <source>Select output folder</source>
-        <translation>Вкажіть папку призначення</translation>
-    </message>
-</context>
-<context>
     <name>Http</name>
     <message>
         <source>Authentication failed</source>
@@ -2540,25 +2517,6 @@ Try again?</source>
     <message>
         <source>Password</source>
         <translation>Пароль</translation>
-    </message>
-</context>
-<context>
-    <name>ImageSettingsWidget</name>
-    <message>
-        <source>Compression quality</source>
-        <translation>Якість стиснення</translation>
-    </message>
-    <message>
-        <source>Grayscale</source>
-        <translation>Чорно-біле</translation>
-    </message>
-    <message>
-        <source>Maximum size</source>
-        <translation>Максимальний розмір</translation>
-    </message>
-    <message>
-        <source>Skip</source>
-        <translation>Пропустити</translation>
     </message>
 </context>
 <context>
@@ -4729,93 +4687,6 @@ Try again?</source>
     <message>
         <source>Well, you only have yourself to blame!</source>
         <translation>Що ж, нарікайте тепер на себе!</translation>
-    </message>
-</context>
-<context>
-    <name>MainWindowClass</name>
-    <message>
-        <source> bytes</source>
-        <translation> байт</translation>
-    </message>
-    <message>
-        <source>Archive fb2</source>
-        <translation>Архів Fb2</translation>
-    </message>
-    <message>
-        <source>Common</source>
-        <translation>Загальні налаштування</translation>
-    </message>
-    <message>
-        <source>Covers</source>
-        <translation>Обкладинки</translation>
-    </message>
-    <message>
-        <source>Custom archiver command line (*experts only)</source>
-        <translation>Опції зовнішнього архіватора (* для досвідчених користувачів)</translation>
-    </message>
-    <message>
-        <source>Destination folder</source>
-        <translation>Папка призначення</translation>
-    </message>
-    <message>
-        <source>Destination folder not exists</source>
-        <translation>Папки призначення не існує</translation>
-    </message>
-    <message>
-        <source>External archiver (7z.exe) executable path</source>
-        <translation>Шлях до зовнішнього архіватора (7z.exe)</translation>
-    </message>
-    <message>
-        <source>FFmpeg (ffmpeg.exe) executable path</source>
-        <translation>Шлях до FFmpeg</translation>
-    </message>
-    <message>
-        <source>FFmpeg executable not found</source>
-        <translation>FFmpeg не знайдено</translation>
-    </message>
-    <message>
-        <source>Files found: %1</source>
-        <translation>Знайдено файли: %1</translation>
-    </message>
-    <message>
-        <source>For advanced users (optional)</source>
-        <translation>Для просунутих користувачів (опціонально)</translation>
-    </message>
-    <message>
-        <source>Image settings</source>
-        <translation>Налаштування зображень</translation>
-    </message>
-    <message>
-        <source>Images</source>
-        <translation>Зображення</translation>
-    </message>
-    <message>
-        <source>Input archive file or wildcard</source>
-        <translation>Вхідний архів чи маска файлів</translation>
-    </message>
-    <message>
-        <source>Max CPU thread count</source>
-        <translation>Максимальна кількість потоків процесора</translation>
-    </message>
-    <message>
-        <source>Min image file size</source>
-        <translation>Мінімальний розмір файлу зображення</translation>
-    </message>
-    <message>
-        <source>No input archives found</source>
-        <translation>Не знайдено вхідних файлів</translation>
-    </message>
-    <message>
-        <source>Save fb2</source>
-        <translation>Зберігати Fb2</translation>
-    </message>
-    <message>
-        <source>Start</source>
-        <translation>Пуск</translation>
-    </message>
-    <message>
-        <source>fb2cut - fb2 libraries zip archive repacker</source>
-        <translation>fb2cut - перепакувальник zip-архівів fb2-бібліотек</translation>
     </message>
 </context>
 <context>
