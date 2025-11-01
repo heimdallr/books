@@ -3,9 +3,9 @@
 #include <queue>
 #include <ranges>
 
-#include <QApplication>
 #include <QBuffer>
 #include <QCommandLineParser>
+#include <QCoreApplication>
 #include <QImageReader>
 #include <QProcess>
 #include <QRegularExpression>
@@ -39,9 +39,6 @@
 #include "util/xml/XmlWriter.h"
 
 #include "Fb2Parser.h"
-#include "ImageSettingsWidget.h"
-#include "MainWindow.h"
-#include "di_app.h"
 #include "log.h"
 #include "settings.h"
 #include "zip.h"
@@ -80,8 +77,6 @@ constexpr auto FORMAT                          = "format";
 constexpr auto IMAGE_STATISTICS                = "image-statistics";
 constexpr auto HASH                            = "hash";
 constexpr auto SKIP                            = "skip";
-
-constexpr auto GUI_MODE_OPTION_NAME = "gui";
 
 constexpr auto QUALITY     = "quality [-1]";
 constexpr auto THREADS     = "threads [%1]";
@@ -1672,13 +1667,7 @@ bool SetValue<QSize>(const QCommandLineParser& parser, const char* key, QSize& v
 	return true;
 }
 
-struct CommandLineSettings
-{
-	Settings settings;
-	bool     gui { true };
-};
-
-CommandLineSettings ProcessCommandLine(const QCoreApplication& app)
+Settings ProcessCommandLine(const QCoreApplication& app)
 {
 	Settings settings {};
 
@@ -1714,9 +1703,11 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication& app)
 		{ NO_FB2_OPTION_NAME, "Don't save fb2" },
 		{ NO_IMAGES_OPTION_NAME, "Don't save image" },
 		{ COVERS_ONLY_OPTION_NAME, "Save covers only" },
-		{ GUI_MODE_OPTION_NAME, "GUI mode" },
 	});
 	parser.process(app);
+
+	if (QCoreApplication::arguments().size() < 2)
+		parser.showHelp(0);
 
 	settings.dstDir = parser.value(FOLDER);
 
@@ -1763,42 +1754,21 @@ CommandLineSettings ProcessCommandLine(const QCoreApplication& app)
 		return QDir::fromNativeSeparators(fileName);
 	});
 
-	return CommandLineSettings { std::move(settings), parser.isSet(GUI_MODE_OPTION_NAME) };
+	return settings;
 }
 
 bool run(int argc, char* argv[])
 {
-	const QApplication app(argc, argv); //-V821
+	const QCoreApplication app(argc, argv); //-V821
 	QCoreApplication::setApplicationName(APP_ID);
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
 	Util::XMLPlatformInitializer xmlPlatformInitializer;
 
-	CommandLineSettings settings;
-
-	if (argc > 1)
-		settings = ProcessCommandLine(app);
-
-	if (settings.gui)
-	{
-		PLOGI << "GUI mode activated";
-
-		std::shared_ptr<Hypodermic::Container> container;
-		{
-			Hypodermic::ContainerBuilder builder;
-			DiInit(builder, container);
-		}
-
-		const auto translators = Loc::LoadLocales(*container->resolve<ISettings>()); //-V808
-		const auto mainWindow  = container->resolve<MainWindow>();
-		mainWindow->SetSettings(&settings.settings);
-		mainWindow->show();
-		if (!QApplication::exec())
-			return false;
-	}
+	auto settings = ProcessCommandLine(app);
 
 	{
 		std::ostringstream stream;
-		stream << "Process started with " << settings.settings;
+		stream << "Process started with " << settings;
 		PLOGI << stream.str();
 	}
 
@@ -1806,10 +1776,10 @@ bool run(int argc, char* argv[])
 		if (!(path.isEmpty() || QFile::exists(path)))
 			throw std::invalid_argument(QString("Cannot find %1, path '%2' not found").arg(name).arg(path).toStdString());
 	};
-	checkExternalUtil("ffmpeg", settings.settings.ffmpeg);
-	checkExternalUtil("external archiver", settings.settings.archiver);
+	checkExternalUtil("ffmpeg", settings.ffmpeg);
+	checkExternalUtil("external archiver", settings.archiver);
 
-	const auto failedArchives = ProcessArchives(settings.settings);
+	const auto failedArchives = ProcessArchives(settings);
 	if (failedArchives.isEmpty())
 		return false;
 

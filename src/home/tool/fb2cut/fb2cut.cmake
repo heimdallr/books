@@ -6,7 +6,6 @@ AddTarget(fb2cut	app_console
 		Boost::headers
 		Qt${QT_MAJOR_VERSION}::Core
 		Qt${QT_MAJOR_VERSION}::Gui
-		Qt${QT_MAJOR_VERSION}::Widgets
 	LINK_TARGETS
 		flicu
 		fljxl
