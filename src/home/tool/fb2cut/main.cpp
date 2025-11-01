@@ -3,9 +3,9 @@
 #include <queue>
 #include <ranges>
 
+#include <QGuiApplication>
 #include <QBuffer>
 #include <QCommandLineParser>
-#include <QCoreApplication>
 #include <QImageReader>
 #include <QProcess>
 #include <QRegularExpression>
@@ -949,11 +949,34 @@ private:
 		std::set<ImageItem> images;
 
 		auto binaryCallback = [&](QString&& name, const bool isCover, QByteArray body) {
-			const QFileInfo imageFileInfo(name);
-			if (IsOneOf(imageFileInfo.suffix().toLower(), "zip", "rar", "txt"))
+			ImageStatisticsItem::PixelSchema pixelSchema = ImageStatisticsItem::PixelSchema::Unknown;
+
+			int         width  = 0;
+			int         height = 0;
+			const char* fail   = nullptr;
+
+			ScopedCall statGuard([&, name]() mutable {
+				if (m_settings.imageStatistics.isEmpty())
+					return;
+
+				m_hash.reset();
+				m_hash.addData(body);
+				m_imageStatistics.emplace_back(m_folder, completeFileName, std::move(name), fail, isCover, body.size(), width, height, pixelSchema, QString::fromUtf8(m_hash.result().toHex()));
+			});
+
+			const QFileInfo              imageFileInfo(name);
+			static constexpr const char* passThruBinTypes[] = { "zip", "rar", "txt" };
+			if (const auto it = std::ranges::find_if(
+					passThruBinTypes,
+					[ext = imageFileInfo.suffix().toLower()](const char* type) {
+						return ext == type;
+					}
+				);
+			    it != std::end(passThruBinTypes))
 			{
+				fail                = *it;
 				auto      imageFile = m_settings.image.fileNameGetter(completeFileName, name);
-				ImageItem imageItem { .fileName = std::move(imageFile), .body = std::move(body), .dateTime = dateTime };
+				ImageItem imageItem { .fileName = std::move(imageFile), .body = body, .dateTime = dateTime };
 
 				if (!m_settings.image.save)
 					imageItem.body = {};
@@ -963,20 +986,6 @@ private:
 			}
 
 			const auto& settings = isCover ? m_settings.cover : m_settings.image;
-
-			ImageStatisticsItem::PixelSchema pixelSchema = ImageStatisticsItem::PixelSchema::Unknown;
-
-			int         width  = 0;
-			int         height = 0;
-			const char* fail   = nullptr;
-			ScopedCall  statGuard([&, name]() mutable {
-                if (m_settings.imageStatistics.isEmpty())
-                    return;
-
-                m_hash.reset();
-                m_hash.addData(body);
-                m_imageStatistics.emplace_back(m_folder, completeFileName, std::move(name), fail, isCover, body.size(), width, height, pixelSchema, QString::fromUtf8(m_hash.result().toHex()));
-			 });
 
 			auto image = ReadImage(body, settings.type, settings.fileNameGetter(completeFileName, name), fail, settings.save);
 			if (image.isNull())
@@ -1022,7 +1031,7 @@ private:
 			auto       imageFile = settings.fileNameGetter(completeFileName, isCover ? name : QString::number(num));
 			idToNum.try_emplace(std::move(name), num);
 
-			ImageItem imageItem { .fileName = std::move(imageFile), .body = std::move(body), .dateTime = dateTime, .hash = it->first };
+			ImageItem imageItem { .fileName = std::move(imageFile), .body = body, .dateTime = dateTime, .hash = it->first };
 
 			if (settings.save)
 			{
@@ -1759,7 +1768,7 @@ Settings ProcessCommandLine(const QCoreApplication& app)
 
 bool run(int argc, char* argv[])
 {
-	const QCoreApplication app(argc, argv); //-V821
+	const QGuiApplication app(argc, argv); //-V821
 	QCoreApplication::setApplicationName(APP_ID);
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
 	Util::XMLPlatformInitializer xmlPlatformInitializer;
