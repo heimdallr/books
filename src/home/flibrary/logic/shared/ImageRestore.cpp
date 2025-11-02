@@ -237,12 +237,29 @@ void ConvertToGrayscale(QByteArray& srcImageBody, const int quality)
 		return;
 
 	auto image = pixmap.toImage();
-	image.convertTo(QImage::Format::Format_Grayscale8);
+	if (image.pixelFormat().alphaUsage() == QPixelFormat::AlphaUsage::IgnoresAlpha)
+	{
+		image.convertTo(QImage::Format::Format_Grayscale8);
+	}
+	else
+	{
+		QImage alpha(image.width(), image.height(), QImage::Format::Format_Grayscale8);
+
+		for (auto h = 0, H = image.height(); h < H; ++h)
+		{
+			auto* alphaBytes = alpha.scanLine(h);
+			for (auto w = 0, W = image.width(); w < W; ++w, ++alphaBytes)
+				*alphaBytes = static_cast<uchar>(qAlpha(image.pixel(w, h)));
+		}
+
+		image.convertTo(QImage::Format::Format_Grayscale8);
+		image.setAlphaChannel(alpha);
+	}
 
 	QByteArray result;
 	{
 		QBuffer imageOutput(&result);
-		if (!image.save(&imageOutput, image.pixelFormat().alphaUsage() == QPixelFormat::AlphaUsage::UsesAlpha ? PNG : JPEG, quality))
+		if (!image.save(&imageOutput, PNG, quality))
 			return;
 	}
 
