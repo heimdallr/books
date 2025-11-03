@@ -1,6 +1,4 @@
 #include <QApplication>
-#include <QFileInfo>
-#include <QPalette>
 #include <QStandardPaths>
 #include <QStyleFactory>
 #include <QTranslator>
@@ -13,6 +11,7 @@
 #include "interface/logic/IDatabaseMigrator.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IOpdsController.h"
+#include "interface/logic/ISingleInstanceController.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/IMainWindow.h"
 #include "interface/ui/IMigrateWindow.h"
@@ -81,6 +80,10 @@ int main(int argc, char* argv[])
 			const auto settings    = container->resolve<ISettings>();
 			const auto translators = Loc::LoadLocales(*settings); //-V808
 
+			auto singleInstanceController = container->resolve<ISingleInstanceController>();
+			if (!singleInstanceController->IsFirstSingleInstanceApp())
+				singleInstanceController.reset();
+
 			Genre::SetSortMode(*settings);
 			if (!settings->HasKey(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks)))
 				settings->Set(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks), false);
@@ -115,6 +118,10 @@ int main(int argc, char* argv[])
 			container->resolve<ITaskQueue>()->Execute();
 			const auto mainWindow = container->resolve<IMainWindow>();
 			container->resolve<IDatabaseUser>()->EnableApplicationCursorChange(true);
+
+			if (singleInstanceController)
+				singleInstanceController->RegisterObserver(mainWindow.get());
+
 			mainWindow->Show();
 
 			if (const auto code = QApplication::exec(); code != Constant::RESTART_APP)
@@ -122,6 +129,9 @@ int main(int argc, char* argv[])
 				PLOGI << "App finished with " << code;
 				return code;
 			}
+
+			if (singleInstanceController)
+				singleInstanceController->UnregisterObserver(mainWindow.get());
 
 			container->resolve<IOpdsController>()->Restart();
 

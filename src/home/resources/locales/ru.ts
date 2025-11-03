@@ -5314,6 +5314,13 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>SingleInstanceController</name>
+    <message>
+        <source>One instance of the program is already running. Do you want to start a new one?</source>
+        <translation>Один экземпляр программы уже запущен. Хотите запустить новый?</translation>
+    </message>
+</context>
+<context>
     <name>TreeView</name>
     <message>
         <source>Filter</source>
