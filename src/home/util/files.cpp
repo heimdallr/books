@@ -1,5 +1,6 @@
 #include "files.h"
 
+#include <QCoreApplication>
 #include <QDir>
 
 namespace HomeCompa::Util
@@ -16,6 +17,16 @@ QStringList ResolveWildcard(const QString& wildcard)
 		return QDir::fromNativeSeparators(dir.filePath(file));
 	});
 	return result;
+}
+
+QString ToRelativePath(const QString& path)
+{
+	return path.isEmpty() ? path : QDir::cleanPath(QDir(QCoreApplication::applicationDirPath()).relativeFilePath(path));
+}
+
+QString ToAbsolutePath(const QString& path)
+{
+	return path.isEmpty() ? path : QDir::cleanPath(QDir(QCoreApplication::applicationDirPath()).absoluteFilePath(path));
 }
 
 }

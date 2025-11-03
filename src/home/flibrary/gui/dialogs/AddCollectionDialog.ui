@@ -292,6 +292,72 @@
     </layout>
    </item>
   </layout>
+  <action name="actionDatabaseToRelativePath">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../icons/light/resources/light.qrc">
+     <normaloff>:/icons/r.svg</normaloff>:/icons/r.svg</iconset>
+   </property>
+   <property name="text">
+    <string notr="true">R</string>
+   </property>
+   <property name="toolTip">
+    <string>Transform path to relative</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionDatabaseToAbsolutePath">
+   <property name="icon">
+    <iconset resource="../../icons/light/resources/light.qrc">
+     <normaloff>:/icons/a.svg</normaloff>:/icons/a.svg</iconset>
+   </property>
+   <property name="text">
+    <string notr="true">A</string>
+   </property>
+   <property name="toolTip">
+    <string>Transform path to absolute</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionArchiveToRelativePath">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="icon">
+    <iconset resource="../../icons/light/resources/light.qrc">
+     <normaloff>:/icons/r.svg</normaloff>:/icons/r.svg</iconset>
+   </property>
+   <property name="text">
+    <string notr="true">R</string>
+   </property>
+   <property name="toolTip">
+    <string>Transform path to relative</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionArchiveToAbsolutePath">
+   <property name="icon">
+    <iconset resource="../../icons/light/resources/light.qrc">
+     <normaloff>:/icons/a.svg</normaloff>:/icons/a.svg</iconset>
+   </property>
+   <property name="text">
+    <string notr="true">A</string>
+   </property>
+   <property name="toolTip">
+    <string>Transform path to absolute</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>

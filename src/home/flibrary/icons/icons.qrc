@@ -16,5 +16,7 @@
 		<file alias="unsupported-image.svg">icons/unsupported-image.svg</file>
         <file alias="Find.svg">icons/find.svg</file>
         <file alias="Filter.svg">icons/filter.svg</file>
+        <file alias="a.svg">icons/a.svg</file>
+        <file alias="r.svg">icons/r.svg</file>
 	</qresource>
 </RCC>
