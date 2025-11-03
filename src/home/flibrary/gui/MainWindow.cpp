@@ -74,7 +74,6 @@ constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 TR_DEF
 
 constexpr auto LOG_SEVERITY_KEY                   = "ui/LogSeverity";
-constexpr auto HIDE_TO_TRAY_KEY                   = "ui/HideToTray";
 constexpr auto SHOW_AUTHOR_ANNOTATION_KEY         = "ui/View/AuthorAnnotation";
 constexpr auto SHOW_ANNOTATION_KEY                = "ui/View/Annotation";
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY        = "ui/View/AnnotationContent";
@@ -331,6 +330,13 @@ public:
 		return false;
 	}
 
+	void OnStartAnotherApp() const
+	{
+		m_isFullScreen ? m_self.showFullScreen() : m_isMaximized ? m_self.showMaximized() : m_self.showNormal();
+		if (m_systemTray)
+			m_systemTray->hide();
+	}
+
 private: // ICollectionsObserver
 	void OnActiveCollectionChanged() override
 	{
@@ -510,18 +516,15 @@ private:
 
 	void SetupTrayMenu()
 	{
-		if (!m_settings->Get(HIDE_TO_TRAY_KEY, false))
+		if (!m_settings->Get(Constant::Settings::HIDE_TO_TRAY_KEY, false))
 			return;
 
 		m_systemTray = new QSystemTrayIcon(QIcon(":/icons/main.ico"), &m_self);
 		auto menu    = new QMenu(&m_self);
 
 		const auto open = [this](const auto reason = QSystemTrayIcon::Unknown) {
-			if (reason == QSystemTrayIcon::ActivationReason::Context)
-				return;
-
-			m_isFullScreen ? m_self.showFullScreen() : m_isMaximized ? m_self.showMaximized() : m_self.showNormal();
-			m_systemTray->hide();
+			if (reason != QSystemTrayIcon::ActivationReason::Context)
+				OnStartAnotherApp();
 		};
 
 		menu->addAction(Tr(OPEN), open);

@@ -16,6 +16,7 @@ constexpr auto EXPORT_REMOVE_COVER_KEY           = "ui/Export/RemoveCover";
 constexpr auto EXPORT_REMOVE_IMAGES_KEY          = "ui/Export/RemoveImages";
 constexpr auto PERMANENT_LANG_FILTER_KEY         = "ui/permanentLanguageFilter";
 constexpr auto PERMANENT_LANG_FILTER_ENABLED_KEY = "ui/permanentLanguageFilterEnabled";
+constexpr auto HIDE_TO_TRAY_KEY                  = "ui/HideToTray";
 constexpr auto HIDE_SCROLLBARS_KEY               = "ui/hideScrollBars";
 constexpr auto SHOW_REMOVED_BOOKS_KEY            = "ui/View/RemovedBooks";
 
