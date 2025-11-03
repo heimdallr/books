@@ -323,6 +323,9 @@ public:
 		if (!m_systemTray)
 			return QCoreApplication::exit(), true;
 
+		m_isMaximized  = m_self.isMaximized();
+		m_isFullScreen = m_self.isFullScreen();
+
 		m_systemTray->show();
 		m_self.hide();
 		return false;
@@ -517,7 +520,7 @@ private:
 			if (reason == QSystemTrayIcon::ActivationReason::Context)
 				return;
 
-			m_self.showNormal();
+			m_isFullScreen ? m_self.showFullScreen() : m_isMaximized ? m_self.showMaximized() : m_self.showNormal();
 			m_systemTray->hide();
 		};
 
@@ -582,8 +585,8 @@ private:
 		connect(m_ui.actionImportUserData, &QAction::triggered, &m_self, [=] {
 			userDataOperation(&IUserDataController::Restore);
 		});
-		connect(m_ui.actionExit, &QAction::triggered, &m_self, [this] {
-			Close();
+		connect(m_ui.actionExit, &QAction::triggered, &m_self, [] {
+			QCoreApplication::exit();
 		});
 	}
 
@@ -1310,6 +1313,8 @@ private:
 	QAction* m_disableAllJokes { nullptr };
 
 	QSystemTrayIcon* m_systemTray { nullptr };
+	bool             m_isMaximized { false };
+	bool             m_isFullScreen { false };
 };
 
 MainWindow::MainWindow(
