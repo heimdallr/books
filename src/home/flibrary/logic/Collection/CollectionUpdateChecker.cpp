@@ -73,7 +73,7 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 			  std::function<void(size_t)> result;
 
 			  const auto& collection       = m_impl->collectionProvider->GetActiveCollection();
-			  const auto  collectionFolder = collection.folder;
+			  const auto  collectionFolder = collection.GetFolder();
 			  const auto  inpxFiles        = m_impl->collectionProvider->GetInpxFiles(collectionFolder);
 
 			  Collection updatedCollection = collection;

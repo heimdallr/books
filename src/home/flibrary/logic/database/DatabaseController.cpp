@@ -23,7 +23,7 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& col
 	if (!collectionProvider.ActiveCollectionExists())
 		return {};
 
-	const auto databaseName = collectionProvider.GetActiveCollection().database.toStdString();
+	const auto databaseName = collectionProvider.GetActiveCollection().GetDatabase().toStdString();
 	if (databaseName.empty())
 		return {};
 

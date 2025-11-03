@@ -17,6 +17,7 @@
 
 #include "CollectionImpl.h"
 #include "log.h"
+#include "util/files.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -118,7 +119,7 @@ public:
 
 		const auto& collection = GetActiveCollection();
 		const auto  id         = collection.id;
-		auto        db         = collection.database;
+		auto        db         = collection.GetDatabase();
 		std::erase_if(m_collectionProvider->GetCollections(), [&](const auto& item) {
 			return item->id == id;
 		});
@@ -220,8 +221,10 @@ public:
 	}
 
 private:
-	void CreateNew(QString name, QString db, QString folder, const QString& defaultArchiveType, const Inpx::CreateCollectionMode mode)
+	void CreateNew(QString name, QString dbOrigin, QString folderOrigin, const QString& defaultArchiveType, const Inpx::CreateCollectionMode mode)
 	{
+		const auto db = Util::ToAbsolutePath(dbOrigin);
+		const auto folder = Util::ToAbsolutePath(folderOrigin);
 		if (QFile(db).exists())
 		{
 			if (m_uiFactory->ShowWarning(Tr(CONFIRM_OVERWRITE_DATABASE), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
@@ -242,7 +245,7 @@ private:
 		ini.try_emplace(DEFAULT_ARCHIVE_TYPE, defaultArchiveType.toStdWString());
 
 		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement().toStdWString());
-		auto callback = [this, parser = std::move(parser), name, db, folder, mode, tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
+		auto callback = [this, parser = std::move(parser), name, db = std::move(dbOrigin), folder = std::move(folderOrigin), mode, tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
 			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
 				parser.reset();
 			});
@@ -270,7 +273,7 @@ private:
 		const auto& collection = GetActiveCollection();
 		auto        parser     = std::make_shared<Inpx::Parser>();
 		auto&       parserRef  = *parser;
-		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.database, collection.folder, true);
+		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), true);
 		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable {
             if (updateResult.oldDataUpdateFound)
                 PLOGW << "Old indices changed. It is recommended to recreate the collection again.";

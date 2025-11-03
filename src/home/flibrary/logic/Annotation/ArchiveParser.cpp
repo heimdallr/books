@@ -503,7 +503,7 @@ private:
 	Data ParseFb2(const IDataItem& book) const
 	{
 		const auto& collection = m_collectionProvider->GetActiveCollection();
-		const auto  folder     = QString("%1/%2").arg(collection.folder, book.GetRawData(BookItem::Column::Folder));
+		const auto  folder     = QString("%1/%2").arg(collection.GetFolder(), book.GetRawData(BookItem::Column::Folder));
 		if (!QFile::exists(folder))
 		{
 			PLOGW << folder << " not found";
@@ -516,7 +516,7 @@ private:
 		const auto stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
 
 		XmlParser parser(stream->GetStream());
-		return parser.Parse(collection.folder, book, std::move(parseProgressItem));
+		return parser.Parse(collection.GetFolder(), book, std::move(parseProgressItem));
 	}
 
 private:

@@ -248,7 +248,7 @@ public:
 		m_processFunctor = std::move(processFunctor);
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor({ static_cast<int>(m_taskCount) }).swap(m_executor);
 		m_dstFolder     = std::move(dstFolder);
-		m_archiveFolder = m_collectionController->GetActiveCollection().folder.toStdWString();
+		m_archiveFolder = m_collectionController->GetActiveCollection().GetFolder().toStdWString();
 
 		const auto transaction = m_databaseUser->Database()->CreateTransaction();
 		const auto command     = transaction->CreateCommand(ExportStat::INSERT_QUERY);

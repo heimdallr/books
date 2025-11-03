@@ -289,7 +289,7 @@ void RequestNavigationReviews(
 
 	databaseUser.Execute(
 		{ "Get navigation",
-	      [&cache, mode = navigationMode, folder = collectionProvider.GetActiveCollection().folder, callback = std::move(callback)]() mutable {
+	      [&cache, mode = navigationMode, folder = collectionProvider.GetActiveCollection().GetFolder(), callback = std::move(callback)]() mutable {
 			  return CreateCalendarTree(mode, std::move(callback), cache, [&folder](std::unordered_map<long long, IDataItem::Ptr>& items) {
 				  for (const auto& reviewInfo : QDir(folder + "/" + QString::fromStdWString(REVIEWS_FOLDER)).entryInfoList({ "??????.7z" }))
 				  {

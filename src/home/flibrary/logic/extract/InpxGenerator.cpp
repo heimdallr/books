@@ -263,7 +263,7 @@ public:
 		m_taskCount = std::size(books) / 3000 + 1;
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor({ static_cast<int>(m_taskCount) }).swap(m_executor);
 		m_dstFolder     = std::move(dstFolder);
-		m_archiveFolder = m_collectionProvider->GetActiveCollection().folder.toStdWString();
+		m_archiveFolder = m_collectionProvider->GetActiveCollection().GetFolder().toStdWString();
 
 		CollectExistingFiles();
 

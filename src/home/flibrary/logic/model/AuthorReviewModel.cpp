@@ -47,7 +47,7 @@ public:
 	{
 		return std::make_unique<Model>(
 			settings.Get(Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false),
-			collectionProvider.ActiveCollectionExists() ? collectionProvider.GetActiveCollection().folder : QString {},
+			collectionProvider.ActiveCollectionExists() ? collectionProvider.GetActiveCollection().GetFolder() : QString {},
 			std::move(databaseUser)
 		);
 	}
