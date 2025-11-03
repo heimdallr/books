@@ -147,9 +147,11 @@ public:
 		std::shared_ptr<const IStyleApplierFactory>     styleApplierFactory,
 		std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
 		std::shared_ptr<const IUiFactory>               uiFactory,
+		std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
+		std::shared_ptr<const IDatabaseChecker>         databaseChecker,
+		std::shared_ptr<const IDatabaseUser>            databaseUser,
 		std::shared_ptr<ISettings>                      settings,
 		std::shared_ptr<ICollectionController>          collectionController,
-		std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 		std::shared_ptr<IParentWidgetProvider>          parentWidgetProvider,
 		std::shared_ptr<IAnnotationController>          annotationController,
 		std::shared_ptr<AnnotationWidget>               annotationWidget,
@@ -160,8 +162,6 @@ public:
 		std::shared_ptr<QStyledItemDelegate>            logItemDelegate,
 		std::shared_ptr<ICommandLine>                   commandLine,
 		std::shared_ptr<ILineOption>                    lineOption,
-		std::shared_ptr<const IDatabaseChecker>         databaseChecker,
-		std::shared_ptr<const IDatabaseUser>            databaseUser,
 		std::shared_ptr<IAlphabetPanel>                 alphabetPanel
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
@@ -171,6 +171,7 @@ public:
 		, m_styleApplierFactory { std::move(styleApplierFactory) }
 		, m_jokeRequesterFactory { std::move(jokeRequesterFactory) }
 		, m_uiFactory { std::move(uiFactory) }
+		, m_databaseUser { std::move(databaseUser) }
 		, m_settings { std::move(settings) }
 		, m_collectionController { std::move(collectionController) }
 		, m_parentWidgetProvider { std::move(parentWidgetProvider) }
@@ -182,7 +183,6 @@ public:
 		, m_progressBar { std::move(progressBar) }
 		, m_logItemDelegate { std::move(logItemDelegate) }
 		, m_lineOption { std::move(lineOption) }
-		, m_databaseUser { std::move(databaseUser) }
 		, m_alphabetPanel { std::move(alphabetPanel) }
 		, m_navigationViewController { ILogicFactory::Lock(m_logicFactory)->GetTreeViewController(ItemType::Navigation) }
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
@@ -1268,13 +1268,16 @@ private:
 	}
 
 private:
-	MainWindow&                                                m_self;
-	Ui::MainWindow                                             m_ui {};
-	QTimer                                                     m_delayStarter;
-	std::weak_ptr<const ILogicFactory>                         m_logicFactory;
-	std::shared_ptr<const IStyleApplierFactory>                m_styleApplierFactory;
-	std::shared_ptr<const IJokeRequesterFactory>               m_jokeRequesterFactory;
-	std::shared_ptr<const IUiFactory>                          m_uiFactory;
+	MainWindow&    m_self;
+	Ui::MainWindow m_ui {};
+	QTimer         m_delayStarter;
+
+	std::weak_ptr<const ILogicFactory>           m_logicFactory;
+	std::shared_ptr<const IStyleApplierFactory>  m_styleApplierFactory;
+	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
+	std::shared_ptr<const IUiFactory>            m_uiFactory;
+	std::shared_ptr<const IDatabaseUser>         m_databaseUser;
+
 	PropagateConstPtr<ISettings, std::shared_ptr>              m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr>  m_collectionController;
 	PropagateConstPtr<IParentWidgetProvider, std::shared_ptr>  m_parentWidgetProvider;
@@ -1286,7 +1289,6 @@ private:
 	PropagateConstPtr<QWidget, std::shared_ptr>                m_progressBar;
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr>    m_logItemDelegate;
 	PropagateConstPtr<ILineOption, std::shared_ptr>            m_lineOption;
-	std::shared_ptr<const IDatabaseUser>                       m_databaseUser;
 	PropagateConstPtr<IAlphabetPanel, std::shared_ptr>         m_alphabetPanel;
 
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationViewController;
@@ -1321,10 +1323,12 @@ MainWindow::MainWindow(
 	const std::shared_ptr<const ILogicFactory>&     logicFactory,
 	std::shared_ptr<const IStyleApplierFactory>     styleApplierFactory,
 	std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
-	std::shared_ptr<IUiFactory>                     uiFactory,
+	std::shared_ptr<const IUiFactory>               uiFactory,
+	std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
+	std::shared_ptr<const IDatabaseChecker>         databaseChecker,
+	std::shared_ptr<const IDatabaseUser>            databaseUser,
 	std::shared_ptr<ISettings>                      settings,
 	std::shared_ptr<ICollectionController>          collectionController,
-	std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 	std::shared_ptr<IParentWidgetProvider>          parentWidgetProvider,
 	std::shared_ptr<IAnnotationController>          annotationController,
 	std::shared_ptr<AnnotationWidget>               annotationWidget,
@@ -1335,8 +1339,6 @@ MainWindow::MainWindow(
 	std::shared_ptr<LogItemDelegate>                logItemDelegate,
 	std::shared_ptr<ICommandLine>                   commandLine,
 	std::shared_ptr<ILineOption>                    lineOption,
-	std::shared_ptr<const IDatabaseChecker>         databaseChecker,
-	std::shared_ptr<const IDatabaseUser>            databaseUser,
 	std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
 	QWidget*                                        parent
 )
@@ -1347,9 +1349,11 @@ MainWindow::MainWindow(
 		  std::move(styleApplierFactory),
 		  std::move(jokeRequesterFactory),
 		  std::move(uiFactory),
+		  std::move(collectionUpdateChecker),
+		  std::move(databaseChecker),
+		  std::move(databaseUser),
 		  std::move(settings),
 		  std::move(collectionController),
-		  std::move(collectionUpdateChecker),
 		  std::move(parentWidgetProvider),
 		  std::move(annotationController),
 		  std::move(annotationWidget),
@@ -1360,8 +1364,6 @@ MainWindow::MainWindow(
 		  std::move(logItemDelegate),
 		  std::move(commandLine),
 		  std::move(lineOption),
-		  std::move(databaseChecker),
-		  std::move(databaseUser),
 		  std::move(alphabetPanel)
 	  )
 {
