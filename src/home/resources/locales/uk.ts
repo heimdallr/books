@@ -4585,6 +4585,10 @@ Try again?</source>
         <translation>Включити все</translation>
     </message>
     <message>
+        <source>Exit</source>
+        <translation>Вихід</translation>
+    </message>
+    <message>
         <source>Font &amp;settings...</source>
         <translation>&amp;Налаштування шрифтів...</translation>
     </message>
@@ -4623,6 +4627,10 @@ Try again?</source>
     <message>
         <source>Navigation</source>
         <translation>Навігація</translation>
+    </message>
+    <message>
+        <source>Open FLibrary</source>
+        <translation>Відкрити FLibrary</translation>
     </message>
     <message>
         <source>Qt stylesheet files (*.%1 *.dll);;All files (*.*)</source>

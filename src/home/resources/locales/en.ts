@@ -4573,6 +4573,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Exit</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Font &amp;settings...</source>
         <translation></translation>
     </message>
@@ -4610,6 +4614,10 @@ Try again?</source>
     </message>
     <message>
         <source>Navigation</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Open FLibrary</source>
         <translation></translation>
     </message>
     <message>
