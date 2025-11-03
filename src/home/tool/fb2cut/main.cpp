@@ -3,9 +3,9 @@
 #include <queue>
 #include <ranges>
 
-#include <QGuiApplication>
 #include <QBuffer>
 #include <QCommandLineParser>
+#include <QGuiApplication>
 #include <QImageReader>
 #include <QProcess>
 #include <QRegularExpression>

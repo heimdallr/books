@@ -14,10 +14,10 @@
 
 #include "inpx/constant.h"
 #include "util/IExecutor.h"
+#include "util/files.h"
 
 #include "CollectionImpl.h"
 #include "log.h"
-#include "util/files.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -223,7 +223,7 @@ public:
 private:
 	void CreateNew(QString name, QString dbOrigin, QString folderOrigin, const QString& defaultArchiveType, const Inpx::CreateCollectionMode mode)
 	{
-		const auto db = Util::ToAbsolutePath(dbOrigin);
+		const auto db     = Util::ToAbsolutePath(dbOrigin);
 		const auto folder = Util::ToAbsolutePath(folderOrigin);
 		if (QFile(db).exists())
 		{

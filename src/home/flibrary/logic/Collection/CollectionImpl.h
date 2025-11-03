@@ -21,7 +21,7 @@ struct CollectionImpl : Collection
 
 	static void        Serialize(const Collection& collection, ISettings& settings);
 	static Collections Deserialize(ISettings& settings);
-	static Ptr Deserialize(const ISettings& settings, QString collectionId);
+	static Ptr         Deserialize(const ISettings& settings, QString collectionId);
 
 	static QString GetActive(const ISettings& settings);
 	static void    SetActive(ISettings& settings, const QString& uid);

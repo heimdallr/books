@@ -29,4 +29,4 @@ QString ToAbsolutePath(const QString& path)
 	return path.isEmpty() ? path : QDir::cleanPath(QDir(QCoreApplication::applicationDirPath()).absoluteFilePath(path));
 }
 
-}
+} // namespace HomeCompa::Util

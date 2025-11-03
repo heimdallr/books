@@ -87,9 +87,9 @@ struct ImageFormatDescription
 constexpr ImageFormatDescription DEFAULT_DESCRIPTION { IMAGE_JPEG, &QtDecoder, &QtRecoder };
 
 constexpr std::pair<const char*, ImageFormatDescription> SIGNATURES[] {
-	{ "\xFF\xD8\xFF\xE0",   { IMAGE_JPEG, &QtDecoder, &QtRecoder } },
-	{ "\x89\x50\x4E\x47",     { IMAGE_PNG, &QtDecoder, &QtRecoder } },
-	{		 "\xFF\x0A", { nullptr, &JxlDecoder, &JxlRecoder } },
+	{ "\xFF\xD8\xFF\xE0", { IMAGE_JPEG, &QtDecoder, &QtRecoder } },
+	{ "\x89\x50\x4E\x47",  { IMAGE_PNG, &QtDecoder, &QtRecoder } },
+	{		 "\xFF\x0A",  { nullptr, &JxlDecoder, &JxlRecoder } },
 };
 
 class SaxPrinter final : public Util::SaxParser
