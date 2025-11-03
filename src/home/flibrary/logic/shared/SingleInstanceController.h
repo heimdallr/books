@@ -4,6 +4,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ISingleInstanceController.h"
+#include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"
 
@@ -15,7 +16,7 @@ class SingleInstanceController final : virtual public ISingleInstanceController
 	NON_COPY_MOVABLE(SingleInstanceController)
 
 public:
-	explicit SingleInstanceController(std::shared_ptr<const ISettings> settings);
+	SingleInstanceController(const std::shared_ptr<const ISettings>& settings, const std::shared_ptr<const IUiFactory>& uiFactory);
 	~SingleInstanceController() override;
 
 private: // ISingleInstanceController

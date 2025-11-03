@@ -1,13 +1,12 @@
 #pragma once
+#include "interface/logic/ISingleInstanceController.h"
 
 namespace HomeCompa::Flibrary
 {
 
-class IMainWindow // NOLINT(cppcoreguidelines-special-member-functions)
+class IMainWindow : public ISingleInstanceController::IObserver
 {
 public:
-	virtual ~IMainWindow() = default;
-
 	virtual void Show() = 0;
 };
 

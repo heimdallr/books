@@ -1387,6 +1387,11 @@ void MainWindow::Show()
 	show();
 }
 
+void MainWindow::OnStartAnotherApp()
+{
+	m_impl->OnStartAnotherApp();
+}
+
 void MainWindow::closeEvent(QCloseEvent* event)
 {
 	if (!m_impl->Close())

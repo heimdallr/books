@@ -71,6 +71,9 @@ signals:
 private: // IMainWindow
 	void Show() override;
 
+private: // ISingleInstanceController::IObserver
+	void OnStartAnotherApp() override;
+
 private: // QWidget
 	void closeEvent(QCloseEvent* event) override;
 	void keyPressEvent(QKeyEvent* event) override;
