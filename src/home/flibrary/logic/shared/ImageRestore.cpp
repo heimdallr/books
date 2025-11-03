@@ -33,7 +33,6 @@ constexpr auto ID           = "id";
 constexpr auto CONTENT_TYPE = "content-type";
 constexpr auto JPEG         = "jpeg";
 constexpr auto PNG          = "png";
-constexpr auto JPEG_XL      = "jpeg xl";
 
 constexpr auto FICTION_BOOK  = "FictionBook";
 constexpr auto DESCRIPTION   = "FictionBook/description";
@@ -81,17 +80,16 @@ std::pair<QByteArray, const char*> JxlRecoder(const QByteArray& data, const char
 struct ImageFormatDescription
 {
 	const char* mediaType;
-	const char* format;
 	Decoder     decoder;
 	Recoder     recoder;
 };
 
-constexpr ImageFormatDescription DEFAULT_DESCRIPTION { IMAGE_JPEG, JPEG, &QtDecoder, &QtRecoder };
+constexpr ImageFormatDescription DEFAULT_DESCRIPTION { IMAGE_JPEG, &QtDecoder, &QtRecoder };
 
 constexpr std::pair<const char*, ImageFormatDescription> SIGNATURES[] {
-	{ "\xFF\xD8\xFF\xE0",   { IMAGE_JPEG, JPEG, &QtDecoder, &QtRecoder } },
-	{ "\x89\x50\x4E\x47",     { IMAGE_PNG, PNG, &QtDecoder, &QtRecoder } },
-	{		 "\xFF\x0A", { nullptr, JPEG_XL, &JxlDecoder, &JxlRecoder } },
+	{ "\xFF\xD8\xFF\xE0",   { IMAGE_JPEG, &QtDecoder, &QtRecoder } },
+	{ "\x89\x50\x4E\x47",     { IMAGE_PNG, &QtDecoder, &QtRecoder } },
+	{		 "\xFF\x0A", { nullptr, &JxlDecoder, &JxlRecoder } },
 };
 
 class SaxPrinter final : public Util::SaxParser
