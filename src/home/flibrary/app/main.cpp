@@ -1,6 +1,4 @@
 #include <QApplication>
-#include <QFileInfo>
-#include <QPalette>
 #include <QStandardPaths>
 #include <QStyleFactory>
 #include <QTranslator>
