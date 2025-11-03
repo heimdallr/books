@@ -10,6 +10,7 @@
 #include <QGuiApplication>
 #include <QKeyEvent>
 #include <QStyleFactory>
+#include <QSystemTrayIcon>
 #include <QTimer>
 #include <QToolBar>
 
@@ -52,6 +53,8 @@ namespace
 
 constexpr auto        MAIN_WINDOW                          = "MainWindow";
 constexpr auto        CONTEXT                              = MAIN_WINDOW;
+constexpr auto        EXIT                                 = QT_TRANSLATE_NOOP("MainWindow", "Exit");
+constexpr auto        OPEN                                 = QT_TRANSLATE_NOOP("MainWindow", "Open FLibrary");
 constexpr auto        FONT_DIALOG_TITLE                    = QT_TRANSLATE_NOOP("MainWindow", "Select font");
 constexpr auto        CONFIRM_RESTORE_DEFAULT_SETTINGS     = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
 constexpr auto        CONFIRM_REMOVE_ALL_THEMES            = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to delete all themes?");
@@ -71,6 +74,7 @@ constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 TR_DEF
 
 constexpr auto LOG_SEVERITY_KEY                   = "ui/LogSeverity";
+constexpr auto HIDE_TO_TRAY_KEY                   = "ui/HideToTray";
 constexpr auto SHOW_AUTHOR_ANNOTATION_KEY         = "ui/View/AuthorAnnotation";
 constexpr auto SHOW_ANNOTATION_KEY                = "ui/View/Annotation";
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY        = "ui/View/AnnotationContent";
@@ -314,6 +318,16 @@ public:
 		RebootDialog();
 	}
 
+	bool Close()
+	{
+		if (!m_systemTray)
+			return QCoreApplication::exit(), true;
+
+		m_systemTray->show();
+		m_self.hide();
+		return false;
+	}
+
 private: // ICollectionsObserver
 	void OnActiveCollectionChanged() override
 	{
@@ -472,6 +486,8 @@ private:
 			    it != widgets.cend())
 				(*it)->setFocus(Qt::FocusReason::OtherFocusReason);
 		});
+
+		SetupTrayMenu();
 	}
 
 	void ReplaceMenuBar()
@@ -487,6 +503,31 @@ private:
 		m_searchBooksByTitleLayout->addItem(new QSpacerItem(72, 20, QSizePolicy::Expanding));
 		m_searchBooksByTitleLayout->setContentsMargins(0, 0, 0, 0);
 		m_self.setMenuWidget(menuBar);
+	}
+
+	void SetupTrayMenu()
+	{
+		if (!m_settings->Get(HIDE_TO_TRAY_KEY, false))
+			return;
+
+		m_systemTray = new QSystemTrayIcon(QIcon(":/icons/main.ico"), &m_self);
+		auto menu    = new QMenu(&m_self);
+
+		const auto open = [this](const auto reason = QSystemTrayIcon::Unknown) {
+			if (reason == QSystemTrayIcon::ActivationReason::Context)
+				return;
+
+			m_self.showNormal();
+			m_systemTray->hide();
+		};
+
+		menu->addAction(Tr(OPEN), open);
+		menu->addAction(Tr(EXIT), [] {
+			QCoreApplication::exit();
+		});
+		m_systemTray->setContextMenu(menu);
+
+		connect(m_systemTray, &QSystemTrayIcon::activated, &m_self, open);
 	}
 
 	void AllowDestructiveOperation(const bool value)
@@ -541,8 +582,8 @@ private:
 		connect(m_ui.actionImportUserData, &QAction::triggered, &m_self, [=] {
 			userDataOperation(&IUserDataController::Restore);
 		});
-		connect(m_ui.actionExit, &QAction::triggered, &m_self, [] {
-			QCoreApplication::exit();
+		connect(m_ui.actionExit, &QAction::triggered, &m_self, [this] {
+			Close();
 		});
 	}
 
@@ -1267,6 +1308,8 @@ private:
 
 	QAction* m_enableAllJokes { nullptr };
 	QAction* m_disableAllJokes { nullptr };
+
+	QSystemTrayIcon* m_systemTray { nullptr };
 };
 
 MainWindow::MainWindow(
@@ -1332,6 +1375,12 @@ MainWindow::~MainWindow()
 void MainWindow::Show()
 {
 	show();
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+	if (!m_impl->Close())
+		event->ignore();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* event)
