@@ -205,7 +205,7 @@ public:
 
 			if (!databaseChecker->IsDatabaseValid())
 			{
-				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection().database));
+				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection().GetDatabase()));
 				return QCoreApplication::exit(Constant::APP_FAILED);
 			}
 
@@ -644,7 +644,7 @@ private:
 		});
 
 		m_ui.actionShowReadersReviews->setVisible(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().folder + "/" + QString::fromStdWString(REVIEWS_FOLDER)).exists()
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(REVIEWS_FOLDER)).exists()
 		);
 
 		ConnectActionsSettingsAnnotationJokes();
@@ -737,8 +737,8 @@ private:
 		});
 
 		m_ui.menuImages->setEnabled(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().folder + "/" + Global::COVERS).exists()
-			&& QDir(m_collectionController->GetActiveCollection().folder + "/" + Global::IMAGES).exists()
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + Global::COVERS).exists()
+			&& QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + Global::IMAGES).exists()
 		);
 
 		ConnectSettings(m_ui.actionExportConvertCoverToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY);
@@ -757,7 +757,7 @@ private:
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
 
 		m_ui.actionShowAuthorAnnotation->setVisible(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().folder + "/" + QString::fromStdWString(AUTHORS_FOLDER)).exists()
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(AUTHORS_FOLDER)).exists()
 		);
 
 		auto restoreDefaultSettings = [this] {

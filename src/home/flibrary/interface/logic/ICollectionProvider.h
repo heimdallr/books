@@ -11,22 +11,30 @@
 
 #include "inpx/inpx.h"
 
+#include "export/flint.h"
+
 class QTemporaryDir;
 
 namespace HomeCompa::Flibrary
 {
 
-struct Collection
+struct FLINT_EXPORT Collection
 {
+	using Ptr = std::unique_ptr<Collection>;
+
 	QString id;
 	QString name;
-	QString database;
-	QString folder;
 	QString discardedUpdate;
 	int     createCollectionMode { 0 };
 	bool    destructiveOperationsAllowed { false };
 
-	using Ptr = std::unique_ptr<Collection>;
+	QString GetDatabase() const;
+	QString GetFolder() const;
+
+private:
+	QString m_database;
+	QString m_folder;
+	friend struct CollectionImpl;
 };
 
 using Collections = std::vector<Collection::Ptr>;

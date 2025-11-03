@@ -15,6 +15,7 @@
 #include "constants/ModelRole.h"
 #include "constants/ProductConstant.h"
 #include "logic/IAnnotationController.h"
+#include "logic/ICollectionProvider.h"
 #include "logic/IDatabaseUser.h"
 #include "logic/IFilterProvider.h"
 #include "logic/ILogicFactory.h"
@@ -208,6 +209,16 @@ static_assert(static_cast<size_t>(IScriptController::Macro::Last) == std::size(I
 #define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(NAME) static_assert(IScriptController::Macro::NAME == IScriptController::s_commandMacros[static_cast<int>(IScriptController::Macro::NAME)].first);
 SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO
 #undef SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM
+
+QString Collection::GetDatabase() const
+{
+	return Util::ToAbsolutePath(m_database);
+}
+
+QString Collection::GetFolder() const
+{
+	return Util::ToAbsolutePath(m_folder);
+}
 
 bool IScriptController::HasMacro(const QString& str, const Macro macro)
 {

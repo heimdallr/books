@@ -460,27 +460,28 @@ struct CollectionCleaner::Impl
 
 	void RemovePermanently(Books books, Callback callback) const
 	{
-		databaseUser->Execute({ "Delete books permanently", [this, books = std::move(books), callback = std::move(callback), collectionFolder = collectionProvider->GetActiveCollection().folder]() mutable {
-								   auto progressItem = progressController->Add(100);
+		databaseUser->Execute({ "Delete books permanently",
+		                        [this, books = std::move(books), callback = std::move(callback), collectionFolder = collectionProvider->GetActiveCollection().GetFolder()]() mutable {
+									auto progressItem = progressController->Add(100);
 
-								   auto logicFactoryPtr = ILogicFactory::Lock(logicFactory);
-								   auto allFiles        = CollectBookFiles(books, *logicFactoryPtr, progressController);
-								   auto images          = CollectImageFiles(allFiles, collectionFolder, *logicFactoryPtr, progressController);
+									auto logicFactoryPtr = ILogicFactory::Lock(logicFactory);
+									auto allFiles        = CollectBookFiles(books, *logicFactoryPtr, progressController);
+									auto images          = CollectImageFiles(allFiles, collectionFolder, *logicFactoryPtr, progressController);
 
-								   std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
-								   RemoveFiles(allFiles, collectionFolder);
+									std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
+									RemoveFiles(allFiles, collectionFolder);
 
-								   const auto db          = databaseUser->Database();
-								   const auto transaction = db->CreateTransaction();
+									const auto db          = databaseUser->Database();
+									const auto transaction = db->CreateTransaction();
 
-								   auto ok = RemoveBooksImpl(books, *transaction, std::move(progressItem));
-								   ok      = CleanupNavigationItems(*transaction) && ok;
-								   ok      = transaction->Commit() && ok;
+									auto ok = RemoveBooksImpl(books, *transaction, std::move(progressItem));
+									ok      = CleanupNavigationItems(*transaction) && ok;
+									ok      = transaction->Commit() && ok;
 
-								   return [callback = std::move(callback), ok](size_t) {
-									   callback(ok);
-								   };
-							   } });
+									return [callback = std::move(callback), ok](size_t) {
+										callback(ok);
+									};
+								} });
 	}
 };
 

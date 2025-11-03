@@ -87,6 +87,14 @@
         <source>Select database file</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Transform path to absolute</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Transform path to relative</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>AlphabetPanel</name>

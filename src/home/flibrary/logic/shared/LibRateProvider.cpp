@@ -32,7 +32,7 @@ std::unordered_map<QString, double> ReadRates(const ISettings& settings, const I
 	if (settings.Get(Constant::Settings::LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT)
 		return {};
 
-	const auto additionalFileName = collectionProvider.GetActiveCollection().folder + "/" + QString::fromStdWString(REVIEWS_FOLDER) + "/" + QString::fromStdWString(REVIEWS_ADDITIONAL_ARCHIVE_NAME);
+	const auto additionalFileName = collectionProvider.GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(REVIEWS_FOLDER) + "/" + QString::fromStdWString(REVIEWS_ADDITIONAL_ARCHIVE_NAME);
 	if (!QFile::exists(additionalFileName))
 		return {};
 	try

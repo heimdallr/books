@@ -10,6 +10,7 @@
 
 #include "inpx/constant.h"
 #include "util/IExecutor.h"
+#include "util/files.h"
 #include "util/hash.h"
 
 #include "CollectionImpl.h"
@@ -25,7 +26,7 @@ auto GetInpxImpl(const QString& folder)
 {
 	std::set<QString> result;
 	std::ranges::transform(QDir(folder).entryList({ "*.inpx" }), std::inserter(result, result.end()), [&](const auto& item) {
-		return QString("%1/%2").arg(folder, item);
+		return Util::ToAbsolutePath(QString("%1/%2").arg(folder, item));
 	});
 	return result;
 }

@@ -112,7 +112,7 @@ struct NoSqlRequester::Impl
 	{
 		auto book           = bookExtractor->GetExtractedBook(bookId);
 		auto outputFileName = bookExtractor->GetFileName(book);
-		auto data           = Decompress(collectionProvider->GetActiveCollection().folder, book.folder, book.file, restoreImages);
+		auto data           = Decompress(collectionProvider->GetActiveCollection().GetFolder(), book.folder, book.file, restoreImages);
 
 		return std::make_tuple(std::move(book.file), QFileInfo(outputFileName).fileName(), std::move(data));
 	}

@@ -645,7 +645,7 @@ private:
 			for (query->Execute(); !query->Eof(); query->Next())
 				reviewFolders.emplace_back(query->Get<const char*>(0), query->Get<const char*>(1));
 		}
-		const auto archivesFolder = m_collectionProvider->GetActiveCollection().folder + "/" + QString::fromStdWString(REVIEWS_FOLDER);
+		const auto archivesFolder = m_collectionProvider->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(REVIEWS_FOLDER);
 
 		Reviews reviews;
 		for (const auto& [libId, reviewFolder] : reviewFolders)

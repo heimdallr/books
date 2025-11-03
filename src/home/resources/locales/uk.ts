@@ -87,6 +87,14 @@
         <source>Select database file</source>
         <translation>Виберіть файл бази даних</translation>
     </message>
+    <message>
+        <source>Transform path to absolute</source>
+        <translation>Перетворити шлях на абсолютний</translation>
+    </message>
+    <message>
+        <source>Transform path to relative</source>
+        <translation>Перетворити шлях на відносний</translation>
+    </message>
 </context>
 <context>
     <name>AlphabetPanel</name>

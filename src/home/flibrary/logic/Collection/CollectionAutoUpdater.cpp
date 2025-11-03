@@ -47,7 +47,7 @@ private:
 			m_timer.start();
 		});
 
-		const QDir folder(m_collectionProvider->GetActiveCollection().folder);
+		const QDir folder(m_collectionProvider->GetActiveCollection().GetFolder());
 		for (const auto& inpx : folder.entryList({ "*.inpx" }, QDir::Files))
 			m_watcher.addPath(folder.filePath(inpx));
 
@@ -100,7 +100,7 @@ private:
 		const auto& collection = m_collectionProvider->GetActiveCollection();
 		auto        parser     = std::make_shared<Inpx::Parser>();
 		auto&       parserRef  = *parser;
-		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.database, collection.folder, true);
+		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), true);
 		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
             if (updateResult.oldDataUpdateFound)
                 PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
