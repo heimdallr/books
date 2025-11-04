@@ -1,4 +1,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![CMake](https://img.shields.io/badge/CMake-%23008FBA.svg?logo=cmake&logoColor=white)](https://cmake.org/)
+[![C++](https://img.shields.io/badge/c++-%2300599C.svg?logo=c%2B%2B&logoColor=white)](https://cppreference.com/)
+[![Static Badge](https://img.shields.io/badge/C%2B%2BStandard-C%2B%2B23-green?style=flat&label=C%2B%2BStandard)](https://en.cppreference.com/w/cpp/23.html)
+[![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?logo=sqlite&logoColor=white)](https://sqlite.org/)
+[![Qt](https://img.shields.io/badge/Qt-%23217346.svg?logo=Qt&logoColor=white)](https://www.qt.io/)
+[![Visual Studio](https://img.shields.io/badge/Visual%20Studio-5C2D91.svg?logo=visual-studio&logoColor=white)](https://visualstudio.microsoft.com/)
+[![Windows](https://img.shields.io/badge/-Windows-6E46A2.svg?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODc1IDQ4NzUiPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0wIDBoMjMxMXYyMzEwSDB6bTI1NjQgMGgyMzExdjIzMTBIMjU2NHpNMCAyNTY0aDIzMTF2MjMxMUgwem0yNTY0IDBoMjMxMXYyMzExSDI1NjQiLz48L3N2Zz4=)](https://www.microsoft.com/en-us/windows/windows-11)
+
 # FLibrary
 
 <details>
