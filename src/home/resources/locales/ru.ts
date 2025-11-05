@@ -4625,6 +4625,10 @@ Try again?</source>
         <translation>&amp;Уровень детализации журнала</translation>
     </message>
     <message>
+        <source>My export folder</source>
+        <translation>Моя папка для экспорта</translation>
+    </message>
+    <message>
         <source>Navigation</source>
         <translation>Навигация</translation>
     </message>
