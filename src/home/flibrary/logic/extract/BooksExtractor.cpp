@@ -12,7 +12,10 @@
 #include "interface/constants/ExportStat.h"
 
 #include "Util/IExecutor.h"
+#include "icu/icu.h"
 #include "shared/ImageRestore.h"
+#include "util/DyLib.h"
+#include "util/translit.h"
 
 #include "log.h"
 #include "zip.h"
@@ -22,6 +25,8 @@ using namespace Flibrary;
 
 namespace
 {
+
+constexpr auto EXPORT_TRANSLITERATE_FILE_NAME_KEY = "ui/Export/TransliterateFileName";
 
 class IPathChecker // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -139,6 +144,68 @@ std::pair<bool, std::filesystem::path> Write(
 	return result;
 }
 
+class IFilledTemplateConverter // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~IFilledTemplateConverter()  = default;
+	virtual void Convert(QString&) const = 0;
+};
+
+class FilledTemplateConverterStub final : public IFilledTemplateConverter
+{
+private: // IFilledTemplateConverter
+	void Convert(QString&) const override
+	{
+	}
+};
+
+class FilledTemplateTransliterator final : public IFilledTemplateConverter
+{
+public:
+	FilledTemplateTransliterator()
+		: m_icuLib { std::make_unique<Util::DyLib>(ICU::LIB_NAME) }
+		, m_icuTransliterate { m_icuLib->GetTypedProc<ICU::TransliterateType>(ICU::TRANSLITERATE_NAME) }
+	{
+	}
+
+	bool IsValid() const noexcept
+	{
+		return !!m_icuTransliterate;
+	}
+
+private: // IFilledTemplateConverter
+	void Convert(QString& value) const override
+	{
+		assert(m_icuTransliterate);
+		value = Util::Transliterate(m_icuTransliterate, value);
+	}
+
+private:
+	std::unique_ptr<Util::DyLib> m_icuLib;
+	ICU::TransliterateType       m_icuTransliterate { nullptr };
+};
+
+std::shared_ptr<IFilledTemplateConverter> CreateFilledTemplateConverter(const ISettings& settings)
+{
+	if (!settings.Get(EXPORT_TRANSLITERATE_FILE_NAME_KEY, false))
+		return std::make_shared<FilledTemplateConverterStub>();
+
+	if (auto transliterator = std::make_shared<FilledTemplateTransliterator>(); transliterator->IsValid())
+		return transliterator;
+
+	return std::make_shared<FilledTemplateConverterStub>();
+}
+
+void FillScriptTemplate(DB::IDatabase& db, QString& outputFileTemplate, const ILogicFactory::ExtractedBook& book, const QString& dstFolder, const IFilledTemplateConverter& converter)
+{
+	static constexpr auto* userDestinationFolder = IScriptController::s_commandMacros[static_cast<size_t>(IScriptController::Macro::UserDestinationFolder)].second;
+	outputFileTemplate.replace(userDestinationFolder, "|UserDestinationFolder|");
+	ILogicFactory::FillScriptTemplate(db, outputFileTemplate, book);
+	outputFileTemplate.replace("|UserDestinationFolder|", userDestinationFolder);
+	converter.Convert(outputFileTemplate);
+	IScriptController::SetMacro(outputFileTemplate, IScriptController::Macro::UserDestinationFolder, dstFolder);
+}
+
 std::filesystem::path Process(
 	const std::shared_ptr<const ISettings>& settings,
 	const std::filesystem::path&            archiveFolder,
@@ -146,6 +213,7 @@ std::filesystem::path Process(
 	DB::IDatabase&                          db,
 	const ILogicFactory::ExtractedBook&     book,
 	QString                                 outputFileTemplate,
+	const IFilledTemplateConverter&         converter,
 	IProgressController::IProgressItem&     progress,
 	std::shared_ptr<Zip::ProgressCallback>  zipProgressCallback,
 	IPathChecker&                           pathChecker,
@@ -155,8 +223,7 @@ std::filesystem::path Process(
 	if (progress.IsStopped())
 		return {};
 
-	IScriptController::SetMacro(outputFileTemplate, IScriptController::Macro::UserDestinationFolder, dstFolder);
-	ILogicFactory::FillScriptTemplate(db, outputFileTemplate, book);
+	FillScriptTemplate(db, outputFileTemplate, book, dstFolder, converter);
 
 	const auto folder = QDir::fromNativeSeparators(QString::fromStdWString(archiveFolder / book.folder.toStdWString()));
 	if (!QFile::exists(folder))
@@ -178,6 +245,7 @@ void Process(
 	DB::IDatabase&                          db,
 	const ILogicFactory::ExtractedBook&     book,
 	const QString&                          outputFileTemplate,
+	const IFilledTemplateConverter&         converter,
 	IProgressController::IProgressItem&     progress,
 	IPathChecker&                           pathChecker,
 	const IScriptController&                scriptController,
@@ -188,7 +256,7 @@ void Process(
 	const auto needFile   = std::ranges::any_of(commands, [](const auto& command) {
         return IScriptController::HasMacro(command.args, IScriptController::Macro::SourceFile);
     });
-	const auto sourceFile = needFile ? Process(settings, archiveFolder, tempDir.filePath(""), db, book, outputFileTemplate, progress, {}, pathChecker, WriteMode::AsIs) : std::filesystem::path {};
+	const auto sourceFile = needFile ? Process(settings, archiveFolder, tempDir.filePath(""), db, book, outputFileTemplate, converter, progress, {}, pathChecker, WriteMode::AsIs) : std::filesystem::path {};
 
 	std::ranges::sort(commands, {}, [](const IScriptController::Command& command) {
 		return command.number;
@@ -388,11 +456,12 @@ void BooksExtractor::ExtractAsArchives(QString folder, const QString& /*paramete
 		std::move(callback),
 		ExportStat::Type::Archive,
 		[outputFileNameTemplate = std::move(outputFileNameTemplate),
+	     converter              = CreateFilledTemplateConverter(*m_impl->GetSettings()),
 	     zipProgressCallback    = std::move(zipProgressCallback),
 	     settings               = m_impl->GetSettings(),
 	     db                     = m_impl->GetDatabase(
          )](const std::filesystem::path& archiveFolder, const QString& dstFolder, const ILogicFactory::ExtractedBook& book, IProgressController::IProgressItem& progress, IPathChecker& pathChecker) mutable {
-			Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, progress, std::move(zipProgressCallback), pathChecker, WriteMode::Archive);
+			Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, *converter, progress, std::move(zipProgressCallback), pathChecker, WriteMode::Archive);
 		}
 	);
 }
@@ -405,10 +474,11 @@ void BooksExtractor::ExtractAsIs(QString folder, const QString& /*parameter*/, I
 		std::move(callback),
 		ExportStat::Type::AsIs,
 		[outputFileNameTemplate = std::move(outputFileNameTemplate),
+	     converter              = CreateFilledTemplateConverter(*m_impl->GetSettings()),
 	     settings               = m_impl->GetSettings(),
 	     db                     = m_impl->GetDatabase(
          )](const std::filesystem::path& archiveFolder, const QString& dstFolder, const ILogicFactory::ExtractedBook& book, IProgressController::IProgressItem& progress, IPathChecker& pathChecker) {
-			Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, progress, {}, pathChecker, WriteMode::AsIs);
+			Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, *converter, progress, {}, pathChecker, WriteMode::AsIs);
 		}
 	);
 }
@@ -421,18 +491,20 @@ void BooksExtractor::ExtractUnpack(QString folder, const QString& /*parameter*/,
 		std::move(callback),
 		ExportStat::Type::Unpack,
 		[outputFileNameTemplate = std::move(outputFileNameTemplate),
+	     converter              = CreateFilledTemplateConverter(*m_impl->GetSettings()),
 	     settings               = m_impl->GetSettings(),
 	     db                     = m_impl->GetDatabase(
          )](const std::filesystem::path& archiveFolder, const QString& dstFolder, const ILogicFactory::ExtractedBook& book, IProgressController::IProgressItem& progress, IPathChecker& pathChecker) {
-			Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, progress, {}, pathChecker, WriteMode::Unpack);
+			Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, *converter, progress, {}, pathChecker, WriteMode::Unpack);
 		}
 	);
 }
 
 void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, ILogicFactory::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback)
 {
-	auto scriptController = m_impl->GetScriptController();
-	auto commands         = scriptController->GetCommands(parameter);
+	auto                                      scriptController = m_impl->GetScriptController();
+	auto                                      commands         = scriptController->GetCommands(parameter);
+	std::shared_ptr<IFilledTemplateConverter> converter        = std::make_shared<FilledTemplateConverterStub>();
 	m_impl->Extract(
 		std::move(folder),
 		std::move(books),
@@ -440,12 +512,13 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, I
 		ExportStat::Type::Script,
 		[scriptController       = std::move(scriptController),
 	     commands               = std::move(commands),
+	     converter              = std::move(converter),
 	     tempDir                = std::make_shared<QTemporaryDir>(),
 	     outputFileNameTemplate = std::move(outputFileNameTemplate),
 	     settings               = m_impl->GetSettings(),
 	     db                     = m_impl->GetDatabase(
          )](const std::filesystem::path& archiveFolder, const QString& dstFolder, const ILogicFactory::ExtractedBook& book, IProgressController::IProgressItem& progress, IPathChecker& pathChecker) {
-			Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, progress, pathChecker, *scriptController, commands, *tempDir);
+			Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, *converter, progress, pathChecker, *scriptController, commands, *tempDir);
 		}
 	);
 }

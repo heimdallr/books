@@ -197,6 +197,9 @@ public:
 		{				   Macro::Uid, QT_TRANSLATE_NOOP("ScriptController",                     "%uid%") },
 	};
 	static_assert(std::size(s_commandMacros) == static_cast<size_t>(Macro::Last));
+#define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(NAME) static_assert(s_commandMacros[static_cast<size_t>(Macro::NAME)].first == Macro::NAME);
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO
+#undef SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM
 
 public:
 	FLINT_EXPORT static bool        HasMacro(const QString& str, Macro macro);
