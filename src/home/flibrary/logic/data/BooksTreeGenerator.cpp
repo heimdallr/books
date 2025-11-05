@@ -330,6 +330,13 @@ private: // IBookSelector
 			const auto& bookItem   = reviewItem->AppendChild(selectedItem.book);
 			reviewItem->SetId(bookItem->GetId());
 		});
+
+		const auto orphans = m_reviews | std::views::filter([](const auto& item) {
+								 return item.second->GetChildCount() == 0;
+							 })
+		                   | std::views::keys | std::ranges::to<std::vector<long long>>();
+		for (const auto id : orphans)
+			m_reviews.erase(id);
 	}
 
 private:

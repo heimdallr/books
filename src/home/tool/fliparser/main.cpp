@@ -836,7 +836,7 @@ void CreateInpx(Settings& settings, InpData& inpData, FileToFolder& fileToFolder
 			Zip             zip(zipFileInfo.filePath());
 			for (const auto& bookFile : zip.GetFileNameList())
 			{
-				const auto* book = GetBook(settings, bookFile, inpData);
+				auto* book = GetBook(settings, bookFile, inpData);
 				if (!book)
 				{
 					book = GetBookCustom(settings, bookFile, inpData, zip, unIndexed);
@@ -850,6 +850,9 @@ void CreateInpx(Settings& settings, InpData& inpData, FileToFolder& fileToFolder
 						}
 					}
 				}
+
+				if (const auto it = inpData.find(bookFile); it != inpData.end())
+					book->libId = it->second->libId;
 
 				file << *book;
 
