@@ -33,7 +33,6 @@ public:
 	~ReaderController() override;
 
 public: // IReaderController
-	void Read(const QString& folderName, QString fileName, Callback callback) const override;
 	void Read(long long id) const override;
 	void ReadRandomBook(QString lang) const override;
 

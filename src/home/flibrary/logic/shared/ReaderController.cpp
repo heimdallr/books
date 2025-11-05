@@ -152,12 +152,8 @@ struct ReaderController::Impl
 	{
 	}
 
-	void Read(std::shared_ptr<ILogicFactory::ITemporaryDir> temporaryDir, QString fileName, Callback callback, const QString& error) const
+	void Read(std::shared_ptr<ILogicFactory::ITemporaryDir> temporaryDir, QString fileName, const QString& error) const
 	{
-		const ScopedCall callbackGuard([&, callback = std::move(callback)]() mutable {
-			callback();
-		});
-
 		if (fileName.isEmpty())
 		{
 			fileName = uiFactory->GetOpenFileName({}, Tr(SELECT_FILE), {}, temporaryDir->path());
@@ -250,44 +246,36 @@ ReaderController::~ReaderController()
 	PLOGV << "ReaderController destroyed";
 }
 
-void ReaderController::Read(const QString& folderName, QString fileName, Callback callback) const
+void ReaderController::Read(long long id) const
 {
-	auto            archive  = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection().GetFolder(), folderName);
 	std::shared_ptr executor = ILogicFactory::Lock(m_impl->logicFactory)->GetExecutor();
-	(*executor)({ "Extract book", [this, executor, archive = std::move(archive), fileName = std::move(fileName), callback = std::move(callback)]() mutable {
+
+	auto& executorRef = *executor;
+	executorRef({ "Get archive and file names", [this, id, executor = std::move(executor)]() mutable {
+					 const auto db = m_impl->databaseUser->Database();
+					 {
+						 const auto transaction = db->CreateTransaction();
+						 const auto command     = transaction->CreateQuery(ExportStat::INSERT_QUERY);
+						 command->Bind(0, id);
+						 command->Bind(1, static_cast<int>(ExportStat::Type::Read));
+						 command->Execute();
+						 transaction->Commit();
+					 }
+
+					 const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
+					 query->Bind(0, id);
+					 query->Execute();
+					 assert(!query->Eof());
+
+					 QString folderName = query->Get<const char*>(0), fileName = query->Get<const char*>(1);
+					 auto    archive = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection().GetFolder(), folderName);
 					 QString error;
 					 auto    temporaryDir = Extract(*m_impl->settings, *ILogicFactory::Lock(m_impl->logicFactory), archive, fileName, error);
-					 return [this, executor = std::move(executor), fileName = std::move(fileName), callback = std::move(callback), temporaryDir = std::move(temporaryDir), error(std::move(error))](size_t
-		                    ) mutable {
-						 m_impl->Read(std::move(temporaryDir), std::move(fileName), std::move(callback), error);
+					 return [this, executor = std::move(executor), fileName = std::move(fileName), temporaryDir = std::move(temporaryDir), error(std::move(error))](size_t) mutable {
+						 m_impl->Read(std::move(temporaryDir), std::move(fileName), error);
 						 executor.reset();
 					 };
 				 } });
-}
-
-void ReaderController::Read(long long id) const
-{
-	m_impl->databaseUser->Execute({ "Get archive and file names", [this, id]() {
-									   const auto db = m_impl->databaseUser->Database();
-									   {
-										   const auto transaction = db->CreateTransaction();
-										   const auto command     = transaction->CreateQuery(ExportStat::INSERT_QUERY);
-										   command->Bind(0, id);
-										   command->Bind(1, static_cast<int>(ExportStat::Type::Read));
-										   command->Execute();
-										   transaction->Commit();
-									   }
-
-									   const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
-									   query->Bind(0, id);
-									   query->Execute();
-									   assert(!query->Eof());
-									   QString folderName = query->Get<const char*>(0), fileName = query->Get<const char*>(1);
-									   return [this, folderName = std::move(folderName), fileName = std::move(fileName)](size_t) mutable {
-										   Read(folderName, std::move(fileName), []() {
-										   });
-									   };
-								   } });
 }
 
 void ReaderController::ReadRandomBook(QString lang) const
@@ -296,11 +284,11 @@ void ReaderController::ReadRandomBook(QString lang) const
 									   std::function<void(size_t)> result { [](size_t) {
 									   } };
 									   const auto                  db    = m_impl->databaseUser->Database();
-									   const auto                  query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.Lang = ?");
+									   const auto                  query = db->CreateQuery("select b.BookID from Books b join Folders f on f.FolderID = b.FolderID where b.Lang = ?");
 									   query->Bind(0, lang.toStdString());
-									   std::vector<std::pair<QString, QString>> allBooks;
+									   std::vector<long long> allBooks;
 									   for (query->Execute(); !query->Eof(); query->Next())
-										   allBooks.emplace_back(query->Get<const char*>(0), query->Get<const char*>(1));
+										   allBooks.emplace_back(query->Get<long long>(0));
 
 									   if (allBooks.empty())
 										   return result;
@@ -308,9 +296,8 @@ void ReaderController::ReadRandomBook(QString lang) const
 									   std::uniform_int_distribution<size_t> distribution(0, allBooks.size() - 1);
 									   const auto                            n = distribution(m_impl->mt);
 
-									   result = [this, folderName = std::move(allBooks[n].first), fileName = std::move(allBooks[n].second)](size_t) mutable {
-										   Read(folderName, std::move(fileName), []() {
-										   });
+									   result = [this, id = allBooks[n]](size_t) mutable {
+										   Read(id);
 									   };
 
 									   return result;

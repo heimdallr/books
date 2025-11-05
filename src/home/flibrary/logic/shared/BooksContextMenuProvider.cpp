@@ -252,7 +252,8 @@ public:
 private: // IContextMenuHandler
 	void ReadBook(QAbstractItemModel* /*model*/, const QModelIndex& index, const QList<QModelIndex>& /*indexList*/, IDataItem::Ptr item, Callback callback) const override
 	{
-		m_readerController->Read(index.data(Role::Folder).toString(), index.data(Role::FileName).toString(), [item = std::move(item), callback = std::move(callback)] {
+		m_readerController->Read(index.data(Role::Id).toLongLong());
+		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] {
 			callback(item);
 		});
 	}
