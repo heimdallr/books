@@ -66,6 +66,7 @@ constexpr auto        QSS_FILE_FILTER                      = QT_TRANSLATE_NOOP("
 constexpr auto        SEARCH_BOOKS_BY_TITLE_PLACEHOLDER    = QT_TRANSLATE_NOOP("MainWindow", "To search for books by author, series, or title, enter the name or title here and press Enter");
 constexpr auto        ENABLE_ALL                           = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
 constexpr auto        DISABLE_ALL                          = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
+constexpr auto        MY_FOLDER                            = QT_TRANSLATE_NOOP("MainWindow", "My export folder");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
 	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
@@ -369,7 +370,9 @@ private: // ILineOption::IObserver
 
 		auto scriptTemplate = value;
 		auto db             = m_databaseUser->Database();
-		ILogicFactory::FillScriptTemplate(*db, scriptTemplate, books.front());
+
+		const auto converter = logicFactory->CreateFillTemplateConverter();
+		converter->Fill(*db, scriptTemplate, books.front(), Tr(MY_FOLDER));
 		PLOGI << scriptTemplate;
 	}
 
