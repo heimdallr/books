@@ -80,6 +80,7 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class IUpdateChecker>           CreateUpdateChecker() const                                                                                            = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ICollectionCleaner>       CreateCollectionCleaner() const                                                                                        = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IOpdsController>          CreateOpdsController() const                                                                                           = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IFillTemplateConverter>   CreateFillTemplateConverter(bool needStub = false) const                                                               = 0;
 	[[nodiscard]] virtual std::shared_ptr<Zip::ProgressCallback>          CreateZipProgressCallback(std::shared_ptr<class IProgressController> progressController) const                         = 0;
 	[[nodiscard]] virtual std::shared_ptr<ITemporaryDir>                  CreateTemporaryDir(bool singleInstance = false) const                                                                  = 0;
 	[[nodiscard]] virtual ExtractedBooks                                  GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList = {}) const = 0;

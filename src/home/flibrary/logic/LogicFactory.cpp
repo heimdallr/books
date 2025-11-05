@@ -2,6 +2,8 @@
 
 #include <QTemporaryDir>
 
+#include "fnd/FindPair.h"
+
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/IBookSearchController.h"
@@ -24,6 +26,8 @@
 #include "log.h"
 
 #include "config/version.h"
+#include "util/DyLib.h"
+#include "util/translit.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -77,6 +81,143 @@ private: // ILogicFactory::ITemporaryDir
 private:
 	QDir m_impl { QDir::tempPath() + "/" + PRODUCT_ID };
 };
+
+constexpr auto EXPORT_TRANSLITERATE_MODE_KEY = "ui/Export/TransliterateMode";
+#define TRANSLITERATE_MODE_ITEMS_X_MACRO       \
+	TRANSLITERATE_MODE_ITEM(None)              \
+	TRANSLITERATE_MODE_ITEM(FileNameOnly)      \
+	TRANSLITERATE_MODE_ITEM(AllExceptUserPath) \
+	TRANSLITERATE_MODE_ITEM(All)
+
+class FilledTemplateConverterNone final : public IFillTemplateConverter
+{
+public:
+	static std::shared_ptr<IFillTemplateConverter> Create()
+	{
+		return std::make_shared<FilledTemplateConverterNone>();
+	}
+
+private: // IFilledTemplateConverter
+	bool IsValid() const noexcept override
+	{
+		return true;
+	}
+
+	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const ILogicFactory::ExtractedBook& book, const QString& dstFolder) const override
+	{
+		IScriptController::SetMacro(outputFileTemplate, IScriptController::Macro::UserDestinationFolder, dstFolder);
+		ILogicFactory::FillScriptTemplate(db, outputFileTemplate, book);
+	}
+};
+
+class FilledTemplateTransliterator : public IFillTemplateConverter
+{
+protected:
+	FilledTemplateTransliterator()
+		: m_icuLib { std::make_unique<Util::DyLib>(ICU::LIB_NAME) }
+		, m_icuTransliterate { m_icuLib->GetTypedProc<ICU::TransliterateType>(ICU::TRANSLITERATE_NAME) }
+	{
+	}
+
+private: // IFilledTemplateConverter
+	bool IsValid() const noexcept override
+	{
+		return !!m_icuTransliterate;
+	}
+
+private:
+	std::unique_ptr<Util::DyLib> m_icuLib;
+
+protected:
+	ICU::TransliterateType m_icuTransliterate { nullptr };
+};
+
+class FilledTemplateConverterFileNameOnly final : public FilledTemplateTransliterator
+{
+public:
+	static std::shared_ptr<IFillTemplateConverter> Create()
+	{
+		return std::make_shared<FilledTemplateConverterFileNameOnly>();
+	}
+
+private: // IFilledTemplateConverter
+	bool IsValid() const noexcept override
+	{
+		return true;
+	}
+
+	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const ILogicFactory::ExtractedBook& book, const QString& dstFolder) const override
+	{
+		IScriptController::SetMacro(outputFileTemplate, IScriptController::Macro::UserDestinationFolder, dstFolder);
+		ILogicFactory::FillScriptTemplate(db, outputFileTemplate, book);
+
+		const QFileInfo fileInfo(outputFileTemplate);
+		auto            fileName = fileInfo.fileName();
+		fileName                 = Util::Transliterate(m_icuTransliterate, fileName);
+		outputFileTemplate       = fileInfo.dir().filePath(fileName);
+	}
+};
+
+class FilledTemplateConverterAllExceptUserPath final : public FilledTemplateTransliterator
+{
+public:
+	static std::shared_ptr<IFillTemplateConverter> Create()
+	{
+		return std::make_shared<FilledTemplateConverterAllExceptUserPath>();
+	}
+
+private: // IFilledTemplateConverter
+	bool IsValid() const noexcept override
+	{
+		return true;
+	}
+
+	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const ILogicFactory::ExtractedBook& book, const QString& dstFolder) const override
+	{
+		static constexpr auto* userDestinationFolder = IScriptController::s_commandMacros[static_cast<size_t>(IScriptController::Macro::UserDestinationFolder)].second;
+		outputFileTemplate.replace(userDestinationFolder, "|UserDestinationFolder|");
+		ILogicFactory::FillScriptTemplate(db, outputFileTemplate, book);
+		outputFileTemplate.replace("|UserDestinationFolder|", userDestinationFolder);
+		outputFileTemplate = Util::Transliterate(m_icuTransliterate, outputFileTemplate);
+		IScriptController::SetMacro(outputFileTemplate, IScriptController::Macro::UserDestinationFolder, dstFolder);
+	}
+};
+
+class FilledTemplateConverterAll final : public FilledTemplateTransliterator
+{
+public:
+	static std::shared_ptr<IFillTemplateConverter> Create()
+	{
+		return std::make_shared<FilledTemplateConverterAll>();
+	}
+
+private: // IFilledTemplateConverter
+	bool IsValid() const noexcept override
+	{
+		return true;
+	}
+
+	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const ILogicFactory::ExtractedBook& book, const QString& dstFolder) const override
+	{
+		IScriptController::SetMacro(outputFileTemplate, IScriptController::Macro::UserDestinationFolder, dstFolder);
+		ILogicFactory::FillScriptTemplate(db, outputFileTemplate, book);
+		outputFileTemplate = Util::Transliterate(m_icuTransliterate, outputFileTemplate);
+	}
+};
+
+constexpr std::pair<const char*, std::shared_ptr<IFillTemplateConverter> (*)()> TRANSLITERATE_MODES[] {
+#define TRANSLITERATE_MODE_ITEM(NAME) { #NAME, &FilledTemplateConverter##NAME::Create },
+	TRANSLITERATE_MODE_ITEMS_X_MACRO
+#undef TRANSLITERATE_MODE_ITEM
+};
+
+std::shared_ptr<IFillTemplateConverter> CreateFilledTemplateConverter(const ISettings& settings)
+{
+	if (auto converter = FindSecond(TRANSLITERATE_MODES, settings.Get(EXPORT_TRANSLITERATE_MODE_KEY, QString { TRANSLITERATE_MODES[0].first }).toStdString().data(), PszComparer {})(); converter->IsValid())
+		return converter;
+
+	return std::make_shared<FilledTemplateConverterNone>();
+}
 
 } // namespace
 
@@ -205,6 +346,12 @@ std::shared_ptr<ICollectionCleaner> LogicFactory::CreateCollectionCleaner() cons
 std::shared_ptr<IOpdsController> LogicFactory::CreateOpdsController() const
 {
 	return m_impl->container.resolve<IOpdsController>();
+}
+
+std::shared_ptr<IFillTemplateConverter> LogicFactory::CreateFillTemplateConverter(const bool needStub) const
+{
+	const auto settings = m_impl->container.resolve<ISettings>();
+	return needStub ? FilledTemplateConverterNone::Create() : CreateFilledTemplateConverter(*settings);
 }
 
 std::shared_ptr<Zip::ProgressCallback> LogicFactory::CreateZipProgressCallback(std::shared_ptr<IProgressController> progressController) const
