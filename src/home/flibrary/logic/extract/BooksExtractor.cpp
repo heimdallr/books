@@ -5,8 +5,6 @@
 #include <QBuffer>
 #include <QTemporaryDir>
 
-#include "fnd/FindPair.h"
-
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/ITransaction.h"
@@ -289,7 +287,7 @@ public:
 
 	std::shared_ptr<const ILogicFactory> GetLogicFactory() const
 	{
-		return m_logicFactory.lock();
+		return ILogicFactory::Lock(m_logicFactory);
 	}
 
 private: // IPathChecker

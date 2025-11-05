@@ -22,12 +22,12 @@
 #include "extract/InpxGenerator.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/ZipProgressCallback.h"
+#include "util/DyLib.h"
+#include "util/translit.h"
 
 #include "log.h"
 
 #include "config/version.h"
-#include "util/DyLib.h"
-#include "util/translit.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
