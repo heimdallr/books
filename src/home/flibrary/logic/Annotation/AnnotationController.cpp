@@ -447,6 +447,11 @@ private: // IDataProvider
 		return m_archiveData.content;
 	}
 
+	[[nodiscard]] IDataItem::Ptr GetDescription() const noexcept override
+	{
+		return m_archiveData.description;
+	}
+
 	[[nodiscard]] IDataItem::Ptr GetTranslators() const noexcept override
 	{
 		return m_archiveData.translators;
