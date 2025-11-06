@@ -3,8 +3,8 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IBookInteractor.h"
 #include "interface/logic/IModelProvider.h"
-#include "interface/logic/IReaderController.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"
@@ -23,7 +23,7 @@ public:
 	AuthorReview(
 		const std::shared_ptr<const IUiFactory>&     uiFactory,
 		const std::shared_ptr<const IModelProvider>& modelProvider,
-		std::shared_ptr<const IReaderController>     readerController,
+		std::shared_ptr<const IBookInteractor>       bookInteractor,
 		std::shared_ptr<ISettings>                   settings,
 		std::shared_ptr<ScrollBarController>         scrollBarController,
 		QWidget*                                     parent = nullptr

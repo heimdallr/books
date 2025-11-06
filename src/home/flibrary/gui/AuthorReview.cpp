@@ -19,7 +19,7 @@ public:
 		StackedPage&                             self,
 		const IUiFactory&                        uiFactory,
 		const IModelProvider&                    modelProvider,
-		std::shared_ptr<const IReaderController> readerController,
+		std::shared_ptr<const IBookInteractor> bookInteractor,
 		std::shared_ptr<ISettings>               settings,
 		std::shared_ptr<ScrollBarController>     scrollBarController
 	)
@@ -27,7 +27,7 @@ public:
 		, GeometryRestorableObserver(self)
 		, m_model { modelProvider.CreateAuthorReviewModel() }
 		, m_scrollBarController { std::move(scrollBarController) }
-		, m_readerController { std::move(readerController) }
+		, m_bookInteractor { std::move(bookInteractor) }
 	{
 		m_ui.setupUi(&self);
 		connect(m_ui.btnClose, &QAbstractButton::clicked, self.closeAction, &QAction::trigger);
@@ -39,7 +39,7 @@ public:
 		m_ui.view->viewport()->installEventFilter(m_scrollBarController.get());
 
 		connect(m_ui.view, &QAbstractItemView::doubleClicked, [this](const QModelIndex& index) {
-			m_readerController->Read(index.data(AuthorReviewModelRole::BookId).toLongLong());
+			m_bookInteractor->OnDoubleClicked(index.data(AuthorReviewModelRole::BookId).toLongLong());
 		});
 
 		LoadGeometry();
@@ -53,20 +53,20 @@ public:
 private:
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_model;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
-	std::shared_ptr<const IReaderController>                m_readerController;
+	std::shared_ptr<const IBookInteractor>                  m_bookInteractor;
 	Ui::AuthorReview                                        m_ui;
 };
 
 AuthorReview::AuthorReview(
 	const std::shared_ptr<const IUiFactory>&     uiFactory,
 	const std::shared_ptr<const IModelProvider>& modelProvider,
-	std::shared_ptr<const IReaderController>     readerController,
+	std::shared_ptr<const IBookInteractor>       bookInteractor,
 	std::shared_ptr<ISettings>                   settings,
 	std::shared_ptr<ScrollBarController>         scrollBarController,
 	QWidget*                                     parent
 )
 	: StackedPage(parent)
-	, m_impl(*this, *uiFactory, *modelProvider, std::move(readerController), std::move(settings), std::move(scrollBarController))
+	, m_impl(*this, *uiFactory, *modelProvider, std::move(bookInteractor), std::move(settings), std::move(scrollBarController))
 {
 }
 

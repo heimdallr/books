@@ -126,7 +126,7 @@ public:
 		const std::shared_ptr<const IModelProvider>&       modelProvider,
 		const std::shared_ptr<const ILogicFactory>&        logicFactory,
 		const std::shared_ptr<ICollectionController>&      collectionController,
-		std::shared_ptr<const IReaderController>           readerController,
+		std::shared_ptr<const IBookInteractor>             bookInteractor,
 		std::shared_ptr<ISettings>                         settings,
 		std::shared_ptr<IAnnotationController>             annotationController,
 		std::shared_ptr<IUiFactory>                        uiFactory,
@@ -136,7 +136,7 @@ public:
 		std::shared_ptr<ScrollBarController>               scrollBarControllerAnnotation
 	)
 		: m_self { self }
-		, m_readerController { std::move(readerController) }
+		, m_bookInteractor { std::move(bookInteractor) }
 		, m_settings { std::move(settings) }
 		, m_annotationController { std::move(annotationController) }
 		, m_modelProvider { modelProvider }
@@ -500,7 +500,7 @@ private:
 		assert(url.size() == 2);
 		if (QString(Constant::BOOK).startsWith(url.front()))
 		{
-			return m_readerController->Read(url.back().toLongLong());
+			return m_bookInteractor->OnLinkActivated(url.back().toLongLong());
 		}
 		if (std::ranges::none_of(TYPE_TO_NAVIGATION, [&](const auto& schema) {
 				return schema.second.second && QString(schema.first).startsWith(url.front());
@@ -537,7 +537,7 @@ private:
 
 private:
 	AnnotationWidget&                                                     m_self;
-	std::shared_ptr<const IReaderController>                              m_readerController;
+	std::shared_ptr<const IBookInteractor>                                m_bookInteractor;
 	PropagateConstPtr<ISettings, std::shared_ptr>                         m_settings;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr>             m_annotationController;
 	std::weak_ptr<const IModelProvider>                                   m_modelProvider;
@@ -569,7 +569,7 @@ AnnotationWidget::AnnotationWidget(
 	const std::shared_ptr<const IModelProvider>&       modelProvider,
 	const std::shared_ptr<const ILogicFactory>&        logicFactory,
 	const std::shared_ptr<ICollectionController>&      collectionController,
-	std::shared_ptr<const IReaderController>           readerController,
+	std::shared_ptr<const IBookInteractor>             bookInteractor,
 	std::shared_ptr<ISettings>                         settings,
 	std::shared_ptr<IAnnotationController>             annotationController,
 	std::shared_ptr<IUiFactory>                        uiFactory,
@@ -585,7 +585,7 @@ AnnotationWidget::AnnotationWidget(
 		  modelProvider,
 		  logicFactory,
 		  collectionController,
-		  std::move(readerController),
+		  std::move(bookInteractor),
 		  std::move(settings),
 		  std::move(annotationController),
 		  std::move(uiFactory),

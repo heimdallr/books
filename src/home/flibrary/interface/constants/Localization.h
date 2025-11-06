@@ -70,4 +70,6 @@ constexpr auto CHECK_ALL         = QT_TRANSLATE_NOOP("ContextMenu", "&Check all"
 constexpr auto UNCHECK_ALL       = QT_TRANSLATE_NOOP("ContextMenu", "&Uncheck all");
 constexpr auto INVERT_CHECK      = QT_TRANSLATE_NOOP("ContextMenu", "&Invert");
 
+constexpr auto SELECT_SEND_TO_FOLDER = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
+
 } // namespace HomeCompa::Loc

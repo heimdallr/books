@@ -56,20 +56,20 @@ struct TreeViewControllerBooks::Impl
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> annotationController;
 	std::shared_ptr<const IDatabaseUser>                      databaseUser;
 	PropagateConstPtr<IBookInfoProvider, std::shared_ptr>     dataProvider;
-	std::shared_ptr<const IReaderController>                  readerController;
+	std::shared_ptr<const IBookInteractor>                    bookInteractor;
 
 	Impl(
 		std::weak_ptr<const ILogicFactory>       logicFactory,
 		std::shared_ptr<IAnnotationController>   annotationController,
 		std::shared_ptr<const IDatabaseUser>     databaseUser,
 		std::shared_ptr<IBookInfoProvider>       dataProvider,
-		std::shared_ptr<const IReaderController> readerController
+		std::shared_ptr<const IBookInteractor> bookInteractor
 	)
 		: logicFactory { std::move(logicFactory) }
 		, annotationController { std::move(annotationController) }
 		, databaseUser { std::move(databaseUser) }
 		, dataProvider { std::move(dataProvider) }
-		, readerController { std::move(readerController) }
+		, bookInteractor { std::move(bookInteractor) }
 	{
 	}
 };
@@ -79,12 +79,12 @@ TreeViewControllerBooks::TreeViewControllerBooks(
 	const std::shared_ptr<IModelProvider>&      modelProvider,
 	const std::shared_ptr<const ILogicFactory>& logicFactory,
 	std::shared_ptr<IBookInfoProvider>          dataProvider,
-	std::shared_ptr<const IReaderController>    readerController,
+	std::shared_ptr<const IBookInteractor>      bookInteractor,
 	std::shared_ptr<IAnnotationController>      annotationController,
 	std::shared_ptr<IDatabaseUser>              databaseUser
 )
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
-	, m_impl(logicFactory, std::move(annotationController), std::move(databaseUser), std::move(dataProvider), std::move(readerController))
+	, m_impl(logicFactory, std::move(annotationController), std::move(databaseUser), std::move(dataProvider), std::move(bookInteractor))
 {
 	Setup();
 
@@ -175,5 +175,5 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex& index) const
 		return;
 
 	const auto id = index.data(Role::Id).toLongLong();
-	m_impl->readerController->Read(id);
+	m_impl->bookInteractor->OnDoubleClicked(id);
 }
