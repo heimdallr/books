@@ -38,6 +38,7 @@ public:
 		std::vector<QString>                         keywords;
 		IAnnotationController::IDataProvider::Covers covers;
 		IDataItem::Ptr                               content { NavigationItem::Create() };
+		IDataItem::Ptr                               description { NavigationItem::Create() };
 		IDataItem::Ptr                               translators { NavigationItem::Create() };
 		PublishInfo                                  publishInfo;
 		QString                                      error;

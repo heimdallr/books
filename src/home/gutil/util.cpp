@@ -1,6 +1,10 @@
 #include "util.h"
 
 #include <QHeaderView>
+#include <QMenu>
+#include <QTreeView>
+
+#include "interface/constants/Localization.h"
 
 #include "util/ISettings.h"
 
@@ -33,6 +37,31 @@ void LoadHeaderSectionWidth(QHeaderView& header, const ISettings& settings, cons
 		for (auto i = 0, sz = std::min(header.count() - 1, static_cast<int>(widths.size())); i < sz; ++i)
 			header.resizeSection(i, widths[static_cast<qsizetype>(i)]);
 	}
+}
+
+QMenu& FillTreeContextMenu(QTreeView& view, QMenu& menu)
+{
+	const auto has = [&](const bool value) {
+		for (int row = 0, count = view.model()->rowCount(); row < count; ++row)
+			if (view.isExpanded(view.model()->index(row, 0)) == value)
+				return true;
+		return false;
+	};
+
+	menu.addAction(
+			Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL),
+			[&] {
+				view.collapseAll();
+			}
+	)->setEnabled(has(true));
+	menu.addAction(
+			Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_EXPAND_ALL),
+			[&] {
+				view.expandAll();
+			}
+	)->setEnabled(has(false));
+
+	return menu;
 }
 
 } // namespace HomeCompa::Util

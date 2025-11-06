@@ -170,6 +170,10 @@
         <translation>Содержание</translation>
     </message>
     <message>
+        <source>Description</source>
+        <translation>Метаданные</translation>
+    </message>
+    <message>
         <source>Export statistics:</source>
         <translation>Статистика экспорта:</translation>
     </message>
@@ -252,6 +256,14 @@
     <message>
         <source>Series:</source>
         <translation>Серии:</translation>
+    </message>
+    <message>
+        <source>Show content</source>
+        <translation>Показать содержание</translation>
+    </message>
+    <message>
+        <source>Show file metadata</source>
+        <translation>Показать метаданные</translation>
     </message>
     <message>
         <source>Size:</source>

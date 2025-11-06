@@ -21,6 +21,7 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IDataItem.h"
 
+#include "gutil/util.h"
 #include "logic/TreeViewController/AbstractTreeViewController.h"
 #include "logic/data/DataItem.h"
 #include "logic/shared/ImageRestore.h"
@@ -63,6 +64,8 @@ constexpr auto SAVED_PARTIALLY           = QT_TRANSLATE_NOOP("Annotation", "%1 o
 constexpr auto SAVED_WITH_ERRORS         = QT_TRANSLATE_NOOP("Annotation", "%1 images out of %2 could not be saved");
 constexpr auto CANNOT_SAVE_IMAGE         = QT_TRANSLATE_NOOP("Annotation", "Cannot save image to %1");
 constexpr auto CANNOT_OPEN_IMAGE         = QT_TRANSLATE_NOOP("Annotation", "Cannot open %1");
+constexpr auto SHOW_FILE_METADATA        = QT_TRANSLATE_NOOP("Annotation", "Show file metadata");
+constexpr auto SHOW_CONTENT              = QT_TRANSLATE_NOOP("Annotation", "Show content");
 
 #if (false) // NOLINT(readability-avoid-unconditional-preprocessor-if)
 QT_TRANSLATE_NOOP("Annotation", "Read")
@@ -109,6 +112,24 @@ struct CoverButtonType
 		Home,
 		Next,
 	};
+};
+
+constexpr auto CONTENT_MODE_KEY = "ui/View/AnnotationContentMode";
+#define CONTENT_MODE_ITEMS_X_MACRO \
+	CONTENT_MODE_ITEM(Content)     \
+	CONTENT_MODE_ITEM(Description)
+
+enum class ContentMode
+{
+#define CONTENT_MODE_ITEM(NAME) NAME,
+	CONTENT_MODE_ITEMS_X_MACRO
+#undef CONTENT_MODE_ITEM
+};
+
+constexpr std::pair<const char*, ContentMode> CONTENT_MODE_NAMES[] {
+#define CONTENT_MODE_ITEM(NAME) { #NAME, ContentMode::NAME },
+	CONTENT_MODE_ITEMS_X_MACRO
+#undef CONTENT_MODE_ITEM
 };
 
 } // namespace
@@ -223,6 +244,29 @@ public:
 			menu.addAction(m_ui.actionSaveAllImages);
 			menu.setFont(m_self.font());
 			menu.exec(m_ui.cover->mapToGlobal(pos));
+		});
+
+		connect(m_ui.content, &QWidget::customContextMenuRequested, &m_self, [this](const QPoint& pos) {
+			QMenu menu;
+			menu.setFont(m_self.font());
+
+			const std::pair<ContentMode, std::tuple<const char*, QAbstractItemModel*, ContentMode, bool>> modes[] {
+				{     ContentMode::Content, { SHOW_FILE_METADATA, m_descriptionModel.get(), ContentMode::Description, true } },
+				{ ContentMode::Description,               { SHOW_CONTENT, m_contentModel.get(), ContentMode::Content, false } },
+			};
+
+			const auto& [title, model, mode, expand] = FindSecond(modes, m_contentMode, modes[0].second);
+			auto* action                     = menu.addAction(Tr(title));
+			connect(action, &QAction::triggered, [&] {
+				m_ui.content->setModel(model);
+				m_contentMode = mode;
+				m_settings->Set(CONTENT_MODE_KEY, CONTENT_MODE_NAMES[static_cast<size_t>(m_contentMode)].first);
+				if (expand)
+					m_ui.content->expandAll();
+			});
+			action->setEnabled(!!model);
+
+			Util::FillTreeContextMenu(*m_ui.content, menu).exec(m_ui.content->mapToGlobal(pos));
 		});
 
 		const auto openImage = [this] {
@@ -422,6 +466,8 @@ private: // IAnnotationController::IObserver
 		m_ui.info->setText({});
 		m_covers.clear();
 		m_currentCoverIndex = 0;
+		m_contentModel.reset();
+		m_descriptionModel.reset();
 	}
 
 	void OnAnnotationChanged(const IAnnotationController::IDataProvider& dataProvider) override
@@ -444,7 +490,40 @@ private: // IAnnotationController::IObserver
 			if (m_showContent)
 				m_ui.contentWidget->setVisible(true);
 			m_contentModel.reset(IModelProvider::Lock(m_modelProvider)->CreateTreeModel(dataProvider.GetContent(), true));
-			m_ui.content->setModel(m_contentModel.get());
+		}
+
+		if (dataProvider.GetDescription()->GetChildCount() > 0)
+		{
+			if (m_showContent)
+				m_ui.contentWidget->setVisible(true);
+			m_descriptionModel.reset(IModelProvider::Lock(m_modelProvider)->CreateTreeModel(dataProvider.GetDescription(), true));
+		}
+
+		switch (m_contentMode)
+		{
+			case ContentMode::Content:
+				if (m_contentModel)
+				{
+					m_ui.content->setModel(m_contentModel.get());
+				}
+				else if (m_descriptionModel)
+				{
+					m_ui.content->setModel(m_descriptionModel.get());
+					m_ui.content->expandAll();
+				}
+				break;
+
+			case ContentMode::Description:
+				if (m_descriptionModel)
+				{
+					m_ui.content->setModel(m_descriptionModel.get());
+					m_ui.content->expandAll();
+				}
+				else if (m_contentModel)
+				{
+					m_ui.content->setModel(m_contentModel.get());
+				}
+				break;
 		}
 
 		OnResize();
@@ -550,14 +629,17 @@ private:
 
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationController;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_contentModel { std::shared_ptr<QAbstractItemModel> {} };
-	Ui::AnnotationWidget                                    m_ui {};
-	IAnnotationController::IDataProvider::Covers            m_covers;
-	const QString                                           m_currentCollectionId;
-	size_t                                                  m_currentCoverIndex { 0 };
-	bool                                                    m_showContent { true };
-	bool                                                    m_showCover { true };
-	Util::FunctorExecutionForwarder                         m_forwarder;
-	QTimer                                                  m_progressTimer;
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_descriptionModel { std::shared_ptr<QAbstractItemModel> {} };
+
+	Ui::AnnotationWidget                         m_ui {};
+	IAnnotationController::IDataProvider::Covers m_covers;
+	const QString                                m_currentCollectionId;
+	size_t                                       m_currentCoverIndex { 0 };
+	bool                                         m_showContent { true };
+	bool                                         m_showCover { true };
+	Util::FunctorExecutionForwarder              m_forwarder;
+	QTimer                                       m_progressTimer;
+	ContentMode m_contentMode { FindSecond(CONTENT_MODE_NAMES, m_settings->Get(CONTENT_MODE_KEY, QString {}).toStdString().data(), CONTENT_MODE_NAMES[0].second, PszComparer {}) };
 
 	std::vector<QAbstractButton*> m_coverButtons;
 	bool                          m_coverButtonsEnabled { false };

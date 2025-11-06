@@ -24,15 +24,17 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto CONTEXT    = "Annotation";
-constexpr auto CONTENT    = QT_TRANSLATE_NOOP("Annotation", "Content");
-constexpr auto FILE_EMPTY = QT_TRANSLATE_NOOP("Annotation", "File is empty");
+constexpr auto CONTEXT     = "Annotation";
+constexpr auto CONTENT     = QT_TRANSLATE_NOOP("Annotation", "Content");
+constexpr auto DESCRIPTION = QT_TRANSLATE_NOOP("Annotation", "Description");
+constexpr auto FILE_EMPTY  = QT_TRANSLATE_NOOP("Annotation", "File is empty");
 TR_DEF
 
 constexpr auto ID                     = "id";
 constexpr auto A                      = "a";
 constexpr auto P                      = "p";
 constexpr auto EMPHASIS               = "emphasis";
+constexpr auto DESCRIPTION_NODE       = "FictionBook/description/";
 constexpr auto TRANSLATOR             = "FictionBook/description/title-info/translator";
 constexpr auto TRANSLATOR_FIRST_NAME  = "FictionBook/description/title-info/translator/first-name";
 constexpr auto TRANSLATOR_MIDDLE_NAME = "FictionBook/description/title-info/translator/middle-name";
@@ -84,6 +86,7 @@ public:
 		, m_total(m_ioDevice.size())
 	{
 		m_data.content->SetData(Tr(CONTENT), NavigationItem::Column::Title);
+		m_data.description->SetData(Tr(DESCRIPTION), NavigationItem::Column::Title);
 	}
 
 	ArchiveParser::Data Parse(const QString& rootFolder, const IDataItem& book, std::unique_ptr<IProgressController::IProgressItem> progressItem)
@@ -165,6 +168,12 @@ private: // Util::SaxParser
 
 		m_textMode = path.startsWith(BODY) && (name.compare(P, Qt::CaseInsensitive) == 0 || name.compare(EMPHASIS, Qt::CaseInsensitive) == 0);
 
+		if (path.startsWith(DESCRIPTION_NODE, Qt::CaseInsensitive))
+		{
+			m_currentDescriptionItem = m_currentDescriptionItem->AppendChild(NavigationItem::Create()).get();
+			m_currentDescriptionItem->SetData(name);
+		}
+
 		using ParseElementFunction = bool (XmlParser::*)(const Util::XmlAttributes&);
 		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
@@ -206,6 +215,9 @@ private: // Util::SaxParser
 				m_data.annotation.append(QString("</%1>").arg(replacedName));
 		}
 
+		if (path.startsWith(DESCRIPTION_NODE, Qt::CaseInsensitive))
+			m_currentDescriptionItem = m_currentDescriptionItem->GetParent();
+
 		return result;
 	}
 
@@ -243,6 +255,10 @@ private: // Util::SaxParser
 
 		if (m_annotationMode)
 			m_data.annotation.append(value);
+
+		if (path.startsWith(DESCRIPTION_NODE, Qt::CaseInsensitive))
+			if (!value.isEmpty())
+				m_currentDescriptionItem->SetData(QString("%1: %2").arg(m_currentDescriptionItem->GetData(), value));
 
 		return SaxParser::Parse(*this, PARSERS, path, value);
 	}
@@ -450,6 +466,7 @@ private:
 	QString                                     m_href;
 	QString                                     m_coverpage;
 	IDataItem*                                  m_currentContentItem { m_data.content.get() };
+	IDataItem*                                  m_currentDescriptionItem { m_data.description.get() };
 	std::vector<std::pair<QString, QByteArray>> m_covers;
 	int64_t                                     m_percents { 0 };
 	bool                                        m_textMode { false };

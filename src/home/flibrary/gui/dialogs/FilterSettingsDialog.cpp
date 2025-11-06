@@ -349,27 +349,9 @@ private:
 		if (m_filteredNavigation->navigationMode != NavigationMode::Genres)
 			return;
 
-		const auto has = [this](const bool value) {
-			for (int row = 0, count = m_model->rowCount(); row < count; ++row)
-				if (m_ui.view->isExpanded(m_model->index(row, 0)) == value)
-					return true;
-			return false;
-		};
-
 		QMenu menu;
 		menu.setFont(m_self.font());
-		menu.addAction(
-				Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL),
-				[this] {
-					m_ui.view->collapseAll();
-				}
-		)->setEnabled(has(true));
-		menu.addAction(
-				Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_EXPAND_ALL),
-				[this] {
-					m_ui.view->expandAll();
-				}
-		)->setEnabled(has(false));
+		Util::FillTreeContextMenu(*m_ui.view, menu).exec(QCursor::pos());
 		menu.exec(QCursor::pos());
 	}
 

@@ -170,6 +170,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Description</source>
+        <translation>Metadata</translation>
+    </message>
+    <message>
         <source>Export statistics:</source>
         <translation></translation>
     </message>
@@ -251,6 +255,14 @@
     </message>
     <message>
         <source>Series:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Show content</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Show file metadata</source>
         <translation></translation>
     </message>
     <message>
