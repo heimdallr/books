@@ -126,7 +126,7 @@ void FixSearches_User(DB::ITransaction& transaction)
 
 bool RecordsExists(DB::ITransaction& transaction, const std::string_view tableName, const std::string_view where = {})
 {
-	const auto query = transaction.CreateQuery(std::format("SELECT exists(SELECT 1 FROM {} {})", tableName, where));
+	const auto query = transaction.CreateQuery(std::format("SELECT exists(SELECT 42 FROM {} {})", tableName, where));
 	query->Execute();
 	return query->Get<int>(0) != 0;
 }
