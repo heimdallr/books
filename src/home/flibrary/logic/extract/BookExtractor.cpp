@@ -50,7 +50,7 @@ select
     f.FolderTitle,
     b.FileName||b.Ext,
     b.BookSize,
-    (select a.LastName ||' '||a.FirstName ||' '||a.MiddleName from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID order by al.AuthorID limit 1),
+    (select a.LastName ||' '||a.FirstName ||' '||a.MiddleName from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID order by al.OrdNum limit 1),
     s.SeriesTitle,
     b.SeqNumber,
     b.Title
