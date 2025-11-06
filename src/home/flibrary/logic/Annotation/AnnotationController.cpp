@@ -20,7 +20,6 @@
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
-#include "interface/logic/IFilterProvider.h"
 #include "interface/logic/IJokeRequester.h"
 #include "interface/logic/IProgressController.h"
 
