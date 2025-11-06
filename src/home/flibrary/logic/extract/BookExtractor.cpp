@@ -12,7 +12,7 @@
 #include "log.h"
 
 using namespace HomeCompa;
-using namespace Opds;
+using namespace Flibrary;
 
 namespace
 {
@@ -21,8 +21,8 @@ constexpr auto OPDS_TRANSLITERATE = "opds/transliterate";
 
 QString GetOutputFileNameTemplate(const ISettings& settings)
 {
-	auto outputFileNameTemplate = settings.Get(Flibrary::Constant::Settings::EXPORT_TEMPLATE_KEY, Flibrary::IScriptController::GetDefaultOutputFileNameTemplate());
-	Flibrary::IScriptController::SetMacro(outputFileNameTemplate, Flibrary::IScriptController::Macro::UserDestinationFolder, "");
+	auto outputFileNameTemplate = settings.Get(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
+	IScriptController::SetMacro(outputFileNameTemplate, IScriptController::Macro::UserDestinationFolder, "");
 	return outputFileNameTemplate;
 }
 
@@ -30,19 +30,19 @@ QString GetOutputFileNameTemplate(const ISettings& settings)
 
 struct BookExtractor::Impl
 {
-	std::shared_ptr<const ISettings>                     settings;
-	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
-	std::shared_ptr<const Flibrary::IDatabaseController> databaseController;
-	const QString                                        m_outputFileNameTemplate { GetOutputFileNameTemplate(*settings) };
+	std::shared_ptr<const ISettings>           settings;
+	std::shared_ptr<const ICollectionProvider> collectionProvider;
+	std::shared_ptr<const IDatabaseController> databaseController;
+	const QString                              m_outputFileNameTemplate { GetOutputFileNameTemplate(*settings) };
 
-	Impl(std::shared_ptr<const ISettings> settings, std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider, std::shared_ptr<const Flibrary::IDatabaseController> databaseController)
+	Impl(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseController> databaseController)
 		: settings { std::move(settings) }
 		, collectionProvider { std::move(collectionProvider) }
 		, databaseController { std::move(databaseController) }
 	{
 	}
 
-	Flibrary::ILogicFactory::ExtractedBook GetExtractedBook(const QString& bookId) const
+	ILogicFactory::ExtractedBook GetExtractedBook(const QString& bookId) const
 	{
 		const auto db    = databaseController->GetDatabase(true);
 		const auto query = db->CreateQuery(R"(
@@ -64,16 +64,15 @@ where b.BookID = ?
 		if (query->Eof())
 			return {};
 
-		return Flibrary::ILogicFactory::ExtractedBook { bookId.toInt(),           query->Get<const char*>(0), query->Get<const char*>(1),
-			                                            query->Get<long long>(2), query->Get<const char*>(3), query->Get<const char*>(4),
-			                                            query->Get<int>(5),       query->Get<const char*>(6) };
+		return ILogicFactory::ExtractedBook { bookId.toInt(),     query->Get<const char*>(0), query->Get<const char*>(1), query->Get<long long>(2), query->Get<const char*>(3), query->Get<const char*>(4),
+			                                  query->Get<int>(5), query->Get<const char*>(6) };
 	}
 
-	QString GetFileName(const Flibrary::ILogicFactory::ExtractedBook& book) const
+	QString GetFileName(const ILogicFactory::ExtractedBook& book) const
 	{
 		auto outputFileName = m_outputFileNameTemplate;
 		auto db             = databaseController->GetDatabase(true);
-		Flibrary::ILogicFactory::FillScriptTemplate(*db, outputFileName, book);
+		ILogicFactory::FillScriptTemplate(*db, outputFileName, book);
 		if (!settings->Get(OPDS_TRANSLITERATE, false))
 			return outputFileName;
 
@@ -101,11 +100,7 @@ private:
 	mutable ICU::TransliterateType       m_icuTransliterate { nullptr };
 };
 
-BookExtractor::BookExtractor(
-	std::shared_ptr<const ISettings>                     settings,
-	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-	std::shared_ptr<const Flibrary::IDatabaseController> databaseController
-)
+BookExtractor::BookExtractor(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseController> databaseController)
 	: m_impl { std::move(settings), std::move(collectionProvider), std::move(databaseController) }
 {
 }
@@ -118,12 +113,12 @@ QString BookExtractor::GetFileName(const QString& bookId) const
 	return GetFileName(book);
 }
 
-QString BookExtractor::GetFileName(const Flibrary::ILogicFactory::ExtractedBook& book) const
+QString BookExtractor::GetFileName(const ILogicFactory::ExtractedBook& book) const
 {
 	return m_impl->GetFileName(book);
 }
 
-Flibrary::ILogicFactory::ExtractedBook BookExtractor::GetExtractedBook(const QString& bookId) const
+ILogicFactory::ExtractedBook BookExtractor::GetExtractedBook(const QString& bookId) const
 {
 	return m_impl->GetExtractedBook(bookId);
 }

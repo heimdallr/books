@@ -4,7 +4,7 @@
 
 class QString;
 
-namespace HomeCompa::Opds
+namespace HomeCompa::Flibrary
 {
 
 class IBookExtractor // NOLINT(cppcoreguidelines-special-member-functions)

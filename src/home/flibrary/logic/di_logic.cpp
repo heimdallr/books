@@ -21,6 +21,7 @@
 #include "database/DatabaseController.h"
 #include "database/DatabaseMigrator.h"
 #include "database/DatabaseUser.h"
+#include "extract/BookExtractor.h"
 #include "log/LogController.h"
 #include "model/FilteredProxyModel.h"
 #include "model/GenreModel.h"
@@ -73,6 +74,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 
 	builder.registerType<AnnotationController>().as<IAnnotationController>().singleInstance();
 	builder.registerType<AuthorAnnotationController>().as<IAuthorAnnotationController>().singleInstance();
+	builder.registerType<BookExtractor>().as<IBookExtractor>().singleInstance();
 	builder.registerType<CollectionController>().as<ICollectionController>().singleInstance();
 	builder.registerType<CollectionProvider>().as<ICollectionProvider>().singleInstance();
 	builder.registerType<CommandExecutor>().as<IScriptController::ICommandExecutor>().singleInstance();
