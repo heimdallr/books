@@ -974,8 +974,8 @@ private:
 				);
 			    it != std::end(passThruBinTypes))
 			{
-				fail                = *it;
-				auto      imageFile = m_settings.image.fileNameGetter(completeFileName, name);
+				fail           = *it;
+				auto imageFile = m_settings.image.fileNameGetter(completeFileName, name);
 				m_hash.reset();
 				m_hash.addData(body);
 

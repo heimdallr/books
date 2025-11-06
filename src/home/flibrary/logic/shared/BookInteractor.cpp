@@ -21,12 +21,12 @@ public:
 
 public:
 	virtual void Read(long long bookId) const         = 0;
-	virtual void ExtractAsIs(long long bookId) const = 0;
+	virtual void ExtractAsIs(long long bookId) const  = 0;
 	virtual void ExtractAsZip(long long bookId) const = 0;
 };
 
-#define INTERACT_ITEMS_X_MACRO  \
-	INTERACT_ITEM(Read)         \
+#define INTERACT_ITEMS_X_MACRO \
+	INTERACT_ITEM(Read)        \
 	INTERACT_ITEM(ExtractAsIs) \
 	INTERACT_ITEM(ExtractAsZip)
 
