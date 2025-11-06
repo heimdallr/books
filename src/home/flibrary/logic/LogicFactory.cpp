@@ -213,7 +213,7 @@ constexpr std::pair<const char*, std::shared_ptr<IFillTemplateConverter> (*)()> 
 
 std::shared_ptr<IFillTemplateConverter> CreateFilledTemplateConverter(const ISettings& settings)
 {
-	if (auto converter = FindSecond(TRANSLITERATE_MODES, settings.Get(EXPORT_TRANSLITERATE_MODE_KEY, QString { TRANSLITERATE_MODES[0].first }).toStdString().data(), PszComparer {})(); converter->IsValid())
+	if (auto converter = FindSecond(TRANSLITERATE_MODES, settings.Get(EXPORT_TRANSLITERATE_MODE_KEY, QString {}).toStdString().data(), TRANSLITERATE_MODES[0].second, PszComparer {})(); converter->IsValid())
 		return converter;
 
 	return std::make_shared<FilledTemplateConverterNone>();
