@@ -6,11 +6,11 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/IAnnotationController.h"
+#include "interface/logic/IBookInteractor.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IModelProvider.h"
 #include "interface/logic/IProgressController.h"
-#include "interface/logic/IReaderController.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"
@@ -31,7 +31,7 @@ public:
 		const std::shared_ptr<const IModelProvider>&       modelProvider,
 		const std::shared_ptr<const ILogicFactory>&        logicFactory,
 		const std::shared_ptr<ICollectionController>&      collectionController,
-		std::shared_ptr<const IReaderController>           readerController,
+		std::shared_ptr<const IBookInteractor>             bookInteractor,
 		std::shared_ptr<ISettings>                         settings,
 		std::shared_ptr<IAnnotationController>             annotationController,
 		std::shared_ptr<IUiFactory>                        uiFactory,

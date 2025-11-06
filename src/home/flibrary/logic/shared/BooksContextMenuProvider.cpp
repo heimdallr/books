@@ -48,7 +48,6 @@ constexpr auto TREE_EXPAND              = QT_TRANSLATE_NOOP("BookContextMenu", "
 constexpr auto REMOVE_BOOK              = QT_TRANSLATE_NOOP("BookContextMenu", "R&emove");
 constexpr auto REMOVE_BOOK_UNDO         = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
 constexpr auto REMOVE_BOOK_FROM_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "&Delete permanently");
-constexpr auto SELECT_SEND_TO_FOLDER    = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
 constexpr auto CHANGE_LANGUAGE          = QT_TRANSLATE_NOOP("BookContextMenu", "Change language");
 
 constexpr auto CANNOT_SET_USER_RATE = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set rate");
@@ -252,7 +251,8 @@ public:
 private: // IContextMenuHandler
 	void ReadBook(QAbstractItemModel* /*model*/, const QModelIndex& index, const QList<QModelIndex>& /*indexList*/, IDataItem::Ptr item, Callback callback) const override
 	{
-		m_readerController->Read(index.data(Role::Folder).toString(), index.data(Role::FileName).toString(), [item = std::move(item), callback = std::move(callback)] {
+		m_readerController->Read(index.data(Role::Id).toLongLong());
+		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] {
 			callback(item);
 		});
 	}
@@ -417,7 +417,7 @@ private: // IContextMenuHandler
 	void SendAsInpxCollection(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		SendAsInpxImpl(model, index, indexList, std::move(item), std::move(callback), &IInpxGenerator::ExtractAsInpxCollection, [this] {
-			return m_uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, SELECT_SEND_TO_FOLDER);
+			return m_uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, Loc::SELECT_SEND_TO_FOLDER);
 		});
 	}
 
@@ -532,7 +532,7 @@ private:
 		const bool                    dstFolderRequired
 	) const
 	{
-		auto dir = dstFolderRequired ? m_uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, SELECT_SEND_TO_FOLDER) : QString();
+		auto dir = dstFolderRequired ? m_uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, Loc::SELECT_SEND_TO_FOLDER) : QString();
 		if (dstFolderRequired && dir.isEmpty())
 			return callback(item);
 

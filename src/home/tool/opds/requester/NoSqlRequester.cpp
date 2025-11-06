@@ -76,8 +76,8 @@ QByteArray Compress(QByteArray data, QString fileName)
 struct NoSqlRequester::Impl
 {
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
+	std::shared_ptr<const Flibrary::IBookExtractor>      bookExtractor;
 	std::shared_ptr<const ICoverCache>                   coverCache;
-	std::shared_ptr<const IBookExtractor>                bookExtractor;
 	std::shared_ptr<Flibrary::IAnnotationController>     annotationController;
 
 	QByteArray GetCoverThumbnail(const QString& bookId) const
@@ -120,11 +120,11 @@ struct NoSqlRequester::Impl
 
 NoSqlRequester::NoSqlRequester(
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+	std::shared_ptr<const Flibrary::IBookExtractor>      bookExtractor,
 	std::shared_ptr<const ICoverCache>                   coverCache,
-	std::shared_ptr<const IBookExtractor>                bookExtractor,
 	std::shared_ptr<Flibrary::IAnnotationController>     annotationController
 )
-	: m_impl { std::move(collectionProvider), std::move(coverCache), std::move(bookExtractor), std::move(annotationController) }
+	: m_impl { std::move(collectionProvider), std::move(bookExtractor), std::move(coverCache), std::move(annotationController) }
 {
 }
 

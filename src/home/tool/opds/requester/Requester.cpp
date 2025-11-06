@@ -843,8 +843,8 @@ public:
 		std::shared_ptr<const Flibrary::IDatabaseController>         databaseController,
 		std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
 		std::shared_ptr<const Flibrary::IFilterProvider>             filterProvider,
+		std::shared_ptr<const Flibrary::IBookExtractor>              bookExtractor,
 		std::shared_ptr<const ICoverCache>                           coverCache,
-		std::shared_ptr<const IBookExtractor>                        bookExtractor,
 		std::shared_ptr<const INoSqlRequester>                       noSqlRequester,
 		std::shared_ptr<Flibrary::IAnnotationController>             annotationController
 	)
@@ -853,8 +853,8 @@ public:
 		, m_databaseController { std::move(databaseController) }
 		, m_authorAnnotationController { std::move(authorAnnotationController) }
 		, m_filterProvider { std::move(filterProvider) }
-		, m_coverCache { std::move(coverCache) }
 		, m_bookExtractor { std::move(bookExtractor) }
+		, m_coverCache { std::move(coverCache) }
 		, m_noSqlRequester { std::move(noSqlRequester) }
 		, m_annotationController { std::move(annotationController) }
 	{
@@ -1419,8 +1419,8 @@ private:
 	std::shared_ptr<const Flibrary::IDatabaseController>         m_databaseController;
 	std::shared_ptr<const Flibrary::IAuthorAnnotationController> m_authorAnnotationController;
 	std::shared_ptr<const Flibrary::IFilterProvider>             m_filterProvider;
+	std::shared_ptr<const Flibrary::IBookExtractor>              m_bookExtractor;
 	std::shared_ptr<const ICoverCache>                           m_coverCache;
-	std::shared_ptr<const IBookExtractor>                        m_bookExtractor;
 	std::shared_ptr<const INoSqlRequester>                       m_noSqlRequester;
 	std::shared_ptr<Flibrary::IAnnotationController>             m_annotationController;
 };
@@ -1435,8 +1435,8 @@ Requester::Requester(
 	std::shared_ptr<const Flibrary::IDatabaseController>         databaseController,
 	std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
 	std::shared_ptr<const Flibrary::IFilterProvider>             filterProvider,
+	std::shared_ptr<const Flibrary::IBookExtractor>              bookExtractor,
 	std::shared_ptr<const ICoverCache>                           coverCache,
-	std::shared_ptr<const IBookExtractor>                        bookExtractor,
 	std::shared_ptr<const INoSqlRequester>                       noSqlRequester,
 	std::shared_ptr<Flibrary::IAnnotationController>             annotationController
 )
@@ -1446,8 +1446,8 @@ Requester::Requester(
 		  std::move(databaseController),
 		  std::move(authorAnnotationController),
 		  std::move(filterProvider),
-		  std::move(coverCache),
 		  std::move(bookExtractor),
+		  std::move(coverCache),
 		  std::move(noSqlRequester),
 		  std::move(annotationController)
 	  )
