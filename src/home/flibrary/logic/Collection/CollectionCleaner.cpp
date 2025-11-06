@@ -517,3 +517,11 @@ void CollectionCleaner::AnalyzeCancel() const
 {
 	m_impl->AnalyzeCancel();
 }
+
+void CollectionCleaner::CompilationInfoExistsRequest(IAnalyzeObserver& callback) const
+{
+	const auto db = m_impl->databaseUser->Database();
+	const auto query = db->CreateQuery(std::format("SELECT exists(SELECT 42 FROM Compilation_List)"));
+	query->Execute();
+	callback.CompilationInfoExistsResponse(query->Get<int>(0) != 0);
+}

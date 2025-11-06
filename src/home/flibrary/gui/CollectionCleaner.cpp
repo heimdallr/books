@@ -115,6 +115,9 @@ public:
 		m_scrollBarControllerLanguage->SetScrollArea(m_ui.languages);
 
 		m_ui.progressBar->setVisible(false);
+		m_ui.compilations->setVisible(false);
+		m_ui.compilated->setVisible(false);
+		m_collectionCleaner->CompilationInfoExistsRequest(*this);
 
 		connect(m_ui.genres, &QWidget::customContextMenuRequested, &m_self, [&] {
 			OnGenresContextMenuRequested();
@@ -292,6 +295,12 @@ private: // ICollectionCleaner::IAnalyzeObserver
 	bool NeedDeleteBooksDuplicatedByCompilations() const override
 	{
 		return m_ui.compilated->isChecked();
+	}
+
+	void CompilationInfoExistsResponse(const bool value) const override
+	{
+		m_ui.compilations->setVisible(value);
+		m_ui.compilated->setVisible(value);
 	}
 
 private: // ISettingsObserver

@@ -45,16 +45,18 @@ public:
 		virtual std::optional<double> GetMinimumLibRate() const                          = 0;
 		virtual bool                  NeedDeleteCompletelyDuplicatedCompilations() const = 0;
 		virtual bool                  NeedDeleteBooksDuplicatedByCompilations() const    = 0;
+		virtual void                  CompilationInfoExistsResponse(bool value) const    = 0;
 	};
 
 	using Callback = std::function<void(bool result)>;
 
 public:
-	virtual ~ICollectionCleaner()                                        = default;
-	virtual void Remove(Books books, Callback callback) const            = 0;
-	virtual void RemovePermanently(Books books, Callback callback) const = 0;
-	virtual void Analyze(IAnalyzeObserver& callback) const               = 0;
-	virtual void AnalyzeCancel() const                                   = 0;
+	virtual ~ICollectionCleaner()                                               = default;
+	virtual void Remove(Books books, Callback callback) const                   = 0;
+	virtual void RemovePermanently(Books books, Callback callback) const        = 0;
+	virtual void Analyze(IAnalyzeObserver& callback) const                      = 0;
+	virtual void AnalyzeCancel() const                                          = 0;
+	virtual void CompilationInfoExistsRequest(IAnalyzeObserver& callback) const = 0;
 };
 
 } // namespace HomeCompa::Flibrary
