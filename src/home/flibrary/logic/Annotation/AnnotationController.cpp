@@ -20,6 +20,7 @@
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/IFilterProvider.h"
 #include "interface/logic/IJokeRequester.h"
 #include "interface/logic/IProgressController.h"
 
@@ -295,7 +296,10 @@ class AnnotationController::Impl final
 	, public IDataProvider
 	, IProgressController::IObserver
 	, IJokeRequester::IClient
+	, IFilterProvider::IObserver
 {
+	NON_COPY_MOVABLE(Impl)
+
 public:
 	Impl(
 		const std::shared_ptr<const ILogicFactory>&  logicFactory,
@@ -303,7 +307,7 @@ public:
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
 		std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
 		std::shared_ptr<const IDatabaseUser>         databaseUser,
-		std::shared_ptr<const IFilterProvider>       filterProvider
+		std::shared_ptr<IFilterProvider>             filterProvider
 	)
 		: m_logicFactory { logicFactory }
 		, m_settings { std::move(settings) }
@@ -319,6 +323,12 @@ public:
 		QObject::connect(&m_jokeTimer, &QTimer::timeout, [this] {
 			RequestJoke();
 		});
+		m_filterProvider->RegisterObserver(this);
+	}
+
+	~Impl() override
+	{
+		m_filterProvider->UnregisterObserver(this);
 	}
 
 public:
@@ -518,6 +528,20 @@ private: // IJokeRequester::IClient
 	void OnImageReceived(const QByteArray& value) override
 	{
 		Perform(&IAnnotationController::IObserver::OnJokeImageChanged, std::cref(value));
+	}
+
+private: // IFilterProvider::IObserver
+	void OnFilterEnabledChanged() override
+	{
+	}
+
+	void OnFilterNavigationChanged(NavigationMode) override
+	{
+	}
+
+	void OnFilterBooksChanged() override
+	{
+		Perform(&IAnnotationController::IObserver::OnAnnotationRequested);
 	}
 
 private:
@@ -724,12 +748,14 @@ private:
 	std::shared_ptr<const ICollectionProvider>   m_collectionProvider;
 	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
 	std::shared_ptr<const IDatabaseUser>         m_databaseUser;
-	std::shared_ptr<const IFilterProvider>       m_filterProvider;
+
+	PropagateConstPtr<IFilterProvider, std::shared_ptr> m_filterProvider;
 
 	std::vector<std::pair<IJokeRequesterFactory::Implementation, PropagateConstPtr<IJokeRequester, std::shared_ptr>>> m_jokeRequesters;
-	PropagateConstPtr<Util::IExecutor>                                                                                m_executor;
-	std::shared_ptr<IJokeRequester::IClient>                                                                          m_jokeRequesterClientImpl;
-	PropagateConstPtr<QTimer>                                                                                         m_extractInfoTimer { Util::CreateUiTimer([&] {
+
+	PropagateConstPtr<Util::IExecutor>       m_executor;
+	std::shared_ptr<IJokeRequester::IClient> m_jokeRequesterClientImpl;
+	PropagateConstPtr<QTimer>                m_extractInfoTimer { Util::CreateUiTimer([&] {
         ExtractInfo();
     }) };
 
@@ -767,7 +793,7 @@ AnnotationController::AnnotationController(
 	std::shared_ptr<const ICollectionProvider>   collectionProvider,
 	std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
 	std::shared_ptr<const IDatabaseUser>         databaseUser,
-	std::shared_ptr<const IFilterProvider>       filterProvider
+	std::shared_ptr<IFilterProvider>       filterProvider
 )
 	: m_impl(logicFactory, std::move(settings), std::move(collectionProvider), std::move(jokeRequesterFactory), std::move(databaseUser), std::move(filterProvider))
 {
