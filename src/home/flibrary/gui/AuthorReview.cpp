@@ -16,12 +16,12 @@ class AuthorReview::Impl final
 
 public:
 	Impl(
-		StackedPage&                             self,
-		const IUiFactory&                        uiFactory,
-		const IModelProvider&                    modelProvider,
+		StackedPage&                           self,
+		const IUiFactory&                      uiFactory,
+		const IModelProvider&                  modelProvider,
 		std::shared_ptr<const IBookInteractor> bookInteractor,
-		std::shared_ptr<ISettings>               settings,
-		std::shared_ptr<ScrollBarController>     scrollBarController
+		std::shared_ptr<ISettings>             settings,
+		std::shared_ptr<ScrollBarController>   scrollBarController
 	)
 		: GeometryRestorable(*this, std::move(settings), "AuthorReview")
 		, GeometryRestorableObserver(self)

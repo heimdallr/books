@@ -59,10 +59,10 @@ struct TreeViewControllerBooks::Impl
 	std::shared_ptr<const IBookInteractor>                    bookInteractor;
 
 	Impl(
-		std::weak_ptr<const ILogicFactory>       logicFactory,
-		std::shared_ptr<IAnnotationController>   annotationController,
-		std::shared_ptr<const IDatabaseUser>     databaseUser,
-		std::shared_ptr<IBookInfoProvider>       dataProvider,
+		std::weak_ptr<const ILogicFactory>     logicFactory,
+		std::shared_ptr<IAnnotationController> annotationController,
+		std::shared_ptr<const IDatabaseUser>   databaseUser,
+		std::shared_ptr<IBookInfoProvider>     dataProvider,
 		std::shared_ptr<const IBookInteractor> bookInteractor
 	)
 		: logicFactory { std::move(logicFactory) }

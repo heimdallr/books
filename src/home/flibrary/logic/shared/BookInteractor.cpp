@@ -20,13 +20,13 @@ public:
 	virtual ~IBookInteractorImpl() = default;
 
 public:
-	virtual void Read(long long bookId) const              = 0;
-	virtual void ExtractAsFb2(long long bookId) const       = 0;
+	virtual void Read(long long bookId) const         = 0;
+	virtual void ExtractAsFb2(long long bookId) const = 0;
 	virtual void ExtractAsZip(long long bookId) const = 0;
 };
 
-#define INTERACT_ITEMS_X_MACRO       \
-	INTERACT_ITEM(Read)              \
+#define INTERACT_ITEMS_X_MACRO  \
+	INTERACT_ITEM(Read)         \
 	INTERACT_ITEM(ExtractAsFb2) \
 	INTERACT_ITEM(ExtractAsZip)
 
