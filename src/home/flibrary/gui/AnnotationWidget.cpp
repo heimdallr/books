@@ -252,11 +252,11 @@ public:
 
 			const std::pair<ContentMode, std::tuple<const char*, QAbstractItemModel*, ContentMode, bool>> modes[] {
 				{     ContentMode::Content, { SHOW_FILE_METADATA, m_descriptionModel.get(), ContentMode::Description, true } },
-				{ ContentMode::Description,               { SHOW_CONTENT, m_contentModel.get(), ContentMode::Content, false } },
+				{ ContentMode::Description,              { SHOW_CONTENT, m_contentModel.get(), ContentMode::Content, false } },
 			};
 
 			const auto& [title, model, mode, expand] = FindSecond(modes, m_contentMode, modes[0].second);
-			auto* action                     = menu.addAction(Tr(title));
+			auto* action                             = menu.addAction(Tr(title));
 			connect(action, &QAction::triggered, [&] {
 				m_ui.content->setModel(model);
 				m_contentMode = mode;

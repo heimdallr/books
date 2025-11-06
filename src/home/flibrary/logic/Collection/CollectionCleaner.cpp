@@ -520,7 +520,7 @@ void CollectionCleaner::AnalyzeCancel() const
 
 void CollectionCleaner::CompilationInfoExistsRequest(IAnalyzeObserver& callback) const
 {
-	const auto db = m_impl->databaseUser->Database();
+	const auto db    = m_impl->databaseUser->Database();
 	const auto query = db->CreateQuery(std::format("SELECT exists(SELECT 42 FROM Compilation_List)"));
 	query->Execute();
 	callback.CompilationInfoExistsResponse(query->Get<int>(0) != 0);

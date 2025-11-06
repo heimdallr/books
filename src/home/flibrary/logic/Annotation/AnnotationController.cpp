@@ -792,7 +792,7 @@ AnnotationController::AnnotationController(
 	std::shared_ptr<const ICollectionProvider>   collectionProvider,
 	std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
 	std::shared_ptr<const IDatabaseUser>         databaseUser,
-	std::shared_ptr<IFilterProvider>       filterProvider
+	std::shared_ptr<IFilterProvider>             filterProvider
 )
 	: m_impl(logicFactory, std::move(settings), std::move(collectionProvider), std::move(jokeRequesterFactory), std::move(databaseUser), std::move(filterProvider))
 {
