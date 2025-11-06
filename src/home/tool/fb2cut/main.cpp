@@ -976,7 +976,10 @@ private:
 			{
 				fail                = *it;
 				auto      imageFile = m_settings.image.fileNameGetter(completeFileName, name);
-				ImageItem imageItem { .fileName = std::move(imageFile), .body = body, .dateTime = dateTime };
+				m_hash.reset();
+				m_hash.addData(body);
+
+				ImageItem imageItem { .fileName = std::move(imageFile), .body = body, .dateTime = dateTime, .hash = QString::fromUtf8(m_hash.result().toHex()) };
 
 				if (!m_settings.image.save)
 					imageItem.body = {};
