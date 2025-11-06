@@ -255,7 +255,7 @@ public:
 				{ ContentMode::Description,               { SHOW_CONTENT, m_contentModel.get(), ContentMode::Content, false } },
 			};
 
-			const auto& [title, model, mode, expand] = FindSecond(modes, m_contentMode);
+			const auto& [title, model, mode, expand] = FindSecond(modes, m_contentMode, modes[0].second);
 			auto* action                     = menu.addAction(Tr(title));
 			connect(action, &QAction::triggered, [&] {
 				m_ui.content->setModel(model);
