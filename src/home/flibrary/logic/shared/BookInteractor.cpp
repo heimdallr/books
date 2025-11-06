@@ -21,13 +21,13 @@ public:
 
 public:
 	virtual void Read(long long bookId) const         = 0;
-	virtual void ExtractAsFb2(long long bookId) const = 0;
+	virtual void ExtractAsIs(long long bookId) const = 0;
 	virtual void ExtractAsZip(long long bookId) const = 0;
 };
 
 #define INTERACT_ITEMS_X_MACRO  \
 	INTERACT_ITEM(Read)         \
-	INTERACT_ITEM(ExtractAsFb2) \
+	INTERACT_ITEM(ExtractAsIs) \
 	INTERACT_ITEM(ExtractAsZip)
 
 constexpr std::pair<const char*, void (IBookInteractorImpl::*)(long long) const> INTERACT[] {
@@ -73,7 +73,7 @@ private: // IBookInteractorImpl
 		readerController->Read(bookId);
 	}
 
-	void ExtractAsFb2(const long long bookId) const override
+	void ExtractAsIs(const long long bookId) const override
 	{
 		ExtractImpl(&BooksExtractor::ExtractAsIs, bookId);
 	}
