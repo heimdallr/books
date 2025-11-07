@@ -925,12 +925,20 @@ Restart now?</source>
 <context>
     <name>FilterSettingsDialog</name>
     <message>
+        <source>All items shown</source>
+        <translation>Показаны все элементы</translation>
+    </message>
+    <message>
         <source>Apply</source>
         <translation>Применить</translation>
     </message>
     <message>
         <source>Cancel</source>
         <translation>Отмена</translation>
+    </message>
+    <message>
+        <source>Checked items shown</source>
+        <translation>Показаны отмеченные элеметы</translation>
     </message>
     <message>
         <source>Filter enabled</source>
@@ -945,8 +953,20 @@ Restart now?</source>
         <translation>Скрыть элементы, все книги которых отфильтрованы</translation>
     </message>
     <message>
+        <source>Show all items</source>
+        <translation>Показать все элементы</translation>
+    </message>
+    <message>
         <source>Show checked only</source>
         <translation>Показывать только помеченные</translation>
+    </message>
+    <message>
+        <source>Show unchecked only</source>
+        <translation>Показать только отмеченные</translation>
+    </message>
+    <message>
+        <source>Unchecked items shown</source>
+        <translation>Показаны неотмеченные элементы</translation>
     </message>
 </context>
 <context>

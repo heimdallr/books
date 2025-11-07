@@ -915,11 +915,19 @@ Restart now?</source>
 <context>
     <name>FilterSettingsDialog</name>
     <message>
+        <source>All items shown</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Apply</source>
         <translation></translation>
     </message>
     <message>
         <source>Cancel</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Checked items shown</source>
         <translation></translation>
     </message>
     <message>
@@ -935,7 +943,19 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Show all items</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Show checked only</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Show unchecked only</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Unchecked items shown</source>
         <translation></translation>
     </message>
 </context>
