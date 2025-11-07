@@ -6,6 +6,7 @@
 #include <QSortFilterProxyModel>
 #include <QTimer>
 
+#include "fnd/FindPair.h"
 #include "fnd/algorithm.h"
 
 #include "interface/constants/Localization.h"
@@ -32,7 +33,26 @@ TR_DEF
 constexpr auto FIELD_WIDTH_KEY       = "ui/View/UniFilter/columnWidths";
 constexpr auto RECENT_TAB_KEY        = "ui/View/UniFilter/recentTab";
 constexpr auto RECENT_VALUE_MODE_KEY = "ui/View/UniFilter/valueMode";
-constexpr auto SHOW_CHECKED_ONLY_KEY = "ui/View/UniFilter/showCheckedOnly";
+constexpr auto SHOW_CHECKED_MODE_KEY = "ui/View/UniFilter/showCheckedMode%1";
+
+#define SHOW_CHECKED_MODE_ITEMS_X_MACRO \
+	SHOW_CHECKED_MODE_ITEM(All)         \
+	SHOW_CHECKED_MODE_ITEM(Checked)     \
+	SHOW_CHECKED_MODE_ITEM(Uncheked)
+
+enum class ShowCheckedMode
+{
+#define SHOW_CHECKED_MODE_ITEM(NAME) NAME,
+	SHOW_CHECKED_MODE_ITEMS_X_MACRO
+#undef SHOW_CHECKED_MODE_ITEM
+		Last
+};
+
+constexpr std::pair<const char*, ShowCheckedMode> CHECKED_MODE_NAMES[] {
+#define SHOW_CHECKED_MODE_ITEM(NAME) { #NAME, ShowCheckedMode::NAME },
+	SHOW_CHECKED_MODE_ITEMS_X_MACRO
+#undef SHOW_CHECKED_MODE_ITEM
+};
 
 struct SortFilterProxyModel final : QSortFilterProxyModel
 {
@@ -46,7 +66,7 @@ struct SortFilterProxyModel final : QSortFilterProxyModel
 	};
 
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> sourceModel;
-	bool                                                   checkedOnly { false };
+	QVariant                                               checkedOnly;
 
 	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<QAbstractItemModel> sourceModel)
 	{
@@ -67,7 +87,7 @@ private:
 			case Role::CheckedOnly:
 				return Util::Set(
 					checkedOnly,
-					value.toBool(),
+					QVariant { value },
 					[this] {
 						beginFilterChange();
 					},
@@ -89,15 +109,15 @@ private:
 private: // QSortFilterProxyModel
 	bool filterAcceptsRow(const int sourceRow, const QModelIndex& sourceParent) const override
 	{
-		if (!checkedOnly)
+		if (!checkedOnly.isValid())
 			return true;
 
-		auto check = [&](const int column) {
+		auto check = [&, value = checkedOnly.toBool()](const int column) {
 			const auto                  sourceIndex = sourceModel->index(sourceRow, column, sourceParent);
 			[[maybe_unused]] const auto id          = sourceIndex.data(Flibrary::Role::Id);
 			const auto                  checked     = sourceIndex.data(Qt::CheckStateRole);
 			if (checked.isValid())
-				return checked.value<Qt::CheckState>() == Qt::Checked;
+				return (checked.value<Qt::CheckState>() == Qt::Checked) == value;
 
 			for (int row = 0, count = sourceModel->rowCount(sourceIndex); row < count; ++row)
 				if (filterAcceptsRow(row, sourceIndex))
@@ -188,7 +208,6 @@ private:
 	void Init()
 	{
 		m_ui.checkBoxFilterEnabled->setChecked(m_filterController->IsFilterEnabled());
-		m_ui.checkBoxShowCheckedOnly->setChecked(m_settings->Get(SHOW_CHECKED_ONLY_KEY, m_ui.checkBoxShowCheckedOnly->isChecked()));
 		m_dataProvider->SetNavigationRequestCallback([this](IDataItem::Ptr root) {
 			OnSetNavigationRequestCallback(std::move(root));
 		});
@@ -207,9 +226,6 @@ private:
 		});
 		connect(m_ui.tabs, &QTabWidget::tabCloseRequested, [this](const int index) {
 			OnTabCloseRequest(index);
-		});
-		connect(m_ui.checkBoxShowCheckedOnly, &QCheckBox::toggled, &m_self, [this] {
-			OnShowCheckedOnlyChanged();
 		});
 		connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, &QDialog::reject);
 		connect(m_ui.btnApply, &QAbstractButton::clicked, [this] {
@@ -230,6 +246,10 @@ private:
 		connect(m_ui.btnStop, &QAbstractButton::clicked, &m_self, [this] {
 			m_hideFilteredStarted = false;
 		});
+		connect(m_ui.showCheckedMode, &QLabel::linkActivated, &m_self, [this](const QString& link) {
+			m_settings->Set(QString(SHOW_CHECKED_MODE_KEY).arg(m_ui.tabs->currentIndex()), link);
+			InitShowCheckedMode();
+		});
 
 		if (const auto index = m_settings->Get(RECENT_TAB_KEY, 0))
 			m_ui.tabs->setCurrentIndex(index);
@@ -246,6 +266,36 @@ private:
 			m_ui.cbValueMode->setCurrentIndex(static_cast<int>(std::distance(std::cbegin(ModeComboBox::VALUE_MODES), it)));
 
 		LoadGeometry();
+	}
+
+	void InitShowCheckedMode()
+	{
+		if (!m_model)
+			return;
+
+		std::tuple<const char* /*title*/, const char* /*tooltip*/, QVariant> showCheckedModes[] {
+			{ QT_TRANSLATE_NOOP("FilterSettingsDialog",       "All items shown"), QT_TRANSLATE_NOOP("FilterSettingsDialog",   "Show checked only"),    {} },
+			{ QT_TRANSLATE_NOOP("FilterSettingsDialog",   "Checked items shown"), QT_TRANSLATE_NOOP("FilterSettingsDialog", "Show unchecked only"),  true },
+			{ QT_TRANSLATE_NOOP("FilterSettingsDialog", "Unchecked items shown"), QT_TRANSLATE_NOOP("FilterSettingsDialog",      "Show all items"), false },
+		};
+
+		m_showCheckedMode =
+			FindSecond(CHECKED_MODE_NAMES, m_settings->Get(QString(SHOW_CHECKED_MODE_KEY).arg(m_ui.tabs->currentIndex()), QString {}).toStdString().data(), CHECKED_MODE_NAMES[0].second, PszComparer {});
+
+		const auto& [title, tooltip, filterValue] = showCheckedModes[static_cast<size_t>(m_showCheckedMode)];
+
+		m_ui.showCheckedMode->setText(QString(R"(<a href="%1">%2</a>)").arg(CHECKED_MODE_NAMES[(static_cast<size_t>(m_showCheckedMode) + 1) % std::size(CHECKED_MODE_NAMES)].first, Tr(title)));
+		m_ui.showCheckedMode->setToolTip(Tr(tooltip));
+
+		const auto id = [this] {
+			const auto index = m_ui.view->currentIndex();
+			return index.isValid() ? index.data(Role::Id) : QVariant {};
+		}();
+
+		m_model->setData({}, filterValue, SortFilterProxyModel::Role::CheckedOnly);
+
+		if (id.isValid())
+			FindImpl(id, Role::Id);
 	}
 
 	std::vector<NavigationMode> CreateTabs() const
@@ -289,12 +339,12 @@ private:
 		assert(m_filteredNavigation);
 		auto sourceMode = std::invoke(m_filteredNavigation->modelGetter, *m_modelProvider, std::move(root));
 		m_model.reset(SortFilterProxyModel::Create(std::move(sourceMode)));
+		InitShowCheckedMode();
 		m_ui.view->setModel(m_model.get());
 		if (!m_model)
 			return;
 
 		m_model->setData({}, QVariant::fromValue(m_filteredNavigation->navigationMode), Role::NavigationMode);
-		OnShowCheckedOnlyChangedImpl();
 		Util::LoadHeaderSectionWidth(*m_ui.view->header(), *m_settings, FIELD_WIDTH_KEY);
 	}
 
@@ -419,28 +469,7 @@ private:
 
 		enumerate({}, skip, process, enumerate);
 
-		if (m_ui.checkBoxShowCheckedOnly)
-			m_model->setData({}, {}, SortFilterProxyModel::Role::FilterDataChanged);
-	}
-
-	void OnShowCheckedOnlyChanged()
-	{
-		OnShowCheckedOnlyChangedImpl();
-		m_settings->Set(SHOW_CHECKED_ONLY_KEY, m_ui.checkBoxShowCheckedOnly->isChecked());
-	}
-
-	void OnShowCheckedOnlyChangedImpl()
-	{
-		if (!m_model)
-			return;
-
-		const auto id = [this] {
-			const auto index = m_ui.view->currentIndex();
-			return index.isValid() ? index.data(Role::Id) : QVariant {};
-		}();
-		m_model->setData({}, m_ui.checkBoxShowCheckedOnly->isChecked(), SortFilterProxyModel::Role::CheckedOnly);
-		if (id.isValid())
-			FindImpl(id, Role::Id);
+		m_model->setData({}, {}, SortFilterProxyModel::Role::FilterDataChanged);
 	}
 
 	void Apply()
@@ -477,6 +506,7 @@ private:
 	const IFilterController::FilteredNavigation*            m_filteredNavigation { nullptr };
 	QTimer                                                  m_filterTimer;
 	int                                                     m_sectionClicked { -1 };
+	ShowCheckedMode                                         m_showCheckedMode { ShowCheckedMode::All };
 
 	std::atomic_bool                m_hideFilteredStarted { false };
 	Util::FunctorExecutionForwarder m_forwarder;
