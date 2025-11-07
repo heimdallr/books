@@ -16,7 +16,7 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="_4">
+  <layout class="QVBoxLayout">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -190,9 +190,12 @@
        <number>9</number>
       </property>
       <item>
-       <widget class="QCheckBox" name="checkBoxShowCheckedOnly">
-        <property name="text">
-         <string>Show checked only</string>
+       <widget class="QLabel" name="showCheckedMode">
+        <property name="textFormat">
+         <enum>Qt::TextFormat::RichText</enum>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextInteractionFlag::TextBrowserInteraction</set>
         </property>
        </widget>
       </item>
