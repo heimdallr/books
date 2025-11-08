@@ -5,6 +5,8 @@
 #include <QStandardPaths>
 #include <QStyle>
 
+#include "fnd/ScopedCall.h"
+
 #include "interface/constants/Localization.h"
 
 #include "gutil/GeometryRestorable.h"
@@ -286,22 +288,33 @@ private:
 
 	void OnDatabaseNameChanged(const QString& db)
 	{
-		m_ui.editDatabase->removeAction(m_ui.actionDatabaseToAbsolutePath);
-		m_ui.editDatabase->removeAction(m_ui.actionDatabaseToRelativePath);
-		m_ui.editDatabase->addAction(QFileInfo(db).isAbsolute() ? m_ui.actionDatabaseToRelativePath : m_ui.actionDatabaseToAbsolutePath, QLineEdit::TrailingPosition);
+		OnPathChanged(db, m_ui.editDatabase, m_ui.actionDatabaseToAbsolutePath, m_ui.actionDatabaseToRelativePath);
 
 		m_createMode = !db.isEmpty() && !QFile::exists(db);
 		m_ui.btnAdd->setText(Tr(m_createMode ? CREATE_NEW_COLLECTION : ADD_COLLECTION));
 		m_ui.options->setEnabled(m_createMode);
-		(void)CheckData();
 	}
 
 	void OnArchiveFolderPathChanged(const QString& path) const
 	{
-		m_ui.editArchive->removeAction(m_ui.actionArchiveToAbsolutePath);
-		m_ui.editArchive->removeAction(m_ui.actionArchiveToRelativePath);
-		m_ui.editArchive->addAction(QFileInfo(path).isAbsolute() ? m_ui.actionArchiveToRelativePath : m_ui.actionArchiveToAbsolutePath, QLineEdit::TrailingPosition);
-		(void)CheckData();
+		OnPathChanged(path, m_ui.editArchive, m_ui.actionArchiveToAbsolutePath, m_ui.actionArchiveToRelativePath);
+	}
+
+	void OnPathChanged(const QString& path, QLineEdit* edit, QAction* absolute, QAction* relative) const
+	{
+		const ScopedCall checkDataGuard([this] {
+			(void)CheckData();
+		});
+		edit->removeAction(absolute);
+		edit->removeAction(relative);
+
+		if (path.isEmpty())
+			return;
+
+		if (const QFileInfo fileInfo(path); !fileInfo.isAbsolute())
+			edit->addAction(absolute, QLineEdit::TrailingPosition);
+		else if (QCoreApplication::applicationFilePath().front().toUpper() == fileInfo.absoluteFilePath().front().toUpper())
+			edit->addAction(relative, QLineEdit::TrailingPosition);
 	}
 
 	bool CheckData() const
