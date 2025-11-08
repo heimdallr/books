@@ -938,7 +938,7 @@ Restart now?</source>
     </message>
     <message>
         <source>Checked items shown</source>
-        <translation>Показаны отмеченные элеметы</translation>
+        <translation>Показаны отмеченные элементы</translation>
     </message>
     <message>
         <source>Filter enabled</source>
@@ -958,11 +958,11 @@ Restart now?</source>
     </message>
     <message>
         <source>Show checked only</source>
-        <translation>Показывать только помеченные</translation>
+        <translation>Показать только отмеченные</translation>
     </message>
     <message>
         <source>Show unchecked only</source>
-        <translation>Показать только отмеченные</translation>
+        <translation>Показать только неотмеченные</translation>
     </message>
     <message>
         <source>Unchecked items shown</source>

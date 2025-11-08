@@ -958,11 +958,11 @@ Restart now?</source>
     </message>
     <message>
         <source>Show checked only</source>
-        <translation>Показувати лише позначені</translation>
+        <translation>Показати тільки зазначені</translation>
     </message>
     <message>
         <source>Show unchecked only</source>
-        <translation>Показати тільки зазначені</translation>
+        <translation>Показати тільки непомічені</translation>
     </message>
     <message>
         <source>Unchecked items shown</source>
