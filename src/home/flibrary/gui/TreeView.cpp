@@ -28,6 +28,7 @@
 #include "interface/ui/ITreeViewDelegate.h"
 
 #include "gutil/util.h"
+#include "inpx/constant.h"
 #include "util/ColorUtil.h"
 #include "util/ObjectsConnector.h"
 #include "util/files.h"
@@ -373,6 +374,7 @@ class TreeView::Impl final
 public:
 	Impl(
 		TreeView&                                  self,
+		const IDatabaseUser&                       databaseUser,
 		std::shared_ptr<const ICollectionProvider> collectionProvider,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IUiFactory>                uiFactory,
@@ -389,6 +391,7 @@ public:
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
 		, m_delegate { std::shared_ptr<ITreeViewDelegate>() }
+		, m_hiddenColumns { databaseUser.GetSetting(IDatabaseUser::Key::DisabledBookFields).toString().split(LIST_SEPARATOR, Qt::SkipEmptyParts) }
 	{
 		Setup();
 		m_scrollBarController->SetScrollArea(m_ui.treeView);
@@ -1000,7 +1003,8 @@ private:
 				const auto logicalIndex = it->second;
 				widths.try_emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(columnName), -1));
 				indices.emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(columnName), std::numeric_limits<int>::max()), columnName);
-				m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), false) ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
+				m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), false) ? header->hideSection(logicalIndex)
+																																					  : header->showSection(logicalIndex);
 			}
 
 			m_booksHeaderView->Load(*m_settings);
@@ -1079,6 +1083,9 @@ private:
 		for (int i = 1, sz = header->count(); i < sz; ++i)
 		{
 			const auto index  = header->logicalIndex(i);
+			if (m_hiddenColumns.contains(model->headerData(index, Qt::Horizontal, Role::HeaderName).toString(), Qt::CaseInsensitive))
+				continue;
+
 			auto*      action = menu->addAction(model->headerData(index, Qt::Horizontal, Role::HeaderTitle).toString(), &m_self, [this_ = this, header, index](const bool checked) {
                 if (!checked)
                     header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
@@ -1238,19 +1245,21 @@ private:
 	HeaderView*                                             m_booksHeaderView;
 	IDataItem::Flags                                        m_navigationItemFlags { IDataItem::Flags::None };
 	const ArchiveSorter                                     m_archiveSorter;
+	const QStringList                                       m_hiddenColumns;
 };
 
 TreeView::TreeView(
-	std::shared_ptr<const ICollectionProvider> collectionProvider,
-	std::shared_ptr<ISettings>                 settings,
-	std::shared_ptr<IUiFactory>                uiFactory,
-	std::shared_ptr<IFilterProvider>           filterProvider,
-	std::shared_ptr<ItemViewToolTipper>        itemViewToolTipper,
-	std::shared_ptr<ScrollBarController>       scrollBarController,
-	QWidget*                                   parent
+	const std::shared_ptr<const IDatabaseUser>& databaseUser,
+	std::shared_ptr<const ICollectionProvider>  collectionProvider,
+	std::shared_ptr<ISettings>                  settings,
+	std::shared_ptr<IUiFactory>                 uiFactory,
+	std::shared_ptr<IFilterProvider>            filterProvider,
+	std::shared_ptr<ItemViewToolTipper>         itemViewToolTipper,
+	std::shared_ptr<ScrollBarController>        scrollBarController,
+	QWidget*                                    parent
 )
 	: QWidget(parent)
-	, m_impl(*this, std::move(collectionProvider), std::move(settings), std::move(uiFactory), std::move(filterProvider), std::move(itemViewToolTipper), std::move(scrollBarController))
+	, m_impl(*this, *databaseUser, std::move(collectionProvider), std::move(settings), std::move(uiFactory), std::move(filterProvider), std::move(itemViewToolTipper), std::move(scrollBarController))
 {
 	PLOGV << "TreeView created";
 }
