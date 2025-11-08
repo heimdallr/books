@@ -57,19 +57,20 @@ int main(int argc, char* argv[])
 		PLOGI << "Personal build: " << PERSONAL_BUILD_NAME;
 	// ReSharper restore CppCompileTimeConstantCanBeReplacedWithBooleanConstant
 
+
 	try
 	{
+		QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+
+		QApplication app(argc, argv);
+		QCoreApplication::setApplicationName(PRODUCT_ID);
+		QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
+		Util::XMLPlatformInitializer xmlPlatformInitializer;
+
+		PLOGD << "QApplication created";
+
 		while (true)
 		{
-			QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
-
-			QApplication app(argc, argv);
-			QCoreApplication::setApplicationName(PRODUCT_ID);
-			QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
-			Util::XMLPlatformInitializer xmlPlatformInitializer;
-
-			PLOGD << "QApplication created";
-
 			std::shared_ptr<Hypodermic::Container> container;
 			{
 				Hypodermic::ContainerBuilder builder;
