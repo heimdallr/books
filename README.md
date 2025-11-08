@@ -110,7 +110,7 @@
 
 #### Примеры запуска с параметрами командной строки
 ```
-fb2cut.exe D:\fb2.Flibusta.Net\*.zip -o D:\repacked --max-size 480 --max-cover-size 1024 --image-quality 25 --image-grayscale -a "C:\Program Files\7-Zip\7z.exe" --ffmpeg C:\programs\ffmpeg\6.0\bin\ffmpeg.exe
+fb2cut.exe D:\fb2.Flibusta.Net\*.zip -o D:\repacked --max-size 480 --max-cover-size 1024 --image-quality 25 --image-grayscale -a "C:\Program Files\7-Zip\7z.exe" --archiver-options "a %dst%.7z -mx9 -sdel -m0=PPMd -ms=off %src%" --ffmpeg C:\programs\ffmpeg\6.0\bin\ffmpeg.exe
 ```
 ```
 fb2cut.exe --help
