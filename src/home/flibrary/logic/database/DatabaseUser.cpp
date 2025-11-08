@@ -138,6 +138,9 @@ QVariant DatabaseUser::GetSetting(const Key key, QVariant defaultValueSrc) const
 	try
 	{
 		const auto db    = m_impl->databaseController->GetDatabase();
+		if (!db)
+			return {};
+
 		const auto query = db->CreateQuery("select SettingValue from Settings where SettingID = ?");
 		query->Bind(0, static_cast<long long>(key));
 		query->Execute();
