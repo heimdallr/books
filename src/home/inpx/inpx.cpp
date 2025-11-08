@@ -461,8 +461,13 @@ int Analyze(const Path& dbFileName)
 	DatabaseWrapper db(dbFileName);
 	SetIsNavigationDeleted(db);
 	PLOGI << "ANALYZE";
-	const auto rc = sqlite3pp::command(db, "ANALYZE").execute();
+	auto rc = sqlite3pp::command(db, "ANALYZE").execute();
 	assert(rc == 0);
+
+	sqlite3pp::query query(db, "select exists (select 42 from Books where Year is not null)");
+	rc = sqlite3pp::command(db, std::format("insert or replace into Settings(SettingID, SettingValue) values(1, '{}')", (*query.begin()).get<int>(0) ? "" : "Year").data()).execute();
+	assert(rc == 0);
+
 	return rc;
 }
 
