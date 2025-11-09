@@ -1411,7 +1411,10 @@ bool ArchiveFb2External(const Settings& settings)
 	for (auto& arg : args)
 	{
 		arg.replace("%src%", QString("%1/*.fb2").arg(settings.dstDir.path()));
+		arg.replace("#src#", QString("%1/*.fb2").arg(settings.dstDir.path()));
+
 		arg.replace("%dst%", QString("%1").arg(settings.dstDir.path()));
+		arg.replace("#dst#", QString("%1").arg(settings.dstDir.path()));
 	}
 
 	bool hasErrors = false;
