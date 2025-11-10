@@ -29,8 +29,8 @@
 #include "jxl/jxl.h"
 #include "logging/LogAppender.h"
 #include "logging/init.h"
-#include "logic/shared/ImageRestore.h"
 #include "util/ISettings.h"
+#include "util/ImageUtil.h"
 #include "util/LogConsoleFormatter.h"
 #include "util/files.h"
 #include "util/localization.h"
@@ -1004,7 +1004,7 @@ private:
 				image.convertTo(QImage::Format::Format_Grayscale8);
 
 			if (image.pixelFormat().colorModel() != QPixelFormat::Grayscale)
-				image = Flibrary::HasAlpha(image, body.constData());
+				image = Util::HasAlpha(image, body.constData());
 
 			const auto pixelFormat = image.pixelFormat();
 			const bool hasAlpha    = pixelFormat.alphaUsage() == QPixelFormat::UsesAlpha;

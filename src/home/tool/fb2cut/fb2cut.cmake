@@ -9,9 +9,7 @@ AddTarget(fb2cut	app_console
 	LINK_TARGETS
 		flicu
 		fljxl
-		gutil
 		logging
-		logic
 		util
 		ver
 		zip

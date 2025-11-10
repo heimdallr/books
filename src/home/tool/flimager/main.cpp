@@ -21,6 +21,7 @@
 #include "logging/LogAppender.h"
 #include "logging/init.h"
 #include "logic/shared/ImageRestore.h"
+#include "util/ImageUtil.h"
 #include "util/LogConsoleFormatter.h"
 #include "util/files.h"
 
@@ -210,7 +211,7 @@ private:
 			image.convertTo(QImage::Format::Format_Grayscale8);
 
 		if (image.pixelFormat().colorModel() != QPixelFormat::Grayscale)
-			image = Flibrary::HasAlpha(image, src.constData());
+			image = Util::HasAlpha(image, src.constData());
 
 		const bool hasAlpha = image.pixelFormat().alphaUsage() == QPixelFormat::UsesAlpha;
 		if (image.width() > m_settings.size.width() || image.height() > m_settings.size.height())
