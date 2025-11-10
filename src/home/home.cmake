@@ -7,18 +7,10 @@ string(REGEX MATCH "[0-9]+" BUILD_NUMBER ${BUILD_NUMBER})
 set(PRODUCT_VERSION ${CMAKE_PROJECT_VERSION}.${BUILD_NUMBER})
 
 set(MODULES
-	logging
-	fnd
-	util
-	database
 	inpx
 	flibrary
-	zip
-	network
 	tool
 	gutil
-	icu
-	jxl
 )
 foreach(module ${MODULES})
 	include("${CMAKE_CURRENT_LIST_DIR}/${module}/${module}.cmake")
@@ -30,7 +22,7 @@ execute_process(
 	OUTPUT_VARIABLE GIT_HASH
 	OUTPUT_STRIP_TRAILING_WHITESPACE
 	)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/script/helpers/git_hash.h.in ${CMAKE_CURRENT_BINARY_DIR}/config/git_hash.h @ONLY)
-configure_file(${CMAKE_CURRENT_LIST_DIR}/script/helpers/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/config/version.h @ONLY)
+configure_file(${BUILDSCRIPTS_ROOT}/helpers/git_hash.h.in ${CMAKE_CURRENT_BINARY_DIR}/config/git_hash.h @ONLY)
+configure_file(${BUILDSCRIPTS_ROOT}/helpers/version.h.in ${CMAKE_CURRENT_BINARY_DIR}/config/version.h @ONLY)
 
 add_subdirectory(${CMAKE_CURRENT_LIST_DIR}/resources/locales)

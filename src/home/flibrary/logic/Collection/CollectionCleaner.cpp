@@ -11,10 +11,10 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
-#include "common/Constant.h"
 #include "database/DatabaseUtil.h"
 #include "util/Fb2InpxParser.h"
 
+#include "Constant.h"
 #include "Zip.h"
 #include "log.h"
 

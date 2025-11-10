@@ -1,6 +1,6 @@
 AddTarget(sqlite	static_lib
 	SOURCE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/sqlite/sqlite"
-	PROJECT_GROUP Util/SQL
+	PROJECT_GROUP ThirdParty/SQL
 	COMPILE_DEFINITIONS
 		SQLITE_THREADSAFE=0
 		SQLITE_ENABLE_FTS5
@@ -15,7 +15,7 @@ AddTarget(sqlite	static_lib
 )
 AddTarget(sqlite3pp	static_lib
 	SOURCE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}/sqlite/sqlite3pp/src"
-	PROJECT_GROUP Util/SQL
+	PROJECT_GROUP ThirdParty/SQL
 	INCLUDE_DIRECTORIES
 		"${CMAKE_CURRENT_LIST_DIR}/sqlite/sqlite"
 	COMPILE_DEFINITIONS

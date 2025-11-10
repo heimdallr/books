@@ -44,6 +44,7 @@
 
 using namespace HomeCompa;
 using namespace Inpx;
+using namespace Util;
 
 namespace
 {
