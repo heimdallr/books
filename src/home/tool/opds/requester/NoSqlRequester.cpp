@@ -12,6 +12,7 @@
 
 #include "logic/shared/ImageRestore.h"
 #include "util/AnnotationControllerObserver.h"
+#include "util/ImageUtil.h"
 
 #include "zip.h"
 
@@ -94,7 +95,7 @@ struct NoSqlRequester::Impl
 				eventLoop.exit();
 			});
 			if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
-				return (void)(result = std::move(Flibrary::Recode(covers.front().bytes).first));
+				return (void)(result = std::move(Util::Recode(covers.front().bytes).first));
 
 			QFile                       file(":/images/book.png");
 			[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);

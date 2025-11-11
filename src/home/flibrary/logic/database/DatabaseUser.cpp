@@ -137,7 +137,7 @@ QVariant DatabaseUser::GetSetting(const Key key, QVariant defaultValueSrc) const
 
 	try
 	{
-		const auto db    = m_impl->databaseController->GetDatabase();
+		const auto db = m_impl->databaseController->GetDatabase();
 		if (!db)
 			return {};
 

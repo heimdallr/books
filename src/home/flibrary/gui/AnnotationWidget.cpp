@@ -27,6 +27,7 @@
 #include "logic/shared/ImageRestore.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
+#include "util/ImageUtil.h"
 
 #include "log.h"
 
@@ -81,9 +82,9 @@ TR_DEF
 
 bool SaveImage(QString& fileName, const QByteArray& bytes)
 {
-	const auto [recoded, mediaType] = Recode(bytes);
+	const auto [recoded, mediaType] = Util::Recode(bytes);
 	if (const QFileInfo fileInfo(fileName); fileInfo.suffix().isEmpty())
-		fileName += QString(mediaType) == IMAGE_PNG ? ".png" : ".jpg";
+		fileName += QString(mediaType) == Util::IMAGE_PNG ? ".png" : ".jpg";
 
 	if (QFile::exists(fileName))
 		PLOGW << fileName << " already exists and will be overwritten";
@@ -292,7 +293,7 @@ public:
 
 		connect(m_ui.actionCopyImage, &QAction::triggered, &m_self, [this] {
 			assert(!m_covers.empty());
-			const auto pixmap = Decode(m_covers[m_currentCoverIndex].bytes);
+			const auto pixmap = Util::Decode(m_covers[m_currentCoverIndex].bytes);
 			QGuiApplication::clipboard()->setImage(pixmap.toImage());
 		});
 
@@ -401,7 +402,7 @@ public:
 		auto imgHeight = m_ui.mainWidget->height();
 		auto imgWidth  = m_ui.mainWidget->width() / 3;
 
-		if (auto pixmap = Decode(m_covers[m_currentCoverIndex].bytes); !pixmap.isNull())
+		if (auto pixmap = Util::Decode(m_covers[m_currentCoverIndex].bytes); !pixmap.isNull())
 		{
 			if (imgHeight * pixmap.width() > pixmap.height() * imgWidth)
 				imgHeight = pixmap.height() * imgWidth / pixmap.width();

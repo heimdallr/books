@@ -31,7 +31,6 @@
 
 #include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
-#include "inpx/constant.h"
 #include "logging/LogAppender.h"
 #include "util/DyLib.h"
 #include "util/FunctorExecutionForwarder.h"
@@ -694,7 +693,7 @@ private:
 		});
 
 		m_ui.actionShowReadersReviews->setVisible(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(REVIEWS_FOLDER)).exists()
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER)).exists()
 		);
 
 		ConnectActionsSettingsAnnotationJokes();
@@ -807,7 +806,7 @@ private:
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
 
 		m_ui.actionShowAuthorAnnotation->setVisible(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(AUTHORS_FOLDER)).exists()
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::AUTHORS_FOLDER)).exists()
 		);
 
 		auto restoreDefaultSettings = [this] {

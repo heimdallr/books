@@ -5,9 +5,9 @@
 
 #include "fnd/FindPair.h"
 
-#include "interface/localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/IDatabaseMigrator.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IOpdsController.h"
@@ -55,7 +55,6 @@ int main(int argc, char* argv[])
 	if constexpr (PERSONAL_BUILD_NAME && PERSONAL_BUILD_NAME[0]) //-V560
 		PLOGI << "Personal build: " << PERSONAL_BUILD_NAME;
 	// ReSharper restore CppCompileTimeConstantCanBeReplacedWithBooleanConstant
-
 
 	try
 	{

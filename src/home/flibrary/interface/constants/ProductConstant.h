@@ -11,10 +11,6 @@ constexpr auto ITEM  = "Item";
 constexpr auto TITLE = "Title";
 constexpr auto VALUE = "Value";
 
-constexpr auto TIME = "time";
-constexpr auto NAME = "name";
-constexpr auto TEXT = "text";
-
 constexpr auto FlibraryBackup = "FlibraryBackup";
 
 constexpr auto FlibraryBackupVersion       = "FlibraryBackupVersion";

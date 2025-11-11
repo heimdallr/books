@@ -23,9 +23,9 @@
 #include "interface/logic/IFilterProvider.h"
 
 #include "database/DatabaseUtil.h"
-#include "inpx/constant.h"
 #include "util/SortString.h"
 
+#include "Constant.h"
 #include "log.h"
 #include "zip.h"
 
@@ -280,7 +280,7 @@ private: // IBookSelector
 
 	void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription& description) override
 	{
-		const auto folder = activeCollection.GetFolder() + "/" + QString::fromStdWString(REVIEWS_FOLDER) + "/" + navigationId + ".7z";
+		const auto folder = activeCollection.GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER) + "/" + navigationId + ".7z";
 		if (!QFile::exists(folder))
 			return;
 
@@ -310,9 +310,9 @@ private: // IBookSelector
 					insertCommand->Execute();
 
 					auto& reviewItem = m_reviews.try_emplace(reviewId, ReviewItem::Create()).first->second;
-					reviewItem->SetData(recordObject[Constant::NAME].toString(), ReviewItem::Column::Name);
-					reviewItem->SetData(recordObject[Constant::TIME].toString(), ReviewItem::Column::Time);
-					reviewItem->SetData(recordObject[Constant::TEXT].toString(), ReviewItem::Column::Comment);
+					reviewItem->SetData(recordObject[Inpx::NAME].toString(), ReviewItem::Column::Name);
+					reviewItem->SetData(recordObject[Inpx::TIME].toString(), ReviewItem::Column::Time);
+					reviewItem->SetData(recordObject[Inpx::TEXT].toString(), ReviewItem::Column::Comment);
 					if (reviewItem->GetData(ReviewItem::Column::Name).isEmpty())
 						reviewItem->SetData(Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS), ReviewItem::Column::Name);
 				}

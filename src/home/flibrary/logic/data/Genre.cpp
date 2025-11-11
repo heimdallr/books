@@ -9,9 +9,9 @@
 
 #include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
+#include "interface/localization.h"
 
 #include "util/ISettings.h"
-#include "interface/localization.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

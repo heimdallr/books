@@ -10,7 +10,7 @@
 
 #include "interface/logic/ICollectionProvider.h"
 
-#include "inpx/constant.h"
+#include "inpx/InpxConstant.h"
 #include "inpx/inpx.h"
 
 #include "log.h"

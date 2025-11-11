@@ -1,7 +1,7 @@
 #include "ReviewListModel.h"
 
-#include "interface/localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/localization.h"
 
 #include "log.h"
 

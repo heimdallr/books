@@ -8,7 +8,7 @@
 #include "fnd/memory.h"
 #include "fnd/observable.h"
 
-#include "inpx/constant.h"
+#include "inpx/InpxConstant.h"
 #include "util/IExecutor.h"
 #include "util/files.h"
 #include "util/hash.h"

@@ -28,7 +28,7 @@
 #include "interface/ui/ITreeViewDelegate.h"
 
 #include "gutil/util.h"
-#include "inpx/constant.h"
+#include "inpx/InpxConstant.h"
 #include "util/ColorUtil.h"
 #include "util/ObjectsConnector.h"
 #include "util/files.h"

@@ -5,8 +5,8 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/localization.h"
 #include "interface/constants/Enums.h"
+#include "interface/localization.h"
 
 #include "data/DataItem.h"
 

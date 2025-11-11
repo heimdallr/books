@@ -37,7 +37,8 @@
 #include "util/language.h"
 #include "util/timer.h"
 
-#include "constant.h"
+#include "Constant.h"
+#include "InpxConstant.h"
 #include "inpx.h"
 #include "types.h"
 #include "zip.h"

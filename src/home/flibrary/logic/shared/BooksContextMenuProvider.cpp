@@ -20,10 +20,10 @@
 #include "ChangeNavigationController/GroupController.h"
 #include "database/DatabaseUtil.h"
 #include "extract/BooksExtractor.h"
+#include "util/language.h"
 
 #include "MenuItems.h"
 #include "log.h"
-#include "util/language.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

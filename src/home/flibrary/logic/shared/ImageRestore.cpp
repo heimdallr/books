@@ -9,8 +9,8 @@
 
 #include "interface/constants/SettingsConstant.h"
 
-#include "jxl/jxl.h"
 #include "util/ISettings.h"
+#include "util/ImageUtil.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"
@@ -31,66 +31,11 @@ using Covers = std::unordered_map<QString, QByteArray>;
 constexpr auto BINARY       = "binary";
 constexpr auto ID           = "id";
 constexpr auto CONTENT_TYPE = "content-type";
-constexpr auto JPEG         = "jpeg";
-constexpr auto PNG          = "png";
 
 constexpr auto FICTION_BOOK  = "FictionBook";
 constexpr auto DESCRIPTION   = "FictionBook/description";
 constexpr auto DOCUMENT_INFO = "FictionBook/description/document-info";
 constexpr auto PROGRAM_USED  = "FictionBook/description/document-info/program-used";
-
-using Decoder = QPixmap (*)(const QByteArray&);
-using Recoder = std::pair<QByteArray, const char*> (*)(const QByteArray& bytes, const char* type);
-
-QPixmap QtDecoder(const QByteArray& data)
-{
-	if (QPixmap pixmap; pixmap.loadFromData(data))
-		return pixmap;
-
-	return {};
-}
-
-QPixmap JxlDecoder(const QByteArray& data)
-{
-	auto image = JXL::Decode(data);
-	return QPixmap::fromImage(std::move(image));
-}
-
-std::pair<QByteArray, const char*> QtRecoder(const QByteArray& data, const char* type)
-{
-	return std::make_pair(data, type);
-}
-
-std::pair<QByteArray, const char*> JxlRecoder(const QByteArray& data, const char*)
-{
-	std::pair<QByteArray, const char*> result;
-	auto                               image = JXL::Decode(data);
-	QByteArray                         bytes;
-	{
-		QBuffer buffer(&bytes);
-		buffer.open(QIODevice::WriteOnly);
-		const auto hasAlpha = image.pixelFormat().alphaUsage() == QPixelFormat::UsesAlpha;
-		image.save(&buffer, hasAlpha ? PNG : JPEG);
-		result.second = hasAlpha ? IMAGE_PNG : IMAGE_JPEG;
-	}
-	result.first = std::move(bytes);
-	return result;
-}
-
-struct ImageFormatDescription
-{
-	const char* mediaType;
-	Decoder     decoder;
-	Recoder     recoder;
-};
-
-constexpr ImageFormatDescription DEFAULT_DESCRIPTION { IMAGE_JPEG, &QtDecoder, &QtRecoder };
-
-constexpr std::pair<const char*, ImageFormatDescription> SIGNATURES[] {
-	{ "\xFF\xD8\xFF\xE0", { IMAGE_JPEG, &QtDecoder, &QtRecoder } },
-	{ "\x89\x50\x4E\x47",  { IMAGE_PNG, &QtDecoder, &QtRecoder } },
-	{		 "\xFF\x0A",  { nullptr, &JxlDecoder, &JxlRecoder } },
-};
 
 class SaxPrinter final : public Util::SaxParser
 {
@@ -205,7 +150,7 @@ private:
 	{
 		for (const auto& [name, body] : m_covers)
 		{
-			const auto [recoded, mediaType] = Recode(body);
+			const auto [recoded, mediaType] = Util::Recode(body);
 			m_writer.WriteStartElement(BINARY).WriteAttribute(ID, name).WriteAttribute(CONTENT_TYPE, mediaType).WriteCharacters(QString::fromUtf8(recoded.toBase64())).WriteEndElement();
 		}
 
@@ -230,7 +175,7 @@ QByteArray RestoreImagesImpl(QIODevice& stream, Covers covers)
 
 void ConvertToGrayscale(QByteArray& srcImageBody, const int quality)
 {
-	const auto pixmap = Decode(srcImageBody);
+	const auto pixmap = Util::Decode(srcImageBody);
 	if (pixmap.isNull())
 		return;
 
@@ -257,7 +202,7 @@ void ConvertToGrayscale(QByteArray& srcImageBody, const int quality)
 	QByteArray result;
 	{
 		QBuffer imageOutput(&result);
-		if (!image.save(&imageOutput, PNG, quality))
+		if (!image.save(&imageOutput, Util::PNG, quality))
 			return;
 	}
 
@@ -378,26 +323,6 @@ void ExtractBookImagesImagesImpl(const QFileInfo& fileInfo, const QString& fileN
 
 namespace HomeCompa::Flibrary
 {
-
-QPixmap Decode(const QByteArray& bytes)
-{
-	assert(!bytes.isEmpty());
-	const auto it      = std::ranges::find_if(SIGNATURES, [&](const auto& item) {
-        return bytes.startsWith(item.first);
-    });
-	const auto decoder = it != std::end(SIGNATURES) ? it->second.decoder : &QtDecoder;
-	return decoder(bytes);
-}
-
-std::pair<QByteArray, const char*> Recode(const QByteArray& bytes)
-{
-	assert(!bytes.isEmpty());
-	const auto  it          = std::ranges::find_if(SIGNATURES, [&](const auto& item) {
-        return bytes.startsWith(item.first);
-    });
-	const auto& description = it != std::end(SIGNATURES) ? it->second : DEFAULT_DESCRIPTION;
-	return description.recoder(bytes, description.mediaType);
-}
 
 QByteArray RestoreImages(QIODevice& input, const QString& folder, const QString& fileName, const std::shared_ptr<const ISettings>& settings)
 {

@@ -2,7 +2,6 @@
 
 #include <QFile>
 #include <QGuiApplication>
-#include <QJsonDocument>
 #include <QJsonObject>
 #include <QPalette>
 #include <QString>
@@ -13,8 +12,7 @@
 
 #include "interface/constants/SettingsConstant.h"
 
-#include "inpx/constant.h"
-
+#include "Constant.h"
 #include "log.h"
 #include "zip.h"
 
@@ -32,14 +30,15 @@ std::unordered_map<QString, double> ReadRates(const ISettings& settings, const I
 	if (settings.Get(Constant::Settings::LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT)
 		return {};
 
-	const auto additionalFileName = collectionProvider.GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(REVIEWS_FOLDER) + "/" + QString::fromStdWString(REVIEWS_ADDITIONAL_ARCHIVE_NAME);
+	const auto additionalFileName =
+		collectionProvider.GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER) + "/" + QString::fromStdWString(Inpx::REVIEWS_ADDITIONAL_ARCHIVE_NAME);
 	if (!QFile::exists(additionalFileName))
 		return {};
 	try
 	{
 		const Zip       zip(additionalFileName);
 		QJsonParseError jsonParseError;
-		const auto      doc = QJsonDocument::fromJson(zip.Read(REVIEWS_ADDITIONAL_BOOKS_FILE_NAME)->GetStream().readAll(), &jsonParseError);
+		const auto      doc = QJsonDocument::fromJson(zip.Read(Inpx::REVIEWS_ADDITIONAL_BOOKS_FILE_NAME)->GetStream().readAll(), &jsonParseError);
 		if (jsonParseError.error != QJsonParseError::NoError)
 		{
 			PLOGW << jsonParseError.errorString();

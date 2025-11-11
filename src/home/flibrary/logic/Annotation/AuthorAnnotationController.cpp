@@ -11,7 +11,6 @@
 
 #include "interface/constants/Enums.h"
 
-#include "inpx/constant.h"
 #include "util/IExecutor.h"
 
 #include "Constant.h"
@@ -100,7 +99,7 @@ private:
 		if (!collectionProvider.ActiveCollectionExists())
 			return;
 
-		m_authorsDir = QDir(collectionProvider.GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(AUTHORS_FOLDER));
+		m_authorsDir = QDir(collectionProvider.GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::AUTHORS_FOLDER));
 		if (!m_authorsDir.exists())
 			return;
 

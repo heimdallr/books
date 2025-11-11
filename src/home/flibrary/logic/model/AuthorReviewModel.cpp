@@ -11,13 +11,11 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/AuthorReviewModelRole.h"
 
-#include "inpx/constant.h"
-
+#include "Constant.h"
 #include "log.h"
 #include "zip.h"
 
@@ -54,7 +52,7 @@ public:
 
 	Model(const bool showRemoved, const QString& folder, std::shared_ptr<const IDatabaseUser> databaseUser)
 		: m_showRemoved { showRemoved }
-		, m_folder { folder + "/" + QString::fromStdWString(REVIEWS_FOLDER) }
+		, m_folder { folder + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER) }
 		, m_databaseUser { std::move(databaseUser) }
 	{
 	}
@@ -178,12 +176,12 @@ select r.Folder, b.BookID, b.LibID, b.Title
 		auto toItem = [bookId, title = std::move(title)](auto&& reviewValue) {
 			assert(reviewValue.isObject());
 			const auto reviewObject = reviewValue.toObject();
-			auto       name         = reviewObject[Constant::NAME].toString();
+			auto       name         = reviewObject[Inpx::NAME].toString();
 			return Item { bookId,
-				          reviewObject[Constant::TIME].toString(),
+				          reviewObject[Inpx::TIME].toString(),
 				          name.isEmpty() ? Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS) : std::move(name),
 				          title,
-				          reviewObject[Constant::TEXT].toString().replace("<br/>", "\n").append('\n') };
+				          reviewObject[Inpx::TEXT].toString().replace("<br/>", "\n").append('\n') };
 		};
 
 		assert(doc.isArray());

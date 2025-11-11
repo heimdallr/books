@@ -13,7 +13,7 @@
 #include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
-#include "inpx/constant.h"
+#include "inpx/InpxConstant.h"
 #include "util/language.h"
 
 #include "log.h"

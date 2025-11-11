@@ -12,7 +12,7 @@
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
-#include "inpx/constant.h"
+#include "inpx/InpxConstant.h"
 #include "util/IExecutor.h"
 #include "util/files.h"
 

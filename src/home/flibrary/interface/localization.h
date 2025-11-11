@@ -2,11 +2,11 @@
 
 #include <QString>
 
+#include <export/flint.h>
+
 #include "fnd/memory.h"
 
 #include "interface/constants/Localization.h"
-
-#include <export/flint.h>
 
 class QTranslator;
 

@@ -25,12 +25,12 @@
 
 #include "data/DataItem.h"
 #include "database/DatabaseUtil.h"
-#include "inpx/constant.h"
 #include "util/UiTimer.h"
+#include "util/language.h"
 
 #include "ArchiveParser.h"
+#include "Constant.h"
 #include "log.h"
-#include "util/language.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -673,7 +673,7 @@ private:
 			for (query->Execute(); !query->Eof(); query->Next())
 				reviewFolders.emplace_back(query->Get<const char*>(0), query->Get<const char*>(1));
 		}
-		const auto archivesFolder = m_collectionProvider->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(REVIEWS_FOLDER);
+		const auto archivesFolder = m_collectionProvider->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER);
 
 		Reviews reviews;
 		for (const auto& [libId, reviewFolder] : reviewFolders)
@@ -695,7 +695,7 @@ private:
 			{
 				assert(jsonValue.isObject());
 				const auto obj    = jsonValue.toObject();
-				auto&      review = reviews.emplace_back(QDateTime::fromString(obj[Constant::TIME].toString(), "yyyy-MM-dd hh:mm:ss"), obj[Constant::NAME].toString(), obj[Constant::TEXT].toString());
+				auto&      review = reviews.emplace_back(QDateTime::fromString(obj[Inpx::TIME].toString(), "yyyy-MM-dd hh:mm:ss"), obj[Inpx::NAME].toString(), obj[Inpx::TEXT].toString());
 				if (review.name.isEmpty())
 					review.name = Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS);
 			}

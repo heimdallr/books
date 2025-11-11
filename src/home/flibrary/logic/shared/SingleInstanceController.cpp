@@ -6,8 +6,8 @@
 #include "fnd/FindPair.h"
 #include "fnd/observable.h"
 
-#include "interface/localization.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/ISingleInstanceController.h"
 
 using namespace HomeCompa;
