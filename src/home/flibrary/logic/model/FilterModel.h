@@ -3,11 +3,10 @@
 #include "fnd/ScopedCall.h"
 #include "fnd/algorithm.h"
 
+#include "interface/localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/IFilterController.h"
 #include "interface/logic/IModelProvider.h"
-
-#include "util/localization.h"
 
 namespace HomeCompa::Flibrary
 {

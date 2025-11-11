@@ -60,7 +60,6 @@ public:
 
 	static void                FillInpx(const std::filesystem::path& collectionFolder, DB::ITransaction& transaction);
 	static bool                CheckForUpdate(const std::filesystem::path& collectionFolder, DB::IDatabase& database);
-	static const std::wstring& GetLang(const std::wstring& src);
 
 private:
 	class Impl;

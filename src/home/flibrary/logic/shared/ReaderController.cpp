@@ -14,8 +14,8 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
+#include "interface/Localization.h"
 #include "interface/constants/ExportStat.h"
-#include "interface/constants/Localization.h"
 
 #include "util/IExecutor.h"
 #include "util/PlatformUtil.h"

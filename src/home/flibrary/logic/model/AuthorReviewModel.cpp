@@ -13,10 +13,10 @@
 
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/AuthorReviewModelRole.h"
 
 #include "inpx/constant.h"
-#include "util/localization.h"
 
 #include "log.h"
 #include "zip.h"

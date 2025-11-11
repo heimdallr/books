@@ -7,7 +7,7 @@
 #include "fnd/ScopedCall.h"
 #include "fnd/observable.h"
 
-#include "interface/constants/Localization.h"
+#include "interface/Localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"

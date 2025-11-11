@@ -3,7 +3,7 @@
 #include <ranges>
 
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
+#include "interface/Localization.h"
 
 using namespace HomeCompa::Flibrary;
 

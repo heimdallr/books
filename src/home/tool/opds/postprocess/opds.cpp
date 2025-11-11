@@ -2,9 +2,8 @@
 
 #include "fnd/IsOneOf.h"
 
+#include "interface/localization.h"
 #include "interface/logic/IAnnotationController.h"
-
-#include "util/localization.h"
 
 #include "root.h"
 

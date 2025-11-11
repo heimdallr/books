@@ -4,7 +4,7 @@
 #include <QMenu>
 #include <QTreeView>
 
-#include "interface/constants/Localization.h"
+#include "interface/localization.h"
 
 #include "util/ISettings.h"
 

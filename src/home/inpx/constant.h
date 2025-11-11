@@ -16,7 +16,6 @@ constexpr auto DEFAULT_GENRES                     = L"genres.lst";
 constexpr auto DEFAULT_ARCHIVE_TYPE               = L"default_archive_type";
 constexpr auto GENRES                             = L"genres";
 constexpr auto LANGUAGES_MAPPING                  = L"languages_mapping";
-constexpr auto DEFAULT_LANGUAGES_MAPPING          = L"LanguagesMapping.json";
 constexpr auto INI_EXT                            = L"ini";
 constexpr auto INPX_EXT                           = L".inpx";
 constexpr auto INPX_FOLDER                        = L"inpx_folder";

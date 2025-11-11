@@ -6,10 +6,9 @@
 #include "fnd/FindPair.h"
 #include "fnd/observable.h"
 
+#include "interface/localization.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ISingleInstanceController.h"
-
-#include "util/localization.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

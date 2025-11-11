@@ -52,6 +52,7 @@ AddTarget(${PROJECT_NAME}	app
 		Boost::headers
 		Qt${QT_MAJOR_VERSION}::Widgets
 	LINK_TARGETS
+		flint
 		gui
 		gutil
 		logging

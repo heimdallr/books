@@ -8,13 +8,13 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/GenresLocalization.h"
+#include "interface/localization.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IProgressController.h"
 
-#include "data/BooksTreeGenerator.h"
 #include "data/DataItem.h"
 #include "inpx/constant.h"
-#include "util/localization.h"
+#include "util/language.h"
 
 #include "log.h"
 

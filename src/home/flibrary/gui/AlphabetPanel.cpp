@@ -14,8 +14,10 @@
 
 #include "fnd/observable.h"
 
+#include "interface/localization.h"
+
 #include "gutil/GeometryRestorable.h"
-#include "util/localization.h"
+#include "util/language.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

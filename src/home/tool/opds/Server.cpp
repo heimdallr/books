@@ -16,10 +16,10 @@
 #include "interface/IRequester.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 
 #include "util/ISettings.h"
 #include "util/hash.h"
-#include "util/localization.h"
 
 #include "log.h"
 #include "root.h"

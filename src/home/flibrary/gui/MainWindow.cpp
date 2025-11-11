@@ -14,8 +14,8 @@
 #include <QTimer>
 #include <QToolBar>
 
+#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/ProductConstant.h"

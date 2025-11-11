@@ -17,8 +17,8 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
+#include "interface/Localization.h"
 #include "interface/constants/ExportStat.h"
-#include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/IJokeRequester.h"
 #include "interface/logic/IProgressController.h"
@@ -27,10 +27,10 @@
 #include "database/DatabaseUtil.h"
 #include "inpx/constant.h"
 #include "util/UiTimer.h"
-#include "util/localization.h"
 
 #include "ArchiveParser.h"
 #include "log.h"
+#include "util/language.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

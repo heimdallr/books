@@ -9,13 +9,13 @@
 
 #include "interface/constants/SettingsConstant.h"
 
-#include "common/Constant.h"
 #include "jxl/jxl.h"
 #include "util/ISettings.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"
 
+#include "Constant.h"
 #include "zip.h"
 
 #include "config/version.h"

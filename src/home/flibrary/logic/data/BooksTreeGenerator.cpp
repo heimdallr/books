@@ -15,8 +15,8 @@
 #include "database/interface/ITemporaryTable.h"
 #include "database/interface/ITransaction.h"
 
+#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
@@ -25,7 +25,6 @@
 #include "database/DatabaseUtil.h"
 #include "inpx/constant.h"
 #include "util/SortString.h"
-#include "util/localization.h"
 
 #include "log.h"
 #include "zip.h"

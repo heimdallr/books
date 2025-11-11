@@ -8,9 +8,10 @@
 
 #include "fnd/ScopedCall.h"
 
+#include "interface/localization.h"
+
 #include "logic/shared/ImageRestore.h"
 #include "util/AnnotationControllerObserver.h"
-#include "util/localization.h"
 
 #include "zip.h"
 

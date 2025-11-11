@@ -9,6 +9,7 @@
 #include "interface/IServer.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/ICollectionAutoUpdater.h"
 
 #include "Hypodermic/Hypodermic.h"
@@ -16,7 +17,6 @@
 #include "logic/data/Genre.h"
 #include "util/ISettings.h"
 #include "util/SortString.h"
-#include "util/localization.h"
 #include "util/xml/Initializer.h"
 
 #include "di_app.h"

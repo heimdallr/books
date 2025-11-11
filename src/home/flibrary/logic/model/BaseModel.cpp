@@ -2,8 +2,8 @@
 
 #include "fnd/IsOneOf.h"
 
+#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/ILibRateProvider.h"
 #include "interface/logic/IModelProvider.h"

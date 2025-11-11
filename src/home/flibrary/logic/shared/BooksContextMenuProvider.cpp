@@ -10,8 +10,8 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
+#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionCleaner.h"
@@ -20,10 +20,10 @@
 #include "ChangeNavigationController/GroupController.h"
 #include "database/DatabaseUtil.h"
 #include "extract/BooksExtractor.h"
-#include "util/localization.h"
 
 #include "MenuItems.h"
 #include "log.h"
+#include "util/language.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

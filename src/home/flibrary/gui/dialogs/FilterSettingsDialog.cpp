@@ -9,14 +9,13 @@
 #include "fnd/FindPair.h"
 #include "fnd/algorithm.h"
 
-#include "interface/constants/Localization.h"
+#include "interface/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/IDataItem.h"
 
 #include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
 #include "util/FunctorExecutionForwarder.h"
-#include "util/localization.h"
 
 #include "log.h"
 

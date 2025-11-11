@@ -34,7 +34,7 @@
 #include "util/Fb2InpxParser.h"
 #include "util/IExecutor.h"
 #include "util/executor/factory.h"
-#include "util/localization.h"
+#include "util/language.h"
 #include "util/timer.h"
 
 #include "constant.h"
@@ -998,61 +998,6 @@ void SetNextId(sqlite3pp::database& db)
 	PLOGD << "Next Id: " << g_id;
 }
 
-struct LanguageMapping
-{
-	static const std::wstring UNDEFINED_LANG;
-
-	std::unordered_set<std::wstring>               langs;
-	std::unordered_map<std::wstring, std::wstring> langMap;
-
-	explicit LanguageMapping(const Path& langMappingFile)
-	{
-		QFile file(langMappingFile);
-		if (!file.open(QIODevice::ReadOnly))
-			return;
-
-		QJsonParseError error;
-		const auto      jDocument = QJsonDocument::fromJson(file.readAll(), &error);
-		if (error.error != QJsonParseError::NoError)
-		{
-			PLOGE << error.errorString();
-			return;
-		}
-
-		const auto jObject = jDocument.object();
-		for (auto langIt = jObject.constBegin(), end = jObject.constEnd(); langIt != end; ++langIt)
-		{
-			const auto lang       = langIt.key().toStdWString();
-			const auto langValues = langIt.value();
-			assert(langValues.isArray());
-			for (const auto key : langValues.toArray())
-				langMap.try_emplace(key.toString().toStdWString(), lang);
-		}
-
-		std::ranges::transform(LANGUAGES, std::inserter(langs, langs.end()), [](const auto& item) {
-			return ToWide(item.key);
-		});
-		assert(std::size(langs) == std::size(LANGUAGES));
-	}
-
-	const std::wstring& GetLang(const std::wstring& src) const
-	{
-		if (src.empty())
-			return UNDEFINED_LANG;
-
-		if (langs.contains(src))
-			return src;
-
-		if (const auto it = langMap.find(src); it != langMap.end())
-			return it->second;
-
-		PLOGW << "Unknown language: " << src;
-		return UNDEFINED_LANG;
-	}
-};
-
-const std::wstring LanguageMapping::UNDEFINED_LANG = L"un";
-
 class IPool // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
@@ -1093,8 +1038,8 @@ public:
 		: m_ini { std::move(ini) }
 		, m_mode { mode }
 		, m_callback { std::move(callback) }
-		, m_executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async) }
-		, m_languageMapping { m_ini(LANGUAGES_MAPPING) }
+		, m_executor { ExecutorFactory::Create(ExecutorImpl::Async) }
+		, m_languageMapping { QString::fromStdWString(m_ini(LANGUAGES_MAPPING)) }
 	{
 	}
 
@@ -2186,10 +2131,4 @@ bool Parser::CheckForUpdate(const Path& collectionFolder, DB::IDatabase& databas
 		__FILE__,
 		__LINE__
 	);
-}
-
-const std::wstring& Parser::GetLang(const std::wstring& src)
-{
-	static const LanguageMapping mapping(Path(":/data") / DEFAULT_LANGUAGES_MAPPING);
-	return mapping.GetLang(src);
 }

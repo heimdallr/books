@@ -12,6 +12,7 @@
 #include "util/IExecutor.h"
 #include "util/files.h"
 #include "util/hash.h"
+#include "util/language.h"
 
 #include "CollectionImpl.h"
 #include "log.h"

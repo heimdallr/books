@@ -7,7 +7,7 @@
 #include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
 
-#include "interface/constants/Localization.h"
+#include "interface/Localization.h"
 
 #include "data/DataItem.h"
 #include "shared/ImageRestore.h"

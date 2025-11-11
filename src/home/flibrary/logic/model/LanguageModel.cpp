@@ -10,7 +10,9 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "util/localization.h"
+#include "interface/localization.h"
+
+#include "util/language.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

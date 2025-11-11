@@ -2,7 +2,7 @@
 
 #include <QAbstractItemModel>
 
-#include "interface/constants/Localization.h"
+#include "interface/Localization.h"
 #include "interface/ui/IUiFactory.h"
 
 using namespace HomeCompa;

@@ -9,12 +9,12 @@
 #include "fnd/ScopedCall.h"
 
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
 #include "util/ISettingsObserver.h"
-#include "util/localization.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

@@ -8,13 +8,12 @@
 #include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
 
-#include "interface/constants/Localization.h"
+#include "interface/Localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IAnnotationController.h"
 
 #include "util/ISettings.h"
-#include "util/localization.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"

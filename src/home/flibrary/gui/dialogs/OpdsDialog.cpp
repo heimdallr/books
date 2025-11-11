@@ -7,10 +7,10 @@
 #include <QToolTip>
 
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 
 #include "gutil/GeometryRestorable.h"
 #include "util/hash.h"
-#include "util/localization.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

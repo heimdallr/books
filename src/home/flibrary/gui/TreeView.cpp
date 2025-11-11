@@ -17,8 +17,8 @@
 #include "fnd/algorithm.h"
 #include "fnd/linear.h"
 
+#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
@@ -32,7 +32,7 @@
 #include "util/ColorUtil.h"
 #include "util/ObjectsConnector.h"
 #include "util/files.h"
-#include "util/localization.h"
+#include "util/language.h"
 #include "widgets/ModeComboBox.h"
 
 #include "log.h"
@@ -1082,20 +1082,20 @@ private:
 		const auto* model  = header->model();
 		for (int i = 1, sz = header->count(); i < sz; ++i)
 		{
-			const auto index  = header->logicalIndex(i);
+			const auto index = header->logicalIndex(i);
 			if (m_hiddenColumns.contains(model->headerData(index, Qt::Horizontal, Role::HeaderName).toString(), Qt::CaseInsensitive))
 				continue;
 
-			auto*      action = menu->addAction(model->headerData(index, Qt::Horizontal, Role::HeaderTitle).toString(), &m_self, [this_ = this, header, index](const bool checked) {
-                if (!checked)
-                    header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
-                header->setSectionHidden(index, !checked);
-                if (checked)
-                    header->resizeSection(0, header->sectionSize(0) - header->sectionSize(index));
+			auto* action = menu->addAction(model->headerData(index, Qt::Horizontal, Role::HeaderTitle).toString(), &m_self, [this_ = this, header, index](const bool checked) {
+				if (!checked)
+					header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
+				header->setSectionHidden(index, !checked);
+				if (checked)
+					header->resizeSection(0, header->sectionSize(0) - header->sectionSize(index));
 
-                this_->SaveHeaderLayout();
-                this_->OnHeaderSectionsVisibleChanged();
-            });
+				this_->SaveHeaderLayout();
+				this_->OnHeaderSectionsVisibleChanged();
+			});
 			action->setCheckable(true);
 			action->setChecked(!header->isSectionHidden(index));
 		}

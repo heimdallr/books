@@ -22,7 +22,8 @@
 #include "logic/IScriptController.h"
 #include "ui/IStyleApplier.h"
 #include "util/files.h"
-#include "util/localization.h"
+
+#include "localization.h"
 
 namespace HomeCompa::Flibrary
 {

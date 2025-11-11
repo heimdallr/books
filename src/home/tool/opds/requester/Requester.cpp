@@ -16,9 +16,9 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
+#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/GenresLocalization.h"
-#include "interface/constants/Localization.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
@@ -30,7 +30,6 @@
 #include "util/AnnotationControllerObserver.h"
 #include "util/Fb2InpxParser.h"
 #include "util/SortString.h"
-#include "util/localization.h"
 #include "util/timer.h"
 #include "util/xml/XmlWriter.h"
 
@@ -499,7 +498,7 @@ constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
 	{ Loc::Genres   ,   GENRE_COUNT,   GENRE_JOIN_PARAMETERS,   GENRE_JOIN_SELECT,   GENRE_SELECT, Flibrary::GENRE,                   nullptr,             nullptr,               nullptr,   GENRE_SELECT_EQUAL,   GENRE_CONTENT, &INavigationProvider::GetNavigationGenre },
 	{ Loc::PublishYears },
 	{ Loc::Keywords , KEYWORD_COUNT, KEYWORD_JOIN_PARAMETERS, KEYWORD_JOIN_SELECT, KEYWORD_SELECT,         nullptr, KEYWORD_COUNT_STARTS_WITH, KEYWORD_STARTS_WITH, KEYWORD_SELECT_SINGLE, KEYWORD_SELECT_EQUAL, KEYWORD_CONTENT },
-	{ Loc::Updates  ,  UPDATE_COUNT,  UPDATE_JOIN_PARAMETERS,  UPDATE_JOIN_SELECT,  UPDATE_SELECT,  MONTHS_CONTEXT,  UPDATE_COUNT_STARTS_WITH,             nullptr,               nullptr,  UPDATE_SELECT_EQUAL,  UPDATE_CONTENT, &INavigationProvider::GetNavigationUpdate },
+	{ Loc::Updates  ,  UPDATE_COUNT,  UPDATE_JOIN_PARAMETERS,  UPDATE_JOIN_SELECT,  UPDATE_SELECT, Loc::MONTHS_CONTEXT,  UPDATE_COUNT_STARTS_WITH,             nullptr,               nullptr,  UPDATE_SELECT_EQUAL,  UPDATE_CONTENT, &INavigationProvider::GetNavigationUpdate },
 	{ Loc::Archives ,  FOLDER_COUNT,  FOLDER_JOIN_PARAMETERS,  FOLDER_JOIN_SELECT,  FOLDER_SELECT,         nullptr,  FOLDER_COUNT_STARTS_WITH,             nullptr,  FOLDER_SELECT_SINGLE,              nullptr,  FOLDER_CONTENT  },
 	{ Loc::Languages },
 	{ Loc::Groups   ,       nullptr,   GROUP_JOIN_PARAMETERS,   GROUP_JOIN_SELECT,   GROUP_SELECT },

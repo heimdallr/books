@@ -1,8 +1,7 @@
 #include "ReviewTreeModel.h"
 
+#include "interface/localization.h"
 #include "interface/constants/ModelRole.h"
-
-#include "util/localization.h"
 
 #include "log.h"
 

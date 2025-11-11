@@ -2,7 +2,7 @@
 
 #include <QCommandLineParser>
 
-#include "interface/constants/Localization.h"
+#include "interface/Localization.h"
 
 #include "config/version.h"
 

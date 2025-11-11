@@ -11,8 +11,8 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
+#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionProvider.h"
 
 #include "data/Genre.h"
@@ -22,6 +22,7 @@
 
 #include "BooksTreeGenerator.h"
 #include "log.h"
+#include "util/language.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -101,7 +102,7 @@ auto CreateCalendarTree(const NavigationMode mode, INavigationQueryExecutor::Cal
 		for (size_t i = 0, sz = item.GetChildCount(); i < sz; ++i)
 		{
 			auto child = item.GetChild(i);
-			child->SetData(Loc::Tr(MONTHS_CONTEXT, child->GetData().toStdString().data()));
+			child->SetData(Loc::Tr(Loc::MONTHS_CONTEXT, child->GetData().toStdString().data()));
 			f(*child, f);
 		}
 	};

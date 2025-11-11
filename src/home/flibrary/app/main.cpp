@@ -5,7 +5,7 @@
 
 #include "fnd/FindPair.h"
 
-#include "interface/constants/Localization.h"
+#include "interface/localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IDatabaseMigrator.h"
@@ -23,7 +23,6 @@
 #include "logic/data/Genre.h"
 #include "logic/model/LogModel.h"
 #include "util/ISettings.h"
-#include "util/localization.h"
 #include "util/xml/Initializer.h"
 #include "version/AppVersion.h"
 

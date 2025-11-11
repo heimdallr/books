@@ -7,7 +7,7 @@
 #include <QTimer>
 #include <QUuid>
 
-#include "interface/constants/Localization.h"
+#include "interface/Localization.h"
 
 #include "network/network/downloader.h"
 #include "network/rest/api/github/Release.h"

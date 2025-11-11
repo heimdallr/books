@@ -11,7 +11,7 @@
 #include "interface/constants/Localization.h"
 
 #include "util/ISettings.h"
-#include "util/localization.h"
+#include "interface/localization.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -222,7 +222,7 @@ Update Update::Load(DB::IDatabase& db, const std::unordered_set<long long>& need
 	const auto tr = [](Update& treeItem, const auto& f) -> void {
 		for (auto& child : treeItem.children)
 		{
-			child.name = Loc::Tr(MONTHS_CONTEXT, child.name.toStdString().data());
+			child.name = Loc::Tr(Loc::MONTHS_CONTEXT, child.name.toStdString().data());
 			f(child, f);
 		}
 	};

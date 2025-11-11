@@ -5,10 +5,10 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
+#include "interface/localization.h"
 #include "interface/constants/Enums.h"
 
 #include "data/DataItem.h"
-#include "util/localization.h"
 
 namespace HomeCompa::Flibrary
 {

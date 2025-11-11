@@ -4,7 +4,7 @@
 #include <QInputDialog>
 #include <QTimer>
 
-#include "interface/constants/Localization.h"
+#include "interface/localization.h"
 
 #include "log.h"
 

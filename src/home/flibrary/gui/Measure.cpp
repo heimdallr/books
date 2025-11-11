@@ -1,6 +1,6 @@
 #include "Measure.h"
 
-#include "interface/constants/Localization.h"
+#include "interface/localization.h"
 
 namespace HomeCompa::Flibrary::Measure
 {
