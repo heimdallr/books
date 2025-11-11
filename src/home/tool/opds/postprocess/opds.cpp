@@ -2,6 +2,7 @@
 
 #include "fnd/IsOneOf.h"
 
+#include "interface/IRequester.h"
 #include "interface/localization.h"
 #include "interface/logic/IAnnotationController.h"
 
@@ -55,7 +56,7 @@ private: // IAnnotationController::IUrlGenerator
 
 } // namespace
 
-QByteArray PostProcess_opds(const IPostProcessCallback&, QIODevice& stream, ContentType, const QStringList&, const ISettings&)
+QByteArray PostProcess_opds(const IPostProcessCallback&, QIODevice& stream, ContentType, const IRequester::Parameters&, const ISettings&)
 {
 	auto result = stream.readAll();
 	return result;

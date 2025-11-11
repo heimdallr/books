@@ -1,5 +1,7 @@
 #pragma once
 
+#include <QHash>
+
 #include <QString>
 
 class QByteArray;
@@ -35,6 +37,13 @@ public:
 	OPDS_NAVIGATION_ITEMS_X_MACRO
 	OPDS_ADDITIONAL_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM
+
+public:
+	static QString GetParameter(const Parameters& parameters, const QString& key)
+	{
+		const auto it = parameters.find(key);
+		return it != parameters.end() ? it->second : QString {};
+	}
 };
 
 } // namespace HomeCompa::Opds

@@ -38,7 +38,7 @@
 
 namespace HomeCompa::Opds
 {
-#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(const IPostProcessCallback& callback, QIODevice& stream, ContentType contentType, const QStringList&, const ISettings&);
+#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(const IPostProcessCallback& callback, QIODevice& stream, ContentType contentType, const IRequester::Parameters&, const ISettings&);
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
@@ -54,7 +54,7 @@ using namespace Opds;
 namespace
 {
 
-constexpr std::pair<const char*, QByteArray (*)(const IPostProcessCallback&, QIODevice&, ContentType, const QStringList&, const ISettings&)> POSTPROCESSORS[] {
+constexpr std::pair<const char*, QByteArray (*)(const IPostProcessCallback&, QIODevice&, ContentType, const IRequester::Parameters&, const ISettings&)> POSTPROCESSORS[] {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &PostProcess_##NAME },
 	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
@@ -647,12 +647,6 @@ Node GetHead(QString id, QString title, QString root, QString self)
 	};
 }
 
-QString GetParameter(const IRequester::Parameters& parameters, const QString& key)
-{
-	const auto it = parameters.find(key);
-	return it != parameters.end() ? it->second : QString {};
-}
-
 QString GetJoin(const IRequester::Parameters& parameters)
 {
 	if (parameters.empty())
@@ -755,7 +749,7 @@ QString GetContent<Flibrary::Update>(const Flibrary::Update&)
 	return {};
 }
 
-QByteArray PostProcess(const ContentType contentType, const QString& root, const IPostProcessCallback& callback, QByteArray& src, const QStringList& parameters, const ISettings& settings)
+QByteArray PostProcess(const ContentType contentType, const QString& root, const IPostProcessCallback& callback, QByteArray& src, const IRequester::Parameters& parameters, const ISettings& settings)
 {
 	if (root.isEmpty())
 		return src;
@@ -879,7 +873,7 @@ public:
 #undef OPDS_INVOKER_ITEM
 		};
 
-		auto head = GetHead("root", GetTitle(*db, *this, parameters, { .defaultTitle = m_collectionProvider->GetActiveCollection().name }), root, CreateSelf(root, "", parameters));
+		auto head = GetHead(ROOT, GetTitle(*db, *this, parameters, { .defaultTitle = m_collectionProvider->GetActiveCollection().name }), root, CreateSelf(root, "", parameters));
 
 		const auto join = GetJoin(parameters);
 
@@ -1153,7 +1147,11 @@ public:
 		const auto bookId = GetParameter(parameters, "book");
 		assert(!bookId.isEmpty());
 		auto result = GetBookTextImpl(bookId);
-		return PostProcess(ContentType::BookText, root, *this, result, { root, bookId }, *m_settings);
+
+		auto parametersCopy = parameters;
+		parametersCopy.try_emplace(ROOT, root);
+
+		return PostProcess(ContentType::BookText, root, *this, result, parametersCopy, *m_settings);
 	}
 
 	template <typename NavigationGetter, typename... ARGS>
@@ -1194,7 +1192,9 @@ public:
 		PLOGV << bytes;
 #endif
 
-		return PostProcess(contentType, root, *this, bytes, { root }, *m_settings);
+		auto parametersCopy = parameters;
+		parametersCopy.try_emplace(ROOT, root);
+		return PostProcess(contentType, root, *this, bytes, parametersCopy, *m_settings);
 	}
 
 private: // INavigationProvider

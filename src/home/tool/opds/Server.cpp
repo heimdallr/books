@@ -6,6 +6,7 @@
 #include <QLocalServer>
 #include <QLocalSocket>
 #include <QTcpServer>
+#include <QUuid>
 #include <QtConcurrent>
 
 #include "fnd/FindPair.h"
@@ -228,6 +229,9 @@ T GetParameters(const QString& data)
 
 class Server::Impl
 {
+	using AuthorizationAllowFunctor = std::function<QHttpServerResponse(const IRequester::Parameters&, const QString&)>;
+	using AuthorizationFunctor      = QFuture<QHttpServerResponse> (Impl::*)(const QHttpServerRequest& request, QString url, AuthorizationAllowFunctor allow);
+
 public:
 	Impl(
 		std::shared_ptr<const ISettings>                     settings,
@@ -318,71 +322,48 @@ private:
 			});
 		});
 
-		QStringList roots;
+		std::vector<std::pair<QString, AuthorizationFunctor>> roots;
 
 		if (m_settings->Get(Flibrary::Constant::Settings::OPDS_OPDS_ENABLED, true))
-		{
-			m_server.route(opds, [this](const QHttpServerRequest& request) {
-				if (auto auth = AuthorizationOpds(request); auth.isValid())
-					return auth;
-
-				return QtConcurrent::run([this, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)] {
-					auto response = EncodeContent(m_requester->GetRoot(opds, parameters), acceptEncoding);
-					SetContentType(response, opds, MessageType::Atom);
-					return response;
-				});
-			});
-
-			roots << opds;
-		}
+			roots.emplace_back(opds, &Impl::AuthorizationOpds);
 
 		if (m_settings->Get(Flibrary::Constant::Settings::OPDS_WEB_ENABLED, true))
-		{
-			m_server.route(web, [this](const QHttpServerRequest& request) {
-				return AuthorizationWeb(request, web, [&](const IRequester::Parameters& parameters, const QString& acceptEncoding) {
-					auto response = EncodeContent(m_requester->GetRoot(web, parameters), acceptEncoding);
-					SetContentType(response, web, MessageType::Atom);
-					return response;
-				});
-			});
-
-			roots << web;
-		}
+			roots.emplace_back(web, &Impl::AuthorizationWeb);
 
 		m_server.route(OPENSEARCH, [host = host.toString(), port] {
 			return QString(R"(<Url type="application/atom+xml;profile=opds-catalog" xmlns:atom="http://www.w3.org/2005/Atom" template="http://%1:%2/search?q={searchTerms}" />)").arg(host).arg(port);
 		});
 
-		for (const auto& root : roots)
-			RouteWithRoot(root);
+		for (const auto& [root, functor] : roots)
+			RouteWithRoot(root, functor);
 
 		if (m_settings->Get(Flibrary::Constant::Settings::OPDS_REACT_APP_ENABLED, true))
 			RouteReactApp();
 	}
 
-	void RouteWithRoot(const QString& root)
+	void RouteWithRoot(const QString& root, AuthorizationFunctor authorizationFunctor)
 	{
 		using Invoker = QByteArray (IRequester::*)(const QString&, const IRequester::Parameters&) const;
 		static constexpr std::tuple<const char* /*path*/, Invoker> descriptions[] {
 #define OPDS_INVOKER_ITEM(NAME) { #NAME, &IRequester::Get##NAME },
 			OPDS_NAVIGATION_ITEMS_X_MACRO OPDS_ADDITIONAL_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM
+			{  nullptr,     &IRequester::GetRoot },
 			{ "search",      &IRequester::Search },
 			{   "read", &IRequester::GetBookText },
 		};
 
 		for (const auto& [path, invoker] : descriptions)
-			m_server.route(QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString {}), [this, root, path, invoker](const QHttpServerRequest& request) {
-				if (!path)
-					if (auto auth = AuthorizationOpds(request); auth.isValid())
-						return auth;
-
-				return QtConcurrent::run([this, root, invoker, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)] {
+		{
+			const auto pathPattern = QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString {});
+			m_server.route(pathPattern, [this, root, authorizationFunctor, invoker](const QHttpServerRequest& request) {
+				return (this->*authorizationFunctor)(request, web, [this, root, invoker](const IRequester::Parameters& parameters, const QString& acceptEncoding) {
 					auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), std::cref(parameters)), acceptEncoding);
 					SetContentType(response, root, MessageType::Atom);
 					return response;
 				});
 			});
+		}
 	}
 
 	void RouteReactApp()
@@ -439,13 +420,15 @@ private:
 		});
 	}
 
-	QFuture<QHttpServerResponse> AuthorizationWeb(const QHttpServerRequest& request, QString url, std::function<QHttpServerResponse(const IRequester::Parameters&, const QString&)> allow) const
+	QFuture<QHttpServerResponse> AuthorizationWeb(const QHttpServerRequest& request, QString url, AuthorizationAllowFunctor allow)
 	{
-		auto acceptEncoding = GetAcceptEncoding(request);
-		auto expectedAuth   = m_settings->Get(Flibrary::Constant::Settings::OPDS_AUTH, QString {});
+		auto       acceptEncoding = GetAcceptEncoding(request);
+		auto       expectedAuth   = m_settings->Get(Flibrary::Constant::Settings::OPDS_AUTH, QString {});
+		auto       parameters     = GetParameters<IRequester::Parameters>(request);
+		const auto itSession      = parameters.find("session");
 
-		if (expectedAuth.isEmpty())
-			return QtConcurrent::run([this, allow = std::move(allow), parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = std::move(acceptEncoding)] {
+		if (expectedAuth.isEmpty() || (itSession != parameters.end() && m_sessions.contains(itSession->second)))
+			return QtConcurrent::run([this, allow = std::move(allow), acceptEncoding = std::move(acceptEncoding), parameters = std::move(parameters)] {
 				return allow(parameters, acceptEncoding);
 			});
 
@@ -454,7 +437,7 @@ private:
 		                          allow          = std::move(allow),
 		                          parameters     = GetParameters<IRequester::Parameters>(QString::fromUtf8(request.body())),
 		                          acceptEncoding = std::move(acceptEncoding),
-		                          expectedAuth   = std::move(expectedAuth)] {
+		                          expectedAuth   = std::move(expectedAuth)]() mutable {
 			auto requestAuth = [&](const QString& title) {
 				auto response = EncodeContent(m_noSqlRequester->RequestAuth(title, url), acceptEncoding);
 				SetContentType(response, web, MessageType::Atom);
@@ -466,22 +449,32 @@ private:
 				return requestAuth(Tr(AUTH_REQUIRED));
 
 			const auto receivedAuth = QString("%1:%2").arg(itUser->second, itPassword->second).toUtf8();
-			return std::ranges::any_of(
-					   AUTH_CHECKERS,
-					   [&](const auto checker) {
-						   return checker(expectedAuth, receivedAuth);
-					   }
-				   )
-			         ? allow(parameters, acceptEncoding)
-			         : requestAuth(Tr(AUTH_FAILED));
+			if (std::ranges::none_of(AUTH_CHECKERS, [&](const auto checker) {
+					return checker(expectedAuth, receivedAuth);
+				}))
+				return requestAuth(Tr(AUTH_FAILED));
+
+			parameters.erase("user");
+			parameters.erase("password");
+
+			auto session = *m_sessions.emplace(QUuid::createUuid().toString(QUuid::StringFormat::Id128)).first;
+			parameters.try_emplace("session", std::move(session));
+
+			return allow(parameters, acceptEncoding);
 		});
 	}
 
-	QFuture<QHttpServerResponse> AuthorizationOpds(const QHttpServerRequest& request) const
+	QFuture<QHttpServerResponse> AuthorizationOpds(const QHttpServerRequest& request, QString url, AuthorizationAllowFunctor allow)
 	{
-		const auto expected = m_settings->Get(Flibrary::Constant::Settings::OPDS_AUTH, QString {});
-		if (expected.isEmpty())
-			return {};
+		auto       acceptEncoding = GetAcceptEncoding(request);
+		const auto expectedAuth   = m_settings->Get(Flibrary::Constant::Settings::OPDS_AUTH, QString {});
+		auto       parameters     = GetParameters<IRequester::Parameters>(request);
+		const auto itSession      = parameters.find("session");
+
+		if (expectedAuth.isEmpty() || (itSession != parameters.end() && m_sessions.contains(itSession->second)))
+			return QtConcurrent::run([this, allow = std::move(allow), acceptEncoding = std::move(acceptEncoding), parameters = std::move(parameters)] {
+				return allow(parameters, acceptEncoding);
+			});
 
 		const auto& headers       = request.headers();
 		const auto  authorization = headers.value("authorization").toByteArray();
@@ -494,7 +487,7 @@ private:
 		}
 
 		if (std::ranges::none_of(AUTH_CHECKERS, [&](const auto checker) {
-				return checker(expected, authorization);
+				return checker(expectedAuth, authorization);
 			}))
 		{
 			PLOGW << "Attempt connection with wrong authorization: " << authorization;
@@ -503,7 +496,14 @@ private:
 			});
 		}
 
-		return {};
+		return QtConcurrent::run(
+			[this, url = std::move(url), allow = std::move(allow), parameters = GetParameters<IRequester::Parameters>(QString::fromUtf8(request.body())), acceptEncoding = std::move(acceptEncoding)](
+			) mutable {
+				auto session = *m_sessions.emplace(QUuid::createUuid().toString(QUuid::StringFormat::Id128)).first;
+				parameters.try_emplace("session", std::move(session));
+				return allow(parameters, acceptEncoding);
+			}
+		);
 	}
 
 private:
@@ -514,6 +514,7 @@ private:
 	std::shared_ptr<const IRequester>                    m_requester;
 	std::shared_ptr<const IReactAppRequester>            m_reactAppRequester;
 	std::shared_ptr<const INoSqlRequester>               m_noSqlRequester;
+	std::unordered_set<QString>                          m_sessions;
 };
 
 Server::Server(
