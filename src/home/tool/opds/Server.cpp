@@ -325,20 +325,7 @@ private:
 		std::vector<std::pair<QString, AuthorizationFunctor>> roots;
 
 		if (m_settings->Get(Flibrary::Constant::Settings::OPDS_OPDS_ENABLED, true))
-		{
-			//			m_server.route(opds, [this](const QHttpServerRequest& request) {
-			//				if (auto auth = AuthorizationOpds(request); auth.isValid())
-			//					return auth;
-			//
-			//				return QtConcurrent::run([this, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)] {
-			//					auto response = EncodeContent(m_requester->GetRoot(opds, parameters), acceptEncoding);
-			//					SetContentType(response, opds, MessageType::Atom);
-			//					return response;
-			//				});
-			//			});
-
 			roots.emplace_back(opds, &Impl::AuthorizationOpds);
-		}
 
 		if (m_settings->Get(Flibrary::Constant::Settings::OPDS_WEB_ENABLED, true))
 			roots.emplace_back(web, &Impl::AuthorizationWeb);
@@ -440,7 +427,7 @@ private:
 		auto       parameters     = GetParameters<IRequester::Parameters>(request);
 		const auto itSession      = parameters.find("session");
 
-		if (expectedAuth.isEmpty() || itSession != parameters.end() && m_sessions.contains(itSession->second))
+		if (expectedAuth.isEmpty() || (itSession != parameters.end() && m_sessions.contains(itSession->second)))
 			return QtConcurrent::run([this, allow = std::move(allow), acceptEncoding = std::move(acceptEncoding), parameters = std::move(parameters)] {
 				return allow(parameters, acceptEncoding);
 			});
@@ -484,7 +471,7 @@ private:
 		auto       parameters     = GetParameters<IRequester::Parameters>(request);
 		const auto itSession      = parameters.find("session");
 
-		if (expectedAuth.isEmpty() || itSession != parameters.end() && m_sessions.contains(itSession->second))
+		if (expectedAuth.isEmpty() || (itSession != parameters.end() && m_sessions.contains(itSession->second)))
 			return QtConcurrent::run([this, allow = std::move(allow), acceptEncoding = std::move(acceptEncoding), parameters = std::move(parameters)] {
 				return allow(parameters, acceptEncoding);
 			});
