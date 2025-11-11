@@ -828,44 +828,8 @@ Restart now?</source>
         <translation>Погане розширення файлу бази даних (.inpx)</translation>
     </message>
     <message>
-        <source>Cannon find entry point &apos;%1&apos;</source>
-        <translation>Не вдалося отримати адресу функції %1</translation>
-    </message>
-    <message>
-        <source>Cannot  create object</source>
-        <translation>Не вдалося створити об&apos;єкт</translation>
-    </message>
-    <message>
-        <source>Cannot add file &apos;%1&apos; to archive</source>
-        <translation>Не вдалося додати до архіву файл %1</translation>
-    </message>
-    <message>
         <source>Cannot create database folder %1</source>
         <translation>Неможливо створити папку %1</translation>
-    </message>
-    <message>
-        <source>Cannot create file &apos;%1&apos;</source>
-        <translation>Неможливо створити файл %1</translation>
-    </message>
-    <message>
-        <source>Cannot extract file &apos;%1&apos;</source>
-        <translation>Не вдалося отримати з архіву файл %1</translation>
-    </message>
-    <message>
-        <source>Cannot find file &apos;%1&apos;</source>
-        <translation>Не вдалося знайти в архіві файл %1</translation>
-    </message>
-    <message>
-        <source>Cannot load %1</source>
-        <translation>Неможливо завантажити %1</translation>
-    </message>
-    <message>
-        <source>Cannot open archive &apos;%1&apos;</source>
-        <translation>Неможливо відкрити архів %1</translation>
-    </message>
-    <message>
-        <source>Cannot open file &apos;%1&apos;</source>
-        <translation>Неможливо відкрити файл %1</translation>
     </message>
     <message>
         <source>Database file name cannot be empty</source>

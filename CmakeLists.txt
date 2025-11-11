@@ -41,7 +41,7 @@ find_package(7zip REQUIRED)
 find_package(ICU REQUIRED)
 find_package(libjxl REQUIRED)
 
-set(FOUNDATION_ROOT ${CMAKE_SOURCE_DIR}/src/ext/foundation)
+set(FOUNDATION_ROOT ${CMAKE_SOURCE_DIR}/src/ext/foundation CACHE STRING "FOUNDATION_ROOT")
 include_directories(${FOUNDATION_ROOT})
 include(${FOUNDATION_ROOT}/fnd/fnd.cmake)
 include(${FOUNDATION_ROOT}/logging/logging.cmake)

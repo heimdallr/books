@@ -818,43 +818,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Cannon find entry point &apos;%1&apos;</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot  create object</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot add file &apos;%1&apos; to archive</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Cannot create database folder %1</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot create file &apos;%1&apos;</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot extract file &apos;%1&apos;</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot find file &apos;%1&apos;</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot load %1</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot open archive &apos;%1&apos;</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot open file &apos;%1&apos;</source>
         <translation></translation>
     </message>
     <message>

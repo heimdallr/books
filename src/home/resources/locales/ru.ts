@@ -828,44 +828,8 @@ Restart now?</source>
         <translation>Плохое расширение для файла базы данных (.inpx)</translation>
     </message>
     <message>
-        <source>Cannon find entry point &apos;%1&apos;</source>
-        <translation>Не удалось получить адрес функции %1</translation>
-    </message>
-    <message>
-        <source>Cannot  create object</source>
-        <translation>Не удалось создать объект</translation>
-    </message>
-    <message>
-        <source>Cannot add file &apos;%1&apos; to archive</source>
-        <translation>Не удалось добавить в архив файл %1</translation>
-    </message>
-    <message>
         <source>Cannot create database folder %1</source>
         <translation>Не удалось создать папку %1</translation>
-    </message>
-    <message>
-        <source>Cannot create file &apos;%1&apos;</source>
-        <translation>Не удалось создать файл %1</translation>
-    </message>
-    <message>
-        <source>Cannot extract file &apos;%1&apos;</source>
-        <translation>Не удалось извлечь из архива файл %1</translation>
-    </message>
-    <message>
-        <source>Cannot find file &apos;%1&apos;</source>
-        <translation>Не удалось найти в архиве файл %1</translation>
-    </message>
-    <message>
-        <source>Cannot load %1</source>
-        <translation>Не удалось загрузить %1</translation>
-    </message>
-    <message>
-        <source>Cannot open archive &apos;%1&apos;</source>
-        <translation>Не удалось открыть архив %1</translation>
-    </message>
-    <message>
-        <source>Cannot open file &apos;%1&apos;</source>
-        <translation>Не удалось открыть файл %1</translation>
     </message>
     <message>
         <source>Database file name cannot be empty</source>

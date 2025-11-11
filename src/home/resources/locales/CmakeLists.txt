@@ -23,6 +23,7 @@ file(COPY ${COPY_LIST} DESTINATION "${CMAKE_BINARY_DIR}/bin/locales/")
 set(LUPDATE_COMMAND
 	"${QT_LUPDATE_TOOL}"
 	"${CMAKE_BINARY_DIR}/config/locales.h"
+	"${FOUNDATION_ROOT}/util/language.h"
 	-recursive ./
 	-locations none
 	-sort-messages
