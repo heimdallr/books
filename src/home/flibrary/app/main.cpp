@@ -1,4 +1,5 @@
 #include <QApplication>
+#include <QCommandLineParser>
 #include <QStandardPaths>
 #include <QStyleFactory>
 #include <QTranslator>
@@ -45,17 +46,6 @@ TR_DEF
 
 int main(int argc, char* argv[])
 {
-	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, PRODUCT_ID).toStdWString());
-	LogModelAppender        logModelAppender;
-
-	PLOGI << "App started";
-	PLOGI << "Version: " << GetApplicationVersion();
-	PLOGI << "Commit hash: " << GIT_HASH;
-	// ReSharper disable CppCompileTimeConstantCanBeReplacedWithBooleanConstant
-	if constexpr (PERSONAL_BUILD_NAME && PERSONAL_BUILD_NAME[0]) //-V560
-		PLOGI << "Personal build: " << PERSONAL_BUILD_NAME;
-	// ReSharper restore CppCompileTimeConstantCanBeReplacedWithBooleanConstant
-
 	try
 	{
 		QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
@@ -64,6 +54,26 @@ int main(int argc, char* argv[])
 		QCoreApplication::setApplicationName(PRODUCT_ID);
 		QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
 		Util::XMLPlatformInitializer xmlPlatformInitializer;
+
+		QCommandLineParser parser;
+		parser.setApplicationDescription(QString("%1: another e-book cataloger").arg(PRODUCT_ID));
+		parser.addHelpOption();
+		parser.addVersionOption();
+
+		const auto defaultLogPath = QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, PRODUCT_ID);
+		const auto logOption      = Log::LoggingInitializer::AddLogFileOption(parser, defaultLogPath);
+		parser.process(app);
+
+		Log::LoggingInitializer logging((parser.isSet(logOption) ? parser.value(logOption) : defaultLogPath).toStdWString());
+		LogModelAppender        logModelAppender;
+
+		PLOGI << "App started";
+		PLOGI << "Version: " << GetApplicationVersion();
+		PLOGI << "Commit hash: " << GIT_HASH;
+		// ReSharper disable CppCompileTimeConstantCanBeReplacedWithBooleanConstant
+		if constexpr (PERSONAL_BUILD_NAME && PERSONAL_BUILD_NAME[0]) //-V560
+			PLOGI << "Personal build: " << PERSONAL_BUILD_NAME;
+		// ReSharper restore CppCompileTimeConstantCanBeReplacedWithBooleanConstant
 
 		PLOGD << "QApplication created";
 

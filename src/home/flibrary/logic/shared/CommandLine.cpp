@@ -5,6 +5,7 @@
 #include "interface/Localization.h"
 
 #include "config/version.h"
+#include "logging/init.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -29,7 +30,7 @@ CommandLine::CommandLine()
 	parser.addHelpOption();
 	parser.addVersionOption();
 	parser.addPositionalArgument("file", Tr(POSITIONAL_ARGUMENT_DESCRIPTION));
-
+	Log::LoggingInitializer::AddLogFileOption(parser, "");
 	parser.process(QCoreApplication::arguments());
 	const auto positionalArguments = parser.positionalArguments();
 
