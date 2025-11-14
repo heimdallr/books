@@ -109,7 +109,7 @@ private: // Util::SaxParser
 
 		m_writer.WriteStartElement(name, attributes);
 
-		if (name == BINARY)
+		if (name == BINARY && !m_covers.empty())
 			WriteImage(attributes.GetAttribute(ID));
 
 		return true;
