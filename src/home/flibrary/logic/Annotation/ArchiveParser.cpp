@@ -172,6 +172,8 @@ private: // Util::SaxParser
 		{
 			m_currentDescriptionItem = m_currentDescriptionItem->AppendChild(NavigationItem::Create()).get();
 			m_currentDescriptionItem->SetData(name);
+			for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
+				m_currentDescriptionItem->AppendChild(NavigationItem::Create())->SetData(QString("%1: %2").arg(attributes.GetName(i), attributes.GetValue(i)));
 		}
 
 		using ParseElementFunction = bool (XmlParser::*)(const Util::XmlAttributes&);

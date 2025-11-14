@@ -478,8 +478,6 @@ private: // IAnnotationController::IObserver
 		m_ui.info->setText(annotation);
 		m_covers = dataProvider.GetCovers();
 		m_ui.actionSaveAllImages->setText(Tr(SAVE_ALL_PICS_ACTION_TEXT).arg(m_covers.size()));
-		if (m_covers.empty())
-			return;
 
 		m_currentCoverIndex = 0;
 
