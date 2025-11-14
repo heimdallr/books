@@ -5,6 +5,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IBookExtractor.h"
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
@@ -31,6 +32,7 @@ public:
 		std::shared_ptr<IBooksExtractorProgressController> progressController,
 		const std::shared_ptr<const ILogicFactory>&        logicFactory,
 		std::shared_ptr<const IScriptController>           scriptController,
+		std::shared_ptr<const IBookExtractor>              bookExtractor,
 		std::shared_ptr<IDatabaseUser>                     databaseUser
 	);
 	~BooksExtractor();
