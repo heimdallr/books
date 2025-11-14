@@ -5,6 +5,7 @@
 #include <QFileInfo>
 #include <QPixmap>
 
+#include "fnd/IsOneOf.h"
 #include "fnd/try.h"
 
 #include "interface/constants/SettingsConstant.h"
@@ -38,26 +39,13 @@ class SaxPrinter final : public Util::SaxParser
 	static constexpr auto DESCRIPTION        = "FictionBook/description";
 	static constexpr auto DOCUMENT_INFO      = "FictionBook/description/document-info";
 	static constexpr auto PROGRAM_USED       = "FictionBook/description/document-info/program-used";
+	static constexpr auto TITLE_INFO         = "FictionBook/description/title-info";
 	static constexpr auto AUTHOR             = "FictionBook/description/title-info/author";
 	static constexpr auto AUTHOR_FIRST_NAME  = "first-name";
 	static constexpr auto AUTHOR_LAST_NAME   = "last-name";
 	static constexpr auto AUTHOR_MIDDLE_NAME = "middle-name";
 	static constexpr auto BOOK_TITLE         = "FictionBook/description/title-info/book-title";
 	static constexpr auto SEQUENCE           = "FictionBook/description/title-info/sequence";
-
-	enum class ParseMode
-	{
-		Common = -1,
-		Author,
-		Title,
-		Series,
-	};
-
-	static constexpr std::pair<const char*, ParseMode> PARSE_MODES[] {
-		{     AUTHOR, ParseMode::Author },
-		{ BOOK_TITLE,  ParseMode::Title },
-		{   SEQUENCE, ParseMode::Series },
-	};
 
 public:
 	SaxPrinter(QIODevice& input, QIODevice& output, Covers covers, std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement)
@@ -83,52 +71,33 @@ private: // Util::SaxParser
 
 	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
-		if (m_currentMode != ParseMode::Common)
-			return true;
-
-		if (m_currentMode == ParseMode::Common && m_metadataReplacement)
-		{
-			m_currentMode = FindSecond(PARSE_MODES, path.toStdString().data(), ParseMode::Common, PszComparer {});
-			if (m_currentMode != ParseMode::Common)
-			{
-				m_replacers.erase(m_currentMode);
-				switch (m_currentMode) // NOLINT(clang-diagnostic-switch-enum)
-				{
-					case ParseMode::Author:
-						return WriteAuthor(), true;
-
-					case ParseMode::Title:
-						return WriteTitle(), true;
-
-					case ParseMode::Series:
-						return WriteSeries(), true;
-
-					default:
-						assert(false && "unexpected mode");
-						break;
-				}
-			}
-		}
+		if (m_specialNode || (m_metadataReplacement && IsOneOf(path, AUTHOR, BOOK_TITLE, SEQUENCE)))
+			return m_specialNode = true;
 
 		m_writer.WriteStartElement(name, attributes);
 
 		if (name == BINARY && !m_covers.empty())
 			WriteImage(attributes.GetAttribute(ID));
 
+		if (path == TITLE_INFO && m_metadataReplacement)
+			for (const auto invoker : {
+					 &SaxPrinter::WriteAuthor,
+					 &SaxPrinter::WriteTitle,
+					 &SaxPrinter::WriteSeries,
+				 })
+				std::invoke(invoker, this);
+
 		return true;
 	}
 
 	bool OnEndElement(const QString&, const QString& path) override
 	{
-		if (m_currentMode != ParseMode::Common)
+		if (m_specialNode)
 		{
-			if (path == PARSE_MODES[static_cast<size_t>(m_currentMode)].first)
-				m_currentMode = ParseMode::Common;
+			if (IsOneOf(path, AUTHOR, BOOK_TITLE, SEQUENCE))
+				m_specialNode = false;
 			return true;
 		}
-
-		if (m_currentMode != ParseMode::Common && path == PARSE_MODES[static_cast<size_t>(m_currentMode)].first)
-			return m_currentMode = ParseMode::Common, true;
 
 		if (path == DOCUMENT_INFO && !m_hasProgramUsed)
 		{
@@ -143,10 +112,6 @@ private: // Util::SaxParser
 				m_writer.WriteStartElement("document-info").WriteStartElement("program-used").WriteCharacters(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION)).WriteEndElement().WriteEndElement();
 				m_hasProgramUsed = true;
 			}
-
-			if (m_metadataReplacement)
-				for (const auto invoker : m_replacers | std::views::values)
-					std::invoke(invoker, this);
 		}
 
 		if (path == FICTION_BOOK)
@@ -157,7 +122,7 @@ private: // Util::SaxParser
 
 	bool OnCharacters(const QString& path, const QString& value) override
 	{
-		if (m_currentMode != ParseMode::Common)
+		if (m_specialNode)
 			return true;
 
 		if (path != PROGRAM_USED)
@@ -258,13 +223,7 @@ private:
 	std::unique_ptr<const ILogicFactory::ExtractedBook> m_metadataReplacement;
 	bool                                                m_hasError { false };
 	bool                                                m_hasProgramUsed { false };
-	ParseMode                                           m_currentMode { ParseMode::Common };
-
-	std::unordered_map<ParseMode, void (SaxPrinter::*)()> m_replacers {
-		{ ParseMode::Author, &SaxPrinter::WriteAuthor },
-		{  ParseMode::Title,  &SaxPrinter::WriteTitle },
-		{ ParseMode::Series, &SaxPrinter::WriteSeries },
-	};
+	bool                                                m_specialNode { false };
 };
 
 QByteArray RestoreImagesImpl(QIODevice& stream, Covers covers, std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement)
