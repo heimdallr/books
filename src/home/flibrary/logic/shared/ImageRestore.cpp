@@ -83,6 +83,9 @@ private: // Util::SaxParser
 
 	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
+		if (m_currentMode != ParseMode::Common)
+			return true;
+
 		if (m_currentMode == ParseMode::Common && m_metadataReplacement)
 		{
 			m_currentMode = FindSecond(PARSE_MODES, path.toStdString().data(), ParseMode::Common, PszComparer {});
@@ -117,6 +120,13 @@ private: // Util::SaxParser
 
 	bool OnEndElement(const QString&, const QString& path) override
 	{
+		if (m_currentMode != ParseMode::Common)
+		{
+			if (path == PARSE_MODES[static_cast<size_t>(m_currentMode)].first)
+				m_currentMode = ParseMode::Common;
+			return true;
+		}
+
 		if (m_currentMode != ParseMode::Common && path == PARSE_MODES[static_cast<size_t>(m_currentMode)].first)
 			return m_currentMode = ParseMode::Common, true;
 
