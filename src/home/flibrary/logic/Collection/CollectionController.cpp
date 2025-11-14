@@ -1,6 +1,5 @@
 #include "CollectionController.h"
 
-#include <QCoreApplication>
 #include <QTemporaryDir>
 #include <QTimer>
 
@@ -8,7 +7,6 @@
 #include "fnd/observable.h"
 
 #include "interface/Localization.h"
-#include "interface/constants/ProductConstant.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
@@ -305,7 +303,6 @@ private:
 		                          .arg(updateResult.keywords)
 		                          .arg(updateResult.genres ? Tr(COLLECTION_UPDATE_RESULT_GENRES).arg(updateResult.genres) : "")
 		                          .arg(updateResult.oldDataUpdateFound ? Tr(COLLECTION_NEED_RECREATE) : ""));
-		QCoreApplication::exit(Constant::RESTART_APP);
 	}
 
 private:
