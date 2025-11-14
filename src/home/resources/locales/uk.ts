@@ -4645,6 +4645,10 @@ Try again?</source>
         <translation>Вилучати</translation>
     </message>
     <message>
+        <source>Rewrite &amp;metadata</source>
+        <translation>Перезаписувати &amp;метадані</translation>
+    </message>
+    <message>
         <source>S&amp;tatus line</source>
         <translation>Рядок &amp;статусу</translation>
     </message>

@@ -448,6 +448,7 @@
       <addaction name="menuIllustrations"/>
      </widget>
      <addaction name="actionExportTemplate"/>
+     <addaction name="actionExportRewriteMetadata"/>
      <addaction name="menuImages"/>
     </widget>
     <widget class="QMenu" name="menuHttp">
@@ -1020,6 +1021,17 @@
    </property>
    <property name="text">
     <string>Remove</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionExportRewriteMetadata">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Rewrite &amp;metadata</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

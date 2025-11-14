@@ -4633,6 +4633,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Rewrite &amp;metadata</source>
+        <translation>Overwrite &amp;metadata</translation>
+    </message>
+    <message>
         <source>S&amp;tatus line</source>
         <translation></translation>
     </message>

@@ -790,6 +790,7 @@ private:
 			&& QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + Global::IMAGES).exists()
 		);
 
+		ConnectSettings(m_ui.actionExportRewriteMetadata, Constant::Settings::EXPORT_REPLACE_METADATA_KEY);
 		ConnectSettings(m_ui.actionExportConvertCoverToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY);
 		ConnectSettings(m_ui.actionExportConvertImagesToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_IMAGES_KEY);
 		ConnectSettings(m_ui.actionExportRemoveCover, Constant::Settings::EXPORT_REMOVE_COVER_KEY);
