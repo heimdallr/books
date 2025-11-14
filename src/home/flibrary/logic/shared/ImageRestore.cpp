@@ -28,22 +28,43 @@ namespace
 
 using Covers = std::unordered_map<QString, QByteArray>;
 
-constexpr auto BINARY       = "binary";
-constexpr auto ID           = "id";
-constexpr auto CONTENT_TYPE = "content-type";
-
-constexpr auto FICTION_BOOK  = "FictionBook";
-constexpr auto DESCRIPTION   = "FictionBook/description";
-constexpr auto DOCUMENT_INFO = "FictionBook/description/document-info";
-constexpr auto PROGRAM_USED  = "FictionBook/description/document-info/program-used";
-
 class SaxPrinter final : public Util::SaxParser
 {
+	static constexpr auto BINARY       = "binary";
+	static constexpr auto ID           = "id";
+	static constexpr auto CONTENT_TYPE = "content-type";
+
+	static constexpr auto FICTION_BOOK       = "FictionBook";
+	static constexpr auto DESCRIPTION        = "FictionBook/description";
+	static constexpr auto DOCUMENT_INFO      = "FictionBook/description/document-info";
+	static constexpr auto PROGRAM_USED       = "FictionBook/description/document-info/program-used";
+	static constexpr auto AUTHOR             = "FictionBook/description/title-info/author";
+	static constexpr auto AUTHOR_FIRST_NAME  = "first-name";
+	static constexpr auto AUTHOR_LAST_NAME   = "last-name";
+	static constexpr auto AUTHOR_MIDDLE_NAME = "middle-name";
+	static constexpr auto BOOK_TITLE         = "FictionBook/description/title-info/book-title";
+	static constexpr auto SEQUENCE           = "FictionBook/description/title-info/sequence";
+
+	enum class ParseMode
+	{
+		Common = -1,
+		Author,
+		Title,
+		Series,
+	};
+
+	static constexpr std::pair<const char*, ParseMode> PARSE_MODES[] {
+		{     AUTHOR, ParseMode::Author },
+		{ BOOK_TITLE,  ParseMode::Title },
+		{   SEQUENCE, ParseMode::Series },
+	};
+
 public:
-	SaxPrinter(QIODevice& input, QIODevice& output, Covers covers)
+	SaxPrinter(QIODevice& input, QIODevice& output, Covers covers, std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement)
 		: SaxParser { input }
 		, m_writer { output }
 		, m_covers { std::move(covers) }
+		, m_metadataReplacement { std::move(metadataReplacement) }
 	{
 		Parse();
 		assert(m_hasProgramUsed);
@@ -60,8 +81,32 @@ private: // Util::SaxParser
 		return m_writer.WriteProcessingInstruction(target, data), true;
 	}
 
-	bool OnStartElement(const QString& name, const QString& /*path*/, const Util::XmlAttributes& attributes) override
+	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
+		if (m_currentMode == ParseMode::Common && m_metadataReplacement)
+		{
+			m_currentMode = FindSecond(PARSE_MODES, path.toStdString().data(), ParseMode::Common, PszComparer {});
+			if (m_currentMode != ParseMode::Common)
+			{
+				m_replacers.erase(m_currentMode);
+				switch (m_currentMode) // NOLINT(clang-diagnostic-switch-enum)
+				{
+					case ParseMode::Author:
+						return WriteAuthor(), true;
+
+					case ParseMode::Title:
+						return WriteTitle(), true;
+
+					case ParseMode::Series:
+						return WriteSeries(), true;
+
+					default:
+						assert(false && "unexpected mode");
+						break;
+				}
+			}
+		}
+
 		m_writer.WriteStartElement(name, attributes);
 
 		if (name == BINARY)
@@ -72,16 +117,26 @@ private: // Util::SaxParser
 
 	bool OnEndElement(const QString&, const QString& path) override
 	{
+		if (m_currentMode != ParseMode::Common && path == PARSE_MODES[static_cast<size_t>(m_currentMode)].first)
+			return m_currentMode = ParseMode::Common, true;
+
 		if (path == DOCUMENT_INFO && !m_hasProgramUsed)
 		{
 			m_writer.WriteStartElement("program-used").WriteCharacters(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION)).WriteEndElement();
 			m_hasProgramUsed = true;
 		}
 
-		if (path == DESCRIPTION && !m_hasProgramUsed)
+		if (path == DESCRIPTION)
 		{
-			m_writer.WriteStartElement("document-info").WriteStartElement("program-used").WriteCharacters(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION)).WriteEndElement().WriteEndElement();
-			m_hasProgramUsed = true;
+			if (!m_hasProgramUsed)
+			{
+				m_writer.WriteStartElement("document-info").WriteStartElement("program-used").WriteCharacters(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION)).WriteEndElement().WriteEndElement();
+				m_hasProgramUsed = true;
+			}
+
+			if (m_metadataReplacement)
+				for (const auto invoker : m_replacers | std::views::values)
+					std::invoke(invoker, this);
 		}
 
 		if (path == FICTION_BOOK)
@@ -92,6 +147,9 @@ private: // Util::SaxParser
 
 	bool OnCharacters(const QString& path, const QString& value) override
 	{
+		if (m_currentMode != ParseMode::Common)
+			return true;
+
 		if (path != PROGRAM_USED)
 			return m_writer.WriteCharacters(value), true;
 
@@ -118,6 +176,33 @@ private: // Util::SaxParser
 	}
 
 private:
+	void WriteAuthor()
+	{
+		assert(m_metadataReplacement);
+		const auto node = m_writer.Guard("author");
+		node->WriteStartElement(AUTHOR_FIRST_NAME).WriteCharacters(m_metadataReplacement->authorFull.firstName).WriteEndElement();
+		node->WriteStartElement(AUTHOR_MIDDLE_NAME).WriteCharacters(m_metadataReplacement->authorFull.middleName).WriteEndElement();
+		node->WriteStartElement(AUTHOR_LAST_NAME).WriteCharacters(m_metadataReplacement->authorFull.lastName).WriteEndElement();
+	}
+
+	void WriteTitle()
+	{
+		assert(m_metadataReplacement);
+		m_writer.WriteStartElement("book-title").WriteCharacters(m_metadataReplacement->title).WriteEndElement();
+	}
+
+	void WriteSeries()
+	{
+		assert(m_metadataReplacement);
+		if (m_metadataReplacement->series.isEmpty())
+			return;
+
+		const auto node = m_writer.Guard("sequence");
+		node->WriteAttribute("name", m_metadataReplacement->series);
+		if (m_metadataReplacement->seqNumber > 0)
+			node->WriteAttribute("number", QString::number(m_metadataReplacement->seqNumber));
+	}
+
 	void WriteImage(const QString& imageFileName)
 	{
 		const auto data = [&] {
@@ -158,18 +243,26 @@ private:
 	}
 
 private:
-	Util::XmlWriter m_writer;
-	Covers          m_covers;
-	bool            m_hasError { false };
-	bool            m_hasProgramUsed { false };
+	Util::XmlWriter                                     m_writer;
+	Covers                                              m_covers;
+	std::unique_ptr<const ILogicFactory::ExtractedBook> m_metadataReplacement;
+	bool                                                m_hasError { false };
+	bool                                                m_hasProgramUsed { false };
+	ParseMode                                           m_currentMode { ParseMode::Common };
+
+	std::unordered_map<ParseMode, void (SaxPrinter::*)()> m_replacers {
+		{ ParseMode::Author, &SaxPrinter::WriteAuthor },
+		{  ParseMode::Title,  &SaxPrinter::WriteTitle },
+		{ ParseMode::Series, &SaxPrinter::WriteSeries },
+	};
 };
 
-QByteArray RestoreImagesImpl(QIODevice& stream, Covers covers)
+QByteArray RestoreImagesImpl(QIODevice& stream, Covers covers, std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement)
 {
 	QByteArray byteArray;
 	QBuffer    buffer(&byteArray);
 	buffer.open(QIODevice::WriteOnly);
-	const SaxPrinter saxPrinter(stream, buffer, std::move(covers));
+	const SaxPrinter saxPrinter(stream, buffer, std::move(covers), std::move(metadataReplacement));
 	return saxPrinter.HasError() ? QByteArray {} : byteArray;
 }
 
@@ -209,7 +302,8 @@ void ConvertToGrayscale(QByteArray& srcImageBody, const int quality)
 	srcImageBody = std::move(result);
 }
 
-QByteArray RestoreImagesImpl(QIODevice& stream, const QString& folder, const QString& fileName, const std::shared_ptr<const ISettings>& settings)
+QByteArray
+RestoreImagesImpl(QIODevice& stream, const QString& folder, const QString& fileName, const std::shared_ptr<const ISettings>& settings, std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement)
 {
 	Covers covers;
 	ExtractBookImages(
@@ -221,10 +315,10 @@ QByteArray RestoreImagesImpl(QIODevice& stream, const QString& folder, const QSt
 		},
 		settings
 	);
-	if (covers.empty())
+	if (covers.empty() && !metadataReplacement)
 		return stream.readAll();
 
-	if (auto byteArray = RestoreImagesImpl(stream, std::move(covers)); !byteArray.isEmpty())
+	if (auto byteArray = RestoreImagesImpl(stream, std::move(covers), std::move(metadataReplacement)); !byteArray.isEmpty())
 		return byteArray;
 
 	stream.seek(0);
@@ -324,9 +418,10 @@ void ExtractBookImagesImagesImpl(const QFileInfo& fileInfo, const QString& fileN
 namespace HomeCompa::Flibrary
 {
 
-QByteArray RestoreImages(QIODevice& input, const QString& folder, const QString& fileName, const std::shared_ptr<const ISettings>& settings)
+QByteArray
+RestoreImages(QIODevice& input, const QString& folder, const QString& fileName, const std::shared_ptr<const ISettings>& settings, std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement)
 {
-	return RestoreImagesImpl(input, folder, fileName, settings);
+	return RestoreImagesImpl(input, folder, fileName, settings, std::move(metadataReplacement));
 }
 
 void ExtractBookImages(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback, const std::shared_ptr<const ISettings>& settings)

@@ -60,6 +60,15 @@ public:
 		QStringList genreTree;
 		long long   libId;
 		QString     lang;
+
+		struct Author
+		{
+			QString firstName;
+			QString middleName;
+			QString lastName;
+		};
+
+		Author authorFull;
 	};
 
 	using ExtractedBooks = std::vector<ExtractedBook>;
