@@ -23,6 +23,11 @@ public:
 private: // IFilterProvider
 	[[nodiscard]] bool                          IsFilterEnabled() const noexcept override;
 	[[nodiscard]] std::vector<IDataItem::Flags> GetFlags(NavigationMode navigationMode, const std::vector<QString>& ids) const override;
+	[[nodiscard]] bool                          HideUnrated() const noexcept override;
+	[[nodiscard]] bool                          IsMinimumRatingEnabled() const noexcept override;
+	[[nodiscard]] bool                          IsMaximumRatingEnabled() const noexcept override;
+	[[nodiscard]] int                           GetMinimumRating() const noexcept override;
+	[[nodiscard]] int                           GetMaximumRating() const noexcept override;
 
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;
@@ -31,6 +36,7 @@ private: // IFilterController
 	void SetFilterEnabled(bool enabled) override;
 	void Apply() override;
 	void SetFlags(NavigationMode navigationMode, QString id, IDataItem::Flags flags) override;
+	void SetRating(const std::optional<int>& min, const std::optional<int>& max, bool hideUnrated) override;
 	void SetNavigationItemFlags(NavigationMode navigationMode, QStringList navigationIds, IDataItem::Flags flags, Callback callback) override;
 	void ClearNavigationItemFlags(NavigationMode navigationMode, QStringList navigationIds, IDataItem::Flags flags, Callback callback) override;
 	void HideFiltered(NavigationMode navigationMode, QPointer<QAbstractItemModel> model, std::weak_ptr<ICallback> callback) override;
