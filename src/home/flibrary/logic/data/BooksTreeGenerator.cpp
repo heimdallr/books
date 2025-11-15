@@ -408,7 +408,7 @@ private:
 
 		{
 			static constexpr auto queryText = R"({}
-select s.SeriesID, s.SeriesTitle, s.IsDeleted, s.Flags, l.BookID, coalesce(l.SeqNumber, -1), l.OrdNum
+select s.SeriesID, s.SeriesTitle, s.IsDeleted, s.Flags, l.BookID, l.SeqNumber, l.OrdNum
 {}
 join Series_List l on l.BookID = b.BookID
 join Series s on s.SeriesID = l.SeriesID

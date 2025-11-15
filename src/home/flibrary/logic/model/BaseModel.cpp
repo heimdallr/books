@@ -182,7 +182,7 @@ QVariant BaseModel::GetValue(const IDataItem& item, const int column)
 	{
 		bool       ok     = false;
 		const auto result = item.GetRawData(column).toLongLong(&ok);
-		return ok ? result : -1;
+		return ok ? QVariant { result } : QVariant {};
 	}
 
 	return item.GetRawData(column);
