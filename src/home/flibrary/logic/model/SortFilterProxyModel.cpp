@@ -39,11 +39,16 @@ private: // IModelSorter
 	bool LessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight, const int emptyStringWeight) const override
 	{
 		const auto lhs = sourceLeft.data(), rhs = sourceRight.data();
-		const auto lhsType = lhs.typeId(), rhsType = rhs.typeId();
-		return lhsType != rhsType ? lhsType < rhsType
-		     : lhsType == QMetaType::Type::QString
-		         ? (assert(rhsType == QMetaType::Type::QString), Util::QStringWrapper::Compare(Util::QStringWrapper { lhs.toString() }, Util::QStringWrapper { rhs.toString() }, emptyStringWeight))
-		         : m_self.QSortFilterProxyModel::lessThan(sourceLeft, sourceRight);
+		if (lhs.isValid() && rhs.isValid())
+		{
+			const auto lhsType = lhs.typeId(), rhsType = rhs.typeId();
+			return lhsType != rhsType ? lhsType < rhsType
+			     : lhsType == QMetaType::Type::QString
+			         ? (assert(rhsType == QMetaType::Type::QString), Util::QStringWrapper::Compare(Util::QStringWrapper { lhs.toString() }, Util::QStringWrapper { rhs.toString() }, emptyStringWeight))
+			         : m_self.QSortFilterProxyModel::lessThan(sourceLeft, sourceRight);
+		}
+
+		return (lhs.isValid() ? 0 : emptyStringWeight) < (rhs.isValid() ? 0 : emptyStringWeight);
 	}
 
 private:
