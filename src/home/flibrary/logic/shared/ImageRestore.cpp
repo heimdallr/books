@@ -226,7 +226,7 @@ private:
 	bool                                                m_specialNode { false };
 };
 
-QByteArray RestoreImagesImpl(QIODevice& stream, Covers covers, std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement)
+QByteArray PrepareToExportImpl(QIODevice& stream, Covers covers, std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement)
 {
 	QByteArray byteArray;
 	QBuffer    buffer(&byteArray);
@@ -271,8 +271,13 @@ void ConvertToGrayscale(QByteArray& srcImageBody, const int quality)
 	srcImageBody = std::move(result);
 }
 
-QByteArray
-RestoreImagesImpl(QIODevice& stream, const QString& folder, const QString& fileName, const std::shared_ptr<const ISettings>& settings, std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement)
+QByteArray PrepareToExportImpl(
+	QIODevice&                                          stream,
+	const QString&                                      folder,
+	const QString&                                      fileName,
+	const std::shared_ptr<const ISettings>&             settings,
+	std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement
+)
 {
 	Covers covers;
 	ExtractBookImages(
@@ -287,7 +292,7 @@ RestoreImagesImpl(QIODevice& stream, const QString& folder, const QString& fileN
 	if (covers.empty() && !metadataReplacement)
 		return stream.readAll();
 
-	if (auto byteArray = RestoreImagesImpl(stream, std::move(covers), std::move(metadataReplacement)); !byteArray.isEmpty())
+	if (auto byteArray = PrepareToExportImpl(stream, std::move(covers), std::move(metadataReplacement)); !byteArray.isEmpty())
 		return byteArray;
 
 	stream.seek(0);
@@ -388,9 +393,9 @@ namespace HomeCompa::Flibrary
 {
 
 QByteArray
-RestoreImages(QIODevice& input, const QString& folder, const QString& fileName, const std::shared_ptr<const ISettings>& settings, std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement)
+PrepareToExport(QIODevice& input, const QString& folder, const QString& fileName, const std::shared_ptr<const ISettings>& settings, std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement)
 {
-	return RestoreImagesImpl(input, folder, fileName, settings, std::move(metadataReplacement));
+	return PrepareToExportImpl(input, folder, fileName, settings, std::move(metadataReplacement));
 }
 
 void ExtractBookImages(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback, const std::shared_ptr<const ISettings>& settings)

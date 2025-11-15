@@ -6,11 +6,11 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IScriptController.h"
 
+#include "data/DataItem.h"
 #include "util/DyLib.h"
 #include "util/translit.h"
 
 #include "log.h"
-#include "data/DataItem.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

@@ -95,7 +95,7 @@ std::shared_ptr<ILogicFactory::ITemporaryDir> Extract(const ISettings& settings,
 				if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
 				{
 					const auto subStream = subZip.Read(archiveFileName);
-					file.write(RestoreImages(subStream->GetStream(), archive, fileName));
+					file.write(PrepareToExport(subStream->GetStream(), archive, fileName));
 				}
 			}
 
@@ -110,7 +110,7 @@ std::shared_ptr<ILogicFactory::ITemporaryDir> Extract(const ISettings& settings,
 		{
 			auto fileNameDst = temporaryDir->filePath(Util::RemoveIllegalPathCharacters(fileName));
 			if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
-				file.write(RestoreImages(stream->GetStream(), archive, fileName));
+				file.write(PrepareToExport(stream->GetStream(), archive, fileName));
 
 			fileName = std::move(fileNameDst);
 		}

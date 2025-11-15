@@ -123,7 +123,7 @@ std::pair<bool, std::filesystem::path> Write(
 			return assert(false), result;
 
 	result.first = [&] {
-		auto bytes = RestoreImages(input, folder, book.file, settings, exportHelper.GetMetadataReplacement(book));
+		auto bytes = PrepareToExport(input, folder, book.file, settings, exportHelper.GetMetadataReplacement(book));
 		switch (mode)
 		{
 			case WriteMode::AsIs:

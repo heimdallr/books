@@ -4,8 +4,9 @@
 
 #include "interface/Localization.h"
 
-#include "config/version.h"
 #include "logging/init.h"
+
+#include "config/version.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

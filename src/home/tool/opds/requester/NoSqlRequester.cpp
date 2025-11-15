@@ -46,7 +46,7 @@ QByteArray Decompress(const QString& path, const QString& archive, const QString
 				buffer.close();
 			}
 		);
-		buffer.write(Flibrary::RestoreImages(stream->GetStream(), path + "/" + archive, fileName));
+		buffer.write(Flibrary::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName));
 	}
 	return data;
 }

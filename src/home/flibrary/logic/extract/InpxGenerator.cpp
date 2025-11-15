@@ -224,7 +224,7 @@ QByteArray Process(const std::filesystem::path& archiveFolder, const QString& ds
 		const auto folder   = QString::fromStdWString(archiveFolder / book.book->GetRawData(BookItem::Column::Folder).toStdWString());
 		const Zip  zipInput(folder);
 		const auto input = zipInput.Read(fileName);
-		auto       bytes = RestoreImages(input->GetStream(), folder, fileName);
+		auto       bytes = PrepareToExport(input->GetStream(), folder, fileName);
 		progress.Increment(bytes.size());
 		Write(inpx, uid, book, n);
 

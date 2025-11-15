@@ -22,7 +22,7 @@ class Zip;
 namespace HomeCompa::Flibrary
 {
 
-LOGIC_EXPORT QByteArray RestoreImages(
+LOGIC_EXPORT QByteArray PrepareToExport(
 	QIODevice&                                          input,
 	const QString&                                      folder,
 	const QString&                                      fileName,
