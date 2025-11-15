@@ -537,8 +537,8 @@ private: // IFilterProvider::IObserver
 		if (!IsNavigation())
 		{
 			model.setData({}, m_filterProvider->HideUnrated(), Role::UniFilterHideUnrated);
-			model.setData({}, m_filterProvider->IsMinimumRatingEnabled() ? m_filterProvider->GetMinimumRate() : QVariant {}, Role::UniFilterMinimumRate);
-			model.setData({}, m_filterProvider->IsMaximumRatingEnabled() ? m_filterProvider->GetMaximumRate() : QVariant {}, Role::UniFilterMaximumRate);
+			model.setData({}, m_filterProvider->IsMinimumRateEnabled() ? m_filterProvider->GetMinimumRate() : QVariant {}, Role::UniFilterMinimumRate);
+			model.setData({}, m_filterProvider->IsMaximumRateEnabled() ? m_filterProvider->GetMaximumRate() : QVariant {}, Role::UniFilterMaximumRate);
 			return;
 		}
 

@@ -24,8 +24,8 @@ private: // IFilterProvider
 	[[nodiscard]] bool                          IsFilterEnabled() const noexcept override;
 	[[nodiscard]] std::vector<IDataItem::Flags> GetFlags(NavigationMode navigationMode, const std::vector<QString>& ids) const override;
 	[[nodiscard]] bool                          HideUnrated() const noexcept override;
-	[[nodiscard]] bool                          IsMinimumRatingEnabled() const noexcept override;
-	[[nodiscard]] bool                          IsMaximumRatingEnabled() const noexcept override;
+	[[nodiscard]] bool                          IsMinimumRateEnabled() const noexcept override;
+	[[nodiscard]] bool                          IsMaximumRateEnabled() const noexcept override;
 	[[nodiscard]] int                           GetMinimumRate() const noexcept override;
 	[[nodiscard]] int                           GetMaximumRate() const noexcept override;
 

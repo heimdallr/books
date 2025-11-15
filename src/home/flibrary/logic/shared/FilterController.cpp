@@ -115,12 +115,12 @@ bool FilterController::HideUnrated() const noexcept
 	return m_impl->settings->Get(FILTER_RATING_HIDE_UNRATED_KEY, false);
 }
 
-bool FilterController::IsMinimumRatingEnabled() const noexcept
+bool FilterController::IsMinimumRateEnabled() const noexcept
 {
 	return m_impl->settings->Get(FILTER_RATING_MINIMUM_ENABLED_KEY, false);
 }
 
-bool FilterController::IsMaximumRatingEnabled() const noexcept
+bool FilterController::IsMaximumRateEnabled() const noexcept
 {
 	return m_impl->settings->Get(FILTER_RATING_MAXIMUM_ENABLED_KEY, false);
 }

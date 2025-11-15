@@ -208,8 +208,8 @@ private:
 	{
 		m_ui.checkBoxFilterEnabled->setChecked(m_filterController->IsFilterEnabled());
 		m_ui.hideUnrated->setChecked(m_filterController->HideUnrated());
-		m_ui.hideRatedLower->setChecked(m_filterController->IsMinimumRatingEnabled());
-		m_ui.hideRatedHigher->setChecked(m_filterController->IsMaximumRatingEnabled());
+		m_ui.hideRatedLower->setChecked(m_filterController->IsMinimumRateEnabled());
+		m_ui.hideRatedHigher->setChecked(m_filterController->IsMaximumRateEnabled());
 		m_ui.minimumRating->setValue(m_filterController->GetMinimumRate());
 		m_ui.maximumRating->setValue(m_filterController->GetMaximumRate());
 
