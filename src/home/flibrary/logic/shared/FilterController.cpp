@@ -125,12 +125,12 @@ bool FilterController::IsMaximumRatingEnabled() const noexcept
 	return m_impl->settings->Get(FILTER_RATING_MAXIMUM_ENABLED_KEY, false);
 }
 
-int FilterController::GetMinimumRating() const noexcept
+int FilterController::GetMinimumRate() const noexcept
 {
 	return m_impl->settings->Get(FILTER_RATING_MINIMUM_KEY, 4);
 }
 
-int FilterController::GetMaximumRating() const noexcept
+int FilterController::GetMaximumRate() const noexcept
 {
 	return m_impl->settings->Get(FILTER_RATING_MAXIMUM_KEY, 4);
 }

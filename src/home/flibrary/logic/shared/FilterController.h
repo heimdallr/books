@@ -26,8 +26,8 @@ private: // IFilterProvider
 	[[nodiscard]] bool                          HideUnrated() const noexcept override;
 	[[nodiscard]] bool                          IsMinimumRatingEnabled() const noexcept override;
 	[[nodiscard]] bool                          IsMaximumRatingEnabled() const noexcept override;
-	[[nodiscard]] int                           GetMinimumRating() const noexcept override;
-	[[nodiscard]] int                           GetMaximumRating() const noexcept override;
+	[[nodiscard]] int                           GetMinimumRate() const noexcept override;
+	[[nodiscard]] int                           GetMaximumRate() const noexcept override;
 
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;

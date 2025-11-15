@@ -210,8 +210,8 @@ private:
 		m_ui.hideUnrated->setChecked(m_filterController->HideUnrated());
 		m_ui.hideRatedLower->setChecked(m_filterController->IsMinimumRatingEnabled());
 		m_ui.hideRatedHigher->setChecked(m_filterController->IsMaximumRatingEnabled());
-		m_ui.minimumRating->setValue(m_filterController->GetMinimumRating());
-		m_ui.maximumRating->setValue(m_filterController->GetMaximumRating());
+		m_ui.minimumRating->setValue(m_filterController->GetMinimumRate());
+		m_ui.maximumRating->setValue(m_filterController->GetMaximumRate());
 
 		m_dataProvider->SetNavigationRequestCallback([this](IDataItem::Ptr root) {
 			OnSetNavigationRequestCallback(std::move(root));
