@@ -532,9 +532,15 @@ private: // ITreeViewDelegate::IObserver
 private: // IFilterProvider::IObserver
 	void OnFilterEnabledChanged() override
 	{
-		m_ui.treeView->model()->setData({}, m_filterProvider->IsFilterEnabled(), Role::UniFilterEnabled);
+		auto& model = *m_ui.treeView->model();
+		model.setData({}, m_filterProvider->IsFilterEnabled(), Role::UniFilterEnabled);
 		if (!IsNavigation())
+		{
+			model.setData({}, m_filterProvider->HideUnrated(), Role::UniFilterHideUnrated);
+			model.setData({}, m_filterProvider->IsMinimumRateEnabled() ? m_filterProvider->GetMinimumRate() : QVariant {}, Role::UniFilterMinimumRate);
+			model.setData({}, m_filterProvider->IsMaximumRateEnabled() ? m_filterProvider->GetMaximumRate() : QVariant {}, Role::UniFilterMaximumRate);
 			return;
+		}
 
 		OnCountChanged();
 		m_controller->SetCurrentId(ItemType::Navigation, m_currentId, true);

@@ -20,7 +20,7 @@ namespace HomeCompa::Flibrary::DatabaseUtil
 {
 
 constexpr auto BOOKS_QUERY = R"({}
-select b.BookID, b.Title, b.UpdateDate, b.LibRate, b.Lang, b.Year, f.FolderTitle, b.FileName, b.BookSize, b.UserRate, b.LibID, b.IsDeleted, l.Flags{}
+select b.BookID, b.Title, b.UpdateDate, nullif(b.LibRate, 0), b.Lang, b.Year, f.FolderTitle, b.FileName, b.BookSize, b.UserRate, b.LibID, b.IsDeleted, l.Flags{}
     {}
     join Folders f on f.FolderID = b.FolderID
     join Languages l on l.LanguageCode = b.Lang

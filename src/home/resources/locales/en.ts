@@ -907,6 +907,22 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Hide rated higher than</source>
+        <translation>Hide with rating higher than</translation>
+    </message>
+    <message>
+        <source>Hide rated lower than</source>
+        <translation>Hide with rating lower than</translation>
+    </message>
+    <message>
+        <source>Hide unrated books</source>
+        <translation>Hide unrated</translation>
+    </message>
+    <message>
+        <source>Rate</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Show all items</source>
         <translation></translation>
     </message>

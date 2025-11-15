@@ -101,7 +101,7 @@ double LibRateProviderSimple::GetLibRate(const QString& /*libId*/, const QString
 
 QVariant LibRateProviderSimple::GetLibRateString(const QString& /*libId*/, const QString& libRate) const
 {
-	return libRate;
+	return libRate.isEmpty() ? QVariant {} : QVariant { libRate };
 }
 
 QVariant LibRateProviderSimple::GetForegroundBrush(const QString& /*libId*/, const QString& /*libRate*/) const
@@ -140,7 +140,7 @@ double LibRateProviderDouble::GetLibRate(const QString& libId, const QString& li
 QVariant LibRateProviderDouble::GetLibRateString(const QString& libId, const QString& libRate) const
 {
 	const auto rateValue = GetLibRate(libId, libRate);
-	return rateValue <= std::numeric_limits<double>::epsilon() ? QString {} : QString::number(rateValue, 'f', m_impl->precision);
+	return rateValue <= std::numeric_limits<double>::epsilon() ? QVariant {} : QVariant { QString::number(rateValue, 'f', m_impl->precision) };
 }
 
 QVariant LibRateProviderDouble::GetForegroundBrush(const QString& libId, const QString& libRate) const
