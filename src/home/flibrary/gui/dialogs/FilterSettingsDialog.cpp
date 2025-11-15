@@ -166,8 +166,8 @@ public:
 	~Impl() override
 	{
 		m_settings->Set(RECENT_TAB_KEY, m_ui.tabs->currentIndex());
-		auto& header = *m_ui.view->header();
-		Util::SaveHeaderSectionWidth(header, *this->m_settings, FIELD_WIDTH_KEY);
+		if (m_model)
+			Util::SaveHeaderSectionWidth(*m_ui.view->header(), *this->m_settings, FIELD_WIDTH_KEY);
 		SaveGeometry();
 	}
 
@@ -207,6 +207,12 @@ private:
 	void Init()
 	{
 		m_ui.checkBoxFilterEnabled->setChecked(m_filterController->IsFilterEnabled());
+		m_ui.hideUnrated->setChecked(m_filterController->HideUnrated());
+		m_ui.hideRatedLower->setChecked(m_filterController->IsMinimumRatingEnabled());
+		m_ui.hideRatedHigher->setChecked(m_filterController->IsMaximumRatingEnabled());
+		m_ui.minimumRating->setValue(m_filterController->GetMinimumRating());
+		m_ui.maximumRating->setValue(m_filterController->GetMaximumRating());
+
 		m_dataProvider->SetNavigationRequestCallback([this](IDataItem::Ptr root) {
 			OnSetNavigationRequestCallback(std::move(root));
 		});
@@ -222,9 +228,6 @@ private:
 		});
 		connect(m_ui.tabs, &QTabWidget::currentChanged, [this, indexToMode = CreateTabs()](const int tabIndex) {
 			OnTabChanged(indexToMode, tabIndex);
-		});
-		connect(m_ui.tabs, &QTabWidget::tabCloseRequested, [this](const int index) {
-			OnTabCloseRequest(index);
 		});
 		connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, &QDialog::reject);
 		connect(m_ui.btnApply, &QAbstractButton::clicked, [this] {
@@ -302,35 +305,36 @@ private:
 		std::vector<NavigationMode> indexToMode;
 
 		auto range = IFilterProvider::GetDescriptions();
-		std::ranges::transform(range, std::back_inserter(indexToMode), [this](const auto& description) {
+		std::ranges::transform(range, std::back_inserter(indexToMode), [this, n = 0](const auto& description) mutable {
 			auto* widget = new QWidget(&m_self);
 			widget->setLayout(new QVBoxLayout);
 			widget->layout()->setContentsMargins(0, 0, 0, 0);
-			m_ui.tabs->addTab(widget, Loc::Tr(Loc::NAVIGATION, description.navigationTitle));
+			m_ui.tabs->insertTab(n++, widget, Loc::Tr(Loc::NAVIGATION, description.navigationTitle));
 			return description.navigationMode;
 		});
 
+		m_ui.tabs->widget(0)->layout()->addWidget(m_ui.content);
 		return indexToMode;
 	}
 
 	void OnTabChanged(const std::vector<NavigationMode>& indexToMode, const int tabIndex)
 	{
+		if (m_model)
+			Util::SaveHeaderSectionWidth(*m_ui.view->header(), *this->m_settings, FIELD_WIDTH_KEY);
+
 		m_ui.view->setModel(nullptr);
 		m_model.reset();
-		const auto index     = static_cast<size_t>(tabIndex);
+		const auto index = static_cast<size_t>(tabIndex);
+		if (index >= indexToMode.size())
+			return m_ui.showCheckedMode->setVisible(false);
+
 		m_filteredNavigation = &IFilterController::GetFilteredNavigationDescription(indexToMode[index]);
 		assert(m_filteredNavigation);
+		m_ui.showCheckedMode->setVisible(true);
 		m_dataProvider->SetNavigationMode(indexToMode[index]);
 		m_dataProvider->RequestNavigation();
 		m_ui.tabs->widget(tabIndex)->layout()->addWidget(m_ui.content);
 		SetFont();
-	}
-
-	void OnTabCloseRequest(const int index)
-	{
-		m_ui.tabs->widget(index)->layout()->removeWidget(m_ui.content);
-		if (m_model)
-			Util::SaveHeaderSectionWidth(*m_ui.view->header(), *this->m_settings, FIELD_WIDTH_KEY);
 	}
 
 	void OnSetNavigationRequestCallback(IDataItem::Ptr root)
@@ -473,6 +477,11 @@ private:
 
 	void Apply()
 	{
+		m_filterController->SetRating(
+			m_ui.hideRatedLower->isChecked() ? std::optional { m_ui.minimumRating->value() } : std::nullopt,
+			m_ui.hideRatedHigher->isChecked() ? std::optional { m_ui.maximumRating->value() } : std::nullopt,
+			m_ui.hideUnrated->isChecked()
+		);
 		m_filterController->SetFilterEnabled(m_ui.checkBoxFilterEnabled->isChecked());
 		m_filterController->Apply();
 		m_self.accept();
