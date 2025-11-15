@@ -39,6 +39,7 @@ private:
 	bool FilterAcceptsRemoved(const QModelIndex& index) const;
 	bool FilterAcceptsFlags(const QModelIndex& index) const;
 	bool FilterAcceptsLanguage(const QModelIndex& index) const;
+	bool FilterAcceptsRate(const QModelIndex& index) const;
 
 private:
 	struct Impl;
