@@ -917,6 +917,22 @@ Restart now?</source>
         <translation>Приховати елементи, усі книги яких відфільтровані</translation>
     </message>
     <message>
+        <source>Hide rated higher than</source>
+        <translation>Приховати з рейтингом вище</translation>
+    </message>
+    <message>
+        <source>Hide rated lower than</source>
+        <translation>Приховати з рейтингом нижче</translation>
+    </message>
+    <message>
+        <source>Hide unrated books</source>
+        <translation>Сховати без рейтингу</translation>
+    </message>
+    <message>
+        <source>Rate</source>
+        <translation>Рейтинг</translation>
+    </message>
+    <message>
         <source>Show all items</source>
         <translation>Показати всі елементи</translation>
     </message>
