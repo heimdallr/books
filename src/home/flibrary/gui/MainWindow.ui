@@ -325,8 +325,9 @@
       <string>Select &amp;collection</string>
      </property>
     </widget>
-    <addaction name="actionAddNewCollection"/>
     <addaction name="menuSelectCollection"/>
+    <addaction name="actionAddNewCollection"/>
+    <addaction name="actionRescanCollectionFolder"/>
     <addaction name="actionRemoveCollection"/>
     <addaction name="separator"/>
     <addaction name="actionGenerateIndexInpx"/>
@@ -1032,6 +1033,14 @@
    </property>
    <property name="text">
     <string>Rewrite &amp;metadata</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionRescanCollectionFolder">
+   <property name="text">
+    <string>Rescan collection folder</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

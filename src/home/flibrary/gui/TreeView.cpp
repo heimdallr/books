@@ -491,7 +491,9 @@ private: // ITreeViewController::IObserver
 
 		RestoreHeaderLayout();
 		OnFilterEnabledChanged();
-		OnValueChanged();
+
+		m_ui.value->setText({});
+		Find();
 	}
 
 	void OnContextMenuTriggered(const QString& /*id*/, const IDataItem::Ptr& item) override
