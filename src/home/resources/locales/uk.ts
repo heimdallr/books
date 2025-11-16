@@ -671,6 +671,10 @@
         <translation>Схоже, колекція оновлена. Застосувати зміни?</translation>
     </message>
     <message>
+        <source>No updates found</source>
+        <translation>Оновлень не знайдено</translation>
+    </message>
+    <message>
         <source>No write access to %1</source>
         <translation>Немає доступу до запису в %1</translation>
     </message>
@@ -4659,6 +4663,10 @@ Try again?</source>
     <message>
         <source>Remove</source>
         <translation>Вилучати</translation>
+    </message>
+    <message>
+        <source>Rescan collection folder</source>
+        <translation>Додати нові книги</translation>
     </message>
     <message>
         <source>Rewrite &amp;metadata</source>

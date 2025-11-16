@@ -663,6 +663,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>No updates found</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>No write access to %1</source>
         <translation></translation>
     </message>
@@ -4647,6 +4651,10 @@ Try again?</source>
     <message>
         <source>Remove</source>
         <translation></translation>
+    </message>
+    <message>
+        <source>Rescan collection folder</source>
+        <translation>Add new books</translation>
     </message>
     <message>
         <source>Rewrite &amp;metadata</source>
