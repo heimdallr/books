@@ -601,6 +601,9 @@ private:
 		connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [this] {
 			m_collectionController->AddCollection({});
 		});
+		connect(m_ui.actionRescanCollectionFolder, &QAction::triggered, &m_self, [this] {
+			m_collectionController->RescanCollectionFolder();
+		});
 		connect(m_ui.actionRemoveCollection, &QAction::triggered, &m_self, [this] {
 			m_collectionController->RemoveCollection();
 		});

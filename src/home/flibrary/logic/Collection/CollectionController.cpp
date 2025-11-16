@@ -110,6 +110,10 @@ public:
 		m_overwriteConfirmCount = 0;
 	}
 
+	void RescanCollectionFolder()
+	{
+	}
+
 	void RemoveCollection()
 	{
 		if (m_uiFactory->ShowWarning(Tr(CONFIRM_REMOVE_COLLECTION), QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel) == QMessageBox::Cancel)
@@ -332,6 +336,11 @@ CollectionController::~CollectionController()
 void CollectionController::AddCollection(const std::filesystem::path& inpxDir)
 {
 	m_impl->AddCollection(inpxDir);
+}
+
+void CollectionController::RescanCollectionFolder()
+{
+	m_impl->RescanCollectionFolder();
 }
 
 void CollectionController::RemoveCollection()
