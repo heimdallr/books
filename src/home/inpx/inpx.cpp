@@ -1082,7 +1082,7 @@ public:
                                                ))
 			                                 - 1;
 						   return [this, foldersCount, genres](size_t) {
-							   m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_oldDataUpdateFound, !foldersCount });
+							   m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_oldDataUpdateFound });
 						   };
 					   } });
 	}
