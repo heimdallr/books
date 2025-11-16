@@ -165,7 +165,7 @@ auto LoadGenres(const Path& genresIniFileName)
 		std::wstring code;
 		while (itCode != std::cend(codes))
 		{
-			const auto& added = index.emplace(Next(itCode, std::cend(codes), Util::Fb2InpxParser::LIST_SEPARATOR), std::size(genres)).first->first;
+			const auto& added = index.emplace(Next(itCode, std::cend(codes), Fb2InpxParser::LIST_SEPARATOR), std::size(genres)).first->first;
 			if (code.empty())
 				code = added;
 		}
@@ -202,7 +202,7 @@ T Add(std::wstring_view value, Dictionary& container, const GetIdFunctor& getId 
 std::vector<size_t> ParseItem(
 	const std::wstring_view data,
 	Dictionary&             container,
-	const wchar_t           separator    = Util::Fb2InpxParser::LIST_SEPARATOR,
+	const wchar_t           separator    = Fb2InpxParser::LIST_SEPARATOR,
 	const ParseChecker&     parseChecker = &ParseCheckerDefault,
 	const GetIdFunctor&     getId        = &GetIdDefault,
 	const FindFunctor&      find         = &FindDefault
@@ -327,7 +327,7 @@ BookBuf ParseBook(const std::wstring_view folder, std::wstring& line, const Book
 	auto       it  = std::begin(line);
 	const auto end = std::end(line);
 	for (size_t i = 0, sz = f.size(); i < sz && it != end; ++i)
-		f[i](buf) = Next(it, end, Util::Fb2InpxParser::FIELDS_SEPARATOR);
+		f[i](buf) = Next(it, end, Fb2InpxParser::FIELDS_SEPARATOR);
 
 	if (buf.GENRE.size() < 2)
 		buf.GENRE = GENRE_NOT_SPECIFIED;
@@ -400,7 +400,7 @@ void GetDecodedStream(const Zip& zip, const std::wstring& file, const std::funct
 
 bool ExecuteScript(const std::wstring& action, const Path& dbFileName, const Path& scriptFileName)
 {
-	Util::Timer t(action);
+	Timer t(action);
 
 	DatabaseWrapper db(dbFileName);
 
@@ -490,8 +490,8 @@ size_t StoreRange(const Path& dbFileName, std::string_view process, const std::s
 			if (rowsTotal == 0)
 				return rowsTotal;
 
-			Util::Timer t(ToWide(std::format("store {0} {1}", process, rowsTotal)));
-			size_t      rowsInserted = 0;
+			Timer  t(ToWide(std::format("store {0} {1}", process, rowsTotal)));
+			size_t rowsInserted = 0;
 
 			DatabaseWrapper        db(dbFileName);
 			sqlite3pp::transaction tr(db);
@@ -527,7 +527,7 @@ size_t StoreRange(const Path& dbFileName, std::string_view process, const std::s
 				sqlite3pp::command(db, queryAfter.data()).execute();
 
 			{
-				Util::Timer tc(L"commit");
+				Timer tc(L"commit");
 				tr.commit();
 			}
 
@@ -549,9 +549,9 @@ size_t Store(const Path& dbFileName, Data& data)
         [](sqlite3pp::command& cmd, const Dictionary::value_type& item) {
             const auto& [author, id] = item;
             auto       it            = std::cbegin(author);
-            const auto last          = ToMultiByte(Next(it, std::cend(author), Util::Fb2InpxParser::NAMES_SEPARATOR));
-            const auto first         = ToMultiByte(Next(it, std::cend(author), Util::Fb2InpxParser::NAMES_SEPARATOR));
-            const auto middle        = ToMultiByte(Next(it, std::cend(author), Util::Fb2InpxParser::NAMES_SEPARATOR));
+            const auto last          = ToMultiByte(Next(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
+            const auto first         = ToMultiByte(Next(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
+            const auto middle        = ToMultiByte(Next(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
 
             cmd.bind(1, id);
             cmd.bind(2, last, sqlite3pp::nocopy);
@@ -1066,7 +1066,7 @@ public:
 						   const auto genres = static_cast<size_t>(std::ranges::count_if(
 												   m_data.genres,
 												   [](const Genre& genre) {
-													   return genre.newGenre && !genre.dateGenre;
+													   return genre.newGenre;
 												   }
 											   ))
 			                                 - 1;
@@ -1090,7 +1090,7 @@ public:
 						   const auto genres = static_cast<size_t>(std::ranges::count_if(
 												   m_data.genres,
 												   [](const Genre& genre) {
-													   return genre.newGenre && !genre.dateGenre;
+													   return genre.newGenre;
 												   }
 											   ))
 			                                 - 1;
@@ -1172,7 +1172,7 @@ private:
 	void ProcessImpl(bool& ok)
 	{
 		ok = false;
-		Util::Timer t(L"work");
+		Timer t(L"work");
 
 		const auto& dbFileName = m_ini(DB_PATH);
 
@@ -1443,7 +1443,7 @@ private:
 
 	void Parse()
 	{
-		Util::Timer t(L"parsing archives");
+		Timer t(L"parsing archives");
 
 		auto [genresData, genresIndex] = LoadGenres(m_ini(GENRES, DEFAULT_GENRES));
 		m_data.genres                  = std::move(genresData);
@@ -1894,7 +1894,7 @@ where b.FileName = ? and b.Ext = ?)");
 
 	bool ParseFile(const std::wstring& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
 	{
-		auto line = Util::Fb2InpxParser::Parse(QString::fromStdWString(folder), zip, fileName, zipDateTime, !!(m_mode & CreateCollectionMode::MarkUnIndexedFilesAsDeleted)).toStdWString();
+		auto line = Fb2InpxParser::Parse(QString::fromStdWString(folder), zip, fileName, zipDateTime, !!(m_mode & CreateCollectionMode::MarkUnIndexedFilesAsDeleted)).toStdWString();
 		if (line.empty())
 			return false;
 
@@ -1952,7 +1952,7 @@ where b.FileName = ? and b.Ext = ?)");
 				return std::numeric_limits<size_t>::max();
 		}
 
-		auto authorIds = ParseItem(buf.AUTHOR, m_data.authors, Util::Fb2InpxParser::LIST_SEPARATOR, &ParseCheckerAuthor);
+		auto authorIds = ParseItem(buf.AUTHOR, m_data.authors, Fb2InpxParser::LIST_SEPARATOR, &ParseCheckerAuthor);
 		if (authorIds.empty())
 			authorIds = ParseItem(std::wstring(AUTHOR_UNKNOWN), m_data.authors);
 		assert(!authorIds.empty() && "a book cannot be an orphan");
@@ -1961,7 +1961,7 @@ where b.FileName = ? and b.Ext = ?)");
 		auto idGenres = ParseItem(
 			buf.GENRE,
 			m_genresIndex,
-			Util::Fb2InpxParser::LIST_SEPARATOR,
+			Fb2InpxParser::LIST_SEPARATOR,
 			&ParseCheckerDefault,
 			[&, &data = m_data.genres](std::wstring_view newItemTitle) {
 				const auto result       = std::size(data);
@@ -2023,10 +2023,10 @@ where b.FileName = ? and b.Ext = ?)");
 	}
 
 private:
-	const Ini                        m_ini;
-	const CreateCollectionMode       m_mode;
-	const Callback                   m_callback;
-	std::unique_ptr<Util::IExecutor> m_executor;
+	const Ini                  m_ini;
+	const CreateCollectionMode m_mode;
+	const Callback             m_callback;
+	std::unique_ptr<IExecutor> m_executor;
 
 	Data                                                                                                                                                             m_data;
 	Dictionary                                                                                                                                                       m_genresIndex;
