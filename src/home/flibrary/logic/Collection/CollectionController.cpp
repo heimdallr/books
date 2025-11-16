@@ -113,6 +113,19 @@ public:
 
 	void RescanCollectionFolder()
 	{
+		const auto& collection = GetActiveCollection();
+		auto        parser     = std::make_shared<Inpx::Parser>();
+		auto&       parserRef  = *parser;
+		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), true);
+		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable {
+            const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
+                parser.reset();
+            });
+            Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
+            ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
+		};
+		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
+		parserRef.RescanCollection(ini, static_cast<Inpx::CreateCollectionMode>(collection.createCollectionMode), std::move(callback));
 	}
 
 	void RemoveCollection()
