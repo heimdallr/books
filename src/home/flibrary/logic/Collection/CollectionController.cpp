@@ -37,6 +37,7 @@ constexpr auto COLLECTION_UPDATE_ACTION_UPDATED = QT_TRANSLATE_NOOP("CollectionC
 constexpr auto COLLECTION_UPDATE_RESULT_GENRES  = QT_TRANSLATE_NOOP("CollectionController", "<tr><td>Genres:</td><td align='right'>%1</td></tr>");
 constexpr auto COLLECTION_NEED_RECREATE =
 	QT_TRANSLATE_NOOP("CollectionController", "<p><p>Warning! A change to previous data was detected, it is recommended to recreate the collection again. Don't forget to save user data</p></p>");
+constexpr auto NO_UPDATES_FOUND         = QT_TRANSLATE_NOOP("CollectionController", "No updates found");
 constexpr auto COLLECTION_UPDATE_RESULT = QT_TRANSLATE_NOOP("CollectionController", R"("%1" collection %2. Added:<p>
 <table>
 <tr><td>Archives:</td><td align='right'>%3</td></tr>
@@ -294,19 +295,17 @@ private:
 		if (updateResult.error)
 			return m_uiFactory->ShowError(Tr(ERROR).arg(Tr(action)));
 
-		if (updateResult.folders == 0)
-			return;
-
-		m_uiFactory->ShowInfo(Tr(COLLECTION_UPDATE_RESULT)
-		                          .arg(name)
-		                          .arg(Tr(action))
-		                          .arg(updateResult.folders)
-		                          .arg(updateResult.authors)
-		                          .arg(updateResult.series)
-		                          .arg(updateResult.books)
-		                          .arg(updateResult.keywords)
-		                          .arg(updateResult.genres ? Tr(COLLECTION_UPDATE_RESULT_GENRES).arg(updateResult.genres) : "")
-		                          .arg(updateResult.oldDataUpdateFound ? Tr(COLLECTION_NEED_RECREATE) : ""));
+		updateResult.folders == 0 ? m_uiFactory->ShowInfo(Tr(NO_UPDATES_FOUND))
+								  : m_uiFactory->ShowInfo(Tr(COLLECTION_UPDATE_RESULT)
+		                                                      .arg(name)
+		                                                      .arg(Tr(action))
+		                                                      .arg(updateResult.folders)
+		                                                      .arg(updateResult.authors)
+		                                                      .arg(updateResult.series)
+		                                                      .arg(updateResult.books)
+		                                                      .arg(updateResult.keywords)
+		                                                      .arg(updateResult.genres ? Tr(COLLECTION_UPDATE_RESULT_GENRES).arg(updateResult.genres) : "")
+		                                                      .arg(updateResult.oldDataUpdateFound ? Tr(COLLECTION_NEED_RECREATE) : ""));
 	}
 
 private:
