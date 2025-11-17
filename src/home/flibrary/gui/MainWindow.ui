@@ -326,6 +326,7 @@
      </property>
     </widget>
     <addaction name="menuSelectCollection"/>
+    <addaction name="separator"/>
     <addaction name="actionAddNewCollection"/>
     <addaction name="actionRescanCollectionFolder"/>
     <addaction name="actionRemoveCollection"/>
