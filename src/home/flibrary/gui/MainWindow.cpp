@@ -1216,6 +1216,9 @@ private:
 		const auto enabled = !m_ui.menuSelectCollection->isEmpty();
 		m_ui.actionRemoveCollection->setEnabled(enabled);
 		m_ui.menuSelectCollection->setEnabled(enabled);
+
+		if (m_ui.menuSelectCollection->actions().count() < 2)
+			m_ui.menuCollection->removeAction(m_ui.menuSelectCollection->menuAction());
 	}
 
 	void CreateViewNavigationMenu()
