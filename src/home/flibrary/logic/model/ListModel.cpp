@@ -50,29 +50,8 @@ QVariant ListModel::data(const QModelIndex& index, const int role) const
 	return role == Role::IsTree ? QVariant { false } : AbstractListModel::data(index, role);
 }
 
-bool ListModel::setData(const QModelIndex& index, const QVariant& value, const int role)
+bool ListModel::Check(const QVariant& value, const Qt::CheckState checked)
 {
-	if (index.isValid())
-		return BaseModel::setData(index, value, role);
-
-	switch (role)
-	{
-		case Role::Check:
-			return Check(value, true);
-
-		case Role::Uncheck:
-			return Check(value, false);
-
-		default:
-			break;
-	}
-
-	return BaseModel::setData(index, value, role);
-}
-
-bool ListModel::Check(const QVariant& value, const bool isChecked)
-{
-	const auto    checked  = isChecked ? Qt::Checked : Qt::Unchecked;
 	const auto    toChange = value.value<std::set<QString>>();
 	std::set<int> changed;
 	for (size_t i = 0, sz = m_data->GetChildCount(); i < sz; ++i)
