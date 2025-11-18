@@ -29,6 +29,10 @@ protected: // QAbstractItemModel
 	int         rowCount(const QModelIndex& parent = QModelIndex()) const override;
 	int         columnCount(const QModelIndex& parent = QModelIndex()) const override;
 	QVariant    data(const QModelIndex& index, int role) const override;
+	bool setData(const QModelIndex& index, const QVariant& value, int role) override;
+
+private:
+	bool Check(const QVariant& value, bool isChecked);
 };
 
 } // namespace HomeCompa::Flibrary
