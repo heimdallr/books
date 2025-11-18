@@ -40,6 +40,8 @@ struct Role
 		VisibleColumns,
 		Selected,
 		SortOrder,
+		Check,
+		Uncheck,
 		CheckAll,
 		UncheckAll,
 		InvertCheck,

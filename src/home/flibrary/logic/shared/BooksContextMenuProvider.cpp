@@ -538,13 +538,24 @@ private:
 
 		const auto logicFactory = ILogicFactory::Lock(m_logicFactory);
 		auto       books        = logicFactory->GetExtractedBooks(model, index, indexList);
-		auto       extractor    = logicFactory->CreateBooksExtractor();
-		const auto parameter    = item->GetData(MenuItem::Column::Parameter);
-		((*extractor).*f)(std::move(dir), parameter, std::move(books), std::move(outputFileNameTemplate), [extractor, item = std::move(item), callback = std::move(callback)](const bool hasError) mutable {
-			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
-			callback(item);
-			extractor.reset();
-		});
+		auto       ids          = books | std::views::transform([](const auto book) {
+                       return QString::number(book.id);
+                   })
+		         | std::ranges::to<std::set<QString>>();
+		auto       extractor = logicFactory->CreateBooksExtractor();
+		const auto parameter = item->GetData(MenuItem::Column::Parameter);
+		((*extractor).*f)(
+			std::move(dir),
+			parameter,
+			std::move(books),
+			std::move(outputFileNameTemplate),
+			[extractor, model, item = std::move(item), ids = std::move(ids), callback = std::move(callback)](const bool hasError) mutable {
+				item->SetData(QString::number(hasError), MenuItem::Column::HasError);
+				callback(item);
+				model->setData({}, QVariant::fromValue(ids), Role::Uncheck);
+				extractor.reset();
+			}
+		);
 	}
 
 	void GroupAction(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback, const GroupActionFunction f) const

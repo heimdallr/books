@@ -1,5 +1,7 @@
 #include "ListModel.h"
 
+#include "fnd/algorithm.h"
+
 #include "interface/constants/ModelRole.h"
 
 #include "log.h"
@@ -46,4 +48,23 @@ int ListModel::columnCount(const QModelIndex& parent) const
 QVariant ListModel::data(const QModelIndex& index, const int role) const
 {
 	return role == Role::IsTree ? QVariant { false } : AbstractListModel::data(index, role);
+}
+
+bool ListModel::Check(const QVariant& value, const Qt::CheckState checked)
+{
+	const auto    toChange = value.value<std::set<QString>>();
+	std::set<int> changed;
+	for (size_t i = 0, sz = m_data->GetChildCount(); i < sz; ++i)
+	{
+		if (auto item = m_data->GetChild(i); item->GetCheckState() != checked && toChange.contains(item->GetId()))
+		{
+			item->SetCheckState(checked);
+			changed.insert(static_cast<int>(i));
+		}
+	}
+
+	for (const auto& [begin, end] : Util::CreateRanges(changed))
+		emit dataChanged(index(begin, 0), index(end - 1, 0), {Qt::CheckStateRole});
+
+	return !changed.empty();
 }

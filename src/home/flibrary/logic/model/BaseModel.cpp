@@ -154,6 +154,12 @@ bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const i
 			m_checkable = value.toBool();
 			return true;
 
+		case Role::Check:
+			return Check(value, Qt::Checked);
+
+		case Role::Uncheck:
+			return Check(value, Qt::Unchecked);
+
 		default:
 			break;
 	}
