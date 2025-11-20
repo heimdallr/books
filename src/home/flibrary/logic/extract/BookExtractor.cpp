@@ -60,7 +60,7 @@ join Folders f on f.FolderID = b.FolderID
 join Author_List al on al.BookID = b.BookID
 join Authors a on a.AuthorID = al.AuthorID
 left join Series s on s.SeriesID = b.SeriesID
-where b.BookID = 1
+where b.BookID = ?
 order by al.OrdNum limit 1
 )");
 		query->Bind(0, bookId.toLongLong());
