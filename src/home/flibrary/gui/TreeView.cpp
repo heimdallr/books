@@ -31,6 +31,7 @@
 #include "inpx/InpxConstant.h"
 #include "util/ColorUtil.h"
 #include "util/ObjectsConnector.h"
+#include "util/UiTimer.h"
 #include "util/files.h"
 #include "util/language.h"
 #include "widgets/ModeComboBox.h"
@@ -494,6 +495,7 @@ private: // ITreeViewController::IObserver
 
 		m_ui.value->setText({});
 		Find();
+		OnCountChanged();
 	}
 
 	void OnContextMenuTriggered(const QString& /*id*/, const IDataItem::Ptr& item) override
@@ -1195,7 +1197,7 @@ private:
 
 	void OnCountChanged() const
 	{
-		m_ui.lblCount->setText(m_ui.treeView->model()->data({}, Role::Count).toString());
+		m_countChangedTimer->start();
 	}
 
 	QString GetColumnSettingsKey(const char* value = nullptr, const QString& navigationModeName = {}) const
@@ -1254,6 +1256,10 @@ private:
 	IDataItem::Flags                                        m_navigationItemFlags { IDataItem::Flags::None };
 	const ArchiveSorter                                     m_archiveSorter;
 	const QStringList                                       m_hiddenColumns;
+	std::unique_ptr<QTimer>                                 m_countChangedTimer { Util::CreateUiTimer([this] {
+        if (m_ui.treeView->model())
+            m_ui.lblCount->setText(m_ui.treeView->model()->data({}, Role::Count).toString());
+    }) };
 };
 
 TreeView::TreeView(
