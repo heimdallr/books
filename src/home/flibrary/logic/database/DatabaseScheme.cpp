@@ -292,6 +292,7 @@ void AddTableFields(DB::ITransaction& transaction)
 		))
 		OnBooksFolderIDAdded(transaction);
 	AddUserTableField(transaction, "Books", "UpdateID", "INTEGER NOT NULL DEFAULT(0)", { "CREATE INDEX IX_Books_UpdateID ON Books(UpdateID)" });
+	AddUserTableField(transaction, "Books", "SourceLib", "VARCHAR(15)");
 	AddUserTableField(transaction, "Authors", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
 	AddUserTableField(transaction, "Folders", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
 	AddUserTableField(transaction, "Genres", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
