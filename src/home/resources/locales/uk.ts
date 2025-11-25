@@ -3953,6 +3953,10 @@ Try again?</source>
         <translation>Сербська</translation>
     </message>
     <message>
+        <source>Serbo-Croatian</source>
+        <translation>Сербохорватська</translation>
+    </message>
+    <message>
         <source>Serer</source>
         <translation>Серерська</translation>
     </message>

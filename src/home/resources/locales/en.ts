@@ -3941,6 +3941,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Serbo-Croatian</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Serer</source>
         <translation></translation>
     </message>
