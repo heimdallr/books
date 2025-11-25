@@ -25,7 +25,8 @@ struct Book
 		const size_t            size_,
 		const bool              deleted_,
 		const size_t            updateId_,
-		const int               year_
+		const int               year_,
+		const std::wstring_view sourceLib_
 	)
 		: id { id_ }
 		, libId { libId_ }
@@ -43,6 +44,7 @@ struct Book
 		, deleted { deleted_ }
 		, updateId { updateId_ }
 		, year { year_ }
+		, sourceLib { ToMultiByte(sourceLib_) }
 	{
 		std::ranges::transform(language, std::begin(language), towlower);
 	}
@@ -63,6 +65,7 @@ struct Book
 	bool         deleted;
 	size_t       updateId;
 	int          year;
+	std::string  sourceLib;
 
 private:
 	static std::wstring InsertDot(const std::wstring_view format)
@@ -138,7 +141,7 @@ using ParseChecker = std::function<bool(std::wstring_view)>;
 using Splitter     = std::function<std::vector<std::wstring>(std::wstring_view)>;
 using InpxFolders  = std::map<std::pair<std::wstring, std::wstring>, std::string, HomeCompa::Util::CaseInsensitiveComparer<>>;
 using BooksSeries  = std::unordered_map<size_t, std::vector<std::pair<size_t, std::optional<int>>>>;
-using Reviews      = std::map<size_t, std::set<std::wstring>>;
+using Reviews      = std::map<std::pair<size_t, std::string>, std::set<std::wstring>>;
 
 struct Data
 {
@@ -163,7 +166,7 @@ inline std::ostream& operator<<(std::ostream& stream, const Genre& genre)
 	return stream << ToMultiByte(genre.dbCode) << ", " << ToMultiByte(genre.code) << ": " << ToMultiByte(genre.name);
 }
 
-//AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;
+//AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;YEAR;SOURCELIB;
 #define BOOK_BUF_FIELD_ITEMS_XMACRO \
 	BOOK_BUF_FIELD_ITEM(AUTHOR)     \
 	BOOK_BUF_FIELD_ITEM(GENRE)      \
@@ -181,7 +184,8 @@ inline std::ostream& operator<<(std::ostream& stream, const Genre& genre)
 	BOOK_BUF_FIELD_ITEM(LANG)       \
 	BOOK_BUF_FIELD_ITEM(LIBRATE)    \
 	BOOK_BUF_FIELD_ITEM(KEYWORDS)   \
-	BOOK_BUF_FIELD_ITEM(YEAR)
+	BOOK_BUF_FIELD_ITEM(YEAR)       \
+	BOOK_BUF_FIELD_ITEM(SOURCELIB)
 
 struct BookBuf
 {
