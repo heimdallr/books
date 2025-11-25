@@ -64,7 +64,7 @@ bool ListModel::Check(const QVariant& value, const Qt::CheckState checked)
 	}
 
 	for (const auto& [begin, end] : Util::CreateRanges(changed))
-		emit dataChanged(index(begin, 0), index(end - 1, 0), {Qt::CheckStateRole});
+		emit dataChanged(index(begin, 0), index(end - 1, 0), { Qt::CheckStateRole });
 
 	return !changed.empty();
 }
