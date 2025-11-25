@@ -113,6 +113,7 @@ CREATE VIEW IF NOT EXISTS Books_View (
 		UpdateID,
 		IsDeleted,
 		UserRate,
+		SourceLib,
 		SearchTitle
 )
 AS SELECT
@@ -131,6 +132,7 @@ AS SELECT
 		b.UpdateID,
 		coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted,
 		bu.UserRate,
+		b.SourceLib,
 		b.SearchTitle
 	FROM Books b
 	LEFT JOIN Books_User bu ON bu.BookID = b.BookID;

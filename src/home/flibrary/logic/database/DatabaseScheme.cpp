@@ -21,6 +21,48 @@ namespace HomeCompa::Flibrary::DatabaseScheme
 namespace
 {
 
+constexpr auto CREATE_BOOKS_VIEW = R"(
+CREATE VIEW IF NOT EXISTS Books_View (
+		BookID,
+		LibID,
+		Title,
+		SeriesID,
+		SeqNumber,
+		UpdateDate,
+		LibRate,
+		Lang,
+		Year,
+		FolderID,
+		FileName,
+		BookSize,
+		UpdateID,
+		IsDeleted,
+		UserRate,
+		SourceLib,
+		SearchTitle
+)
+AS SELECT
+		b.BookID,
+		b.LibID,
+		b.Title,
+		b.SeriesID,
+		b.SeqNumber,
+		b.UpdateDate,
+		b.LibRate,
+		b.Lang,
+		b.Year,
+		b.FolderID,
+		b.FileName || b.Ext AS FileName,
+		b.BookSize,
+		b.UpdateID,
+		coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted,
+		bu.UserRate,
+		b.SourceLib,
+		b.SearchTitle
+	FROM Books b
+	LEFT JOIN Books_User bu ON bu.BookID = b.BookID
+)";
+
 void DropTriggers(DB::ITransaction& transaction)
 {
 	PLOGI << "Drop triggers";
@@ -201,43 +243,7 @@ void AddUserTables(DB::ITransaction& transaction)
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books, content_rowid=BookID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Series_Search USING fts5(SeriesTitle, content=Series, content_rowid=SeriesID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Compilations_Search USING fts5(Title, content=Compilations, content_rowid=CompilationID)",
-		R"(
-CREATE VIEW IF NOT EXISTS Books_View (
-		BookID,
-		LibID,
-		Title,
-		SeriesID,
-		SeqNumber,
-		UpdateDate,
-		LibRate,
-		Lang,
-		FolderID,
-		FileName,
-		BookSize,
-		UpdateID,
-		IsDeleted,
-		UserRate,
-		SearchTitle
-)
-AS SELECT
-		b.BookID,
-		b.LibID,
-		b.Title,
-		b.SeriesID,
-		b.SeqNumber,
-		b.UpdateDate,
-		b.LibRate,
-		b.Lang,
-		b.FolderID,
-		b.FileName || b.Ext AS FileName,
-		b.BookSize,
-		b.UpdateID,
-		coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted,
-		bu.UserRate,
-		b.SearchTitle
-	FROM Books b
-	LEFT JOIN Books_User bu ON bu.BookID = b.BookID
-)",
+		CREATE_BOOKS_VIEW,
 	};
 	// clang-format on
 
@@ -292,7 +298,6 @@ void AddTableFields(DB::ITransaction& transaction)
 		))
 		OnBooksFolderIDAdded(transaction);
 	AddUserTableField(transaction, "Books", "UpdateID", "INTEGER NOT NULL DEFAULT(0)", { "CREATE INDEX IX_Books_UpdateID ON Books(UpdateID)" });
-	AddUserTableField(transaction, "Books", "SourceLib", "VARCHAR(15)");
 	AddUserTableField(transaction, "Authors", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
 	AddUserTableField(transaction, "Folders", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
 	AddUserTableField(transaction, "Genres", "IsDeleted", "INTEGER NOT NULL DEFAULT(0)");
@@ -366,47 +371,21 @@ AS
 		"Books",
 		"Year",
 		"INTEGER",
-		{ "CREATE INDEX IX_Books_Year ON Books (Year)",
-	      " DROP VIEW IF EXISTS Books_View ",
-	      R"(
-CREATE VIEW IF NOT EXISTS Books_View (
-		BookID,
-		LibID,
-		Title,
-		SeriesID,
-		SeqNumber,
-		UpdateDate,
-		LibRate,
-		Lang,
-		Year,
-		FolderID,
-		FileName,
-		BookSize,
-		UpdateID,
-		IsDeleted,
-		UserRate,
-		SearchTitle
-)
-AS SELECT
-		b.BookID,
-		b.LibID,
-		b.Title,
-		b.SeriesID,
-		b.SeqNumber,
-		b.UpdateDate,
-		b.LibRate,
-		b.Lang,
-		b.Year,
-		b.FolderID,
-		b.FileName || b.Ext AS FileName,
-		b.BookSize,
-		b.UpdateID,
-		coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted,
-		bu.UserRate,
-		b.SearchTitle
-	FROM Books b
-	LEFT JOIN Books_User bu ON bu.BookID = b.BookID
-)" }
+		{
+			"CREATE INDEX IX_Books_Year ON Books (Year)",
+			"DROP VIEW IF EXISTS Books_View",
+			CREATE_BOOKS_VIEW,
+		}
+	);
+	AddUserTableField(
+		transaction,
+		"Books",
+		"SourceLib",
+		"VARCHAR(15)",
+		{
+			"DROP VIEW IF EXISTS Books_View",
+			CREATE_BOOKS_VIEW,
+		}
 	);
 	AddUserTableField(transaction, "Authors", "Flags", "INTEGER NOT NULL DEFAULT (0)");
 	AddUserTableField(transaction, "Genres", "Flags", "INTEGER NOT NULL DEFAULT (0)");
