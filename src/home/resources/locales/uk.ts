@@ -270,6 +270,10 @@
         <translation>Розмір:</translation>
     </message>
     <message>
+        <source>Source:</source>
+        <translation>Джерело:</translation>
+    </message>
+    <message>
         <source>Translators:</source>
         <translation>Переклад:</translation>
     </message>
@@ -3951,6 +3955,10 @@ Try again?</source>
     <message>
         <source>Serbian</source>
         <translation>Сербська</translation>
+    </message>
+    <message>
+        <source>Serbo-Croatian</source>
+        <translation>Сербохорватська</translation>
     </message>
     <message>
         <source>Serer</source>

@@ -270,6 +270,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Source:</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Translators:</source>
         <translation></translation>
     </message>
@@ -3938,6 +3942,10 @@ Try again?</source>
     </message>
     <message>
         <source>Serbian</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Serbo-Croatian</source>
         <translation></translation>
     </message>
     <message>

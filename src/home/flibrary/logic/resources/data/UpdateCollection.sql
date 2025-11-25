@@ -49,6 +49,9 @@ CREATE INDEX IX_Books_Lang ON Books(Lang);
 CREATE INDEX IX_Books_Year ON Books (Year);
 --@@
 
+CREATE INDEX IX_Books_LibID ON Books (LibID);
+--@@
+
 CREATE UNIQUE INDEX UIX_Genre_List_PrimaryKey ON Genre_List (BookID, GenreCode);
 --@@
 
@@ -113,6 +116,7 @@ CREATE VIEW IF NOT EXISTS Books_View (
 		UpdateID,
 		IsDeleted,
 		UserRate,
+		SourceLib,
 		SearchTitle
 )
 AS SELECT
@@ -131,6 +135,7 @@ AS SELECT
 		b.UpdateID,
 		coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted,
 		bu.UserRate,
+		b.SourceLib,
 		b.SearchTitle
 	FROM Books b
 	LEFT JOIN Books_User bu ON bu.BookID = b.BookID;
