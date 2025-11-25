@@ -270,6 +270,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Source:</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Translators:</source>
         <translation></translation>
     </message>

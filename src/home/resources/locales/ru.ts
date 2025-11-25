@@ -270,6 +270,10 @@
         <translation>Размер:</translation>
     </message>
     <message>
+        <source>Source:</source>
+        <translation>Источник:</translation>
+    </message>
+    <message>
         <source>Translators:</source>
         <translation>Перевод:</translation>
     </message>
