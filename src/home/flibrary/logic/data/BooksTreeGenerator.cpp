@@ -5,10 +5,13 @@
 #include <unordered_map>
 #include <unordered_set>
 
+#include <QDirIterator>
 #include <QFile>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+
+#include "fnd/algorithm.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -17,7 +20,6 @@
 
 #include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/ProductConstant.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IFilterProvider.h"
@@ -280,48 +282,60 @@ private: // IBookSelector
 
 	void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription& description) override
 	{
-		const auto folder = activeCollection.GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER) + "/" + navigationId + ".7z";
-		if (!QFile::exists(folder))
+		QDirIterator dirIterator(activeCollection.GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER), { QString("%1.7z").arg(navigationId) }, QDir::Files, QDirIterator::Subdirectories);
+		if (!dirIterator.hasNext())
 			return;
 
-		const auto tmpTable = db.CreateTemporaryTable({ "LibID VARCHAR (200)", "ReviewID INTEGER" });
-
+		const auto tmpTable = db.CreateTemporaryTable({ "LibID VARCHAR (200)", "SourceLib VARCHAR(15)", "ReviewID INTEGER" });
 		{
 			const auto tr            = db.CreateTransaction();
-			const auto insertCommand = tr->CreateCommand(QString("insert into %1(LibID, ReviewID) values(?, ?)").arg(tmpTable->GetName().data()).toStdString());
-			Zip        zip(folder);
-			for (long long reviewId = 0; const auto& file : zip.GetFileNameList())
+			const auto insertCommand = tr->CreateCommand(QString("insert into %1(LibID, SourceLib, ReviewID) values(?, ?, ?)").arg(tmpTable->GetName().data()).toStdString());
+			while (dirIterator.hasNext())
 			{
-				QJsonParseError parseError;
-				const auto      doc = QJsonDocument::fromJson(zip.Read(file)->GetStream().readAll(), &parseError);
-				if (parseError.error != QJsonParseError::NoError)
+				const auto fileInfo  = dirIterator.nextFileInfo();
+				const auto folder    = fileInfo.filePath();
+				const auto sourceLib = fileInfo.dir().dirName().toStdString();
+				Zip        zip(folder);
+				for (long long reviewId = 0; const auto& file : zip.GetFileNameList())
 				{
-					PLOGW << parseError.errorString();
-					continue;
-				}
+					QJsonParseError parseError;
+					const auto      doc = QJsonDocument::fromJson(zip.Read(file)->GetStream().readAll(), &parseError);
+					if (parseError.error != QJsonParseError::NoError)
+					{
+						PLOGW << parseError.errorString();
+						continue;
+					}
 
-				assert(doc.isArray());
-				for (const auto recordValue : doc.array())
-				{
-					assert(recordValue.isObject());
-					const auto recordObject = recordValue.toObject();
-					insertCommand->Bind(0, file.toStdString());
-					insertCommand->Bind(1, ++reviewId);
-					insertCommand->Execute();
+					assert(doc.isArray());
+					for (const auto recordValue : doc.array())
+					{
+						assert(recordValue.isObject());
+						const auto recordObject = recordValue.toObject();
+						insertCommand->Bind(0, file.toStdString());
+						insertCommand->Bind(1, sourceLib);
+						insertCommand->Bind(2, ++reviewId);
+						insertCommand->Execute();
 
-					auto& reviewItem = m_reviews.try_emplace(reviewId, ReviewItem::Create()).first->second;
-					reviewItem->SetData(recordObject[Inpx::NAME].toString(), ReviewItem::Column::Name);
-					reviewItem->SetData(recordObject[Inpx::TIME].toString(), ReviewItem::Column::Time);
-					reviewItem->SetData(recordObject[Inpx::TEXT].toString(), ReviewItem::Column::Comment);
-					if (reviewItem->GetData(ReviewItem::Column::Name).isEmpty())
-						reviewItem->SetData(Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS), ReviewItem::Column::Name);
+						auto& reviewItem = m_reviews.try_emplace(reviewId, ReviewItem::Create()).first->second;
+						reviewItem->SetData(recordObject[Inpx::NAME].toString(), ReviewItem::Column::Name);
+						reviewItem->SetData(recordObject[Inpx::TIME].toString(), ReviewItem::Column::Time);
+						reviewItem->SetData(recordObject[Inpx::TEXT].toString(), ReviewItem::Column::Comment);
+						if (reviewItem->GetData(ReviewItem::Column::Name).isEmpty())
+							reviewItem->SetData(Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS), ReviewItem::Column::Name);
+					}
 				}
 			}
-			tr->CreateCommand(std::format("CREATE INDEX {}.IX_LibID ON {} (LibID)", tmpTable->GetSchemaName(), tmpTable->GetTableName()))->Execute();
+
 			tr->Commit();
 		}
 
-		CreateSelectedBookItems(db, description.queryClause, [&](const DB::IQuery& query, const SelectedBookItem& selectedItem) {
+		auto       queryClause     = description.queryClause;
+		const auto booksFrom       = QString(queryClause.booksFrom).arg(tmpTable->GetName()).toStdString();
+		const auto navigationFrom  = QString(queryClause.navigationFrom).arg(tmpTable->GetName()).toStdString();
+		queryClause.booksFrom      = booksFrom.data();
+		queryClause.navigationFrom = navigationFrom.data();
+
+		CreateSelectedBookItems(db, queryClause, [&](const DB::IQuery& query, const SelectedBookItem& selectedItem) {
 			const auto it = m_reviews.find(query.Get<long long>(BookQueryFields::Last));
 			assert(it != m_reviews.end());
 

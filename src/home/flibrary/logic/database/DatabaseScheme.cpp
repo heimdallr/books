@@ -243,6 +243,7 @@ void AddUserTables(DB::ITransaction& transaction)
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books, content_rowid=BookID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Series_Search USING fts5(SeriesTitle, content=Series, content_rowid=SeriesID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Compilations_Search USING fts5(Title, content=Compilations, content_rowid=CompilationID)",
+		"CREATE INDEX IF NOT EXISTS IX_Books_LibID ON Books (LibID)",
 		CREATE_BOOKS_VIEW,
 	};
 	// clang-format on

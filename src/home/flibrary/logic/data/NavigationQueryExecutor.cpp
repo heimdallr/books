@@ -7,6 +7,7 @@
 #include <unordered_map>
 
 #include <QDir>
+#include <QDirIterator>
 
 #include "fnd/FindPair.h"
 
@@ -293,10 +294,12 @@ void RequestNavigationReviews(
 		{ "Get navigation",
 	      [&cache, mode = navigationMode, folder = collectionProvider.GetActiveCollection().GetFolder(), callback = std::move(callback)]() mutable {
 			  return CreateCalendarTree(mode, std::move(callback), cache, [&folder](std::unordered_map<long long, IDataItem::Ptr>& items) {
-				  for (const auto& reviewInfo : QDir(folder + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER)).entryInfoList({ "??????.7z" }))
+				  QDirIterator dirIterator(folder + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER), { "??????.7z" }, QDir::Files, QDirIterator::Subdirectories);
+				  while (dirIterator.hasNext())
 				  {
-					  auto       name   = reviewInfo.completeBaseName();
-					  auto       year   = name.first(4);
+					  const auto reviewInfo = dirIterator.nextFileInfo();
+					  auto       name       = reviewInfo.completeBaseName();
+					  auto       year       = name.first(4);
 					  const auto yearId = year.toLongLong(), monthId = name.last(2).toLongLong();
 					  auto       parentIt = items.find(yearId);
 					  if (parentIt == items.end())
@@ -307,10 +310,12 @@ void RequestNavigationReviews(
 						  parentIt = items.try_emplace(yearId, std::move(parent)).first;
 					  }
 
-					  auto item = parentIt->second->AppendChild(NavigationItem::Create());
-					  item->SetId(std::move(name));
-					  item->SetData(QString::number(monthId), NavigationItem::Column::Title);
-					  items.try_emplace(yearId * 10000LL + monthId, std::move(item));
+					  if (const auto [it, added] = items.try_emplace(yearId * 10000LL + monthId, NavigationItem::Create()); added)
+					  {
+						  auto item = parentIt->second->AppendChild(it->second);
+						  item->SetId(std::move(name));
+						  item->SetData(QString::number(monthId), NavigationItem::Column::Title);
+					  }
 				  }
 			  });
 		  } },
@@ -459,7 +464,9 @@ from PublishYears y)",
      { &RequestNavigationReviews,
      { nullptr,
      nullptr,
-     { .booksFrom = "from tab_1 t join Books_View b on b.LibID = t.LibID", .navigationFrom = "from tab_1 t join Books_View b on b.LibID = t.LibID", .additionalFields = ", t.ReviewID" },
+     { .booksFrom        = "from %1 t join Books_View b on b.LibID = t.LibID and b.SourceLib = t.SourceLib",
+     .navigationFrom   = "from %1 t join Books_View b on b.LibID = t.LibID and b.SourceLib = t.SourceLib",
+     .additionalFields = ", t.ReviewID" },
      &IBooksListCreator::CreateReviewsList,
      &IBooksTreeCreator::CreateReviewsTree,
      BookItem::Mapping(MAPPING_FULL),

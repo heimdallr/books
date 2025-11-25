@@ -49,6 +49,9 @@ CREATE INDEX IX_Books_Lang ON Books(Lang);
 CREATE INDEX IX_Books_Year ON Books (Year);
 --@@
 
+CREATE INDEX IX_Books_LibID ON Books (LibID);
+--@@
+
 CREATE UNIQUE INDEX UIX_Genre_List_PrimaryKey ON Genre_List (BookID, GenreCode);
 --@@
 
