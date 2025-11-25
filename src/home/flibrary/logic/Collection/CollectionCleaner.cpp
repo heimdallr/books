@@ -33,7 +33,6 @@ struct AnalyzedBook
 	QString             date;
 	QString             title;
 	size_t              size;
-	QString             libId;
 	double              libRate;
 	std::set<QString>   genres;
 	std::set<long long> authors;
@@ -42,7 +41,7 @@ struct AnalyzedBook
 using AnalyzedBooks = std::unordered_map<long long, AnalyzedBook>;
 
 constexpr auto SELECT_ANALYZED_BOOKS_QUERY = R"(
-select b.BookID, f.FolderTitle, b.FileName || b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), b.UpdateDate, b.Title, b.BookSize, b.LibID, b.LibRate, %1, %3 
+select b.BookID, f.FolderTitle, b.FileName || b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), b.UpdateDate, b.Title, b.BookSize, b.LibRate, %1, %3 
 	from Books b 
 	join Folders f on f.FolderID = b.FolderID %2 %4 
 	left join Books_User bu on bu.BookID = b.BookID 
@@ -210,12 +209,11 @@ AnalyzedBooks GetAnalyzedBooks(DB::IDatabase& db, const ILibRateProvider& libRat
 			it->second.date    = query->Get<const char*>(5);
 			it->second.title   = QString(query->Get<const char*>(6)).toLower();
 			it->second.size    = query->Get<long long>(7);
-			it->second.libId   = query->Get<const char*>(8);
-			it->second.libRate = libRateProvider.GetLibRate(it->second.libId, Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(9)));
+			it->second.libRate = libRateProvider.GetLibRate(it->first, Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(8)));
 		}
 
-		it->second.genres.emplace(query->Get<const char*>(10));
-		it->second.authors.emplace(query->Get<long long>(11));
+		it->second.genres.emplace(query->Get<const char*>(9));
+		it->second.authors.emplace(query->Get<long long>(10));
 		if (analyzeCanceled)
 			break;
 	}
