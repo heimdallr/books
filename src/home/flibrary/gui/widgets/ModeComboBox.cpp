@@ -4,6 +4,7 @@
 
 #include <QGuiApplication>
 #include <QPainter>
+#include <QResizeEvent>
 
 #include "fnd/ScopedCall.h"
 
@@ -45,4 +46,10 @@ void ModeComboBox::paintEvent(QPaintEvent* event)
 	const auto adjust       = opt.rect.size() / 6;
 	const auto adjustedRect = opt.rect.adjusted(adjust.width(), adjust.height(), -adjust.width(), -adjust.height());
 	p.drawPixmap(adjustedRect.topLeft(), icon.pixmap(adjustedRect.size()));
+}
+
+void ModeComboBox::resizeEvent(QResizeEvent* event)
+{
+	setMinimumWidth(event->size().height());
+	setMaximumWidth(event->size().height());
 }
