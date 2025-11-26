@@ -1586,7 +1586,7 @@ where b.FileName = ? and b.Ext = ?)");
 				);
 			}
 
-			if (books.empty())
+			if (books.empty() || compilation.title.empty())
 				compilations.pop_back();
 		}
 
@@ -1600,6 +1600,7 @@ where b.FileName = ? and b.Ext = ?)");
 			sqlite3pp::command command(db, "insert into Compilations(CompilationID, BookId, Title, Covered) values(?, ?, ?, ?)");
 			for (const auto& compilation : compilations)
 			{
+				assert(!compilation.title.empty());
 				auto title = compilation.title.begin()->toStdString();
 				for (const auto& token : compilation.title | std::views::drop(1))
 					title.append(" ").append(token.toStdString());
