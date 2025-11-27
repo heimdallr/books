@@ -186,7 +186,7 @@ public:
 	}
 
 private: // ICollectionCleaner::IAnalyzeObserver
-	void AnalyzeFinished(ICollectionCleaner::Books books) override
+	void AnalyzeFinished(Util::Remove::Books books) override
 	{
 		if (m_analyzeCanceled)
 			return m_self.StateChanged(State::Canceled);

@@ -1747,8 +1747,7 @@ where b.FileName = ? and b.Ext = ?)");
 	void GetFieldList(const Zip* zip = nullptr)
 	{
 		const auto fieldList = [&]() -> QString {
-			return zip && zip->GetFileNameList().contains(STRUCTURE_INFO) ? QString::fromUtf8(zip->Read(STRUCTURE_INFO)->GetStream().readAll()).simplified()
-			                                                              : QString("AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;YEAR;SOURCELIB;");
+			return zip && zip->GetFileNameList().contains(STRUCTURE_INFO) ? QString::fromUtf8(zip->Read(STRUCTURE_INFO)->GetStream().readAll()).simplified() : QString(Inpx::INP_FIELDS_DESCRIPTION);
 		}();
 
 		const std::unordered_map<QString, BookBufFieldGetter> bookBufMapping {

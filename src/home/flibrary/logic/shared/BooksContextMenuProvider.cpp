@@ -271,11 +271,11 @@ private: // IContextMenuHandler
 		if (idList.empty())
 			return;
 
-		ICollectionCleaner::Books books;
+		Util::Remove::Books books;
 		books.reserve(idList.size());
 		const auto count = idList.size();
 		std::ranges::transform(std::move(idList), std::back_inserter(books), [](auto&& idListItem) {
-			return ICollectionCleaner::Book { idListItem[0].toLongLong(), std::move(idListItem[1]), std::move(idListItem[2]) };
+			return Util::Remove::Book { idListItem[0].toLongLong(), std::move(idListItem[1]), std::move(idListItem[2]) };
 		});
 		auto  cleaner    = ILogicFactory::Lock(m_logicFactory)->CreateCollectionCleaner();
 		auto& cleanerRef = *cleaner;
