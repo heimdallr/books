@@ -3,6 +3,7 @@
 #include <QDirIterator>
 #include <QFile>
 #include <QGuiApplication>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QPalette>
 #include <QString>
@@ -35,52 +36,49 @@ std::unordered_map<long long, double> ReadRates(const ISettings& settings, const
 	if (settings.Get(Constant::Settings::LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT)
 		return {};
 
-	QDirIterator dirIterator(
-		collectionProvider.GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER),
-		{ QString::fromStdWString(Inpx::REVIEWS_ADDITIONAL_ARCHIVE_NAME) },
-		QDir::Files,
-		QDirIterator::Subdirectories
-	);
-	if (!dirIterator.hasNext())
+	const auto additionalFileName =
+		collectionProvider.GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER) + "/" + QString::fromStdWString(Inpx::REVIEWS_ADDITIONAL_ARCHIVE_NAME);
+
+	const auto zip = TRY(QString("open %1").arg(additionalFileName), [&] {
+		return std::make_unique<Zip>(additionalFileName);
+	});
+
+	if (!zip)
 		return {};
 
-	const auto database = databaseUser.Database();
-	const auto query    = database->CreateQuery("select BookID from Books where LibID = ? and SourceLib = ?");
-
-	std::unordered_map<long long, double> rate;
-
-	while (dirIterator.hasNext())
+	QJsonParseError jsonParseError;
+	const auto      doc = QJsonDocument::fromJson(zip->Read(Inpx::REVIEWS_ADDITIONAL_BOOKS_FILE_NAME)->GetStream().readAll(), &jsonParseError);
+	if (jsonParseError.error != QJsonParseError::NoError)
 	{
-		const auto fileInfo           = dirIterator.nextFileInfo();
-		const auto additionalFileName = fileInfo.filePath();
-		const auto sourceLib          = fileInfo.dir().dirName().toStdString();
-
-		const auto zip = TRY(QString("open %1").arg(additionalFileName), [&] {
-			return std::make_unique<Zip>(additionalFileName);
-		});
-
-		if (!zip)
-			continue;
-
-		QJsonParseError jsonParseError;
-		const auto      doc = QJsonDocument::fromJson(zip->Read(Inpx::REVIEWS_ADDITIONAL_BOOKS_FILE_NAME)->GetStream().readAll(), &jsonParseError);
-		if (jsonParseError.error != QJsonParseError::NoError)
-		{
-			PLOGW << jsonParseError.errorString();
-			return {};
-		}
-
-		const auto obj = doc.object();
-		for (auto it = obj.constBegin(); it != obj.constEnd(); ++it)
-		{
-			query->Bind(0, it.key().toStdString());
-			query->Bind(1, sourceLib);
-			query->Execute();
-			if (!query->Eof())
-				rate[query->Get<long long>(0)] = it.value().toObject()["libRate"].toDouble();
-			query->Reset();
-		}
+		PLOGW << jsonParseError.errorString();
+		return {};
 	}
+
+	if (!doc.isArray())
+	{
+		PLOGW << "additional books.json must be an array";
+		return {};
+	}
+
+	std::unordered_map<QString, double> additionalRates;
+	std::ranges::transform(
+		doc.array() | std::views::transform([](const auto& item) {
+			auto obj = item.toObject();
+			return std::make_tuple(QString("%1#%2").arg(obj["folder"].toString(), obj["file"].toString()), obj["sum"].toDouble(0.0), obj["count"].toInt(0));
+		}) | std::views::filter([](const auto& item) {
+			return std::get<1>(item) > 0.0 && std ::get<2>(item) > 0;
+		}),
+		std::inserter(additionalRates, additionalRates.end()),
+		[](const auto& item) {
+		return std::make_pair(std::get<0>(item), std::get<1>(item) / std::get<2>(item));
+	});
+
+	const auto db = databaseUser.Database();
+	const auto query = db->CreateQuery("select b.BookID, f.FolderTitle||'#'||b.FileName from Books_View b join Folders f on f.FolderID = b.FolderID");
+	std::unordered_map<long long, double> rate;
+	for (query->Execute(); !query->Eof(); query->Next())
+		if (const auto it = additionalRates.find(query->Get<const char*>(1)); it != additionalRates.end())
+			rate.try_emplace(query->Get<long long>(0), it->second);
 
 	return rate;
 }
