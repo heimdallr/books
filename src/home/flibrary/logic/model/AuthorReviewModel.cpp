@@ -113,9 +113,10 @@ private:
 	Items GetReviews(const long long authorId, DB::IDatabase& db) const
 	{
 		const auto query = db.CreateQuery(R"(
-select r.Folder, b.BookID, b.LibID, b.Title 
+select r.Folder, b.BookID, f.FolderTitle||'#'||b.FileName, b.Title 
 	from Reviews r 
 	join Books_View b on b.BookID = r.BookID and b.IsDeleted != ? 
+	join Folders f on f.FolderID = b.FolderID
 	join Author_List a on a.BookID = r.BookID and a.AuthorID = ? 
 	order by r.Folder
 )");
@@ -155,13 +156,13 @@ select r.Folder, b.BookID, b.LibID, b.Title
 	void GetReviews(Items& items, const DB::IQuery& query, const Zip& zip) const
 	{
 		const auto    bookId = query.Get<long long>(1);
-		const QString libId  = query.Get<const char*>(2);
+		const QString uid  = query.Get<const char*>(2);
 		QString       title  = query.Get<const char*>(3);
 
-		const auto stream = zip.Read(libId);
+		const auto stream = zip.Read(uid);
 		if (!stream)
 		{
-			PLOGE << "Cannot extract " << libId;
+			PLOGE << "Cannot extract " << uid;
 			return;
 		}
 
