@@ -113,7 +113,7 @@ private:
 	Items GetReviews(const long long authorId, DB::IDatabase& db) const
 	{
 		const auto query = db.CreateQuery(R"(
-select coalesce(b.SourceLib || '/', '') || r.Folder, b.BookID, b.LibID, b.Title 
+select r.Folder, b.BookID, b.LibID, b.Title 
 	from Reviews r 
 	join Books_View b on b.BookID = r.BookID and b.IsDeleted != ? 
 	join Author_List a on a.BookID = r.BookID and a.AuthorID = ? 
