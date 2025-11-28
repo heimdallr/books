@@ -697,7 +697,10 @@ private:
 			if (!QFile::exists(archivesFolder + "/" + reviewFolder))
 				continue;
 
-			Zip             zip(archivesFolder + "/" + reviewFolder);
+			Zip zip(archivesFolder + "/" + reviewFolder);
+			if (!zip.GetFileNameList().contains(uid))
+				continue;
+
 			const auto      stream = zip.Read(uid);
 			QJsonParseError jsonParseError;
 			const auto      doc = QJsonDocument::fromJson(stream->GetStream().readAll(), &jsonParseError);
@@ -706,7 +709,9 @@ private:
 				PLOGW << jsonParseError.errorString();
 				continue;
 			}
-			assert(doc.isArray());
+			if (!doc.isArray())
+				continue;
+
 			for (const auto jsonValue : doc.array())
 			{
 				assert(jsonValue.isObject());
