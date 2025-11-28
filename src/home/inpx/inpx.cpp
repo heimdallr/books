@@ -1492,8 +1492,6 @@ private:
 
 		sqlite3pp::transaction tr(db);
 
-		sqlite3pp::command(db, "CREATE INDEX IF NOT EXISTS IX_Books_FileName ON Books(FileName)").execute();
-
 		sqlite3pp::query query(db, R"(select b.BookID, b.Title
 from Books b
 join Folders f on f.FolderID = b.FolderID and f.FolderTitle=?
@@ -1563,7 +1561,6 @@ where b.FileName = ? and b.Ext = ?)");
 
 		PLOGI << "write compilations info";
 
-		sqlite3pp::command(db, "DROP INDEX IF EXISTS IX_Books_FileName").execute();
 		sqlite3pp::command(db, "delete from Compilations_Search").execute();
 		sqlite3pp::command(db, "delete from Compilations").execute();
 
