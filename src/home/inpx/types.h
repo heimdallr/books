@@ -141,7 +141,7 @@ using ParseChecker = std::function<bool(std::wstring_view)>;
 using Splitter     = std::function<std::vector<std::wstring>(std::wstring_view)>;
 using InpxFolders  = std::map<std::pair<std::wstring, std::wstring>, std::string, HomeCompa::Util::CaseInsensitiveComparer<>>;
 using BooksSeries  = std::unordered_map<size_t, std::vector<std::pair<size_t, std::optional<int>>>>;
-using Reviews      = std::map<std::pair<size_t, std::string>, std::set<std::wstring>>;
+using Reviews      = std::map<std::string, std::set<std::wstring>>;
 
 struct Data
 {

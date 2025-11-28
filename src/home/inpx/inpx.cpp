@@ -750,35 +750,20 @@ size_t Store(const Path& dbFileName, Data& data)
 
 		{
 			DatabaseWrapper        db(dbFileName);
-			sqlite3pp::transaction tr(db);
-			[[maybe_unused]] auto  res = sqlite3pp::command(db, "ATTACH DATABASE ':memory:' AS tmp").execute();
-			assert(res == SQLITE_OK);
-			res = sqlite3pp::command(db, "create table tmp.ids(LibID INTEGER NOT NULL primary key, SourceLib VARCHAR(15))").execute();
-			assert(res == SQLITE_OK);
-			sqlite3pp::command cmd(db, "insert into tmp.ids(LibID, SourceLib) values(?, ?)");
-			for (const auto& [id, sourceLib] : data.reviews | std::views::keys)
-			{
-				cmd.binder() << static_cast<long long>(id) << sourceLib;
-				cmd.execute();
-				cmd.reset();
-			}
 
-			sqlite3pp::query query(db, "select b.LibID, b.SourceLib, b.BookID from Books b join tmp.ids t on t.LibID = b.LibID and t.SourceLib = b.SourceLib");
+			sqlite3pp::query query(db, "select b.BookID, f.FolderTitle||'#'||b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID");
 			std::for_each(query.begin(), query.end(), [&](const auto& row) {
-				int64_t     libId;
-				const char* sourceLib;
 				int64_t     bookId;
-				std::tie(libId, sourceLib, bookId) = row.template get_columns<int64_t, const char*, int64_t>(0, 1, 2);
+				const char* uid;
+				std::tie(bookId, uid) = row.template get_columns<int64_t, const char*>(0, 1);
 
-				if (const auto it = data.reviews.find(std::make_pair(libId, std::string(sourceLib))); it != data.reviews.end())
+				if (const auto it = data.reviews.find(uid); it != data.reviews.end())
 				{
 					std::ranges::transform(it->second, std::back_inserter(reviews), [&](const auto& item) {
 						return std::make_pair(bookId, item);
 					});
-					data.reviews.erase(it);
 				}
 			});
-			tr.rollback();
 		}
 
 		result += StoreRange(dbFileName, "Reviews", "INSERT INTO Reviews (BookID, Folder) VALUES(?, ?)", reviews, [](sqlite3pp::command& cmd, const auto& item) {
@@ -876,13 +861,12 @@ Reviews ReadReviews(sqlite3pp::database& db)
 {
 	PLOGI << "Read reviews";
 	Reviews          reviews;
-	sqlite3pp::query query(db, "select b.LibID, b.sourceLib, r.Folder from Reviews r join Books b on b.BookID = r.BookID");
+	sqlite3pp::query query(db, "select f.FolderTitle||'#'||b.FileName||b.Ext, r.Folder from Reviews r join Books b on b.BookID = r.BookID join Folders f on f.FolderID = b.FolderID");
 	std::for_each(std::begin(query), std::end(query), [&](const auto& row) {
-		int64_t     libId;
-		const char* sourceLib;
+		const char* uid;
 		const char* folder;
-		std::tie(libId, sourceLib, folder) = row.template get_columns<int64_t, const char*, const char*>(0, 1, 2);
-		reviews[std::make_pair(libId, std::string(sourceLib))].emplace(ToWide(folder));
+		std::tie(uid, folder) = row.template get_columns<const char*, const char*>(0, 1);
+		reviews[uid].emplace(ToWide(folder));
 	});
 
 	return reviews;
@@ -1458,37 +1442,24 @@ private:
 
 		PLOGI << "Collect reviews";
 
-		const auto collect = [&](const std::filesystem::path& folder = {}) {
-			for (const auto& path : std::filesystem::directory_iterator(reviewsFolder / folder) | std::views::filter([](const auto& entry) {
-										return !entry.is_directory();
-									}) | std::views::transform([](const auto& entry) {
-										return entry.path();
-									}) | std::views::filter([](const auto& item) {
-										return item.extension() == ".7z";
-									}))
-			{
-				auto       fileName = QString::fromStdWString(path);
-				const auto zip      = TRY(QString("open %1").arg(fileName), [&] {
-                    return std::make_unique<Zip>(fileName);
-                });
-				if (!zip)
-					continue;
+		for (const auto& path : std::filesystem::directory_iterator(reviewsFolder) | std::views::filter([](const auto& entry) {
+									return !entry.is_directory();
+								}) | std::views::transform([](const auto& entry) {
+									return entry.path();
+								}) | std::views::filter([](const auto& item) {
+									return item.extension() == ".7z";
+								}))
+		{
+			auto       fileName = QString::fromStdWString(path);
+			const auto zip      = TRY(QString("open %1").arg(fileName), [&] {
+                return std::make_unique<Zip>(fileName);
+            });
+			if (!zip)
+				continue;
 
-				for (const auto& file : zip->GetFileNameList())
-				{
-					bool       ok    = false;
-					const auto libId = file.toULongLong(&ok);
-					assert(ok);
-					m_data.reviews[std::make_pair(libId, folder.string())].emplace(path.filename());
-				}
-			}
-		};
-
-		collect();
-		for (const auto& entry : std::filesystem::directory_iterator(reviewsFolder) | std::views::filter([](const auto& item) {
-									 return item.is_directory();
-								 }))
-			collect(entry.path().stem());
+			for (const auto& file : zip->GetFileNameList())
+				m_data.reviews[file.toStdString()].emplace(path.filename());
+		}
 	}
 
 	void CollectCompilations() const
@@ -1520,8 +1491,6 @@ private:
 		PLOGI << "collect compilations info";
 
 		sqlite3pp::transaction tr(db);
-
-		sqlite3pp::command(db, "CREATE INDEX IF NOT EXISTS IX_Books_FileName ON Books(FileName)").execute();
 
 		sqlite3pp::query query(db, R"(select b.BookID, b.Title
 from Books b
@@ -1592,7 +1561,6 @@ where b.FileName = ? and b.Ext = ?)");
 
 		PLOGI << "write compilations info";
 
-		sqlite3pp::command(db, "DROP INDEX IF EXISTS IX_Books_FileName").execute();
 		sqlite3pp::command(db, "delete from Compilations_Search").execute();
 		sqlite3pp::command(db, "delete from Compilations").execute();
 
@@ -1747,7 +1715,7 @@ where b.FileName = ? and b.Ext = ?)");
 	void GetFieldList(const Zip* zip = nullptr)
 	{
 		const auto fieldList = [&]() -> QString {
-			return zip && zip->GetFileNameList().contains(STRUCTURE_INFO) ? QString::fromUtf8(zip->Read(STRUCTURE_INFO)->GetStream().readAll()).simplified() : QString(Inpx::INP_FIELDS_DESCRIPTION);
+			return zip && zip->GetFileNameList().contains(STRUCTURE_INFO) ? QString::fromUtf8(zip->Read(STRUCTURE_INFO)->GetStream().readAll()).simplified() : QString(INP_FIELDS_DESCRIPTION);
 		}();
 
 		const std::unordered_map<QString, BookBufFieldGetter> bookBufMapping {

@@ -34,22 +34,22 @@ CREATE UNIQUE INDEX UIX_Books_PrimaryKey ON Books (BookID);
 CREATE INDEX IX_Books_SeriesID_SeqNumber ON Books (SeriesID, SeqNumber);
 --@@
 
-CREATE INDEX IX_Books_FolderID ON Books(FolderID);
+CREATE INDEX IX_Books_FolderID ON Books (FolderID);
 --@@
 
-CREATE INDEX IX_Books_UpdateID ON Books(UpdateID);
+CREATE INDEX IX_Books_UpdateID ON Books (UpdateID);
 --@@
 
-CREATE INDEX IX_Book_SearchTitle ON Books(SearchTitle COLLATE NOCASE);
+CREATE INDEX IX_Books_FileName ON Books (FileName);
 --@@
 
-CREATE INDEX IX_Books_Lang ON Books(Lang);
+CREATE INDEX IX_Books_Lang ON Books (Lang);
 --@@
 
 CREATE INDEX IX_Books_Year ON Books (Year);
 --@@
 
-CREATE INDEX IX_Books_LibID ON Books (LibID);
+CREATE INDEX IX_Books_SearchTitle ON Books (SearchTitle COLLATE NOCASE);
 --@@
 
 CREATE UNIQUE INDEX UIX_Genre_List_PrimaryKey ON Genre_List (BookID, GenreCode);
@@ -100,45 +100,50 @@ CREATE INDEX IX_Update_ParentID ON Updates (ParentID);
 CREATE UNIQUE INDEX UIX_Reviews_PrimaryKey ON Reviews (BookID, Folder);
 --@@
 
-CREATE VIEW IF NOT EXISTS Books_View (
-		BookID,
-		LibID,
-		Title,
-		SeriesID,
-		SeqNumber,
-		UpdateDate,
-		LibRate,
-		Lang,
-		Year,
-		FolderID,
-		FileName,
-		BookSize,
-		UpdateID,
-		IsDeleted,
-		UserRate,
-		SourceLib,
-		SearchTitle
+CREATE VIEW Books_View (
+    BookID,
+    LibID,
+    Title,
+    SeriesID,
+    SeqNumber,
+    UpdateDate,
+    LibRate,
+    Lang,
+    Year,
+    FolderID,
+    FileName,
+    BookSize,
+    UpdateID,
+    IsDeleted,
+    UserRate,
+    SourceLib,
+    SearchTitle,
+    BaseFileName,
+    Ext
 )
-AS SELECT
-		b.BookID,
-		b.LibID,
-		b.Title,
-		b.SeriesID,
-		b.SeqNumber,
-		b.UpdateDate,
-		b.LibRate,
-		b.Lang,
-		b.Year,
-		b.FolderID,
-		b.FileName || b.Ext AS FileName,
-		b.BookSize,
-		b.UpdateID,
-		coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted,
-		bu.UserRate,
-		b.SourceLib,
-		b.SearchTitle
-	FROM Books b
-	LEFT JOIN Books_User bu ON bu.BookID = b.BookID;
+AS
+    SELECT b.BookID,
+           b.LibID,
+           b.Title,
+           b.SeriesID,
+           b.SeqNumber,
+           b.UpdateDate,
+           b.LibRate,
+           b.Lang,
+           b.Year,
+           b.FolderID,
+           b.FileName || b.Ext AS FileName,
+           b.BookSize,
+           b.UpdateID,
+           coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted,
+           bu.UserRate,
+           b.SourceLib,
+           b.SearchTitle,
+           b.FileName AS BaseFileName,
+           b.Ext
+      FROM Books b
+           LEFT JOIN
+           Books_User bu ON bu.BookID = b.BookID;
 --@@
 
 CREATE VIEW Groups_List_User_View (

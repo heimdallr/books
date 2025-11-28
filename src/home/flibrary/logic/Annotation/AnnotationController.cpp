@@ -61,7 +61,7 @@ constexpr auto AUTHORS_QUERY =
 constexpr auto GENRES_QUERY   = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id  where g.Flags & {} = 0 order by gl.OrdNum";
 constexpr auto GROUPS_QUERY   = "select g.GroupID, g.Title from Groups_User g join Groups_List_User_View gl on gl.GroupID = g.GroupID and gl.BookID = :id";
 constexpr auto KEYWORDS_QUERY = "select k.KeywordID, k.KeywordTitle from Keywords k join Keyword_List kl on kl.KeywordID = k.KeywordID and kl.BookID = :id where k.Flags & {} = 0 order by kl.OrdNum";
-constexpr auto REVIEWS_QUERY  = "select b.LibID, coalesce(b.SourceLib || '/', '') || r.Folder from Reviews r join Books b on b.BookID = r.BookID where r.BookID = :id";
+constexpr auto REVIEWS_QUERY  = "select f.FolderTitle||'#'||b.FileName||b.Ext, r.Folder from Reviews r join Books b on b.BookID = r.BookID join Folders f on f.FolderID = b.FolderID where r.BookID = :id";
 constexpr auto FOLDER_QUERY   = "select f.FolderID, f.FolderTitle from Folders f join Books b on b.FolderID = f.FolderID and b.BookID = :id";
 constexpr auto UPDATE_QUERY   = "select u.UpdateID, b.UpdateDate from Updates u join Books b on b.UpdateID = u.UpdateID and b.BookID = :id";
 
@@ -692,13 +692,13 @@ private:
 		const auto archivesFolder = m_collectionProvider->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER);
 
 		Reviews reviews;
-		for (const auto& [libId, reviewFolder] : reviewFolders)
+		for (const auto& [uid, reviewFolder] : reviewFolders)
 		{
 			if (!QFile::exists(archivesFolder + "/" + reviewFolder))
 				continue;
 
 			Zip             zip(archivesFolder + "/" + reviewFolder);
-			const auto      stream = zip.Read(libId);
+			const auto      stream = zip.Read(uid);
 			QJsonParseError jsonParseError;
 			const auto      doc = QJsonDocument::fromJson(stream->GetStream().readAll(), &jsonParseError);
 			if (jsonParseError.error != QJsonParseError::NoError)

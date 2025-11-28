@@ -5,13 +5,11 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <QDirIterator>
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-
-#include "fnd/algorithm.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -20,6 +18,7 @@
 
 #include "interface/Localization.h"
 #include "interface/constants/Enums.h"
+#include "interface/constants/ProductConstant.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IFilterProvider.h"
@@ -282,50 +281,54 @@ private: // IBookSelector
 
 	void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription& description) override
 	{
-		QDirIterator dirIterator(activeCollection.GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER), { QString("%1.7z").arg(navigationId) }, QDir::Files, QDirIterator::Subdirectories);
-		if (!dirIterator.hasNext())
+		const auto folder = activeCollection.GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER) + "/" + navigationId + ".7z";
+		if (!QFile::exists(folder))
 			return;
 
-		const auto tmpTable = db.CreateTemporaryTable({ "LibID VARCHAR (200)", "SourceLib VARCHAR(15)", "ReviewID INTEGER" });
+		const auto tmpTable = db.CreateTemporaryTable({ "Folder VARCHAR (200)", "FileName VARCHAR(170)", "Ext VARCHAR(10)", "ReviewID INTEGER" });
+
 		{
 			const auto tr            = db.CreateTransaction();
-			const auto insertCommand = tr->CreateCommand(QString("insert into %1(LibID, SourceLib, ReviewID) values(?, ?, ?)").arg(tmpTable->GetName().data()).toStdString());
-			while (dirIterator.hasNext())
+			const auto insertCommand = tr->CreateCommand(QString("insert into %1(Folder, FileName, Ext, ReviewID) values(?, ?, ?, ?)").arg(tmpTable->GetName().data()).toStdString());
+			Zip        zip(folder);
+			for (long long reviewId = 0; const auto& file : zip.GetFileNameList())
 			{
-				const auto fileInfo  = dirIterator.nextFileInfo();
-				const auto folder    = fileInfo.filePath();
-				const auto sourceLib = fileInfo.dir().dirName().toStdString();
-				Zip        zip(folder);
-				for (long long reviewId = 0; const auto& file : zip.GetFileNameList())
+				auto splitted = file.split('#');
+				if (splitted.size() != 2)
+					continue;
+
+				QFileInfo fileInfo(splitted.back());
+				const auto bookFolder = splitted.front().toStdString();
+				const auto bookFileName = fileInfo.completeBaseName().toStdString();
+				const auto bookExt      = '.' + fileInfo.suffix().toStdString();
+
+				QJsonParseError parseError;
+				const auto      doc = QJsonDocument::fromJson(zip.Read(file)->GetStream().readAll(), &parseError);
+				if (parseError.error != QJsonParseError::NoError)
 				{
-					QJsonParseError parseError;
-					const auto      doc = QJsonDocument::fromJson(zip.Read(file)->GetStream().readAll(), &parseError);
-					if (parseError.error != QJsonParseError::NoError)
-					{
-						PLOGW << parseError.errorString();
-						continue;
-					}
+					PLOGW << parseError.errorString();
+					continue;
+				}
 
-					assert(doc.isArray());
-					for (const auto recordValue : doc.array())
-					{
-						assert(recordValue.isObject());
-						const auto recordObject = recordValue.toObject();
-						insertCommand->Bind(0, file.toStdString());
-						insertCommand->Bind(1, sourceLib);
-						insertCommand->Bind(2, ++reviewId);
-						insertCommand->Execute();
+				assert(doc.isArray());
+				for (const auto recordValue : doc.array())
+				{
+					assert(recordValue.isObject());
+					const auto recordObject = recordValue.toObject();
+					insertCommand->Bind(0, bookFolder);
+					insertCommand->Bind(1, bookFileName);
+					insertCommand->Bind(2, bookExt);
+					insertCommand->Bind(3, ++reviewId);
+					insertCommand->Execute();
 
-						auto& reviewItem = m_reviews.try_emplace(reviewId, ReviewItem::Create()).first->second;
-						reviewItem->SetData(recordObject[Inpx::NAME].toString(), ReviewItem::Column::Name);
-						reviewItem->SetData(recordObject[Inpx::TIME].toString(), ReviewItem::Column::Time);
-						reviewItem->SetData(recordObject[Inpx::TEXT].toString(), ReviewItem::Column::Comment);
-						if (reviewItem->GetData(ReviewItem::Column::Name).isEmpty())
-							reviewItem->SetData(Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS), ReviewItem::Column::Name);
-					}
+					auto& reviewItem = m_reviews.try_emplace(reviewId, ReviewItem::Create()).first->second;
+					reviewItem->SetData(recordObject[Inpx::NAME].toString(), ReviewItem::Column::Name);
+					reviewItem->SetData(recordObject[Inpx::TIME].toString(), ReviewItem::Column::Time);
+					reviewItem->SetData(recordObject[Inpx::TEXT].toString(), ReviewItem::Column::Comment);
+					if (reviewItem->GetData(ReviewItem::Column::Name).isEmpty())
+						reviewItem->SetData(Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS), ReviewItem::Column::Name);
 				}
 			}
-
 			tr->Commit();
 		}
 
