@@ -64,7 +64,7 @@ std::unordered_map<long long, double> ReadRates(const ISettings& settings, const
 	std::ranges::transform(
 		doc.array() | std::views::transform([](const auto& item) {
 			auto obj = item.toObject();
-			return std::make_tuple(QString("%1#%2").arg(obj["folder"].toString(), obj["file"].toString()), obj["sum"].toDouble(0.0), obj["count"].toInt(0));
+			return std::make_tuple(QString("%1#%2").arg(obj[Inpx::FOLDER].toString(), obj[Inpx::FILE].toString()), obj[Inpx::SUM].toDouble(0.0), obj[Inpx::COUNT].toInt(0));
 		}) | std::views::filter([](const auto& item) {
 			return std::get<1>(item) > 0.0 && std ::get<2>(item) > 0;
 		}),

@@ -2,7 +2,6 @@
 #include "CollectionImpl.h"
 
 #include <QFile>
-#include <QString> // for plog
 
 #include "interface/constants/SettingsConstant.h"
 
@@ -26,12 +25,12 @@ constexpr auto CREATION_MODE    = "creationMode";
 
 } // namespace
 
-CollectionImpl::CollectionImpl(QString name_, QString database_, QString folder_)
+CollectionImpl::CollectionImpl(QString name_, QString database, QString folder)
 {
-	id         = Util::md5(database_.toUtf8());
+	id         = Util::md5(database.toUtf8());
 	name       = std::move(name_);
-	m_database = std::move(database_);
-	m_folder   = std::move(folder_);
+	m_database = std::move(database);
+	m_folder   = std::move(folder);
 
 	m_database.replace("\\", "/");
 	m_folder.replace("\\", "/");
