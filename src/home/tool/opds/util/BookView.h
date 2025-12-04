@@ -1,5 +1,10 @@
 #pragma once
 
+namespace HomeCompa::Flibrary
+{
+class IFilterProvider;
+}
+
 namespace HomeCompa
 {
 class ISettings;
@@ -13,6 +18,6 @@ class IDatabase;
 namespace HomeCompa::Opds::BookView
 {
 
-void Create(DB::IDatabase& db, const ISettings& settings);
+void Create(DB::IDatabase& db, const ISettings& settings, const Flibrary::IFilterProvider& filterProvider);
 
 }

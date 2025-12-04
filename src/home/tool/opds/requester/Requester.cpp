@@ -795,7 +795,7 @@ public:
 		, m_annotationController { std::move(annotationController) }
 	{
 		const auto db = m_databaseController->GetDatabase();
-		BookView::Create(*db, *m_settings);
+		BookView::Create(*db, *m_settings, *m_filterProvider);
 	}
 
 	const Flibrary::ICollectionProvider& GetCollectionProvider() const
