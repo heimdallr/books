@@ -35,9 +35,11 @@
 
 #include "log.h"
 #include "root.h"
+#include "util/BookView.h"
 
 namespace HomeCompa::Opds
 {
+
 #define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(const IPostProcessCallback& callback, QIODevice& stream, ContentType contentType, const IRequester::Parameters&, const ISettings&);
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
@@ -100,26 +102,26 @@ constexpr auto AUTHOR_COUNT  = "with WithTable(Id) as (select distinct l.AuthorI
 constexpr auto SERIES_COUNT  = "with WithTable(Id) as (select distinct l.SeriesID from Series_List l %1) select '%2', count(42) from WithTable";
 constexpr auto GENRE_COUNT   = "with WithTable(Id) as (select distinct l.GenreCode from Genre_List l %1) select '%2', count(42) from WithTable";
 constexpr auto KEYWORD_COUNT = "with WithTable(Id) as (select distinct l.KeywordID from Keyword_List l %1) select '%2', count(42) from WithTable";
-constexpr auto UPDATE_COUNT  = "with WithTable(Id) as (select distinct l.UpdateID from Books l  %1) select '%2', count(42) from WithTable";
-constexpr auto FOLDER_COUNT  = "with WithTable(Id) as (select distinct l.FolderID from Books l  %1) select '%2', count(42) from WithTable";
-constexpr auto BOOK_COUNT    = "select count(42) from Books l %1";
+constexpr auto UPDATE_COUNT  = "with WithTable(Id) as (select distinct l.UpdateID from Books_View_Opds l  %1) select '%2', count(42) from WithTable";
+constexpr auto FOLDER_COUNT  = "with WithTable(Id) as (select distinct l.FolderID from Books_View_Opds l  %1) select '%2', count(42) from WithTable";
+constexpr auto BOOK_COUNT    = "select count(42) from Books_View_Opds l %1";
 
 constexpr auto AUTHOR_JOIN_PARAMETERS  = "join Author_List al on al.BookID = l.BookID and al.AuthorID = %1";
 constexpr auto SERIES_JOIN_PARAMETERS  = "join Series_List sl on sl.BookID = l.BookID and sl.SeriesID = %1";
 constexpr auto GENRE_JOIN_PARAMETERS   = "join Genre_List gl on gl.BookID = l.BookID and gl.GenreCode = '%1'";
 constexpr auto KEYWORD_JOIN_PARAMETERS = "join Keyword_List kl on kl.BookID = l.BookID and kl.KeywordID = %1";
-constexpr auto UPDATE_JOIN_PARAMETERS  = "join Books ul on ul.BookID = l.BookID and ul.UpdateID = %1";
-constexpr auto FOLDER_JOIN_PARAMETERS  = "join Books fl on fl.BookID = l.BookID and fl.FolderID = %1";
+constexpr auto UPDATE_JOIN_PARAMETERS  = "join Books_View_Opds ul on ul.BookID = l.BookID and ul.UpdateID = %1";
+constexpr auto FOLDER_JOIN_PARAMETERS  = "join Books_View_Opds fl on fl.BookID = l.BookID and fl.FolderID = %1";
 constexpr auto GROUP_JOIN_PARAMETERS   = "join Groups_List_User_View glu on glu.BookID = l.BookID and glu.GroupID = %1";
 
 constexpr auto AUTHOR_JOIN_SELECT  = "join Author_List l on l.AuthorID = a.AuthorID";
 constexpr auto SERIES_JOIN_SELECT  = "join Series_List l on l.SeriesID = s.SeriesID";
 constexpr auto GENRE_JOIN_SELECT   = "join Genre_List l on l.GenreCode = g.GenreCode";
 constexpr auto KEYWORD_JOIN_SELECT = "join Keyword_List l on l.KeywordID = k.KeywordID";
-constexpr auto UPDATE_JOIN_SELECT  = "join Books l on l.UpdateID = u.UpdateID";
-constexpr auto FOLDER_JOIN_SELECT  = "join Books l on l.FolderID = f.FolderID";
+constexpr auto UPDATE_JOIN_SELECT  = "join Books_View_Opds l on l.UpdateID = u.UpdateID";
+constexpr auto FOLDER_JOIN_SELECT  = "join Books_View_Opds l on l.FolderID = f.FolderID";
 constexpr auto GROUP_JOIN_SELECT   = "join Groups_List_User_View glu on glu.GroupID = gu.GroupID";
-constexpr auto BOOK_JOIN_SELECT    = "from Books l";
+constexpr auto BOOK_JOIN_SELECT    = "from Books_View_Opds l";
 
 constexpr auto AUTHOR_SELECT  = "select" FULL_AUTHOR_NAME "from Authors a where a.AuthorID = ?";
 constexpr auto SERIES_SELECT  = "select s.SeriesTitle from Series s where s.SeriesID = ?";
@@ -212,14 +214,14 @@ constexpr auto AUTHOR_SELECT_EQUAL = "select distinct a.AuthorID," FULL_AUTHOR_N
 constexpr auto SERIES_SELECT_EQUAL = "select distinct s.SeriesID, s.SeriesTitle from Series s %1 where s.IsDeleted != #IS_DELETED# and s.Flags & #FLAGS# = 0 and s.SearchTitle = :starts";
 constexpr auto GENRE_SELECT_EQUAL  = "select g.GenreCode from Genres g where g.IsDeleted != #IS_DELETED# and g.Flags & #FLAGS# = 0 and exists (select 42 from Genre_List l %1 where l.GenreCode = g.GenreCode)";
 constexpr auto KEYWORD_SELECT_EQUAL = "select distinct k.KeywordID, k.KeywordTitle from Keywords k %1 where k.IsDeleted != #IS_DELETED# and k.Flags & #FLAGS# = 0 and k.SearchTitle = :starts";
-constexpr auto UPDATE_SELECT_EQUAL  = "select u.UpdateID from Updates u where exists (select 42 from Books l %1 where l.UpdateID = u.UpdateID)";
+constexpr auto UPDATE_SELECT_EQUAL  = "select u.UpdateID from Updates u where exists (select 42 from Books_View_Opds l %1 where l.UpdateID = u.UpdateID)";
 constexpr auto BOOK_SELECT_EQUAL    = "select b.BookID, b.Title %1 where b.IsDeleted != #IS_DELETED# and b.SearchTitle = :starts";
 
 constexpr auto AUTHOR_CONTENT  = "select count (42) from Authors a %1 where l.AuthorID = ?";
 constexpr auto SERIES_CONTENT  = "select count (42) from Series s %1 where l.SeriesID = ?";
 constexpr auto GENRE_CONTENT   = "select count(42) from Genre_List l %1 where l.GenreCode = ?";
 constexpr auto KEYWORD_CONTENT = "select count (42) from Keywords k %1 where k.KeywordID = ?";
-constexpr auto UPDATE_CONTENT  = "select count (42) from Books l %1 where l.UpdateID = ?";
+constexpr auto UPDATE_CONTENT  = "select count (42) from Books_View_Opds l %1 where l.UpdateID = ?";
 constexpr auto FOLDER_CONTENT  = "select count (42) from Folders f %1 where f.FolderID = ?";
 constexpr auto BOOK_CONTENT    = R"(
 select 
@@ -227,7 +229,7 @@ select
 		from Authors a
 		join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID ORDER BY a.ROWID ASC LIMIT 1
 	), s.SeriesTitle, b.SeqNumber
-	from Books b
+	from Books_View_Opds b
 	left join Series s on s.SeriesID = b.SeriesID
 	where b.BookID = ?
 )";
@@ -238,18 +240,18 @@ with Ids(BookID) as (
         select ?
     )
     select b.BookID
-        from Books b
+        from Books_View_Opds b
         join Books_Search fts on fts.rowid = b.BookID
         join Search s on Books_Search match s.Title
     union
     select b.BookID
-        from Books b
+        from Books_View_Opds b
         join Author_List l on l.BookID = b.BookID
         join Authors_Search fts on fts.rowid = l.AuthorID
         join Search s on Authors_Search match s.Title
     union
     select b.BookID
-        from Books b
+        from Books_View_Opds b
         join Series_List l on l.BookID = b.BookID
         join Series_Search fts on fts.rowid = l.SeriesID
         join Search s on Series_Search match s.Title
@@ -260,9 +262,8 @@ with Ids(BookID) as (
 		join Search s on Compilations_Search match s.Title
 )
 select b.BookID, b.Title
-	from #BOOKS_VIEW# b
+	from Books_View_Opds b
 	join Ids i on i.BookID = b.BookID
-	where b.IsDeleted != #IS_DELETED#
 )";
 
 constexpr auto SEARCH_QUERY_TEXT_AUTHORS = "select a.AuthorID, " FULL_AUTHOR_NAME R"(
@@ -280,9 +281,8 @@ select a.SeriesID, a.SeriesTitle
 
 constexpr auto SEARCH_QUERY_TEXT_BOOKS = R"(
 select b.BookID, b.Title
-	from #BOOKS_VIEW# b
+	from Books_View_Opds b
 	join Books_Search s on s.rowid = b.BookID and Books_Search match ?
-	where b.IsDeleted != #IS_DELETED#
 )";
 
 class IQueryTextFilter // NOLINT(cppcoreguidelines-special-member-functions)
@@ -526,7 +526,7 @@ void WriteNavigationEntries(
 )
 {
 	if (join.isEmpty())
-		join = QString("join #BOOKS_VIEW# b on b.BookID = l.BookID and b.IsDeleted != #IS_DELETED#\n%1").arg(d.joinSelect);
+		join = QString("join Books_View_Opds b on b.BookID = l.BookID\n%1").arg(d.joinSelect);
 
 	for (auto&& [navigationId, title] : ones)
 	{
@@ -608,7 +608,7 @@ QString GetJoin(const IRequester::Parameters& parameters)
 	if (list.isEmpty())
 		return {};
 
-	list << "join #BOOKS_VIEW# b on b.BookID = l.BookID and b.IsDeleted != #IS_DELETED#";
+	list << "join Books_View_Opds b on b.BookID = l.BookID";
 
 	return list.join("\n");
 }
@@ -1164,7 +1164,7 @@ private: // INavigationProvider
 			p.erase(d.type);
 			auto result = GetJoin(p);
 			if (result.isEmpty())
-				return QString("join #BOOKS_VIEW# b on b.BookID = l.BookID and b.IsDeleted != #IS_DELETED#");
+				return QString("join Books_View_Opds b on b.BookID = l.BookID");
 			return result;
 		}();
 
@@ -1229,7 +1229,6 @@ private: // IQueryTextFilter
 		const auto showRemoved = m_settings->Get(Flibrary::Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false);
 		queryText.replace("#IS_DELETED#", showRemoved ? "2" : "1");
 		queryText.replace("#FLAGS#", QString::number(static_cast<int>(m_filterProvider->IsFilterEnabled() ? Flibrary::IDataItem::Flags::Filtered : Flibrary::IDataItem::Flags::None)));
-		queryText.replace("#BOOKS_VIEW#", m_filterProvider->IsFilterEnabled() ? "Books_View_Filtered" : "Books_View");
 		return queryText.toStdString();
 	}
 
