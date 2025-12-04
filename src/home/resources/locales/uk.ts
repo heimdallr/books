@@ -2523,28 +2523,8 @@ Try again?</source>
 <context>
     <name>Http</name>
     <message>
-        <source>Authentication failed</source>
-        <translation>Помилка автентифікації</translation>
-    </message>
-    <message>
         <source>Authentication required</source>
         <translation>Потрібна автентифікація</translation>
-    </message>
-    <message>
-        <source>Enter Password</source>
-        <translation>Введіть пароль</translation>
-    </message>
-    <message>
-        <source>Enter Username</source>
-        <translation>Введіть ім&apos;я користувача</translation>
-    </message>
-    <message>
-        <source>Login</source>
-        <translation>Логін</translation>
-    </message>
-    <message>
-        <source>Password</source>
-        <translation>Пароль</translation>
     </message>
 </context>
 <context>
