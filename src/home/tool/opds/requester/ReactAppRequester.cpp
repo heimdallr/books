@@ -35,7 +35,7 @@ constexpr auto SELECTED_GROUP_ID = "selectedGroupID";
 
 #define AUTHOR_FULL_NAME "a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '')"
 
-constexpr auto MAIN_BOOK_FIELDS = "b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) as SeqNumber, b.FileName, b.Ext, b.UpdateDate, b.Year";
+constexpr auto MAIN_BOOK_FIELDS = "b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) as SeqNumber, b.BaseFileName, b.Ext, b.UpdateDate, b.Year";
 constexpr auto AUTHORS_FIELD    = "(select group_concat(" AUTHOR_FULL_NAME R"(, ', ')
 	from Authors a 
 	join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
@@ -103,7 +103,7 @@ struct ReactAppRequester::Impl
 
 		QJsonObject result;
 		{
-			const auto query = db->CreateQuery("select count (42) from Books");
+			const auto query = db->CreateQuery("select count (42) from Books_View_Opds");
 			query->Execute();
 			assert(!query->Eof());
 			result.insert("numberOfBooks", query->Get<long long>(0));
@@ -134,7 +134,7 @@ struct ReactAppRequester::Impl
 			static constexpr std::string_view queryText = R"(
 SELECT gu.GroupID, gu.Title
           , (SELECT COUNT(42) FROM Groups_List_User_View WHERE Groups_List_User_View.GroupID = gu.GroupID) AS numberOfBooks
-          , (SELECT COUNT(42) FROM Books b join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = b.BookID) AS booksInGroup
+          , (SELECT COUNT(42) FROM Books_View_Opds b join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = b.BookID) AS booksInGroup
           , (SELECT COUNT(42) FROM Authors a join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = a.AuthorID) AS authorsInGroup
           , (SELECT group_concat()" AUTHOR_FULL_NAME R"(, ", ") FROM Authors a join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = a.AuthorID) AS authorsListInGroup
           , (SELECT COUNT(42) FROM Series s join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = s.SeriesID) AS seriesInGroup
@@ -169,7 +169,7 @@ SELECT gu.GroupID, gu.Title
 with Search (Title) as (
     select ?
 )
-select (select count (42) from Books_Search join Search s on Books_Search match s.Title) as bookTitles
+select (select count (42) from Books_Search fts join Search s on Books_Search match s.Title join Books_View_Opds b on b.BookID = fts.rowid) as bookTitles
     , (select count (42) from Authors_Search join Search s on Authors_Search match s.Title) as authors
     , (select count (42) from Series_Search join Search s on Series_Search match s.Title) as bookSeries
 )";
@@ -206,7 +206,7 @@ where g.GroupID = ?
 
 	QJsonObject getSearchTitles(const Parameters& parameters) const
 	{
-		static constexpr auto queryText  = "select %1, %2, %3, s.SeriesTitle from Books b %4 left join Series s on s.SeriesID = b.SeriesID";
+		static constexpr auto queryText  = "select %1, %2, %3, s.SeriesTitle from Books_View_Opds b %4 left join Series s on s.SeriesID = b.SeriesID";
 		static constexpr auto groupJoin  = "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = ?";
 		static constexpr auto searchJoin = "join Books_Search fts on fts.rowid = b.BookID and Books_Search match ?";
 
@@ -220,7 +220,7 @@ where g.GroupID = ?
 
 	QJsonObject getSearchAuthors(const Parameters& parameters) const
 	{
-		static constexpr auto queryText  = "select a.AuthorID, " AUTHOR_FULL_NAME " as Authors, count(42) as Books from Authors a %1 group by a.AuthorID";
+		static constexpr auto queryText  = "select a.AuthorID, " AUTHOR_FULL_NAME " as Authors, count(42) as Books_View_Opds from Authors a %1 group by a.AuthorID";
 		static constexpr auto groupJoin  = "join Author_List al on al.AuthorID = a.AuthorID join Groups_List_User_View gl on gl.BookID = al.BookID and gl.GroupID = ?";
 		static constexpr auto searchJoin = "join Author_List al on al.AuthorID = a.AuthorID join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?";
 
@@ -234,7 +234,7 @@ where g.GroupID = ?
 
 	QJsonObject getSearchSeries(const Parameters& parameters) const
 	{
-		static constexpr auto queryText  = "select s.SeriesID, s.SeriesTitle, count(42) as Books from Series s %1 group by s.SeriesID";
+		static constexpr auto queryText  = "select s.SeriesID, s.SeriesTitle, count(42) as Books_View_Opds from Series s %1 group by s.SeriesID";
 		static constexpr auto groupJoin  = "join Series_List sl on sl.SeriesID = s.SeriesID join Groups_List_User_View gl on gl.BookID = sl.BookID and gl.GroupID = ?";
 		static constexpr auto searchJoin = "join Series_List sl on sl.SeriesID = s.SeriesID join Series_Search fts on fts.rowid = s.SeriesID and Series_Search match ?";
 
@@ -248,7 +248,7 @@ where g.GroupID = ?
 
 	QJsonObject getSearchAuthorBooks(const Parameters& parameters) const
 	{
-		static constexpr auto                                 queryText = "select %1, %2, s.SeriesTitle from Books b %3 left join Series s on s.SeriesID = b.SeriesID";
+		static constexpr auto                                 queryText = "select %1, %2, s.SeriesTitle from Books_View_Opds b %3 left join Series s on s.SeriesID = b.SeriesID";
 		static constexpr std::tuple<const char*, const char*> list[] {
 			{ SELECTED_GROUP_ID, "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = %1" },
 			{  SELECTED_ITEM_ID,          "join Author_List al on al.BookID = b.BookID and al.AuthorID = %1" },
@@ -259,7 +259,7 @@ where g.GroupID = ?
 
 	QJsonObject getSearchSeriesBooks(const Parameters& parameters) const
 	{
-		static constexpr auto                                 queryText = "select %1, %2, %3 from Books b %4";
+		static constexpr auto                                 queryText = "select %1, %2, %3 from Books_View_Opds b %4";
 		static constexpr std::tuple<const char*, const char*> list[] {
 			{ SELECTED_GROUP_ID, "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = %1" },
 			{  SELECTED_ITEM_ID,          "join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = %1" },
