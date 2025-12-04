@@ -285,63 +285,6 @@ select b.BookID, b.Title
 	where b.IsDeleted != #IS_DELETED#
 )";
 
-constexpr auto DROP_BOOKS_VIEW_FLAGS_COMMAND_TEXT = "drop view if exists Books_View_Filtered";
-
-constexpr auto CREATE_BOOKS_VIEW_FLAGS_COMMAND_TEXT = R"(
-CREATE VIEW IF NOT EXISTS Books_View_Filtered
-(
-	BookID,
-	LibID,
-	Title,
-	SeriesID,
-	SeqNumber,
-	UpdateDate,
-	LibRate,
-	Lang,
-	Year,
-	FolderID,
-	FileName,
-	BookSize,
-	UpdateID,
-	IsDeleted,
-	UserRate,
-	SearchTitle
-)
-AS
-with Filtered(BookID) as
-(
-	select b.BookID
-	from Books b
-	where not
-	(      exists (select 42 from Languages m                  where m.LanguageCode = b.Lang                                and m.Flags & 2 != 0)
-		or exists (select 42 from Authors   m join Author_List  l on l.AuthorID     = m.AuthorID  and l.BookID = b.BookID where m.Flags & 2 != 0)
-		or exists (select 42 from Series    m join Series_List  l on l.SeriesID     = m.SeriesID  and l.BookID = b.BookID where m.Flags & 2 != 0)
-		or exists (select 42 from Genres    m join Genre_List   l on l.GenreCode    = m.GenreCode and l.BookID = b.BookID where m.Flags & 2 != 0)
-		or exists (select 42 from Keywords  m join Keyword_List l on l.KeywordID    = m.KeywordID and l.BookID = b.BookID where m.Flags & 2 != 0)
-    )
-)
-SELECT
-		b.BookID,
-		b.LibID,
-		b.Title,
-		b.SeriesID,
-		b.SeqNumber,
-		b.UpdateDate,
-		b.LibRate,
-		b.Lang,
-		b.Year,
-		b.FolderID,
-		b.FileName || b.Ext AS FileName,
-		b.BookSize,
-		b.UpdateID,
-		coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted,
-		bu.UserRate,
-		b.SearchTitle
-	FROM Books b
-    JOIN Filtered f on f.BookID = b.BookId
-	LEFT JOIN Books_User bu ON bu.BookID = b.BookID
-)";
-
 class IQueryTextFilter // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
@@ -852,10 +795,7 @@ public:
 		, m_annotationController { std::move(annotationController) }
 	{
 		const auto db = m_databaseController->GetDatabase();
-		const auto tr = db->CreateTransaction();
-		tr->CreateCommand(DROP_BOOKS_VIEW_FLAGS_COMMAND_TEXT)->Execute();
-		tr->CreateCommand(CREATE_BOOKS_VIEW_FLAGS_COMMAND_TEXT)->Execute();
-		tr->Commit();
+		BookView::Create(*db, *m_settings);
 	}
 
 	const Flibrary::ICollectionProvider& GetCollectionProvider() const
