@@ -4669,11 +4669,19 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Select settings file</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Select stylesheet files</source>
         <translation></translation>
     </message>
     <message>
         <source>Server &amp;Management...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Settings files (*.ini);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>

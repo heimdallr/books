@@ -4681,12 +4681,20 @@ Try again?</source>
         <translation>Выберите шрифт</translation>
     </message>
     <message>
+        <source>Select settings file</source>
+        <translation>Выберите файл с настройками</translation>
+    </message>
+    <message>
         <source>Select stylesheet files</source>
         <translation>Выберите файлы со стилями</translation>
     </message>
     <message>
         <source>Server &amp;Management...</source>
         <translation>&amp;Управление сервером...</translation>
+    </message>
+    <message>
+        <source>Settings files (*.ini);;All files (*.*)</source>
+        <translation>Файлы настроек (*.ini);;Все файлы (*.*)</translation>
     </message>
     <message>
         <source>Sho&amp;w</source>
