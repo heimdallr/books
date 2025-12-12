@@ -1154,7 +1154,7 @@ private:
 
 		auto searchString = m_ui.lineEditBookTitleToSearch->text().toLower();
 		searchString.removeIf([](const QChar ch) {
-			return ch != ' ' && ch.category() != QChar::Letter_Lowercase;
+			return ch != ' ' && !IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit);
 		});
 
 		if (searchString.isEmpty())
