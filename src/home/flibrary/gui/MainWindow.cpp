@@ -63,7 +63,9 @@ constexpr auto        DATABASE_BROKEN                      = QT_TRANSLATE_NOOP("
 constexpr auto        DENY_DESTRUCTIVE_OPERATIONS_MESSAGE  = QT_TRANSLATE_NOOP("MainWindow", "The right decision!");
 constexpr auto        ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
 constexpr auto        SELECT_QSS_FILE                      = QT_TRANSLATE_NOOP("MainWindow", "Select stylesheet files");
+constexpr auto        SELECT_SETTINGS_FILE                 = QT_TRANSLATE_NOOP("MainWindow", "Select settings file");
 constexpr auto        QSS_FILE_FILTER                      = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
+constexpr auto        SETTINGS_FILE_FILTER                 = QT_TRANSLATE_NOOP("MainWindow", "Settings files (*.ini);;All files (*.*)");
 constexpr auto        SEARCH_BOOKS_BY_TITLE_PLACEHOLDER    = QT_TRANSLATE_NOOP("MainWindow", "To search for books by author, series, or title, enter the name or title here and press Enter");
 constexpr auto        ENABLE_ALL                           = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
 constexpr auto        DISABLE_ALL                          = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
@@ -88,6 +90,7 @@ constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
 constexpr auto START_FOCUSED_CONTROL              = "ui/View/StartFocusedControl";
 constexpr auto QSS                                = "qss";
+constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 
 class LineEditPlaceholderTextController final : public QObject
 {
@@ -591,6 +594,12 @@ private:
 		});
 		connect(m_ui.actionImportUserData, &QAction::triggered, &m_self, [=] {
 			userDataOperation(&IUserDataController::Restore);
+		});
+		connect(m_ui.actionExportSettings, &QAction::triggered, &m_self, [this] {
+			ExportSettings();
+		});
+		connect(m_ui.actionImportSettings, &QAction::triggered, &m_self, [this] {
+			ImportSettings();
 		});
 		connect(m_ui.actionExit, &QAction::triggered, &m_self, [] {
 			QCoreApplication::exit();
@@ -1276,6 +1285,21 @@ private:
 	void SetCheckForUpdateOnStartEnabled(const bool value) noexcept
 	{
 		m_checkForUpdateOnStartEnabled = value;
+	}
+
+	void ExportSettings() const
+	{
+		if (const auto exportSettingsPath = m_uiFactory->GetSaveFileName(SETTINGS_FILE_KEY, Tr(SELECT_SETTINGS_FILE), Tr(SETTINGS_FILE_FILTER)); !exportSettingsPath.isEmpty())
+			m_settings->Save(exportSettingsPath);
+	}
+
+	void ImportSettings()
+	{
+		if (const auto importSettingsPath = m_uiFactory->GetOpenFileName(SETTINGS_FILE_KEY, Tr(SELECT_SETTINGS_FILE), Tr(SETTINGS_FILE_FILTER)); !importSettingsPath.isEmpty())
+		{
+			m_settings->Load(importSettingsPath);
+			Reboot();
+		}
 	}
 
 	static void Reboot()
