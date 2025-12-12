@@ -14,6 +14,8 @@
 #include <QTimer>
 #include <QToolBar>
 
+#include "fnd/IsOneOf.h"
+
 #include "interface/Localization.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
@@ -1150,7 +1152,11 @@ private:
 		if (!m_collectionController->ActiveCollectionExists())
 			return;
 
-		auto searchString = m_ui.lineEditBookTitleToSearch->text();
+		auto searchString = m_ui.lineEditBookTitleToSearch->text().toLower();
+		searchString.removeIf([](const QChar ch) {
+			return ch != ' ' && !IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit);
+		});
+
 		if (searchString.isEmpty())
 			return;
 
