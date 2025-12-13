@@ -88,7 +88,7 @@ constexpr auto SHOW_STATUS_BAR_KEY                = "ui/View/Status";
 constexpr auto SHOW_REVIEWS_KEY                   = "ui/View/ShowReadersReviews";
 constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
-constexpr auto START_FOCUSED_CONTROL              = "ui/View/StartFocusedControl";
+constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 
