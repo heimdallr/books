@@ -82,7 +82,7 @@ private:
 	QDir m_impl { QDir::tempPath() + "/" + PRODUCT_ID };
 };
 
-constexpr auto EXPORT_TRANSLITERATE_MODE_KEY = "ui/Export/TransliterationMode";
+constexpr auto EXPORT_TRANSLITERATE_MODE_KEY = "Preferences/Export/TransliterationMode";
 #define TRANSLITERATE_MODE_ITEMS_X_MACRO       \
 	TRANSLITERATE_MODE_ITEM(None)              \
 	TRANSLITERATE_MODE_ITEM(FileNameOnly)      \
