@@ -13,6 +13,7 @@
 #include "fnd/FindPair.h"
 
 #include "network/network/downloader.h"
+#include "util/files.h"
 
 #include "log.h"
 
@@ -189,7 +190,7 @@ bool CommandExecutor::ExecuteSystem(const IScriptController::Command& command) c
 bool CommandExecutor::ExecuteLaunchConsoleApp(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::LaunchConsoleApp);
-	const auto file       = QDir::toNativeSeparators(command.command).toStdWString();
+	const auto file       = QDir::toNativeSeparators(Util::ToAbsolutePath(command.command)).toStdWString();
 	const auto parameters = command.args.toStdWString();
 	return CreateProcess(file, parameters);
 }
@@ -197,7 +198,7 @@ bool CommandExecutor::ExecuteLaunchConsoleApp(const IScriptController::Command& 
 bool CommandExecutor::ExecuteLaunchGuiApp(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::LaunchGuiApp);
-	const auto file       = QDir::toNativeSeparators(command.command).toStdWString();
+	const auto file       = QDir::toNativeSeparators(Util::ToAbsolutePath(command.command)).toStdWString();
 	const auto parameters = command.args.toStdWString();
 	return ShellExecute(file, parameters, IScriptController::Command::Type::LaunchGuiApp);
 }
