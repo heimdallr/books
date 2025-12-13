@@ -18,7 +18,7 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto OPDS_TRANSLITERATE = "opds/transliterate";
+constexpr auto OPDS_TRANSLITERATE = "Preferences/opds/transliterate";
 
 QString GetOutputFileNameTemplate(const ISettings& settings)
 {
