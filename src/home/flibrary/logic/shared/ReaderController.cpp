@@ -225,6 +225,7 @@ struct ReaderController::Impl
 		}
 
 		assert(!reader.isEmpty());
+		reader = Util::ToAbsolutePath(reader);
 		new ReaderProcess(reader, fileName, std::move(temporaryDir), uiFactory->GetParentObject());
 	}
 };
