@@ -33,7 +33,7 @@ std::unordered_map<long long, double> ReadRates(const ISettings& settings, const
 	if (!collectionProvider.ActiveCollectionExists())
 		return {};
 
-	if (settings.Get(Constant::Settings::LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT)
+	if (settings.Get(Constant::Settings::PREFER_LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT)
 		return {};
 
 	const auto additionalFileName =
@@ -70,11 +70,12 @@ std::unordered_map<long long, double> ReadRates(const ISettings& settings, const
 		}),
 		std::inserter(additionalRates, additionalRates.end()),
 		[](const auto& item) {
-		return std::make_pair(std::get<0>(item), std::get<1>(item) / std::get<2>(item));
-	});
+			return std::make_pair(std::get<0>(item), std::get<1>(item) / std::get<2>(item));
+		}
+	);
 
-	const auto db = databaseUser.Database();
-	const auto query = db->CreateQuery("select b.BookID, f.FolderTitle||'#'||b.FileName from Books_View b join Folders f on f.FolderID = b.FolderID");
+	const auto                            db    = databaseUser.Database();
+	const auto                            query = db->CreateQuery("select b.BookID, f.FolderTitle||'#'||b.FileName from Books_View b join Folders f on f.FolderID = b.FolderID");
 	std::unordered_map<long long, double> rate;
 	for (query->Execute(); !query->Eof(); query->Next())
 		if (const auto it = additionalRates.find(query->Get<const char*>(1)); it != additionalRates.end())
@@ -92,7 +93,7 @@ std::map<double, uint32_t> ReadColors(const ISettings& settings)
 		{ 6.0, color },
 	};
 
-	SettingsGroup viewColorsGroup(settings, Constant::Settings::LIBRATE_VIEW_COLORS_KEY);
+	SettingsGroup viewColorsGroup(settings, Constant::Settings::PREFER_LIBRATE_VIEW_COLORS_KEY);
 	for (const auto& key : settings.GetKeys())
 	{
 		bool ok = false;
@@ -138,7 +139,7 @@ struct LibRateProviderDouble::Impl
 	Impl(const ISettings& settings, const ICollectionProvider& collectionProvider, const IDatabaseUser& databaseUser)
 		: rate { ReadRates(settings, collectionProvider, databaseUser) }
 		, colors { ReadColors(settings) }
-		, precision { settings.Get(Constant::Settings::LIBRATE_VIEW_PRECISION_KEY, 0) }
+		, precision { settings.Get(Constant::Settings::PREFER_LIBRATE_VIEW_PRECISION_KEY, 0) }
 	{
 	}
 };
