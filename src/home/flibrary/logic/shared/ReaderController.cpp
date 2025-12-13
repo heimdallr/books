@@ -16,6 +16,7 @@
 
 #include "interface/Localization.h"
 #include "interface/constants/ExportStat.h"
+#include "interface/constants/SettingsConstant.h"
 
 #include "util/IExecutor.h"
 #include "util/PlatformUtil.h"
@@ -173,8 +174,12 @@ struct ReaderController::Impl
 
 		const auto getReader = [&] {
 			reader = uiFactory->GetOpenFileName(DIALOG_KEY, Tr(DIALOG_TITLE).arg(ext), Tr(DIALOG_FILTER));
-			if (!reader.isEmpty())
-				settings->Set(key, reader);
+			if (reader.isEmpty())
+				return;
+
+			if (settings->Get(Constant::Settings::PREFER_RELATIVE_PATHS, false))
+				reader = Util::ToRelativePath(reader);
+			settings->Set(key, reader);
 		};
 
 		if (reader.isEmpty())
@@ -214,6 +219,7 @@ struct ReaderController::Impl
 				return;
 		}
 
+		reader = Util::ToAbsolutePath(reader);
 		while (!QFile::exists(reader))
 		{
 			if (uiFactory->ShowQuestion(Tr(CANNOT_START_READER).arg(QFileInfo(reader).fileName()), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) != QMessageBox::Yes)
@@ -225,7 +231,6 @@ struct ReaderController::Impl
 		}
 
 		assert(!reader.isEmpty());
-		reader = Util::ToAbsolutePath(reader);
 		new ReaderProcess(reader, fileName, std::move(temporaryDir), uiFactory->GetParentObject());
 	}
 };

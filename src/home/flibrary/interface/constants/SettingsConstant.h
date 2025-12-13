@@ -45,4 +45,6 @@ constexpr auto LIBRATE_VIEW_PRECISION_DEFAULT     = -1;
 constexpr auto COLLECTIONS                        = "Collections";
 constexpr auto DESTRUCTIVE_OPERATIONS_ALLOWED_KEY = "destructiveOperationsAllowed";
 
+constexpr auto PREFER_RELATIVE_PATHS = "Preferences/RelativePaths";
+
 } // namespace HomeCompa::Flibrary::Constant::Settings

@@ -4,6 +4,8 @@
 #include "fnd/memory.h"
 
 #include "BaseDelegateEditor.h"
+#include "gutil/interface/IUiFactory.h"
+#include "util/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -13,7 +15,7 @@ class OpenFileDialogDelegateEditor final : public BaseDelegateEditor
 	NON_COPY_MOVABLE(OpenFileDialogDelegateEditor)
 
 public:
-	explicit OpenFileDialogDelegateEditor(std::shared_ptr<const class IUiFactory> uiFactory, QWidget* parent = nullptr);
+	OpenFileDialogDelegateEditor(const std::shared_ptr<const ISettings>& settings, std::shared_ptr<const Util::IUiFactory> uiFactory, QWidget* parent = nullptr);
 	~OpenFileDialogDelegateEditor() override;
 
 private: // BaseDelegateEditor
