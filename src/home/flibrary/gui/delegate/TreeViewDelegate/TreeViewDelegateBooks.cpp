@@ -85,7 +85,7 @@ class RateRendererStars final : virtual public IBookRenderer
 public:
 	RateRendererStars(const int role, const ISettings& settings)
 		: m_role { role }
-		, m_starSymbol { settings.Get(Constant::Settings::LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) }
+		, m_starSymbol { settings.Get(Constant::Settings::PREFER_LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) }
 	{
 	}
 
@@ -120,7 +120,7 @@ private: // IRateRenderer
 
 std::unique_ptr<const IBookRenderer> GetLibRateRenderer(QStyledItemDelegate& impl, const ISettings& settings)
 {
-	return settings.Get(Constant::Settings::LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT
+	return settings.Get(Constant::Settings::PREFER_LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT
 	         ? std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererStars>(Role::LibRate, settings) }
 	         : std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererNumber>(impl) };
 }

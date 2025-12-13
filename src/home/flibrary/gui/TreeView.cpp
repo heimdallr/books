@@ -53,7 +53,7 @@ constexpr auto SORT_KEY                           = "Sort";
 constexpr auto SORT_INDEX_KEY                     = "Index";
 constexpr auto SORT_ORDER_KEY                     = "Order";
 constexpr auto RECENT_LANG_FILTER_KEY             = "ui/language";
-constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "ui/View/CommonBooksTableColumnSettings";
+constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTableColumnSettings";
 constexpr auto LAST                               = "Last";
 
 class HeaderView final : public QHeaderView

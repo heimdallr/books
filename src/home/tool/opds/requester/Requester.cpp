@@ -90,9 +90,9 @@ constexpr auto SEARCH                  = "search";
 constexpr auto START                   = "start";
 constexpr auto STARTS                  = "starts";
 constexpr auto SEPARATED               = "separated";
-constexpr auto OPDS_BOOK_LIMIT_KEY     = "opds/BookEntryLimit";
+constexpr auto OPDS_BOOK_LIMIT_KEY     = "Preferences/opds/BookEntryLimit";
 constexpr auto OPDS_BOOK_LIMIT_DEFAULT = 25;
-constexpr auto OPDS_SEPARATED_SEARCH   = "opds/SeparatedSearch";
+constexpr auto OPDS_SEPARATED_SEARCH   = "Preferences/opds/SeparatedSearch";
 
 TR_DEF
 

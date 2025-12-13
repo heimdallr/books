@@ -62,7 +62,7 @@ bool ScrollBarController::eventFilter(QObject* /*obj*/, QEvent* event)
 
 QTimer* ScrollBarController::CreateTimer(const ISettings& settings, void (ScrollBarController::*f)() const)
 {
-	if (!settings.Get(Constant::Settings::HIDE_SCROLLBARS_KEY, true))
+	if (!settings.Get(Constant::Settings::PREFER_HIDE_SCROLLBARS_KEY, true))
 		return nullptr;
 
 	auto* timer = new QTimer(this);

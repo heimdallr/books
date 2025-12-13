@@ -150,7 +150,7 @@ SELECT gu.GroupID, gu.Title
 			result.insert("groups", array);
 		}
 
-		if (auto readTemplate = settings->Get(Flibrary::Constant::Settings::OPDS_READ_URL_TEMPLATE).toString(); !readTemplate.isEmpty())
+		if (auto readTemplate = settings->Get(Flibrary::Constant::Settings::PREFER_OPDS_READ_URL_TEMPLATE).toString(); !readTemplate.isEmpty())
 		{
 			const auto host = settings->Get(Flibrary::Constant::Settings::OPDS_HOST_KEY, Flibrary::Constant::Settings::OPDS_HOST_DEFAULT);
 			const auto port = settings->Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT);

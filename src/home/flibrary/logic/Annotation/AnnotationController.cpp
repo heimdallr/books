@@ -722,7 +722,7 @@ private:
 			}
 		}
 
-		const auto reviewsSortMode = m_settings->Get("ui/View/AnnotationReviewSortMode", QString { "Time" }).toStdString();
+		const auto reviewsSortMode = m_settings->Get("Preferences/AnnotationReviewSortMode", QString { "Time" }).toStdString();
 		const auto invoker         = FindSecond(REVIEW_SORTERS, reviewsSortMode.data(), REVIEW_SORTER_DEFAULT, PszComparer {});
 		std::invoke(invoker, std::ref(reviews));
 

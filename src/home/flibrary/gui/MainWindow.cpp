@@ -83,12 +83,12 @@ constexpr auto SHOW_ANNOTATION_KEY                = "ui/View/Annotation";
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY        = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY          = "ui/View/AnnotationCover";
 constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY  = "ui/View/AnnotationCoverButtons";
-constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "ui/View/AnnotationJokes/%1";
+constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "Preferences/AnnotationJokes/%1";
 constexpr auto SHOW_STATUS_BAR_KEY                = "ui/View/Status";
 constexpr auto SHOW_REVIEWS_KEY                   = "ui/View/ShowReadersReviews";
 constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
-constexpr auto START_FOCUSED_CONTROL              = "ui/View/StartFocusedControl";
+constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 
@@ -523,7 +523,7 @@ private:
 
 	void SetupTrayMenu()
 	{
-		if (!m_settings->Get(Constant::Settings::HIDE_TO_TRAY_KEY, false))
+		if (!m_settings->Get(Constant::Settings::PREFER_HIDE_TO_TRAY_KEY, false))
 			return;
 
 		m_systemTray = new QSystemTrayIcon(QIcon(":/icons/main.ico"), &m_self);

@@ -71,7 +71,7 @@ class AnnotationControllerStrategy final : public IAnnotationController::IStrate
 {
 public:
 	AnnotationControllerStrategy(const ISettings& settings)
-		: m_starSymbol { settings.Get(Constant::Settings::LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) }
+		: m_starSymbol { settings.Get(Constant::Settings::PREFER_LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) }
 	{
 	}
 
@@ -389,7 +389,7 @@ class ParserBookInfo final : public ParserOpds
 
 	static QString CreateReadTemplate(const ISettings& settings)
 	{
-		auto       readTemplate = settings.Get(Constant::Settings::OPDS_READ_URL_TEMPLATE, QString("/web/read?book=%1"));
+		auto       readTemplate = settings.Get(Constant::Settings::PREFER_OPDS_READ_URL_TEMPLATE, QString("/web/read?book=%1"));
 		const auto host         = settings.Get(Constant::Settings::OPDS_HOST_KEY, Constant::Settings::OPDS_HOST_DEFAULT);
 		const auto port         = settings.Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT);
 		readTemplate.replace("%HTTP_HOST%", host);

@@ -19,7 +19,7 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto GENRES_SORT_MODE_KEY = "ui/GenresSortMode";
+constexpr auto GENRES_SORT_MODE_KEY = "Preferences/GenresSortMode";
 
 template <typename T>
 void Sort(T& root, const auto& proj)

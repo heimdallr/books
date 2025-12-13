@@ -79,7 +79,7 @@ int run(int argc, char* argv[])
 
 		std::shared_ptr<Flibrary::ICollectionAutoUpdater> collectionAutoUpdater;
 		std::unique_ptr<CollectionAutoUpdaterObserver>    collectionAutoUpdaterObserver;
-		if (settings->Get(Flibrary::Constant::Settings::OPDS_AUTOUPDATE_COLLECTION, false))
+		if (settings->Get(Flibrary::Constant::Settings::PREFER_OPDS_AUTOUPDATE_COLLECTION, false))
 		{
 			collectionAutoUpdater         = container->resolve<Flibrary::ICollectionAutoUpdater>();
 			collectionAutoUpdaterObserver = std::make_unique<CollectionAutoUpdaterObserver>(*collectionAutoUpdater);
