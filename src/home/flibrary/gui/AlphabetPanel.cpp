@@ -34,7 +34,7 @@ TR_DEF
 
 constexpr auto ID             = "id";
 constexpr auto GROUP_KEY      = "ui/View/Alphabets";
-constexpr auto LINKED_CONTROL = "ui/View/Alphabets/LinkedControl";
+constexpr auto LINKED_CONTROL = "Preferences/Alphabets/LinkedControl";
 constexpr auto KEY_TEMPLATE   = "ui/View/Alphabets/%1/%2";
 constexpr auto VISIBLE        = "visible";
 constexpr auto ORD_NUM        = "order";
