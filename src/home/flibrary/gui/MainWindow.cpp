@@ -523,7 +523,7 @@ private:
 
 	void SetupTrayMenu()
 	{
-		if (!m_settings->Get(Constant::Settings::HIDE_TO_TRAY_KEY, false))
+		if (!m_settings->Get(Constant::Settings::PREFER_HIDE_TO_TRAY_KEY, false))
 			return;
 
 		m_systemTray = new QSystemTrayIcon(QIcon(":/icons/main.ico"), &m_self);

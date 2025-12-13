@@ -20,7 +20,6 @@ constexpr auto EXPORT_REPLACE_METADATA_KEY = "ui/Export/ReplaceMetadata";
 
 constexpr auto PERMANENT_LANG_FILTER_KEY         = "ui/permanentLanguageFilter";
 constexpr auto PERMANENT_LANG_FILTER_ENABLED_KEY = "ui/permanentLanguageFilterEnabled";
-constexpr auto HIDE_TO_TRAY_KEY                  = "ui/HideToTray";
 constexpr auto HIDE_SCROLLBARS_KEY               = "ui/hideScrollBars";
 constexpr auto SHOW_REMOVED_BOOKS_KEY            = "ui/View/RemovedBooks";
 
@@ -45,6 +44,7 @@ constexpr auto LIBRATE_VIEW_PRECISION_DEFAULT     = -1;
 constexpr auto COLLECTIONS                        = "Collections";
 constexpr auto DESTRUCTIVE_OPERATIONS_ALLOWED_KEY = "destructiveOperationsAllowed";
 
-constexpr auto PREFER_RELATIVE_PATHS = "Preferences/RelativePaths";
+constexpr auto PREFER_RELATIVE_PATHS   = "Preferences/RelativePaths";
+constexpr auto PREFER_HIDE_TO_TRAY_KEY = "Preferences/HideToTray";
 
 } // namespace HomeCompa::Flibrary::Constant::Settings
