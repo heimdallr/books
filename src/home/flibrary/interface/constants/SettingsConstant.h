@@ -20,7 +20,7 @@ constexpr auto EXPORT_REPLACE_METADATA_KEY = "ui/Export/ReplaceMetadata";
 
 constexpr auto PERMANENT_LANG_FILTER_KEY         = "ui/permanentLanguageFilter";
 constexpr auto PERMANENT_LANG_FILTER_ENABLED_KEY = "ui/permanentLanguageFilterEnabled";
-constexpr auto HIDE_SCROLLBARS_KEY               = "ui/hideScrollBars";
+constexpr auto HIDE_SCROLLBARS_KEY               = "Preferences/hideScrollBars";
 constexpr auto SHOW_REMOVED_BOOKS_KEY            = "ui/View/RemovedBooks";
 
 constexpr auto FONT_SIZE_DEFAULT = 9;
