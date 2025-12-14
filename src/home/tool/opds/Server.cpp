@@ -364,6 +364,7 @@ private:
 		{
 			const auto pathPattern = QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString {});
 			m_server.route(pathPattern, [this, root, invoker](const QHttpServerRequest& request) {
+				PLOGD << request.query().toString();
 				return Authorization(request, web, [this, root, invoker](const IRequester::Parameters& parameters, const QString& acceptEncoding) {
 					auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), std::cref(parameters)), acceptEncoding);
 					SetContentType(response, root, MessageType::Atom);
