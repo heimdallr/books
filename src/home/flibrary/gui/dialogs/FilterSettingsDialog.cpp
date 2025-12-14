@@ -253,10 +253,9 @@ private:
 			InitShowCheckedMode();
 		});
 
-		if (const auto index = m_settings->Get(RECENT_TAB_KEY, 0))
-			m_ui.tabs->setCurrentIndex(index);
-		else
-			m_ui.tabs->currentChanged(index);
+		QTimer::singleShot(0, [this] {
+			m_ui.tabs->setCurrentIndex(m_settings->Get(RECENT_TAB_KEY, 0));
+		});
 
 		if (const auto it = std::ranges::find_if(
 				ModeComboBox::VALUE_MODES,

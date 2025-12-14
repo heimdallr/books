@@ -86,7 +86,7 @@ FilterController::~FilterController() = default;
 
 bool FilterController::IsFilterEnabled() const noexcept
 {
-	return m_impl->settings->Get(FILTER_ENABLED_KEY, true);
+	return m_impl->settings->Get(FILTER_ENABLED_KEY, false);
 }
 
 std::vector<IDataItem::Flags> FilterController::GetFlags(const NavigationMode navigationMode, const std::vector<QString>& ids) const
