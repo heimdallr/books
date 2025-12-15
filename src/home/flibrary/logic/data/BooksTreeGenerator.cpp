@@ -297,8 +297,8 @@ private: // IBookSelector
 				if (splitted.size() != 2)
 					continue;
 
-				QFileInfo fileInfo(splitted.back());
-				const auto bookFolder = splitted.front().toStdString();
+				QFileInfo  fileInfo(splitted.back());
+				const auto bookFolder   = splitted.front().toStdString();
 				const auto bookFileName = fileInfo.completeBaseName().toStdString();
 				const auto bookExt      = '.' + fileInfo.suffix().toStdString();
 

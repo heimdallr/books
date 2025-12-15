@@ -3,9 +3,10 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-#include "BaseDelegateEditor.h"
 #include "gutil/interface/IUiFactory.h"
 #include "util/ISettings.h"
+
+#include "BaseDelegateEditor.h"
 
 namespace HomeCompa::Flibrary
 {

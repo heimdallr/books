@@ -27,6 +27,7 @@
 #include "logic/data/DataItem.h"
 #include "logic/data/Genre.h"
 #include "util/AnnotationControllerObserver.h"
+#include "util/BookView.h"
 #include "util/Fb2InpxParser.h"
 #include "util/ImageUtil.h"
 #include "util/SortString.h"
@@ -35,7 +36,6 @@
 
 #include "log.h"
 #include "root.h"
-#include "util/BookView.h"
 
 namespace HomeCompa::Opds
 {

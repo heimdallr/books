@@ -749,7 +749,7 @@ size_t Store(const Path& dbFileName, Data& data)
 		std::vector<std::pair<size_t, std::wstring>> reviews;
 
 		{
-			DatabaseWrapper        db(dbFileName);
+			DatabaseWrapper db(dbFileName);
 
 			sqlite3pp::query query(db, "select b.BookID, f.FolderTitle||'#'||b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID");
 			std::for_each(query.begin(), query.end(), [&](const auto& row) {

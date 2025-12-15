@@ -53,7 +53,7 @@ struct SingleInstanceController::Impl final : Observable<IObserver>
 
 	explicit Impl(const ISettings& settings, const IUiFactory& uiFactory)
 		: mode { settings.Get(Constant::Settings::PREFER_HIDE_TO_TRAY_KEY, false) ? Mode::Disabled
-		                                                                   : FindSecond(MODES, settings.Get(MULTIPLE_INSTANCE_APP_KEY, QString(MODES[0].first)).toStdString().data(), PszComparer {}) }
+		                                                                          : FindSecond(MODES, settings.Get(MULTIPLE_INSTANCE_APP_KEY, QString(MODES[0].first)).toStdString().data(), PszComparer {}) }
 		, firstInstance { mode != Mode::Enabled && !TryToConnect(uiFactory) }
 	{
 		if (!firstInstance)

@@ -156,7 +156,7 @@ select r.Folder, b.BookID, f.FolderTitle||'#'||b.FileName, b.Title
 	void GetReviews(Items& items, const DB::IQuery& query, const Zip& zip) const
 	{
 		const auto    bookId = query.Get<long long>(1);
-		const QString uid  = query.Get<const char*>(2);
+		const QString uid    = query.Get<const char*>(2);
 		QString       title  = query.Get<const char*>(3);
 
 		const auto stream = zip.Read(uid);
