@@ -61,20 +61,17 @@ SELECT
 	{}
 	{})";
 
-constexpr auto FILTERED_WITH = R"(with Filtered(BookID) as
-(
-	select b.BookID
-	from Books b
-	where not
-	(      exists (select 42 from Languages m                  where m.LanguageCode = b.Lang                                and m.Flags & 2 != 0)
-		or exists (select 42 from Authors   m join Author_List  l on l.AuthorID     = m.AuthorID  and l.BookID = b.BookID where m.Flags & 2 != 0)
-		or exists (select 42 from Series    m join Series_List  l on l.SeriesID     = m.SeriesID  and l.BookID = b.BookID where m.Flags & 2 != 0)
-		or exists (select 42 from Genres    m join Genre_List   l on l.GenreCode    = m.GenreCode and l.BookID = b.BookID where m.Flags & 2 != 0)
-		or exists (select 42 from Keywords  m join Keyword_List l on l.KeywordID    = m.KeywordID and l.BookID = b.BookID where m.Flags & 2 != 0)
-    )
+constexpr auto FILTERED_WITH = R"(WITH Filtered (BookId) AS (
+    SELECT al.BookID FROM Author_List al JOIN Authors a ON a.AuthorID = al.AuthorID AND a.Flags & 2 != 0
+UNION
+    SELECT sl.BookID FROM Series_List sl JOIN Series s ON s.SeriesID = sl.SeriesID AND s.Flags & 2 != 0
+UNION
+    SELECT gl.BookID FROM Genre_List gl JOIN Genres g ON g.GenreCode = gl.GenreCode AND g.Flags & 2 != 0
+UNION
+    SELECT kl.BookID FROM Keyword_List kl JOIN Keywords k ON k.KeywordID = kl.KeywordID AND k.Flags & 2 != 0
 ))";
 
-constexpr auto FILTERED_JOIN = "JOIN Filtered f on f.BookID = b.BookId";
+constexpr auto FILTERED_JOIN = "JOIN Languages l ON l.LanguageCode = b.Lang AND l.Flags & 2 = 0 LEFT JOIN Filtered f ON f.BookID = b.BookID";
 
 std::string GetCreateBookViewCommandText(const ISettings& settings, const Flibrary::IFilterProvider& filterProvider) noexcept
 {
@@ -83,8 +80,8 @@ std::string GetCreateBookViewCommandText(const ISettings& settings, const Flibra
 
 	std::string where;
 
-	auto        append = [&](const std::string& what) {
-        where += (where.empty() ? "" : " and ") + what;
+	auto append = [&](const std::string& what) {
+		where += (where.empty() ? "" : " and ") + what;
 	};
 
 	if (hideRemoved)
@@ -92,6 +89,8 @@ std::string GetCreateBookViewCommandText(const ISettings& settings, const Flibra
 
 	if (filterEnabled)
 	{
+		append("f.BookID IS NULL");
+
 		if (filterProvider.HideUnrated())
 			append("b.LibRate is not null");
 
