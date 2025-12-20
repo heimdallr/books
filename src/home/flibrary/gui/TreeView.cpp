@@ -400,7 +400,6 @@ public:
 
 	~Impl() override
 	{
-		SaveHeaderLayout();
 		m_filterProvider->UnregisterObserver(this);
 		m_controller->UnregisterObserver(this);
 		m_delegate->UnregisterObserver(this);
@@ -408,7 +407,6 @@ public:
 
 	void SetNavigationModeName(QString navigationModeName)
 	{
-		SaveHeaderLayout();
 		m_navigationModeName = std::move(navigationModeName);
 	}
 
@@ -474,7 +472,11 @@ public:
 		const auto diff   = m_ui.treeView->width() - m_ui.treeView->viewport()->width();
 		auto&      header = *m_ui.treeView->header();
 		if (const auto length = header.length() + diff; std::abs(length - event->oldSize().width()) < 3 * QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent))
+		{
+			QSignalBlocker block(&header);
 			header.resizeSection(0, m_ui.treeView->header()->sectionSize(0) + (event->size().width() - length));
+			SaveHeaderLayout();
+		}
 	}
 
 private: // ITreeViewController::IObserver
@@ -823,7 +825,16 @@ private:
 		m_ui.setupUi(&m_self);
 
 		if (!IsNavigation())
-			m_ui.treeView->setHeader(m_booksHeaderView = new HeaderView(*m_ui.treeView, m_currentId, &m_self));
+		{
+			m_booksHeaderView = new HeaderView(*m_ui.treeView, m_currentId, &m_self);
+			m_ui.treeView->setHeader(m_booksHeaderView);
+			connect(m_booksHeaderView, &QHeaderView::sectionResized, &m_self, [this] {
+				SaveHeaderLayout();
+			});
+			connect(m_booksHeaderView, &QHeaderView::sectionMoved, &m_self, [this] {
+				SaveHeaderLayout();
+			});
+		}
 
 		auto& treeViewHeader = *m_ui.treeView->header();
 		m_ui.treeView->setHeaderHidden(IsNavigation());
@@ -909,7 +920,6 @@ private:
 		connect(m_ui.cbMode, &QComboBox::currentIndexChanged, &m_self, [&](const int) {
 			auto newMode = m_ui.cbMode->currentData().toString();
 			emit m_self.NavigationModeNameChanged(newMode);
-			SaveHeaderLayout();
 			m_recentMode = std::move(newMode);
 			m_controller->SetMode(m_recentMode);
 			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
@@ -1036,6 +1046,8 @@ private:
 				header->showSection(i);
 
 		auto totalWidth = m_ui.treeView->viewport()->width();
+
+		QSignalBlocker resizeGuard(header);
 
 		for (int i = header->count() - 1; i > 0; --i)
 		{
