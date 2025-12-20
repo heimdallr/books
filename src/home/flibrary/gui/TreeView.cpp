@@ -469,14 +469,7 @@ public:
 		if (m_recentMode.isEmpty() || m_navigationModeName.isEmpty())
 			return;
 
-		const auto diff   = m_ui.treeView->width() - m_ui.treeView->viewport()->width();
-		auto&      header = *m_ui.treeView->header();
-		if (const auto length = header.length() + diff; std::abs(length - event->oldSize().width()) < 3 * QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent))
-		{
-			QSignalBlocker block(&header);
-			header.resizeSection(0, m_ui.treeView->header()->sectionSize(0) + (event->size().width() - length));
-			SaveHeaderLayout();
-		}
+		CheckHeaderViewWidth(*event);
 	}
 
 private: // ITreeViewController::IObserver
@@ -1012,6 +1005,8 @@ private:
 		std::map<int, int>          widths;
 		std::multimap<int, QString> indices;
 
+		QSignalBlocker resizeGuard(header);
+
 		const auto collectData = [&] {
 			const auto columns = m_settings->GetGroups();
 			for (const auto& columnName : columns)
@@ -1045,8 +1040,6 @@ private:
 			for (auto i = 0, sz = header->count(); i < sz; ++i)
 				header->showSection(i);
 
-		QSignalBlocker resizeGuard(header);
-
 		for (int i = 0, sz = header->count(); i < sz; ++i)
 			if (const auto it = widths.find(i); it != widths.end())
 				header->resizeSection(i, it->second);
@@ -1062,6 +1055,23 @@ private:
 			if (const auto it = nameToIndex.find(columnName); it != nameToIndex.end())
 				header->moveSection(header->visualIndex(it->second), ++n);
 		header->moveSection(header->visualIndex(0), 0);
+
+		CheckHeaderViewWidth(QResizeEvent(m_self.size(), m_self.size()));
+	}
+
+	void CheckHeaderViewWidth(const QResizeEvent& event)
+	{
+		const auto diff   = m_ui.treeView->width() - m_ui.treeView->viewport()->width();
+		auto&      header = *m_ui.treeView->header();
+		if (const auto length = header.length() + diff; std::abs(length - event.oldSize().width()) < 3 * QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent))
+		{
+			if (const auto offset = event.size().width() - length)
+			{
+				QSignalBlocker block(&header);
+				header.resizeSection(0, m_ui.treeView->header()->sectionSize(0) + offset);
+				SaveHeaderLayout();
+			}
+		}
 	}
 
 	void OnHeaderSectionsVisibleChanged() const
