@@ -963,7 +963,7 @@ private:
 		const auto* header           = m_ui.treeView->header();
 		const auto* model            = header->model();
 		const auto  saveHeaderLayout = [&] {
-            for (int i = 1, sz = header->count(); i < sz; ++i)
+            for (int i = 0, sz = header->count(); i < sz; ++i)
             {
                 const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
                 if (!header->isSectionHidden(i))
@@ -1045,27 +1045,11 @@ private:
 			for (auto i = 0, sz = header->count(); i < sz; ++i)
 				header->showSection(i);
 
-		auto totalWidth = m_ui.treeView->viewport()->width();
-
 		QSignalBlocker resizeGuard(header);
 
-		for (int i = header->count() - 1; i > 0; --i)
-		{
-			const auto width = [&] {
-				if (const auto it = widths.find(i); it != widths.end())
-				{
-					header->resizeSection(i, it->second);
-					return it->second;
-				}
-
-				return header->sectionSize(i);
-			}();
-
-			if (!header->isSectionHidden(i))
-				totalWidth -= width;
-		}
-
-		header->resizeSection(0, totalWidth);
+		for (int i = 0, sz = header->count(); i < sz; ++i)
+			if (const auto it = widths.find(i); it != widths.end())
+				header->resizeSection(i, it->second);
 
 		auto absent = nameToIndex;
 		for (const auto& columnName : indices | std::views::values)
@@ -1077,6 +1061,7 @@ private:
 		for (int n = 0; const auto& columnName : indices | std::views::values)
 			if (const auto it = nameToIndex.find(columnName); it != nameToIndex.end())
 				header->moveSection(header->visualIndex(it->second), ++n);
+		header->moveSection(header->visualIndex(0), 0);
 	}
 
 	void OnHeaderSectionsVisibleChanged() const
