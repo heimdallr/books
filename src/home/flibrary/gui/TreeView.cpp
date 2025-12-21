@@ -400,7 +400,6 @@ public:
 
 	~Impl() override
 	{
-		SaveHeaderLayout();
 		m_filterProvider->UnregisterObserver(this);
 		m_controller->UnregisterObserver(this);
 		m_delegate->UnregisterObserver(this);
@@ -408,7 +407,6 @@ public:
 
 	void SetNavigationModeName(QString navigationModeName)
 	{
-		SaveHeaderLayout();
 		m_navigationModeName = std::move(navigationModeName);
 	}
 
@@ -471,10 +469,7 @@ public:
 		if (m_recentMode.isEmpty() || m_navigationModeName.isEmpty())
 			return;
 
-		const auto diff   = m_ui.treeView->width() - m_ui.treeView->viewport()->width();
-		auto&      header = *m_ui.treeView->header();
-		if (const auto length = header.length() + diff; std::abs(length - event->oldSize().width()) < 3 * QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent))
-			header.resizeSection(0, m_ui.treeView->header()->sectionSize(0) + (event->size().width() - length));
+		CheckHeaderViewWidth(*event);
 	}
 
 private: // ITreeViewController::IObserver
@@ -823,7 +818,16 @@ private:
 		m_ui.setupUi(&m_self);
 
 		if (!IsNavigation())
-			m_ui.treeView->setHeader(m_booksHeaderView = new HeaderView(*m_ui.treeView, m_currentId, &m_self));
+		{
+			m_booksHeaderView = new HeaderView(*m_ui.treeView, m_currentId, &m_self);
+			m_ui.treeView->setHeader(m_booksHeaderView);
+			connect(m_booksHeaderView, &QHeaderView::sectionResized, &m_self, [this] {
+				SaveHeaderLayout();
+			});
+			connect(m_booksHeaderView, &QHeaderView::sectionMoved, &m_self, [this] {
+				SaveHeaderLayout();
+			});
+		}
 
 		auto& treeViewHeader = *m_ui.treeView->header();
 		m_ui.treeView->setHeaderHidden(IsNavigation());
@@ -909,7 +913,6 @@ private:
 		connect(m_ui.cbMode, &QComboBox::currentIndexChanged, &m_self, [&](const int) {
 			auto newMode = m_ui.cbMode->currentData().toString();
 			emit m_self.NavigationModeNameChanged(newMode);
-			SaveHeaderLayout();
 			m_recentMode = std::move(newMode);
 			m_controller->SetMode(m_recentMode);
 			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
@@ -953,7 +956,7 @@ private:
 		const auto* header           = m_ui.treeView->header();
 		const auto* model            = header->model();
 		const auto  saveHeaderLayout = [&] {
-            for (int i = 1, sz = header->count(); i < sz; ++i)
+            for (int i = 0, sz = header->count(); i < sz; ++i)
             {
                 const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
                 if (!header->isSectionHidden(i))
@@ -1002,6 +1005,8 @@ private:
 		std::map<int, int>          widths;
 		std::multimap<int, QString> indices;
 
+		QSignalBlocker resizeGuard(header);
+
 		const auto collectData = [&] {
 			const auto columns = m_settings->GetGroups();
 			for (const auto& columnName : columns)
@@ -1035,25 +1040,9 @@ private:
 			for (auto i = 0, sz = header->count(); i < sz; ++i)
 				header->showSection(i);
 
-		auto totalWidth = m_ui.treeView->viewport()->width();
-
-		for (int i = header->count() - 1; i > 0; --i)
-		{
-			const auto width = [&] {
-				if (const auto it = widths.find(i); it != widths.end())
-				{
-					header->resizeSection(i, it->second);
-					return it->second;
-				}
-
-				return header->sectionSize(i);
-			}();
-
-			if (!header->isSectionHidden(i))
-				totalWidth -= width;
-		}
-
-		header->resizeSection(0, totalWidth);
+		for (int i = 0, sz = header->count(); i < sz; ++i)
+			if (const auto it = widths.find(i); it != widths.end())
+				header->resizeSection(i, it->second);
 
 		auto absent = nameToIndex;
 		for (const auto& columnName : indices | std::views::values)
@@ -1065,6 +1054,24 @@ private:
 		for (int n = 0; const auto& columnName : indices | std::views::values)
 			if (const auto it = nameToIndex.find(columnName); it != nameToIndex.end())
 				header->moveSection(header->visualIndex(it->second), ++n);
+		header->moveSection(header->visualIndex(0), 0);
+
+		CheckHeaderViewWidth(QResizeEvent(m_self.size(), m_self.size()));
+	}
+
+	void CheckHeaderViewWidth(const QResizeEvent& event)
+	{
+		const auto diff   = m_ui.treeView->width() - m_ui.treeView->viewport()->width();
+		auto&      header = *m_ui.treeView->header();
+		if (const auto length = header.length() + diff; std::abs(length - event.oldSize().width()) < 3 * QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent))
+		{
+			if (const auto offset = event.size().width() - length)
+			{
+				QSignalBlocker block(&header);
+				header.resizeSection(0, m_ui.treeView->header()->sectionSize(0) + offset);
+				SaveHeaderLayout();
+			}
+		}
 	}
 
 	void OnHeaderSectionsVisibleChanged() const
