@@ -3,6 +3,9 @@
 namespace HomeCompa::Opds
 {
 
+constexpr auto ROOT    = "root";
+constexpr auto SESSION = "session";
+
 #define OPDS_REQUEST_ROOT_ITEMS_X_MACRO \
 	OPDS_REQUEST_ROOT_ITEM(opds)        \
 	OPDS_REQUEST_ROOT_ITEM(web)

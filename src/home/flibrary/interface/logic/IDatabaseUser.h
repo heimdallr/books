@@ -21,6 +21,7 @@ public:
 	enum class Key
 	{
 		DatabaseVersion,
+		DisabledBookFields,
 	};
 
 public:

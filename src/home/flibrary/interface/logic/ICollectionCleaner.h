@@ -2,6 +2,8 @@
 
 #include <QString>
 
+#include "util/BookUtil.h"
+
 namespace HomeCompa::Flibrary
 {
 
@@ -10,15 +12,6 @@ class ICollectionCleaner // NOLINT(cppcoreguidelines-special-member-functions)
 public:
 	static constexpr auto CONTEXT                 = "CollectionCleaner";
 	static constexpr auto REMOVE_PERMANENTLY_INFO = QT_TRANSLATE_NOOP("CollectionCleaner", "%1 book(s) deleted permanently");
-
-	struct Book
-	{
-		long long id;
-		QString   folder;
-		QString   file;
-	};
-
-	using Books = std::vector<Book>;
 
 	enum class CleanGenreMode
 	{
@@ -30,8 +23,8 @@ public:
 	class IAnalyzeObserver // NOLINT(cppcoreguidelines-special-member-functions)
 	{
 	public:
-		virtual ~IAnalyzeObserver()               = default;
-		virtual void AnalyzeFinished(Books books) = 0;
+		virtual ~IAnalyzeObserver()                             = default;
+		virtual void AnalyzeFinished(Util::Remove::Books books) = 0;
 
 		virtual bool                  IsPermanently() const                              = 0;
 		virtual bool                  NeedDeleteMarkedAsDeleted() const                  = 0;
@@ -45,16 +38,18 @@ public:
 		virtual std::optional<double> GetMinimumLibRate() const                          = 0;
 		virtual bool                  NeedDeleteCompletelyDuplicatedCompilations() const = 0;
 		virtual bool                  NeedDeleteBooksDuplicatedByCompilations() const    = 0;
+		virtual void                  CompilationInfoExistsResponse(bool value) const    = 0;
 	};
 
 	using Callback = std::function<void(bool result)>;
 
 public:
-	virtual ~ICollectionCleaner()                                        = default;
-	virtual void Remove(Books books, Callback callback) const            = 0;
-	virtual void RemovePermanently(Books books, Callback callback) const = 0;
-	virtual void Analyze(IAnalyzeObserver& callback) const               = 0;
-	virtual void AnalyzeCancel() const                                   = 0;
+	virtual ~ICollectionCleaner()                                                      = default;
+	virtual void Remove(Util::Remove::Books books, Callback callback) const            = 0;
+	virtual void RemovePermanently(Util::Remove::Books books, Callback callback) const = 0;
+	virtual void Analyze(IAnalyzeObserver& callback) const                             = 0;
+	virtual void AnalyzeCancel() const                                                 = 0;
+	virtual void CompilationInfoExistsRequest(IAnalyzeObserver& callback) const        = 0;
 };
 
 } // namespace HomeCompa::Flibrary

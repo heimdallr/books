@@ -87,6 +87,14 @@
         <source>Select database file</source>
         <translation>Выберите файл базы данных</translation>
     </message>
+    <message>
+        <source>Transform path to absolute</source>
+        <translation>Преобразовать путь в абсолютный</translation>
+    </message>
+    <message>
+        <source>Transform path to relative</source>
+        <translation>Преобразовать путь в относительный</translation>
+    </message>
 </context>
 <context>
     <name>AlphabetPanel</name>
@@ -160,6 +168,10 @@
     <message>
         <source>Content</source>
         <translation>Содержание</translation>
+    </message>
+    <message>
+        <source>Description</source>
+        <translation>Метаданные</translation>
     </message>
     <message>
         <source>Export statistics:</source>
@@ -246,8 +258,20 @@
         <translation>Серии:</translation>
     </message>
     <message>
+        <source>Show content</source>
+        <translation>Показать содержание</translation>
+    </message>
+    <message>
+        <source>Show file metadata</source>
+        <translation>Показать метаданные</translation>
+    </message>
+    <message>
         <source>Size:</source>
         <translation>Размер:</translation>
+    </message>
+    <message>
+        <source>Source:</source>
+        <translation>Источник:</translation>
     </message>
     <message>
         <source>Translators:</source>
@@ -651,6 +675,10 @@
         <translation>Похоже, коллекция обновилась. Применить изменения?</translation>
     </message>
     <message>
+        <source>No updates found</source>
+        <translation>Обновлений не найдено</translation>
+    </message>
+    <message>
         <source>No write access to %1</source>
         <translation>Нет доступа на запись в %1</translation>
     </message>
@@ -808,44 +836,8 @@ Restart now?</source>
         <translation>Плохое расширение для файла базы данных (.inpx)</translation>
     </message>
     <message>
-        <source>Cannon find entry point &apos;%1&apos;</source>
-        <translation>Не удалось получить адрес функции %1</translation>
-    </message>
-    <message>
-        <source>Cannot  create object</source>
-        <translation>Не удалось создать объект</translation>
-    </message>
-    <message>
-        <source>Cannot add file &apos;%1&apos; to archive</source>
-        <translation>Не удалось добавить в архив файл %1</translation>
-    </message>
-    <message>
         <source>Cannot create database folder %1</source>
         <translation>Не удалось создать папку %1</translation>
-    </message>
-    <message>
-        <source>Cannot create file &apos;%1&apos;</source>
-        <translation>Не удалось создать файл %1</translation>
-    </message>
-    <message>
-        <source>Cannot extract file &apos;%1&apos;</source>
-        <translation>Не удалось извлечь из архива файл %1</translation>
-    </message>
-    <message>
-        <source>Cannot find file &apos;%1&apos;</source>
-        <translation>Не удалось найти в архиве файл %1</translation>
-    </message>
-    <message>
-        <source>Cannot load %1</source>
-        <translation>Не удалось загрузить %1</translation>
-    </message>
-    <message>
-        <source>Cannot open archive &apos;%1&apos;</source>
-        <translation>Не удалось открыть архив %1</translation>
-    </message>
-    <message>
-        <source>Cannot open file &apos;%1&apos;</source>
-        <translation>Не удалось открыть файл %1</translation>
     </message>
     <message>
         <source>Database file name cannot be empty</source>
@@ -905,12 +897,20 @@ Restart now?</source>
 <context>
     <name>FilterSettingsDialog</name>
     <message>
+        <source>All items shown</source>
+        <translation>Показаны все элементы</translation>
+    </message>
+    <message>
         <source>Apply</source>
         <translation>Применить</translation>
     </message>
     <message>
         <source>Cancel</source>
         <translation>Отмена</translation>
+    </message>
+    <message>
+        <source>Checked items shown</source>
+        <translation>Показаны отмеченные элементы</translation>
     </message>
     <message>
         <source>Filter enabled</source>
@@ -925,8 +925,36 @@ Restart now?</source>
         <translation>Скрыть элементы, все книги которых отфильтрованы</translation>
     </message>
     <message>
+        <source>Hide rated higher than</source>
+        <translation>Скрыть с рейтингом выше чем</translation>
+    </message>
+    <message>
+        <source>Hide rated lower than</source>
+        <translation>Скрыть с рейтингом ниже чем</translation>
+    </message>
+    <message>
+        <source>Hide unrated books</source>
+        <translation>Скрыть без рейтинга</translation>
+    </message>
+    <message>
+        <source>Rate</source>
+        <translation>Рейтинг</translation>
+    </message>
+    <message>
+        <source>Show all items</source>
+        <translation>Показать все элементы</translation>
+    </message>
+    <message>
         <source>Show checked only</source>
-        <translation>Показывать только помеченные</translation>
+        <translation>Показать только отмеченные</translation>
+    </message>
+    <message>
+        <source>Show unchecked only</source>
+        <translation>Показать только неотмеченные</translation>
+    </message>
+    <message>
+        <source>Unchecked items shown</source>
+        <translation>Показаны неотмеченные элементы</translation>
     </message>
 </context>
 <context>
@@ -2493,72 +2521,10 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>HomeCompa::fb2cut::MainWindow</name>
-    <message>
-        <source>Executables (*.exe);;All files (*.*)</source>
-        <translation>Исполняемые файлы (*.exe);;Все файлы (*.*)</translation>
-    </message>
-    <message>
-        <source>Select external archiver executable</source>
-        <translation>Укажите архиватор</translation>
-    </message>
-    <message>
-        <source>Select ffmpeg executable</source>
-        <translation>Укажите ffmpeg</translation>
-    </message>
-    <message>
-        <source>Select input archive</source>
-        <translation>Выберите архив</translation>
-    </message>
-    <message>
-        <source>Select output folder</source>
-        <translation>Укажите папку назначения</translation>
-    </message>
-</context>
-<context>
     <name>Http</name>
-    <message>
-        <source>Authentication failed</source>
-        <translation>Ошибка аутентификации</translation>
-    </message>
     <message>
         <source>Authentication required</source>
         <translation>Требуется аутентификация</translation>
-    </message>
-    <message>
-        <source>Enter Password</source>
-        <translation>Введите пароль</translation>
-    </message>
-    <message>
-        <source>Enter Username</source>
-        <translation>Введите имя пользователя</translation>
-    </message>
-    <message>
-        <source>Login</source>
-        <translation>Логин</translation>
-    </message>
-    <message>
-        <source>Password</source>
-        <translation>Пароль</translation>
-    </message>
-</context>
-<context>
-    <name>ImageSettingsWidget</name>
-    <message>
-        <source>Compression quality</source>
-        <translation>Качество сжатия</translation>
-    </message>
-    <message>
-        <source>Grayscale</source>
-        <translation>Чёрно-белое</translation>
-    </message>
-    <message>
-        <source>Maximum size</source>
-        <translation>Максимальный размер</translation>
-    </message>
-    <message>
-        <source>Skip</source>
-        <translation>Пропустить</translation>
     </message>
 </context>
 <context>
@@ -3971,6 +3937,10 @@ Try again?</source>
         <translation>Сербский</translation>
     </message>
     <message>
+        <source>Serbo-Croatian</source>
+        <translation>Cербско-хорватский</translation>
+    </message>
+    <message>
         <source>Serer</source>
         <translation>Серер</translation>
     </message>
@@ -4619,6 +4589,10 @@ Try again?</source>
         <translation>Включить все</translation>
     </message>
     <message>
+        <source>Exit</source>
+        <translation>Выход</translation>
+    </message>
+    <message>
         <source>Font &amp;settings...</source>
         <translation>&amp;Настройки шрифтов...</translation>
     </message>
@@ -4655,8 +4629,16 @@ Try again?</source>
         <translation>&amp;Уровень детализации журнала</translation>
     </message>
     <message>
+        <source>My export folder</source>
+        <translation>Моя папка для экспорта</translation>
+    </message>
+    <message>
         <source>Navigation</source>
         <translation>Навигация</translation>
+    </message>
+    <message>
+        <source>Open FLibrary</source>
+        <translation>Открыть FLibrary</translation>
     </message>
     <message>
         <source>Qt stylesheet files (*.%1 *.dll);;All files (*.*)</source>
@@ -4669,6 +4651,14 @@ Try again?</source>
     <message>
         <source>Remove</source>
         <translation>Удалять</translation>
+    </message>
+    <message>
+        <source>Rescan collection folder</source>
+        <translation>Добавить новые книги</translation>
+    </message>
+    <message>
+        <source>Rewrite &amp;metadata</source>
+        <translation>Перезаписывать &amp;метаданные</translation>
     </message>
     <message>
         <source>S&amp;tatus line</source>
@@ -4691,12 +4681,20 @@ Try again?</source>
         <translation>Выберите шрифт</translation>
     </message>
     <message>
+        <source>Select settings file</source>
+        <translation>Выберите файл с настройками</translation>
+    </message>
+    <message>
         <source>Select stylesheet files</source>
         <translation>Выберите файлы со стилями</translation>
     </message>
     <message>
         <source>Server &amp;Management...</source>
         <translation>&amp;Управление сервером...</translation>
+    </message>
+    <message>
+        <source>Settings files (*.ini);;All files (*.*)</source>
+        <translation>Файлы настроек (*.ini);;Все файлы (*.*)</translation>
     </message>
     <message>
         <source>Sho&amp;w</source>
@@ -4729,93 +4727,6 @@ Try again?</source>
     <message>
         <source>Well, you only have yourself to blame!</source>
         <translation>Что ж, пеняйте теперь на себя!</translation>
-    </message>
-</context>
-<context>
-    <name>MainWindowClass</name>
-    <message>
-        <source> bytes</source>
-        <translation> байт</translation>
-    </message>
-    <message>
-        <source>Archive fb2</source>
-        <translation>Архивировать Fb2</translation>
-    </message>
-    <message>
-        <source>Common</source>
-        <translation>Общие настройки</translation>
-    </message>
-    <message>
-        <source>Covers</source>
-        <translation>Обложки</translation>
-    </message>
-    <message>
-        <source>Custom archiver command line (*experts only)</source>
-        <translation>Опции внешнего архиватора (*для опытных пользователей)</translation>
-    </message>
-    <message>
-        <source>Destination folder</source>
-        <translation>Папка назначения</translation>
-    </message>
-    <message>
-        <source>Destination folder not exists</source>
-        <translation>Папка назначения не существует</translation>
-    </message>
-    <message>
-        <source>External archiver (7z.exe) executable path</source>
-        <translation>Путь к внешнему архиватору (7z.exe)</translation>
-    </message>
-    <message>
-        <source>FFmpeg (ffmpeg.exe) executable path</source>
-        <translation>Путь к FFmpeg</translation>
-    </message>
-    <message>
-        <source>FFmpeg executable not found</source>
-        <translation>FFmpeg не найден</translation>
-    </message>
-    <message>
-        <source>Files found: %1</source>
-        <translation>Найдено файлов: %1</translation>
-    </message>
-    <message>
-        <source>For advanced users (optional)</source>
-        <translation>Для продвинутых пользователей (опционально)</translation>
-    </message>
-    <message>
-        <source>Image settings</source>
-        <translation>Настройки изображений</translation>
-    </message>
-    <message>
-        <source>Images</source>
-        <translation>Картинки</translation>
-    </message>
-    <message>
-        <source>Input archive file or wildcard</source>
-        <translation>Входной архив или маска файлов</translation>
-    </message>
-    <message>
-        <source>Max CPU thread count</source>
-        <translation>Максимальное количество потоков процессора</translation>
-    </message>
-    <message>
-        <source>Min image file size</source>
-        <translation>Минимальный размер файла изображения</translation>
-    </message>
-    <message>
-        <source>No input archives found</source>
-        <translation>Не найдено входных файлов</translation>
-    </message>
-    <message>
-        <source>Save fb2</source>
-        <translation>Сохранять Fb2</translation>
-    </message>
-    <message>
-        <source>Start</source>
-        <translation>Пуск</translation>
-    </message>
-    <message>
-        <source>fb2cut - fb2 libraries zip archive repacker</source>
-        <translation>fb2cut - перепаковщик zip-архивов fb2-библиотек</translation>
     </message>
 </context>
 <context>
@@ -5424,6 +5335,13 @@ Try again?</source>
 Try again?</source>
         <translation>Поисковый запрос слишком длинный.
 Попробуете ещё раз?</translation>
+    </message>
+</context>
+<context>
+    <name>SingleInstanceController</name>
+    <message>
+        <source>One instance of the program is already running. Do you want to start a new one?</source>
+        <translation>Один экземпляр программы уже запущен. Хотите запустить новый?</translation>
     </message>
 </context>
 <context>

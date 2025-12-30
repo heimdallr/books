@@ -7,7 +7,7 @@
 #include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
 
-#include "interface/constants/Localization.h"
+#include "interface/Localization.h"
 
 #include "data/DataItem.h"
 #include "shared/ImageRestore.h"
@@ -24,15 +24,17 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto CONTEXT    = "Annotation";
-constexpr auto CONTENT    = QT_TRANSLATE_NOOP("Annotation", "Content");
-constexpr auto FILE_EMPTY = QT_TRANSLATE_NOOP("Annotation", "File is empty");
+constexpr auto CONTEXT     = "Annotation";
+constexpr auto CONTENT     = QT_TRANSLATE_NOOP("Annotation", "Content");
+constexpr auto DESCRIPTION = QT_TRANSLATE_NOOP("Annotation", "Description");
+constexpr auto FILE_EMPTY  = QT_TRANSLATE_NOOP("Annotation", "File is empty");
 TR_DEF
 
 constexpr auto ID                     = "id";
 constexpr auto A                      = "a";
 constexpr auto P                      = "p";
 constexpr auto EMPHASIS               = "emphasis";
+constexpr auto DESCRIPTION_NODE       = "FictionBook/description/";
 constexpr auto TRANSLATOR             = "FictionBook/description/title-info/translator";
 constexpr auto TRANSLATOR_FIRST_NAME  = "FictionBook/description/title-info/translator/first-name";
 constexpr auto TRANSLATOR_MIDDLE_NAME = "FictionBook/description/title-info/translator/middle-name";
@@ -84,6 +86,7 @@ public:
 		, m_total(m_ioDevice.size())
 	{
 		m_data.content->SetData(Tr(CONTENT), NavigationItem::Column::Title);
+		m_data.description->SetData(Tr(DESCRIPTION), NavigationItem::Column::Title);
 	}
 
 	ArchiveParser::Data Parse(const QString& rootFolder, const IDataItem& book, std::unique_ptr<IProgressController::IProgressItem> progressItem)
@@ -165,6 +168,14 @@ private: // Util::SaxParser
 
 		m_textMode = path.startsWith(BODY) && (name.compare(P, Qt::CaseInsensitive) == 0 || name.compare(EMPHASIS, Qt::CaseInsensitive) == 0);
 
+		if (path.startsWith(DESCRIPTION_NODE, Qt::CaseInsensitive))
+		{
+			m_currentDescriptionItem = m_currentDescriptionItem->AppendChild(NavigationItem::Create()).get();
+			m_currentDescriptionItem->SetData(name);
+			for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
+				m_currentDescriptionItem->AppendChild(NavigationItem::Create())->SetData(QString("%1: %2").arg(attributes.GetName(i), attributes.GetValue(i)));
+		}
+
 		using ParseElementFunction = bool (XmlParser::*)(const Util::XmlAttributes&);
 		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
@@ -206,6 +217,9 @@ private: // Util::SaxParser
 				m_data.annotation.append(QString("</%1>").arg(replacedName));
 		}
 
+		if (path.startsWith(DESCRIPTION_NODE, Qt::CaseInsensitive))
+			m_currentDescriptionItem = m_currentDescriptionItem->GetParent();
+
 		return result;
 	}
 
@@ -243,6 +257,10 @@ private: // Util::SaxParser
 
 		if (m_annotationMode)
 			m_data.annotation.append(value);
+
+		if (path.startsWith(DESCRIPTION_NODE, Qt::CaseInsensitive))
+			if (!value.isEmpty())
+				m_currentDescriptionItem->SetData(QString("%1: %2").arg(m_currentDescriptionItem->GetData(), value));
 
 		return SaxParser::Parse(*this, PARSERS, path, value);
 	}
@@ -450,6 +468,7 @@ private:
 	QString                                     m_href;
 	QString                                     m_coverpage;
 	IDataItem*                                  m_currentContentItem { m_data.content.get() };
+	IDataItem*                                  m_currentDescriptionItem { m_data.description.get() };
 	std::vector<std::pair<QString, QByteArray>> m_covers;
 	int64_t                                     m_percents { 0 };
 	bool                                        m_textMode { false };
@@ -503,7 +522,7 @@ private:
 	Data ParseFb2(const IDataItem& book) const
 	{
 		const auto& collection = m_collectionProvider->GetActiveCollection();
-		const auto  folder     = QString("%1/%2").arg(collection.folder, book.GetRawData(BookItem::Column::Folder));
+		const auto  folder     = QString("%1/%2").arg(collection.GetFolder(), book.GetRawData(BookItem::Column::Folder));
 		if (!QFile::exists(folder))
 		{
 			PLOGW << folder << " not found";
@@ -516,7 +535,7 @@ private:
 		const auto stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
 
 		XmlParser parser(stream->GetStream());
-		return parser.Parse(collection.folder, book, std::move(parseProgressItem));
+		return parser.Parse(collection.GetFolder(), book, std::move(parseProgressItem));
 	}
 
 private:

@@ -2,8 +2,8 @@
 
 #include <ranges>
 
+#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
 
 using namespace HomeCompa::Flibrary;
 

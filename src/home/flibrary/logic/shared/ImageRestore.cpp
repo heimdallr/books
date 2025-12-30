@@ -5,17 +5,18 @@
 #include <QFileInfo>
 #include <QPixmap>
 
+#include "fnd/IsOneOf.h"
 #include "fnd/try.h"
 
 #include "interface/constants/SettingsConstant.h"
 
-#include "common/Constant.h"
-#include "jxl/jxl.h"
 #include "util/ISettings.h"
+#include "util/ImageUtil.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"
 
+#include "Constant.h"
 #include "zip.h"
 
 #include "config/version.h"
@@ -28,79 +29,30 @@ namespace
 
 using Covers = std::unordered_map<QString, QByteArray>;
 
-constexpr auto BINARY       = "binary";
-constexpr auto ID           = "id";
-constexpr auto CONTENT_TYPE = "content-type";
-constexpr auto JPEG         = "jpeg";
-constexpr auto PNG          = "png";
-constexpr auto JPEG_XL      = "jpeg xl";
-
-constexpr auto FICTION_BOOK  = "FictionBook";
-constexpr auto DESCRIPTION   = "FictionBook/description";
-constexpr auto DOCUMENT_INFO = "FictionBook/description/document-info";
-constexpr auto PROGRAM_USED  = "FictionBook/description/document-info/program-used";
-
-using Decoder = QPixmap (*)(const QByteArray&);
-using Recoder = std::pair<QByteArray, const char*> (*)(const QByteArray& bytes, const char* type);
-
-QPixmap QtDecoder(const QByteArray& data)
-{
-	if (QPixmap pixmap; pixmap.loadFromData(data))
-		return pixmap;
-
-	return {};
-}
-
-QPixmap JxlDecoder(const QByteArray& data)
-{
-	auto image = JXL::Decode(data);
-	return QPixmap::fromImage(std::move(image));
-}
-
-std::pair<QByteArray, const char*> QtRecoder(const QByteArray& data, const char* type)
-{
-	return std::make_pair(data, type);
-}
-
-std::pair<QByteArray, const char*> JxlRecoder(const QByteArray& data, const char*)
-{
-	std::pair<QByteArray, const char*> result;
-	auto                               image = JXL::Decode(data);
-	QByteArray                         bytes;
-	{
-		QBuffer buffer(&bytes);
-		buffer.open(QIODevice::WriteOnly);
-		const auto hasAlpha = image.pixelFormat().alphaUsage() == QPixelFormat::UsesAlpha;
-		image.save(&buffer, hasAlpha ? PNG : JPEG);
-		result.second = hasAlpha ? IMAGE_PNG : IMAGE_JPEG;
-	}
-	result.first = std::move(bytes);
-	return result;
-}
-
-struct ImageFormatDescription
-{
-	const char* mediaType;
-	const char* format;
-	Decoder     decoder;
-	Recoder     recoder;
-};
-
-constexpr ImageFormatDescription DEFAULT_DESCRIPTION { IMAGE_JPEG, JPEG, &QtDecoder, &QtRecoder };
-
-constexpr std::pair<const char*, ImageFormatDescription> SIGNATURES[] {
-	{ "\xFF\xD8\xFF\xE0",   { IMAGE_JPEG, JPEG, &QtDecoder, &QtRecoder } },
-	{ "\x89\x50\x4E\x47",     { IMAGE_PNG, PNG, &QtDecoder, &QtRecoder } },
-	{		 "\xFF\x0A", { nullptr, JPEG_XL, &JxlDecoder, &JxlRecoder } },
-};
-
 class SaxPrinter final : public Util::SaxParser
 {
+	static constexpr auto BINARY       = "binary";
+	static constexpr auto ID           = "id";
+	static constexpr auto CONTENT_TYPE = "content-type";
+
+	static constexpr auto FICTION_BOOK       = "FictionBook";
+	static constexpr auto DESCRIPTION        = "FictionBook/description";
+	static constexpr auto DOCUMENT_INFO      = "FictionBook/description/document-info";
+	static constexpr auto PROGRAM_USED       = "FictionBook/description/document-info/program-used";
+	static constexpr auto TITLE_INFO         = "FictionBook/description/title-info";
+	static constexpr auto AUTHOR             = "FictionBook/description/title-info/author";
+	static constexpr auto AUTHOR_FIRST_NAME  = "first-name";
+	static constexpr auto AUTHOR_LAST_NAME   = "last-name";
+	static constexpr auto AUTHOR_MIDDLE_NAME = "middle-name";
+	static constexpr auto BOOK_TITLE         = "FictionBook/description/title-info/book-title";
+	static constexpr auto SEQUENCE           = "FictionBook/description/title-info/sequence";
+
 public:
-	SaxPrinter(QIODevice& input, QIODevice& output, Covers covers)
+	SaxPrinter(QIODevice& input, QIODevice& output, Covers covers, std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement)
 		: SaxParser { input }
 		, m_writer { output }
 		, m_covers { std::move(covers) }
+		, m_metadataReplacement { std::move(metadataReplacement) }
 	{
 		Parse();
 		assert(m_hasProgramUsed);
@@ -117,28 +69,49 @@ private: // Util::SaxParser
 		return m_writer.WriteProcessingInstruction(target, data), true;
 	}
 
-	bool OnStartElement(const QString& name, const QString& /*path*/, const Util::XmlAttributes& attributes) override
+	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
+		if (m_specialNode || (m_metadataReplacement && IsOneOf(path, AUTHOR, BOOK_TITLE, SEQUENCE)))
+			return m_specialNode = true;
+
 		m_writer.WriteStartElement(name, attributes);
 
-		if (name == BINARY)
+		if (name == BINARY && !m_covers.empty())
 			WriteImage(attributes.GetAttribute(ID));
+
+		if (path == TITLE_INFO && m_metadataReplacement)
+			for (const auto invoker : {
+					 &SaxPrinter::WriteAuthor,
+					 &SaxPrinter::WriteTitle,
+					 &SaxPrinter::WriteSeries,
+				 })
+				std::invoke(invoker, this);
 
 		return true;
 	}
 
 	bool OnEndElement(const QString&, const QString& path) override
 	{
+		if (m_specialNode)
+		{
+			if (IsOneOf(path, AUTHOR, BOOK_TITLE, SEQUENCE))
+				m_specialNode = false;
+			return true;
+		}
+
 		if (path == DOCUMENT_INFO && !m_hasProgramUsed)
 		{
 			m_writer.WriteStartElement("program-used").WriteCharacters(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION)).WriteEndElement();
 			m_hasProgramUsed = true;
 		}
 
-		if (path == DESCRIPTION && !m_hasProgramUsed)
+		if (path == DESCRIPTION)
 		{
-			m_writer.WriteStartElement("document-info").WriteStartElement("program-used").WriteCharacters(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION)).WriteEndElement().WriteEndElement();
-			m_hasProgramUsed = true;
+			if (!m_hasProgramUsed)
+			{
+				m_writer.WriteStartElement("document-info").WriteStartElement("program-used").WriteCharacters(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION)).WriteEndElement().WriteEndElement();
+				m_hasProgramUsed = true;
+			}
 		}
 
 		if (path == FICTION_BOOK)
@@ -149,6 +122,9 @@ private: // Util::SaxParser
 
 	bool OnCharacters(const QString& path, const QString& value) override
 	{
+		if (m_specialNode)
+			return true;
+
 		if (path != PROGRAM_USED)
 			return m_writer.WriteCharacters(value), true;
 
@@ -175,6 +151,33 @@ private: // Util::SaxParser
 	}
 
 private:
+	void WriteAuthor()
+	{
+		assert(m_metadataReplacement);
+		const auto node = m_writer.Guard("author");
+		node->WriteStartElement(AUTHOR_FIRST_NAME).WriteCharacters(m_metadataReplacement->authorFull.firstName).WriteEndElement();
+		node->WriteStartElement(AUTHOR_MIDDLE_NAME).WriteCharacters(m_metadataReplacement->authorFull.middleName).WriteEndElement();
+		node->WriteStartElement(AUTHOR_LAST_NAME).WriteCharacters(m_metadataReplacement->authorFull.lastName).WriteEndElement();
+	}
+
+	void WriteTitle()
+	{
+		assert(m_metadataReplacement);
+		m_writer.WriteStartElement("book-title").WriteCharacters(m_metadataReplacement->title).WriteEndElement();
+	}
+
+	void WriteSeries()
+	{
+		assert(m_metadataReplacement);
+		if (m_metadataReplacement->series.isEmpty())
+			return;
+
+		const auto node = m_writer.Guard("sequence");
+		node->WriteAttribute("name", m_metadataReplacement->series);
+		if (m_metadataReplacement->seqNumber > 0)
+			node->WriteAttribute("number", QString::number(m_metadataReplacement->seqNumber));
+	}
+
 	void WriteImage(const QString& imageFileName)
 	{
 		const auto data = [&] {
@@ -207,7 +210,7 @@ private:
 	{
 		for (const auto& [name, body] : m_covers)
 		{
-			const auto [recoded, mediaType] = Recode(body);
+			const auto [recoded, mediaType] = Util::Recode(body);
 			m_writer.WriteStartElement(BINARY).WriteAttribute(ID, name).WriteAttribute(CONTENT_TYPE, mediaType).WriteCharacters(QString::fromUtf8(recoded.toBase64())).WriteEndElement();
 		}
 
@@ -215,41 +218,66 @@ private:
 	}
 
 private:
-	Util::XmlWriter m_writer;
-	Covers          m_covers;
-	bool            m_hasError { false };
-	bool            m_hasProgramUsed { false };
+	Util::XmlWriter                                     m_writer;
+	Covers                                              m_covers;
+	std::unique_ptr<const ILogicFactory::ExtractedBook> m_metadataReplacement;
+	bool                                                m_hasError { false };
+	bool                                                m_hasProgramUsed { false };
+	bool                                                m_specialNode { false };
 };
 
-QByteArray RestoreImagesImpl(QIODevice& stream, Covers covers)
+QByteArray PrepareToExportImpl(QIODevice& stream, Covers covers, std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement)
 {
 	QByteArray byteArray;
 	QBuffer    buffer(&byteArray);
 	buffer.open(QIODevice::WriteOnly);
-	const SaxPrinter saxPrinter(stream, buffer, std::move(covers));
+	const SaxPrinter saxPrinter(stream, buffer, std::move(covers), std::move(metadataReplacement));
 	return saxPrinter.HasError() ? QByteArray {} : byteArray;
 }
 
 void ConvertToGrayscale(QByteArray& srcImageBody, const int quality)
 {
-	const auto pixmap = Decode(srcImageBody);
+	const auto pixmap = Util::Decode(srcImageBody);
 	if (pixmap.isNull())
 		return;
 
 	auto image = pixmap.toImage();
-	image.convertTo(QImage::Format::Format_Grayscale8);
+	if (image.pixelFormat().alphaUsage() == QPixelFormat::AlphaUsage::IgnoresAlpha)
+	{
+		image.convertTo(QImage::Format::Format_Grayscale8);
+	}
+	else
+	{
+		QImage alpha(image.width(), image.height(), QImage::Format::Format_Grayscale8);
+
+		for (auto h = 0, H = image.height(); h < H; ++h)
+		{
+			auto* alphaBytes = alpha.scanLine(h);
+			for (auto w = 0, W = image.width(); w < W; ++w, ++alphaBytes)
+				*alphaBytes = static_cast<uchar>(qAlpha(image.pixel(w, h)));
+		}
+
+		image.convertTo(QImage::Format::Format_Grayscale8);
+		image.setAlphaChannel(alpha);
+	}
 
 	QByteArray result;
 	{
 		QBuffer imageOutput(&result);
-		if (!image.save(&imageOutput, image.pixelFormat().alphaUsage() == QPixelFormat::AlphaUsage::UsesAlpha ? PNG : JPEG, quality))
+		if (!image.save(&imageOutput, Util::PNG, quality))
 			return;
 	}
 
 	srcImageBody = std::move(result);
 }
 
-QByteArray RestoreImagesImpl(QIODevice& stream, const QString& folder, const QString& fileName, const std::shared_ptr<const ISettings>& settings)
+QByteArray PrepareToExportImpl(
+	QIODevice&                                          stream,
+	const QString&                                      folder,
+	const QString&                                      fileName,
+	const std::shared_ptr<const ISettings>&             settings,
+	std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement
+)
 {
 	Covers covers;
 	ExtractBookImages(
@@ -261,10 +289,10 @@ QByteArray RestoreImagesImpl(QIODevice& stream, const QString& folder, const QSt
 		},
 		settings
 	);
-	if (covers.empty())
+	if (covers.empty() && !metadataReplacement)
 		return stream.readAll();
 
-	if (auto byteArray = RestoreImagesImpl(stream, std::move(covers)); !byteArray.isEmpty())
+	if (auto byteArray = PrepareToExportImpl(stream, std::move(covers), std::move(metadataReplacement)); !byteArray.isEmpty())
 		return byteArray;
 
 	stream.seek(0);
@@ -364,52 +392,10 @@ void ExtractBookImagesImagesImpl(const QFileInfo& fileInfo, const QString& fileN
 namespace HomeCompa::Flibrary
 {
 
-QPixmap Decode(const QByteArray& bytes)
+QByteArray
+PrepareToExport(QIODevice& input, const QString& folder, const QString& fileName, const std::shared_ptr<const ISettings>& settings, std::unique_ptr<const ILogicFactory::ExtractedBook> metadataReplacement)
 {
-	assert(!bytes.isEmpty());
-	const auto it      = std::ranges::find_if(SIGNATURES, [&](const auto& item) {
-        return bytes.startsWith(item.first);
-    });
-	const auto decoder = it != std::end(SIGNATURES) ? it->second.decoder : &QtDecoder;
-	return decoder(bytes);
-}
-
-std::pair<QByteArray, const char*> Recode(const QByteArray& bytes)
-{
-	assert(!bytes.isEmpty());
-	const auto  it          = std::ranges::find_if(SIGNATURES, [&](const auto& item) {
-        return bytes.startsWith(item.first);
-    });
-	const auto& description = it != std::end(SIGNATURES) ? it->second : DEFAULT_DESCRIPTION;
-	return description.recoder(bytes, description.mediaType);
-}
-
-QByteArray RestoreImages(QIODevice& input, const QString& folder, const QString& fileName, const std::shared_ptr<const ISettings>& settings)
-{
-	return RestoreImagesImpl(input, folder, fileName, settings);
-}
-
-QImage HasAlpha(const QImage& image, const char* data)
-{
-	if (memcmp(data, "\xFF\xD8\xFF\xE0", 4) == 0)
-		return image.convertToFormat(QImage::Format_RGB888);
-
-	if (!image.hasAlphaChannel())
-		return image.convertToFormat(QImage::Format_RGB888);
-
-	auto argb = image.convertToFormat(QImage::Format_RGBA8888);
-	for (int i = 0, h = argb.height(), w = argb.width(); i < h; ++i)
-	{
-		const auto* pixels = reinterpret_cast<const QRgb*>(argb.constScanLine(i));
-		if (std::any_of(pixels, pixels + static_cast<size_t>(w), [](const QRgb pixel) {
-				return qAlpha(pixel) < UCHAR_MAX;
-			}))
-		{
-			return argb;
-		}
-	}
-
-	return image.convertToFormat(QImage::Format_RGB888);
+	return PrepareToExportImpl(input, folder, fileName, settings, std::move(metadataReplacement));
 }
 
 void ExtractBookImages(const QString& folder, const QString& fileName, const ExtractBookImagesCallback& callback, const std::shared_ptr<const ISettings>& settings)

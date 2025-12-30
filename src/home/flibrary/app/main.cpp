@@ -1,18 +1,18 @@
 #include <QApplication>
-#include <QFileInfo>
-#include <QPalette>
+#include <QCommandLineParser>
 #include <QStandardPaths>
 #include <QStyleFactory>
 #include <QTranslator>
 
 #include "fnd/FindPair.h"
 
-#include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/IDatabaseMigrator.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IOpdsController.h"
+#include "interface/logic/ISingleInstanceController.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/IMainWindow.h"
 #include "interface/ui/IMigrateWindow.h"
@@ -24,7 +24,6 @@
 #include "logic/data/Genre.h"
 #include "logic/model/LogModel.h"
 #include "util/ISettings.h"
-#include "util/localization.h"
 #include "util/xml/Initializer.h"
 #include "version/AppVersion.h"
 
@@ -47,30 +46,39 @@ TR_DEF
 
 int main(int argc, char* argv[])
 {
-	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, PRODUCT_ID).toStdWString());
-	LogModelAppender        logModelAppender;
-
-	PLOGI << "App started";
-	PLOGI << "Version: " << GetApplicationVersion();
-	PLOGI << "Commit hash: " << GIT_HASH;
-	// ReSharper disable CppCompileTimeConstantCanBeReplacedWithBooleanConstant
-	if constexpr (PERSONAL_BUILD_NAME && PERSONAL_BUILD_NAME[0]) //-V560
-		PLOGI << "Personal build: " << PERSONAL_BUILD_NAME;
-	// ReSharper restore CppCompileTimeConstantCanBeReplacedWithBooleanConstant
-
 	try
 	{
+		QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
+
+		QApplication app(argc, argv);
+		QCoreApplication::setApplicationName(PRODUCT_ID);
+		QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
+		Util::XMLPlatformInitializer xmlPlatformInitializer;
+
+		QCommandLineParser parser;
+		parser.setApplicationDescription(QString("%1: another e-book cataloger").arg(PRODUCT_ID));
+		parser.addHelpOption();
+		parser.addVersionOption();
+
+		const auto defaultLogPath = QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, PRODUCT_ID);
+		const auto logOption      = Log::LoggingInitializer::AddLogFileOption(parser, defaultLogPath);
+		parser.process(app);
+
+		Log::LoggingInitializer logging((parser.isSet(logOption) ? parser.value(logOption) : defaultLogPath).toStdWString());
+		LogModelAppender        logModelAppender;
+
+		PLOGI << "App started";
+		PLOGI << "Version: " << GetApplicationVersion();
+		PLOGI << "Commit hash: " << GIT_HASH;
+		// ReSharper disable CppCompileTimeConstantCanBeReplacedWithBooleanConstant
+		if constexpr (PERSONAL_BUILD_NAME && PERSONAL_BUILD_NAME[0]) //-V560
+			PLOGI << "Personal build: " << PERSONAL_BUILD_NAME;
+		// ReSharper restore CppCompileTimeConstantCanBeReplacedWithBooleanConstant
+
+		PLOGD << "QApplication created";
+
 		while (true)
 		{
-			QGuiApplication::setHighDpiScaleFactorRoundingPolicy(Qt::HighDpiScaleFactorRoundingPolicy::PassThrough);
-
-			QApplication app(argc, argv);
-			QCoreApplication::setApplicationName(PRODUCT_ID);
-			QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
-			Util::XMLPlatformInitializer xmlPlatformInitializer;
-
-			PLOGD << "QApplication created";
-
 			std::shared_ptr<Hypodermic::Container> container;
 			{
 				Hypodermic::ContainerBuilder builder;
@@ -80,6 +88,10 @@ int main(int argc, char* argv[])
 
 			const auto settings    = container->resolve<ISettings>();
 			const auto translators = Loc::LoadLocales(*settings); //-V808
+
+			auto singleInstanceController = container->resolve<ISingleInstanceController>();
+			if (!singleInstanceController->IsFirstSingleInstanceApp())
+				singleInstanceController.reset();
 
 			Genre::SetSortMode(*settings);
 			if (!settings->HasKey(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks)))
@@ -115,6 +127,10 @@ int main(int argc, char* argv[])
 			container->resolve<ITaskQueue>()->Execute();
 			const auto mainWindow = container->resolve<IMainWindow>();
 			container->resolve<IDatabaseUser>()->EnableApplicationCursorChange(true);
+
+			if (singleInstanceController)
+				singleInstanceController->RegisterObserver(mainWindow.get());
+
 			mainWindow->Show();
 
 			if (const auto code = QApplication::exec(); code != Constant::RESTART_APP)
@@ -122,6 +138,9 @@ int main(int argc, char* argv[])
 				PLOGI << "App finished with " << code;
 				return code;
 			}
+
+			if (singleInstanceController)
+				singleInstanceController->UnregisterObserver(mainWindow.get());
 
 			container->resolve<IOpdsController>()->Restart();
 

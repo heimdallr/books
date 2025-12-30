@@ -7,6 +7,7 @@ AddTarget(gutil	shared_lib
 		plog::plog
 		Qt${QT_MAJOR_VERSION}::Widgets
 	LINK_TARGETS
+		flint
 		logging
 		util
 )

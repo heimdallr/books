@@ -2,7 +2,6 @@
 #include "CollectionImpl.h"
 
 #include <QFile>
-#include <QString> // for plog
 
 #include "interface/constants/SettingsConstant.h"
 
@@ -24,47 +23,19 @@ constexpr auto FOLDER           = "folder";
 constexpr auto NAME             = "name";
 constexpr auto CREATION_MODE    = "creationMode";
 
-Collection::Ptr DeserializeImpl(const ISettings& settings, QString id)
-{
-	auto collection = std::make_unique<CollectionImpl>();
-	if (id.isEmpty())
-		return collection;
-
-	if (!settings.HasGroup(id))
-		return collection;
-
-	SettingsGroup idGroup(settings, id);
-	collection->id = std::move(id);
-
-	if ((collection->name = settings.Get(NAME, QString {})).isEmpty())
-		return collection;
-
-	if ((collection->database = settings.Get(DATABASE, QString {})).isEmpty())
-		return collection;
-
-	if ((collection->folder = settings.Get(FOLDER, QString {})).isEmpty())
-		return collection;
-
-	collection->discardedUpdate              = settings.Get(DISCARDED_UPDATE, QString {});
-	collection->createCollectionMode         = settings.Get(CREATION_MODE, 0);
-	collection->destructiveOperationsAllowed = settings.Get(Constant::Settings::DESTRUCTIVE_OPERATIONS_ALLOWED_KEY, false);
-
-	return collection;
-}
-
 } // namespace
 
-CollectionImpl::CollectionImpl(QString name_, QString database_, QString folder_)
+CollectionImpl::CollectionImpl(QString name_, QString database, QString folder)
 {
-	id       = Util::md5(database_.toUtf8());
-	name     = std::move(name_);
-	database = std::move(database_);
-	folder   = std::move(folder_);
+	id         = Util::md5(database.toUtf8());
+	name       = std::move(name_);
+	m_database = std::move(database);
+	m_folder   = std::move(folder);
 
-	database.replace("\\", "/");
-	folder.replace("\\", "/");
-	while (folder.endsWith("\\"))
-		folder.resize(folder.size() - 1);
+	m_database.replace("\\", "/");
+	m_folder.replace("\\", "/");
+	while (m_folder.endsWith("\\"))
+		m_folder.resize(m_folder.size() - 1);
 }
 
 QString CollectionImpl::GetActive(const ISettings& settings)
@@ -79,8 +50,8 @@ void CollectionImpl::Serialize(const Collection& collection, ISettings& settings
 	SettingsGroup idGroup(settings, collection.id);
 
 	settings.Set(NAME, collection.name);
-	settings.Set(DATABASE, collection.database);
-	settings.Set(FOLDER, collection.folder);
+	settings.Set(DATABASE, collection.m_database);
+	settings.Set(FOLDER, collection.m_folder);
 	settings.Set(DISCARDED_UPDATE, collection.discardedUpdate);
 	settings.Set(CREATION_MODE, collection.createCollectionMode);
 	settings.Set(Constant::Settings::DESTRUCTIVE_OPERATIONS_ALLOWED_KEY, collection.destructiveOperationsAllowed);
@@ -91,11 +62,11 @@ Collections CollectionImpl::Deserialize(ISettings& settings)
 	Collections   collections;
 	SettingsGroup settingsGroup(settings, Constant::Settings::COLLECTIONS);
 	std::ranges::transform(settings.GetGroups(), std::back_inserter(collections), [&](QString groupId) {
-		return DeserializeImpl(settings, std::move(groupId));
+		return Deserialize(settings, std::move(groupId));
 	});
 
 	std::erase_if(collections, [&](const auto& item) {
-		if (QFile::exists(item->database))
+		if (QFile::exists(item->GetDatabase()))
 			return false;
 
 		settings.Remove(item->id);
@@ -103,6 +74,34 @@ Collections CollectionImpl::Deserialize(ISettings& settings)
 	});
 
 	return collections;
+}
+
+Collection::Ptr CollectionImpl::Deserialize(const ISettings& settings, QString collectionId)
+{
+	auto collection = std::make_unique<CollectionImpl>();
+	if (collectionId.isEmpty())
+		return collection;
+
+	if (!settings.HasGroup(collectionId))
+		return collection;
+
+	SettingsGroup idGroup(settings, collectionId);
+	collection->id = std::move(collectionId);
+
+	if ((collection->name = settings.Get(NAME, QString {})).isEmpty())
+		return collection;
+
+	if ((collection->m_database = settings.Get(DATABASE, QString {})).isEmpty())
+		return collection;
+
+	if ((collection->m_folder = settings.Get(FOLDER, QString {})).isEmpty())
+		return collection;
+
+	collection->discardedUpdate              = settings.Get(DISCARDED_UPDATE, QString {});
+	collection->createCollectionMode         = settings.Get(CREATION_MODE, 0);
+	collection->destructiveOperationsAllowed = settings.Get(Constant::Settings::DESTRUCTIVE_OPERATIONS_ALLOWED_KEY, false);
+
+	return collection;
 }
 
 void CollectionImpl::SetActive(ISettings& settings, const QString& uid)

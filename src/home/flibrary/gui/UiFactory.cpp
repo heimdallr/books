@@ -4,6 +4,7 @@
 
 #include "fnd/FindPair.h"
 
+#include "interface/localization.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IComboBoxTextDialog.h"
@@ -15,7 +16,6 @@
 #include "dialogs/AddCollectionDialog.h"
 #include "dialogs/FilterSettingsDialog.h"
 #include "dialogs/OpdsDialog.h"
-#include "util/localization.h"
 #include "version/AppVersion.h"
 
 #include "AuthorReview.h"

@@ -3,12 +3,12 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-#include "interface/IBookExtractor.h"
 #include "interface/ICoverCache.h"
 #include "interface/INoSqlRequester.h"
 #include "interface/IRequester.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/IAuthorAnnotationController.h"
+#include "interface/logic/IBookExtractor.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IFilterProvider.h"
@@ -31,8 +31,8 @@ public:
 		std::shared_ptr<const Flibrary::IDatabaseController>         databaseController,
 		std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
 		std::shared_ptr<const Flibrary::IFilterProvider>             filterProvider,
+		std::shared_ptr<const Flibrary::IBookExtractor>              bookExtractor,
 		std::shared_ptr<const ICoverCache>                           coverCache,
-		std::shared_ptr<const IBookExtractor>                        bookExtractor,
 		std::shared_ptr<const INoSqlRequester>                       noSqlRequester,
 		std::shared_ptr<Flibrary::IAnnotationController>             annotationController
 	);

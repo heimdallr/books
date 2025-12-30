@@ -168,7 +168,8 @@ CREATE TABLE Books (
   BookSize         INTEGER,
   UpdateID         INTEGER       NOT NULL                           DEFAULT 0,
   IsDeleted        INTEGER       NOT NULL                           DEFAULT 0,
-  SearchTitle      VARCHAR (150)          COLLATE NOCASE
+  SourceLib        VARCHAR(15),
+  SearchTitle      VARCHAR(150)           COLLATE NOCASE
 );
 --@@
 

@@ -11,17 +11,13 @@ constexpr auto ITEM  = "Item";
 constexpr auto TITLE = "Title";
 constexpr auto VALUE = "Value";
 
-constexpr auto TIME = "time";
-constexpr auto NAME = "name";
-constexpr auto TEXT = "text";
-
 constexpr auto FlibraryBackup = "FlibraryBackup";
 
 constexpr auto FlibraryBackupVersion       = "FlibraryBackupVersion";
 constexpr auto FlibraryBackupVersionNumber = 8;
 constexpr auto FlibraryUserData            = "FlibraryUserData";
 
-constexpr auto FlibraryDatabaseVersionNumber = 8;
+constexpr auto FlibraryDatabaseVersionNumber = 9;
 
 constexpr int    APP_FAILED   = 1;
 constexpr int    RESTART_APP  = 1234;

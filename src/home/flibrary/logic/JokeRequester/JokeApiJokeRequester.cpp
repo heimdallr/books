@@ -4,9 +4,8 @@
 
 #include "fnd/FindPair.h"
 
+#include "interface/localization.h"
 #include "interface/logic/IJokeRequesterFactory.h"
-
-#include "util/Localization.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

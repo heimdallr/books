@@ -1,5 +1,7 @@
 #include "NavigationQueryExecutor.h"
 
+#include <Constant.h>
+
 #include <queue>
 #include <ranges>
 #include <unordered_map>
@@ -11,14 +13,14 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
+#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
 #include "interface/logic/ICollectionProvider.h"
 
 #include "data/Genre.h"
 #include "database/DatabaseUtil.h"
-#include "inpx/constant.h"
 #include "util/SortString.h"
+#include "util/language.h"
 
 #include "BooksTreeGenerator.h"
 #include "log.h"
@@ -101,7 +103,7 @@ auto CreateCalendarTree(const NavigationMode mode, INavigationQueryExecutor::Cal
 		for (size_t i = 0, sz = item.GetChildCount(); i < sz; ++i)
 		{
 			auto child = item.GetChild(i);
-			child->SetData(Loc::Tr(MONTHS_CONTEXT, child->GetData().toStdString().data()));
+			child->SetData(Loc::Tr(Loc::MONTHS_CONTEXT, child->GetData().toStdString().data()));
 			f(*child, f);
 		}
 	};
@@ -289,9 +291,9 @@ void RequestNavigationReviews(
 
 	databaseUser.Execute(
 		{ "Get navigation",
-	      [&cache, mode = navigationMode, folder = collectionProvider.GetActiveCollection().folder, callback = std::move(callback)]() mutable {
+	      [&cache, mode = navigationMode, folder = collectionProvider.GetActiveCollection().GetFolder(), callback = std::move(callback)]() mutable {
 			  return CreateCalendarTree(mode, std::move(callback), cache, [&folder](std::unordered_map<long long, IDataItem::Ptr>& items) {
-				  for (const auto& reviewInfo : QDir(folder + "/" + QString::fromStdWString(REVIEWS_FOLDER)).entryInfoList({ "??????.7z" }))
+				  for (const auto& reviewInfo : QDir(folder + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER)).entryInfoList({ "??????.7z" }))
 				  {
 					  auto       name   = reviewInfo.completeBaseName();
 					  auto       year   = name.first(4);
@@ -457,7 +459,9 @@ from PublishYears y)",
      { &RequestNavigationReviews,
      { nullptr,
      nullptr,
-     { .booksFrom = "from tab_1 t join Books_View b on b.LibID = t.LibID", .navigationFrom = "from tab_1 t join Books_View b on b.LibID = t.LibID", .additionalFields = ", t.ReviewID" },
+     { .booksFrom        = "from %1 t join Books_View b on b.BaseFileName = t.FileName and b.Ext = t.Ext join Folders f1 on f1.FolderID = b.FolderID and f1.FolderTitle = t.Folder",
+     .navigationFrom   = "from %1 t join Books_View b on b.BaseFileName = t.FileName and b.Ext = t.Ext join Folders f1 on f1.FolderID = b.FolderID and f1.FolderTitle = t.Folder",
+     .additionalFields = ", t.ReviewID" },
      &IBooksListCreator::CreateReviewsList,
      &IBooksTreeCreator::CreateReviewsTree,
      BookItem::Mapping(MAPPING_FULL),

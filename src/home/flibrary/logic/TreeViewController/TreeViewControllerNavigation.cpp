@@ -7,8 +7,8 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
+#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IBookSearchController.h"
@@ -485,7 +485,7 @@ private: // INavigationFilter
 		if (!descriptor.filterParameter)
 			return true;
 
-		auto db = databaseController->GetDatabase();
+		const auto db = databaseController->GetDatabase();
 		if (!db)
 			return true;
 
@@ -498,7 +498,7 @@ private: // INavigationFilter
 	bool IsFolderExists(const ModeDescriptor& descriptor) const override
 	{
 		return descriptor.filterParameter && collectionProvider && collectionProvider->ActiveCollectionExists()
-		    && QDir(collectionProvider->GetActiveCollection().folder + "/" + descriptor.filterParameter).exists();
+		    && QDir(collectionProvider->GetActiveCollection().GetFolder() + "/" + descriptor.filterParameter).exists();
 	}
 
 private: // IContextMenuProvider

@@ -28,7 +28,10 @@ protected:
 	virtual IDataItem* GetInternalPointer(const QModelIndex& index) const;
 
 protected:
-	static QVariant GetValue(const IDataItem& item, const int column);
+	static QVariant GetValue(const IDataItem& item, int column);
+
+private:
+	virtual bool Check(const QVariant& value, Qt::CheckState checked) = 0;
 
 protected:
 	IDataItem::Ptr                          m_data;

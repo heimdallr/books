@@ -6,6 +6,8 @@
 
 #include "fnd/FindPair.h"
 
+#include "interface/localization.h"
+
 #include "JokeRequester/CatFactJokeRequester.h"
 #include "JokeRequester/CatPicsJokeRequester.h"
 #include "JokeRequester/ChuckNorrisJokeRequester.h"
@@ -18,7 +20,6 @@
 #include "JokeRequester/SetupPunchlineJokeRequester.h"
 #include "JokeRequester/UselessFactJokeRequester.h"
 #include "network/network/downloader.h"
-#include "util/Localization.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

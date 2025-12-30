@@ -6,6 +6,7 @@
 #include <unordered_set>
 
 #include <QFile>
+#include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -15,18 +16,17 @@
 #include "database/interface/ITemporaryTable.h"
 #include "database/interface/ITransaction.h"
 
+#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IFilterProvider.h"
 
 #include "database/DatabaseUtil.h"
-#include "inpx/constant.h"
 #include "util/SortString.h"
-#include "util/localization.h"
 
+#include "Constant.h"
 #include "log.h"
 #include "zip.h"
 
@@ -281,18 +281,27 @@ private: // IBookSelector
 
 	void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription& description) override
 	{
-		const auto folder = activeCollection.folder + "/" + QString::fromStdWString(REVIEWS_FOLDER) + "/" + navigationId + ".7z";
+		const auto folder = activeCollection.GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER) + "/" + navigationId + ".7z";
 		if (!QFile::exists(folder))
 			return;
 
-		const auto tmpTable = db.CreateTemporaryTable({ "LibID VARCHAR (200)", "ReviewID INTEGER" });
+		const auto tmpTable = db.CreateTemporaryTable({ "Folder VARCHAR (200)", "FileName VARCHAR(170)", "Ext VARCHAR(10)", "ReviewID INTEGER" });
 
 		{
 			const auto tr            = db.CreateTransaction();
-			const auto insertCommand = tr->CreateCommand(QString("insert into %1(LibID, ReviewID) values(?, ?)").arg(tmpTable->GetName().data()).toStdString());
+			const auto insertCommand = tr->CreateCommand(QString("insert into %1(Folder, FileName, Ext, ReviewID) values(?, ?, ?, ?)").arg(tmpTable->GetName().data()).toStdString());
 			Zip        zip(folder);
 			for (long long reviewId = 0; const auto& file : zip.GetFileNameList())
 			{
+				auto splitted = file.split('#');
+				if (splitted.size() != 2)
+					continue;
+
+				QFileInfo  fileInfo(splitted.back());
+				const auto bookFolder   = splitted.front().toStdString();
+				const auto bookFileName = fileInfo.completeBaseName().toStdString();
+				const auto bookExt      = '.' + fileInfo.suffix().toStdString();
+
 				QJsonParseError parseError;
 				const auto      doc = QJsonDocument::fromJson(zip.Read(file)->GetStream().readAll(), &parseError);
 				if (parseError.error != QJsonParseError::NoError)
@@ -306,23 +315,30 @@ private: // IBookSelector
 				{
 					assert(recordValue.isObject());
 					const auto recordObject = recordValue.toObject();
-					insertCommand->Bind(0, file.toStdString());
-					insertCommand->Bind(1, ++reviewId);
+					insertCommand->Bind(0, bookFolder);
+					insertCommand->Bind(1, bookFileName);
+					insertCommand->Bind(2, bookExt);
+					insertCommand->Bind(3, ++reviewId);
 					insertCommand->Execute();
 
 					auto& reviewItem = m_reviews.try_emplace(reviewId, ReviewItem::Create()).first->second;
-					reviewItem->SetData(recordObject[Constant::NAME].toString(), ReviewItem::Column::Name);
-					reviewItem->SetData(recordObject[Constant::TIME].toString(), ReviewItem::Column::Time);
-					reviewItem->SetData(recordObject[Constant::TEXT].toString(), ReviewItem::Column::Comment);
+					reviewItem->SetData(recordObject[Inpx::NAME].toString(), ReviewItem::Column::Name);
+					reviewItem->SetData(recordObject[Inpx::TIME].toString(), ReviewItem::Column::Time);
+					reviewItem->SetData(recordObject[Inpx::TEXT].toString(), ReviewItem::Column::Comment);
 					if (reviewItem->GetData(ReviewItem::Column::Name).isEmpty())
 						reviewItem->SetData(Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS), ReviewItem::Column::Name);
 				}
 			}
-			tr->CreateCommand(std::format("CREATE INDEX {}.IX_LibID ON {} (LibID)", tmpTable->GetSchemaName(), tmpTable->GetTableName()))->Execute();
 			tr->Commit();
 		}
 
-		CreateSelectedBookItems(db, description.queryClause, [&](const DB::IQuery& query, const SelectedBookItem& selectedItem) {
+		auto       queryClause     = description.queryClause;
+		const auto booksFrom       = QString(queryClause.booksFrom).arg(tmpTable->GetName()).toStdString();
+		const auto navigationFrom  = QString(queryClause.navigationFrom).arg(tmpTable->GetName()).toStdString();
+		queryClause.booksFrom      = booksFrom.data();
+		queryClause.navigationFrom = navigationFrom.data();
+
+		CreateSelectedBookItems(db, queryClause, [&](const DB::IQuery& query, const SelectedBookItem& selectedItem) {
 			const auto it = m_reviews.find(query.Get<long long>(BookQueryFields::Last));
 			assert(it != m_reviews.end());
 
@@ -330,6 +346,13 @@ private: // IBookSelector
 			const auto& bookItem   = reviewItem->AppendChild(selectedItem.book);
 			reviewItem->SetId(bookItem->GetId());
 		});
+
+		const auto orphans = m_reviews | std::views::filter([](const auto& item) {
+								 return item.second->GetChildCount() == 0;
+							 })
+		                   | std::views::keys | std::ranges::to<std::vector<long long>>();
+		for (const auto id : orphans)
+			m_reviews.erase(id);
 	}
 
 private:
@@ -402,7 +425,7 @@ private:
 
 		{
 			static constexpr auto queryText = R"({}
-select s.SeriesID, s.SeriesTitle, s.IsDeleted, s.Flags, l.BookID, coalesce(l.SeqNumber, -1), l.OrdNum
+select s.SeriesID, s.SeriesTitle, s.IsDeleted, s.Flags, l.BookID, l.SeqNumber, l.OrdNum
 {}
 join Series_List l on l.BookID = b.BookID
 join Series s on s.SeriesID = l.SeriesID

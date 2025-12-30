@@ -16,7 +16,7 @@
   <property name="modal">
    <bool>true</bool>
   </property>
-  <layout class="QVBoxLayout" name="_4">
+  <layout class="QVBoxLayout">
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -30,7 +30,88 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QTabWidget" name="tabs"/>
+    <widget class="QTabWidget" name="tabs">
+     <widget class="QWidget" name="rateTab">
+      <attribute name="title">
+       <string>Rate</string>
+      </attribute>
+      <layout class="QGridLayout" name="gridLayout">
+       <item row="1" column="0">
+        <widget class="QCheckBox" name="hideRatedHigher">
+         <property name="text">
+          <string>Hide rated higher than</string>
+         </property>
+        </widget>
+       </item>
+       <item row="1" column="1">
+        <widget class="QSpinBox" name="maximumRating">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>5</number>
+         </property>
+         <property name="value">
+          <number>4</number>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="0">
+        <widget class="QCheckBox" name="hideRatedLower">
+         <property name="text">
+          <string>Hide rated lower than</string>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="1">
+        <widget class="QSpinBox" name="minimumRating">
+         <property name="minimum">
+          <number>1</number>
+         </property>
+         <property name="maximum">
+          <number>5</number>
+         </property>
+         <property name="value">
+          <number>4</number>
+         </property>
+        </widget>
+       </item>
+       <item row="0" column="2">
+        <spacer name="spacer">
+         <property name="orientation">
+          <enum>Qt::Orientation::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item row="2" column="0">
+        <widget class="QCheckBox" name="hideUnrated">
+         <property name="text">
+          <string>Hide unrated books</string>
+         </property>
+        </widget>
+       </item>
+       <item row="3" column="0">
+        <spacer name="spacer_2">
+         <property name="orientation">
+          <enum>Qt::Orientation::Vertical</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>20</width>
+           <height>40</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+      </layout>
+     </widget>
+    </widget>
    </item>
    <item>
     <widget class="QWidget" name="content" native="true">
@@ -190,9 +271,12 @@
        <number>9</number>
       </property>
       <item>
-       <widget class="QCheckBox" name="checkBoxShowCheckedOnly">
-        <property name="text">
-         <string>Show checked only</string>
+       <widget class="QLabel" name="showCheckedMode">
+        <property name="textFormat">
+         <enum>Qt::TextFormat::RichText</enum>
+        </property>
+        <property name="textInteractionFlags">
+         <set>Qt::TextInteractionFlag::TextBrowserInteraction</set>
         </property>
        </widget>
       </item>
@@ -251,5 +335,38 @@
   <tabstop>btnCancel</tabstop>
  </tabstops>
  <resources/>
- <connections/>
+ <connections>
+  <connection>
+   <sender>hideRatedLower</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>minimumRating</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>82</x>
+     <y>43</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>173</x>
+     <y>43</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>hideRatedHigher</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>maximumRating</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>82</x>
+     <y>69</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>173</x>
+     <y>69</y>
+    </hint>
+   </hints>
+  </connection>
+ </connections>
 </ui>

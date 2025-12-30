@@ -9,17 +9,16 @@
 #include <QtConcurrent>
 
 #include "fnd/FindPair.h"
-#include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
 
 #include "interface/IReactAppRequester.h"
 #include "interface/IRequester.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 
 #include "util/ISettings.h"
 #include "util/hash.h"
-#include "util/localization.h"
 
 #include "log.h"
 #include "root.h"
@@ -44,7 +43,6 @@ constexpr auto GET_BOOKS_API_BOOK_DATA_COMPACT = "/Images/fb2compact/%1";
 
 const auto CONTEXT       = "Http";
 const auto AUTH_REQUIRED = QT_TRANSLATE_NOOP("Http", "Authentication required");
-const auto AUTH_FAILED   = QT_TRANSLATE_NOOP("Http", "Authentication failed");
 TR_DEF
 
 #define OPDS_REQUEST_ROOT_ITEM(NAME) constexpr auto(NAME) = "/" #NAME;
@@ -224,10 +222,23 @@ T GetParameters(const QString& data)
 	return result;
 }
 
+auto Authenticate()
+{
+	return QtConcurrent::run([] {
+		QHttpServerResponse response { AUTH_REQUIRED, QHttpServerResponder::StatusCode::Unauthorized };
+		auto                h = response.headers();
+		h.append(QHttpHeaders::WellKnownHeader::WWWAuthenticate, R"(Basic realm="Restricted Area")");
+		response.setHeaders(std::move(h));
+		return response;
+	});
+}
+
 } // namespace
 
 class Server::Impl
 {
+	using AuthorizationAllowFunctor = std::function<QHttpServerResponse(const IRequester::Parameters&, const QString&)>;
+
 public:
 	Impl(
 		std::shared_ptr<const ISettings>                     settings,
@@ -318,36 +329,13 @@ private:
 			});
 		});
 
-		QStringList roots;
+		std::vector<QString> roots;
 
 		if (m_settings->Get(Flibrary::Constant::Settings::OPDS_OPDS_ENABLED, true))
-		{
-			m_server.route(opds, [this](const QHttpServerRequest& request) {
-				if (auto auth = AuthorizationOpds(request); auth.isValid())
-					return auth;
-
-				return QtConcurrent::run([this, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)] {
-					auto response = EncodeContent(m_requester->GetRoot(opds, parameters), acceptEncoding);
-					SetContentType(response, opds, MessageType::Atom);
-					return response;
-				});
-			});
-
-			roots << opds;
-		}
+			roots.emplace_back(opds);
 
 		if (m_settings->Get(Flibrary::Constant::Settings::OPDS_WEB_ENABLED, true))
-		{
-			m_server.route(web, [this](const QHttpServerRequest& request) {
-				return AuthorizationWeb(request, web, [&](const IRequester::Parameters& parameters, const QString& acceptEncoding) {
-					auto response = EncodeContent(m_requester->GetRoot(web, parameters), acceptEncoding);
-					SetContentType(response, web, MessageType::Atom);
-					return response;
-				});
-			});
-
-			roots << web;
-		}
+			roots.emplace_back(web);
 
 		m_server.route(OPENSEARCH, [host = host.toString(), port] {
 			return QString(R"(<Url type="application/atom+xml;profile=opds-catalog" xmlns:atom="http://www.w3.org/2005/Atom" template="http://%1:%2/search?q={searchTerms}" />)").arg(host).arg(port);
@@ -367,28 +355,29 @@ private:
 #define OPDS_INVOKER_ITEM(NAME) { #NAME, &IRequester::Get##NAME },
 			OPDS_NAVIGATION_ITEMS_X_MACRO OPDS_ADDITIONAL_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM
+			{  nullptr,     &IRequester::GetRoot },
 			{ "search",      &IRequester::Search },
 			{   "read", &IRequester::GetBookText },
 		};
 
 		for (const auto& [path, invoker] : descriptions)
-			m_server.route(QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString {}), [this, root, path, invoker](const QHttpServerRequest& request) {
-				if (!path)
-					if (auto auth = AuthorizationOpds(request); auth.isValid())
-						return auth;
-
-				return QtConcurrent::run([this, root, invoker, parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)] {
+		{
+			const auto pathPattern = QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString {});
+			m_server.route(pathPattern, [this, root, invoker](const QHttpServerRequest& request) {
+				PLOGD << request.query().toString();
+				return Authorization(request, web, [this, root, invoker](const IRequester::Parameters& parameters, const QString& acceptEncoding) {
 					auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), std::cref(parameters)), acceptEncoding);
 					SetContentType(response, root, MessageType::Atom);
 					return response;
 				});
 			});
+		}
 	}
 
 	void RouteReactApp()
 	{
 		m_server.route("/", [this](const QHttpServerRequest& request) {
-			return AuthorizationWeb(request, "/", [this](const IRequester::Parameters&, const QString& acceptEncoding) {
+			return Authorization(request, "/", [this](const IRequester::Parameters&, const QString& acceptEncoding) {
 				return *FromWebsite("index.html", acceptEncoding, [this](QByteArray data) {
 					return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8());
 				});
@@ -439,71 +428,36 @@ private:
 		});
 	}
 
-	QFuture<QHttpServerResponse> AuthorizationWeb(const QHttpServerRequest& request, QString url, std::function<QHttpServerResponse(const IRequester::Parameters&, const QString&)> allow) const
+	QFuture<QHttpServerResponse> Authorization(const QHttpServerRequest& request, QString url, AuthorizationAllowFunctor allow) const
 	{
-		auto acceptEncoding = GetAcceptEncoding(request);
-		auto expectedAuth   = m_settings->Get(Flibrary::Constant::Settings::OPDS_AUTH, QString {});
+		auto       acceptEncoding = GetAcceptEncoding(request);
+		const auto expectedAuth   = m_settings->Get(Flibrary::Constant::Settings::OPDS_AUTH, QString {});
+		auto       parameters     = GetParameters<IRequester::Parameters>(request);
 
 		if (expectedAuth.isEmpty())
-			return QtConcurrent::run([this, allow = std::move(allow), parameters = GetParameters<IRequester::Parameters>(request), acceptEncoding = std::move(acceptEncoding)] {
+			return QtConcurrent::run([this, allow = std::move(allow), acceptEncoding = std::move(acceptEncoding), parameters = std::move(parameters)] {
 				return allow(parameters, acceptEncoding);
 			});
-
-		return QtConcurrent::run([this,
-		                          url            = std::move(url),
-		                          allow          = std::move(allow),
-		                          parameters     = GetParameters<IRequester::Parameters>(QString::fromUtf8(request.body())),
-		                          acceptEncoding = std::move(acceptEncoding),
-		                          expectedAuth   = std::move(expectedAuth)] {
-			auto requestAuth = [&](const QString& title) {
-				auto response = EncodeContent(m_noSqlRequester->RequestAuth(title, url), acceptEncoding);
-				SetContentType(response, web, MessageType::Atom);
-				return response;
-			};
-
-			const auto itUser = parameters.find("user"), itPassword = parameters.find("password");
-			if (IsOneOf(parameters.end(), itUser, itPassword))
-				return requestAuth(Tr(AUTH_REQUIRED));
-
-			const auto receivedAuth = QString("%1:%2").arg(itUser->second, itPassword->second).toUtf8();
-			return std::ranges::any_of(
-					   AUTH_CHECKERS,
-					   [&](const auto checker) {
-						   return checker(expectedAuth, receivedAuth);
-					   }
-				   )
-			         ? allow(parameters, acceptEncoding)
-			         : requestAuth(Tr(AUTH_FAILED));
-		});
-	}
-
-	QFuture<QHttpServerResponse> AuthorizationOpds(const QHttpServerRequest& request) const
-	{
-		const auto expected = m_settings->Get(Flibrary::Constant::Settings::OPDS_AUTH, QString {});
-		if (expected.isEmpty())
-			return {};
 
 		const auto& headers       = request.headers();
 		const auto  authorization = headers.value("authorization").toByteArray();
 		if (authorization.isEmpty())
 		{
 			PLOGW << "Attempt connection without authorization";
-			return QtConcurrent::run([] {
-				return QHttpServerResponse { AUTH_REQUIRED, QHttpServerResponder::StatusCode::NetworkAuthenticationRequired };
-			});
+			return Authenticate();
 		}
 
 		if (std::ranges::none_of(AUTH_CHECKERS, [&](const auto checker) {
-				return checker(expected, authorization);
+				return checker(expectedAuth, authorization);
 			}))
 		{
 			PLOGW << "Attempt connection with wrong authorization: " << authorization;
-			return QtConcurrent::run([] {
-				return QHttpServerResponse { AUTH_FAILED, QHttpServerResponder::StatusCode::Unauthorized };
-			});
+			return Authenticate();
 		}
 
-		return {};
+		return QtConcurrent::run([this, url = std::move(url), allow = std::move(allow), parameters = std::move(parameters), acceptEncoding = std::move(acceptEncoding)]() mutable {
+			return allow(parameters, acceptEncoding);
+		});
 	}
 
 private:

@@ -25,7 +25,7 @@ public:
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
 		std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
 		std::shared_ptr<const IDatabaseUser>         databaseUser,
-		std::shared_ptr<const IFilterProvider>       filterProvider
+		std::shared_ptr<IFilterProvider>             filterProvider
 	);
 	~AnnotationController() override;
 

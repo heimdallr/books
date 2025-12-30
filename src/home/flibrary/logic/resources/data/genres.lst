@@ -99,7 +99,7 @@ thriller_medical|detective_all_root|Медицинский триллер
 thriller_psychology|detective_all_root|Психологический триллер
 thriller_techno|detective_all_root|Техно триллер
 det_cozy:det_lady|detective_all_root|Дамский детективный роман
-det_all|detective_all_root|Детектив: прочее
+det_all:det_other|detective_all_root|Детектив: прочее
 
 # Проза
 prose|prose_all_root|Проза

@@ -11,13 +11,11 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/AuthorReviewModelRole.h"
 
-#include "inpx/constant.h"
-#include "util/localization.h"
-
+#include "Constant.h"
 #include "log.h"
 #include "zip.h"
 
@@ -47,14 +45,14 @@ public:
 	{
 		return std::make_unique<Model>(
 			settings.Get(Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false),
-			collectionProvider.ActiveCollectionExists() ? collectionProvider.GetActiveCollection().folder : QString {},
+			collectionProvider.ActiveCollectionExists() ? collectionProvider.GetActiveCollection().GetFolder() : QString {},
 			std::move(databaseUser)
 		);
 	}
 
 	Model(const bool showRemoved, const QString& folder, std::shared_ptr<const IDatabaseUser> databaseUser)
 		: m_showRemoved { showRemoved }
-		, m_folder { folder + "/" + QString::fromStdWString(REVIEWS_FOLDER) }
+		, m_folder { folder + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER) }
 		, m_databaseUser { std::move(databaseUser) }
 	{
 	}
@@ -115,9 +113,10 @@ private:
 	Items GetReviews(const long long authorId, DB::IDatabase& db) const
 	{
 		const auto query = db.CreateQuery(R"(
-select r.Folder, b.BookID, b.LibID, b.Title 
+select r.Folder, b.BookID, f.FolderTitle||'#'||b.FileName, b.Title 
 	from Reviews r 
 	join Books_View b on b.BookID = r.BookID and b.IsDeleted != ? 
+	join Folders f on f.FolderID = b.FolderID
 	join Author_List a on a.BookID = r.BookID and a.AuthorID = ? 
 	order by r.Folder
 )");
@@ -157,13 +156,13 @@ select r.Folder, b.BookID, b.LibID, b.Title
 	void GetReviews(Items& items, const DB::IQuery& query, const Zip& zip) const
 	{
 		const auto    bookId = query.Get<long long>(1);
-		const QString libId  = query.Get<const char*>(2);
+		const QString uid    = query.Get<const char*>(2);
 		QString       title  = query.Get<const char*>(3);
 
-		const auto stream = zip.Read(libId);
+		const auto stream = zip.Read(uid);
 		if (!stream)
 		{
-			PLOGE << "Cannot extract " << libId;
+			PLOGE << "Cannot extract " << uid;
 			return;
 		}
 
@@ -178,12 +177,12 @@ select r.Folder, b.BookID, b.LibID, b.Title
 		auto toItem = [bookId, title = std::move(title)](auto&& reviewValue) {
 			assert(reviewValue.isObject());
 			const auto reviewObject = reviewValue.toObject();
-			auto       name         = reviewObject[Constant::NAME].toString();
+			auto       name         = reviewObject[Inpx::NAME].toString();
 			return Item { bookId,
-				          reviewObject[Constant::TIME].toString(),
+				          reviewObject[Inpx::TIME].toString(),
 				          name.isEmpty() ? Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS) : std::move(name),
 				          title,
-				          reviewObject[Constant::TEXT].toString().replace("<br/>", "\n").append('\n') };
+				          reviewObject[Inpx::TEXT].toString().replace("<br/>", "\n").append('\n') };
 		};
 
 		assert(doc.isArray());

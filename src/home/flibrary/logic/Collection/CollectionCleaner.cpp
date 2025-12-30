@@ -11,13 +11,12 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
-#include "common/Constant.h"
 #include "database/DatabaseUtil.h"
 #include "util/Fb2InpxParser.h"
 
-#include "Zip.h"
 #include "log.h"
 
+using namespace HomeCompa::Util::Remove;
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -33,7 +32,6 @@ struct AnalyzedBook
 	QString             date;
 	QString             title;
 	size_t              size;
-	QString             libId;
 	double              libRate;
 	std::set<QString>   genres;
 	std::set<long long> authors;
@@ -42,7 +40,7 @@ struct AnalyzedBook
 using AnalyzedBooks = std::unordered_map<long long, AnalyzedBook>;
 
 constexpr auto SELECT_ANALYZED_BOOKS_QUERY = R"(
-select b.BookID, f.FolderTitle, b.FileName || b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), b.UpdateDate, b.Title, b.BookSize, b.LibID, b.LibRate, %1, %3 
+select b.BookID, f.FolderTitle, b.FileName || b.Ext, b.Lang, coalesce(bu.IsDeleted, b.IsDeleted, 0), b.UpdateDate, b.Title, b.BookSize, b.LibRate, %1, %3 
 	from Books b 
 	join Folders f on f.FolderID = b.FolderID %2 %4 
 	left join Books_User bu on bu.BookID = b.BookID 
@@ -56,7 +54,7 @@ constexpr auto AUTHOR_JOIN       = "\n	join Author_List al on al.BookID = b.Book
 constexpr auto AUTHOR_FIELD      = "al.AuthorID";
 constexpr auto WHERE_NOT_DELETED = "where coalesce(bu.IsDeleted, b.IsDeleted, 0) = 0";
 
-bool RemoveBooksImpl(const ICollectionCleaner::Books& books, DB::ITransaction& transaction, std::unique_ptr<IProgressController::IProgressItem> progressItem)
+bool RemoveBooksImpl(const Books& books, DB::ITransaction& transaction, std::unique_ptr<IProgressController::IProgressItem> progressItem)
 {
 	PLOGI << "Removing database books records started";
 
@@ -119,74 +117,6 @@ not exists (select 42 from Keywords k where k.KeywordID = Groups_List_User.Objec
 	});
 }
 
-using AllFilesItem = std::tuple<std::vector<QString>, std::shared_ptr<Zip::ProgressCallback>>;
-using AllFiles     = std::unordered_map<QString, AllFilesItem>;
-
-AllFiles CollectBookFiles(ICollectionCleaner::Books& books, const ILogicFactory& logicFactory, const std::shared_ptr<IProgressController>& progressController)
-{
-	AllFiles result;
-	for (auto&& [id, folder, file] : books)
-	{
-		auto [it, ok]           = result.try_emplace(std::move(folder), AllFilesItem {});
-		auto& [files, progress] = it->second;
-		files.emplace_back(std::move(file));
-		if (ok)
-			progress = logicFactory.CreateZipProgressCallback(progressController);
-	}
-	return result;
-}
-
-auto GetFolderPath(const QString& collectionFolder, const QString& name)
-{
-	return QString("%1/%2").arg(collectionFolder, name);
-}
-
-AllFiles CollectImageFiles(const AllFiles& bookFiles, const QString& collectionFolder, const ILogicFactory& logicFactory, const std::shared_ptr<IProgressController>& progressController)
-{
-	static constexpr std::pair<const char*, const char*> imageTypes[] {
-		{ Global::COVERS,   "" },
-		{ Global::IMAGES, "/*" },
-	};
-
-	AllFiles result;
-	for (const auto& [folder, archiveItem] : bookFiles)
-	{
-		const QFileInfo fileInfo(folder);
-		for (const auto& [type, replacedExt] : imageTypes)
-		{
-			const auto imageFolderName = QString("%1/%2.zip").arg(type, fileInfo.completeBaseName());
-			if (QFile::exists(GetFolderPath(collectionFolder, imageFolderName)))
-			{
-				auto& [files, progress] = result[imageFolderName];
-				std::ranges::transform(std::get<0>(archiveItem), std::back_inserter(files), [=](const QString& file) {
-					return QFileInfo(file).completeBaseName() + replacedExt;
-				});
-				progress = logicFactory.CreateZipProgressCallback(progressController);
-			}
-		}
-	}
-
-	return result;
-}
-
-void RemoveFiles(AllFiles& allFiles, const QString& collectionFolder)
-{
-	std::map toCleanup(std::make_move_iterator(allFiles.begin()), std::make_move_iterator(allFiles.end()));
-	for (auto&& [folder, archiveItem] : toCleanup)
-	{
-		const auto archive = GetFolderPath(collectionFolder, folder);
-		if ([&] {
-				auto&& [files, progressCallback] = archiveItem;
-				Zip zip(archive, Zip::Format::Auto, true, std::move(progressCallback));
-				zip.Remove(files);
-				return zip.GetFileNameList().isEmpty();
-			}())
-		{
-			QFile::remove(archive);
-		}
-	}
-}
-
 AnalyzedBooks GetAnalyzedBooks(DB::IDatabase& db, const ILibRateProvider& libRateProvider, const ICollectionCleaner::IAnalyzeObserver& observer, const bool hasGenres, const std::atomic_bool& analyzeCanceled)
 {
 	const auto query = db.CreateQuery(QString(SELECT_ANALYZED_BOOKS_QUERY)
@@ -210,12 +140,11 @@ AnalyzedBooks GetAnalyzedBooks(DB::IDatabase& db, const ILibRateProvider& libRat
 			it->second.date    = query->Get<const char*>(5);
 			it->second.title   = QString(query->Get<const char*>(6)).toLower();
 			it->second.size    = query->Get<long long>(7);
-			it->second.libId   = query->Get<const char*>(8);
-			it->second.libRate = libRateProvider.GetLibRate(it->second.libId, Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(9)));
+			it->second.libRate = libRateProvider.GetLibRate(it->first, Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(8)));
 		}
 
-		it->second.genres.emplace(query->Get<const char*>(10));
-		it->second.authors.emplace(query->Get<long long>(11));
+		it->second.genres.emplace(query->Get<const char*>(9));
+		it->second.authors.emplace(query->Get<long long>(10));
 		if (analyzeCanceled)
 			break;
 	}
@@ -460,27 +389,32 @@ struct CollectionCleaner::Impl
 
 	void RemovePermanently(Books books, Callback callback) const
 	{
-		databaseUser->Execute({ "Delete books permanently", [this, books = std::move(books), callback = std::move(callback), collectionFolder = collectionProvider->GetActiveCollection().folder]() mutable {
-								   auto progressItem = progressController->Add(100);
+		databaseUser->Execute({ "Delete books permanently",
+		                        [this, books = std::move(books), callback = std::move(callback), collectionFolder = collectionProvider->GetActiveCollection().GetFolder()]() mutable {
+									auto progressItem = progressController->Add(100);
 
-								   auto logicFactoryPtr = ILogicFactory::Lock(logicFactory);
-								   auto allFiles        = CollectBookFiles(books, *logicFactoryPtr, progressController);
-								   auto images          = CollectImageFiles(allFiles, collectionFolder, *logicFactoryPtr, progressController);
+									auto logicFactoryPtr = ILogicFactory::Lock(logicFactory);
+									auto allFiles        = CollectBookFiles(books, [&] {
+                                        return logicFactoryPtr->CreateZipProgressCallback(progressController);
+                                    });
+									auto images          = CollectImageFiles(allFiles, collectionFolder, [&] {
+                                        return logicFactoryPtr->CreateZipProgressCallback(progressController);
+                                    });
 
-								   std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
-								   RemoveFiles(allFiles, collectionFolder);
+									std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
+									RemoveFiles(allFiles, collectionFolder);
 
-								   const auto db          = databaseUser->Database();
-								   const auto transaction = db->CreateTransaction();
+									const auto db          = databaseUser->Database();
+									const auto transaction = db->CreateTransaction();
 
-								   auto ok = RemoveBooksImpl(books, *transaction, std::move(progressItem));
-								   ok      = CleanupNavigationItems(*transaction) && ok;
-								   ok      = transaction->Commit() && ok;
+									auto ok = RemoveBooksImpl(books, *transaction, std::move(progressItem));
+									ok      = CleanupNavigationItems(*transaction) && ok;
+									ok      = transaction->Commit() && ok;
 
-								   return [callback = std::move(callback), ok](size_t) {
-									   callback(ok);
-								   };
-							   } });
+									return [callback = std::move(callback), ok](size_t) {
+										callback(ok);
+									};
+								} });
 	}
 };
 
@@ -515,4 +449,12 @@ void CollectionCleaner::Analyze(IAnalyzeObserver& observer) const
 void CollectionCleaner::AnalyzeCancel() const
 {
 	m_impl->AnalyzeCancel();
+}
+
+void CollectionCleaner::CompilationInfoExistsRequest(IAnalyzeObserver& callback) const
+{
+	const auto db    = m_impl->databaseUser->Database();
+	const auto query = db->CreateQuery(std::format("SELECT exists(SELECT 42 FROM Compilation_List)"));
+	query->Execute();
+	callback.CompilationInfoExistsResponse(query->Get<int>(0) != 0);
 }

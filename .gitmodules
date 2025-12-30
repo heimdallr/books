@@ -15,4 +15,7 @@
 	url = ../ReactApp.git
 [submodule "src/ext/Hypodermic"]
 	path = src/ext/Hypodermic
-	url = git@github.com:heimdallr/Hypodermic.git
+	url = ../Hypodermic.git
+[submodule "src/ext/foundation"]
+	path = src/ext/foundation
+	url = ../books-fnd.git

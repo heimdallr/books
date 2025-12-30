@@ -21,6 +21,7 @@
 #include "database/DatabaseController.h"
 #include "database/DatabaseMigrator.h"
 #include "database/DatabaseUser.h"
+#include "extract/BookExtractor.h"
 #include "log/LogController.h"
 #include "model/FilteredProxyModel.h"
 #include "model/GenreModel.h"
@@ -30,12 +31,14 @@
 #include "model/TreeModel.h"
 #include "script/CommandExecutor.h"
 #include "script/ScriptController.h"
+#include "shared/BookInteractor.h"
 #include "shared/CommandLine.h"
 #include "shared/FilterController.h"
 #include "shared/LibRateProvider.h"
 #include "shared/OpdsController.h"
 #include "shared/ProgressController.h"
 #include "shared/ReaderController.h"
+#include "shared/SingleInstanceController.h"
 #include "shared/TaskQueue.h"
 #include "shared/UpdateChecker.h"
 #include "userdata/UserDataController.h"
@@ -64,6 +67,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<OpdsController>().as<IOpdsController>();
 	builder.registerType<ProgressController>().as<IAnnotationProgressController>();
 	builder.registerType<ScriptController>().as<IScriptController>();
+	builder.registerType<SingleInstanceController>().as<ISingleInstanceController>();
 	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
 	builder.registerType<TreeModel>().as<AbstractTreeModel>();
 	builder.registerType<UpdateChecker>().as<IUpdateChecker>();
@@ -71,6 +75,8 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 
 	builder.registerType<AnnotationController>().as<IAnnotationController>().singleInstance();
 	builder.registerType<AuthorAnnotationController>().as<IAuthorAnnotationController>().singleInstance();
+	builder.registerType<BookExtractor>().as<IBookExtractor>().singleInstance();
+	builder.registerType<BookInteractor>().as<IBookInteractor>().singleInstance();
 	builder.registerType<CollectionController>().as<ICollectionController>().singleInstance();
 	builder.registerType<CollectionProvider>().as<ICollectionProvider>().singleInstance();
 	builder.registerType<CommandExecutor>().as<IScriptController::ICommandExecutor>().singleInstance();
@@ -129,7 +135,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder
 		.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) {
 			const auto settings = ctx.resolve<ISettings>();
-			return settings->Get(Constant::Settings::LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT
+			return settings->Get(Constant::Settings::PREFER_LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT
 		             ? std::shared_ptr<AbstractLibRateProvider> { ctx.resolve<LibRateProviderSimple>() }
 		             : std::shared_ptr<AbstractLibRateProvider> { ctx.resolve<LibRateProviderDouble>() };
 		})

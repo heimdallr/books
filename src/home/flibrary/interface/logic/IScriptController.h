@@ -6,9 +6,16 @@
 
 #include "fnd/Lockable.h"
 
+#include "interface/logic/ILogicFactory.h"
+
 #include "export/flint.h"
 
 class QLineEdit;
+
+namespace HomeCompa::DB
+{
+class IDatabase;
+}
 
 namespace HomeCompa::Flibrary
 {
@@ -197,6 +204,9 @@ public:
 		{				   Macro::Uid, QT_TRANSLATE_NOOP("ScriptController",                     "%uid%") },
 	};
 	static_assert(std::size(s_commandMacros) == static_cast<size_t>(Macro::Last));
+#define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(NAME) static_assert(s_commandMacros[static_cast<size_t>(Macro::NAME)].first == Macro::NAME);
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO
+#undef SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM
 
 public:
 	FLINT_EXPORT static bool        HasMacro(const QString& str, Macro macro);
@@ -234,6 +244,15 @@ class IScriptControllerProvider // NOLINT(cppcoreguidelines-special-member-funct
 public:
 	virtual ~IScriptControllerProvider()                             = default;
 	virtual std::shared_ptr<IScriptController> GetScriptController() = 0;
+};
+
+class IFillTemplateConverter // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~IFillTemplateConverter() = default;
+
+	virtual bool IsValid() const noexcept                                                                                                       = 0;
+	virtual void Fill(DB::IDatabase& db, QString& outputFileTemplate, const ILogicFactory::ExtractedBook& book, const QString& dstFolder) const = 0;
 };
 
 } // namespace HomeCompa::Flibrary

@@ -10,11 +10,14 @@
 #include <QGuiApplication>
 #include <QKeyEvent>
 #include <QStyleFactory>
+#include <QSystemTrayIcon>
 #include <QTimer>
 #include <QToolBar>
 
+#include "fnd/IsOneOf.h"
+
+#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/ProductConstant.h"
@@ -30,7 +33,6 @@
 
 #include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
-#include "inpx/constant.h"
 #include "logging/LogAppender.h"
 #include "util/DyLib.h"
 #include "util/FunctorExecutionForwarder.h"
@@ -52,6 +54,8 @@ namespace
 
 constexpr auto        MAIN_WINDOW                          = "MainWindow";
 constexpr auto        CONTEXT                              = MAIN_WINDOW;
+constexpr auto        EXIT                                 = QT_TRANSLATE_NOOP("MainWindow", "Exit");
+constexpr auto        OPEN                                 = QT_TRANSLATE_NOOP("MainWindow", "Open FLibrary");
 constexpr auto        FONT_DIALOG_TITLE                    = QT_TRANSLATE_NOOP("MainWindow", "Select font");
 constexpr auto        CONFIRM_RESTORE_DEFAULT_SETTINGS     = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
 constexpr auto        CONFIRM_REMOVE_ALL_THEMES            = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to delete all themes?");
@@ -59,10 +63,13 @@ constexpr auto        DATABASE_BROKEN                      = QT_TRANSLATE_NOOP("
 constexpr auto        DENY_DESTRUCTIVE_OPERATIONS_MESSAGE  = QT_TRANSLATE_NOOP("MainWindow", "The right decision!");
 constexpr auto        ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
 constexpr auto        SELECT_QSS_FILE                      = QT_TRANSLATE_NOOP("MainWindow", "Select stylesheet files");
+constexpr auto        SELECT_SETTINGS_FILE                 = QT_TRANSLATE_NOOP("MainWindow", "Select settings file");
 constexpr auto        QSS_FILE_FILTER                      = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
+constexpr auto        SETTINGS_FILE_FILTER                 = QT_TRANSLATE_NOOP("MainWindow", "Settings files (*.ini);;All files (*.*)");
 constexpr auto        SEARCH_BOOKS_BY_TITLE_PLACEHOLDER    = QT_TRANSLATE_NOOP("MainWindow", "To search for books by author, series, or title, enter the name or title here and press Enter");
 constexpr auto        ENABLE_ALL                           = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
 constexpr auto        DISABLE_ALL                          = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
+constexpr auto        MY_FOLDER                            = QT_TRANSLATE_NOOP("MainWindow", "My export folder");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
 	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
@@ -76,13 +83,14 @@ constexpr auto SHOW_ANNOTATION_KEY                = "ui/View/Annotation";
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY        = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_KEY          = "ui/View/AnnotationCover";
 constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY  = "ui/View/AnnotationCoverButtons";
-constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "ui/View/AnnotationJokes/%1";
+constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "Preferences/AnnotationJokes/%1";
 constexpr auto SHOW_STATUS_BAR_KEY                = "ui/View/Status";
 constexpr auto SHOW_REVIEWS_KEY                   = "ui/View/ShowReadersReviews";
 constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
-constexpr auto START_FOCUSED_CONTROL              = "ui/View/StartFocusedControl";
+constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
 constexpr auto QSS                                = "qss";
+constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 
 class LineEditPlaceholderTextController final : public QObject
 {
@@ -143,9 +151,12 @@ public:
 		std::shared_ptr<const IStyleApplierFactory>     styleApplierFactory,
 		std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
 		std::shared_ptr<const IUiFactory>               uiFactory,
+		std::shared_ptr<const IDatabaseUser>            databaseUser,
+		std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
+		std::shared_ptr<const IDatabaseChecker>         databaseChecker,
+		std::shared_ptr<const ICommandLine>             commandLine,
 		std::shared_ptr<ISettings>                      settings,
 		std::shared_ptr<ICollectionController>          collectionController,
-		std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 		std::shared_ptr<IParentWidgetProvider>          parentWidgetProvider,
 		std::shared_ptr<IAnnotationController>          annotationController,
 		std::shared_ptr<AnnotationWidget>               annotationWidget,
@@ -154,10 +165,7 @@ public:
 		std::shared_ptr<ILogController>                 logController,
 		std::shared_ptr<QWidget>                        progressBar,
 		std::shared_ptr<QStyledItemDelegate>            logItemDelegate,
-		std::shared_ptr<ICommandLine>                   commandLine,
 		std::shared_ptr<ILineOption>                    lineOption,
-		std::shared_ptr<const IDatabaseChecker>         databaseChecker,
-		std::shared_ptr<const IDatabaseUser>            databaseUser,
 		std::shared_ptr<IAlphabetPanel>                 alphabetPanel
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
@@ -167,6 +175,7 @@ public:
 		, m_styleApplierFactory { std::move(styleApplierFactory) }
 		, m_jokeRequesterFactory { std::move(jokeRequesterFactory) }
 		, m_uiFactory { std::move(uiFactory) }
+		, m_databaseUser { std::move(databaseUser) }
 		, m_settings { std::move(settings) }
 		, m_collectionController { std::move(collectionController) }
 		, m_parentWidgetProvider { std::move(parentWidgetProvider) }
@@ -178,7 +187,6 @@ public:
 		, m_progressBar { std::move(progressBar) }
 		, m_logItemDelegate { std::move(logItemDelegate) }
 		, m_lineOption { std::move(lineOption) }
-		, m_databaseUser { std::move(databaseUser) }
 		, m_alphabetPanel { std::move(alphabetPanel) }
 		, m_navigationViewController { ILogicFactory::Lock(m_logicFactory)->GetTreeViewController(ItemType::Navigation) }
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
@@ -205,7 +213,7 @@ public:
 
 			if (!databaseChecker->IsDatabaseValid())
 			{
-				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection().database));
+				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection().GetDatabase()));
 				return QCoreApplication::exit(Constant::APP_FAILED);
 			}
 
@@ -314,6 +322,26 @@ public:
 		RebootDialog();
 	}
 
+	bool Close()
+	{
+		if (!m_systemTray)
+			return QCoreApplication::exit(), true;
+
+		m_isMaximized  = m_self.isMaximized();
+		m_isFullScreen = m_self.isFullScreen();
+
+		m_systemTray->show();
+		m_self.hide();
+		return false;
+	}
+
+	void OnStartAnotherApp() const
+	{
+		m_isFullScreen ? m_self.showFullScreen() : m_isMaximized ? m_self.showMaximized() : m_self.showNormal();
+		if (m_systemTray)
+			m_systemTray->hide();
+	}
+
 private: // ICollectionsObserver
 	void OnActiveCollectionChanged() override
 	{
@@ -346,7 +374,9 @@ private: // ILineOption::IObserver
 
 		auto scriptTemplate = value;
 		auto db             = m_databaseUser->Database();
-		ILogicFactory::FillScriptTemplate(*db, scriptTemplate, books.front());
+
+		const auto converter = logicFactory->CreateFillTemplateConverter();
+		converter->Fill(*db, scriptTemplate, books.front(), Tr(MY_FOLDER));
 		PLOGI << scriptTemplate;
 	}
 
@@ -472,6 +502,8 @@ private:
 			    it != widgets.cend())
 				(*it)->setFocus(Qt::FocusReason::OtherFocusReason);
 		});
+
+		SetupTrayMenu();
 	}
 
 	void ReplaceMenuBar()
@@ -487,6 +519,28 @@ private:
 		m_searchBooksByTitleLayout->addItem(new QSpacerItem(72, 20, QSizePolicy::Expanding));
 		m_searchBooksByTitleLayout->setContentsMargins(0, 0, 0, 0);
 		m_self.setMenuWidget(menuBar);
+	}
+
+	void SetupTrayMenu()
+	{
+		if (!m_settings->Get(Constant::Settings::PREFER_HIDE_TO_TRAY_KEY, false))
+			return;
+
+		m_systemTray = new QSystemTrayIcon(QIcon(":/icons/main.ico"), &m_self);
+		auto menu    = new QMenu(&m_self);
+
+		const auto open = [this](const auto reason = QSystemTrayIcon::Unknown) {
+			if (reason != QSystemTrayIcon::ActivationReason::Context)
+				OnStartAnotherApp();
+		};
+
+		menu->addAction(Tr(OPEN), open);
+		menu->addAction(Tr(EXIT), [] {
+			QCoreApplication::exit();
+		});
+		m_systemTray->setContextMenu(menu);
+
+		connect(m_systemTray, &QSystemTrayIcon::activated, &m_self, open);
 	}
 
 	void AllowDestructiveOperation(const bool value)
@@ -541,6 +595,12 @@ private:
 		connect(m_ui.actionImportUserData, &QAction::triggered, &m_self, [=] {
 			userDataOperation(&IUserDataController::Restore);
 		});
+		connect(m_ui.actionExportSettings, &QAction::triggered, &m_self, [this] {
+			ExportSettings();
+		});
+		connect(m_ui.actionImportSettings, &QAction::triggered, &m_self, [this] {
+			ImportSettings();
+		});
 		connect(m_ui.actionExit, &QAction::triggered, &m_self, [] {
 			QCoreApplication::exit();
 		});
@@ -551,6 +611,9 @@ private:
 		PLOGV << "ConnectActionsCollection";
 		connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [this] {
 			m_collectionController->AddCollection({});
+		});
+		connect(m_ui.actionRescanCollectionFolder, &QAction::triggered, &m_self, [this] {
+			m_collectionController->RescanCollectionFolder();
 		});
 		connect(m_ui.actionRemoveCollection, &QAction::triggered, &m_self, [this] {
 			m_collectionController->RemoveCollection();
@@ -644,7 +707,7 @@ private:
 		});
 
 		m_ui.actionShowReadersReviews->setVisible(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().folder + "/" + QString::fromStdWString(REVIEWS_FOLDER)).exists()
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER)).exists()
 		);
 
 		ConnectActionsSettingsAnnotationJokes();
@@ -737,10 +800,11 @@ private:
 		});
 
 		m_ui.menuImages->setEnabled(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().folder + "/" + Global::COVERS).exists()
-			&& QDir(m_collectionController->GetActiveCollection().folder + "/" + Global::IMAGES).exists()
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + Global::COVERS).exists()
+			&& QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + Global::IMAGES).exists()
 		);
 
+		ConnectSettings(m_ui.actionExportRewriteMetadata, Constant::Settings::EXPORT_REPLACE_METADATA_KEY);
 		ConnectSettings(m_ui.actionExportConvertCoverToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY);
 		ConnectSettings(m_ui.actionExportConvertImagesToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_IMAGES_KEY);
 		ConnectSettings(m_ui.actionExportRemoveCover, Constant::Settings::EXPORT_REMOVE_COVER_KEY);
@@ -757,7 +821,7 @@ private:
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
 
 		m_ui.actionShowAuthorAnnotation->setVisible(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().folder + "/" + QString::fromStdWString(AUTHORS_FOLDER)).exists()
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::AUTHORS_FOLDER)).exists()
 		);
 
 		auto restoreDefaultSettings = [this] {
@@ -1097,7 +1161,11 @@ private:
 		if (!m_collectionController->ActiveCollectionExists())
 			return;
 
-		auto searchString = m_ui.lineEditBookTitleToSearch->text();
+		auto searchString = m_ui.lineEditBookTitleToSearch->text().toLower();
+		searchString.removeIf([](const QChar ch) {
+			return ch != ' ' && !IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit);
+		});
+
 		if (searchString.isEmpty())
 			return;
 
@@ -1163,6 +1231,9 @@ private:
 		const auto enabled = !m_ui.menuSelectCollection->isEmpty();
 		m_ui.actionRemoveCollection->setEnabled(enabled);
 		m_ui.menuSelectCollection->setEnabled(enabled);
+
+		if (m_ui.menuSelectCollection->actions().count() < 2)
+			m_ui.menuCollection->removeAction(m_ui.menuSelectCollection->menuAction());
 	}
 
 	void CreateViewNavigationMenu()
@@ -1216,6 +1287,21 @@ private:
 		m_checkForUpdateOnStartEnabled = value;
 	}
 
+	void ExportSettings() const
+	{
+		if (const auto exportSettingsPath = m_uiFactory->GetSaveFileName(SETTINGS_FILE_KEY, Tr(SELECT_SETTINGS_FILE), Tr(SETTINGS_FILE_FILTER)); !exportSettingsPath.isEmpty())
+			m_settings->Save(exportSettingsPath);
+	}
+
+	void ImportSettings()
+	{
+		if (const auto importSettingsPath = m_uiFactory->GetOpenFileName(SETTINGS_FILE_KEY, Tr(SELECT_SETTINGS_FILE), Tr(SETTINGS_FILE_FILTER)); !importSettingsPath.isEmpty())
+		{
+			m_settings->Load(importSettingsPath);
+			Reboot();
+		}
+	}
+
 	static void Reboot()
 	{
 		QTimer::singleShot(0, [] {
@@ -1224,13 +1310,16 @@ private:
 	}
 
 private:
-	MainWindow&                                                m_self;
-	Ui::MainWindow                                             m_ui {};
-	QTimer                                                     m_delayStarter;
-	std::weak_ptr<const ILogicFactory>                         m_logicFactory;
-	std::shared_ptr<const IStyleApplierFactory>                m_styleApplierFactory;
-	std::shared_ptr<const IJokeRequesterFactory>               m_jokeRequesterFactory;
-	std::shared_ptr<const IUiFactory>                          m_uiFactory;
+	MainWindow&    m_self;
+	Ui::MainWindow m_ui {};
+	QTimer         m_delayStarter;
+
+	std::weak_ptr<const ILogicFactory>           m_logicFactory;
+	std::shared_ptr<const IStyleApplierFactory>  m_styleApplierFactory;
+	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
+	std::shared_ptr<const IUiFactory>            m_uiFactory;
+	std::shared_ptr<const IDatabaseUser>         m_databaseUser;
+
 	PropagateConstPtr<ISettings, std::shared_ptr>              m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr>  m_collectionController;
 	PropagateConstPtr<IParentWidgetProvider, std::shared_ptr>  m_parentWidgetProvider;
@@ -1242,7 +1331,6 @@ private:
 	PropagateConstPtr<QWidget, std::shared_ptr>                m_progressBar;
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr>    m_logItemDelegate;
 	PropagateConstPtr<ILineOption, std::shared_ptr>            m_lineOption;
-	std::shared_ptr<const IDatabaseUser>                       m_databaseUser;
 	PropagateConstPtr<IAlphabetPanel, std::shared_ptr>         m_alphabetPanel;
 
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationViewController;
@@ -1267,16 +1355,23 @@ private:
 
 	QAction* m_enableAllJokes { nullptr };
 	QAction* m_disableAllJokes { nullptr };
+
+	QSystemTrayIcon* m_systemTray { nullptr };
+	bool             m_isMaximized { false };
+	bool             m_isFullScreen { false };
 };
 
 MainWindow::MainWindow(
 	const std::shared_ptr<const ILogicFactory>&     logicFactory,
 	std::shared_ptr<const IStyleApplierFactory>     styleApplierFactory,
 	std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
-	std::shared_ptr<IUiFactory>                     uiFactory,
+	std::shared_ptr<const IUiFactory>               uiFactory,
+	std::shared_ptr<const IDatabaseUser>            databaseUser,
+	std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
+	std::shared_ptr<const IDatabaseChecker>         databaseChecker,
+	std::shared_ptr<const ICommandLine>             commandLine,
 	std::shared_ptr<ISettings>                      settings,
 	std::shared_ptr<ICollectionController>          collectionController,
-	std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 	std::shared_ptr<IParentWidgetProvider>          parentWidgetProvider,
 	std::shared_ptr<IAnnotationController>          annotationController,
 	std::shared_ptr<AnnotationWidget>               annotationWidget,
@@ -1285,10 +1380,7 @@ MainWindow::MainWindow(
 	std::shared_ptr<ILogController>                 logController,
 	std::shared_ptr<ProgressBar>                    progressBar,
 	std::shared_ptr<LogItemDelegate>                logItemDelegate,
-	std::shared_ptr<ICommandLine>                   commandLine,
 	std::shared_ptr<ILineOption>                    lineOption,
-	std::shared_ptr<const IDatabaseChecker>         databaseChecker,
-	std::shared_ptr<const IDatabaseUser>            databaseUser,
 	std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
 	QWidget*                                        parent
 )
@@ -1299,9 +1391,12 @@ MainWindow::MainWindow(
 		  std::move(styleApplierFactory),
 		  std::move(jokeRequesterFactory),
 		  std::move(uiFactory),
+		  std::move(databaseUser),
+		  std::move(collectionUpdateChecker),
+		  std::move(databaseChecker),
+		  std::move(commandLine),
 		  std::move(settings),
 		  std::move(collectionController),
-		  std::move(collectionUpdateChecker),
 		  std::move(parentWidgetProvider),
 		  std::move(annotationController),
 		  std::move(annotationWidget),
@@ -1310,10 +1405,7 @@ MainWindow::MainWindow(
 		  std::move(logController),
 		  std::move(progressBar),
 		  std::move(logItemDelegate),
-		  std::move(commandLine),
 		  std::move(lineOption),
-		  std::move(databaseChecker),
-		  std::move(databaseUser),
 		  std::move(alphabetPanel)
 	  )
 {
@@ -1332,6 +1424,17 @@ MainWindow::~MainWindow()
 void MainWindow::Show()
 {
 	show();
+}
+
+void MainWindow::OnStartAnotherApp()
+{
+	m_impl->OnStartAnotherApp();
+}
+
+void MainWindow::closeEvent(QCloseEvent* event)
+{
+	if (!m_impl->Close())
+		event->ignore();
 }
 
 void MainWindow::keyPressEvent(QKeyEvent* event)

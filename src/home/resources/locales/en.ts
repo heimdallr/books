@@ -87,6 +87,14 @@
         <source>Select database file</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Transform path to absolute</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Transform path to relative</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>AlphabetPanel</name>
@@ -160,6 +168,10 @@
     <message>
         <source>Content</source>
         <translation></translation>
+    </message>
+    <message>
+        <source>Description</source>
+        <translation>Metadata</translation>
     </message>
     <message>
         <source>Export statistics:</source>
@@ -246,7 +258,19 @@
         <translation></translation>
     </message>
     <message>
+        <source>Show content</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Show file metadata</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Size:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Source:</source>
         <translation></translation>
     </message>
     <message>
@@ -643,6 +667,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>No updates found</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>No write access to %1</source>
         <translation></translation>
     </message>
@@ -798,43 +826,7 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Cannon find entry point &apos;%1&apos;</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot  create object</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot add file &apos;%1&apos; to archive</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Cannot create database folder %1</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot create file &apos;%1&apos;</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot extract file &apos;%1&apos;</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot find file &apos;%1&apos;</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot load %1</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot open archive &apos;%1&apos;</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Cannot open file &apos;%1&apos;</source>
         <translation></translation>
     </message>
     <message>
@@ -895,11 +887,19 @@ Restart now?</source>
 <context>
     <name>FilterSettingsDialog</name>
     <message>
+        <source>All items shown</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Apply</source>
         <translation></translation>
     </message>
     <message>
         <source>Cancel</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Checked items shown</source>
         <translation></translation>
     </message>
     <message>
@@ -915,7 +915,35 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Hide rated higher than</source>
+        <translation>Hide with rating higher than</translation>
+    </message>
+    <message>
+        <source>Hide rated lower than</source>
+        <translation>Hide with rating lower than</translation>
+    </message>
+    <message>
+        <source>Hide unrated books</source>
+        <translation>Hide unrated</translation>
+    </message>
+    <message>
+        <source>Rate</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Show all items</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Show checked only</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Show unchecked only</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Unchecked items shown</source>
         <translation></translation>
     </message>
 </context>
@@ -2481,71 +2509,9 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>HomeCompa::fb2cut::MainWindow</name>
-    <message>
-        <source>Executables (*.exe);;All files (*.*)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Select external archiver executable</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Select ffmpeg executable</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Select input archive</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Select output folder</source>
-        <translation></translation>
-    </message>
-</context>
-<context>
     <name>Http</name>
     <message>
-        <source>Authentication failed</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Authentication required</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Enter Password</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Enter Username</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Login</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Password</source>
-        <translation></translation>
-    </message>
-</context>
-<context>
-    <name>ImageSettingsWidget</name>
-    <message>
-        <source>Compression quality</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Grayscale</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Maximum size</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Skip</source>
         <translation></translation>
     </message>
 </context>
@@ -3959,6 +3925,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Serbo-Croatian</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Serer</source>
         <translation></translation>
     </message>
@@ -4607,6 +4577,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Exit</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Font &amp;settings...</source>
         <translation></translation>
     </message>
@@ -4643,7 +4617,15 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>My export folder</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Navigation</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Open FLibrary</source>
         <translation></translation>
     </message>
     <message>
@@ -4657,6 +4639,14 @@ Try again?</source>
     <message>
         <source>Remove</source>
         <translation></translation>
+    </message>
+    <message>
+        <source>Rescan collection folder</source>
+        <translation>Add new books</translation>
+    </message>
+    <message>
+        <source>Rewrite &amp;metadata</source>
+        <translation>Overwrite &amp;metadata</translation>
     </message>
     <message>
         <source>S&amp;tatus line</source>
@@ -4679,11 +4669,19 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Select settings file</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Select stylesheet files</source>
         <translation></translation>
     </message>
     <message>
         <source>Server &amp;Management...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Settings files (*.ini);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>
@@ -4716,93 +4714,6 @@ Try again?</source>
     </message>
     <message>
         <source>Well, you only have yourself to blame!</source>
-        <translation></translation>
-    </message>
-</context>
-<context>
-    <name>MainWindowClass</name>
-    <message>
-        <source> bytes</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Archive fb2</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Common</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Covers</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Custom archiver command line (*experts only)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Destination folder</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Destination folder not exists</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>External archiver (7z.exe) executable path</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>FFmpeg (ffmpeg.exe) executable path</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>FFmpeg executable not found</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Files found: %1</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>For advanced users (optional)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Image settings</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Images</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Input archive file or wildcard</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Max CPU thread count</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Min image file size</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>No input archives found</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Save fb2</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Start</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>fb2cut - fb2 libraries zip archive repacker</source>
         <translation></translation>
     </message>
 </context>
@@ -5408,6 +5319,13 @@ Try again?</source>
     <message>
         <source>Search query too long.
 Try again?</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>SingleInstanceController</name>
+    <message>
+        <source>One instance of the program is already running. Do you want to start a new one?</source>
         <translation></translation>
     </message>
 </context>

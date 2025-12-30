@@ -10,8 +10,8 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
+#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionCleaner.h"
@@ -20,7 +20,7 @@
 #include "ChangeNavigationController/GroupController.h"
 #include "database/DatabaseUtil.h"
 #include "extract/BooksExtractor.h"
-#include "util/localization.h"
+#include "util/language.h"
 
 #include "MenuItems.h"
 #include "log.h"
@@ -48,7 +48,6 @@ constexpr auto TREE_EXPAND              = QT_TRANSLATE_NOOP("BookContextMenu", "
 constexpr auto REMOVE_BOOK              = QT_TRANSLATE_NOOP("BookContextMenu", "R&emove");
 constexpr auto REMOVE_BOOK_UNDO         = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
 constexpr auto REMOVE_BOOK_FROM_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "&Delete permanently");
-constexpr auto SELECT_SEND_TO_FOLDER    = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
 constexpr auto CHANGE_LANGUAGE          = QT_TRANSLATE_NOOP("BookContextMenu", "Change language");
 
 constexpr auto CANNOT_SET_USER_RATE = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set rate");
@@ -252,7 +251,8 @@ public:
 private: // IContextMenuHandler
 	void ReadBook(QAbstractItemModel* /*model*/, const QModelIndex& index, const QList<QModelIndex>& /*indexList*/, IDataItem::Ptr item, Callback callback) const override
 	{
-		m_readerController->Read(index.data(Role::Folder).toString(), index.data(Role::FileName).toString(), [item = std::move(item), callback = std::move(callback)] {
+		m_readerController->Read(index.data(Role::Id).toLongLong());
+		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] {
 			callback(item);
 		});
 	}
@@ -271,11 +271,11 @@ private: // IContextMenuHandler
 		if (idList.empty())
 			return;
 
-		ICollectionCleaner::Books books;
+		Util::Remove::Books books;
 		books.reserve(idList.size());
 		const auto count = idList.size();
 		std::ranges::transform(std::move(idList), std::back_inserter(books), [](auto&& idListItem) {
-			return ICollectionCleaner::Book { idListItem[0].toLongLong(), std::move(idListItem[1]), std::move(idListItem[2]) };
+			return Util::Remove::Book { idListItem[0].toLongLong(), std::move(idListItem[1]), std::move(idListItem[2]) };
 		});
 		auto  cleaner    = ILogicFactory::Lock(m_logicFactory)->CreateCollectionCleaner();
 		auto& cleanerRef = *cleaner;
@@ -417,7 +417,7 @@ private: // IContextMenuHandler
 	void SendAsInpxCollection(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		SendAsInpxImpl(model, index, indexList, std::move(item), std::move(callback), &IInpxGenerator::ExtractAsInpxCollection, [this] {
-			return m_uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, SELECT_SEND_TO_FOLDER);
+			return m_uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, Loc::SELECT_SEND_TO_FOLDER);
 		});
 	}
 
@@ -532,19 +532,30 @@ private:
 		const bool                    dstFolderRequired
 	) const
 	{
-		auto dir = dstFolderRequired ? m_uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, SELECT_SEND_TO_FOLDER) : QString();
+		auto dir = dstFolderRequired ? m_uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, Loc::SELECT_SEND_TO_FOLDER) : QString();
 		if (dstFolderRequired && dir.isEmpty())
 			return callback(item);
 
 		const auto logicFactory = ILogicFactory::Lock(m_logicFactory);
 		auto       books        = logicFactory->GetExtractedBooks(model, index, indexList);
-		auto       extractor    = logicFactory->CreateBooksExtractor();
-		const auto parameter    = item->GetData(MenuItem::Column::Parameter);
-		((*extractor).*f)(std::move(dir), parameter, std::move(books), std::move(outputFileNameTemplate), [extractor, item = std::move(item), callback = std::move(callback)](const bool hasError) mutable {
-			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
-			callback(item);
-			extractor.reset();
-		});
+		auto       ids          = books | std::views::transform([](const auto book) {
+                       return QString::number(book.id);
+                   })
+		         | std::ranges::to<std::set<QString>>();
+		auto       extractor = logicFactory->CreateBooksExtractor();
+		const auto parameter = item->GetData(MenuItem::Column::Parameter);
+		((*extractor).*f)(
+			std::move(dir),
+			parameter,
+			std::move(books),
+			std::move(outputFileNameTemplate),
+			[extractor, model, item = std::move(item), ids = std::move(ids), callback = std::move(callback)](const bool hasError) mutable {
+				item->SetData(QString::number(hasError), MenuItem::Column::HasError);
+				callback(item);
+				model->setData({}, QVariant::fromValue(ids), Role::Uncheck);
+				extractor.reset();
+			}
+		);
 	}
 
 	void GroupAction(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback, const GroupActionFunction f) const
@@ -593,7 +604,7 @@ private:
 	std::shared_ptr<const IBookInfoProvider> m_dataProvider;
 	std::shared_ptr<const IUiFactory>        m_uiFactory;
 	std::shared_ptr<IScriptController>       m_scriptController;
-	const int                                m_starSymbol { m_settings->Get(Constant::Settings::LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) };
+	const int                                m_starSymbol { m_settings->Get(Constant::Settings::PREFER_LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) };
 };
 
 void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr& parent, const ITreeViewController::RequestContextMenuOptions options)

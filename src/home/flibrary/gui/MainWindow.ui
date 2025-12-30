@@ -303,14 +303,22 @@
     <property name="title">
      <string>&amp;File</string>
     </property>
-    <widget class="QMenu" name="menu_User_data">
+    <widget class="QMenu" name="menuUserData">
      <property name="title">
       <string>&amp;User data</string>
      </property>
      <addaction name="actionExportUserData"/>
      <addaction name="actionImportUserData"/>
     </widget>
-    <addaction name="menu_User_data"/>
+    <widget class="QMenu" name="menuSettingsFile">
+     <property name="title">
+      <string>&amp;Settings</string>
+     </property>
+     <addaction name="actionExportSettings"/>
+     <addaction name="actionImportSettings"/>
+    </widget>
+    <addaction name="menuUserData"/>
+    <addaction name="menuSettingsFile"/>
     <addaction name="actionExit"/>
    </widget>
    <widget class="QMenu" name="menuCollection">
@@ -325,8 +333,10 @@
       <string>Select &amp;collection</string>
      </property>
     </widget>
-    <addaction name="actionAddNewCollection"/>
     <addaction name="menuSelectCollection"/>
+    <addaction name="separator"/>
+    <addaction name="actionAddNewCollection"/>
+    <addaction name="actionRescanCollectionFolder"/>
     <addaction name="actionRemoveCollection"/>
     <addaction name="separator"/>
     <addaction name="actionGenerateIndexInpx"/>
@@ -448,6 +458,7 @@
       <addaction name="menuIllustrations"/>
      </widget>
      <addaction name="actionExportTemplate"/>
+     <addaction name="actionExportRewriteMetadata"/>
      <addaction name="menuImages"/>
     </widget>
     <widget class="QMenu" name="menuHttp">
@@ -1020,6 +1031,41 @@
    </property>
    <property name="text">
     <string>Remove</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionExportRewriteMetadata">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Rewrite &amp;metadata</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionRescanCollectionFolder">
+   <property name="text">
+    <string>Rescan collection folder</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionExportSettings">
+   <property name="text">
+    <string>E&amp;xport</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionImportSettings">
+   <property name="text">
+    <string>I&amp;mport</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

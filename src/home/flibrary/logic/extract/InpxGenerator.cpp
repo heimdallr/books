@@ -224,7 +224,7 @@ QByteArray Process(const std::filesystem::path& archiveFolder, const QString& ds
 		const auto folder   = QString::fromStdWString(archiveFolder / book.book->GetRawData(BookItem::Column::Folder).toStdWString());
 		const Zip  zipInput(folder);
 		const auto input = zipInput.Read(fileName);
-		auto       bytes = RestoreImages(input->GetStream(), folder, fileName);
+		auto       bytes = PrepareToExport(input->GetStream(), folder, fileName);
 		progress.Increment(bytes.size());
 		Write(inpx, uid, book, n);
 
@@ -263,7 +263,7 @@ public:
 		m_taskCount = std::size(books) / 3000 + 1;
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor({ static_cast<int>(m_taskCount) }).swap(m_executor);
 		m_dstFolder     = std::move(dstFolder);
-		m_archiveFolder = m_collectionProvider->GetActiveCollection().folder.toStdWString();
+		m_archiveFolder = m_collectionProvider->GetActiveCollection().GetFolder().toStdWString();
 
 		CollectExistingFiles();
 

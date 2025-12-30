@@ -8,9 +8,11 @@
 
 #include "fnd/ScopedCall.h"
 
+#include "interface/localization.h"
+
 #include "logic/shared/ImageRestore.h"
 #include "util/AnnotationControllerObserver.h"
-#include "util/localization.h"
+#include "util/ImageUtil.h"
 
 #include "zip.h"
 
@@ -19,12 +21,6 @@ using namespace Opds;
 
 namespace
 {
-const auto CONTEXT        = "Http";
-const auto LOGIN          = QT_TRANSLATE_NOOP("Http", "Login");
-const auto PASSWORD       = QT_TRANSLATE_NOOP("Http", "Password");
-const auto ENTER_LOGIN    = QT_TRANSLATE_NOOP("Http", "Enter Username");
-const auto ENTER_PASSWORD = QT_TRANSLATE_NOOP("Http", "Enter Password");
-TR_DEF
 
 QByteArray Decompress(const QString& path, const QString& archive, const QString& fileName, const bool restoreImages)
 {
@@ -44,7 +40,7 @@ QByteArray Decompress(const QString& path, const QString& archive, const QString
 				buffer.close();
 			}
 		);
-		buffer.write(Flibrary::RestoreImages(stream->GetStream(), path + "/" + archive, fileName));
+		buffer.write(Flibrary::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName));
 	}
 	return data;
 }
@@ -76,8 +72,8 @@ QByteArray Compress(QByteArray data, QString fileName)
 struct NoSqlRequester::Impl
 {
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
+	std::shared_ptr<const Flibrary::IBookExtractor>      bookExtractor;
 	std::shared_ptr<const ICoverCache>                   coverCache;
-	std::shared_ptr<const IBookExtractor>                bookExtractor;
 	std::shared_ptr<Flibrary::IAnnotationController>     annotationController;
 
 	QByteArray GetCoverThumbnail(const QString& bookId) const
@@ -93,7 +89,7 @@ struct NoSqlRequester::Impl
 				eventLoop.exit();
 			});
 			if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
-				return (void)(result = std::move(Flibrary::Recode(covers.front().bytes).first));
+				return (void)(result = std::move(Util::Recode(covers.front().bytes).first));
 
 			QFile                       file(":/images/book.png");
 			[[maybe_unused]] const auto ok = file.open(QIODevice::ReadOnly);
@@ -112,7 +108,7 @@ struct NoSqlRequester::Impl
 	{
 		auto book           = bookExtractor->GetExtractedBook(bookId);
 		auto outputFileName = bookExtractor->GetFileName(book);
-		auto data           = Decompress(collectionProvider->GetActiveCollection().folder, book.folder, book.file, restoreImages);
+		auto data           = Decompress(collectionProvider->GetActiveCollection().GetFolder(), book.folder, book.file, restoreImages);
 
 		return std::make_tuple(std::move(book.file), QFileInfo(outputFileName).fileName(), std::move(data));
 	}
@@ -120,11 +116,11 @@ struct NoSqlRequester::Impl
 
 NoSqlRequester::NoSqlRequester(
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
+	std::shared_ptr<const Flibrary::IBookExtractor>      bookExtractor,
 	std::shared_ptr<const ICoverCache>                   coverCache,
-	std::shared_ptr<const IBookExtractor>                bookExtractor,
 	std::shared_ptr<Flibrary::IAnnotationController>     annotationController
 )
-	: m_impl { std::move(collectionProvider), std::move(coverCache), std::move(bookExtractor), std::move(annotationController) }
+	: m_impl { std::move(collectionProvider), std::move(bookExtractor), std::move(coverCache), std::move(annotationController) }
 {
 }
 
@@ -151,33 +147,4 @@ std::pair<QString, QByteArray> NoSqlRequester::GetBookZip(const QString& bookId,
 	auto [fileName, title, data] = m_impl->GetBook(bookId, restoreImages);
 	data                         = Compress(std::move(data), std::move(fileName));
 	return std::make_pair(QFileInfo(title).completeBaseName() + ".zip", std::move(data));
-}
-
-QByteArray NoSqlRequester::RequestAuth(const QString& title, const QString& url) const
-{
-	return QString(R"(
-<html>
-	<body>
-		<h2>%1</h2>
-		<form action="%2" method="post">
-			<table>
-				<tr>
-					<td><label for="user"><b>%3</b></label></td>
-					<td><input type="text" placeholder="%4" id="user" name="user" size="42" required></td>
-				</tr>
-				<tr>
-					<td><label for="password"><b>%5</b></label></td>
-					<td><input type="password" placeholder="%6" id="password" name="password" size="42" required></td>
-				</tr>
-				<tr>
-					<td></td>
-					<td><button type="submit">Login</button></td>
-				</tr>
-			</table>
-		</form>
-	</body>
-</html>
-)")
-	    .arg(title, url, Tr(LOGIN), Tr(ENTER_LOGIN), Tr(PASSWORD), Tr(ENTER_PASSWORD))
-	    .toUtf8();
 }

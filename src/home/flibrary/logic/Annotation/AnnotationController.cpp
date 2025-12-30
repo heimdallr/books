@@ -17,19 +17,19 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
+#include "interface/Localization.h"
 #include "interface/constants/ExportStat.h"
-#include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/IJokeRequester.h"
 #include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
 #include "database/DatabaseUtil.h"
-#include "inpx/constant.h"
 #include "util/UiTimer.h"
-#include "util/localization.h"
+#include "util/language.h"
 
 #include "ArchiveParser.h"
+#include "Constant.h"
 #include "log.h"
 
 using namespace HomeCompa;
@@ -41,6 +41,7 @@ namespace
 constexpr auto CONTEXT           = "Annotation";
 constexpr auto KEYWORDS_FB2      = QT_TRANSLATE_NOOP("Annotation", "Keywords: %1");
 constexpr auto FILENAME          = QT_TRANSLATE_NOOP("Annotation", "File:");
+constexpr auto SOURCE_LIBRARY    = QT_TRANSLATE_NOOP("Annotation", "Source:");
 constexpr auto BOOK_SIZE         = QT_TRANSLATE_NOOP("Annotation", "Size:");
 constexpr auto IMAGES            = QT_TRANSLATE_NOOP("Annotation", "Images:");
 constexpr auto TRANSLATORS       = QT_TRANSLATE_NOOP("Annotation", "Translators:");
@@ -60,7 +61,7 @@ constexpr auto AUTHORS_QUERY =
 constexpr auto GENRES_QUERY   = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id  where g.Flags & {} = 0 order by gl.OrdNum";
 constexpr auto GROUPS_QUERY   = "select g.GroupID, g.Title from Groups_User g join Groups_List_User_View gl on gl.GroupID = g.GroupID and gl.BookID = :id";
 constexpr auto KEYWORDS_QUERY = "select k.KeywordID, k.KeywordTitle from Keywords k join Keyword_List kl on kl.KeywordID = k.KeywordID and kl.BookID = :id where k.Flags & {} = 0 order by kl.OrdNum";
-constexpr auto REVIEWS_QUERY  = "select b.LibID, r.Folder from Reviews r join Books b on b.BookID = r.BookID where r.BookID = :id";
+constexpr auto REVIEWS_QUERY  = "select f.FolderTitle||'#'||b.FileName||b.Ext, r.Folder from Reviews r join Books b on b.BookID = r.BookID join Folders f on f.FolderID = b.FolderID where r.BookID = :id";
 constexpr auto FOLDER_QUERY   = "select f.FolderID, f.FolderTitle from Folders f join Books b on b.FolderID = f.FolderID and b.BookID = :id";
 constexpr auto UPDATE_QUERY   = "select u.UpdateID, b.UpdateDate from Updates u join Books b on b.UpdateID = u.UpdateID and b.BookID = :id";
 
@@ -295,7 +296,10 @@ class AnnotationController::Impl final
 	, public IDataProvider
 	, IProgressController::IObserver
 	, IJokeRequester::IClient
+	, IFilterProvider::IObserver
 {
+	NON_COPY_MOVABLE(Impl)
+
 public:
 	Impl(
 		const std::shared_ptr<const ILogicFactory>&  logicFactory,
@@ -303,7 +307,7 @@ public:
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
 		std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
 		std::shared_ptr<const IDatabaseUser>         databaseUser,
-		std::shared_ptr<const IFilterProvider>       filterProvider
+		std::shared_ptr<IFilterProvider>             filterProvider
 	)
 		: m_logicFactory { logicFactory }
 		, m_settings { std::move(settings) }
@@ -319,6 +323,12 @@ public:
 		QObject::connect(&m_jokeTimer, &QTimer::timeout, [this] {
 			RequestJoke();
 		});
+		m_filterProvider->RegisterObserver(this);
+	}
+
+	~Impl() override
+	{
+		m_filterProvider->UnregisterObserver(this);
 	}
 
 public:
@@ -422,6 +432,11 @@ private: // IDataProvider
 		return m_archiveData.sourceLanguage;
 	}
 
+	[[nodiscard]] const QString& GetSourceLibrary() const noexcept override
+	{
+		return m_sourceLib;
+	}
+
 	[[nodiscard]] const std::vector<QString>& GetFb2Keywords() const noexcept override
 	{
 		return m_archiveData.keywords;
@@ -445,6 +460,11 @@ private: // IDataProvider
 	[[nodiscard]] IDataItem::Ptr GetContent() const noexcept override
 	{
 		return m_archiveData.content;
+	}
+
+	[[nodiscard]] IDataItem::Ptr GetDescription() const noexcept override
+	{
+		return m_archiveData.description;
 	}
 
 	[[nodiscard]] IDataItem::Ptr GetTranslators() const noexcept override
@@ -513,6 +533,20 @@ private: // IJokeRequester::IClient
 	void OnImageReceived(const QByteArray& value) override
 	{
 		Perform(&IAnnotationController::IObserver::OnJokeImageChanged, std::cref(value));
+	}
+
+private: // IFilterProvider::IObserver
+	void OnFilterEnabledChanged() override
+	{
+	}
+
+	void OnFilterNavigationChanged(NavigationMode) override
+	{
+	}
+
+	void OnFilterBooksChanged() override
+	{
+		Perform(&IAnnotationController::IObserver::OnAnnotationRequested);
 	}
 
 private:
@@ -593,11 +627,19 @@ private:
 				  ExportStatistics exportStatistics;
 				  {
 					  std::unordered_map<ExportStat::Type, std::vector<QDateTime>> exportStatisticsBuffer;
-					  const auto                                                   query = db->CreateQuery("select ExportType, CreatedAt from Export_List_User where BookID = ?");
+
+					  const auto query = db->CreateQuery("select ExportType, CreatedAt from Export_List_User where BookID = ?");
 					  for (query->Bind(0, bookId), query->Execute(); !query->Eof(); query->Next())
 						  exportStatisticsBuffer[static_cast<ExportStat::Type>(query->Get<int>(0))].emplace_back(QDateTime::fromString(query->Get<const char*>(1), Qt::ISODate));
 					  std::ranges::move(exportStatisticsBuffer, std::back_inserter(exportStatistics));
 				  }
+
+				  QString sourceLib = [&] {
+					  const auto query = db->CreateQuery("select b.SourceLib from Books b where b.BookID = ?");
+					  query->Bind(0, bookId);
+					  query->Execute();
+					  return query->Eof() ? QString {} : QString { query->Get<const char*>(0) };
+				  }();
 
 				  return [this,
 			              book             = std::move(book),
@@ -609,6 +651,7 @@ private:
 			              exportStatistics = std::move(exportStatistics),
 			              folder           = std::move(folder),
 			              update           = std::move(update),
+			              sourceLib        = std::move(sourceLib),
 			              reviews          = CollectReviews(*db, bookId)](size_t) mutable {
 					  if (book->GetId() != m_currentBookId)
 						  return;
@@ -622,6 +665,7 @@ private:
 					  m_exportStatistics  = std::move(exportStatistics);
 					  m_folder            = std::move(folder);
 					  m_update            = std::move(update);
+					  m_sourceLib         = std::move(sourceLib);
 					  m_reviews           = std::move(reviews);
 					  m_ready            |= Ready::Database;
 
@@ -645,16 +689,19 @@ private:
 			for (query->Execute(); !query->Eof(); query->Next())
 				reviewFolders.emplace_back(query->Get<const char*>(0), query->Get<const char*>(1));
 		}
-		const auto archivesFolder = m_collectionProvider->GetActiveCollection().folder + "/" + QString::fromStdWString(REVIEWS_FOLDER);
+		const auto archivesFolder = m_collectionProvider->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER);
 
 		Reviews reviews;
-		for (const auto& [libId, reviewFolder] : reviewFolders)
+		for (const auto& [uid, reviewFolder] : reviewFolders)
 		{
 			if (!QFile::exists(archivesFolder + "/" + reviewFolder))
 				continue;
 
-			Zip             zip(archivesFolder + "/" + reviewFolder);
-			const auto      stream = zip.Read(libId);
+			Zip zip(archivesFolder + "/" + reviewFolder);
+			if (!zip.GetFileNameList().contains(uid))
+				continue;
+
+			const auto      stream = zip.Read(uid);
 			QJsonParseError jsonParseError;
 			const auto      doc = QJsonDocument::fromJson(stream->GetStream().readAll(), &jsonParseError);
 			if (jsonParseError.error != QJsonParseError::NoError)
@@ -662,18 +709,20 @@ private:
 				PLOGW << jsonParseError.errorString();
 				continue;
 			}
-			assert(doc.isArray());
+			if (!doc.isArray())
+				continue;
+
 			for (const auto jsonValue : doc.array())
 			{
 				assert(jsonValue.isObject());
 				const auto obj    = jsonValue.toObject();
-				auto&      review = reviews.emplace_back(QDateTime::fromString(obj[Constant::TIME].toString(), "yyyy-MM-dd hh:mm:ss"), obj[Constant::NAME].toString(), obj[Constant::TEXT].toString());
+				auto&      review = reviews.emplace_back(QDateTime::fromString(obj[Inpx::TIME].toString(), "yyyy-MM-dd hh:mm:ss"), obj[Inpx::NAME].toString(), obj[Inpx::TEXT].toString());
 				if (review.name.isEmpty())
 					review.name = Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS);
 			}
 		}
 
-		const auto reviewsSortMode = m_settings->Get("ui/View/AnnotationReviewSortMode", QString { "Time" }).toStdString();
+		const auto reviewsSortMode = m_settings->Get("Preferences/AnnotationReviewSortMode", QString { "Time" }).toStdString();
 		const auto invoker         = FindSecond(REVIEW_SORTERS, reviewsSortMode.data(), REVIEW_SORTER_DEFAULT, PszComparer {});
 		std::invoke(invoker, std::ref(reviews));
 
@@ -719,12 +768,14 @@ private:
 	std::shared_ptr<const ICollectionProvider>   m_collectionProvider;
 	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
 	std::shared_ptr<const IDatabaseUser>         m_databaseUser;
-	std::shared_ptr<const IFilterProvider>       m_filterProvider;
+
+	PropagateConstPtr<IFilterProvider, std::shared_ptr> m_filterProvider;
 
 	std::vector<std::pair<IJokeRequesterFactory::Implementation, PropagateConstPtr<IJokeRequester, std::shared_ptr>>> m_jokeRequesters;
-	PropagateConstPtr<Util::IExecutor>                                                                                m_executor;
-	std::shared_ptr<IJokeRequester::IClient>                                                                          m_jokeRequesterClientImpl;
-	PropagateConstPtr<QTimer>                                                                                         m_extractInfoTimer { Util::CreateUiTimer([&] {
+
+	PropagateConstPtr<Util::IExecutor>       m_executor;
+	std::shared_ptr<IJokeRequester::IClient> m_jokeRequesterClientImpl;
+	PropagateConstPtr<QTimer>                m_extractInfoTimer { Util::CreateUiTimer([&] {
         ExtractInfo();
     }) };
 
@@ -743,6 +794,7 @@ private:
 	IDataItem::Ptr m_keywords;
 	IDataItem::Ptr m_folder;
 	IDataItem::Ptr m_update;
+	QString        m_sourceLib;
 
 	ExportStatistics m_exportStatistics;
 	Reviews          m_reviews;
@@ -762,7 +814,7 @@ AnnotationController::AnnotationController(
 	std::shared_ptr<const ICollectionProvider>   collectionProvider,
 	std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
 	std::shared_ptr<const IDatabaseUser>         databaseUser,
-	std::shared_ptr<const IFilterProvider>       filterProvider
+	std::shared_ptr<IFilterProvider>             filterProvider
 )
 	: m_impl(logicFactory, std::move(settings), std::move(collectionProvider), std::move(jokeRequesterFactory), std::move(databaseUser), std::move(filterProvider))
 {
@@ -809,7 +861,7 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 	}
 
 	{
-		auto info = Table(strategy).Add(FILENAME, book.GetRawData(BookItem::Column::FileName));
+		auto info = Table(strategy).Add(FILENAME, book.GetRawData(BookItem::Column::FileName)).Add(SOURCE_LIBRARY, dataProvider.GetSourceLibrary());
 		if (dataProvider.GetTextSize() > 0)
 			info.Add(BOOK_SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))).arg(Round(dataProvider.GetWordCount(), -3)));
 		info.Add(Loc::RATE, strategy.GenerateStars(book.GetRawData(BookItem::Column::LibRate).toInt()));

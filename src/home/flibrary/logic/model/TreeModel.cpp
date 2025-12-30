@@ -1,5 +1,7 @@
 #include "TreeModel.h"
 
+#include "fnd/algorithm.h"
+
 #include "interface/constants/ModelRole.h"
 
 #include "log.h"
@@ -58,4 +60,35 @@ int TreeModel::columnCount(const QModelIndex& /*parent*/) const
 QVariant TreeModel::data(const QModelIndex& index, const int role) const
 {
 	return role == Role::IsTree ? QVariant { true } : AbstractTreeModel::data(index, role);
+}
+
+bool TreeModel::Check(const QVariant& value, const Qt::CheckState checked)
+{
+	const auto toChange = value.value<std::set<QString>>();
+
+	const auto enumerate = [&](const QModelIndex& parent, const auto& r) -> bool {
+		std::set<int> changed;
+
+		for (int i = 0, sz = rowCount(parent); i < sz; ++i)
+		{
+			const auto child = index(i, 0, parent);
+			if (rowCount(child))
+			{
+				if (r(child, r))
+					changed.insert(i);
+			}
+			else if (child.data(Role::CheckState).value<Qt::CheckState>() != checked && toChange.contains(child.data(Role::Id).toString()))
+			{
+				setData(child, checked, Role::CheckState);
+				changed.insert(i);
+			}
+		}
+
+		for (const auto& [begin, end] : Util::CreateRanges(changed))
+			emit dataChanged(index(begin, 0, parent), index(end - 1, 0, parent), { Qt::CheckStateRole });
+
+		return !changed.empty();
+	};
+
+	return enumerate({}, enumerate);
 }

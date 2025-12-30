@@ -5,10 +5,13 @@
 #include <QStandardPaths>
 #include <QStyle>
 
-#include "interface/constants/Localization.h"
+#include "fnd/ScopedCall.h"
+
+#include "interface/Localization.h"
 
 #include "gutil/GeometryRestorable.h"
 #include "util/DyLib.h"
+#include "util/files.h"
 #include "util/translit.h"
 
 #include "log.h"
@@ -31,6 +34,8 @@ constexpr auto SCAN_UN_INDEXED_FOLDERS          = "ScanUnIndexedFolders";
 constexpr auto SKIP_NOT_IN_ARCHIVES             = "SkipNotInArchives";
 constexpr auto MARK_UN_INDEXED_BOOKS_AS_DELETED = "MarkUnIndexedBooksAsDeleted";
 constexpr auto DEFAULT_ARCHIVE_TYPE             = "DefaultArchiveType";
+constexpr auto DATABASE_RELATIVE_PATH           = "DatabaseRelativePath";
+constexpr auto ARCHIVE_RELATIVE_PATH            = "ArchiveRelativePath";
 
 constexpr auto CONTEXT                  = "AddCollectionDialog";
 constexpr auto DATABASE_FILENAME_FILTER = QT_TRANSLATE_NOOP("AddCollectionDialog", "Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)");
@@ -128,16 +133,23 @@ public:
 			m_self.done(Result::Cancel);
 		});
 		connect(m_ui.btnDatabase, &QAbstractButton::clicked, &m_self, [&] {
-			const auto file = GetDatabase(*m_uiFactory, GetDatabaseFileName());
+			auto file = GetDatabase(*m_uiFactory, GetDatabaseFileName());
 			if (file.isEmpty())
 				return;
+
+			if (m_settings->Get(QString(RECENT_TEMPLATE).arg(DATABASE_RELATIVE_PATH), false))
+				file = Util::ToRelativePath(file);
 
 			m_ui.editDatabase->setText(file);
 			m_userDefinedDatabasePath = true;
 		});
 		connect(m_ui.btnArchive, &QAbstractButton::clicked, &m_self, [&] {
-			if (const auto dir = GetFolder(*m_uiFactory, GetArchiveFolder()); !dir.isEmpty())
+			if (auto dir = GetFolder(*m_uiFactory, GetArchiveFolder()); !dir.isEmpty())
+			{
+				if (m_settings->Get(QString(RECENT_TEMPLATE).arg(ARCHIVE_RELATIVE_PATH), false))
+					dir = Util::ToRelativePath(dir);
 				m_ui.editArchive->setText(dir);
+			}
 		});
 
 		connect(m_ui.editName, &QLineEdit::textChanged, &m_self, [&](const QString& text) {
@@ -150,11 +162,28 @@ public:
 		connect(m_ui.editDatabase, &QLineEdit::textChanged, &m_self, [&](const QString& db) {
 			OnDatabaseNameChanged(db);
 		});
-		connect(m_ui.editArchive, &QLineEdit::textChanged, &m_self, [&] {
-			(void)CheckData();
+		connect(m_ui.editArchive, &QLineEdit::textChanged, &m_self, [&](const QString& folder) {
+			OnArchiveFolderPathChanged(folder);
 		});
 		connect(m_ui.checkBoxScanUnindexedArchives, &QCheckBox::checkStateChanged, &m_self, [&] {
 			(void)CheckData();
+		});
+
+		connect(m_ui.actionDatabaseToAbsolutePath, &QAction::triggered, &m_self, [&] {
+			m_ui.editDatabase->setText(Util::ToAbsolutePath(m_ui.editDatabase->text()));
+			m_settings->Set(QString(RECENT_TEMPLATE).arg(DATABASE_RELATIVE_PATH), false);
+		});
+		connect(m_ui.actionDatabaseToRelativePath, &QAction::triggered, &m_self, [&] {
+			m_ui.editDatabase->setText(Util::ToRelativePath(m_ui.editDatabase->text()));
+			m_settings->Set(QString(RECENT_TEMPLATE).arg(DATABASE_RELATIVE_PATH), true);
+		});
+		connect(m_ui.actionArchiveToAbsolutePath, &QAction::triggered, &m_self, [&] {
+			m_ui.editArchive->setText(Util::ToAbsolutePath(m_ui.editArchive->text()));
+			m_settings->Set(QString(RECENT_TEMPLATE).arg(ARCHIVE_RELATIVE_PATH), false);
+		});
+		connect(m_ui.actionArchiveToRelativePath, &QAction::triggered, &m_self, [&] {
+			m_ui.editArchive->setText(Util::ToRelativePath(m_ui.editArchive->text()));
+			m_settings->Set(QString(RECENT_TEMPLATE).arg(ARCHIVE_RELATIVE_PATH), true);
 		});
 
 		m_ui.editName->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(NAME), QString("FLibrary")));
@@ -259,10 +288,33 @@ private:
 
 	void OnDatabaseNameChanged(const QString& db)
 	{
+		OnPathChanged(db, m_ui.editDatabase, m_ui.actionDatabaseToAbsolutePath, m_ui.actionDatabaseToRelativePath);
+
 		m_createMode = !db.isEmpty() && !QFile::exists(db);
 		m_ui.btnAdd->setText(Tr(m_createMode ? CREATE_NEW_COLLECTION : ADD_COLLECTION));
 		m_ui.options->setEnabled(m_createMode);
-		(void)CheckData();
+	}
+
+	void OnArchiveFolderPathChanged(const QString& path) const
+	{
+		OnPathChanged(path, m_ui.editArchive, m_ui.actionArchiveToAbsolutePath, m_ui.actionArchiveToRelativePath);
+	}
+
+	void OnPathChanged(const QString& path, QLineEdit* edit, QAction* absolute, QAction* relative) const
+	{
+		const ScopedCall checkDataGuard([this] {
+			(void)CheckData();
+		});
+		edit->removeAction(absolute);
+		edit->removeAction(relative);
+
+		if (path.isEmpty())
+			return;
+
+		if (const QFileInfo fileInfo(path); !fileInfo.isAbsolute())
+			edit->addAction(absolute, QLineEdit::TrailingPosition);
+		else if (QCoreApplication::applicationFilePath().front().toUpper() == fileInfo.absoluteFilePath().front().toUpper())
+			edit->addAction(relative, QLineEdit::TrailingPosition);
 	}
 
 	bool CheckData() const
@@ -287,7 +339,7 @@ private:
 
 	[[nodiscard]] bool CheckDatabase() const
 	{
-		const auto db = GetDatabaseFileName();
+		const auto db = Util::ToAbsolutePath(GetDatabaseFileName());
 
 		if (db.isEmpty())
 			return SetErrorText(m_ui.editDatabase, Error(EMPTY_DATABASE));
@@ -306,7 +358,7 @@ private:
 
 	[[nodiscard]] bool CheckFolder() const
 	{
-		const auto folder = GetArchiveFolder();
+		const auto folder = Util::ToAbsolutePath(GetArchiveFolder());
 
 		if (folder.isEmpty())
 			return SetErrorText(m_ui.editArchive, Error(EMPTY_ARCHIVES_NAME));

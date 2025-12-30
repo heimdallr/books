@@ -4,9 +4,8 @@
 
 #include "fnd/memory.h"
 
+#include "interface/localization.h"
 #include "interface/logic/IScriptController.h"
-
-#include "util/localization.h"
 
 #include "log.h"
 

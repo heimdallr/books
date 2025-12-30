@@ -63,6 +63,11 @@ public:
 
 	[[nodiscard]] virtual bool                          IsFilterEnabled() const noexcept                                               = 0;
 	[[nodiscard]] virtual std::vector<IDataItem::Flags> GetFlags(NavigationMode navigationMode, const std::vector<QString>& ids) const = 0;
+	[[nodiscard]] virtual bool                          HideUnrated() const noexcept                                                   = 0;
+	[[nodiscard]] virtual bool                          IsMinimumRateEnabled() const noexcept                                          = 0;
+	[[nodiscard]] virtual bool                          IsMaximumRateEnabled() const noexcept                                          = 0;
+	[[nodiscard]] virtual int                           GetMinimumRate() const noexcept                                                = 0;
+	[[nodiscard]] virtual int                           GetMaximumRate() const noexcept                                                = 0;
 
 	virtual void RegisterObserver(IObserver* observer)   = 0;
 	virtual void UnregisterObserver(IObserver* observer) = 0;

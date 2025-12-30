@@ -1,9 +1,42 @@
 #pragma once
 
-#include "util/localization.h"
+namespace HomeCompa::Loc::Ctx
+{
+
+constexpr auto COMMON    = "Common";
+constexpr auto ERROR_CTX = "Error";
+constexpr auto LANG      = "Language";
+constexpr auto BOOK      = "Book";
+constexpr auto LOGGING   = "Logging";
+
+}
 
 namespace HomeCompa::Loc
 {
+
+constexpr auto MONTHS_CONTEXT = "Month";
+#if 0
+QT_TRANSLATE_NOOP("Month", "1")
+QT_TRANSLATE_NOOP("Month", "2")
+QT_TRANSLATE_NOOP("Month", "3")
+QT_TRANSLATE_NOOP("Month", "4")
+QT_TRANSLATE_NOOP("Month", "5")
+QT_TRANSLATE_NOOP("Month", "6")
+QT_TRANSLATE_NOOP("Month", "7")
+QT_TRANSLATE_NOOP("Month", "8")
+QT_TRANSLATE_NOOP("Month", "9")
+QT_TRANSLATE_NOOP("Month", "10")
+QT_TRANSLATE_NOOP("Month", "11")
+QT_TRANSLATE_NOOP("Month", "12")
+QT_TRANSLATE_NOOP("Month", "2147483647")
+#endif
+
+constexpr auto ERROR_TEXT      = QT_TRANSLATE_NOOP("Common", "Error!");
+constexpr auto INFORMATION     = QT_TRANSLATE_NOOP("Common", "Information");
+constexpr auto QUESTION        = QT_TRANSLATE_NOOP("Common", "Question");
+constexpr auto WARNING         = QT_TRANSLATE_NOOP("Common", "Warning!");
+constexpr auto CONFIRM_RESTART = QT_TRANSLATE_NOOP("Common", "You must restart the application to apply the changes.\nRestart now?");
+constexpr auto ANONYMOUS       = QT_TRANSLATE_NOOP("Common", "Anonymous");
 
 constexpr auto AUTHOR_NOT_SPECIFIED = QT_TRANSLATE_NOOP("Error", "Author not specified");
 constexpr auto BOOKS_EXTRACT_ERROR  = QT_TRANSLATE_NOOP("Error", "Retrieving books had errors");
@@ -69,5 +102,7 @@ constexpr auto TREE_EXPAND_ALL   = QT_TRANSLATE_NOOP("ContextMenu", "&Expand all
 constexpr auto CHECK_ALL         = QT_TRANSLATE_NOOP("ContextMenu", "&Check all");
 constexpr auto UNCHECK_ALL       = QT_TRANSLATE_NOOP("ContextMenu", "&Uncheck all");
 constexpr auto INVERT_CHECK      = QT_TRANSLATE_NOOP("ContextMenu", "&Invert");
+
+constexpr auto SELECT_SEND_TO_FOLDER = QT_TRANSLATE_NOOP("BookContextMenu", "Select destination folder");
 
 } // namespace HomeCompa::Loc

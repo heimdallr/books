@@ -1,19 +1,18 @@
 #include "CollectionController.h"
 
-#include <QCoreApplication>
 #include <QTemporaryDir>
 #include <QTimer>
 
 #include "fnd/ScopedCall.h"
 #include "fnd/observable.h"
 
-#include "interface/constants/Localization.h"
-#include "interface/constants/ProductConstant.h"
+#include "interface/Localization.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
-#include "inpx/constant.h"
+#include "inpx/InpxConstant.h"
 #include "util/IExecutor.h"
+#include "util/files.h"
 
 #include "CollectionImpl.h"
 #include "log.h"
@@ -38,6 +37,7 @@ constexpr auto COLLECTION_UPDATE_ACTION_UPDATED = QT_TRANSLATE_NOOP("CollectionC
 constexpr auto COLLECTION_UPDATE_RESULT_GENRES  = QT_TRANSLATE_NOOP("CollectionController", "<tr><td>Genres:</td><td align='right'>%1</td></tr>");
 constexpr auto COLLECTION_NEED_RECREATE =
 	QT_TRANSLATE_NOOP("CollectionController", "<p><p>Warning! A change to previous data was detected, it is recommended to recreate the collection again. Don't forget to save user data</p></p>");
+constexpr auto NO_UPDATES_FOUND         = QT_TRANSLATE_NOOP("CollectionController", "No updates found");
 constexpr auto COLLECTION_UPDATE_RESULT = QT_TRANSLATE_NOOP("CollectionController", R"("%1" collection %2. Added:<p>
 <table>
 <tr><td>Archives:</td><td align='right'>%3</td></tr>
@@ -111,6 +111,23 @@ public:
 		m_overwriteConfirmCount = 0;
 	}
 
+	void RescanCollectionFolder()
+	{
+		const auto& collection = GetActiveCollection();
+		auto        parser     = std::make_shared<Inpx::Parser>();
+		auto&       parserRef  = *parser;
+		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), true);
+		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable {
+            const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
+                parser.reset();
+            });
+            Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
+            ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
+		};
+		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
+		parserRef.RescanCollection(ini, static_cast<Inpx::CreateCollectionMode>(collection.createCollectionMode), std::move(callback));
+	}
+
 	void RemoveCollection()
 	{
 		if (m_uiFactory->ShowWarning(Tr(CONFIRM_REMOVE_COLLECTION), QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel) == QMessageBox::Cancel)
@@ -118,7 +135,7 @@ public:
 
 		const auto& collection = GetActiveCollection();
 		const auto  id         = collection.id;
-		auto        db         = collection.database;
+		auto        db         = collection.GetDatabase();
 		std::erase_if(m_collectionProvider->GetCollections(), [&](const auto& item) {
 			return item->id == id;
 		});
@@ -220,8 +237,10 @@ public:
 	}
 
 private:
-	void CreateNew(QString name, QString db, QString folder, const QString& defaultArchiveType, const Inpx::CreateCollectionMode mode)
+	void CreateNew(QString name, QString dbOrigin, QString folderOrigin, const QString& defaultArchiveType, const Inpx::CreateCollectionMode mode)
 	{
+		const auto db     = Util::ToAbsolutePath(dbOrigin);
+		const auto folder = Util::ToAbsolutePath(folderOrigin);
 		if (QFile(db).exists())
 		{
 			if (m_uiFactory->ShowWarning(Tr(CONFIRM_OVERWRITE_DATABASE), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
@@ -242,7 +261,7 @@ private:
 		ini.try_emplace(DEFAULT_ARCHIVE_TYPE, defaultArchiveType.toStdWString());
 
 		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement().toStdWString());
-		auto callback = [this, parser = std::move(parser), name, db, folder, mode, tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
+		auto callback = [this, parser = std::move(parser), name, db = std::move(dbOrigin), folder = std::move(folderOrigin), mode, tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
 			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
 				parser.reset();
 			});
@@ -270,7 +289,7 @@ private:
 		const auto& collection = GetActiveCollection();
 		auto        parser     = std::make_shared<Inpx::Parser>();
 		auto&       parserRef  = *parser;
-		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.database, collection.folder, true);
+		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), true);
 		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable {
             if (updateResult.oldDataUpdateFound)
                 PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
@@ -289,20 +308,17 @@ private:
 		if (updateResult.error)
 			return m_uiFactory->ShowError(Tr(ERROR).arg(Tr(action)));
 
-		if (updateResult.folders == 0)
-			return;
-
-		m_uiFactory->ShowInfo(Tr(COLLECTION_UPDATE_RESULT)
-		                          .arg(name)
-		                          .arg(Tr(action))
-		                          .arg(updateResult.folders)
-		                          .arg(updateResult.authors)
-		                          .arg(updateResult.series)
-		                          .arg(updateResult.books)
-		                          .arg(updateResult.keywords)
-		                          .arg(updateResult.genres ? Tr(COLLECTION_UPDATE_RESULT_GENRES).arg(updateResult.genres) : "")
-		                          .arg(updateResult.oldDataUpdateFound ? Tr(COLLECTION_NEED_RECREATE) : ""));
-		QCoreApplication::exit(Constant::RESTART_APP);
+		updateResult.folders == 0 ? m_uiFactory->ShowInfo(Tr(NO_UPDATES_FOUND))
+								  : m_uiFactory->ShowInfo(Tr(COLLECTION_UPDATE_RESULT)
+		                                                      .arg(name)
+		                                                      .arg(Tr(action))
+		                                                      .arg(updateResult.folders)
+		                                                      .arg(updateResult.authors)
+		                                                      .arg(updateResult.series)
+		                                                      .arg(updateResult.books)
+		                                                      .arg(updateResult.keywords)
+		                                                      .arg(updateResult.genres ? Tr(COLLECTION_UPDATE_RESULT_GENRES).arg(updateResult.genres) : "")
+		                                                      .arg(updateResult.oldDataUpdateFound ? Tr(COLLECTION_NEED_RECREATE) : ""));
 	}
 
 private:
@@ -332,6 +348,11 @@ CollectionController::~CollectionController()
 void CollectionController::AddCollection(const std::filesystem::path& inpxDir)
 {
 	m_impl->AddCollection(inpxDir);
+}
+
+void CollectionController::RescanCollectionFolder()
+{
+	m_impl->RescanCollectionFolder();
 }
 
 void CollectionController::RemoveCollection()

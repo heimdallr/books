@@ -3,82 +3,9 @@
 #include <map>
 #include <set>
 
+#include "fnd/algorithm.h"
+
 #include "util/StrUtil.h"
-
-template <typename T>
-QString ToQString(const T& str) = delete;
-
-template <>
-inline QString ToQString<std::string>(const std::string& str)
-{
-	return QString::fromStdString(str);
-}
-
-template <>
-inline QString ToQString<QString>(const QString& str)
-{
-	return str;
-}
-
-template <>
-inline QString ToQString<std::wstring>(const std::wstring& str)
-{
-	return QString::fromStdWString(str);
-}
-
-template <>
-inline QString ToQString<std::pair<std::wstring, std::wstring>>(const std::pair<std::wstring, std::wstring>& str)
-{
-	return QString("%1/%2").arg(QString::fromStdWString(str.first), QString::fromStdWString(str.second));
-}
-
-template <>
-inline QString ToQString<std::filesystem::path>(const std::filesystem::path& str)
-{
-	return QString::fromStdWString(str);
-}
-
-template <class T>
-[[nodiscard]] T FakeCopyInit(T) noexcept = delete;
-
-template <class T = void>
-struct CaseInsensitiveComparer
-{
-	[[nodiscard]] constexpr bool operator()(const T& lhs, const T& rhs) const noexcept(noexcept(FakeCopyInit<bool>(lhs < rhs)))
-	{
-		return QString::compare(ToQString(lhs), ToQString(rhs), Qt::CaseInsensitive) < 0;
-	}
-};
-
-template <>
-struct CaseInsensitiveComparer<void>
-{
-	template <class L, class R>
-	[[nodiscard]] constexpr auto operator()(L&& lhs, R&& rhs) const noexcept(noexcept(static_cast<L&&>(lhs) < static_cast<R&&>(rhs))) -> decltype(static_cast<L&&>(lhs) < static_cast<R&&>(rhs))
-	{
-		return QString::compare(ToQString(static_cast<L&&>(lhs)), ToQString(static_cast<R&&>(rhs)), Qt::CaseInsensitive) < 0;
-	}
-
-	using is_transparent = int;
-};
-
-template <typename T>
-struct CaseInsensitiveHash
-{
-	size_t operator()(const T& value) const
-	{
-		return std::hash<QString>()(ToQString(value));
-	}
-};
-
-template <typename First, typename Second>
-struct PairHash
-{
-	size_t operator()(const std::pair<First, Second>& value) const
-	{
-		return std::rotl(std::hash<First>()(value.first), 1) | std::hash<Second>()(value.second);
-	}
-};
 
 struct Book
 {
@@ -98,7 +25,8 @@ struct Book
 		const size_t            size_,
 		const bool              deleted_,
 		const size_t            updateId_,
-		const int               year_
+		const int               year_,
+		const std::wstring_view sourceLib_
 	)
 		: id { id_ }
 		, libId { libId_ }
@@ -116,6 +44,7 @@ struct Book
 		, deleted { deleted_ }
 		, updateId { updateId_ }
 		, year { year_ }
+		, sourceLib { ToMultiByte(sourceLib_) }
 	{
 		std::ranges::transform(language, std::begin(language), towlower);
 	}
@@ -136,6 +65,7 @@ struct Book
 	bool         deleted;
 	size_t       updateId;
 	int          year;
+	std::string  sourceLib;
 
 private:
 	static std::wstring InsertDot(const std::wstring_view format)
@@ -156,7 +86,6 @@ struct Genre
 
 	size_t childrenCount { 0 };
 	bool   newGenre { true };
-	bool   dateGenre { false };
 
 	explicit Genre(const std::wstring_view dbCode_)
 		: dbCode(dbCode_)
@@ -204,15 +133,15 @@ using Books      = std::vector<Book>;
 using Dictionary = std::unordered_map<std::wstring, size_t, WStringHash, std::equal_to<>>;
 using Genres     = std::vector<Genre>;
 using Links      = std::unordered_map<size_t, std::vector<size_t>>;
-using Folders    = std::unordered_map<std::wstring, size_t, CaseInsensitiveHash<std::wstring>>;
+using Folders    = std::unordered_map<std::wstring, size_t, HomeCompa::Util::CaseInsensitiveHash<std::wstring>>;
 
 using GetIdFunctor = std::function<size_t(std::wstring_view)>;
 using FindFunctor  = std::function<Dictionary::const_iterator(const Dictionary&, std::wstring_view)>;
 using ParseChecker = std::function<bool(std::wstring_view)>;
 using Splitter     = std::function<std::vector<std::wstring>(std::wstring_view)>;
-using InpxFolders  = std::map<std::pair<std::wstring, std::wstring>, std::string, CaseInsensitiveComparer<>>;
+using InpxFolders  = std::map<std::pair<std::wstring, std::wstring>, std::string, HomeCompa::Util::CaseInsensitiveComparer<>>;
 using BooksSeries  = std::unordered_map<size_t, std::vector<std::pair<size_t, std::optional<int>>>>;
-using Reviews      = std::map<size_t, std::set<std::wstring>>;
+using Reviews      = std::map<std::string, std::set<std::wstring>>;
 
 struct Data
 {
@@ -237,7 +166,7 @@ inline std::ostream& operator<<(std::ostream& stream, const Genre& genre)
 	return stream << ToMultiByte(genre.dbCode) << ", " << ToMultiByte(genre.code) << ": " << ToMultiByte(genre.name);
 }
 
-//AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;
+//AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;YEAR;SOURCELIB;
 #define BOOK_BUF_FIELD_ITEMS_XMACRO \
 	BOOK_BUF_FIELD_ITEM(AUTHOR)     \
 	BOOK_BUF_FIELD_ITEM(GENRE)      \
@@ -255,7 +184,8 @@ inline std::ostream& operator<<(std::ostream& stream, const Genre& genre)
 	BOOK_BUF_FIELD_ITEM(LANG)       \
 	BOOK_BUF_FIELD_ITEM(LIBRATE)    \
 	BOOK_BUF_FIELD_ITEM(KEYWORDS)   \
-	BOOK_BUF_FIELD_ITEM(YEAR)
+	BOOK_BUF_FIELD_ITEM(YEAR)       \
+	BOOK_BUF_FIELD_ITEM(SOURCELIB)
 
 struct BookBuf
 {

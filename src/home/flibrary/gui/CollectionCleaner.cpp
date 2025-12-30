@@ -9,12 +9,12 @@
 #include "fnd/ScopedCall.h"
 
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
 #include "util/ISettingsObserver.h"
-#include "util/localization.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -115,6 +115,9 @@ public:
 		m_scrollBarControllerLanguage->SetScrollArea(m_ui.languages);
 
 		m_ui.progressBar->setVisible(false);
+		m_ui.compilations->setVisible(false);
+		m_ui.compilated->setVisible(false);
+		m_collectionCleaner->CompilationInfoExistsRequest(*this);
 
 		connect(m_ui.genres, &QWidget::customContextMenuRequested, &m_self, [&] {
 			OnGenresContextMenuRequested();
@@ -183,7 +186,7 @@ public:
 	}
 
 private: // ICollectionCleaner::IAnalyzeObserver
-	void AnalyzeFinished(ICollectionCleaner::Books books) override
+	void AnalyzeFinished(Util::Remove::Books books) override
 	{
 		if (m_analyzeCanceled)
 			return m_self.StateChanged(State::Canceled);
@@ -292,6 +295,12 @@ private: // ICollectionCleaner::IAnalyzeObserver
 	bool NeedDeleteBooksDuplicatedByCompilations() const override
 	{
 		return m_ui.compilated->isChecked();
+	}
+
+	void CompilationInfoExistsResponse(const bool value) const override
+	{
+		m_ui.compilations->setVisible(value);
+		m_ui.compilated->setVisible(value);
 	}
 
 private: // ISettingsObserver

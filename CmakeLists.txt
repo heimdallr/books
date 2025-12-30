@@ -19,6 +19,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
 
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 if (NOT DEFINED CMAKE_BUILD_TYPE)
@@ -27,9 +31,7 @@ endif ()
 
 set(QT_MAJOR_VERSION 6)
 
-# Подключаем сборочные скрипты
-set(BUILDSCRIPTS_ROOT ${CMAKE_SOURCE_DIR}/src/ext/scripts)
-set(CMAKE_MODULE_PATH ${BUILDSCRIPTS_ROOT}/cmake/modules)
+set(BUILDSCRIPTS_ROOT ${CMAKE_SOURCE_DIR}/src/ext/scripts CACHE STRING "BUILDSCRIPTS_ROOT")
 include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)
 
 find_package(plog REQUIRED)
@@ -39,16 +41,23 @@ find_package(7zip REQUIRED)
 find_package(ICU REQUIRED)
 find_package(libjxl REQUIRED)
 
+set(FOUNDATION_ROOT ${CMAKE_SOURCE_DIR}/src/ext/foundation CACHE STRING "FOUNDATION_ROOT")
+include_directories(${FOUNDATION_ROOT})
+include(${FOUNDATION_ROOT}/fnd/fnd.cmake)
+include(${FOUNDATION_ROOT}/logging/logging.cmake)
+include(${FOUNDATION_ROOT}/network/network.cmake)
+include(${FOUNDATION_ROOT}/jxl/jxl.cmake)
+include(${FOUNDATION_ROOT}/zip/zip.cmake)
+include(${FOUNDATION_ROOT}/database/database.cmake)
+include(${FOUNDATION_ROOT}/util/util.cmake)
+include(${FOUNDATION_ROOT}/icu/icu.cmake)
+
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER)
 file(WRITE "${CMAKE_BINARY_DIR}/path/7z" "${7zip_BIN_DIRS_${CMAKE_BUILD_TYPE_UPPER}}/")
 
 set(QtModules Widgets Xml Network Svg SvgWidgets Concurrent HttpServer)
 find_package(Qt6 REQUIRED COMPONENTS ${QtModules})
 include(QtInstallPaths)
-
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
 
 add_compile_definitions(PLOG_IMPORT)
 add_compile_definitions(UNICODE _UNICODE NOMINMAX _USE_MATH_DEFINES)

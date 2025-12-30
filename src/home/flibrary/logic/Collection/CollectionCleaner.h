@@ -13,7 +13,7 @@
 namespace HomeCompa::Flibrary
 {
 
-class CollectionCleaner : public ICollectionCleaner
+class CollectionCleaner final : public ICollectionCleaner
 {
 	NON_COPY_MOVABLE(CollectionCleaner)
 public:
@@ -27,10 +27,11 @@ public:
 	~CollectionCleaner() override;
 
 private: // ICollectionCleaner
-	void Remove(Books books, Callback callback) const override;
-	void RemovePermanently(Books books, Callback callback) const override;
+	void Remove(Util::Remove::Books books, Callback callback) const override;
+	void RemovePermanently(Util::Remove::Books books, Callback callback) const override;
 	void Analyze(IAnalyzeObserver& observer) const override;
 	void AnalyzeCancel() const override;
+	void CompilationInfoExistsRequest(IAnalyzeObserver& callback) const override;
 
 private:
 	struct Impl;

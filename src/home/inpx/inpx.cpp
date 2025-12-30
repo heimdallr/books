@@ -34,16 +34,18 @@
 #include "util/Fb2InpxParser.h"
 #include "util/IExecutor.h"
 #include "util/executor/factory.h"
-#include "util/localization.h"
+#include "util/language.h"
 #include "util/timer.h"
 
-#include "constant.h"
+#include "Constant.h"
+#include "InpxConstant.h"
 #include "inpx.h"
 #include "types.h"
 #include "zip.h"
 
 using namespace HomeCompa;
 using namespace Inpx;
+using namespace Util;
 
 namespace
 {
@@ -163,7 +165,7 @@ auto LoadGenres(const Path& genresIniFileName)
 		std::wstring code;
 		while (itCode != std::cend(codes))
 		{
-			const auto& added = index.emplace(Next(itCode, std::cend(codes), Util::Fb2InpxParser::LIST_SEPARATOR), std::size(genres)).first->first;
+			const auto& added = index.emplace(Next(itCode, std::cend(codes), Fb2InpxParser::LIST_SEPARATOR), std::size(genres)).first->first;
 			if (code.empty())
 				code = added;
 		}
@@ -200,7 +202,7 @@ T Add(std::wstring_view value, Dictionary& container, const GetIdFunctor& getId 
 std::vector<size_t> ParseItem(
 	const std::wstring_view data,
 	Dictionary&             container,
-	const wchar_t           separator    = Util::Fb2InpxParser::LIST_SEPARATOR,
+	const wchar_t           separator    = Fb2InpxParser::LIST_SEPARATOR,
 	const ParseChecker&     parseChecker = &ParseCheckerDefault,
 	const GetIdFunctor&     getId        = &GetIdDefault,
 	const FindFunctor&      find         = &FindDefault
@@ -325,7 +327,7 @@ BookBuf ParseBook(const std::wstring_view folder, std::wstring& line, const Book
 	auto       it  = std::begin(line);
 	const auto end = std::end(line);
 	for (size_t i = 0, sz = f.size(); i < sz && it != end; ++i)
-		f[i](buf) = Next(it, end, Util::Fb2InpxParser::FIELDS_SEPARATOR);
+		f[i](buf) = Next(it, end, Fb2InpxParser::FIELDS_SEPARATOR);
 
 	if (buf.GENRE.size() < 2)
 		buf.GENRE = GENRE_NOT_SPECIFIED;
@@ -351,14 +353,9 @@ InpxContent ExtractInpxFileNames(const Path& inpxPath)
 	InpxContent inpxContent;
 
 	const auto inpxFileName = QString::fromStdWString(inpxPath);
-	const auto zip          = Util::Try<std::unique_ptr<Zip>>(
-        QString("open %1").arg(inpxFileName),
-        [&] {
-            return std::make_unique<Zip>(inpxFileName);
-        },
-        __FILE__,
-        __LINE__
-    );
+	const auto zip          = TRY(QString("open %1").arg(inpxFileName), [&] {
+        return std::make_unique<Zip>(inpxFileName);
+    });
 	if (!zip)
 		return inpxContent;
 
@@ -384,21 +381,16 @@ InpxContent ExtractInpxFileNames(const Path& inpxPath)
 void GetDecodedStream(const Zip& zip, const std::wstring& file, const std::function<void(QIODevice&)>& f)
 {
 	PLOGI << file;
-	Util::Try<int>(
-		"get decoded stream",
-		[&] {
-			const auto stream = zip.Read(QString::fromStdWString(file));
-			f(stream->GetStream());
-			return 0;
-		},
-		__FILE__,
-		__LINE__
-	);
+	TRY("get decoded stream", [&] {
+		const auto stream = zip.Read(QString::fromStdWString(file));
+		f(stream->GetStream());
+		return 0;
+	});
 }
 
 bool ExecuteScript(const std::wstring& action, const Path& dbFileName, const Path& scriptFileName)
 {
-	Util::Timer t(action);
+	Timer t(action);
 
 	DatabaseWrapper db(dbFileName);
 
@@ -461,8 +453,13 @@ int Analyze(const Path& dbFileName)
 	DatabaseWrapper db(dbFileName);
 	SetIsNavigationDeleted(db);
 	PLOGI << "ANALYZE";
-	const auto rc = sqlite3pp::command(db, "ANALYZE").execute();
+	auto rc = sqlite3pp::command(db, "ANALYZE").execute();
 	assert(rc == 0);
+
+	sqlite3pp::query query(db, "select exists (select 42 from Books where Year is not null)");
+	rc = sqlite3pp::command(db, std::format("insert or replace into Settings(SettingID, SettingValue) values(1, '{}')", (*query.begin()).get<int>(0) ? "" : "Year").data()).execute();
+	assert(rc == 0);
+
 	return rc;
 }
 
@@ -476,59 +473,56 @@ void WriteDatabaseVersion(const Path& dbFileName, const std::wstring& statement)
 template <typename Container, typename Functor>
 size_t StoreRange(const Path& dbFileName, std::string_view process, const std::string_view query, const Container& container, Functor&& f, const std::string_view queryAfter = {})
 {
-	return Util::Try<size_t>(
-		process,
-		[&] {
-			const auto rowsTotal = std::size(container);
-			if (rowsTotal == 0)
-				return rowsTotal;
+	auto impl = [&] {
+		const auto rowsTotal = std::size(container);
+		if (rowsTotal == 0)
+			return rowsTotal;
 
-			Util::Timer t(ToWide(std::format("store {0} {1}", process, rowsTotal)));
-			size_t      rowsInserted = 0;
+		Timer  t(ToWide(std::format("store {0} {1}", process, rowsTotal)));
+		size_t rowsInserted = 0;
 
-			DatabaseWrapper        db(dbFileName);
-			sqlite3pp::transaction tr(db);
-			sqlite3pp::command     cmd(db, query.data());
+		DatabaseWrapper        db(dbFileName);
+		sqlite3pp::transaction tr(db);
+		sqlite3pp::command     cmd(db, query.data());
 
-			const auto log = [rowsTotal, &rowsInserted] {
-				PLOGD << std::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal);
-			};
+		const auto log = [rowsTotal, &rowsInserted] {
+			PLOGD << std::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal);
+		};
 
-			const auto result =
-				std::accumulate(std::cbegin(container), std::cend(container), static_cast<size_t>(0), [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log](const size_t init, const auto& value) {
-					const auto localResult = f(cmd, value) + cmd.reset();
+		const auto result =
+			std::accumulate(std::cbegin(container), std::cend(container), static_cast<size_t>(0), [f = std::forward<Functor>(f), &db, &cmd, &rowsInserted, &log](const size_t init, const auto& value) {
+				const auto localResult = f(cmd, value) + cmd.reset();
 
-					if (localResult == 0)
-					{
-						if (++rowsInserted % LOG_INTERVAL == 0)
-							log();
-					}
-					else
-					{
-						assert(false);
-						PLOGE << db->error_code() << ": " << db->error_msg();
-					}
+				if (localResult == 0)
+				{
+					if (++rowsInserted % LOG_INTERVAL == 0)
+						log();
+				}
+				else
+				{
+					assert(false);
+					PLOGE << db->error_code() << ": " << db->error_msg();
+				}
 
-					return init + static_cast<size_t>(localResult);
-				});
+				return init + static_cast<size_t>(localResult);
+			});
 
-			log();
-			if (rowsTotal != rowsInserted)
-				PLOGE << rowsTotal - rowsInserted << " rows lost";
+		log();
+		if (rowsTotal != rowsInserted)
+			PLOGE << rowsTotal - rowsInserted << " rows lost";
 
-			if (!queryAfter.empty())
-				sqlite3pp::command(db, queryAfter.data()).execute();
+		if (!queryAfter.empty())
+			sqlite3pp::command(db, queryAfter.data()).execute();
 
-			{
-				Util::Timer tc(L"commit");
-				tr.commit();
-			}
+		{
+			Timer tc(L"commit");
+			tr.commit();
+		}
 
-			return result;
-		},
-		__FILE__,
-		__LINE__
-	);
+		return result;
+	};
+
+	return TRY(process, impl);
 }
 
 size_t Store(const Path& dbFileName, Data& data)
@@ -542,9 +536,9 @@ size_t Store(const Path& dbFileName, Data& data)
         [](sqlite3pp::command& cmd, const Dictionary::value_type& item) {
             const auto& [author, id] = item;
             auto       it            = std::cbegin(author);
-            const auto last          = ToMultiByte(Next(it, std::cend(author), Util::Fb2InpxParser::NAMES_SEPARATOR));
-            const auto first         = ToMultiByte(Next(it, std::cend(author), Util::Fb2InpxParser::NAMES_SEPARATOR));
-            const auto middle        = ToMultiByte(Next(it, std::cend(author), Util::Fb2InpxParser::NAMES_SEPARATOR));
+            const auto last          = ToMultiByte(Next(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
+            const auto first         = ToMultiByte(Next(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
+            const auto middle        = ToMultiByte(Next(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
 
             cmd.bind(1, id);
             cmd.bind(2, last, sqlite3pp::nocopy);
@@ -621,8 +615,8 @@ size_t Store(const Path& dbFileName, Data& data)
 							 "BookID   , LibID     , Title    , SeriesID, "
 							 "SeqNumber, UpdateDate, LibRate  , Lang    , Year, "
 							 "FolderID , FileName  , InsideNo , Ext     , "
-							 "BookSize , IsDeleted, UpdateId, SearchTitle"
-							 ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, MHL_UPPER(?))";
+							 "BookSize , IsDeleted, UpdateId, SourceLib, SearchTitle"
+							 ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, MHL_UPPER(?))";
 	result                += StoreRange(
         dbFileName,
         "Books",
@@ -635,6 +629,7 @@ size_t Store(const Path& dbFileName, Data& data)
             const auto language = ToMultiByte(book.language);
             const auto fileName = ToMultiByte(book.fileName);
             const auto format   = ToMultiByte(book.format);
+
             cmd.bind(1, book.id);
             cmd.bind(2, libId, sqlite3pp::nocopy);
             cmd.bind(3, title, sqlite3pp::nocopy);
@@ -651,7 +646,8 @@ size_t Store(const Path& dbFileName, Data& data)
             cmd.bind(14, book.size);
             cmd.bind(15, book.deleted ? 1 : 0);
             cmd.bind(16, book.updateId);
-            cmd.bind(17, title, sqlite3pp::nocopy);
+            cmd.bind(17, book.sourceLib, sqlite3pp::nocopy);
+            cmd.bind(18, title, sqlite3pp::nocopy);
             return cmd.execute();
         },
         "INSERT INTO Books_Search(Books_Search) VALUES('rebuild')"
@@ -751,53 +747,23 @@ size_t Store(const Path& dbFileName, Data& data)
 	if (!data.reviews.empty())
 	{
 		std::vector<std::pair<size_t, std::wstring>> reviews;
-		for (const auto& book : data.books)
-		{
-			try
-			{
-				if (const auto it = data.reviews.find(std::stoull(book.libId)); it != data.reviews.end())
-				{
-					std::ranges::transform(it->second, std::back_inserter(reviews), [&](const auto& item) {
-						return std::make_pair(book.id, item);
-					});
-					data.reviews.erase(it);
-				}
-			}
-			catch (...) // NOLINT(bugprone-empty-catch)
-			{ //-V565
-			}
-		}
 
 		{
-			DatabaseWrapper        db(dbFileName);
-			sqlite3pp::transaction tr(db);
-			[[maybe_unused]] auto  res = sqlite3pp::command(db, "ATTACH DATABASE ':memory:' AS tmp").execute();
-			assert(res == SQLITE_OK);
-			res = sqlite3pp::command(db, "create table tmp.ids(LibID INTEGER NOT NULL primary key)").execute();
-			assert(res == SQLITE_OK);
-			sqlite3pp::command cmd(db, "insert into tmp.ids(LibID) values(?)");
-			for (const auto id : data.reviews | std::views::keys)
-			{
-				cmd.binder() << static_cast<long long>(id);
-				cmd.execute();
-				cmd.reset();
-			}
+			DatabaseWrapper db(dbFileName);
 
-			sqlite3pp::query query(db, "select b.LibID, b.BookID from Books b join tmp.ids t on t.LibID = b.LibID");
+			sqlite3pp::query query(db, "select b.BookID, f.FolderTitle||'#'||b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID");
 			std::for_each(query.begin(), query.end(), [&](const auto& row) {
-				int64_t libId;
-				int64_t bookId;
-				std::tie(libId, bookId) = row.template get_columns<int64_t, int64_t>(0, 1);
+				int64_t     bookId;
+				const char* uid;
+				std::tie(bookId, uid) = row.template get_columns<int64_t, const char*>(0, 1);
 
-				if (const auto it = data.reviews.find(libId); it != data.reviews.end())
+				if (const auto it = data.reviews.find(uid); it != data.reviews.end())
 				{
 					std::ranges::transform(it->second, std::back_inserter(reviews), [&](const auto& item) {
 						return std::make_pair(bookId, item);
 					});
-					data.reviews.erase(it);
 				}
 			});
-			tr.rollback();
 		}
 
 		result += StoreRange(dbFileName, "Reviews", "INSERT INTO Reviews (BookID, Folder) VALUES(?, ?)", reviews, [](sqlite3pp::command& cmd, const auto& item) {
@@ -831,14 +797,9 @@ InpxFolders GetInpxFolder(const Path& inpxFolder, const bool needHashes)
 		const auto inpxFileName = QString::fromStdWString(inpxFileNameEntry.path());
 		PLOGV << "check " << inpxFileName << " started";
 
-		const auto zip = Util::Try<std::unique_ptr<Zip>>(
-			QString("open %1").arg(inpxFileName),
-			[&] {
-				return std::make_unique<Zip>(inpxFileName);
-			},
-			__FILE__,
-			__LINE__
-		);
+		const auto zip = TRY(QString("open %1").arg(inpxFileName), [&] {
+			return std::make_unique<Zip>(inpxFileName);
+		});
 		if (!zip)
 			continue;
 
@@ -900,12 +861,12 @@ Reviews ReadReviews(sqlite3pp::database& db)
 {
 	PLOGI << "Read reviews";
 	Reviews          reviews;
-	sqlite3pp::query query(db, "select b.LibID, r.Folder from Reviews r join Books b on b.BookID = r.BookID");
+	sqlite3pp::query query(db, "select f.FolderTitle||'#'||b.FileName||b.Ext, r.Folder from Reviews r join Books b on b.BookID = r.BookID join Folders f on f.FolderID = b.FolderID");
 	std::for_each(std::begin(query), std::end(query), [&](const auto& row) {
-		int64_t     libId;
+		const char* uid;
 		const char* folder;
-		std::tie(libId, folder) = row.template get_columns<int64_t, const char*>(0, 1);
-		reviews[libId].emplace(ToWide(folder));
+		std::tie(uid, folder) = row.template get_columns<const char*, const char*>(0, 1);
+		reviews[uid].emplace(ToWide(folder));
 	});
 
 	return reviews;
@@ -992,61 +953,6 @@ void SetNextId(sqlite3pp::database& db)
 	PLOGD << "Next Id: " << g_id;
 }
 
-struct LanguageMapping
-{
-	static const std::wstring UNDEFINED_LANG;
-
-	std::unordered_set<std::wstring>               langs;
-	std::unordered_map<std::wstring, std::wstring> langMap;
-
-	explicit LanguageMapping(const Path& langMappingFile)
-	{
-		QFile file(langMappingFile);
-		if (!file.open(QIODevice::ReadOnly))
-			return;
-
-		QJsonParseError error;
-		const auto      jDocument = QJsonDocument::fromJson(file.readAll(), &error);
-		if (error.error != QJsonParseError::NoError)
-		{
-			PLOGE << error.errorString();
-			return;
-		}
-
-		const auto jObject = jDocument.object();
-		for (auto langIt = jObject.constBegin(), end = jObject.constEnd(); langIt != end; ++langIt)
-		{
-			const auto lang       = langIt.key().toStdWString();
-			const auto langValues = langIt.value();
-			assert(langValues.isArray());
-			for (const auto key : langValues.toArray())
-				langMap.try_emplace(key.toString().toStdWString(), lang);
-		}
-
-		std::ranges::transform(LANGUAGES, std::inserter(langs, langs.end()), [](const auto& item) {
-			return ToWide(item.key);
-		});
-		assert(std::size(langs) == std::size(LANGUAGES));
-	}
-
-	const std::wstring& GetLang(const std::wstring& src) const
-	{
-		if (src.empty())
-			return UNDEFINED_LANG;
-
-		if (langs.contains(src))
-			return src;
-
-		if (const auto it = langMap.find(src); it != langMap.end())
-			return it->second;
-
-		PLOGW << "Unknown language: " << src;
-		return UNDEFINED_LANG;
-	}
-};
-
-const std::wstring LanguageMapping::UNDEFINED_LANG = L"un";
-
 class IPool // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
@@ -1083,12 +989,25 @@ class Parser::Impl final : virtual public IPool
 	NON_COPY_MOVABLE(Impl)
 
 public:
+	using ArchiveParser = size_t (Impl::*)();
+
+	static ArchiveParser GetNewInpxInpxFilesParser() noexcept
+	{
+		return &Impl::ParseNewInpxFiles;
+	}
+
+	static ArchiveParser GetNewArchivesParser() noexcept
+	{
+		return &Impl::ParseNewArchives;
+	}
+
+public:
 	Impl(Ini ini, const CreateCollectionMode mode, Callback callback)
 		: m_ini { std::move(ini) }
 		, m_mode { mode }
 		, m_callback { std::move(callback) }
-		, m_executor { Util::ExecutorFactory::Create(Util::ExecutorImpl::Async) }
-		, m_languageMapping { m_ini(LANGUAGES_MAPPING) }
+		, m_executor { ExecutorFactory::Create(ExecutorImpl::Async) }
+		, m_languageMapping { QString::fromStdWString(m_ini(LANGUAGES_MAPPING)) }
 	{
 	}
 
@@ -1099,22 +1018,18 @@ public:
 
 	void Process()
 	{
-		(*m_executor)({ "Create collection", [&] {
-						   const auto ok = Util::Try<bool>(
-							   "create collection",
-							   [&] {
-								   bool processed = false;
-								   ProcessImpl(processed);
-								   return processed;
-							   },
-							   __FILE__,
-							   __LINE__
-						   );
+		auto process = [&] {
+			bool processed = false;
+			ProcessImpl(processed);
+			return processed;
+		};
+		(*m_executor)({ "Create collection", [&, process] {
+						   const auto ok = TRY("create collection", process);
 
 						   const auto genres = static_cast<size_t>(std::ranges::count_if(
 												   m_data.genres,
 												   [](const Genre& genre) {
-													   return genre.newGenre && !genre.dateGenre;
+													   return genre.newGenre;
 												   }
 											   ))
 			                                 - 1;
@@ -1124,33 +1039,22 @@ public:
 					   } });
 	}
 
-	void UpdateDatabase()
+	void UpdateDatabase(const ArchiveParser archiveParser)
 	{
-		(*m_executor)({ "Update collection", [&] {
-						   auto foldersCount = Util::Try<std::optional<size_t>>(
-							   "update collection",
-							   [this] {
-								   return UpdateDatabaseImpl();
-							   },
-							   __FILE__,
-							   __LINE__
-						   );
-						   const auto genres = static_cast<size_t>(std::ranges::count_if(
-												   m_data.genres,
-												   [](const Genre& genre) {
-													   return genre.newGenre && !genre.dateGenre;
-												   }
-											   ))
+		auto parse = [this, archiveParser]() {
+			return UpdateDatabaseImpl(archiveParser);
+		};
+		(*m_executor)({ "Update collection", [&, parse] {
+						   auto       foldersCount = TRY("update collection", parse);
+						   const auto genres       = static_cast<size_t>(std::ranges::count_if(
+                                                   m_data.genres,
+                                                   [](const Genre& genre) {
+                                                       return genre.newGenre;
+                                                   }
+                                               ))
 			                                 - 1;
 						   return [this, foldersCount, genres](size_t) {
-							   m_callback(UpdateResult { foldersCount ? *foldersCount : 0,
-				                                         m_data.authors.size(),
-				                                         m_data.series.size(),
-				                                         m_data.books.size(),
-				                                         m_data.keywords.size(),
-				                                         genres,
-				                                         m_oldDataUpdateFound,
-				                                         !foldersCount });
+							   m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_oldDataUpdateFound });
 						   };
 					   } });
 	}
@@ -1174,45 +1078,33 @@ private: // IPool
 					m_foldersToParseCondition.notify_one();
 			}
 
-			Util::Try<int>(
-				QString("parsing %1").arg(QString::fromStdWString(folder)),
-				[&] {
-					const QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
-					const auto      archiveFileName = archiveFileInfo.filePath();
-					const auto      zip             = Util::Try<std::unique_ptr<Zip>>(
-                        QString("open %1").arg(archiveFileName),
-                        [&] {
-                            return std::make_unique<Zip>(archiveFileName);
-                        },
-                        __FILE__,
-                        __LINE__
-                    );
-					if (!zip)
-						return -1;
+			auto work = [&] {
+				const QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
+				const auto      archiveFileName = archiveFileInfo.filePath();
+				const auto      zip             = TRY(QString("open %1").arg(archiveFileName), [&] {
+                    return std::make_unique<Zip>(archiveFileName);
+                });
+				if (!zip)
+					return -1;
 
-					const auto zipFileList = zip->GetFileNameList();
-					for (size_t counter = 0; const auto& fileName : zipFileList)
-					{
-						++counter;
-						if (QFileInfo(fileName).suffix() != "fb2")
-							continue;
+				const auto zipFileList = zip->GetFileNameList();
+				for (size_t counter = 0; const auto& fileName : zipFileList)
+				{
+					++counter;
+					if (QFileInfo(fileName).suffix() != "fb2")
+						continue;
 
-						PLOGD << "parsing " << folder << "/" << fileName << "  " << counter << " (" << zipFileList.size() << ") " << 100 * counter / zipFileList.size() << "%";
-						Util::Try<bool>(
-							QString("parse %1").arg(fileName),
-							[&] {
-								return ParseFile(folder, *zip, fileName, archiveFileInfo.birthTime());
-							},
-							__FILE__,
-							__LINE__
-						);
-					}
+					PLOGD << "parsing " << folder << "/" << fileName << "  " << counter << " (" << zipFileList.size() << ") " << 100 * counter / zipFileList.size() << "%";
+					auto process = [&] {
+						return ParseFile(folder, *zip, fileName, archiveFileInfo.birthTime());
+					};
+					TRY(QString("parse %1").arg(fileName), process);
+				}
 
-					return 0;
-				},
-				__FILE__,
-				__LINE__
-			);
+				return 0;
+			};
+
+			TRY(QString("parsing %1").arg(QString::fromStdWString(folder)), work);
 		}
 	}
 
@@ -1220,7 +1112,7 @@ private:
 	void ProcessImpl(bool& ok)
 	{
 		ok = false;
-		Util::Timer t(L"work");
+		Timer t(L"work");
 
 		const auto& dbFileName = m_ini(DB_PATH);
 
@@ -1228,44 +1120,27 @@ private:
 		WriteDatabaseVersion(dbFileName, m_ini(SET_DATABASE_VERSION_STATEMENT));
 
 		Parse();
-		if (const auto failsCount = Util::Try<size_t>(
-				"store",
-				[&] {
-					return Store(dbFileName, m_data);
-				},
-				__FILE__,
-				__LINE__
-			);
+		if (const auto failsCount =
+		        TRY("store",
+		            [&] {
+						return Store(dbFileName, m_data);
+					});
 		    failsCount != 0)
 			PLOGE << "Something went wrong";
 
-		Util::Try<bool>(
-			"update database",
-			[&] {
-				return ExecuteScript(L"update database", dbFileName, m_ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT));
-			},
-			__FILE__,
-			__LINE__
-		);
+		TRY("update database", [&] {
+			return ExecuteScript(L"update database", dbFileName, m_ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT));
+		});
 
-		Util::Try<int>(
-			"CollectCompilations",
-			[this] {
-				CollectCompilations();
-				return 0;
-			},
-			__FILE__,
-			__LINE__
-		);
+		TRY("CollectCompilations", [this] {
+			CollectCompilations();
+			return 0;
+		});
 
-		Util::Try<int>(
-			"analyze",
-			[&] {
-				return Analyze(dbFileName);
-			},
-			__FILE__,
-			__LINE__
-		);
+		TRY("analyze", [&] {
+			return Analyze(dbFileName);
+		});
+
 		ok = true;
 	}
 
@@ -1401,7 +1276,68 @@ private:
 		dst = std::move(result);
 	}
 
-	size_t UpdateDatabaseImpl()
+	size_t ParseNewInpxFiles()
+	{
+		size_t     result         = 0;
+		const auto newInpxFolders = GetNewInpxFolders();
+		for (const auto& inpxFileNameEntry : GetInpxFilesInFolder(m_ini(INPX_FOLDER)))
+		{
+			const auto& inpxPath = inpxFileNameEntry.path();
+			const auto  it       = newInpxFolders.find(inpxPath.filename());
+			if (it == newInpxFolders.end())
+				continue;
+
+			const auto inpxFileName = QString::fromStdWString(inpxPath);
+			const auto zip          = TRY(QString("open %1").arg(inpxFileName), [&] {
+                return std::make_unique<Zip>(inpxFileName);
+            });
+			if (!zip)
+				continue;
+
+			ParseInpxFiles(inpxPath, zip.get(), it->second);
+			result += it->second.size();
+		}
+
+		return result;
+	}
+
+	size_t ParseNewArchives()
+	{
+		const auto inpxFolder = m_ini(INPX_FOLDER);
+		auto       folders    = TRY(std::format("iterate {}", inpxFolder.generic_string()), [&] {
+            std::vector<std::wstring> result;
+            std::ranges::move(
+                std::filesystem::directory_iterator(inpxFolder) | std::views::filter([](const auto& item) {
+                    return !item.is_directory();
+                }) | std::views::transform([&](const auto& item) {
+                    auto folder = item.path().wstring();
+                    folder.erase(0, inpxFolder.string().size() + 1);
+                    return folder;
+                }) | std::views::filter([&](const auto& item) {
+                    return !(IsOneOf(item, COMPILATIONS, CONTENTS) || m_data.bookFolders.contains(item)) && Zip::IsArchive(QString::fromStdWString(inpxFolder / item));
+                }),
+                std::back_inserter(result)
+            );
+            return result;
+        });
+
+		const auto result = folders.size();
+
+		std::ranges::for_each(std::move(folders), [this](auto&& item) {
+			m_foldersToParse.push(std::forward<std::wstring>(item));
+		});
+
+		GetFieldList();
+
+		TRY("scan archives", [this] {
+			ScanUnIndexedFoldersImpl();
+			return true;
+		});
+
+		return result;
+	}
+
+	size_t UpdateDatabaseImpl(ArchiveParser archiveParser)
 	{
 		const auto& dbFileName               = m_ini(DB_PATH);
 		const auto [oldData, oldGenresIndex] = ReadData(dbFileName, m_ini(GENRES, DEFAULT_GENRES));
@@ -1414,41 +1350,13 @@ private:
 		m_genresIndex = oldGenresIndex;
 		SetUnknownGenreId();
 
-		size_t     result         = 0;
-		const auto newInpxFolders = GetNewInpxFolders();
-		for (const auto& inpxFileNameEntry : GetInpxFilesInFolder(m_ini(INPX_FOLDER)))
-		{
-			const auto& inpxPath = inpxFileNameEntry.path();
-			const auto  it       = newInpxFolders.find(inpxPath.filename());
-			if (it == newInpxFolders.end())
-				continue;
-
-			const auto inpxFileName = QString::fromStdWString(inpxPath);
-			const auto zip          = Util::Try<std::unique_ptr<Zip>>(
-                QString("open %1").arg(inpxFileName),
-                [&] {
-                    return std::make_unique<Zip>(inpxFileName);
-                },
-                __FILE__,
-                __LINE__
-            );
-			if (!zip)
-				continue;
-
-			ParseInpxFiles(inpxPath, zip.get(), it->second);
-			result += it->second.size();
-		}
+		size_t result = std::invoke(archiveParser, this);
 
 		m_data.reviews.clear();
-		Util::Try<int>(
-			"CollectReviews",
-			[this] {
-				CollectReviews();
-				return 0;
-			},
-			__FILE__,
-			__LINE__
-		);
+		TRY("CollectReviews", [this] {
+			CollectReviews();
+			return 0;
+		});
 
 		const auto filter = [](auto& dst, const auto& src) {
 			std::erase_if(dst, [&](const auto& item) {
@@ -1467,31 +1375,21 @@ private:
 		if (const auto failsCount = Store(dbFileName, m_data); failsCount != 0)
 			PLOGE << "Something went wrong";
 
-		Util::Try<int>(
-			"CollectCompilations",
-			[this] {
-				CollectCompilations();
-				return 0;
-			},
-			__FILE__,
-			__LINE__
-		);
+		TRY("CollectCompilations", [this] {
+			CollectCompilations();
+			return 0;
+		});
 
-		Util::Try<int>(
-			"analyze",
-			[&] {
-				return Analyze(dbFileName);
-			},
-			__FILE__,
-			__LINE__
-		);
+		TRY("analyze", [&] {
+			return Analyze(dbFileName);
+		});
 
 		return result;
 	}
 
 	void Parse()
 	{
-		Util::Timer t(L"parsing archives");
+		Timer t(L"parsing archives");
 
 		auto [genresData, genresIndex] = LoadGenres(m_ini(GENRES, DEFAULT_GENRES));
 		m_data.genres                  = std::move(genresData);
@@ -1509,14 +1407,9 @@ private:
 					return std::unique_ptr<Zip> {};
 
 				const auto fileName = QString::fromStdWString(inpxFileName.generic_wstring());
-				return Util::Try<std::unique_ptr<Zip>>(
-					QString("open %1").arg(fileName),
-					[&] {
-						return std::make_unique<Zip>(fileName);
-					},
-					__FILE__,
-					__LINE__
-				);
+				return TRY(QString("open %1").arg(fileName), [&] {
+					return std::make_unique<Zip>(fileName);
+				});
 			}();
 
 			if (zip)
@@ -1527,33 +1420,18 @@ private:
 
 		GetFieldList();
 
-		Util::Try<int>(
-			"AddUnIndexedBooks",
-			[this] {
-				AddUnIndexedBooks();
-				return 0;
-			},
-			__FILE__,
-			__LINE__
-		);
-		Util::Try<int>(
-			"ScanUnIndexedFolders",
-			[this] {
-				ScanUnIndexedFolders();
-				return 0;
-			},
-			__FILE__,
-			__LINE__
-		);
-		Util::Try<int>(
-			"CollectReviews",
-			[this] {
-				CollectReviews();
-				return 0;
-			},
-			__FILE__,
-			__LINE__
-		);
+		TRY("AddUnIndexedBooks", [this] {
+			AddUnIndexedBooks();
+			return 0;
+		});
+		TRY("ScanUnIndexedFolders", [this] {
+			ScanUnIndexedFolders();
+			return 0;
+		});
+		TRY("CollectReviews", [this] {
+			CollectReviews();
+			return 0;
+		});
 	}
 
 	void CollectReviews()
@@ -1563,22 +1441,24 @@ private:
 			return;
 
 		PLOGI << "Collect reviews";
-		for (const auto& entry : std::filesystem::directory_iterator(reviewsFolder))
+
+		for (const auto& path : std::filesystem::directory_iterator(reviewsFolder) | std::views::filter([](const auto& entry) {
+									return !entry.is_directory();
+								}) | std::views::transform([](const auto& entry) {
+									return entry.path();
+								}) | std::views::filter([](const auto& item) {
+									return item.extension() == ".7z";
+								}))
 		{
-			auto       fileName = QString::fromStdWString(entry.path());
-			const auto zip      = Util::Try<std::unique_ptr<Zip>>(
-                QString("open %1").arg(fileName),
-                [&] {
-                    return std::make_unique<Zip>(fileName);
-                },
-                __FILE__,
-                __LINE__
-            );
+			auto       fileName = QString::fromStdWString(path);
+			const auto zip      = TRY(QString("open %1").arg(fileName), [&] {
+                return std::make_unique<Zip>(fileName);
+            });
 			if (!zip)
 				continue;
 
 			for (const auto& file : zip->GetFileNameList())
-				m_data.reviews[file.toULongLong()].emplace(entry.path().filename());
+				m_data.reviews[file.toStdString()].emplace(path.filename());
 		}
 	}
 
@@ -1589,14 +1469,9 @@ private:
 			return;
 
 		const auto fileName = QString::fromStdWString(compilationsFileName);
-		const auto zip      = Util::Try<std::unique_ptr<Zip>>(
-            QString("open %1").arg(fileName),
-            [&] {
-                return std::make_unique<Zip>(fileName);
-            },
-            __FILE__,
-            __LINE__
-        );
+		const auto zip      = TRY(QString("open %1").arg(fileName), [&] {
+            return std::make_unique<Zip>(fileName);
+        });
 		if (!zip)
 			return;
 
@@ -1616,8 +1491,6 @@ private:
 		PLOGI << "collect compilations info";
 
 		sqlite3pp::transaction tr(db);
-
-		sqlite3pp::command(db, "CREATE INDEX IF NOT EXISTS IX_Books_FileName ON Books(FileName)").execute();
 
 		sqlite3pp::query query(db, R"(select b.BookID, b.Title
 from Books b
@@ -1682,13 +1555,12 @@ where b.FileName = ? and b.Ext = ?)");
 				);
 			}
 
-			if (books.empty())
+			if (books.empty() || compilation.title.empty())
 				compilations.pop_back();
 		}
 
 		PLOGI << "write compilations info";
 
-		sqlite3pp::command(db, "DROP INDEX IF EXISTS IX_Books_FileName").execute();
 		sqlite3pp::command(db, "delete from Compilations_Search").execute();
 		sqlite3pp::command(db, "delete from Compilations").execute();
 
@@ -1696,6 +1568,7 @@ where b.FileName = ? and b.Ext = ?)");
 			sqlite3pp::command command(db, "insert into Compilations(CompilationID, BookId, Title, Covered) values(?, ?, ?, ?)");
 			for (const auto& compilation : compilations)
 			{
+				assert(!compilation.title.empty());
 				auto title = compilation.title.begin()->toStdString();
 				for (const auto& token : compilation.title | std::views::drop(1))
 					title.append(" ").append(token.toStdString());
@@ -1746,14 +1619,9 @@ where b.FileName = ? and b.Ext = ?)");
 
 			QFileInfo  archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
 			const auto archiveFileName = archiveFileInfo.filePath();
-			const auto zip             = Util::Try<std::unique_ptr<Zip>>(
-                QString("open %1").arg(archiveFileName),
-                [&] {
-                    return std::make_unique<Zip>(archiveFileName);
-                },
-                __FILE__,
-                __LINE__
-            );
+			const auto zip             = TRY(QString("open %1").arg(archiveFileName), [&] {
+                return std::make_unique<Zip>(archiveFileName);
+            });
 			if (!zip)
 				continue;
 
@@ -1761,14 +1629,9 @@ where b.FileName = ? and b.Ext = ?)");
 			{
 				PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
 				const auto fileNameStr = QString::fromStdWString(fileName);
-				Util::Try<bool>(
-					QString("parse %1").arg(fileNameStr),
-					[&] {
-						return ParseFile(folder, *zip, fileNameStr, archiveFileInfo.birthTime());
-					},
-					__FILE__,
-					__LINE__
-				);
+				TRY(QString("parse %1").arg(fileNameStr), [&] {
+					return ParseFile(folder, *zip, fileNameStr, archiveFileInfo.birthTime());
+				});
 			}
 		}
 	}
@@ -1779,34 +1642,37 @@ where b.FileName = ? and b.Ext = ?)");
 			return;
 
 		const auto inpxFolder = m_ini(INPX_FOLDER);
-		auto       folders    = Util::Try<std::vector<std::wstring>>(
-            std::format("iterate {}", inpxFolder.generic_string()),
-            [&] {
-                std::vector<std::wstring> result;
-                std::ranges::move(
-                    std::filesystem::recursive_directory_iterator(inpxFolder) | std::views::filter([](const auto& item) {
-                        return !item.is_directory();
-                    }) | std::views::transform([&](const auto& item) {
-                        auto folder = item.path().wstring();
-                        folder.erase(0, inpxFolder.string().size() + 1);
-                        return folder;
-                    }) | std::views::filter([&](const auto& item) {
-                        static constexpr std::wstring_view specials[] { L"authors", L"covers", L"images", L"reviews" };
-                        return !m_foldersContent.contains(item) && std::ranges::none_of(specials, [&](const auto& specialFolder) {
-                            return item.starts_with(specialFolder);
-                        });
-                    }),
-                    std::back_inserter(result)
-                );
-                return result;
-            },
-            __FILE__,
-            __LINE__
-        );
+		auto       folders    = TRY(std::format("iterate {}", inpxFolder.generic_string()), [&] {
+            std::vector<std::wstring> result;
+            std::ranges::move(
+                std::filesystem::recursive_directory_iterator(inpxFolder) | std::views::filter([](const auto& item) {
+                    return !item.is_directory();
+                }) | std::views::transform([&](const auto& item) {
+                    auto folder = item.path().wstring();
+                    folder.erase(0, inpxFolder.string().size() + 1);
+                    return folder;
+                }) | std::views::filter([&](const auto& item) {
+                    static constexpr std::wstring_view specials[] { L"authors", L"covers", L"images", L"reviews" };
+                    return !m_foldersContent.contains(item) && std::ranges::none_of(specials, [&](const auto& specialFolder) {
+                        return item.starts_with(specialFolder);
+                    });
+                }),
+                std::back_inserter(result)
+            );
+            return result;
+        });
 		std::ranges::for_each(std::move(folders), [this](auto&& item) {
 			m_foldersToParse.push(std::forward<std::wstring>(item));
 		});
 
+		TRY("scan archives", [this] {
+			ScanUnIndexedFoldersImpl();
+			return true;
+		});
+	}
+
+	void ScanUnIndexedFoldersImpl()
+	{
 		if (m_foldersToParse.empty())
 			return;
 
@@ -1849,8 +1715,7 @@ where b.FileName = ? and b.Ext = ?)");
 	void GetFieldList(const Zip* zip = nullptr)
 	{
 		const auto fieldList = [&]() -> QString {
-			return zip && zip->GetFileNameList().contains(STRUCTURE_INFO) ? QString::fromUtf8(zip->Read(STRUCTURE_INFO)->GetStream().readAll()).simplified()
-			                                                              : QString("AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;YEAR;");
+			return zip && zip->GetFileNameList().contains(STRUCTURE_INFO) ? QString::fromUtf8(zip->Read(STRUCTURE_INFO)->GetStream().readAll()).simplified() : QString(INP_FIELDS_DESCRIPTION);
 		}();
 
 		const std::unordered_map<QString, BookBufFieldGetter> bookBufMapping {
@@ -1942,7 +1807,7 @@ where b.FileName = ? and b.Ext = ?)");
 
 	bool ParseFile(const std::wstring& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
 	{
-		auto line = Util::Fb2InpxParser::Parse(QString::fromStdWString(folder), zip, fileName, zipDateTime, !!(m_mode & CreateCollectionMode::MarkUnIndexedFilesAsDeleted)).toStdWString();
+		auto line = Fb2InpxParser::Parse(QString::fromStdWString(folder), zip, fileName, zipDateTime, !!(m_mode & CreateCollectionMode::MarkUnIndexedFilesAsDeleted)).toStdWString();
 		if (line.empty())
 			return false;
 
@@ -2000,7 +1865,7 @@ where b.FileName = ? and b.Ext = ?)");
 				return std::numeric_limits<size_t>::max();
 		}
 
-		auto authorIds = ParseItem(buf.AUTHOR, m_data.authors, Util::Fb2InpxParser::LIST_SEPARATOR, &ParseCheckerAuthor);
+		auto authorIds = ParseItem(buf.AUTHOR, m_data.authors, Fb2InpxParser::LIST_SEPARATOR, &ParseCheckerAuthor);
 		if (authorIds.empty())
 			authorIds = ParseItem(std::wstring(AUTHOR_UNKNOWN), m_data.authors);
 		assert(!authorIds.empty() && "a book cannot be an orphan");
@@ -2009,7 +1874,7 @@ where b.FileName = ? and b.Ext = ?)");
 		auto idGenres = ParseItem(
 			buf.GENRE,
 			m_genresIndex,
-			Util::Fb2InpxParser::LIST_SEPARATOR,
+			Fb2InpxParser::LIST_SEPARATOR,
 			&ParseCheckerDefault,
 			[&, &data = m_data.genres](std::wstring_view newItemTitle) {
 				const auto result       = std::size(data);
@@ -2050,7 +1915,8 @@ where b.FileName = ? and b.Ext = ?)");
 			To<size_t>(buf.SIZE),
 			To<bool>(buf.DEL, false),
 			updateId,
-			To<int>(buf.YEAR, -1)
+			To<int>(buf.YEAR, -1),
+			buf.SOURCELIB
 		);
 
 		book.language = m_languageMapping.GetLang(book.language);
@@ -2071,10 +1937,10 @@ where b.FileName = ? and b.Ext = ?)");
 	}
 
 private:
-	const Ini                        m_ini;
-	const CreateCollectionMode       m_mode;
-	const Callback                   m_callback;
-	std::unique_ptr<Util::IExecutor> m_executor;
+	const Ini                  m_ini;
+	const CreateCollectionMode m_mode;
+	const Callback             m_callback;
+	std::unique_ptr<IExecutor> m_executor;
 
 	Data                                                                                                                                                             m_data;
 	Dictionary                                                                                                                                                       m_genresIndex;
@@ -2105,85 +1971,79 @@ Parser::~Parser() = default;
 
 void Parser::CreateNewCollection(IniMap data, const CreateCollectionMode mode, Callback callback)
 {
-	Util::Try<int>(
-		"create collection",
-		[&] {
-			PLOGI << "mode: " << static_cast<int>(mode);
-			std::make_unique<Impl>(Ini(std::move(data)), mode, std::move(callback)).swap(m_impl);
-			m_impl->Process();
-			return 0;
-		},
-		__FILE__,
-		__LINE__
-	);
+	auto process = [&] {
+		PLOGI << "mode: " << static_cast<int>(mode);
+		std::make_unique<Impl>(Ini(std::move(data)), mode, std::move(callback)).swap(m_impl);
+		m_impl->Process();
+		return 0;
+	};
+
+	TRY("create collection", process);
 }
 
 void Parser::UpdateCollection(IniMap data, const CreateCollectionMode mode, Callback callback)
 {
-	Util::Try<int>(
-		"create collection",
-		[&] {
-			PLOGI << "mode: " << static_cast<int>(mode);
-			std::make_unique<Impl>(Ini(std::move(data)), mode, std::move(callback)).swap(m_impl);
-			m_impl->UpdateDatabase();
-			return 0;
-		},
-		__FILE__,
-		__LINE__
-	);
+	auto process = [&] {
+		PLOGI << "mode: " << static_cast<int>(mode);
+		std::make_unique<Impl>(Ini(std::move(data)), mode, std::move(callback)).swap(m_impl);
+		m_impl->UpdateDatabase(Impl::GetNewInpxInpxFilesParser());
+		return 0;
+	};
+
+	TRY("create collection", process);
+}
+
+void Parser::RescanCollection(IniMap data, CreateCollectionMode mode, Callback callback)
+{
+	auto process = [&] {
+		PLOGI << "mode: " << static_cast<int>(mode);
+		std::make_unique<Impl>(Ini(std::move(data)), mode, std::move(callback)).swap(m_impl);
+		m_impl->UpdateDatabase(Impl::GetNewArchivesParser());
+		return 0;
+	};
+
+	TRY("rescan collection folder", process);
 }
 
 void Parser::FillInpx(const Path& collectionFolder, DB::ITransaction& transaction)
 {
-	Util::Try<int>(
-		"fill inpx",
-		[&] {
-			const auto folders = GetInpxFolder(collectionFolder, true);
+	auto process = [&] {
+		const auto folders = GetInpxFolder(collectionFolder, true);
 
-			const auto command = transaction.CreateCommand("INSERT INTO Inpx (Folder, File, Hash) VALUES (?, ?, ?)");
-			for (const auto& [first, second] : folders)
-			{
-				const auto folder = ToMultiByte(first.first);
-				const auto file   = ToMultiByte(first.second);
-				command->Bind(0, folder);
-				command->Bind(1, file);
-				command->Bind(2, second);
-				command->Execute();
-			}
+		const auto command = transaction.CreateCommand("INSERT INTO Inpx (Folder, File, Hash) VALUES (?, ?, ?)");
+		for (const auto& [first, second] : folders)
+		{
+			const auto folder = ToMultiByte(first.first);
+			const auto file   = ToMultiByte(first.second);
+			command->Bind(0, folder);
+			command->Bind(1, file);
+			command->Bind(2, second);
+			command->Execute();
+		}
 
-			return 0;
-		},
-		__FILE__,
-		__LINE__
-	);
+		return 0;
+	};
+
+	TRY("fill inpx", process);
 }
 
 bool Parser::CheckForUpdate(const Path& collectionFolder, DB::IDatabase& database)
 {
-	return Util::Try<int>(
-		"fill inpx",
-		[&] {
-			const auto inpxFolders = GetInpxFolder(collectionFolder, false);
+	auto process = [&] {
+		const auto inpxFolders = GetInpxFolder(collectionFolder, false);
 
-			InpxFolders dbFolders;
-			const auto  query = database.CreateQuery("select Folder, File, Hash from Inpx");
-			for (query->Execute(); !query->Eof(); query->Next())
-				dbFolders.try_emplace(std::make_pair(ToWide(query->Get<const char*>(0)), ToWide(query->Get<const char*>(1))), query->Get<const char*>(2));
+		InpxFolders dbFolders;
+		const auto  query = database.CreateQuery("select Folder, File, Hash from Inpx");
+		for (query->Execute(); !query->Eof(); query->Next())
+			dbFolders.try_emplace(std::make_pair(ToWide(query->Get<const char*>(0)), ToWide(query->Get<const char*>(1))), query->Get<const char*>(2));
 
-			InpxFolders diff;
-			const auto  proj = [](const auto& item) {
-                return item.first;
-			};
-			std::ranges::set_difference(inpxFolders, dbFolders, std::inserter(diff, diff.end()), {}, proj, proj);
-			return !diff.empty();
-		},
-		__FILE__,
-		__LINE__
-	);
-}
+		InpxFolders diff;
+		const auto  proj = [](const auto& item) {
+            return item.first;
+		};
+		std::ranges::set_difference(inpxFolders, dbFolders, std::inserter(diff, diff.end()), {}, proj, proj);
+		return !diff.empty();
+	};
 
-const std::wstring& Parser::GetLang(const std::wstring& src)
-{
-	static const LanguageMapping mapping(Path(":/data") / DEFAULT_LANGUAGES_MAPPING);
-	return mapping.GetLang(src);
+	return TRY("fill inpx", process);
 }

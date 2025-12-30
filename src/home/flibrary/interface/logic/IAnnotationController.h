@@ -62,11 +62,13 @@ public:
 		[[nodiscard]] virtual const QString&              GetEpigraphAuthor() const noexcept = 0;
 		[[nodiscard]] virtual const QString&              GetLanguage() const noexcept       = 0;
 		[[nodiscard]] virtual const QString&              GetSourceLanguage() const noexcept = 0;
+		[[nodiscard]] virtual const QString&              GetSourceLibrary() const noexcept  = 0;
 		[[nodiscard]] virtual const std::vector<QString>& GetFb2Keywords() const noexcept    = 0;
 		[[nodiscard]] virtual const Covers&               GetCovers() const noexcept         = 0;
 		[[nodiscard]] virtual size_t                      GetTextSize() const noexcept       = 0;
 		[[nodiscard]] virtual size_t                      GetWordCount() const noexcept      = 0;
 		[[nodiscard]] virtual IDataItem::Ptr              GetContent() const noexcept        = 0;
+		[[nodiscard]] virtual IDataItem::Ptr              GetDescription() const noexcept    = 0;
 		[[nodiscard]] virtual IDataItem::Ptr              GetTranslators() const noexcept    = 0;
 
 		[[nodiscard]] virtual const QString&          GetPublisher() const noexcept        = 0;

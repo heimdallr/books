@@ -8,13 +8,13 @@
 #include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
 
-#include "interface/constants/Localization.h"
+#include "interface/IRequester.h"
+#include "interface/Localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IAnnotationController.h"
 
 #include "util/ISettings.h"
-#include "util/localization.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"
@@ -71,7 +71,7 @@ class AnnotationControllerStrategy final : public IAnnotationController::IStrate
 {
 public:
 	AnnotationControllerStrategy(const ISettings& settings)
-		: m_starSymbol { settings.Get(Constant::Settings::LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) }
+		: m_starSymbol { settings.Get(Constant::Settings::PREFER_LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) }
 	{
 	}
 
@@ -120,14 +120,19 @@ public:
 	}
 
 protected:
-	AbstractParser(QIODevice& stream, QString root)
+	AbstractParser(QIODevice& stream, const IRequester::Parameters& parameters)
 		: SaxParser(stream)
-		, m_root { std::move(root) }
+		, m_root { IRequester::GetParameter(parameters, ROOT) }
+		, m_session { IRequester::GetParameter(parameters, SESSION) }
 	{
+		assert(!m_root.isEmpty());
 	}
 
 	virtual void WriteHttpHead()
 	{
+		auto home = m_root;
+		if (!m_session.isEmpty())
+			home += QString("?session=%1").arg(m_session);
 		// clang-format off
 		m_writer->WriteStartElement("html")
 			.WriteStartElement("head")
@@ -140,7 +145,7 @@ protected:
 						.WriteStartElement("input").WriteAttribute("type", "text").WriteAttribute("id", "q").WriteAttribute("name", "q").WriteAttribute("placeholder", Tr(SEARCH)).WriteAttribute("size", "64").WriteEndElement()
 					.WriteEndElement()
 				.WriteEndElement()
-				.WriteStartElement("a").WriteAttribute("href", m_root).WriteCharacters(Tr(HOME)).WriteEndElement();
+				.WriteStartElement("a").WriteAttribute("href", home).WriteCharacters(Tr(HOME)).WriteEndElement();
 		// clang-format on
 		WriteHead();
 		m_writer->Guard("hr");
@@ -156,6 +161,7 @@ private:
 
 protected:
 	const QString                m_root;
+	const QString                m_session;
 	std::unique_ptr<QBuffer>     m_output { CreateStream() };
 	PropagateConstPtr<XmlWriter> m_writer { std::make_unique<XmlWriter>(*m_output, XmlWriter::Type::Html) };
 };
@@ -163,8 +169,8 @@ protected:
 class ParserOpds : public AbstractParser
 {
 protected:
-	ParserOpds(const IPostProcessCallback& callback, QIODevice& stream, QString root)
-		: AbstractParser(stream, std::move(root))
+	ParserOpds(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters)
+		: AbstractParser(stream, parameters)
 		, m_callback { callback }
 	{
 	}
@@ -259,15 +265,14 @@ class ParserNavigation final : public ParserOpds
 	};
 
 public:
-	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const QStringList& parameters, const ISettings&)
+	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters, const ISettings&)
 	{
-		assert(!parameters.isEmpty());
-		return std::make_unique<ParserNavigation>(callback, stream, parameters.front(), CreateGuard {});
+		return std::make_unique<ParserNavigation>(callback, stream, parameters, CreateGuard {});
 	}
 
 public:
-	ParserNavigation(const IPostProcessCallback& callback, QIODevice& stream, QString root, CreateGuard)
-		: ParserOpds(callback, stream, std::move(root))
+	ParserNavigation(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters, CreateGuard)
+		: ParserOpds(callback, stream, parameters)
 	{
 	}
 
@@ -384,7 +389,7 @@ class ParserBookInfo final : public ParserOpds
 
 	static QString CreateReadTemplate(const ISettings& settings)
 	{
-		auto       readTemplate = settings.Get(Constant::Settings::OPDS_READ_URL_TEMPLATE, QString("/web/read?book=%1"));
+		auto       readTemplate = settings.Get(Constant::Settings::PREFER_OPDS_READ_URL_TEMPLATE, QString("/web/read?book=%1"));
 		const auto host         = settings.Get(Constant::Settings::OPDS_HOST_KEY, Constant::Settings::OPDS_HOST_DEFAULT);
 		const auto port         = settings.Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT);
 		readTemplate.replace("%HTTP_HOST%", host);
@@ -393,15 +398,14 @@ class ParserBookInfo final : public ParserOpds
 	}
 
 public:
-	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const QStringList& parameters, const ISettings& settings)
+	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters, const ISettings& settings)
 	{
-		assert(!parameters.isEmpty());
-		return std::make_unique<ParserBookInfo>(callback, stream, parameters.front(), settings, CreateGuard {});
+		return std::make_unique<ParserBookInfo>(callback, stream, parameters, settings, CreateGuard {});
 	}
 
 public:
-	ParserBookInfo(const IPostProcessCallback& callback, QIODevice& stream, QString root, const ISettings& settings, CreateGuard)
-		: ParserOpds(callback, stream, std::move(root))
+	ParserBookInfo(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters, const ISettings& settings, CreateGuard)
+		: ParserOpds(callback, stream, parameters)
 		, m_readTemplate { CreateReadTemplate(settings) }
 	{
 	}
@@ -611,16 +615,16 @@ class ParserFb2 final : public AbstractParser
 	static constexpr auto IMAGE      = "image";
 
 public:
-	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback&, QIODevice& stream, const QStringList& parameters, const ISettings&)
+	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback&, QIODevice& stream, const IRequester::Parameters& parameters, const ISettings&)
 	{
 		assert(parameters.size() > 1);
-		return std::make_unique<ParserFb2>(stream, parameters[0], parameters[1], CreateGuard {});
+		return std::make_unique<ParserFb2>(stream, parameters, CreateGuard {});
 	}
 
 public:
-	ParserFb2(QIODevice& stream, QString root, QString bookId, CreateGuard)
-		: AbstractParser(stream, std::move(root))
-		, m_bookId { std::move(bookId) }
+	ParserFb2(QIODevice& stream, const IRequester::Parameters& parameters, CreateGuard)
+		: AbstractParser(stream, parameters)
+		, m_bookId { IRequester::GetParameter(parameters, "book") }
 	{
 	}
 
@@ -937,14 +941,14 @@ private:
 	std::vector<Binary>   m_binary;
 };
 
-constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(const IPostProcessCallback&, QIODevice&, const QStringList&, const ISettings&)> PARSER_CREATORS[] {
+constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(const IPostProcessCallback&, QIODevice&, const IRequester::Parameters&, const ISettings&)> PARSER_CREATORS[] {
 	{ ContentType::BookInfo, &ParserBookInfo::Create },
 	{ ContentType::BookText,      &ParserFb2::Create },
 };
 
 } // namespace
 
-QByteArray PostProcess_web(const IPostProcessCallback& callback, QIODevice& stream, const ContentType contentType, const QStringList& parameters, const ISettings& settings)
+QByteArray PostProcess_web(const IPostProcessCallback& callback, QIODevice& stream, const ContentType contentType, const IRequester::Parameters& parameters, const ISettings& settings)
 {
 	const auto parserCreator = FindSecond(PARSER_CREATORS, contentType, &ParserNavigation::Create);
 	const auto parser        = parserCreator(callback, stream, parameters, settings);

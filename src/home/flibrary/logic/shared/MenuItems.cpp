@@ -6,9 +6,9 @@
 #include "database/interface/IQuery.h"
 
 #include "interface/constants/Enums.h"
+#include "interface/localization.h"
 
 #include "data/DataItem.h"
-#include "util/localization.h"
 
 namespace HomeCompa::Flibrary
 {

@@ -1,5 +1,0 @@
-<RCC>
-	<qresource prefix="data">
-		<file alias="LanguagesMapping.json">data/LanguagesMapping.json</file>
-	</qresource>
-</RCC>

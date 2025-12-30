@@ -52,12 +52,7 @@ Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"; LicenseFile
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "{#RootDir}build\Release\bin\FLibrary.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}build\Release\bin\opds.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}build\Release\bin\fb2cut.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}build\Release\bin\fliparser.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}build\Release\bin\fliscaner.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}build\Release\bin\flimager.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#RootDir}build\Release\bin\*.exe"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#RootDir}build\Release\bin\*.lst"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#RootDir}build\Release\bin\*.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#RootDir}build\Release\bin\*.qm" ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs

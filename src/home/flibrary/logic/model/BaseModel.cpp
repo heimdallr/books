@@ -2,8 +2,8 @@
 
 #include "fnd/IsOneOf.h"
 
+#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/ILibRateProvider.h"
 #include "interface/logic/IModelProvider.h"
@@ -65,17 +65,17 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 	if (item->GetType() == ItemType::Books)
 	{
 		if (role == Role::LibRate)
-			return m_libRateProvider->GetLibRateString(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
+			return m_libRateProvider->GetLibRateString(item->GetId().toLongLong(), item->GetRawData(BookItem::Column::LibRate));
 
 		if (item->RemapColumn(index.column()) == BookItem::Column::LibRate)
 		{
 			switch (role)
 			{
 				case Qt::DisplayRole:
-					return m_libRateProvider->GetLibRateString(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
+					return m_libRateProvider->GetLibRateString(item->GetId().toLongLong(), item->GetRawData(BookItem::Column::LibRate));
 
 				case Qt::ForegroundRole:
-					return m_libRateProvider->GetForegroundBrush(item->GetRawData(BookItem::Column::LibID), item->GetRawData(BookItem::Column::LibRate));
+					return m_libRateProvider->GetForegroundBrush(item->GetId().toLongLong(), item->GetRawData(BookItem::Column::LibRate));
 
 				default:
 					break;
@@ -154,6 +154,12 @@ bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const i
 			m_checkable = value.toBool();
 			return true;
 
+		case Role::Check:
+			return Check(value, Qt::Checked);
+
+		case Role::Uncheck:
+			return Check(value, Qt::Unchecked);
+
 		default:
 			break;
 	}
@@ -182,7 +188,7 @@ QVariant BaseModel::GetValue(const IDataItem& item, const int column)
 	{
 		bool       ok     = false;
 		const auto result = item.GetRawData(column).toLongLong(&ok);
-		return ok ? result : -1;
+		return ok ? QVariant { result } : QVariant {};
 	}
 
 	return item.GetRawData(column);

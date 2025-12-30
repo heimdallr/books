@@ -2,7 +2,9 @@
 
 #include <QCommandLineParser>
 
-#include "interface/constants/Localization.h"
+#include "interface/Localization.h"
+
+#include "logging/init.h"
 
 #include "config/version.h"
 
@@ -29,7 +31,7 @@ CommandLine::CommandLine()
 	parser.addHelpOption();
 	parser.addVersionOption();
 	parser.addPositionalArgument("file", Tr(POSITIONAL_ARGUMENT_DESCRIPTION));
-
+	Log::LoggingInitializer::AddLogFileOption(parser, "");
 	parser.process(QCoreApplication::arguments());
 	const auto positionalArguments = parser.positionalArguments();
 

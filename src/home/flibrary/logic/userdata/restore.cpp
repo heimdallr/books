@@ -9,10 +9,10 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/ITransaction.h"
 
-#include "interface/constants/Localization.h"
+#include "interface/Localization.h"
 #include "interface/constants/ProductConstant.h"
 
-#include "inpx/constant.h"
+#include "inpx/InpxConstant.h"
 #include "util/IExecutor.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"

@@ -1,3 +1,0 @@
-#pragma once
-
-constexpr const char * GIT_HASH = "@GIT_HASH@";

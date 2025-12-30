@@ -17,7 +17,12 @@ using namespace Flibrary;
 
 namespace
 {
-constexpr auto FILTER_ENABLED_KEY = "ui/View/UniFilter/enabled";
+constexpr auto FILTER_ENABLED_KEY                = "ui/View/UniFilter/enabled";
+constexpr auto FILTER_RATING_HIDE_UNRATED_KEY    = "ui/View/UniFilter/Rating/HideUnrated";
+constexpr auto FILTER_RATING_MINIMUM_KEY         = "ui/View/UniFilter/Rating/Minimum/Value";
+constexpr auto FILTER_RATING_MINIMUM_ENABLED_KEY = "ui/View/UniFilter/Rating/Minimum/Enabled";
+constexpr auto FILTER_RATING_MAXIMUM_KEY         = "ui/View/UniFilter/Rating/Maximum/Value";
+constexpr auto FILTER_RATING_MAXIMUM_ENABLED_KEY = "ui/View/UniFilter/Rating/Maximum/Enabled";
 
 constexpr auto ADD_FILTER_QUERY   = "update {} set Flags = Flags | ? where {} = ?";
 constexpr auto CLEAR_FILTER_QUERY = "update {} set Flags = Flags & ~? where {} = ?";
@@ -81,7 +86,7 @@ FilterController::~FilterController() = default;
 
 bool FilterController::IsFilterEnabled() const noexcept
 {
-	return m_impl->settings->Get(FILTER_ENABLED_KEY, true);
+	return m_impl->settings->Get(FILTER_ENABLED_KEY, false);
 }
 
 std::vector<IDataItem::Flags> FilterController::GetFlags(const NavigationMode navigationMode, const std::vector<QString>& ids) const
@@ -103,6 +108,31 @@ std::vector<IDataItem::Flags> FilterController::GetFlags(const NavigationMode na
 	}
 
 	return result;
+}
+
+bool FilterController::HideUnrated() const noexcept
+{
+	return m_impl->settings->Get(FILTER_RATING_HIDE_UNRATED_KEY, false);
+}
+
+bool FilterController::IsMinimumRateEnabled() const noexcept
+{
+	return m_impl->settings->Get(FILTER_RATING_MINIMUM_ENABLED_KEY, false);
+}
+
+bool FilterController::IsMaximumRateEnabled() const noexcept
+{
+	return m_impl->settings->Get(FILTER_RATING_MAXIMUM_ENABLED_KEY, false);
+}
+
+int FilterController::GetMinimumRate() const noexcept
+{
+	return m_impl->settings->Get(FILTER_RATING_MINIMUM_KEY, 4);
+}
+
+int FilterController::GetMaximumRate() const noexcept
+{
+	return m_impl->settings->Get(FILTER_RATING_MAXIMUM_KEY, 4);
 }
 
 void FilterController::SetFilterEnabled(const bool enabled)
@@ -153,6 +183,19 @@ void FilterController::SetFlags(const NavigationMode navigationMode, QString id,
 	const auto index = static_cast<size_t>(navigationMode);
 	assert(index < m_impl->changes.size());
 	m_impl->changes[index][std::move(id)] = flags;
+}
+
+void FilterController::SetRating(const std::optional<int>& min, const std::optional<int>& max, const bool hideUnrated)
+{
+	const auto set = [this](const std::optional<int>& value, const char* valueKey, const char* enabledKey) {
+		m_impl->settings->Set(enabledKey, !!value);
+		if (value)
+			m_impl->settings->Set(valueKey, *value);
+	};
+
+	m_impl->settings->Set(FILTER_RATING_HIDE_UNRATED_KEY, hideUnrated);
+	set(min, FILTER_RATING_MINIMUM_KEY, FILTER_RATING_MINIMUM_ENABLED_KEY);
+	set(max, FILTER_RATING_MAXIMUM_KEY, FILTER_RATING_MAXIMUM_ENABLED_KEY);
 }
 
 void FilterController::SetNavigationItemFlags(const NavigationMode navigationMode, QStringList navigationIds, const IDataItem::Flags flags, Callback callback)
