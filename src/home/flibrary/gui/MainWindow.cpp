@@ -895,9 +895,27 @@ private:
 		});
 	}
 
+	void ConnectActionsHelpView()
+	{
+		PLOGV << "ConnectActionsHelpView";
+		if (!m_collectionController->ActiveCollectionExists())
+			return;
+
+		auto helpFile = QString("%1/faq/%2/index.html").arg(m_collectionController->GetActiveCollection().GetFolder(), Loc::GetLocale(*m_settings));
+		if (!QFile::exists(helpFile))
+			return;
+
+		m_ui.actionViewHelp->setEnabled(true);
+		m_ui.actionViewHelp->setVisible(true);
+		connect(m_ui.actionViewHelp, &QAction::triggered, &m_self, [&, helpFile = std::move(helpFile)] {
+			QDesktopServices::openUrl(helpFile);
+		});
+	}
+
 	void ConnectActionsHelp()
 	{
 		PLOGV << "ConnectActionsHelp";
+		ConnectActionsHelpView();
 		connect(m_ui.actionCheckForUpdates, &QAction::triggered, &m_self, [&] {
 			CheckForUpdates(true);
 		});
