@@ -4593,6 +4593,10 @@ Try again?</source>
         <translation>Вихід</translation>
     </message>
     <message>
+        <source>F1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Font &amp;settings...</source>
         <translation>&amp;Налаштування шрифтів...</translation>
     </message>
@@ -4723,6 +4727,10 @@ Try again?</source>
     <message>
         <source>To search for books by author, series, or title, enter the name or title here and press Enter</source>
         <translation>Для пошуку книг за автором, серією чи назвою введіть ім&apos;я або назву тут і натисніть Enter</translation>
+    </message>
+    <message>
+        <source>View &amp;Help</source>
+        <translation>&amp;Довідка</translation>
     </message>
     <message>
         <source>Well, you only have yourself to blame!</source>

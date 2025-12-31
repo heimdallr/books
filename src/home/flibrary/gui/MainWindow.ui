@@ -484,6 +484,8 @@
     <property name="title">
      <string>&amp;Help</string>
     </property>
+    <addaction name="actionViewHelp"/>
+    <addaction name="separator"/>
     <addaction name="actionCheckForUpdates"/>
     <addaction name="actionEnableCheckForUpdateOnStart"/>
     <addaction name="separator"/>
@@ -1066,6 +1068,26 @@
   <action name="actionImportSettings">
    <property name="text">
     <string>I&amp;mport</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionViewHelp">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::HelpFaq"/>
+   </property>
+   <property name="text">
+    <string>View &amp;Help</string>
+   </property>
+   <property name="shortcut">
+    <string>F1</string>
+   </property>
+   <property name="visible">
+    <bool>false</bool>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
