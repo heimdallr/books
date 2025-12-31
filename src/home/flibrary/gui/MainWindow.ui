@@ -1077,6 +1077,9 @@
    <property name="enabled">
     <bool>false</bool>
    </property>
+   <property name="icon">
+    <iconset theme="QIcon::ThemeIcon::HelpFaq"/>
+   </property>
    <property name="text">
     <string>View &amp;Help</string>
    </property>
