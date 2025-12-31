@@ -4581,6 +4581,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>F1</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
         <source>Font &amp;settings...</source>
         <translation></translation>
     </message>
@@ -4710,6 +4714,10 @@ Try again?</source>
     </message>
     <message>
         <source>To search for books by author, series, or title, enter the name or title here and press Enter</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>View &amp;Help</source>
         <translation></translation>
     </message>
     <message>
