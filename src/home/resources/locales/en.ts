@@ -4581,10 +4581,6 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>F1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Font &amp;settings...</source>
         <translation></translation>
     </message>

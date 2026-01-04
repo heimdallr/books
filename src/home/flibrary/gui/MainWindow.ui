@@ -1084,7 +1084,7 @@
     <string>View &amp;Help</string>
    </property>
    <property name="shortcut">
-    <string>F1</string>
+    <string notr="true">F1</string>
    </property>
    <property name="visible">
     <bool>false</bool>

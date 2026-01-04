@@ -4593,10 +4593,6 @@ Try again?</source>
         <translation>Вихід</translation>
     </message>
     <message>
-        <source>F1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Font &amp;settings...</source>
         <translation>&amp;Налаштування шрифтів...</translation>
     </message>
