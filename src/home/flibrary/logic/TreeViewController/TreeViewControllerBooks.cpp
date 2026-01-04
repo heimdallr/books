@@ -91,7 +91,7 @@ TreeViewControllerBooks::TreeViewControllerBooks(
 	m_impl->dataProvider->SetBookRequestCallback([&](IDataItem::Ptr data) {
 		assert(m_impl->viewMode != ViewMode::Unknown);
 		const auto invoker = MODE_NAMES[static_cast<int>(m_impl->viewMode)].second.modelCreator;
-		auto       model   = std::invoke(invoker, IModelProvider::Lock(m_modelProvider), std::move(data), true);
+		auto       model   = std::invoke(invoker, IModelProvider::Lock(m_modelProvider), std::move(data), false);
 		m_impl->model.reset(std::move(model));
 		Perform(&IObserver::OnModelChanged, m_impl->model.get());
 	});
