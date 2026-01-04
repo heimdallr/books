@@ -1,7 +1,7 @@
 rem @echo off
 
 set start_time=%DATE% %TIME%
-set PRODUCT_VERSION=2.5.4
+set PRODUCT_VERSION=2.5.5
 set PRODUCT_GUID=80B196FB-9529-459D-960E-0E0F00CE0981
 
 call src\ext\scripts\batch\check_executable.bat cmake
