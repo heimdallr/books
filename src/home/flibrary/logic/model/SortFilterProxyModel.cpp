@@ -259,12 +259,12 @@ bool SortFilterProxyModel::FilterAcceptsFlags(const QModelIndex& index) const
 
 bool SortFilterProxyModel::FilterAcceptsLanguage(const QModelIndex& index) const
 {
-	return m_impl->languageFilter.isEmpty() || index.data(Role::Type).value<ItemType>() == ItemType::Navigation || index.data(Role::Lang).toString() == m_impl->languageFilter;
+	return m_impl->languageFilter.isEmpty() || index.data(Role::Lang).toString() == m_impl->languageFilter;
 }
 
 bool SortFilterProxyModel::FilterAcceptsRate(const QModelIndex& index) const
 {
-	if (!m_impl->uniFilterEnabled || !(m_impl->hideUnrated || !!m_impl->minimumRate || !!m_impl->maximumRate) || index.data(Role::Type).value<ItemType>() == ItemType::Navigation)
+	if (!m_impl->uniFilterEnabled || !(m_impl->hideUnrated || !!m_impl->minimumRate || !!m_impl->maximumRate))
 		return true;
 
 	auto rateVar = index.data(Role::LibRate);
