@@ -6,10 +6,8 @@
 #include "fnd/FindPair.h"
 
 #include "database/interface/IDatabase.h"
-#include "database/interface/IQuery.h"
 
 #include "interface/constants/Enums.h"
-#include "interface/constants/ExportStat.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
 
@@ -26,7 +24,7 @@ namespace
 
 constexpr auto CONTEXT = "Books";
 
-using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, bool autoAcceptChildRows) const;
+using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr) const;
 
 struct ModeDescriptor
 {
@@ -91,7 +89,7 @@ TreeViewControllerBooks::TreeViewControllerBooks(
 	m_impl->dataProvider->SetBookRequestCallback([&](IDataItem::Ptr data) {
 		assert(m_impl->viewMode != ViewMode::Unknown);
 		const auto invoker = MODE_NAMES[static_cast<int>(m_impl->viewMode)].second.modelCreator;
-		auto       model   = std::invoke(invoker, IModelProvider::Lock(m_modelProvider), std::move(data), false);
+		auto       model   = std::invoke(invoker, IModelProvider::Lock(m_modelProvider), std::move(data));
 		m_impl->model.reset(std::move(model));
 		Perform(&IObserver::OnModelChanged, m_impl->model.get());
 	});
