@@ -4458,7 +4458,7 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;Removed books</source>
-        <translation>Ві&amp;далені книги</translation>
+        <translation>Ви&amp;далені книги</translation>
     </message>
     <message>
         <source>&amp;Restore default values</source>
@@ -4602,11 +4602,11 @@ Try again?</source>
     </message>
     <message>
         <source>Go to the &amp;ReactApp web interface</source>
-        <translation>Перейдіть до веб-інтерфейсу &amp;ReactApp</translation>
+        <translation>Перейти до веб-інтерфейсу &amp;ReactApp</translation>
     </message>
     <message>
         <source>Go to the simple &amp;web interface</source>
-        <translation>Перейдіть до с&amp;прощеного веб-інтерфейсу</translation>
+        <translation>Перейти до с&amp;прощеного веб-інтерфейсу</translation>
     </message>
     <message>
         <source>Http server management</source>
