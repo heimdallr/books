@@ -33,7 +33,7 @@ namespace
 constexpr auto CONTEXT = "Navigation";
 constexpr auto REMOVE  = QT_TRANSLATE_NOOP("Navigation", "Remove");
 
-using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr, bool) const;
+using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr) const;
 using Callback     = std::function<void()>;
 
 TR_DEF
@@ -815,7 +815,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 
 	m_impl->dataProvider->SetNavigationRequestCallback([&](IDataItem::Ptr data) {
 		const auto modelCreator = MODE_DESCRIPTORS[m_impl->mode].second.modelCreator;
-		auto       model        = std::invoke(modelCreator, IModelProvider::Lock(m_modelProvider), std::move(data), false);
+		auto       model        = std::invoke(modelCreator, IModelProvider::Lock(m_modelProvider), std::move(data));
 		m_impl->models[m_impl->mode].reset(std::move(model));
 		Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 	});

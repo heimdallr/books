@@ -24,12 +24,12 @@ public:
 	~ModelProvider() override;
 
 private: // IModelProvider
-	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateListModel(IDataItem::Ptr data, bool autoAcceptChildRows) const override;
-	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateTreeModel(IDataItem::Ptr data, bool autoAcceptChildRows) const override;
-	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateBookListModel(IDataItem::Ptr data, bool autoAcceptChildRows) const override;
-	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateBookTreeModel(IDataItem::Ptr data, bool autoAcceptChildRows) const override;
-	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateAuthorsListModel(IDataItem::Ptr data, bool autoAcceptChildRows) const override;
-	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateSearchListModel(IDataItem::Ptr data, bool autoAcceptChildRows) const override;
+	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateListModel(IDataItem::Ptr data) const override;
+	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateTreeModel(IDataItem::Ptr data) const override;
+	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateBookListModel(IDataItem::Ptr data) const override;
+	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateBookTreeModel(IDataItem::Ptr data) const override;
+	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateAuthorsListModel(IDataItem::Ptr data) const override;
+	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateSearchListModel(IDataItem::Ptr data) const override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateScriptModel() const override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateScriptCommandModel() const override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateAuthorReviewModel() const override;

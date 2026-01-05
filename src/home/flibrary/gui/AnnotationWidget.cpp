@@ -488,14 +488,14 @@ private: // IAnnotationController::IObserver
 		{
 			if (m_showContent)
 				m_ui.contentWidget->setVisible(true);
-			m_contentModel.reset(IModelProvider::Lock(m_modelProvider)->CreateTreeModel(dataProvider.GetContent(), true));
+			m_contentModel.reset(IModelProvider::Lock(m_modelProvider)->CreateTreeModel(dataProvider.GetContent()));
 		}
 
 		if (dataProvider.GetDescription()->GetChildCount() > 0)
 		{
 			if (m_showContent)
 				m_ui.contentWidget->setVisible(true);
-			m_descriptionModel.reset(IModelProvider::Lock(m_modelProvider)->CreateTreeModel(dataProvider.GetDescription(), true));
+			m_descriptionModel.reset(IModelProvider::Lock(m_modelProvider)->CreateTreeModel(dataProvider.GetDescription()));
 		}
 
 		switch (m_contentMode)
