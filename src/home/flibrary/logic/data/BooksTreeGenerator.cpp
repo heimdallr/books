@@ -5,7 +5,6 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
@@ -18,7 +17,6 @@
 
 #include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/ProductConstant.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IFilterProvider.h"
