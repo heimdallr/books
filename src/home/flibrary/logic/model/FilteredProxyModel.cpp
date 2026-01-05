@@ -131,7 +131,8 @@ void FilteredProxyModel::Check(const QModelIndex& parent, const Qt::CheckState s
 	for (auto i = 0; i < count; ++i)
 		Check(index(i, 0, parent), state);
 
-	emit dataChanged(index(0, 0, parent), index(count - 1, 0), { Qt::CheckStateRole });
+	if (count > 0)
+		emit dataChanged(index(0, 0, parent), index(count - 1, 0, parent), { Qt::CheckStateRole });
 
 	setData(parent, state, Role::CheckState);
 }
