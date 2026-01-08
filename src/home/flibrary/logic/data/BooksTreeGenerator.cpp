@@ -165,11 +165,22 @@ public:
 				continue;
 			}
 
-			for (const auto& seriesId : seriesIds | std::views::values | std::views::keys)
+			const auto bookSeriesId = book->GetRawData(BookItem::Column::Series).toLongLong();
+
+			for (const auto& [seriesId, seqNo] : seriesIds | std::views::values)
 			{
 				const auto it = m_series.find(seriesId);
 				assert(it != m_series.end());
-				it->second->AppendChild(book);
+				if (bookSeriesId == seriesId)
+				{
+					it->second->AppendChild(book);
+					continue;
+				}
+
+				auto clone = book->Clone();
+				clone->SetData(QString::number(seriesId), BookItem::Column::Series);
+				clone->SetData(QString::number(seqNo), BookItem::Column::SeqNumber);
+				it->second->AppendChild(std::move(clone));
 			}
 		}
 
