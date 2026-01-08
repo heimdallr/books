@@ -10,6 +10,8 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include "fnd/IsOneOf.h"
+
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 #include "database/interface/ITemporaryTable.h"
@@ -165,11 +167,23 @@ public:
 				continue;
 			}
 
-			for (const auto& seriesId : seriesIds | std::views::values | std::views::keys)
+			const auto bookSeriesId = book->GetRawData(BookItem::Column::SeriesId).toLongLong();
+
+			for (const auto& [seriesId, seqNo] : seriesIds | std::views::values)
 			{
 				const auto it = m_series.find(seriesId);
 				assert(it != m_series.end());
-				it->second->AppendChild(book);
+				if (bookSeriesId == seriesId)
+				{
+					it->second->AppendChild(book);
+					continue;
+				}
+
+				auto clone = book->Clone();
+				clone->SetData(QString::number(seriesId), BookItem::Column::SeriesId);
+				clone->SetData(it->second->GetData(), BookItem::Column::Series);
+				clone->SetData(QString::number(seqNo), BookItem::Column::SeqNumber);
+				it->second->AppendChild(std::move(clone));
 			}
 		}
 
@@ -186,7 +200,7 @@ public:
 		for (const auto& [authorIds, bookIds] : authorToBooks)
 		{
 			auto authorsNode = CreateAuthorsNode(authorIds);
-			authorsNode->SetChildren(CreateBookItems(bookIds));
+			authorsNode->SetChildren(CreateBookItems(bookIds, navigationId.toLongLong()));
 			rootCached->AppendChild(std::move(authorsNode));
 		}
 
@@ -241,11 +255,11 @@ public:
 				assert(it != m_series.end());
 				auto seriesNode = NavigationItem::Create();
 				seriesNode->SetData(it->second->GetData());
-				seriesNode->SetChildren(CreateBookItems(bookIds));
+				seriesNode->SetChildren(CreateBookItems(bookIds, seriesId));
 				authorsNode->AppendChild(std::move(seriesNode));
 			}
 
-			for (auto&& book : CreateBookItems(noSeriesBookIds))
+			for (auto&& book : CreateBookItems(noSeriesBookIds, -1))
 				authorsNode->AppendChild(std::move(book));
 
 			rootCached->AppendChild(std::move(authorsNode));
@@ -539,18 +553,35 @@ join Keywords k on k.KeywordID = l.KeywordID
 				continue;
 
 			const auto& [seriesId, seqNum] = seriesIds.cbegin()->second;
+			book->SetData(QString::number(seriesId), BookItem::Column::SeriesId);
 			book->SetData(seqNum > 0 ? QString::number(seqNum) : QString {}, BookItem::Column::SeqNumber);
 			book->SetData(m_series.find(seriesId)->second->GetData(), BookItem::Column::Series);
 		}
 	}
 
-	IDataItem::Items CreateBookItems(const IdsSet& idsSet) const
+	IDataItem::Items CreateBookItems(const IdsSet& idsSet, const long long seriesId) const
 	{
+		const auto seriesIt = m_series.find(seriesId);
+
 		IDataItem::Items books;
 		std::ranges::transform(idsSet, std::back_inserter(books), [&](const long long id) {
 			const auto it = m_books.find(id);
 			assert(it != m_books.end());
-			return it->second.book;
+
+			if (IsOneOf(it->second.book->GetData(BookItem::Column::SeriesId).toLongLong(), seriesId, -1))
+				return it->second.book;
+
+			const auto bookSeriesIt = std::ranges::find(it->second.series, seriesId, [](const auto& item) {
+				return item.second.first;
+			});
+			assert(bookSeriesIt != it->second.series.end() && seriesIt != m_series.end());
+
+			auto clone = it->second.book->Clone();
+			clone->SetData(QString::number(seriesId), BookItem::Column::SeriesId);
+			clone->SetData(seriesIt->second->GetData(), BookItem::Column::Series);
+			clone->SetData(QString::number(bookSeriesIt->second.second), BookItem::Column::SeqNumber);
+
+			return clone;
 		});
 		return books;
 	}
