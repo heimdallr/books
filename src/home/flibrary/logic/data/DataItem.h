@@ -4,8 +4,9 @@
 
 #include <QString>
 
-#include "interface/logic/IDataItem.h"
 #include "fnd/NonCopyMovable.h"
+
+#include "interface/logic/IDataItem.h"
 
 #include "export/logic.h"
 
@@ -200,6 +201,7 @@ class LOGIC_EXPORT BookItem final : public DataItem
 #define BOOKS_COLUMN_ITEMS_X_MACRO \
 	BOOKS_COLUMN_ITEM(Author)      \
 	BOOKS_COLUMN_ITEM(Title)       \
+	BOOKS_COLUMN_ITEM(SeriesId)    \
 	BOOKS_COLUMN_ITEM(SeqNumber)   \
 	BOOKS_COLUMN_ITEM(UpdateDate)  \
 	BOOKS_COLUMN_ITEM(LibRate)     \
