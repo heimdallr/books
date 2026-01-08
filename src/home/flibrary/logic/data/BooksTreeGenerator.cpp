@@ -568,7 +568,7 @@ join Keywords k on k.KeywordID = l.KeywordID
 			const auto it = m_books.find(id);
 			assert(it != m_books.end());
 
-			if (IsOneOf(it->second.book->GetData(BookItem::Column::SeriesId).toLongLong(), seriesId, -1))
+			if (IsOneOf(seriesId, -1, it->second.book->GetData(BookItem::Column::SeriesId).toLongLong()))
 				return it->second.book;
 
 			const auto bookSeriesIt = std::ranges::find(it->second.series, seriesId, [](const auto& item) {
