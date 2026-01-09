@@ -59,9 +59,19 @@ constexpr auto LAST                               = "Last";
 class HeaderView final : public QHeaderView
 {
 public:
-	HeaderView(QAbstractItemView& view, const QString& currentId, QWidget* parent = nullptr)
+	class IObserver // NOLINT(cppcoreguidelines-special-member-functions)
+	{
+	public:
+		virtual ~IObserver() = default;
+
+		virtual void               OnSortChanged()    = 0;
+		virtual QAbstractItemView& GetView() noexcept = 0;
+	};
+
+public:
+	HeaderView(IObserver& observer, const QString& currentId, QWidget* parent = nullptr)
 		: QHeaderView(Qt::Horizontal, parent)
-		, m_view { view }
+		, m_observer { observer }
 		, m_currentId { currentId }
 	{
 		setFirstSectionMovable(false);
@@ -122,14 +132,16 @@ public:
 	{
 		model()->setData({}, QVariant::fromValue(m_sort), Role::SortOrder);
 
+		auto& view = m_observer.GetView();
+
 		if (m_currentId.isEmpty())
-			return QTimer::singleShot(0, [this] {
-				m_view.setCurrentIndex(model()->index(0, 0));
-				return m_view.scrollToTop();
+			return QTimer::singleShot(0, [&] {
+				view.setCurrentIndex(model()->index(0, 0));
+				return view.scrollToTop();
 			});
 
 		if (const auto matched = model()->match(model()->index(0, 0), Role::Id, m_currentId, 1, Qt::MatchFlag::MatchExactly | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
-			m_view.scrollTo(matched.front(), PositionAtCenter);
+			view.scrollTo(matched.front(), PositionAtCenter);
 	}
 
 private: // QHeaderView
@@ -215,6 +227,7 @@ private:
 
 		const ScopedCall apply([this] {
 			ApplySort();
+			m_observer.OnSortChanged();
 		});
 
 		auto name = model()->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
@@ -257,7 +270,7 @@ private:
 	}
 
 private:
-	QAbstractItemView&                         m_view;
+	IObserver&                                 m_observer;
 	const QString&                             m_currentId;
 	std::vector<std::pair<int, Qt::SortOrder>> m_sort;
 	std::unordered_map<QString, size_t>        m_columns;
@@ -369,6 +382,7 @@ class TreeView::Impl final
 	, ITreeViewDelegate::IObserver
 	, IFilterProvider::IObserver
 	, ModeComboBox::IValueApplier
+	, HeaderView::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -580,6 +594,17 @@ private: //	ModeComboBox::IValueApplier
 	void Filter() override
 	{
 		m_filterTimer.start();
+	}
+
+private: // HeaderView::IObserver
+	void OnSortChanged() override
+	{
+		SaveHeaderLayout();
+	}
+
+	QAbstractItemView& GetView() noexcept override
+	{
+		return *m_ui.treeView;
 	}
 
 private:
@@ -819,7 +844,7 @@ private:
 
 		if (!IsNavigation())
 		{
-			m_booksHeaderView = new HeaderView(*m_ui.treeView, m_currentId, &m_self);
+			m_booksHeaderView = new HeaderView(*this, m_currentId, &m_self);
 			m_ui.treeView->setHeader(m_booksHeaderView);
 			connect(m_booksHeaderView, &QHeaderView::sectionResized, &m_self, [this] {
 				SaveHeaderLayout();
