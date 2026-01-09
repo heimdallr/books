@@ -4986,17 +4986,6 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>OpenFileDialogDelegateEditor</name>
-    <message>
-        <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
-        <translation>Приложения (*.exe);;Скрипты (*.bat *.cmd);;Все файлы (*.*)</translation>
-    </message>
-    <message>
-        <source>Select Application</source>
-        <translation>Выберите приложение</translation>
-    </message>
-</context>
-<context>
     <name>ProgressBar</name>
     <message>
         <source>Cancel</source>
@@ -5115,16 +5104,8 @@ Try again?</source>
 <context>
     <name>ScriptCommandModel</name>
     <message>
-        <source>Arguments</source>
-        <translation>Аргументы</translation>
-    </message>
-    <message>
         <source>Command</source>
         <translation>Команда</translation>
-    </message>
-    <message>
-        <source>Type</source>
-        <translation>Тип</translation>
     </message>
 </context>
 <context>
@@ -5265,8 +5246,24 @@ Try again?</source>
         <translation>Добавить скрипт</translation>
     </message>
     <message>
+        <source>Arguments</source>
+        <translation>Аргументы</translation>
+    </message>
+    <message>
         <source>Cancel</source>
         <translation>Отмена</translation>
+    </message>
+    <message>
+        <source>Command</source>
+        <translation>Команда</translation>
+    </message>
+    <message>
+        <source>Command settings</source>
+        <translation>Настройка команды</translation>
+    </message>
+    <message>
+        <source>Edit command</source>
+        <translation>Редактирование команды</translation>
     </message>
     <message>
         <source>Remove command</source>
@@ -5287,6 +5284,29 @@ Try again?</source>
     <message>
         <source>Scripts</source>
         <translation>Скрипты</translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
+        <source>Working folder</source>
+        <translation>Рабочая папка</translation>
+    </message>
+</context>
+<context>
+    <name>ScriptEditor</name>
+    <message>
+        <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
+        <translation>Приложения (*.exe);;Скрипты (*.bat *.cmd);;Все файлы (*.*)</translation>
+    </message>
+    <message>
+        <source>Select Application</source>
+        <translation>Выберите приложение</translation>
+    </message>
+    <message>
+        <source>Select working folder</source>
+        <translation>Выберите рабочую папку</translation>
     </message>
 </context>
 <context>

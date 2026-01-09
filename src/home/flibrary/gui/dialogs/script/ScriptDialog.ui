@@ -146,7 +146,7 @@
      </widget>
      <widget class="QStackedWidget" name="stackedWidgetCommand">
       <property name="currentIndex">
-       <number>0</number>
+       <number>1</number>
       </property>
       <widget class="QWidget" name="scriptCommandListPage">
        <layout class="QVBoxLayout" name="verticalLayout">
@@ -379,7 +379,7 @@
              <item>
               <widget class="QPushButton" name="btnCommandOk">
                <property name="text">
-                <string>Ok</string>
+                <string notr="true">Ok</string>
                </property>
               </widget>
              </item>
@@ -469,7 +469,7 @@
      <normaloff>:/icons/exe.svg</normaloff>:/icons/exe.svg</iconset>
    </property>
    <property name="text">
-    <string>OpenExe</string>
+    <string notr="true">OpenExe</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -481,7 +481,7 @@
      <normaloff>:/icons/open-folder.svg</normaloff>:/icons/open-folder.svg</iconset>
    </property>
    <property name="text">
-    <string>OpenCWD</string>
+    <string notr="true">OpenCWD</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
