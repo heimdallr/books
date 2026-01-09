@@ -5282,7 +5282,7 @@ Try again?</source>
     </message>
     <message>
         <source>Script commands</source>
-        <translation>Команди скрипту</translation>
+        <translation>Команди скрипта</translation>
     </message>
     <message>
         <source>Scripts</source>
