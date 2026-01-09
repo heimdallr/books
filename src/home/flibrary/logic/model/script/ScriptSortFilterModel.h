@@ -5,6 +5,8 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IModelProvider.h"
+
 namespace HomeCompa::Flibrary
 {
 
@@ -22,10 +24,11 @@ class ScriptSortFilterModel final
 	NON_COPY_MOVABLE(ScriptSortFilterModel)
 
 public:
-	explicit ScriptSortFilterModel(const std::shared_ptr<const class IModelProvider>& modelProvider, QObject* parent = nullptr);
+	explicit ScriptSortFilterModel(const std::shared_ptr<const IModelProvider>& modelProvider, QObject* parent = nullptr);
 	~ScriptSortFilterModel() override;
 
 private: // QAbstractItemModel
+	QVariant headerData(const int section, const Qt::Orientation orientation, const int role) const override;
 	bool setData(const QModelIndex& index, const QVariant& value, int role) override;
 
 private: // QSortFilterProxyModel

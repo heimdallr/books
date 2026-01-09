@@ -30,6 +30,9 @@ public:
 			Mode = Qt::UserRole + 1,
 			Name,
 			Type,
+			Command,
+			Arguments,
+			WorkingFolder,
 			Number,
 			Observer,
 			Up,
@@ -140,6 +143,7 @@ public:
 		QString scriptUid;
 		QString command;
 		QString args;
+		QString workingFolder;
 		Type    type { Type::LaunchConsoleApp };
 	};
 
@@ -208,6 +212,15 @@ public:
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO
 #undef SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM
 
+	static constexpr std::pair<EmbeddedCommand, const char*> s_embeddedCommands[] {
+		{ EmbeddedCommand::Download, QT_TRANSLATE_NOOP("ScriptController", "Download") },
+		{ EmbeddedCommand::OpenLink, { QT_TRANSLATE_NOOP("ScriptController", "OpenLink") } },
+	};
+	static_assert(std::size(s_embeddedCommands) == static_cast<size_t>(EmbeddedCommand::Last));
+#define SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM(NAME) static_assert(s_embeddedCommands[static_cast<size_t>(EmbeddedCommand::NAME)].first == EmbeddedCommand::NAME);
+	SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEMS_X_MACRO
+#undef SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM
+
 public:
 	FLINT_EXPORT static bool        HasMacro(const QString& str, Macro macro);
 	FLINT_EXPORT static QString&    SetMacro(QString& str, Macro macro, const QString& value);
@@ -232,6 +245,7 @@ public:
 	virtual bool            SetCommandType(int n, Command::Type value)            = 0;
 	virtual bool            SetCommandCommand(int n, QString value)               = 0;
 	virtual bool            SetCommandArgs(int n, QString value)                  = 0;
+	virtual bool            SetCommandWorkingFolder(int n, QString value)         = 0;
 	virtual bool            SetCommandNumber(int n, int value)                    = 0;
 
 	virtual bool Execute(const Command& command) const = 0;

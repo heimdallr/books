@@ -35,7 +35,7 @@ public:
 private: // QAbstractItemModel
 	int columnCount(const QModelIndex& /*parent*/ = QModelIndex()) const override
 	{
-		return 3;
+		return 1;
 	}
 
 	int rowCount(const QModelIndex& /*parent*/ = QModelIndex()) const override
@@ -45,13 +45,8 @@ private: // QAbstractItemModel
 
 	QVariant headerData(const int section, const Qt::Orientation orientation, const int role) const override
 	{
-		constexpr const char* headers[] {
-			QT_TRANSLATE_NOOP("ScriptCommandModel", "Type"),
-			QT_TRANSLATE_NOOP("ScriptCommandModel", "Command"),
-			QT_TRANSLATE_NOOP("ScriptCommandModel", "Arguments"),
-		};
-
-		return orientation == Qt::Horizontal && role == Qt::DisplayRole ? Loc::Tr("ScriptCommandModel", headers[section]) : QAbstractTableModel::headerData(section, orientation, role);
+		static constexpr const char* header = QT_TRANSLATE_NOOP("ScriptCommandModel", "Command");
+		return orientation == Qt::Horizontal && role == Qt::DisplayRole ? QVariant::fromValue(Loc::Tr("ScriptCommandModel", header)) : QAbstractTableModel::headerData(section, orientation, role);
 	}
 
 	QVariant data(const QModelIndex& index, const int role) const override
@@ -65,21 +60,7 @@ private: // QAbstractItemModel
 		switch (role)
 		{
 			case Qt::DisplayRole:
-				switch (index.column())
-				{
-					case 0:
-						return Loc::Tr(IScriptController::s_context, FindSecond(IScriptController::s_commandTypes, item.type).type);
-
-					case 1:
-						return Loc::Tr("ScriptController", item.command.toStdString().data());
-
-					case 2:
-						return item.args;
-
-					default:
-						break;
-				}
-				break;
+				return QString("%1 %2").arg(Loc::Tr("ScriptController", item.command.toStdString().data()), item.args);
 
 			case Role::Name:
 				return item.command;
@@ -88,7 +69,16 @@ private: // QAbstractItemModel
 				return QVariant::fromValue(item.mode);
 
 			case Role::Type:
-				return static_cast<int>(item.type);
+				return QVariant::fromValue(item.type);
+
+			case Role::Command:
+				return item.command;
+
+			case Role::Arguments:
+				return item.args;
+
+			case Role::WorkingFolder:
+				return item.workingFolder;
 
 			case Role::Number:
 				return item.number;
@@ -124,22 +114,17 @@ private: // QAbstractItemModel
 
 		switch (role)
 		{
-			case Qt::EditRole:
-				switch (index.column())
-				{
-					case 0:
-						return m_scriptController->SetCommandType(index.row(), static_cast<IScriptController::Command::Type>(value.toInt()));
+			case Role::Type:
+				return m_scriptController->SetCommandType(index.row(), value.value<IScriptController::Command::Type>());
 
-					case 1:
-						return m_scriptController->SetCommandCommand(index.row(), value.toString());
+			case Role::Command:
+				return m_scriptController->SetCommandCommand(index.row(), value.toString()) && (emit dataChanged(index, index, { Qt::DisplayRole }), true);
 
-					case 2:
-						return m_scriptController->SetCommandArgs(index.row(), value.toString());
+			case Role::Arguments:
+				return m_scriptController->SetCommandArgs(index.row(), value.toString()) && (emit dataChanged(index, index, { Qt::DisplayRole }), true);
 
-					default:
-						break;
-				}
-				break;
+			case Role::WorkingFolder:
+				return m_scriptController->SetCommandWorkingFolder(index.row(), value.toString());
 
 			case Role::Number:
 				return m_scriptController->SetCommandNumber(index.row(), value.toInt());
@@ -149,11 +134,6 @@ private: // QAbstractItemModel
 		}
 
 		return assert(false && "unexpected role"), false;
-	}
-
-	Qt::ItemFlags flags(const QModelIndex& index) const override
-	{
-		return QAbstractTableModel::flags(index) | Qt::ItemIsEditable;
 	}
 
 	bool insertRows(const int row, const int count, const QModelIndex& parent) override

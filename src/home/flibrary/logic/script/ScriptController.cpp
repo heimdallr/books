@@ -25,6 +25,7 @@ constexpr auto NUMBER                     = "Number";
 constexpr auto TYPE                       = "Type";
 constexpr auto COMMAND                    = "Command";
 constexpr auto ARGUMENTS                  = "Arguments";
+constexpr auto CWD                        = "WorkingFolder";
 
 struct CommandDescriptionComparer
 {
@@ -99,6 +100,7 @@ private:
 					uid,
 					settings->Get(COMMAND).toString(),
 					settings->Get(ARGUMENTS).toString(),
+					settings->Get(CWD).toString(),
 					FindFirst(s_commandTypes, CommandDescription { settings->Get(TYPE).toString().toStdString().data() },
                     CommandDescriptionComparer {}
                     )
@@ -202,10 +204,10 @@ bool ScriptController::InsertCommand(const QString& uid, const int row, const in
 	std::generate_n(std::back_inserter(commands), count, [&, n = it == std::ranges::end(filtered) ? 0 : it->number]() mutable {
 		return Command {
 			{ QUuid::createUuid().toString(QUuid::WithoutBraces), ++n, Mode::Updated },
-			uid,
-			{},
-			{},
-			Command::Type::LaunchConsoleApp
+            uid, {},
+            {},
+            {},
+            Command::Type::LaunchConsoleApp
 		};
 	});
 	m_impl->commands.insert(std::next(m_impl->commands.begin(), row), std::make_move_iterator(commands.begin()), std::make_move_iterator(commands.end()));
@@ -237,6 +239,12 @@ bool ScriptController::SetCommandArgs(const int n, QString value)
 {
 	auto& item = m_impl->GetCommand(n);
 	return Util::Set(item.args, std::move(value), item, &Base::SetUpdated);
+}
+
+bool ScriptController::SetCommandWorkingFolder(int n, QString value)
+{
+	auto& item = m_impl->GetCommand(n);
+	return Util::Set(item.workingFolder, std::move(value), item, &Base::SetUpdated);
 }
 
 bool ScriptController::SetCommandNumber(const int n, const int value)
