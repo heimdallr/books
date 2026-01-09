@@ -160,7 +160,7 @@ bool CreateProcess(const std::wstring& file, const std::wstring& parameters, con
 	const auto args = SplitStringWithQuotes(QString::fromStdWString(parameters));
 
 	QByteArray fixed;
-	int       errorCode = 0;
+	int        errorCode = 0;
 	QObject::connect(&process, &QProcess::started, [&] {
 		PLOGV << QString("%1 %2 launched").arg(file, args.join(" "));
 	});
@@ -202,7 +202,7 @@ bool CommandExecutor::ExecuteLaunchConsoleApp(const IScriptController::Command& 
 	assert(command.type == IScriptController::Command::Type::LaunchConsoleApp);
 	const auto file       = QDir::toNativeSeparators(Util::ToAbsolutePath(command.command)).toStdWString();
 	const auto parameters = command.args.toStdWString();
-	const auto cwd = command.workingFolder.toStdWString();
+	const auto cwd        = command.workingFolder.toStdWString();
 	return CreateProcess(file, parameters, cwd);
 }
 

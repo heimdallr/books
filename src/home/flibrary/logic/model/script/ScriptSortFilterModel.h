@@ -29,7 +29,7 @@ public:
 
 private: // QAbstractItemModel
 	QVariant headerData(const int section, const Qt::Orientation orientation, const int role) const override;
-	bool setData(const QModelIndex& index, const QVariant& value, int role) override;
+	bool     setData(const QModelIndex& index, const QVariant& value, int role) override;
 
 private: // QSortFilterProxyModel
 	bool filterAcceptsRow(int sourceRow, const QModelIndex& sourceParent) const override;
