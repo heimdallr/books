@@ -4974,17 +4974,6 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>OpenFileDialogDelegateEditor</name>
-    <message>
-        <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Select Application</source>
-        <translation></translation>
-    </message>
-</context>
-<context>
     <name>ProgressBar</name>
     <message>
         <source>Cancel</source>
@@ -5103,15 +5092,7 @@ Try again?</source>
 <context>
     <name>ScriptCommandModel</name>
     <message>
-        <source>Arguments</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Command</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Type</source>
         <translation></translation>
     </message>
 </context>
@@ -5253,7 +5234,23 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Arguments</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Cancel</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Command</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Command settings</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Edit command</source>
         <translation></translation>
     </message>
     <message>
@@ -5274,6 +5271,29 @@ Try again?</source>
     </message>
     <message>
         <source>Scripts</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Working folder</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ScriptEditor</name>
+    <message>
+        <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Select Application</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Select working folder</source>
         <translation></translation>
     </message>
 </context>

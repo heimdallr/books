@@ -9,11 +9,10 @@
 #include "interface/ui/dialogs/IScriptDialog.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
+#include "gutil/interface/IUiFactory.h"
 #include "util/ISettings.h"
 
 #include "ComboBoxDelegate.h"
-#include "CommandArgDelegate.h"
-#include "CommandDelegate.h"
 #include "ScriptNameDelegate.h"
 
 namespace HomeCompa::Flibrary
@@ -29,12 +28,10 @@ public:
 	ScriptDialog(
 		const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
 		const std::shared_ptr<const IModelProvider>&  modelProvider,
+		std::shared_ptr<const Util::IUiFactory>       uiFactory,
 		std::shared_ptr<ISettings>                    settings,
 		std::shared_ptr<ScriptComboBoxDelegate>       scriptTypeDelegate,
-		std::shared_ptr<CommandComboBoxDelegate>      commandTypeDelegate,
-		std::shared_ptr<ScriptNameDelegate>           scriptNameLineEditDelegate,
-		std::shared_ptr<CommandDelegate>              commandDelegate,
-		std::shared_ptr<CommandArgDelegate>           commandArgLineEditDelegate
+		std::shared_ptr<ScriptNameDelegate>           scriptNameLineEditDelegate
 	);
 	~ScriptDialog() override;
 

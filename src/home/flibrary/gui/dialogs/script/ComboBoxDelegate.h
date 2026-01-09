@@ -29,8 +29,4 @@ class ScriptComboBoxDelegate : virtual public ComboBoxDelegate
 {
 };
 
-class CommandComboBoxDelegate : virtual public ComboBoxDelegate
-{
-};
-
 } // namespace HomeCompa::Flibrary

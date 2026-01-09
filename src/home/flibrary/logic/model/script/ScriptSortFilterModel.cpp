@@ -1,6 +1,5 @@
 #include "ScriptSortFilterModel.h"
 
-#include "interface/logic/IModelProvider.h"
 #include "interface/logic/IScriptController.h"
 
 #include "log.h"
@@ -44,6 +43,11 @@ ScriptSortFilterModel::ScriptSortFilterModel(const std::shared_ptr<const IModelP
 ScriptSortFilterModel::~ScriptSortFilterModel()
 {
 	PLOGV << "ScriptSortFilterModel destroyed";
+}
+
+QVariant ScriptSortFilterModel::headerData(const int section, const Qt::Orientation orientation, const int role) const
+{
+	return orientation == Qt::Vertical && role == Qt::DisplayRole ? QVariant::fromValue(section + 1) : QSortFilterProxyModel::headerData(section, orientation, role);
 }
 
 bool ScriptSortFilterModel::setData(const QModelIndex& index, const QVariant& value, const int role)
