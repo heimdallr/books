@@ -280,6 +280,7 @@ void ScriptController::Save()
 		const auto commandValueKeyTemplate = QString(COMMAND_VALUE_KEY_TEMPLATE).arg(command.scriptUid).arg(command.uid).arg("%1");
 		settings.Set(commandValueKeyTemplate.arg(COMMAND), command.command);
 		settings.Set(commandValueKeyTemplate.arg(ARGUMENTS), command.args);
+		settings.Set(commandValueKeyTemplate.arg(CWD), command.workingFolder);
 		settings.Set(commandValueKeyTemplate.arg(NUMBER), command.number);
 		settings.Set(commandValueKeyTemplate.arg(TYPE), FindSecond(s_commandTypes, command.type).type);
 		command.mode = Mode::None;
