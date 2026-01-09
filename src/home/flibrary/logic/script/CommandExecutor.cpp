@@ -126,7 +126,7 @@ constexpr std::pair<const char*, bool (*)(const QString&)> EMBEDDED_COMMANDS[] {
 };
 static_assert(std::size(EMBEDDED_COMMANDS) == static_cast<size_t>(IScriptController::EmbeddedCommand::Last));
 
-bool ShellExecute(const std::wstring& file, const std::wstring& parameters, const IScriptController::Command::Type type)
+bool ShellExecute(const std::wstring& file, const std::wstring& parameters, const std::wstring& cwd, const IScriptController::Command::Type type)
 {
 	const auto& [show, wait] = FindSecond(TYPES, type);
 
@@ -137,7 +137,7 @@ bool ShellExecute(const std::wstring& file, const std::wstring& parameters, cons
 	lpExecInfo.hwnd         = nullptr;
 	lpExecInfo.lpVerb       = L"open";
 	lpExecInfo.lpParameters = parameters.data();
-	lpExecInfo.lpDirectory  = nullptr;
+	lpExecInfo.lpDirectory  = cwd.data();
 	lpExecInfo.nShow        = show;
 	lpExecInfo.hInstApp     = reinterpret_cast<HINSTANCE>(SE_ERR_DDEFAIL);
 	ShellExecuteEx(&lpExecInfo);
@@ -152,27 +152,37 @@ bool ShellExecute(const std::wstring& file, const std::wstring& parameters, cons
 	return true;
 }
 
-bool CreateProcess(const std::wstring& file, const std::wstring& parameters)
+bool CreateProcess(const std::wstring& file, const std::wstring& parameters, const std::wstring& cwd)
 {
 	QProcess   process;
 	QEventLoop eventLoop;
+	process.setWorkingDirectory(QString::fromStdWString(cwd));
 	const auto args = SplitStringWithQuotes(QString::fromStdWString(parameters));
 
 	QByteArray fixed;
+	int       errorCode = 0;
 	QObject::connect(&process, &QProcess::started, [&] {
 		PLOGV << QString("%1 %2 launched").arg(file, args.join(" "));
+	});
+	QObject::connect(&process, &QProcess::errorOccurred, [&](const auto error) {
+		errorCode = static_cast<int>(error) + 1;
+		PLOGE << QString("%1 %2 error: %3").arg(file, args.join(" ")).arg(errorCode);
+		eventLoop.exit(errorCode);
 	});
 	QObject::connect(&process, &QProcess::finished, [&](const int code, const QProcess::ExitStatus) {
 		eventLoop.exit(code);
 	});
 	QObject::connect(&process, &QProcess::readyReadStandardError, [&] {
-		PLOGV << process.readAllStandardError();
+		PLOGE << process.readAllStandardError();
 	});
 	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&] {
 		PLOGV << process.readAllStandardOutput();
 	});
 
 	process.start(QString::fromStdWString(file), args, QIODevice::ReadWrite);
+	if (errorCode)
+		return errorCode;
+
 	process.closeWriteChannel();
 
 	return eventLoop.exec() == 0;
@@ -184,7 +194,7 @@ bool CommandExecutor::ExecuteSystem(const IScriptController::Command& command) c
 {
 	assert(command.type == IScriptController::Command::Type::System);
 	const auto cmdLine = QString("/D /C %1 %2").arg(command.command, command.args).toStdWString();
-	return ShellExecute(L"cmd.exe", cmdLine, IScriptController::Command::Type::System);
+	return ShellExecute(L"cmd.exe", cmdLine, command.workingFolder.toStdWString(), IScriptController::Command::Type::System);
 }
 
 bool CommandExecutor::ExecuteLaunchConsoleApp(const IScriptController::Command& command) const
@@ -192,7 +202,8 @@ bool CommandExecutor::ExecuteLaunchConsoleApp(const IScriptController::Command& 
 	assert(command.type == IScriptController::Command::Type::LaunchConsoleApp);
 	const auto file       = QDir::toNativeSeparators(Util::ToAbsolutePath(command.command)).toStdWString();
 	const auto parameters = command.args.toStdWString();
-	return CreateProcess(file, parameters);
+	const auto cwd = command.workingFolder.toStdWString();
+	return CreateProcess(file, parameters, cwd);
 }
 
 bool CommandExecutor::ExecuteLaunchGuiApp(const IScriptController::Command& command) const
@@ -200,7 +211,7 @@ bool CommandExecutor::ExecuteLaunchGuiApp(const IScriptController::Command& comm
 	assert(command.type == IScriptController::Command::Type::LaunchGuiApp);
 	const auto file       = QDir::toNativeSeparators(Util::ToAbsolutePath(command.command)).toStdWString();
 	const auto parameters = command.args.toStdWString();
-	return ShellExecute(file, parameters, IScriptController::Command::Type::LaunchGuiApp);
+	return ShellExecute(file, parameters, command.workingFolder.toStdWString(), IScriptController::Command::Type::LaunchGuiApp);
 }
 
 bool CommandExecutor::ExecuteEmbeddedCommand(const IScriptController::Command& command) const
