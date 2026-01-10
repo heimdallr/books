@@ -20,20 +20,24 @@ constexpr auto CURRENT          = "current";
 constexpr auto DATABASE         = "database";
 constexpr auto DISCARDED_UPDATE = "discardedUpdate";
 constexpr auto FOLDER           = "folder";
+constexpr auto INPX             = "inpx";
 constexpr auto NAME             = "name";
 constexpr auto CREATION_MODE    = "creationMode";
 
 } // namespace
 
-CollectionImpl::CollectionImpl(QString name_, QString database, QString folder)
+CollectionImpl::CollectionImpl(QString name_, QString database, QString folder, QString inpx)
 {
 	id         = Util::md5(database.toUtf8());
 	name       = std::move(name_);
 	m_database = std::move(database);
 	m_folder   = std::move(folder);
+	m_inpx     = std::move(inpx);
 
 	m_database.replace("\\", "/");
 	m_folder.replace("\\", "/");
+	m_inpx.replace("\\", "/");
+
 	while (m_folder.endsWith("\\"))
 		m_folder.resize(m_folder.size() - 1);
 }
@@ -52,6 +56,8 @@ void CollectionImpl::Serialize(const Collection& collection, ISettings& settings
 	settings.Set(NAME, collection.name);
 	settings.Set(DATABASE, collection.m_database);
 	settings.Set(FOLDER, collection.m_folder);
+	if (!collection.m_inpx.isEmpty())
+		settings.Set(INPX, collection.m_inpx);
 	settings.Set(DISCARDED_UPDATE, collection.discardedUpdate);
 	settings.Set(CREATION_MODE, collection.createCollectionMode);
 	settings.Set(Constant::Settings::DESTRUCTIVE_OPERATIONS_ALLOWED_KEY, collection.destructiveOperationsAllowed);
@@ -96,6 +102,8 @@ Collection::Ptr CollectionImpl::Deserialize(const ISettings& settings, QString c
 
 	if ((collection->m_folder = settings.Get(FOLDER, QString {})).isEmpty())
 		return collection;
+
+	collection->m_inpx = settings.Get(INPX).toString();
 
 	collection->discardedUpdate              = settings.Get(DISCARDED_UPDATE, QString {});
 	collection->createCollectionMode         = settings.Get(CREATION_MODE, 0);
