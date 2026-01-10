@@ -546,7 +546,7 @@ private:
 	void AllowDestructiveOperation(const bool value)
 	{
 		PLOGV << "AllowDestructiveOperation";
-		if (!m_collectionController->ActiveCollectionExists())
+		if (!m_collectionController->ActiveCollectionExists() || m_collectionController->GetActiveCollection().destructiveOperationsAllowed == value)
 			return;
 
 		if (!value)
