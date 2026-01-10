@@ -36,9 +36,9 @@ constexpr auto REMOVE_FROM_GROUP_QUERY               = "delete from Groups_List_
 constexpr auto REMOVE_FROM_GROUP_QUERY_SUFFIX        = " and GroupID = ?";
 constexpr auto REMOVE_FROM_GROUP_ALREADY_EXIST_BOOKS = R"(
 delete from Groups_List_User where 
-exists (select 42 from Groups_List_User glu join Author_List al on al.AuthorID = glu.ObjectID and al.BookID = Groups_List_User.ObjectID) or
-exists (select 42 from Groups_List_User glu join Series_List sl on sl.SeriesID = glu.ObjectID and sl.BookID = Groups_List_User.ObjectID) or
-exists (select 42 from Groups_List_User glu join Keyword_List kl on kl.KeywordID = glu.ObjectID and kl.BookID = Groups_List_User.ObjectID)
+exists (select 42 from Groups_List_User glu join Author_List al on al.AuthorID = glu.ObjectID and al.BookID = Groups_List_User.ObjectID where glu.GroupID = Groups_List_User.GroupID) or
+exists (select 42 from Groups_List_User glu join Series_List sl on sl.SeriesID = glu.ObjectID and sl.BookID = Groups_List_User.ObjectID where glu.GroupID = Groups_List_User.GroupID) or
+exists (select 42 from Groups_List_User glu join Keyword_List kl on kl.KeywordID = glu.ObjectID and kl.BookID = Groups_List_User.ObjectID where glu.GroupID = Groups_List_User.GroupID)
 )";
 
 using Names = std::unordered_set<QString>;
