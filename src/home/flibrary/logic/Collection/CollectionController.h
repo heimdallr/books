@@ -38,7 +38,7 @@ public: // ICollectionController
 	void                             SetActiveCollection(const QString& id) override;
 	void                             OnInpxUpdateChecked(const Collection& updatedCollection) override;
 	void                             AllowDestructiveOperation(bool value) override;
-	IniMapPair                       GetIniMap(const QString& db, const QString& inpxFolder, bool createFiles) const override;
+	IniMapPair                       GetIniMap(const QString& db, const QString& folder, const QString& inpx, bool createFiles) const override;
 
 	void RegisterObserver(ICollectionsObserver* observer) override;
 	void UnregisterObserver(ICollectionsObserver* observer) override;

@@ -40,6 +40,10 @@
         <translation>Назва файлу бази даних колекції</translation>
     </message>
     <message>
+        <source>Collection index files (*.inpx);;All files (*.*)</source>
+        <translation>Індексні файли колекції (*.inpx);;Усі файли (*.*)</translation>
+    </message>
+    <message>
         <source>Collection title</source>
         <translation>Найменування колекції</translation>
     </message>
@@ -54,6 +58,10 @@
     <message>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
         <translation>Бази даних FLibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
+    </message>
+    <message>
+        <source>Index file</source>
+        <translation>Індексний файл</translation>
     </message>
     <message>
         <source>Mark unindexed books as deleted</source>
@@ -82,6 +90,10 @@
     <message>
         <source>Select archives folder</source>
         <translation>Виберіть папку з архівами</translation>
+    </message>
+    <message>
+        <source>Select collection index file</source>
+        <translation>Виберіть індексний файл колекції</translation>
     </message>
     <message>
         <source>Select database file</source>

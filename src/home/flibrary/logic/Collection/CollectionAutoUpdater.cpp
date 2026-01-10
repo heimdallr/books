@@ -100,7 +100,7 @@ private:
 		const auto& collection = m_collectionProvider->GetActiveCollection();
 		auto        parser     = std::make_shared<Inpx::Parser>();
 		auto&       parserRef  = *parser;
-		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), true);
+		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetInpx(), true);
 		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
             if (updateResult.oldDataUpdateFound)
                 PLOGW << "Old indices changed. It is recommended to recreate the collection again.";

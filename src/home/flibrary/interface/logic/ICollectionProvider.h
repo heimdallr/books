@@ -30,10 +30,12 @@ struct FLINT_EXPORT Collection
 
 	QString GetDatabase() const;
 	QString GetFolder() const;
+	QString GetInpx() const;
 
 private:
 	QString m_database;
 	QString m_folder;
+	QString m_inpx;
 	friend struct CollectionImpl;
 };
 
@@ -59,13 +61,13 @@ public:
 	[[nodiscard]] virtual std::set<QString> GetInpxFiles(const QString& archiveFolder) const                 = 0;
 	[[nodiscard]] virtual bool              IsCollectionFolderHasInpx(const QString& archiveFolder) const    = 0;
 
-	[[nodiscard]] virtual Collections&       GetCollections() noexcept                                                       = 0;
-	[[nodiscard]] virtual const Collections& GetCollections() const noexcept                                                 = 0;
-	[[nodiscard]] virtual Collection&        GetActiveCollection() noexcept                                                  = 0;
-	[[nodiscard]] virtual const Collection&  GetActiveCollection() const noexcept                                            = 0;
-	[[nodiscard]] virtual bool               ActiveCollectionExists() const noexcept                                         = 0;
-	[[nodiscard]] virtual QString            GetActiveCollectionId() const noexcept                                          = 0;
-	[[nodiscard]] virtual IniMapPair         GetIniMap(const QString& db, const QString& inpxFolder, bool createFiles) const = 0;
+	[[nodiscard]] virtual Collections&       GetCollections() noexcept                                                                        = 0;
+	[[nodiscard]] virtual const Collections& GetCollections() const noexcept                                                                  = 0;
+	[[nodiscard]] virtual Collection&        GetActiveCollection() noexcept                                                                   = 0;
+	[[nodiscard]] virtual const Collection&  GetActiveCollection() const noexcept                                                             = 0;
+	[[nodiscard]] virtual bool               ActiveCollectionExists() const noexcept                                                          = 0;
+	[[nodiscard]] virtual QString            GetActiveCollectionId() const noexcept                                                           = 0;
+	[[nodiscard]] virtual IniMapPair         GetIniMap(const QString& db, const QString& folder, const QString& inpx, bool createFiles) const = 0;
 
 	virtual void RegisterObserver(ICollectionsObserver* observer)   = 0;
 	virtual void UnregisterObserver(ICollectionsObserver* observer) = 0;
