@@ -97,11 +97,11 @@ public:
 		switch (action)
 		{
 			case IAddCollectionDialog::Result::CreateNew:
-				CreateNew(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), dialog->GetDefaultArchiveType(), mode);
+				CreateNew(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), dialog->GetInpx(), dialog->GetDefaultArchiveType(), mode);
 				break;
 
 			case IAddCollectionDialog::Result::Add:
-				Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), mode);
+				Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), dialog->GetInpx(), mode);
 				break;
 
 			default:
@@ -116,7 +116,7 @@ public:
 		const auto& collection = GetActiveCollection();
 		auto        parser     = std::make_shared<Inpx::Parser>();
 		auto&       parserRef  = *parser;
-		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), true);
+		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetInpx(), true);
 		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable {
             const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
                 parser.reset();
@@ -191,9 +191,9 @@ public:
 		CollectionImpl::Serialize(collection, *m_settings);
 	}
 
-	IniMapPair GetIniMap(const QString& db, const QString& inpxFolder, const bool createFiles) const
+	IniMapPair GetIniMap(const QString& db, const QString& folder, const QString& inpx, const bool createFiles) const
 	{
-		return m_collectionProvider->GetIniMap(db, inpxFolder, createFiles);
+		return m_collectionProvider->GetIniMap(db, folder, inpx, createFiles);
 	}
 
 	Collection& GetActiveCollection() noexcept
@@ -237,10 +237,11 @@ public:
 	}
 
 private:
-	void CreateNew(QString name, QString dbOrigin, QString folderOrigin, const QString& defaultArchiveType, const Inpx::CreateCollectionMode mode)
+	void CreateNew(QString name, QString dbOrigin, QString folderOrigin, QString inpxOrigin, const QString& defaultArchiveType, const Inpx::CreateCollectionMode mode)
 	{
 		const auto db     = Util::ToAbsolutePath(dbOrigin);
 		const auto folder = Util::ToAbsolutePath(folderOrigin);
+		const auto inpx   = Util::ToAbsolutePath(inpxOrigin);
 		if (QFile(db).exists())
 		{
 			if (m_uiFactory->ShowWarning(Tr(CONFIRM_OVERWRITE_DATABASE), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
@@ -257,26 +258,26 @@ private:
 
 		auto  parser       = std::make_shared<Inpx::Parser>();
 		auto& parserRef    = *parser;
-		auto [tmpDir, ini] = m_collectionProvider->GetIniMap(db, folder, true);
+		auto [tmpDir, ini] = m_collectionProvider->GetIniMap(db, folder, inpx, true);
 		ini.try_emplace(DEFAULT_ARCHIVE_TYPE, defaultArchiveType.toStdWString());
 
 		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement().toStdWString());
-		auto callback = [this, parser = std::move(parser), name, db = std::move(dbOrigin), folder = std::move(folderOrigin), mode, tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
+		auto callback = [this, parser = std::move(parser), name, db = std::move(dbOrigin), folder = std::move(folderOrigin), inpx = std::move(inpxOrigin), mode, tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
 			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
 				parser.reset();
 			});
 			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
 			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_CREATED);
 			if (!updateResult.error)
-				Add(std::move(name), std::move(db), std::move(folder), mode);
+				Add(std::move(name), std::move(db), std::move(folder), std::move(inpx), mode);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.CreateNewCollection(std::move(ini), mode, std::move(callback));
 	}
 
-	void Add(QString name, QString db, QString folder, const Inpx::CreateCollectionMode mode)
+	void Add(QString name, QString db, QString folder, QString inpx, const Inpx::CreateCollectionMode mode)
 	{
-		CollectionImpl collection(std::move(name), std::move(db), std::move(folder));
+		CollectionImpl collection(std::move(name), std::move(db), std::move(folder), std::move(inpx));
 		collection.createCollectionMode = static_cast<int>(mode);
 		CollectionImpl::Serialize(collection, *m_settings);
 		auto& collections = m_collectionProvider->GetCollections();
@@ -289,7 +290,7 @@ private:
 		const auto& collection = GetActiveCollection();
 		auto        parser     = std::make_shared<Inpx::Parser>();
 		auto&       parserRef  = *parser;
-		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), true);
+		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetInpx(), true);
 		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable {
             if (updateResult.oldDataUpdateFound)
                 PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
@@ -430,9 +431,9 @@ void CollectionController::AllowDestructiveOperation(const bool value)
 	m_impl->AllowDestructiveOperation(value);
 }
 
-ICollectionProvider::IniMapPair CollectionController::GetIniMap(const QString& db, const QString& inpxFolder, const bool createFiles) const
+ICollectionProvider::IniMapPair CollectionController::GetIniMap(const QString& db, const QString& folder, const QString& inpx, const bool createFiles) const
 {
-	return m_impl->GetIniMap(db, inpxFolder, createFiles);
+	return m_impl->GetIniMap(db, folder, inpx, createFiles);
 }
 
 void CollectionController::RegisterObserver(ICollectionsObserver* observer)

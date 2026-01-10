@@ -221,6 +221,11 @@ QString Collection::GetFolder() const
 	return Util::ToAbsolutePath(m_folder);
 }
 
+QString Collection::GetInpx() const
+{
+	return Util::ToAbsolutePath(m_inpx);
+}
+
 bool IScriptController::HasMacro(const QString& str, const Macro macro)
 {
 	return str.contains(GetMacro(macro));

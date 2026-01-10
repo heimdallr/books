@@ -173,7 +173,7 @@ void CollectionProvider::OnNewCollectionCreating(const bool value)
 	m_impl->Perform(&ICollectionsObserver::OnNewCollectionCreating, value);
 }
 
-ICollectionProvider::IniMapPair CollectionProvider::GetIniMap(const QString& db, const QString& folder, bool createFiles) const
+ICollectionProvider::IniMapPair CollectionProvider::GetIniMap(const QString& db, const QString& folder, const QString& inpx, bool createFiles) const
 {
 	IniMapPair result { createFiles ? std::make_shared<QTemporaryDir>() : nullptr, Inpx::Parser::IniMap {} };
 	const auto getFile = [&tempDir = *result.first, createFiles](const QString& name) {
@@ -194,6 +194,9 @@ ICollectionProvider::IniMapPair CollectionProvider::GetIniMap(const QString& db,
 		{ LANGUAGES_MAPPING, getFile(QString::fromStdWString(DEFAULT_LANGUAGES_MAPPING)).toStdWString() },
 		{    ARCHIVE_FOLDER,													  folder.toStdWString() },
 	};
+
+	if (!inpx.isEmpty())
+		result.second.try_emplace(INPX_PATH, inpx.toStdWString());
 
 	for (auto& [key, value] : result.second)
 	{
