@@ -40,6 +40,10 @@
         <translation>Путь к файлу базы данных коллекции</translation>
     </message>
     <message>
+        <source>Collection index files (*.inpx);;All files (*.*)</source>
+        <translation>Индексные файлы коллекции (*.inpx);;Все файлы (*.*)</translation>
+    </message>
+    <message>
         <source>Collection title</source>
         <translation>Наименование коллекции</translation>
     </message>
@@ -54,6 +58,10 @@
     <message>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
         <translation>Базы данных FLibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
+    </message>
+    <message>
+        <source>Index file</source>
+        <translation>Индексный файл</translation>
     </message>
     <message>
         <source>Mark unindexed books as deleted</source>
@@ -82,6 +90,10 @@
     <message>
         <source>Select archives folder</source>
         <translation>Выберите папку с архивами</translation>
+    </message>
+    <message>
+        <source>Select collection index file</source>
+        <translation>Выберите индексный файл коллекции</translation>
     </message>
     <message>
         <source>Select database file</source>

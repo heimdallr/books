@@ -395,7 +395,7 @@
      <normaloff>:/icons/a.svg</normaloff>:/icons/a.svg</iconset>
    </property>
    <property name="text">
-    <string>A</string>
+    <string notr="true">A</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

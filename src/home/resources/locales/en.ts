@@ -40,6 +40,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Collection index files (*.inpx);;All files (*.*)</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Collection title</source>
         <translation></translation>
     </message>
@@ -54,6 +58,10 @@
     <message>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
         <translation>FLibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
+    </message>
+    <message>
+        <source>Index file</source>
+        <translation></translation>
     </message>
     <message>
         <source>Mark unindexed books as deleted</source>
@@ -81,6 +89,10 @@
     </message>
     <message>
         <source>Select archives folder</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Select collection index file</source>
         <translation></translation>
     </message>
     <message>
