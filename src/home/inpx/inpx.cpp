@@ -2020,7 +2020,7 @@ void Parser::RescanCollection(IniMap data, CreateCollectionMode mode, Callback c
 void Parser::FillInpx(IniMap data, DB::ITransaction& transaction)
 {
 	auto process = [&, data = std::move(data)] {
-		const Ini  ini(std::move(data));
+		const Ini  ini(data);
 		const auto folders = GetInpxFolder(ini, true);
 
 		const auto command = transaction.CreateCommand("INSERT INTO Inpx (Folder, File, Hash) VALUES (?, ?, ?)");
@@ -2043,7 +2043,7 @@ void Parser::FillInpx(IniMap data, DB::ITransaction& transaction)
 bool Parser::CheckForUpdate(IniMap data, DB::IDatabase& database)
 {
 	auto process = [&, data = std::move(data)] {
-		const Ini  ini(std::move(data));
+		const Ini  ini(data);
 		const auto inpxFolders = GetInpxFolder(ini, false);
 
 		InpxFolders dbFolders;
