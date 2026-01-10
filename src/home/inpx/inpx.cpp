@@ -107,6 +107,11 @@ public:
 		throw std::runtime_error("value required");
 	}
 
+	bool Exists(const Parser::IniMap::value_type::first_type& key) const
+	{
+		return _data.contains(key);
+	}
+
 private:
 	Parser::IniMap _data;
 };
@@ -775,26 +780,35 @@ size_t Store(const Path& dbFileName, Data& data)
 	return result;
 }
 
-auto GetInpxFilesInFolder(const Path& inpxFolder)
+std::vector<Path> GetInpxFilesInFolder(const Ini& ini)
 {
 	PLOGV << "GetInpxFilesInFolder started";
-	auto result = std::filesystem::directory_iterator { inpxFolder } | std::views::filter([](const Path& path) {
+	if (ini.Exists(INPX_PATH))
+		if (auto explicitInpxPath = ini(INPX_PATH); !explicitInpxPath.empty())
+			return { std::move(explicitInpxPath) };
+
+	auto result = std::filesystem::directory_iterator { ini(ARCHIVE_FOLDER) } | std::views::filter([](const Path& path) {
 					  const auto ext  = path.extension().wstring();
 					  const auto proj = [](const auto& ch) {
 						  return std::tolower(ch);
 					  };
 					  return std::ranges::equal(ext, std::wstring(INPX_EXT), {}, proj, proj);
-				  });
+				  })
+	            | std::views::transform([](const auto& entry) {
+					  return entry.path();
+				  })
+	            | std::ranges::to<std::vector<Path>>();
+
 	PLOGV << "GetInpxFilesInFolder finished";
 	return result;
 }
 
-InpxFolders GetInpxFolder(const Path& inpxFolder, const bool needHashes)
+InpxFolders GetInpxFolder(const Ini& ini, const bool needHashes)
 {
 	InpxFolders folders;
-	for (const auto& inpxFileNameEntry : GetInpxFilesInFolder(inpxFolder))
+	for (const auto& inpxFileNamePath : GetInpxFilesInFolder(ini))
 	{
-		const auto inpxFileName = QString::fromStdWString(inpxFileNameEntry.path());
+		const auto inpxFileName = QString::fromStdWString(inpxFileNamePath);
 		PLOGV << "check " << inpxFileName << " started";
 
 		const auto zip = TRY(QString("open %1").arg(inpxFileName), [&] {
@@ -816,7 +830,7 @@ InpxFolders GetInpxFolder(const Path& inpxFolder, const bool needHashes)
 			}()
 			                       : std::string {};
 
-			folders.try_emplace(std::make_pair(inpxFileNameEntry.path().filename().wstring(), fileName.toStdWString()), std::move(hash));
+			folders.try_emplace(std::make_pair(inpxFileNamePath.filename().wstring(), fileName.toStdWString()), std::move(hash));
 		}
 
 		PLOGV << "check " << inpxFileName << " finished";
@@ -1079,7 +1093,7 @@ private: // IPool
 			}
 
 			auto work = [&] {
-				const QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
+				const QFileInfo archiveFileInfo(QString::fromStdWString(m_ini(ARCHIVE_FOLDER) / folder));
 				const auto      archiveFileName = archiveFileInfo.filePath();
 				const auto      zip             = TRY(QString("open %1").arg(archiveFileName), [&] {
                     return std::make_unique<Zip>(archiveFileName);
@@ -1155,7 +1169,7 @@ private:
 	auto GetNewInpxFolders()
 	{
 		InpxFolders diff;
-		const auto  inpxFolders = GetInpxFolder(m_ini(INPX_FOLDER), true);
+		const auto  inpxFolders = GetInpxFolder(m_ini, true);
 
 		std::unordered_map<std::wstring, std::vector<std::wstring>> result;
 
@@ -1280,10 +1294,9 @@ private:
 	{
 		size_t     result         = 0;
 		const auto newInpxFolders = GetNewInpxFolders();
-		for (const auto& inpxFileNameEntry : GetInpxFilesInFolder(m_ini(INPX_FOLDER)))
+		for (const auto& inpxPath : GetInpxFilesInFolder(m_ini))
 		{
-			const auto& inpxPath = inpxFileNameEntry.path();
-			const auto  it       = newInpxFolders.find(inpxPath.filename());
+			const auto it = newInpxFolders.find(inpxPath.filename());
 			if (it == newInpxFolders.end())
 				continue;
 
@@ -1303,7 +1316,7 @@ private:
 
 	size_t ParseNewArchives()
 	{
-		const auto inpxFolder = m_ini(INPX_FOLDER);
+		const auto inpxFolder = m_ini(ARCHIVE_FOLDER);
 		auto       folders    = TRY(std::format("iterate {}", inpxFolder.generic_string()), [&] {
             std::vector<std::wstring> result;
             std::ranges::move(
@@ -1396,9 +1409,8 @@ private:
 		m_genresIndex                  = std::move(genresIndex);
 		SetUnknownGenreId();
 
-		for (const auto& inpxFileNameEntry : GetInpxFilesInFolder(m_ini(INPX_FOLDER)))
+		for (const auto& inpxFileName : GetInpxFilesInFolder(m_ini))
 		{
-			const auto& inpxFileName = inpxFileNameEntry.path();
 			PLOGI << QString("parsing %1 started").arg(QString::fromStdWString(inpxFileName));
 			const auto inpxContent = ExtractInpxFileNames(inpxFileName);
 
@@ -1436,7 +1448,7 @@ private:
 
 	void CollectReviews()
 	{
-		const auto reviewsFolder = m_ini(INPX_FOLDER) / REVIEWS_FOLDER;
+		const auto reviewsFolder = m_ini(ARCHIVE_FOLDER) / REVIEWS_FOLDER;
 		if (!exists(reviewsFolder))
 			return;
 
@@ -1464,7 +1476,7 @@ private:
 
 	void CollectCompilations() const
 	{
-		const auto compilationsFileName = m_ini(INPX_FOLDER) / COMPILATIONS;
+		const auto compilationsFileName = m_ini(ARCHIVE_FOLDER) / COMPILATIONS;
 		if (!exists(compilationsFileName))
 			return;
 
@@ -1617,7 +1629,7 @@ where b.FileName = ? and b.Ext = ?)");
 			if (files.empty())
 				continue;
 
-			QFileInfo  archiveFileInfo(QString::fromStdWString(m_ini(INPX_FOLDER) / folder));
+			QFileInfo  archiveFileInfo(QString::fromStdWString(m_ini(ARCHIVE_FOLDER) / folder));
 			const auto archiveFileName = archiveFileInfo.filePath();
 			const auto zip             = TRY(QString("open %1").arg(archiveFileName), [&] {
                 return std::make_unique<Zip>(archiveFileName);
@@ -1641,7 +1653,7 @@ where b.FileName = ? and b.Ext = ?)");
 		if (!(m_mode & CreateCollectionMode::ScanUnIndexedFolders))
 			return;
 
-		const auto inpxFolder = m_ini(INPX_FOLDER);
+		const auto inpxFolder = m_ini(ARCHIVE_FOLDER);
 		auto       folders    = TRY(std::format("iterate {}", inpxFolder.generic_string()), [&] {
             std::vector<std::wstring> result;
             std::ranges::move(
@@ -1705,7 +1717,7 @@ where b.FileName = ? and b.Ext = ?)");
 			GetFieldList(zipInpx);
 			for (const auto& fileName : inpxFiles)
 				GetDecodedStream(*zipInpx, fileName, [&](QIODevice& zipDecodedStream) {
-					ProcessInpx(inpxFileName, zipDecodedStream, m_ini(INPX_FOLDER), fileName);
+					ProcessInpx(inpxFileName, zipDecodedStream, m_ini(ARCHIVE_FOLDER), fileName);
 				});
 
 			PLOGI << m_n << " rows parsed";
@@ -2005,10 +2017,11 @@ void Parser::RescanCollection(IniMap data, CreateCollectionMode mode, Callback c
 	TRY("rescan collection folder", process);
 }
 
-void Parser::FillInpx(const Path& collectionFolder, DB::ITransaction& transaction)
+void Parser::FillInpx(IniMap data, DB::ITransaction& transaction)
 {
-	auto process = [&] {
-		const auto folders = GetInpxFolder(collectionFolder, true);
+	auto process = [&, data = std::move(data)] {
+		const Ini  ini(std::move(data));
+		const auto folders = GetInpxFolder(ini, true);
 
 		const auto command = transaction.CreateCommand("INSERT INTO Inpx (Folder, File, Hash) VALUES (?, ?, ?)");
 		for (const auto& [first, second] : folders)
@@ -2027,10 +2040,11 @@ void Parser::FillInpx(const Path& collectionFolder, DB::ITransaction& transactio
 	TRY("fill inpx", process);
 }
 
-bool Parser::CheckForUpdate(const Path& collectionFolder, DB::IDatabase& database)
+bool Parser::CheckForUpdate(IniMap data, DB::IDatabase& database)
 {
-	auto process = [&] {
-		const auto inpxFolders = GetInpxFolder(collectionFolder, false);
+	auto process = [&, data = std::move(data)] {
+		const Ini  ini(std::move(data));
+		const auto inpxFolders = GetInpxFolder(ini, false);
 
 		InpxFolders dbFolders;
 		const auto  query = database.CreateQuery("select Folder, File, Hash from Inpx");

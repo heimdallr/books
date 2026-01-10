@@ -74,7 +74,13 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 
 			  const auto& collection       = m_impl->collectionProvider->GetActiveCollection();
 			  const auto  collectionFolder = collection.GetFolder();
-			  const auto  inpxFiles        = m_impl->collectionProvider->GetInpxFiles(collectionFolder);
+			  const auto  explicitInpx     = collection.GetInpx();
+
+			  std::set<QString> inpxFiles;
+			  if (!explicitInpx.isEmpty())
+				  inpxFiles.insert(explicitInpx);
+			  else
+				  inpxFiles = m_impl->collectionProvider->GetInpxFiles(collectionFolder);
 
 			  Collection updatedCollection = collection;
 			  if (updatedCollection.discardedUpdate = GetFileHash(inpxFiles); updatedCollection.discardedUpdate == collection.discardedUpdate)
@@ -85,7 +91,8 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 				  return result;
 			  }
 
-			  const auto checkResult = Inpx::Parser::CheckForUpdate(collectionFolder.toStdWString(), *db);
+			  auto [_, ini]          = m_impl->collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), false);
+			  const auto checkResult = Inpx::Parser::CheckForUpdate(std::move(ini), *db);
 			  result                 = [checkResult, updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) mutable {
                   callback(checkResult, updatedCollection);
 			  };
