@@ -56,7 +56,9 @@ void CollectionImpl::Serialize(const Collection& collection, ISettings& settings
 	settings.Set(NAME, collection.name);
 	settings.Set(DATABASE, collection.m_database);
 	settings.Set(FOLDER, collection.m_folder);
-	if (!collection.m_inpx.isEmpty())
+	if (collection.m_inpx.isEmpty())
+		settings.Remove(INPX);
+	else
 		settings.Set(INPX, collection.m_inpx);
 	settings.Set(DISCARDED_UPDATE, collection.discardedUpdate);
 	settings.Set(CREATION_MODE, collection.createCollectionMode);
