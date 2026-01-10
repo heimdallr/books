@@ -255,7 +255,7 @@ public:
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(MARK_UN_INDEXED_BOOKS_AS_DELETED), m_ui.checkBoxMarkUnindexedAdDeleted->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), m_ui.checkBoxScanUnindexedArchives->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), !m_ui.checkBoxAddMissingBooks->isChecked());
-		m_settings->Set(QString(RECENT_TEMPLATE).arg(DEFAULT_ARCHIVE_TYPE), m_ui.checkBoxInpx->isChecked());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(INPX_EXPLICIT), m_ui.checkBoxInpx->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(DEFAULT_ARCHIVE_TYPE), m_ui.comboBoxDefaultArchiveType->currentText());
 	}
 
@@ -276,7 +276,7 @@ public:
 
 	QString GetInpx() const
 	{
-		return m_ui.editInpx->text();
+		return m_ui.checkBoxInpx->isChecked() ? m_ui.editInpx->text() : QString {};
 	}
 
 	QString GetDefaultArchiveType() const
