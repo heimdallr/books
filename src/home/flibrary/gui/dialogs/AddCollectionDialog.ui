@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>693</width>
-    <height>257</height>
+    <height>387</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -28,6 +28,30 @@
   <layout class="QVBoxLayout" name="_3">
    <item>
     <layout class="QGridLayout" name="_4">
+     <item row="2" column="1">
+      <widget class="QLineEdit" name="editArchive">
+       <property name="toolTip">
+        <string>Collection archive folder</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="2">
+      <widget class="QToolButton" name="btnSetDefaultName">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="toolTip">
+        <string>Retrieve collection name from index file</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../../icons/light/resources/light.qrc">
+         <normaloff>:/icons/set-default.svg</normaloff>:/icons/set-default.svg</iconset>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="1">
       <widget class="QLineEdit" name="editDatabase">
        <property name="toolTip">
@@ -42,13 +66,38 @@
        </property>
       </widget>
      </item>
+     <item row="3" column="2">
+      <widget class="QToolButton" name="btnInpx">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+       <property name="icon">
+        <iconset resource="../../icons/light/resources/light.qrc">
+         <normaloff>:/icons/inpx.svg</normaloff>:/icons/inpx.svg</iconset>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QLineEdit" name="editInpx">
+       <property name="enabled">
+        <bool>false</bool>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="0">
+      <widget class="QLabel" name="lblArchive">
+       <property name="text">
+        <string>Archive folder</string>
+       </property>
+      </widget>
+     </item>
      <item row="1" column="2">
       <widget class="QToolButton" name="btnDatabase">
        <property name="toolTip">
         <string>Open file dialog</string>
-       </property>
-       <property name="text">
-        <string notr="true"/>
        </property>
        <property name="icon">
         <iconset resource="../../icons/light/resources/light.qrc">
@@ -65,13 +114,6 @@
        </property>
       </widget>
      </item>
-     <item row="1" column="0">
-      <widget class="QLabel" name="lblDatabase">
-       <property name="text">
-        <string>Database file name</string>
-       </property>
-      </widget>
-     </item>
      <item row="0" column="1">
       <widget class="QLineEdit" name="editName">
        <property name="toolTip">
@@ -82,27 +124,10 @@
        </property>
       </widget>
      </item>
-     <item row="2" column="0">
-      <widget class="QLabel" name="lblArchive">
-       <property name="text">
-        <string>Archive folder</string>
-       </property>
-      </widget>
-     </item>
-     <item row="2" column="1">
-      <widget class="QLineEdit" name="editArchive">
-       <property name="toolTip">
-        <string>Collection archive folder</string>
-       </property>
-      </widget>
-     </item>
      <item row="2" column="2">
       <widget class="QToolButton" name="btnArchive">
        <property name="toolTip">
         <string>Open folder dialog</string>
-       </property>
-       <property name="text">
-        <string notr="true"/>
        </property>
        <property name="icon">
         <iconset resource="../../icons/light/resources/light.qrc">
@@ -113,23 +138,17 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="2">
-      <widget class="QToolButton" name="btnSetDefaultName">
-       <property name="enabled">
-        <bool>false</bool>
-       </property>
-       <property name="toolTip">
-        <string>Retrieve collection name from index file</string>
-       </property>
+     <item row="1" column="0">
+      <widget class="QLabel" name="lblDatabase">
        <property name="text">
-        <string notr="true"/>
+        <string>Database file name</string>
        </property>
-       <property name="icon">
-        <iconset resource="../../icons/light/resources/light.qrc">
-         <normaloff>:/icons/set-default.svg</normaloff>:/icons/set-default.svg</iconset>
-       </property>
-       <property name="autoRaise">
-        <bool>true</bool>
+      </widget>
+     </item>
+     <item row="3" column="0">
+      <widget class="QCheckBox" name="checkBoxInpx">
+       <property name="text">
+        <string>Index file</string>
        </property>
       </widget>
      </item>
@@ -358,6 +377,30 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
+  <action name="actionInpxToRelativePath">
+   <property name="icon">
+    <iconset resource="../../icons/light/resources/light.qrc">
+     <normaloff>:/icons/r.svg</normaloff>:/icons/r.svg</iconset>
+   </property>
+   <property name="text">
+    <string notr="true">R</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionInpxToAbsolutePath">
+   <property name="icon">
+    <iconset resource="../../icons/light/resources/light.qrc">
+     <normaloff>:/icons/a.svg</normaloff>:/icons/a.svg</iconset>
+   </property>
+   <property name="text">
+    <string>A</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <tabstops>
@@ -403,6 +446,38 @@
     <hint type="destinationlabel">
      <x>648</x>
      <y>160</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxInpx</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>editInpx</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>60</x>
+     <y>112</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>385</x>
+     <y>112</y>
+    </hint>
+   </hints>
+  </connection>
+  <connection>
+   <sender>checkBoxInpx</sender>
+   <signal>toggled(bool)</signal>
+   <receiver>btnInpx</receiver>
+   <slot>setEnabled(bool)</slot>
+   <hints>
+    <hint type="sourcelabel">
+     <x>60</x>
+     <y>112</y>
+    </hint>
+    <hint type="destinationlabel">
+     <x>671</x>
+     <y>112</y>
     </hint>
    </hints>
   </connection>
