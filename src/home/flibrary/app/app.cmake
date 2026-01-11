@@ -66,6 +66,7 @@ AddTarget(${PROJECT_NAME}	app
 		qgif
 		qjpeg
 		qsvg
+		qopensslbackend
 		qschannelbackend
 	DEPENDENCIES
 		locales
