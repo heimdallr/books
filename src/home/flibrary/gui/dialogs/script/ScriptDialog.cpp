@@ -275,11 +275,14 @@ private:
 		connect(m_ui.lineEditCommandArguments, &QWidget::customContextMenuRequested, &m_self, [this] {
 			IScriptController::ExecuteContextMenu(m_ui.lineEditCommandArguments);
 		});
-		connect(m_ui.actionOpenExe, &QAction::triggered, [&] {
+		connect(m_ui.actionOpenExe, &QAction::triggered, &m_self, [&] {
 			OnOpenImpl(m_uiFactory->GetOpenFileName(DIALOG_KEY, Tr(FILE_DIALOG_TITLE), Tr(APP_FILE_FILTER)), *m_ui.lineEditCommandTextExe);
 		});
-		connect(m_ui.actionOpenCWD, &QAction::triggered, [&] {
+		connect(m_ui.actionOpenCWD, &QAction::triggered, &m_self, [&] {
 			OnOpenImpl(m_uiFactory->GetExistingDirectory(DIALOG_KEY, FOLDER_DIALOG_TITLE), *m_ui.lineEditCommandWorkingFolder);
+		});
+		connect(m_ui.stackedWidgetCommand, &QStackedWidget::currentChanged, &m_self, [this](const int index) {
+			m_ui.btnSave->setEnabled(index == 0);
 		});
 	}
 
