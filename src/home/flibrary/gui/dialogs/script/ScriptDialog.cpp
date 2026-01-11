@@ -36,7 +36,7 @@ constexpr auto FOLDER_DIALOG_TITLE = QT_TRANSLATE_NOOP("ScriptEditor", "Select w
 
 TR_DEF
 
-QVariant FromLineEdit(const std::vector<QWidget*>& widgets, const IScriptController::Command::Type type)
+QString FromLineEdit(const std::vector<QWidget*>& widgets, const IScriptController::Command::Type type)
 {
 	const auto index = static_cast<size_t>(type);
 	assert(index < widgets.size());
@@ -50,7 +50,7 @@ void ToLineEdit(const std::vector<QWidget*>& widgets, const IScriptController::C
 	qobject_cast<QLineEdit*>(widgets[index])->setText(value.toString());
 }
 
-QVariant FromComboBoxText(const std::vector<QWidget*>& widgets, const IScriptController::Command::Type type)
+QString FromComboBoxText(const std::vector<QWidget*>& widgets, const IScriptController::Command::Type type)
 {
 	const auto index = static_cast<size_t>(type);
 	assert(index < widgets.size());
@@ -64,7 +64,7 @@ void ToComboBoxText(const std::vector<QWidget*>& widgets, const IScriptControlle
 	qobject_cast<QComboBox*>(widgets[index])->setCurrentText(value.toString());
 }
 
-QVariant FromComboBoxData(const std::vector<QWidget*>& widgets, const IScriptController::Command::Type type)
+QString FromComboBoxData(const std::vector<QWidget*>& widgets, const IScriptController::Command::Type type)
 {
 	const auto index = static_cast<size_t>(type);
 	assert(index < widgets.size());
@@ -80,7 +80,7 @@ void ToComboBoxData(const std::vector<QWidget*>& widgets, const IScriptControlle
 		comboBox->setCurrentIndex(comboBoxIndex);
 }
 
-using CommandGetter = QVariant (*)(const std::vector<QWidget*>& widgets, IScriptController::Command::Type type);
+using CommandGetter = QString (*)(const std::vector<QWidget*>& widgets, IScriptController::Command::Type type);
 using CommandSetter = void (*)(const std::vector<QWidget*>& widgets, IScriptController::Command::Type type, const QVariant& value);
 
 constexpr std::pair<IScriptController::Command::Type, std::pair<CommandGetter, CommandSetter>> COMMAND_GETTERS[] {
@@ -176,12 +176,8 @@ public:
 		for (const auto* name : IScriptController::s_embeddedCommands | std::views::values)
 			m_ui.comboBoxCommandTextEmbedded->addItem(Loc::Tr(IScriptController::s_context, name), QVariant::fromValue(QString { name }));
 
+		if (auto commands = m_settings->Get(SYS_COMMAND_KEY).toStringList(); !commands.isEmpty())
 		{
-			SettingsGroup group(*m_settings, SYS_COMMAND_KEY);
-			auto          commands = m_settings->GetKeys() | std::views::transform([&](const auto& item) {
-                                return m_settings->Get(item).toString();
-                            })
-			              | std::ranges::to<std::vector<QString>>();
 			std::ranges::sort(commands);
 			for (const auto& command : commands)
 				m_ui.comboBoxCommandTextSystem->addItem(command);
@@ -309,6 +305,21 @@ private:
 		m_scriptModel->setData({}, {}, Qt::EditRole);
 	}
 
+	void SerializeCommand(const IScriptController::Command::Type type, const QString& command)
+	{
+		if (type != IScriptController::Command::Type::System)
+			return;
+
+		if (m_ui.comboBoxCommandTextSystem->findText(command) < 0)
+			m_ui.comboBoxCommandTextSystem->addItem(command);
+
+		QStringList commands;
+		for (int i = 0, sz = m_ui.comboBoxCommandTextSystem->count(); i < sz; ++i)
+			commands << m_ui.comboBoxCommandTextSystem->itemText(i);
+
+		m_settings->Set(SYS_COMMAND_KEY, commands);
+	}
+
 	void OnEditCommandClicked() const
 	{
 		const auto commandTypeVar = m_ui.viewCommand->currentIndex().data(Role::Type);
@@ -332,11 +343,13 @@ private:
 			m_ui.viewCommand->setCurrentIndex(m_commandModel->index(m_commandModel->rowCount() - 1, 0));
 		}
 
-		const auto command = [this]() -> QVariant {
-			const auto commandType = m_ui.comboBoxCommandType->currentData().value<IScriptController::Command::Type>();
-			const auto invoker     = FindSecond(COMMAND_GETTERS, commandType).first;
-			return std::invoke(invoker, m_commandTextWidgets, commandType);
+		const auto [commandType, command] = [this] {
+			const auto type    = m_ui.comboBoxCommandType->currentData().value<IScriptController::Command::Type>();
+			const auto invoker = FindSecond(COMMAND_GETTERS, type).first;
+			return std::pair(type, std::invoke(invoker, m_commandTextWidgets, type));
 		}();
+
+		SerializeCommand(commandType, command);
 
 		m_commandModel->setData(m_ui.viewCommand->currentIndex(), m_ui.comboBoxCommandType->currentData(), Role::Type);
 		m_commandModel->setData(m_ui.viewCommand->currentIndex(), command, Role::Command);
