@@ -68,7 +68,7 @@ QString FromComboBoxData(const std::vector<QWidget*>& widgets, const IScriptCont
 {
 	const auto index = static_cast<size_t>(type);
 	assert(index < widgets.size());
-	return qobject_cast<QComboBox*>(widgets[index])->currentText();
+	return qobject_cast<QComboBox*>(widgets[index])->currentData().toString();
 }
 
 void ToComboBoxData(const std::vector<QWidget*>& widgets, const IScriptController::Command::Type type, const QVariant& value)
