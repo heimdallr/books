@@ -198,7 +198,6 @@ public:
 	{
 		SaveGeometry();
 		SaveLayout(m_self, *m_ui.viewScript, *m_settings);
-		SaveLayout(m_self, *m_ui.viewCommand, *m_settings);
 	}
 
 private:
