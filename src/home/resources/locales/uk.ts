@@ -57,7 +57,7 @@
     </message>
     <message>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
-        <translation>Бази даних FLibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
+        <translation>Бази даних FLibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;Всі файли (*.*)</translation>
     </message>
     <message>
         <source>Index file</source>
@@ -69,19 +69,19 @@
     </message>
     <message>
         <source>Name</source>
-        <translation>Ім&apos;я</translation>
+        <translation>Назва</translation>
     </message>
     <message>
         <source>Open file dialog</source>
-        <translation>Відкрити діалог вибору файлу</translation>
+        <translation>Відкрити діалогове вікно вибору файлу</translation>
     </message>
     <message>
         <source>Open folder dialog</source>
-        <translation>Відкрити діалог вибору папки</translation>
+        <translation>Відкрити діалогове вікно вибору папки</translation>
     </message>
     <message>
         <source>Retrieve collection name from index file</source>
-        <translation>Вийняти ім&apos;я колекції з індексного файлу</translation>
+        <translation>Отримати назву колекції з індексного файлу</translation>
     </message>
     <message>
         <source>Scan unindexed archives</source>
@@ -795,7 +795,7 @@ Restart now?</source>
     </message>
     <message>
         <source>&amp;Uncheck all</source>
-        <translation>Зн&amp;яти позначки</translation>
+        <translation>Зн&amp;яти всі позначки</translation>
     </message>
 </context>
 <context>
@@ -865,7 +865,7 @@ Restart now?</source>
     </message>
     <message>
         <source>Name cannot be empty</source>
-        <translation>Ім&apos;я не може бути порожнім</translation>
+        <translation>Назва не може бути порожньою</translation>
     </message>
     <message>
         <source>Retrieving books had errors</source>
@@ -873,11 +873,11 @@ Restart now?</source>
     </message>
     <message>
         <source>Same named collection has already been added</source>
-        <translation>Колекція з таким ім&apos;ям вже додана</translation>
+        <translation>Колекція з такою ж назвою вже додана</translation>
     </message>
     <message>
         <source>This collection has already been added: %1</source>
-        <translation>Ця колекція вже додана під ім&apos;ям %1</translation>
+        <translation>Ця колекція вже додана під назвою: %1</translation>
     </message>
 </context>
 <context>
@@ -946,7 +946,7 @@ Restart now?</source>
     </message>
     <message>
         <source>Hide unrated books</source>
-        <translation>Сховати без рейтингу</translation>
+        <translation>Приховати без рейтингу</translation>
     </message>
     <message>
         <source>Rate</source>
@@ -1129,11 +1129,11 @@ Restart now?</source>
     </message>
     <message>
         <source>child_det_animal_detectives</source>
-        <translation>Дитячі детективи: тварини-сищики</translation>
+        <translation>Дитячі детективи: тварини-детективи</translation>
     </message>
     <message>
         <source>child_det_children_detectives</source>
-        <translation>Дитячі детективи: діти-сищики</translation>
+        <translation>Дитячі детективи: діти-детективи</translation>
     </message>
     <message>
         <source>child_det_other</source>
@@ -1241,7 +1241,7 @@ Restart now?</source>
     </message>
     <message>
         <source>comp_hard</source>
-        <translation>Залізо</translation>
+        <translation>ПК залізо</translation>
     </message>
     <message>
         <source>comp_osnet</source>
@@ -2494,17 +2494,17 @@ Try again?</source>
     </message>
     <message>
         <source>Group name</source>
-        <translation>Ім&apos;я групи</translation>
+        <translation>Назва групи</translation>
     </message>
     <message>
         <source>Group name too long.
 Try again?</source>
-        <translation>Ім&apos;я надто довге.
-Спробуєте ще раз?</translation>
+        <translation>Назва групи занадто довга.
+Спробуйте ще раз?</translation>
     </message>
     <message>
         <source>Input new group name</source>
-        <translation>Вкажіть ім&apos;я нової групи</translation>
+        <translation>Вкажіть назву нової групи</translation>
     </message>
     <message>
         <source>New group</source>
@@ -4387,7 +4387,7 @@ Try again?</source>
     <name>Main</name>
     <message>
         <source>It looks like you&apos;re trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?</source>
-        <translation>Схоже, ви намагаєтеся використати стару версію програми з колекцією нової версії. Робота у такому режимі може бути нестабільною. Впевнені, що хочете продовжувати?</translation>
+        <translation>Схоже, ви намагаєтеся використати стару версію програми з колекцією для нової версії. Робота у такому режимі може бути нестабільною. Впевнені, що хочете продовжити?</translation>
     </message>
 </context>
 <context>
@@ -4490,7 +4490,7 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;Test colors</source>
-        <translation>&amp;Коліри повідомлень</translation>
+        <translation>&amp;Кольори повідомлень</translation>
     </message>
     <message>
         <source>&amp;Theme</source>
@@ -4498,7 +4498,7 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;User data</source>
-        <translation>&amp;Користувальницькі дані</translation>
+        <translation>&amp;Дані користувача</translation>
     </message>
     <message>
         <source>&amp;View</source>
@@ -4534,7 +4534,7 @@ Try again?</source>
     </message>
     <message>
         <source>Are you sure you want to return to default settings?</source>
-        <translation>Ви впевнені, що хочете повернутися до стандартних налаштувань?</translation>
+        <translation>Ви впевнені, що хочете повернутися до базових налаштувань?</translation>
     </message>
     <message>
         <source>Book &amp;export template</source>
@@ -4638,7 +4638,7 @@ Try again?</source>
     </message>
     <message>
         <source>Log &amp;verbosity level</source>
-        <translation>&amp;Рівень деталізації жунралу</translation>
+        <translation>&amp;Рівень деталізації журналу</translation>
     </message>
     <message>
         <source>My export folder</source>
@@ -5140,7 +5140,7 @@ Try again?</source>
     </message>
     <message>
         <source>%author_last_fm%</source>
-        <translation>Прізвище І.О. автора</translation>
+        <translation>Прізвище І.П. автора</translation>
     </message>
     <message>
         <source>%author_last_name%</source>
@@ -5216,7 +5216,7 @@ Try again?</source>
     </message>
     <message>
         <source>%user_destination_folder%</source>
-        <translation>Папка призначення з діалогу</translation>
+        <translation>Папка призначення з діалогового вікна</translation>
     </message>
     <message>
         <source>Download</source>
@@ -5435,7 +5435,7 @@ Try again?</source>
     </message>
     <message>
         <source>Something strange, the installer file is missing. Visit download page?</source>
-        <translation>Щось дивне, інсталятор не знайдено. Перейти до сторінки нової версії?</translation>
+        <translation>Дивно, файл інсталятора не знайдено. Перейти на сторінку завантаження?</translation>
     </message>
     <message>
         <source>Update check failed</source>
@@ -5490,7 +5490,7 @@ Try again?</source>
     </message>
     <message>
         <source>User data successfully saved</source>
-        <translation>Ці дані збережені</translation>
+        <translation>Дані користувача успішно збережено</translation>
     </message>
     <message>
         <source>Version %1 must be greater than 0 and less than %2</source>
