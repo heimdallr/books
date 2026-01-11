@@ -36,7 +36,7 @@ constexpr auto FOLDER_DIALOG_TITLE = QT_TRANSLATE_NOOP("ScriptEditor", "Select w
 
 TR_DEF
 
-QVariant FromLineEdit(const std::vector<QWidget*>& widgets, const IScriptController::Command::Type type)
+QString FromLineEdit(const std::vector<QWidget*>& widgets, const IScriptController::Command::Type type)
 {
 	const auto index = static_cast<size_t>(type);
 	assert(index < widgets.size());
@@ -50,7 +50,7 @@ void ToLineEdit(const std::vector<QWidget*>& widgets, const IScriptController::C
 	qobject_cast<QLineEdit*>(widgets[index])->setText(value.toString());
 }
 
-QVariant FromComboBoxText(const std::vector<QWidget*>& widgets, const IScriptController::Command::Type type)
+QString FromComboBoxText(const std::vector<QWidget*>& widgets, const IScriptController::Command::Type type)
 {
 	const auto index = static_cast<size_t>(type);
 	assert(index < widgets.size());
@@ -64,7 +64,7 @@ void ToComboBoxText(const std::vector<QWidget*>& widgets, const IScriptControlle
 	qobject_cast<QComboBox*>(widgets[index])->setCurrentText(value.toString());
 }
 
-QVariant FromComboBoxData(const std::vector<QWidget*>& widgets, const IScriptController::Command::Type type)
+QString FromComboBoxData(const std::vector<QWidget*>& widgets, const IScriptController::Command::Type type)
 {
 	const auto index = static_cast<size_t>(type);
 	assert(index < widgets.size());
@@ -80,7 +80,7 @@ void ToComboBoxData(const std::vector<QWidget*>& widgets, const IScriptControlle
 		comboBox->setCurrentIndex(comboBoxIndex);
 }
 
-using CommandGetter = QVariant (*)(const std::vector<QWidget*>& widgets, IScriptController::Command::Type type);
+using CommandGetter = QString (*)(const std::vector<QWidget*>& widgets, IScriptController::Command::Type type);
 using CommandSetter = void (*)(const std::vector<QWidget*>& widgets, IScriptController::Command::Type type, const QVariant& value);
 
 constexpr std::pair<IScriptController::Command::Type, std::pair<CommandGetter, CommandSetter>> COMMAND_GETTERS[] {
@@ -176,12 +176,8 @@ public:
 		for (const auto* name : IScriptController::s_embeddedCommands | std::views::values)
 			m_ui.comboBoxCommandTextEmbedded->addItem(Loc::Tr(IScriptController::s_context, name), QVariant::fromValue(QString { name }));
 
+		if (auto commands = m_settings->Get(SYS_COMMAND_KEY).toStringList(); !commands.isEmpty())
 		{
-			SettingsGroup group(*m_settings, SYS_COMMAND_KEY);
-			auto          commands = m_settings->GetKeys() | std::views::transform([&](const auto& item) {
-                                return m_settings->Get(item).toString();
-                            })
-			              | std::ranges::to<std::vector<QString>>();
 			std::ranges::sort(commands);
 			for (const auto& command : commands)
 				m_ui.comboBoxCommandTextSystem->addItem(command);
@@ -202,85 +198,125 @@ public:
 	{
 		SaveGeometry();
 		SaveLayout(m_self, *m_ui.viewScript, *m_settings);
-		SaveLayout(m_self, *m_ui.viewCommand, *m_settings);
 	}
 
 private:
 	void SetConnections()
 	{
-		connect(m_ui.viewScript->selectionModel(), &QItemSelectionModel::selectionChanged, &m_self, [&] {
+		SetConnectionsScriptHead();
+		SetConnectionsCommand();
+
+		connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, &QDialog::reject);
+		connect(m_ui.btnSave, &QAbstractButton::clicked, &m_self, &QDialog::accept);
+		connect(&m_self, &QDialog::accepted, &m_self, [this] {
+			OnAccept();
+		});
+	}
+
+	void SetConnectionsScriptHead()
+	{
+		connect(m_ui.viewScript->selectionModel(), &QItemSelectionModel::selectionChanged, &m_self, [this] {
 			OnScriptSelectionChanged();
 		});
-		connect(m_scriptModel.get(), &QAbstractItemModel::modelReset, &m_self, [&] {
+		connect(m_scriptModel.get(), &QAbstractItemModel::modelReset, &m_self, [this] {
 			OnScriptSelectionChanged();
 		});
-		connect(m_ui.btnAddScript, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnAddScript, &QAbstractButton::clicked, &m_self, [this] {
 			m_scriptModel->insertRow(m_scriptModel->rowCount());
 			m_ui.viewScript->setCurrentIndex(m_scriptModel->index(m_scriptModel->rowCount() - 1, 1));
 		});
-		connect(m_ui.btnRemoveScript, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnRemoveScript, &QAbstractButton::clicked, &m_self, [this] {
 			RemoveRows(*m_ui.viewScript);
 		});
-		connect(m_ui.btnScriptUp, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnScriptUp, &QAbstractButton::clicked, &m_self, [this] {
 			m_scriptModel->setData(m_ui.viewScript->currentIndex(), {}, Role::Up);
 			OnScriptSelectionChanged();
 		});
-		connect(m_ui.btnScriptDown, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnScriptDown, &QAbstractButton::clicked, &m_self, [this] {
 			m_scriptModel->setData(m_ui.viewScript->currentIndex(), {}, Role::Down);
 			OnScriptSelectionChanged();
 		});
+	}
 
-		connect(m_ui.viewCommand->selectionModel(), &QItemSelectionModel::selectionChanged, &m_self, [&] {
+	void SetConnectionsCommand()
+	{
+		SetConnectionsCommandList();
+		SetConnectionsCommandEdit();
+
+		connect(m_ui.stackedWidgetCommand, &QStackedWidget::currentChanged, &m_self, [this](const int index) {
+			m_ui.btnSave->setEnabled(index == 0);
+		});
+	}
+
+	void SetConnectionsCommandList()
+	{
+		connect(m_ui.viewCommand->selectionModel(), &QItemSelectionModel::selectionChanged, &m_self, [this] {
 			OnCommandSelectionChanged();
 		});
-		connect(m_commandModel.get(), &QAbstractItemModel::modelReset, &m_self, [&] {
+		connect(m_commandModel.get(), &QAbstractItemModel::modelReset, &m_self, [this] {
 			OnCommandSelectionChanged();
 		});
-		connect(m_ui.btnAddCommand, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnAddCommand, &QAbstractButton::clicked, &m_self, [this] {
 			m_ui.stackedWidgetCommand->setCurrentWidget(m_ui.scriptCommandEditorPage);
 			m_addMode = true;
 		});
-		connect(m_ui.btnEditCommand, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnEditCommand, &QAbstractButton::clicked, &m_self, [this] {
 			OnEditCommandClicked();
 			m_addMode = false;
 		});
-		connect(m_ui.btnRemoveCommand, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnRemoveCommand, &QAbstractButton::clicked, &m_self, [this] {
 			RemoveRows(*m_ui.viewCommand);
 		});
-		connect(m_ui.btnCommandUp, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnCommandUp, &QAbstractButton::clicked, &m_self, [this] {
 			m_commandModel->setData(m_ui.viewCommand->currentIndex(), {}, Role::Up);
 			OnCommandSelectionChanged();
 		});
-		connect(m_ui.btnCommandDown, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnCommandDown, &QAbstractButton::clicked, &m_self, [this] {
 			m_commandModel->setData(m_ui.viewCommand->currentIndex(), {}, Role::Down);
 			OnCommandSelectionChanged();
 		});
+	}
 
-		connect(m_ui.btnSave, &QAbstractButton::clicked, &m_self, [&] {
-			m_scriptModel->setData({}, {}, Qt::EditRole);
-			m_self.accept();
-		});
-		connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, &QDialog::reject);
-
+	void SetConnectionsCommandEdit()
+	{
 		connect(m_ui.comboBoxCommandType, &QComboBox::currentIndexChanged, [this](const int index) {
 			OnComboBoxCommandTypeIndexChanged(index);
 		});
-
-		connect(m_ui.btnCommandCancel, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnCommandCancel, &QAbstractButton::clicked, &m_self, [this] {
 			m_ui.stackedWidgetCommand->setCurrentWidget(m_ui.scriptCommandListPage);
 		});
-		connect(m_ui.btnCommandOk, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnCommandOk, &QAbstractButton::clicked, &m_self, [this] {
 			OnCommandOkClicked();
 		});
 		connect(m_ui.lineEditCommandArguments, &QWidget::customContextMenuRequested, &m_self, [this] {
 			IScriptController::ExecuteContextMenu(m_ui.lineEditCommandArguments);
 		});
-		connect(m_ui.actionOpenExe, &QAction::triggered, [&] {
+		connect(m_ui.actionOpenExe, &QAction::triggered, &m_self, [this] {
 			OnOpenImpl(m_uiFactory->GetOpenFileName(DIALOG_KEY, Tr(FILE_DIALOG_TITLE), Tr(APP_FILE_FILTER)), *m_ui.lineEditCommandTextExe);
 		});
-		connect(m_ui.actionOpenCWD, &QAction::triggered, [&] {
+		connect(m_ui.actionOpenCWD, &QAction::triggered, &m_self, [this] {
 			OnOpenImpl(m_uiFactory->GetExistingDirectory(DIALOG_KEY, FOLDER_DIALOG_TITLE), *m_ui.lineEditCommandWorkingFolder);
 		});
+	}
+
+	void OnAccept()
+	{
+		m_scriptModel->setData({}, {}, Qt::EditRole);
+	}
+
+	void SerializeCommand(const IScriptController::Command::Type type, const QString& command)
+	{
+		if (type != IScriptController::Command::Type::System)
+			return;
+
+		if (m_ui.comboBoxCommandTextSystem->findText(command) < 0)
+			m_ui.comboBoxCommandTextSystem->addItem(command);
+
+		QStringList commands;
+		for (int i = 0, sz = m_ui.comboBoxCommandTextSystem->count(); i < sz; ++i)
+			commands << m_ui.comboBoxCommandTextSystem->itemText(i);
+
+		m_settings->Set(SYS_COMMAND_KEY, commands);
 	}
 
 	void OnEditCommandClicked() const
@@ -306,11 +342,13 @@ private:
 			m_ui.viewCommand->setCurrentIndex(m_commandModel->index(m_commandModel->rowCount() - 1, 0));
 		}
 
-		const auto command = [this]() -> QVariant {
-			const auto commandType = m_ui.comboBoxCommandType->currentData().value<IScriptController::Command::Type>();
-			const auto invoker     = FindSecond(COMMAND_GETTERS, commandType).first;
-			return std::invoke(invoker, m_commandTextWidgets, commandType);
+		const auto [commandType, command] = [this] {
+			const auto type    = m_ui.comboBoxCommandType->currentData().value<IScriptController::Command::Type>();
+			const auto invoker = FindSecond(COMMAND_GETTERS, type).first;
+			return std::pair(type, std::invoke(invoker, m_commandTextWidgets, type));
 		}();
+
+		SerializeCommand(commandType, command);
 
 		m_commandModel->setData(m_ui.viewCommand->currentIndex(), m_ui.comboBoxCommandType->currentData(), Role::Type);
 		m_commandModel->setData(m_ui.viewCommand->currentIndex(), command, Role::Command);
