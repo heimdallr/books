@@ -208,82 +208,105 @@ public:
 private:
 	void SetConnections()
 	{
-		connect(m_ui.viewScript->selectionModel(), &QItemSelectionModel::selectionChanged, &m_self, [&] {
+		SetConnectionsScriptHead();
+		SetConnectionsCommand();
+
+		connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, &QDialog::reject);
+		connect(m_ui.btnSave, &QAbstractButton::clicked, &m_self, &QDialog::accept);
+		connect(&m_self, &QDialog::accepted, &m_self, [this] {
+			OnAccept();
+		});
+	}
+
+	void SetConnectionsScriptHead()
+	{
+		connect(m_ui.viewScript->selectionModel(), &QItemSelectionModel::selectionChanged, &m_self, [this] {
 			OnScriptSelectionChanged();
 		});
-		connect(m_scriptModel.get(), &QAbstractItemModel::modelReset, &m_self, [&] {
+		connect(m_scriptModel.get(), &QAbstractItemModel::modelReset, &m_self, [this] {
 			OnScriptSelectionChanged();
 		});
-		connect(m_ui.btnAddScript, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnAddScript, &QAbstractButton::clicked, &m_self, [this] {
 			m_scriptModel->insertRow(m_scriptModel->rowCount());
 			m_ui.viewScript->setCurrentIndex(m_scriptModel->index(m_scriptModel->rowCount() - 1, 1));
 		});
-		connect(m_ui.btnRemoveScript, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnRemoveScript, &QAbstractButton::clicked, &m_self, [this] {
 			RemoveRows(*m_ui.viewScript);
 		});
-		connect(m_ui.btnScriptUp, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnScriptUp, &QAbstractButton::clicked, &m_self, [this] {
 			m_scriptModel->setData(m_ui.viewScript->currentIndex(), {}, Role::Up);
 			OnScriptSelectionChanged();
 		});
-		connect(m_ui.btnScriptDown, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnScriptDown, &QAbstractButton::clicked, &m_self, [this] {
 			m_scriptModel->setData(m_ui.viewScript->currentIndex(), {}, Role::Down);
 			OnScriptSelectionChanged();
 		});
+	}
 
-		connect(m_ui.viewCommand->selectionModel(), &QItemSelectionModel::selectionChanged, &m_self, [&] {
+	void SetConnectionsCommand()
+	{
+		SetConnectionsCommandList();
+		SetConnectionsCommandEdit();
+
+		connect(m_ui.stackedWidgetCommand, &QStackedWidget::currentChanged, &m_self, [this](const int index) {
+			m_ui.btnSave->setEnabled(index == 0);
+		});
+	}
+
+	void SetConnectionsCommandList()
+	{
+		connect(m_ui.viewCommand->selectionModel(), &QItemSelectionModel::selectionChanged, &m_self, [this] {
 			OnCommandSelectionChanged();
 		});
-		connect(m_commandModel.get(), &QAbstractItemModel::modelReset, &m_self, [&] {
+		connect(m_commandModel.get(), &QAbstractItemModel::modelReset, &m_self, [this] {
 			OnCommandSelectionChanged();
 		});
-		connect(m_ui.btnAddCommand, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnAddCommand, &QAbstractButton::clicked, &m_self, [this] {
 			m_ui.stackedWidgetCommand->setCurrentWidget(m_ui.scriptCommandEditorPage);
 			m_addMode = true;
 		});
-		connect(m_ui.btnEditCommand, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnEditCommand, &QAbstractButton::clicked, &m_self, [this] {
 			OnEditCommandClicked();
 			m_addMode = false;
 		});
-		connect(m_ui.btnRemoveCommand, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnRemoveCommand, &QAbstractButton::clicked, &m_self, [this] {
 			RemoveRows(*m_ui.viewCommand);
 		});
-		connect(m_ui.btnCommandUp, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnCommandUp, &QAbstractButton::clicked, &m_self, [this] {
 			m_commandModel->setData(m_ui.viewCommand->currentIndex(), {}, Role::Up);
 			OnCommandSelectionChanged();
 		});
-		connect(m_ui.btnCommandDown, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnCommandDown, &QAbstractButton::clicked, &m_self, [this] {
 			m_commandModel->setData(m_ui.viewCommand->currentIndex(), {}, Role::Down);
 			OnCommandSelectionChanged();
 		});
+	}
 
-		connect(m_ui.btnSave, &QAbstractButton::clicked, &m_self, [&] {
-			m_scriptModel->setData({}, {}, Qt::EditRole);
-			m_self.accept();
-		});
-		connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, &QDialog::reject);
-
+	void SetConnectionsCommandEdit()
+	{
 		connect(m_ui.comboBoxCommandType, &QComboBox::currentIndexChanged, [this](const int index) {
 			OnComboBoxCommandTypeIndexChanged(index);
 		});
-
-		connect(m_ui.btnCommandCancel, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnCommandCancel, &QAbstractButton::clicked, &m_self, [this] {
 			m_ui.stackedWidgetCommand->setCurrentWidget(m_ui.scriptCommandListPage);
 		});
-		connect(m_ui.btnCommandOk, &QAbstractButton::clicked, &m_self, [&] {
+		connect(m_ui.btnCommandOk, &QAbstractButton::clicked, &m_self, [this] {
 			OnCommandOkClicked();
 		});
 		connect(m_ui.lineEditCommandArguments, &QWidget::customContextMenuRequested, &m_self, [this] {
 			IScriptController::ExecuteContextMenu(m_ui.lineEditCommandArguments);
 		});
-		connect(m_ui.actionOpenExe, &QAction::triggered, &m_self, [&] {
+		connect(m_ui.actionOpenExe, &QAction::triggered, &m_self, [this] {
 			OnOpenImpl(m_uiFactory->GetOpenFileName(DIALOG_KEY, Tr(FILE_DIALOG_TITLE), Tr(APP_FILE_FILTER)), *m_ui.lineEditCommandTextExe);
 		});
-		connect(m_ui.actionOpenCWD, &QAction::triggered, &m_self, [&] {
+		connect(m_ui.actionOpenCWD, &QAction::triggered, &m_self, [this] {
 			OnOpenImpl(m_uiFactory->GetExistingDirectory(DIALOG_KEY, FOLDER_DIALOG_TITLE), *m_ui.lineEditCommandWorkingFolder);
 		});
-		connect(m_ui.stackedWidgetCommand, &QStackedWidget::currentChanged, &m_self, [this](const int index) {
-			m_ui.btnSave->setEnabled(index == 0);
-		});
+	}
+
+	void OnAccept()
+	{
+		m_scriptModel->setData({}, {}, Qt::EditRole);
 	}
 
 	void OnEditCommandClicked() const
