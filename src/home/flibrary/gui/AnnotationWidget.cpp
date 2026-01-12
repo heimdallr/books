@@ -132,7 +132,7 @@ enum class ContentMode
 #undef CONTENT_MODE_ITEM
 };
 
-static constexpr std::pair<const char*, std::pair<ContentMode, const char*>> CONTENT_MODES[] {
+constexpr std::pair<const char*, std::pair<ContentMode, const char*>> CONTENT_MODES[] {
 #define CONTENT_MODE_ITEM(NAME, _)         \
 	{                                      \
 		#NAME,                             \
