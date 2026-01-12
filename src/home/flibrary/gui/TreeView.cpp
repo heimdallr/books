@@ -258,7 +258,7 @@ private:
 			m_columns.erase(it);
 		};
 
-		if (QGuiApplication::queryKeyboardModifiers() & Qt::KeyboardModifier::ShiftModifier)
+		if (QGuiApplication::queryKeyboardModifiers() & (Qt::KeyboardModifier::ShiftModifier | Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ControlModifier))
 			return it == m_columns.end() ? add() : change();
 
 		if (it != m_columns.end() && it->second + 1 == m_sort.size())
