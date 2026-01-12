@@ -45,6 +45,7 @@ public:
 
 public:
 	void ShowContent(bool value);
+	void ShowMetadata(bool value);
 	void ShowCover(bool value);
 	void ShowCoverButtons(bool value);
 
