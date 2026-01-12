@@ -43,10 +43,13 @@ Dialog::Show(const QMessageBox::Icon icon, const QString& title, const QString& 
 
 	msgBox.show();
 
-	auto       rect         = msgBox.geometry();
-	const auto parentCenter = parent->geometry().center();
-	rect.translate(parentCenter - rect.center());
-	msgBox.setGeometry(rect);
+	if (parent)
+	{
+		auto       rect         = msgBox.geometry();
+		const auto parentCenter = parent->geometry().center();
+		rect.translate(parentCenter - rect.center());
+		msgBox.setGeometry(rect);
+	}
 
 	return static_cast<QMessageBox::StandardButton>(msgBox.exec());
 }
