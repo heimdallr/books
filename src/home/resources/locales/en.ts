@@ -4453,6 +4453,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Metadata</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Remove collection</source>
         <translation></translation>
     </message>
