@@ -368,6 +368,7 @@
       <addaction name="actionShowAnnotationCover"/>
       <addaction name="actionShowAnnotationCoverButtons"/>
       <addaction name="actionShowAnnotationContent"/>
+      <addaction name="actionShowAnnotationMetadata"/>
       <addaction name="actionShowReadersReviews"/>
       <addaction name="menuJokes"/>
       <addaction name="separator"/>
@@ -1088,6 +1089,17 @@
    </property>
    <property name="visible">
     <bool>false</bool>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowAnnotationMetadata">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Metadata</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

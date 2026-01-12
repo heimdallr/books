@@ -4465,6 +4465,10 @@ Try again?</source>
         <translation>&amp;Журнал</translation>
     </message>
     <message>
+        <source>&amp;Metadata</source>
+        <translation>&amp;Метаданные</translation>
+    </message>
+    <message>
         <source>&amp;Remove collection</source>
         <translation>&amp;Удалить коллекцию</translation>
     </message>
