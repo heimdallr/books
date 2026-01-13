@@ -5380,8 +5380,8 @@ Try again?</source>
 <context>
     <name>SingleInstanceController</name>
     <message>
-        <source>One instance of the program is already running. Do you want to start a new one?</source>
-        <translation>Один экземпляр программы уже запущен. Хотите запустить новый?</translation>
+        <source>The program is already running. Do you want to run another instance?</source>
+        <translation>Программа уже запущена. Хотите запустить ещё один экземпляр?</translation>
     </message>
 </context>
 <context>

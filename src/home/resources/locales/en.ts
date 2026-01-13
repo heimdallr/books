@@ -5365,7 +5365,7 @@ Try again?</source>
 <context>
     <name>SingleInstanceController</name>
     <message>
-        <source>One instance of the program is already running. Do you want to start a new one?</source>
+        <source>The program is already running. Do you want to run another instance?</source>
         <translation></translation>
     </message>
 </context>

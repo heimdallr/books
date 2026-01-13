@@ -4530,7 +4530,7 @@ Try again?</source>
     </message>
     <message>
         <source>Are you really sure?</source>
-        <translation>Чи точно впевнені?</translation>
+        <translation>Ви дійсно впевнені?</translation>
     </message>
     <message>
         <source>Are you sure you want to delete all themes?</source>
@@ -5380,8 +5380,8 @@ Try again?</source>
 <context>
     <name>SingleInstanceController</name>
     <message>
-        <source>One instance of the program is already running. Do you want to start a new one?</source>
-        <translation>Один екземпляр програми вже запущено. Бажаєте запустити новий?</translation>
+        <source>The program is already running. Do you want to run another instance?</source>
+        <translation>Програму вже запущено. Бажаєте запустити ще один екземпляр?</translation>
     </message>
 </context>
 <context>
