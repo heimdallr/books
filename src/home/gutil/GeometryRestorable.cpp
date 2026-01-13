@@ -5,6 +5,7 @@
 #include <QTimer>
 
 #include "fnd/FindPair.h"
+#include "fnd/algorithm.h"
 
 #include "util/ISettingsObserver.h"
 #include "util/UiTimer.h"
@@ -14,6 +15,7 @@ using namespace HomeCompa::Util;
 
 namespace
 {
+constexpr auto STATE_KEY_TEMPLATE    = "ui/%1/State";
 constexpr auto GEOMETRY_KEY_TEMPLATE = "ui/%1/Geometry";
 constexpr auto SPLITTER_KEY_TEMPLATE = "ui/%1/%2";
 constexpr auto FONT_KEY              = "ui/Font";
@@ -101,25 +103,36 @@ public:
 		}
 	}
 
-	void SaveGeometry()
+	void OnHide()
 	{
-		if (!m_initialized)
+		if (!Set(m_initialized, false))
 			return;
 
-		m_settings->Set(QString(GEOMETRY_KEY_TEMPLATE).arg(m_name), m_observer.GetWidget().geometry());
+		const auto state = m_observer.GetWidget().windowState() & (Qt::WindowMaximized | Qt::WindowFullScreen);
+		m_settings->Set(QString(STATE_KEY_TEMPLATE).arg(m_name), static_cast<int>(state));
+
+		if ((state & (Qt::WindowMaximized | Qt::WindowFullScreen)) == Qt::WindowNoState)
+			m_settings->Set(QString(GEOMETRY_KEY_TEMPLATE).arg(m_name), m_observer.GetWidget().geometry());
+
 		for (const auto* splitter : m_observer.GetWidget().findChildren<QSplitter*>())
 			m_settings->Set(QString(SPLITTER_KEY_TEMPLATE).arg(m_name).arg(splitter->objectName()), splitter->saveState());
-
-		m_initialized = false;
 	}
 
 	void OnShow()
 	{
-		OnFontChanged();
-		if (const auto value = m_settings->Get(QString(GEOMETRY_KEY_TEMPLATE).arg(m_name)); value.isValid())
-			SetGeometry(m_observer.GetWidget(), value.toRect());
+		if (!Set(m_initialized, true))
+			return;
 
-		m_initialized = true;
+		OnFontChanged();
+
+		if (const auto state = m_observer.GetWidget().windowState(); state & (Qt::WindowMaximized | Qt::WindowFullScreen))
+			return;
+
+		if (const auto stateVar = m_settings->Get(QString(GEOMETRY_KEY_TEMPLATE).arg(m_name)); stateVar.isValid())
+			SetGeometry(m_observer.GetWidget(), stateVar.toRect());
+
+		if (const auto value = m_settings->Get(QString(STATE_KEY_TEMPLATE).arg(m_name)).toInt(); value & (Qt::WindowMaximized | Qt::WindowFullScreen))
+			m_observer.GetWidget().setWindowState(static_cast<Qt::WindowState>(value & ~Qt::WindowMinimized));
 	}
 
 private: // QObject
@@ -127,6 +140,9 @@ private: // QObject
 	{
 		if (event->type() == QEvent::Show)
 			OnShow();
+
+		if (event->type() == QEvent::Hide)
+			OnHide();
 
 		return m_observer.GetWidget().eventFilter(target, event);
 	}
@@ -183,7 +199,7 @@ void GeometryRestorable::LoadGeometry()
 
 void GeometryRestorable::SaveGeometry()
 {
-	m_impl->SaveGeometry();
+	m_impl->OnHide();
 }
 
 GeometryRestorableObserver::GeometryRestorableObserver(QWidget& widget)
