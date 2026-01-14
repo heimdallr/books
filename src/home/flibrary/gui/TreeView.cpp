@@ -635,7 +635,8 @@ private:
 		if (IsNavigation())
 		{
 			m_delegate->SetEnabled(static_cast<bool>((m_removeItems = m_controller->GetRemoveItems())));
-			if (m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Archives))
+			const auto navigationMode = static_cast<NavigationMode>(m_controller->GetModeIndex());
+			if (navigationMode == NavigationMode::Archives)
 			{
 				model->setData({}, QVariant::fromValue<const IModelSorter*>(&m_archiveSorter), Role::ModelSorter);
 				std::vector<std::pair<int, Qt::SortOrder>> sort {
@@ -643,6 +644,20 @@ private:
 				};
 				model->setData({}, QVariant::fromValue(std::move(sort)), Role::SortOrder);
 			}
+
+			static constexpr NavigationMode extendedSelectionModes[] {
+				NavigationMode::Authors, NavigationMode::Series, NavigationMode::Genres, NavigationMode::Keywords, NavigationMode::Languages, NavigationMode::Groups, NavigationMode::Search,
+			};
+			m_ui.treeView->setSelectionMode(
+				std::ranges::any_of(
+					extendedSelectionModes,
+					[navigationMode](const auto item) {
+						return item == navigationMode;
+					}
+				)
+					? QAbstractItemView::SelectionMode::ExtendedSelection
+					: QAbstractItemView::SelectionMode::SingleSelection
+			);
 		}
 		else
 		{

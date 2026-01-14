@@ -50,6 +50,7 @@ private: // QStyledItemDelegate
 		auto* btn = new QToolButton(parent);
 		btn->setIcon(QIcon(":/icons/remove.svg"));
 		btn->setAutoRaise(true);
+		btn->setFocusPolicy(Qt::FocusPolicy::NoFocus);
 		QPersistentModelIndex persistentIndex { index };
 		connect(btn, &QAbstractButton::clicked, [this_ = const_cast<Impl*>(this), persistentIndex = std::move(persistentIndex)] {
 			this_->Perform(&IObserver::OnButtonClicked, std::cref(static_cast<const QModelIndex&>(persistentIndex)));
