@@ -645,7 +645,7 @@ private:
 				model->setData({}, QVariant::fromValue(std::move(sort)), Role::SortOrder);
 			}
 
-			constexpr NavigationMode extendedSelectionModes[] {
+			static constexpr NavigationMode extendedSelectionModes[] {
 				NavigationMode::Authors, NavigationMode::Series, NavigationMode::Genres, NavigationMode::Keywords, NavigationMode::Languages, NavigationMode::Groups, NavigationMode::Search,
 			};
 			m_ui.treeView->setSelectionMode(
