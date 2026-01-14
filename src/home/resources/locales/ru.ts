@@ -5279,7 +5279,7 @@ Try again?</source>
     </message>
     <message>
         <source>Edit command</source>
-        <translation>Редактирование команды</translation>
+        <translation>Редактировать команду</translation>
     </message>
     <message>
         <source>Remove command</source>
