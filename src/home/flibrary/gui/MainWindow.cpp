@@ -328,8 +328,7 @@ public:
 		if (!m_systemTray)
 			return QCoreApplication::exit(), true;
 
-		m_isMaximized  = m_self.isMaximized();
-		m_isFullScreen = m_self.isFullScreen();
+		OnHideEvent();
 
 		m_systemTray->show();
 		m_self.hide();
@@ -341,6 +340,12 @@ public:
 		m_isFullScreen ? m_self.showFullScreen() : m_isMaximized ? m_self.showMaximized() : m_self.showNormal();
 		if (m_systemTray)
 			m_systemTray->hide();
+	}
+
+	void OnHideEvent()
+	{
+		m_isMaximized  = m_self.isMaximized();
+		m_isFullScreen = m_self.isFullScreen();
 	}
 
 private: // ICollectionsObserver
@@ -1463,6 +1468,11 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 		m_impl->RemoveCustomStyleFile();
 
 	QMainWindow::keyPressEvent(event);
+}
+
+void MainWindow::hideEvent(QHideEvent* /*event*/)
+{
+	m_impl->OnHideEvent();
 }
 
 void MainWindow::OnBooksSearchFilterValueGeometryChanged(const QRect& geometry)
