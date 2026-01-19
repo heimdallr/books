@@ -49,6 +49,7 @@ constexpr auto REMOVE_BOOK              = QT_TRANSLATE_NOOP("BookContextMenu", "
 constexpr auto REMOVE_BOOK_UNDO         = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
 constexpr auto REMOVE_BOOK_FROM_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "&Delete permanently");
 constexpr auto CHANGE_LANGUAGE          = QT_TRANSLATE_NOOP("BookContextMenu", "Change language");
+constexpr auto ALREADY_READ             = QT_TRANSLATE_NOOP("BookContextMenu", "No rating");
 
 constexpr auto CANNOT_SET_USER_RATE = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set rate");
 constexpr auto CANNOT_SET_LANGUAGE  = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set language of books");
@@ -61,7 +62,7 @@ constexpr auto CHANGE_LANGUAGE_CONFIRM    = QT_TRANSLATE_NOOP("BookContextMenu",
 
 TR_DEF
 
-constexpr auto USER_RATE_QUERY = "select coalesce(bu.UserRate, 0) from Books b left join Books_User bu on bu.BookID = b.BookID where b.BookID = ?";
+constexpr auto USER_RATE_QUERY = "select coalesce(bu.UserRate, -1) from Books b left join Books_User bu on bu.BookID = b.BookID where b.BookID = ?";
 
 class IContextMenuHandler // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -91,18 +92,19 @@ constexpr std::pair<int, IContextMenuHandler::Function> MENU_HANDLERS[] {
 void CreateMyRateMenu(const IDataItem::Ptr& root, const QString& id, DB::IDatabase& db, const int starSymbol)
 {
 	const auto parent = AddMenuItem(root, Tr(MY_RATE));
-	for (int rate = 1; rate <= 5; ++rate)
+	for (int rate = 5; rate > 0; --rate)
 		AddMenuItem(parent, QString(rate, QChar(starSymbol)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
+	AddMenuItem(parent, Tr(ALREADY_READ), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter);
 
 	const auto query = db.CreateQuery(USER_RATE_QUERY);
 	query->Bind(0, id.toInt());
 	query->Execute();
 	assert(!query->Eof());
-	if (const auto currentUserRate = query->Get<int>(0); currentUserRate == 0)
+	if (const auto currentUserRate = query->Get<int>(0); currentUserRate < 0)
 		return;
 
 	AddMenuItem(parent)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-	AddMenuItem(parent, Tr(REMOVE_MY_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter);
+	AddMenuItem(parent, Tr(REMOVE_MY_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 }
 
 void CreateSendMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options, const IScriptController::Scripts& scripts)
@@ -380,10 +382,10 @@ private: // IContextMenuHandler
 
 									 auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&](const bool init, const auto id) {
 										 command->Bind(":id", id);
-										 if (rate)
-											 command->Bind(":user_rate", rate);
-										 else
+										 if (rate < 0)
 											 command->Bind(":user_rate");
+										 else
+											 command->Bind(":user_rate", rate);
 										 return command->Execute() && init;
 									 });
 									 ok      = transaction->Commit() && ok;

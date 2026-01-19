@@ -30,6 +30,9 @@ using namespace Flibrary;
 namespace
 {
 
+constexpr auto READ_MARK_COLOR = "Preferences/ReadMarkColor";
+constexpr auto READ_MARK_WIDTH = "Preferences/ReadMarkWidth";
+
 QString PassThruDelegate(const QVariant& value)
 {
 	return value.toString();
@@ -125,6 +128,17 @@ std::unique_ptr<const IBookRenderer> GetLibRateRenderer(QStyledItemDelegate& imp
 	         : std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererNumber>(impl) };
 }
 
+QColor GetReadMarkColor(const ISettings& settings)
+{
+	if (const auto var = settings.Get(READ_MARK_COLOR); var.isValid())
+	{
+		const auto value = var.toUInt();
+		return { static_cast<int>(value & 0xFF), static_cast<int>((value >> 8) & 0xFF), static_cast<int>((value >> 16) & 0xFF), 0xFF - static_cast<int>((value >> 24) & 0xFF) };
+	}
+
+	return {};
+}
+
 } // namespace
 
 class TreeViewDelegateBooks::Impl final
@@ -137,6 +151,8 @@ public:
 		, m_textDelegate { &PassThruDelegate }
 		, m_libRateRenderer { GetLibRateRenderer(*this, settings) }
 		, m_userRateRenderer { std::make_unique<RateRendererStars>(Role::UserRate, settings) }
+		, m_readMarkColor { GetReadMarkColor(settings) }
+		, m_readMarkWidth { settings.Get(READ_MARK_WIDTH, 4) }
 	{
 	}
 
@@ -174,8 +190,18 @@ private:
 			}))
 			o.displayAlignment = Qt::AlignRight;
 
+		const auto markColor = m_readMarkColor.isValid() ? m_readMarkColor : o.palette.color(QPalette::ColorRole::Text);
+
 		if (index.data(Role::IsRemoved).toBool())
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
+
+		if (m_readMarkWidth > 0 && index.column() == 0 && !index.data(Role::UserRate).toString().isEmpty())
+		{
+			QPen pen(markColor, m_readMarkWidth);
+			pen.setCapStyle(Qt::FlatCap);
+			painter->setPen(pen);
+			painter->drawLine(o.rect.topLeft(), o.rect.bottomLeft());
+		}
 
 		ValueGuard  valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
 		const auto* renderer = FindSecond(m_rateRenderers, column, m_defaultRenderer.get());
@@ -192,6 +218,8 @@ private:
 		{  BookItem::Column::LibRate,  m_libRateRenderer.get() },
 		{ BookItem::Column::UserRate, m_userRateRenderer.get() },
 	};
+	const QColor m_readMarkColor;
+	const int    m_readMarkWidth;
 };
 
 TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory>& uiFactory, const std::shared_ptr<const ISettings>& settings)

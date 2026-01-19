@@ -486,6 +486,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>No rating</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>R&amp;emove</source>
         <translation></translation>
     </message>
