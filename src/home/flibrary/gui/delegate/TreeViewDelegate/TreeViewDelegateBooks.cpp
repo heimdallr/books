@@ -31,6 +31,7 @@ namespace
 {
 
 constexpr auto READ_MARK_COLOR = "Preferences/ReadMarkColor";
+constexpr auto READ_MARK_WIDTH = "Preferences/ReadMarkWidth";
 
 QString PassThruDelegate(const QVariant& value)
 {
@@ -150,7 +151,8 @@ public:
 		, m_textDelegate { &PassThruDelegate }
 		, m_libRateRenderer { GetLibRateRenderer(*this, settings) }
 		, m_userRateRenderer { std::make_unique<RateRendererStars>(Role::UserRate, settings) }
-		, m_color { GetReadMarkColor(settings) }
+		, m_readMarkColor { GetReadMarkColor(settings) }
+		, m_readMarkWidth { settings.Get(READ_MARK_WIDTH, 4) }
 	{
 	}
 
@@ -188,20 +190,22 @@ private:
 			}))
 			o.displayAlignment = Qt::AlignRight;
 
-		const auto markColor = m_color.isValid() ? m_color : o.palette.color(QPalette::ColorRole::Text);
+		const auto markColor = m_readMarkColor.isValid() ? m_readMarkColor : o.palette.color(QPalette::ColorRole::Text);
 
 		if (index.data(Role::IsRemoved).toBool())
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
+		if (m_readMarkWidth > 0 && index.column() == 0 && !index.data(Role::UserRate).toString().isEmpty())
+		{
+			QPen pen(markColor, m_readMarkWidth);
+			pen.setCapStyle(Qt::FlatCap);
+			painter->setPen(pen);
+			painter->drawLine(o.rect.topLeft(), o.rect.bottomLeft());
+		}
+
 		ValueGuard  valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
 		const auto* renderer = FindSecond(m_rateRenderers, column, m_defaultRenderer.get());
 		renderer->Render(painter, o, index);
-
-		if (index.column() == 0 && !index.data(Role::UserRate).toString().isEmpty())
-		{
-			painter->setPen(QPen(markColor, 4));
-			painter->drawLine(o.rect.topLeft(), o.rect.bottomLeft());
-		}
 	}
 
 private:
@@ -214,7 +218,8 @@ private:
 		{  BookItem::Column::LibRate,  m_libRateRenderer.get() },
 		{ BookItem::Column::UserRate, m_userRateRenderer.get() },
 	};
-	const QColor m_color;
+	const QColor m_readMarkColor;
+	const int    m_readMarkWidth;
 };
 
 TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory>& uiFactory, const std::shared_ptr<const ISettings>& settings)
