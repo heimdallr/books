@@ -486,6 +486,10 @@
         <translation>Створити інде&amp;кс (*.inpx)</translation>
     </message>
     <message>
+        <source>No rating</source>
+        <translation>Без оцінки</translation>
+    </message>
+    <message>
         <source>R&amp;emove</source>
         <translation>&amp;Видалити</translation>
     </message>
