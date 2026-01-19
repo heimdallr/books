@@ -174,12 +174,20 @@ private:
 			}))
 			o.displayAlignment = Qt::AlignRight;
 
+		const auto markColor = o.palette.color(QPalette::ColorRole::Text);
+
 		if (index.data(Role::IsRemoved).toBool())
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
 		ValueGuard  valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
 		const auto* renderer = FindSecond(m_rateRenderers, column, m_defaultRenderer.get());
 		renderer->Render(painter, o, index);
+
+		if (index.column() == 0 && !index.data(Role::UserRate).toString().isEmpty())
+		{
+			painter->setPen(QPen(markColor, 4));
+			painter->drawLine(o.rect.topLeft(), o.rect.bottomLeft());
+		}
 	}
 
 private:
