@@ -842,10 +842,6 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Database file name cannot be empty</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Database file not found</source>
         <translation></translation>
     </message>
@@ -867,6 +863,10 @@ Restart now?</source>
     </message>
     <message>
         <source>This collection has already been added: %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>You must specify the collection database file</source>
         <translation></translation>
     </message>
 </context>

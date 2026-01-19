@@ -852,10 +852,6 @@ Restart now?</source>
         <translation>Неможливо створити папку %1</translation>
     </message>
     <message>
-        <source>Database file name cannot be empty</source>
-        <translation>Ім&apos;я файлу бази даних не може бути порожнім</translation>
-    </message>
-    <message>
         <source>Database file not found</source>
         <translation>База даних не знайдена</translation>
     </message>
@@ -878,6 +874,10 @@ Restart now?</source>
     <message>
         <source>This collection has already been added: %1</source>
         <translation>Ця колекція вже додана під назвою: %1</translation>
+    </message>
+    <message>
+        <source>You must specify the collection database file</source>
+        <translation>Необхідно вказати файл бази даних колекції</translation>
     </message>
 </context>
 <context>
@@ -5329,7 +5329,7 @@ Try again?</source>
     <name>ScriptModel</name>
     <message>
         <source>Name</source>
-        <translation>Ім&apos;я</translation>
+        <translation>Назва</translation>
     </message>
     <message>
         <source>Type</source>

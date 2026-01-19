@@ -852,10 +852,6 @@ Restart now?</source>
         <translation>Не удалось создать папку %1</translation>
     </message>
     <message>
-        <source>Database file name cannot be empty</source>
-        <translation>Имя файла базы данных не может быть пустым</translation>
-    </message>
-    <message>
         <source>Database file not found</source>
         <translation>База данных не найдена</translation>
     </message>
@@ -878,6 +874,10 @@ Restart now?</source>
     <message>
         <source>This collection has already been added: %1</source>
         <translation>Эта коллекция уже добавлена под именем %1</translation>
+    </message>
+    <message>
+        <source>You must specify the collection database file</source>
+        <translation>Необходимо указать файл базы данных коллекции</translation>
     </message>
 </context>
 <context>
