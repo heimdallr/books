@@ -14,6 +14,7 @@
 #include "util/files.h"
 #include "util/translit.h"
 
+#include "Constant.h"
 #include "log.h"
 #include "zip.h"
 
@@ -445,14 +446,22 @@ private:
 		if (!CheckFolder())
 			return false;
 
-		const auto inpxFiles = m_collectionController->GetInpxFiles(GetArchiveFolder());
-		assert(!inpxFiles.empty() && std::ranges::all_of(inpxFiles, [](const auto& inpx) {
-			return QFile::exists(inpx);
-		}));
+		const auto inpxPath = [this]() -> QString {
+			if (auto inpx = GetInpx(); !inpx.isEmpty())
+				return inpx;
+			if (auto inpx = m_collectionController->GetInpxFiles(GetArchiveFolder()); !inpx.empty())
+				return *inpx.begin();
+			return {};
+		}();
+
+		if (!QFile::exists(inpxPath))
+			return true;
 
 		try
 		{
-			m_ui.editName->setText(Zip(*inpxFiles.begin()).Read("collection.info")->GetStream().readLine().simplified());
+			Zip zip(inpxPath);
+			if (zip.GetFileNameList().contains(QString::fromStdWString(Inpx::COLLECTION_INFO)))
+				m_ui.editName->setText(zip.Read(QString::fromStdWString(Inpx::COLLECTION_INFO))->GetStream().readLine().simplified());
 		}
 		catch (const std::exception& ex)
 		{
