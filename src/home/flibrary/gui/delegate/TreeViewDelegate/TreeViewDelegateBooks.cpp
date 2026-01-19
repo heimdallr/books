@@ -9,7 +9,6 @@
 #include <QTreeView>
 
 #include "fnd/FindPair.h"
-#include "fnd/IsOneOf.h"
 #include "fnd/ValueGuard.h"
 #include "fnd/observable.h"
 
