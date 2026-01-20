@@ -9,6 +9,8 @@
 #include "interface/logic/IBookExtractor.h"
 #include "interface/logic/ICollectionProvider.h"
 
+#include "util/ISettings.h"
+
 namespace HomeCompa::Opds
 {
 
@@ -18,6 +20,7 @@ class NoSqlRequester final : virtual public INoSqlRequester
 
 public:
 	NoSqlRequester(
+		std::shared_ptr<const ISettings>                     settings,
 		std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 		std::shared_ptr<const Flibrary::IBookExtractor>      bookExtractor,
 		std::shared_ptr<const ICoverCache>                   coverCache,

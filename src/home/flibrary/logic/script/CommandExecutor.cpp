@@ -7,13 +7,13 @@
 #include <QDir>
 #include <QEventLoop>
 #include <QProcess>
-#include <QRegularExpression>
 #include <QUrl>
 
 #include "fnd/FindPair.h"
 
 #include "network/network/downloader.h"
 #include "util/files.h"
+#include "util/process.h"
 
 #include "log.h"
 
@@ -22,28 +22,13 @@ using namespace Flibrary;
 
 namespace
 {
-QStringList SplitStringWithQuotes(const QString& str)
-{
-	QRegularExpression              regex("\"([^\"]*)\"|([^\\s,]+)");
-	QRegularExpressionMatchIterator it = regex.globalMatch(str);
-	QStringList                     result;
-	while (it.hasNext())
-	{
-		QRegularExpressionMatch match = it.next();
-		if (match.captured(1).length() > 0)
-			result.append(match.captured(1));
-		else if (match.captured(2).length() > 0)
-			result.append(match.captured(2));
-	}
-	return result;
-}
 
 bool EmbeddedCommandDownload(const QString& argStr)
 {
 	bool    outputFileMode = false;
 	QString outputFileName;
 	QString url;
-	for (const auto& arg : SplitStringWithQuotes(argStr))
+	for (const auto& arg : Util::SplitStringWithQuotes(argStr))
 	{
 		if (arg == "-o")
 		{
@@ -152,42 +137,6 @@ bool ShellExecute(const std::wstring& file, const std::wstring& parameters, cons
 	return true;
 }
 
-bool CreateProcess(const std::wstring& file, const std::wstring& parameters, const std::wstring& cwd)
-{
-	QProcess   process;
-	QEventLoop eventLoop;
-	process.setWorkingDirectory(QString::fromStdWString(cwd));
-	const auto args = SplitStringWithQuotes(QString::fromStdWString(parameters));
-
-	QByteArray fixed;
-	int        errorCode = 0;
-	QObject::connect(&process, &QProcess::started, [&] {
-		PLOGV << QString("%1 %2 launched").arg(file, args.join(" "));
-	});
-	QObject::connect(&process, &QProcess::errorOccurred, [&](const auto error) {
-		errorCode = static_cast<int>(error) + 1;
-		PLOGE << QString("%1 %2 error: %3").arg(file, args.join(" ")).arg(errorCode);
-		eventLoop.exit(errorCode);
-	});
-	QObject::connect(&process, &QProcess::finished, [&](const int code, const QProcess::ExitStatus) {
-		eventLoop.exit(code);
-	});
-	QObject::connect(&process, &QProcess::readyReadStandardError, [&] {
-		PLOGE << process.readAllStandardError();
-	});
-	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&] {
-		PLOGV << process.readAllStandardOutput();
-	});
-
-	process.start(QString::fromStdWString(file), args, QIODevice::ReadWrite);
-	if (errorCode)
-		return errorCode;
-
-	process.closeWriteChannel();
-
-	return eventLoop.exec() == 0;
-}
-
 } // namespace
 
 bool CommandExecutor::ExecuteSystem(const IScriptController::Command& command) const
@@ -200,10 +149,7 @@ bool CommandExecutor::ExecuteSystem(const IScriptController::Command& command) c
 bool CommandExecutor::ExecuteLaunchConsoleApp(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::LaunchConsoleApp);
-	const auto file       = QDir::toNativeSeparators(Util::ToAbsolutePath(command.command)).toStdWString();
-	const auto parameters = command.args.toStdWString();
-	const auto cwd        = command.workingFolder.toStdWString();
-	return CreateProcess(file, parameters, cwd);
+	return Util::RunProcess(Util::ToAbsolutePath(command.command), command.args, command.workingFolder);
 }
 
 bool CommandExecutor::ExecuteLaunchGuiApp(const IScriptController::Command& command) const
