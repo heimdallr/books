@@ -4,6 +4,7 @@
 
 #include <QBuffer>
 #include <QByteArray>
+#include <QDir>
 #include <QEventLoop>
 #include <QFileInfo>
 #include <QRegularExpression>
@@ -761,7 +762,14 @@ class Requester::Impl final
 private: // IPostProcessCallback
 	QString GetFileName(const QString& bookId) const override
 	{
-		return m_bookExtractor->GetFileName(bookId);
+		auto fileName = m_bookExtractor->GetFileName(bookId);
+		if (const auto ext = m_settings->Get(INoSqlRequester::CONVERTER_EXT).toString(); !ext.isEmpty())
+		{
+			const QFileInfo fileInfo(fileName);
+			fileName = fileInfo.dir().filePath(QString("%1.%2").arg(fileInfo.completeBaseName(), ext));
+		}
+
+		return fileName;
 	}
 
 	std::pair<QString, std::vector<QByteArray>> GetAuthorInfo(const QString& name) const override

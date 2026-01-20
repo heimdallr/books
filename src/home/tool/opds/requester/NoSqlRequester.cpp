@@ -27,11 +27,6 @@ using namespace Opds;
 namespace
 {
 
-constexpr auto CONVERTER_COMMAND   = "Preferences/opds/converter/command";
-constexpr auto CONVERTER_ARGUMENTS = "Preferences/opds/converter/arguments";
-constexpr auto CONVERTER_CWD       = "Preferences/opds/converter/cwd";
-constexpr auto CONVERTER_EXT       = "Preferences/opds/converter/ext";
-
 QByteArray Decompress(const QString& path, const QString& archive, const QString& fileName, const bool restoreImages)
 {
 	const Zip  unzip(path + "/" + archive);
