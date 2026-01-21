@@ -1144,6 +1144,7 @@ private:
 				continue;
 
 			auto* action = menu->addAction(model->headerData(index, Qt::Horizontal, Role::HeaderTitle).toString(), &m_self, [this_ = this, header, index](const bool checked) {
+				const QSignalBlocker signalBlocker(header);
 				if (!checked)
 					header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
 				header->setSectionHidden(index, !checked);
