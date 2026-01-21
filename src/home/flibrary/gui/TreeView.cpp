@@ -999,10 +999,12 @@ private:
             for (int i = 0, sz = header->count(); i < sz; ++i)
             {
                 const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
-                if (!header->isSectionHidden(i))
-                    m_settings->Set(QString(COLUMN_WIDTH_LOCAL_KEY).arg(name), header->sectionSize(i));
-                m_settings->Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(name), header->visualIndex(i));
                 m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), header->isSectionHidden(i));
+                if (header->isSectionHidden(i))
+                    continue;
+
+                m_settings->Set(QString(COLUMN_WIDTH_LOCAL_KEY).arg(name), header->sectionSize(i));
+                m_settings->Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(name), header->visualIndex(i));
             }
 
             m_booksHeaderView->Save(*m_settings);
@@ -1082,7 +1084,7 @@ private:
 
 		for (int i = 0, sz = header->count(); i < sz; ++i)
 			if (const auto it = widths.find(i); it != widths.end())
-				header->resizeSection(i, it->second);
+				header->resizeSection(i, std::max(it->second, header->minimumSectionSize()));
 
 		auto absent = nameToIndex;
 		for (const auto& columnName : indices | std::views::values)
@@ -1144,9 +1146,12 @@ private:
 				continue;
 
 			auto* action = menu->addAction(model->headerData(index, Qt::Horizontal, Role::HeaderTitle).toString(), &m_self, [this_ = this, header, index](const bool checked) {
+				const QSignalBlocker signalBlocker(header);
 				if (!checked)
 					header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
 				header->setSectionHidden(index, !checked);
+				if (checked && header->sectionSize(index) < header->minimumSectionSize())
+					header->resizeSection(index, header->minimumSectionSize());
 				if (checked)
 					header->resizeSection(0, header->sectionSize(0) - header->sectionSize(index));
 
