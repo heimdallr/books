@@ -1084,7 +1084,7 @@ private:
 
 		for (int i = 0, sz = header->count(); i < sz; ++i)
 			if (const auto it = widths.find(i); it != widths.end())
-				header->resizeSection(i, it->second);
+				header->resizeSection(i, std::max(it->second, header->minimumSectionSize()));
 
 		auto absent = nameToIndex;
 		for (const auto& columnName : indices | std::views::values)
@@ -1150,6 +1150,8 @@ private:
 				if (!checked)
 					header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
 				header->setSectionHidden(index, !checked);
+				if (checked && header->sectionSize(index) < header->minimumSectionSize())
+					header->resizeSection(index, header->minimumSectionSize());
 				if (checked)
 					header->resizeSection(0, header->sectionSize(0) - header->sectionSize(index));
 
