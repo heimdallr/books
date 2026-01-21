@@ -151,7 +151,7 @@ public:
 		, m_libRateRenderer { GetLibRateRenderer(*this, settings) }
 		, m_userRateRenderer { std::make_unique<RateRendererStars>(Role::UserRate, settings) }
 		, m_readMarkColor { GetReadMarkColor(settings) }
-		, m_readMarkWidth { settings.Get(READ_MARK_WIDTH, 4) }
+		, m_readMarkWidth { settings.Get(READ_MARK_WIDTH, 0) }
 	{
 	}
 
