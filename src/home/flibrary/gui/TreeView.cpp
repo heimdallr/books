@@ -999,10 +999,12 @@ private:
             for (int i = 0, sz = header->count(); i < sz; ++i)
             {
                 const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
-                if (!header->isSectionHidden(i))
-                    m_settings->Set(QString(COLUMN_WIDTH_LOCAL_KEY).arg(name), header->sectionSize(i));
-                m_settings->Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(name), header->visualIndex(i));
                 m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), header->isSectionHidden(i));
+                if (header->isSectionHidden(i))
+                    continue;
+
+                m_settings->Set(QString(COLUMN_WIDTH_LOCAL_KEY).arg(name), header->sectionSize(i));
+                m_settings->Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(name), header->visualIndex(i));
             }
 
             m_booksHeaderView->Save(*m_settings);
