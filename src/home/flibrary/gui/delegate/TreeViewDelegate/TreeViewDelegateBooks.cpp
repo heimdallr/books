@@ -29,8 +29,8 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto READ_MARK_COLOR = "Preferences/ReadMarkColor";
-constexpr auto READ_MARK_WIDTH = "Preferences/ReadMarkWidth";
+constexpr auto READ_MARK_COLOR = "Preferences/ReadMark/color";
+constexpr auto READ_MARK_WIDTH = "Preferences/ReadMark/width";
 
 QString PassThruDelegate(const QVariant& value)
 {
