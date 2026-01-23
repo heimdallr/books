@@ -134,34 +134,8 @@ IDataItem& DataItem::SetData(QString value, const int column) noexcept
 
 Qt::CheckState DataItem::GetCheckState() const noexcept
 {
-	if (m_children.empty())
-		return Qt::Unchecked;
-
-	if (m_children.front()->GetCheckState() == Qt::Checked)
-	{
-		return std::ranges::all_of(
-				   m_children | std::views::drop(1),
-				   [](const auto& item) {
-					   return item->GetCheckState() == Qt::Checked;
-				   }
-			   )
-		         ? Qt::Checked
-		         : Qt::PartiallyChecked;
-	}
-
-	if (m_children.front()->GetCheckState() == Qt::Unchecked)
-	{
-		return std::ranges::all_of(
-				   m_children | std::views::drop(1),
-				   [](const auto& item) {
-					   return item->GetCheckState() == Qt::Unchecked;
-				   }
-			   )
-		         ? Qt::Unchecked
-		         : Qt::PartiallyChecked;
-	}
-
-	return Qt::PartiallyChecked;
+	assert(false);
+	return Qt::Unchecked;
 }
 
 void DataItem::SetCheckState(const Qt::CheckState /*state*/) noexcept

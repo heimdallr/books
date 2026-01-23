@@ -33,6 +33,34 @@ void EnumerateLeafs(const QAbstractItemModel& model, const QModelIndexList& inde
 	}
 }
 
+Qt::CheckState GetCheckState(const QIdentityProxyModel& model, const QModelIndex& parent)
+{
+	assert(parent.isValid());
+
+	if (parent.data(Role::Type).value<ItemType>() == ItemType::Books)
+		return model.QIdentityProxyModel::data(parent, Qt::CheckStateRole).value<Qt::CheckState>();
+
+	std::optional<Qt::CheckState> result;
+	for (int i = 0, sz = model.rowCount(parent); i < sz; ++i)
+	{
+		const auto index      = model.index(i, 0, parent);
+		const auto checkState = GetCheckState(model, index);
+		if (checkState == Qt::PartiallyChecked)
+			return Qt::PartiallyChecked;
+
+		if (!result)
+		{
+			result = checkState;
+			continue;
+		}
+
+		if (*result != checkState)
+			return Qt::PartiallyChecked;
+	}
+
+	return result ? *result : Qt::Unchecked;
+}
+
 } // namespace
 
 AbstractFilteredProxyModel::AbstractFilteredProxyModel(QObject* parent)
@@ -40,7 +68,7 @@ AbstractFilteredProxyModel::AbstractFilteredProxyModel(QObject* parent)
 {
 }
 
-FilteredProxyModel::FilteredProxyModel(const std::shared_ptr<class IModelProvider>& modelProvider, QObject* parent)
+FilteredProxyModel::FilteredProxyModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent)
 	: AbstractFilteredProxyModel(parent)
 	, m_sourceModel(modelProvider->GetSourceModel())
 {
@@ -52,7 +80,12 @@ FilteredProxyModel::~FilteredProxyModel() = default;
 QVariant FilteredProxyModel::data(const QModelIndex& index, const int role) const
 {
 	if (index.isValid())
+	{
+		if (role == Qt::CheckStateRole)
+			return index.column() == 0 && index.data(Role::Checkable).toBool() ? GetCheckState(*this, index) : QVariant {};
+
 		return QIdentityProxyModel::data(index, role);
+	}
 
 	switch (role)
 	{
