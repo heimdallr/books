@@ -16,7 +16,7 @@
 #include "logic/shared/ImageRestore.h"
 #include "util/AnnotationControllerObserver.h"
 #include "util/ImageUtil.h"
-#include "util/process.h"
+#include "util/ProcessWrapper.h"
 
 #include "log.h"
 #include "zip.h"

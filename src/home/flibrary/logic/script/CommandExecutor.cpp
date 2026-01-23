@@ -13,7 +13,7 @@
 
 #include "network/network/downloader.h"
 #include "util/files.h"
-#include "util/process.h"
+#include "util/ProcessWrapper.h"
 
 #include "log.h"
 
