@@ -230,6 +230,11 @@ public:
 	}
 
 private: // IJokeRequester::IClient
+	void OnError(const QString& api, const QString& error) override
+	{
+		m_impl.OnError(api, error);
+	}
+
 	void OnTextReceived(const QString& value) override
 	{
 		m_impl.OnTextReceived(value);
@@ -525,6 +530,11 @@ private: // IProgressController::IObserver
 	}
 
 private: // IJokeRequester::IClient
+	void OnError(const QString& api, const QString& error) override
+	{
+		Perform(&IAnnotationController::IObserver::OnJokeErrorOccured, std::cref(api), std::cref(error));
+	}
+
 	void OnTextReceived(const QString& value) override
 	{
 		Perform(&IAnnotationController::IObserver::OnJokeTextChanged, std::cref(value));

@@ -37,6 +37,8 @@ using namespace Flibrary;
 namespace
 {
 
+constexpr auto SHOW_JOKE_ERRORS = "Preferences/AnnotationJokes/ShowErrors";
+
 constexpr std::pair<const char*, bool> NO_NAVIGATION { nullptr, false };
 
 constexpr std::pair<const char*, std::pair<const char*, bool>> TYPE_TO_NAVIGATION[] {
@@ -440,6 +442,12 @@ private: // IAnnotationController::IObserver
 
 		OnResize();
 		OnContentChanged();
+	}
+
+	void OnJokeErrorOccured(const QString& api, const QString& error) override
+	{
+		if (m_settings->Get(SHOW_JOKE_ERRORS, false))
+			m_ui.info->setText(QString(R"(<p>%1 failed:</p><p style="color:Red;">%2</p>)").arg(api, error));
 	}
 
 	void OnJokeTextChanged(const QString& value) override
