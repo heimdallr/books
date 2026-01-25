@@ -16,6 +16,10 @@ void AnnotationControllerObserver::OnAnnotationChanged(const Flibrary::IAnnotati
 	m_f(dataProvider);
 }
 
+void AnnotationControllerObserver::OnJokeErrorOccured(const QString&, const QString&)
+{
+}
+
 void AnnotationControllerObserver::OnJokeTextChanged(const QString&)
 {
 }
