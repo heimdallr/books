@@ -426,9 +426,6 @@ private:
 
 	bool SetErrorText(QWidget* widget, const QString& text = {}) const
 	{
-		if (!text.isEmpty())
-			PLOGW << text;
-
 		widget->setProperty("errorTag", text.isEmpty() ? "false" : "true");
 		widget->style()->unpolish(widget);
 		widget->style()->polish(widget);
