@@ -1,7 +1,7 @@
 @echo off
 
 set BUILD_TYPE=Release
-call %~dp0solution_generate.bat %*
+call %~dp0configure.bat %*
 if %errorlevel% NEQ 0 goto Error
 
 set start_time=%DATE% %TIME%
