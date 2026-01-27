@@ -15,7 +15,6 @@
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
-#include "database/interface/ITransaction.h"
 
 #include "interface/Localization.h"
 #include "interface/constants/Enums.h"
@@ -78,10 +77,10 @@ constexpr auto SEARCH_RESULTS_AUTHORS  = QT_TRANSLATE_NOOP("Requester", R"(Autho
 constexpr auto SEARCH_RESULTS_SERIES   = QT_TRANSLATE_NOOP("Requester", R"(Series found for the request "%1": %2)");
 constexpr auto NOTHING_FOUND           = QT_TRANSLATE_NOOP("Requester", R"(No books found for the request "%1")");
 constexpr auto SPECIFY_SEARCH_CATEGORY = QT_TRANSLATE_NOOP("Requester", R"(Specify what to search for your request "%1")");
-constexpr auto PREVIOUS                = QT_TRANSLATE_NOOP("Requester", "[Previous page]");
-constexpr auto NEXT                    = QT_TRANSLATE_NOOP("Requester", "[Next page]");
-constexpr auto FIRST                   = QT_TRANSLATE_NOOP("Requester", "[First page]");
-constexpr auto LAST                    = QT_TRANSLATE_NOOP("Requester", "[Last page]");
+constexpr auto FIRST                   = QT_TRANSLATE_NOOP("Requester", "%2 %2%1To begin");
+constexpr auto PREVIOUS                = QT_TRANSLATE_NOOP("Requester", "%1%1%2%1Back");
+constexpr auto NEXT                    = QT_TRANSLATE_NOOP("Requester", "Forward%1%2");
+constexpr auto LAST                    = QT_TRANSLATE_NOOP("Requester", "To end %1 %2%2");
 
 constexpr auto BOOK                    = "BookInfo";
 constexpr auto ENTRY                   = "entry";
@@ -94,6 +93,10 @@ constexpr auto SEPARATED               = "separated";
 constexpr auto OPDS_BOOK_LIMIT_KEY     = "Preferences/opds/BookEntryLimit";
 constexpr auto OPDS_BOOK_LIMIT_DEFAULT = 25;
 constexpr auto OPDS_SEPARATED_SEARCH   = "Preferences/opds/SeparatedSearch";
+
+constexpr QChar NBSP { 0x2002 };
+constexpr QChar ARROW_BACK { 0x2B9C };
+constexpr QChar ARROW_FORWARD { 0x2B9E };
 
 TR_DEF
 
@@ -1070,9 +1073,9 @@ public:
 
 			if (startResultIndex > 0)
 			{
-				writeNextPage(Tr(FIRST), 0LL, startEntryIndex);
+				writeNextPage(Tr(FIRST).arg(NBSP, ARROW_BACK), 0LL, startEntryIndex);
 				if (startResultIndex - maxResultSize > 0)
-					writeNextPage(Tr(PREVIOUS), std::max(startResultIndex - maxResultSize, 0LL), startEntryIndex + 1);
+					writeNextPage(Tr(PREVIOUS).arg(NBSP, ARROW_BACK), std::max(startResultIndex - maxResultSize, 0LL), startEntryIndex + 1);
 			}
 
 			if (tailSize > 0)
@@ -1081,9 +1084,9 @@ public:
 				if (lastPageIndex == selectionSize - startEntryIndex)
 					lastPageIndex -= maxResultSize;
 
-				writeNextPage(Tr(LAST), lastPageIndex, static_cast<ptrdiff_t>(head.children.size()));
+				writeNextPage(Tr(LAST).arg(NBSP, ARROW_FORWARD), lastPageIndex, static_cast<ptrdiff_t>(head.children.size()));
 				if (tailSize > maxResultSize)
-					writeNextPage(Tr(NEXT), startResultIndex + maxResultSize, static_cast<ptrdiff_t>(head.children.size()) - 1);
+					writeNextPage(Tr(NEXT).arg(NBSP, ARROW_FORWARD), startResultIndex + maxResultSize, static_cast<ptrdiff_t>(head.children.size()) - 1);
 			}
 		}
 

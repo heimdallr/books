@@ -5065,6 +5065,14 @@ Try again?</source>
 <context>
     <name>Requester</name>
     <message>
+        <source>%1%1%2%1Back</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>%2 %2%1To begin</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Authors found for the request &quot;%1&quot;: %2</source>
         <translation></translation>
     </message>
@@ -5081,6 +5089,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Forward%1%2</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>No books found for the request &quot;%1&quot;</source>
         <translation></translation>
     </message>
@@ -5093,19 +5105,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>[First page]</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>[Last page]</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>[Next page]</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>[Previous page]</source>
+        <source>To end %1 %2%2</source>
         <translation></translation>
     </message>
 </context>

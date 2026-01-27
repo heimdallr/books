@@ -5077,6 +5077,14 @@ Try again?</source>
 <context>
     <name>Requester</name>
     <message>
+        <source>%1%1%2%1Back</source>
+        <translation>%1%1%2%1Назад</translation>
+    </message>
+    <message>
+        <source>%2 %2%1To begin</source>
+        <translation>%2 %2%1На початок</translation>
+    </message>
+    <message>
         <source>Authors found for the request &quot;%1&quot;: %2</source>
         <translation>За запитом &quot;%1%&quot; знайдені автори %2</translation>
     </message>
@@ -5093,6 +5101,10 @@ Try again?</source>
         <translation>Книги: %1</translation>
     </message>
     <message>
+        <source>Forward%1%2</source>
+        <translation type="unfinished">Вперед %1 %2</translation>
+    </message>
+    <message>
         <source>No books found for the request &quot;%1&quot;</source>
         <translation>За запитом &quot;%1&quot; книг не знайдено</translation>
     </message>
@@ -5105,20 +5117,8 @@ Try again?</source>
         <translation>Вкажіть, що шукати для вашого запиту &quot;%1&quot;</translation>
     </message>
     <message>
-        <source>[First page]</source>
-        <translation>Перша сторінка</translation>
-    </message>
-    <message>
-        <source>[Last page]</source>
-        <translation>Остання сторінка</translation>
-    </message>
-    <message>
-        <source>[Next page]</source>
-        <translation>Наступна сторінка</translation>
-    </message>
-    <message>
-        <source>[Previous page]</source>
-        <translation>Попередня сторінка</translation>
+        <source>To end %1 %2%2</source>
+        <translation>В кінець%1%2%2</translation>
     </message>
 </context>
 <context>
