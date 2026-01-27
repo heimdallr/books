@@ -15,7 +15,6 @@
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
-#include "database/interface/ITransaction.h"
 
 #include "interface/Localization.h"
 #include "interface/constants/Enums.h"
