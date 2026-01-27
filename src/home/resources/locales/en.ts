@@ -5065,11 +5065,11 @@ Try again?</source>
 <context>
     <name>Requester</name>
     <message>
-        <source>%1%1%2%1Back</source>
+        <source>&lt;&lt; &lt;&lt; To begin</source>
         <translation></translation>
     </message>
     <message>
-        <source>%2 %2%1To begin</source>
+        <source>&lt;&lt; Back</source>
         <translation></translation>
     </message>
     <message>
@@ -5089,7 +5089,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Forward%1%2</source>
+        <source>Forward &gt;&gt;</source>
         <translation></translation>
     </message>
     <message>
@@ -5105,7 +5105,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>To end %1 %2%2</source>
+        <source>To end &gt;&gt; &gt;&gt;</source>
         <translation></translation>
     </message>
 </context>
