@@ -5493,7 +5493,7 @@ Try again?</source>
 <context>
     <name>opds</name>
     <message>
-        <source>Home</source>
+        <source>%1 Home</source>
         <translation></translation>
     </message>
     <message>

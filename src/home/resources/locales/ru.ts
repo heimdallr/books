@@ -5508,8 +5508,8 @@ Try again?</source>
 <context>
     <name>opds</name>
     <message>
-        <source>Home</source>
-        <translation>Домой</translation>
+        <source>%1 Home</source>
+        <translation>%1 Домой</translation>
     </message>
     <message>
         <source>Read</source>
