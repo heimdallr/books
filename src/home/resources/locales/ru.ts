@@ -5077,12 +5077,12 @@ Try again?</source>
 <context>
     <name>Requester</name>
     <message>
-        <source>%1%1%2%1Back</source>
-        <translation>%1%1%2%1Назад</translation>
+        <source>&lt;&lt; &lt;&lt; To begin</source>
+        <translation>&lt;&lt; &lt;&lt; К началу</translation>
     </message>
     <message>
-        <source>%2 %2%1To begin</source>
-        <translation>%2 %2%1К началу</translation>
+        <source>&lt;&lt; Back</source>
+        <translation>&lt;&lt; Назад</translation>
     </message>
     <message>
         <source>Authors found for the request &quot;%1&quot;: %2</source>
@@ -5101,8 +5101,8 @@ Try again?</source>
         <translation>Книги: %1</translation>
     </message>
     <message>
-        <source>Forward%1%2</source>
-        <translation>Вперёд %1%2</translation>
+        <source>Forward &gt;&gt;</source>
+        <translation>Вперёд &gt;&gt;</translation>
     </message>
     <message>
         <source>No books found for the request &quot;%1&quot;</source>
@@ -5117,8 +5117,8 @@ Try again?</source>
         <translation>Укажите, что искать по вашему запросу &quot;%1&quot;</translation>
     </message>
     <message>
-        <source>To end %1 %2%2</source>
-        <translation>В конец%1%2%2</translation>
+        <source>To end &gt;&gt; &gt;&gt;</source>
+        <translation>В конец &gt;&gt; &gt;&gt;</translation>
     </message>
 </context>
 <context>
