@@ -30,7 +30,7 @@ namespace
 {
 
 constexpr auto CONTEXT = "opds";
-constexpr auto HOME    = QT_TRANSLATE_NOOP("opds", "Home");
+constexpr auto HOME    = QT_TRANSLATE_NOOP("opds", "%1 Home");
 constexpr auto READ    = QT_TRANSLATE_NOOP("opds", "Read");
 constexpr auto SEARCH  = QT_TRANSLATE_NOOP("opds", "Search");
 constexpr auto MORE    = QT_TRANSLATE_NOOP("opds", "more");
@@ -145,7 +145,7 @@ protected:
 						.WriteStartElement("input").WriteAttribute("type", "text").WriteAttribute("id", "q").WriteAttribute("name", "q").WriteAttribute("placeholder", Tr(SEARCH)).WriteAttribute("size", "64").WriteEndElement()
 					.WriteEndElement()
 				.WriteEndElement()
-				.WriteStartElement("a").WriteAttribute("href", home).WriteCharacters(Tr(HOME)).WriteEndElement();
+				.WriteStartElement("a").WriteAttribute("href", home).WriteCharacters(Tr(HOME).arg(QChar{0x2302})).WriteEndElement();
 		// clang-format on
 		WriteHead();
 		m_writer->Guard("hr");
