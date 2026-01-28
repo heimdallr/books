@@ -431,8 +431,8 @@ bool ExecuteScript(const std::wstring& action, const Path& dbFileName, const Pat
 		}
 		else
 		{
-			[[maybe_unused]] const auto rc = sqlite3pp::command(db, command.data()).execute();
-			assert(rc == 0);
+			if (const auto rc = sqlite3pp::command(db, command.data()).execute(); rc != SQLITE_OK)
+				PLOGE << "Error code: " << rc << ": " << db->error_msg();
 		}
 	}
 
