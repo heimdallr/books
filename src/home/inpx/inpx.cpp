@@ -431,8 +431,8 @@ bool ExecuteScript(const std::wstring& action, const Path& dbFileName, const Pat
 		}
 		else
 		{
-			[[maybe_unused]] const auto rc = sqlite3pp::command(db, command.data()).execute();
-			assert(rc == 0);
+			if (const auto rc = sqlite3pp::command(db, command.data()).execute(); rc != SQLITE_OK)
+				PLOGE << "Error code: " << rc << ": " << db->error_msg();
 		}
 	}
 
@@ -685,7 +685,11 @@ size_t Store(const Path& dbFileName, Data& data)
 		"INSERT INTO Series_List (SeriesID, BookID, SeqNumber, OrdNum) VALUES(?, ?, ?, ?)",
 		data.booksSeries,
 		[](sqlite3pp::command& cmd, const BooksSeries::value_type& item) {
+			std::unordered_set<size_t> storedSeries;
 			return std::accumulate(item.second.cbegin(), item.second.cend(), 0, [&, ordNum = 0](const int init, const std::pair<size_t, std::optional<int>> series) mutable {
+				if (!storedSeries.insert(series.first).second)
+					return init;
+
 				cmd.reset();
 				cmd.bind(1, series.first);
 				cmd.bind(2, item.first);
