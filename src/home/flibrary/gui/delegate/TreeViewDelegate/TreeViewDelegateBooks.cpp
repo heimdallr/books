@@ -153,6 +153,9 @@ public:
 		, m_readMarkColor { GetReadMarkColor(settings) }
 		, m_readMarkWidth { settings.Get(READ_MARK_WIDTH, 0) }
 	{
+		m_alignments.fill(Qt::AlignLeft);
+		for (const auto column : DELEGATES | std::views::keys)
+			m_alignments[column] = Qt::AlignRight;
 	}
 
 private: // QStyledItemDelegate
@@ -183,11 +186,8 @@ private: // QStyledItemDelegate
 private:
 	void RenderBooks(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const
 	{
-		const auto column = index.data(Role::Remap).toInt();
-		if (std::ranges::any_of(DELEGATES | std::views::keys, [=](const auto item) {
-				return item == column;
-			}))
-			o.displayAlignment = Qt::AlignRight;
+		const auto column  = index.data(Role::Remap).toInt();
+		o.displayAlignment = m_alignments[column];
 
 		const auto markColor = m_readMarkColor.isValid() ? m_readMarkColor : o.palette.color(QPalette::ColorRole::Text);
 
@@ -219,6 +219,8 @@ private:
 	};
 	const QColor m_readMarkColor;
 	const int    m_readMarkWidth;
+
+	std::array<Qt::Alignment, BookItem::Column::Last> m_alignments {};
 };
 
 TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory>& uiFactory, const std::shared_ptr<const ISettings>& settings)
