@@ -4,6 +4,7 @@
 
 #include <QApplication>
 #include <QHeaderView>
+#include <QMetaEnum>
 #include <QPainter>
 #include <QStyledItemDelegate>
 #include <QTreeView>
@@ -29,8 +30,9 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto READ_MARK_COLOR = "Preferences/ReadMark/color";
-constexpr auto READ_MARK_WIDTH = "Preferences/ReadMark/width";
+constexpr auto READ_MARK_COLOR  = "Preferences/ReadMark/color";
+constexpr auto READ_MARK_WIDTH  = "Preferences/ReadMark/width";
+constexpr auto COLUMN_ALIGNMENT = "Preferences/Books/Alignment/%1";
 
 QString PassThruDelegate(const QVariant& value)
 {
@@ -157,6 +159,21 @@ public:
 		for (const auto column : DELEGATES | std::views::keys)
 			m_alignments[column] = Qt::AlignRight;
 		m_alignments[BookItem::Column::Lang] = Qt::AlignHCenter;
+
+		const auto setAlignment = [&](const int column, const QString& columnName) {
+			const auto alignmentVar = settings.Get(QString(COLUMN_ALIGNMENT).arg(columnName));
+			if (!alignmentVar.isValid())
+				return;
+
+			bool       ok    = false;
+			const auto value = QMetaEnum::fromType<Qt::Alignment>().keyToValue(alignmentVar.toByteArray().data(), &ok);
+			if (ok)
+				m_alignments[column] = static_cast<Qt::Alignment>(value);
+		};
+
+#define BOOKS_COLUMN_ITEM(NAME) setAlignment(BookItem::Column::NAME, #NAME);
+		BOOKS_COLUMN_ITEMS_X_MACRO
+#undef BOOKS_COLUMN_ITEM
 	}
 
 private: // QStyledItemDelegate
