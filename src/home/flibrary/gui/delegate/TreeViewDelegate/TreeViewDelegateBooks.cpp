@@ -4,6 +4,7 @@
 
 #include <QApplication>
 #include <QHeaderView>
+#include <QMetaEnum>
 #include <QPainter>
 #include <QStyledItemDelegate>
 #include <QTreeView>
@@ -17,6 +18,7 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/ui/IUiFactory.h"
 
+#include "logic/data/DataItem.h"
 #include "util/ISettings.h"
 
 #include "Measure.h"
@@ -29,8 +31,24 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto READ_MARK_COLOR = "Preferences/ReadMark/color";
-constexpr auto READ_MARK_WIDTH = "Preferences/ReadMark/width";
+constexpr auto READ_MARK_COLOR  = "Preferences/ReadMark/color";
+constexpr auto READ_MARK_WIDTH  = "Preferences/ReadMark/width";
+constexpr auto COLUMN_ALIGNMENT = "Preferences/Books/Alignment/%1";
+
+constexpr auto LIB_RATE  = "LibRate";
+constexpr auto USER_RATE = "UserRate";
+
+void SetAlignment(Qt::Alignment& alignment, const ISettings& settings, const QString& columnName)
+{
+	const auto alignmentVar = settings.Get(QString(COLUMN_ALIGNMENT).arg(columnName));
+	if (!alignmentVar.isValid())
+		return;
+
+	bool       ok    = false;
+	const auto value = QMetaEnum::fromType<Qt::Alignment>().keyToValue(alignmentVar.toByteArray().data(), &ok);
+	if (ok)
+		alignment = static_cast<Qt::Alignment>(value);
+}
 
 QString PassThruDelegate(const QVariant& value)
 {
@@ -85,46 +103,54 @@ private:
 class RateRendererStars final : virtual public IBookRenderer
 {
 public:
-	RateRendererStars(const int role, const ISettings& settings)
+	RateRendererStars(const int role, const ISettings& settings, const QString& columnName)
 		: m_role { role }
 		, m_starSymbol { settings.Get(Constant::Settings::PREFER_LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) }
 	{
+		SetAlignment(m_alignment, settings, columnName);
 	}
 
 private: // IRateRenderer
 	void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
 	{
-		const auto rate = index.data(m_role).toInt();
-		o.text          = rate < 1 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
+		const auto rate    = index.data(m_role).toInt();
+		o.displayAlignment = m_alignment;
+		o.text             = rate < 1 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
 		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
 	}
 
 private:
 	const int m_role;
 	const int m_starSymbol;
+
+	Qt::Alignment m_alignment { Qt::AlignLeft };
 };
 
 class RateRendererNumber final : virtual public BookRendererDefault
 {
 public:
-	explicit RateRendererNumber(const QStyledItemDelegate& impl)
+	explicit RateRendererNumber(const QStyledItemDelegate& impl, const ISettings& settings)
 		: BookRendererDefault(impl)
 	{
+		SetAlignment(m_alignment, settings, USER_RATE);
 	}
 
 private: // IRateRenderer
 	void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
 	{
-		o.displayAlignment = Qt::AlignRight;
+		o.displayAlignment = m_alignment;
 		BookRendererDefault::Render(painter, o, index);
 	}
+
+private:
+	Qt::Alignment m_alignment { Qt::AlignRight };
 };
 
 std::unique_ptr<const IBookRenderer> GetLibRateRenderer(QStyledItemDelegate& impl, const ISettings& settings)
 {
 	return settings.Get(Constant::Settings::PREFER_LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT
-	         ? std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererStars>(Role::LibRate, settings) }
-	         : std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererNumber>(impl) };
+	         ? std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererStars>(Role::LibRate, settings, LIB_RATE) }
+	         : std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererNumber>(impl, settings) };
 }
 
 QColor GetReadMarkColor(const ISettings& settings)
@@ -149,10 +175,18 @@ public:
 		: m_view { uiFactory.GetTreeView() }
 		, m_textDelegate { &PassThruDelegate }
 		, m_libRateRenderer { GetLibRateRenderer(*this, settings) }
-		, m_userRateRenderer { std::make_unique<RateRendererStars>(Role::UserRate, settings) }
+		, m_userRateRenderer { std::make_unique<RateRendererStars>(Role::UserRate, settings, USER_RATE) }
 		, m_readMarkColor { GetReadMarkColor(settings) }
 		, m_readMarkWidth { settings.Get(READ_MARK_WIDTH, 0) }
 	{
+		m_alignments.fill(Qt::AlignLeft);
+		for (const auto column : DELEGATES | std::views::keys)
+			m_alignments[column] = Qt::AlignRight;
+		m_alignments[BookItem::Column::Lang] = Qt::AlignHCenter;
+
+#define BOOKS_COLUMN_ITEM(NAME) SetAlignment(m_alignments[BookItem::Column::NAME], settings, #NAME);
+		BOOKS_COLUMN_ITEMS_X_MACRO
+#undef BOOKS_COLUMN_ITEM
 	}
 
 private: // QStyledItemDelegate
@@ -183,11 +217,8 @@ private: // QStyledItemDelegate
 private:
 	void RenderBooks(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const
 	{
-		const auto column = index.data(Role::Remap).toInt();
-		if (std::ranges::any_of(DELEGATES | std::views::keys, [=](const auto item) {
-				return item == column;
-			}))
-			o.displayAlignment = Qt::AlignRight;
+		const auto column  = index.data(Role::Remap).toInt();
+		o.displayAlignment = m_alignments[column];
 
 		const auto markColor = m_readMarkColor.isValid() ? m_readMarkColor : o.palette.color(QPalette::ColorRole::Text);
 
@@ -219,6 +250,8 @@ private:
 	};
 	const QColor m_readMarkColor;
 	const int    m_readMarkWidth;
+
+	std::array<Qt::Alignment, BookItem::Column::Last> m_alignments {};
 };
 
 TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory>& uiFactory, const std::shared_ptr<const ISettings>& settings)
