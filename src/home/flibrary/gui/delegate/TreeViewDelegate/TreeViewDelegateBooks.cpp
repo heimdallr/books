@@ -156,6 +156,7 @@ public:
 		m_alignments.fill(Qt::AlignLeft);
 		for (const auto column : DELEGATES | std::views::keys)
 			m_alignments[column] = Qt::AlignRight;
+		m_alignments[BookItem::Column::Lang] = Qt::AlignHCenter;
 	}
 
 private: // QStyledItemDelegate
