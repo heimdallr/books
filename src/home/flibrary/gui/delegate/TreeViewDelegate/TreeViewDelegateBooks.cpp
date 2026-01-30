@@ -109,9 +109,9 @@ private:
 class RateRendererStars final : virtual public IBookRenderer
 {
 public:
-	RateRendererStars(const int role, const ISettings& settings, const QString& columnName, QString zeroSymbol = {})
+	RateRendererStars(const int role, const ISettings& settings, const QString& columnName, const QString& starSymbolKey, QString zeroSymbol = {})
 		: m_role { role }
-		, m_starSymbol { settings.Get(Constant::Settings::PREFER_LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) }
+		, m_starSymbol { settings.Get(starSymbolKey, Constant::Settings::STAR_SYMBOL_DEFAULT) }
 		, m_zeroSymbol { std::move(zeroSymbol) }
 	{
 		SetAlignment(m_alignment, settings, columnName);
@@ -164,7 +164,7 @@ private:
 std::unique_ptr<const IBookRenderer> GetLibRateRenderer(QStyledItemDelegate& impl, const ISettings& settings)
 {
 	return settings.Get(Constant::Settings::PREFER_LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT
-	         ? std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererStars>(Role::LibRate, settings, LIB_RATE) }
+	         ? std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererStars>(Role::LibRate, settings, LIB_RATE, Constant::Settings::PREFER_LIB_RATE_STAR_SYMBOL_KEY) }
 	         : std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererNumber>(impl, settings) };
 }
 
@@ -190,7 +190,7 @@ public:
 		: m_view { uiFactory.GetTreeView() }
 		, m_textDelegate { &PassThruDelegate }
 		, m_libRateRenderer { GetLibRateRenderer(*this, settings) }
-		, m_userRateRenderer { std::make_unique<RateRendererStars>(Role::UserRate, settings, USER_RATE, GetZeroSymbol(settings)) }
+		, m_userRateRenderer { std::make_unique<RateRendererStars>(Role::UserRate, settings, USER_RATE, Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY, GetZeroSymbol(settings)) }
 		, m_readMarkColor { GetReadMarkColor(settings) }
 		, m_readMarkWidth { settings.Get(READ_MARK_WIDTH, 0) }
 	{
