@@ -69,6 +69,7 @@ constexpr auto        SETTINGS_FILE_FILTER                 = QT_TRANSLATE_NOOP("
 constexpr auto        SEARCH_BOOKS_BY_TITLE_PLACEHOLDER    = QT_TRANSLATE_NOOP("MainWindow", "To search for books by author, series, or title, enter the name or title here and press Enter");
 constexpr auto        ENABLE_ALL                           = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
 constexpr auto        DISABLE_ALL                          = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
+constexpr auto        STOP_HTTP                            = QT_TRANSLATE_NOOP("MainWindow", "The HTTP server is still running. Would you like to stop it?");
 constexpr auto        MY_FOLDER                            = QT_TRANSLATE_NOOP("MainWindow", "My export folder");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
@@ -325,14 +326,7 @@ public:
 
 	bool Close()
 	{
-		if (!m_systemTray)
-			return QCoreApplication::exit(), true;
-
-		OnHideEvent();
-
-		m_systemTray->show();
-		m_self.hide();
-		return false;
+		return CheckSystemTray() && CheckOpds() && (QCoreApplication::exit(), true);
 	}
 
 	void OnStartAnotherApp() const
@@ -1325,6 +1319,49 @@ private:
 			m_settings->Load(importSettingsPath);
 			Reboot();
 		}
+	}
+
+	bool CheckSystemTray()
+	{
+		if (!m_systemTray)
+			return true;
+
+		OnHideEvent();
+
+		m_systemTray->show();
+		m_self.hide();
+		return false;
+	}
+
+	bool CheckOpds() const
+	{
+		const auto opdsActionExit = m_settings->Get(Constant::Settings::OPDS_ON_APP_EXIT_KEY, QString { IOpdsController::ON_APP_EXIT[0] });
+		if (opdsActionExit == IOpdsController::ON_APP_EXIT[0])
+			return true;
+
+		auto controller = ILogicFactory::Lock(m_logicFactory)->CreateOpdsController();
+		if (!controller->IsRunning())
+			return true;
+
+		if (opdsActionExit == IOpdsController::ON_APP_EXIT[2])
+			return controller->Stop(), true;
+
+		if (opdsActionExit != IOpdsController::ON_APP_EXIT[1])
+			return true;
+
+		switch (m_uiFactory->ShowQuestion(Tr(STOP_HTTP), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::No))
+		{
+			case QMessageBox::Yes:
+				return controller->Stop(), true;
+
+			case QMessageBox::No:
+				return true;
+
+			default:
+				break;
+		}
+
+		return false;
 	}
 
 	static void Reboot()
