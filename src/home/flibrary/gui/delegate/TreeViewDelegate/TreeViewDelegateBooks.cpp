@@ -50,6 +50,12 @@ void SetAlignment(Qt::Alignment& alignment, const ISettings& settings, const QSt
 		alignment = static_cast<Qt::Alignment>(value);
 }
 
+QString GetZeroSymbol(const ISettings& settings)
+{
+	const auto value = settings.Get(Constant::Settings::PREFER_USER_RATE_ZERO_SYMBOL_KEY, 0);
+	return value ? QString { QChar { value } } : QString {};
+}
+
 QString PassThruDelegate(const QVariant& value)
 {
 	return value.toString();
@@ -103,9 +109,10 @@ private:
 class RateRendererStars final : virtual public IBookRenderer
 {
 public:
-	RateRendererStars(const int role, const ISettings& settings, const QString& columnName)
+	RateRendererStars(const int role, const ISettings& settings, const QString& columnName, QString zeroSymbol = {})
 		: m_role { role }
 		, m_starSymbol { settings.Get(Constant::Settings::PREFER_LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) }
+		, m_zeroSymbol { std::move(zeroSymbol) }
 	{
 		SetAlignment(m_alignment, settings, columnName);
 	}
@@ -113,15 +120,23 @@ public:
 private: // IRateRenderer
 	void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
 	{
-		const auto rate    = index.data(m_role).toInt();
 		o.displayAlignment = m_alignment;
-		o.text             = rate < 1 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
+		o.text             = [&]() -> QString {
+            const auto rateVar = index.data(m_role).toString();
+            bool       ok      = false;
+            const auto rate    = rateVar.toInt(&ok);
+            if (!ok)
+                return {};
+
+            return rate == 0 ? m_zeroSymbol : rate < 0 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
+		}();
 		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
 	}
 
 private:
-	const int m_role;
-	const int m_starSymbol;
+	const int     m_role;
+	const int     m_starSymbol;
+	const QString m_zeroSymbol;
 
 	Qt::Alignment m_alignment { Qt::AlignLeft };
 };
@@ -175,7 +190,7 @@ public:
 		: m_view { uiFactory.GetTreeView() }
 		, m_textDelegate { &PassThruDelegate }
 		, m_libRateRenderer { GetLibRateRenderer(*this, settings) }
-		, m_userRateRenderer { std::make_unique<RateRendererStars>(Role::UserRate, settings, USER_RATE) }
+		, m_userRateRenderer { std::make_unique<RateRendererStars>(Role::UserRate, settings, USER_RATE, GetZeroSymbol(settings)) }
 		, m_readMarkColor { GetReadMarkColor(settings) }
 		, m_readMarkWidth { settings.Get(READ_MARK_WIDTH, 0) }
 	{

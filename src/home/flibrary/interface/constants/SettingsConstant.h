@@ -39,6 +39,7 @@ constexpr auto COLLECTIONS                        = "Collections";
 constexpr auto DESTRUCTIVE_OPERATIONS_ALLOWED_KEY = "destructiveOperationsAllowed";
 
 constexpr auto PREFER_LIBRATE_STAR_SYMBOL_KEY    = "Preferences/LibRate/symbol";
+constexpr auto PREFER_USER_RATE_ZERO_SYMBOL_KEY  = "Preferences/UserRate/noRateSymbol";
 constexpr auto PREFER_LIBRATE_VIEW_PRECISION_KEY = "Preferences/LibRate/precision";
 constexpr auto PREFER_LIBRATE_VIEW_COLORS_KEY    = "Preferences/LibRate/colors";
 constexpr auto PREFER_OPDS_READ_URL_TEMPLATE     = "Preferences/opds/ReadUrlTemplate";
