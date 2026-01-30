@@ -4725,6 +4725,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>The HTTP server is still running. Would you like to stop it?</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>The right decision!</source>
         <translation></translation>
     </message>
@@ -4933,6 +4937,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Ask every time</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Authorization</source>
         <translation></translation>
     </message>
@@ -4942,6 +4950,10 @@ Try again?</source>
     </message>
     <message>
         <source>Close</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Continue working</source>
         <translation></translation>
     </message>
     <message>
@@ -4961,6 +4973,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>On FLibrary exit</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Password</source>
         <translation></translation>
     </message>
@@ -4970,6 +4986,10 @@ Try again?</source>
     </message>
     <message>
         <source>ReactApp web interface</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Shutdown server</source>
         <translation></translation>
     </message>
     <message>

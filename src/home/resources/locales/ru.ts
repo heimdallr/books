@@ -4737,6 +4737,10 @@ Try again?</source>
         <translation>У&amp;величить размер</translation>
     </message>
     <message>
+        <source>The HTTP server is still running. Would you like to stop it?</source>
+        <translation>HTTP-сервер всё ещё работает. Хотите его остановить?</translation>
+    </message>
+    <message>
         <source>The right decision!</source>
         <translation>Правильное решение!</translation>
     </message>
@@ -4945,6 +4949,10 @@ Try again?</source>
         <translation>Любой</translation>
     </message>
     <message>
+        <source>Ask every time</source>
+        <translation>Спрашивать каждый раз</translation>
+    </message>
+    <message>
         <source>Authorization</source>
         <translation>Авторизация</translation>
     </message>
@@ -4955,6 +4963,10 @@ Try again?</source>
     <message>
         <source>Close</source>
         <translation>Закрыть</translation>
+    </message>
+    <message>
+        <source>Continue working</source>
+        <translation>Продолжать работу</translation>
     </message>
     <message>
         <source>Copy address to clipboard</source>
@@ -4973,6 +4985,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>On FLibrary exit</source>
+        <translation>При выходе из FLibrary</translation>
+    </message>
+    <message>
         <source>Password</source>
         <translation>Пароль</translation>
     </message>
@@ -4983,6 +4999,10 @@ Try again?</source>
     <message>
         <source>ReactApp web interface</source>
         <translation>Веб-интерфейс ReactApp</translation>
+    </message>
+    <message>
+        <source>Shutdown server</source>
+        <translation>Остановить сервер</translation>
     </message>
     <message>
         <source>Simple web interface</source>

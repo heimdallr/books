@@ -14,7 +14,7 @@ public:
 	static constexpr const char* ON_APP_EXIT[] {
 		QT_TRANSLATE_NOOP("OpdsDialog", "Continue working"),
 		QT_TRANSLATE_NOOP("OpdsDialog", "Ask every time"),
-		QT_TRANSLATE_NOOP("OpdsDialog", "Exit"),
+		QT_TRANSLATE_NOOP("OpdsDialog", "Shutdown server"),
 	};
 
 public:
