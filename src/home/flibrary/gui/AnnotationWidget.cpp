@@ -488,9 +488,14 @@ private: // IAnnotationController::IUrlGenerator
 		                                                                                                                                                 : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
 	}
 
-	QString GenerateStars(const int rate) const override
+	QString GenerateLibRateStars(const int rate) const override
 	{
-		return QString { rate, QChar(m_starSymbol) };
+		return QString { rate, QChar(m_libRateStarSymbol) };
+	}
+
+	QString GenerateUserRateStars(const int rate) const override
+	{
+		return QString { rate, QChar(m_userRateStarSymbol) };
 	}
 
 private:
@@ -659,7 +664,8 @@ private:
 	std::vector<QAbstractButton*> m_coverButtons;
 	bool                          m_coverButtonsEnabled { false };
 	bool                          m_coverButtonsVisible { true };
-	const int                     m_starSymbol { m_settings->Get(Constant::Settings::PREFER_LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) };
+	const int                     m_libRateStarSymbol { m_settings->Get(Constant::Settings::PREFER_LIB_RATE_STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) };
+	const int                     m_userRateStarSymbol { m_settings->Get(Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) };
 };
 
 AnnotationWidget::AnnotationWidget(
