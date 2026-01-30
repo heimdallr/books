@@ -24,9 +24,14 @@ private: // IAnnotationController::IUrlGenerator
 		return str;
 	}
 
-	QString GenerateStars(const int rate) const override
+	QString GenerateLibRateStars(const int rate) const override
 	{
 		return rate > 0 && rate <= 5 ? QString::number(rate) : QString {};
+	}
+
+	QString GenerateUserRateStars(const int rate) const override
+	{
+		return GenerateLibRateStars(rate);
 	}
 
 	void Add(const Section section, QString& text, const QString& str, const char* pattern) const override
