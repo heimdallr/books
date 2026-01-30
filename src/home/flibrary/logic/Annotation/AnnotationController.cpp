@@ -874,8 +874,8 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 		auto info = Table(strategy).Add(FILENAME, book.GetRawData(BookItem::Column::FileName)).Add(SOURCE_LIBRARY, dataProvider.GetSourceLibrary());
 		if (dataProvider.GetTextSize() > 0)
 			info.Add(BOOK_SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))).arg(Round(dataProvider.GetWordCount(), -3)));
-		info.Add(Loc::RATE, strategy.GenerateStars(book.GetRawData(BookItem::Column::LibRate).toInt()));
-		info.Add(Loc::USER_RATE, strategy.GenerateStars(book.GetRawData(BookItem::Column::UserRate).toInt()));
+		info.Add(Loc::RATE, strategy.GenerateLibRateStars(book.GetRawData(BookItem::Column::LibRate).toInt()));
+		info.Add(Loc::USER_RATE, strategy.GenerateUserRateStars(book.GetRawData(BookItem::Column::UserRate).toInt()));
 
 		if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
 		{
