@@ -1,5 +1,7 @@
 #pragma once
 
+#include <qnamespace.h>
+
 #include "fnd/observer.h"
 
 namespace HomeCompa::Flibrary
@@ -7,6 +9,14 @@ namespace HomeCompa::Flibrary
 
 class IOpdsController // NOLINT(cppcoreguidelines-special-member-functions)
 {
+public:
+	static constexpr auto        CONTEXT = "OpdsDialog";
+	static constexpr const char* ON_APP_EXIT[] {
+		QT_TRANSLATE_NOOP("OpdsDialog", "Continue working"),
+		QT_TRANSLATE_NOOP("OpdsDialog", "Ask every time"),
+		QT_TRANSLATE_NOOP("OpdsDialog", "Exit"),
+	};
+
 public:
 	class IObserver : public Observer
 	{

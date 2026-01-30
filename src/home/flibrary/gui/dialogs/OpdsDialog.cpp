@@ -19,7 +19,7 @@ namespace
 {
 constexpr auto LABEL_LINK_TEMPLATE = R"(<a href="%1">%2</a>)";
 
-constexpr auto CONTEXT                     = "OpdsDialog";
+constexpr auto CONTEXT                     = IOpdsController::CONTEXT;
 constexpr auto ADDRESS_COPIED              = QT_TRANSLATE_NOOP("OpdsDialog", "Address has been copied to the clipboard");
 constexpr auto NO_NETWORK_INTERFACES_FOUND = QT_TRANSLATE_NOOP("OpdsDialog", "No network interfaces found");
 constexpr auto ANY                         = QT_TRANSLATE_NOOP("OpdsDialog", "Any");
@@ -53,6 +53,14 @@ struct OpdsDialog::Impl final
 		for (const QHostAddress& address : QNetworkInterface::allAddresses())
 			if (address.protocol() == QAbstractSocket::IPv4Protocol)
 				ui.comboBoxHosts->addItem(address.toString(), address.toString());
+
+		for (const auto* item : IOpdsController::ON_APP_EXIT)
+			ui.comboBoxOnExit->addItem(Tr(item), QString { item });
+		if (const auto index = ui.comboBoxOnExit->findData(this->settings->Get(Constant::Settings::OPDS_ON_APP_EXIT_KEY, QString { IOpdsController::ON_APP_EXIT[0] })); index >= 0)
+			ui.comboBoxOnExit->setCurrentIndex(index);
+		connect(ui.comboBoxOnExit, &QComboBox::currentIndexChanged, &self, [this] {
+			this->settings->Set(Constant::Settings::OPDS_ON_APP_EXIT_KEY, ui.comboBoxOnExit->currentData().toString());
+		});
 
 		if (const auto index = ui.comboBoxHosts->findData(this->settings->Get(Constant::Settings::OPDS_HOST_KEY, Constant::Settings::OPDS_HOST_DEFAULT)); index >= 0)
 			ui.comboBoxHosts->setCurrentIndex(index);
