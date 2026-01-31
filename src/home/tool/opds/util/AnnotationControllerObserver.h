@@ -16,6 +16,7 @@ public:
 private: // IAnnotationController::IObserver
 	void OnAnnotationRequested() override;
 	void OnAnnotationChanged(const Flibrary::IAnnotationController::IDataProvider& dataProvider) override;
+	void OnJokeErrorOccured(const QString& api, const QString& error) override;
 	void OnJokeTextChanged(const QString&) override;
 	void OnJokeImageChanged(const QByteArray&) override;
 	void OnArchiveParserProgress(int percents) override;

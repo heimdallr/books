@@ -341,11 +341,19 @@ private:
 			return QString(R"(<Url type="application/atom+xml;profile=opds-catalog" xmlns:atom="http://www.w3.org/2005/Atom" template="http://%1:%2/search?q={searchTerms}" />)").arg(host).arg(port);
 		});
 
+		bool exists = !roots.empty();
+
 		for (const auto& root : roots)
 			RouteWithRoot(root);
 
 		if (m_settings->Get(Flibrary::Constant::Settings::OPDS_REACT_APP_ENABLED, true))
+		{
 			RouteReactApp();
+			exists = true;
+		}
+
+		if (exists)
+			RouteGetBook();
 	}
 
 	void RouteWithRoot(const QString& root)
@@ -398,7 +406,6 @@ private:
 		};
 
 		for (const auto& [name, requester] : booksApiDescription)
-		{
 			m_server.route(QString(GET_BOOKS_API).arg(name), [this, requester](const QHttpServerRequest& request) {
 				return QtConcurrent::run([this, requester, parameters = GetParameters<IReactAppRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)] {
 					auto response = EncodeContent(std::invoke(requester, *m_reactAppRequester, std::cref(parameters)), acceptEncoding);
@@ -406,7 +413,10 @@ private:
 					return response;
 				});
 			});
-		}
+	}
+
+	void RouteGetBook()
+	{
 		m_server.route(QString(GET_BOOKS_API_COVER).arg(ARG), [this](const QString& value) {
 			return QtConcurrent::run([this, value] {
 				QHttpServerResponse response(m_noSqlRequester->GetCover(value));

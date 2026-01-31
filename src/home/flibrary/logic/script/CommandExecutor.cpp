@@ -7,13 +7,13 @@
 #include <QDir>
 #include <QEventLoop>
 #include <QProcess>
-#include <QRegularExpression>
 #include <QUrl>
 
 #include "fnd/FindPair.h"
 
 #include "network/network/downloader.h"
 #include "util/files.h"
+#include "util/ProcessWrapper.h"
 
 #include "log.h"
 
@@ -22,28 +22,13 @@ using namespace Flibrary;
 
 namespace
 {
-QStringList SplitStringWithQuotes(const QString& str)
-{
-	QRegularExpression              regex("\"([^\"]*)\"|([^\\s,]+)");
-	QRegularExpressionMatchIterator it = regex.globalMatch(str);
-	QStringList                     result;
-	while (it.hasNext())
-	{
-		QRegularExpressionMatch match = it.next();
-		if (match.captured(1).length() > 0)
-			result.append(match.captured(1));
-		else if (match.captured(2).length() > 0)
-			result.append(match.captured(2));
-	}
-	return result;
-}
 
 bool EmbeddedCommandDownload(const QString& argStr)
 {
 	bool    outputFileMode = false;
 	QString outputFileName;
 	QString url;
-	for (const auto& arg : SplitStringWithQuotes(argStr))
+	for (const auto& arg : Util::SplitStringWithQuotes(argStr))
 	{
 		if (arg == "-o")
 		{
@@ -126,7 +111,7 @@ constexpr std::pair<const char*, bool (*)(const QString&)> EMBEDDED_COMMANDS[] {
 };
 static_assert(std::size(EMBEDDED_COMMANDS) == static_cast<size_t>(IScriptController::EmbeddedCommand::Last));
 
-bool ShellExecute(const std::wstring& file, const std::wstring& parameters, const IScriptController::Command::Type type)
+bool ShellExecute(const std::wstring& file, const std::wstring& parameters, const std::wstring& cwd, const IScriptController::Command::Type type)
 {
 	const auto& [show, wait] = FindSecond(TYPES, type);
 
@@ -137,7 +122,7 @@ bool ShellExecute(const std::wstring& file, const std::wstring& parameters, cons
 	lpExecInfo.hwnd         = nullptr;
 	lpExecInfo.lpVerb       = L"open";
 	lpExecInfo.lpParameters = parameters.data();
-	lpExecInfo.lpDirectory  = nullptr;
+	lpExecInfo.lpDirectory  = cwd.data();
 	lpExecInfo.nShow        = show;
 	lpExecInfo.hInstApp     = reinterpret_cast<HINSTANCE>(SE_ERR_DDEFAIL);
 	ShellExecuteEx(&lpExecInfo);
@@ -152,47 +137,19 @@ bool ShellExecute(const std::wstring& file, const std::wstring& parameters, cons
 	return true;
 }
 
-bool CreateProcess(const std::wstring& file, const std::wstring& parameters)
-{
-	QProcess   process;
-	QEventLoop eventLoop;
-	const auto args = SplitStringWithQuotes(QString::fromStdWString(parameters));
-
-	QByteArray fixed;
-	QObject::connect(&process, &QProcess::started, [&] {
-		PLOGV << QString("%1 %2 launched").arg(file, args.join(" "));
-	});
-	QObject::connect(&process, &QProcess::finished, [&](const int code, const QProcess::ExitStatus) {
-		eventLoop.exit(code);
-	});
-	QObject::connect(&process, &QProcess::readyReadStandardError, [&] {
-		PLOGV << process.readAllStandardError();
-	});
-	QObject::connect(&process, &QProcess::readyReadStandardOutput, [&] {
-		PLOGV << process.readAllStandardOutput();
-	});
-
-	process.start(QString::fromStdWString(file), args, QIODevice::ReadWrite);
-	process.closeWriteChannel();
-
-	return eventLoop.exec() == 0;
-}
-
 } // namespace
 
 bool CommandExecutor::ExecuteSystem(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::System);
 	const auto cmdLine = QString("/D /C %1 %2").arg(command.command, command.args).toStdWString();
-	return ShellExecute(L"cmd.exe", cmdLine, IScriptController::Command::Type::System);
+	return ShellExecute(L"cmd.exe", cmdLine, command.workingFolder.toStdWString(), IScriptController::Command::Type::System);
 }
 
 bool CommandExecutor::ExecuteLaunchConsoleApp(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::LaunchConsoleApp);
-	const auto file       = QDir::toNativeSeparators(Util::ToAbsolutePath(command.command)).toStdWString();
-	const auto parameters = command.args.toStdWString();
-	return CreateProcess(file, parameters);
+	return Util::RunProcess(Util::ToAbsolutePath(command.command), command.args, command.workingFolder);
 }
 
 bool CommandExecutor::ExecuteLaunchGuiApp(const IScriptController::Command& command) const
@@ -200,7 +157,7 @@ bool CommandExecutor::ExecuteLaunchGuiApp(const IScriptController::Command& comm
 	assert(command.type == IScriptController::Command::Type::LaunchGuiApp);
 	const auto file       = QDir::toNativeSeparators(Util::ToAbsolutePath(command.command)).toStdWString();
 	const auto parameters = command.args.toStdWString();
-	return ShellExecute(file, parameters, IScriptController::Command::Type::LaunchGuiApp);
+	return ShellExecute(file, parameters, command.workingFolder.toStdWString(), IScriptController::Command::Type::LaunchGuiApp);
 }
 
 bool CommandExecutor::ExecuteEmbeddedCommand(const IScriptController::Command& command) const

@@ -59,9 +59,19 @@ constexpr auto LAST                               = "Last";
 class HeaderView final : public QHeaderView
 {
 public:
-	HeaderView(QAbstractItemView& view, const QString& currentId, QWidget* parent = nullptr)
+	class IObserver // NOLINT(cppcoreguidelines-special-member-functions)
+	{
+	public:
+		virtual ~IObserver() = default;
+
+		virtual void               OnSortChanged()    = 0;
+		virtual QAbstractItemView& GetView() noexcept = 0;
+	};
+
+public:
+	HeaderView(IObserver& observer, const QString& currentId, QWidget* parent = nullptr)
 		: QHeaderView(Qt::Horizontal, parent)
-		, m_view { view }
+		, m_observer { observer }
 		, m_currentId { currentId }
 	{
 		setFirstSectionMovable(false);
@@ -122,14 +132,16 @@ public:
 	{
 		model()->setData({}, QVariant::fromValue(m_sort), Role::SortOrder);
 
+		auto& view = m_observer.GetView();
+
 		if (m_currentId.isEmpty())
-			return QTimer::singleShot(0, [this] {
-				m_view.setCurrentIndex(model()->index(0, 0));
-				return m_view.scrollToTop();
+			return QTimer::singleShot(0, [&] {
+				view.setCurrentIndex(model()->index(0, 0));
+				return view.scrollToTop();
 			});
 
 		if (const auto matched = model()->match(model()->index(0, 0), Role::Id, m_currentId, 1, Qt::MatchFlag::MatchExactly | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
-			m_view.scrollTo(matched.front(), PositionAtCenter);
+			view.scrollTo(matched.front(), PositionAtCenter);
 	}
 
 private: // QHeaderView
@@ -215,6 +227,7 @@ private:
 
 		const ScopedCall apply([this] {
 			ApplySort();
+			m_observer.OnSortChanged();
 		});
 
 		auto name = model()->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
@@ -245,7 +258,7 @@ private:
 			m_columns.erase(it);
 		};
 
-		if (QGuiApplication::queryKeyboardModifiers() & Qt::KeyboardModifier::ShiftModifier)
+		if (QGuiApplication::queryKeyboardModifiers() & (Qt::KeyboardModifier::ShiftModifier | Qt::KeyboardModifier::AltModifier | Qt::KeyboardModifier::ControlModifier))
 			return it == m_columns.end() ? add() : change();
 
 		if (it != m_columns.end() && it->second + 1 == m_sort.size())
@@ -257,7 +270,7 @@ private:
 	}
 
 private:
-	QAbstractItemView&                         m_view;
+	IObserver&                                 m_observer;
 	const QString&                             m_currentId;
 	std::vector<std::pair<int, Qt::SortOrder>> m_sort;
 	std::unordered_map<QString, size_t>        m_columns;
@@ -369,6 +382,7 @@ class TreeView::Impl final
 	, ITreeViewDelegate::IObserver
 	, IFilterProvider::IObserver
 	, ModeComboBox::IValueApplier
+	, HeaderView::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -582,6 +596,17 @@ private: //	ModeComboBox::IValueApplier
 		m_filterTimer.start();
 	}
 
+private: // HeaderView::IObserver
+	void OnSortChanged() override
+	{
+		SaveHeaderLayout();
+	}
+
+	QAbstractItemView& GetView() noexcept override
+	{
+		return *m_ui.treeView;
+	}
+
 private:
 	bool IsNavigation() const
 	{
@@ -610,7 +635,8 @@ private:
 		if (IsNavigation())
 		{
 			m_delegate->SetEnabled(static_cast<bool>((m_removeItems = m_controller->GetRemoveItems())));
-			if (m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Archives))
+			const auto navigationMode = static_cast<NavigationMode>(m_controller->GetModeIndex());
+			if (navigationMode == NavigationMode::Archives)
 			{
 				model->setData({}, QVariant::fromValue<const IModelSorter*>(&m_archiveSorter), Role::ModelSorter);
 				std::vector<std::pair<int, Qt::SortOrder>> sort {
@@ -618,6 +644,20 @@ private:
 				};
 				model->setData({}, QVariant::fromValue(std::move(sort)), Role::SortOrder);
 			}
+
+			static constexpr NavigationMode extendedSelectionModes[] {
+				NavigationMode::Authors, NavigationMode::Series, NavigationMode::Genres, NavigationMode::Keywords, NavigationMode::Languages, NavigationMode::Groups, NavigationMode::Search,
+			};
+			m_ui.treeView->setSelectionMode(
+				std::ranges::any_of(
+					extendedSelectionModes,
+					[navigationMode](const auto item) {
+						return item == navigationMode;
+					}
+				)
+					? QAbstractItemView::SelectionMode::ExtendedSelection
+					: QAbstractItemView::SelectionMode::SingleSelection
+			);
 		}
 		else
 		{
@@ -819,7 +859,7 @@ private:
 
 		if (!IsNavigation())
 		{
-			m_booksHeaderView = new HeaderView(*m_ui.treeView, m_currentId, &m_self);
+			m_booksHeaderView = new HeaderView(*this, m_currentId, &m_self);
 			m_ui.treeView->setHeader(m_booksHeaderView);
 			connect(m_booksHeaderView, &QHeaderView::sectionResized, &m_self, [this] {
 				SaveHeaderLayout();
@@ -959,10 +999,12 @@ private:
             for (int i = 0, sz = header->count(); i < sz; ++i)
             {
                 const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
-                if (!header->isSectionHidden(i))
-                    m_settings->Set(QString(COLUMN_WIDTH_LOCAL_KEY).arg(name), header->sectionSize(i));
-                m_settings->Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(name), header->visualIndex(i));
                 m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), header->isSectionHidden(i));
+                if (header->isSectionHidden(i))
+                    continue;
+
+                m_settings->Set(QString(COLUMN_WIDTH_LOCAL_KEY).arg(name), header->sectionSize(i));
+                m_settings->Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(name), header->visualIndex(i));
             }
 
             m_booksHeaderView->Save(*m_settings);
@@ -1042,7 +1084,7 @@ private:
 
 		for (int i = 0, sz = header->count(); i < sz; ++i)
 			if (const auto it = widths.find(i); it != widths.end())
-				header->resizeSection(i, it->second);
+				header->resizeSection(i, std::max(it->second, header->minimumSectionSize()));
 
 		auto absent = nameToIndex;
 		for (const auto& columnName : indices | std::views::values)
@@ -1104,9 +1146,12 @@ private:
 				continue;
 
 			auto* action = menu->addAction(model->headerData(index, Qt::Horizontal, Role::HeaderTitle).toString(), &m_self, [this_ = this, header, index](const bool checked) {
+				const QSignalBlocker signalBlocker(header);
 				if (!checked)
 					header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
 				header->setSectionHidden(index, !checked);
+				if (checked && header->sectionSize(index) < header->minimumSectionSize())
+					header->resizeSection(index, header->minimumSectionSize());
 				if (checked)
 					header->resizeSection(0, header->sectionSize(0) - header->sectionSize(index));
 

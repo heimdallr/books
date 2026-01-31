@@ -67,7 +67,7 @@ void BaseJokeRequester::OnResponse(const size_t id, const int code, const QStrin
 			return;
 
 		PLOGE << errorMessage;
-		client->OnTextReceived(QString(R"(<p>%1 failed:</p><p style="color:Red;">%2</p>)").arg(m_impl->uri, errorMessage));
+		client->OnError(m_impl->uri, errorMessage);
 	});
 
 	if (code != QNetworkReply::NetworkError::NoError)

@@ -59,8 +59,8 @@ public:
 	void UpdateCollection(IniMap data, CreateCollectionMode mode, Callback callback);
 	void RescanCollection(IniMap data, CreateCollectionMode mode, Callback callback);
 
-	static void FillInpx(const std::filesystem::path& collectionFolder, DB::ITransaction& transaction);
-	static bool CheckForUpdate(const std::filesystem::path& collectionFolder, DB::IDatabase& database);
+	static void FillInpx(IniMap data, DB::ITransaction& transaction);
+	static bool CheckForUpdate(IniMap data, DB::IDatabase& database);
 
 private:
 	class Impl;

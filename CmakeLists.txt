@@ -41,6 +41,10 @@ find_package(7zip REQUIRED)
 find_package(ICU REQUIRED)
 find_package(libjxl REQUIRED)
 
+set(QtModules Widgets Xml Network Svg SvgWidgets Concurrent HttpServer)
+find_package(Qt6 REQUIRED COMPONENTS ${QtModules})
+include(QtInstallPaths)
+
 set(FOUNDATION_ROOT ${CMAKE_SOURCE_DIR}/src/ext/foundation CACHE STRING "FOUNDATION_ROOT")
 include_directories(${FOUNDATION_ROOT})
 include(${FOUNDATION_ROOT}/fnd/fnd.cmake)
@@ -55,13 +59,11 @@ include(${FOUNDATION_ROOT}/icu/icu.cmake)
 string(TOUPPER ${CMAKE_BUILD_TYPE} CMAKE_BUILD_TYPE_UPPER)
 file(WRITE "${CMAKE_BINARY_DIR}/path/7z" "${7zip_BIN_DIRS_${CMAKE_BUILD_TYPE_UPPER}}/")
 
-set(QtModules Widgets Xml Network Svg SvgWidgets Concurrent HttpServer)
-find_package(Qt6 REQUIRED COMPONENTS ${QtModules})
-include(QtInstallPaths)
-
 add_compile_definitions(PLOG_IMPORT)
 add_compile_definitions(UNICODE _UNICODE NOMINMAX _USE_MATH_DEFINES)
 add_compile_definitions(HYPODERMIC_OVERRIDE_CONSTRUCTOR_ARGUMENT_COUNT=32)
+add_compile_definitions(LOCALIZED_APPLICATION)
+
 include_directories("src/ext/Hypodermic")
 
 include("src/ext/sqlite.cmake")

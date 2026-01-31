@@ -4,6 +4,7 @@
 
 #include <QBuffer>
 #include <QByteArray>
+#include <QDir>
 #include <QEventLoop>
 #include <QFileInfo>
 #include <QRegularExpression>
@@ -14,7 +15,6 @@
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
-#include "database/interface/ITransaction.h"
 
 #include "interface/Localization.h"
 #include "interface/constants/Enums.h"
@@ -77,10 +77,10 @@ constexpr auto SEARCH_RESULTS_AUTHORS  = QT_TRANSLATE_NOOP("Requester", R"(Autho
 constexpr auto SEARCH_RESULTS_SERIES   = QT_TRANSLATE_NOOP("Requester", R"(Series found for the request "%1": %2)");
 constexpr auto NOTHING_FOUND           = QT_TRANSLATE_NOOP("Requester", R"(No books found for the request "%1")");
 constexpr auto SPECIFY_SEARCH_CATEGORY = QT_TRANSLATE_NOOP("Requester", R"(Specify what to search for your request "%1")");
-constexpr auto PREVIOUS                = QT_TRANSLATE_NOOP("Requester", "[Previous page]");
-constexpr auto NEXT                    = QT_TRANSLATE_NOOP("Requester", "[Next page]");
-constexpr auto FIRST                   = QT_TRANSLATE_NOOP("Requester", "[First page]");
-constexpr auto LAST                    = QT_TRANSLATE_NOOP("Requester", "[Last page]");
+constexpr auto FIRST                   = QT_TRANSLATE_NOOP("Requester", "<< << To begin");
+constexpr auto PREVIOUS                = QT_TRANSLATE_NOOP("Requester", "<< Back");
+constexpr auto NEXT                    = QT_TRANSLATE_NOOP("Requester", "Forward >>");
+constexpr auto LAST                    = QT_TRANSLATE_NOOP("Requester", "To end >> >>");
 
 constexpr auto BOOK                    = "BookInfo";
 constexpr auto ENTRY                   = "entry";
@@ -761,7 +761,14 @@ class Requester::Impl final
 private: // IPostProcessCallback
 	QString GetFileName(const QString& bookId) const override
 	{
-		return m_bookExtractor->GetFileName(bookId);
+		auto fileName = m_bookExtractor->GetFileName(bookId);
+		if (const auto ext = m_settings->Get(INoSqlRequester::CONVERTER_EXT).toString(); !ext.isEmpty())
+		{
+			const QFileInfo fileInfo(fileName);
+			fileName = fileInfo.dir().filePath(QString("%1.%2").arg(fileInfo.completeBaseName(), ext));
+		}
+
+		return fileName;
 	}
 
 	std::pair<QString, std::vector<QByteArray>> GetAuthorInfo(const QString& name) const override

@@ -119,7 +119,7 @@ IDataItem::Flags DataItem::GetFlags() const noexcept
 	return m_flags;
 }
 
-IDataItem& DataItem::SetFlags(Flags flags) noexcept
+IDataItem& DataItem::SetFlags(const Flags flags) noexcept
 {
 	m_flags = flags;
 	return *this;
@@ -134,34 +134,8 @@ IDataItem& DataItem::SetData(QString value, const int column) noexcept
 
 Qt::CheckState DataItem::GetCheckState() const noexcept
 {
-	if (m_children.empty())
-		return Qt::Unchecked;
-
-	if (m_children.front()->GetCheckState() == Qt::Checked)
-	{
-		return std::ranges::all_of(
-				   m_children | std::views::drop(1),
-				   [](const auto& item) {
-					   return item->GetCheckState() == Qt::Checked;
-				   }
-			   )
-		         ? Qt::Checked
-		         : Qt::PartiallyChecked;
-	}
-
-	if (m_children.front()->GetCheckState() == Qt::Unchecked)
-	{
-		return std::ranges::all_of(
-				   m_children | std::views::drop(1),
-				   [](const auto& item) {
-					   return item->GetCheckState() == Qt::Unchecked;
-				   }
-			   )
-		         ? Qt::Unchecked
-		         : Qt::PartiallyChecked;
-	}
-
-	return Qt::PartiallyChecked;
+	assert(false);
+	return Qt::Unchecked;
 }
 
 void DataItem::SetCheckState(const Qt::CheckState /*state*/) noexcept
@@ -212,6 +186,11 @@ ItemType NavigationItem::GetType() const noexcept
 	return ItemType::Navigation;
 }
 
+IDataItem::Ptr NavigationItem::Clone() const
+{
+	return std::make_shared<NavigationItem>(*this);
+}
+
 GenreItem::GenreItem(IDataItem* parent)
 	: DataItem(Column::Last, parent)
 {
@@ -230,6 +209,11 @@ GenreItem* GenreItem::ToGenreItem() noexcept
 ItemType GenreItem::GetType() const noexcept
 {
 	return ItemType::Navigation;
+}
+
+IDataItem::Ptr GenreItem::Clone() const
+{
+	return std::make_shared<GenreItem>(*this);
 }
 
 AuthorItem::AuthorItem(IDataItem* parent)
@@ -286,6 +270,11 @@ ItemType AuthorItem::GetType() const noexcept
 	return ItemType::Navigation;
 }
 
+IDataItem::Ptr AuthorItem::Clone() const
+{
+	return std::make_shared<AuthorItem>(*this);
+}
+
 std::shared_ptr<IDataItem> SeriesItem::Create(IDataItem* parent)
 {
 	return std::make_shared<SeriesItem>(parent);
@@ -306,6 +295,11 @@ ItemType SeriesItem::GetType() const noexcept
 	return ItemType::Navigation;
 }
 
+IDataItem::Ptr SeriesItem::Clone() const
+{
+	return std::make_shared<SeriesItem>(*this);
+}
+
 std::shared_ptr<IDataItem> ReviewItem::Create(IDataItem* parent)
 {
 	return std::make_shared<ReviewItem>(parent);
@@ -324,6 +318,11 @@ ReviewItem* ReviewItem::ToReviewItem() noexcept
 ItemType ReviewItem::GetType() const noexcept
 {
 	return ItemType::Books;
+}
+
+IDataItem::Ptr ReviewItem::Clone() const
+{
+	return std::make_shared<ReviewItem>(*this);
 }
 
 const BookItem::Mapping* BookItem::mapping = &FULL;
@@ -373,6 +372,11 @@ ItemType BookItem::GetType() const noexcept
 	return ItemType::Books;
 }
 
+IDataItem::Ptr BookItem::Clone() const
+{
+	return std::make_shared<BookItem>(*this);
+}
+
 std::shared_ptr<IDataItem> MenuItem::Create(IDataItem* parent)
 {
 	return std::make_shared<MenuItem>(parent);
@@ -392,6 +396,11 @@ ItemType MenuItem::GetType() const noexcept
 {
 	assert(false && "unexpected call");
 	return ItemType::Unknown;
+}
+
+IDataItem::Ptr MenuItem::Clone() const
+{
+	return std::make_shared<MenuItem>(*this);
 }
 
 namespace HomeCompa::Flibrary

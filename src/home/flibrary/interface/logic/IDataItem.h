@@ -7,7 +7,6 @@
 #include <vector>
 
 #include "fnd/EnumBitmask.h"
-#include "fnd/NonCopyMovable.h"
 
 class QString;
 
@@ -31,8 +30,6 @@ DATA_ITEMS_X_MACRO
 
 class IDataItem // NOLINT(cppcoreguidelines-special-member-functions)
 {
-	NON_COPY_MOVABLE(IDataItem)
-
 public:
 	enum class Flags
 	{
@@ -70,6 +67,7 @@ public:
 	[[nodiscard]] virtual Flags          GetFlags() const noexcept                 = 0;
 	[[nodiscard]] virtual const QString& GetData(int column = 0) const noexcept    = 0;
 	[[nodiscard]] virtual const QString& GetRawData(int column = 0) const noexcept = 0;
+	[[nodiscard]] virtual Ptr            Clone() const                             = 0;
 
 	[[nodiscard]] virtual bool IsRemoved() const noexcept      = 0;
 	virtual void               SetRemoved(bool value) noexcept = 0;

@@ -40,6 +40,10 @@
         <translation>Путь к файлу базы данных коллекции</translation>
     </message>
     <message>
+        <source>Collection index files (*.inpx);;All files (*.*)</source>
+        <translation>Индексные файлы коллекции (*.inpx);;Все файлы (*.*)</translation>
+    </message>
+    <message>
         <source>Collection title</source>
         <translation>Наименование коллекции</translation>
     </message>
@@ -54,6 +58,10 @@
     <message>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
         <translation>Базы данных FLibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
+    </message>
+    <message>
+        <source>Index file</source>
+        <translation>Индексный файл</translation>
     </message>
     <message>
         <source>Mark unindexed books as deleted</source>
@@ -82,6 +90,10 @@
     <message>
         <source>Select archives folder</source>
         <translation>Выберите папку с архивами</translation>
+    </message>
+    <message>
+        <source>Select collection index file</source>
+        <translation>Выберите индексный файл коллекции</translation>
     </message>
     <message>
         <source>Select database file</source>
@@ -474,6 +486,10 @@
         <translation>Создать инде&amp;кс (*.inpx)</translation>
     </message>
     <message>
+        <source>No rating</source>
+        <translation>Без оценки</translation>
+    </message>
+    <message>
         <source>R&amp;emove</source>
         <translation>&amp;Удалить</translation>
     </message>
@@ -840,10 +856,6 @@ Restart now?</source>
         <translation>Не удалось создать папку %1</translation>
     </message>
     <message>
-        <source>Database file name cannot be empty</source>
-        <translation>Имя файла базы данных не может быть пустым</translation>
-    </message>
-    <message>
         <source>Database file not found</source>
         <translation>База данных не найдена</translation>
     </message>
@@ -866,6 +878,10 @@ Restart now?</source>
     <message>
         <source>This collection has already been added: %1</source>
         <translation>Эта коллекция уже добавлена под именем %1</translation>
+    </message>
+    <message>
+        <source>You must specify the collection database file</source>
+        <translation>Необходимо указать файл базы данных коллекции</translation>
     </message>
 </context>
 <context>
@@ -4453,6 +4469,10 @@ Try again?</source>
         <translation>&amp;Журнал</translation>
     </message>
     <message>
+        <source>&amp;Metadata</source>
+        <translation>&amp;Метаданные</translation>
+    </message>
+    <message>
         <source>&amp;Remove collection</source>
         <translation>&amp;Удалить коллекцию</translation>
     </message>
@@ -4593,10 +4613,6 @@ Try again?</source>
         <translation>Выход</translation>
     </message>
     <message>
-        <source>F1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Font &amp;settings...</source>
         <translation>&amp;Настройки шрифтов...</translation>
     </message>
@@ -4719,6 +4735,10 @@ Try again?</source>
     <message>
         <source>Size &amp;Up</source>
         <translation>У&amp;величить размер</translation>
+    </message>
+    <message>
+        <source>The HTTP server is still running. Would you like to stop it?</source>
+        <translation>HTTP-сервер всё ещё работает. Хотите его остановить?</translation>
     </message>
     <message>
         <source>The right decision!</source>
@@ -4929,6 +4949,10 @@ Try again?</source>
         <translation>Любой</translation>
     </message>
     <message>
+        <source>Ask every time</source>
+        <translation>Спрашивать каждый раз</translation>
+    </message>
+    <message>
         <source>Authorization</source>
         <translation>Авторизация</translation>
     </message>
@@ -4939,6 +4963,10 @@ Try again?</source>
     <message>
         <source>Close</source>
         <translation>Закрыть</translation>
+    </message>
+    <message>
+        <source>Continue working</source>
+        <translation>Продолжать работу</translation>
     </message>
     <message>
         <source>Copy address to clipboard</source>
@@ -4957,6 +4985,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>On FLibrary exit</source>
+        <translation>При выходе из FLibrary</translation>
+    </message>
+    <message>
         <source>Password</source>
         <translation>Пароль</translation>
     </message>
@@ -4967,6 +4999,10 @@ Try again?</source>
     <message>
         <source>ReactApp web interface</source>
         <translation>Веб-интерфейс ReactApp</translation>
+    </message>
+    <message>
+        <source>Shutdown server</source>
+        <translation>Остановить сервер</translation>
     </message>
     <message>
         <source>Simple web interface</source>
@@ -4987,17 +5023,6 @@ Try again?</source>
     <message>
         <source>User</source>
         <translation>Пользователь</translation>
-    </message>
-</context>
-<context>
-    <name>OpenFileDialogDelegateEditor</name>
-    <message>
-        <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
-        <translation>Приложения (*.exe);;Скрипты (*.bat *.cmd);;Все файлы (*.*)</translation>
-    </message>
-    <message>
-        <source>Select Application</source>
-        <translation>Выберите приложение</translation>
     </message>
 </context>
 <context>
@@ -5072,6 +5097,14 @@ Try again?</source>
 <context>
     <name>Requester</name>
     <message>
+        <source>&lt;&lt; &lt;&lt; To begin</source>
+        <translation>&lt;&lt; &lt;&lt; К началу</translation>
+    </message>
+    <message>
+        <source>&lt;&lt; Back</source>
+        <translation>&lt;&lt; Назад</translation>
+    </message>
+    <message>
         <source>Authors found for the request &quot;%1&quot;: %2</source>
         <translation>По запросу &quot;%1%&quot; найдены авторы %2</translation>
     </message>
@@ -5088,6 +5121,10 @@ Try again?</source>
         <translation>Книги: %1</translation>
     </message>
     <message>
+        <source>Forward &gt;&gt;</source>
+        <translation>Вперёд &gt;&gt;</translation>
+    </message>
+    <message>
         <source>No books found for the request &quot;%1&quot;</source>
         <translation>По запросу &quot;%1&quot; книг не найдено</translation>
     </message>
@@ -5100,35 +5137,15 @@ Try again?</source>
         <translation>Укажите, что искать по вашему запросу &quot;%1&quot;</translation>
     </message>
     <message>
-        <source>[First page]</source>
-        <translation>Первая страница</translation>
-    </message>
-    <message>
-        <source>[Last page]</source>
-        <translation>Последняя страница</translation>
-    </message>
-    <message>
-        <source>[Next page]</source>
-        <translation>Следующая страница</translation>
-    </message>
-    <message>
-        <source>[Previous page]</source>
-        <translation>Предыдущая страница</translation>
+        <source>To end &gt;&gt; &gt;&gt;</source>
+        <translation>В конец &gt;&gt; &gt;&gt;</translation>
     </message>
 </context>
 <context>
     <name>ScriptCommandModel</name>
     <message>
-        <source>Arguments</source>
-        <translation>Аргументы</translation>
-    </message>
-    <message>
         <source>Command</source>
         <translation>Команда</translation>
-    </message>
-    <message>
-        <source>Type</source>
-        <translation>Тип</translation>
     </message>
 </context>
 <context>
@@ -5269,8 +5286,24 @@ Try again?</source>
         <translation>Добавить скрипт</translation>
     </message>
     <message>
+        <source>Arguments</source>
+        <translation>Аргументы</translation>
+    </message>
+    <message>
         <source>Cancel</source>
         <translation>Отмена</translation>
+    </message>
+    <message>
+        <source>Command</source>
+        <translation>Команда</translation>
+    </message>
+    <message>
+        <source>Command settings</source>
+        <translation>Настройка команды</translation>
+    </message>
+    <message>
+        <source>Edit command</source>
+        <translation>Редактировать команду</translation>
     </message>
     <message>
         <source>Remove command</source>
@@ -5291,6 +5324,29 @@ Try again?</source>
     <message>
         <source>Scripts</source>
         <translation>Скрипты</translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
+        <source>Working folder</source>
+        <translation>Рабочая папка</translation>
+    </message>
+</context>
+<context>
+    <name>ScriptEditor</name>
+    <message>
+        <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
+        <translation>Приложения (*.exe);;Скрипты (*.bat *.cmd);;Все файлы (*.*)</translation>
+    </message>
+    <message>
+        <source>Select Application</source>
+        <translation>Выберите приложение</translation>
+    </message>
+    <message>
+        <source>Select working folder</source>
+        <translation>Выберите рабочую папку</translation>
     </message>
 </context>
 <context>
@@ -5348,8 +5404,8 @@ Try again?</source>
 <context>
     <name>SingleInstanceController</name>
     <message>
-        <source>One instance of the program is already running. Do you want to start a new one?</source>
-        <translation>Один экземпляр программы уже запущен. Хотите запустить новый?</translation>
+        <source>The program is already running. Do you want to run another instance?</source>
+        <translation>Программа уже запущена. Хотите запустить ещё один экземпляр?</translation>
     </message>
 </context>
 <context>
@@ -5472,8 +5528,8 @@ Try again?</source>
 <context>
     <name>opds</name>
     <message>
-        <source>Home</source>
-        <translation>Домой</translation>
+        <source>%1 Home</source>
+        <translation>%1 Домой</translation>
     </message>
     <message>
         <source>Read</source>

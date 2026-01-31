@@ -84,11 +84,12 @@ public:
 	class IObserver : public Observer
 	{
 	public:
-		virtual void OnAnnotationRequested()                                = 0;
-		virtual void OnAnnotationChanged(const IDataProvider& dataProvider) = 0;
-		virtual void OnJokeTextChanged(const QString& value)                = 0;
-		virtual void OnJokeImageChanged(const QByteArray& value)            = 0;
-		virtual void OnArchiveParserProgress(int percents)                  = 0;
+		virtual void OnAnnotationRequested()                                      = 0;
+		virtual void OnAnnotationChanged(const IDataProvider& dataProvider)       = 0;
+		virtual void OnJokeErrorOccured(const QString& api, const QString& error) = 0;
+		virtual void OnJokeTextChanged(const QString& value)                      = 0;
+		virtual void OnJokeImageChanged(const QByteArray& value)                  = 0;
+		virtual void OnArchiveParserProgress(int percents)                        = 0;
 	};
 
 	class IStrategy // NOLINT(cppcoreguidelines-special-member-functions)
@@ -113,7 +114,8 @@ public:
 	public:
 		virtual ~IStrategy()                                                                                              = default;
 		virtual QString GenerateUrl(const char* type, const QString& id, const QString& str, bool textMode = false) const = 0;
-		virtual QString GenerateStars(int rate) const                                                                     = 0;
+		virtual QString GenerateLibRateStars(int rate) const                                                              = 0;
+		virtual QString GenerateUserRateStars(int rate) const                                                             = 0;
 
 		virtual void Add(const Section section, QString& text, const QString& str, const char* pattern = "%1") const
 		{

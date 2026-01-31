@@ -12,6 +12,7 @@
 #include "interface/localization.h"
 
 #include "util/ISettings.h"
+#include "util/SortString.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -24,7 +25,9 @@ constexpr auto GENRES_SORT_MODE_KEY = "Preferences/GenresSortMode";
 template <typename T>
 void Sort(T& root, const auto& proj)
 {
-	std::ranges::sort(root.children, {}, proj);
+	std::sort(root.children.begin(), root.children.end(), [&](const auto& lhs, const auto& rhs) {
+		return proj(lhs) < proj(rhs);
+	});
 	for (auto& child : root.children)
 		Sort(child, proj);
 }
@@ -32,7 +35,9 @@ void Sort(T& root, const auto& proj)
 template <typename T>
 void SortDesc(T& root, const auto& proj)
 {
-	std::ranges::sort(root.children, std::greater {}, proj);
+	std::sort(root.children.begin(), root.children.end(), [&](const auto& lhs, const auto& rhs) {
+		return proj(lhs) > proj(rhs);
+	});
 	for (auto& child : root.children)
 		Sort(child, proj);
 }
@@ -57,7 +62,7 @@ template <typename T>
 void SortByName(T& root)
 {
 	Sort(root, [](const auto& item) {
-		return item.name;
+		return Util::QStringWrapper { item.name };
 	});
 }
 
@@ -81,7 +86,7 @@ template <typename T>
 void SortByNameDesc(T& root)
 {
 	SortDesc(root, [](const auto& item) {
-		return item.name;
+		return Util::QStringWrapper { item.name };
 	});
 }
 

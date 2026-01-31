@@ -30,7 +30,7 @@ namespace
 {
 
 constexpr auto CONTEXT = "opds";
-constexpr auto HOME    = QT_TRANSLATE_NOOP("opds", "Home");
+constexpr auto HOME    = QT_TRANSLATE_NOOP("opds", "%1 Home");
 constexpr auto READ    = QT_TRANSLATE_NOOP("opds", "Read");
 constexpr auto SEARCH  = QT_TRANSLATE_NOOP("opds", "Search");
 constexpr auto MORE    = QT_TRANSLATE_NOOP("opds", "more");
@@ -70,8 +70,9 @@ QString ReduceSections(QString path)
 class AnnotationControllerStrategy final : public IAnnotationController::IStrategy
 {
 public:
-	AnnotationControllerStrategy(const ISettings& settings)
-		: m_starSymbol { settings.Get(Constant::Settings::PREFER_LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) }
+	explicit AnnotationControllerStrategy(const ISettings& settings)
+		: m_libRateStarSymbol { settings.Get(Constant::Settings::PREFER_LIB_RATE_STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) }
+		, m_userRateStarSymbol { settings.Get(Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) }
 	{
 	}
 
@@ -88,9 +89,14 @@ private: // IAnnotationController::IUrlGenerator
 		return str.isEmpty() ? QString {} : QString("<a href=/web?%1=%2>%3</a>").arg(typeMapped, id, str);
 	}
 
-	QString GenerateStars(const int rate) const override
+	QString GenerateLibRateStars(const int rate) const override
 	{
-		return QString { rate, m_starSymbol };
+		return QString { rate, m_libRateStarSymbol };
+	}
+
+	QString GenerateUserRateStars(const int rate) const override
+	{
+		return QString { rate, m_userRateStarSymbol };
 	}
 
 	QString GetReviewsDelimiter() const override
@@ -99,7 +105,8 @@ private: // IAnnotationController::IUrlGenerator
 	}
 
 private:
-	const QChar m_starSymbol;
+	const QChar m_libRateStarSymbol;
+	const QChar m_userRateStarSymbol;
 };
 
 class AbstractParser : public SaxParser
@@ -145,7 +152,7 @@ protected:
 						.WriteStartElement("input").WriteAttribute("type", "text").WriteAttribute("id", "q").WriteAttribute("name", "q").WriteAttribute("placeholder", Tr(SEARCH)).WriteAttribute("size", "64").WriteEndElement()
 					.WriteEndElement()
 				.WriteEndElement()
-				.WriteStartElement("a").WriteAttribute("href", home).WriteCharacters(Tr(HOME)).WriteEndElement();
+				.WriteStartElement("a").WriteAttribute("href", home).WriteCharacters(Tr(HOME).arg(QChar{0x2302})).WriteEndElement();
 		// clang-format on
 		WriteHead();
 		m_writer->Guard("hr");

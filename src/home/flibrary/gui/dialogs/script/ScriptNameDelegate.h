@@ -1,6 +1,6 @@
 #pragma once
 
-#include "LineEditDelegate.h"
+#include "delegate/LineEditDelegate.h"
 
 namespace HomeCompa::Flibrary
 {

@@ -2,9 +2,12 @@
 
 #include <QBuffer>
 #include <QByteArray>
+#include <QDir>
 #include <QEventLoop>
 #include <QFileInfo>
 #include <QIODevice>
+#include <QStandardPaths>
+#include <QUuid>
 
 #include "fnd/ScopedCall.h"
 
@@ -13,7 +16,9 @@
 #include "logic/shared/ImageRestore.h"
 #include "util/AnnotationControllerObserver.h"
 #include "util/ImageUtil.h"
+#include "util/ProcessWrapper.h"
 
+#include "log.h"
 #include "zip.h"
 
 using namespace HomeCompa;
@@ -71,6 +76,7 @@ QByteArray Compress(QByteArray data, QString fileName)
 
 struct NoSqlRequester::Impl
 {
+	std::shared_ptr<const ISettings>                     settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
 	std::shared_ptr<const Flibrary::IBookExtractor>      bookExtractor;
 	std::shared_ptr<const ICoverCache>                   coverCache;
@@ -110,17 +116,66 @@ struct NoSqlRequester::Impl
 		auto outputFileName = bookExtractor->GetFileName(book);
 		auto data           = Decompress(collectionProvider->GetActiveCollection().GetFolder(), book.folder, book.file, restoreImages);
 
+		Convert(outputFileName, data);
+
 		return std::make_tuple(std::move(book.file), QFileInfo(outputFileName).fileName(), std::move(data));
+	}
+
+private:
+	void Convert(QString& outputFileName, QByteArray& data) const
+	{
+		const auto command = settings->Get(CONVERTER_COMMAND).toString();
+		if (command.isEmpty())
+			return;
+
+		const QFileInfo fileInfo(outputFileName);
+		const auto      src = QString("%1/%2.%3").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), QUuid::createUuid().toString(QUuid::WithoutBraces), fileInfo.suffix());
+		ScopedCall      srcGuard([&] {
+            QFile::remove(src);
+        });
+		{
+			QFile file(src);
+			if (!file.open(QIODevice::WriteOnly))
+			{
+				PLOGE << "Cannot write to " << src;
+				return;
+			}
+			file.write(data);
+		}
+		const auto ext = settings->Get(CONVERTER_EXT, fileInfo.suffix());
+		const auto dst = QString("%1/%2.%3").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), QUuid::createUuid().toString(QUuid::WithoutBraces), ext);
+		ScopedCall dstGuard([&] {
+			QFile::remove(dst);
+		});
+
+		auto arguments = settings->Get(CONVERTER_ARGUMENTS, QString(R"("%1" "%2")").arg(src, dst));
+		arguments.replace("%src%", src);
+		arguments.replace("%dst%", dst);
+
+		if (!Util::RunProcess(command, arguments, settings->Get(CONVERTER_CWD).toString()))
+			return;
+
+		QFile file(dst);
+		if (!file.open(QIODevice::ReadOnly))
+		{
+			PLOGE << "Cannot read from " << dst;
+			return;
+		}
+		data = file.readAll();
+		file.close();
+
+		outputFileName = fileInfo.dir().filePath(QString("%1.%2").arg(fileInfo.completeBaseName(), ext));
 	}
 };
 
 NoSqlRequester::NoSqlRequester(
+	std::shared_ptr<const ISettings>                     settings,
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 	std::shared_ptr<const Flibrary::IBookExtractor>      bookExtractor,
 	std::shared_ptr<const ICoverCache>                   coverCache,
 	std::shared_ptr<Flibrary::IAnnotationController>     annotationController
 )
-	: m_impl { std::move(collectionProvider), std::move(bookExtractor), std::move(coverCache), std::move(annotationController) }
+	: m_impl { std::move(settings), std::move(collectionProvider), std::move(bookExtractor), std::move(coverCache), std::move(annotationController) }
 {
 }
 

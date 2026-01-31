@@ -20,6 +20,7 @@
 #include "shared/ImageRestore.h"
 #include "util/Fb2InpxParser.h"
 
+#include "Constant.h"
 #include "log.h"
 #include "zip.h"
 
@@ -394,8 +395,8 @@ private:
 
 		if (!inpxFileExists)
 		{
-			zipFileController->AddFile("collection.info", QString("%1, favorites").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
-			zipFileController->AddFile("version.info", QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile(QString::fromStdWString(Inpx::COLLECTION_INFO), QString("%1, favorites").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile(QString::fromStdWString(Inpx::VERSION_INFO), QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
 		}
 
 		for (auto&& [uid, data] : m_paths)
@@ -446,8 +447,8 @@ private:
 				QFile::remove(inpxFileName);
 
 			auto zipFileController = Zip::CreateZipFileController();
-			zipFileController->AddFile("collection.info", QString("%1").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
-			zipFileController->AddFile("version.info", QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile(QString::fromStdWString(Inpx::COLLECTION_INFO), QString("%1").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile(QString::fromStdWString(Inpx::VERSION_INFO), QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
 
 			Zip                                         zip(inpxFileName, Zip::Format::Zip);
 			std::vector<std::pair<QString, QByteArray>> toZip;

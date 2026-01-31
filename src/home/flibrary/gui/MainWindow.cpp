@@ -69,6 +69,7 @@ constexpr auto        SETTINGS_FILE_FILTER                 = QT_TRANSLATE_NOOP("
 constexpr auto        SEARCH_BOOKS_BY_TITLE_PLACEHOLDER    = QT_TRANSLATE_NOOP("MainWindow", "To search for books by author, series, or title, enter the name or title here and press Enter");
 constexpr auto        ENABLE_ALL                           = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
 constexpr auto        DISABLE_ALL                          = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
+constexpr auto        STOP_HTTP                            = QT_TRANSLATE_NOOP("MainWindow", "The HTTP server is still running. Would you like to stop it?");
 constexpr auto        MY_FOLDER                            = QT_TRANSLATE_NOOP("MainWindow", "My export folder");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
@@ -81,6 +82,7 @@ constexpr auto LOG_SEVERITY_KEY                   = "ui/LogSeverity";
 constexpr auto SHOW_AUTHOR_ANNOTATION_KEY         = "ui/View/AuthorAnnotation";
 constexpr auto SHOW_ANNOTATION_KEY                = "ui/View/Annotation";
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY        = "ui/View/AnnotationContent";
+constexpr auto SHOW_ANNOTATION_METADATA_KEY       = "ui/View/AnnotationMetadata";
 constexpr auto SHOW_ANNOTATION_COVER_KEY          = "ui/View/AnnotationCover";
 constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY  = "ui/View/AnnotationCoverButtons";
 constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "Preferences/AnnotationJokes/%1";
@@ -324,15 +326,7 @@ public:
 
 	bool Close()
 	{
-		if (!m_systemTray)
-			return QCoreApplication::exit(), true;
-
-		m_isMaximized  = m_self.isMaximized();
-		m_isFullScreen = m_self.isFullScreen();
-
-		m_systemTray->show();
-		m_self.hide();
-		return false;
+		return CheckSystemTray() && CheckOpds() && (QCoreApplication::exit(), true);
 	}
 
 	void OnStartAnotherApp() const
@@ -340,6 +334,12 @@ public:
 		m_isFullScreen ? m_self.showFullScreen() : m_isMaximized ? m_self.showMaximized() : m_self.showNormal();
 		if (m_systemTray)
 			m_systemTray->hide();
+	}
+
+	void OnHideEvent()
+	{
+		m_isMaximized  = m_self.isMaximized();
+		m_isFullScreen = m_self.isFullScreen();
 	}
 
 private: // ICollectionsObserver
@@ -546,7 +546,7 @@ private:
 	void AllowDestructiveOperation(const bool value)
 	{
 		PLOGV << "AllowDestructiveOperation";
-		if (!m_collectionController->ActiveCollectionExists())
+		if (!m_collectionController->ActiveCollectionExists() || m_collectionController->GetActiveCollection().destructiveOperationsAllowed == value)
 			return;
 
 		if (!value)
@@ -700,6 +700,7 @@ private:
 		PLOGV << "ConnectActionsSettingsAnnotation";
 		ConnectSettings(m_ui.actionShowAnnotationCover, SHOW_ANNOTATION_COVER_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowCover);
 		ConnectSettings(m_ui.actionShowAnnotationContent, SHOW_ANNOTATION_CONTENT_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowContent);
+		ConnectSettings(m_ui.actionShowAnnotationMetadata, SHOW_ANNOTATION_METADATA_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowMetadata);
 		ConnectSettings(m_ui.actionShowAnnotationCoverButtons, SHOW_ANNOTATION_COVER_BUTTONS_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons);
 		ConnectSettings(m_ui.actionShowReadersReviews, SHOW_REVIEWS_KEY, m_annotationController.get(), &IAnnotationController::ShowReviews);
 		connect(m_ui.actionHideAnnotation, &QAction::visibleChanged, &m_self, [&] {
@@ -1320,6 +1321,49 @@ private:
 		}
 	}
 
+	bool CheckSystemTray()
+	{
+		if (!m_systemTray)
+			return true;
+
+		OnHideEvent();
+
+		m_systemTray->show();
+		m_self.hide();
+		return false;
+	}
+
+	bool CheckOpds() const
+	{
+		const auto opdsActionExit = m_settings->Get(Constant::Settings::OPDS_ON_APP_EXIT_KEY, QString { IOpdsController::ON_APP_EXIT[0] });
+		if (opdsActionExit == IOpdsController::ON_APP_EXIT[0])
+			return true;
+
+		auto controller = ILogicFactory::Lock(m_logicFactory)->CreateOpdsController();
+		if (!controller->IsRunning())
+			return true;
+
+		if (opdsActionExit == IOpdsController::ON_APP_EXIT[2])
+			return controller->Stop(), true;
+
+		if (opdsActionExit != IOpdsController::ON_APP_EXIT[1])
+			return true;
+
+		switch (m_uiFactory->ShowQuestion(Tr(STOP_HTTP), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::No))
+		{
+			case QMessageBox::Yes:
+				return controller->Stop(), true;
+
+			case QMessageBox::No:
+				return true;
+
+			default:
+				break;
+		}
+
+		return false;
+	}
+
 	static void Reboot()
 	{
 		QTimer::singleShot(0, [] {
@@ -1461,6 +1505,11 @@ void MainWindow::keyPressEvent(QKeyEvent* event)
 		m_impl->RemoveCustomStyleFile();
 
 	QMainWindow::keyPressEvent(event);
+}
+
+void MainWindow::hideEvent(QHideEvent* /*event*/)
+{
+	m_impl->OnHideEvent();
 }
 
 void MainWindow::OnBooksSearchFilterValueGeometryChanged(const QRect& geometry)

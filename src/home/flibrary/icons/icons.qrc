@@ -18,5 +18,6 @@
         <file alias="Filter.svg">icons/filter.svg</file>
         <file alias="a.svg">icons/a.svg</file>
         <file alias="r.svg">icons/r.svg</file>
+        <file alias="inpx.svg">icons/inpx.svg</file>
 	</qresource>
 </RCC>

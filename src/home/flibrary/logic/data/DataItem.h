@@ -4,6 +4,8 @@
 
 #include <QString>
 
+#include "fnd/NonCopyMovable.h"
+
 #include "interface/logic/IDataItem.h"
 
 #include "export/logic.h"
@@ -12,6 +14,8 @@ namespace HomeCompa::Flibrary
 {
 class DataItem : public IDataItem
 {
+	DEFAULT_COPY_MOVABLE(DataItem)
+
 public:
 	struct Column
 	{
@@ -24,6 +28,7 @@ public:
 
 protected:
 	explicit DataItem(size_t columnCount, IDataItem* parent = nullptr);
+	~DataItem() override = default;
 
 protected: // IDataItem
 	[[nodiscard]] IDataItem*     GetParent() noexcept override;
@@ -70,17 +75,23 @@ protected:
 
 class NavigationItem final : public DataItem
 {
+	DEFAULT_COPY_MOVABLE(NavigationItem)
+
 public:
 	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
 	explicit NavigationItem(IDataItem* parent);
+	~NavigationItem() override = default;
 
 private: // DataItem
 	NavigationItem*        ToNavigationItem() noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
+	[[nodiscard]] Ptr      Clone() const override;
 };
 
 class GenreItem final : public DataItem
 {
+	DEFAULT_COPY_MOVABLE(GenreItem)
+
 public:
 	struct Column
 	{
@@ -95,14 +106,18 @@ public:
 public:
 	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
 	explicit GenreItem(IDataItem* parent);
+	~GenreItem() override = default;
 
 private: // DataItem
 	GenreItem*             ToGenreItem() noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
+	[[nodiscard]] Ptr      Clone() const override;
 };
 
 class AuthorItem final : public DataItem
 {
+	DEFAULT_COPY_MOVABLE(AuthorItem)
+
 public:
 	struct Column
 	{
@@ -119,15 +134,19 @@ public:
 public:
 	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
 	explicit AuthorItem(IDataItem* parent);
+	~AuthorItem() override = default;
 
 private: // DataItem
 	AuthorItem*            ToAuthorItem() noexcept override;
 	void                   Reduce() override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
+	[[nodiscard]] Ptr      Clone() const override;
 };
 
 class SeriesItem final : public DataItem
 {
+	DEFAULT_COPY_MOVABLE(SeriesItem)
+
 public:
 	struct Column
 	{
@@ -142,14 +161,18 @@ public:
 public:
 	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
 	explicit SeriesItem(IDataItem* parent);
+	~SeriesItem() override = default;
 
 private: // DataItem
 	SeriesItem*            ToSeriesItem() noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
+	[[nodiscard]] Ptr      Clone() const override;
 };
 
 class ReviewItem final : public DataItem
 {
+	DEFAULT_COPY_MOVABLE(ReviewItem)
+
 public:
 	struct Column
 	{
@@ -165,10 +188,12 @@ public:
 public:
 	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
 	explicit ReviewItem(IDataItem* parent);
+	~ReviewItem() override = default;
 
 private: // DataItem
 	ReviewItem*            ToReviewItem() noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
+	[[nodiscard]] Ptr      Clone() const override;
 };
 
 class LOGIC_EXPORT BookItem final : public DataItem
@@ -176,6 +201,7 @@ class LOGIC_EXPORT BookItem final : public DataItem
 #define BOOKS_COLUMN_ITEMS_X_MACRO \
 	BOOKS_COLUMN_ITEM(Author)      \
 	BOOKS_COLUMN_ITEM(Title)       \
+	BOOKS_COLUMN_ITEM(SeriesId)    \
 	BOOKS_COLUMN_ITEM(SeqNumber)   \
 	BOOKS_COLUMN_ITEM(UpdateDate)  \
 	BOOKS_COLUMN_ITEM(LibRate)     \
@@ -189,6 +215,8 @@ class LOGIC_EXPORT BookItem final : public DataItem
 	BOOKS_COLUMN_ITEM(Series)      \
 	BOOKS_COLUMN_ITEM(Genre)       \
 	BOOKS_COLUMN_ITEM(AuthorFull)
+
+	DEFAULT_COPY_MOVABLE(BookItem)
 
 public:
 	struct Column
@@ -238,6 +266,7 @@ public:
 	static int                        Remap(int column) noexcept;
 
 	BookItem(IDataItem* parent, size_t additionalFieldCount);
+	~BookItem() override = default;
 
 private: // DataItem
 	[[nodiscard]] int            RemapColumn(int column) const noexcept override;
@@ -246,10 +275,13 @@ private: // DataItem
 	[[nodiscard]] Qt::CheckState GetCheckState() const noexcept override;
 	void                         SetCheckState(Qt::CheckState state) noexcept override;
 	[[nodiscard]] ItemType       GetType() const noexcept override;
+	[[nodiscard]] Ptr            Clone() const override;
 };
 
 class MenuItem final : public DataItem
 {
+	DEFAULT_COPY_MOVABLE(MenuItem)
+
 public:
 	struct Column
 	{
@@ -268,10 +300,12 @@ public:
 
 	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
 	explicit MenuItem(IDataItem* parent);
+	~MenuItem() override = default;
 
 private: // DataItem
 	MenuItem*              ToMenuItem() noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
+	[[nodiscard]] Ptr      Clone() const override;
 };
 
 LOGIC_EXPORT void    AppendTitle(QString& title, const QString& str, const QString& delimiter = " ");

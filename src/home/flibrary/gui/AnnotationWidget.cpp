@@ -37,6 +37,8 @@ using namespace Flibrary;
 namespace
 {
 
+constexpr auto SHOW_JOKE_ERRORS = "Preferences/AnnotationJokes/ShowErrors";
+
 constexpr std::pair<const char*, bool> NO_NAVIGATION { nullptr, false };
 
 constexpr std::pair<const char*, std::pair<const char*, bool>> TYPE_TO_NAVIGATION[] {
@@ -65,8 +67,8 @@ constexpr auto SAVED_PARTIALLY           = QT_TRANSLATE_NOOP("Annotation", "%1 o
 constexpr auto SAVED_WITH_ERRORS         = QT_TRANSLATE_NOOP("Annotation", "%1 images out of %2 could not be saved");
 constexpr auto CANNOT_SAVE_IMAGE         = QT_TRANSLATE_NOOP("Annotation", "Cannot save image to %1");
 constexpr auto CANNOT_OPEN_IMAGE         = QT_TRANSLATE_NOOP("Annotation", "Cannot open %1");
-constexpr auto SHOW_FILE_METADATA        = QT_TRANSLATE_NOOP("Annotation", "Show file metadata");
-constexpr auto SHOW_CONTENT              = QT_TRANSLATE_NOOP("Annotation", "Show content");
+constexpr auto SHOW_Metadata             = QT_TRANSLATE_NOOP("Annotation", "Show file metadata");
+constexpr auto SHOW_Content              = QT_TRANSLATE_NOOP("Annotation", "Show content");
 
 #if (false) // NOLINT(readability-avoid-unconditional-preprocessor-if)
 QT_TRANSLATE_NOOP("Annotation", "Read")
@@ -117,23 +119,34 @@ struct CoverButtonType
 
 constexpr auto CONTENT_MODE_KEY = "ui/View/AnnotationContentMode";
 #define CONTENT_MODE_ITEMS_X_MACRO \
-	CONTENT_MODE_ITEM(Content)     \
-	CONTENT_MODE_ITEM(Description)
+	CONTENT_MODE_ITEM(Content, 0)  \
+	CONTENT_MODE_ITEM(Metadata, 1)
 
 enum class ContentMode
 {
-#define CONTENT_MODE_ITEM(NAME) NAME,
+	None = 0,
+#define CONTENT_MODE_ITEM(NAME, SHIFT) NAME = 1 << SHIFT,
 	CONTENT_MODE_ITEMS_X_MACRO
+#undef CONTENT_MODE_ITEM
+		All = None
+#define CONTENT_MODE_ITEM(NAME, _) | NAME
+			CONTENT_MODE_ITEMS_X_MACRO
 #undef CONTENT_MODE_ITEM
 };
 
-constexpr std::pair<const char*, ContentMode> CONTENT_MODE_NAMES[] {
-#define CONTENT_MODE_ITEM(NAME) { #NAME, ContentMode::NAME },
+constexpr std::pair<const char*, std::pair<ContentMode, const char*>> CONTENT_MODES[] {
+#define CONTENT_MODE_ITEM(NAME, _)         \
+	{                                      \
+		#NAME,                             \
+		{ ContentMode::NAME, SHOW_##NAME } \
+},
 	CONTENT_MODE_ITEMS_X_MACRO
 #undef CONTENT_MODE_ITEM
 };
 
 } // namespace
+
+ENABLE_BITMASK_OPERATORS(ContentMode);
 
 class AnnotationWidget::Impl final
 	: QObject
@@ -251,21 +264,18 @@ public:
 			QMenu menu;
 			menu.setFont(m_self.font());
 
-			const std::pair<ContentMode, std::tuple<const char*, QAbstractItemModel*, ContentMode, bool>> modes[] {
-				{     ContentMode::Content, { SHOW_FILE_METADATA, m_descriptionModel.get(), ContentMode::Description, true } },
-				{ ContentMode::Description,              { SHOW_CONTENT, m_contentModel.get(), ContentMode::Content, false } },
-			};
-
-			const auto& [title, model, mode, expand] = FindSecond(modes, m_contentMode, modes[0].second);
-			auto* action                             = menu.addAction(Tr(title));
-			connect(action, &QAction::triggered, [&] {
-				m_ui.content->setModel(model);
-				m_contentMode = mode;
-				m_settings->Set(CONTENT_MODE_KEY, CONTENT_MODE_NAMES[static_cast<size_t>(m_contentMode)].first);
-				if (expand)
-					m_ui.content->expandAll();
-			});
-			action->setEnabled(!!model);
+			for (const auto& [name, description] : CONTENT_MODES | std::views::filter([this](const auto& item) {
+													   return item.second.first != m_currentContentMode && !!(m_allowedContentMode & item.second.first) && m_content.contains(item.second.first);
+												   }))
+			{
+				const auto& [mode, title] = description;
+				auto* action              = menu.addAction(Tr(title));
+				connect(action, &QAction::triggered, [this, mode, name] {
+					m_selectedContentMode = mode;
+					m_settings->Set(CONTENT_MODE_KEY, QString { name });
+					OnContentChanged();
+				});
+			}
 
 			Util::FillTreeContextMenu(*m_ui.content, menu).exec(m_ui.content->mapToGlobal(pos));
 		});
@@ -370,10 +380,10 @@ public:
 		m_annotationController->UnregisterObserver(this);
 	}
 
-	void ShowContent(const bool value)
+	void ShowContent(const bool value, const ContentMode mode)
 	{
-		m_showContent = value;
-		m_ui.contentWidget->setVisible(value && m_ui.content->model());
+		value ? m_allowedContentMode |= mode : m_allowedContentMode &= ~mode;
+		OnContentChanged();
 	}
 
 	void ShowCover(const bool value)
@@ -387,6 +397,108 @@ public:
 		m_coverButtonsVisible = value;
 	}
 
+private: // QObject
+	bool eventFilter(QObject* obj, QEvent* event) override
+	{
+		if (event->type() == QEvent::Type::Resize)
+			OnResize();
+
+		return QObject::eventFilter(obj, event);
+	}
+
+private: // IAnnotationController::IObserver
+	void OnAnnotationRequested() override
+	{
+		m_ui.contentWidget->setVisible(false);
+		m_ui.content->setModel(nullptr);
+		m_ui.coverArea->setVisible(false);
+		m_ui.cover->setPixmap({});
+		m_ui.cover->setCursor(Qt::ArrowCursor);
+		m_ui.info->setText({});
+		m_covers.clear();
+		m_content.clear();
+		m_currentCoverIndex = 0;
+		m_contentModel.reset();
+	}
+
+	void OnAnnotationChanged(const IAnnotationController::IDataProvider& dataProvider) override
+	{
+		auto annotation = m_annotationController->CreateAnnotation(dataProvider, *this);
+
+		m_ui.info->setText(annotation);
+		m_covers = dataProvider.GetCovers();
+		m_ui.actionSaveAllImages->setText(Tr(SAVE_ALL_PICS_ACTION_TEXT).arg(m_covers.size()));
+
+		m_currentCoverIndex = 0;
+
+		if (m_covers.size() > 1)
+			m_ui.cover->setCursor(Qt::PointingHandCursor);
+
+		if (auto content = dataProvider.GetContent(); content->GetChildCount() > 0)
+			m_content.try_emplace(ContentMode::Content, std::move(content));
+
+		if (auto content = dataProvider.GetDescription(); content->GetChildCount() > 0)
+			m_content.try_emplace(ContentMode::Metadata, std::move(content));
+
+		OnResize();
+		OnContentChanged();
+	}
+
+	void OnJokeErrorOccured(const QString& api, const QString& error) override
+	{
+		if (m_settings->Get(SHOW_JOKE_ERRORS, false))
+			m_ui.info->setText(QString(R"(<p>%1 failed:</p><p style="color:Red;">%2</p>)").arg(api, error));
+	}
+
+	void OnJokeTextChanged(const QString& value) override
+	{
+		m_ui.info->setText(value);
+	}
+
+	void OnJokeImageChanged(const QByteArray& value) override
+	{
+		m_covers.emplace_back("", value);
+		m_currentCoverIndex = 0;
+		OnResize();
+	}
+
+	void OnArchiveParserProgress(const int percents) override
+	{
+		m_forwarder.Forward([&, percents] {
+			if (percents)
+			{
+				if (!m_progressTimer.isActive())
+					m_ui.info->setText(percents == 100 ? QString {} : QString("%1%").arg(percents));
+			}
+			else
+			{
+				m_progressTimer.start();
+			}
+		});
+	}
+
+private: // IAnnotationController::IUrlGenerator
+	QString GenerateUrl(const char* type, const QString& id, const QString& str, const bool textMode) const override
+	{
+		if (str.isEmpty())
+			return {};
+
+		const auto& navigation = FindSecond(TYPE_TO_NAVIGATION, type, NO_NAVIGATION, PszComparer {});
+		return textMode || (navigation.first && !m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation.first), true)) ? QString("%1").arg(str)
+		                                                                                                                                                 : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
+	}
+
+	QString GenerateLibRateStars(const int rate) const override
+	{
+		return QString { rate, QChar(m_libRateStarSymbol) };
+	}
+
+	QString GenerateUserRateStars(const int rate) const override
+	{
+		return QString { rate, QChar(m_userRateStarSymbol) };
+	}
+
+private:
 	void OnResize()
 	{
 		m_ui.coverArea->setVisible(m_showCover);
@@ -447,131 +559,39 @@ public:
         });
 	}
 
-private: // QObject
-	bool eventFilter(QObject* obj, QEvent* event) override
+	void OnContentChanged()
 	{
-		if (event->type() == QEvent::Type::Resize)
-			OnResize();
+		m_currentContentMode = ContentMode::None;
+		if (!m_allowedContentMode || m_content.empty())
+			return m_ui.contentWidget->setVisible(false);
 
-		return QObject::eventFilter(obj, event);
+		auto [mode, content] = [this]() -> std::pair<ContentMode, IDataItem::Ptr> {
+			if (const auto it = m_content.find(m_selectedContentMode); it != m_content.end())
+				return *it;
+
+			if (const auto it = std::ranges::find_if(
+					m_content,
+					[this](const auto& item) {
+						return !!(m_allowedContentMode & item.first);
+					}
+				);
+			    it != m_content.end())
+				return *it;
+
+			return std::make_pair(ContentMode::None, IDataItem::Ptr {});
+		}();
+
+		if (!content)
+			return m_ui.contentWidget->setVisible(false);
+
+		m_currentContentMode = mode;
+		m_ui.contentWidget->setVisible(true);
+		m_contentModel.reset(IModelProvider::Lock(m_modelProvider)->CreateTreeModel(std::move(content)));
+		m_ui.content->setModel(m_contentModel.get());
+		if (mode == ContentMode::Metadata)
+			m_ui.content->expandAll();
 	}
 
-private: // IAnnotationController::IObserver
-	void OnAnnotationRequested() override
-	{
-		m_ui.contentWidget->setVisible(false);
-		m_ui.content->setModel(nullptr);
-		m_ui.coverArea->setVisible(false);
-		m_ui.cover->setPixmap({});
-		m_ui.cover->setCursor(Qt::ArrowCursor);
-		m_ui.info->setText({});
-		m_covers.clear();
-		m_currentCoverIndex = 0;
-		m_contentModel.reset();
-		m_descriptionModel.reset();
-	}
-
-	void OnAnnotationChanged(const IAnnotationController::IDataProvider& dataProvider) override
-	{
-		auto annotation = m_annotationController->CreateAnnotation(dataProvider, *this);
-
-		m_ui.info->setText(annotation);
-		m_covers = dataProvider.GetCovers();
-		m_ui.actionSaveAllImages->setText(Tr(SAVE_ALL_PICS_ACTION_TEXT).arg(m_covers.size()));
-
-		m_currentCoverIndex = 0;
-
-		if (m_covers.size() > 1)
-			m_ui.cover->setCursor(Qt::PointingHandCursor);
-
-		if (dataProvider.GetContent()->GetChildCount() > 0)
-		{
-			if (m_showContent)
-				m_ui.contentWidget->setVisible(true);
-			m_contentModel.reset(IModelProvider::Lock(m_modelProvider)->CreateTreeModel(dataProvider.GetContent(), true));
-		}
-
-		if (dataProvider.GetDescription()->GetChildCount() > 0)
-		{
-			if (m_showContent)
-				m_ui.contentWidget->setVisible(true);
-			m_descriptionModel.reset(IModelProvider::Lock(m_modelProvider)->CreateTreeModel(dataProvider.GetDescription(), true));
-		}
-
-		switch (m_contentMode)
-		{
-			case ContentMode::Content:
-				if (m_contentModel)
-				{
-					m_ui.content->setModel(m_contentModel.get());
-				}
-				else if (m_descriptionModel)
-				{
-					m_ui.content->setModel(m_descriptionModel.get());
-					m_ui.content->expandAll();
-				}
-				break;
-
-			case ContentMode::Description:
-				if (m_descriptionModel)
-				{
-					m_ui.content->setModel(m_descriptionModel.get());
-					m_ui.content->expandAll();
-				}
-				else if (m_contentModel)
-				{
-					m_ui.content->setModel(m_contentModel.get());
-				}
-				break;
-		}
-
-		OnResize();
-	}
-
-	void OnJokeTextChanged(const QString& value) override
-	{
-		m_ui.info->setText(value);
-	}
-
-	void OnJokeImageChanged(const QByteArray& value) override
-	{
-		m_covers.emplace_back("", value);
-		m_currentCoverIndex = 0;
-		OnResize();
-	}
-
-	void OnArchiveParserProgress(const int percents) override
-	{
-		m_forwarder.Forward([&, percents] {
-			if (percents)
-			{
-				if (!m_progressTimer.isActive())
-					m_ui.info->setText(percents == 100 ? QString {} : QString("%1%").arg(percents));
-			}
-			else
-			{
-				m_progressTimer.start();
-			}
-		});
-	}
-
-private: // IAnnotationController::IUrlGenerator
-	QString GenerateUrl(const char* type, const QString& id, const QString& str, const bool textMode) const override
-	{
-		if (str.isEmpty())
-			return {};
-
-		const auto& navigation = FindSecond(TYPE_TO_NAVIGATION, type, NO_NAVIGATION, PszComparer {});
-		return textMode || (navigation.first && !m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation.first), true)) ? QString("%1").arg(str)
-		                                                                                                                                                 : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
-	}
-
-	QString GenerateStars(const int rate) const override
-	{
-		return QString { rate, QChar(m_starSymbol) };
-	}
-
-private:
 	void OnLinkActivated(const QString& link)
 	{
 		const auto url = link.split("://");
@@ -628,22 +648,24 @@ private:
 
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationController;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_contentModel { std::shared_ptr<QAbstractItemModel> {} };
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_descriptionModel { std::shared_ptr<QAbstractItemModel> {} };
 
-	Ui::AnnotationWidget                         m_ui {};
-	IAnnotationController::IDataProvider::Covers m_covers;
-	const QString                                m_currentCollectionId;
-	size_t                                       m_currentCoverIndex { 0 };
-	bool                                         m_showContent { true };
-	bool                                         m_showCover { true };
-	Util::FunctorExecutionForwarder              m_forwarder;
-	QTimer                                       m_progressTimer;
-	ContentMode m_contentMode { FindSecond(CONTENT_MODE_NAMES, m_settings->Get(CONTENT_MODE_KEY, QString {}).toStdString().data(), CONTENT_MODE_NAMES[0].second, PszComparer {}) };
+	Ui::AnnotationWidget                            m_ui {};
+	IAnnotationController::IDataProvider::Covers    m_covers;
+	const QString                                   m_currentCollectionId;
+	size_t                                          m_currentCoverIndex { 0 };
+	std::unordered_map<ContentMode, IDataItem::Ptr> m_content;
+	bool                                            m_showCover { true };
+	Util::FunctorExecutionForwarder                 m_forwarder;
+	QTimer                                          m_progressTimer;
+	ContentMode                                     m_allowedContentMode { ContentMode::None };
+	ContentMode                                     m_currentContentMode { ContentMode::None };
+	ContentMode m_selectedContentMode { FindSecond(CONTENT_MODES, m_settings->Get(CONTENT_MODE_KEY, QString {}).toStdString().data(), CONTENT_MODES[0].second, PszComparer {}).first };
 
 	std::vector<QAbstractButton*> m_coverButtons;
 	bool                          m_coverButtonsEnabled { false };
 	bool                          m_coverButtonsVisible { true };
-	const int                     m_starSymbol { m_settings->Get(Constant::Settings::PREFER_LIBRATE_STAR_SYMBOL_KEY, Constant::Settings::LIBRATE_STAR_SYMBOL_DEFAULT) };
+	const int                     m_libRateStarSymbol { m_settings->Get(Constant::Settings::PREFER_LIB_RATE_STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) };
+	const int                     m_userRateStarSymbol { m_settings->Get(Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) };
 };
 
 AnnotationWidget::AnnotationWidget(
@@ -686,7 +708,12 @@ AnnotationWidget::~AnnotationWidget()
 
 void AnnotationWidget::ShowContent(const bool value)
 {
-	m_impl->ShowContent(value);
+	m_impl->ShowContent(value, ContentMode::Content);
+}
+
+void AnnotationWidget::ShowMetadata(const bool value)
+{
+	m_impl->ShowContent(value, ContentMode::Metadata);
 }
 
 void AnnotationWidget::ShowCover(const bool value)

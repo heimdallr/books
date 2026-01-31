@@ -5,11 +5,12 @@
 #include <unordered_map>
 #include <unordered_set>
 
-#include <QFile>
 #include <QFileInfo>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
+
+#include "fnd/IsOneOf.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -18,7 +19,6 @@
 
 #include "interface/Localization.h"
 #include "interface/constants/Enums.h"
-#include "interface/constants/ProductConstant.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IFilterProvider.h"
@@ -99,19 +99,14 @@ void Add(UniqueIdList<KeyType>& uniqueIdList, KeyType&& key, const int order)
 
 class BooksTreeGenerator::Impl final : virtual IBookSelector
 {
-	struct SelectedSeriesItem
-	{
-		long long id;
-		int       seqNum;
-		int       ordNum;
-	};
+	using SelectedSeries = std::multimap<int, std::pair<long long, int>>;
 
 	struct SelectedBookItem
 	{
-		IDataItem::Ptr                    book;
-		std::optional<SelectedSeriesItem> series;
-		UniqueIdList<long long>           authors;
-		UniqueIdList<QString>             genres;
+		IDataItem::Ptr          book;
+		SelectedSeries          series;
+		UniqueIdList<long long> authors;
+		UniqueIdList<QString>   genres;
 	};
 
 public:
@@ -164,17 +159,32 @@ public:
 			rootCached->AppendChild(series);
 		}
 
-		for (const auto& [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
+		for (const auto& [book, seriesIds, authorIds, genreIds] : m_books | std::views::values)
 		{
-			if (!seriesId)
+			if (seriesIds.empty())
 			{
 				rootCached->AppendChild(book);
 				continue;
 			}
 
-			const auto it = m_series.find(seriesId->id);
-			assert(it != m_series.end());
-			it->second->AppendChild(book);
+			const auto bookSeriesId = book->GetRawData(BookItem::Column::SeriesId).toLongLong();
+
+			for (const auto& [seriesId, seqNo] : seriesIds | std::views::values)
+			{
+				const auto it = m_series.find(seriesId);
+				assert(it != m_series.end());
+				if (bookSeriesId == seriesId)
+				{
+					it->second->AppendChild(book);
+					continue;
+				}
+
+				auto clone = book->Clone();
+				clone->SetData(QString::number(seriesId), BookItem::Column::SeriesId);
+				clone->SetData(it->second->GetData(), BookItem::Column::Series);
+				clone->SetData(QString::number(seqNo), BookItem::Column::SeqNumber);
+				it->second->AppendChild(std::move(clone));
+			}
 		}
 
 		return rootCached;
@@ -190,7 +200,7 @@ public:
 		for (const auto& [authorIds, bookIds] : authorToBooks)
 		{
 			auto authorsNode = CreateAuthorsNode(authorIds);
-			authorsNode->SetChildren(CreateBookItems(bookIds));
+			authorsNode->SetChildren(CreateBookItems(bookIds, navigationId.toLongLong()));
 			rootCached->AppendChild(std::move(authorsNode));
 		}
 
@@ -225,9 +235,12 @@ public:
 		for (const auto& [id, book] : m_books)
 		{
 			auto& [series, books] = authorToBooks[book.authors.first];
-			const auto& seriesId  = book.series;
-			auto&       bookIds   = seriesId ? series[seriesId->id] : books;
-			bookIds.insert(id);
+			const auto& seriesIds = book.series;
+			if (seriesIds.empty())
+				books.insert(id);
+			else
+				for (const auto& seriesId : seriesIds | std::views::values | std::views::keys)
+					series[seriesId].insert(id);
 		}
 
 		rootCached = CreateBooksRoot();
@@ -242,11 +255,11 @@ public:
 				assert(it != m_series.end());
 				auto seriesNode = NavigationItem::Create();
 				seriesNode->SetData(it->second->GetData());
-				seriesNode->SetChildren(CreateBookItems(bookIds));
+				seriesNode->SetChildren(CreateBookItems(bookIds, seriesId));
 				authorsNode->AppendChild(std::move(seriesNode));
 			}
 
-			for (auto&& book : CreateBookItems(noSeriesBookIds))
+			for (auto&& book : CreateBookItems(noSeriesBookIds, -1))
 				authorsNode->AppendChild(std::move(book));
 
 			rootCached->AppendChild(std::move(authorsNode));
@@ -448,8 +461,7 @@ join Series s on s.SeriesID = l.SeriesID
 
 				const auto seqNum = query->Get<int>(5);
 				const auto ordNum = query->Get<int>(6);
-				if (!book.series || book.series->ordNum > ordNum)
-					book.series.emplace(id, seqNum, ordNum);
+				book.series.emplace(ordNum, std::make_pair(id, seqNum));
 			}
 		}
 
@@ -533,25 +545,43 @@ join Keywords k on k.KeywordID = l.KeywordID
 		for (const auto& author : m_authors | std::views::values)
 			author->Reduce();
 
-		for (auto& [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
+		for (auto& [book, seriesIds, authorIds, genreIds] : m_books | std::views::values)
 		{
 			book->SetData(std::size(authorIds.second) > 1 ? Join(m_authors, authorIds.second | std::views::values) : book->GetRawData(BookItem::Column::AuthorFull), BookItem::Column::Author);
 			book->SetData(Join(m_genres, genreIds.second | std::views::values), BookItem::Column::Genre);
-			if (!seriesId)
+			if (seriesIds.empty())
 				continue;
 
-			book->SetData(seriesId->seqNum > 0 ? QString::number(seriesId->seqNum) : QString {}, BookItem::Column::SeqNumber);
-			book->SetData(m_series.find(seriesId->id)->second->GetData(), BookItem::Column::Series);
+			const auto& [seriesId, seqNum] = seriesIds.cbegin()->second;
+			book->SetData(QString::number(seriesId), BookItem::Column::SeriesId);
+			book->SetData(seqNum > 0 ? QString::number(seqNum) : QString {}, BookItem::Column::SeqNumber);
+			book->SetData(m_series.find(seriesId)->second->GetData(), BookItem::Column::Series);
 		}
 	}
 
-	IDataItem::Items CreateBookItems(const IdsSet& idsSet) const
+	IDataItem::Items CreateBookItems(const IdsSet& idsSet, const long long seriesId) const
 	{
+		const auto seriesIt = m_series.find(seriesId);
+
 		IDataItem::Items books;
 		std::ranges::transform(idsSet, std::back_inserter(books), [&](const long long id) {
 			const auto it = m_books.find(id);
 			assert(it != m_books.end());
-			return it->second.book;
+
+			if (IsOneOf(seriesId, -1, it->second.book->GetData(BookItem::Column::SeriesId).toLongLong()))
+				return it->second.book;
+
+			const auto bookSeriesIt = std::ranges::find(it->second.series, seriesId, [](const auto& item) {
+				return item.second.first;
+			});
+			assert(bookSeriesIt != it->second.series.end() && seriesIt != m_series.end());
+
+			auto clone = it->second.book->Clone();
+			clone->SetData(QString::number(seriesId), BookItem::Column::SeriesId);
+			clone->SetData(seriesIt->second->GetData(), BookItem::Column::Series);
+			clone->SetData(QString::number(bookSeriesIt->second.second), BookItem::Column::SeqNumber);
+
+			return clone;
 		});
 		return books;
 	}

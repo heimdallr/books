@@ -32,13 +32,16 @@ constexpr auto OPDS_AUTH              = "opds/Authentication";
 constexpr auto OPDS_WEB_ENABLED       = "opds/SimpleWebEnabled";
 constexpr auto OPDS_REACT_APP_ENABLED = "opds/ReactAppEnabled";
 constexpr auto OPDS_OPDS_ENABLED      = "opds/OpdsEnabled";
+constexpr auto OPDS_ON_APP_EXIT_KEY   = "opds/OnMainAppExit";
 
-constexpr auto LIBRATE_STAR_SYMBOL_DEFAULT        = 0x2B50;
+constexpr auto STAR_SYMBOL_DEFAULT                = 0x2B50;
 constexpr auto LIBRATE_VIEW_PRECISION_DEFAULT     = -1;
 constexpr auto COLLECTIONS                        = "Collections";
 constexpr auto DESTRUCTIVE_OPERATIONS_ALLOWED_KEY = "destructiveOperationsAllowed";
 
-constexpr auto PREFER_LIBRATE_STAR_SYMBOL_KEY    = "Preferences/LibRate/symbol";
+constexpr auto PREFER_USER_RATE_ZERO_SYMBOL_KEY  = "Preferences/UserRate/noRateSymbol";
+constexpr auto PREFER_USER_RATE_STAR_SYMBOL_KEY  = "Preferences/UserRate/symbol";
+constexpr auto PREFER_LIB_RATE_STAR_SYMBOL_KEY   = "Preferences/LibRate/symbol";
 constexpr auto PREFER_LIBRATE_VIEW_PRECISION_KEY = "Preferences/LibRate/precision";
 constexpr auto PREFER_LIBRATE_VIEW_COLORS_KEY    = "Preferences/LibRate/colors";
 constexpr auto PREFER_OPDS_READ_URL_TEMPLATE     = "Preferences/opds/ReadUrlTemplate";

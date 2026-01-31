@@ -40,6 +40,10 @@
         <translation>Назва файлу бази даних колекції</translation>
     </message>
     <message>
+        <source>Collection index files (*.inpx);;All files (*.*)</source>
+        <translation>Індексні файли колекції (*.inpx);;Усі файли (*.*)</translation>
+    </message>
+    <message>
         <source>Collection title</source>
         <translation>Найменування колекції</translation>
     </message>
@@ -53,7 +57,11 @@
     </message>
     <message>
         <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
-        <translation>Бази даних FLibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
+        <translation>Бази даних FLibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;Всі файли (*.*)</translation>
+    </message>
+    <message>
+        <source>Index file</source>
+        <translation>Індексний файл</translation>
     </message>
     <message>
         <source>Mark unindexed books as deleted</source>
@@ -61,19 +69,19 @@
     </message>
     <message>
         <source>Name</source>
-        <translation>Ім&apos;я</translation>
+        <translation>Назва</translation>
     </message>
     <message>
         <source>Open file dialog</source>
-        <translation>Відкрити діалог вибору файлу</translation>
+        <translation>Відкрити діалогове вікно вибору файлу</translation>
     </message>
     <message>
         <source>Open folder dialog</source>
-        <translation>Відкрити діалог вибору папки</translation>
+        <translation>Відкрити діалогове вікно вибору папки</translation>
     </message>
     <message>
         <source>Retrieve collection name from index file</source>
-        <translation>Вийняти ім&apos;я колекції з індексного файлу</translation>
+        <translation>Отримати назву колекції з індексного файлу</translation>
     </message>
     <message>
         <source>Scan unindexed archives</source>
@@ -82,6 +90,10 @@
     <message>
         <source>Select archives folder</source>
         <translation>Виберіть папку з архівами</translation>
+    </message>
+    <message>
+        <source>Select collection index file</source>
+        <translation>Виберіть індексний файл колекції</translation>
     </message>
     <message>
         <source>Select database file</source>
@@ -474,6 +486,10 @@
         <translation>Створити інде&amp;кс (*.inpx)</translation>
     </message>
     <message>
+        <source>No rating</source>
+        <translation>Без оцінки</translation>
+    </message>
+    <message>
         <source>R&amp;emove</source>
         <translation>&amp;Видалити</translation>
     </message>
@@ -783,7 +799,7 @@ Restart now?</source>
     </message>
     <message>
         <source>&amp;Uncheck all</source>
-        <translation>Зн&amp;яти позначки</translation>
+        <translation>Зн&amp;яти всі позначки</translation>
     </message>
 </context>
 <context>
@@ -840,10 +856,6 @@ Restart now?</source>
         <translation>Неможливо створити папку %1</translation>
     </message>
     <message>
-        <source>Database file name cannot be empty</source>
-        <translation>Ім&apos;я файлу бази даних не може бути порожнім</translation>
-    </message>
-    <message>
         <source>Database file not found</source>
         <translation>База даних не знайдена</translation>
     </message>
@@ -853,7 +865,7 @@ Restart now?</source>
     </message>
     <message>
         <source>Name cannot be empty</source>
-        <translation>Ім&apos;я не може бути порожнім</translation>
+        <translation>Назва не може бути порожньою</translation>
     </message>
     <message>
         <source>Retrieving books had errors</source>
@@ -861,11 +873,15 @@ Restart now?</source>
     </message>
     <message>
         <source>Same named collection has already been added</source>
-        <translation>Колекція з таким ім&apos;ям вже додана</translation>
+        <translation>Колекція з такою ж назвою вже додана</translation>
     </message>
     <message>
         <source>This collection has already been added: %1</source>
-        <translation>Ця колекція вже додана під ім&apos;ям %1</translation>
+        <translation>Ця колекція вже додана під назвою: %1</translation>
+    </message>
+    <message>
+        <source>You must specify the collection database file</source>
+        <translation>Необхідно вказати файл бази даних колекції</translation>
     </message>
 </context>
 <context>
@@ -934,7 +950,7 @@ Restart now?</source>
     </message>
     <message>
         <source>Hide unrated books</source>
-        <translation>Сховати без рейтингу</translation>
+        <translation>Приховати без рейтингу</translation>
     </message>
     <message>
         <source>Rate</source>
@@ -1117,11 +1133,11 @@ Restart now?</source>
     </message>
     <message>
         <source>child_det_animal_detectives</source>
-        <translation>Дитячі детективи: тварини-сищики</translation>
+        <translation>Дитячі детективи: тварини-детективи</translation>
     </message>
     <message>
         <source>child_det_children_detectives</source>
-        <translation>Дитячі детективи: діти-сищики</translation>
+        <translation>Дитячі детективи: діти-детективи</translation>
     </message>
     <message>
         <source>child_det_other</source>
@@ -1229,7 +1245,7 @@ Restart now?</source>
     </message>
     <message>
         <source>comp_hard</source>
-        <translation>Залізо</translation>
+        <translation>ПК залізо</translation>
     </message>
     <message>
         <source>comp_osnet</source>
@@ -2482,17 +2498,17 @@ Try again?</source>
     </message>
     <message>
         <source>Group name</source>
-        <translation>Ім&apos;я групи</translation>
+        <translation>Назва групи</translation>
     </message>
     <message>
         <source>Group name too long.
 Try again?</source>
-        <translation>Ім&apos;я надто довге.
-Спробуєте ще раз?</translation>
+        <translation>Назва групи занадто довга.
+Спробуйте ще раз?</translation>
     </message>
     <message>
         <source>Input new group name</source>
-        <translation>Вкажіть ім&apos;я нової групи</translation>
+        <translation>Вкажіть назву нової групи</translation>
     </message>
     <message>
         <source>New group</source>
@@ -4375,7 +4391,7 @@ Try again?</source>
     <name>Main</name>
     <message>
         <source>It looks like you&apos;re trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?</source>
-        <translation>Схоже, ви намагаєтеся використати стару версію програми з колекцією нової версії. Робота у такому режимі може бути нестабільною. Впевнені, що хочете продовжувати?</translation>
+        <translation>Схоже, ви намагаєтеся використати стару версію програми з колекцією для нової версії. Робота у такому режимі може бути нестабільною. Впевнені, що хочете продовжити?</translation>
     </message>
 </context>
 <context>
@@ -4453,12 +4469,16 @@ Try again?</source>
         <translation>&amp;Журнал</translation>
     </message>
     <message>
+        <source>&amp;Metadata</source>
+        <translation>&amp;Метадані</translation>
+    </message>
+    <message>
         <source>&amp;Remove collection</source>
         <translation>&amp;Видалити колекцію</translation>
     </message>
     <message>
         <source>&amp;Removed books</source>
-        <translation>Ві&amp;далені книги</translation>
+        <translation>Ви&amp;далені книги</translation>
     </message>
     <message>
         <source>&amp;Restore default values</source>
@@ -4478,7 +4498,7 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;Test colors</source>
-        <translation>&amp;Коліри повідомлень</translation>
+        <translation>&amp;Кольори повідомлень</translation>
     </message>
     <message>
         <source>&amp;Theme</source>
@@ -4486,7 +4506,7 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;User data</source>
-        <translation>&amp;Користувальницькі дані</translation>
+        <translation>&amp;Дані користувача</translation>
     </message>
     <message>
         <source>&amp;View</source>
@@ -4514,7 +4534,7 @@ Try again?</source>
     </message>
     <message>
         <source>Are you really sure?</source>
-        <translation>Чи точно впевнені?</translation>
+        <translation>Ви дійсно впевнені?</translation>
     </message>
     <message>
         <source>Are you sure you want to delete all themes?</source>
@@ -4522,7 +4542,7 @@ Try again?</source>
     </message>
     <message>
         <source>Are you sure you want to return to default settings?</source>
-        <translation>Ви впевнені, що хочете повернутися до стандартних налаштувань?</translation>
+        <translation>Ви впевнені, що хочете повернутися до базових налаштувань?</translation>
     </message>
     <message>
         <source>Book &amp;export template</source>
@@ -4593,10 +4613,6 @@ Try again?</source>
         <translation>Вихід</translation>
     </message>
     <message>
-        <source>F1</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
         <source>Font &amp;settings...</source>
         <translation>&amp;Налаштування шрифтів...</translation>
     </message>
@@ -4606,11 +4622,11 @@ Try again?</source>
     </message>
     <message>
         <source>Go to the &amp;ReactApp web interface</source>
-        <translation>Перейдіть до веб-інтерфейсу &amp;ReactApp</translation>
+        <translation>Перейти до веб-інтерфейсу &amp;ReactApp</translation>
     </message>
     <message>
         <source>Go to the simple &amp;web interface</source>
-        <translation>Перейдіть до с&amp;прощеного веб-інтерфейсу</translation>
+        <translation>Перейти до с&amp;прощеного веб-інтерфейсу</translation>
     </message>
     <message>
         <source>Http server management</source>
@@ -4630,7 +4646,7 @@ Try again?</source>
     </message>
     <message>
         <source>Log &amp;verbosity level</source>
-        <translation>&amp;Рівень деталізації жунралу</translation>
+        <translation>&amp;Рівень деталізації журналу</translation>
     </message>
     <message>
         <source>My export folder</source>
@@ -4719,6 +4735,10 @@ Try again?</source>
     <message>
         <source>Size &amp;Up</source>
         <translation>З&amp;більшити розмір</translation>
+    </message>
+    <message>
+        <source>The HTTP server is still running. Would you like to stop it?</source>
+        <translation>HTTP-сервер все ще працює. Бажаєте його зупинити?</translation>
     </message>
     <message>
         <source>The right decision!</source>
@@ -4929,6 +4949,10 @@ Try again?</source>
         <translation>Будь-який</translation>
     </message>
     <message>
+        <source>Ask every time</source>
+        <translation>Запитувати щоразу</translation>
+    </message>
+    <message>
         <source>Authorization</source>
         <translation>Авторизація</translation>
     </message>
@@ -4939,6 +4963,10 @@ Try again?</source>
     <message>
         <source>Close</source>
         <translation>Закрити</translation>
+    </message>
+    <message>
+        <source>Continue working</source>
+        <translation>Продовжувати роботу</translation>
     </message>
     <message>
         <source>Copy address to clipboard</source>
@@ -4957,6 +4985,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>On FLibrary exit</source>
+        <translation>При виході з FLibrary</translation>
+    </message>
+    <message>
         <source>Password</source>
         <translation>Пароль</translation>
     </message>
@@ -4967,6 +4999,10 @@ Try again?</source>
     <message>
         <source>ReactApp web interface</source>
         <translation>Веб-інтерфейс ReactApp</translation>
+    </message>
+    <message>
+        <source>Shutdown server</source>
+        <translation>Зупинити сервер</translation>
     </message>
     <message>
         <source>Simple web interface</source>
@@ -4987,17 +5023,6 @@ Try again?</source>
     <message>
         <source>User</source>
         <translation>Користувач</translation>
-    </message>
-</context>
-<context>
-    <name>OpenFileDialogDelegateEditor</name>
-    <message>
-        <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
-        <translation>Програми (*.exe);;Скрипти (*.bat *.cmd);;Всі файли (*.*)</translation>
-    </message>
-    <message>
-        <source>Select Application</source>
-        <translation>Виберіть програму</translation>
     </message>
 </context>
 <context>
@@ -5072,6 +5097,14 @@ Try again?</source>
 <context>
     <name>Requester</name>
     <message>
+        <source>&lt;&lt; &lt;&lt; To begin</source>
+        <translation>&lt;&lt; &lt;&lt; На початок</translation>
+    </message>
+    <message>
+        <source>&lt;&lt; Back</source>
+        <translation>&lt;&lt; Назад</translation>
+    </message>
+    <message>
         <source>Authors found for the request &quot;%1&quot;: %2</source>
         <translation>За запитом &quot;%1%&quot; знайдені автори %2</translation>
     </message>
@@ -5088,6 +5121,10 @@ Try again?</source>
         <translation>Книги: %1</translation>
     </message>
     <message>
+        <source>Forward &gt;&gt;</source>
+        <translation>Вперед &gt;&gt;</translation>
+    </message>
+    <message>
         <source>No books found for the request &quot;%1&quot;</source>
         <translation>За запитом &quot;%1&quot; книг не знайдено</translation>
     </message>
@@ -5100,35 +5137,15 @@ Try again?</source>
         <translation>Вкажіть, що шукати для вашого запиту &quot;%1&quot;</translation>
     </message>
     <message>
-        <source>[First page]</source>
-        <translation>Перша сторінка</translation>
-    </message>
-    <message>
-        <source>[Last page]</source>
-        <translation>Остання сторінка</translation>
-    </message>
-    <message>
-        <source>[Next page]</source>
-        <translation>Наступна сторінка</translation>
-    </message>
-    <message>
-        <source>[Previous page]</source>
-        <translation>Попередня сторінка</translation>
+        <source>To end &gt;&gt; &gt;&gt;</source>
+        <translation>В кінець &gt;&gt; &gt;&gt;</translation>
     </message>
 </context>
 <context>
     <name>ScriptCommandModel</name>
     <message>
-        <source>Arguments</source>
-        <translation>Аргументи</translation>
-    </message>
-    <message>
         <source>Command</source>
         <translation>Команда</translation>
-    </message>
-    <message>
-        <source>Type</source>
-        <translation>Тип</translation>
     </message>
 </context>
 <context>
@@ -5151,7 +5168,7 @@ Try again?</source>
     </message>
     <message>
         <source>%author_last_fm%</source>
-        <translation>Прізвище І.О. автора</translation>
+        <translation>Прізвище І.П. автора</translation>
     </message>
     <message>
         <source>%author_last_name%</source>
@@ -5227,7 +5244,7 @@ Try again?</source>
     </message>
     <message>
         <source>%user_destination_folder%</source>
-        <translation>Папка призначення з діалогу</translation>
+        <translation>Папка призначення з діалогового вікна</translation>
     </message>
     <message>
         <source>Download</source>
@@ -5269,8 +5286,24 @@ Try again?</source>
         <translation>Додати скрипт</translation>
     </message>
     <message>
+        <source>Arguments</source>
+        <translation>Аргументи</translation>
+    </message>
+    <message>
         <source>Cancel</source>
         <translation>Скасувати</translation>
+    </message>
+    <message>
+        <source>Command</source>
+        <translation>Команда</translation>
+    </message>
+    <message>
+        <source>Command settings</source>
+        <translation>Налаштування команди</translation>
+    </message>
+    <message>
+        <source>Edit command</source>
+        <translation>Редагувати команду</translation>
     </message>
     <message>
         <source>Remove command</source>
@@ -5286,18 +5319,41 @@ Try again?</source>
     </message>
     <message>
         <source>Script commands</source>
-        <translation>Команди скрипту</translation>
+        <translation>Команди скрипта</translation>
     </message>
     <message>
         <source>Scripts</source>
         <translation>Скрипти</translation>
+    </message>
+    <message>
+        <source>Type</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
+        <source>Working folder</source>
+        <translation>Робоча папка</translation>
+    </message>
+</context>
+<context>
+    <name>ScriptEditor</name>
+    <message>
+        <source>Applications (*.exe);;Scripts (*.bat *.cmd);;All files (*.*)</source>
+        <translation>Програми (*.exe);;Скрипти (*.bat *.cmd);;Всі файли (*.*)</translation>
+    </message>
+    <message>
+        <source>Select Application</source>
+        <translation>Виберіть програму</translation>
+    </message>
+    <message>
+        <source>Select working folder</source>
+        <translation>Виберіть робочу папку</translation>
     </message>
 </context>
 <context>
     <name>ScriptModel</name>
     <message>
         <source>Name</source>
-        <translation>Ім&apos;я</translation>
+        <translation>Назва</translation>
     </message>
     <message>
         <source>Type</source>
@@ -5348,8 +5404,8 @@ Try again?</source>
 <context>
     <name>SingleInstanceController</name>
     <message>
-        <source>One instance of the program is already running. Do you want to start a new one?</source>
-        <translation>Один екземпляр програми вже запущено. Бажаєте запустити новий?</translation>
+        <source>The program is already running. Do you want to run another instance?</source>
+        <translation>Програму вже запущено. Бажаєте запустити ще один екземпляр?</translation>
     </message>
 </context>
 <context>
@@ -5407,7 +5463,7 @@ Try again?</source>
     </message>
     <message>
         <source>Something strange, the installer file is missing. Visit download page?</source>
-        <translation>Щось дивне, інсталятор не знайдено. Перейти до сторінки нової версії?</translation>
+        <translation>Дивно, файл інсталятора не знайдено. Перейти на сторінку завантаження?</translation>
     </message>
     <message>
         <source>Update check failed</source>
@@ -5462,7 +5518,7 @@ Try again?</source>
     </message>
     <message>
         <source>User data successfully saved</source>
-        <translation>Ці дані збережені</translation>
+        <translation>Дані користувача успішно збережено</translation>
     </message>
     <message>
         <source>Version %1 must be greater than 0 and less than %2</source>
@@ -5472,8 +5528,8 @@ Try again?</source>
 <context>
     <name>opds</name>
     <message>
-        <source>Home</source>
-        <translation>Додому</translation>
+        <source>%1 Home</source>
+        <translation>%1 Додому</translation>
     </message>
     <message>
         <source>Read</source>

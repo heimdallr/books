@@ -38,6 +38,7 @@ private: // IScriptController
 	bool            SetCommandType(int n, Command::Type value) override;
 	bool            SetCommandCommand(int n, QString value) override;
 	bool            SetCommandArgs(int n, QString value) override;
+	bool            SetCommandWorkingFolder(int n, QString value) override;
 	bool            SetCommandNumber(int n, int value) override;
 
 	bool Execute(const Command& command) const override;

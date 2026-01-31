@@ -70,43 +70,40 @@ struct ModelProvider::Impl
 	{
 	}
 
-	std::shared_ptr<QAbstractItemModel> CreateSortFilterProxyModel(const bool autoAcceptChildRows) const
+	std::shared_ptr<QAbstractItemModel> CreateSortFilterProxyModel() const
 	{
-		auto model = container.resolve<AbstractSortFilterProxyModel>();
-		if (autoAcceptChildRows)
-			model->setAutoAcceptChildRows(autoAcceptChildRows);
-		return model;
+		return container.resolve<AbstractSortFilterProxyModel>();
 	}
 
 	template <typename T>
-	std::shared_ptr<QAbstractItemModel> CreateModel(IDataItem::Ptr d, const bool autoAcceptChildRows) const
+	std::shared_ptr<QAbstractItemModel> CreateModel(IDataItem::Ptr d) const
 	{
 		data        = std::move(d);
 		sourceModel = container.resolve<T>();
-		sourceModel = CreateSortFilterProxyModel(autoAcceptChildRows); //-V519
+		sourceModel = CreateSortFilterProxyModel(); //-V519
 		return container.resolve<AbstractFilteredProxyModel>();
 	}
 
-	std::shared_ptr<QAbstractItemModel> CreateBookListModel(IDataItem::Ptr dataItem, const bool autoAcceptChildRows) const
+	std::shared_ptr<QAbstractItemModel> CreateBookListModel(IDataItem::Ptr dataItem) const
 	{
-		using ModelCreator = std::shared_ptr<QAbstractItemModel> (Impl::*)(IDataItem::Ptr, bool) const;
+		using ModelCreator = std::shared_ptr<QAbstractItemModel> (Impl::*)(IDataItem::Ptr) const;
 		static constexpr std::pair<NavigationMode, ModelCreator> creators[] {
 			{ NavigationMode::Reviews, &Impl::CreateModel<ReviewListModel> },
 		};
 
 		const auto modelCreator = FindSecond(creators, navigationMode, &Impl::CreateModel<ListModel>);
-		return std::invoke(modelCreator, *this, std::move(dataItem), autoAcceptChildRows);
+		return std::invoke(modelCreator, *this, std::move(dataItem));
 	}
 
-	std::shared_ptr<QAbstractItemModel> CreateBookTreeModel(IDataItem::Ptr dataItem, const bool autoAcceptChildRows) const
+	std::shared_ptr<QAbstractItemModel> CreateBookTreeModel(IDataItem::Ptr dataItem) const
 	{
-		using ModelCreator = std::shared_ptr<QAbstractItemModel> (Impl::*)(IDataItem::Ptr, bool) const;
+		using ModelCreator = std::shared_ptr<QAbstractItemModel> (Impl::*)(IDataItem::Ptr) const;
 		static constexpr std::pair<NavigationMode, ModelCreator> creators[] {
 			{ NavigationMode::Reviews, &Impl::CreateModel<ReviewTreeModel> },
 		};
 
 		const auto modelCreator = FindSecond(creators, navigationMode, &Impl::CreateModel<TreeModel>);
-		return std::invoke(modelCreator, *this, std::move(dataItem), autoAcceptChildRows);
+		return std::invoke(modelCreator, *this, std::move(dataItem));
 	}
 };
 
@@ -121,19 +118,19 @@ ModelProvider::~ModelProvider()
 	PLOGV << "ModelProvider destroyed";
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateListModel(IDataItem::Ptr data) const
 {
-	return m_impl->CreateModel<ListModel>(std::move(data), autoAcceptChildRows);
+	return m_impl->CreateModel<ListModel>(std::move(data));
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateAuthorsListModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateAuthorsListModel(IDataItem::Ptr data) const
 {
-	return m_impl->CreateModel<AuthorsModel>(std::move(data), autoAcceptChildRows);
+	return m_impl->CreateModel<AuthorsModel>(std::move(data));
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateSearchListModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateSearchListModel(IDataItem::Ptr data) const
 {
-	auto model = CreateListModel(std::move(data), autoAcceptChildRows);
+	auto model = CreateListModel(std::move(data));
 	return std::make_shared<BooksSearchProxyModel>(std::move(model));
 }
 
@@ -158,29 +155,29 @@ std::shared_ptr<QAbstractItemModel> ModelProvider::CreateFilterListModel(IDataIt
 {
 	m_impl->data        = std::move(data);
 	m_impl->sourceModel = m_impl->container.resolve<FilterListModel>();
-	return m_impl->CreateSortFilterProxyModel(false);
+	return m_impl->CreateSortFilterProxyModel();
 }
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateFilterTreeModel(IDataItem::Ptr data) const
 {
 	m_impl->data        = std::move(data);
 	m_impl->sourceModel = m_impl->container.resolve<FilterTreeModel>();
-	return m_impl->CreateSortFilterProxyModel(false);
+	return m_impl->CreateSortFilterProxyModel();
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateTreeModel(IDataItem::Ptr data) const
 {
-	return m_impl->CreateModel<TreeModel>(std::move(data), autoAcceptChildRows);
+	return m_impl->CreateModel<TreeModel>(std::move(data));
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateBookListModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateBookListModel(IDataItem::Ptr data) const
 {
-	return m_impl->CreateBookListModel(std::move(data), autoAcceptChildRows);
+	return m_impl->CreateBookListModel(std::move(data));
 }
 
-std::shared_ptr<QAbstractItemModel> ModelProvider::CreateBookTreeModel(IDataItem::Ptr data, const bool autoAcceptChildRows) const
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateBookTreeModel(IDataItem::Ptr data) const
 {
-	return m_impl->CreateBookTreeModel(std::move(data), autoAcceptChildRows);
+	return m_impl->CreateBookTreeModel(std::move(data));
 }
 
 IDataItem::Ptr ModelProvider::GetData() const noexcept

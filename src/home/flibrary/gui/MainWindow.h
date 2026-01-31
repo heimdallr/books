@@ -77,6 +77,7 @@ private: // ISingleInstanceController::IObserver
 private: // QWidget
 	void closeEvent(QCloseEvent* event) override;
 	void keyPressEvent(QKeyEvent* event) override;
+	void hideEvent(QHideEvent* event) override;
 
 private slots:
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry);

@@ -281,7 +281,9 @@ void FillInpx(const ICollectionProvider& collectionProvider, DB::ITransaction& t
 		return;
 
 	PLOGI << "Update inpx table";
-	Inpx::Parser::FillInpx(collectionProvider.GetActiveCollection().GetFolder().toStdWString(), transaction);
+	const auto& collection = collectionProvider.GetActiveCollection();
+	auto ini = collectionProvider.GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetInpx(), false);
+	Inpx::Parser::FillInpx(std::move(ini.second), transaction);
 }
 
 void FillSeriesList(DB::ITransaction& transaction)
