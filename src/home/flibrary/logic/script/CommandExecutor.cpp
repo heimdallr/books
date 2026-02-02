@@ -12,8 +12,8 @@
 #include "fnd/FindPair.h"
 
 #include "network/network/downloader.h"
-#include "util/files.h"
 #include "util/ProcessWrapper.h"
+#include "util/files.h"
 
 #include "log.h"
 
