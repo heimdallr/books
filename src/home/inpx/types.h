@@ -7,6 +7,9 @@
 
 #include "util/StrUtil.h"
 
+namespace HomeCompa
+{
+
 struct Book
 {
 	Book( //-V730
@@ -44,7 +47,7 @@ struct Book
 		, deleted { deleted_ }
 		, updateId { updateId_ }
 		, year { year_ }
-		, sourceLib { ToMultiByte(sourceLib_) }
+		, sourceLib { Util::ToMultiByte(sourceLib_) }
 	{
 		std::ranges::transform(language, std::begin(language), towlower);
 	}
@@ -158,12 +161,12 @@ struct Data
 
 inline std::ostream& operator<<(std::ostream& stream, const Book& book)
 {
-	return stream << book.folder << ", " << book.insideNo << ", " << ToMultiByte(book.libId) << ": " << book.id << ", " << ToMultiByte(book.title);
+	return stream << book.folder << ", " << book.insideNo << ", " << Util::ToMultiByte(book.libId) << ": " << book.id << ", " << Util::ToMultiByte(book.title);
 }
 
 inline std::ostream& operator<<(std::ostream& stream, const Genre& genre)
 {
-	return stream << ToMultiByte(genre.dbCode) << ", " << ToMultiByte(genre.code) << ": " << ToMultiByte(genre.name);
+	return stream << Util::ToMultiByte(genre.dbCode) << ", " << Util::ToMultiByte(genre.code) << ": " << Util::ToMultiByte(genre.name);
 }
 
 //AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;YEAR;SOURCELIB;
@@ -193,3 +196,5 @@ struct BookBuf
 	BOOK_BUF_FIELD_ITEMS_XMACRO
 #undef BOOK_BUF_FIELD_ITEM
 };
+
+} // namespace HomeCompa

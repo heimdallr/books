@@ -1,7 +1,5 @@
 #include "CommandExecutor.h"
 
-#include <Windows.h>
-
 #include <QBuffer>
 #include <QDesktopServices>
 #include <QDir>
@@ -96,11 +94,11 @@ bool EmbeddedCommandOpenLink(const QString& argStr)
 	return QDesktopServices::openUrl(argStr);
 }
 
-constexpr std::pair<IScriptController::Command::Type, std::tuple<int /*show*/, bool /*wait for finished*/>> TYPES[] {
-	{		   IScriptController::Command::Type::System,        { SW_HIDE, true } },
-	{ IScriptController::Command::Type::LaunchConsoleApp,        { SW_HIDE, true } },
-	{     IScriptController::Command::Type::LaunchGuiApp, { SW_SHOWNORMAL, false } },
-	{		 IScriptController::Command::Type::Embedded,  { SW_SHOWNORMAL, true } },
+constexpr std::pair<IScriptController::Command::Type, std::tuple<bool /*show*/, bool /*wait for finished*/>> TYPES[] {
+	{		   IScriptController::Command::Type::System, { false, true } },
+	{ IScriptController::Command::Type::LaunchConsoleApp, { false, true } },
+	{     IScriptController::Command::Type::LaunchGuiApp, { true, false } },
+	{		 IScriptController::Command::Type::Embedded,  { true, true } },
 };
 static_assert(std::size(TYPES) == static_cast<size_t>(IScriptController::Command::Type::Last));
 
@@ -114,27 +112,7 @@ static_assert(std::size(EMBEDDED_COMMANDS) == static_cast<size_t>(IScriptControl
 bool ShellExecute(const std::wstring& file, const std::wstring& parameters, const std::wstring& cwd, const IScriptController::Command::Type type)
 {
 	const auto& [show, wait] = FindSecond(TYPES, type);
-
-	SHELLEXECUTEINFO lpExecInfo {};
-	lpExecInfo.cbSize       = sizeof(SHELLEXECUTEINFO);
-	lpExecInfo.lpFile       = file.data();
-	lpExecInfo.fMask        = SEE_MASK_DOENVSUBST | SEE_MASK_NOCLOSEPROCESS;
-	lpExecInfo.hwnd         = nullptr;
-	lpExecInfo.lpVerb       = L"open";
-	lpExecInfo.lpParameters = parameters.data();
-	lpExecInfo.lpDirectory  = cwd.data();
-	lpExecInfo.nShow        = show;
-	lpExecInfo.hInstApp     = reinterpret_cast<HINSTANCE>(SE_ERR_DDEFAIL);
-	ShellExecuteEx(&lpExecInfo);
-
-	if (lpExecInfo.hProcess == nullptr)
-		return false;
-
-	if (wait)
-		WaitForSingleObject(lpExecInfo.hProcess, INFINITE);
-
-	CloseHandle(lpExecInfo.hProcess);
-	return true;
+	return Util::ShellExecuteImpl(file, parameters, cwd, show, wait);
 }
 
 } // namespace
