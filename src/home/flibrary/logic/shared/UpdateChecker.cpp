@@ -237,7 +237,8 @@ private:
 			Loc::Tr(Loc::Ctx::COMMON, Loc::WARNING),
 			Tr(RELEASED).arg(m_release.name, m_release.html_url).arg(m_uiFactory->GetParentWidget()->font().pointSize() * 9 / 10),
 			buttons,
-			buttons.front().first
+			buttons.front().first,
+			m_release.whatsNew.join("\n")
 		))
 		{
 			case QMessageBox::AcceptRole:
