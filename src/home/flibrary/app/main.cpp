@@ -38,10 +38,12 @@ using namespace HomeCompa;
 
 namespace
 {
+
 constexpr auto CONTEXT = "Main";
 constexpr auto WRONG_DB_VERSION =
 	QT_TRANSLATE_NOOP("Main", "It looks like you're trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?");
 TR_DEF
+
 }
 
 int main(int argc, char* argv[])

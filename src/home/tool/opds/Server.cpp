@@ -150,10 +150,9 @@ std::optional<QHttpServerResponse> FromFile(
 	const QString&                               fileName,
 	const QString&                               acceptEncoding,
 	const QString&                               contentType,
-	const std::function<QByteArray(QByteArray)>& dataUpdater =
-		[](QByteArray data) {
-			return data;
-		}
+	const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) {
+		return data;
+	}
 )
 {
 	QFile file(fileName);
@@ -172,10 +171,9 @@ std::optional<QHttpServerResponse> FromFile(
 std::optional<QHttpServerResponse> FromWebsite(
 	const QString&                               fileName,
 	const QString&                               acceptEncoding,
-	const std::function<QByteArray(QByteArray)>& dataUpdater =
-		[](QByteArray data) {
-			return data;
-		}
+	const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) {
+		return data;
+	}
 )
 {
 	static constexpr std::pair<const char*, const char*> types[] {

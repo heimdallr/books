@@ -27,6 +27,7 @@ using namespace Github;
 
 namespace
 {
+
 constexpr auto DISCARDED_UPDATE_KEY  = "Update/SkippedVersion";
 constexpr auto LAST_UPDATE_CHECK_KEY = "Update/LastCheck";
 constexpr auto DIALOG_KEY            = "Installer";

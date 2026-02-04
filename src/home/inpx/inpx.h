@@ -12,8 +12,10 @@
 
 namespace HomeCompa::DB
 {
+
 class IDatabase;
 class ITransaction;
+
 }
 
 namespace HomeCompa::Inpx

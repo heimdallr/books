@@ -19,17 +19,23 @@ class QTemporaryDir;
 
 namespace HomeCompa::DB
 {
+
 class IDatabase;
+
 }
 
 namespace HomeCompa::Util
 {
+
 class IExecutor;
+
 }
 
 namespace HomeCompa::DB::Factory
 {
+
 enum class Impl;
+
 }
 
 namespace HomeCompa::Flibrary

@@ -8,7 +8,9 @@
 
 namespace Hypodermic
 {
+
 class Container;
+
 }
 
 namespace HomeCompa::Flibrary

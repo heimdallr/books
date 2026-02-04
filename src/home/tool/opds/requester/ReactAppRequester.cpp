@@ -115,13 +115,15 @@ struct ReactAppRequester::Impl
 			const auto process = [&](const Flibrary::Genre& genre, const auto& f) -> void {
 				for (const auto& child : genre.children)
 				{
-					array.append(QJsonObject {
-						{  "GenreCode",                child.code },
-						{ "ParentCode",                genre.code },
-						{    "FB2Code",             child.fb2Code },
-						{ "GenreAlias",                child.name },
-						{  "IsDeleted", child.removed ? "1" : "0" },
-					});
+					array.append(
+						QJsonObject {
+							{  "GenreCode",                child.code },
+							{ "ParentCode",                genre.code },
+							{    "FB2Code",             child.fb2Code },
+							{ "GenreAlias",                child.name },
+							{  "IsDeleted", child.removed ? "1" : "0" },
+                    }
+					);
 					f(child, f);
 				}
 			};
@@ -290,12 +292,14 @@ where g.GroupID = ?
 				{
 					const auto& authorItem = dataProvider.GetAuthors().GetChild(i);
 
-					authors.append(QJsonObject {
-						{   "AuthorID",											  authorItem->GetId() },
-						{  "FirstName",  authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName) },
-						{   "LastName",   authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName) },
-						{ "MiddleName", authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName) },
-					});
+					authors.append(
+						QJsonObject {
+							{   "AuthorID",											  authorItem->GetId() },
+							{  "FirstName",  authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName) },
+							{   "LastName",   authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName) },
+							{ "MiddleName", authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName) },
+                    }
+					);
 
 					values << QString("%1 %2 %3")
 								  .arg(
@@ -433,6 +437,7 @@ private:
 
 namespace
 {
+
 template <typename Obj, typename NavigationGetter, typename... ARGS>
 QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ARGS&... args)
 {

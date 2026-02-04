@@ -15,8 +15,10 @@ class QString;
 
 namespace HomeCompa
 {
+
 class ISettings;
 class Zip;
+
 }
 
 namespace HomeCompa::Flibrary

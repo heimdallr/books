@@ -81,17 +81,19 @@ struct DatabaseUser::Impl
 
 	std::unique_ptr<Util::IExecutor> CreateExecutor(const ILogicFactory& logicFactory) const
 	{
-		return logicFactory.GetExecutor({ 1,
-		                                  [] {
-										  },
-		                                  [this] {
-											  APPLICATION_CURSOR_CONTROLLER->Set(true);
-										  },
-		                                  [this] {
-											  APPLICATION_CURSOR_CONTROLLER->Set(false);
-										  },
-		                                  [] {
-										  } });
+		return logicFactory.GetExecutor(
+			{ 1,
+		      [] {
+			  },
+		      [this] {
+				  APPLICATION_CURSOR_CONTROLLER->Set(true);
+			  },
+		      [this] {
+				  APPLICATION_CURSOR_CONTROLLER->Set(false);
+			  },
+		      [] {
+			  } }
+		);
 	}
 };
 

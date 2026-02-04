@@ -29,6 +29,7 @@ using namespace Opds;
 
 namespace
 {
+
 constexpr auto APP_ID = "opds";
 
 class CollectionAutoUpdaterObserver final : Flibrary::ICollectionAutoUpdater::IObserver

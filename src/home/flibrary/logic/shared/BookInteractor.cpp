@@ -11,6 +11,7 @@ using namespace HomeCompa::Flibrary;
 
 namespace
 {
+
 constexpr auto ON_BOOK_LINK_KEY      = "Preferences/Interaction/Book/OnLink";
 constexpr auto ON_BOOK_DBL_CLICK_KEY = "Preferences/Interaction/Book/OnDoubleClick";
 

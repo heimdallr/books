@@ -32,6 +32,7 @@ using namespace Flibrary;
 
 namespace
 {
+
 constexpr auto        CONTEXT           = "Dialog";
 constexpr auto        ABOUT_TITLE       = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
 constexpr auto        ABOUT_DESCRIPTION = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger");

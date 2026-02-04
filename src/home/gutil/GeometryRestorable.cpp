@@ -15,6 +15,7 @@ using namespace HomeCompa::Util;
 
 namespace
 {
+
 constexpr auto STATE_KEY_TEMPLATE    = "ui/%1/State";
 constexpr auto GEOMETRY_KEY_TEMPLATE = "ui/%1/Geometry";
 constexpr auto SPLITTER_KEY_TEMPLATE = "ui/%1/%2";

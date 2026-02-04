@@ -12,7 +12,9 @@ class QWidget;
 
 namespace HomeCompa
 {
+
 class IParentWidgetProvider;
+
 }
 
 namespace HomeCompa::Util
@@ -27,9 +29,13 @@ protected:
 	~Dialog() override;
 
 protected:
-	QMessageBox::StandardButton
-	Show(QMessageBox::Icon icon, const QString& title, const QString& text, const QMessageBox::StandardButtons& buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton)
-		const;
+	QMessageBox::StandardButton Show(
+		QMessageBox::Icon                   icon,
+		const QString&                      title,
+		const QString&                      text,
+		const QMessageBox::StandardButtons& buttons       = QMessageBox::Ok,
+		QMessageBox::StandardButton         defaultButton = QMessageBox::NoButton
+	) const;
 
 protected:
 	PropagateConstPtr<IParentWidgetProvider, std::shared_ptr> m_parentProvider;

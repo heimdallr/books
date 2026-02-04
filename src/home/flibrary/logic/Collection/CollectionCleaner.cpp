@@ -248,123 +248,122 @@ struct CollectionCleaner::Impl
 	void Analyze(IAnalyzeObserver& observer) const
 	{
 		databaseUser->Execute(
-			{ "Analyze",
-		      [&] {
-				  std::function result { [&](size_t) {
-					  observer.AnalyzeFinished({});
-				  } };
-				  auto genres    = observer.GetGenres();
-				  auto languages = observer.GetLanguages();
-				  if (genres.isEmpty() && languages.isEmpty() && !observer.NeedDeleteDuplicates() && !observer.NeedDeleteMarkedAsDeleted() && !observer.GetMinimumBookSize() && !observer.GetMaximumBookSize()
-			          && !observer.NeedDeleteUnrated() && !observer.GetMinimumLibRate() && !observer.NeedDeleteCompletelyDuplicatedCompilations() && !observer.NeedDeleteBooksDuplicatedByCompilations())
-					  return result;
+			{ "Analyze", [&] {
+				 std::function result { [&](size_t) {
+					 observer.AnalyzeFinished({});
+				 } };
+				 auto genres    = observer.GetGenres();
+				 auto languages = observer.GetLanguages();
+				 if (genres.isEmpty() && languages.isEmpty() && !observer.NeedDeleteDuplicates() && !observer.NeedDeleteMarkedAsDeleted() && !observer.GetMinimumBookSize() && !observer.GetMaximumBookSize()
+			         && !observer.NeedDeleteUnrated() && !observer.GetMinimumLibRate() && !observer.NeedDeleteCompletelyDuplicatedCompilations() && !observer.NeedDeleteBooksDuplicatedByCompilations())
+					 return result;
 
-				  const auto db = databaseUser->Database();
-				  PLOGI << "get books info";
-				  auto analyzedBooks = GetAnalyzedBooks(*db, *libRateProvider, observer, !genres.isEmpty(), analyzeCanceled);
-				  PLOGI << "total books found: " << analyzedBooks.size();
+				 const auto db = databaseUser->Database();
+				 PLOGI << "get books info";
+				 auto analyzedBooks = GetAnalyzedBooks(*db, *libRateProvider, observer, !genres.isEmpty(), analyzeCanceled);
+				 PLOGI << "total books found: " << analyzedBooks.size();
 
-				  std::unordered_set<long long> toDelete;
+				 std::unordered_set<long long> toDelete;
 
-				  const auto addToDelete = [&](const QString& name, const auto filter) {
-					  const auto n = toDelete.size();
-					  std::ranges::transform(analyzedBooks | std::views::filter(filter), std::inserter(toDelete, toDelete.end()), [](const auto& item) {
-						  return item.first;
-					  });
-					  PLOGI << name << " found: " << toDelete.size() - n;
-				  };
+				 const auto addToDelete = [&](const QString& name, const auto filter) {
+					 const auto n = toDelete.size();
+					 std::ranges::transform(analyzedBooks | std::views::filter(filter), std::inserter(toDelete, toDelete.end()), [](const auto& item) {
+						 return item.first;
+					 });
+					 PLOGI << name << " found: " << toDelete.size() - n;
+				 };
 
-				  if (observer.NeedDeleteMarkedAsDeleted())
-					  addToDelete("marked as deleted", [](const auto& item) {
-						  return item.second.deleted;
-					  });
+				 if (observer.NeedDeleteMarkedAsDeleted())
+					 addToDelete("marked as deleted", [](const auto& item) {
+						 return item.second.deleted;
+					 });
 
-				  if (observer.NeedDeleteUnrated())
-					  addToDelete("unrated", [](const auto& item) {
-						  return item.second.libRate < 1.0;
-					  });
+				 if (observer.NeedDeleteUnrated())
+					 addToDelete("unrated", [](const auto& item) {
+						 return item.second.libRate < 1.0;
+					 });
 
-				  if (auto value = observer.GetMinimumLibRate())
-					  addToDelete("rated less then minimum", [value = *value - std::numeric_limits<double>::epsilon()](const auto& item) {
-						  return item.second.libRate > std::numeric_limits<double>::epsilon() && item.second.libRate < value;
-					  });
+				 if (auto value = observer.GetMinimumLibRate())
+					 addToDelete("rated less then minimum", [value = *value - std::numeric_limits<double>::epsilon()](const auto& item) {
+						 return item.second.libRate > std::numeric_limits<double>::epsilon() && item.second.libRate < value;
+					 });
 
-				  if (auto value = observer.GetMinimumBookSize())
-					  addToDelete("smaller then minimum", [value = *value](const auto& item) {
-						  return item.second.size < value;
-					  });
+				 if (auto value = observer.GetMinimumBookSize())
+					 addToDelete("smaller then minimum", [value = *value](const auto& item) {
+						 return item.second.size < value;
+					 });
 
-				  if (auto value = observer.GetMaximumBookSize())
-					  addToDelete("larger then maximum", [value = *value](const auto& item) {
-						  return item.second.size > value;
-					  });
+				 if (auto value = observer.GetMaximumBookSize())
+					 addToDelete("larger then maximum", [value = *value](const auto& item) {
+						 return item.second.size > value;
+					 });
 
-				  if (!languages.isEmpty())
-					  addToDelete("on specified languages", [languages = std::unordered_set(std::make_move_iterator(languages.begin()), std::make_move_iterator(languages.end()))](const auto& item) {
-						  return languages.contains(item.second.lang);
-					  });
-				  languages.clear();
+				 if (!languages.isEmpty())
+					 addToDelete("on specified languages", [languages = std::unordered_set(std::make_move_iterator(languages.begin()), std::make_move_iterator(languages.end()))](const auto& item) {
+						 return languages.contains(item.second.lang);
+					 });
+				 languages.clear();
 
-				  if (!genres.isEmpty())
-				  {
-					  const auto indexedGenres = std::set(std::make_move_iterator(genres.begin()), std::make_move_iterator(genres.end()));
-					  switch (observer.GetCleanGenreMode()) // NOLINT(clang-diagnostic-switch-enum)
-					  {
-						  case CleanGenreMode::Full:
-							  addToDelete("in specified genres full", [&](const auto& item) {
-								  return std::ranges::includes(indexedGenres, item.second.genres);
-							  });
-							  break;
-						  case CleanGenreMode::Partial:
-							  addToDelete("in specified genres partial", [&](const auto& item) {
-								  return Util::Intersect(indexedGenres, item.second.genres);
-							  });
-							  break;
-						  default: // NOLINT(clang-diagnostic-covered-switch-default)
-							  assert(false && "unexpected mode");
-							  break;
-					  }
-					  genres.clear();
-				  }
+				 if (!genres.isEmpty())
+				 {
+					 const auto indexedGenres = std::set(std::make_move_iterator(genres.begin()), std::make_move_iterator(genres.end()));
+					 switch (observer.GetCleanGenreMode()) // NOLINT(clang-diagnostic-switch-enum)
+					 {
+						 case CleanGenreMode::Full:
+							 addToDelete("in specified genres full", [&](const auto& item) {
+								 return std::ranges::includes(indexedGenres, item.second.genres);
+							 });
+							 break;
+						 case CleanGenreMode::Partial:
+							 addToDelete("in specified genres partial", [&](const auto& item) {
+								 return Util::Intersect(indexedGenres, item.second.genres);
+							 });
+							 break;
+						 default: // NOLINT(clang-diagnostic-covered-switch-default)
+							 assert(false && "unexpected mode");
+							 break;
+					 }
+					 genres.clear();
+				 }
 
-				  if (observer.NeedDeleteDuplicates())
-				  {
-					  const auto n = toDelete.size();
-					  RemoveDuplicates(analyzedBooks, toDelete);
-					  PLOGI << "duplicates found: " << toDelete.size() - n;
-				  }
+				 if (observer.NeedDeleteDuplicates())
+				 {
+					 const auto n = toDelete.size();
+					 RemoveDuplicates(analyzedBooks, toDelete);
+					 PLOGI << "duplicates found: " << toDelete.size() - n;
+				 }
 
-				  if (observer.NeedDeleteCompletelyDuplicatedCompilations())
-				  {
-					  const auto n = toDelete.size();
-					  RemoveCompletelyDuplicatedCompilations(*db, analyzedBooks, toDelete);
-					  PLOGI << "completely duplicated compilations found: " << toDelete.size() - n;
-				  }
+				 if (observer.NeedDeleteCompletelyDuplicatedCompilations())
+				 {
+					 const auto n = toDelete.size();
+					 RemoveCompletelyDuplicatedCompilations(*db, analyzedBooks, toDelete);
+					 PLOGI << "completely duplicated compilations found: " << toDelete.size() - n;
+				 }
 
-				  if (observer.NeedDeleteBooksDuplicatedByCompilations())
-				  {
-					  const auto n = toDelete.size();
-					  RemoveBooksDuplicatedByCompilations(*db, analyzedBooks, toDelete);
-					  PLOGI << "duplicated by compilations found: " << toDelete.size() - n;
-				  }
+				 if (observer.NeedDeleteBooksDuplicatedByCompilations())
+				 {
+					 const auto n = toDelete.size();
+					 RemoveBooksDuplicatedByCompilations(*db, analyzedBooks, toDelete);
+					 PLOGI << "duplicated by compilations found: " << toDelete.size() - n;
+				 }
 
-				  Books books;
-				  books.reserve(toDelete.size());
-				  std::ranges::transform(toDelete, std::back_inserter(books), [&](const long long id) {
-					  const auto it = analyzedBooks.find(id);
-					  assert(it != analyzedBooks.end());
-					  return Book { id, std::move(it->second.folder), std::move(it->second.file) };
-				  });
+				 Books books;
+				 books.reserve(toDelete.size());
+				 std::ranges::transform(toDelete, std::back_inserter(books), [&](const long long id) {
+					 const auto it = analyzedBooks.find(id);
+					 assert(it != analyzedBooks.end());
+					 return Book { id, std::move(it->second.folder), std::move(it->second.file) };
+				 });
 
-				  analyzedBooks.clear();
-				  toDelete.clear();
+				 analyzedBooks.clear();
+				 toDelete.clear();
 
-				  result = [&, books = std::move(books)](size_t) mutable {
-					  observer.AnalyzeFinished(std::move(books));
-				  };
+				 result = [&, books = std::move(books)](size_t) mutable {
+					 observer.AnalyzeFinished(std::move(books));
+				 };
 
-				  return result;
-			  } }
+				 return result;
+			 } }
 		);
 	}
 
@@ -389,32 +388,33 @@ struct CollectionCleaner::Impl
 
 	void RemovePermanently(Books books, Callback callback) const
 	{
-		databaseUser->Execute({ "Delete books permanently",
-		                        [this, books = std::move(books), callback = std::move(callback), collectionFolder = collectionProvider->GetActiveCollection().GetFolder()]() mutable {
-									auto progressItem = progressController->Add(100);
+		databaseUser->Execute(
+			{ "Delete books permanently", [this, books = std::move(books), callback = std::move(callback), collectionFolder = collectionProvider->GetActiveCollection().GetFolder()]() mutable {
+				 auto progressItem = progressController->Add(100);
 
-									auto logicFactoryPtr = ILogicFactory::Lock(logicFactory);
-									auto allFiles        = CollectBookFiles(books, [&] {
-                                        return logicFactoryPtr->CreateZipProgressCallback(progressController);
-                                    });
-									auto images          = CollectImageFiles(allFiles, collectionFolder, [&] {
-                                        return logicFactoryPtr->CreateZipProgressCallback(progressController);
-                                    });
+				 auto logicFactoryPtr = ILogicFactory::Lock(logicFactory);
+				 auto allFiles        = CollectBookFiles(books, [&] {
+                     return logicFactoryPtr->CreateZipProgressCallback(progressController);
+                 });
+				 auto images          = CollectImageFiles(allFiles, collectionFolder, [&] {
+                     return logicFactoryPtr->CreateZipProgressCallback(progressController);
+                 });
 
-									std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
-									RemoveFiles(allFiles, collectionFolder);
+				 std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
+				 RemoveFiles(allFiles, collectionFolder);
 
-									const auto db          = databaseUser->Database();
-									const auto transaction = db->CreateTransaction();
+				 const auto db          = databaseUser->Database();
+				 const auto transaction = db->CreateTransaction();
 
-									auto ok = RemoveBooksImpl(books, *transaction, std::move(progressItem));
-									ok      = CleanupNavigationItems(*transaction) && ok;
-									ok      = transaction->Commit() && ok;
+				 auto ok = RemoveBooksImpl(books, *transaction, std::move(progressItem));
+				 ok      = CleanupNavigationItems(*transaction) && ok;
+				 ok      = transaction->Commit() && ok;
 
-									return [callback = std::move(callback), ok](size_t) {
-										callback(ok);
-									};
-								} });
+				 return [callback = std::move(callback), ok](size_t) {
+					 callback(ok);
+				 };
+			 } }
+		);
 	}
 };
 

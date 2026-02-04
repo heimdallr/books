@@ -14,7 +14,9 @@ class QLineEdit;
 
 namespace HomeCompa::DB
 {
+
 class IDatabase;
+
 }
 
 namespace HomeCompa::Flibrary

@@ -21,6 +21,7 @@ using namespace Flibrary;
 
 namespace
 {
+
 using Role = IModel::Role;
 
 constexpr auto CONTEXT                 = ICollectionCleaner::CONTEXT;

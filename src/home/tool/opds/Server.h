@@ -11,7 +11,9 @@
 
 namespace HomeCompa
 {
+
 class ISettings;
+
 }
 
 namespace HomeCompa::Opds

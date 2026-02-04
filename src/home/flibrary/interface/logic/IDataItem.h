@@ -12,6 +12,7 @@ class QString;
 
 namespace HomeCompa::Flibrary
 {
+
 enum class ItemType;
 
 #define DATA_ITEMS_X_MACRO    \

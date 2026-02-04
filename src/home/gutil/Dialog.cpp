@@ -13,7 +13,9 @@ using namespace Util;
 
 namespace
 {
+
 constexpr auto INPUT_DIALOG_GEOMETRY_KEY = "ui/InputDialog/Geometry";
+
 }
 
 Dialog::Dialog(std::shared_ptr<IParentWidgetProvider> parentProvider, std::shared_ptr<ISettings> settings)

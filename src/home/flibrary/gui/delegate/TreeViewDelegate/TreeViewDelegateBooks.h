@@ -7,7 +7,9 @@
 
 namespace HomeCompa
 {
+
 class ISettings;
+
 }
 
 class QAbstractScrollArea;

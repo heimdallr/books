@@ -12,6 +12,7 @@
 
 namespace HomeCompa::Flibrary
 {
+
 class DataItem : public IDataItem
 {
 	DEFAULT_COPY_MOVABLE(DataItem)

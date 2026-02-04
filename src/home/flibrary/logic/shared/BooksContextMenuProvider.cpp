@@ -206,48 +206,50 @@ public:
 		});
 		auto currentLocale = Loc::GetLocale(*m_settings);
 
-		m_databaseUser->Execute({ "Create context menu",
-		                          [id      = index.data(Role::Id).toString(),
-		                           type    = index.data(Role::Type).value<ItemType>(),
-		                           removed = index.data(Role::IsRemoved).toBool(),
-		                           options,
-		                           starSymbol    = m_starSymbol,
-		                           callback      = std::move(callback),
-		                           db            = m_databaseUser->Database(),
-		                           scripts       = std::move(scripts),
-		                           currentLocale = std::move(currentLocale)]() mutable {
-									  auto result = MenuItem::Create();
+		m_databaseUser->Execute(
+			{ "Create context menu",
+		      [id      = index.data(Role::Id).toString(),
+		       type    = index.data(Role::Type).value<ItemType>(),
+		       removed = index.data(Role::IsRemoved).toBool(),
+		       options,
+		       starSymbol    = m_starSymbol,
+		       callback      = std::move(callback),
+		       db            = m_databaseUser->Database(),
+		       scripts       = std::move(scripts),
+		       currentLocale = std::move(currentLocale)]() mutable {
+				  auto result = MenuItem::Create();
 
-									  if (type == ItemType::Books)
-										  AddMenuItem(result, Tr(READ_BOOK), BooksMenuAction::ReadBook);
+				  if (type == ItemType::Books)
+					  AddMenuItem(result, Tr(READ_BOOK), BooksMenuAction::ReadBook);
 
-									  CreateSendMenu(result, options, scripts);
-									  AddMenuItem(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+				  CreateSendMenu(result, options, scripts);
+				  AddMenuItem(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 
-									  if (type == ItemType::Books)
-									  {
-										  CreateGroupMenu(result, id, *db);
-										  CreateMyRateMenu(result, id, *db, starSymbol);
-									  }
+				  if (type == ItemType::Books)
+				  {
+					  CreateGroupMenu(result, id, *db);
+					  CreateMyRateMenu(result, id, *db, starSymbol);
+				  }
 
-									  CreateCheckMenu(result);
-									  CreateTreeMenu(result, options);
-									  CreateChangeLangMenu(result, currentLocale);
+				  CreateCheckMenu(result);
+				  CreateTreeMenu(result, options);
+				  CreateChangeLangMenu(result, currentLocale);
 
-									  if (type == ItemType::Books)
-									  {
-										  AddMenuItem(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-										  AddMenuItem(result, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? BooksMenuAction::UndoRemoveBook : BooksMenuAction::RemoveBook);
-										  auto removeItem = AddMenuItem(result, Tr(REMOVE_BOOK_FROM_ARCHIVE), BooksMenuAction::RemoveBookFromArchive);
-										  if (!(options & ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations))
-											  removeItem->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
-									  }
+				  if (type == ItemType::Books)
+				  {
+					  AddMenuItem(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+					  AddMenuItem(result, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? BooksMenuAction::UndoRemoveBook : BooksMenuAction::RemoveBook);
+					  auto removeItem = AddMenuItem(result, Tr(REMOVE_BOOK_FROM_ARCHIVE), BooksMenuAction::RemoveBookFromArchive);
+					  if (!(options & ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations))
+						  removeItem->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+				  }
 
-									  return [callback = std::move(callback), result = std::move(result)](size_t) {
-										  if (result->GetChildCount() > 0)
-											  callback(result);
-									  };
-								  } });
+				  return [callback = std::move(callback), result = std::move(result)](size_t) {
+					  if (result->GetChildCount() > 0)
+						  callback(result);
+				  };
+			  } }
+		);
 	}
 
 private: // IContextMenuHandler

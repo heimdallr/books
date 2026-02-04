@@ -853,16 +853,20 @@ private:
 
 	bool ParseEpigraph(const QString& value)
 	{
-		m_stream << QString(R"(<p class="epigraph">%1</p>)"
-		                    "\n")
+		m_stream << QString(
+						R"(<p class="epigraph">%1</p>)"
+						"\n"
+		)
 						.arg(value);
 		return true;
 	}
 
 	bool ParseEpigraphTextAuthor(const QString& value)
 	{
-		m_stream << QString(R"(<p class="epigraph_text_author">%1</p>)"
-		                    "\n")
+		m_stream << QString(
+						R"(<p class="epigraph_text_author">%1</p>)"
+						"\n"
+		)
 						.arg(value);
 		return true;
 	}

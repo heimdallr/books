@@ -1372,6 +1372,7 @@ private:
 
 namespace
 {
+
 } // namespace
 
 Requester::Requester(

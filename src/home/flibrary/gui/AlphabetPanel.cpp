@@ -24,6 +24,7 @@ using namespace Flibrary;
 
 namespace
 {
+
 constexpr auto CONTEXT               = "AlphabetPanel";
 constexpr auto SELECT_LANGUAGE_TITLE = QT_TRANSLATE_NOOP("AlphabetPanel", "Specify the language of the new alphabet");
 constexpr auto SELECT_LANGUAGE_LABEL = QT_TRANSLATE_NOOP("AlphabetPanel", "Select language");

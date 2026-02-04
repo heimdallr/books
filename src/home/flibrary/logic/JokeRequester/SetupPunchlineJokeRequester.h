@@ -4,6 +4,7 @@
 
 namespace HomeCompa::Flibrary
 {
+
 class IJokeRequesterFactory;
 
 class SetupPunchlineJokeRequester final : public SimpleSetupPunchlineJokeRequester

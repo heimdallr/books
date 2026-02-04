@@ -9,7 +9,9 @@ class QAbstractItemModel;
 
 namespace Hypodermic
 {
+
 class Container;
+
 }
 
 namespace HomeCompa::Flibrary

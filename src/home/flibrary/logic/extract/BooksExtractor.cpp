@@ -210,6 +210,7 @@ void Process(
 
 using ProcessFunctor = std::function<
 	void(const std::filesystem::path& archiveFolder, const QString& dstFolder, const ILogicFactory::ExtractedBook& book, IProgressController::IProgressItem& progress, IExportHelper& exportHelper)>;
+
 } // namespace
 
 class BooksExtractor::Impl final
@@ -417,8 +418,13 @@ void BooksExtractor::ExtractAsArchives(QString folder, const QString& /*paramete
 	     converter              = m_impl->GetLogicFactory()->CreateFillTemplateConverter(),
 	     zipProgressCallback    = std::move(zipProgressCallback),
 	     settings               = m_impl->GetSettings(),
-	     db                     = m_impl->GetDatabase(
-         )](const std::filesystem::path& archiveFolder, const QString& dstFolder, const ILogicFactory::ExtractedBook& book, IProgressController::IProgressItem& progress, IExportHelper& exportHelper) mutable {
+	     db                     = m_impl->GetDatabase()](
+			const std::filesystem::path&        archiveFolder,
+			const QString&                      dstFolder,
+			const ILogicFactory::ExtractedBook& book,
+			IProgressController::IProgressItem& progress,
+			IExportHelper&                      exportHelper
+		) mutable {
 			Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, *converter, progress, std::move(zipProgressCallback), exportHelper, WriteMode::Archive);
 		}
 	);
@@ -431,11 +437,13 @@ void BooksExtractor::ExtractAsIs(QString folder, const QString& /*parameter*/, I
 		std::move(books),
 		std::move(callback),
 		ExportStat::Type::AsIs,
-		[outputFileNameTemplate = std::move(outputFileNameTemplate),
-	     converter              = m_impl->GetLogicFactory()->CreateFillTemplateConverter(),
-	     settings               = m_impl->GetSettings(),
-	     db                     = m_impl->GetDatabase(
-         )](const std::filesystem::path& archiveFolder, const QString& dstFolder, const ILogicFactory::ExtractedBook& book, IProgressController::IProgressItem& progress, IExportHelper& exportHelper) {
+		[outputFileNameTemplate = std::move(outputFileNameTemplate), converter = m_impl->GetLogicFactory()->CreateFillTemplateConverter(), settings = m_impl->GetSettings(), db = m_impl->GetDatabase()](
+			const std::filesystem::path&        archiveFolder,
+			const QString&                      dstFolder,
+			const ILogicFactory::ExtractedBook& book,
+			IProgressController::IProgressItem& progress,
+			IExportHelper&                      exportHelper
+		) {
 			Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, *converter, progress, {}, exportHelper, WriteMode::AsIs);
 		}
 	);
@@ -448,11 +456,13 @@ void BooksExtractor::ExtractUnpack(QString folder, const QString& /*parameter*/,
 		std::move(books),
 		std::move(callback),
 		ExportStat::Type::Unpack,
-		[outputFileNameTemplate = std::move(outputFileNameTemplate),
-	     converter              = m_impl->GetLogicFactory()->CreateFillTemplateConverter(),
-	     settings               = m_impl->GetSettings(),
-	     db                     = m_impl->GetDatabase(
-         )](const std::filesystem::path& archiveFolder, const QString& dstFolder, const ILogicFactory::ExtractedBook& book, IProgressController::IProgressItem& progress, IExportHelper& exportHelper) {
+		[outputFileNameTemplate = std::move(outputFileNameTemplate), converter = m_impl->GetLogicFactory()->CreateFillTemplateConverter(), settings = m_impl->GetSettings(), db = m_impl->GetDatabase()](
+			const std::filesystem::path&        archiveFolder,
+			const QString&                      dstFolder,
+			const ILogicFactory::ExtractedBook& book,
+			IProgressController::IProgressItem& progress,
+			IExportHelper&                      exportHelper
+		) {
 			Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, *converter, progress, {}, exportHelper, WriteMode::Unpack);
 		}
 	);
@@ -474,8 +484,13 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, I
 	     tempDir                = std::make_shared<QTemporaryDir>(),
 	     outputFileNameTemplate = std::move(outputFileNameTemplate),
 	     settings               = m_impl->GetSettings(),
-	     db                     = m_impl->GetDatabase(
-         )](const std::filesystem::path& archiveFolder, const QString& dstFolder, const ILogicFactory::ExtractedBook& book, IProgressController::IProgressItem& progress, IExportHelper& exportHelper) {
+	     db                     = m_impl->GetDatabase()](
+			const std::filesystem::path&        archiveFolder,
+			const QString&                      dstFolder,
+			const ILogicFactory::ExtractedBook& book,
+			IProgressController::IProgressItem& progress,
+			IExportHelper&                      exportHelper
+		) {
 			Process(settings, archiveFolder, dstFolder, *db, book, outputFileNameTemplate, *converter, progress, exportHelper, *scriptController, commands, *tempDir);
 		}
 	);

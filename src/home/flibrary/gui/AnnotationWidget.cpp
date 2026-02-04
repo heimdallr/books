@@ -545,18 +545,24 @@ private:
 		const auto         height = 3 * metrics.lineSpacing() / 2;
 		const QSize        size { height, height };
 		const auto         top = imgHeight - height - height / 8;
-		m_coverButtons[CoverButtonType::Previous]->setGeometry(QRect {
-			QPoint { height / 8, top },
-			size
-        });
-		m_coverButtons[CoverButtonType::Next]->setGeometry(QRect {
-			QPoint { imgWidth - height - height / 8, top },
-			size
-        });
-		m_coverButtons[CoverButtonType::Home]->setGeometry(QRect {
-			QPoint { (imgWidth - height) / 2, top },
-			size
-        });
+		m_coverButtons[CoverButtonType::Previous]->setGeometry(
+			QRect {
+				QPoint { height / 8, top },
+				size
+        }
+		);
+		m_coverButtons[CoverButtonType::Next]->setGeometry(
+			QRect {
+				QPoint { imgWidth - height - height / 8, top },
+				size
+        }
+		);
+		m_coverButtons[CoverButtonType::Home]->setGeometry(
+			QRect {
+				QPoint { (imgWidth - height) / 2, top },
+				size
+        }
+		);
 	}
 
 	void OnContentChanged()

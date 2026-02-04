@@ -190,12 +190,14 @@ private: // QHeaderView
 
 		const auto size     = rect.height() / 4.0;
 		const auto height   = std::sqrt(2.0) * size / 2;
-		auto       triangle = QPolygonF({
-            QPointF {      0.0, height },
-            QPointF {     size, height },
-            QPointF { size / 2,      0 },
-            QPointF {      0.0, height }
-        });
+		auto       triangle = QPolygonF(
+            {
+                QPointF {      0.0, height },
+                QPointF {     size, height },
+                QPointF { size / 2,      0 },
+                QPointF {      0.0, height }
+        }
+        );
 
 		assert(it->second < m_sort.size());
 		if (m_sort[it->second].second == Qt::DescendingOrder)

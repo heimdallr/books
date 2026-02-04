@@ -311,6 +311,7 @@ QString IDatabaseUser::GetDatabaseVersionStatement()
 
 namespace
 {
+
 constexpr std::pair<IStyleApplier::Type, const char*> TYPES[] {
 #define STYLE_APPLIER_TYPE_ITEM(NAME) { IStyleApplier::Type::NAME, #NAME },
 	STYLE_APPLIER_TYPE_ITEMS_X_MACRO
@@ -320,6 +321,7 @@ constexpr std::pair<IStyleApplier::Type, const char*> TYPES[] {
 #define STYLE_APPLIER_TYPE_ITEM(NAME) static_assert(IStyleApplier::Type::NAME == TYPES[static_cast<size_t>(IStyleApplier::Type::NAME)].first);
 STYLE_APPLIER_TYPE_ITEMS_X_MACRO
 #undef STYLE_APPLIER_TYPE_ITEM
+
 }
 
 IStyleApplier::Type IStyleApplier::TypeFromString(const char* name)
@@ -334,7 +336,9 @@ QString IStyleApplier::TypeToString(const Type type)
 
 namespace
 {
+
 constexpr auto ANNOTATION_CONTEXT = "Annotation";
+
 }
 
 void IAnnotationController::IStrategy::AddImpl(Section, QString& text, const QString& str, const char* pattern)
@@ -381,6 +385,7 @@ QString IAnnotationController::IStrategy::TableRowsToStringImpl(const QStringLis
 
 namespace
 {
+
 constexpr auto AUTHORS     = "Authors";
 constexpr auto AUTHOR_ID   = "AuthorID";
 constexpr auto SERIES      = "Series";

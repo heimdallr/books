@@ -15,7 +15,9 @@ using namespace HomeCompa::Flibrary;
 
 namespace
 {
+
 constexpr auto EXPLAIN_QUERY_PLAN = "ui/View/ExplainQueryPlan";
+
 }
 
 class QueryWindow::Impl final

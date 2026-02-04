@@ -29,6 +29,7 @@ using namespace Flibrary;
 
 namespace
 {
+
 using Genres = std::unordered_map<QString, QString>;
 
 Genres GetGenres(DB::IDatabase& db)

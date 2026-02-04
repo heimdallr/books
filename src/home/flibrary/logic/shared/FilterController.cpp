@@ -17,6 +17,7 @@ using namespace Flibrary;
 
 namespace
 {
+
 constexpr auto FILTER_ENABLED_KEY                = "ui/View/UniFilter/enabled";
 constexpr auto FILTER_RATING_HIDE_UNRATED_KEY    = "ui/View/UniFilter/Rating/HideUnrated";
 constexpr auto FILTER_RATING_MINIMUM_KEY         = "ui/View/UniFilter/Rating/Minimum/Value";

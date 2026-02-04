@@ -6,14 +6,18 @@
 
 namespace HomeCompa::DB
 {
+
 class IDatabase;
 class IQuery;
+
 }
 
 namespace HomeCompa::Flibrary
 {
+
 class IProgressController;
 struct QueryInfo;
+
 }
 
 namespace HomeCompa::Flibrary::DatabaseUtil

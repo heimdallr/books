@@ -127,10 +127,12 @@ void BackupUserDataGroups(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 				[&] {
 					xmlWriter.WriteStartElement(
 						Constant::UserData::Groups::GroupNode,
-						XmlAttributes({
-							{                      Constant::TITLE,   currentTitle },
-							{ Constant::UserData::Books::CreatedAt, groupCreatedAt },
-                    })
+						XmlAttributes(
+							{
+								{                      Constant::TITLE,   currentTitle },
+								{ Constant::UserData::Books::CreatedAt, groupCreatedAt },
+                    }
+						)
 					);
 				},
 				[&] {
@@ -253,9 +255,11 @@ void Backup(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName
 					  [&] {
 						  xmlWriter.WriteStartElement(
 							  Constant::FlibraryBackupVersion,
-							  XmlAttributes({
-								  { Constant::VALUE, QString::number(Constant::FlibraryBackupVersionNumber) },
-                          })
+							  XmlAttributes(
+								  {
+									  { Constant::VALUE, QString::number(Constant::FlibraryBackupVersionNumber) },
+                          }
+							  )
 						  );
 					  },
 					  [&] {
