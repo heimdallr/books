@@ -87,7 +87,8 @@ QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
 	const QString&                                                  title,
 	const QString&                                                  text,
 	const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
-	const QMessageBox::ButtonRole                                   defaultButton
+	const QMessageBox::ButtonRole                                   defaultButton,
+	const QString&                                                  detailedText
 ) const
 {
 	auto* parentWidget = m_impl->container.resolve<IParentWidgetProvider>()->GetWidget();
@@ -99,6 +100,7 @@ QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
 	msgBox.setWindowTitle(title);
 	msgBox.setText(text);
 	msgBox.setTextFormat(Qt::RichText);
+	msgBox.setDetailedText(detailedText);
 
 	std::vector<std::pair<QAbstractButton*, QMessageBox::ButtonRole>> msgBoxButtons;
 	msgBoxButtons.reserve(buttons.size());
