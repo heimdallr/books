@@ -4405,6 +4405,10 @@ Try again?</source>
         <translation>Добавить новый &amp;алфавит...</translation>
     </message>
     <message>
+        <source>&amp;All settings...</source>
+        <translation>&amp;Все настройки...</translation>
+    </message>
+    <message>
         <source>&amp;Annotation</source>
         <translation>&amp;Аннотация</translation>
     </message>
@@ -5399,6 +5403,25 @@ Try again?</source>
 Try again?</source>
         <translation>Поисковый запрос слишком длинный.
 Попробуете ещё раз?</translation>
+    </message>
+</context>
+<context>
+    <name>SettingsDialog</name>
+    <message>
+        <source>All settings</source>
+        <translation>Все настройки</translation>
+    </message>
+    <message>
+        <source>Key</source>
+        <translation>Ключ</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Удалить</translation>
+    </message>
+    <message>
+        <source>Value</source>
+        <translation>Значение</translation>
     </message>
 </context>
 <context>
