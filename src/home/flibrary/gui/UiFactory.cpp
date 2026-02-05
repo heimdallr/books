@@ -9,6 +9,7 @@
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IComboBoxTextDialog.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
+#include "interface/ui/dialogs/ISettingsDialog.h"
 
 #include "Hypodermic/Hypodermic.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
@@ -145,6 +146,11 @@ std::shared_ptr<IAddCollectionDialog> UiFactory::CreateAddCollectionDialog(std::
 std::shared_ptr<IScriptDialog> UiFactory::CreateScriptDialog() const
 {
 	return m_impl->container.resolve<IScriptDialog>();
+}
+
+std::shared_ptr<ISettingsDialog> UiFactory::CreateSettingsDialog() const
+{
+	return m_impl->container.resolve<ISettingsDialog>();
 }
 
 std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateBooks(QTreeView& parent) const
