@@ -96,7 +96,7 @@ class AddCollectionDialog::Impl final
 
 public:
 	Impl(AddCollectionDialog& self, std::shared_ptr<ISettings> settings, std::shared_ptr<ICollectionController> collectionController, std::shared_ptr<const IUiFactory> uiFactory)
-		: GeometryRestorable(*this, settings, "AddCollectionDialog")
+		: GeometryRestorable(*this, settings, CONTEXT)
 		, GeometryRestorableObserver(self)
 		, m_self { self }
 		, m_settings { std::move(settings) }
