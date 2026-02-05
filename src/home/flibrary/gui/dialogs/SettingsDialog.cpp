@@ -97,6 +97,8 @@ public:
 		m_ui.view->viewport()->installEventFilter(m_itemViewToolTipper.get());
 		m_ui.view->viewport()->installEventFilter(m_scrollBarController.get());
 
+		m_ui.view->header()->setDefaultAlignment(Qt::AlignCenter);
+
 		connect(&self, &QDialog::accepted, &self, [this] {
 			RemoveImpl();
 		});
