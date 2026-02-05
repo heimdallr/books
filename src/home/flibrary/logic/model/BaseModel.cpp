@@ -1,6 +1,7 @@
 #include "BaseModel.h"
 
 #include "fnd/IsOneOf.h"
+#include "fnd/ScopedCall.h"
 
 #include "interface/Localization.h"
 #include "interface/constants/Enums.h"
@@ -168,6 +169,27 @@ bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const i
 	}
 
 	return assert(false && "unexpected role"), false;
+}
+
+bool BaseModel::removeRows(const int row, const int count, const QModelIndex& parent)
+{
+	auto* parentItem = parent.isValid() ? GetInternalPointer(parent) : m_data.get();
+	assert(parentItem);
+	const auto uRow = static_cast<size_t>(row);
+	const auto uCount = static_cast<size_t>(count);
+	if (uRow + uCount > parentItem->GetChildCount())
+		return false;
+
+	const ScopedCall removeGuard(
+		[&] {
+			beginRemoveRows(parent, row, row + count - 1);
+		},
+		[this]() {
+			endRemoveRows();
+		}
+	);
+	parentItem->RemoveChild(uRow, uCount);
+	return true;
 }
 
 Qt::ItemFlags BaseModel::flags(const QModelIndex& index) const
