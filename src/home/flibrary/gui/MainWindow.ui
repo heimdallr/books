@@ -464,7 +464,7 @@
     </widget>
     <widget class="QMenu" name="menuHttp">
      <property name="title">
-      <string notr="true">Http</string>
+      <string notr="true">&amp;Http</string>
      </property>
      <addaction name="actionHttpServerManagement"/>
      <addaction name="separator"/>
@@ -479,6 +479,7 @@
     <addaction name="actionFilters"/>
     <addaction name="actionScripts"/>
     <addaction name="separator"/>
+    <addaction name="actionAllSettings"/>
     <addaction name="actionRestoreDefaultSettings"/>
    </widget>
    <widget class="QMenu" name="menuHelp">
@@ -1100,6 +1101,14 @@
    </property>
    <property name="text">
     <string>&amp;Metadata</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionAllSettings">
+   <property name="text">
+    <string>&amp;All settings...</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
