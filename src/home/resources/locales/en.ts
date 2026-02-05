@@ -4393,6 +4393,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;All settings...</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Annotation</source>
         <translation></translation>
     </message>
@@ -5383,6 +5387,25 @@ Try again?</source>
     <message>
         <source>Search query too long.
 Try again?</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>SettingsDialog</name>
+    <message>
+        <source>All settings</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Key</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Value</source>
         <translation></translation>
     </message>
 </context>

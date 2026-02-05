@@ -260,7 +260,7 @@ public:
 			menu.exec(m_ui.cover->mapToGlobal(pos));
 		});
 
-		connect(m_ui.content, &QWidget::customContextMenuRequested, &m_self, [this](const QPoint& pos) {
+		connect(m_ui.content, &QWidget::customContextMenuRequested, &m_self, [this] {
 			QMenu menu;
 			menu.setFont(m_self.font());
 
@@ -277,7 +277,7 @@ public:
 				});
 			}
 
-			Util::FillTreeContextMenu(*m_ui.content, menu).exec(m_ui.content->mapToGlobal(pos));
+			Util::FillTreeContextMenu(*m_ui.content, menu).exec(QCursor::pos());
 		});
 
 		const auto openImage = [this] {

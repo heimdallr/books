@@ -4405,6 +4405,10 @@ Try again?</source>
         <translation>Додати новий &amp;алфавіт...</translation>
     </message>
     <message>
+        <source>&amp;All settings...</source>
+        <translation>&amp;Усі налаштування...</translation>
+    </message>
+    <message>
         <source>&amp;Annotation</source>
         <translation>&amp;Анотація</translation>
     </message>
@@ -5399,6 +5403,25 @@ Try again?</source>
 Try again?</source>
         <translation>Пошуковий запит надто довгий.
 Спробуєте ще раз?</translation>
+    </message>
+</context>
+<context>
+    <name>SettingsDialog</name>
+    <message>
+        <source>All settings</source>
+        <translation>Усі налаштування</translation>
+    </message>
+    <message>
+        <source>Key</source>
+        <translation>Ключ</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Видалити</translation>
+    </message>
+    <message>
+        <source>Value</source>
+        <translation>Значення</translation>
     </message>
 </context>
 <context>

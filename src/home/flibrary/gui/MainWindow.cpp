@@ -30,6 +30,7 @@
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/IAlphabetPanel.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
+#include "interface/ui/dialogs/ISettingsDialog.h"
 
 #include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
@@ -893,6 +894,9 @@ private:
 		});
 		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] {
 			m_uiFactory->CreateScriptDialog()->Exec();
+		});
+		connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
+			m_uiFactory->CreateSettingsDialog()->Exec();
 		});
 	}
 

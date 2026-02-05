@@ -32,6 +32,7 @@ private: // IUiFactory
 	std::shared_ptr<TreeView>             CreateTreeViewWidget(ItemType type) const override;
 	std::shared_ptr<IAddCollectionDialog> CreateAddCollectionDialog(std::filesystem::path inpxFolder) const override;
 	std::shared_ptr<IScriptDialog>        CreateScriptDialog() const override;
+	std::shared_ptr<ISettingsDialog>      CreateSettingsDialog() const override;
 	std::shared_ptr<ITreeViewDelegate>    CreateTreeViewDelegateBooks(QTreeView& parent) const override;
 	std::shared_ptr<ITreeViewDelegate>    CreateTreeViewDelegateNavigation(QAbstractItemView& parent) const override;
 	std::shared_ptr<QDialog>              CreateOpdsDialog() const override;
