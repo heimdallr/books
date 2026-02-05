@@ -23,7 +23,8 @@ enum class ItemType;
 	DATA_ITEM(SeriesItem)     \
 	DATA_ITEM(ReviewItem)     \
 	DATA_ITEM(BookItem)       \
-	DATA_ITEM(MenuItem)
+	DATA_ITEM(MenuItem)       \
+	DATA_ITEM(SettingsItem)
 
 #define DATA_ITEM(NAME) class NAME; // NOLINT(bugprone-macro-parentheses)
 DATA_ITEMS_X_MACRO
@@ -57,18 +58,18 @@ public:
 		return const_cast<IDataItem*>(this)->GetParent();
 	}
 
-	virtual Ptr&                         AppendChild(Ptr child)                    = 0;
-	virtual void                         RemoveChild(size_t row = INVALID_INDEX)   = 0;
-	virtual void                         RemoveAllChildren()                       = 0;
-	virtual void                         SetChildren(Items children) noexcept      = 0;
-	[[nodiscard]] virtual Ptr            GetChild(size_t row) const noexcept       = 0;
-	[[nodiscard]] virtual size_t         GetChildCount() const noexcept            = 0;
-	[[nodiscard]] virtual size_t         GetRow() const noexcept                   = 0;
-	[[nodiscard]] virtual const QString& GetId() const noexcept                    = 0;
-	[[nodiscard]] virtual Flags          GetFlags() const noexcept                 = 0;
-	[[nodiscard]] virtual const QString& GetData(int column = 0) const noexcept    = 0;
-	[[nodiscard]] virtual const QString& GetRawData(int column = 0) const noexcept = 0;
-	[[nodiscard]] virtual Ptr            Clone() const                             = 0;
+	virtual Ptr&                         AppendChild(Ptr child)                                    = 0;
+	virtual void                         RemoveChild(size_t row = INVALID_INDEX, size_t count = 1) = 0;
+	virtual void                         RemoveAllChildren()                                       = 0;
+	virtual void                         SetChildren(Items children) noexcept                      = 0;
+	[[nodiscard]] virtual Ptr            GetChild(size_t row) const noexcept                       = 0;
+	[[nodiscard]] virtual size_t         GetChildCount() const noexcept                            = 0;
+	[[nodiscard]] virtual size_t         GetRow() const noexcept                                   = 0;
+	[[nodiscard]] virtual const QString& GetId() const noexcept                                    = 0;
+	[[nodiscard]] virtual Flags          GetFlags() const noexcept                                 = 0;
+	[[nodiscard]] virtual const QString& GetData(int column = 0) const noexcept                    = 0;
+	[[nodiscard]] virtual const QString& GetRawData(int column = 0) const noexcept                 = 0;
+	[[nodiscard]] virtual Ptr            Clone() const                                             = 0;
 
 	[[nodiscard]] virtual bool IsRemoved() const noexcept      = 0;
 	virtual void               SetRemoved(bool value) noexcept = 0;

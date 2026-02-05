@@ -34,15 +34,18 @@ IDataItem::Ptr& DataItem::AppendChild(Ptr child)
 	return m_children.emplace_back(std::move(child));
 }
 
-void DataItem::RemoveChild(size_t row)
+void DataItem::RemoveChild(size_t row, size_t count)
 {
 	assert(!m_children.empty());
 	if (row == INVALID_INDEX)
+	{
 		row = GetChildCount() - 1;
+		count = 1;
+	}
 
-	m_children.erase(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)));
-	std::for_each(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)), std::end(m_children), [](auto& item) {
-		--item->template To<DataItem>()->m_row;
+	m_children.erase(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)), std::next(std::begin(m_children), static_cast<ptrdiff_t>(row + count)));
+	std::for_each(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)), std::end(m_children), [&](auto& item) {
+		item->template To<DataItem>()->m_row -= count;
 	});
 }
 
@@ -171,7 +174,7 @@ NavigationItem::NavigationItem(IDataItem* parent)
 {
 }
 
-std::shared_ptr<IDataItem> NavigationItem::Create(IDataItem* parent)
+IDataItem::Ptr NavigationItem::Create(IDataItem* parent)
 {
 	return std::make_shared<NavigationItem>(parent);
 }
@@ -191,12 +194,37 @@ IDataItem::Ptr NavigationItem::Clone() const
 	return std::make_shared<NavigationItem>(*this);
 }
 
+IDataItem::Ptr SettingsItem::Create(IDataItem* parent)
+{
+	return std::make_shared<SettingsItem>(parent);
+}
+
+SettingsItem::SettingsItem(IDataItem* parent)
+	: DataItem(Column::Last, parent)
+{
+}
+
+SettingsItem* SettingsItem::ToSettingsItem() noexcept
+{
+	return this;
+}
+
+ItemType SettingsItem::GetType() const noexcept
+{
+	return ItemType::Navigation;
+}
+
+IDataItem::Ptr SettingsItem::Clone() const
+{
+	return std::make_shared<SettingsItem>(*this);
+}
+
 GenreItem::GenreItem(IDataItem* parent)
 	: DataItem(Column::Last, parent)
 {
 }
 
-std::shared_ptr<IDataItem> GenreItem::Create(IDataItem* parent)
+IDataItem::Ptr GenreItem::Create(IDataItem* parent)
 {
 	return std::make_shared<GenreItem>(parent);
 }
@@ -221,7 +249,7 @@ AuthorItem::AuthorItem(IDataItem* parent)
 {
 }
 
-std::shared_ptr<IDataItem> AuthorItem::Create(IDataItem* parent)
+IDataItem::Ptr AuthorItem::Create(IDataItem* parent)
 {
 	return std::make_shared<AuthorItem>(parent);
 }
@@ -275,7 +303,7 @@ IDataItem::Ptr AuthorItem::Clone() const
 	return std::make_shared<AuthorItem>(*this);
 }
 
-std::shared_ptr<IDataItem> SeriesItem::Create(IDataItem* parent)
+IDataItem::Ptr SeriesItem::Create(IDataItem* parent)
 {
 	return std::make_shared<SeriesItem>(parent);
 }
@@ -300,7 +328,7 @@ IDataItem::Ptr SeriesItem::Clone() const
 	return std::make_shared<SeriesItem>(*this);
 }
 
-std::shared_ptr<IDataItem> ReviewItem::Create(IDataItem* parent)
+IDataItem::Ptr ReviewItem::Create(IDataItem* parent)
 {
 	return std::make_shared<ReviewItem>(parent);
 }
@@ -332,7 +360,7 @@ BookItem::BookItem(IDataItem* parent, const size_t additionalFieldCount)
 {
 }
 
-std::shared_ptr<IDataItem> BookItem::Create(IDataItem* parent, const size_t additionalFieldCount)
+IDataItem::Ptr BookItem::Create(IDataItem* parent, const size_t additionalFieldCount)
 {
 	return std::make_shared<BookItem>(parent, additionalFieldCount);
 }
@@ -377,7 +405,7 @@ IDataItem::Ptr BookItem::Clone() const
 	return std::make_shared<BookItem>(*this);
 }
 
-std::shared_ptr<IDataItem> MenuItem::Create(IDataItem* parent)
+IDataItem::Ptr MenuItem::Create(IDataItem* parent)
 {
 	return std::make_shared<MenuItem>(parent);
 }

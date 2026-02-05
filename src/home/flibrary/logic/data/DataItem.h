@@ -34,7 +34,7 @@ protected:
 protected: // IDataItem
 	[[nodiscard]] IDataItem*     GetParent() noexcept override;
 	Ptr&                         AppendChild(Ptr child) override;
-	void                         RemoveChild(size_t row = INVALID_INDEX) override;
+	void                         RemoveChild(size_t row, size_t count) override;
 	void                         RemoveAllChildren() override;
 	void                         SetChildren(Items children) noexcept override;
 	[[nodiscard]] Ptr            GetChild(size_t row) const noexcept override;
@@ -79,12 +79,38 @@ class NavigationItem final : public DataItem
 	DEFAULT_COPY_MOVABLE(NavigationItem)
 
 public:
-	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
+	static Ptr Create(IDataItem* parent = nullptr);
 	explicit NavigationItem(IDataItem* parent);
 	~NavigationItem() override = default;
 
 private: // DataItem
 	NavigationItem*        ToNavigationItem() noexcept override;
+	[[nodiscard]] ItemType GetType() const noexcept override;
+	[[nodiscard]] Ptr      Clone() const override;
+};
+
+class LOGIC_EXPORT SettingsItem final : public DataItem
+{
+	DEFAULT_COPY_MOVABLE(SettingsItem)
+
+public:
+	static Ptr Create(IDataItem* parent = nullptr);
+	explicit SettingsItem(IDataItem* parent);
+	~SettingsItem() override = default;
+
+public:
+	struct Column
+	{
+		enum Value
+		{
+			Key = 0,
+			Value,
+			Last
+		};
+	};
+
+private: // DataItem
+	SettingsItem*          ToSettingsItem() noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
 	[[nodiscard]] Ptr      Clone() const override;
 };
@@ -105,7 +131,7 @@ public:
 	};
 
 public:
-	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
+	static Ptr Create(IDataItem* parent = nullptr);
 	explicit GenreItem(IDataItem* parent);
 	~GenreItem() override = default;
 
@@ -133,7 +159,7 @@ public:
 	};
 
 public:
-	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
+	static Ptr Create(IDataItem* parent = nullptr);
 	explicit AuthorItem(IDataItem* parent);
 	~AuthorItem() override = default;
 
@@ -160,7 +186,7 @@ public:
 	};
 
 public:
-	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
+	static Ptr Create(IDataItem* parent = nullptr);
 	explicit SeriesItem(IDataItem* parent);
 	~SeriesItem() override = default;
 
@@ -187,7 +213,7 @@ public:
 	};
 
 public:
-	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
+	static Ptr Create(IDataItem* parent = nullptr);
 	explicit ReviewItem(IDataItem* parent);
 	~ReviewItem() override = default;
 
@@ -263,8 +289,8 @@ public:
 	Qt::CheckState        checkState { Qt::Unchecked };
 	static const Mapping* mapping;
 
-	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr, size_t additionalFieldCount = 0);
-	static int                        Remap(int column) noexcept;
+	static Ptr Create(IDataItem* parent = nullptr, size_t additionalFieldCount = 0);
+	static int Remap(int column) noexcept;
 
 	BookItem(IDataItem* parent, size_t additionalFieldCount);
 	~BookItem() override = default;
@@ -299,7 +325,7 @@ public:
 		};
 	};
 
-	static std::shared_ptr<IDataItem> Create(IDataItem* parent = nullptr);
+	static Ptr Create(IDataItem* parent = nullptr);
 	explicit MenuItem(IDataItem* parent);
 	~MenuItem() override = default;
 
