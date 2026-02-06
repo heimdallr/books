@@ -406,6 +406,10 @@
         <translation>&amp;Групи</translation>
     </message>
     <message>
+        <source>&amp;Mark as read</source>
+        <translation>&amp;Прочитано</translation>
+    </message>
+    <message>
         <source>&amp;My rate</source>
         <translation>&amp;Мій рейтинг</translation>
     </message>
@@ -422,8 +426,8 @@
         <translation>&amp;Видалити з</translation>
     </message>
     <message>
-        <source>&amp;Remove my rate</source>
-        <translation>&amp;Видалити мою оцінку</translation>
+        <source>&amp;Remove read mark</source>
+        <translation>&amp;Зняти позначку про прочитання</translation>
     </message>
     <message>
         <source>&amp;Tree</source>

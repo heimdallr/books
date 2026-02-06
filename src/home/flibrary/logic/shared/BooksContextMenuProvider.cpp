@@ -39,8 +39,9 @@ constexpr auto SEND_AS_IS               = QT_TRANSLATE_NOOP("BookContextMenu", "
 constexpr auto UNPACK                   = QT_TRANSLATE_NOOP("BookContextMenu", "&Unpack");
 constexpr auto SEND_AS_INPX             = QT_TRANSLATE_NOOP("BookContextMenu", "As &inpx collection");
 constexpr auto SEND_AS_SINGLE_INPX      = QT_TRANSLATE_NOOP("BookContextMenu", "Generate inde&x file (*.inpx)");
-constexpr auto MY_RATE                  = QT_TRANSLATE_NOOP("BookContextMenu", "&My rate");
-constexpr auto REMOVE_MY_RATE           = QT_TRANSLATE_NOOP("BookContextMenu", "&Remove my rate");
+constexpr auto MARK_AS_READ             = QT_TRANSLATE_NOOP("BookContextMenu", "&Mark as read");
+constexpr auto SET_MY_RATE              = QT_TRANSLATE_NOOP("BookContextMenu", "&My rate");
+constexpr auto REMOVE_MY_RATE           = QT_TRANSLATE_NOOP("BookContextMenu", "&Remove read mark");
 constexpr auto CHECK                    = QT_TRANSLATE_NOOP("BookContextMenu", "&Check");
 constexpr auto TREE                     = QT_TRANSLATE_NOOP("BookContextMenu", "&Tree");
 constexpr auto TREE_COLLAPSE            = QT_TRANSLATE_NOOP("BookContextMenu", "C&ollapse");
@@ -49,7 +50,7 @@ constexpr auto REMOVE_BOOK              = QT_TRANSLATE_NOOP("BookContextMenu", "
 constexpr auto REMOVE_BOOK_UNDO         = QT_TRANSLATE_NOOP("BookContextMenu", "&Undo deletion");
 constexpr auto REMOVE_BOOK_FROM_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "&Delete permanently");
 constexpr auto CHANGE_LANGUAGE          = QT_TRANSLATE_NOOP("BookContextMenu", "Change language");
-constexpr auto ALREADY_READ             = QT_TRANSLATE_NOOP("BookContextMenu", "No rating");
+constexpr auto WITHOUT_RATE             = QT_TRANSLATE_NOOP("BookContextMenu", "No rating");
 
 constexpr auto CANNOT_SET_USER_RATE = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set rate");
 constexpr auto CANNOT_SET_LANGUAGE  = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set language of books");
@@ -91,10 +92,11 @@ constexpr std::pair<int, IContextMenuHandler::Function> MENU_HANDLERS[] {
 
 void CreateMyRateMenu(const IDataItem::Ptr& root, const QString& id, DB::IDatabase& db, const int starSymbol)
 {
-	const auto parent = AddMenuItem(root, Tr(MY_RATE));
+	const auto parent = AddMenuItem(root, Tr(MARK_AS_READ));
+	AddMenuItem(parent, Tr(WITHOUT_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter);
+	const auto myRate = AddMenuItem(parent, Tr(SET_MY_RATE));
 	for (int rate = 5; rate > 0; --rate)
-		AddMenuItem(parent, QString(rate, QChar(starSymbol)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
-	AddMenuItem(parent, Tr(ALREADY_READ), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter);
+		AddMenuItem(myRate, QString(rate, QChar(starSymbol)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
 
 	const auto query = db.CreateQuery(USER_RATE_QUERY);
 	query->Bind(0, id.toInt());

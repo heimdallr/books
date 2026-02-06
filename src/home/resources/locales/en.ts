@@ -406,6 +406,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Mark as read</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;My rate</source>
         <translation></translation>
     </message>
@@ -422,7 +426,7 @@
         <translation></translation>
     </message>
     <message>
-        <source>&amp;Remove my rate</source>
+        <source>&amp;Remove read mark</source>
         <translation></translation>
     </message>
     <message>
