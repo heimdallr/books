@@ -189,7 +189,8 @@ bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelInd
 {
 	const auto itemIndex = m_impl->sourceModel->index(sourceRow, 0, sourceParent);
 	assert(itemIndex.isValid());
-	return FilterAcceptsRemoved(itemIndex) && FilterAcceptsFlags(itemIndex) && FilterAcceptsLanguage(itemIndex) && FilterAcceptsText(itemIndex) && FilterAcceptsRate(itemIndex);
+	return itemIndex.data(Role::ChildCount).toInt() == 0 && FilterAcceptsRemoved(itemIndex) && FilterAcceptsFlags(itemIndex) && FilterAcceptsLanguage(itemIndex) && FilterAcceptsText(itemIndex)
+	    && FilterAcceptsRate(itemIndex);
 }
 
 bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const
