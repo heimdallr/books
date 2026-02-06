@@ -2,6 +2,7 @@
 
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/algorithm.h"
 
 #include "interface/Localization.h"
 #include "interface/constants/Enums.h"
@@ -148,15 +149,16 @@ bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const i
 				return item->SetFlags(value.value<IDataItem::Flags>()), true;
 
 			default:
-				return assert(false && "unexpected role"), false;
+				break;
 		}
+
+		return assert(false && "unexpected role"), false;
 	}
 
 	switch (role)
 	{
 		case Role::Checkable:
-			m_checkable = value.toBool();
-			return true;
+			return Util::Set(m_checkable, value.toBool());
 
 		case Role::Check:
 			return Check(value, Qt::Checked);
