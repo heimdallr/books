@@ -114,35 +114,54 @@ struct Update
 
 struct WStringHash
 {
-	using is_transparent = void;
+	using is_transparent = int;
 
 	[[nodiscard]] size_t operator()(const wchar_t* txt) const
 	{
-		return std::hash<std::wstring_view> {}(txt);
+		return GetHashImpl(txt);
 	}
 
 	[[nodiscard]] size_t operator()(const std::wstring_view txt) const
 	{
-		return std::hash<std::wstring_view> {}(txt);
+		return GetHashImpl(std::wstring(txt));
 	}
 
 	[[nodiscard]] size_t operator()(const std::wstring& txt) const
 	{
-		return std::hash<std::wstring> {}(txt);
+		return GetHashImpl(txt);
+	}
+
+private:
+	static size_t GetHashImpl(const std::wstring& txt)
+	{
+		const auto txtLower = QString::fromStdWString(txt).toLower();
+		const auto result = std::hash<QString>()(txtLower);
+		return result;
 	}
 };
 
+struct WStringEqualTo
+{
+	template <class U, class V>
+	[[nodiscard]] constexpr auto operator()(const U& lhs, const V& rhs) const
+	{
+		return Util::ToQString(lhs).toLower() == Util::ToQString(rhs).toLower();
+	}
+
+	using is_transparent = int;
+};
+
 using Books      = std::vector<Book>;
-using Dictionary = std::unordered_map<std::wstring, size_t, WStringHash, std::equal_to<>>;
+using Dictionary = std::unordered_map<std::wstring, size_t, WStringHash, WStringEqualTo>;
 using Genres     = std::vector<Genre>;
 using Links      = std::unordered_map<size_t, std::vector<size_t>>;
-using Folders    = std::unordered_map<std::wstring, size_t, HomeCompa::Util::CaseInsensitiveHash<std::wstring>>;
+using Folders    = std::unordered_map<std::wstring, size_t, Util::CaseInsensitiveHash<std::wstring>>;
 
 using GetIdFunctor = std::function<size_t(std::wstring_view)>;
 using FindFunctor  = std::function<Dictionary::const_iterator(const Dictionary&, std::wstring_view)>;
 using ParseChecker = std::function<bool(std::wstring_view)>;
 using Splitter     = std::function<std::vector<std::wstring>(std::wstring_view)>;
-using InpxFolders  = std::map<std::pair<std::wstring, std::wstring>, std::string, HomeCompa::Util::CaseInsensitiveComparer<>>;
+using InpxFolders  = std::map<std::pair<std::wstring, std::wstring>, std::string, Util::CaseInsensitiveComparer<>>;
 using BooksSeries  = std::unordered_map<size_t, std::vector<std::pair<size_t, std::optional<int>>>>;
 using Reviews      = std::map<std::string, std::set<std::wstring>>;
 

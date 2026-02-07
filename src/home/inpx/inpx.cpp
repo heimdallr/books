@@ -1165,7 +1165,7 @@ private:
 	void SetUnknownGenreId()
 	{
 		static constexpr auto UNKNOWN = L"unknown_root";
-		const auto            it      = m_genresIndex.find(UNKNOWN);
+		const auto            it      = m_genresIndex.find(std::wstring_view(UNKNOWN));
 		assert(it != m_genresIndex.end());
 		m_unknownGenreId = it->second;
 	}
