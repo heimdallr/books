@@ -3,6 +3,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogController.h"
 
@@ -14,7 +15,7 @@ class LogController : virtual public ILogController
 	NON_COPY_MOVABLE(LogController)
 
 public:
-	explicit LogController(std::shared_ptr<IDatabaseUser> databaseUser);
+	LogController(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider);
 	~LogController() override;
 
 private:

@@ -3,6 +3,7 @@
 #include <ranges>
 
 #include <QAbstractItemModel>
+#include <QDir>
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -16,20 +17,36 @@
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
+
+namespace
+{
+
+constexpr auto CONTEXT    = "CollectionStatistics";
+constexpr auto STATISTICS = QT_TRANSLATE_NOOP("CollectionStatistics", "Collection statistics:");
+constexpr auto NAME       = QT_TRANSLATE_NOOP("CollectionStatistics", "Name: %1");
+constexpr auto FOLDER     = QT_TRANSLATE_NOOP("CollectionStatistics", "Folder: %1");
+constexpr auto DATABASE   = QT_TRANSLATE_NOOP("CollectionStatistics", "Database: %1");
+
+TR_DEF
+
+}
 
 struct LogController::Impl
 {
-	std::unique_ptr<QAbstractItemModel>  model { CreateLogModel() };
-	std::shared_ptr<const IDatabaseUser> databaseUser;
+	std::unique_ptr<QAbstractItemModel>        model { CreateLogModel() };
+	std::shared_ptr<const IDatabaseUser>       databaseUser;
+	std::shared_ptr<const ICollectionProvider> collectionProvider;
 
-	explicit Impl(std::shared_ptr<const IDatabaseUser> databaseUser)
-		: databaseUser(std::move(databaseUser))
+	explicit Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
+		: databaseUser { std::move(databaseUser) }
+		, collectionProvider { std::move(collectionProvider) }
 	{
 	}
 };
 
-LogController::LogController(std::shared_ptr<IDatabaseUser> databaseUser)
-	: m_impl(std::move(databaseUser))
+LogController::LogController(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
+	: m_impl(std::move(databaseUser), std::move(collectionProvider))
 {
 }
 
@@ -65,6 +82,9 @@ void LogController::SetSeverity(const int value)
 
 void LogController::ShowCollectionStatistics() const
 {
+	if (!m_impl->collectionProvider->ActiveCollectionExists())
+		return;
+
 	m_impl->databaseUser->Execute({ "Get collection statistics", [&] {
 									   static constexpr auto dbStatQueryText =
 										   "select '%1', count(42) from Authors union all "
@@ -73,8 +93,11 @@ void LogController::ShowCollectionStatistics() const
 										   "select '%4', count(42) from Books union all "
 										   "select '%5', count(42) from Books b left join Books_User bu on bu.BookID = b.BookID where coalesce(bu.IsDeleted, b.IsDeleted, 0) != 0";
 
+									   const auto& collection = m_impl->collectionProvider->GetActiveCollection();
 									   QStringList stats;
-									   stats << Loc::Tr("CollectionStatistics", "Collection statistics:");
+									   stats << Tr(STATISTICS) << Tr(NAME).arg(collection.name) << Tr(FOLDER).arg(QDir::toNativeSeparators(collection.GetFolder()))
+											 << Tr(DATABASE).arg(QDir::toNativeSeparators(collection.GetDatabase()));
+
 									   const auto bookQuery = m_impl->databaseUser->Database()->CreateQuery(QString(dbStatQueryText)
 		                                                                                                        .arg(
 																													QT_TRANSLATE_NOOP("CollectionStatistics", "Authors:"),
