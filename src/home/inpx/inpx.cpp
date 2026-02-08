@@ -325,6 +325,13 @@ using BookBufMapping     = std::vector<BookBufFieldGetter>;
 BOOK_BUF_FIELD_ITEMS_XMACRO
 #undef BOOK_BUF_FIELD_ITEM
 
+std::wstring_view BOOK_BUF_FIELD_DEFAULT_VIEW;
+
+std::wstring_view& GetBookBufFieldDefault(BookBuf&)
+{
+	return BOOK_BUF_FIELD_DEFAULT_VIEW;
+}
+
 BookBuf ParseBook(const std::wstring_view folder, std::wstring& line, const BookBufMapping& f)
 {
 	BookBuf buf { .FOLDER = folder };
@@ -1747,8 +1754,8 @@ where b.FileName = ? and b.Ext = ?)");
 			const auto it = bookBufMapping.find(str.simplified());
 			if (it == bookBufMapping.end())
 			{
-				PLOGF << "unexpected field name " << str;
-				throw std::runtime_error("unexpected field name");
+				PLOGW << "unexpected field name " << str;
+				return &GetBookBufFieldDefault;
 			}
 
 			return it->second;
