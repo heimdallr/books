@@ -731,12 +731,28 @@
         <translation>Книги:</translation>
     </message>
     <message>
+        <source>Collection statistics:</source>
+        <translation>Статистика колекції:</translation>
+    </message>
+    <message>
+        <source>Database: %1</source>
+        <translation>База даних: %1</translation>
+    </message>
+    <message>
         <source>Deleted books:</source>
         <translation>Видалено книг:</translation>
     </message>
     <message>
+        <source>Folder: %1</source>
+        <translation>Папка: %1</translation>
+    </message>
+    <message>
         <source>Keywords:</source>
         <translation>Ключові слова:</translation>
+    </message>
+    <message>
+        <source>Name: %1</source>
+        <translation>Назва: %1</translation>
     </message>
     <message>
         <source>Series:</source>
