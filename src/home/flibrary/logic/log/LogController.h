@@ -10,7 +10,7 @@
 namespace HomeCompa::Flibrary
 {
 
-class LogController : virtual public ILogController
+class LogController final : virtual public ILogController
 {
 	NON_COPY_MOVABLE(LogController)
 

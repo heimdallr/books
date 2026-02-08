@@ -38,7 +38,7 @@ struct LogController::Impl
 	std::shared_ptr<const IDatabaseUser>       databaseUser;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 
-	explicit Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
+	Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
 		: databaseUser { std::move(databaseUser) }
 		, collectionProvider { std::move(collectionProvider) }
 	{
