@@ -3,7 +3,7 @@
 namespace HomeCompa::Flibrary
 {
 
-class ISettingsDialog  // NOLINT(cppcoreguidelines-special-member-functions)
+class ISettingsDialog // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~ISettingsDialog() = default;

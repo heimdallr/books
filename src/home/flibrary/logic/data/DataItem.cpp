@@ -39,7 +39,7 @@ void DataItem::RemoveChild(size_t row, size_t count)
 	assert(!m_children.empty());
 	if (row == INVALID_INDEX)
 	{
-		row = GetChildCount() - 1;
+		row   = GetChildCount() - 1;
 		count = 1;
 	}
 

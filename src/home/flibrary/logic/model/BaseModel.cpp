@@ -177,7 +177,7 @@ bool BaseModel::removeRows(const int row, const int count, const QModelIndex& pa
 {
 	auto* parentItem = parent.isValid() ? GetInternalPointer(parent) : m_data.get();
 	assert(parentItem);
-	const auto uRow = static_cast<size_t>(row);
+	const auto uRow   = static_cast<size_t>(row);
 	const auto uCount = static_cast<size_t>(count);
 	if (uRow + uCount > parentItem->GetChildCount())
 		return false;

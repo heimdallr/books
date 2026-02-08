@@ -135,7 +135,7 @@ private:
 	static size_t GetHashImpl(const std::wstring& txt)
 	{
 		const auto txtLower = QString::fromStdWString(txt).toLower();
-		const auto result = std::hash<QString>()(txtLower);
+		const auto result   = std::hash<QString>()(txtLower);
 		return result;
 	}
 };
