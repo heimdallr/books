@@ -722,11 +722,27 @@
         <translation></translation>
     </message>
     <message>
+        <source>Collection statistics:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Database: %1</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
     <message>
+        <source>Folder: %1</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Keywords:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Name: %1</source>
         <translation></translation>
     </message>
     <message>
