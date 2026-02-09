@@ -427,7 +427,7 @@
     </message>
     <message>
         <source>&amp;Remove read mark</source>
-        <translation>&amp;Зняти позначку про прочитання</translation>
+        <translation>&amp;Видалити мітку прочитаного</translation>
     </message>
     <message>
         <source>&amp;Tree</source>
