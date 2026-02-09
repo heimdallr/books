@@ -682,39 +682,11 @@ private:
 			m_ui.btnNew->setVisible(true);
 			m_ui.btnNew->disconnect(SIGNAL(clicked()));
 			connect(m_ui.btnNew, &QAbstractButton::clicked, &m_self, std::move(newItemCreator));
-
-			if (modelEmpty)
-				QTimer::singleShot(1000, [this] {
-					ShowPushMe();
-				});
 		}
 
 		m_ui.value->setEnabled(!modelEmpty);
 		if (modelEmpty)
 			m_controller->SetCurrentId(ItemType::Unknown, {});
-	}
-
-	void ShowPushMe()
-	{
-		if (!m_ui.btnNew->isVisible())
-			return;
-
-		auto* timer = new QTimer(&m_self);
-		timer->setSingleShot(false);
-		timer->setInterval(std::chrono::milliseconds(200));
-		connect(timer, &QObject::destroyed, m_ui.btnNew, [this] {
-			m_ui.btnNew->setAutoRaise(true);
-			m_ui.value->setText({});
-		});
-		connect(timer, &QTimer::timeout, m_ui.btnNew, [this, timer, n = 0]() mutable {
-			m_ui.value->setText(n % 2 ? QString() : QString("%1 %2").arg(QChar(0x2B60)).arg(tr("Push me")));
-			m_ui.value->setCursorPosition(0);
-
-			m_ui.btnNew->setAutoRaise(n % 2);
-			if (++n == 15)
-				timer->deleteLater();
-		});
-		timer->start();
 	}
 
 	ITreeViewController::RequestContextMenuOptions GetContextMenuOptions() const
