@@ -2550,13 +2550,6 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>HomeCompa::Flibrary::TreeView</name>
-    <message>
-        <source>Push me</source>
-        <translation>Натисни мене</translation>
-    </message>
-</context>
-<context>
     <name>Http</name>
     <message>
         <source>Authentication required</source>
