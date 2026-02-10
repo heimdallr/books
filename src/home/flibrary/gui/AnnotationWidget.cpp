@@ -78,6 +78,7 @@ QT_TRANSLATE_NOOP("Annotation", "AsIs")
 QT_TRANSLATE_NOOP("Annotation", "Archive")
 QT_TRANSLATE_NOOP("Annotation", "Script")
 QT_TRANSLATE_NOOP("Annotation", "Inpx")
+QT_TRANSLATE_NOOP("Annotation", "cover")
 #endif
 
 constexpr auto DIALOG_KEY = "Image";
