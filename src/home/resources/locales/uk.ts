@@ -293,6 +293,10 @@
         <source>Updates:</source>
         <translation>Оновлено:</translation>
     </message>
+    <message>
+        <source>cover</source>
+        <translation>Обкладинка</translation>
+    </message>
 </context>
 <context>
     <name>AnnotationWidget</name>
