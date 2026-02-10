@@ -1018,27 +1018,39 @@ private:
 
 		const auto nameToIndex = m_booksHeaderView->GetNameToIndexMapping();
 
-		std::map<int, int>          widths;
-		std::multimap<int, QString> indices;
+		struct ColumnInfo
+		{
+			int  index;
+			int  width;
+			bool hidden;
+		};
 
-		QSignalBlocker resizeGuard(header);
+		std::vector<ColumnInfo> columnInfoList;
+		columnInfoList.reserve(nameToIndex.size());
+		std::ranges::transform(std::views::iota(0, static_cast<int>(nameToIndex.size())), std::back_inserter(columnInfoList), [&](const int n) {
+			return ColumnInfo { n, header->minimumSectionSize(), false };
+		});
 
-		const auto collectData = [&] {
-			const auto columns = m_settings->GetGroups();
-			for (const auto& columnName : columns)
-			{
-				const auto it = nameToIndex.find(columnName);
-				if (it == nameToIndex.end())
-					continue;
+		bool       needDataCollect = true;
+		const auto collectData     = [&] {
+            const auto columns = m_settings->GetGroups();
+            needDataCollect    = columns.isEmpty();
+            for (const auto& columnName : columns)
+            {
+                const auto it = nameToIndex.find(columnName);
+                if (it == nameToIndex.end())
+                    continue;
 
-				const auto logicalIndex = it->second;
-				widths.try_emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(columnName), -1));
-				indices.emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(columnName), std::numeric_limits<int>::max()), columnName);
-				m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), false) ? header->hideSection(logicalIndex)
-																																					  : header->showSection(logicalIndex);
-			}
+                const auto logicalIndex = it->second;
+                assert(logicalIndex < static_cast<int>(columnInfoList.size()));
 
-			m_booksHeaderView->Load(*m_settings);
+                auto& columnInfo  = columnInfoList[logicalIndex];
+                columnInfo.index  = m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(columnName), std::numeric_limits<int>::max());
+                columnInfo.width  = m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(columnName), header->minimumSectionSize());
+                columnInfo.hidden = m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), false);
+            }
+
+            m_booksHeaderView->Load(*m_settings);
 		};
 
 		if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
@@ -1046,31 +1058,41 @@ private:
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
 			collectData();
 		}
-		if (widths.empty())
+		if (needDataCollect)
 		{
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
 			collectData();
 		}
 
-		if (widths.empty())
+		const QSignalBlocker resizeGuard(header);
+
+		if (needDataCollect)
+		{
 			for (auto i = 0, sz = header->count(); i < sz; ++i)
+			{
 				header->showSection(i);
+				header->resizeSection(i, header->minimumSectionSize());
+			}
+			return;
+		}
 
-		for (int i = 0, sz = header->count(); i < sz; ++i)
-			if (const auto it = widths.find(i); it != widths.end())
-				header->resizeSection(i, std::max(it->second, header->minimumSectionSize()));
+		for (const auto [columnInfo, logicalIndex] : std::views::zip(columnInfoList, std::views::iota(0)))
+		{
+			header->resizeSection(logicalIndex, std::max(columnInfo.width, header->minimumSectionSize()));
+			columnInfo.hidden ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
+		}
 
-		auto absent = nameToIndex;
-		for (const auto& columnName : indices | std::views::values)
-			absent.erase(columnName);
-		for (const auto& [name, index] : absent)
-			if (index > 0 && index < std::ssize(indices))
-				indices.emplace_hint(indices.begin(), std::next(indices.begin(), index - 1)->first, name);
-
-		for (int n = 0; const auto& columnName : indices | std::views::values)
-			if (const auto it = nameToIndex.find(columnName); it != nameToIndex.end())
-				header->moveSection(header->visualIndex(it->second), ++n);
-		header->moveSection(header->visualIndex(0), 0);
+		columnInfoList.front().index = -1;
+		for (const auto [logicalIndex, visualIndex] : std::views::zip(
+				 std::views::zip(columnInfoList, std::views::iota(0)) | std::views::filter([](const auto& item) {
+					 return !get<0>(item).hidden;
+				 }) | std::views::transform([](const auto& item) {
+					 return std::make_pair(std::get<0>(item).index, std::get<1>(item));
+				 }) | std::ranges::to<std::map<int, int>>()
+					 | std::views::values,
+				 std::views::iota(0)
+			 ))
+			header->moveSection(header->visualIndex(logicalIndex), visualIndex);
 
 		CheckHeaderViewWidth(QResizeEvent(m_self.size(), m_self.size()));
 	}
