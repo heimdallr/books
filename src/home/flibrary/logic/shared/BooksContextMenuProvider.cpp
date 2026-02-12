@@ -8,6 +8,7 @@
 #include <QTimer>
 
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -554,11 +555,38 @@ private: // IContextMenuHandler
 		);
 	}
 
-	void HashCompare(QAbstractItemModel* /*model*/, const QModelIndex& /*index*/, const QList<QModelIndex>& /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+	void HashCompare(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] {
-			callback(item);
-		});
+		auto logicFactory = ILogicFactory::Lock(m_logicFactory);
+		auto books        = logicFactory->GetSelectedBookIds(model, index, indexList, { Role::Folder, Role::FileName });
+		assert(IsOneOf(books.size(), 1, 2));
+
+		std::shared_ptr executor = logicFactory->GetExecutor();
+
+		auto& executorPtr = *executor;
+		executorPtr(
+			{ "compare book hashes",
+		      [item         = std::move(item),
+		       callback     = std::move(callback),
+		       executor     = std::move(executor),
+		       folder       = m_collectionProvider->GetActiveCollection().GetFolder(),
+		       selectedBook = std::make_pair(index.data(Role::Folder).toString(), index.data(Role::FileName)),
+		       books        = std::move(books)]() mutable {
+				  const auto lhs = books.size() > 1 ? Util::GetHash(folder + "/" + books.front().front(), books.front().back()) : [] {
+					  const auto data = QGuiApplication::clipboard()->mimeData();
+					  assert(data && data->hasFormat(Constant::BOOK_HASH_MIME_DATA_TYPE));
+					  const auto bytes = data->data(Constant::BOOK_HASH_MIME_DATA_TYPE);
+					  return Util::Deserialize(bytes);
+				  }(), rhs = Util::GetHash(folder + "/" + books.back().front(), books.back().back());
+
+				  auto result = Compare(lhs, rhs).join('\n');
+
+				  return [item = std::move(item), callback = std::move(callback), executor = std::move(executor), result = std::move(result)](size_t) {
+					  PLOGI << result;
+					  callback(item);
+				  };
+			  } }
+		);
 	}
 
 private:
