@@ -1102,7 +1102,8 @@ private:
 			columnInfo.hidden ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
 		}
 
-		columnInfoList.front().index = -1;
+		if (!columnInfoList.empty())
+			columnInfoList.front().index = -1;
 		for (const auto [logicalIndex, visualIndex] : std::views::zip(
 				 std::views::zip(columnInfoList, std::views::iota(0)) | std::views::filter([](const auto& item) {
 					 return !get<0>(item).hidden;
