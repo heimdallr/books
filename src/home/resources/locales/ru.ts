@@ -470,6 +470,10 @@
         <translation>С&amp;вернуть</translation>
     </message>
     <message>
+        <source>Calculate</source>
+        <translation>Вычислить</translation>
+    </message>
+    <message>
         <source>Cannot set language of books</source>
         <translation>Не удалось изменить язык книг</translation>
     </message>
@@ -482,6 +486,10 @@
         <translation>Изменить язык</translation>
     </message>
     <message>
+        <source>Compare</source>
+        <translation>Сравнить</translation>
+    </message>
+    <message>
         <source>E&amp;xpand</source>
         <translation>Ра&amp;звернуть</translation>
     </message>
@@ -492,6 +500,10 @@
     <message>
         <source>Generate inde&amp;x file (*.inpx)</source>
         <translation>Создать инде&amp;кс (*.inpx)</translation>
+    </message>
+    <message>
+        <source>Hash</source>
+        <translation>Хэш</translation>
     </message>
     <message>
         <source>No rating</source>

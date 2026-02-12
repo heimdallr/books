@@ -470,6 +470,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Calculate</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Cannot set language of books</source>
         <translation></translation>
     </message>
@@ -482,6 +486,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Compare</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>E&amp;xpand</source>
         <translation></translation>
     </message>
@@ -491,6 +499,10 @@
     </message>
     <message>
         <source>Generate inde&amp;x file (*.inpx)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Hash</source>
         <translation></translation>
     </message>
     <message>
