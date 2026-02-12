@@ -26,15 +26,15 @@
 #include "gutil/util.h"
 #include "logic/TreeViewController/AbstractTreeViewController.h"
 #include "logic/data/DataItem.h"
-#include "logic/shared/ImageRestore.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
+#include "util/ImageRestore.h"
 #include "util/ImageUtil.h"
 
 #include "log.h"
 
+using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
-using namespace Flibrary;
 
 namespace
 {

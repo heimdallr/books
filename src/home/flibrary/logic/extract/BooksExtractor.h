@@ -23,7 +23,7 @@ class BooksExtractor
 
 public:
 	using Callback = std::function<void(bool)>;
-	using Extract  = void (BooksExtractor::*)(QString, const QString&, ILogicFactory::ExtractedBooks&&, QString, Callback);
+	using Extract  = void (BooksExtractor::*)(QString, const QString&, Util::ExtractedBooks&&, QString, Callback);
 
 public:
 	BooksExtractor(
@@ -38,10 +38,10 @@ public:
 	~BooksExtractor();
 
 public:
-	void ExtractAsArchives(QString folder, const QString& parameter, ILogicFactory::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback);
-	void ExtractAsIs(QString folder, const QString& parameter, ILogicFactory::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback);
-	void ExtractUnpack(QString folder, const QString& parameter, ILogicFactory::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback);
-	void ExtractAsScript(QString folder, const QString& parameter, ILogicFactory::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback);
+	void ExtractAsArchives(QString folder, const QString& parameter, Util::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback);
+	void ExtractAsIs(QString folder, const QString& parameter, Util::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback);
+	void ExtractUnpack(QString folder, const QString& parameter, Util::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback);
+	void ExtractAsScript(QString folder, const QString& parameter, Util::ExtractedBooks&& books, QString outputFileNameTemplate, Callback callback);
 
 private:
 	class Impl;

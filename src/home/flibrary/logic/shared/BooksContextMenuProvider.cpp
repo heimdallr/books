@@ -51,6 +51,9 @@ constexpr auto REMOVE_BOOK_UNDO         = QT_TRANSLATE_NOOP("BookContextMenu", "
 constexpr auto REMOVE_BOOK_FROM_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "&Delete permanently");
 constexpr auto CHANGE_LANGUAGE          = QT_TRANSLATE_NOOP("BookContextMenu", "Change language");
 constexpr auto WITHOUT_RATE             = QT_TRANSLATE_NOOP("BookContextMenu", "No rating");
+constexpr auto HASH_SUBMENU             = QT_TRANSLATE_NOOP("BookContextMenu", "Hash");
+constexpr auto HASH_CALCULATE           = QT_TRANSLATE_NOOP("BookContextMenu", "Calculate");
+constexpr auto HASH_COMPARE             = QT_TRANSLATE_NOOP("BookContextMenu", "Compare");
 
 constexpr auto CANNOT_SET_USER_RATE = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set rate");
 constexpr auto CANNOT_SET_LANGUAGE  = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set language of books");
@@ -169,6 +172,17 @@ void CreateChangeLangMenu(const IDataItem::Ptr& root, const QString& currentLoca
 		AddMenuItem(parent, std::move(value), priority == 5000 ? INVALID_MENU_ITEM : BooksMenuAction::ChangeLanguage)->SetData(key, MenuItem::Column::Parameter);
 }
 
+void CreateHashMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options)
+{
+	if (!(options & ITreeViewController::RequestContextMenuOptions::HashEnabled))
+		return;
+
+	auto submenu = AddMenuItem(root, Tr(HASH_SUBMENU));
+	AddMenuItem(submenu, Tr(HASH_CALCULATE), BooksMenuAction::HashCalculate);
+	AddMenuItem(submenu, Tr(HASH_COMPARE), BooksMenuAction::HashCompare)
+		->SetData(QVariant(!!(options & ITreeViewController::RequestContextMenuOptions::HashCompareEnabled)).toString(), MenuItem::Column::Enabled);
+}
+
 void CreateTreeMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options)
 {
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
@@ -236,6 +250,7 @@ public:
 				  CreateCheckMenu(result);
 				  CreateTreeMenu(result, options);
 				  CreateChangeLangMenu(result, currentLocale);
+				  CreateHashMenu(result, options);
 
 				  if (type == ItemType::Books)
 				  {
@@ -488,6 +503,20 @@ private: // IContextMenuHandler
 											 m_dataProvider->RequestBooks(true);
 									 };
 								 } });
+	}
+
+	void HashCalculate(QAbstractItemModel* /*model*/, const QModelIndex& /*index*/, const QList<QModelIndex>& /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+	{
+		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] {
+			callback(item);
+		});
+	}
+
+	void HashCompare(QAbstractItemModel* /*model*/, const QModelIndex& /*index*/, const QList<QModelIndex>& /*indexList*/, IDataItem::Ptr item, Callback callback) const override
+	{
+		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] {
+			callback(item);
+		});
 	}
 
 private:

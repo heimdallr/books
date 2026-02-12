@@ -10,8 +10,8 @@
 #include "interface/Localization.h"
 
 #include "data/DataItem.h"
-#include "shared/ImageRestore.h"
 #include "shared/ZipProgressCallback.h"
+#include "util/ImageRestore.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 
@@ -112,7 +112,7 @@ public:
 
 		std::multimap<int, QByteArray> covers;
 
-		ExtractBookImages(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)), book.GetRawData(BookItem::Column::FileName), [this, &covers](QString name, QByteArray data) {
+		Util::ExtractBookImages(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)), book.GetRawData(BookItem::Column::FileName), [this, &covers](QString name, QByteArray data) {
 			bool       ok = false;
 			const auto id = name.toInt(&ok);
 			if (ok)

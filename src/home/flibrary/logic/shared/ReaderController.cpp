@@ -18,16 +18,16 @@
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/SettingsConstant.h"
 
+#include "Util/ImageRestore.h"
 #include "util/IExecutor.h"
 #include "util/PlatformUtil.h"
 #include "util/files.h"
 
-#include "ImageRestore.h"
 #include "log.h"
 #include "zip.h"
 
+using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
-using namespace Flibrary;
 
 namespace
 {
@@ -96,7 +96,7 @@ std::shared_ptr<ILogicFactory::ITemporaryDir> Extract(const ISettings& settings,
 				if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
 				{
 					const auto subStream = subZip.Read(archiveFileName);
-					file.write(PrepareToExport(subStream->GetStream(), archive, fileName));
+					file.write(Util::PrepareToExport(subStream->GetStream(), archive, fileName));
 				}
 			}
 
@@ -111,7 +111,7 @@ std::shared_ptr<ILogicFactory::ITemporaryDir> Extract(const ISettings& settings,
 		{
 			auto fileNameDst = temporaryDir->filePath(Util::RemoveIllegalPathCharacters(fileName));
 			if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
-				file.write(PrepareToExport(stream->GetStream(), archive, fileName));
+				file.write(Util::PrepareToExport(stream->GetStream(), archive, fileName));
 
 			fileName = std::move(fileNameDst);
 		}

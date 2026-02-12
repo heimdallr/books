@@ -81,7 +81,9 @@ struct GroupsMenuAction
 	MENU_ACTION_ITEM(SendAsInpxCollection)  \
 	MENU_ACTION_ITEM(SendAsInpxFile)        \
 	MENU_ACTION_ITEM(SendAsScript)          \
-	MENU_ACTION_ITEM(ChangeLanguage)
+	MENU_ACTION_ITEM(ChangeLanguage)        \
+	MENU_ACTION_ITEM(HashCalculate)         \
+	MENU_ACTION_ITEM(HashCompare)
 
 struct BooksMenuAction
 {

@@ -807,10 +807,10 @@ private:
 		);
 
 		ConnectSettings(m_ui.actionExportRewriteMetadata, Constant::Settings::EXPORT_REPLACE_METADATA_KEY);
-		ConnectSettings(m_ui.actionExportConvertCoverToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY);
-		ConnectSettings(m_ui.actionExportConvertImagesToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_IMAGES_KEY);
-		ConnectSettings(m_ui.actionExportRemoveCover, Constant::Settings::EXPORT_REMOVE_COVER_KEY);
-		ConnectSettings(m_ui.actionExportRemoveImages, Constant::Settings::EXPORT_REMOVE_IMAGES_KEY);
+		ConnectSettings(m_ui.actionExportConvertCoverToGrayscale, Export::GRAYSCALE_COVER_KEY);
+		ConnectSettings(m_ui.actionExportConvertImagesToGrayscale, Export::GRAYSCALE_IMAGES_KEY);
+		ConnectSettings(m_ui.actionExportRemoveCover, Export::REMOVE_COVER_KEY);
+		ConnectSettings(m_ui.actionExportRemoveImages, Export::REMOVE_IMAGES_KEY);
 	}
 
 	void ConnectActionsSettingsView()
