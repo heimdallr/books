@@ -704,14 +704,17 @@ private:
 		};
 
 		const auto hashCompareEnabled = [this] {
-			if (const auto* mimeData = QGuiApplication::clipboard()->mimeData(); mimeData && mimeData->hasFormat(Constant::BOOK_HASH_MIME_DATA_TYPE))
-				return true;
-
 			const auto selected = m_ui.treeView->selectionModel()->selectedIndexes() | std::views::filter([](const auto& item) {
 									  return item.column() == 0;
 								  })
 			                    | std::ranges::to<QModelIndexList>();
-			return selected.size() == 2 && selected.front().data(Role::Type).value<ItemType>() == ItemType::Books && selected.back().data(Role::Type).value<ItemType>() == ItemType::Books;
+			if (selected.isEmpty() || selected.front().data(Role::Type).value<ItemType>() != ItemType::Books)
+				return false;
+
+			if (const auto* mimeData = QGuiApplication::clipboard()->mimeData(); mimeData && mimeData->hasFormat(Constant::BOOK_HASH_MIME_DATA_TYPE) && selected.size() == 1)
+				return true;
+
+			return selected.size() == 2 && selected.back().data(Role::Type).value<ItemType>() == ItemType::Books;
 		};
 
 		const auto currentIndex = m_ui.treeView->currentIndex();
