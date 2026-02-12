@@ -103,7 +103,7 @@ private: // IFilledTemplateConverter
 		return true;
 	}
 
-	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const ILogicFactory::ExtractedBook& book, const QString& dstFolder) const override
+	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const Util::ExtractedBook& book, const QString& dstFolder) const override
 	{
 		IScriptController::SetMacro(outputFileTemplate, IScriptController::Macro::UserDestinationFolder, dstFolder);
 		ILogicFactory::FillScriptTemplate(db, outputFileTemplate, book);
@@ -146,7 +146,7 @@ private: // IFilledTemplateConverter
 		return true;
 	}
 
-	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const ILogicFactory::ExtractedBook& book, const QString& dstFolder) const override
+	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const Util::ExtractedBook& book, const QString& dstFolder) const override
 	{
 		IScriptController::SetMacro(outputFileTemplate, IScriptController::Macro::UserDestinationFolder, dstFolder);
 		ILogicFactory::FillScriptTemplate(db, outputFileTemplate, book);
@@ -172,7 +172,7 @@ private: // IFilledTemplateConverter
 		return true;
 	}
 
-	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const ILogicFactory::ExtractedBook& book, const QString& dstFolder) const override
+	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const Util::ExtractedBook& book, const QString& dstFolder) const override
 	{
 		static constexpr auto* userDestinationFolder = IScriptController::s_commandMacros[static_cast<size_t>(IScriptController::Macro::UserDestinationFolder)].second;
 		outputFileTemplate.replace(userDestinationFolder, "|UserDestinationFolder|");
@@ -197,7 +197,7 @@ private: // IFilledTemplateConverter
 		return true;
 	}
 
-	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const ILogicFactory::ExtractedBook& book, const QString& dstFolder) const override
+	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const Util::ExtractedBook& book, const QString& dstFolder) const override
 	{
 		IScriptController::SetMacro(outputFileTemplate, IScriptController::Macro::UserDestinationFolder, dstFolder);
 		ILogicFactory::FillScriptTemplate(db, outputFileTemplate, book);
@@ -372,27 +372,27 @@ std::shared_ptr<ILogicFactory::ITemporaryDir> LogicFactory::CreateTemporaryDir(c
 	return m_impl->singleTemporaryDir;
 }
 
-ILogicFactory::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList) const
+Util::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList) const
 {
 	m_impl->UpdateGenreParents();
-	ExtractedBooks books;
+	Util::ExtractedBooks books;
 
 	const std::vector<int> roles { Role::Id, Role::Folder, Role::FileName, Role::Size, Role::AuthorFull, Role::Series, Role::SeqNumber, Role::Title, Role::Genre, Role::LibID, Role::Lang };
 	const auto             selected = GetSelectedBookIds(model, index, indexList, roles);
 	std::ranges::transform(selected, std::back_inserter(books), [&](auto&& book) {
 		assert(book.size() == roles.size());
-		auto          genres = book[8].split(", ", Qt::SkipEmptyParts);
-		ExtractedBook result { .id        = book[0].toLongLong(),
-			                   .folder    = std::move(book[1]),
-			                   .file      = std::move(book[2]),
-			                   .size      = book[3].toLongLong(),
-			                   .author    = std::move(book[4]),
-			                   .series    = std::move(book[5]),
-			                   .seqNumber = book[6].toInt(),
-			                   .title     = std::move(book[7]),
-			                   .genre     = genres.isEmpty() ? QString {} : std::move(genres.front()),
-			                   .libId     = book[9].toLongLong(),
-			                   .lang      = book[10] };
+		auto                genres = book[8].split(", ", Qt::SkipEmptyParts);
+		Util::ExtractedBook result { .id        = book[0].toLongLong(),
+			                         .folder    = std::move(book[1]),
+			                         .file      = std::move(book[2]),
+			                         .size      = book[3].toLongLong(),
+			                         .author    = std::move(book[4]),
+			                         .series    = std::move(book[5]),
+			                         .seqNumber = book[6].toInt(),
+			                         .title     = std::move(book[7]),
+			                         .genre     = genres.isEmpty() ? QString {} : std::move(genres.front()),
+			                         .libId     = book[9].toLongLong(),
+			                         .lang      = book[10] };
 
 		for (auto genre = result.genre; !genre.isEmpty(); genre = m_impl->genreParents.at(genre))
 			result.genreTree.push_front(genre);

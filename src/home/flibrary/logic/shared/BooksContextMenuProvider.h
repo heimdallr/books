@@ -5,16 +5,19 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDataItem.h"
 #include "interface/logic/IDataProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IProgressController.h"
 #include "interface/logic/IReaderController.h"
 #include "interface/logic/IScriptController.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"
+#include "util/bookhash/flihash.h"
 
 class QAbstractItemModel;
 class QModelIndex;
@@ -32,13 +35,15 @@ public:
 
 public:
 	BooksContextMenuProvider(
-		const std::shared_ptr<const ILogicFactory>& logicFactory,
-		std::shared_ptr<const ISettings>            settings,
-		std::shared_ptr<const IReaderController>    readerController,
-		std::shared_ptr<const IDatabaseUser>        databaseUser,
-		std::shared_ptr<const IBookInfoProvider>    dataProvider,
-		std::shared_ptr<const IUiFactory>           uiFactory,
-		std::shared_ptr<IScriptController>          scriptController
+		const std::shared_ptr<const ILogicFactory>&        logicFactory,
+		std::shared_ptr<const ISettings>                   settings,
+		std::shared_ptr<const ICollectionProvider>         collectionProvider,
+		std::shared_ptr<const IReaderController>           readerController,
+		std::shared_ptr<const IDatabaseUser>               databaseUser,
+		std::shared_ptr<const IBookInfoProvider>           dataProvider,
+		std::shared_ptr<const IUiFactory>                  uiFactory,
+		std::shared_ptr<IScriptController>                 scriptController,
+		std::shared_ptr<IBooksExtractorProgressController> progressController
 	);
 	~BooksContextMenuProvider();
 

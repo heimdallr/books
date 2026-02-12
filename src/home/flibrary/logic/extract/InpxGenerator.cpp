@@ -17,15 +17,15 @@
 
 #include "Util/IExecutor.h"
 #include "data/DataItem.h"
-#include "shared/ImageRestore.h"
 #include "util/Fb2InpxParser.h"
+#include "util/ImageRestore.h"
 
 #include "Constant.h"
 #include "log.h"
 #include "zip.h"
 
+using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
-using namespace Flibrary;
 
 namespace
 {
@@ -226,7 +226,7 @@ QByteArray Process(const std::filesystem::path& archiveFolder, const QString& ds
 		const auto folder   = QString::fromStdWString(archiveFolder / book.book->GetRawData(BookItem::Column::Folder).toStdWString());
 		const Zip  zipInput(folder);
 		const auto input = zipInput.Read(fileName);
-		auto       bytes = PrepareToExport(input->GetStream(), folder, fileName);
+		auto       bytes = Util::PrepareToExport(input->GetStream(), folder, fileName);
 		progress.Increment(bytes.size());
 		Write(inpx, uid, book, n);
 

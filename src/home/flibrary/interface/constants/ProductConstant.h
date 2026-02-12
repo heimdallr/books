@@ -29,6 +29,8 @@ constexpr auto OPDS_SERVER_COMMAND_STOP    = "stop";
 
 constexpr auto BOOK = "Book:";
 
+constexpr auto BOOK_HASH_MIME_DATA_TYPE = "FLIBRARY_BOOK_HASH_MIME_DATA_TYPE";
+
 const auto INFO = [] {
 	static constexpr char32_t info = 0x0001F6C8;
 	return QString::fromUcs4(&info, 1);

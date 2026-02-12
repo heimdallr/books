@@ -279,6 +279,9 @@
           <property name="selectionMode">
            <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
           </property>
+          <property name="verticalScrollMode">
+           <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
+          </property>
           <property name="wordWrap">
            <bool>true</bool>
           </property>

@@ -6,7 +6,9 @@
 #include <stack>
 
 #include <QActionGroup>
+#include <QClipboard>
 #include <QMenu>
+#include <QMimeData>
 #include <QPainter>
 #include <QResizeEvent>
 #include <QTimer>
@@ -21,6 +23,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
+#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IFilterProvider.h"
 #include "interface/logic/IModelSorter.h"
@@ -54,6 +57,7 @@ constexpr auto SORT_INDEX_KEY                     = "Index";
 constexpr auto SORT_ORDER_KEY                     = "Order";
 constexpr auto RECENT_LANG_FILTER_KEY             = "ui/language";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTableColumnSettings";
+constexpr auto HASH_CONTEXT_MENU_ENABLED          = "Preferences/Books/ContextMenu/HashEnabled";
 constexpr auto LAST                               = "Last";
 
 class HeaderView final : public QHeaderView
@@ -699,6 +703,20 @@ private:
 			return condition ? option : ITreeViewController::RequestContextMenuOptions::None;
 		};
 
+		const auto hashCompareEnabled = [this] {
+			const auto selected = m_ui.treeView->selectionModel()->selectedIndexes() | std::views::filter([](const auto& item) {
+									  return item.column() == 0;
+								  })
+			                    | std::ranges::to<QModelIndexList>();
+			if (selected.isEmpty() || selected.front().data(Role::Type).value<ItemType>() != ItemType::Books)
+				return false;
+
+			if (const auto* mimeData = QGuiApplication::clipboard()->mimeData(); mimeData && mimeData->hasFormat(Constant::BOOK_HASH_MIME_DATA_TYPE) && selected.size() == 1)
+				return true;
+
+			return selected.size() == 2 && selected.back().data(Role::Type).value<ItemType>() == ItemType::Books;
+		};
+
 		const auto currentIndex = m_ui.treeView->currentIndex();
 
 		ITreeViewController::RequestContextMenuOptions options =
@@ -707,6 +725,8 @@ private:
 			| addOption(m_showRemoved, ITreeViewController::RequestContextMenuOptions::ShowRemoved)
 			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
 			| addOption(m_filterProvider->IsFilterEnabled(), ITreeViewController::RequestContextMenuOptions::UniFilterEnabled)
+			| addOption(m_settings->Get(HASH_CONTEXT_MENU_ENABLED, false), ITreeViewController::RequestContextMenuOptions::HashEnabled)
+			| addOption(hashCompareEnabled(), ITreeViewController::RequestContextMenuOptions::HashCompareEnabled)
 			| addOption(
 				currentIndex.isValid() && currentIndex.data(Role::Type).value<ItemType>() == ItemType::Books && Zip::IsArchive(Util::RemoveIllegalPathCharacters(currentIndex.data(Role::FileName).toString())),
 				ITreeViewController::RequestContextMenuOptions::IsArchive

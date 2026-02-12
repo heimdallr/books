@@ -13,16 +13,16 @@
 
 #include "interface/localization.h"
 
-#include "logic/shared/ImageRestore.h"
 #include "util/AnnotationControllerObserver.h"
+#include "util/ImageRestore.h"
 #include "util/ImageUtil.h"
 #include "util/ProcessWrapper.h"
 
 #include "log.h"
 #include "zip.h"
 
+using namespace HomeCompa::Opds;
 using namespace HomeCompa;
-using namespace Opds;
 
 namespace
 {
@@ -45,7 +45,7 @@ QByteArray Decompress(const QString& path, const QString& archive, const QString
 				buffer.close();
 			}
 		);
-		buffer.write(Flibrary::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName));
+		buffer.write(Util::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName));
 	}
 	return data;
 }

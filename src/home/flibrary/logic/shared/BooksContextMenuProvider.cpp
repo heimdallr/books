@@ -2,9 +2,13 @@
 
 #include <ranges>
 
+#include <QClipboard>
+#include <QGuiApplication>
+#include <QMimeData>
 #include <QTimer>
 
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -13,6 +17,7 @@
 #include "interface/Localization.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/IInpxGenerator.h"
@@ -51,6 +56,9 @@ constexpr auto REMOVE_BOOK_UNDO         = QT_TRANSLATE_NOOP("BookContextMenu", "
 constexpr auto REMOVE_BOOK_FROM_ARCHIVE = QT_TRANSLATE_NOOP("BookContextMenu", "&Delete permanently");
 constexpr auto CHANGE_LANGUAGE          = QT_TRANSLATE_NOOP("BookContextMenu", "Change language");
 constexpr auto WITHOUT_RATE             = QT_TRANSLATE_NOOP("BookContextMenu", "No rating");
+constexpr auto HASH_SUBMENU             = QT_TRANSLATE_NOOP("BookContextMenu", "Hash");
+constexpr auto HASH_CALCULATE           = QT_TRANSLATE_NOOP("BookContextMenu", "Calculate");
+constexpr auto HASH_COMPARE             = QT_TRANSLATE_NOOP("BookContextMenu", "Compare");
 
 constexpr auto CANNOT_SET_USER_RATE = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set rate");
 constexpr auto CANNOT_SET_LANGUAGE  = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set language of books");
@@ -169,6 +177,17 @@ void CreateChangeLangMenu(const IDataItem::Ptr& root, const QString& currentLoca
 		AddMenuItem(parent, std::move(value), priority == 5000 ? INVALID_MENU_ITEM : BooksMenuAction::ChangeLanguage)->SetData(key, MenuItem::Column::Parameter);
 }
 
+void CreateHashMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options)
+{
+	if (!(options & ITreeViewController::RequestContextMenuOptions::HashEnabled))
+		return;
+
+	auto submenu = AddMenuItem(root, Tr(HASH_SUBMENU));
+	AddMenuItem(submenu, Tr(HASH_CALCULATE), BooksMenuAction::HashCalculate);
+	AddMenuItem(submenu, Tr(HASH_COMPARE), BooksMenuAction::HashCompare)
+		->SetData(QVariant(!!(options & ITreeViewController::RequestContextMenuOptions::HashCompareEnabled)).toString(), MenuItem::Column::Enabled);
+}
+
 void CreateTreeMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options)
 {
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
@@ -183,19 +202,23 @@ public:
 	explicit Impl(
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const ISettings>            settings,
+		std::shared_ptr<const ICollectionProvider>  collectionProvider,
 		std::shared_ptr<const IReaderController>    readerController,
 		std::shared_ptr<const IDatabaseUser>        databaseUser,
 		std::shared_ptr<const IBookInfoProvider>    dataProvider,
 		std::shared_ptr<const IUiFactory>           uiFactory,
-		std::shared_ptr<IScriptController>          scriptController
+		std::shared_ptr<IScriptController>          scriptController,
+		std::shared_ptr<IProgressController>        progressController
 	)
 		: m_logicFactory { logicFactory }
 		, m_settings { std::move(settings) }
+		, m_collectionProvider { std::move(collectionProvider) }
 		, m_readerController { std::move(readerController) }
 		, m_databaseUser { std::move(databaseUser) }
 		, m_dataProvider { std::move(dataProvider) }
 		, m_uiFactory { std::move(uiFactory) }
 		, m_scriptController { std::move(scriptController) }
+		, m_progressController { std::move(progressController) }
 	{
 	}
 
@@ -236,6 +259,7 @@ public:
 				  CreateCheckMenu(result);
 				  CreateTreeMenu(result, options);
 				  CreateChangeLangMenu(result, currentLocale);
+				  CreateHashMenu(result, options);
 
 				  if (type == ItemType::Books)
 				  {
@@ -490,6 +514,81 @@ private: // IContextMenuHandler
 								 } });
 	}
 
+	void HashCalculate(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		auto logicFactory = ILogicFactory::Lock(m_logicFactory);
+		auto books        = logicFactory->GetSelectedBookIds(model, index, indexList, { Role::Folder, Role::FileName });
+
+		std::shared_ptr progressItem = m_progressController->Add(std::ssize(books));
+		std::shared_ptr executor     = logicFactory->GetExecutor();
+
+		auto& executorPtr = *executor;
+		executorPtr(
+			{ "calculate book hashes",
+		      [item         = std::move(item),
+		       callback     = std::move(callback),
+		       executor     = std::move(executor),
+		       folder       = m_collectionProvider->GetActiveCollection().GetFolder(),
+		       selectedBook = std::make_pair(index.data(Role::Folder).toString(), index.data(Role::FileName)),
+		       books        = std::move(books),
+		       progressItem = std::move(progressItem)]() mutable {
+				  Util::BookHashItem toClipboard;
+				  for (const auto& book : books)
+				  {
+					  auto hash = Util::GetHash(folder + "/" + book.front(), book.back());
+					  PLOGI << hash;
+					  if (hash.folder == selectedBook.first && hash.file == selectedBook.second)
+						  toClipboard = std::move(hash);
+
+					  progressItem->Increment(1);
+					  if (progressItem->IsStopped())
+						  break;
+				  }
+				  auto serialized = Serialize(toClipboard);
+				  return [item = std::move(item), callback = std::move(callback), executor = std::move(executor), serialized = std::move(serialized)](size_t) {
+					  auto* data = new QMimeData;
+					  data->setData(Constant::BOOK_HASH_MIME_DATA_TYPE, serialized);
+					  QGuiApplication::clipboard()->setMimeData(data);
+					  callback(item);
+				  };
+			  } }
+		);
+	}
+
+	void HashCompare(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		auto logicFactory = ILogicFactory::Lock(m_logicFactory);
+		auto books        = logicFactory->GetSelectedBookIds(model, index, indexList, { Role::Folder, Role::FileName });
+		assert(IsOneOf(books.size(), 1, 2));
+
+		std::shared_ptr executor = logicFactory->GetExecutor();
+
+		auto& executorPtr = *executor;
+		executorPtr(
+			{ "compare book hashes",
+		      [item         = std::move(item),
+		       callback     = std::move(callback),
+		       executor     = std::move(executor),
+		       folder       = m_collectionProvider->GetActiveCollection().GetFolder(),
+		       selectedBook = std::make_pair(index.data(Role::Folder).toString(), index.data(Role::FileName)),
+		       books        = std::move(books)]() mutable {
+				  const auto lhs = books.size() > 1 ? Util::GetHash(folder + "/" + books.front().front(), books.front().back()) : [] {
+					  const auto data = QGuiApplication::clipboard()->mimeData();
+					  assert(data && data->hasFormat(Constant::BOOK_HASH_MIME_DATA_TYPE));
+					  const auto bytes = data->data(Constant::BOOK_HASH_MIME_DATA_TYPE);
+					  return Util::Deserialize(bytes);
+				  }(), rhs = Util::GetHash(folder + "/" + books.back().front(), books.back().back());
+
+				  auto result = Compare(lhs, rhs).join('\n');
+
+				  return [item = std::move(item), callback = std::move(callback), executor = std::move(executor), result = std::move(result)](size_t) {
+					  PLOGI << result;
+					  callback(item);
+				  };
+			  } }
+		);
+	}
+
 private:
 	void SendAsInpxImpl(
 		QAbstractItemModel*       model,
@@ -603,14 +702,16 @@ private:
 	}
 
 private:
-	std::weak_ptr<const ILogicFactory>       m_logicFactory;
-	std::shared_ptr<const ISettings>         m_settings;
-	std::shared_ptr<const IReaderController> m_readerController;
-	std::shared_ptr<const IDatabaseUser>     m_databaseUser;
-	std::shared_ptr<const IBookInfoProvider> m_dataProvider;
-	std::shared_ptr<const IUiFactory>        m_uiFactory;
-	std::shared_ptr<IScriptController>       m_scriptController;
-	const int                                m_starSymbol { m_settings->Get(Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) };
+	std::weak_ptr<const ILogicFactory>                    m_logicFactory;
+	std::shared_ptr<const ISettings>                      m_settings;
+	std::shared_ptr<const ICollectionProvider>            m_collectionProvider;
+	std::shared_ptr<const IReaderController>              m_readerController;
+	std::shared_ptr<const IDatabaseUser>                  m_databaseUser;
+	std::shared_ptr<const IBookInfoProvider>              m_dataProvider;
+	std::shared_ptr<const IUiFactory>                     m_uiFactory;
+	PropagateConstPtr<IScriptController, std::shared_ptr> m_scriptController;
+	std::shared_ptr<IProgressController>                  m_progressController;
+	const int                                             m_starSymbol { m_settings->Get(Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) };
 };
 
 void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr& parent, const ITreeViewController::RequestContextMenuOptions options)
@@ -627,15 +728,27 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr& parent, co
 }
 
 BooksContextMenuProvider::BooksContextMenuProvider(
-	const std::shared_ptr<const ILogicFactory>& logicFactory,
-	std::shared_ptr<const ISettings>            settings,
-	std::shared_ptr<const IReaderController>    readerController,
-	std::shared_ptr<const IDatabaseUser>        databaseUser,
-	std::shared_ptr<const IBookInfoProvider>    dataProvider,
-	std::shared_ptr<const IUiFactory>           uiFactory,
-	std::shared_ptr<IScriptController>          scriptController
+	const std::shared_ptr<const ILogicFactory>&        logicFactory,
+	std::shared_ptr<const ISettings>                   settings,
+	std::shared_ptr<const ICollectionProvider>         collectionProvider,
+	std::shared_ptr<const IReaderController>           readerController,
+	std::shared_ptr<const IDatabaseUser>               databaseUser,
+	std::shared_ptr<const IBookInfoProvider>           dataProvider,
+	std::shared_ptr<const IUiFactory>                  uiFactory,
+	std::shared_ptr<IScriptController>                 scriptController,
+	std::shared_ptr<IBooksExtractorProgressController> progressController
 )
-	: m_impl(logicFactory, std::move(settings), std::move(readerController), std::move(databaseUser), std::move(dataProvider), std::move(uiFactory), std::move(scriptController))
+	: m_impl(
+		  logicFactory,
+		  std::move(settings),
+		  std::move(collectionProvider),
+		  std::move(readerController),
+		  std::move(databaseUser),
+		  std::move(dataProvider),
+		  std::move(uiFactory),
+		  std::move(scriptController),
+		  std::move(progressController)
+	  )
 {
 	PLOGV << "BooksContextMenuProvider created";
 }
