@@ -16,7 +16,7 @@
 
 #include "interface/localization.h"
 
-#include "gutil/GeometryRestorable.h"
+#include "util/GeometryRestorable.h"
 #include "util/language.h"
 
 using namespace HomeCompa;

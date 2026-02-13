@@ -9,7 +9,7 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 
-#include "gutil/GeometryRestorable.h"
+#include "util/GeometryRestorable.h"
 #include "util/hash.h"
 
 using namespace HomeCompa;

@@ -8,9 +8,9 @@
 
 #include "interface/Localization.h"
 
-#include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
 #include "logic/data/DataItem.h"
+#include "util/GeometryRestorable.h"
 
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;

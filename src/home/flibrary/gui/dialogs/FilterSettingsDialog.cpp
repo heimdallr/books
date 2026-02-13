@@ -13,9 +13,9 @@
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/IDataItem.h"
 
-#include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
 #include "util/FunctorExecutionForwarder.h"
+#include "util/GeometryRestorable.h"
 
 #include "log.h"
 

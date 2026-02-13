@@ -5,7 +5,7 @@
 
 #include "interface/logic/IDatabaseMigrator.h"
 
-#include "gutil/GeometryRestorable.h"
+#include "util/GeometryRestorable.h"
 
 #include "log.h"
 
