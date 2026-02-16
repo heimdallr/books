@@ -20,6 +20,7 @@
 #include "util/ISettings.h"
 #include "util/hash.h"
 
+#include "Constant.h"
 #include "log.h"
 #include "root.h"
 #include "zip.h"
@@ -272,7 +273,7 @@ public:
 					return QCoreApplication::exit(0);
 
 				if (data.compare(Flibrary::Constant::OPDS_SERVER_COMMAND_RESTART) == 0)
-					return QCoreApplication::exit(Flibrary::Constant::RESTART_APP);
+					return QCoreApplication::exit(Global::RESTART_APP);
 			});
 		});
 	}

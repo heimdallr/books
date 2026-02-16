@@ -8,6 +8,7 @@
 
 #include "interface/constants/ProductConstant.h"
 
+#include "Constant.h"
 #include "log.h"
 
 using namespace HomeCompa;
@@ -60,7 +61,7 @@ std::unique_ptr<Util::DyLib> ColorSchemeApplier::Set(QApplication&) const
 
 		if (scheme == Qt::ColorScheme::Unknown)
 			QObject::connect(QGuiApplication::styleHints(), &QStyleHints::colorSchemeChanged, [] {
-				QCoreApplication::exit(Constant::RESTART_APP);
+				QCoreApplication::exit(Global::RESTART_APP);
 			});
 		else
 			QGuiApplication::styleHints()->disconnect();

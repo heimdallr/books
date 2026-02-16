@@ -22,6 +22,7 @@
 #include "util/SortString.h"
 #include "util/xml/Initializer.h"
 
+#include "Constant.h"
 #include "di_app.h"
 #include "log.h"
 
@@ -64,7 +65,7 @@ private: // ICollectionAutoUpdater::IObserver
 	void OnCollectionUpdated() override
 	{
 		QTimer::singleShot(0, [] {
-			QCoreApplication::exit(Flibrary::Constant::RESTART_APP);
+			QCoreApplication::exit(Global::RESTART_APP);
 		});
 	}
 
@@ -113,7 +114,7 @@ int run(int argc, char* argv[])
 		const auto translators = Loc::LoadLocales(*settings); //-V808
 		const auto server      = container->resolve<IServer>();
 
-		if (const auto code = QCoreApplication::exec(); code != Flibrary::Constant::RESTART_APP)
+		if (const auto code = QCoreApplication::exec(); code != Global::RESTART_APP)
 		{
 			PLOGI << "App finished with " << code;
 			return code;

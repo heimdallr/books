@@ -27,6 +27,7 @@
 #include "util/xml/Initializer.h"
 #include "version/AppVersion.h"
 
+#include "Constant.h"
 #include "di_app.h"
 #include "log.h"
 
@@ -135,7 +136,7 @@ int main(int argc, char* argv[])
 
 			mainWindow->Show();
 
-			if (const auto code = QApplication::exec(); code != Constant::RESTART_APP)
+			if (const auto code = QApplication::exec(); code != Global::RESTART_APP)
 			{
 				PLOGI << "App finished with " << code;
 				return code;

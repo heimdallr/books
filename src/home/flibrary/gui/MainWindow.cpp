@@ -217,7 +217,7 @@ public:
 			if (!databaseChecker->IsDatabaseValid())
 			{
 				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection().GetDatabase()));
-				return QCoreApplication::exit(Constant::APP_FAILED);
+				return QCoreApplication::exit(Global::APP_FAILED);
 			}
 
 			auto& collectionUpdateCheckerRef = *collectionUpdateChecker;
@@ -1371,7 +1371,7 @@ private:
 	static void Reboot()
 	{
 		QTimer::singleShot(0, [] {
-			QCoreApplication::exit(Constant::RESTART_APP);
+			QCoreApplication::exit(Global::RESTART_APP);
 		});
 	}
 
