@@ -791,6 +791,15 @@ size_t Store(const Path& dbFileName, Data& data)
 	return result;
 }
 
+std::filesystem::directory_iterator GetDirectoryIterator(const Path& path)
+{
+	if (exists(path))
+		return std::filesystem::directory_iterator { path };
+
+	PLOGW << QString::fromStdWString(path) << " not found";
+	return {};
+}
+
 std::vector<Path> GetInpxFilesInFolder(const Ini& ini)
 {
 	PLOGV << "GetInpxFilesInFolder started";
@@ -798,7 +807,7 @@ std::vector<Path> GetInpxFilesInFolder(const Ini& ini)
 		if (auto explicitInpxPath = ini(INPX_PATH); !explicitInpxPath.empty())
 			return { std::move(explicitInpxPath) };
 
-	auto result = std::filesystem::directory_iterator { ini(ARCHIVE_FOLDER) } | std::views::filter([](const Path& path) {
+	auto result = GetDirectoryIterator(ini(ARCHIVE_FOLDER)) | std::views::filter([](const Path& path) {
 					  const auto ext  = path.extension().wstring();
 					  const auto proj = [](const auto& ch) {
 						  return std::tolower(ch);
@@ -1331,7 +1340,7 @@ private:
 		auto       folders    = TRY(std::format("iterate {}", inpxFolder.generic_string()), [&] {
             std::vector<std::wstring> result;
             std::ranges::move(
-                std::filesystem::directory_iterator(inpxFolder) | std::views::filter([](const auto& item) {
+				GetDirectoryIterator(inpxFolder) | std::views::filter([](const auto& item) {
                     return !item.is_directory();
                 }) | std::views::transform([&](const auto& item) {
                     auto folder = item.path().wstring();
@@ -1459,13 +1468,9 @@ private:
 
 	void CollectReviews()
 	{
-		const auto reviewsFolder = m_ini(ARCHIVE_FOLDER) / REVIEWS_FOLDER;
-		if (!exists(reviewsFolder))
-			return;
-
 		PLOGI << "Collect reviews";
 
-		for (const auto& path : std::filesystem::directory_iterator(reviewsFolder) | std::views::filter([](const auto& entry) {
+		for (const auto& path : GetDirectoryIterator(m_ini(ARCHIVE_FOLDER) / REVIEWS_FOLDER) | std::views::filter([](const auto& entry) {
 									return !entry.is_directory();
 								}) | std::views::transform([](const auto& entry) {
 									return entry.path();
