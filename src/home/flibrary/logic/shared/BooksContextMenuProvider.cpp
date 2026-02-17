@@ -27,6 +27,7 @@
 #include "extract/BooksExtractor.h"
 #include "util/language.h"
 
+#include "Constant.h"
 #include "MenuItems.h"
 #include "log.h"
 
@@ -572,12 +573,28 @@ private: // IContextMenuHandler
 		       folder       = m_collectionProvider->GetActiveCollection().GetFolder(),
 		       selectedBook = std::make_pair(index.data(Role::Folder).toString(), index.data(Role::FileName)),
 		       books        = std::move(books)]() mutable {
-				  const auto lhs = books.size() > 1 ? Util::GetHash(folder + "/" + books.front().front(), books.front().back()) : [] {
+				  auto lhs = books.size() > 1 ? Util::GetHash(folder + "/" + books.front().front(), books.front().back()) : [] {
 					  const auto data = QGuiApplication::clipboard()->mimeData();
 					  assert(data && data->hasFormat(Constant::BOOK_HASH_MIME_DATA_TYPE));
 					  const auto bytes = data->data(Constant::BOOK_HASH_MIME_DATA_TYPE);
 					  return Util::Deserialize(bytes);
 				  }(), rhs = Util::GetHash(folder + "/" + books.back().front(), books.back().back());
+
+				  const auto updateItem = [](Util::BookHashItem& bookHashItem) {
+					  if (bookHashItem.cover.hash.isEmpty())
+						  return;
+
+					  bookHashItem.cover.file = Global::COVER;
+					  decltype(lhs.images) images;
+					  images.reserve(bookHashItem.images.size() + 1);
+					  images.emplace_back(std::move(bookHashItem.cover));
+					  std::ranges::move(std::move(bookHashItem.images), std::back_inserter(images));
+					  bookHashItem.images = std::move(images);
+					  bookHashItem.cover  = {};
+				  };
+
+				  updateItem(lhs);
+				  updateItem(rhs);
 
 				  auto result = Compare(lhs, rhs).join('\n');
 
