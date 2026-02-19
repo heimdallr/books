@@ -20,7 +20,6 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
-#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/IInpxGenerator.h"
