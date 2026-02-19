@@ -1067,7 +1067,7 @@ private:
                 auto& columnInfo  = columnInfoList[logicalIndex];
                 columnInfo.index  = m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(columnName), std::numeric_limits<int>::max());
                 columnInfo.width  = m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(columnName), header->minimumSectionSize());
-                columnInfo.hidden = m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), false);
+                columnInfo.hidden = m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), true);
             }
 
             m_booksHeaderView->Load(*m_settings);
