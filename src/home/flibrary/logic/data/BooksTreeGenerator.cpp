@@ -544,6 +544,18 @@ join Keywords k on k.KeywordID = l.KeywordID
 		for (const auto& author : m_authors | std::views::values)
 			author->Reduce();
 
+		const auto findSeriesCommon = [](const SelectedSeries& selectedSeries) -> const std::pair<long long, int>& {
+			return selectedSeries.cbegin()->second;
+		};
+		const auto findSeriesSpecial = [&](const SelectedSeries& selectedSeries) -> const std::pair<long long, int>& {
+			const auto it = std::ranges::find(selectedSeries, navigationId.toLongLong(), [](const auto& item) {
+				return item.second.first;
+			});
+			return it != std::end(selectedSeries) ? it->second : selectedSeries.cbegin()->second;
+		};
+
+		const std::function findSeries = navigationMode != NavigationMode::Series ? std::function(findSeriesCommon) : findSeriesSpecial;
+
 		for (auto& [book, seriesIds, authorIds, genreIds] : m_books | std::views::values)
 		{
 			book->SetData(std::size(authorIds.second) > 1 ? Join(m_authors, authorIds.second | std::views::values) : book->GetRawData(BookItem::Column::AuthorFull), BookItem::Column::Author);
@@ -551,7 +563,7 @@ join Keywords k on k.KeywordID = l.KeywordID
 			if (seriesIds.empty())
 				continue;
 
-			const auto& [seriesId, seqNum] = seriesIds.cbegin()->second;
+			const auto& [seriesId, seqNum] = findSeries(seriesIds);
 			book->SetData(QString::number(seriesId), BookItem::Column::SeriesId);
 			book->SetData(seqNum > 0 ? QString::number(seqNum) : QString {}, BookItem::Column::SeqNumber);
 			book->SetData(m_series.find(seriesId)->second->GetData(), BookItem::Column::Series);
