@@ -332,8 +332,9 @@ QAbstractItemDelegate* TreeViewDelegateBooks::GetDelegate() noexcept
 	return m_impl.get();
 }
 
-void TreeViewDelegateBooks::OnModelChanged()
+void TreeViewDelegateBooks::OnModelChanged(const QAbstractItemModel& model)
 {
+	m_impl->OnModelChanged(model);
 }
 
 void TreeViewDelegateBooks::SetEnabled(bool /*enabled*/) noexcept

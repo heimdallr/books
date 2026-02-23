@@ -2,6 +2,7 @@
 
 #include "fnd/observer.h"
 
+class QAbstractItemModel;
 class QAbstractItemDelegate;
 class QModelIndex;
 
@@ -20,9 +21,9 @@ public:
 public:
 	virtual ~ITreeViewDelegate() = default;
 
-	virtual QAbstractItemDelegate* GetDelegate() noexcept            = 0;
-	virtual void                   OnModelChanged()                  = 0;
-	virtual void                   SetEnabled(bool enabled) noexcept = 0;
+	virtual QAbstractItemDelegate* GetDelegate() noexcept                          = 0;
+	virtual void                   OnModelChanged(const QAbstractItemModel& model) = 0;
+	virtual void                   SetEnabled(bool enabled) noexcept               = 0;
 
 	virtual void RegisterObserver(IObserver* observer)   = 0;
 	virtual void UnregisterObserver(IObserver* observer) = 0;
