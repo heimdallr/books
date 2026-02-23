@@ -10,6 +10,7 @@
 #include <QTreeView>
 
 #include "fnd/FindPair.h"
+#include "fnd/ScopedCall.h"
 #include "fnd/ValueGuard.h"
 #include "fnd/observable.h"
 
@@ -243,9 +244,19 @@ private:
 		if (m_readMarkWidth > 0 && index.column() == 0 && !index.data(Role::UserRate).toString().isEmpty())
 		{
 			QPen pen(markColor, m_readMarkWidth);
+			const ScopedCall painterGuard(
+				[=] {
+					painter->save();
+				},
+				[=] {
+					painter->restore();
+				}
+			);
 			pen.setCapStyle(Qt::FlatCap);
 			painter->setPen(pen);
-			painter->drawLine(o.rect.topLeft(), o.rect.bottomLeft());
+			auto rect = o.rect;
+			rect.setLeft(2);
+			painter->drawLine(rect.topLeft(), rect.bottomLeft());
 		}
 
 		ValueGuard  valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
