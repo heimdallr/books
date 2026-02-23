@@ -673,7 +673,7 @@ private:
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 
-		m_delegate->OnModelChanged();
+		m_delegate->OnModelChanged(*model);
 
 		const auto modelEmpty = model->rowCount() == 0;
 
