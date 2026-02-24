@@ -13,6 +13,7 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
+#include "interface/INoSqlRequester.h"
 #include "interface/constants/SettingsConstant.h"
 
 #include "logic/data/DataItem.h"
@@ -160,6 +161,20 @@ SELECT gu.GroupID, gu.Title
 			readTemplate.replace("%HTTP_PORT%", QString::number(port));
 
 			result.insert("linkToExtBookReader", std::move(readTemplate));
+		}
+
+		{
+			QJsonArray    array;
+			SettingsGroup group(*settings, INoSqlRequester::CONVERTERS_ROOT);
+			for (const auto& profile : settings->GetGroups())
+				array.append(
+					QJsonObject {
+						{ "name", profile },
+						{ "ext", settings->Get(QString("%1/%2").arg(profile, INoSqlRequester::CONVERTER_EXT)).toString() },
+                }
+				);
+			if (!array.isEmpty())
+				result.insert("exportProfiles", std::move(array));
 		}
 
 		return result;
