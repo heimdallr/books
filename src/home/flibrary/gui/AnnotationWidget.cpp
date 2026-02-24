@@ -604,8 +604,9 @@ private:
 			return m_ui.contentWidget->setVisible(false);
 
 		auto [mode, content] = [this]() -> std::pair<ContentMode, IDataItem::Ptr> {
-			if (const auto it = m_content.find(m_selectedContentMode); it != m_content.end())
-				return *it;
+			if (!!(m_allowedContentMode & m_selectedContentMode))
+				if (const auto it = m_content.find(m_selectedContentMode); it != m_content.end())
+					return *it;
 
 			if (const auto it = std::ranges::find_if(
 					m_content,
