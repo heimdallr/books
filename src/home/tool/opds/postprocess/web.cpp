@@ -8,6 +8,7 @@
 #include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
 
+#include "interface/INoSqlRequester.h"
 #include "interface/IRequester.h"
 #include "interface/Localization.h"
 #include "interface/constants/ProductConstant.h"
@@ -414,7 +415,12 @@ public:
 	ParserBookInfo(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters, const ISettings& settings, CreateGuard)
 		: ParserOpds(callback, stream, parameters)
 		, m_readTemplate { CreateReadTemplate(settings) }
+		, m_converters { [&] {
+			const SettingsGroup group(settings, INoSqlRequester::CONVERTERS_ROOT);
+			return settings.GetGroups();
+		}() }
 	{
+		m_converters.push_front(QString {});
 	}
 
 private: // SaxParser
@@ -496,30 +502,39 @@ private:
 					td->WriteAttribute("style", "vertical-align: top;").Guard("img")->WriteAttribute("src", m_coverLink).WriteAttribute("width", "360");
 				}
 
-				const auto createLink = [&](const QString& url, const QFileInfo& fileInfo, const bool isZip) {
-					if (url.isEmpty())
-						return;
-
-					const auto fileName = isZip ? fileInfo.completeBaseName() + ".zip" : fileInfo.fileName();
-					m_writer->Guard("br");
-					m_writer->Guard("a")->WriteAttribute("href", QString("%1").arg(url)).WriteAttribute("download", fileName).WriteCharacters(fileName);
-				};
-
 				auto ts = m_writer->Guard("td");
 				m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").CloseTag();
 
 				m_output->write(contents.front().toUtf8());
-				m_writer->Guard("a")->WriteAttribute("href", m_readTemplate.arg(m_feedId)).WriteCharacters(Tr(READ));
+				m_writer->Guard("a")->WriteAttribute("href", m_readTemplate.arg(m_feedId)).WriteCharacters(Tr(READ)).WriteStartElement("br").WriteEndElement().WriteStartElement("br").WriteEndElement();
 
-				const auto createLinks = [&](const QFileInfo& fileInfo) {
-					m_writer->Guard("br");
-					createLink(m_downloadLinkFb2, fileInfo, false);
-					createLink(m_downloadLinkZip, fileInfo, true);
-				};
+				{
+					auto linkTable = m_writer->Guard("table");
+					const auto createLink = [&](const QString& url, const QFileInfo& fileInfo, const bool isZip, const QString& profile) {
+						if (url.isEmpty())
+							return;
 
-				const auto      fileName = m_callback.GetFileName(m_feedId);
-				const QFileInfo fileInfo(fileName);
-				createLinks(fileInfo);
+						const auto fileName = isZip ? fileInfo.fileName() + ".zip" : fileInfo.fileName();
+						auto       href     = QString("%1").arg(url);
+						if (!profile.isEmpty())
+							href.append(QString("?%1=%2").arg(INoSqlRequester::CONVERTER_PROFILE, profile));
+						m_writer->Guard("td");
+						m_writer->Guard("a")->WriteAttribute("href", href).WriteAttribute("download", fileName).WriteCharacters(fileName);
+					};
+
+					const auto createLinks = [&](const QFileInfo& fileInfo, const QString& profile) {
+						m_writer->Guard("tr");
+						createLink(m_downloadLinkFb2, fileInfo, false, profile);
+						createLink(m_downloadLinkZip, fileInfo, true, profile);
+					};
+
+					for (const auto& converter : m_converters)
+					{
+						const auto      fileName = m_callback.GetFileName(m_feedId, converter);
+						const QFileInfo fileInfo(fileName);
+						createLinks(fileInfo, converter);
+					}
+				}
 			}
 			if (contents.size() > 1)
 				m_output->write(contents.back().toUtf8());
@@ -568,6 +583,7 @@ private:
 	QString                                  m_downloadLinkFb2;
 	QString                                  m_downloadLinkZip;
 	QString                                  m_coverLink;
+	QStringList                              m_converters;
 };
 
 class ParserFb2 final : public AbstractParser

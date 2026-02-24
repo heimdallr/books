@@ -759,10 +759,11 @@ class Requester::Impl final
 	, IQueryTextFilter
 {
 private: // IPostProcessCallback
-	QString GetFileName(const QString& bookId) const override
+	QString GetFileName(const QString& bookId, const QString& key) const override
 	{
-		auto fileName = m_bookExtractor->GetFileName(bookId);
-		if (const auto ext = m_settings->Get(INoSqlRequester::CONVERTER_EXT).toString(); !ext.isEmpty())
+		const auto root     = key.isEmpty() ? QString { INoSqlRequester::CONVERTER_ROOT } : QString("%1/%2").arg(INoSqlRequester::CONVERTERS_ROOT, key);
+		auto       fileName = m_bookExtractor->GetFileName(bookId);
+		if (const auto ext = m_settings->Get(QString("%1/%2").arg(root, INoSqlRequester::CONVERTER_EXT)).toString(); !ext.isEmpty())
 		{
 			const QFileInfo fileInfo(fileName);
 			fileName = fileInfo.dir().filePath(QString("%1.%2").arg(fileInfo.completeBaseName(), ext));

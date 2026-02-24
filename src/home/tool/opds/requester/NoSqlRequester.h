@@ -31,8 +31,8 @@ public:
 private:
 	QByteArray                     GetCover(const QString& bookId) const override;
 	QByteArray                     GetCoverThumbnail(const QString& bookId) const override;
-	std::pair<QString, QByteArray> GetBook(const QString& bookId, bool restoreImages) const override;
-	std::pair<QString, QByteArray> GetBookZip(const QString& bookId, bool restoreImages) const override;
+	std::pair<QString, QByteArray> GetBook(const QString& bookId, bool restoreImages, const IRequester::Parameters& parameters) const override;
+	std::pair<QString, QByteArray> GetBookZip(const QString& bookId, bool restoreImages, const IRequester::Parameters& parameters) const override;
 
 private:
 	struct Impl;
