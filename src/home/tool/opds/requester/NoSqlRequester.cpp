@@ -119,7 +119,10 @@ struct NoSqlRequester::Impl
 		const auto profile = IRequester::GetParameter(parameters, CONVERTER_PROFILE);
 		Convert(outputFileName, data, profile.isEmpty() ? CONVERTER_ROOT : QString("%1/%2").arg(CONVERTERS_ROOT, profile));
 
-		return std::make_tuple(std::move(book.file), QFileInfo(outputFileName).fileName(), std::move(data));
+		const QFileInfo fileInfo(outputFileName);
+		const QFileInfo bookFileInfo(book.file);
+
+		return std::make_tuple(QString("%1.%2").arg(bookFileInfo.completeBaseName(), fileInfo.suffix()), fileInfo.fileName(), std::move(data));
 	}
 
 private:
