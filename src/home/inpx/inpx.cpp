@@ -1340,7 +1340,7 @@ private:
 		auto       folders    = TRY(std::format("iterate {}", inpxFolder.generic_string()), [&] {
             std::vector<std::wstring> result;
             std::ranges::move(
-				GetDirectoryIterator(inpxFolder) | std::views::filter([](const auto& item) {
+                GetDirectoryIterator(inpxFolder) | std::views::filter([](const auto& item) {
                     return !item.is_directory();
                 }) | std::views::transform([&](const auto& item) {
                     auto folder = item.path().wstring();

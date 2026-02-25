@@ -509,7 +509,7 @@ private:
 				m_writer->Guard("a")->WriteAttribute("href", m_readTemplate.arg(m_feedId)).WriteCharacters(Tr(READ)).WriteStartElement("br").WriteEndElement().WriteStartElement("br").WriteEndElement();
 
 				{
-					auto linkTable = m_writer->Guard("table");
+					auto       linkTable  = m_writer->Guard("table");
 					const auto createLink = [&](const QString& url, const QFileInfo& fileInfo, const bool isZip, const QString& profile) {
 						if (url.isEmpty())
 							return;
