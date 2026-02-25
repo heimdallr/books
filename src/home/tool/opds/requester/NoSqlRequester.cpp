@@ -116,8 +116,7 @@ struct NoSqlRequester::Impl
 		auto outputFileName = bookExtractor->GetFileName(book);
 		auto data           = Decompress(collectionProvider->GetActiveCollection().GetFolder(), book.folder, book.file, restoreImages);
 
-		const auto profile = IRequester::GetParameter(parameters, CONVERTER_PROFILE);
-		Convert(outputFileName, data, profile.isEmpty() ? CONVERTER_ROOT : QString("%1/%2").arg(CONVERTERS_ROOT, profile));
+		Convert(outputFileName, data, GetProfileRoot(*settings, IRequester::GetParameter(parameters, CONVERTER_PROFILE)));
 
 		const QFileInfo fileInfo(outputFileName);
 		const QFileInfo bookFileInfo(book.file);
@@ -210,4 +209,19 @@ std::pair<QString, QByteArray> NoSqlRequester::GetBookZip(const QString& bookId,
 	auto [fileName, title, data] = m_impl->GetBook(bookId, restoreImages, parameters);
 	data                         = Compress(std::move(data), std::move(fileName));
 	return std::make_pair(QFileInfo(title).fileName() + ".zip", std::move(data));
+}
+
+QString INoSqlRequester::GetProfileRoot(const ISettings& settings, const QString& profileTitle)
+{
+	if (profileTitle.isEmpty())
+		return CONVERTER_ROOT;
+
+	SettingsGroup group(settings, CONVERTERS_ROOT);
+	auto          profiles = settings.GetGroups();
+	const auto    it       = std::ranges::find(profiles, profileTitle, [&](const QString& item) {
+        const auto title = settings.Get(QString("%1/%2").arg(item, CONVERTER_TITLE)).toString();
+        return title;
+    });
+
+	return it != profiles.end() ? QString("%1/%2").arg(CONVERTERS_ROOT, *it) : CONVERTER_ROOT;
 }

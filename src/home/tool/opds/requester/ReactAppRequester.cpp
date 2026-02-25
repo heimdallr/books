@@ -167,14 +167,9 @@ SELECT gu.GroupID, gu.Title
 			QJsonArray    array;
 			SettingsGroup group(*settings, INoSqlRequester::CONVERTERS_ROOT);
 			for (const auto& profile : settings->GetGroups())
-				array.append(
-					QJsonObject {
-						{ "name", profile },
-						{ "ext", settings->Get(QString("%1/%2").arg(profile, INoSqlRequester::CONVERTER_EXT)).toString() },
-                }
-				);
+				array.append(settings->Get(QString("%1/%2").arg(profile, INoSqlRequester::CONVERTER_TITLE)).toString());
 			if (!array.isEmpty())
-				result.insert("exportProfiles", std::move(array));
+				result.insert("converters", std::move(array));
 		}
 
 		return result;
