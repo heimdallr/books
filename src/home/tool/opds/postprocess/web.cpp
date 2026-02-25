@@ -417,7 +417,10 @@ public:
 		, m_readTemplate { CreateReadTemplate(settings) }
 		, m_converters { [&] {
 			const SettingsGroup group(settings, INoSqlRequester::CONVERTERS_ROOT);
-			return settings.GetGroups();
+			return settings.GetGroups() | std::views::transform([&](const QString& item) {
+					   return settings.Get(QString("%1/%2").arg(item, INoSqlRequester::CONVERTER_TITLE)).toString();
+				   })
+		         | std::ranges::to<QStringList>();
 		}() }
 	{
 		m_converters.push_front(QString {});
