@@ -357,7 +357,7 @@ private: // ICollectionsObserver
 private: // plog::IAppender
 	void write(const plog::Record& record) override
 	{
-		if (m_ui.statusBar && m_ui.statusBar->isVisible())
+		if (record.getSeverity() < plog::Severity::verbose && m_ui.statusBar && m_ui.statusBar->isVisible())
 			m_forwarder.Forward([&, message = QString(record.getMessage())] {
 				m_ui.statusBar->showMessage(message, 2000);
 			});
