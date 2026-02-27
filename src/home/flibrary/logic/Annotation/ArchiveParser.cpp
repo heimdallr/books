@@ -3,8 +3,10 @@
 #include <ranges>
 
 #include <QFile>
+#include <QFileInfo>
 
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
 
 #include "interface/Localization.h"
@@ -531,10 +533,53 @@ private:
 
 		auto parseProgressItem = m_progressController->Add(100);
 
-		const Zip  zip(folder, m_logicFactory->CreateZipProgressCallback(m_progressController));
-		const auto stream = zip.Read(book.GetRawData(BookItem::Column::FileName));
+		const Zip zip(folder, m_logicFactory->CreateZipProgressCallback(m_progressController));
+		const auto [fileName, isZip] = [&]() -> std::pair<QString, bool> {
+			auto            file = book.GetRawData(BookItem::Column::FileName);
+			const QFileInfo fileInfo(file);
+			const auto      ext = fileInfo.suffix().toLower();
+			if (IsOneOf(ext, "fb2", "fbd", "zip"))
+				return std::make_pair(std::move(file), ext == "zip");
 
-		XmlParser parser(stream->GetStream());
+			auto zipFileList = zip.GetFileNameList();
+			if (const auto it = std::ranges::find_if(
+					zipFileList,
+					[&file, completeBaseName = fileInfo.completeBaseName()](const QString& item) {
+						const QFileInfo itemFileInfo(item);
+						return itemFileInfo.suffix().toLower() == "fbd"
+				            && (file.compare(itemFileInfo.completeBaseName(), Qt::CaseInsensitive) == 0 || completeBaseName.compare(itemFileInfo.completeBaseName(), Qt::CaseInsensitive) == 0);
+					}
+				);
+			    it != zipFileList.end())
+				return std::make_pair(std::move(*it), false);
+
+			return {};
+		}();
+
+		if (fileName.isEmpty())
+			return {};
+
+		const auto stream = zip.Read(fileName);
+
+		const auto [sibZip, subStream] = [&]() -> std::pair<std::unique_ptr<const Zip>, std::unique_ptr<Stream>> {
+			if (!isZip)
+				return {};
+
+			auto subZipPtr = std::make_unique<Zip>(stream->GetStream());
+
+			auto zipFileList = subZipPtr->GetFileNameList();
+			if (const auto it = std::ranges::find_if(
+					zipFileList,
+					[](const QString& item) {
+						return QFileInfo(item).suffix().toLower() == "fbd";
+					}
+				);
+			    it != zipFileList.end())
+				return std::make_pair(std::move(subZipPtr), subZipPtr->Read(*it));
+			return {};
+		}();
+
+		XmlParser parser(subStream ? subStream->GetStream() : stream->GetStream());
 		return parser.Parse(collection.GetFolder(), book, std::move(parseProgressItem));
 	}
 
