@@ -5,6 +5,7 @@
 #include <QClipboard>
 #include <QGuiApplication>
 #include <QMimeData>
+#include <QTemporaryDir>
 #include <QTimer>
 
 #include "fnd/FindPair.h"
@@ -73,6 +74,13 @@ constexpr auto CHANGE_LANGUAGE_CONFIRM    = QT_TRANSLATE_NOOP("BookContextMenu",
 TR_DEF
 
 constexpr auto USER_RATE_QUERY = "select coalesce(bu.UserRate, -1) from Books b left join Books_User bu on bu.BookID = b.BookID where b.BookID = ?";
+
+struct SendSettings
+{
+	QString ext;
+	bool    tempFolder { false };
+	bool    createFillTemplateConverterParameter { false };
+};
 
 class IContextMenuHandler // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -432,7 +440,7 @@ private: // IContextMenuHandler
 
 	void SendAsArchive(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsArchives);
+		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsArchives, { .ext = "zip" });
 	}
 
 	void SendAsIs(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
@@ -473,7 +481,8 @@ private: // IContextMenuHandler
 			std::move(callback),
 			&BooksExtractor::ExtractAsScript,
 			QString("%1/%2").arg(IScriptController::GetMacro(IScriptController::Macro::UserDestinationFolder)).arg(IScriptController::GetMacro(IScriptController::Macro::FileName)),
-			hasUserDestinationFolder
+			hasUserDestinationFolder,
+			{ .tempFolder = true, .createFillTemplateConverterParameter = true }
 		);
 	}
 
@@ -636,11 +645,19 @@ private:
 		});
 	}
 
-	void SendAsImpl(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback, const BooksExtractor::Extract f) const
+	void SendAsImpl(
+		QAbstractItemModel*           model,
+		const QModelIndex&            index,
+		const QList<QModelIndex>&     indexList,
+		IDataItem::Ptr                item,
+		Callback                      callback,
+		const BooksExtractor::Extract f,
+		const SendSettings&           sendSettings = {}
+	) const
 	{
 		auto       outputFileNameTemplate = m_settings->Get(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
 		const bool dstFolderRequired      = IScriptController::HasMacro(outputFileNameTemplate, IScriptController::Macro::UserDestinationFolder);
-		Send(model, index, indexList, std::move(item), std::move(callback), f, std::move(outputFileNameTemplate), dstFolderRequired);
+		Send(model, index, indexList, std::move(item), std::move(callback), f, outputFileNameTemplate, dstFolderRequired, sendSettings);
 	}
 
 	void Send(
@@ -650,8 +667,9 @@ private:
 		IDataItem::Ptr                item,
 		Callback                      callback,
 		const BooksExtractor::Extract f,
-		QString                       outputFileNameTemplate,
-		const bool                    dstFolderRequired
+		const QString&                outputFileNameTemplate,
+		const bool                    dstFolderRequired,
+		const SendSettings&           sendSettings
 	) const
 	{
 		auto dir = dstFolderRequired ? m_uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, Loc::SELECT_SEND_TO_FOLDER) : QString();
@@ -659,25 +677,41 @@ private:
 			return callback(item);
 
 		const auto logicFactory = ILogicFactory::Lock(m_logicFactory);
-		auto       books        = logicFactory->GetExtractedBooks(model, index, indexList);
-		auto       ids          = books | std::views::transform([](const auto book) {
-                       return QString::number(book.id);
-                   })
+
+		auto books = logicFactory->GetExtractedBooks(model, index, indexList);
+
+		const auto fillTemplateConverter = logicFactory->CreateFillTemplateConverter(sendSettings.createFillTemplateConverterParameter);
+
+		std::shared_ptr<QTemporaryDir> tempDir;
+		if (sendSettings.tempFolder)
+			tempDir = std::make_shared<QTemporaryDir>();
+
+		const auto db = m_databaseUser->Database();
+		for (auto& book : books)
+			fillTemplateConverter->Fill(*db, outputFileNameTemplate, book, tempDir ? tempDir->filePath("") : dir);
+
+		if (!sendSettings.ext.isEmpty())
+		{
+			for (auto& book : books)
+			{
+				const QFileInfo fileInfo(book.dstFileName);
+				book.dstFileName = fileInfo.dir().filePath(fileInfo.completeBaseName() + "." + sendSettings.ext);
+			}
+		}
+
+		auto ids = books | std::views::transform([](const auto book) {
+					   return QString::number(book.id);
+				   })
 		         | std::ranges::to<std::set<QString>>();
 		auto       extractor = logicFactory->CreateBooksExtractor();
 		const auto parameter = item->GetData(MenuItem::Column::Parameter);
-		((*extractor).*f)(
-			std::move(dir),
-			parameter,
-			std::move(books),
-			std::move(outputFileNameTemplate),
-			[extractor, model, item = std::move(item), ids = std::move(ids), callback = std::move(callback)](const bool hasError) mutable {
-				item->SetData(QString::number(hasError), MenuItem::Column::HasError);
-				callback(item);
-				model->setData({}, QVariant::fromValue(ids), Role::Uncheck);
-				extractor.reset();
-			}
-		);
+		((*extractor)
+		 .*f)(dir, parameter, std::move(books), [extractor, model, item = std::move(item), ids = std::move(ids), tempDir = std::move(tempDir), callback = std::move(callback)](const bool hasError) mutable {
+			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
+			callback(item);
+			model->setData({}, QVariant::fromValue(ids), Role::Uncheck);
+			extractor.reset();
+		});
 	}
 
 	void GroupAction(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback, const GroupActionFunction f) const

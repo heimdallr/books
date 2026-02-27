@@ -268,7 +268,7 @@ public:
 	virtual ~IFillTemplateConverter() = default;
 
 	virtual bool IsValid() const noexcept                                                                                              = 0;
-	virtual void Fill(DB::IDatabase& db, QString& outputFileTemplate, const Util::ExtractedBook& book, const QString& dstFolder) const = 0;
+	virtual void Fill(DB::IDatabase& db, const QString& outputFileTemplate, Util::ExtractedBook& book, const QString& dstFolder) const = 0;
 };
 
 } // namespace HomeCompa::Flibrary

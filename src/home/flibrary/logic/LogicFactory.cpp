@@ -103,10 +103,11 @@ private: // IFilledTemplateConverter
 		return true;
 	}
 
-	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const Util::ExtractedBook& book, const QString& dstFolder) const override
+	void Fill(DB::IDatabase& db, const QString& outputFileTemplate, Util::ExtractedBook& book, const QString& dstFolder) const override
 	{
-		IScriptController::SetMacro(outputFileTemplate, IScriptController::Macro::UserDestinationFolder, dstFolder);
-		ILogicFactory::FillScriptTemplate(db, outputFileTemplate, book);
+		book.dstFileName = outputFileTemplate;
+		IScriptController::SetMacro(book.dstFileName, IScriptController::Macro::UserDestinationFolder, dstFolder);
+		ILogicFactory::FillScriptTemplate(db, book.dstFileName, book);
 	}
 };
 
@@ -146,15 +147,16 @@ private: // IFilledTemplateConverter
 		return true;
 	}
 
-	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const Util::ExtractedBook& book, const QString& dstFolder) const override
+	void Fill(DB::IDatabase& db, const QString& outputFileTemplate, Util::ExtractedBook& book, const QString& dstFolder) const override
 	{
-		IScriptController::SetMacro(outputFileTemplate, IScriptController::Macro::UserDestinationFolder, dstFolder);
-		ILogicFactory::FillScriptTemplate(db, outputFileTemplate, book);
+		book.dstFileName = outputFileTemplate;
+		IScriptController::SetMacro(book.dstFileName, IScriptController::Macro::UserDestinationFolder, dstFolder);
+		ILogicFactory::FillScriptTemplate(db, book.dstFileName, book);
 
-		const QFileInfo fileInfo(outputFileTemplate);
+		const QFileInfo fileInfo(book.dstFileName);
 		auto            fileName = fileInfo.fileName();
 		fileName                 = Util::Transliterate(m_icuTransliterate, fileName);
-		outputFileTemplate       = fileInfo.dir().filePath(fileName);
+		book.dstFileName         = fileInfo.dir().filePath(fileName);
 	}
 };
 
@@ -172,14 +174,15 @@ private: // IFilledTemplateConverter
 		return true;
 	}
 
-	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const Util::ExtractedBook& book, const QString& dstFolder) const override
+	void Fill(DB::IDatabase& db, const QString& outputFileTemplate, Util::ExtractedBook& book, const QString& dstFolder) const override
 	{
 		static constexpr auto* userDestinationFolder = IScriptController::s_commandMacros[static_cast<size_t>(IScriptController::Macro::UserDestinationFolder)].second;
-		outputFileTemplate.replace(userDestinationFolder, "|UserDestinationFolder|");
-		ILogicFactory::FillScriptTemplate(db, outputFileTemplate, book);
-		outputFileTemplate.replace("|UserDestinationFolder|", userDestinationFolder);
-		outputFileTemplate = Util::Transliterate(m_icuTransliterate, outputFileTemplate);
-		IScriptController::SetMacro(outputFileTemplate, IScriptController::Macro::UserDestinationFolder, dstFolder);
+		book.dstFileName                             = outputFileTemplate;
+		book.dstFileName.replace(userDestinationFolder, "|UserDestinationFolder|");
+		ILogicFactory::FillScriptTemplate(db, book.dstFileName, book);
+		book.dstFileName.replace("|UserDestinationFolder|", userDestinationFolder);
+		book.dstFileName = Util::Transliterate(m_icuTransliterate, outputFileTemplate);
+		IScriptController::SetMacro(book.dstFileName, IScriptController::Macro::UserDestinationFolder, dstFolder);
 	}
 };
 
@@ -197,11 +200,12 @@ private: // IFilledTemplateConverter
 		return true;
 	}
 
-	void Fill(DB::IDatabase& db, QString& outputFileTemplate, const Util::ExtractedBook& book, const QString& dstFolder) const override
+	void Fill(DB::IDatabase& db, const QString& outputFileTemplate, Util::ExtractedBook& book, const QString& dstFolder) const override
 	{
-		IScriptController::SetMacro(outputFileTemplate, IScriptController::Macro::UserDestinationFolder, dstFolder);
-		ILogicFactory::FillScriptTemplate(db, outputFileTemplate, book);
-		outputFileTemplate = Util::Transliterate(m_icuTransliterate, outputFileTemplate);
+		book.dstFileName = outputFileTemplate;
+		IScriptController::SetMacro(book.dstFileName, IScriptController::Macro::UserDestinationFolder, dstFolder);
+		ILogicFactory::FillScriptTemplate(db, book.dstFileName, book);
+		book.dstFileName = Util::Transliterate(m_icuTransliterate, outputFileTemplate);
 	}
 };
 
