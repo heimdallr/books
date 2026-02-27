@@ -474,6 +474,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Cancel</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Cannot set language of books</source>
         <translation></translation>
     </message>
@@ -510,7 +514,15 @@
         <translation></translation>
     </message>
     <message>
+        <source>Overwrite</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>R&amp;emove</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Rename</source>
         <translation></translation>
     </message>
     <message>
@@ -518,7 +530,15 @@
         <translation></translation>
     </message>
     <message>
+        <source>Skip</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>What to do with the same named files?</source>
         <translation></translation>
     </message>
     <message>

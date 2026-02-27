@@ -474,6 +474,10 @@
         <translation>Обчислити</translation>
     </message>
     <message>
+        <source>Cancel</source>
+        <translation>Скасувати</translation>
+    </message>
+    <message>
         <source>Cannot set language of books</source>
         <translation>Не вдалося змінити мову книг</translation>
     </message>
@@ -510,16 +514,32 @@
         <translation>Без оцінки</translation>
     </message>
     <message>
+        <source>Overwrite</source>
+        <translation>Перезаписати</translation>
+    </message>
+    <message>
         <source>R&amp;emove</source>
         <translation>&amp;Видалити</translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation>Перейменувати</translation>
     </message>
     <message>
         <source>Select destination folder</source>
         <translation>Вкажіть папку</translation>
     </message>
     <message>
+        <source>Skip</source>
+        <translation>Пропустити</translation>
+    </message>
+    <message>
         <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
         <translation>Результат цієї операції не можна скасувати. Впевнені, що хочете видалити ці книги назавжди?</translation>
+    </message>
+    <message>
+        <source>What to do with the same named files?</source>
+        <translation>Що робити з однойменними файлами?</translation>
     </message>
     <message>
         <source>removing</source>

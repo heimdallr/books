@@ -474,6 +474,10 @@
         <translation>Вычислить</translation>
     </message>
     <message>
+        <source>Cancel</source>
+        <translation>Отмена</translation>
+    </message>
+    <message>
         <source>Cannot set language of books</source>
         <translation>Не удалось изменить язык книг</translation>
     </message>
@@ -510,16 +514,32 @@
         <translation>Без оценки</translation>
     </message>
     <message>
+        <source>Overwrite</source>
+        <translation>Перезаписать</translation>
+    </message>
+    <message>
         <source>R&amp;emove</source>
         <translation>&amp;Удалить</translation>
+    </message>
+    <message>
+        <source>Rename</source>
+        <translation>Переименовать</translation>
     </message>
     <message>
         <source>Select destination folder</source>
         <translation>Укажите папку</translation>
     </message>
     <message>
+        <source>Skip</source>
+        <translation>Пропустить</translation>
+    </message>
+    <message>
         <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
         <translation>Результат этой операции нельзя отменить. Уверены, что хотите навсегда удалить эти книги?</translation>
+    </message>
+    <message>
+        <source>What to do with the same named files?</source>
+        <translation>Что делать с одноимёнными файлами?</translation>
     </message>
     <message>
         <source>removing</source>
