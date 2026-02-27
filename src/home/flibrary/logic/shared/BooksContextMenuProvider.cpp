@@ -70,6 +70,11 @@ constexpr auto RESTORE              = QT_TRANSLATE_NOOP("BookContextMenu", "rest
 
 constexpr auto REMOVE_PERMANENTLY_CONFIRM = QT_TRANSLATE_NOOP("BookContextMenu", "The result of this operation cannot be undone. Are you sure you want to delete the books permanently?");
 constexpr auto CHANGE_LANGUAGE_CONFIRM    = QT_TRANSLATE_NOOP("BookContextMenu", "Are you sure you want to change the language of the books to %1?");
+constexpr auto SAME_NAMED_FILES           = QT_TRANSLATE_NOOP("BookContextMenu", "What to do with the same named files?");
+constexpr auto SAME_NAMED_FILES_SKIP      = QT_TRANSLATE_NOOP("BookContextMenu", "Skip");
+constexpr auto SAME_NAMED_FILES_OVERWRITE = QT_TRANSLATE_NOOP("BookContextMenu", "Overwrite");
+constexpr auto SAME_NAMED_FILES_RENAME    = QT_TRANSLATE_NOOP("BookContextMenu", "Rename");
+constexpr auto SAME_NAMED_FILES_CANCEL    = QT_TRANSLATE_NOOP("BookContextMenu", "Cancel");
 
 TR_DEF
 
@@ -699,6 +704,9 @@ private:
 			}
 		}
 
+		if (CheckUniqueFileNames(books))
+			return callback(item);
+
 		auto ids = books | std::views::transform([](const auto book) {
 					   return QString::number(book.id);
 				   })
@@ -750,6 +758,61 @@ private:
 											 m_dataProvider->RequestBooks(true);
 									 };
 								 } });
+	}
+
+	bool CheckUniqueFileNames(Util::ExtractedBooks& books) const
+	{
+		const auto whatTodo = [&] {
+			std::unordered_set<QString> uniqueNames;
+			for (const auto& book : books)
+				if (QFile::exists(book.dstFileName) || !uniqueNames.emplace(book.dstFileName).second)
+					return m_uiFactory->ShowCustomDialog(
+						QMessageBox::Question,
+						Loc::Tr(Loc::Ctx::COMMON, Loc::WARNING),
+						Tr(SAME_NAMED_FILES),
+						{
+							{      QMessageBox::AcceptRole,      Tr(SAME_NAMED_FILES_SKIP) },
+							{ QMessageBox::DestructiveRole, Tr(SAME_NAMED_FILES_OVERWRITE) },
+							{          QMessageBox::NoRole,    Tr(SAME_NAMED_FILES_RENAME) },
+							{      QMessageBox::RejectRole,    Tr(SAME_NAMED_FILES_CANCEL) },
+                    },
+						QMessageBox::AcceptRole
+					);
+
+			return QMessageBox::AcceptRole;
+		}();
+
+		if (whatTodo == QMessageBox::RejectRole)
+			return true;
+
+		if (whatTodo == QMessageBox::NoRole)
+			return false;
+
+		std::unordered_map<QString, size_t> unique;
+		for (const auto& [book, index] : std::views::zip(books, std::views::iota(0)))
+		{
+			if (QFile::exists(book.dstFileName))
+			{
+				if (whatTodo == QMessageBox::DestructiveRole)
+					QFile::remove(book.dstFileName);
+				else
+					continue;
+			}
+
+			auto [it, inserted] = unique.emplace(book.dstFileName, index);
+			if (inserted)
+				continue;
+
+			if (whatTodo == QMessageBox::DestructiveRole)
+				it->second = index;
+		}
+
+		const auto indices = unique | std::views::values | std::ranges::to<std::unordered_set<size_t>>();
+		std::erase_if(books, [&, index = 0ULL](const auto&) mutable {
+			return !indices.contains(index++);
+		});
+
+		return false;
 	}
 
 private:
