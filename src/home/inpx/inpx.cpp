@@ -1121,25 +1121,107 @@ private: // IPool
 				if (!zip)
 					return -1;
 
-				const auto zipFileList = zip->GetFileNameList();
-				for (size_t counter = 0; const auto& fileName : zipFileList)
-				{
-					++counter;
-					if (QFileInfo(fileName).suffix() != "fb2")
-						continue;
-
-					PLOGD << "parsing " << folder << "/" << fileName << "  " << counter << " (" << zipFileList.size() << ") " << 100 * counter / zipFileList.size() << "%";
-					auto process = [&] {
-						return ParseFile(folder, *zip, fileName, archiveFileInfo.birthTime());
-					};
-					TRY(QString("parse %1").arg(fileName), process);
-				}
+				Work(folder, *zip, zip->GetFileNameList() | std::ranges::to<std::vector<QString>>(), archiveFileInfo.birthTime());
 
 				return 0;
 			};
 
 			TRY(QString("parsing %1").arg(QString::fromStdWString(folder)), work);
 		}
+	}
+
+	void Work(const std::wstring& folder, const Zip& zip, std::vector<QString> zipFileList, const QDateTime& zipDateTime)
+	{
+		const auto totalCount = zipFileList.size();
+		size_t     counter    = 0;
+
+		auto tail = std::ranges::partition(
+			zipFileList,
+			[](const QString& item) {
+				return item.compare("fb2", Qt::CaseInsensitive) != 0;
+			},
+			[](const QString& item) {
+				return QFileInfo(item).suffix();
+			}
+		);
+
+		const auto enumerate = [&](const auto& range, const auto& process) {
+			for (const auto& fileName : range)
+			{
+				++counter;
+				PLOGD << "parsing " << folder << "/" << fileName << "  " << counter << " (" << totalCount << ") " << 100 * counter / zipFileList.size() << "%";
+				process(fileName);
+			}
+		};
+
+		enumerate(tail, [&](const QString& fileName) {
+			auto process = [&] {
+				return ParseFile(folder, zip, fileName, zipDateTime);
+			};
+			TRY(QString("parse %1").arg(fileName), process);
+		});
+		zipFileList.erase(tail.begin(), tail.end());
+
+		tail = std::ranges::partition(
+			zipFileList,
+			[](const QString& item) {
+				return item.compare("fbd", Qt::CaseInsensitive) != 0;
+			},
+			[](const QString& item) {
+				return QFileInfo(item).suffix();
+			}
+		);
+
+		enumerate(tail, [&](const QString& fileName) {
+			auto process = [&] {
+				const auto it = std::ranges::find_if(zipFileList.begin(), tail.begin(), [&fileName, completeBaseName = QFileInfo(fileName).completeBaseName()](const QString& item) {
+					return fileName.compare(item, Qt::CaseInsensitive) != 0
+					    && (completeBaseName.compare(item, Qt::CaseInsensitive) == 0 || completeBaseName.compare(QFileInfo(item).completeBaseName(), Qt::CaseInsensitive) == 0);
+				});
+
+				if (it == tail.begin())
+					return std::numeric_limits<size_t>::max();
+
+				const auto index = ParseFile(folder, zip, fileName, zipDateTime);
+				if (index == std::numeric_limits<size_t>::max())
+					return index;
+
+				const QFileInfo fileInfo(*it);
+				m_data.books[index].fileName = fileInfo.completeBaseName().toStdWString();
+				m_data.books[index].format   = ("." + fileInfo.suffix()).toStdWString();
+				it->clear();
+				++counter;
+
+				return index;
+			};
+			TRY(QString("parse %1").arg(fileName), process);
+		});
+		zipFileList.erase(tail.begin(), tail.end());
+		std::erase_if(zipFileList, [](const QString& item) {
+			return item.isEmpty();
+		});
+
+		enumerate(zipFileList, [&](const QString& fileName) {
+			const QFileInfo fileInfo(fileName);
+			if (fileInfo.suffix().toLower() != "zip")
+				return false;
+
+			const Zip  subZip(zip.Read(fileName)->GetStream());
+			const auto subZipFiles = subZip.GetFileNameList();
+			const auto it          = std::ranges::find_if(subZipFiles, [](const QString& item) {
+                return QFileInfo(item).suffix().toLower() == "fbd";
+            });
+			if (it == subZipFiles.end())
+				return false;
+
+			const auto index = ParseFile(folder, subZip, *it, zipDateTime);
+			if (index == std::numeric_limits<size_t>::max())
+				return false;
+
+			m_data.books[index].fileName = fileInfo.completeBaseName().toStdWString();
+			m_data.books[index].format   = L".zip";
+			return true;
+		});
 	}
 
 private:
@@ -1653,14 +1735,7 @@ where b.FileName = ? and b.Ext = ?)");
 			if (!zip)
 				continue;
 
-			for (const auto& fileName : files | std::views::keys)
-			{
-				PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
-				const auto fileNameStr = QString::fromStdWString(fileName);
-				TRY(QString("parse %1").arg(fileNameStr), [&] {
-					return ParseFile(folder, *zip, fileNameStr, archiveFileInfo.birthTime());
-				});
-			}
+			Work(folder, *zip, files | std::views::keys | std::views::transform(&QString::fromStdWString) | std::ranges::to<std::vector<QString>>(), archiveFileInfo.birthTime());
 		}
 	}
 
@@ -1833,17 +1908,16 @@ where b.FileName = ? and b.Ext = ?)");
 		}
 	}
 
-	bool ParseFile(const std::wstring& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
+	size_t ParseFile(const std::wstring& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
 	{
 		auto line = Fb2InpxParser::Parse(QString::fromStdWString(folder), zip, fileName, zipDateTime, !!(m_mode & CreateCollectionMode::MarkUnIndexedFilesAsDeleted)).toStdWString();
 		if (line.empty())
-			return false;
+			return std::numeric_limits<size_t>::max();
 
 		const auto buf = ParseBook(folder, line, m_bookBufMapping);
 
 		std::lock_guard lock(m_dataGuard);
-		AddBook(buf);
-		return true;
+		return AddBook(buf);
 	}
 
 	size_t ParseDate(const std::wstring_view date, Data& data)

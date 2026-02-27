@@ -587,14 +587,6 @@ private:
 
 	void ExtractArchiveInfo(IDataItem::Ptr book)
 	{
-		if (QFileInfo(book->GetRawData(BookItem::Column::FileName)).suffix().compare("fb2", Qt::CaseInsensitive))
-		{
-			m_book         = std::move(book);
-			m_archiveData  = {};
-			m_ready       |= Ready::Archive;
-			return;
-		}
-
 		if (const auto progressController = m_archiveParserProgressController.lock())
 			progressController->Stop();
 
