@@ -123,6 +123,7 @@ public:
             });
             Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
             ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
+            Perform(&ICollectionsObserver::OnActiveCollectionChanged);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.RescanCollection(ini, static_cast<Inpx::CreateCollectionMode>(collection.createCollectionMode), std::move(callback));
@@ -301,6 +302,7 @@ private:
             });
             Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
             ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
+            Perform(&ICollectionsObserver::OnActiveCollectionChanged);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.UpdateCollection(ini, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
