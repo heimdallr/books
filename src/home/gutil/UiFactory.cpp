@@ -111,6 +111,11 @@ QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
 		return std::make_pair(button, item.first);
 	});
 
+	auto font = parentWidget->font();
+	font.setPointSizeF(font.pointSizeF() * 4 / 5);
+	for (auto* widget : msgBox.findChildren<QWidget*>())
+		widget->setFont(font);
+
 	msgBox.exec();
 
 	return FindSecond(msgBoxButtons, msgBox.clickedButton(), QMessageBox::NoRole);
