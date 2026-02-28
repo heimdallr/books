@@ -13,6 +13,7 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
+#include "interface/INoSqlRequester.h"
 #include "interface/constants/SettingsConstant.h"
 
 #include "logic/data/DataItem.h"
@@ -115,13 +116,15 @@ struct ReactAppRequester::Impl
 			const auto process = [&](const Flibrary::Genre& genre, const auto& f) -> void {
 				for (const auto& child : genre.children)
 				{
-					array.append(QJsonObject {
-						{  "GenreCode",                child.code },
-						{ "ParentCode",                genre.code },
-						{    "FB2Code",             child.fb2Code },
-						{ "GenreAlias",                child.name },
-						{  "IsDeleted", child.removed ? "1" : "0" },
-					});
+					array.append(
+						QJsonObject {
+							{  "GenreCode",                child.code },
+							{ "ParentCode",                genre.code },
+							{    "FB2Code",             child.fb2Code },
+							{ "GenreAlias",                child.name },
+							{  "IsDeleted", child.removed ? "1" : "0" },
+                    }
+					);
 					f(child, f);
 				}
 			};
@@ -158,6 +161,15 @@ SELECT gu.GroupID, gu.Title
 			readTemplate.replace("%HTTP_PORT%", QString::number(port));
 
 			result.insert("linkToExtBookReader", std::move(readTemplate));
+		}
+
+		{
+			QJsonArray    array;
+			SettingsGroup group(*settings, INoSqlRequester::CONVERTERS_ROOT);
+			for (const auto& profile : settings->GetGroups())
+				array.append(settings->Get(QString("%1/%2").arg(profile, INoSqlRequester::CONVERTER_TITLE)).toString());
+			if (!array.isEmpty())
+				result.insert("converters", std::move(array));
 		}
 
 		return result;
@@ -220,7 +232,7 @@ where g.GroupID = ?
 
 	QJsonObject getSearchAuthors(const Parameters& parameters) const
 	{
-		static constexpr auto queryText  = "select a.AuthorID, " AUTHOR_FULL_NAME " as Authors, count(42) as Books_View_Opds from Authors a %1 group by a.AuthorID";
+		static constexpr auto queryText  = "select a.AuthorID, " AUTHOR_FULL_NAME " as Authors, count(42) as Books from Authors a %1 group by a.AuthorID";
 		static constexpr auto groupJoin  = "join Author_List al on al.AuthorID = a.AuthorID join Groups_List_User_View gl on gl.BookID = al.BookID and gl.GroupID = ?";
 		static constexpr auto searchJoin = "join Author_List al on al.AuthorID = a.AuthorID join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?";
 
@@ -234,7 +246,7 @@ where g.GroupID = ?
 
 	QJsonObject getSearchSeries(const Parameters& parameters) const
 	{
-		static constexpr auto queryText  = "select s.SeriesID, s.SeriesTitle, count(42) as Books_View_Opds from Series s %1 group by s.SeriesID";
+		static constexpr auto queryText  = "select s.SeriesID, s.SeriesTitle, count(42) as Books from Series s %1 group by s.SeriesID";
 		static constexpr auto groupJoin  = "join Series_List sl on sl.SeriesID = s.SeriesID join Groups_List_User_View gl on gl.BookID = sl.BookID and gl.GroupID = ?";
 		static constexpr auto searchJoin = "join Series_List sl on sl.SeriesID = s.SeriesID join Series_Search fts on fts.rowid = s.SeriesID and Series_Search match ?";
 
@@ -290,12 +302,14 @@ where g.GroupID = ?
 				{
 					const auto& authorItem = dataProvider.GetAuthors().GetChild(i);
 
-					authors.append(QJsonObject {
-						{   "AuthorID",											  authorItem->GetId() },
-						{  "FirstName",  authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName) },
-						{   "LastName",   authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName) },
-						{ "MiddleName", authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName) },
-					});
+					authors.append(
+						QJsonObject {
+							{   "AuthorID",											  authorItem->GetId() },
+							{  "FirstName",  authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName) },
+							{   "LastName",   authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName) },
+							{ "MiddleName", authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName) },
+                    }
+					);
 
 					values << QString("%1 %2 %3")
 								  .arg(
@@ -433,6 +447,7 @@ private:
 
 namespace
 {
+
 template <typename Obj, typename NavigationGetter, typename... ARGS>
 QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ARGS&... args)
 {

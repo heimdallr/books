@@ -325,6 +325,13 @@ using BookBufMapping     = std::vector<BookBufFieldGetter>;
 BOOK_BUF_FIELD_ITEMS_XMACRO
 #undef BOOK_BUF_FIELD_ITEM
 
+std::wstring_view BOOK_BUF_FIELD_DEFAULT_VIEW;
+
+std::wstring_view& GetBookBufFieldDefault(BookBuf&)
+{
+	return BOOK_BUF_FIELD_DEFAULT_VIEW;
+}
+
 BookBuf ParseBook(const std::wstring_view folder, std::wstring& line, const BookBufMapping& f)
 {
 	BookBuf buf { .FOLDER = folder };
@@ -784,6 +791,15 @@ size_t Store(const Path& dbFileName, Data& data)
 	return result;
 }
 
+std::filesystem::directory_iterator GetDirectoryIterator(const Path& path)
+{
+	if (exists(path))
+		return std::filesystem::directory_iterator { path };
+
+	PLOGW << QString::fromStdWString(path) << " not found";
+	return {};
+}
+
 std::vector<Path> GetInpxFilesInFolder(const Ini& ini)
 {
 	PLOGV << "GetInpxFilesInFolder started";
@@ -791,7 +807,7 @@ std::vector<Path> GetInpxFilesInFolder(const Ini& ini)
 		if (auto explicitInpxPath = ini(INPX_PATH); !explicitInpxPath.empty())
 			return { std::move(explicitInpxPath) };
 
-	auto result = std::filesystem::directory_iterator { ini(ARCHIVE_FOLDER) } | std::views::filter([](const Path& path) {
+	auto result = GetDirectoryIterator(ini(ARCHIVE_FOLDER)) | std::views::filter([](const Path& path) {
 					  const auto ext  = path.extension().wstring();
 					  const auto proj = [](const auto& ch) {
 						  return std::tolower(ch);
@@ -1105,25 +1121,107 @@ private: // IPool
 				if (!zip)
 					return -1;
 
-				const auto zipFileList = zip->GetFileNameList();
-				for (size_t counter = 0; const auto& fileName : zipFileList)
-				{
-					++counter;
-					if (QFileInfo(fileName).suffix() != "fb2")
-						continue;
-
-					PLOGD << "parsing " << folder << "/" << fileName << "  " << counter << " (" << zipFileList.size() << ") " << 100 * counter / zipFileList.size() << "%";
-					auto process = [&] {
-						return ParseFile(folder, *zip, fileName, archiveFileInfo.birthTime());
-					};
-					TRY(QString("parse %1").arg(fileName), process);
-				}
+				Work(folder, *zip, zip->GetFileNameList() | std::ranges::to<std::vector<QString>>(), archiveFileInfo.birthTime());
 
 				return 0;
 			};
 
 			TRY(QString("parsing %1").arg(QString::fromStdWString(folder)), work);
 		}
+	}
+
+	void Work(const std::wstring& folder, const Zip& zip, std::vector<QString> zipFileList, const QDateTime& zipDateTime)
+	{
+		const auto totalCount = zipFileList.size();
+		size_t     counter    = 0;
+
+		auto tail = std::ranges::partition(
+			zipFileList,
+			[](const QString& item) {
+				return item.compare("fb2", Qt::CaseInsensitive) != 0;
+			},
+			[](const QString& item) {
+				return QFileInfo(item).suffix();
+			}
+		);
+
+		const auto enumerate = [&](const auto& range, const auto& process) {
+			for (const auto& fileName : range)
+			{
+				++counter;
+				PLOGD << "parsing " << folder << "/" << fileName << "  " << counter << " (" << totalCount << ") " << 100 * counter / zipFileList.size() << "%";
+				process(fileName);
+			}
+		};
+
+		enumerate(tail, [&](const QString& fileName) {
+			auto process = [&] {
+				return ParseFile(folder, zip, fileName, zipDateTime);
+			};
+			TRY(QString("parse %1").arg(fileName), process);
+		});
+		zipFileList.erase(tail.begin(), tail.end());
+
+		tail = std::ranges::partition(
+			zipFileList,
+			[](const QString& item) {
+				return item.compare("fbd", Qt::CaseInsensitive) != 0;
+			},
+			[](const QString& item) {
+				return QFileInfo(item).suffix();
+			}
+		);
+
+		enumerate(tail, [&](const QString& fileName) {
+			auto process = [&] {
+				const auto it = std::ranges::find_if(zipFileList.begin(), tail.begin(), [&fileName, completeBaseName = QFileInfo(fileName).completeBaseName()](const QString& item) {
+					return fileName.compare(item, Qt::CaseInsensitive) != 0
+					    && (completeBaseName.compare(item, Qt::CaseInsensitive) == 0 || completeBaseName.compare(QFileInfo(item).completeBaseName(), Qt::CaseInsensitive) == 0);
+				});
+
+				if (it == tail.begin())
+					return std::numeric_limits<size_t>::max();
+
+				const auto index = ParseFile(folder, zip, fileName, zipDateTime);
+				if (index == std::numeric_limits<size_t>::max())
+					return index;
+
+				const QFileInfo fileInfo(*it);
+				m_data.books[index].fileName = fileInfo.completeBaseName().toStdWString();
+				m_data.books[index].format   = ("." + fileInfo.suffix()).toStdWString();
+				it->clear();
+				++counter;
+
+				return index;
+			};
+			TRY(QString("parse %1").arg(fileName), process);
+		});
+		zipFileList.erase(tail.begin(), tail.end());
+		std::erase_if(zipFileList, [](const QString& item) {
+			return item.isEmpty();
+		});
+
+		enumerate(zipFileList, [&](const QString& fileName) {
+			const QFileInfo fileInfo(fileName);
+			if (fileInfo.suffix().toLower() != "zip")
+				return false;
+
+			const Zip  subZip(zip.Read(fileName)->GetStream());
+			const auto subZipFiles = subZip.GetFileNameList();
+			const auto it          = std::ranges::find_if(subZipFiles, [](const QString& item) {
+                return QFileInfo(item).suffix().toLower() == "fbd";
+            });
+			if (it == subZipFiles.end())
+				return false;
+
+			const auto index = ParseFile(folder, subZip, *it, zipDateTime);
+			if (index == std::numeric_limits<size_t>::max())
+				return false;
+
+			m_data.books[index].fileName = fileInfo.completeBaseName().toStdWString();
+			m_data.books[index].format   = L".zip";
+			return true;
+		});
 	}
 
 private:
@@ -1165,7 +1263,7 @@ private:
 	void SetUnknownGenreId()
 	{
 		static constexpr auto UNKNOWN = L"unknown_root";
-		const auto            it      = m_genresIndex.find(UNKNOWN);
+		const auto            it      = m_genresIndex.find(std::wstring_view(UNKNOWN));
 		assert(it != m_genresIndex.end());
 		m_unknownGenreId = it->second;
 	}
@@ -1324,7 +1422,7 @@ private:
 		auto       folders    = TRY(std::format("iterate {}", inpxFolder.generic_string()), [&] {
             std::vector<std::wstring> result;
             std::ranges::move(
-                std::filesystem::directory_iterator(inpxFolder) | std::views::filter([](const auto& item) {
+                GetDirectoryIterator(inpxFolder) | std::views::filter([](const auto& item) {
                     return !item.is_directory();
                 }) | std::views::transform([&](const auto& item) {
                     auto folder = item.path().wstring();
@@ -1452,13 +1550,9 @@ private:
 
 	void CollectReviews()
 	{
-		const auto reviewsFolder = m_ini(ARCHIVE_FOLDER) / REVIEWS_FOLDER;
-		if (!exists(reviewsFolder))
-			return;
-
 		PLOGI << "Collect reviews";
 
-		for (const auto& path : std::filesystem::directory_iterator(reviewsFolder) | std::views::filter([](const auto& entry) {
+		for (const auto& path : GetDirectoryIterator(m_ini(ARCHIVE_FOLDER) / REVIEWS_FOLDER) | std::views::filter([](const auto& entry) {
 									return !entry.is_directory();
 								}) | std::views::transform([](const auto& entry) {
 									return entry.path();
@@ -1641,14 +1735,7 @@ where b.FileName = ? and b.Ext = ?)");
 			if (!zip)
 				continue;
 
-			for (const auto& fileName : files | std::views::keys)
-			{
-				PLOGW << "Book is not indexed: " << ToMultiByte(folder) << "/" << fileName;
-				const auto fileNameStr = QString::fromStdWString(fileName);
-				TRY(QString("parse %1").arg(fileNameStr), [&] {
-					return ParseFile(folder, *zip, fileNameStr, archiveFileInfo.birthTime());
-				});
-			}
+			Work(folder, *zip, files | std::views::keys | std::views::transform(&QString::fromStdWString) | std::ranges::to<std::vector<QString>>(), archiveFileInfo.birthTime());
 		}
 	}
 
@@ -1747,8 +1834,8 @@ where b.FileName = ? and b.Ext = ?)");
 			const auto it = bookBufMapping.find(str.simplified());
 			if (it == bookBufMapping.end())
 			{
-				PLOGF << "unexpected field name " << str;
-				throw std::runtime_error("unexpected field name");
+				PLOGW << "unexpected field name " << str;
+				return &GetBookBufFieldDefault;
 			}
 
 			return it->second;
@@ -1821,17 +1908,16 @@ where b.FileName = ? and b.Ext = ?)");
 		}
 	}
 
-	bool ParseFile(const std::wstring& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
+	size_t ParseFile(const std::wstring& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
 	{
 		auto line = Fb2InpxParser::Parse(QString::fromStdWString(folder), zip, fileName, zipDateTime, !!(m_mode & CreateCollectionMode::MarkUnIndexedFilesAsDeleted)).toStdWString();
 		if (line.empty())
-			return false;
+			return std::numeric_limits<size_t>::max();
 
 		const auto buf = ParseBook(folder, line, m_bookBufMapping);
 
 		std::lock_guard lock(m_dataGuard);
-		AddBook(buf);
-		return true;
+		return AddBook(buf);
 	}
 
 	size_t ParseDate(const std::wstring_view date, Data& data)

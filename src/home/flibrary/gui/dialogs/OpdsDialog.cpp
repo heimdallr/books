@@ -9,7 +9,7 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 
-#include "gutil/GeometryRestorable.h"
+#include "util/GeometryRestorable.h"
 #include "util/hash.h"
 
 using namespace HomeCompa;
@@ -17,6 +17,7 @@ using namespace Flibrary;
 
 namespace
 {
+
 constexpr auto LABEL_LINK_TEMPLATE = R"(<a href="%1">%2</a>)";
 
 constexpr auto CONTEXT                     = IOpdsController::CONTEXT;
@@ -27,6 +28,7 @@ constexpr auto SITE                        = QT_TRANSLATE_NOOP("OpdsDialog", "Re
 constexpr auto OPDS                        = QT_TRANSLATE_NOOP("OpdsDialog", "OPDS");
 constexpr auto WEB                         = QT_TRANSLATE_NOOP("OpdsDialog", "Simple web interface");
 TR_DEF
+
 }
 
 struct OpdsDialog::Impl final

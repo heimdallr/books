@@ -123,6 +123,7 @@ public:
             });
             Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
             ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
+            Perform(&ICollectionsObserver::OnActiveCollectionChanged);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.RescanCollection(ini, static_cast<Inpx::CreateCollectionMode>(collection.createCollectionMode), std::move(callback));
@@ -262,7 +263,9 @@ private:
 		ini.try_emplace(DEFAULT_ARCHIVE_TYPE, defaultArchiveType.toStdWString());
 
 		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement().toStdWString());
-		auto callback = [this, parser = std::move(parser), name, db = std::move(dbOrigin), folder = std::move(folderOrigin), inpx = std::move(inpxOrigin), mode, tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
+		auto callback = [this, parser = std::move(parser), name, db = std::move(dbOrigin), folder = std::move(folderOrigin), inpx = std::move(inpxOrigin), mode, tmpDir = std::move(tmpDir)](
+							const Inpx::UpdateResult& updateResult
+						) mutable {
 			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
 				parser.reset();
 			});
@@ -299,6 +302,7 @@ private:
             });
             Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
             ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
+            Perform(&ICollectionsObserver::OnActiveCollectionChanged);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.UpdateCollection(ini, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));

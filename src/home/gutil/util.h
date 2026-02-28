@@ -6,7 +6,9 @@
 
 namespace HomeCompa
 {
+
 class ISettings;
+
 }
 
 class QHeaderView;

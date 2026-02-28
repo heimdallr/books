@@ -8,7 +8,9 @@ using namespace HomeCompa::Flibrary;
 
 namespace
 {
+
 using Role = IScriptController::RoleBase;
+
 }
 
 ComboBoxDelegate::ComboBoxDelegate(QObject* parent)

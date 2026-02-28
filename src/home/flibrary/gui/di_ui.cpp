@@ -4,6 +4,7 @@
 #include "StyleApplier/StyleApplierFactory.h"
 #include "dialogs/AddCollectionDialog.h"
 #include "dialogs/ComboBoxTextDialog.h"
+#include "dialogs/SettingsDialog.h"
 #include "dialogs/script/ScriptDialog.h"
 
 #include "AlphabetPanel.h"
@@ -23,6 +24,7 @@ void DiUi(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermi
 	builder.registerType<MainWindow>().as<IMainWindow>().singleInstance();
 	builder.registerType<MigrateWindow>().as<IMigrateWindow>();
 	builder.registerType<ScriptDialog>().as<IScriptDialog>();
+	builder.registerType<SettingsDialog>().as<ISettingsDialog>();
 	builder.registerType<AlphabetPanel>().as<IAlphabetPanel>();
 
 	builder

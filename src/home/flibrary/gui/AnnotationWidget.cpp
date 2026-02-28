@@ -2,6 +2,8 @@
 
 #include "AnnotationWidget.h"
 
+#include <QPainterPath>
+
 #include <QBuffer>
 #include <QClipboard>
 #include <QDesktopServices>
@@ -24,15 +26,15 @@
 #include "gutil/util.h"
 #include "logic/TreeViewController/AbstractTreeViewController.h"
 #include "logic/data/DataItem.h"
-#include "logic/shared/ImageRestore.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
+#include "util/ImageRestore.h"
 #include "util/ImageUtil.h"
 
 #include "log.h"
 
+using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
-using namespace Flibrary;
 
 namespace
 {
@@ -76,6 +78,7 @@ QT_TRANSLATE_NOOP("Annotation", "AsIs")
 QT_TRANSLATE_NOOP("Annotation", "Archive")
 QT_TRANSLATE_NOOP("Annotation", "Script")
 QT_TRANSLATE_NOOP("Annotation", "Inpx")
+QT_TRANSLATE_NOOP("Annotation", "cover")
 #endif
 
 constexpr auto DIALOG_KEY = "Image";
@@ -142,6 +145,28 @@ constexpr std::pair<const char*, std::pair<ContentMode, const char*>> CONTENT_MO
 },
 	CONTENT_MODE_ITEMS_X_MACRO
 #undef CONTENT_MODE_ITEM
+};
+
+class CoverLabel final : public QLabel
+{
+public:
+	explicit CoverLabel(QWidget* parent = nullptr)
+		: QLabel(parent)
+	{
+	}
+
+private:
+	void paintEvent(QPaintEvent* /*event*/) override
+	{
+		static constexpr auto off = 6;
+		QPainter              painter(this);
+		QPainterPath          path;
+		path.addText(off, font().pointSize() + off, font(), text());
+		painter.setRenderHints(QPainter::Antialiasing);
+		painter.strokePath(path, QPen(palette().color(QPalette::Window), 2));
+		painter.fillPath(path, QBrush(palette().color(QPalette::Text)));
+		resize(path.boundingRect().size().toSize().width() + off * 2, path.boundingRect().size().toSize().height() + off * 2);
+	}
 };
 
 } // namespace
@@ -220,7 +245,7 @@ public:
 			PLOGI_IF(!link.isEmpty()) << link;
 		});
 
-		const auto onCoverClicked = [&](const QPoint& pos) {
+		const auto onCoverClicked = [this](const QPoint& pos) {
 			if (m_covers.size() < 2)
 				return;
 
@@ -260,7 +285,7 @@ public:
 			menu.exec(m_ui.cover->mapToGlobal(pos));
 		});
 
-		connect(m_ui.content, &QWidget::customContextMenuRequested, &m_self, [this](const QPoint& pos) {
+		connect(m_ui.content, &QWidget::customContextMenuRequested, &m_self, [this] {
 			QMenu menu;
 			menu.setFont(m_self.font());
 
@@ -277,7 +302,7 @@ public:
 				});
 			}
 
-			Util::FillTreeContextMenu(*m_ui.content, menu).exec(m_ui.content->mapToGlobal(pos));
+			Util::FillTreeContextMenu(*m_ui.content, menu).exec(QCursor::pos());
 		});
 
 		const auto openImage = [this] {
@@ -347,6 +372,9 @@ public:
 							 };
 						 } });
 		});
+
+		m_coverLabel = new CoverLabel(&m_self);
+		m_coverLabel->setVisible(false);
 
 		const auto createCoverButton = [this, onCoverClicked](const QString& iconFileName, const QAction* action) {
 			auto* btn = new QToolButton(&m_self);
@@ -511,6 +539,8 @@ private:
 			return;
 		}
 
+		m_coverLabel->setText(Tr(m_covers[m_currentCoverIndex].name.toStdString().data()));
+
 		auto imgHeight = m_ui.mainWidget->height();
 		auto imgWidth  = m_ui.mainWidget->width() / 3;
 
@@ -545,18 +575,26 @@ private:
 		const auto         height = 3 * metrics.lineSpacing() / 2;
 		const QSize        size { height, height };
 		const auto         top = imgHeight - height - height / 8;
-		m_coverButtons[CoverButtonType::Previous]->setGeometry(QRect {
-			QPoint { height / 8, top },
-			size
-        });
-		m_coverButtons[CoverButtonType::Next]->setGeometry(QRect {
-			QPoint { imgWidth - height - height / 8, top },
-			size
-        });
-		m_coverButtons[CoverButtonType::Home]->setGeometry(QRect {
-			QPoint { (imgWidth - height) / 2, top },
-			size
-        });
+		m_coverButtons[CoverButtonType::Previous]->setGeometry(
+			QRect {
+				QPoint { height / 8, top },
+				size
+        }
+		);
+		m_coverButtons[CoverButtonType::Next]->setGeometry(
+			QRect {
+				QPoint { imgWidth - height - height / 8, top },
+				size
+        }
+		);
+		m_coverButtons[CoverButtonType::Home]->setGeometry(
+			QRect {
+				QPoint { (imgWidth - height) / 2, top },
+				size
+        }
+		);
+
+		m_coverLabel->move(height / 8, height / 16);
 	}
 
 	void OnContentChanged()
@@ -566,8 +604,9 @@ private:
 			return m_ui.contentWidget->setVisible(false);
 
 		auto [mode, content] = [this]() -> std::pair<ContentMode, IDataItem::Ptr> {
-			if (const auto it = m_content.find(m_selectedContentMode); it != m_content.end())
-				return *it;
+			if (!!(m_allowedContentMode & m_selectedContentMode))
+				if (const auto it = m_content.find(m_selectedContentMode); it != m_content.end())
+					return *it;
 
 			if (const auto it = std::ranges::find_if(
 					m_content,
@@ -617,6 +656,8 @@ private:
 		if (!m_coverButtonsVisible || !m_coverButtonsEnabled || m_ui.cover->size().width() < m_coverButtons.front()->size().width() * 4)
 			return;
 
+		m_coverLabel->setVisible(true);
+
 		m_coverButtons[CoverButtonType::Previous]->setVisible(true);
 		m_coverButtons[CoverButtonType::Next]->setVisible(true);
 		m_coverButtons[CoverButtonType::Home]->setVisible(m_currentCoverIndex != 0);
@@ -624,6 +665,8 @@ private:
 
 	void OnCoverLeave() const
 	{
+		m_coverLabel->setVisible(false);
+
 		if (std::ranges::any_of(m_coverButtons, [widget = QApplication::widgetAt(QCursor::pos())](const auto* item) {
 				return widget == item;
 			}))
@@ -661,6 +704,7 @@ private:
 	ContentMode                                     m_currentContentMode { ContentMode::None };
 	ContentMode m_selectedContentMode { FindSecond(CONTENT_MODES, m_settings->Get(CONTENT_MODE_KEY, QString {}).toStdString().data(), CONTENT_MODES[0].second, PszComparer {}).first };
 
+	QLabel*                       m_coverLabel;
 	std::vector<QAbstractButton*> m_coverButtons;
 	bool                          m_coverButtonsEnabled { false };
 	bool                          m_coverButtonsVisible { true };

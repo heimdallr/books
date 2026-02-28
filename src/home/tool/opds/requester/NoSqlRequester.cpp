@@ -13,16 +13,16 @@
 
 #include "interface/localization.h"
 
-#include "logic/shared/ImageRestore.h"
 #include "util/AnnotationControllerObserver.h"
+#include "util/ImageRestore.h"
 #include "util/ImageUtil.h"
 #include "util/ProcessWrapper.h"
 
 #include "log.h"
 #include "zip.h"
 
+using namespace HomeCompa::Opds;
 using namespace HomeCompa;
-using namespace Opds;
 
 namespace
 {
@@ -45,7 +45,7 @@ QByteArray Decompress(const QString& path, const QString& archive, const QString
 				buffer.close();
 			}
 		);
-		buffer.write(Flibrary::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName));
+		buffer.write(Util::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName));
 	}
 	return data;
 }
@@ -110,21 +110,28 @@ struct NoSqlRequester::Impl
 		return result;
 	}
 
-	std::tuple<QString, QString, QByteArray> GetBook(const QString& bookId, const bool restoreImages) const
+	std::tuple<QString, QString, QByteArray> GetBook(const QString& bookId, const bool restoreImages, const IRequester::Parameters& parameters) const
 	{
 		auto book           = bookExtractor->GetExtractedBook(bookId);
 		auto outputFileName = bookExtractor->GetFileName(book);
 		auto data           = Decompress(collectionProvider->GetActiveCollection().GetFolder(), book.folder, book.file, restoreImages);
 
-		Convert(outputFileName, data);
+		Convert(outputFileName, data, GetProfileRoot(*settings, IRequester::GetParameter(parameters, CONVERTER_PROFILE)));
 
-		return std::make_tuple(std::move(book.file), QFileInfo(outputFileName).fileName(), std::move(data));
+		const QFileInfo fileInfo(outputFileName);
+		const QFileInfo bookFileInfo(book.file);
+
+		return std::make_tuple(QString("%1.%2").arg(bookFileInfo.completeBaseName(), fileInfo.suffix()), fileInfo.fileName(), std::move(data));
 	}
 
 private:
-	void Convert(QString& outputFileName, QByteArray& data) const
+	void Convert(QString& outputFileName, QByteArray& data, const QString& settingsRoot) const
 	{
-		const auto command = settings->Get(CONVERTER_COMMAND).toString();
+		const auto getParameter = [&](const QString& parameter, const QString& defaultValue = {}) {
+			return settings->Get(QString("%1/%2").arg(settingsRoot, parameter), defaultValue);
+		};
+
+		const auto command = getParameter(CONVERTER_COMMAND);
 		if (command.isEmpty())
 			return;
 
@@ -142,17 +149,17 @@ private:
 			}
 			file.write(data);
 		}
-		const auto ext = settings->Get(CONVERTER_EXT, fileInfo.suffix());
+		const auto ext = getParameter(CONVERTER_EXT, fileInfo.suffix());
 		const auto dst = QString("%1/%2.%3").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), QUuid::createUuid().toString(QUuid::WithoutBraces), ext);
 		ScopedCall dstGuard([&] {
 			QFile::remove(dst);
 		});
 
-		auto arguments = settings->Get(CONVERTER_ARGUMENTS, QString(R"("%1" "%2")").arg(src, dst));
+		auto arguments = getParameter(CONVERTER_ARGUMENTS, QString(R"("%1" "%2")").arg(src, dst));
 		arguments.replace("%src%", src);
 		arguments.replace("%dst%", dst);
 
-		if (!Util::RunProcess(command, arguments, settings->Get(CONVERTER_CWD).toString()))
+		if (!Util::RunProcess(command, arguments, getParameter(CONVERTER_CWD)))
 			return;
 
 		QFile file(dst);
@@ -191,15 +198,30 @@ QByteArray NoSqlRequester::GetCoverThumbnail(const QString& bookId) const
 	return GetCover(bookId);
 }
 
-std::pair<QString, QByteArray> NoSqlRequester::GetBook(const QString& bookId, const bool restoreImages) const
+std::pair<QString, QByteArray> NoSqlRequester::GetBook(const QString& bookId, const bool restoreImages, const IRequester::Parameters& parameters) const
 {
-	auto [_, title, data] = m_impl->GetBook(bookId, restoreImages);
+	auto [_, title, data] = m_impl->GetBook(bookId, restoreImages, parameters);
 	return std::make_pair(title, std::move(data));
 }
 
-std::pair<QString, QByteArray> NoSqlRequester::GetBookZip(const QString& bookId, const bool restoreImages) const
+std::pair<QString, QByteArray> NoSqlRequester::GetBookZip(const QString& bookId, const bool restoreImages, const IRequester::Parameters& parameters) const
 {
-	auto [fileName, title, data] = m_impl->GetBook(bookId, restoreImages);
+	auto [fileName, title, data] = m_impl->GetBook(bookId, restoreImages, parameters);
 	data                         = Compress(std::move(data), std::move(fileName));
-	return std::make_pair(QFileInfo(title).completeBaseName() + ".zip", std::move(data));
+	return std::make_pair(QFileInfo(title).fileName() + ".zip", std::move(data));
+}
+
+QString INoSqlRequester::GetProfileRoot(const ISettings& settings, const QString& profileTitle)
+{
+	if (profileTitle.isEmpty())
+		return CONVERTER_ROOT;
+
+	SettingsGroup group(settings, CONVERTERS_ROOT);
+	auto          profiles = settings.GetGroups();
+	const auto    it       = std::ranges::find(profiles, profileTitle, [&](const QString& item) {
+        const auto title = settings.Get(QString("%1/%2").arg(item, CONVERTER_TITLE)).toString();
+        return title;
+    });
+
+	return it != profiles.end() ? QString("%1/%2").arg(CONVERTERS_ROOT, *it) : CONVERTER_ROOT;
 }

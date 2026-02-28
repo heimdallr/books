@@ -12,7 +12,9 @@ class QTranslator;
 
 namespace HomeCompa
 {
+
 class ISettings;
+
 }
 
 namespace HomeCompa::Loc

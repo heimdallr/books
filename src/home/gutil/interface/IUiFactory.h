@@ -24,7 +24,8 @@ public:
 		const QString&                                                  title,
 		const QString&                                                  text,
 		const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
-		QMessageBox::ButtonRole                                         defaultButton = QMessageBox::NoRole
+		QMessageBox::ButtonRole                                         defaultButton = QMessageBox::NoRole,
+		const QString&                                                  detailedText  = {}
 	) const = 0;
 	[[nodiscard]] virtual QMessageBox::StandardButton
 	ShowQuestion(const QString& text, const QMessageBox::StandardButtons& buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;

@@ -13,9 +13,9 @@
 #include "interface/constants/ModelRole.h"
 #include "interface/logic/IDataItem.h"
 
-#include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
 #include "util/FunctorExecutionForwarder.h"
+#include "util/GeometryRestorable.h"
 
 #include "log.h"
 
@@ -167,7 +167,7 @@ public:
 	{
 		m_settings->Set(RECENT_TAB_KEY, m_ui.tabs->currentIndex());
 		if (m_model)
-			Util::SaveHeaderSectionWidth(*m_ui.view->header(), *this->m_settings, FIELD_WIDTH_KEY);
+			Util::SaveHeaderSectionWidth(*m_ui.view->header(), *m_settings, FIELD_WIDTH_KEY);
 		SaveGeometry();
 	}
 
@@ -404,7 +404,6 @@ private:
 		QMenu menu;
 		menu.setFont(m_self.font());
 		Util::FillTreeContextMenu(*m_ui.view, menu).exec(QCursor::pos());
-		menu.exec(QCursor::pos());
 	}
 
 	void OnHeaderViewContextMenuRequested(const QPoint& pos)

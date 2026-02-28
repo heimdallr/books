@@ -7,7 +7,9 @@
 
 namespace Hypodermic
 {
+
 class Container;
+
 }
 
 namespace HomeCompa::Util
@@ -25,9 +27,14 @@ private:
 	QObject* GetParentObject(QObject* defaultObject) const noexcept override;
 	QWidget* GetParentWidget(QWidget* defaultWidget) const noexcept override;
 
-	QMessageBox::ButtonRole
-	ShowCustomDialog(QMessageBox::Icon icon, const QString& title, const QString& text, const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons, QMessageBox::ButtonRole defaultButton)
-		const override;
+	QMessageBox::ButtonRole ShowCustomDialog(
+		QMessageBox::Icon                                               icon,
+		const QString&                                                  title,
+		const QString&                                                  text,
+		const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
+		QMessageBox::ButtonRole                                         defaultButton,
+		const QString&                                                  detailedText
+	) const override;
 	QMessageBox::StandardButton ShowQuestion(const QString& text, const QMessageBox::StandardButtons& buttons, QMessageBox::StandardButton defaultButton) const override;
 	QMessageBox::StandardButton ShowWarning(const QString& text, const QMessageBox::StandardButtons& buttons, QMessageBox::StandardButton defaultButton) const override;
 	void                        ShowInfo(const QString& text) const override;

@@ -6,13 +6,17 @@ class QString;
 
 namespace HomeCompa::DB
 {
+
 class IDatabase;
+
 }
 
 namespace HomeCompa::Util
 {
+
 class IExecutor;
 class XmlAttributes;
+
 }
 
 namespace HomeCompa::Flibrary::UserData

@@ -7,12 +7,15 @@
 
 namespace HomeCompa::DB
 {
+
 class IQuery;
 class IDatabase;
+
 }
 
 namespace HomeCompa::Flibrary
 {
+
 class IFilterProvider;
 struct Collection;
 

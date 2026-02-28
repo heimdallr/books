@@ -11,6 +11,7 @@ using namespace HomeCompa::Flibrary;
 
 namespace
 {
+
 constexpr auto ON_BOOK_LINK_KEY      = "Preferences/Interaction/Book/OnLink";
 constexpr auto ON_BOOK_DBL_CLICK_KEY = "Preferences/Interaction/Book/OnDoubleClick";
 
@@ -45,19 +46,22 @@ struct BookInteractor::Impl final : IBookInteractorImpl
 	std::shared_ptr<const ISettings>         settings;
 	std::shared_ptr<const IBookExtractor>    bookExtractor;
 	std::shared_ptr<const IReaderController> readerController;
+	std::shared_ptr<const IDatabaseUser>     databaseUser;
 
 	Impl(
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const IUiFactory>           uiFactory,
 		std::shared_ptr<const ISettings>            settings,
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
-		std::shared_ptr<const IReaderController>    readerController
+		std::shared_ptr<const IReaderController>    readerController,
+		std::shared_ptr<const IDatabaseUser>        databaseUser
 	)
 		: logicFactory { logicFactory }
 		, uiFactory { std::move(uiFactory) }
 		, settings { std::move(settings) }
 		, bookExtractor { std::move(bookExtractor) }
 		, readerController { std::move(readerController) }
+		, databaseUser { std::move(databaseUser) }
 	{
 	}
 
@@ -86,14 +90,19 @@ private: // IBookInteractorImpl
 private:
 	void ExtractImpl(const BooksExtractor::Extract invoker, const long long bookId) const
 	{
-		auto       outputFileNameTemplate = settings->Get(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
-		const bool dstFolderRequired      = IScriptController::HasMacro(outputFileNameTemplate, IScriptController::Macro::UserDestinationFolder);
-		auto       folder                 = dstFolderRequired ? uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, Loc::SELECT_SEND_TO_FOLDER) : QString {};
-		auto       book                   = bookExtractor->GetExtractedBook(QString::number(bookId));
+		auto book        = bookExtractor->GetExtractedBook(QString::number(bookId));
+		book.dstFileName = settings->Get(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
+
+		const bool dstFolderRequired = IScriptController::HasMacro(book.dstFileName, IScriptController::Macro::UserDestinationFolder);
+		auto       folder            = dstFolderRequired ? uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, Loc::SELECT_SEND_TO_FOLDER) : QString {};
+
+		const auto fillTemplateConverter = ILogicFactory::Lock(logicFactory)->CreateFillTemplateConverter();
+		const auto db                    = databaseUser->Database();
+		fillTemplateConverter->Fill(*db, book.dstFileName, book, folder);
 
 		auto  extractor    = ILogicFactory::Lock(logicFactory)->CreateBooksExtractor();
 		auto& extractorRef = *extractor;
-		(extractorRef.*invoker)(std::move(folder), {}, { std::move(book) }, std::move(outputFileNameTemplate), [extractor = std::move(extractor)](bool) mutable {
+		(extractorRef.*invoker)(folder, {}, { std::move(book) }, [extractor = std::move(extractor)](bool) mutable {
 			extractor.reset();
 		});
 	}
@@ -104,9 +113,10 @@ BookInteractor::BookInteractor(
 	std::shared_ptr<const IUiFactory>           uiFactory,
 	std::shared_ptr<const ISettings>            settings,
 	std::shared_ptr<const IBookExtractor>       bookExtractor,
-	std::shared_ptr<const IReaderController>    readerController
+	std::shared_ptr<const IReaderController>    readerController,
+	std::shared_ptr<const IDatabaseUser>        databaseUser
 )
-	: m_impl { logicFactory, std::move(uiFactory), std::move(settings), std::move(bookExtractor), std::move(readerController) }
+	: m_impl { logicFactory, std::move(uiFactory), std::move(settings), std::move(bookExtractor), std::move(readerController), std::move(databaseUser) }
 {
 }
 

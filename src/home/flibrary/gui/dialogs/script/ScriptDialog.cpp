@@ -12,7 +12,7 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IScriptController.h"
 
-#include "gutil/GeometryRestorable.h"
+#include "util/GeometryRestorable.h"
 #include "util/files.h"
 
 #include "log.h"

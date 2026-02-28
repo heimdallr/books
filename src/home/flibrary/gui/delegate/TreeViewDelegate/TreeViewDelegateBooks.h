@@ -7,7 +7,9 @@
 
 namespace HomeCompa
 {
+
 class ISettings;
+
 }
 
 class QAbstractScrollArea;
@@ -25,12 +27,12 @@ public:
 	using TextDelegate = QString (*)(const QVariant& value);
 
 public:
-	TreeViewDelegateBooks(const std::shared_ptr<const class IUiFactory>& uiFactory, const std::shared_ptr<const ISettings>& settings);
+	TreeViewDelegateBooks(const std::shared_ptr<const class IUiFactory>& uiFactory, std::shared_ptr<const ISettings> settings);
 	~TreeViewDelegateBooks() override;
 
 private: // QStyledItemDelegate
 	QAbstractItemDelegate* GetDelegate() noexcept override;
-	void                   OnModelChanged() override;
+	void                   OnModelChanged(const QAbstractItemModel& model) override;
 	void                   SetEnabled(bool enabled) noexcept override;
 
 	void RegisterObserver(IObserver* observer) override;

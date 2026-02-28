@@ -27,6 +27,7 @@
 #include "util/xml/Initializer.h"
 #include "version/AppVersion.h"
 
+#include "Constant.h"
 #include "di_app.h"
 #include "log.h"
 
@@ -38,10 +39,12 @@ using namespace HomeCompa;
 
 namespace
 {
+
 constexpr auto CONTEXT = "Main";
 constexpr auto WRONG_DB_VERSION =
 	QT_TRANSLATE_NOOP("Main", "It looks like you're trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?");
 TR_DEF
+
 }
 
 int main(int argc, char* argv[])
@@ -133,7 +136,7 @@ int main(int argc, char* argv[])
 
 			mainWindow->Show();
 
-			if (const auto code = QApplication::exec(); code != Constant::RESTART_APP)
+			if (const auto code = QApplication::exec(); code != Global::RESTART_APP)
 			{
 				PLOGI << "App finished with " << code;
 				return code;

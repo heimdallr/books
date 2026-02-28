@@ -65,8 +65,10 @@ private:
 
 namespace HomeCompa::Flibrary::UserData
 {
+
 std::unique_ptr<IRestorer> CreateFilterRestorer8()
 {
 	return std::make_unique<FilterRestorer>();
 }
+
 }

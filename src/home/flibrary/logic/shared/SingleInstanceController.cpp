@@ -42,6 +42,7 @@ constexpr std::pair<const char*, Mode> MODES[] {
 };
 
 TR_DEF
+
 } // namespace
 
 struct SingleInstanceController::Impl final : Observable<IObserver>

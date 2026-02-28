@@ -9,6 +9,7 @@
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IComboBoxTextDialog.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
+#include "interface/ui/dialogs/ISettingsDialog.h"
 
 #include "Hypodermic/Hypodermic.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
@@ -32,6 +33,7 @@ using namespace Flibrary;
 
 namespace
 {
+
 constexpr auto        CONTEXT           = "Dialog";
 constexpr auto        ABOUT_TITLE       = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
 constexpr auto        ABOUT_DESCRIPTION = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger");
@@ -146,6 +148,11 @@ std::shared_ptr<IScriptDialog> UiFactory::CreateScriptDialog() const
 	return m_impl->container.resolve<IScriptDialog>();
 }
 
+std::shared_ptr<ISettingsDialog> UiFactory::CreateSettingsDialog() const
+{
+	return m_impl->container.resolve<ISettingsDialog>();
+}
+
 std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateBooks(QTreeView& parent) const
 {
 	m_impl->treeView = &parent;
@@ -221,10 +228,11 @@ QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
 	const QString&                                                  title,
 	const QString&                                                  text,
 	const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
-	const QMessageBox::ButtonRole                                   defaultButton
+	const QMessageBox::ButtonRole                                   defaultButton,
+	const QString&                                                  detailedText
 ) const
 {
-	return m_impl->container.resolve<Util::IUiFactory>()->ShowCustomDialog(icon, title, text, buttons, defaultButton);
+	return m_impl->container.resolve<Util::IUiFactory>()->ShowCustomDialog(icon, title, text, buttons, defaultButton, detailedText);
 }
 
 QMessageBox::StandardButton UiFactory::ShowQuestion(const QString& text, const QMessageBox::StandardButtons& buttons, const QMessageBox::StandardButton defaultButton) const

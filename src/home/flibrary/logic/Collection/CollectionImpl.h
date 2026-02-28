@@ -8,7 +8,9 @@
 
 namespace HomeCompa
 {
+
 class ISettings;
+
 }
 
 namespace HomeCompa::Flibrary

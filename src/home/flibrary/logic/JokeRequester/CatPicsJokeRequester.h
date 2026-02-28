@@ -4,6 +4,7 @@
 
 namespace HomeCompa::Flibrary
 {
+
 class IJokeRequesterFactory;
 
 class CatPicsJokeRequester final : public SimplePicsJokeRequester

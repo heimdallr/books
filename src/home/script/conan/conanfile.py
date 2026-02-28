@@ -29,6 +29,7 @@ class FLibrary(ConanFile):
         self.requires("icu/77.1")
         self.requires("7zip/25.00")
         self.requires("libjxl/0.11.1")
+        self.requires("cimg/3.3.2")
 
     def configure(self):
         configure_boost(self)

@@ -17,7 +17,9 @@
 
 namespace Ui
 {
+
 class CollectionCleaner;
+
 };
 
 namespace HomeCompa::Flibrary

@@ -12,8 +12,8 @@
 #include "interface/localization.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
+#include "util/GeometryRestorable.h"
 #include "util/ISettingsObserver.h"
 
 using namespace HomeCompa;
@@ -21,6 +21,7 @@ using namespace Flibrary;
 
 namespace
 {
+
 using Role = IModel::Role;
 
 constexpr auto CONTEXT                 = ICollectionCleaner::CONTEXT;

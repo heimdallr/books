@@ -6,8 +6,10 @@
 
 namespace Hypodermic
 {
+
 class Container;
 class ContainerBuilder;
+
 }
 
 namespace HomeCompa::Util

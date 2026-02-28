@@ -293,6 +293,10 @@
         <source>Updates:</source>
         <translation>Обновлено:</translation>
     </message>
+    <message>
+        <source>cover</source>
+        <translation>Обложка</translation>
+    </message>
 </context>
 <context>
     <name>AnnotationWidget</name>
@@ -406,6 +410,10 @@
         <translation>&amp;Группы</translation>
     </message>
     <message>
+        <source>&amp;Mark as read</source>
+        <translation>&amp;Прочитано</translation>
+    </message>
+    <message>
         <source>&amp;My rate</source>
         <translation>&amp;Мой рейтинг</translation>
     </message>
@@ -422,8 +430,8 @@
         <translation>&amp;Удалить из</translation>
     </message>
     <message>
-        <source>&amp;Remove my rate</source>
-        <translation>&amp;Удалить мою оценку</translation>
+        <source>&amp;Remove read mark</source>
+        <translation>&amp;Снять пометку о прочтении</translation>
     </message>
     <message>
         <source>&amp;Tree</source>
@@ -462,6 +470,14 @@
         <translation>С&amp;вернуть</translation>
     </message>
     <message>
+        <source>Calculate</source>
+        <translation>Вычислить</translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation>Отмена</translation>
+    </message>
+    <message>
         <source>Cannot set language of books</source>
         <translation>Не удалось изменить язык книг</translation>
     </message>
@@ -472,6 +488,10 @@
     <message>
         <source>Change language</source>
         <translation>Изменить язык</translation>
+    </message>
+    <message>
+        <source>Compare</source>
+        <translation>Сравнить</translation>
     </message>
     <message>
         <source>E&amp;xpand</source>
@@ -486,20 +506,40 @@
         <translation>Создать инде&amp;кс (*.inpx)</translation>
     </message>
     <message>
+        <source>Hash</source>
+        <translation>Хэш</translation>
+    </message>
+    <message>
         <source>No rating</source>
         <translation>Без оценки</translation>
+    </message>
+    <message>
+        <source>Overwrite</source>
+        <translation>Перезаписать</translation>
     </message>
     <message>
         <source>R&amp;emove</source>
         <translation>&amp;Удалить</translation>
     </message>
     <message>
+        <source>Rename</source>
+        <translation>Переименовать</translation>
+    </message>
+    <message>
         <source>Select destination folder</source>
         <translation>Укажите папку</translation>
     </message>
     <message>
+        <source>Skip</source>
+        <translation>Пропустить</translation>
+    </message>
+    <message>
         <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
         <translation>Результат этой операции нельзя отменить. Уверены, что хотите навсегда удалить эти книги?</translation>
+    </message>
+    <message>
+        <source>What to do with the same named files?</source>
+        <translation>Что делать с одноимёнными файлами?</translation>
     </message>
     <message>
         <source>removing</source>
@@ -727,12 +767,28 @@
         <translation>Книги:</translation>
     </message>
     <message>
+        <source>Collection statistics:</source>
+        <translation>Статистика коллекции:</translation>
+    </message>
+    <message>
+        <source>Database: %1</source>
+        <translation>База данных: %1</translation>
+    </message>
+    <message>
         <source>Deleted books:</source>
         <translation>Удалено книг:</translation>
     </message>
     <message>
+        <source>Folder: %1</source>
+        <translation>Папка: %1</translation>
+    </message>
+    <message>
         <source>Keywords:</source>
         <translation>Ключевые слова:</translation>
+    </message>
+    <message>
+        <source>Name: %1</source>
+        <translation>Имя: %1</translation>
     </message>
     <message>
         <source>Series:</source>
@@ -2527,13 +2583,6 @@ Try again?</source>
     <message>
         <source>Affected rows: %1</source>
         <translation>Затронуто строк: %1</translation>
-    </message>
-</context>
-<context>
-    <name>HomeCompa::Flibrary::TreeView</name>
-    <message>
-        <source>Push me</source>
-        <translation>Нажми меня</translation>
     </message>
 </context>
 <context>
@@ -4405,6 +4454,10 @@ Try again?</source>
         <translation>Добавить новый &amp;алфавит...</translation>
     </message>
     <message>
+        <source>&amp;All settings...</source>
+        <translation>&amp;Все настройки...</translation>
+    </message>
+    <message>
         <source>&amp;Annotation</source>
         <translation>&amp;Аннотация</translation>
     </message>
@@ -5399,6 +5452,25 @@ Try again?</source>
 Try again?</source>
         <translation>Поисковый запрос слишком длинный.
 Попробуете ещё раз?</translation>
+    </message>
+</context>
+<context>
+    <name>SettingsDialog</name>
+    <message>
+        <source>All settings</source>
+        <translation>Все настройки</translation>
+    </message>
+    <message>
+        <source>Key</source>
+        <translation>Ключ</translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation>Удалить</translation>
+    </message>
+    <message>
+        <source>Value</source>
+        <translation>Значение</translation>
     </message>
 </context>
 <context>

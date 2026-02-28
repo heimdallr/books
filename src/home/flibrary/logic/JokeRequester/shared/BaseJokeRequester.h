@@ -11,7 +11,9 @@
 
 namespace HomeCompa::Network
 {
+
 class Downloader;
+
 }
 
 class QHttpHeaders;

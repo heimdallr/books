@@ -7,7 +7,9 @@
 
 namespace Hypodermic
 {
+
 class Container;
+
 }
 
 namespace HomeCompa::Flibrary
@@ -30,6 +32,7 @@ private: // IUiFactory
 	std::shared_ptr<TreeView>             CreateTreeViewWidget(ItemType type) const override;
 	std::shared_ptr<IAddCollectionDialog> CreateAddCollectionDialog(std::filesystem::path inpxFolder) const override;
 	std::shared_ptr<IScriptDialog>        CreateScriptDialog() const override;
+	std::shared_ptr<ISettingsDialog>      CreateSettingsDialog() const override;
 	std::shared_ptr<ITreeViewDelegate>    CreateTreeViewDelegateBooks(QTreeView& parent) const override;
 	std::shared_ptr<ITreeViewDelegate>    CreateTreeViewDelegateNavigation(QAbstractItemView& parent) const override;
 	std::shared_ptr<QDialog>              CreateOpdsDialog() const override;
@@ -39,10 +42,15 @@ private: // IUiFactory
 	void                                  CreateCollectionCleaner() const override;
 	void                                  CreateAuthorReview(long long id) const override;
 
-	void ShowAbout() const override;
-	QMessageBox::ButtonRole
-	ShowCustomDialog(QMessageBox::Icon icon, const QString& title, const QString& text, const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons, QMessageBox::ButtonRole defaultButton)
-		const override;
+	void                    ShowAbout() const override;
+	QMessageBox::ButtonRole ShowCustomDialog(
+		QMessageBox::Icon                                               icon,
+		const QString&                                                  title,
+		const QString&                                                  text,
+		const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
+		QMessageBox::ButtonRole                                         defaultButton,
+		const QString&                                                  detailedText
+	) const override;
 	QMessageBox::StandardButton ShowQuestion(const QString& text, const QMessageBox::StandardButtons& buttons, QMessageBox::StandardButton defaultButton) const override;
 	QMessageBox::StandardButton ShowWarning(const QString& text, const QMessageBox::StandardButtons& buttons, QMessageBox::StandardButton defaultButton) const override;
 	void                        ShowInfo(const QString& text) const override;

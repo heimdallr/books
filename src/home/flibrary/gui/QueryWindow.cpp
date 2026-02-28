@@ -7,7 +7,7 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
-#include "gutil/GeometryRestorable.h"
+#include "util/GeometryRestorable.h"
 
 #include "log.h"
 
@@ -15,7 +15,9 @@ using namespace HomeCompa::Flibrary;
 
 namespace
 {
+
 constexpr auto EXPLAIN_QUERY_PLAN = "ui/View/ExplainQueryPlan";
+
 }
 
 class QueryWindow::Impl final

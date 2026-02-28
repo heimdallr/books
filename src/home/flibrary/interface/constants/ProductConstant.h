@@ -19,8 +19,6 @@ constexpr auto FlibraryUserData            = "FlibraryUserData";
 
 constexpr auto FlibraryDatabaseVersionNumber = 9;
 
-constexpr int    APP_FAILED   = 1;
-constexpr int    RESTART_APP  = 1234;
 constexpr size_t MAX_LOG_SIZE = 10000;
 
 constexpr auto OPDS_SERVER_NAME            = "02bb69b1-003a-4892-85c7-7bcef3938565";
@@ -28,6 +26,8 @@ constexpr auto OPDS_SERVER_COMMAND_RESTART = "restart";
 constexpr auto OPDS_SERVER_COMMAND_STOP    = "stop";
 
 constexpr auto BOOK = "Book:";
+
+constexpr auto BOOK_HASH_MIME_DATA_TYPE = "FLIBRARY_BOOK_HASH_MIME_DATA_TYPE";
 
 const auto INFO = [] {
 	static constexpr char32_t info = 0x0001F6C8;

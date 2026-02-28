@@ -6,7 +6,9 @@
 #include <stack>
 
 #include <QActionGroup>
+#include <QClipboard>
 #include <QMenu>
+#include <QMimeData>
 #include <QPainter>
 #include <QResizeEvent>
 #include <QTimer>
@@ -21,6 +23,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
+#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IFilterProvider.h"
 #include "interface/logic/IModelSorter.h"
@@ -54,6 +57,7 @@ constexpr auto SORT_INDEX_KEY                     = "Index";
 constexpr auto SORT_ORDER_KEY                     = "Order";
 constexpr auto RECENT_LANG_FILTER_KEY             = "ui/language";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTableColumnSettings";
+constexpr auto HASH_CONTEXT_MENU_ENABLED          = "Preferences/Books/ContextMenu/HashEnabled";
 constexpr auto LAST                               = "Last";
 
 class HeaderView final : public QHeaderView
@@ -190,12 +194,14 @@ private: // QHeaderView
 
 		const auto size     = rect.height() / 4.0;
 		const auto height   = std::sqrt(2.0) * size / 2;
-		auto       triangle = QPolygonF({
-            QPointF {      0.0, height },
-            QPointF {     size, height },
-            QPointF { size / 2,      0 },
-            QPointF {      0.0, height }
-        });
+		auto       triangle = QPolygonF(
+            {
+                QPointF {      0.0, height },
+                QPointF {     size, height },
+                QPointF { size / 2,      0 },
+                QPointF {      0.0, height }
+        }
+        );
 
 		assert(it->second < m_sort.size());
 		if (m_sort[it->second].second == Qt::DescendingOrder)
@@ -667,7 +673,7 @@ private:
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 
-		m_delegate->OnModelChanged();
+		m_delegate->OnModelChanged(*model);
 
 		const auto modelEmpty = model->rowCount() == 0;
 
@@ -680,39 +686,11 @@ private:
 			m_ui.btnNew->setVisible(true);
 			m_ui.btnNew->disconnect(SIGNAL(clicked()));
 			connect(m_ui.btnNew, &QAbstractButton::clicked, &m_self, std::move(newItemCreator));
-
-			if (modelEmpty)
-				QTimer::singleShot(1000, [this] {
-					ShowPushMe();
-				});
 		}
 
 		m_ui.value->setEnabled(!modelEmpty);
 		if (modelEmpty)
 			m_controller->SetCurrentId(ItemType::Unknown, {});
-	}
-
-	void ShowPushMe()
-	{
-		if (!m_ui.btnNew->isVisible())
-			return;
-
-		auto* timer = new QTimer(&m_self);
-		timer->setSingleShot(false);
-		timer->setInterval(std::chrono::milliseconds(200));
-		connect(timer, &QObject::destroyed, m_ui.btnNew, [this] {
-			m_ui.btnNew->setAutoRaise(true);
-			m_ui.value->setText({});
-		});
-		connect(timer, &QTimer::timeout, m_ui.btnNew, [this, timer, n = 0]() mutable {
-			m_ui.value->setText(n % 2 ? QString() : QString("%1 %2").arg(QChar(0x2B60)).arg(tr("Push me")));
-			m_ui.value->setCursorPosition(0);
-
-			m_ui.btnNew->setAutoRaise(n % 2);
-			if (++n == 15)
-				timer->deleteLater();
-		});
-		timer->start();
 	}
 
 	ITreeViewController::RequestContextMenuOptions GetContextMenuOptions() const
@@ -725,6 +703,20 @@ private:
 			return condition ? option : ITreeViewController::RequestContextMenuOptions::None;
 		};
 
+		const auto hashCompareEnabled = [this] {
+			const auto selected = m_ui.treeView->selectionModel()->selectedIndexes() | std::views::filter([](const auto& item) {
+									  return item.column() == 0;
+								  })
+			                    | std::ranges::to<QModelIndexList>();
+			if (selected.isEmpty() || selected.front().data(Role::Type).value<ItemType>() != ItemType::Books)
+				return false;
+
+			if (const auto* mimeData = QGuiApplication::clipboard()->mimeData(); mimeData && mimeData->hasFormat(Constant::BOOK_HASH_MIME_DATA_TYPE) && selected.size() == 1)
+				return true;
+
+			return selected.size() == 2 && selected.back().data(Role::Type).value<ItemType>() == ItemType::Books;
+		};
+
 		const auto currentIndex = m_ui.treeView->currentIndex();
 
 		ITreeViewController::RequestContextMenuOptions options =
@@ -733,6 +725,8 @@ private:
 			| addOption(m_showRemoved, ITreeViewController::RequestContextMenuOptions::ShowRemoved)
 			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
 			| addOption(m_filterProvider->IsFilterEnabled(), ITreeViewController::RequestContextMenuOptions::UniFilterEnabled)
+			| addOption(m_settings->Get(HASH_CONTEXT_MENU_ENABLED, false), ITreeViewController::RequestContextMenuOptions::HashEnabled)
+			| addOption(hashCompareEnabled(), ITreeViewController::RequestContextMenuOptions::HashCompareEnabled)
 			| addOption(
 				currentIndex.isValid() && currentIndex.data(Role::Type).value<ItemType>() == ItemType::Books && Zip::IsArchive(Util::RemoveIllegalPathCharacters(currentIndex.data(Role::FileName).toString())),
 				ITreeViewController::RequestContextMenuOptions::IsArchive
@@ -1044,27 +1038,39 @@ private:
 
 		const auto nameToIndex = m_booksHeaderView->GetNameToIndexMapping();
 
-		std::map<int, int>          widths;
-		std::multimap<int, QString> indices;
+		struct ColumnInfo
+		{
+			int  index;
+			int  width;
+			bool hidden;
+		};
 
-		QSignalBlocker resizeGuard(header);
+		std::vector<ColumnInfo> columnInfoList;
+		columnInfoList.reserve(nameToIndex.size());
+		std::ranges::transform(std::views::iota(0, static_cast<int>(nameToIndex.size())), std::back_inserter(columnInfoList), [&](const int n) {
+			return ColumnInfo { n, header->minimumSectionSize(), false };
+		});
 
-		const auto collectData = [&] {
-			const auto columns = m_settings->GetGroups();
-			for (const auto& columnName : columns)
-			{
-				const auto it = nameToIndex.find(columnName);
-				if (it == nameToIndex.end())
-					continue;
+		bool       needDataCollect = true;
+		const auto collectData     = [&] {
+            const auto columns = m_settings->GetGroups();
+            needDataCollect    = columns.isEmpty();
+            for (const auto& columnName : columns)
+            {
+                const auto it = nameToIndex.find(columnName);
+                if (it == nameToIndex.end())
+                    continue;
 
-				const auto logicalIndex = it->second;
-				widths.try_emplace(logicalIndex, m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(columnName), -1));
-				indices.emplace(m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(columnName), std::numeric_limits<int>::max()), columnName);
-				m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), false) ? header->hideSection(logicalIndex)
-																																					  : header->showSection(logicalIndex);
-			}
+                const auto logicalIndex = it->second;
+                assert(logicalIndex < static_cast<int>(columnInfoList.size()));
 
-			m_booksHeaderView->Load(*m_settings);
+                auto& columnInfo  = columnInfoList[logicalIndex];
+                columnInfo.index  = m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(columnName), std::numeric_limits<int>::max());
+                columnInfo.width  = m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(columnName), header->minimumSectionSize());
+                columnInfo.hidden = m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), true);
+            }
+
+            m_booksHeaderView->Load(*m_settings);
 		};
 
 		if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
@@ -1072,31 +1078,42 @@ private:
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
 			collectData();
 		}
-		if (widths.empty())
+		if (needDataCollect)
 		{
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
 			collectData();
 		}
 
-		if (widths.empty())
+		const QSignalBlocker resizeGuard(header);
+
+		if (needDataCollect)
+		{
 			for (auto i = 0, sz = header->count(); i < sz; ++i)
+			{
 				header->showSection(i);
+				header->resizeSection(i, header->minimumSectionSize());
+			}
+			return;
+		}
 
-		for (int i = 0, sz = header->count(); i < sz; ++i)
-			if (const auto it = widths.find(i); it != widths.end())
-				header->resizeSection(i, std::max(it->second, header->minimumSectionSize()));
+		for (const auto [columnInfo, logicalIndex] : std::views::zip(columnInfoList, std::views::iota(0)))
+		{
+			header->resizeSection(logicalIndex, std::max(columnInfo.width, header->minimumSectionSize()));
+			columnInfo.hidden ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
+		}
 
-		auto absent = nameToIndex;
-		for (const auto& columnName : indices | std::views::values)
-			absent.erase(columnName);
-		for (const auto& [name, index] : absent)
-			if (index > 0 && index < std::ssize(indices))
-				indices.emplace_hint(indices.begin(), std::next(indices.begin(), index - 1)->first, name);
-
-		for (int n = 0; const auto& columnName : indices | std::views::values)
-			if (const auto it = nameToIndex.find(columnName); it != nameToIndex.end())
-				header->moveSection(header->visualIndex(it->second), ++n);
-		header->moveSection(header->visualIndex(0), 0);
+		if (!columnInfoList.empty())
+			columnInfoList.front().index = -1;
+		for (const auto [logicalIndex, visualIndex] : std::views::zip(
+				 std::views::zip(columnInfoList, std::views::iota(0)) | std::views::filter([](const auto& item) {
+					 return !get<0>(item).hidden;
+				 }) | std::views::transform([](const auto& item) {
+					 return std::make_pair(std::get<0>(item).index, std::get<1>(item));
+				 }) | std::ranges::to<std::map<int, int>>()
+					 | std::views::values,
+				 std::views::iota(0)
+			 ))
+			header->moveSection(header->visualIndex(logicalIndex), visualIndex);
 
 		CheckHeaderViewWidth(QResizeEvent(m_self.size(), m_self.size()));
 	}

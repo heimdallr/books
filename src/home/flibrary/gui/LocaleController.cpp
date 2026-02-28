@@ -14,6 +14,7 @@ namespace HomeCompa::Flibrary
 
 namespace
 {
+
 constexpr auto LOCALE = "ui/locale";
 constexpr auto NAME   = "name";
 

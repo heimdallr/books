@@ -20,7 +20,6 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
-#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/IInpxGenerator.h"
@@ -30,12 +29,13 @@
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/IAlphabetPanel.h"
 #include "interface/ui/dialogs/IScriptDialog.h"
+#include "interface/ui/dialogs/ISettingsDialog.h"
 
-#include "gutil/GeometryRestorable.h"
 #include "gutil/util.h"
 #include "logging/LogAppender.h"
 #include "util/DyLib.h"
 #include "util/FunctorExecutionForwarder.h"
+#include "util/GeometryRestorable.h"
 #include "util/ObjectsConnector.h"
 #include "util/serializer/Font.h"
 
@@ -216,7 +216,7 @@ public:
 			if (!databaseChecker->IsDatabaseValid())
 			{
 				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection().GetDatabase()));
-				return QCoreApplication::exit(Constant::APP_FAILED);
+				return QCoreApplication::exit(Global::APP_FAILED);
 			}
 
 			auto& collectionUpdateCheckerRef = *collectionUpdateChecker;
@@ -357,7 +357,7 @@ private: // ICollectionsObserver
 private: // plog::IAppender
 	void write(const plog::Record& record) override
 	{
-		if (m_ui.statusBar && m_ui.statusBar->isVisible())
+		if (record.getSeverity() < plog::Severity::verbose && m_ui.statusBar && m_ui.statusBar->isVisible())
 			m_forwarder.Forward([&, message = QString(record.getMessage())] {
 				m_ui.statusBar->showMessage(message, 2000);
 			});
@@ -806,10 +806,10 @@ private:
 		);
 
 		ConnectSettings(m_ui.actionExportRewriteMetadata, Constant::Settings::EXPORT_REPLACE_METADATA_KEY);
-		ConnectSettings(m_ui.actionExportConvertCoverToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_COVER_KEY);
-		ConnectSettings(m_ui.actionExportConvertImagesToGrayscale, Constant::Settings::EXPORT_GRAYSCALE_IMAGES_KEY);
-		ConnectSettings(m_ui.actionExportRemoveCover, Constant::Settings::EXPORT_REMOVE_COVER_KEY);
-		ConnectSettings(m_ui.actionExportRemoveImages, Constant::Settings::EXPORT_REMOVE_IMAGES_KEY);
+		ConnectSettings(m_ui.actionExportConvertCoverToGrayscale, Export::GRAYSCALE_COVER_KEY);
+		ConnectSettings(m_ui.actionExportConvertImagesToGrayscale, Export::GRAYSCALE_IMAGES_KEY);
+		ConnectSettings(m_ui.actionExportRemoveCover, Export::REMOVE_COVER_KEY);
+		ConnectSettings(m_ui.actionExportRemoveImages, Export::REMOVE_IMAGES_KEY);
 	}
 
 	void ConnectActionsSettingsView()
@@ -893,6 +893,9 @@ private:
 		});
 		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] {
 			m_uiFactory->CreateScriptDialog()->Exec();
+		});
+		connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
+			m_uiFactory->CreateSettingsDialog()->Exec();
 		});
 	}
 
@@ -1367,7 +1370,7 @@ private:
 	static void Reboot()
 	{
 		QTimer::singleShot(0, [] {
-			QCoreApplication::exit(Constant::RESTART_APP);
+			QCoreApplication::exit(Global::RESTART_APP);
 		});
 	}
 

@@ -13,11 +13,14 @@
 
 namespace HomeCompa::Flibrary::ExportStat
 {
+
 enum class Type;
+
 }
 
 namespace HomeCompa::Flibrary
 {
+
 enum class NavigationMode;
 
 class IAnnotationController // NOLINT(cppcoreguidelines-special-member-functions)

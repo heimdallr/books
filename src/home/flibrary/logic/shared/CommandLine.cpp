@@ -13,10 +13,12 @@ using namespace Flibrary;
 
 namespace
 {
+
 constexpr auto CONTEXT                         = "CommandLine";
 constexpr auto POSITIONAL_ARGUMENT_DESCRIPTION = QT_TRANSLATE_NOOP("CommandLine", "Input file");
 constexpr auto APPLICATION_DESCRIPTION         = QT_TRANSLATE_NOOP("CommandLine", "%1: e-book cataloger");
 TR_DEF
+
 }
 
 struct CommandLine::Impl

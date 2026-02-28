@@ -293,6 +293,10 @@
         <source>Updates:</source>
         <translation>Updated:</translation>
     </message>
+    <message>
+        <source>cover</source>
+        <translation>Cover</translation>
+    </message>
 </context>
 <context>
     <name>AnnotationWidget</name>
@@ -406,6 +410,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Mark as read</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;My rate</source>
         <translation></translation>
     </message>
@@ -422,7 +430,7 @@
         <translation></translation>
     </message>
     <message>
-        <source>&amp;Remove my rate</source>
+        <source>&amp;Remove read mark</source>
         <translation></translation>
     </message>
     <message>
@@ -462,6 +470,14 @@
         <translation></translation>
     </message>
     <message>
+        <source>Calculate</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cancel</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Cannot set language of books</source>
         <translation></translation>
     </message>
@@ -471,6 +487,10 @@
     </message>
     <message>
         <source>Change language</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Compare</source>
         <translation></translation>
     </message>
     <message>
@@ -486,7 +506,15 @@
         <translation></translation>
     </message>
     <message>
+        <source>Hash</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>No rating</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Overwrite</source>
         <translation></translation>
     </message>
     <message>
@@ -494,11 +522,23 @@
         <translation></translation>
     </message>
     <message>
+        <source>Rename</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Select destination folder</source>
         <translation></translation>
     </message>
     <message>
+        <source>Skip</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>The result of this operation cannot be undone. Are you sure you want to delete the books permanently?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>What to do with the same named files?</source>
         <translation></translation>
     </message>
     <message>
@@ -718,11 +758,27 @@
         <translation></translation>
     </message>
     <message>
+        <source>Collection statistics:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Database: %1</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Deleted books:</source>
         <translation></translation>
     </message>
     <message>
+        <source>Folder: %1</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Keywords:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Name: %1</source>
         <translation></translation>
     </message>
     <message>
@@ -2514,13 +2570,6 @@ Try again?</source>
     <name>HomeCompa::Flibrary::QueryWindow</name>
     <message>
         <source>Affected rows: %1</source>
-        <translation></translation>
-    </message>
-</context>
-<context>
-    <name>HomeCompa::Flibrary::TreeView</name>
-    <message>
-        <source>Push me</source>
         <translation></translation>
     </message>
 </context>
@@ -4393,6 +4442,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;All settings...</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Annotation</source>
         <translation></translation>
     </message>
@@ -5383,6 +5436,25 @@ Try again?</source>
     <message>
         <source>Search query too long.
 Try again?</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>SettingsDialog</name>
+    <message>
+        <source>All settings</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Key</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Remove</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Value</source>
         <translation></translation>
     </message>
 </context>

@@ -43,7 +43,7 @@ struct BookExtractor::Impl
 	{
 	}
 
-	ILogicFactory::ExtractedBook GetExtractedBook(const QString& bookId) const
+	Util::ExtractedBook GetExtractedBook(const QString& bookId) const
 	{
 		const auto db    = databaseUser->Database();
 		const auto query = db->CreateQuery(R"(
@@ -68,7 +68,7 @@ order by al.OrdNum limit 1
 		if (query->Eof())
 			return {};
 
-		auto result = ILogicFactory::ExtractedBook {
+		auto result = Util::ExtractedBook {
 			.id        = bookId.toLongLong(),
 			.folder    = query->Get<const char*>(0),
 			.file      = query->Get<const char*>(1),
@@ -86,7 +86,7 @@ order by al.OrdNum limit 1
 		return result;
 	}
 
-	ILogicFactory::ExtractedBook::Author GetExtractedBookAuthor(const QString& bookId) const
+	Util::ExtractedBook::Author GetExtractedBookAuthor(const QString& bookId) const
 	{
 		const auto db    = databaseUser->Database();
 		const auto query = db->CreateQuery(R"(
@@ -107,7 +107,7 @@ order by al.OrdNum limit 1
 		};
 	}
 
-	QString GetFileName(const ILogicFactory::ExtractedBook& book) const
+	QString GetFileName(const Util::ExtractedBook& book) const
 	{
 		auto outputFileName = m_outputFileNameTemplate;
 		auto db             = databaseUser->Database();
@@ -152,17 +152,17 @@ QString BookExtractor::GetFileName(const QString& bookId) const
 	return GetFileName(book);
 }
 
-QString BookExtractor::GetFileName(const ILogicFactory::ExtractedBook& book) const
+QString BookExtractor::GetFileName(const Util::ExtractedBook& book) const
 {
 	return m_impl->GetFileName(book);
 }
 
-ILogicFactory::ExtractedBook BookExtractor::GetExtractedBook(const QString& bookId) const
+Util::ExtractedBook BookExtractor::GetExtractedBook(const QString& bookId) const
 {
 	return m_impl->GetExtractedBook(bookId);
 }
 
-ILogicFactory::ExtractedBook::Author BookExtractor::GetExtractedBookAuthor(const QString& bookId) const
+Util::ExtractedBook::Author BookExtractor::GetExtractedBookAuthor(const QString& bookId) const
 {
 	return m_impl->GetExtractedBookAuthor(bookId);
 }

@@ -21,10 +21,10 @@ public:
 	~BookExtractor() override;
 
 private: // IBookExtractor
-	QString                              GetFileName(const QString& bookId) const override;
-	QString                              GetFileName(const ILogicFactory::ExtractedBook& book) const override;
-	ILogicFactory::ExtractedBook         GetExtractedBook(const QString& bookId) const override;
-	ILogicFactory::ExtractedBook::Author GetExtractedBookAuthor(const QString& bookId) const override;
+	QString                     GetFileName(const QString& bookId) const override;
+	QString                     GetFileName(const Util::ExtractedBook& book) const override;
+	Util::ExtractedBook         GetExtractedBook(const QString& bookId) const override;
+	Util::ExtractedBook::Author GetExtractedBookAuthor(const QString& bookId) const override;
 
 private:
 	struct Impl;

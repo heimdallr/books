@@ -12,12 +12,16 @@
 
 namespace HomeCompa
 {
+
 class ISettings;
+
 }
 
 namespace HomeCompa::DB
 {
+
 class IDatabase;
+
 }
 
 namespace HomeCompa::Flibrary

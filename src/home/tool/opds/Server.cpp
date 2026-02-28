@@ -20,6 +20,7 @@
 #include "util/ISettings.h"
 #include "util/hash.h"
 
+#include "Constant.h"
 #include "log.h"
 #include "root.h"
 #include "zip.h"
@@ -150,10 +151,9 @@ std::optional<QHttpServerResponse> FromFile(
 	const QString&                               fileName,
 	const QString&                               acceptEncoding,
 	const QString&                               contentType,
-	const std::function<QByteArray(QByteArray)>& dataUpdater =
-		[](QByteArray data) {
-			return data;
-		}
+	const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) {
+		return data;
+	}
 )
 {
 	QFile file(fileName);
@@ -172,10 +172,9 @@ std::optional<QHttpServerResponse> FromFile(
 std::optional<QHttpServerResponse> FromWebsite(
 	const QString&                               fileName,
 	const QString&                               acceptEncoding,
-	const std::function<QByteArray(QByteArray)>& dataUpdater =
-		[](QByteArray data) {
-			return data;
-		}
+	const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) {
+		return data;
+	}
 )
 {
 	static constexpr std::pair<const char*, const char*> types[] {
@@ -274,18 +273,18 @@ public:
 					return QCoreApplication::exit(0);
 
 				if (data.compare(Flibrary::Constant::OPDS_SERVER_COMMAND_RESTART) == 0)
-					return QCoreApplication::exit(Flibrary::Constant::RESTART_APP);
+					return QCoreApplication::exit(Global::RESTART_APP);
 			});
 		});
 	}
 
 private:
-	using BookGetter = std::pair<QString, QByteArray> (INoSqlRequester::*)(const QString& bookId, bool restoreImages) const;
+	using BookGetter = std::pair<QString, QByteArray> (INoSqlRequester::*)(const QString& bookId, bool restoreImages, const IRequester::Parameters& parameters) const;
 
-	auto GetBook(BookGetter getter, QString value, QString acceptEncoding, QString contentType, const bool restoreImages) const
+	auto GetBook(BookGetter getter, QString value, QString acceptEncoding, QString contentType, const bool restoreImages, IRequester::Parameters parameters) const
 	{
-		return QtConcurrent::run([this, getter, value = std::move(value), acceptEncoding = std::move(acceptEncoding), contentType = std::move(contentType), restoreImages] {
-			auto [fileName, body] = std::invoke(getter, *m_noSqlRequester, std::cref(value), restoreImages);
+		return QtConcurrent::run([this, getter, value = std::move(value), acceptEncoding = std::move(acceptEncoding), contentType = std::move(contentType), restoreImages, parameters = std::move(parameters)] {
+			auto [fileName, body] = std::invoke(getter, *m_noSqlRequester, std::cref(value), restoreImages, parameters);
 			auto response         = EncodeContent(std::move(body), acceptEncoding);
 			ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
 			ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(QUrl::toPercentEncoding(fileName)));
@@ -426,15 +425,15 @@ private:
 		});
 
 		m_server.route(QString(GET_BOOKS_API_BOOK_DATA_COMPACT).arg(ARG), [this](const QString& value, const QHttpServerRequest& request) {
-			return GetBook(&INoSqlRequester::GetBook, value, GetAcceptEncoding(request), "application/fb2", false);
+			return GetBook(&INoSqlRequester::GetBook, value, GetAcceptEncoding(request), "application/fb2", false, GetParameters<IRequester::Parameters>(request));
 		});
 
 		m_server.route(QString(GET_BOOKS_API_BOOK_DATA).arg(ARG), [this](const QString& value, const QHttpServerRequest& request) {
-			return GetBook(&INoSqlRequester::GetBook, value, GetAcceptEncoding(request), "application/fb2", true);
+			return GetBook(&INoSqlRequester::GetBook, value, GetAcceptEncoding(request), "application/fb2", true, GetParameters<IRequester::Parameters>(request));
 		});
 
-		m_server.route(QString(GET_BOOKS_API_BOOK_ZIP).arg(ARG), [this](const QString& value) {
-			return GetBook(&INoSqlRequester::GetBookZip, value, "", "application/zip", true);
+		m_server.route(QString(GET_BOOKS_API_BOOK_ZIP).arg(ARG), [this](const QString& value, const QHttpServerRequest& request) {
+			return GetBook(&INoSqlRequester::GetBookZip, value, "", "application/zip", true, GetParameters<IRequester::Parameters>(request));
 		});
 	}
 

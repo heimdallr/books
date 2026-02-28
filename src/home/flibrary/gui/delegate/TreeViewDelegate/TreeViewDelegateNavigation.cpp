@@ -123,7 +123,7 @@ QAbstractItemDelegate* TreeViewDelegateNavigation::GetDelegate() noexcept
 	return m_impl.get();
 }
 
-void TreeViewDelegateNavigation::OnModelChanged()
+void TreeViewDelegateNavigation::OnModelChanged(const QAbstractItemModel&)
 {
 	m_impl->OnModelChanged();
 }

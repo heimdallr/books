@@ -47,7 +47,8 @@
   BreakAfterJavaFieldAnnotations: true
   BreakBeforeBinaryOperators: NonAssignment
   BreakBeforeInheritanceComma: false
-  BreakBeforeTernaryOperators: true
+  BreakBeforeTemplateCloser: false
+  BreakBeforeTernaryOperators: true  
   BreakConstructorInitializers: BeforeComma
   BreakInheritanceList: BeforeComma
   BreakStringLiterals: true
@@ -65,6 +66,7 @@
     AfterExternBlock: true
     BeforeCatch: true
     BeforeElse: true
+    BeforeLambdaBody: false
     BeforeWhile: true
 
   CommentPragmas: '^ IWYU pragma:'
@@ -76,6 +78,7 @@
   DerivePointerAlignment: false
   EmptyLineAfterAccessModifier: Never
   EmptyLineBeforeAccessModifier: LogicalBlock
+  EnumTrailingComma: Leave
   ExperimentalAutoDetectBinPacking: false
   FixNamespaceComments: true
   ForEachMacros: [ foreach, Q_FOREACH, BOOST_FOREACH ]
@@ -88,6 +91,7 @@
 
   JavaScriptQuotes: Double
   KeepEmptyLinesAtTheStartOfBlocks: false
+  LambdaBodyIndentation: Signature
   MacroBlockBegin: ''
   MacroBlockEnd: ''
   MaxEmptyLinesToKeep: 1
@@ -105,9 +109,11 @@
 
   PointerAlignment: Left
   QualifierAlignment: Left
+  RemoveEmptyLinesInUnwrappedLines: true
   RemoveSemicolon: true
   SeparateDefinitionBlocks: Always
   ShortNamespaceLines: 16
+  SkipMacroDefinitionBody: true
   SortIncludes: CaseSensitive
   SortUsingDeclarations: true
 
@@ -130,6 +136,8 @@
 
   # Comments are for developers, they should arrange them
   ReflowComments: false
+
+  WrapNamespaceBodyWithEmptyLines: Always
 
   IncludeBlocks: Regroup
   IncludeCategories:

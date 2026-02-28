@@ -7,7 +7,9 @@
 
 namespace HomeCompa::Network
 {
+
 class Downloader;
+
 }
 
 namespace HomeCompa::Flibrary

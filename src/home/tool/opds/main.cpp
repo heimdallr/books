@@ -6,6 +6,8 @@
 #include <plog/Appenders/ConsoleAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
 
+#include "fnd/ScopedCall.h"
+
 #include "interface/IServer.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
@@ -16,9 +18,11 @@
 #include "logging/init.h"
 #include "logic/data/Genre.h"
 #include "util/ISettings.h"
+#include "util/NativeEventFilter.h"
 #include "util/SortString.h"
 #include "util/xml/Initializer.h"
 
+#include "Constant.h"
 #include "di_app.h"
 #include "log.h"
 
@@ -29,7 +33,17 @@ using namespace Opds;
 
 namespace
 {
+
 constexpr auto APP_ID = "opds";
+
+class NativeEventFilterObserver final : public Util::NativeEventFilter::IObserver
+{
+private: // NativeEventFilter::IObserver
+	void OnQueryEndSession(long long*) override
+	{
+		QCoreApplication::exit();
+	}
+};
 
 class CollectionAutoUpdaterObserver final : Flibrary::ICollectionAutoUpdater::IObserver
 {
@@ -51,7 +65,7 @@ private: // ICollectionAutoUpdater::IObserver
 	void OnCollectionUpdated() override
 	{
 		QTimer::singleShot(0, [] {
-			QCoreApplication::exit(Flibrary::Constant::RESTART_APP);
+			QCoreApplication::exit(Global::RESTART_APP);
 		});
 	}
 
@@ -61,10 +75,21 @@ private:
 
 int run(int argc, char* argv[])
 {
-	const QCoreApplication app(argc, argv);
+	QCoreApplication app(argc, argv);
 	QCoreApplication::setApplicationName(APP_ID);
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
 	Util::XMLPlatformInitializer xmlPlatformInitializer;
+
+	NativeEventFilterObserver nativeEventFilterObserver;
+	Util::NativeEventFilter   nativeEventFilter(app);
+	const ScopedCall          nativeEventFilterRegisterGuard(
+        [&] {
+            nativeEventFilter.Register(&nativeEventFilterObserver);
+        },
+        [&] {
+            nativeEventFilter.Unregister(&nativeEventFilterObserver);
+        }
+    );
 
 	while (true)
 	{
@@ -89,7 +114,7 @@ int run(int argc, char* argv[])
 		const auto translators = Loc::LoadLocales(*settings); //-V808
 		const auto server      = container->resolve<IServer>();
 
-		if (const auto code = QCoreApplication::exec(); code != Flibrary::Constant::RESTART_APP)
+		if (const auto code = QCoreApplication::exec(); code != Global::RESTART_APP)
 		{
 			PLOGI << "App finished with " << code;
 			return code;

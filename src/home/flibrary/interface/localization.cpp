@@ -17,7 +17,9 @@ namespace HomeCompa::Loc
 
 namespace
 {
+
 constexpr auto LOCALE = "ui/locale";
+
 }
 
 QString Tr(const char* context, const char* str)

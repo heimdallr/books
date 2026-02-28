@@ -15,7 +15,9 @@ using namespace Flibrary;
 
 namespace
 {
+
 using Role = IScriptController::RoleScript;
+
 }
 
 ScriptModel::ScriptModel(const std::shared_ptr<IScriptControllerProvider>& scriptControllerProvider, QObject* parent)
