@@ -31,6 +31,8 @@ namespace HomeCompa::Flibrary
 namespace
 {
 
+int SEQ_NUMBER_WIDTH = 1;
+
 void SetMacroImpl(QString& str, const IScriptController::Macro macro, const QString& value)
 {
 	const QString macroStr = IScriptController::GetMacro(macro);
@@ -140,7 +142,7 @@ QString ApplyMacroSeries(DB::IDatabase&, const Util::ExtractedBook& book, const 
 
 QString ApplyMacroSeqNumber(DB::IDatabase&, const Util::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
-	return book.seqNumber > 0 ? QString::number(book.seqNumber) : QString {};
+	return book.seqNumber > 0 ? QString("%1").arg(book.seqNumber, SEQ_NUMBER_WIDTH, 10, QChar { '0' }) : QString {};
 }
 
 QString ApplyMacroFileSize(DB::IDatabase&, const Util::ExtractedBook& book, const QFileInfo&, const QStringList&)
@@ -273,6 +275,11 @@ QString IScriptController::GetDefaultOutputFileNameTemplate()
 	    .arg(GetMacro(Macro::SeqNumber))
 	    .arg(GetMacro(Macro::Title))
 	    .arg(GetMacro(Macro::FileExt));
+}
+
+void IScriptController::SetSeqNumberWidth(const int value)
+{
+	SEQ_NUMBER_WIDTH = value;
 }
 
 std::vector<std::vector<QString>> ILogicFactory::GetSelectedBookIds(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, const std::vector<int>& roles)

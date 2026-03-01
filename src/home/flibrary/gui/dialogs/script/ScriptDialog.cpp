@@ -326,10 +326,11 @@ private:
 			m_ui.comboBoxCommandType->setCurrentIndex(index);
 
 		const auto commandType = commandTypeVar.value<IScriptController::Command::Type>();
-		FindSecond(COMMAND_GETTERS, commandType).second(m_commandTextWidgets, commandType, m_ui.viewCommand->currentIndex().data(Role::Command));
+		const auto currentIndex = m_ui.viewCommand->currentIndex();
+		FindSecond(COMMAND_GETTERS, commandType).second(m_commandTextWidgets, commandType, currentIndex.data(Role::Command));
 
-		m_ui.lineEditCommandArguments->setText(m_ui.viewCommand->currentIndex().data(Role::Arguments).toString());
-		m_ui.lineEditCommandWorkingFolder->setText(m_ui.viewCommand->currentIndex().data(Role::WorkingFolder).toString());
+		m_ui.lineEditCommandArguments->setText(currentIndex.data(Role::Arguments).toString());
+		m_ui.lineEditCommandWorkingFolder->setText(currentIndex.data(Role::WorkingFolder).toString());
 
 		m_ui.stackedWidgetCommand->setCurrentWidget(m_ui.scriptCommandEditorPage);
 	}
