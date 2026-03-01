@@ -1121,7 +1121,7 @@ private: // IPool
 				if (!zip)
 					return -1;
 
-				Work(folder, *zip, zip->GetFileNameList() | std::ranges::to<std::vector<QString>>(), archiveFileInfo.birthTime());
+				Work(folder, *zip, zip->GetFileNameList() | std::ranges::to<std::list<QString>>(), archiveFileInfo.birthTime());
 
 				return 0;
 			};
@@ -1130,7 +1130,7 @@ private: // IPool
 		}
 	}
 
-	void Work(const std::wstring& folder, const Zip& zip, std::vector<QString> zipFileList, const QDateTime& zipDateTime)
+	void Work(const std::wstring& folder, const Zip& zip, std::list<QString> zipFileList, const QDateTime& zipDateTime)
 	{
 		const auto totalCount = zipFileList.size();
 		size_t     counter    = 0;
@@ -1735,7 +1735,7 @@ where b.FileName = ? and b.Ext = ?)");
 			if (!zip)
 				continue;
 
-			Work(folder, *zip, files | std::views::keys | std::views::transform(&QString::fromStdWString) | std::ranges::to<std::vector<QString>>(), archiveFileInfo.birthTime());
+			Work(folder, *zip, files | std::views::keys | std::views::transform(&QString::fromStdWString) | std::ranges::to<std::list<QString>>(), archiveFileInfo.birthTime());
 		}
 	}
 
