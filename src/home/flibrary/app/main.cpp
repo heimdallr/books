@@ -12,6 +12,7 @@
 #include "interface/logic/IDatabaseMigrator.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IOpdsController.h"
+#include "interface/logic/IScriptController.h"
 #include "interface/logic/ISingleInstanceController.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/IMainWindow.h"
@@ -39,6 +40,8 @@ using namespace HomeCompa;
 
 namespace
 {
+
+constexpr auto SEQ_NUMBER_WIDTH_KEY = "Preferences/Export/seqNumberWidth";
 
 constexpr auto CONTEXT = "Main";
 constexpr auto WRONG_DB_VERSION =
@@ -99,6 +102,8 @@ int main(int argc, char* argv[])
 			Genre::SetSortMode(*settings);
 			if (!settings->HasKey(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks)))
 				settings->Set(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks), false);
+
+			IScriptController::SetSeqNumberWidth(settings->Get(SEQ_NUMBER_WIDTH_KEY, 1));
 
 			auto       styleApplierFactory = container->resolve<IStyleApplierFactory>();
 			const auto themeLib            = styleApplierFactory->CreateThemeApplier()->Set(app);
