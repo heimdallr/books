@@ -16,6 +16,9 @@
 
 #include "fnd/IsOneOf.h"
 
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
+
 #include "interface/Localization.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
@@ -878,12 +881,31 @@ private:
 		});
 	}
 
+	void ConnectActionsSettingsSearch()
+	{
+		ConnectSettings(m_ui.actionSearchByTitle, Constant::Settings::SEARCH_WITH_TITLE);
+		ConnectSettings(m_ui.actionSearchByAuthor, Constant::Settings::SEARCH_WITH_AUTHOR);
+		ConnectSettings(m_ui.actionSearchBySeries, Constant::Settings::SEARCH_WITH_SERIES);
+		ConnectSettings(m_ui.actionSearchByAnnotation, Constant::Settings::SEARCH_WITH_ANNOTATION);
+
+		const auto db = m_databaseUser->Database();
+		if (!db)
+			return;
+
+		const auto query = db->CreateQuery("SELECT exists(SELECT 42 FROM Annotations)");
+		query->Execute();
+		m_ui.actionSearchByAnnotation->setVisible(query->Get<int>(0) != 0);
+		if (!m_ui.actionSearchByAnnotation->isVisible())
+			m_ui.actionSearchByAnnotation->setChecked(false);
+	}
+
 	void ConnectActionsSettings()
 	{
 		PLOGV << "ConnectActionsSettings";
 		ConnectActionsSettingsExport();
 		ConnectActionsSettingsView();
 		ConnectActionsSettingsHttp();
+		ConnectActionsSettingsSearch();
 
 		connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] {
 			Reboot();

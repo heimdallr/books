@@ -46,4 +46,9 @@ constexpr auto PREFER_HIDE_SCROLLBARS_KEY        = "Preferences/hideScrollBars";
 constexpr auto PREFER_RELATIVE_PATHS             = "Preferences/RelativePaths";
 constexpr auto PREFER_HIDE_TO_TRAY_KEY           = "Preferences/HideToTray";
 
+constexpr auto SEARCH_WITH_TITLE      = "SearchBy/Title";
+constexpr auto SEARCH_WITH_AUTHOR     = "SearchBy/Author";
+constexpr auto SEARCH_WITH_SERIES     = "SearchBy/Series";
+constexpr auto SEARCH_WITH_ANNOTATION = "SearchBy/Annotation";
+
 } // namespace HomeCompa::Flibrary::Constant::Settings
