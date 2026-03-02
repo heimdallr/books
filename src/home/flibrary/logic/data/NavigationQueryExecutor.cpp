@@ -73,6 +73,13 @@ constexpr auto SEARCH_WITH_SERIES = R"(
 		join Search s on Series_Search match s.Title
 )";
 
+constexpr auto SEARCH_WITH_ANNOTATION = R"(
+	select b.BookID
+         from Books b
+         join Annotations_Search fts on fts.rowid = b.BookID
+         join Search s on Annotations_Search match s.Title
+)";
+
 QString GetSearchWith(const ISettings& settings)
 {
 	QStringList result;
@@ -80,6 +87,7 @@ QString GetSearchWith(const ISettings& settings)
 	ITEM(SEARCH_WITH_TITLE, true);
 	ITEM(SEARCH_WITH_AUTHOR, true);
 	ITEM(SEARCH_WITH_SERIES, true);
+	ITEM(SEARCH_WITH_ANNOTATION, false);
 #undef ITEM
 
 	if (result.isEmpty())
