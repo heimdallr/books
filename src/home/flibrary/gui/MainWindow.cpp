@@ -895,8 +895,6 @@ private:
 		const auto query = db->CreateQuery("SELECT exists(SELECT 42 FROM Annotations)");
 		query->Execute();
 		m_ui.actionSearchByAnnotation->setVisible(query->Get<int>(0) != 0);
-		if (!m_ui.actionSearchByAnnotation->isVisible())
-			m_ui.actionSearchByAnnotation->setChecked(false);
 	}
 
 	void ConnectActionsSettings()
