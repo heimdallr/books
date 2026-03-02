@@ -10,6 +10,9 @@ DROP VIEW IF EXISTS Books_View;
 DROP TABLE IF EXISTS Settings;
 --@@
 
+DROP TABLE IF EXISTS Annotations;
+--@@
+
 DROP TABLE IF EXISTS Inpx;
 --@@
 
@@ -249,6 +252,14 @@ CREATE TABLE Inpx (
 );
 --@@
 
+CREATE TABLE Annotations (
+  BookID INTEGER         NOT NULL
+                         PRIMARY KEY
+                         REFERENCES Books (BookID) ON DELETE CASCADE,
+  Text   VARCHAR (10240) NOT NULL
+);
+--@@
+
 CREATE TABLE Settings (
   SettingID    INTEGER NOT NULL PRIMARY KEY,
   SettingValue BLOB
@@ -265,4 +276,7 @@ CREATE VIRTUAL TABLE IF NOT EXISTS Series_Search USING fts5(SeriesTitle, content
 --@@
 
 CREATE VIRTUAL TABLE IF NOT EXISTS Compilations_Search USING fts5(Title, content=Compilations, content_rowid=CompilationID);
+--@@
+
+CREATE VIRTUAL TABLE IF NOT EXISTS Annotations_Search USING fts5(Text, content=Annotations, content_rowid=BookID);
 --@@

@@ -326,10 +326,12 @@ void AddUserTables(DB::ITransaction& transaction)
 		"CREATE TABLE IF NOT EXISTS Languages (LanguageCode VARCHAR (3) NOT NULL, Flags INTEGER NOT NULL DEFAULT (0))", "CREATE UNIQUE INDEX IF NOT EXISTS UIX_Languages_PrimaryKey ON Languages (LanguageCode)",
 		"CREATE TABLE IF NOT EXISTS Compilations (CompilationID INTEGER PRIMARY KEY NOT NULL, BookId INTEGER REFERENCES Books (BookID) ON DELETE CASCADE NOT NULL, Title VARCHAR (10240) NOT NULL, Covered INTEGER NOT NULL DEFAULT (0))",
 		"CREATE TABLE IF NOT EXISTS Compilation_List (CompilationID INTEGER REFERENCES Compilations (CompilationID) ON DELETE CASCADE NOT NULL, BookId INTEGER REFERENCES Books (BookID) ON DELETE CASCADE NOT NULL, Part INTEGER NOT NULL)",
+		"CREATE TABLE IF NOT EXISTS Annotations (BookID INTEGER NOT NULL PRIMARY KEY REFERENCES Books (BookID) ON DELETE CASCADE, Text VARCHAR (10240) NOT NULL)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Authors_Search USING fts5(LastName, FirstName, MiddleName, content=Authors, content_rowid=AuthorID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Books_Search USING fts5(Title, content=Books, content_rowid=BookID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Series_Search USING fts5(SeriesTitle, content=Series, content_rowid=SeriesID)",
 		"CREATE VIRTUAL TABLE IF NOT EXISTS Compilations_Search USING fts5(Title, content=Compilations, content_rowid=CompilationID)",
+		"CREATE VIRTUAL TABLE IF NOT EXISTS Annotations_Search USING fts5(Text, content=Annotations, content_rowid=BookID)",
 		"CREATE INDEX IF NOT EXISTS IX_Books_FileName ON Books (FileName)",
 		CREATE_BOOKS_VIEW0,
 	};

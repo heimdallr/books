@@ -36,6 +36,8 @@
 #include "util/executor/factory.h"
 #include "util/language.h"
 #include "util/timer.h"
+#include "util/xml/SaxParser.h"
+#include "util/xml/XmlAttributes.h"
 
 #include "Constant.h"
 #include "InpxConstant.h"
@@ -114,6 +116,77 @@ public:
 
 private:
 	Parser::IniMap _data;
+};
+
+class AnnotationsParser final : public SaxParser
+{
+	static constexpr auto FOLDER = "folder";
+	static constexpr auto FILE   = "file";
+
+public:
+	AnnotationsParser(QIODevice& stream, sqlite3pp::database& db)
+		: SaxParser(stream)
+		, m_command(db, R"(
+insert into Annotations(BookID, Text)
+select b.BookID, ?
+from Books b
+join Folders f on f.FolderID = b.FolderID and f.FolderTitle = ?
+where b.FileName = ? and b.Ext = ?
+)")
+	{
+	}
+
+private: // SaxParser
+	bool OnStartElement(const QString& name, const QString&, const XmlAttributes& attributes) override
+	{
+		if (name == FOLDER)
+		{
+			m_folder = attributes.GetAttribute("name").toStdString();
+			PLOGD << m_folder;
+		}
+		else if (name == FILE)
+		{
+			m_file = attributes.GetAttribute("name");
+		}
+
+		return true;
+	}
+
+	bool OnEndElement(const QString& name, const QString&) override
+	{
+		if (name != FILE)
+			return true;
+
+		const QFileInfo fileInfo(m_file);
+
+		const auto file = fileInfo.completeBaseName().toStdString();
+		const auto ext  = ("." + fileInfo.suffix()).toStdString();
+
+		m_command.bind(1, m_annotation, sqlite3pp::nocopy);
+		m_command.bind(2, m_folder, sqlite3pp::nocopy);
+		m_command.bind(3, file, sqlite3pp::nocopy);
+		m_command.bind(4, ext, sqlite3pp::nocopy);
+
+		m_command.execute();
+		m_command.reset();
+
+		return true;
+	}
+
+	bool OnCharacters(const QString&, const QString& value) override
+	{
+		m_annotation = value.toStdString();
+		if (m_annotation.length() > 10240)
+			m_annotation.resize(10240);
+		return true;
+	}
+
+private:
+	sqlite3pp::command m_command;
+
+	std::string m_folder;
+	QString     m_file;
+	std::string m_annotation;
 };
 
 class DatabaseWrapper
@@ -1253,6 +1326,11 @@ private:
 			return 0;
 		});
 
+		TRY("CollectAnnotations", [this] {
+			CollectAnnotations();
+			return 0;
+		});
+
 		TRY("analyze", [&] {
 			return Analyze(dbFileName);
 		});
@@ -1495,6 +1573,11 @@ private:
 			return 0;
 		});
 
+		TRY("CollectAnnotations", [this] {
+			CollectAnnotations();
+			return 0;
+		});
+
 		TRY("analyze", [&] {
 			return Analyze(dbFileName);
 		});
@@ -1708,6 +1791,34 @@ where b.FileName = ? and b.Ext = ?)");
 
 		sqlite3pp::command(db, "INSERT INTO Compilations_Search(Compilations_Search) VALUES('rebuild')").execute();
 
+		tr.commit();
+	}
+
+	void CollectAnnotations()
+	{
+		if (!(m_mode & CreateCollectionMode::LoadAnnotations))
+			return;
+
+		const auto compilationsFileName = m_ini(ADDITIONAL_FOLDER) / ANNOTATIONS;
+		if (!exists(compilationsFileName))
+			return;
+
+		const auto fileName = QString::fromStdWString(compilationsFileName);
+		const auto zip      = TRY(QString("open %1").arg(fileName), [&] {
+            return std::make_unique<Zip>(fileName);
+        });
+		if (!zip)
+			return;
+
+		DatabaseWrapper        db(m_ini(DB_PATH));
+		sqlite3pp::transaction tr(db);
+		sqlite3pp::command(db, "delete from Annotations").execute();
+
+		const auto        stream = zip->Read(ANNOTATIONS_XML);
+		AnnotationsParser parser(stream->GetStream(), db);
+		parser.Parse();
+
+		sqlite3pp::command(db, "INSERT INTO Annotations_Search(Annotations_Search) VALUES('rebuild')").execute();
 		tr.commit();
 	}
 
