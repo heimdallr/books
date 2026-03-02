@@ -91,7 +91,7 @@ QString GetSearchWith(const ISettings& settings)
 #undef ITEM
 
 	if (result.isEmpty())
-		result << SEARCH_WITH_TITLE;
+		result << "select -1";
 
 	return QString(SEARCH_WITH).arg("%1", result.join("union"));
 }
