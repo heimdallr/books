@@ -68,6 +68,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Load annotations</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Mark unindexed books as deleted</source>
         <translation></translation>
     </message>
@@ -4458,6 +4462,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Author</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Clear log</source>
         <translation></translation>
     </message>
@@ -4538,6 +4546,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Series</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Settings</source>
         <translation></translation>
     </message>
@@ -4554,11 +4566,19 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Title</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;User data</source>
         <translation></translation>
     </message>
     <message>
         <source>&amp;View</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>A&amp;nnotation</source>
         <translation></translation>
     </message>
     <message>
@@ -4735,6 +4755,10 @@ Try again?</source>
     </message>
     <message>
         <source>Search &amp;bar by title</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Search &amp;by</source>
         <translation></translation>
     </message>
     <message>
