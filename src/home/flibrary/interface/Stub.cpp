@@ -223,6 +223,11 @@ QString Collection::GetFolder() const
 	return Util::ToAbsolutePath(m_folder);
 }
 
+QString Collection::GetAdditionalFolder() const
+{
+	return Util::ToAbsolutePath(m_additionalFolder);
+}
+
 QString Collection::GetInpx() const
 {
 	return Util::ToAbsolutePath(m_inpx);

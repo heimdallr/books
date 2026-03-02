@@ -18,6 +18,7 @@ constexpr auto LANGUAGES_MAPPING              = L"languages_mapping";
 constexpr auto INI_EXT                        = L"ini";
 constexpr auto INPX_EXT                       = L".inpx";
 constexpr auto ARCHIVE_FOLDER                 = L"archive_folder";
+constexpr auto ADDITIONAL_FOLDER              = L"additional_folder";
 constexpr auto INPX_PATH                      = L"inpx_path";
 constexpr auto MHL_TRIGGERS_ON                = L"mhl_triggers_on";
 constexpr auto SET_DATABASE_VERSION_STATEMENT = L"set_database_version";

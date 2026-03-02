@@ -1552,7 +1552,7 @@ private:
 	{
 		PLOGI << "Collect reviews";
 
-		for (const auto& path : GetDirectoryIterator(m_ini(ARCHIVE_FOLDER) / REVIEWS_FOLDER) | std::views::filter([](const auto& entry) {
+		for (const auto& path : GetDirectoryIterator(m_ini(ADDITIONAL_FOLDER) / REVIEWS_FOLDER) | std::views::filter([](const auto& entry) {
 									return !entry.is_directory();
 								}) | std::views::transform([](const auto& entry) {
 									return entry.path();
@@ -1574,7 +1574,7 @@ private:
 
 	void CollectCompilations() const
 	{
-		const auto compilationsFileName = m_ini(ARCHIVE_FOLDER) / COMPILATIONS;
+		const auto compilationsFileName = m_ini(ADDITIONAL_FOLDER) / COMPILATIONS;
 		if (!exists(compilationsFileName))
 			return;
 
@@ -1755,7 +1755,7 @@ where b.FileName = ? and b.Ext = ?)");
                     folder.erase(0, inpxFolder.string().size() + 1);
                     return folder;
                 }) | std::views::filter([&](const auto& item) {
-                    static constexpr std::wstring_view specials[] { L"authors", L"covers", L"images", L"reviews" };
+                    static constexpr std::wstring_view specials[] { L"authors", L"covers", L"images", L"reviews", L"etc" };
                     return !m_foldersContent.contains(item) && std::ranges::none_of(specials, [&](const auto& specialFolder) {
                         return item.starts_with(specialFolder);
                     });

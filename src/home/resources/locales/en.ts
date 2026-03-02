@@ -20,6 +20,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Additional</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Archive folder</source>
         <translation></translation>
     </message>
@@ -877,6 +881,10 @@ Restart now?</source>
 </context>
 <context>
     <name>Error</name>
+    <message>
+        <source>Additional info folder not found</source>
+        <translation>Folder with additional information not found</translation>
+    </message>
     <message>
         <source>Archive folder cannot be empty</source>
         <translation></translation>

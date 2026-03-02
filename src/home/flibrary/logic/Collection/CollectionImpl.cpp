@@ -20,19 +20,21 @@ constexpr auto CURRENT          = "current";
 constexpr auto DATABASE         = "database";
 constexpr auto DISCARDED_UPDATE = "discardedUpdate";
 constexpr auto FOLDER           = "folder";
+constexpr auto ADDITIONAL       = "additional";
 constexpr auto INPX             = "inpx";
 constexpr auto NAME             = "name";
 constexpr auto CREATION_MODE    = "creationMode";
 
 } // namespace
 
-CollectionImpl::CollectionImpl(QString name_, QString database, QString folder, QString inpx)
+CollectionImpl::CollectionImpl(QString name_, QString database, QString folder, QString additionalFolder, QString inpx)
 {
-	id         = Util::md5(database.toUtf8());
-	name       = std::move(name_);
-	m_database = std::move(database);
-	m_folder   = std::move(folder);
-	m_inpx     = std::move(inpx);
+	id                 = Util::md5(database.toUtf8());
+	name               = std::move(name_);
+	m_database         = std::move(database);
+	m_folder           = std::move(folder);
+	m_additionalFolder = std::move(additionalFolder);
+	m_inpx             = std::move(inpx);
 
 	m_database.replace("\\", "/");
 	m_folder.replace("\\", "/");
@@ -56,6 +58,7 @@ void CollectionImpl::Serialize(const Collection& collection, ISettings& settings
 	settings.Set(NAME, collection.name);
 	settings.Set(DATABASE, collection.m_database);
 	settings.Set(FOLDER, collection.m_folder);
+	settings.Set(ADDITIONAL, collection.m_additionalFolder);
 	if (collection.m_inpx.isEmpty())
 		settings.Remove(INPX);
 	else
@@ -105,7 +108,8 @@ Collection::Ptr CollectionImpl::Deserialize(const ISettings& settings, QString c
 	if ((collection->m_folder = settings.Get(FOLDER, QString {})).isEmpty())
 		return collection;
 
-	collection->m_inpx = settings.Get(INPX).toString();
+	collection->m_additionalFolder = settings.Get(ADDITIONAL).toString();
+	collection->m_inpx             = settings.Get(INPX).toString();
 
 	collection->discardedUpdate              = settings.Get(DISCARDED_UPDATE, QString {});
 	collection->createCollectionMode         = settings.Get(CREATION_MODE, 0);

@@ -37,7 +37,7 @@ std::unordered_map<long long, double> ReadRates(const ISettings& settings, const
 		return {};
 
 	const auto additionalFileName =
-		collectionProvider.GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER) + "/" + QString::fromStdWString(Inpx::REVIEWS_ADDITIONAL_ARCHIVE_NAME);
+		collectionProvider.GetActiveCollection().GetAdditionalFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER) + "/" + QString::fromStdWString(Inpx::REVIEWS_ADDITIONAL_ARCHIVE_NAME);
 
 	const auto zip = TRY(QString("open %1").arg(additionalFileName), [&] {
 		return std::make_unique<Zip>(additionalFileName);

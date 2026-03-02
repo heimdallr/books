@@ -99,7 +99,7 @@ private:
 		if (!collectionProvider.ActiveCollectionExists())
 			return;
 
-		m_authorsDir = QDir(collectionProvider.GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::AUTHORS_FOLDER));
+		m_authorsDir = QDir(collectionProvider.GetActiveCollection().GetAdditionalFolder() + "/" + QString::fromStdWString(Inpx::AUTHORS_FOLDER));
 		if (!m_authorsDir.exists())
 			return;
 
