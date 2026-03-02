@@ -20,6 +20,10 @@
         <translation>Добавлять неиндексированные книги</translation>
     </message>
     <message>
+        <source>Additional</source>
+        <translation>Дополнительно</translation>
+    </message>
+    <message>
         <source>Archive folder</source>
         <translation>Папка с архивами</translation>
     </message>
@@ -887,6 +891,10 @@ Restart now?</source>
 </context>
 <context>
     <name>Error</name>
+    <message>
+        <source>Additional info folder not found</source>
+        <translation>Папка с дополнительной информацией не найдена</translation>
+    </message>
     <message>
         <source>Archive folder cannot be empty</source>
         <translation>Папка с архивами не может быть пустой</translation>
