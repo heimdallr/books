@@ -30,11 +30,13 @@ struct FLINT_EXPORT Collection
 
 	QString GetDatabase() const;
 	QString GetFolder() const;
+	QString GetAdditionalFolder() const;
 	QString GetInpx() const;
 
 private:
 	QString m_database;
 	QString m_folder;
+	QString m_additionalFolder;
 	QString m_inpx;
 	friend struct CollectionImpl;
 };
