@@ -29,6 +29,7 @@ enum class CreateCollectionMode
 	ScanUnIndexedFolders        = 1 << 1,
 	SkipLostBooks               = 1 << 2,
 	MarkUnIndexedFilesAsDeleted = 1 << 3,
+	LoadAnnotations             = 1 << 4,
 	// clang-format on
 };
 

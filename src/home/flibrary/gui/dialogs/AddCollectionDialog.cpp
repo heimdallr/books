@@ -36,6 +36,7 @@ constexpr auto INPX_EXPLICIT                    = "InpxExplicit";
 constexpr auto ADD_UN_INDEXED_BOOKS             = "AddUnIndexedBooks";
 constexpr auto SCAN_UN_INDEXED_FOLDERS          = "ScanUnIndexedFolders";
 constexpr auto SKIP_NOT_IN_ARCHIVES             = "SkipNotInArchives";
+constexpr auto LOAD_ANNOTATIONS                 = "LoadAnnotations";
 constexpr auto MARK_UN_INDEXED_BOOKS_AS_DELETED = "MarkUnIndexedBooksAsDeleted";
 constexpr auto DEFAULT_ARCHIVE_TYPE             = "DefaultArchiveType";
 constexpr auto DATABASE_RELATIVE_PATH           = "DatabaseRelativePath";
@@ -238,6 +239,7 @@ public:
 		m_ui.checkBoxScanUnindexedArchives->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), false));
 		m_ui.checkBoxAddMissingBooks->setChecked(!m_settings->Get(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), true));
 		m_ui.checkBoxAdditional->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(ADDITIONAL_FOLDER_ENABLED), true));
+		m_ui.checkBoxAnnotation->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(LOAD_ANNOTATIONS), false));
 		m_ui.checkBoxInpx->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(INPX_EXPLICIT), false));
 
 		m_ui.comboBoxDefaultArchiveType->setCurrentIndex([this] {
@@ -269,6 +271,7 @@ public:
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), m_ui.checkBoxScanUnindexedArchives->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), !m_ui.checkBoxAddMissingBooks->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(ADDITIONAL_FOLDER_ENABLED), m_ui.checkBoxAdditional->isChecked());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(LOAD_ANNOTATIONS), m_ui.checkBoxAnnotation->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(INPX_EXPLICIT), m_ui.checkBoxInpx->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(DEFAULT_ARCHIVE_TYPE), m_ui.comboBoxDefaultArchiveType->currentText());
 	}
@@ -321,6 +324,11 @@ public:
 	bool MarkUnIndexedBooksAsDeleted() const
 	{
 		return m_ui.checkBoxMarkUnindexedAdDeleted->isChecked();
+	}
+
+	bool LoadAnnotations() const
+	{
+		return m_ui.checkBoxAdditional->isChecked() && m_ui.checkBoxAnnotation->isChecked();
 	}
 
 private: // GeometryRestorableObserver
@@ -583,4 +591,9 @@ bool AddCollectionDialog::SkipLostBooks() const
 bool AddCollectionDialog::MarkUnIndexedBooksAsDeleted() const
 {
 	return m_impl->MarkUnIndexedBooksAsDeleted();
+}
+
+bool AddCollectionDialog::LoadAnnotations() const
+{
+	return m_impl->LoadAnnotations();
 }
