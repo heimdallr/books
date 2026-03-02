@@ -38,13 +38,15 @@ class DataProvider::Impl
 {
 public:
 	Impl(
+		std::shared_ptr<const ISettings>             settings,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
 		std::shared_ptr<const IDatabaseUser>         databaseUser,
 		std::shared_ptr<const IFilterProvider>       filterProvider,
 		std::shared_ptr<INavigationQueryExecutor>    navigationQueryExecutor,
 		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController
 	)
-		: m_collectionProvider { std::move(collectionProvider) }
+		: m_settings { std::move(settings) }
+		, m_collectionProvider { std::move(collectionProvider) }
 		, m_databaseUser { std::move(databaseUser) }
 		, m_filterProvider { std::move(filterProvider) }
 		, m_navigationQueryExecutor { std::move(navigationQueryExecutor) }
@@ -150,7 +152,7 @@ private:
 				  {
 					  const auto& activeCollection = m_collectionProvider->GetActiveCollection();
 					  const auto  db               = m_databaseUser->Database();
-					  generator                    = std::make_unique<BooksTreeGenerator>(activeCollection, *db, navigationMode, navigationId, description, *m_filterProvider);
+					  generator                    = std::make_unique<BooksTreeGenerator>(*m_settings, activeCollection, *db, navigationMode, navigationId, description, *m_filterProvider);
 
 					  if (navigationMode == NavigationMode::Authors && !navigationId.isEmpty())
 					  {
@@ -201,6 +203,7 @@ private:
 	mutable bool                                m_requestNavigationForce { false };
 	mutable std::shared_ptr<BooksTreeGenerator> m_booksGenerator;
 
+	std::shared_ptr<const ISettings>                                m_settings;
 	std::shared_ptr<const ICollectionProvider>                      m_collectionProvider;
 	std::shared_ptr<const IDatabaseUser>                            m_databaseUser;
 	std::shared_ptr<const IFilterProvider>                          m_filterProvider;
@@ -215,13 +218,14 @@ private:
 };
 
 DataProvider::DataProvider(
+	std::shared_ptr<const ISettings>             settings,
 	std::shared_ptr<const ICollectionProvider>   collectionProvider,
 	std::shared_ptr<const IDatabaseUser>         databaseUser,
 	std::shared_ptr<const IFilterProvider>       filterProvider,
 	std::shared_ptr<INavigationQueryExecutor>    navigationQueryExecutor,
 	std::shared_ptr<IAuthorAnnotationController> authorAnnotationController
 )
-	: m_impl(std::move(collectionProvider), std::move(databaseUser), std::move(filterProvider), std::move(navigationQueryExecutor), std::move(authorAnnotationController))
+	: m_impl(std::move(settings), std::move(collectionProvider), std::move(databaseUser), std::move(filterProvider), std::move(navigationQueryExecutor), std::move(authorAnnotationController))
 {
 	PLOGV << "DataProvider created";
 }

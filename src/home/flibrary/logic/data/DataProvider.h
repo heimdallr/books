@@ -1,7 +1,5 @@
 #pragma once
 
-#include <functional>
-
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
@@ -12,6 +10,8 @@
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IFilterProvider.h"
 #include "interface/logic/INavigationQueryExecutor.h"
+
+#include "util/ISettings.h"
 
 class QString;
 
@@ -26,6 +26,7 @@ class DataProvider final
 
 public:
 	DataProvider(
+		std::shared_ptr<const ISettings>             settings,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
 		std::shared_ptr<const IDatabaseUser>         databaseUser,
 		std::shared_ptr<const IFilterProvider>       filterProvider,

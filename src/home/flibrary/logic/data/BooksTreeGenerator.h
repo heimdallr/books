@@ -5,6 +5,13 @@
 
 #include "DataItem.h"
 
+namespace HomeCompa
+{
+
+class ISettings;
+
+}
+
 namespace HomeCompa::DB
 {
 
@@ -71,12 +78,19 @@ using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query);
 
 struct QueryClause
 {
+	using WithGetter = QString (*)(const ISettings&);
+
+	static QString GetWithStub(const ISettings&)
+	{
+		return {};
+	}
+
 	const char* booksFrom { "" };
 	const char* booksWhere { "" };
 	const char* navigationFrom { "" };
 	const char* navigationWhere { "" };
 	const char* additionalFields { "" };
-	const char* with { "" };
+	WithGetter  with { &GetWithStub };
 };
 
 struct QueryDescription
@@ -113,6 +127,7 @@ class BooksTreeGenerator final
 
 public:
 	BooksTreeGenerator(
+		const ISettings&          settings,
 		const Collection&         activeCollection,
 		DB::IDatabase&            db,
 		enum class NavigationMode navigationMode,

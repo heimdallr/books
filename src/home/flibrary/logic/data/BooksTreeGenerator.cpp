@@ -116,10 +116,19 @@ public:
 	const IFilterProvider& filterProvider;
 	ViewMode               viewMode { ViewMode::Unknown };
 
-	Impl(const Collection& activeCollection, DB::IDatabase& db, const NavigationMode navigationMode, QString navigationId, const QueryDescription& description, const IFilterProvider& filterProvider)
+	Impl(
+		const ISettings&        settings,
+		const Collection&       activeCollection,
+		DB::IDatabase&          db,
+		const NavigationMode    navigationMode,
+		QString                 navigationId,
+		const QueryDescription& description,
+		const IFilterProvider&  filterProvider
+	)
 		: navigationMode { navigationMode }
 		, navigationId { std::move(navigationId) }
 		, filterProvider { filterProvider }
+		, m_settings { settings }
 	{
 		if (!this->navigationId.isEmpty())
 			std::invoke(description.bookSelector, static_cast<IBookSelector&>(*this), std::cref(activeCollection), std::ref(db), std::cref(description));
@@ -401,7 +410,7 @@ private:
 		}
 	)
 	{
-		const auto with = queryClause.with && queryClause.with[0] ? QString(queryClause.with).arg(navigationId).toStdString() : std::string {};
+		const auto with = queryClause.with(m_settings).arg(navigationId).toStdString();
 
 		{
 			QString booksWhere = queryClause.booksWhere;
@@ -620,6 +629,7 @@ join Keywords k on k.KeywordID = l.KeywordID
 	}
 
 private:
+	const ISettings&                                m_settings;
 	std::unordered_map<long long, IDataItem::Ptr>   m_reviews;
 	std::unordered_map<long long, SelectedBookItem> m_books;
 	std::unordered_map<long long, IDataItem::Ptr>   m_series;
@@ -628,6 +638,7 @@ private:
 };
 
 BooksTreeGenerator::BooksTreeGenerator(
+	const ISettings&        settings,
 	const Collection&       activeCollection,
 	DB::IDatabase&          db,
 	const NavigationMode    navigationMode,
@@ -635,7 +646,7 @@ BooksTreeGenerator::BooksTreeGenerator(
 	const QueryDescription& description,
 	const IFilterProvider&  filterProvider
 )
-	: m_impl(activeCollection, db, navigationMode, std::move(navigationId), description, filterProvider)
+	: m_impl(settings, activeCollection, db, navigationMode, std::move(navigationId), description, filterProvider)
 {
 	PLOGV << "BooksTreeGenerator created";
 }
