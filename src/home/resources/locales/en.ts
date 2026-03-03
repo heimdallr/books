@@ -4446,6 +4446,10 @@ Try again?</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source> or %1</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;About...</source>
         <translation></translation>
     </message>
@@ -4818,7 +4822,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>To search for books by author, series, or title, enter the name or title here and press Enter</source>
+        <source>To search for books by %1, enter the name or title here and press Enter</source>
         <translation></translation>
     </message>
     <message>
@@ -4827,6 +4831,22 @@ Try again?</source>
     </message>
     <message>
         <source>Well, you only have yourself to blame!</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>annotation</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>author</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>series</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>title</source>
         <translation></translation>
     </message>
 </context>
