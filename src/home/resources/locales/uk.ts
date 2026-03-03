@@ -4458,6 +4458,10 @@ Try again?</source>
 <context>
     <name>MainWindow</name>
     <message>
+        <source> or %1</source>
+        <translation> чи %1</translation>
+    </message>
+    <message>
         <source>&amp;About...</source>
         <translation>&amp;Про програму...</translation>
     </message>
@@ -4830,8 +4834,12 @@ Try again?</source>
         <translation>Правильне рішення!</translation>
     </message>
     <message>
+        <source>To search for books by %1, enter the name or title here and press Enter</source>
+        <translation>Для пошуку книг за %1 введіть ім&apos;я або назву тут і натисніть Enter</translation>
+    </message>
+    <message>
         <source>To search for books by author, series, or title, enter the name or title here and press Enter</source>
-        <translation>Для пошуку книг за автором, серією чи назвою введіть ім&apos;я або назву тут і натисніть Enter</translation>
+        <translation type="vanished">Для пошуку книг за автором, серією чи назвою введіть ім&apos;я або назву тут і натисніть Enter</translation>
     </message>
     <message>
         <source>View &amp;Help</source>
@@ -4840,6 +4848,22 @@ Try again?</source>
     <message>
         <source>Well, you only have yourself to blame!</source>
         <translation>Що ж, нарікайте тепер на себе!</translation>
+    </message>
+    <message>
+        <source>annotation</source>
+        <translation>анотацією</translation>
+    </message>
+    <message>
+        <source>author</source>
+        <translation>автором</translation>
+    </message>
+    <message>
+        <source>series</source>
+        <translation>серією</translation>
+    </message>
+    <message>
+        <source>title</source>
+        <translation>назвою</translation>
     </message>
 </context>
 <context>
