@@ -554,21 +554,5 @@
     </hint>
    </hints>
   </connection>
-  <connection>
-   <sender>checkBoxAdditional</sender>
-   <signal>toggled(bool)</signal>
-   <receiver>checkBoxAnnotation</receiver>
-   <slot>setEnabled(bool)</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>60</x>
-     <y>94</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>346</x>
-     <y>244</y>
-    </hint>
-   </hints>
-  </connection>
  </connections>
 </ui>
