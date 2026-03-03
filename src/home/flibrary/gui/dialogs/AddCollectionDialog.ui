@@ -288,6 +288,13 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QCheckBox" name="checkBoxAnnotation">
+        <property name="text">
+         <string>Load annotations</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </widget>
    </item>

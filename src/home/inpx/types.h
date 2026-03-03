@@ -164,6 +164,7 @@ using Splitter     = std::function<std::vector<std::wstring>(std::wstring_view)>
 using InpxFolders  = std::map<std::pair<std::wstring, std::wstring>, std::string, Util::CaseInsensitiveComparer<>>;
 using BooksSeries  = std::unordered_map<size_t, std::vector<std::pair<size_t, std::optional<int>>>>;
 using Reviews      = std::map<std::string, std::set<std::wstring>>;
+using Annotations  = std::vector<std::pair<size_t, std::string>>;
 
 struct Data
 {
@@ -176,6 +177,7 @@ struct Data
 	InpxFolders inpxFolders;
 	BooksSeries booksSeries;
 	Reviews     reviews;
+	Annotations annotations;
 };
 
 inline std::ostream& operator<<(std::ostream& stream, const Book& book)

@@ -475,10 +475,20 @@
      <addaction name="actionBrowseHttpWeb"/>
      <addaction name="actionBrowseHttpOpds"/>
     </widget>
+    <widget class="QMenu" name="menuSearch">
+     <property name="title">
+      <string>Search &amp;by</string>
+     </property>
+     <addaction name="actionSearchByTitle"/>
+     <addaction name="actionSearchByAuthor"/>
+     <addaction name="actionSearchBySeries"/>
+     <addaction name="actionSearchByAnnotation"/>
+    </widget>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
     <addaction name="menuExport"/>
     <addaction name="menuHttp"/>
+    <addaction name="menuSearch"/>
     <addaction name="actionFilters"/>
     <addaction name="actionScripts"/>
     <addaction name="separator"/>
@@ -1112,6 +1122,59 @@
   <action name="actionAllSettings">
    <property name="text">
     <string>&amp;All settings...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionSearchByTitle">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Title</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionSearchByAuthor">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Author</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionSearchBySeries">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Series</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionSearchByAnnotation">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>A&amp;nnotation</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

@@ -36,6 +36,8 @@
 #include "util/executor/factory.h"
 #include "util/language.h"
 #include "util/timer.h"
+#include "util/xml/SaxParser.h"
+#include "util/xml/XmlAttributes.h"
 
 #include "Constant.h"
 #include "InpxConstant.h"
@@ -51,6 +53,8 @@ namespace
 {
 
 using Path = Parser::IniMap::value_type::second_type;
+
+constexpr auto INVALID_INDEX = std::numeric_limits<size_t>::max();
 
 size_t g_id = 0;
 
@@ -114,6 +118,104 @@ public:
 
 private:
 	Parser::IniMap _data;
+};
+
+class AnnotationsParser final : public SaxParser
+{
+	static constexpr auto FOLDER = "folder";
+	static constexpr auto FILE   = "file";
+
+public:
+	static std::string Prepare(QStringList annotation)
+	{
+		QStringList list;
+		for (auto&& str : annotation)
+		{
+			str = str.toLower();
+			std::ranges::transform(str, std::begin(str), [&](const QChar& ch) {
+				const auto category = ch.category();
+				if (IsOneOf(category, QChar::Separator_Space, QChar::Separator_Line, QChar::Separator_Paragraph, QChar::Other_Control)
+				    || (category >= QChar::Punctuation_Connector && category <= QChar::Punctuation_Other))
+					return QChar { 0x20 };
+
+				return ch;
+			});
+			str.removeIf([](const QChar ch) {
+				return ch != ' ' && !IsOneOf(ch.category(), QChar::Number_DecimalDigit, QChar::Letter_Lowercase);
+			});
+
+			for (auto&& word : str.split(' ', Qt::SkipEmptyParts))
+				if (word.length() > 2)
+					list << std::move(word);
+		}
+
+		auto result = list.join(' ').toStdString();
+		if (result.size() > 10240)
+			result.resize(10240);
+
+		return result;
+	}
+
+public:
+	AnnotationsParser(QIODevice& stream, sqlite3pp::command& command, const std::unordered_map<QString, long long>& books)
+		: SaxParser(stream)
+		, m_command { command }
+		, m_books { books }
+	{
+	}
+
+private: // SaxParser
+	bool OnStartElement(const QString& name, const QString&, const XmlAttributes& attributes) override
+	{
+		if (name == FOLDER)
+		{
+			m_folder = attributes.GetAttribute("name");
+			PLOGD << "load annotations " << m_folder;
+		}
+		else if (name == FILE)
+		{
+			m_file = attributes.GetAttribute("name");
+		}
+
+		return true;
+	}
+
+	bool OnEndElement(const QString& name, const QString&) override
+	{
+		if (name != FILE)
+			return true;
+
+		const QFileInfo fileInfo(m_file);
+
+		const auto annotation = Prepare(std::move(m_annotation));
+		const auto it         = m_books.find(QString("%1/%2").arg(m_folder, m_file));
+		if (it == m_books.end())
+			return true;
+
+		m_command.bind(1, it->second);
+		m_command.bind(2, annotation, sqlite3pp::nocopy);
+
+		m_command.execute();
+		m_command.reset();
+
+		m_annotation = {};
+
+		return true;
+	}
+
+	bool OnCharacters(const QString&, const QString& value) override
+	{
+		m_annotation << value;
+		return true;
+	}
+
+private:
+	sqlite3pp::command&                           m_command;
+	const std::unordered_map<QString, long long>& m_books;
+
+	QString     m_folder;
+	QString     m_file;
+	QStringList m_annotation;
 };
 
 class DatabaseWrapper
@@ -786,6 +888,11 @@ size_t Store(const Path& dbFileName, Data& data)
 			cmd.binder() << static_cast<long long>(item.first) << ToMultiByte(item.second);
 			return cmd.execute();
 		});
+
+		result += StoreRange(dbFileName, "Annotations", "INSERT INTO Annotations (BookID, Text) VALUES(?, ?)", data.annotations, [](sqlite3pp::command& cmd, const auto& item) {
+			cmd.binder() << static_cast<long long>(item.first) << item.second;
+			return cmd.execute();
+		});
 	}
 
 	return result;
@@ -1180,10 +1287,10 @@ private: // IPool
 				});
 
 				if (it == tail.begin())
-					return std::numeric_limits<size_t>::max();
+					return INVALID_INDEX;
 
 				const auto index = ParseFile(folder, zip, fileName, zipDateTime);
-				if (index == std::numeric_limits<size_t>::max())
+				if (index == INVALID_INDEX)
 					return index;
 
 				const QFileInfo fileInfo(*it);
@@ -1215,7 +1322,7 @@ private: // IPool
 				return false;
 
 			const auto index = ParseFile(folder, subZip, *it, zipDateTime);
-			if (index == std::numeric_limits<size_t>::max())
+			if (index == INVALID_INDEX)
 				return false;
 
 			m_data.books[index].fileName = fileInfo.completeBaseName().toStdWString();
@@ -1250,6 +1357,11 @@ private:
 
 		TRY("CollectCompilations", [this] {
 			CollectCompilations();
+			return 0;
+		});
+
+		TRY("CollectAnnotations", [this] {
+			CollectAnnotations();
 			return 0;
 		});
 
@@ -1495,6 +1607,11 @@ private:
 			return 0;
 		});
 
+		TRY("CollectAnnotations", [this] {
+			CollectAnnotations();
+			return 0;
+		});
+
 		TRY("analyze", [&] {
 			return Analyze(dbFileName);
 		});
@@ -1711,6 +1828,54 @@ where b.FileName = ? and b.Ext = ?)");
 		tr.commit();
 	}
 
+	void CollectAnnotations() const
+	{
+		if (!(m_mode & CreateCollectionMode::LoadAnnotations))
+			return;
+
+		const auto compilationsFileName = m_ini(ADDITIONAL_FOLDER) / ANNOTATIONS;
+		if (!exists(compilationsFileName))
+			return;
+
+		const auto fileName = QString::fromStdWString(compilationsFileName);
+		const auto zip      = TRY(QString("open %1").arg(fileName), [&] {
+            return std::make_unique<Zip>(fileName);
+        });
+		if (!zip)
+			return;
+
+		DatabaseWrapper        db(m_ini(DB_PATH));
+		sqlite3pp::transaction tr(db);
+		sqlite3pp::command     command(db, "insert or ignore into Annotations(BookID, Text) values(?, ?)");
+
+		const auto folders = m_data.bookFolders | std::views::transform([](const auto& item) {
+								 return std::make_pair(item.second, QString::fromStdWString(item.first));
+							 })
+		                   | std::ranges::to<std::unordered_map<size_t, QString>>();
+
+		const auto books = m_data.books | std::views::transform([&](const Book& item) {
+							   const auto it = folders.find(item.folder);
+							   assert(it != folders.end());
+							   return std::pair(QString("%1/%2%3").arg(it->second, QString::fromStdWString(item.fileName), QString::fromStdWString(item.format)), static_cast<long long>(item.id));
+						   })
+		                 | std::ranges::to<std::unordered_map<QString, long long>>();
+
+		for (const auto& file : zip->GetFileNameList() | std::views::filter([this](const QString& item) {
+									return m_data.bookFolders.contains(item.toStdWString());
+								}))
+		{
+			const auto        stream = zip->Read(file);
+			AnnotationsParser parser(stream->GetStream(), command, books);
+			parser.Parse();
+		}
+
+		PLOGD << "rebuild Annotations_Search";
+		sqlite3pp::command(db, "INSERT INTO Annotations_Search(Annotations_Search) VALUES('rebuild')").execute();
+
+		PLOGD << "commit Annotations";
+		tr.commit();
+	}
+
 	void AddUnIndexedBooks()
 	{
 		if (!(m_mode & CreateCollectionMode::AddUnIndexedFiles))
@@ -1910,14 +2075,21 @@ where b.FileName = ? and b.Ext = ?)");
 
 	size_t ParseFile(const std::wstring& folder, const Zip& zip, const QString& fileName, const QDateTime& zipDateTime)
 	{
-		auto line = Fb2InpxParser::Parse(QString::fromStdWString(folder), zip, fileName, zipDateTime, !!(m_mode & CreateCollectionMode::MarkUnIndexedFilesAsDeleted)).toStdWString();
+		auto parseResult = Fb2InpxParser::Parse(QString::fromStdWString(folder), zip, fileName, zipDateTime, !!(m_mode & CreateCollectionMode::MarkUnIndexedFilesAsDeleted));
+		auto line        = parseResult.line.toStdWString();
 		if (line.empty())
-			return std::numeric_limits<size_t>::max();
+			return INVALID_INDEX;
 
-		const auto buf = ParseBook(folder, line, m_bookBufMapping);
+		const auto buf        = ParseBook(folder, line, m_bookBufMapping);
+		auto       annotation = !!(m_mode & CreateCollectionMode::LoadAnnotations) ? AnnotationsParser::Prepare(std::move(parseResult.annotation)) : std::string {};
 
 		std::lock_guard lock(m_dataGuard);
-		return AddBook(buf);
+		const auto      index = AddBook(buf);
+
+		if (index != INVALID_INDEX && !annotation.empty())
+			m_data.annotations.emplace_back(m_data.books[index].id, std::move(annotation));
+
+		return index;
 	}
 
 	size_t ParseDate(const std::wstring_view date, Data& data)
@@ -1964,7 +2136,7 @@ where b.FileName = ? and b.Ext = ?)");
 			if (seriesId != -1)
 				m_data.booksSeries[it->second].emplace_back(seriesId, IsOneOf(serNo, 0, -1) ? std::nullopt : std::optional(serNo));
 			if (!inserted)
-				return std::numeric_limits<size_t>::max();
+				return INVALID_INDEX;
 		}
 
 		auto authorIds = ParseItem(buf.AUTHOR, m_data.authors, Fb2InpxParser::LIST_SEPARATOR, &ParseCheckerAuthor);

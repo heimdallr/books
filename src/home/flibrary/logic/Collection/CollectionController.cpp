@@ -93,7 +93,8 @@ public:
 		const auto mode   = Inpx::CreateCollectionMode::None | (dialog->AddUnIndexedBooks() ? Inpx::CreateCollectionMode::AddUnIndexedFiles : Inpx::CreateCollectionMode::None)
 		                | (dialog->MarkUnIndexedBooksAsDeleted() ? Inpx::CreateCollectionMode::MarkUnIndexedFilesAsDeleted : Inpx::CreateCollectionMode::None)
 		                | (dialog->ScanUnIndexedFolders() ? Inpx::CreateCollectionMode::ScanUnIndexedFolders : Inpx::CreateCollectionMode::None)
-		                | (dialog->SkipLostBooks() ? Inpx::CreateCollectionMode::SkipLostBooks : Inpx::CreateCollectionMode::None);
+		                | (dialog->SkipLostBooks() ? Inpx::CreateCollectionMode::SkipLostBooks : Inpx::CreateCollectionMode::None)
+		                | (dialog->LoadAnnotations() ? Inpx::CreateCollectionMode::LoadAnnotations : Inpx::CreateCollectionMode::None);
 		switch (action)
 		{
 			case IAddCollectionDialog::Result::CreateNew:

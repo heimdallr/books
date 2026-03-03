@@ -68,6 +68,10 @@
         <translation>Индексный файл</translation>
     </message>
     <message>
+        <source>Load annotations</source>
+        <translation>Загружать аннотации</translation>
+    </message>
+    <message>
         <source>Mark unindexed books as deleted</source>
         <translation>Помечать неиндексированные книги как удалённые</translation>
     </message>
@@ -4470,6 +4474,10 @@ Try again?</source>
         <translation>&amp;Аннотация</translation>
     </message>
     <message>
+        <source>&amp;Author</source>
+        <translation>&amp;Автор</translation>
+    </message>
+    <message>
         <source>&amp;Clear log</source>
         <translation>О&amp;чистить журнал</translation>
     </message>
@@ -4550,6 +4558,10 @@ Try again?</source>
         <translation>&amp;Скрипты...</translation>
     </message>
     <message>
+        <source>&amp;Series</source>
+        <translation>&amp;Серия</translation>
+    </message>
+    <message>
         <source>&amp;Settings</source>
         <translation>&amp;Настройки</translation>
     </message>
@@ -4566,12 +4578,20 @@ Try again?</source>
         <translation>&amp;Тема</translation>
     </message>
     <message>
+        <source>&amp;Title</source>
+        <translation>На&amp;звание</translation>
+    </message>
+    <message>
         <source>&amp;User data</source>
         <translation>&amp;Пользовательские данные</translation>
     </message>
     <message>
         <source>&amp;View</source>
         <translation>&amp;Вид</translation>
+    </message>
+    <message>
+        <source>A&amp;nnotation</source>
+        <translation>А&amp;ннотация</translation>
     </message>
     <message>
         <source>About the author</source>
@@ -4748,6 +4768,10 @@ Try again?</source>
     <message>
         <source>Search &amp;bar by title</source>
         <translation>Панель поиска по &amp;названию</translation>
+    </message>
+    <message>
+        <source>Search &amp;by</source>
+        <translation>Поиск &amp;по</translation>
     </message>
     <message>
         <source>Search book by title</source>
