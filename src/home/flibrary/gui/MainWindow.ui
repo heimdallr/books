@@ -479,10 +479,10 @@
      <property name="title">
       <string>Search &amp;by</string>
      </property>
-     <addaction name="actionSearchByTitle"/>
-     <addaction name="actionSearchByAuthor"/>
-     <addaction name="actionSearchBySeries"/>
-     <addaction name="actionSearchByAnnotation"/>
+     <addaction name="actionSearchByTITLE"/>
+     <addaction name="actionSearchByAUTHOR"/>
+     <addaction name="actionSearchBySERIES"/>
+     <addaction name="actionSearchByANNOTATION"/>
     </widget>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
@@ -1127,7 +1127,7 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionSearchByTitle">
+  <action name="actionSearchByTITLE">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -1141,7 +1141,7 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionSearchByAuthor">
+  <action name="actionSearchByAUTHOR">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -1155,7 +1155,7 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionSearchBySeries">
+  <action name="actionSearchBySERIES">
    <property name="checkable">
     <bool>true</bool>
    </property>
@@ -1169,7 +1169,7 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionSearchByAnnotation">
+  <action name="actionSearchByANNOTATION">
    <property name="checkable">
     <bool>true</bool>
    </property>

@@ -69,7 +69,12 @@ constexpr auto        SELECT_QSS_FILE                      = QT_TRANSLATE_NOOP("
 constexpr auto        SELECT_SETTINGS_FILE                 = QT_TRANSLATE_NOOP("MainWindow", "Select settings file");
 constexpr auto        QSS_FILE_FILTER                      = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
 constexpr auto        SETTINGS_FILE_FILTER                 = QT_TRANSLATE_NOOP("MainWindow", "Settings files (*.ini);;All files (*.*)");
-constexpr auto        SEARCH_BOOKS_BY_TITLE_PLACEHOLDER    = QT_TRANSLATE_NOOP("MainWindow", "To search for books by author, series, or title, enter the name or title here and press Enter");
+constexpr auto        SEARCH_BOOKS_PLACEHOLDER             = QT_TRANSLATE_NOOP("MainWindow", "To search for books by %1, enter the name or title here and press Enter");
+constexpr auto        SEARCH_BOOKS_PLACEHOLDER_AUTHOR      = QT_TRANSLATE_NOOP("MainWindow", "author");
+constexpr auto        SEARCH_BOOKS_PLACEHOLDER_SERIES      = QT_TRANSLATE_NOOP("MainWindow", "series");
+constexpr auto        SEARCH_BOOKS_PLACEHOLDER_TITLE       = QT_TRANSLATE_NOOP("MainWindow", "title");
+constexpr auto        SEARCH_BOOKS_PLACEHOLDER_OR          = QT_TRANSLATE_NOOP("MainWindow", " or %1");
+constexpr auto        SEARCH_BOOKS_PLACEHOLDER_ANNOTATION  = QT_TRANSLATE_NOOP("MainWindow", "annotation");
 constexpr auto        ENABLE_ALL                           = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
 constexpr auto        DISABLE_ALL                          = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
 constexpr auto        STOP_HTTP                            = QT_TRANSLATE_NOOP("MainWindow", "The HTTP server is still running. Would you like to stop it?");
@@ -97,23 +102,40 @@ constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedCon
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 
+#define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO  \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)       \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(SERIES)       \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(TITLE)        \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(ANNOTATION)
+
 class LineEditPlaceholderTextController final : public QObject
 {
 public:
-	LineEditPlaceholderTextController(MainWindow& mainWindow, QLineEdit& lineEdit, QString placeholderText)
+	LineEditPlaceholderTextController(
+		MainWindow& mainWindow,
+		QLineEdit& lineEdit
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , QAction& action##NAME
+			SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+#undef SEARCH_BOOKS_PLACEHOLDER_ITEM
+	)
 		: QObject(&lineEdit)
 		, m_mainWindow { mainWindow }
 		, m_lineEdit { lineEdit }
-		, m_placeholderText { std::move(placeholderText) }
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , m_action##NAME { action##NAME }
+		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+#undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 	{
-		m_lineEdit.setPlaceholderText(m_placeholderText);
+		m_lineEdit.setPlaceholderText(GetPlaceholderText());
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) QObject::connect(&m_action##NAME, &QAction::toggled, [this]{m_lineEdit.setPlaceholderText(GetPlaceholderText());});
+		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+#undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 	}
 
 private: // QObject
 	bool eventFilter(QObject* watched, QEvent* event) override
 	{
 		if (event->type() == QEvent::Enter)
-			m_lineEdit.setPlaceholderText(m_placeholderText);
+			m_lineEdit.setPlaceholderText(GetPlaceholderText());
 		else if (event->type() == QEvent::Leave)
 			m_lineEdit.setPlaceholderText({});
 		else if (event->type() == QEvent::Show)
@@ -121,10 +143,30 @@ private: // QObject
 		return QObject::eventFilter(watched, event);
 	}
 
+	QString GetPlaceholderText() const
+	{
+		QStringList list;
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) if (m_action##NAME.isVisible() && m_action##NAME.isChecked()) list << Tr(SEARCH_BOOKS_PLACEHOLDER_##NAME);
+		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+#undef SEARCH_BOOKS_PLACEHOLDER_ITEM
+
+		m_lineEdit.setVisible(!list.isEmpty());
+		if (!m_lineEdit.isVisible())
+			return {};
+
+		auto last = list.size() > 1 ? std::move(list.back()) : QString {};
+		if (!last.isEmpty())
+			list.pop_back();
+
+		return Tr(SEARCH_BOOKS_PLACEHOLDER).arg(QString("%1%2").arg(list.join(", "), last.isEmpty() ? "" : Tr(SEARCH_BOOKS_PLACEHOLDER_OR).arg(last)));
+	}
+
 private:
-	MainWindow&   m_mainWindow;
-	QLineEdit&    m_lineEdit;
-	const QString m_placeholderText;
+	MainWindow& m_mainWindow;
+	QLineEdit&  m_lineEdit;
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) QAction& m_action##NAME;
+	SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+#undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 };
 
 std::set<QString> GetQssList()
@@ -375,12 +417,10 @@ private: // ILineOption::IObserver
 		if (books.empty())
 			return;
 
-		auto scriptTemplate = value;
-		auto db             = m_databaseUser->Database();
-
 		const auto converter = logicFactory->CreateFillTemplateConverter();
-		converter->Fill(*db, scriptTemplate, books.front(), Tr(MY_FOLDER));
-		PLOGI << scriptTemplate;
+		auto       db        = m_databaseUser->Database();
+		converter->Fill(*db, value, books.front(), Tr(MY_FOLDER));
+		PLOGI << value;
 	}
 
 	void OnOptionEditingFinished(const QString& /*value*/) override
@@ -512,7 +552,13 @@ private:
 	void ReplaceMenuBar()
 	{
 		PLOGV << "ReplaceMenuBar";
-		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(m_self, *m_ui.lineEditBookTitleToSearch, Tr(SEARCH_BOOKS_BY_TITLE_PLACEHOLDER)));
+		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(
+			m_self,
+			*m_ui.lineEditBookTitleToSearch
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , *m_ui.actionSearchBy##NAME
+				 SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+#undef SEARCH_BOOKS_PLACEHOLDER_ITEM
+		));
 		auto* menuBar              = new QWidget(&m_self);
 		m_searchBooksByTitleLayout = new QHBoxLayout(menuBar);
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -883,10 +929,9 @@ private:
 
 	void ConnectActionsSettingsSearch()
 	{
-		ConnectSettings(m_ui.actionSearchByTitle, Constant::Settings::SEARCH_WITH_TITLE);
-		ConnectSettings(m_ui.actionSearchByAuthor, Constant::Settings::SEARCH_WITH_AUTHOR);
-		ConnectSettings(m_ui.actionSearchBySeries, Constant::Settings::SEARCH_WITH_SERIES);
-		ConnectSettings(m_ui.actionSearchByAnnotation, Constant::Settings::SEARCH_WITH_ANNOTATION);
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) ConnectSettings(m_ui.actionSearchBy##NAME, Constant::Settings::SEARCH_WITH_##NAME);
+		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+#undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 
 		const auto db = m_databaseUser->Database();
 		if (!db)
@@ -894,7 +939,7 @@ private:
 
 		const auto query = db->CreateQuery("SELECT exists(SELECT 42 FROM Annotations)");
 		query->Execute();
-		m_ui.actionSearchByAnnotation->setVisible(query->Get<int>(0) != 0);
+		m_ui.actionSearchByANNOTATION->setVisible(query->Get<int>(0) != 0);
 	}
 
 	void ConnectActionsSettings()
