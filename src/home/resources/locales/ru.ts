@@ -4838,10 +4838,6 @@ Try again?</source>
         <translation>Для поиска книг по %1 введите имя или название здесь и нажмите Enter</translation>
     </message>
     <message>
-        <source>To search for books by author, series, or title, enter the name or title here and press Enter</source>
-        <translation type="vanished">Для поиска книг по автору, серии или названию введите имя или название здесь и нажмите Enter</translation>
-    </message>
-    <message>
         <source>View &amp;Help</source>
         <translation>&amp;Справка</translation>
     </message>
