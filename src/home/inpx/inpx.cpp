@@ -1860,7 +1860,9 @@ where b.FileName = ? and b.Ext = ?)");
 						   })
 		                 | std::ranges::to<std::unordered_map<QString, long long>>();
 
-		for (const auto& file : zip->GetFileNameList())
+		for (const auto& file : zip->GetFileNameList() | std::views::filter([this](const QString& item) {
+									return m_data.bookFolders.contains(item.toStdWString());
+								}))
 		{
 			const auto        stream = zip->Read(file);
 			AnnotationsParser parser(stream->GetStream(), command, books);
