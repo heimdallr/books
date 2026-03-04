@@ -1860,19 +1860,24 @@ where b.FileName = ? and b.Ext = ?)");
 						   })
 		                 | std::ranges::to<std::unordered_map<QString, long long>>();
 
-		for (const auto& file : zip->GetFileNameList() | std::views::filter([this](const QString& item) {
-									return m_data.bookFolders.contains(item.toStdWString());
-								}))
 		{
-			const auto        stream = zip->Read(file);
-			AnnotationsParser parser(stream->GetStream(), command, books);
-			parser.Parse();
+			Timer t(L"collect annotations");
+			for (const auto& file : zip->GetFileNameList() | std::views::filter([this](const QString& item) {
+										return m_data.bookFolders.contains(item.toStdWString());
+									}))
+			{
+				const auto        stream = zip->Read(file);
+				AnnotationsParser parser(stream->GetStream(), command, books);
+				parser.Parse();
+			}
 		}
 
-		PLOGD << "rebuild Annotations_Search";
-		sqlite3pp::command(db, "INSERT INTO Annotations_Search(Annotations_Search) VALUES('rebuild')").execute();
+		{
+			Timer t(L"rebuild Annotations_Search");
+			sqlite3pp::command(db, "INSERT INTO Annotations_Search(Annotations_Search) VALUES('rebuild')").execute();
+		}
 
-		PLOGD << "commit Annotations";
+		Timer t(L"commit Annotations");
 		tr.commit();
 	}
 
