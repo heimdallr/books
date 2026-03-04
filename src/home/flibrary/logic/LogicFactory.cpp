@@ -378,6 +378,9 @@ std::shared_ptr<ILogicFactory::ITemporaryDir> LogicFactory::CreateTemporaryDir(c
 
 Util::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList) const
 {
+	if (!index.isValid() && indexList.isEmpty())
+		return {};
+
 	m_impl->UpdateGenreParents();
 	Util::ExtractedBooks books;
 

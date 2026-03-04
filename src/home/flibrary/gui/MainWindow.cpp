@@ -420,7 +420,7 @@ private: // ILineOption::IObserver
 		const auto converter = logicFactory->CreateFillTemplateConverter();
 		auto       db        = m_databaseUser->Database();
 		converter->Fill(*db, value, books.front(), Tr(MY_FOLDER));
-		PLOGI << value;
+		PLOGI << books.front().dstFileName;
 	}
 
 	void OnOptionEditingFinished(const QString& /*value*/) override
