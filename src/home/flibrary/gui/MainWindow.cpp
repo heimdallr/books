@@ -970,7 +970,7 @@ private:
 		if (!m_collectionController->ActiveCollectionExists())
 			return;
 
-		auto helpFile = QString("%1/faq/%2/index.html").arg(m_collectionController->GetActiveCollection().GetFolder(), Loc::GetLocale(*m_settings));
+		auto helpFile = QString("%1/faq/%2/index.html").arg(m_collectionController->GetActiveCollection().GetAdditionalFolder(), Loc::GetLocale(*m_settings));
 		if (!QFile::exists(helpFile))
 			return;
 
