@@ -325,7 +325,7 @@ private:
 		if (const auto index = m_ui.comboBoxCommandType->findData(commandTypeVar); index >= 0)
 			m_ui.comboBoxCommandType->setCurrentIndex(index);
 
-		const auto commandType = commandTypeVar.value<IScriptController::Command::Type>();
+		const auto commandType  = commandTypeVar.value<IScriptController::Command::Type>();
 		const auto currentIndex = m_ui.viewCommand->currentIndex();
 		FindSecond(COMMAND_GETTERS, commandType).second(m_commandTextWidgets, commandType, currentIndex.data(Role::Command));
 
