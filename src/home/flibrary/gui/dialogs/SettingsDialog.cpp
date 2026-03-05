@@ -170,8 +170,3 @@ SettingsDialog::SettingsDialog(
 }
 
 SettingsDialog::~SettingsDialog() = default;
-
-int SettingsDialog::Exec()
-{
-	return exec();
-}

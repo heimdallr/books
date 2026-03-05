@@ -437,8 +437,3 @@ ScriptDialog::~ScriptDialog()
 {
 	PLOGV << "ScriptDialog destroyed";
 }
-
-int ScriptDialog::Exec()
-{
-	return QDialog::exec();
-}

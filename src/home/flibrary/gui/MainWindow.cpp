@@ -31,8 +31,6 @@
 #include "interface/logic/IUpdateChecker.h"
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/IAlphabetPanel.h"
-#include "interface/ui/dialogs/IScriptDialog.h"
-#include "interface/ui/dialogs/ISettingsDialog.h"
 
 #include "gutil/util.h"
 #include "logging/LogAppender.h"
@@ -957,10 +955,10 @@ private:
 			m_uiFactory->CreateFilterSettingsDialog()->exec();
 		});
 		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] {
-			m_uiFactory->CreateScriptDialog()->Exec();
+			m_uiFactory->CreateScriptDialog()->exec();
 		});
 		connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
-			m_uiFactory->CreateSettingsDialog()->Exec();
+			m_uiFactory->CreateSettingsDialog()->exec();
 		});
 	}
 

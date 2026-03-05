@@ -8,8 +8,6 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IComboBoxTextDialog.h"
-#include "interface/ui/dialogs/IScriptDialog.h"
-#include "interface/ui/dialogs/ISettingsDialog.h"
 
 #include "Hypodermic/Hypodermic.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
@@ -27,6 +25,8 @@
 
 #include "config/git_hash.h"
 #include "config/version.h"
+#include "dialogs/SettingsDialog.h"
+#include "dialogs/script/ScriptDialog.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -143,14 +143,14 @@ std::shared_ptr<IAddCollectionDialog> UiFactory::CreateAddCollectionDialog(std::
 	return m_impl->container.resolve<IAddCollectionDialog>();
 }
 
-std::shared_ptr<IScriptDialog> UiFactory::CreateScriptDialog() const
+std::shared_ptr<QDialog> UiFactory::CreateScriptDialog() const
 {
-	return m_impl->container.resolve<IScriptDialog>();
+	return m_impl->container.resolve<ScriptDialog>();
 }
 
-std::shared_ptr<ISettingsDialog> UiFactory::CreateSettingsDialog() const
+std::shared_ptr<QDialog> UiFactory::CreateSettingsDialog() const
 {
-	return m_impl->container.resolve<ISettingsDialog>();
+	return m_impl->container.resolve<SettingsDialog>();
 }
 
 std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateBooks(QTreeView& parent) const

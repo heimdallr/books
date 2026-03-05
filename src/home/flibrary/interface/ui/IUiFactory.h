@@ -14,8 +14,8 @@ class IUiFactory : virtual public Util::IUiFactory // NOLINT(cppcoreguidelines-s
 public:
 	[[nodiscard]] virtual std::shared_ptr<class TreeView>             CreateTreeViewWidget(enum class ItemType type) const              = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IAddCollectionDialog> CreateAddCollectionDialog(std::filesystem::path inpxFolder) const = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IScriptDialog>        CreateScriptDialog() const                                        = 0;
-	[[nodiscard]] virtual std::shared_ptr<class ISettingsDialog>      CreateSettingsDialog() const                                      = 0;
+	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateScriptDialog() const                                        = 0;
+	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateSettingsDialog() const                                      = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate>    CreateTreeViewDelegateBooks(QTreeView& parent) const              = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate>    CreateTreeViewDelegateNavigation(QAbstractItemView& parent) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateOpdsDialog() const                                          = 0;
