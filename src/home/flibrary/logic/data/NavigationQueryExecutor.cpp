@@ -80,7 +80,7 @@ constexpr auto SEARCH_WITH_ANNOTATION = R"(
          join Search s on Annotations_Search match s.Title
 )";
 
-QString GetSearchWith(const ISettings& settings)
+QString GetSearchWith(const ISettings& settings, const QString& id)
 {
 	QStringList result;
 #define ITEM(NAME, DEFAULT) if (settings.Get(Constant::Settings::NAME, DEFAULT)) result << NAME
@@ -93,7 +93,7 @@ QString GetSearchWith(const ISettings& settings)
 	if (result.isEmpty())
 		result << "select -1";
 
-	return QString(SEARCH_WITH).arg("%1", result.join("union"));
+	return QString(SEARCH_WITH).arg(id, result.join("union"));
 }
 
 using Cache = std::unordered_map<NavigationMode, IDataItem::Ptr>;

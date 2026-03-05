@@ -410,7 +410,7 @@ private:
 		}
 	)
 	{
-		const auto with = queryClause.with(m_settings).arg(navigationId).toStdString();
+		const auto with = queryClause.with(m_settings, navigationId).toStdString();
 
 		{
 			QString booksWhere = queryClause.booksWhere;

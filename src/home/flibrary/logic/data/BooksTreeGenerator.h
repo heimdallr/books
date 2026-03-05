@@ -78,9 +78,9 @@ using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query);
 
 struct QueryClause
 {
-	using WithGetter = QString (*)(const ISettings&);
+	using WithGetter = QString (*)(const ISettings& settings, const QString& id);
 
-	static QString GetWithStub(const ISettings&)
+	static QString GetWithStub(const ISettings&, const QString&)
 	{
 		return {};
 	}
