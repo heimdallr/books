@@ -7,6 +7,8 @@
 
 #include "data/DataItem.h"
 
+#include "log.h"
+
 using namespace HomeCompa::Flibrary;
 
 namespace
@@ -76,12 +78,17 @@ public:
 										return !(item->isSeparator() || actions.contains(item));
 									}))
 				{
+					if (action->objectName().isEmpty())
+					{
+						PLOGW << action->text() << ": objectName is empty";
+						continue;
+					}
+
 					auto& actionItem = addChild(*child, *action, action->text());
 					m_actions.try_emplace(actionItem->GetData(SettingsItem::Column::Key), Item { actionItem, action });
 					if (const auto shortCut = m_settings->Get(GetName(ROOT, actionItem->GetData(SettingsItem::Column::Key))); shortCut.isValid())
 						action->setShortcut(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
 					actionItem->SetData(action->shortcut().toString(), SettingsItem::Column::Value);
-					assert(!actionItem->GetData(SettingsItem::Column::Key).isEmpty());
 				}
 			}
 		};

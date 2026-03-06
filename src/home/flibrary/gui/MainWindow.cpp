@@ -456,7 +456,8 @@ private: // IAlphabetPanel::IObserver
 
 		for (auto* toolBar : m_alphabetPanel->GetToolBars())
 		{
-			auto* action = m_ui.menuAlphabets->addAction(toolBar->accessibleName());
+			const auto name   = toolBar->accessibleName();
+			auto* action = m_ui.menuAlphabets->addAction(name);
 			action->setCheckable(true);
 			action->setChecked(m_alphabetPanel->Visible(toolBar));
 
@@ -710,6 +711,7 @@ private:
 				continue;
 
 			auto* action = m_ui.menuJokes->addAction(title);
+			action->setObjectName(name);
 			action->setProperty(actionName, name);
 			action->setProperty(hasDisclaimer, !disclaimer.isEmpty());
 			action->setCheckable(true);
@@ -737,12 +739,14 @@ private:
 				action->setChecked(checked);
 			}
 		};
-		m_enableAllJokes  = m_ui.menuJokes->addAction(Tr(ENABLE_ALL), [this, checkAll, mayBeChecked] {
-            checkAll(mayBeChecked, true);
-        });
+		m_enableAllJokes = m_ui.menuJokes->addAction(Tr(ENABLE_ALL), [this, checkAll, mayBeChecked] {
+			checkAll(mayBeChecked, true);
+		});
+		m_enableAllJokes->setObjectName(ENABLE_ALL);
 		m_disableAllJokes = m_ui.menuJokes->addAction(Tr(DISABLE_ALL), [this, checkAll, mayBeUnchecked] {
 			checkAll(mayBeUnchecked, false);
 		});
+		m_disableAllJokes->setObjectName(DISABLE_ALL);
 		setEnabled();
 	}
 
@@ -1100,6 +1104,7 @@ private:
 	QAction* CreateStyleAction(QMenu& menu, const IStyleApplier::Type type, const QString& actionName, const QString& name, const QString& file = {})
 	{
 		auto* action = menu.addAction(QFileInfo(actionName).completeBaseName());
+		action->setObjectName(QString::fromUtf8(actionName.toUtf8().toBase64().toHex()));
 
 		action->setProperty(IStyleApplier::ACTION_PROPERTY_THEME_NAME, name);
 		action->setProperty(IStyleApplier::ACTION_PROPERTY_THEME_TYPE, static_cast<int>(type));
@@ -1282,6 +1287,7 @@ private:
 				m_settings->Set(LOG_SEVERITY_KEY, n);
 				m_logController->SetSeverity(n);
 			});
+			action->setObjectName(name);
 			action->setCheckable(true);
 			action->setChecked(n == currentSeverity);
 			group->addAction(action);
@@ -1314,6 +1320,7 @@ private:
 			connect(action, &QAction::triggered, &m_self, [&, id = collection->id] {
 				m_collectionController->SetActiveCollection(id);
 			});
+			action->setObjectName(collection->id);
 			action->setCheckable(true);
 			action->setChecked(active);
 			action->setEnabled(!active);
@@ -1332,6 +1339,7 @@ private:
 	{
 		const auto createAction = [this](const char* name) {
 			auto* action = m_ui.menuNavigation->addAction(Loc::Tr(Loc::NAVIGATION, name));
+			action->setObjectName(name);
 			action->setCheckable(true);
 			action->setChecked(true);
 			ConnectSettings(action, QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(name));
