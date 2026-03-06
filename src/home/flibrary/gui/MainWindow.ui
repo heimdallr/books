@@ -491,6 +491,7 @@
     <addaction name="menuSearch"/>
     <addaction name="actionFilters"/>
     <addaction name="actionScripts"/>
+    <addaction name="actionShowHotkeyDialog"/>
     <addaction name="separator"/>
     <addaction name="actionAllSettings"/>
     <addaction name="actionRestoreDefaultSettings"/>
@@ -1175,6 +1176,14 @@
    </property>
    <property name="text">
     <string>A&amp;nnotation</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowHotkeyDialog">
+   <property name="text">
+    <string>&amp;Hotkeys...</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

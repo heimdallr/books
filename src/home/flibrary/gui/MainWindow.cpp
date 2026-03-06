@@ -957,6 +957,9 @@ private:
 		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] {
 			m_uiFactory->CreateScriptDialog()->exec();
 		});
+		connect(m_ui.actionShowHotkeyDialog, &QAction::triggered, &m_self, [&] {
+			m_uiFactory->CreateHotkeyDialog()->exec();
+		});
 		connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
 			m_uiFactory->CreateSettingsDialog()->exec();
 		});
