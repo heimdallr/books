@@ -17,7 +17,11 @@ public:
 
 private: // IHotkeyManager
 	IDataItem::Ptr GetRootDataItem() const noexcept override;
-	void           Add(QMenuBar& menuBar, const QString& title) override;
+	QAction*       GetAction(const QString& key) const noexcept override;
+
+	void Add(QMenuBar& menuBar, const QString& title) override;
+	void Set(const QString& key, const QString& shortCut) override;
+	bool Reset(const QString& key) override;
 
 private:
 	class Impl;
