@@ -57,7 +57,8 @@ private: // QAbstractItemModel
 			return QIdentityProxyModel::data(index, role);
 
 		const auto sourceIndex = mapToSource(index);
-		return m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
+		auto title = m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
+		return title;
 	}
 
 	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
@@ -81,7 +82,7 @@ private: // QAbstractItemModel
 
 	Qt::ItemFlags flags(const QModelIndex& index) const override
 	{
-		return QIdentityProxyModel::flags(index) | (index.column() == 1 && !!m_hotkeyManager.GetAction(GetKey(index)) ? Qt::ItemIsEditable : Qt::NoItemFlags);
+		return QIdentityProxyModel::flags(index) | (index.column() == 1 && !!m_hotkeyManager.HasHotkey(GetKey(index)) ? Qt::ItemIsEditable : Qt::NoItemFlags);
 	}
 
 private:

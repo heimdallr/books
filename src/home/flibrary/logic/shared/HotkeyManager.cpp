@@ -2,11 +2,13 @@
 
 #include <ranges>
 
-#include <QIdentityProxyModel>
+#include <QComboBox>
 #include <QMenuBar>
+#include <QShortcut>
 
 #include "data/DataItem.h"
 
+#include "BookInteractor.h"
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
@@ -21,6 +23,22 @@ QString GetName(const QString& parent, const QString& child)
 	return QString("%1/%2").arg(parent, child);
 }
 
+template <typename T>
+QString SetShortCutImpl(T* obj, const QKeySequence& value) = delete;
+
+template <>
+QString SetShortCutImpl<QAction>(QAction* obj, const QKeySequence& value)
+{
+	obj->setShortcut(value);
+	return obj->shortcut().toString(QKeySequence::PortableText);
+};
+template <>
+QString SetShortCutImpl<QShortcut>(QShortcut* obj, const QKeySequence& value)
+{
+	obj->setKey(value);
+	return obj->key().toString(QKeySequence::PortableText);
+}
+
 }
 
 class HotkeyManager::Impl
@@ -28,7 +46,24 @@ class HotkeyManager::Impl
 	struct Item
 	{
 		IDataItem::Ptr item;
-		QAction*       action;
+		QAction*       action { nullptr };
+		QShortcut*     shortcut { nullptr };
+
+		QString SetShortCut(const QString& value = {}) const
+		{
+			item->SetData(value, SettingsItem::Column::Value);
+
+			const auto keySequence = value.isEmpty() ? QKeySequence {} : QKeySequence(value, QKeySequence::PortableText);
+
+			if (action)
+				return SetShortCutImpl(action, keySequence);
+
+			if (shortcut)
+				return SetShortCutImpl(shortcut, keySequence);
+
+			assert(false && "bad logic");
+			return value;
+		}
 	};
 
 public:
@@ -42,13 +77,13 @@ public:
 		return m_root;
 	}
 
-	QAction* GetAction(const QString& key) const noexcept
+	bool HasHotkey(const QString& key) const noexcept
 	{
 		const auto it = m_actions.find(key);
-		return it != m_actions.end() ? it->second.action : nullptr;
+		return it != m_actions.end();
 	}
 
-	void Add(QMenuBar& menuBar, const QString& title)
+	void Add(const QMenuBar& menuBar, const QString& title)
 	{
 		auto& menuBarItem = m_root->AppendChild(SettingsItem::Create());
 		menuBarItem->SetData(menuBar.objectName(), SettingsItem::Column::Key);
@@ -97,15 +132,37 @@ public:
 		enumerate(menuBar.findChildren<QMenu*>(Qt::FindDirectChildrenOnly), *menuBarItem, actions, enumerate);
 	}
 
+	void Add(QComboBox& comboBox, const QString& title)
+	{
+		auto& comboBoxItem = m_root->AppendChild(SettingsItem::Create());
+		comboBoxItem->SetData(comboBox.objectName(), SettingsItem::Column::Key);
+		comboBoxItem->SetData(title, SettingsItem::Column::Title);
+
+		for (int i = 0, sz = comboBox.count(); i < sz; ++i)
+		{
+			auto& child = comboBoxItem->AppendChild(SettingsItem::Create());
+			child->SetData(GetName(comboBoxItem->GetData(SettingsItem::Column::Key), comboBox.itemData(i).toString()), SettingsItem::Column::Key);
+			child->SetData(comboBox.itemText(i), SettingsItem::Column::Title);
+
+			auto* shortcut = new QShortcut(&comboBox);
+			shortcut->setObjectName(comboBox.itemData(i).toString());
+			QObject::connect(shortcut, &QShortcut::activated, [comboBox = &comboBox, i] {
+				comboBox->setCurrentIndex(i);
+			});
+			m_actions.try_emplace(child->GetData(SettingsItem::Column::Key), Item { .item = child, .shortcut = shortcut });
+			if (const auto shortCut = m_settings->Get(GetName(ROOT, child->GetData(SettingsItem::Column::Key))); shortCut.isValid())
+				shortcut->setKey(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
+			child->SetData(shortcut->key().toString(), SettingsItem::Column::Value);
+		}
+	}
+
 	void Set(const QString& key, const QString& shortCut)
 	{
 		const auto it = m_actions.find(key);
 		assert(it != m_actions.end());
-		auto& [item, action] = it->second;
 
-		item->SetData(shortCut, SettingsItem::Column::Value);
-		action->setShortcut(QKeySequence(shortCut, QKeySequence::PortableText));
-		m_settings->Set(GetName(ROOT, item->GetData(SettingsItem::Column::Key)), action->shortcut().toString());
+		auto value = it->second.SetShortCut(shortCut);
+		m_settings->Set(GetName(ROOT, it->second.item->GetData(SettingsItem::Column::Key)), value);
 	}
 
 	bool Reset(const QString& key)
@@ -114,11 +171,8 @@ public:
 		if (it == m_actions.end())
 			return false;
 
-		auto& [item, action] = it->second;
-
-		item->SetData({}, SettingsItem::Column::Value);
-		action->setShortcut(QKeySequence {});
-		m_settings->Remove(GetName(ROOT, item->GetData(SettingsItem::Column::Key)));
+		it->second.SetShortCut();
+		m_settings->Remove(GetName(ROOT, it->second.item->GetData(SettingsItem::Column::Key)));
 
 		return true;
 	}
@@ -143,14 +197,19 @@ IDataItem::Ptr HotkeyManager::GetRootDataItem() const noexcept
 	return m_impl->GetRootDataItem();
 }
 
-QAction* HotkeyManager::GetAction(const QString& key) const noexcept
+bool HotkeyManager::HasHotkey(const QString& key) const noexcept
 {
-	return m_impl->GetAction(key);
+	return m_impl->HasHotkey(key);
 }
 
-void HotkeyManager::Add(QMenuBar& menuBar, const QString& title)
+void HotkeyManager::Add(const QMenuBar& menuBar, const QString& title)
 {
 	m_impl->Add(menuBar, title);
+}
+
+void HotkeyManager::Add(QComboBox& comboBox, const QString& title)
+{
+	m_impl->Add(comboBox, title);
 }
 
 void HotkeyManager::Set(const QString& key, const QString& shortCut)

@@ -17,9 +17,10 @@ public:
 
 private: // IHotkeyManager
 	IDataItem::Ptr GetRootDataItem() const noexcept override;
-	QAction*       GetAction(const QString& key) const noexcept override;
+	bool           HasHotkey(const QString& key) const noexcept override;
 
-	void Add(QMenuBar& menuBar, const QString& title) override;
+	void Add(const QMenuBar& menuBar, const QString& title) override;
+	void Add(QComboBox& comboBox, const QString& title) override;
 	void Set(const QString& key, const QString& shortCut) override;
 	bool Reset(const QString& key) override;
 
@@ -28,4 +29,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary
