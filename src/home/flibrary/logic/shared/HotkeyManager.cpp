@@ -14,7 +14,7 @@ using namespace HomeCompa::Flibrary;
 namespace
 {
 
-constexpr auto ROOT = "Hotkeys";
+constexpr auto ROOT = "ui/Hotkeys";
 
 QString GetName(const QString& parent, const QString& child)
 {
