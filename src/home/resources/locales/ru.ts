@@ -2598,6 +2598,17 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>HotkeyDialog</name>
+    <message>
+        <source>Hotkey settings</source>
+        <translation>Настройка горячих клавиш</translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation>Сброс</translation>
+    </message>
+</context>
+<context>
     <name>Http</name>
     <message>
         <source>Authentication required</source>
@@ -4714,6 +4725,10 @@ Try again?</source>
         <translation>Перейти к у&amp;прощенному веб-интерфейсу</translation>
     </message>
     <message>
+        <source>Hot&amp;keys...</source>
+        <translation>Горячие &amp;клавиши...</translation>
+    </message>
+    <message>
         <source>Http server management</source>
         <translation>Управление HTTP-сервером</translation>
     </message>
@@ -4732,6 +4747,10 @@ Try again?</source>
     <message>
         <source>Log &amp;verbosity level</source>
         <translation>&amp;Уровень детализации журнала</translation>
+    </message>
+    <message>
+        <source>Main menu</source>
+        <translation>Главное меню</translation>
     </message>
     <message>
         <source>My export folder</source>
@@ -5535,12 +5554,20 @@ Try again?</source>
 <context>
     <name>TreeView</name>
     <message>
+        <source>Books view mode</source>
+        <translation>Режим просмотра книг</translation>
+    </message>
+    <message>
         <source>Filter</source>
         <translation>Фильтр</translation>
     </message>
     <message>
         <source>Find</source>
         <translation>Поиск</translation>
+    </message>
+    <message>
+        <source>Navigation</source>
+        <translation>Навигация</translation>
     </message>
 </context>
 <context>
