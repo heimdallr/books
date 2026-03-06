@@ -190,8 +190,9 @@ public:
 		m_ui.view->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
 		m_ui.view->header()->setSectionResizeMode(0, QHeaderView::Stretch);
 		m_ui.view->setItemDelegateForColumn(1, new HotkeyDelegate(&m_self));
-		m_ui.view->expand(m_model->index(0, 0));
 		m_ui.view->setCurrentIndex({});
+		for (int i = 0, sz = m_model->rowCount(); i < sz; ++i)
+			m_ui.view->expand(m_model->index(i, 0));
 
 		connect(m_ui.view, &QWidget::customContextMenuRequested, &self, [this] {
 			CreateContextMenu();

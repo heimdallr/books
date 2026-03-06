@@ -550,9 +550,6 @@
    <property name="text">
     <string>Add &amp;new collection...</string>
    </property>
-   <property name="shortcut">
-    <string notr="true"/>
-   </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
@@ -1183,7 +1180,7 @@
   </action>
   <action name="actionShowHotkeyDialog">
    <property name="text">
-    <string>&amp;Hotkeys...</string>
+    <string>Hot&amp;keys...</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
