@@ -105,6 +105,7 @@ public:
 		{
 			Key = 0,
 			Value,
+			Title,
 			Last
 		};
 	};

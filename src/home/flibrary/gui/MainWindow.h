@@ -11,6 +11,7 @@
 #include "interface/logic/ICommandLine.h"
 #include "interface/logic/IDatabaseChecker.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IHotkeyManager.h"
 #include "interface/logic/IJokeRequesterFactory.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
@@ -61,6 +62,7 @@ public:
 		std::shared_ptr<LogItemDelegate>                logItemDelegate,
 		std::shared_ptr<ILineOption>                    lineOption,
 		std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
+		std::shared_ptr<IHotkeyManager>                 hotkeyManager,
 		QWidget*                                        parent = nullptr
 	);
 	~MainWindow() override;

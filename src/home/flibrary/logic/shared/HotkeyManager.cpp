@@ -1,26 +1,103 @@
 #include "HotkeyManager.h"
 
+#include <ranges>
+
+#include <QIdentityProxyModel>
+#include <QMenuBar>
+
 #include "data/DataItem.h"
 
 using namespace HomeCompa::Flibrary;
 
+namespace
+{
+
+constexpr auto ROOT = "Hotkeys";
+
+QString GetName(const QString& parent, const QString& child)
+{
+	return QString("%1/%2").arg(parent, child);
+}
+
+}
+
 class HotkeyManager::Impl
 {
 public:
+	explicit Impl(std::shared_ptr<ISettings> settings)
+		: m_settings { std::move(settings) }
+	{
+	}
+
 	IDataItem::Ptr GetRootDataItem() const noexcept
 	{
 		return m_root;
 	}
 
+	void Add(QMenuBar& menuBar, const QString& title)
+	{
+		auto& menuBarItem = m_root->AppendChild(SettingsItem::Create());
+		menuBarItem->SetData(menuBar.objectName(), SettingsItem::Column::Key);
+		menuBarItem->SetData(title, SettingsItem::Column::Title);
+
+		const auto removeAmp = [](QString str) {
+			return str.remove('&');
+		};
+
+		const auto addChild = [&](IDataItem& parent, const QObject& obj, QString objTitle) -> IDataItem::Ptr& {
+			auto child = SettingsItem::Create();
+			child->SetData(GetName(parent.GetData(SettingsItem::Column::Key), obj.objectName()), SettingsItem::Column::Key);
+			child->SetData(removeAmp(std::move(objTitle)), SettingsItem::Column::Title);
+			return parent.AppendChild(std::move(child));
+		};
+
+		const auto enumerate = [&](const QList<QMenu*>& menuList, IDataItem& parent, std::unordered_set<const QAction*>& menuActions, const auto& r) -> void {
+			for (const auto* menu : menuList)
+			{
+				menuActions.emplace(menu->menuAction());
+				auto& child = addChild(parent, *menu, menu->title());
+
+				std::unordered_set<const QAction*> actions;
+				r(menu->findChildren<QMenu*>(Qt::FindDirectChildrenOnly), *child, actions, r);
+
+				for (auto* action : menu->actions() | std::views::filter([&](const QAction* item) {
+										return !(item->isSeparator() || actions.contains(item));
+									}))
+				{
+					auto& actionItem = addChild(*child, *action, action->text());
+					m_actions.try_emplace(actionItem->GetData(SettingsItem::Column::Key), action);
+					if (const auto shortCut = m_settings->Get(GetName(ROOT, actionItem->GetData(SettingsItem::Column::Key))); shortCut.isValid())
+						action->setShortcut(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
+					actionItem->SetData(action->shortcut().toString(), SettingsItem::Column::Value);
+				}
+			}
+		};
+
+		std::unordered_set<const QAction*> actions;
+		enumerate(menuBar.findChildren<QMenu*>(Qt::FindDirectChildrenOnly), *menuBarItem, actions, enumerate);
+	}
+
 private:
+	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
+
 	IDataItem::Ptr m_root { SettingsItem::Create() };
+
+	std::unordered_map<QString, QAction*> m_actions;
 };
 
-HotkeyManager::HotkeyManager() = default;
+HotkeyManager::HotkeyManager(std::shared_ptr<ISettings> settings)
+	: m_impl(std::move(settings))
+{
+}
 
 HotkeyManager::~HotkeyManager() = default;
 
 IDataItem::Ptr HotkeyManager::GetRootDataItem() const noexcept
 {
 	return m_impl->GetRootDataItem();
+}
+
+void HotkeyManager::Add(QMenuBar& menuBar, const QString& title)
+{
+	m_impl->Add(menuBar, title);
 }

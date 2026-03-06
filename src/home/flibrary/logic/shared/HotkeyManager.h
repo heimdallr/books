@@ -12,11 +12,12 @@ class HotkeyManager final : virtual public IHotkeyManager
 	NON_COPY_MOVABLE(HotkeyManager)
 
 public:
-	HotkeyManager();
+	explicit HotkeyManager(std::shared_ptr<ISettings> settings);
 	~HotkeyManager() override;
 
 private: // IHotkeyManager
 	IDataItem::Ptr GetRootDataItem() const noexcept override;
+	void           Add(QMenuBar& menuBar, const QString& title) override;
 
 private:
 	class Impl;
