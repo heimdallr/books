@@ -2586,6 +2586,24 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>HotkeyDialog</name>
+    <message>
+        <source>Hotkey settings</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>HotkeyManager</name>
+    <message>
+        <source>Book</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>Http</name>
     <message>
         <source>Authentication required</source>
@@ -4702,6 +4720,10 @@ Try again?</source>
         <translation>Go to the &amp;simplified web interface</translation>
     </message>
     <message>
+        <source>Hot&amp;keys...</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Http server management</source>
         <translation></translation>
     </message>
@@ -4719,6 +4741,10 @@ Try again?</source>
     </message>
     <message>
         <source>Log &amp;verbosity level</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Main menu</source>
         <translation></translation>
     </message>
     <message>
@@ -5520,12 +5546,20 @@ Try again?</source>
 <context>
     <name>TreeView</name>
     <message>
+        <source>Books view mode</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Filter</source>
         <translation></translation>
     </message>
     <message>
         <source>Find</source>
         <translation>Search</translation>
+    </message>
+    <message>
+        <source>Navigation</source>
+        <translation></translation>
     </message>
 </context>
 <context>

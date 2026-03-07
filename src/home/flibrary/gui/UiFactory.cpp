@@ -14,7 +14,10 @@
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
 #include "dialogs/AddCollectionDialog.h"
 #include "dialogs/FilterSettingsDialog.h"
+#include "dialogs/HotkeyDialog.h"
 #include "dialogs/OpdsDialog.h"
+#include "dialogs/SettingsDialog.h"
+#include "dialogs/script/ScriptDialog.h"
 #include "version/AppVersion.h"
 
 #include "AuthorReview.h"
@@ -25,8 +28,6 @@
 
 #include "config/git_hash.h"
 #include "config/version.h"
-#include "dialogs/SettingsDialog.h"
-#include "dialogs/script/ScriptDialog.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -168,6 +169,11 @@ std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateNavigation(Q
 std::shared_ptr<QDialog> UiFactory::CreateOpdsDialog() const
 {
 	return m_impl->container.resolve<OpdsDialog>();
+}
+
+std::shared_ptr<QDialog> UiFactory::CreateHotkeyDialog() const
+{
+	return m_impl->container.resolve<HotkeyDialog>();
 }
 
 std::shared_ptr<QDialog> UiFactory::CreateFilterSettingsDialog() const

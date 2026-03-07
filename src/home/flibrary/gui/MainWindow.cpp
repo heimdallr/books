@@ -77,6 +77,7 @@ constexpr auto        ENABLE_ALL                           = QT_TRANSLATE_NOOP("
 constexpr auto        DISABLE_ALL                          = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
 constexpr auto        STOP_HTTP                            = QT_TRANSLATE_NOOP("MainWindow", "The HTTP server is still running. Would you like to stop it?");
 constexpr auto        MY_FOLDER                            = QT_TRANSLATE_NOOP("MainWindow", "My export folder");
+constexpr auto        MAIN_MENU                            = QT_TRANSLATE_NOOP("MainWindow", "Main menu");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
 	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
@@ -211,7 +212,8 @@ public:
 		std::shared_ptr<QWidget>                        progressBar,
 		std::shared_ptr<QStyledItemDelegate>            logItemDelegate,
 		std::shared_ptr<ILineOption>                    lineOption,
-		std::shared_ptr<IAlphabetPanel>                 alphabetPanel
+		std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
+		std::shared_ptr<IHotkeyManager>                 hotkeyManager
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
@@ -233,6 +235,7 @@ public:
 		, m_logItemDelegate { std::move(logItemDelegate) }
 		, m_lineOption { std::move(lineOption) }
 		, m_alphabetPanel { std::move(alphabetPanel) }
+		, m_hotkeyManager { std::move(hotkeyManager) }
 		, m_navigationViewController { ILogicFactory::Lock(m_logicFactory)->GetTreeViewController(ItemType::Navigation) }
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
 		, m_navigationWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Navigation) }
@@ -243,6 +246,7 @@ public:
 		CreateLogMenu();
 		CreateCollectionsMenu();
 		CreateViewNavigationMenu();
+		SetupHotkeys();
 		LoadGeometry();
 		StartDelayed([this, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable {
 			if (m_collectionController->IsEmpty() || !commandLine->GetInpxDir().empty())
@@ -452,7 +456,8 @@ private: // IAlphabetPanel::IObserver
 
 		for (auto* toolBar : m_alphabetPanel->GetToolBars())
 		{
-			auto* action = m_ui.menuAlphabets->addAction(toolBar->accessibleName());
+			const auto name   = toolBar->accessibleName();
+			auto* action = m_ui.menuAlphabets->addAction(name);
 			action->setCheckable(true);
 			action->setChecked(m_alphabetPanel->Visible(toolBar));
 
@@ -706,6 +711,7 @@ private:
 				continue;
 
 			auto* action = m_ui.menuJokes->addAction(title);
+			action->setObjectName(name);
 			action->setProperty(actionName, name);
 			action->setProperty(hasDisclaimer, !disclaimer.isEmpty());
 			action->setCheckable(true);
@@ -733,12 +739,14 @@ private:
 				action->setChecked(checked);
 			}
 		};
-		m_enableAllJokes  = m_ui.menuJokes->addAction(Tr(ENABLE_ALL), [this, checkAll, mayBeChecked] {
-            checkAll(mayBeChecked, true);
-        });
+		m_enableAllJokes = m_ui.menuJokes->addAction(Tr(ENABLE_ALL), [this, checkAll, mayBeChecked] {
+			checkAll(mayBeChecked, true);
+		});
+		m_enableAllJokes->setObjectName(ENABLE_ALL);
 		m_disableAllJokes = m_ui.menuJokes->addAction(Tr(DISABLE_ALL), [this, checkAll, mayBeUnchecked] {
 			checkAll(mayBeUnchecked, false);
 		});
+		m_disableAllJokes->setObjectName(DISABLE_ALL);
 		setEnabled();
 	}
 
@@ -957,6 +965,9 @@ private:
 		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] {
 			m_uiFactory->CreateScriptDialog()->exec();
 		});
+		connect(m_ui.actionShowHotkeyDialog, &QAction::triggered, &m_self, [&] {
+			m_uiFactory->CreateHotkeyDialog()->exec();
+		});
 		connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
 			m_uiFactory->CreateSettingsDialog()->exec();
 		});
@@ -1093,6 +1104,7 @@ private:
 	QAction* CreateStyleAction(QMenu& menu, const IStyleApplier::Type type, const QString& actionName, const QString& name, const QString& file = {})
 	{
 		auto* action = menu.addAction(QFileInfo(actionName).completeBaseName());
+		action->setObjectName(QString::fromUtf8(actionName.toUtf8().toBase64().toHex()));
 
 		action->setProperty(IStyleApplier::ACTION_PROPERTY_THEME_NAME, name);
 		action->setProperty(IStyleApplier::ACTION_PROPERTY_THEME_TYPE, static_cast<int>(type));
@@ -1275,6 +1287,7 @@ private:
 				m_settings->Set(LOG_SEVERITY_KEY, n);
 				m_logController->SetSeverity(n);
 			});
+			action->setObjectName(name);
 			action->setCheckable(true);
 			action->setChecked(n == currentSeverity);
 			group->addAction(action);
@@ -1307,6 +1320,7 @@ private:
 			connect(action, &QAction::triggered, &m_self, [&, id = collection->id] {
 				m_collectionController->SetActiveCollection(id);
 			});
+			action->setObjectName(collection->id);
 			action->setCheckable(true);
 			action->setChecked(active);
 			action->setEnabled(!active);
@@ -1325,6 +1339,7 @@ private:
 	{
 		const auto createAction = [this](const char* name) {
 			auto* action = m_ui.menuNavigation->addAction(Loc::Tr(Loc::NAVIGATION, name));
+			action->setObjectName(name);
 			action->setCheckable(true);
 			action->setChecked(true);
 			ConnectSettings(action, QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(name));
@@ -1336,6 +1351,11 @@ private:
 #define NAVIGATION_MODE_ITEM(NAME) createAction(#NAME);
 		NAVIGATION_MODE_ITEMS_X_MACRO
 #undef NAVIGATION_MODE_ITEM
+	}
+
+	void SetupHotkeys()
+	{
+		m_hotkeyManager->Add(*m_ui.menuBar, Tr(MAIN_MENU));
 	}
 
 	void CheckForUpdates(const bool force) const
@@ -1460,6 +1480,7 @@ private:
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr>    m_logItemDelegate;
 	PropagateConstPtr<ILineOption, std::shared_ptr>            m_lineOption;
 	PropagateConstPtr<IAlphabetPanel, std::shared_ptr>         m_alphabetPanel;
+	PropagateConstPtr<IHotkeyManager, std::shared_ptr>         m_hotkeyManager;
 
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationViewController;
 
@@ -1510,6 +1531,7 @@ MainWindow::MainWindow(
 	std::shared_ptr<LogItemDelegate>                logItemDelegate,
 	std::shared_ptr<ILineOption>                    lineOption,
 	std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
+	std::shared_ptr<IHotkeyManager>                 hotkeyManager,
 	QWidget*                                        parent
 )
 	: QMainWindow(parent)
@@ -1534,7 +1556,8 @@ MainWindow::MainWindow(
 		  std::move(progressBar),
 		  std::move(logItemDelegate),
 		  std::move(lineOption),
-		  std::move(alphabetPanel)
+		  std::move(alphabetPanel),
+		  std::move(hotkeyManager)
 	  )
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));

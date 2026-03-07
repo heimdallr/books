@@ -4,6 +4,7 @@
 
 #include <ranges>
 
+#include <QIdentityProxyModel>
 #include <QMenu>
 
 #include "interface/Localization.h"
@@ -65,6 +66,31 @@ QString GetKey(QModelIndex index)
 	return result.join('/');
 }
 
+class Model final : public QIdentityProxyModel
+{
+public:
+	static std::unique_ptr<QAbstractItemModel> Create(const IModelProvider& modelProvider, const ISettings& settings)
+	{
+		return std::make_unique<Model>(modelProvider.CreateTreeModel(CreateModelData(settings)));
+	}
+
+	explicit Model(std::shared_ptr<QAbstractItemModel> source, QObject* parent = nullptr)
+		: QIdentityProxyModel(parent)
+		, m_source { std::move(source) }
+	{
+		QIdentityProxyModel::setSourceModel(m_source.get());
+	}
+
+private: // QAbstractItemModel
+	[[nodiscard]] int columnCount(const QModelIndex&) const override
+	{
+		return 2;
+	}
+
+private:
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_source;
+};
+
 } // namespace
 
 class SettingsDialog::Impl final
@@ -85,7 +111,7 @@ public:
 		, GeometryRestorableObserver(self)
 		, m_self { self }
 		, m_settings { std::move(settings) }
-		, m_model { modelProvider.CreateTreeModel(CreateModelData(*m_settings)) }
+		, m_model { Model::Create(modelProvider, *m_settings) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
 	{
@@ -149,7 +175,7 @@ private:
 	QWidget&                                                m_self;
 	Ui::SettingsDialog                                      m_ui;
 	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_model;
+	PropagateConstPtr<QAbstractItemModel>                   m_model;
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
 

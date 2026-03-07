@@ -2598,6 +2598,24 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>HotkeyDialog</name>
+    <message>
+        <source>Hotkey settings</source>
+        <translation>Налаштування гарячих клавіш</translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation>Скидання</translation>
+    </message>
+</context>
+<context>
+    <name>HotkeyManager</name>
+    <message>
+        <source>Book</source>
+        <translation>Книга</translation>
+    </message>
+</context>
+<context>
     <name>Http</name>
     <message>
         <source>Authentication required</source>
@@ -4714,6 +4732,10 @@ Try again?</source>
         <translation>Перейти до с&amp;прощеного веб-інтерфейсу</translation>
     </message>
     <message>
+        <source>Hot&amp;keys...</source>
+        <translation>Гарячі &amp;клавіші...</translation>
+    </message>
+    <message>
         <source>Http server management</source>
         <translation>Керування сервером Http</translation>
     </message>
@@ -4732,6 +4754,10 @@ Try again?</source>
     <message>
         <source>Log &amp;verbosity level</source>
         <translation>&amp;Рівень деталізації журналу</translation>
+    </message>
+    <message>
+        <source>Main menu</source>
+        <translation>Головне меню</translation>
     </message>
     <message>
         <source>My export folder</source>
@@ -5535,12 +5561,20 @@ Try again?</source>
 <context>
     <name>TreeView</name>
     <message>
+        <source>Books view mode</source>
+        <translation>Режим перегляду книг</translation>
+    </message>
+    <message>
         <source>Filter</source>
         <translation>Фільтр</translation>
     </message>
     <message>
         <source>Find</source>
         <translation>Пошук</translation>
+    </message>
+    <message>
+        <source>Navigation</source>
+        <translation>Навігація</translation>
     </message>
 </context>
 <context>

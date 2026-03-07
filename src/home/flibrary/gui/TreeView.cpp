@@ -48,6 +48,10 @@ using namespace Flibrary;
 namespace
 {
 
+constexpr auto CONTEXT        = "TreeView";
+constexpr auto NAVIGATION     = QT_TRANSLATE_NOOP("TreeView", "Navigation");
+constexpr auto BOOK_VIEW_MODE = QT_TRANSLATE_NOOP("TreeView", "Books view mode");
+
 constexpr auto VALUE_MODE_KEY                     = "ui/%1/ValueMode";
 constexpr auto COLUMN_WIDTH_LOCAL_KEY             = "%1/Width";
 constexpr auto COLUMN_INDEX_LOCAL_KEY             = "%1/Index";
@@ -59,6 +63,8 @@ constexpr auto RECENT_LANG_FILTER_KEY             = "ui/language";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTableColumnSettings";
 constexpr auto HASH_CONTEXT_MENU_ENABLED          = "Preferences/Books/ContextMenu/HashEnabled";
 constexpr auto LAST                               = "Last";
+
+TR_DEF
 
 class HeaderView final : public QHeaderView
 {
@@ -389,6 +395,7 @@ class TreeView::Impl final
 	, IFilterProvider::IObserver
 	, ModeComboBox::IValueApplier
 	, HeaderView::IObserver
+	, IHotkeyManager::IBookMenuProvider
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -400,6 +407,7 @@ public:
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IUiFactory>                uiFactory,
 		std::shared_ptr<IFilterProvider>           filterProvider,
+		std::shared_ptr<IHotkeyManager>            hotkeyManager,
 		std::shared_ptr<ItemViewToolTipper>        itemViewToolTipper,
 		std::shared_ptr<ScrollBarController>       scrollBarController
 	)
@@ -409,6 +417,7 @@ public:
 		, m_settings { std::move(settings) }
 		, m_uiFactory { std::move(uiFactory) }
 		, m_filterProvider { std::move(filterProvider) }
+		, m_hotkeyManager { std::move(hotkeyManager) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
 		, m_delegate { std::shared_ptr<ITreeViewDelegate>() }
@@ -611,6 +620,40 @@ private: // HeaderView::IObserver
 	QAbstractItemView& GetView() noexcept override
 	{
 		return *m_ui.treeView;
+	}
+
+private: // IHotkeyManager::IBookMenuProvider
+	void RequestBookMenu(RequestMenuCallback callback) override
+	{
+		m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [callback = std::move(callback)](const QString& id, const IDataItem::Ptr& item) {
+			callback(id, item);
+		});
+	}
+
+	void OnHotkeyActivated(const QString& key) override
+	{
+		m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [this, key](const QString& /*id*/, const IDataItem::Ptr& item) {
+			const auto find = [&](const QString& id, const IDataItem& parent, const auto& r) -> IDataItem::Ptr {
+				for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
+				{
+					auto       child   = parent.GetChild(i);
+					if (child->GetData(MenuItem::Column::Key).isEmpty())
+						continue;
+
+					const auto childId = QString("%1/%2").arg(id, child->GetData(MenuItem::Column::Key));
+					if (childId == key)
+						return child;
+
+					if (auto c = r(childId, *child, r))
+						return c;
+				}
+
+				return nullptr;
+			};
+
+			if (auto child = find("Book", *item, find))
+				OnContextMenuTriggered(std::move(child));
+		});
 	}
 
 private:
@@ -824,15 +867,8 @@ private:
 				const auto checkable = getBool(*child, MenuItem::Column::Checkable, false);
 				const auto checked   = getBool(*child, MenuItem::Column::Checked, false);
 
-				auto* action = subMenu->addAction(titleText, [&, child = std::move(child)]() mutable {
-					const auto& view = *m_ui.treeView;
-
-					auto selected           = view.selectionModel()->selectedIndexes();
-					const auto [begin, end] = std::ranges::remove_if(selected, [](const auto& index) {
-						return index.column() != 0;
-					});
-					selected.erase(begin, end);
-					m_controller->OnContextMenuTriggered(view.model(), view.currentIndex(), selected, std::move(child));
+				auto* action = subMenu->addAction(titleText, [this, child = std::move(child)]() mutable {
+					OnContextMenuTriggered(std::move(child));
 				});
 				action->setStatusTip(statusTip);
 				action->setEnabled(enabled);
@@ -845,6 +881,18 @@ private:
 			if (parent->GetChildCount() > 16)
 				subMenu->installEventFilter(&m_menuEventFilter);
 		}
+	}
+
+	void OnContextMenuTriggered(IDataItem::Ptr item)
+	{
+		const auto& view = *m_ui.treeView;
+
+		auto selected           = view.selectionModel()->selectedIndexes();
+		const auto [begin, end] = std::ranges::remove_if(selected, [](const auto& index) {
+			return index.column() != 0;
+		});
+		selected.erase(begin, end);
+		m_controller->OnContextMenuTriggered(view.model(), view.currentIndex(), selected, std::move(item));
 	}
 
 	void Setup()
@@ -860,6 +908,9 @@ private:
 			});
 			connect(m_booksHeaderView, &QHeaderView::sectionMoved, &m_self, [this] {
 				SaveHeaderLayout();
+			});
+			QTimer::singleShot(0, [this] {
+				m_hotkeyManager->SetBookMenuProvider(this);
 			});
 		}
 
@@ -932,6 +983,10 @@ private:
 			m_ui.cbMode->setItemData(m_ui.cbMode->count() - 1, id, Qt::UserRole + 1);
 		}
 		m_ui.cbMode->setCurrentIndex(-1);
+
+		QTimer::singleShot(0, [this] {
+			m_hotkeyManager->Add(*m_ui.cbMode, Tr(IsNavigation() ? NAVIGATION : BOOK_VIEW_MODE));
+		});
 
 		const auto it = std::ranges::find_if(ModeComboBox::VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()](const auto& item) {
 			return mode == item.first;
@@ -1308,6 +1363,7 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>          m_uiFactory;
 	PropagateConstPtr<IFilterProvider, std::shared_ptr>     m_filterProvider;
+	PropagateConstPtr<IHotkeyManager, std::shared_ptr>      m_hotkeyManager;
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
 	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr>   m_delegate;
@@ -1337,12 +1393,23 @@ TreeView::TreeView(
 	std::shared_ptr<ISettings>                  settings,
 	std::shared_ptr<IUiFactory>                 uiFactory,
 	std::shared_ptr<IFilterProvider>            filterProvider,
+	std::shared_ptr<IHotkeyManager>             hotkeyManager,
 	std::shared_ptr<ItemViewToolTipper>         itemViewToolTipper,
 	std::shared_ptr<ScrollBarController>        scrollBarController,
 	QWidget*                                    parent
 )
 	: QWidget(parent)
-	, m_impl(*this, *databaseUser, std::move(collectionProvider), std::move(settings), std::move(uiFactory), std::move(filterProvider), std::move(itemViewToolTipper), std::move(scrollBarController))
+	, m_impl(
+		  *this,
+		  *databaseUser,
+		  std::move(collectionProvider),
+		  std::move(settings),
+		  std::move(uiFactory),
+		  std::move(filterProvider),
+		  std::move(hotkeyManager),
+		  std::move(itemViewToolTipper),
+		  std::move(scrollBarController)
+	  )
 {
 	PLOGV << "TreeView created";
 }
