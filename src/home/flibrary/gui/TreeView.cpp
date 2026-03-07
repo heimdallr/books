@@ -395,6 +395,7 @@ class TreeView::Impl final
 	, IFilterProvider::IObserver
 	, ModeComboBox::IValueApplier
 	, HeaderView::IObserver
+	, IHotkeyManager::IBookMenuProvider
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -619,6 +620,14 @@ private: // HeaderView::IObserver
 	QAbstractItemView& GetView() noexcept override
 	{
 		return *m_ui.treeView;
+	}
+
+private: // IHotkeyManager::IBookMenuProvider
+	void RequestBookMenu(RequestMenuCallback callback) override
+	{
+		m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [callback = std::move(callback)](const QString& id, const IDataItem::Ptr& item) {
+			callback(id, item);
+		});
 	}
 
 private:
@@ -869,6 +878,7 @@ private:
 			connect(m_booksHeaderView, &QHeaderView::sectionMoved, &m_self, [this] {
 				SaveHeaderLayout();
 			});
+			m_hotkeyManager->SetBookMenuProvider(this);
 		}
 
 		auto& treeViewHeader = *m_ui.treeView->header();

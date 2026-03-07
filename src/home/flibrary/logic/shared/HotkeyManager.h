@@ -3,6 +3,7 @@
 #include "interface/logic/IHotkeyManager.h"
 
 #include "BooksContextMenuProvider.h"
+#include "gutil/interface/IParentWidgetProvider.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -12,17 +13,18 @@ class HotkeyManager final : virtual public IHotkeyManager
 	NON_COPY_MOVABLE(HotkeyManager)
 
 public:
-	explicit HotkeyManager(std::shared_ptr<ISettings> settings);
+	HotkeyManager(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<ISettings> settings);
 	~HotkeyManager() override;
 
 private: // IHotkeyManager
-	IDataItem::Ptr GetRootDataItem() const noexcept override;
+	IDataItem::Ptr GetRootDataItem() override;
 	bool           HasHotkey(const QString& key) const noexcept override;
 
 	void Add(const QMenuBar& menuBar, const QString& title) override;
 	void Add(QComboBox& comboBox, const QString& title) override;
 	void Set(const QString& key, const QString& shortCut) override;
 	bool Reset(const QString& key) override;
+	void SetBookMenuProvider(IBookMenuProvider* bookMenuProvider) override;
 
 private:
 	class Impl;

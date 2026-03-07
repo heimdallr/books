@@ -3,8 +3,11 @@
 #include <ranges>
 
 #include <QComboBox>
+#include <QEventLoop>
 #include <QMenuBar>
 #include <QShortcut>
+
+#include "interface/localization.h"
 
 #include "data/DataItem.h"
 
@@ -12,15 +15,26 @@
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
 
 namespace
 {
 
+constexpr auto CONTEXT = "HotkeyManager";
+constexpr auto BOOK    = QT_TRANSLATE_NOOP("HotkeyManager", "Book");
+
 constexpr auto ROOT = "ui/Hotkeys";
+
+TR_DEF
 
 QString GetName(const QString& parent, const QString& child)
 {
 	return QString("%1/%2").arg(parent, child);
+}
+
+QString RemoveAmp(QString str)
+{
+	return str.remove('&');
 }
 
 template <typename T>
@@ -31,7 +45,8 @@ QString SetShortCutImpl<QAction>(QAction* obj, const QKeySequence& value)
 {
 	obj->setShortcut(value);
 	return obj->shortcut().toString(QKeySequence::PortableText);
-};
+}
+
 template <>
 QString SetShortCutImpl<QShortcut>(QShortcut* obj, const QKeySequence& value)
 {
@@ -39,7 +54,7 @@ QString SetShortCutImpl<QShortcut>(QShortcut* obj, const QKeySequence& value)
 	return obj->key().toString(QKeySequence::PortableText);
 }
 
-}
+} // namespace
 
 class HotkeyManager::Impl
 {
@@ -49,7 +64,7 @@ class HotkeyManager::Impl
 		QAction*       action { nullptr };
 		QShortcut*     shortcut { nullptr };
 
-		QString SetShortCut(const QString& value = {}) const
+		QString SetShortCut(const QString& value = {}, QObject* parent = nullptr)
 		{
 			item->SetData(value, SettingsItem::Column::Value);
 
@@ -58,22 +73,28 @@ class HotkeyManager::Impl
 			if (action)
 				return SetShortCutImpl(action, keySequence);
 
-			if (shortcut)
-				return SetShortCutImpl(shortcut, keySequence);
+			if (!shortcut)
+			{
+				if (value.isEmpty())
+					return value;
 
-			assert(false && "bad logic");
-			return value;
+				shortcut = new QShortcut(parent);
+			}
+
+			return SetShortCutImpl(shortcut, keySequence);
 		}
 	};
 
 public:
-	explicit Impl(std::shared_ptr<ISettings> settings)
-		: m_settings { std::move(settings) }
+	explicit Impl(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<ISettings> settings)
+		: m_parentWidgetProvider { std::move(parentWidgetProvider) }
+		, m_settings { std::move(settings) }
 	{
 	}
 
-	IDataItem::Ptr GetRootDataItem() const noexcept
+	IDataItem::Ptr GetRootDataItem()
 	{
+		UpdateBookMenu();
 		return m_root;
 	}
 
@@ -89,14 +110,10 @@ public:
 		menuBarItem->SetData(menuBar.objectName(), SettingsItem::Column::Key);
 		menuBarItem->SetData(title, SettingsItem::Column::Title);
 
-		const auto removeAmp = [](QString str) {
-			return str.remove('&');
-		};
-
 		const auto addChild = [&](IDataItem& parent, const QObject& obj, QString objTitle) -> IDataItem::Ptr& {
 			auto child = SettingsItem::Create();
 			child->SetData(GetName(parent.GetData(SettingsItem::Column::Key), obj.objectName()), SettingsItem::Column::Key);
-			child->SetData(removeAmp(std::move(objTitle)), SettingsItem::Column::Title);
+			child->SetData(RemoveAmp(std::move(objTitle)), SettingsItem::Column::Title);
 			return parent.AppendChild(std::move(child));
 		};
 
@@ -164,7 +181,7 @@ public:
 		const auto it = m_actions.find(key);
 		assert(it != m_actions.end());
 
-		auto value = it->second.SetShortCut(shortCut);
+		auto value = it->second.SetShortCut(shortCut, m_parentWidgetProvider->GetWidget());
 		m_settings->Set(GetName(ROOT, it->second.item->GetData(SettingsItem::Column::Key)), value);
 	}
 
@@ -180,22 +197,87 @@ public:
 		return true;
 	}
 
+	void SetBookMenuProvider(IBookMenuProvider* bookMenuProvider)
+	{
+		m_bookMenuProvider = bookMenuProvider;
+	}
+
 private:
+	void UpdateBookMenu()
+	{
+		if (const auto bookMenu = m_root->FindChild([](const auto& item) {
+				return item.GetData(SettingsItem::Column::Key) == BOOK;
+			}))
+			m_root->RemoveChild(bookMenu->GetRow());
+
+		if (!m_bookMenuProvider)
+			return;
+
+		QEventLoop eventLoop;
+		m_bookMenuProvider->RequestBookMenu([&](const QString&, const IDataItem::Ptr& item) {
+			eventLoop.exit();
+			UpdateBookMenu(item);
+		});
+		eventLoop.exec();
+	}
+
+	void UpdateBookMenu(const IDataItem::Ptr& item)
+	{
+		if (item->GetChildCount() == 0)
+			return;
+
+		const auto enumerate = [this](const IDataItem& src, IDataItem& dst, const auto& r) -> void {
+			for (size_t i = 0, sz = src.GetChildCount(); i < sz; ++i)
+			{
+				const auto srcChild = src.GetChild(i);
+				auto       title    = srcChild->GetData(MenuItem::Column::Title);
+				if (title.isEmpty())
+					continue;
+
+				auto& dstChild = dst.AppendChild(SettingsItem::Create());
+				dstChild->SetData(GetName(dst.GetData(SettingsItem::Column::Key), srcChild->GetData(MenuItem::Column::Key)), SettingsItem::Column::Key);
+				dstChild->SetData(RemoveAmp(std::move(title)), SettingsItem::Column::Title);
+
+				if (!srcChild->GetData(MenuItem::Column::Id).isEmpty())
+				{
+					auto& shortCutItem = m_actions.try_emplace(
+						dstChild->GetData(SettingsItem::Column::Key),
+						Item {
+							.item = dstChild,
+						}
+					).first->second;
+					if (const auto shortCut = m_settings->Get(GetName(ROOT, dstChild->GetData(SettingsItem::Column::Key))); shortCut.isValid())
+						shortCutItem.SetShortCut(shortCut.toString(), m_parentWidgetProvider->GetWidget());
+				}
+
+				r(*srcChild, *dstChild, r);
+			}
+		};
+
+		auto& bookItem = m_root->AppendChild(SettingsItem::Create());
+		bookItem->SetData(BOOK, SettingsItem::Column::Key);
+		bookItem->SetData(Tr(BOOK), SettingsItem::Column::Title);
+		enumerate(*item, *bookItem, enumerate);
+	}
+
+private:
+	std::shared_ptr<const IParentWidgetProvider>  m_parentWidgetProvider;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 
 	IDataItem::Ptr m_root { SettingsItem::Create() };
 
-	std::unordered_map<QString, Item> m_actions;
+	std::map<QString, Item> m_actions;
+	IBookMenuProvider*      m_bookMenuProvider { nullptr };
 };
 
-HotkeyManager::HotkeyManager(std::shared_ptr<ISettings> settings)
-	: m_impl(std::move(settings))
+HotkeyManager::HotkeyManager(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<ISettings> settings)
+	: m_impl(std::move(parentWidgetProvider), std::move(settings))
 {
 }
 
 HotkeyManager::~HotkeyManager() = default;
 
-IDataItem::Ptr HotkeyManager::GetRootDataItem() const noexcept
+IDataItem::Ptr HotkeyManager::GetRootDataItem()
 {
 	return m_impl->GetRootDataItem();
 }
@@ -223,4 +305,9 @@ void HotkeyManager::Set(const QString& key, const QString& shortCut)
 bool HotkeyManager::Reset(const QString& key)
 {
 	return m_impl->Reset(key);
+}
+
+void HotkeyManager::SetBookMenuProvider(IBookMenuProvider* bookMenuProvider)
+{
+	m_impl->SetBookMenuProvider(bookMenuProvider);
 }

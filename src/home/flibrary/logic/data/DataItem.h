@@ -327,7 +327,7 @@ public:
 		};
 	};
 
-	static Ptr Create(IDataItem* parent = nullptr);
+	LOGIC_EXPORT static Ptr Create(IDataItem* parent = nullptr);
 	explicit MenuItem(IDataItem* parent);
 	~MenuItem() override = default;
 
