@@ -57,8 +57,7 @@ private: // QAbstractItemModel
 			return QIdentityProxyModel::data(index, role);
 
 		const auto sourceIndex = mapToSource(index);
-		auto title = m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
-		return title;
+		return m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
 	}
 
 	bool setData(const QModelIndex& index, const QVariant& value, const int role) override

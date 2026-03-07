@@ -103,6 +103,9 @@ public:
 		const auto enumerate = [&](const QList<QMenu*>& menuList, IDataItem& parent, std::unordered_set<const QAction*>& menuActions, const auto& r) -> void {
 			for (const auto* menu : menuList)
 			{
+				if (menu->title().isEmpty())
+					continue;
+
 				menuActions.emplace(menu->menuAction());
 				auto& child = addChild(parent, *menu, menu->title());
 
