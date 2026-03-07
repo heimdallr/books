@@ -2609,6 +2609,13 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>HotkeyManager</name>
+    <message>
+        <source>Book</source>
+        <translation>Книга</translation>
+    </message>
+</context>
+<context>
     <name>Http</name>
     <message>
         <source>Authentication required</source>
