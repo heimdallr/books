@@ -317,6 +317,7 @@ public:
 		{
 			Title = 0,
 			Id,
+			Key,
 			Parameter,
 			Enabled,
 			Checkable,

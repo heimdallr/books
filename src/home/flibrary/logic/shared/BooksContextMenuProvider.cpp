@@ -114,11 +114,11 @@ constexpr std::pair<int, IContextMenuHandler::Function> MENU_HANDLERS[] {
 
 void CreateMyRateMenu(const IDataItem::Ptr& root, const QString& id, DB::IDatabase& db, const int starSymbol)
 {
-	const auto parent = AddMenuItem(root, Tr(MARK_AS_READ));
-	AddMenuItem(parent, Tr(WITHOUT_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter);
-	const auto myRate = AddMenuItem(parent, Tr(SET_MY_RATE));
+	const auto parent = AddMenuItem(root, MARK_AS_READ, Tr(MARK_AS_READ));
+	AddMenuItem(parent, WITHOUT_RATE, Tr(WITHOUT_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter);
+	const auto myRate = AddMenuItem(parent, SET_MY_RATE, Tr(SET_MY_RATE));
 	for (int rate = 5; rate > 0; --rate)
-		AddMenuItem(myRate, QString(rate, QChar(starSymbol)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
+		AddMenuItem(myRate, QString("setRate%1").arg(rate), QString(rate, QChar(starSymbol)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
 
 	const auto query = db.CreateQuery(USER_RATE_QUERY);
 	query->Bind(0, id.toInt());
@@ -128,42 +128,42 @@ void CreateMyRateMenu(const IDataItem::Ptr& root, const QString& id, DB::IDataba
 		return;
 
 	AddMenuItem(parent)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-	AddMenuItem(parent, Tr(REMOVE_MY_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+	AddMenuItem(parent, REMOVE_MY_RATE, Tr(REMOVE_MY_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 }
 
 void CreateSendMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options, const IScriptController::Scripts& scripts)
 {
-	const auto& send = AddMenuItem(root, Tr(EXPORT));
-	AddMenuItem(send, Tr(SEND_AS_ARCHIVE), BooksMenuAction::SendAsArchive);
-	AddMenuItem(send, Tr(SEND_AS_IS), BooksMenuAction::SendAsIs);
+	const auto& send = AddMenuItem(root, EXPORT, Tr(EXPORT));
+	AddMenuItem(send, SEND_AS_ARCHIVE, Tr(SEND_AS_ARCHIVE), BooksMenuAction::SendAsArchive);
+	AddMenuItem(send, SEND_AS_IS, Tr(SEND_AS_IS), BooksMenuAction::SendAsIs);
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::IsArchive))
-		AddMenuItem(send, Tr(UNPACK), BooksMenuAction::SendUnpack);
+		AddMenuItem(send, UNPACK, Tr(UNPACK), BooksMenuAction::SendUnpack);
 
 	if (!scripts.empty())
 	{
 		AddMenuItem(send)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 		for (const auto& script : scripts)
 		{
-			const auto& scriptItem = AddMenuItem(send, script.name, BooksMenuAction::SendAsScript);
+			const auto& scriptItem = AddMenuItem(send, script.uid, script.name, BooksMenuAction::SendAsScript);
 			scriptItem->SetData(script.uid, MenuItem::Column::Parameter);
 		}
 	}
 	AddMenuItem(send)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-	AddMenuItem(send, Tr(SEND_AS_INPX), BooksMenuAction::SendAsInpxCollection);
-	AddMenuItem(send, Tr(SEND_AS_SINGLE_INPX), BooksMenuAction::SendAsInpxFile);
+	AddMenuItem(send, SEND_AS_INPX, Tr(SEND_AS_INPX), BooksMenuAction::SendAsInpxCollection);
+	AddMenuItem(send, SEND_AS_SINGLE_INPX, Tr(SEND_AS_SINGLE_INPX), BooksMenuAction::SendAsInpxFile);
 }
 
 void CreateCheckMenu(const IDataItem::Ptr& root)
 {
-	const auto parent = AddMenuItem(root, Tr(CHECK));
-	AddMenuItem(parent, Loc::Tr(Loc::CONTEXT_MENU, Loc::CHECK_ALL), BooksMenuAction::CheckAll);
-	AddMenuItem(parent, Loc::Tr(Loc::CONTEXT_MENU, Loc::UNCHECK_ALL), BooksMenuAction::UncheckAll);
-	AddMenuItem(parent, Loc::Tr(Loc::CONTEXT_MENU, Loc::INVERT_CHECK), BooksMenuAction::InvertCheck);
+	const auto parent = AddMenuItem(root, CHECK, Tr(CHECK));
+	AddMenuItem(parent, Loc::CHECK_ALL, Loc::Tr(Loc::CONTEXT_MENU, Loc::CHECK_ALL), BooksMenuAction::CheckAll);
+	AddMenuItem(parent, Loc::UNCHECK_ALL, Loc::Tr(Loc::CONTEXT_MENU, Loc::UNCHECK_ALL), BooksMenuAction::UncheckAll);
+	AddMenuItem(parent, Loc::INVERT_CHECK, Loc::Tr(Loc::CONTEXT_MENU, Loc::INVERT_CHECK), BooksMenuAction::InvertCheck);
 }
 
 void CreateChangeLangMenu(const IDataItem::Ptr& root, const QString& currentLocale)
 {
-	const auto                                         parent = AddMenuItem(root, Tr(CHANGE_LANGUAGE));
+	const auto                                         parent = AddMenuItem(root, CHANGE_LANGUAGE, Tr(CHANGE_LANGUAGE));
 	std::vector<std::tuple<const char*, QString, int>> languages {
 		{ "-1", "", 5000 }
 	};
@@ -188,7 +188,7 @@ void CreateChangeLangMenu(const IDataItem::Ptr& root, const QString& currentLoca
 	});
 
 	for (auto&& [key, value, priority] : languages)
-		AddMenuItem(parent, std::move(value), priority == 5000 ? INVALID_MENU_ITEM : BooksMenuAction::ChangeLanguage)->SetData(key, MenuItem::Column::Parameter);
+		AddMenuItem(parent, key, std::move(value), priority == 5000 ? INVALID_MENU_ITEM : BooksMenuAction::ChangeLanguage)->SetData(key, MenuItem::Column::Parameter);
 }
 
 void CreateHashMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options)
@@ -196,16 +196,16 @@ void CreateHashMenu(const IDataItem::Ptr& root, const ITreeViewController::Reque
 	if (!(options & ITreeViewController::RequestContextMenuOptions::HashEnabled))
 		return;
 
-	auto submenu = AddMenuItem(root, Tr(HASH_SUBMENU));
-	AddMenuItem(submenu, Tr(HASH_CALCULATE), BooksMenuAction::HashCalculate);
-	AddMenuItem(submenu, Tr(HASH_COMPARE), BooksMenuAction::HashCompare)
+	auto submenu = AddMenuItem(root, HASH_SUBMENU, Tr(HASH_SUBMENU));
+	AddMenuItem(submenu, HASH_CALCULATE, Tr(HASH_CALCULATE), BooksMenuAction::HashCalculate);
+	AddMenuItem(submenu, HASH_COMPARE, Tr(HASH_COMPARE), BooksMenuAction::HashCompare)
 		->SetData(QVariant(!!(options & ITreeViewController::RequestContextMenuOptions::HashCompareEnabled)).toString(), MenuItem::Column::Enabled);
 }
 
 void CreateTreeMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options)
 {
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
-		BooksContextMenuProvider::AddTreeMenuItems(AddMenuItem(root, Tr(TREE)), options);
+		BooksContextMenuProvider::AddTreeMenuItems(AddMenuItem(root, TREE, Tr(TREE)), options);
 }
 
 } // namespace
@@ -259,7 +259,7 @@ public:
 				  auto result = MenuItem::Create();
 
 				  if (type == ItemType::Books)
-					  AddMenuItem(result, Tr(READ_BOOK), BooksMenuAction::ReadBook);
+					  AddMenuItem(result, READ_BOOK, Tr(READ_BOOK), BooksMenuAction::ReadBook);
 
 				  CreateSendMenu(result, options, scripts);
 				  AddMenuItem(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
@@ -278,8 +278,8 @@ public:
 				  if (type == ItemType::Books)
 				  {
 					  AddMenuItem(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-					  AddMenuItem(result, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? BooksMenuAction::UndoRemoveBook : BooksMenuAction::RemoveBook);
-					  auto removeItem = AddMenuItem(result, Tr(REMOVE_BOOK_FROM_ARCHIVE), BooksMenuAction::RemoveBookFromArchive);
+					  AddMenuItem(result, REMOVE_BOOK, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? BooksMenuAction::UndoRemoveBook : BooksMenuAction::RemoveBook);
+					  auto removeItem = AddMenuItem(result, REMOVE_BOOK_FROM_ARCHIVE, Tr(REMOVE_BOOK_FROM_ARCHIVE), BooksMenuAction::RemoveBookFromArchive);
 					  if (!(options & ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations))
 						  removeItem->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
 				  }
@@ -831,13 +831,14 @@ private:
 void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr& parent, const ITreeViewController::RequestContextMenuOptions options)
 {
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::NodeCollapsed))
-		AddMenuItem(parent, Tr(TREE_EXPAND), BooksMenuAction::Expand);
+		AddMenuItem(parent, TREE_EXPAND, Tr(TREE_EXPAND), BooksMenuAction::Expand);
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::NodeExpanded))
-		AddMenuItem(parent, Tr(TREE_COLLAPSE), BooksMenuAction::Collapse);
-	if (const auto item = AddMenuItem(parent, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll); //-V821
+		AddMenuItem(parent, TREE_COLLAPSE, Tr(TREE_COLLAPSE), BooksMenuAction::Collapse);
+	if (const auto item = AddMenuItem(parent, Loc::TREE_COLLAPSE_ALL, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll); //-V821
 	    !(options & ITreeViewController::RequestContextMenuOptions::HasExpanded))
 		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
-	if (const auto item = AddMenuItem(parent, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_EXPAND_ALL), BooksMenuAction::ExpandAll); !(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed)) //-V821
+	if (const auto item = AddMenuItem(parent, Loc::TREE_EXPAND_ALL, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_EXPAND_ALL), BooksMenuAction::ExpandAll);
+	    !(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed)) //-V821
 		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
 }
 

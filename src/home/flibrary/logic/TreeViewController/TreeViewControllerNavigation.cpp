@@ -30,8 +30,19 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto CONTEXT = "Navigation";
-constexpr auto REMOVE  = QT_TRANSLATE_NOOP("Navigation", "Remove");
+constexpr auto CONTEXT           = "Navigation";
+constexpr auto REMOVE            = QT_TRANSLATE_NOOP("Navigation", "Remove");
+constexpr auto REVIEWS           = QT_TRANSLATE_NOOP("Navigation", "Reviews");
+constexpr auto CREATE_NEW_GROUP  = QT_TRANSLATE_NOOP("Navigation", "Create new group...");
+constexpr auto RENAME_GROUP      = QT_TRANSLATE_NOOP("Navigation", "Rename group...");
+constexpr auto REMOVE_FROM_GROUP = QT_TRANSLATE_NOOP("Navigation", "Remove from group");
+constexpr auto ALL_BOOKS         = QT_TRANSLATE_NOOP("Navigation", "All books");
+constexpr auto ALL               = QT_TRANSLATE_NOOP("Navigation", "All");
+constexpr auto CREATE_NEW_SEARCH = QT_TRANSLATE_NOOP("Navigation", "Create new search...");
+constexpr auto FILTERS           = QT_TRANSLATE_NOOP("Navigation", "Filters");
+constexpr auto HIDE              = QT_TRANSLATE_NOOP("Navigation", "Hide");
+constexpr auto FILTER_BOOKS      = QT_TRANSLATE_NOOP("Navigation", "Filter books");
+constexpr auto FILTER_SETTINGS   = QT_TRANSLATE_NOOP("Navigation", "Filter settings...");
 
 using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr) const;
 using Callback     = std::function<void()>;
@@ -523,7 +534,7 @@ private: // IContextMenuProvider
 		query->Execute();
 		assert(!query->Eof());
 
-		AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Reviews"), MenuAction::AuthorReview)->SetData(QVariant(query->Get<int>(0) != 0).toString(), MenuItem::Column::Enabled);
+		AddMenuItem(result, REVIEWS, REVIEWS, MenuAction::AuthorReview)->SetData(QVariant(query->Get<int>(0) != 0).toString(), MenuItem::Column::Enabled);
 		return result;
 	}
 
@@ -568,10 +579,10 @@ private: // IContextMenuProvider
 		const auto hasSelection = !!(options & RequestContextMenuOptions::HasSelection);
 		auto       result       = MenuItem::Create();
 
-		AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Create new group..."), MenuAction::CreateNewGroup);
-		AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Rename group..."), MenuAction::RenameGroup)->SetData(QVariant(hasSelection).toString(), MenuItem::Column::Enabled);
-		AddMenuItem(result, REMOVE, MenuAction::RemoveGroup)->SetData(QVariant(hasSelection).toString(), MenuItem::Column::Enabled);
-		auto removeFromGroup = AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Remove from group"));
+		AddMenuItem(result, CREATE_NEW_GROUP, CREATE_NEW_GROUP, MenuAction::CreateNewGroup);
+		AddMenuItem(result, RENAME_GROUP, RENAME_GROUP, MenuAction::RenameGroup)->SetData(QVariant(hasSelection).toString(), MenuItem::Column::Enabled);
+		AddMenuItem(result, REMOVE, REMOVE, MenuAction::RemoveGroup)->SetData(QVariant(hasSelection).toString(), MenuItem::Column::Enabled);
+		auto removeFromGroup = AddMenuItem(result, REMOVE_FROM_GROUP, REMOVE_FROM_GROUP);
 		if ([&] {
 				const auto query = db.CreateQuery("select exists (select 42 from Books b join Groups_List_User glu on glu.ObjectID = b.BookID and glu.GroupID = ?)");
 				query->Bind(0, id.toInt());
@@ -579,7 +590,7 @@ private: // IContextMenuProvider
 				assert(!query->Eof());
 				return query->Get<int>(0) != 0;
 			}())
-			AddMenuItem(removeFromGroup, QT_TRANSLATE_NOOP("Navigation", "All books"), MenuAction::RemoveFromGroupAllBooks);
+			AddMenuItem(removeFromGroup, ALL_BOOKS, ALL_BOOKS, MenuAction::RemoveFromGroupAllBooks);
 
 		const auto addRemoveFromGroupItems = [&](const char* queryText, QString subMenuTitle, const int removeAllCommandId) {
 			const auto query = db.CreateQuery(queryText);
@@ -590,7 +601,7 @@ private: // IContextMenuProvider
 
 			auto subMenu = AddMenuItem(removeFromGroup, std::move(subMenuTitle));
 			for (; !query->Eof(); query->Next())
-				AddMenuItem(subMenu, query->Get<const char*>(1), MenuAction::RemoveFromGroupOneItem)->SetData(QString::number(query->Get<long long>(0)), MenuItem::Column::Parameter);
+				AddMenuItem(subMenu, "", query->Get<const char*>(1), MenuAction::RemoveFromGroupOneItem)->SetData(QString::number(query->Get<long long>(0)), MenuItem::Column::Parameter);
 
 			if (subMenu->GetChildCount() < 2)
 				return;
@@ -600,7 +611,7 @@ private: // IContextMenuProvider
 			});
 
 			AddMenuItem(subMenu);
-			AddMenuItem(subMenu, QT_TRANSLATE_NOOP("Navigation", "All"), removeAllCommandId);
+			AddMenuItem(subMenu, ALL, ALL, removeAllCommandId);
 		};
 
 		constexpr auto authorsQueryText =
@@ -620,8 +631,8 @@ private: // IContextMenuProvider
 	{
 		auto result = MenuItem::Create();
 
-		AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Create new search..."), MenuAction::CreateNewSearch);
-		AddMenuItem(result, REMOVE, MenuAction::RemoveSearch)->SetData(QVariant(!!(options & RequestContextMenuOptions::HasSelection)).toString(), MenuItem::Column::Enabled);
+		AddMenuItem(result, CREATE_NEW_SEARCH, CREATE_NEW_SEARCH, MenuAction::CreateNewSearch);
+		AddMenuItem(result, REMOVE, REMOVE, MenuAction::RemoveSearch)->SetData(QVariant(!!(options & RequestContextMenuOptions::HasSelection)).toString(), MenuItem::Column::Enabled);
 
 		return result;
 	}
@@ -761,15 +772,15 @@ private:
 		assert(!query->Eof());
 		const auto booksFiltered = !!(static_cast<IDataItem::Flags>(query->Get<int>(0)) & IDataItem::Flags::BooksFiltered);
 
-		const auto parent        = AddMenuItem(result, QT_TRANSLATE_NOOP("Navigation", "Filters"));
+		const auto parent        = AddMenuItem(result, FILTERS, FILTERS);
 		const auto filterEnabled = QVariant(!!(options & RequestContextMenuOptions::UniFilterEnabled)).toString();
 
-		AddMenuItem(parent, QT_TRANSLATE_NOOP("Navigation", "Hide"), MenuAction::HideNavigationItem)->SetData(filterEnabled, MenuItem::Column::Enabled);
-		AddMenuItem(parent, QT_TRANSLATE_NOOP("Navigation", "Filter books"), MenuAction::FilterNavigationItemBooks)
+		AddMenuItem(parent, HIDE, HIDE, MenuAction::HideNavigationItem)->SetData(filterEnabled, MenuItem::Column::Enabled);
+		AddMenuItem(parent, FILTER_BOOKS, FILTER_BOOKS, MenuAction::FilterNavigationItemBooks)
 			->SetData(QVariant(true).toString(), MenuItem::Column::Checkable)
 			.SetData(QVariant(booksFiltered).toString(), MenuItem::Column::Checked)
 			.SetData(filterEnabled, MenuItem::Column::Enabled);
-		AddMenuItem(parent, QT_TRANSLATE_NOOP("Navigation", "Filter settings..."), MenuAction::ShowFilterSettings);
+		AddMenuItem(parent, FILTER_SETTINGS, FILTER_SETTINGS, MenuAction::ShowFilterSettings);
 		return result;
 	}
 
