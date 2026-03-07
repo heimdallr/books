@@ -23,6 +23,7 @@ public:
 		virtual ~IBookMenuProvider() = default;
 
 		virtual void RequestBookMenu(RequestMenuCallback callback) = 0;
+		virtual void OnHotkeyActivated(const QString& key)         = 0;
 	};
 
 public:

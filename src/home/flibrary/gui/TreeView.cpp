@@ -630,6 +630,32 @@ private: // IHotkeyManager::IBookMenuProvider
 		});
 	}
 
+	void OnHotkeyActivated(const QString& key) override
+	{
+		m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [this, key](const QString& /*id*/, const IDataItem::Ptr& item) {
+			const auto find = [&](const QString& id, const IDataItem& parent, const auto& r) -> IDataItem::Ptr {
+				for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
+				{
+					auto       child   = parent.GetChild(i);
+					if (child->GetData(MenuItem::Column::Key).isEmpty())
+						continue;
+
+					const auto childId = QString("%1/%2").arg(id, child->GetData(MenuItem::Column::Key));
+					if (childId == key)
+						return child;
+
+					if (auto c = r(childId, *child, r))
+						return c;
+				}
+
+				return nullptr;
+			};
+
+			if (auto child = find("Book", *item, find))
+				OnContextMenuTriggered(std::move(child));
+		});
+	}
+
 private:
 	bool IsNavigation() const
 	{
@@ -841,15 +867,8 @@ private:
 				const auto checkable = getBool(*child, MenuItem::Column::Checkable, false);
 				const auto checked   = getBool(*child, MenuItem::Column::Checked, false);
 
-				auto* action = subMenu->addAction(titleText, [&, child = std::move(child)]() mutable {
-					const auto& view = *m_ui.treeView;
-
-					auto selected           = view.selectionModel()->selectedIndexes();
-					const auto [begin, end] = std::ranges::remove_if(selected, [](const auto& index) {
-						return index.column() != 0;
-					});
-					selected.erase(begin, end);
-					m_controller->OnContextMenuTriggered(view.model(), view.currentIndex(), selected, std::move(child));
+				auto* action = subMenu->addAction(titleText, [this, child = std::move(child)]() mutable {
+					OnContextMenuTriggered(std::move(child));
 				});
 				action->setStatusTip(statusTip);
 				action->setEnabled(enabled);
@@ -862,6 +881,18 @@ private:
 			if (parent->GetChildCount() > 16)
 				subMenu->installEventFilter(&m_menuEventFilter);
 		}
+	}
+
+	void OnContextMenuTriggered(IDataItem::Ptr item)
+	{
+		const auto& view = *m_ui.treeView;
+
+		auto selected           = view.selectionModel()->selectedIndexes();
+		const auto [begin, end] = std::ranges::remove_if(selected, [](const auto& index) {
+			return index.column() != 0;
+		});
+		selected.erase(begin, end);
+		m_controller->OnContextMenuTriggered(view.model(), view.currentIndex(), selected, std::move(item));
 	}
 
 	void Setup()
@@ -878,7 +909,9 @@ private:
 			connect(m_booksHeaderView, &QHeaderView::sectionMoved, &m_self, [this] {
 				SaveHeaderLayout();
 			});
-			m_hotkeyManager->SetBookMenuProvider(this);
+			QTimer::singleShot(0, [this] {
+				m_hotkeyManager->SetBookMenuProvider(this);
+			});
 		}
 
 		auto& treeViewHeader = *m_ui.treeView->header();

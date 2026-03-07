@@ -64,7 +64,7 @@ class HotkeyManager::Impl
 		QAction*       action { nullptr };
 		QShortcut*     shortcut { nullptr };
 
-		QString SetShortCut(const QString& value = {}, QObject* parent = nullptr)
+		QString SetShortCut(const QString& value = {}, QObject* parent = nullptr, IBookMenuProvider* bookMenuProvider = nullptr)
 		{
 			item->SetData(value, SettingsItem::Column::Value);
 
@@ -78,7 +78,11 @@ class HotkeyManager::Impl
 				if (value.isEmpty())
 					return value;
 
-				shortcut = new QShortcut(parent);
+				assert(parent && bookMenuProvider);
+				shortcut = new QShortcut(keySequence, parent);
+				QObject::connect(shortcut, &QShortcut::activated, [bookMenuProvider, key = item->GetData(SettingsItem::Column::Key)] {
+					bookMenuProvider->OnHotkeyActivated(key);
+				});
 			}
 
 			return SetShortCutImpl(shortcut, keySequence);
@@ -181,7 +185,7 @@ public:
 		const auto it = m_actions.find(key);
 		assert(it != m_actions.end());
 
-		auto value = it->second.SetShortCut(shortCut, m_parentWidgetProvider->GetWidget());
+		auto value = it->second.SetShortCut(shortCut, m_parentWidgetProvider->GetWidget(), m_bookMenuProvider);
 		m_settings->Set(GetName(ROOT, it->second.item->GetData(SettingsItem::Column::Key)), value);
 	}
 
@@ -200,6 +204,33 @@ public:
 	void SetBookMenuProvider(IBookMenuProvider* bookMenuProvider)
 	{
 		m_bookMenuProvider = bookMenuProvider;
+
+		const auto enumerate = [&](const QString& key, const auto& r) -> void {
+			for (const auto& k : m_settings->GetKeys())
+				if (const auto shortCut = m_settings->Get(k); shortCut.isValid())
+				{
+					auto child = SettingsItem::Create();
+					child->SetData(GetName(key, k), SettingsItem::Column::Key);
+					auto& shortCutItem = m_actions
+					                         .try_emplace(
+												 child->GetData(SettingsItem::Column::Key),
+												 Item {
+													 .item = child,
+												 }
+											 )
+					                         .first->second;
+					shortCutItem.SetShortCut(shortCut.toString(), m_parentWidgetProvider->GetWidget(), m_bookMenuProvider);
+				}
+
+			for (const auto& group : m_settings->GetGroups())
+			{
+				const SettingsGroup settingsSubGroup(*m_settings, group);
+				r(GetName(key, group), r);
+			}
+		};
+
+		const SettingsGroup settingsGroup(*m_settings, GetName(ROOT, BOOK));
+		enumerate(BOOK, enumerate);
 	}
 
 private:
@@ -234,21 +265,25 @@ private:
 				if (title.isEmpty())
 					continue;
 
+				auto key = GetName(dst.GetData(SettingsItem::Column::Key), srcChild->GetData(MenuItem::Column::Key));
+				if (const auto it = m_actions.find(key); it != m_actions.end())
+				{
+					it->second.item->SetData(RemoveAmp(std::move(title)), SettingsItem::Column::Title);
+					dst.AppendChild(it->second.item);
+					continue;
+				}
+
 				auto& dstChild = dst.AppendChild(SettingsItem::Create());
-				dstChild->SetData(GetName(dst.GetData(SettingsItem::Column::Key), srcChild->GetData(MenuItem::Column::Key)), SettingsItem::Column::Key);
+				dstChild->SetData(std::move(key), SettingsItem::Column::Key);
 				dstChild->SetData(RemoveAmp(std::move(title)), SettingsItem::Column::Title);
 
 				if (!srcChild->GetData(MenuItem::Column::Id).isEmpty())
-				{
-					auto& shortCutItem = m_actions.try_emplace(
+					m_actions.try_emplace(
 						dstChild->GetData(SettingsItem::Column::Key),
 						Item {
 							.item = dstChild,
 						}
-					).first->second;
-					if (const auto shortCut = m_settings->Get(GetName(ROOT, dstChild->GetData(SettingsItem::Column::Key))); shortCut.isValid())
-						shortCutItem.SetShortCut(shortCut.toString(), m_parentWidgetProvider->GetWidget());
-				}
+					);
 
 				r(*srcChild, *dstChild, r);
 			}
