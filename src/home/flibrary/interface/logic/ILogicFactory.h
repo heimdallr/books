@@ -72,6 +72,7 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class IFillTemplateConverter>   CreateFillTemplateConverter(bool needStub = false) const                                                               = 0;
 	[[nodiscard]] virtual std::shared_ptr<Zip::ProgressCallback>          CreateZipProgressCallback(std::shared_ptr<class IProgressController> progressController) const                         = 0;
 	[[nodiscard]] virtual std::shared_ptr<ITemporaryDir>                  CreateTemporaryDir(bool singleInstance = false) const                                                                  = 0;
+	[[nodiscard]] virtual std::shared_ptr<ITemporaryDir>                  CreateTemporaryDir(const QString& path) const                                                                          = 0;
 	[[nodiscard]] virtual Util::ExtractedBooks                            GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList = {}) const = 0;
 
 public: // special

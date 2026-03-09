@@ -35,7 +35,7 @@ using namespace Flibrary;
 namespace
 {
 
-class QTemporaryDirWrapper : virtual public ILogicFactory::ITemporaryDir
+class QTemporaryDirWrapper final : virtual public ILogicFactory::ITemporaryDir
 {
 private: // ILogicFactory::ITemporaryDir
 	QString filePath(const QString& fileName) const override
@@ -50,6 +50,31 @@ private: // ILogicFactory::ITemporaryDir
 
 private:
 	QTemporaryDir m_impl;
+};
+
+class QDirWrapper final : virtual public ILogicFactory::ITemporaryDir
+{
+public:
+	explicit QDirWrapper(const QString& path)
+		: m_impl { path }
+	{
+		if (!m_impl.exists())
+			m_impl.mkpath(".");
+	}
+
+private: // ILogicFactory::ITemporaryDir
+	QString filePath(const QString& fileName) const override
+	{
+		return m_impl.filePath(fileName);
+	}
+
+	QString path() const override
+	{
+		return m_impl.path();
+	}
+
+private:
+	QDir m_impl;
 };
 
 class SingleTemporaryDir : virtual public ILogicFactory::ITemporaryDir
@@ -374,6 +399,11 @@ std::shared_ptr<ILogicFactory::ITemporaryDir> LogicFactory::CreateTemporaryDir(c
 		m_impl->singleTemporaryDir = std::make_shared<SingleTemporaryDir>();
 
 	return m_impl->singleTemporaryDir;
+}
+
+std::shared_ptr<ILogicFactory::ITemporaryDir> LogicFactory::CreateTemporaryDir(const QString& path) const
+{
+	return std::make_shared<QDirWrapper>(path);
 }
 
 Util::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList) const
