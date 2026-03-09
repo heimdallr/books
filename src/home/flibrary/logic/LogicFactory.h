@@ -40,6 +40,7 @@ private: // ILogicFactory
 	[[nodiscard]] std::shared_ptr<IFillTemplateConverter>   CreateFillTemplateConverter(bool needStub) const override;
 	[[nodiscard]] std::shared_ptr<Zip::ProgressCallback>    CreateZipProgressCallback(std::shared_ptr<IProgressController> progressController) const override;
 	[[nodiscard]] std::shared_ptr<ITemporaryDir>            CreateTemporaryDir(bool singleInstance) const override;
+	[[nodiscard]] std::shared_ptr<ITemporaryDir>            CreateTemporaryDir(const QString& path) const override;
 	[[nodiscard]] Util::ExtractedBooks                      GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList) const override;
 
 public: // special
