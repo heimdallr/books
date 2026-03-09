@@ -6,10 +6,11 @@ set(CMAKE_GENERATOR_PLATFORM)
 
 project(FLibrary VERSION ${PRODUCT_VERSION})
 
-if (NOT DEFINED CMAKE_BUILD_TYPE)
+if ((NOT DEFINED CMAKE_BUILD_TYPE) OR (${CMAKE_BUILD_TYPE} STREQUAL ""))
 	set(CMAKE_BUILD_TYPE Debug)
 endif ()
 set(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE})
+message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
 set(BUILDSCRIPTS_ROOT ${CMAKE_SOURCE_DIR}/src/ext/scripts CACHE STRING "BUILDSCRIPTS_ROOT")
 set(FOUNDATION_ROOT ${CMAKE_SOURCE_DIR}/src/ext/foundation CACHE STRING "FOUNDATION_ROOT")
@@ -17,7 +18,7 @@ set(FOUNDATION_ROOT ${CMAKE_SOURCE_DIR}/src/ext/foundation CACHE STRING "FOUNDAT
 include(${BUILDSCRIPTS_ROOT}/cmake/conan.cmake)
 conan_install(
 	${CMAKE_SOURCE_DIR}/src/home/script/conan
-	${CMAKE_SOURCE_DIR}/src/ext/scripts/conan/profiles/msvc2022_x86_64_${CMAKE_BUILD_TYPE}
+	${CMAKE_SOURCE_DIR}/src/ext/scripts/conan/profiles/${CONAN_PROFILE}_${CMAKE_BUILD_TYPE}
 	)
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_BINARY_DIR}/conan_toolchain.cmake")
 include("${CMAKE_BINARY_DIR}/conan_toolchain.cmake")
