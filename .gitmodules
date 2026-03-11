@@ -19,3 +19,6 @@
 [submodule "src/ext/foundation"]
 	path = src/ext/foundation
 	url = ../books-fnd.git
+[submodule "src/ext/bit7z"]
+	path = src/ext/bit7z
+	url = ../bit7z.git

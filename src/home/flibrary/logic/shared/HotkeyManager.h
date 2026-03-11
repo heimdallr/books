@@ -2,8 +2,9 @@
 
 #include "interface/logic/IHotkeyManager.h"
 
-#include "BooksContextMenuProvider.h"
 #include "gutil/interface/IParentWidgetProvider.h"
+
+#include "BooksContextMenuProvider.h"
 
 namespace HomeCompa::Flibrary
 {

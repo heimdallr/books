@@ -12,13 +12,14 @@ endif ()
 set(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE})
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
-set(BUILDSCRIPTS_ROOT ${CMAKE_SOURCE_DIR}/src/ext/scripts CACHE STRING "BUILDSCRIPTS_ROOT")
-set(FOUNDATION_ROOT ${CMAKE_SOURCE_DIR}/src/ext/foundation CACHE STRING "FOUNDATION_ROOT")
+set(EXT_ROOT ${CMAKE_SOURCE_DIR}/src/ext CACHE STRING "EXT_ROOT")
+set(BUILDSCRIPTS_ROOT ${EXT_ROOT}/scripts CACHE STRING "BUILDSCRIPTS_ROOT")
+set(FOUNDATION_ROOT ${EXT_ROOT}/foundation CACHE STRING "FOUNDATION_ROOT")
 
 include(${BUILDSCRIPTS_ROOT}/cmake/conan.cmake)
 conan_install(
 	${CMAKE_SOURCE_DIR}/src/home/script/conan
-	${CMAKE_SOURCE_DIR}/src/ext/scripts/conan/profiles/${CONAN_PROFILE}_${CMAKE_BUILD_TYPE}
+	${BUILDSCRIPTS_ROOT}/conan/profiles/${CONAN_PROFILE}_${CMAKE_BUILD_TYPE}
 	)
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_BINARY_DIR}/conan_toolchain.cmake")
 include("${CMAKE_BINARY_DIR}/conan_toolchain.cmake")
@@ -54,7 +55,13 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(QT_MAJOR_VERSION 6)
 
-include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)
+set(QtModules Widgets Xml Network Svg SvgWidgets Concurrent HttpServer)
+find_package(Qt${QT_MAJOR_VERSION} REQUIRED COMPONENTS ${QtModules})
+include(QtInstallPaths)
+
+set(BIT7Z_AUTO_FORMAT ON CACHE BOOL "enable auto format support" FORCE)
+add_subdirectory(${CMAKE_SOURCE_DIR}/src/ext/bit7z)
+set_property(TARGET bit7z PROPERTY FOLDER Foundation/zip)
 
 find_package(plog REQUIRED)
 find_package(Boost REQUIRED)
@@ -64,9 +71,7 @@ find_package(ICU REQUIRED)
 find_package(libjxl REQUIRED)
 find_package(cimg REQUIRED)
 
-set(QtModules Widgets Xml Network Svg SvgWidgets Concurrent HttpServer)
-find_package(Qt6 REQUIRED COMPONENTS ${QtModules})
-include(QtInstallPaths)
+include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)
 
 include_directories(${FOUNDATION_ROOT})
 include(${FOUNDATION_ROOT}/fnd/fnd.cmake)
