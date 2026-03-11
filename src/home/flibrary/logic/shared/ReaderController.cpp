@@ -277,7 +277,7 @@ void ReaderController::Read(long long id) const
 					 auto    temporaryDir = [this] {
                          const auto logicFactory = ILogicFactory::Lock(m_impl->logicFactory);
                          if (const auto folder = m_impl->settings->Get(DEFAULT_FOLDER_KEY); folder.isValid())
-							 return logicFactory->CreateTemporaryDir(folder.toString());
+                             return logicFactory->CreateTemporaryDir(folder.toString());
                          return logicFactory->CreateTemporaryDir(true);
 					 }();
 					 Extract(*m_impl->settings, *temporaryDir, archive, fileName, error);

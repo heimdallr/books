@@ -457,7 +457,7 @@ private: // IAlphabetPanel::IObserver
 		for (auto* toolBar : m_alphabetPanel->GetToolBars())
 		{
 			const auto name   = toolBar->accessibleName();
-			auto* action = m_ui.menuAlphabets->addAction(name);
+			auto*      action = m_ui.menuAlphabets->addAction(name);
 			action->setCheckable(true);
 			action->setChecked(m_alphabetPanel->Visible(toolBar));
 

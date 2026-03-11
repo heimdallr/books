@@ -636,7 +636,7 @@ private: // IHotkeyManager::IBookMenuProvider
 			const auto find = [&](const QString& id, const IDataItem& parent, const auto& r) -> IDataItem::Ptr {
 				for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
 				{
-					auto       child   = parent.GetChild(i);
+					auto child = parent.GetChild(i);
 					if (child->GetData(MenuItem::Column::Key).isEmpty())
 						continue;
 
