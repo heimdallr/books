@@ -509,7 +509,7 @@ private: // INavigationFilter
 	bool IsFolderExists(const ModeDescriptor& descriptor) const override
 	{
 		return descriptor.filterParameter && collectionProvider && collectionProvider->ActiveCollectionExists()
-		    && QDir(collectionProvider->GetActiveCollection().GetFolder() + "/" + descriptor.filterParameter).exists();
+		    && QDir(collectionProvider->GetActiveCollection().GetAdditionalFolder() + "/" + descriptor.filterParameter).exists();
 	}
 
 private: // IContextMenuProvider
