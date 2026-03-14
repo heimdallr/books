@@ -23,7 +23,6 @@ struct Book
 		const std::wstring_view language_,
 		const size_t            folder_,
 		const std::wstring_view fileName_,
-		const size_t            insideNo_,
 		const std::wstring_view format_,
 		const size_t            size_,
 		const bool              deleted_,
@@ -41,7 +40,6 @@ struct Book
 		, language { language_ }
 		, folder { folder_ }
 		, fileName { fileName_ }
-		, insideNo { insideNo_ }
 		, format { InsertDot(format_) }
 		, size { size_ }
 		, deleted { deleted_ }
@@ -62,7 +60,6 @@ struct Book
 	std::wstring language;
 	size_t       folder;
 	std::wstring fileName;
-	size_t       insideNo;
 	std::wstring format;
 	size_t       size;
 	bool         deleted;
@@ -182,7 +179,7 @@ struct Data
 
 inline std::ostream& operator<<(std::ostream& stream, const Book& book)
 {
-	return stream << book.folder << ", " << book.insideNo << ", " << Util::ToMultiByte(book.libId) << ": " << book.id << ", " << Util::ToMultiByte(book.title);
+	return stream << book.folder << ", " << Util::ToMultiByte(book.libId) << ": " << book.id << ", " << Util::ToMultiByte(book.title);
 }
 
 inline std::ostream& operator<<(std::ostream& stream, const Genre& genre)
@@ -203,7 +200,6 @@ inline std::ostream& operator<<(std::ostream& stream, const Genre& genre)
 	BOOK_BUF_FIELD_ITEM(DEL)        \
 	BOOK_BUF_FIELD_ITEM(EXT)        \
 	BOOK_BUF_FIELD_ITEM(DATE)       \
-	BOOK_BUF_FIELD_ITEM(INSNO)      \
 	BOOK_BUF_FIELD_ITEM(FOLDER)     \
 	BOOK_BUF_FIELD_ITEM(LANG)       \
 	BOOK_BUF_FIELD_ITEM(LIBRATE)    \

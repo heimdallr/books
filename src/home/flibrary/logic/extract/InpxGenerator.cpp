@@ -160,12 +160,12 @@ void Write(QByteArray& stream, const QString& uid, const BookInfo& book, size_t&
 
 constexpr auto BOOK_QUERY = R"(
 select
-b.BookID, b.LibID, b.Title, sl.SeriesID, sl.SeqNumber, b.UpdateDate, b.LibRate, b.Lang, f.FolderTitle, b.FileName, b.InsideNo, b.Ext, b.BookSize, coalesce(bu.IsDeleted, b.IsDeleted)
+b.BookID, b.LibID, b.Title, sl.SeriesID, sl.SeqNumber, b.UpdateDate, b.LibRate, b.Lang, f.FolderTitle, b.FileName, b.Ext, b.BookSize, coalesce(bu.IsDeleted, b.IsDeleted)
 from Books b
 join Folders f on f.FolderID = b.FolderID
 left join Books_User bu on bu.BookID = b.BookID
 left join Series_List sl on sl.BookID = b.BookID
-order by f.FolderID, b.InsideNo
+order by f.FolderID
 )";
 
 void Write(
@@ -209,7 +209,7 @@ void Write(
     });
 
 	auto book = QStringList {} << authorList.join("") << genreList.join("") << query.Get<const char*>(2) << seriesTitle << Util::Fb2InpxParser::GetSeqNumber(query.Get<const char*>(4))
-	                           << query.Get<const char*>(9) << QString::number(query.Get<long long>(12)) << query.Get<const char*>(1) << QString::number(query.Get<int>(13)) << query.Get<const char*>(11) + 1
+	                           << query.Get<const char*>(9) << QString::number(query.Get<long long>(11)) << query.Get<const char*>(1) << QString::number(query.Get<int>(12)) << query.Get<const char*>(10) + 1
 	                           << query.Get<const char*>(5) << query.Get<const char*>(7) << Util::Fb2InpxParser::GetSeqNumber(query.Get<const char*>(6)) << keywordList.join("");
 
 	stream.append(book.join(Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8()).append(Util::Fb2InpxParser::FIELDS_SEPARATOR).append("\r\n");

@@ -725,9 +725,9 @@ size_t Store(const Path& dbFileName, Data& data)
 	const char* queryText  = "INSERT INTO Books ("
 							 "BookID   , LibID     , Title    , SeriesID, "
 							 "SeqNumber, UpdateDate, LibRate  , Lang    , Year, "
-							 "FolderID , FileName  , InsideNo , Ext     , "
+							 "FolderID , FileName  , Ext     , "
 							 "BookSize , IsDeleted, UpdateId, SourceLib, SearchTitle"
-							 ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
+							 ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	result                += StoreRange(
         dbFileName,
         "Books",
@@ -753,13 +753,12 @@ size_t Store(const Path& dbFileName, Data& data)
             book.year == -1 ? cmd.bind(9, sqlite3pp::null_type()) : cmd.bind(9, book.year);
             cmd.bind(10, book.folder);
             cmd.bind(11, fileName, sqlite3pp::nocopy);
-            cmd.bind(12, book.insideNo);
-            cmd.bind(13, format, sqlite3pp::nocopy);
-            cmd.bind(14, book.size);
-            cmd.bind(15, book.deleted ? 1 : 0);
-            cmd.bind(16, book.updateId);
-            cmd.bind(17, book.sourceLib, sqlite3pp::nocopy);
-            cmd.bind(18, titleUp, sqlite3pp::nocopy);
+            cmd.bind(12, format, sqlite3pp::nocopy);
+            cmd.bind(13, book.size);
+            cmd.bind(14, book.deleted ? 1 : 0);
+            cmd.bind(15, book.updateId);
+            cmd.bind(16, book.sourceLib, sqlite3pp::nocopy);
+            cmd.bind(17, titleUp, sqlite3pp::nocopy);
             return cmd.execute();
         },
         "INSERT INTO Books_Search(Books_Search) VALUES('rebuild')"
@@ -2187,7 +2186,6 @@ where b.FileName = ? and b.Ext = ?)");
 			buf.LANG,
 			idFolder,
 			buf.FILE,
-			To<size_t>(buf.INSNO),
 			buf.EXT,
 			To<size_t>(buf.SIZE),
 			To<bool>(buf.DEL, false),
