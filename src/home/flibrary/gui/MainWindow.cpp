@@ -460,6 +460,7 @@ private: // IAlphabetPanel::IObserver
 			auto*      action = m_ui.menuAlphabets->addAction(name);
 			action->setCheckable(true);
 			action->setChecked(m_alphabetPanel->Visible(toolBar));
+			action->setObjectName(name.toUtf8().toHex());
 
 			connect(action, &QAction::toggled, [this, toolBar, hasVisible](const bool checked) {
 				m_alphabetPanel->SetVisible(toolBar, checked);
