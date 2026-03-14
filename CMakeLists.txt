@@ -94,8 +94,6 @@ add_compile_definitions(LOCALIZED_APPLICATION)
 include_directories("src/ext/Hypodermic")
 
 include("src/ext/sqlite.cmake")
-include("src/ext/MyHomeLib.cmake")
-
 include("src/home/home.cmake")
 
 set(CPACK_GENERATOR WIX)

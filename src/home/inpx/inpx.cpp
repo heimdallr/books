@@ -225,10 +225,6 @@ public:
 		: m_db(QString::fromStdWString(dbFileName).toUtf8(), flags)
 		, m_func(m_db)
 	{
-		m_db.load_extension("MyHomeLibSQLIteExt");
-		m_func.create("MHL_TRIGGERS_ON", [](sqlite3pp::ext::context& ctx) {
-			ctx.result(1);
-		});
 	}
 
 public:
@@ -648,7 +644,7 @@ size_t Store(const Path& dbFileName, Data& data)
 	result        += StoreRange(
         dbFileName,
         "Authors",
-        "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, SearchName) VALUES(?, ?, ?, ?, MHL_UPPER(?))",
+        "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, SearchName) VALUES(?, ?, ?, ?, ?)",
         data.authors,
         [](sqlite3pp::command& cmd, const Dictionary::value_type& item) {
             const auto& [author, id] = item;
@@ -656,12 +652,13 @@ size_t Store(const Path& dbFileName, Data& data)
             const auto last          = ToMultiByte(Next(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
             const auto first         = ToMultiByte(Next(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
             const auto middle        = ToMultiByte(Next(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
+            const auto lastUp        = QString::fromStdString(last).toUpper().toStdString();
 
             cmd.bind(1, id);
             cmd.bind(2, last, sqlite3pp::nocopy);
             cmd.bind(3, first, sqlite3pp::nocopy);
             cmd.bind(4, middle, sqlite3pp::nocopy);
-            cmd.bind(5, last, sqlite3pp::nocopy);
+            cmd.bind(5, lastUp, sqlite3pp::nocopy);
 
             return cmd.execute();
         },
@@ -671,13 +668,14 @@ size_t Store(const Path& dbFileName, Data& data)
 	result += StoreRange(
 		dbFileName,
 		"Series",
-		"INSERT INTO Series (SeriesID, SeriesTitle, SearchTitle) VALUES (?, ?, MHL_UPPER(?))",
+		"INSERT INTO Series (SeriesID, SeriesTitle, SearchTitle) VALUES (?, ?, ?)",
 		data.series,
 		[](sqlite3pp::command& cmd, const Dictionary::value_type& item) {
-			const auto title = ToMultiByte(item.first);
+			const auto title   = ToMultiByte(item.first);
+			const auto titleUp = QString::fromStdString(title).toUpper().toStdString();
 			cmd.bind(1, item.second);
 			cmd.bind(2, title, sqlite3pp::nocopy);
-			cmd.bind(3, title, sqlite3pp::nocopy);
+			cmd.bind(3, titleUp, sqlite3pp::nocopy);
 			return cmd.execute();
 		},
 		"INSERT INTO Series_Search(Series_Search) VALUES('rebuild')"
@@ -699,19 +697,15 @@ size_t Store(const Path& dbFileName, Data& data)
 		return cmd.execute();
 	});
 
-	result += StoreRange(
-		dbFileName,
-		"Keywords",
-		"INSERT INTO Keywords (KeywordID, KeywordTitle, SearchTitle) VALUES (?, ?, MHL_UPPER(?))",
-		data.keywords,
-		[](sqlite3pp::command& cmd, const Dictionary::value_type& item) {
-			const auto title = ToMultiByte(item.first);
+	result +=
+		StoreRange(dbFileName, "Keywords", "INSERT INTO Keywords (KeywordID, KeywordTitle, SearchTitle) VALUES (?, ?, ?)", data.keywords, [](sqlite3pp::command& cmd, const Dictionary::value_type& item) {
+			const auto title   = ToMultiByte(item.first);
+			const auto titleUp = QString::fromStdString(title).toUpper().toStdString();
 			cmd.bind(1, item.second);
 			cmd.bind(2, title, sqlite3pp::nocopy);
-			cmd.bind(3, title, sqlite3pp::nocopy);
+			cmd.bind(3, titleUp, sqlite3pp::nocopy);
 			return cmd.execute();
-		}
-	);
+		});
 
 	std::vector<size_t> newGenresIndex;
 	for (size_t i = 0, sz = std::size(data.genres); i < sz; ++i)
@@ -733,7 +727,7 @@ size_t Store(const Path& dbFileName, Data& data)
 							 "SeqNumber, UpdateDate, LibRate  , Lang    , Year, "
 							 "FolderID , FileName  , InsideNo , Ext     , "
 							 "BookSize , IsDeleted, UpdateId, SourceLib, SearchTitle"
-							 ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, MHL_UPPER(?))";
+							 ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	result                += StoreRange(
         dbFileName,
         "Books",
@@ -746,6 +740,7 @@ size_t Store(const Path& dbFileName, Data& data)
             const auto language = ToMultiByte(book.language);
             const auto fileName = ToMultiByte(book.fileName);
             const auto format   = ToMultiByte(book.format);
+            const auto titleUp  = QString::fromStdString(title).toUpper().toStdString();
 
             cmd.bind(1, book.id);
             cmd.bind(2, libId, sqlite3pp::nocopy);
@@ -764,7 +759,7 @@ size_t Store(const Path& dbFileName, Data& data)
             cmd.bind(15, book.deleted ? 1 : 0);
             cmd.bind(16, book.updateId);
             cmd.bind(17, book.sourceLib, sqlite3pp::nocopy);
-            cmd.bind(18, title, sqlite3pp::nocopy);
+            cmd.bind(18, titleUp, sqlite3pp::nocopy);
             return cmd.execute();
         },
         "INSERT INTO Books_Search(Books_Search) VALUES('rebuild')"

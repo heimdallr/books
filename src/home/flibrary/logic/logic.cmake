@@ -17,8 +17,6 @@ AddTarget(logic	shared_lib
 		rest
 		util
 		zip
-	DEPENDENCIES
-		MyHomeLibSQLIteExt
 )
 
 file(COPY ${CMAKE_CURRENT_LIST_DIR}/resources/data/genres.lst DESTINATION ${CMAKE_BINARY_DIR}/bin)
