@@ -506,32 +506,35 @@ bool ExecuteScript(const std::wstring& action, const Path& dbFileName, const Pat
 {
 	Timer t(action);
 
+	QFile stream(scriptFileName);
+	if (!stream.open(QIODevice::ReadOnly))
+		throw std::runtime_error(std::format("Cannot open {}", scriptFileName));
+
+	QJsonParseError jsonParseError;
+	const auto      doc = QJsonDocument::fromJson(stream.readAll(), &jsonParseError);
+	if (jsonParseError.error != QJsonParseError::NoError)
+		throw std::runtime_error(std::format("Cannot parse {}: {}", scriptFileName, jsonParseError.errorString()));
+
+	if (!doc.isArray())
+		throw std::runtime_error(std::format("{} must be json array", scriptFileName));
+
 	DatabaseWrapper db(dbFileName);
 
-	std::ifstream inp(scriptFileName);
-	if (!inp.is_open())
-		throw std::runtime_error(std::format("Cannot open {}", scriptFileName.generic_string()));
-
-	while (!inp.eof())
+	for (const auto queryJsonValue : doc.array())
 	{
-		std::string command;
-		while (!inp.eof())
-		{
-			std::string str;
-			std::getline(inp, str);
-			assert(inp.good() || inp.eof());
-			if (str.starts_with("--@@"))
-				break;
+		const auto command = [&]() -> QString {
+			if (queryJsonValue.isString())
+				return queryJsonValue.toString();
 
-			if (!str.empty())
-				command.append(str).append("\n");
-		}
-
-		if (command.empty())
-			continue;
-
-		while (command.back() == '\n')
-			command.resize(command.size() - 1);
+			assert(queryJsonValue.isArray());
+			return (queryJsonValue.toArray() | std::views::transform([&](const auto& item) {
+						assert(item.isString());
+						return item.toString();
+					})
+			        | std::ranges::to<QStringList>())
+			    .join('\n');
+		}()
+										  .toStdString();
 
 		PLOGI << command;
 		if (command.starts_with("PRAGMA"))

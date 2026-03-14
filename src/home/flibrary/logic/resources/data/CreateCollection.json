@@ -1,0 +1,200 @@
+﻿[
+	"PRAGMA page_size = 16384",
+	"PRAGMA journal_mode = OFF",
+	"PRAGMA foreign_keys = OFF",
+	[
+		"CREATE TABLE Annotations (",
+		"	BookID INTEGER NOT NULL PRIMARY KEY REFERENCES Books (BookID) ON DELETE CASCADE,",
+		"	Text   VARCHAR (10240) NOT NULL",
+		")"
+	],
+	[
+		"CREATE TABLE Author_List (",
+		"	AuthorID INTEGER NOT NULL,",
+		"	BookID   INTEGER NOT NULL,",
+		"	OrdNum   INTEGER NOT NULL DEFAULT (0)",
+		")"
+	],
+	[
+		"CREATE TABLE Authors (",
+		"	AuthorID   INTEGER NOT NULL,",
+		"	LastName   VARCHAR(128),",
+		"	FirstName  VARCHAR(128),",
+		"	MiddleName VARCHAR(128),",
+		"	SearchName VARCHAR(128),",
+		"	Flags	   INTEGER NOT NULL DEFAULT(0),",
+		"	IsDeleted  INTEGER NOT NULL DEFAULT(0)",
+		")"
+	],
+	[
+		"CREATE TABLE Books (",
+		"	BookID      INTEGER NOT NULL,",
+		"	LibID       VARCHAR(200),",
+		"	Title       VARCHAR(200),",
+		"	SeriesID    INTEGER,",
+		"	SeqNumber   INTEGER,",
+		"	UpdateDate  VARCHAR(23),",
+		"	LibRate     INTEGER,",
+		"	Lang        VARCHAR(3),",
+		"	Year        INTEGER,",
+		"	FolderID    INTEGER NOT NULL,",
+		"   FileName    VARCHAR(200) NOT NULL,",
+		"	Ext         VARCHAR(10),",
+		"	BookSize    INTEGER,",
+		"	UpdateID    INTEGER,",
+		"	IsDeleted   INTEGER NOT NULL DEFAULT 0,",
+		"	SourceLib   VARCHAR(15),",
+		"	SearchTitle VARCHAR(200)",
+		")"
+	],
+	[
+		"CREATE TABLE Books_User (",
+		"	BookID    INTEGER NOT NULL PRIMARY KEY,",
+		"	IsDeleted INTEGER,",
+		"	UserRate  INTEGER,",
+		"	Lang      VARCHAR (3),",
+		"	CreatedAt DATETIME,",
+		"		FOREIGN KEY (BookID) REFERENCES Books (BookID) ON DELETE CASCADE",
+		")"
+	],
+	[
+		"CREATE TABLE Compilation_List (",
+		"	CompilationID INTEGER REFERENCES Compilations (CompilationID) ON DELETE CASCADE NOT NULL,",
+		"	BookId        INTEGER REFERENCES Books        (BookID)        ON DELETE CASCADE NOT NULL,",
+		"	Part          INTEGER NOT NULL",
+		")"
+	],
+	[
+		"CREATE TABLE Compilations (",
+		"	CompilationID INTEGER PRIMARY KEY NOT NULL,",
+		"	BookId        INTEGER REFERENCES Books (BookID) ON DELETE CASCADE NOT NULL,",
+		"	Title         VARCHAR (10240),",
+		"	Covered       INTEGER NOT NULL DEFAULT (0)",
+		")"
+	],
+	[
+		"CREATE TABLE Export_List_User (",
+		"	BookID     INTEGER  NOT NULL,",
+		"	ExportType INTEGER  NOT NULL,",
+		"	CreatedAt  DATETIME NOT NULL",
+		")"
+	],
+	[
+		"CREATE TABLE Folders (",
+		"	FolderID    INTEGER NOT NULL,",
+		"	FolderTitle VARCHAR(200) NOT NULL,",
+		"	IsDeleted   INTEGER NOT NULL DEFAULT(0)",
+		")"
+	],
+	[
+		"CREATE TABLE Genre_List (",
+		"	GenreCode VARCHAR(20) NOT NULL,",
+		"	BookID    INTEGER NOT NULL,",
+		"	OrdNum    INTEGER NOT NULL DEFAULT (0) ",
+		")"
+	],
+	[
+		"CREATE TABLE Genres (",
+		"	GenreCode  VARCHAR(20) NOT NULL,",
+		"	ParentCode VARCHAR(20),",
+		"	FB2Code    VARCHAR(20),",
+		"	GenreAlias VARCHAR(50),",
+		"	Flags      INTEGER NOT NULL DEFAULT(0),",
+		"	IsDeleted  INTEGER NOT NULL DEFAULT(0)",
+		")"
+	],
+	[
+		"CREATE TABLE Groups_List_User (",
+		"	GroupID   INTEGER  NOT NULL,",
+		"	ObjectID  INTEGER  NOT NULL,",
+		"	CreatedAt DATETIME,",
+		"		FOREIGN KEY (GroupID) REFERENCES Groups_User (GroupID) ON DELETE CASCADE",
+		")"
+	],
+	[
+		"CREATE TABLE Groups_User (",
+		"	GroupID   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,",
+		"	Title     VARCHAR(150) NOT NULL UNIQUE,",
+		"	CreatedAt DATETIME,",
+		"	IsDeleted INTEGER NOT NULL DEFAULT(0)",
+		")"
+	],
+	[
+		"CREATE TABLE Inpx (",
+		"	Folder VARCHAR (200) NOT NULL,",
+		"	File   VARCHAR (200) NOT NULL,",
+		"	Hash   VARCHAR (50)  NOT NULL",
+		")"
+	],
+	[
+		"CREATE TABLE Keyword_List (",
+		"	KeywordID INTEGER NOT NULL,",
+		"	BookID    INTEGER NOT NULL,",
+		"	OrdNum    INTEGER NOT NULL DEFAULT (0) ",
+		")"
+	],
+	[
+		"CREATE TABLE Keywords (",
+		"	KeywordID    INTEGER NOT NULL,",
+		"	KeywordTitle VARCHAR(150),",
+		"	SearchTitle  VARCHAR(150),",
+		"	Flags        INTEGER NOT NULL DEFAULT(0),",
+		"	IsDeleted    INTEGER NOT NULL DEFAULT(0)",
+		")"
+	],
+	[
+		"CREATE TABLE Languages (",
+		"	LanguageCode VARCHAR(3) NOT NULL,",
+		"	Flags        INTEGER NOT NULL DEFAULT (0)",
+		")"
+	],
+	[
+		"CREATE TABLE Reviews (",
+		"	BookID INTEGER NOT NULL,",
+		"	Folder VARCHAR(10) NOT NULL",
+		")"
+	],
+	[
+		"CREATE TABLE Searches_User (",
+		"	SearchID  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,",
+		"	Title     VARCHAR(150) NOT NULL UNIQUE,",
+		"	CreatedAt DATETIME",
+		")"
+	],
+	[
+		"CREATE TABLE Series (",
+		"	SeriesID    INTEGER NOT NULL,",
+		"	SeriesTitle VARCHAR(80),",
+		"	SearchTitle VARCHAR(80),",
+		"	Flags       INTEGER NOT NULL DEFAULT(0),",
+		"	IsDeleted   INTEGER NOT NULL DEFAULT(0)",
+		")"
+	],
+	[
+		"CREATE TABLE Series_List (",
+		"	SeriesID  INTEGER NOT NULL,",
+		"	BookID    INTEGER NOT NULL,",
+		"	SeqNumber INTEGER,",
+		"	OrdNum    INTEGER NOT NULL DEFAULT (0) ",
+		")"
+	],
+	[
+		"CREATE TABLE Settings (",
+		"	SettingID    INTEGER NOT NULL PRIMARY KEY,",
+		"	SettingValue BLOB",
+		")"
+	],
+	[
+		"CREATE TABLE Updates (",
+		"	UpdateID    INTEGER NOT NULL,",
+		"	UpdateTitle INTEGER NOT NULL,",
+		"	ParentID    INTEGER NOT NULL,",
+		"	IsDeleted   INTEGER NOT NULL DEFAULT(0)",
+		")"
+	],
+	"CREATE VIRTUAL TABLE Annotations_Search USING fts5(Text, content=Annotations, content_rowid=BookID)",
+	"CREATE VIRTUAL TABLE Authors_Search USING fts5(LastName, FirstName, MiddleName, content=Authors, content_rowid=AuthorID)",
+	"CREATE VIRTUAL TABLE Books_Search USING fts5(Title, content=Books, content_rowid=BookID)",
+	"CREATE VIRTUAL TABLE Compilations_Search USING fts5(Title, content=Compilations, content_rowid=CompilationID)",
+	"CREATE VIRTUAL TABLE Series_Search USING fts5(SeriesTitle, content=Series, content_rowid=SeriesID)"
+]
