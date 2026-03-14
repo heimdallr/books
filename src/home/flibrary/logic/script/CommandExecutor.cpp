@@ -94,13 +94,6 @@ bool EmbeddedCommandOpenLink(const QString& argStr)
 	return QDesktopServices::openUrl(argStr);
 }
 
-constexpr std::pair<IScriptController::Command::Type, std::tuple<bool /*show*/, bool /*wait for finished*/>> TYPES[] {
-	{		   IScriptController::Command::Type::System, { false, true } },
-	{ IScriptController::Command::Type::LaunchConsoleApp, { false, true } },
-	{     IScriptController::Command::Type::LaunchGuiApp, { true, false } },
-	{		 IScriptController::Command::Type::Embedded,  { true, true } },
-};
-static_assert(std::size(TYPES) == static_cast<size_t>(IScriptController::Command::Type::Last));
 
 constexpr std::pair<const char*, bool (*)(const QString&)> EMBEDDED_COMMANDS[] {
 #define SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM(NAME) { #NAME, &EmbeddedCommand##NAME },
@@ -109,33 +102,26 @@ constexpr std::pair<const char*, bool (*)(const QString&)> EMBEDDED_COMMANDS[] {
 };
 static_assert(std::size(EMBEDDED_COMMANDS) == static_cast<size_t>(IScriptController::EmbeddedCommand::Last));
 
-bool ShellExecute(const std::wstring& file, const std::wstring& parameters, const std::wstring& cwd, const IScriptController::Command::Type type)
-{
-	const auto& [show, wait] = FindSecond(TYPES, type);
-	return Util::ShellExecuteImpl(file, parameters, cwd, show, wait);
-}
-
 } // namespace
 
 bool CommandExecutor::ExecuteSystem(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::System);
 	const auto cmdLine = QString("/D /C %1 %2").arg(command.command, command.args).toStdWString();
-	return ShellExecute(L"cmd.exe", cmdLine, command.workingFolder.toStdWString(), IScriptController::Command::Type::System);
+	return Util::ShellExecuteImpl(L"cmd.exe", cmdLine, command.workingFolder.toStdWString(), false, true);
 }
 
 bool CommandExecutor::ExecuteLaunchConsoleApp(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::LaunchConsoleApp);
-	return Util::RunProcess(Util::ToAbsolutePath(command.command), command.args, command.workingFolder);
+	return Util::RunProcess(Util::ToAbsolutePath(command.command), command.args, command.workingFolder, true);
 }
 
 bool CommandExecutor::ExecuteLaunchGuiApp(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::LaunchGuiApp);
-	const auto file       = QDir::toNativeSeparators(Util::ToAbsolutePath(command.command)).toStdWString();
-	const auto parameters = command.args.toStdWString();
-	return ShellExecute(file, parameters, command.workingFolder.toStdWString(), IScriptController::Command::Type::LaunchGuiApp);
+	const auto file       = QDir::toNativeSeparators(Util::ToAbsolutePath(command.command));
+	return Util::RunProcess(file, command.args, command.workingFolder, false);
 }
 
 bool CommandExecutor::ExecuteEmbeddedCommand(const IScriptController::Command& command) const

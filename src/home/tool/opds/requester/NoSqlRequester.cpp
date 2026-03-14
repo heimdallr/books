@@ -159,7 +159,7 @@ private:
 		arguments.replace("%src%", src);
 		arguments.replace("%dst%", dst);
 
-		if (!Util::RunProcess(command, arguments, getParameter(CONVERTER_CWD)))
+		if (!Util::RunProcess(command, arguments, getParameter(CONVERTER_CWD), true))
 			return;
 
 		QFile file(dst);
