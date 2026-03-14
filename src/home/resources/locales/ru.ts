@@ -4472,6 +4472,10 @@ Try again?</source>
         <source>It looks like you&apos;re trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?</source>
         <translation>Похоже, вы пытаетесь использовать старую версию программы с коллекцией из новой версии. Работа в таком режиме может быть нестабильной. Уверены, что желаете продолжать?</translation>
     </message>
+    <message>
+        <source>The database version is not supported. You must recreate the collection</source>
+        <translation>Версия базы данных не поддерживается. Необходимо пересоздать коллекцию</translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>
