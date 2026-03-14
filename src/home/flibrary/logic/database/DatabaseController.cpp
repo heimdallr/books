@@ -27,7 +27,7 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& col
 	if (databaseName.empty())
 		return {};
 
-	const auto connectionString = std::string("path=") + databaseName + ";extension=MyHomeLibSQLIteExt" + (readOnly ? ";flag=READONLY" : "");
+	const auto connectionString = std::string("path=") + databaseName + (readOnly ? ";flag=READONLY" : "");
 	auto       db               = Create(DB::Factory::Impl::Sqlite, connectionString);
 
 	db->CreateQuery("PRAGMA foreign_keys = ON;")->Execute();
