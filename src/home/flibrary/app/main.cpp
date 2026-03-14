@@ -46,6 +46,7 @@ constexpr auto SEQ_NUMBER_WIDTH_KEY = "Preferences/Export/seqNumberWidth";
 constexpr auto CONTEXT = "Main";
 constexpr auto WRONG_DB_VERSION =
 	QT_TRANSLATE_NOOP("Main", "It looks like you're trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?");
+constexpr auto UNSUPPORTED_DB_VERSION = QT_TRANSLATE_NOOP("Main", "The database version is not supported. You must recreate the collection");
 TR_DEF
 
 }
@@ -130,6 +131,10 @@ int main(int argc, char* argv[])
 				case IDatabaseMigrator::NeedMigrateResult::Unexpected:
 					if (container->resolve<IUiFactory>()->ShowWarning(Tr(WRONG_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::No) == QMessageBox::No)
 						return EXIT_FAILURE;
+
+				case IDatabaseMigrator::NeedMigrateResult::Unsupported:
+					container->resolve<IUiFactory>()->ShowError(Tr(UNSUPPORTED_DB_VERSION));
+					return EXIT_FAILURE;
 			}
 
 			container->resolve<ITaskQueue>()->Execute();
