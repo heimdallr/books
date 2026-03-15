@@ -14,33 +14,35 @@ if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
 	set(D d)
 endif()
 
-#Да, колхоз. Но я устал
-set(QT_BIN_FILES
-	${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/Qt6Core${D}.dll
-	${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/Qt6Gui${D}.dll
-	${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/Qt6Network${D}.dll
-	${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/Qt6Svg${D}.dll
-	${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/Qt6Widgets${D}.dll
-	${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/Qt6HttpServer${D}.dll
-	${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/Qt6WebSockets${D}.dll
-)
-file(COPY ${QT_BIN_FILES} DESTINATION ${CMAKE_BINARY_DIR}/bin)
-
-if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-	file(WRITE "${CMAKE_BINARY_DIR}/config/installer_mode" "msi")	
-
-	install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/imageformats DESTINATION .)
-	install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/locales DESTINATION .)
-	install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/platforms DESTINATION .)
-	install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/styles DESTINATION .)
-	install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/tls DESTINATION .)
-	install(
-		FILES
-			"${CMAKE_BINARY_DIR}/config/installer_mode"
-			"${CMAKE_BINARY_DIR}/bin/LICENSE.txt"
-			${QT_BIN_FILES}
-		DESTINATION .
-		)
+if (MSVC)
+	#Да, колхоз. Но я устал
+	set(QT_BIN_FILES
+		${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/Qt6Core${D}.dll
+		${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/Qt6Gui${D}.dll
+		${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/Qt6Network${D}.dll
+		${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/Qt6Svg${D}.dll
+		${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/Qt6Widgets${D}.dll
+		${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/Qt6HttpServer${D}.dll
+		${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/Qt6WebSockets${D}.dll
+	)
+	file(COPY ${QT_BIN_FILES} DESTINATION ${CMAKE_BINARY_DIR}/bin)
+	
+	if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+		file(WRITE "${CMAKE_BINARY_DIR}/config/installer_mode" "msi")	
+	
+		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/imageformats DESTINATION .)
+		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/locales DESTINATION .)
+		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/platforms DESTINATION .)
+		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/styles DESTINATION .)
+		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/tls DESTINATION .)
+		install(
+			FILES
+				"${CMAKE_BINARY_DIR}/config/installer_mode"
+				"${CMAKE_BINARY_DIR}/bin/LICENSE.txt"
+				${QT_BIN_FILES}
+			DESTINATION .
+			)
+	endif()
 endif()
 
 AddTarget(${PROJECT_NAME}	app

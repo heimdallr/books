@@ -57,11 +57,12 @@ set(QT_MAJOR_VERSION 6)
 
 set(QtModules Widgets Xml Network Svg SvgWidgets Concurrent HttpServer)
 find_package(Qt${QT_MAJOR_VERSION} REQUIRED COMPONENTS ${QtModules})
-include(QtInstallPaths)
 
 set(BIT7Z_AUTO_FORMAT ON CACHE BOOL "enable auto format support" FORCE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/ext/bit7z)
-set_property(TARGET bit7z PROPERTY FOLDER Foundation/zip)
+if(MSVC)
+	set_property(TARGET bit7z PROPERTY FOLDER Foundation/zip)
+endif()
 
 find_package(plog REQUIRED)
 find_package(Boost REQUIRED)
@@ -86,7 +87,12 @@ file(WRITE "${CMAKE_BINARY_DIR}/var/7z" "${7zip_BIN_DIR}/")
 file(WRITE "${CMAKE_BINARY_DIR}/var/version" ${PRODUCT_VERSION})
 file(WRITE "${CMAKE_BINARY_DIR}/var/uid" ${PRODUCT_GUI})
 
-add_compile_definitions(PLOG_IMPORT)
+
+set(PLOG_SHARED_IMPORT PLOG_GLOBAL)
+if(WIN32)
+	set(PLOG_SHARED_IMPORT PLOG_IMPORT)
+endif()
+add_compile_definitions(${PLOG_SHARED_IMPORT})
 add_compile_definitions(UNICODE _UNICODE NOMINMAX _USE_MATH_DEFINES)
 add_compile_definitions(HYPODERMIC_OVERRIDE_CONSTRUCTOR_ARGUMENT_COUNT=32)
 add_compile_definitions(LOCALIZED_APPLICATION)

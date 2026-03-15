@@ -38,9 +38,9 @@ constexpr auto MARK_UN_INDEXED_BOOKS_AS_DELETED = "MarkUnIndexedBooksAsDeleted";
 constexpr auto DEFAULT_ARCHIVE_TYPE             = "DefaultArchiveType";
 constexpr auto DEFAULT_ADDITIONAL_FOLDER        = "/etc";
 
-constexpr auto CONTEXT                = "AddCollectionDialog";
-constexpr auto CREATE_NEW_COLLECTION  = QT_TRANSLATE_NOOP("AddCollectionDialog", "Create new");
-constexpr auto ADD_COLLECTION         = QT_TRANSLATE_NOOP("AddCollectionDialog", "Add");
+constexpr auto CONTEXT               = "AddCollectionDialog";
+constexpr auto CREATE_NEW_COLLECTION = QT_TRANSLATE_NOOP("AddCollectionDialog", "Create new");
+constexpr auto ADD_COLLECTION        = QT_TRANSLATE_NOOP("AddCollectionDialog", "Add");
 
 constexpr auto EMPTY_NAME                         = QT_TRANSLATE_NOOP("Error", "Name cannot be empty");
 constexpr auto COLLECTION_NAME_ALREADY_EXISTS     = QT_TRANSLATE_NOOP("Error", "Same named collection has already been added");

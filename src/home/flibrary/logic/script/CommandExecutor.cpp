@@ -94,7 +94,6 @@ bool EmbeddedCommandOpenLink(const QString& argStr)
 	return QDesktopServices::openUrl(argStr);
 }
 
-
 constexpr std::pair<const char*, bool (*)(const QString&)> EMBEDDED_COMMANDS[] {
 #define SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM(NAME) { #NAME, &EmbeddedCommand##NAME },
 	SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEMS_X_MACRO
@@ -119,7 +118,7 @@ bool CommandExecutor::ExecuteLaunchConsoleApp(const IScriptController::Command& 
 bool CommandExecutor::ExecuteLaunchGuiApp(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::LaunchGuiApp);
-	const auto file       = QDir::toNativeSeparators(Util::ToAbsolutePath(command.command));
+	const auto file = QDir::toNativeSeparators(Util::ToAbsolutePath(command.command));
 	return Util::RunProcess(file, command.args, command.workingFolder, false);
 }
 
