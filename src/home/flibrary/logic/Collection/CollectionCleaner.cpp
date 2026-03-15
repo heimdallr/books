@@ -110,6 +110,7 @@ not exists (select 42 from Keywords k where k.KeywordID = Groups_List_User.Objec
 		{      "Authors_Search",														  "insert into Authors_Search(Authors_Search) values('rebuild')" },
 		{       "Series_Search",															"insert into Series_Search(Series_Search) values('rebuild')" },
 		{ "Compilations_Search",												"insert into Compilations_Search(Compilations_Search) values('rebuild')" },
+		{  "Annotations_Search",												  "insert into Annotations_Search(Annotations_Search) values('rebuild')" },
 	};
 	return std::accumulate(std::cbegin(commands), std::cend(commands), true, [&](const bool init, const auto& command) {
 		PLOGD << "removing from " << command.first;
