@@ -60,8 +60,8 @@
         <translation>Файл бази даних</translation>
     </message>
     <message>
-        <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
-        <translation>Бази даних FLibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;Всі файли (*.*)</translation>
+        <source>FLibrary database files (*.db *.sqlite *.sqlite3);;All files (*.*)</source>
+        <translation>Бази даних FLibrary (*.db *.sqlite *.sqlite3);;Всі файли (*.*)</translation>
     </message>
     <message>
         <source>Index file</source>
@@ -96,6 +96,10 @@
         <translation>Сканувати неіндексовані архіви</translation>
     </message>
     <message>
+        <source>Select additional data folder</source>
+        <translation>Виберіть папку з додатковими даними</translation>
+    </message>
+    <message>
         <source>Select archives folder</source>
         <translation>Виберіть папку з архівами</translation>
     </message>
@@ -106,14 +110,6 @@
     <message>
         <source>Select database file</source>
         <translation>Виберіть файл бази даних</translation>
-    </message>
-    <message>
-        <source>Transform path to absolute</source>
-        <translation>Перетворити шлях на абсолютний</translation>
-    </message>
-    <message>
-        <source>Transform path to relative</source>
-        <translation>Перетворити шлях на відносний</translation>
     </message>
 </context>
 <context>
@@ -5227,6 +5223,17 @@ Try again?</source>
     <message>
         <source>Use the default reader?</source>
         <translation>Використовувати системну читалку?</translation>
+    </message>
+</context>
+<context>
+    <name>RelativePathLineEdit</name>
+    <message>
+        <source>Transform path to absolute</source>
+        <translation>Перетворити шлях на абсолютний</translation>
+    </message>
+    <message>
+        <source>Transform path to relative</source>
+        <translation>Перетворити шлях на відносний</translation>
     </message>
 </context>
 <context>

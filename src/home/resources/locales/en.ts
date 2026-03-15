@@ -60,8 +60,8 @@
         <translation></translation>
     </message>
     <message>
-        <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
-        <translation>FLibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
+        <source>FLibrary database files (*.db *.sqlite *.sqlite3);;All files (*.*)</source>
+        <translation></translation>
     </message>
     <message>
         <source>Index file</source>
@@ -96,6 +96,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Select additional data folder</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Select archives folder</source>
         <translation></translation>
     </message>
@@ -105,14 +109,6 @@
     </message>
     <message>
         <source>Select database file</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Transform path to absolute</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Transform path to relative</source>
         <translation></translation>
     </message>
 </context>
@@ -5214,6 +5210,17 @@ Try again?</source>
     </message>
     <message>
         <source>Use the default reader?</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>RelativePathLineEdit</name>
+    <message>
+        <source>Transform path to absolute</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Transform path to relative</source>
         <translation></translation>
     </message>
 </context>

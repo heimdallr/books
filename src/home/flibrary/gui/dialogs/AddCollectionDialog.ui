@@ -68,7 +68,7 @@
         <string>Select database file</string>
        </property>
        <property name="fileFilter" stdset="0">
-        <string>Flibrary database files (*.db *.sqlite *.sqlite3);;All files (*.*)</string>
+        <string>FLibrary database files (*.db *.sqlite *.sqlite3);;All files (*.*)</string>
        </property>
       </widget>
      </item>

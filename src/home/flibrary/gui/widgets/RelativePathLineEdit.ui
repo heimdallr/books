@@ -32,11 +32,8 @@
     <iconset resource="../../icons/light/resources/light.qrc">
      <normaloff>:/icons/a.svg</normaloff>:/icons/a.svg</iconset>
    </property>
-   <property name="text">
-    <string notr="true">A</string>
-   </property>
    <property name="toolTip">
-    <string>To absolute path</string>
+    <string>Transform path to absolute</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -47,11 +44,8 @@
     <iconset resource="../../icons/light/resources/light.qrc">
      <normaloff>:/icons/r.svg</normaloff>:/icons/r.svg</iconset>
    </property>
-   <property name="text">
-    <string>R</string>
-   </property>
    <property name="toolTip">
-    <string>To relative path</string>
+    <string>Transform path to relative</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
