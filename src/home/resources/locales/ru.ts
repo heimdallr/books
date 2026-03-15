@@ -60,8 +60,8 @@
         <translation>Файл базы данных</translation>
     </message>
     <message>
-        <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
-        <translation>Базы данных FLibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
+        <source>FLibrary database files (*.db *.sqlite *.sqlite3);;All files (*.*)</source>
+        <translation>Базы данных FLibrary (*.db *.sqlite *.sqlite3);;Все файлы (*.*)</translation>
     </message>
     <message>
         <source>Index file</source>
@@ -96,6 +96,10 @@
         <translation>Сканировать неиндексированные архивы</translation>
     </message>
     <message>
+        <source>Select additional data folder</source>
+        <translation>Выберите папку с дополнительными данными</translation>
+    </message>
+    <message>
         <source>Select archives folder</source>
         <translation>Выберите папку с архивами</translation>
     </message>
@@ -106,14 +110,6 @@
     <message>
         <source>Select database file</source>
         <translation>Выберите файл базы данных</translation>
-    </message>
-    <message>
-        <source>Transform path to absolute</source>
-        <translation>Преобразовать путь в абсолютный</translation>
-    </message>
-    <message>
-        <source>Transform path to relative</source>
-        <translation>Преобразовать путь в относительный</translation>
     </message>
 </context>
 <context>
@@ -5227,6 +5223,17 @@ Try again?</source>
     <message>
         <source>Use the default reader?</source>
         <translation>Использовать системную читалку?</translation>
+    </message>
+</context>
+<context>
+    <name>RelativePathLineEdit</name>
+    <message>
+        <source>Transform path to absolute</source>
+        <translation>Преобразовать путь в абсолютный</translation>
+    </message>
+    <message>
+        <source>Transform path to relative</source>
+        <translation>Преобразовать путь в относительный</translation>
     </message>
 </context>
 <context>
