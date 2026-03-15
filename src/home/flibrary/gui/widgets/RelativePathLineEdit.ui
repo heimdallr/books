@@ -1,0 +1,65 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>RelativePathLineEdit</class>
+ <widget class="QWidget" name="RelativePathLineEdit">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>822</width>
+    <height>21</height>
+   </rect>
+  </property>
+  <layout class="QVBoxLayout">
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QLineEdit" name="edit"/>
+   </item>
+  </layout>
+  <action name="actionToAbsolutePath">
+   <property name="icon">
+    <iconset resource="../../icons/light/resources/light.qrc">
+     <normaloff>:/icons/a.svg</normaloff>:/icons/a.svg</iconset>
+   </property>
+   <property name="text">
+    <string notr="true">A</string>
+   </property>
+   <property name="toolTip">
+    <string>To absolute path</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionToRelativePath">
+   <property name="icon">
+    <iconset resource="../../icons/light/resources/light.qrc">
+     <normaloff>:/icons/r.svg</normaloff>:/icons/r.svg</iconset>
+   </property>
+   <property name="text">
+    <string>R</string>
+   </property>
+   <property name="toolTip">
+    <string>To relative path</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+ </widget>
+ <resources>
+  <include location="../../icons/light/resources/light.qrc"/>
+ </resources>
+ <connections/>
+</ui>
