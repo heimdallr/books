@@ -10,7 +10,7 @@
     <x>0</x>
     <y>0</y>
     <width>693</width>
-    <height>295</height>
+    <height>321</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -60,9 +60,15 @@
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QLineEdit" name="editDatabase">
+      <widget class="HomeCompa::Flibrary::RelativePathLineEdit" name="editDatabase">
        <property name="toolTip">
         <string>Collection database file name</string>
+       </property>
+       <property name="selectDialogTitle" stdset="0">
+        <string>Select database file</string>
+       </property>
+       <property name="fileFilter" stdset="0">
+        <string>Flibrary database files (*.db *.sqlite *.sqlite3);;All files (*.*)</string>
        </property>
       </widget>
      </item>
@@ -139,16 +145,28 @@
       </widget>
      </item>
      <item row="4" column="1">
-      <widget class="QLineEdit" name="editInpx">
+      <widget class="HomeCompa::Flibrary::RelativePathLineEdit" name="editInpx">
        <property name="enabled">
         <bool>false</bool>
+       </property>
+       <property name="selectDialogTitle" stdset="0">
+        <string>Select collection index file</string>
+       </property>
+       <property name="fileFilter" stdset="0">
+        <string>Collection index files (*.inpx);;All files (*.*)</string>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QLineEdit" name="editArchive">
+      <widget class="HomeCompa::Flibrary::RelativePathLineEdit" name="editArchive">
        <property name="toolTip">
         <string>Collection archive folder</string>
+       </property>
+       <property name="isDir" stdset="0">
+        <bool>true</bool>
+       </property>
+       <property name="selectDialogTitle" stdset="0">
+        <string>Select archives folder</string>
        </property>
       </widget>
      </item>
@@ -163,9 +181,15 @@
       </widget>
      </item>
      <item row="3" column="1">
-      <widget class="QLineEdit" name="editAdditional">
+      <widget class="HomeCompa::Flibrary::RelativePathLineEdit" name="editAdditional">
        <property name="enabled">
         <bool>true</bool>
+       </property>
+       <property name="isDir" stdset="0">
+        <bool>true</bool>
+       </property>
+       <property name="selectDialogTitle" stdset="0">
+        <string>Select additional data folder</string>
        </property>
       </widget>
      </item>
@@ -352,98 +376,15 @@
     </layout>
    </item>
   </layout>
-  <action name="actionDatabaseToRelativePath">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="../../icons/light/resources/light.qrc">
-     <normaloff>:/icons/r.svg</normaloff>:/icons/r.svg</iconset>
-   </property>
-   <property name="text">
-    <string notr="true">R</string>
-   </property>
-   <property name="toolTip">
-    <string>Transform path to relative</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionDatabaseToAbsolutePath">
-   <property name="icon">
-    <iconset resource="../../icons/light/resources/light.qrc">
-     <normaloff>:/icons/a.svg</normaloff>:/icons/a.svg</iconset>
-   </property>
-   <property name="text">
-    <string notr="true">A</string>
-   </property>
-   <property name="toolTip">
-    <string>Transform path to absolute</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionArchiveToRelativePath">
-   <property name="checkable">
-    <bool>true</bool>
-   </property>
-   <property name="icon">
-    <iconset resource="../../icons/light/resources/light.qrc">
-     <normaloff>:/icons/r.svg</normaloff>:/icons/r.svg</iconset>
-   </property>
-   <property name="text">
-    <string notr="true">R</string>
-   </property>
-   <property name="toolTip">
-    <string>Transform path to relative</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionArchiveToAbsolutePath">
-   <property name="icon">
-    <iconset resource="../../icons/light/resources/light.qrc">
-     <normaloff>:/icons/a.svg</normaloff>:/icons/a.svg</iconset>
-   </property>
-   <property name="text">
-    <string notr="true">A</string>
-   </property>
-   <property name="toolTip">
-    <string>Transform path to absolute</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionInpxToRelativePath">
-   <property name="icon">
-    <iconset resource="../../icons/light/resources/light.qrc">
-     <normaloff>:/icons/r.svg</normaloff>:/icons/r.svg</iconset>
-   </property>
-   <property name="text">
-    <string notr="true">R</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
-  <action name="actionInpxToAbsolutePath">
-   <property name="icon">
-    <iconset resource="../../icons/light/resources/light.qrc">
-     <normaloff>:/icons/a.svg</normaloff>:/icons/a.svg</iconset>
-   </property>
-   <property name="text">
-    <string notr="true">A</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
+ <customwidgets>
+  <customwidget>
+   <class>HomeCompa::Flibrary::RelativePathLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>widgets/RelativePathLineEdit.h</header>
+  </customwidget>
+ </customwidgets>
  <tabstops>
   <tabstop>editName</tabstop>
   <tabstop>btnDatabase</tabstop>
