@@ -31,8 +31,6 @@
 		"	BookID      INTEGER NOT NULL,",
 		"	LibID       VARCHAR(200),",
 		"	Title       VARCHAR(200),",
-		"	SeriesID    INTEGER,",
-		"	SeqNumber   INTEGER,",
 		"	UpdateDate  VARCHAR(23),",
 		"	LibRate     INTEGER,",
 		"	Lang        VARCHAR(3),",

@@ -228,9 +228,10 @@ select
 	(select a.LastName || coalesce(' ' || nullif(substr(a.FirstName, 1, 1), '') || '.' || coalesce(nullif(substr(a.middleName, 1, 1), '') || '.', ''), '')
 		from Authors a
 		join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID ORDER BY a.ROWID ASC LIMIT 1
-	), s.SeriesTitle, b.SeqNumber
+	), s.SeriesTitle, sl.SeqNumber
 	from Books_View_Opds b
-	left join Series s on s.SeriesID = b.SeriesID
+	left join Series_List sl on sl.BookID = b.BookID
+	left join Series s on s.SeriesID = sl.SeriesID
 	where b.BookID = ?
 )";
 

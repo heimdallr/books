@@ -10,7 +10,6 @@
 	"CREATE UNIQUE INDEX UIX_Authors_PrimaryKey ON Authors (AuthorID)",
 	"CREATE INDEX IX_Authors_SearchName ON Authors(SearchName COLLATE NOCASE)",
 	"CREATE UNIQUE INDEX UIX_Books_PrimaryKey ON Books (BookID)",
-	"CREATE INDEX IX_Books_SeriesID_SeqNumber ON Books (SeriesID, SeqNumber)",
 	"CREATE INDEX IX_Books_FolderID ON Books (FolderID)",
 	"CREATE INDEX IX_Books_UpdateID ON Books (UpdateID)",
 	"CREATE INDEX IX_Books_FileName ON Books (FileName)",
@@ -35,9 +34,9 @@
 	"CREATE UNIQUE INDEX UIX_Reviews_PrimaryKey ON Reviews (BookID, Folder)",
 	[
 		"CREATE VIEW Books_View (",
-		"	  BookID,   LibID,   Title,   SeriesID,   SeqNumber,   UpdateDate,   LibRate,   Lang,   Year,   FolderID,                        FileName,   BookSize,   UpdateID,                                        IsDeleted,    UserRate,   SourceLib,   SearchTitle,               BaseFileName,   Ext",
+		"	  BookID,   LibID,   Title,   UpdateDate,   LibRate,   Lang,   Year,   FolderID,                        FileName,   BookSize,   UpdateID,                                        IsDeleted,    UserRate,   SourceLib,   SearchTitle,               BaseFileName,   Ext",
 		") AS SELECT ",
-		"	b.BookID, b.LibID, b.Title, b.SeriesID, b.SeqNumber, b.UpdateDate, b.LibRate, b.Lang, b.Year, b.FolderID, b.FileName || b.Ext AS FileName, b.BookSize, b.UpdateID, coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted, bu.UserRate, b.SourceLib, b.SearchTitle, b.FileName AS BaseFileName, b.Ext",
+		"	b.BookID, b.LibID, b.Title, b.UpdateDate, b.LibRate, b.Lang, b.Year, b.FolderID, b.FileName || b.Ext AS FileName, b.BookSize, b.UpdateID, coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted, bu.UserRate, b.SourceLib, b.SearchTitle, b.FileName AS BaseFileName, b.Ext",
 		"FROM Books b",	
 		"LEFT JOIN Books_User bu ON bu.BookID = b.BookID"
 	],
