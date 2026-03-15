@@ -16,8 +16,6 @@ struct Book
 		const size_t            id_,
 		const std::wstring_view libId_,
 		const std::wstring_view title_,
-		const int               seriesId_,
-		const int               seriesNum_,
 		const std::wstring_view date_,
 		const int               rate_,
 		const std::wstring_view language_,
@@ -33,8 +31,6 @@ struct Book
 		: id { id_ }
 		, libId { libId_ }
 		, title { title_ }
-		, seriesId { seriesId_ }
-		, seriesNum { seriesNum_ }
 		, date { date_ }
 		, rate { rate_ }
 		, language { language_ }
@@ -53,8 +49,6 @@ struct Book
 	size_t       id;
 	std::wstring libId;
 	std::wstring title;
-	int          seriesId;
-	int          seriesNum;
 	std::wstring date;
 	int          rate;
 	std::wstring language;
