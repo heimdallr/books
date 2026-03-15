@@ -2601,7 +2601,7 @@ Try again?</source>
     </message>
     <message>
         <source>Reset</source>
-        <translation>Скидання</translation>
+        <translation>Скинути</translation>
     </message>
 </context>
 <context>
@@ -4470,7 +4470,7 @@ Try again?</source>
     </message>
     <message>
         <source>The database version is not supported. You must recreate the collection</source>
-        <translation>Ця версія бази даних не підтримується. Необхідно перестворити колекцію</translation>
+        <translation>Ця версія бази даних не підтримується. Необхідно створити колекцію заново</translation>
     </message>
 </context>
 <context>
@@ -4801,7 +4801,7 @@ Try again?</source>
     </message>
     <message>
         <source>Search &amp;by</source>
-        <translation>Пошук &amp;по</translation>
+        <translation>Пошук &amp;за</translation>
     </message>
     <message>
         <source>Search book by title</source>
