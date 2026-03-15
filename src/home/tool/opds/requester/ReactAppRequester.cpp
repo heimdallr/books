@@ -36,7 +36,7 @@ constexpr auto SELECTED_GROUP_ID = "selectedGroupID";
 
 #define AUTHOR_FULL_NAME "a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '')"
 
-constexpr auto MAIN_BOOK_FIELDS = "b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, nullif(b.SeqNumber, 0) as SeqNumber, b.BaseFileName, b.Ext, b.UpdateDate, b.Year";
+constexpr auto MAIN_BOOK_FIELDS = "b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, b.BaseFileName, b.Ext, b.UpdateDate, b.Year";
 constexpr auto AUTHORS_FIELD    = "(select group_concat(" AUTHOR_FULL_NAME R"(, ', ')
 	from Authors a 
 	join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
@@ -218,7 +218,7 @@ where g.GroupID = ?
 
 	QJsonObject getSearchTitles(const Parameters& parameters) const
 	{
-		static constexpr auto queryText  = "select %1, %2, %3, s.SeriesTitle from Books_View_Opds b %4 left join Series s on s.SeriesID = b.SeriesID";
+		static constexpr auto queryText  = "select %1, %2, %3, s.SeriesTitle, sl.SeqNumber from Books_View_Opds b %4 left join Series_List sl on sl.BookID = b.BookID left join Series s on s.SeriesID = sl.SeriesID";
 		static constexpr auto groupJoin  = "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = ?";
 		static constexpr auto searchJoin = "join Books_Search fts on fts.rowid = b.BookID and Books_Search match ?";
 
@@ -260,7 +260,7 @@ where g.GroupID = ?
 
 	QJsonObject getSearchAuthorBooks(const Parameters& parameters) const
 	{
-		static constexpr auto                                 queryText = "select %1, %2, s.SeriesTitle from Books_View_Opds b %3 left join Series s on s.SeriesID = b.SeriesID";
+		static constexpr auto queryText = "select %1, %2, s.SeriesTitle from Books_View_Opds b %3 left join Series_List sl on sl.BookID = b.BookID left join Series s on s.SeriesID = sl.SeriesID";
 		static constexpr std::tuple<const char*, const char*> list[] {
 			{ SELECTED_GROUP_ID, "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = %1" },
 			{  SELECTED_ITEM_ID,          "join Author_List al on al.BookID = b.BookID and al.AuthorID = %1" },
