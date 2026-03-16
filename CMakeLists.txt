@@ -12,6 +12,11 @@ endif ()
 set(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE})
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
+set(7zip_BIN_DIR "NOTSET" CACHE STRING "Path to 7zip binaries (required)")
+if ("${7zip_BIN_DIR}" STREQUAL "" OR "${7zip_BIN_DIR}" STREQUAL "NOTSET")
+	message(FATAL_ERROR "7zip_BIN_DIR is not set. Please provide a value using -D7zip_BIN_DIR='Path/to/7zip/binaries'")
+endif ()
+
 set(EXT_ROOT ${CMAKE_SOURCE_DIR}/src/ext CACHE STRING "EXT_ROOT")
 set(BUILDSCRIPTS_ROOT ${EXT_ROOT}/scripts CACHE STRING "BUILDSCRIPTS_ROOT")
 set(FOUNDATION_ROOT ${EXT_ROOT}/foundation CACHE STRING "FOUNDATION_ROOT")
@@ -86,7 +91,6 @@ include(${FOUNDATION_ROOT}/icu/icu.cmake)
 file(WRITE "${CMAKE_BINARY_DIR}/var/7z" "${7zip_BIN_DIR}/")
 file(WRITE "${CMAKE_BINARY_DIR}/var/version" ${PRODUCT_VERSION})
 file(WRITE "${CMAKE_BINARY_DIR}/var/uid" ${PRODUCT_GUI})
-
 
 set(PLOG_SHARED_IMPORT PLOG_GLOBAL)
 if(WIN32)
