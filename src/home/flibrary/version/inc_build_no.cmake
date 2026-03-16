@@ -1,0 +1,5 @@
+file(READ ${FILE} VERSION)
+string(REGEX REPLACE "[^0-9]*([0-9]+)[^0-9]*" "\\1" VERSION ${VERSION})
+math(EXPR VERSION "${VERSION} + 1" OUTPUT_FORMAT DECIMAL)
+file(WRITE ${FILE} "constexpr int BUILD_NUMBER = ${VERSION};\n")
+message(STATUS "New build number: ${VERSION}")
