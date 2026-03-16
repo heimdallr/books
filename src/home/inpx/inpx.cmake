@@ -8,13 +8,13 @@ AddTarget(inpx	shared_lib
 		"${CMAKE_CURRENT_LIST_DIR}/../../ext/sqlite/sqlite"
 	LINK_TARGETS
 		logging
-		sqlite
 		sqlite3pp
 		util
 		zip
 	LINK_LIBRARIES
 		Qt${QT_MAJOR_VERSION}::Core
 		plog::plog
+		SQLite::SQLite3
 	COMPILE_DEFINITIONS
 		_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING
 )
