@@ -75,6 +75,7 @@ find_package(XercesC REQUIRED)
 find_package(ICU REQUIRED)
 find_package(libjxl REQUIRED)
 find_package(cimg REQUIRED)
+find_package(SQLite3 REQUIRED)
 
 include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)
 

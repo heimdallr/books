@@ -18,6 +18,10 @@ def configure_icu(recipe):
 def configure_libjxl(recipe):
     recipe.options["libjxl"].shared = False
 
+def configure_sqlite3(recipe):
+    recipe.options["sqlite3"].threadsafe = 0
+    recipe.options["sqlite3"].enable_fts5 = True
+
 class FLibrary(ConanFile):
     name = "FLibrary"
     settings = "os", "compiler", "build_type", "arch"
@@ -29,12 +33,14 @@ class FLibrary(ConanFile):
         self.requires("icu/77.1")
         self.requires("libjxl/0.11.1")
         self.requires("cimg/3.3.2")
+        self.requires("sqlite3/3.51.0")
 
     def configure(self):
         configure_boost(self)
         configure_xercesc(self)
         configure_icu(self)
         configure_libjxl(self)
+        configure_sqlite3(self)
 
     def generate(self):
         deps = CMakeDeps(self)
