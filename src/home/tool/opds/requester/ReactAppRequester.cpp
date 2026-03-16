@@ -218,7 +218,8 @@ where g.GroupID = ?
 
 	QJsonObject getSearchTitles(const Parameters& parameters) const
 	{
-		static constexpr auto queryText  = "select %1, %2, %3, s.SeriesTitle, sl.SeqNumber from Books_View_Opds b %4 left join Series_List sl on sl.BookID = b.BookID left join Series s on s.SeriesID = sl.SeriesID";
+		static constexpr auto queryText =
+			"select %1, %2, %3, s.SeriesTitle, sl.SeqNumber from Books_View_Opds b %4 left join Series_List sl on sl.BookID = b.BookID left join Series s on s.SeriesID = sl.SeriesID";
 		static constexpr auto groupJoin  = "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = ?";
 		static constexpr auto searchJoin = "join Books_Search fts on fts.rowid = b.BookID and Books_Search match ?";
 
