@@ -46,6 +46,11 @@ if(MSVC)
 		/wd4503	# decorated name length exceeded, name was truncated
 		/bigobj # number of sections exceeded object file format limit
 	)
+else()
+	add_compile_options(
+		-Wno-deprecated-declarations
+		-fPIC
+	)
 endif()
 
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
