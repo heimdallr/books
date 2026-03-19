@@ -24,6 +24,7 @@
 #pragma warning(pop)
 
 #include "fnd/IsOneOf.h"
+#include "fnd/StrUtil.h"
 #include "fnd/try.h"
 
 #include "database/interface/ICommand.h"

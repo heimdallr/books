@@ -38,14 +38,14 @@ bool Write(const QByteArray& input, const std::filesystem::path& path)
 	return output.open(QIODevice::WriteOnly) && output.write(input) == input.size();
 }
 
-bool Archive(QByteArray input, const std::filesystem::path& path, QString fileName, std::shared_ptr<Zip::ProgressCallback> zipProgressCallback)
+bool Archive(const QByteArray& input, const std::filesystem::path& path, QString fileName, std::shared_ptr<Zip::ProgressCallback> zipProgressCallback)
 {
 	try
 	{
 		Zip  zip(QString::fromStdWString(path), Zip::Format::Zip, false, std::move(zipProgressCallback));
 		auto zipFiles = Zip::CreateZipFileController();
-		zipFiles->AddFile(std::move(fileName), std::move(input), QDateTime::currentDateTime());
-		zip.Write(std::move(zipFiles));
+		zipFiles->AddFile(std::move(fileName), input, QDateTime::currentDateTime());
+		zip.Write(*zipFiles);
 		return true;
 	}
 	catch (const std::exception& ex)

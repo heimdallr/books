@@ -118,7 +118,7 @@ void SetContentType(QHttpServerResponse& response, const QString& root, const Me
 	ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
 }
 
-QHttpServerResponse EncodeContent(QByteArray src, const QString& acceptEncoding)
+QHttpServerResponse EncodeContent(const QByteArray& src, const QString& acceptEncoding)
 {
 	if (!acceptEncoding.contains("gzip"))
 		return QHttpServerResponse { src };
@@ -138,8 +138,8 @@ QHttpServerResponse EncodeContent(QByteArray src, const QString& acceptEncoding)
 		zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Deflate));
 		zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Fast));
 		auto zipFiles = Zip::CreateZipFileController();
-		zipFiles->AddFile("file", std::move(src));
-		zip.Write(std::move(zipFiles));
+		zipFiles->AddFile("file", src);
+		zip.Write(*zipFiles);
 	}
 
 	QHttpServerResponse result { zipped };

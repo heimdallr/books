@@ -50,7 +50,7 @@ QByteArray Decompress(const QString& path, const QString& archive, const QString
 	return data;
 }
 
-QByteArray Compress(QByteArray data, QString fileName)
+QByteArray Compress(const QByteArray& data, QString fileName)
 {
 	QByteArray zippedData;
 	{
@@ -66,8 +66,8 @@ QByteArray Compress(QByteArray data, QString fileName)
 		buffer.open(QIODevice::WriteOnly);
 		Zip  zip(buffer, Zip::Format::Zip);
 		auto zipFiles = Zip::CreateZipFileController();
-		zipFiles->AddFile(std::move(fileName), std::move(data));
-		zip.Write(std::move(zipFiles));
+		zipFiles->AddFile(std::move(fileName), data);
+		zip.Write(*zipFiles);
 	}
 	return zippedData;
 }
