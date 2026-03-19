@@ -1,9 +1,23 @@
 cmake_minimum_required(VERSION 3.12)
 
+set(CMAKE_GENERATOR_PLATFORM)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
+set(CMAKE_INCLUDE_CURRENT_DIR ON)
+set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
+
+set(QT_MAJOR_VERSION 6)
+set(CMAKE_AUTOMOC ON)
+set(CMAKE_AUTORCC ON)
+set(CMAKE_AUTOUIC ON)
+
+set(EXT_ROOT ${CMAKE_SOURCE_DIR}/src/ext CACHE STRING "EXT_ROOT")
+set(BUILDSCRIPTS_ROOT ${EXT_ROOT}/scripts CACHE STRING "BUILDSCRIPTS_ROOT")
+set(FOUNDATION_ROOT ${EXT_ROOT}/foundation CACHE STRING "FOUNDATION_ROOT")
+
+set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
 set(PRODUCT_VERSION 2.6.0)
 set(PRODUCT_GUI 80B196FB-9529-459D-960E-0E0F00CE0981)
-set(CMAKE_GENERATOR_PLATFORM)
-
 project(FLibrary VERSION ${PRODUCT_VERSION})
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -16,10 +30,6 @@ set(7zip_BIN_DIR "NOTSET" CACHE STRING "Path to 7zip binaries (required)")
 if ("${7zip_BIN_DIR}" STREQUAL "" OR "${7zip_BIN_DIR}" STREQUAL "NOTSET")
 	message(FATAL_ERROR "7zip_BIN_DIR is not set. Please provide a value using -D7zip_BIN_DIR='Path/to/7zip/binaries'")
 endif ()
-
-set(EXT_ROOT ${CMAKE_SOURCE_DIR}/src/ext CACHE STRING "EXT_ROOT")
-set(BUILDSCRIPTS_ROOT ${EXT_ROOT}/scripts CACHE STRING "BUILDSCRIPTS_ROOT")
-set(FOUNDATION_ROOT ${EXT_ROOT}/foundation CACHE STRING "FOUNDATION_ROOT")
 
 include(${BUILDSCRIPTS_ROOT}/cmake/conan.cmake)
 conan_install(
@@ -53,22 +63,11 @@ else()
 	)
 endif()
 
-set(CMAKE_CXX_STANDARD_REQUIRED ON)
-set(CMAKE_INCLUDE_CURRENT_DIR ON)
-set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
-
-set(CMAKE_AUTOMOC ON)
-set(CMAKE_AUTORCC ON)
-set(CMAKE_AUTOUIC ON)
-
-set_property(GLOBAL PROPERTY USE_FOLDERS ON)
-
-set(QT_MAJOR_VERSION 6)
-
 set(QtModules Widgets Xml Network Svg SvgWidgets Concurrent HttpServer)
 find_package(Qt${QT_MAJOR_VERSION} REQUIRED COMPONENTS ${QtModules})
 
 set(BIT7Z_AUTO_FORMAT ON CACHE BOOL "enable auto format support" FORCE)
+set(BIT7Z_USE_NATIVE_STRING ON CACHE BOOL "enable native string" FORCE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/ext/bit7z)
 if(MSVC)
 	set_property(TARGET bit7z PROPERTY FOLDER Foundation/zip)
