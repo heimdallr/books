@@ -10,177 +10,6 @@
 namespace HomeCompa
 {
 
-struct Book
-{
-	Book( //-V730
-		const size_t            id_,
-		const std::wstring_view libId_,
-		const std::wstring_view title_,
-		const std::wstring_view date_,
-		const int               rate_,
-		const std::wstring_view language_,
-		const size_t            folder_,
-		const std::wstring_view fileName_,
-		const std::wstring_view format_,
-		const size_t            size_,
-		const bool              deleted_,
-		const size_t            updateId_,
-		const int               year_,
-		const std::wstring_view sourceLib_
-	)
-		: id { id_ }
-		, libId { libId_ }
-		, title { title_ }
-		, date { date_ }
-		, rate { rate_ }
-		, language { language_ }
-		, folder { folder_ }
-		, fileName { fileName_ }
-		, format { InsertDot(format_) }
-		, size { size_ }
-		, deleted { deleted_ }
-		, updateId { updateId_ }
-		, year { year_ }
-		, sourceLib { Util::ToMultiByte(sourceLib_) }
-	{
-		std::ranges::transform(language, std::begin(language), towlower);
-	}
-
-	size_t       id;
-	std::wstring libId;
-	std::wstring title;
-	std::wstring date;
-	int          rate;
-	std::wstring language;
-	size_t       folder;
-	std::wstring fileName;
-	std::wstring format;
-	size_t       size;
-	bool         deleted;
-	size_t       updateId;
-	int          year;
-	std::string  sourceLib;
-
-private:
-	static std::wstring InsertDot(const std::wstring_view format)
-	{
-		std::wstring result(L".");
-		result.insert(result.end(), std::cbegin(format), std::cend(format));
-		return result;
-	}
-};
-
-struct Genre
-{
-	std::wstring code;
-	std::wstring parentCore;
-	std::wstring name;
-	size_t       parentId { 0 };
-	std::wstring dbCode;
-
-	size_t childrenCount { 0 };
-	bool   newGenre { true };
-
-	explicit Genre(const std::wstring_view dbCode_)
-		: dbCode(dbCode_)
-	{
-	}
-
-	Genre(const std::wstring_view code_, const std::wstring_view parentCode_, const std::wstring_view name_, const size_t parentId_ = 0)
-		: code(code_)
-		, parentCore(parentCode_)
-		, name(name_)
-		, parentId(parentId_)
-	{
-	}
-};
-
-struct Update
-{
-	size_t                          id { 0 };
-	int                             title { 0 };
-	size_t                          parentId { 0 };
-	std::unordered_map<int, Update> children {};
-};
-
-struct WStringHash
-{
-	using is_transparent = int;
-
-	[[nodiscard]] size_t operator()(const wchar_t* txt) const
-	{
-		return GetHashImpl(txt);
-	}
-
-	[[nodiscard]] size_t operator()(const std::wstring_view txt) const
-	{
-		return GetHashImpl(std::wstring(txt));
-	}
-
-	[[nodiscard]] size_t operator()(const std::wstring& txt) const
-	{
-		return GetHashImpl(txt);
-	}
-
-private:
-	static size_t GetHashImpl(const std::wstring& txt)
-	{
-		const auto txtLower = QString::fromStdWString(txt).toLower();
-		const auto result   = std::hash<QString>()(txtLower);
-		return result;
-	}
-};
-
-struct WStringEqualTo
-{
-	template <class U, class V>
-	[[nodiscard]] constexpr auto operator()(const U& lhs, const V& rhs) const
-	{
-		return Util::ToQString(lhs).toLower() == Util::ToQString(rhs).toLower();
-	}
-
-	using is_transparent = int;
-};
-
-using Books      = std::vector<Book>;
-using Dictionary = std::unordered_map<std::wstring, size_t, WStringHash, WStringEqualTo>;
-using Genres     = std::vector<Genre>;
-using Links      = std::unordered_map<size_t, std::vector<size_t>>;
-using Folders    = std::unordered_map<std::wstring, size_t, Util::CaseInsensitiveHash<std::wstring>>;
-
-using GetIdFunctor = std::function<size_t(std::wstring_view)>;
-using FindFunctor  = std::function<Dictionary::const_iterator(const Dictionary&, std::wstring_view)>;
-using ParseChecker = std::function<bool(std::wstring_view)>;
-using Splitter     = std::function<std::vector<std::wstring>(std::wstring_view)>;
-using InpxFolders  = std::map<std::pair<std::wstring, std::wstring>, std::string, Util::CaseInsensitiveComparer<>>;
-using BooksSeries  = std::unordered_map<size_t, std::vector<std::pair<size_t, std::optional<int>>>>;
-using Reviews      = std::map<std::string, std::set<std::wstring>>;
-using Annotations  = std::vector<std::pair<size_t, std::string>>;
-
-struct Data
-{
-	Books       books;
-	Dictionary  authors, series, keywords;
-	Genres      genres;
-	Update      updates;
-	Links       booksAuthors, booksGenres, booksKeywords;
-	Folders     bookFolders;
-	InpxFolders inpxFolders;
-	BooksSeries booksSeries;
-	Reviews     reviews;
-	Annotations annotations;
-};
-
-inline std::ostream& operator<<(std::ostream& stream, const Book& book)
-{
-	return stream << book.folder << ", " << Util::ToMultiByte(book.libId) << ": " << book.id << ", " << Util::ToMultiByte(book.title);
-}
-
-inline std::ostream& operator<<(std::ostream& stream, const Genre& genre)
-{
-	return stream << Util::ToMultiByte(genre.dbCode) << ", " << Util::ToMultiByte(genre.code) << ": " << Util::ToMultiByte(genre.name);
-}
-
 //AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;YEAR;SOURCELIB;
 #define BOOK_BUF_FIELD_ITEMS_XMACRO \
 	BOOK_BUF_FIELD_ITEM(AUTHOR)     \
@@ -201,11 +30,144 @@ inline std::ostream& operator<<(std::ostream& stream, const Genre& genre)
 	BOOK_BUF_FIELD_ITEM(YEAR)       \
 	BOOK_BUF_FIELD_ITEM(SOURCELIB)
 
-struct BookBuf
+struct Book
 {
-#define BOOK_BUF_FIELD_ITEM(NAME) std::wstring_view NAME;
+	size_t  id;
+	QString data;
+#define BOOK_BUF_FIELD_ITEM(NAME) QStringView NAME;
 	BOOK_BUF_FIELD_ITEMS_XMACRO
 #undef BOOK_BUF_FIELD_ITEM
+	QString fileName;
+	QString folder;
+	size_t  updateId;
 };
+
+struct Genre
+{
+	QString code;
+	QString parentCore;
+	QString name;
+	size_t  parentId { 0 };
+	QString dbCode;
+
+	size_t childrenCount { 0 };
+	bool   newGenre { true };
+
+	explicit Genre(QString dbCode_)
+		: dbCode { std::move(dbCode_) }
+	{
+	}
+
+	Genre(QString code_, QString parentCode_, QString name_, const size_t parentId_ = 0)
+		: code { std::move(code_) }
+		, parentCore { std::move(parentCode_) }
+		, name { std::move(name_) }
+		, parentId { parentId_ }
+	{
+	}
+};
+
+struct Update
+{
+	size_t                          id { 0 };
+	int                             title { 0 };
+	size_t                          parentId { 0 };
+	std::unordered_map<int, Update> children {};
+};
+
+class Dictionary
+{
+public:
+	std::pair<QStringView, size_t> emplace(QString key, const size_t value)
+	{
+		if (const auto it = m_view.find(key); it != m_view.end())
+			return std::make_pair(it->first, it->second);
+
+		const auto it = m_data.try_emplace(std::move(key), value).first;
+		return std::make_pair(it->first, it->second);
+	}
+
+	std::pair<QStringView, size_t> emplace(const QStringView key, const size_t value)
+	{
+		if (const auto it = m_data.find(key); it != m_data.end())
+			return std::make_pair(it->first, it->second);
+
+		const auto it = m_view.try_emplace(key, value).first;
+		return std::make_pair(it->first, it->second);
+	}
+
+	bool contains(const QStringView key) const
+	{
+		return m_view.contains(key) || m_data.contains(key);
+	}
+
+	std::optional<size_t> find(const QStringView key) const
+	{
+		if (const auto it = m_view.find(key); it != m_view.end())
+			return it->second;
+
+		if (const auto it = m_data.find(key); it != m_data.end())
+			return it->second;
+
+		return std::nullopt;
+	}
+
+	size_t size() const noexcept
+	{
+		return m_data.size() + m_view.size();
+	}
+
+	template <typename F>
+	std::optional<size_t> find_if(const F& f) const
+	{
+		if (const auto it = std::ranges::find_if(m_data, f); it != m_data.end())
+			return it->second;
+
+		if (const auto it = std::ranges::find_if(m_view, f); it != m_view.end())
+			return it->second;
+
+		return std::nullopt;
+	}
+
+private:
+	std::unordered_map<QString, size_t, Util::WStringHash, Util::WStringEqualTo>     m_data;
+	std::unordered_map<QStringView, size_t, Util::WStringHash, Util::WStringEqualTo> m_view;
+};
+
+using Books  = std::vector<Book>;
+using Genres = std::vector<Genre>;
+using Links  = std::unordered_map<size_t, std::vector<size_t>>;
+
+using GetIdFunctor = std::function<size_t(QStringView)>;
+using ParseChecker = std::function<bool(QStringView)>;
+using Splitter     = std::function<std::vector<QString>(QStringView)>;
+using InpxFolders  = std::map<std::pair<QString, QString>, QString, Util::CaseInsensitiveComparer<>>;
+using BooksSeries  = std::unordered_map<size_t, std::vector<std::pair<size_t, std::optional<int>>>>;
+using Reviews      = std::map<QString, std::set<QString>>;
+using Annotations  = std::vector<std::pair<size_t, QString>>;
+using FindFunctor  = std::function<std::optional<size_t>(const Dictionary&, QStringView)>;
+
+struct Data
+{
+	Books       books;
+	Dictionary  authors, series, keywords, bookFolders;
+	Genres      genres;
+	Update      updates;
+	Links       booksAuthors, booksGenres, booksKeywords;
+	InpxFolders inpxFolders;
+	BooksSeries booksSeries;
+	Reviews     reviews;
+	Annotations annotations;
+};
+
+inline std::ostream& operator<<(std::ostream& stream, const Book& book)
+{
+	return stream << book.FOLDER.toString().toStdString() << ", " << book.LIBID.toString().toStdString() << ": " << book.id << ", " << book.TITLE.toString().toStdString();
+}
+
+inline std::ostream& operator<<(std::ostream& stream, const Genre& genre)
+{
+	return stream << genre.dbCode.toStdString() << ", " << genre.code.toStdString() << ": " << genre.name.toStdString();
+}
 
 } // namespace HomeCompa

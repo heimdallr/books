@@ -1,9 +1,7 @@
 #pragma once
 
-#include <filesystem>
 #include <map>
 #include <memory>
-#include <string>
 
 #include "fnd/EnumBitmask.h"
 #include "fnd/NonCopyMovable.h"
@@ -51,7 +49,7 @@ class INPX_EXPORT Parser
 
 public:
 	using Callback = std::function<void(const UpdateResult&)>;
-	using IniMap   = std::map<std::wstring, std::filesystem::path>;
+	using IniMap   = std::map<QString, QString>;
 
 public:
 	Parser();

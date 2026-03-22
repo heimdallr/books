@@ -1,31 +1,28 @@
 #pragma once
 
-constexpr wchar_t COMMENT_START   = '#';
-constexpr wchar_t DATE_SEPARATOR  = '-';
-constexpr wchar_t GENRE_SEPARATOR = '|';
-constexpr wchar_t INI_SEPARATOR   = '=';
-constexpr char    LIST_SEPARATOR  = ';';
+constexpr auto COMMENT_START   = '#';
+constexpr auto DATE_SEPARATOR  = '-';
+constexpr auto GENRE_SEPARATOR = '|';
+constexpr auto INI_SEPARATOR   = '=';
+constexpr auto LIST_SEPARATOR  = ';';
 
-constexpr auto DB_CREATE_SCRIPT               = L"db_create_script";
-constexpr auto DB_PATH                        = L"db_path";
-constexpr auto DB_UPDATE_SCRIPT               = L"db_update_script";
-constexpr auto DEFAULT_DB_CREATE_SCRIPT       = L"CreateCollection.json";
-constexpr auto DEFAULT_DB_UPDATE_SCRIPT       = L"UpdateCollection.json";
-constexpr auto DEFAULT_GENRES                 = L"genres.lst";
-constexpr auto DEFAULT_ARCHIVE_TYPE           = L"default_archive_type";
-constexpr auto GENRES                         = L"genres";
-constexpr auto LANGUAGES_MAPPING              = L"languages_mapping";
-constexpr auto INI_EXT                        = L"ini";
-constexpr auto INPX_EXT                       = L".inpx";
-constexpr auto ARCHIVE_FOLDER                 = L"archive_folder";
-constexpr auto ADDITIONAL_FOLDER              = L"additional_folder";
-constexpr auto INPX_PATH                      = L"inpx_path";
-constexpr auto MHL_TRIGGERS_ON                = L"mhl_triggers_on";
-constexpr auto SET_DATABASE_VERSION_STATEMENT = L"set_database_version";
-constexpr auto AUTHOR_UNKNOWN                 = L"Unknown author";
-constexpr auto GENRE_NOT_SPECIFIED            = L"unordered:";
-
-constexpr auto INP_EXT = L".inp";
+constexpr auto DB_CREATE_SCRIPT               = "db_create_script";
+constexpr auto DB_PATH                        = "db_path";
+constexpr auto DB_UPDATE_SCRIPT               = "db_update_script";
+constexpr auto DEFAULT_DB_CREATE_SCRIPT       = "CreateCollection.json";
+constexpr auto DEFAULT_DB_UPDATE_SCRIPT       = "UpdateCollection.json";
+constexpr auto DEFAULT_GENRES                 = "genres.lst";
+constexpr auto DEFAULT_ARCHIVE_TYPE           = "default_archive_type";
+constexpr auto GENRES                         = "genres";
+constexpr auto LANGUAGES_MAPPING              = "languages_mapping";
+constexpr auto INPX_EXT                       = ".inpx";
+constexpr auto INP_EXT                        = ".inp";
+constexpr auto ARCHIVE_FOLDER                 = "archive_folder";
+constexpr auto ADDITIONAL_FOLDER              = "additional_folder";
+constexpr auto INPX_PATH                      = "inpx_path";
+constexpr auto SET_DATABASE_VERSION_STATEMENT = "set_database_version";
+constexpr auto AUTHOR_UNKNOWN                 = "Unknown author";
+const QString  GENRE_NOT_SPECIFIED            = "unordered:";
 
 constexpr size_t LOG_INTERVAL = 10000;
 
