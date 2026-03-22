@@ -3,6 +3,8 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/constants/Enums.h"
+
 #include "DataItem.h"
 
 namespace HomeCompa
@@ -127,23 +129,23 @@ class BooksTreeGenerator final
 
 public:
 	BooksTreeGenerator(
-		const ISettings&          settings,
-		const Collection&         activeCollection,
-		DB::IDatabase&            db,
-		enum class NavigationMode navigationMode,
-		QString                   navigationId,
-		const QueryDescription&   description,
-		const IFilterProvider&    filterProvider
+		const ISettings&        settings,
+		const Collection&       activeCollection,
+		DB::IDatabase&          db,
+		NavigationMode          navigationMode,
+		QString                 navigationId,
+		const QueryDescription& description,
+		const IFilterProvider&  filterProvider
 	);
 	~BooksTreeGenerator() override;
 
 public:
-	NavigationMode      GetNavigationMode() const noexcept;
-	const QString&      GetNavigationId() const noexcept;
-	enum class ViewMode GetBooksViewMode() const noexcept;
-	IDataItem::Ptr      GetCached() const noexcept;
-	void                SetBooksViewMode(ViewMode viewMode) noexcept;
-	BookInfo            GetBookInfo(long long id) const;
+	NavigationMode GetNavigationMode() const noexcept;
+	const QString& GetNavigationId() const noexcept;
+	ViewMode       GetBooksViewMode() const noexcept;
+	IDataItem::Ptr GetCached() const noexcept;
+	void           SetBooksViewMode(ViewMode viewMode) noexcept;
+	BookInfo       GetBookInfo(long long id) const;
 
 private: // IBooksRootGenerator
 	[[nodiscard]] IDataItem::Ptr GetList(const QueryDescription&) const override;

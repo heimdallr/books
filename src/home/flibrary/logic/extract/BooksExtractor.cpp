@@ -12,12 +12,12 @@
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/SettingsConstant.h"
 
-#include "Util/IExecutor.h"
-#include "Util/ImageRestore.h"
+#include "platform/StrUtil.h"
+#include "util/IExecutor.h"
+#include "util/ImageRestore.h"
 
 #include "log.h"
 #include "zip.h"
-#include "platform/StrUtil.h"
 
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;

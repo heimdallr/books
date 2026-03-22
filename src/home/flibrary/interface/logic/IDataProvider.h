@@ -1,5 +1,6 @@
 #pragma once
 
+#include "interface/constants/Enums.h"
 #include "interface/logic/IDataItem.h"
 
 namespace HomeCompa::Flibrary
@@ -24,18 +25,18 @@ public:
 class INavigationInfoProvider : virtual public IDataProviderDetails::IDataProvider
 {
 public:
-	virtual void SetNavigationId(QString id, bool force = false)             = 0;
-	virtual void SetNavigationMode(enum class NavigationMode navigationMode) = 0;
-	virtual void SetNavigationRequestCallback(Callback callback)             = 0;
-	virtual void RequestNavigation(bool force = false) const                 = 0;
+	virtual void SetNavigationId(QString id, bool force = false)  = 0;
+	virtual void SetNavigationMode(NavigationMode navigationMode) = 0;
+	virtual void SetNavigationRequestCallback(Callback callback)  = 0;
+	virtual void RequestNavigation(bool force = false) const      = 0;
 };
 
 class IBookInfoProvider : virtual public IDataProviderDetails::IDataProvider
 {
 public:
-	virtual void     SetBookRequestCallback(Callback callback)      = 0;
-	virtual void     SetBooksViewMode(enum class ViewMode viewMode) = 0;
-	virtual BookInfo GetBookInfo(long long id) const                = 0;
+	virtual void     SetBookRequestCallback(Callback callback) = 0;
+	virtual void     SetBooksViewMode(ViewMode viewMode)       = 0;
+	virtual BookInfo GetBookInfo(long long id) const           = 0;
 };
 
 class IAbstractDataProvider

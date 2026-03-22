@@ -7,8 +7,9 @@
 
 #include "fnd/ScopedCall.h"
 
-#include "interface/Localization.h"
+#include "interface/localization.h"
 
+#include "platform/StrUtil.h"
 #include "util/DyLib.h"
 #include "util/GeometryRestorable.h"
 #include "util/files.h"
@@ -19,7 +20,6 @@
 #include "zip.h"
 
 #include "config/version.h"
-#include "platform/StrUtil.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

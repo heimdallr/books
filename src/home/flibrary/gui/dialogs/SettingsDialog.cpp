@@ -7,7 +7,7 @@
 #include <QIdentityProxyModel>
 #include <QMenu>
 
-#include "interface/Localization.h"
+#include "interface/localization.h"
 
 #include "gutil/util.h"
 #include "logic/data/DataItem.h"

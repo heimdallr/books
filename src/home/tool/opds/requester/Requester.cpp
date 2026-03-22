@@ -16,10 +16,10 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/GenresLocalization.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
@@ -1046,7 +1046,7 @@ public:
 			std::sort(it, head.children.end());
 
 			const auto start            = GetParameter(parameters, START);
-			const auto selectionSize    = static_cast<ptrdiff_t>(head.children.size());
+			const auto selectionSize    = static_cast<long long>(head.children.size());
 			const auto maxResultSize    = GetMaxResultSize();
 			const auto startResultIndex = start.isEmpty() ? 0 : std::clamp(start.toLongLong(), 0LL, selectionSize - startEntryIndex - 1);
 			const auto tailSize         = selectionSize - (startEntryIndex + startResultIndex + maxResultSize);

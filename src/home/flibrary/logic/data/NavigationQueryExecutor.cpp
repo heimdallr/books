@@ -13,9 +13,9 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/ICollectionProvider.h"
 
 #include "data/Genre.h"

@@ -8,8 +8,8 @@
 #include "fnd/FindPair.h"
 #include "fnd/algorithm.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/IScriptController.h"
 
 #include "util/GeometryRestorable.h"

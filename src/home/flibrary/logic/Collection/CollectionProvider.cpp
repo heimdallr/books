@@ -9,6 +9,7 @@
 #include "fnd/observable.h"
 
 #include "inpx/InpxConstant.h"
+#include "platform/StrUtil.h"
 #include "util/IExecutor.h"
 #include "util/files.h"
 #include "util/hash.h"
@@ -16,7 +17,6 @@
 
 #include "CollectionImpl.h"
 #include "log.h"
-#include "platform/StrUtil.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -178,7 +178,7 @@ ICollectionProvider::IniMapPair CollectionProvider::GetIniMap(const QString& db,
 {
 	IniMapPair result { createFiles ? std::make_shared<QTemporaryDir>() : nullptr, Inpx::Parser::IniMap {} };
 	const auto getFile = [&tempDir = *result.first, createFiles](const QString& name) {
-		auto fileName = QDir::fromNativeSeparators(QCoreApplication::applicationDirPath() + QDir::separator() + name);
+		auto fileName = QCoreApplication::applicationDirPath() + QDir::separator() + name;
 		if (!createFiles || QFile(fileName).exists())
 			return fileName;
 
@@ -188,22 +188,22 @@ ICollectionProvider::IniMapPair CollectionProvider::GetIniMap(const QString& db,
 	};
 
 	result.second = Inpx::Parser::IniMap {
-		{		   DB_PATH,														  Util::StringToPath(db) },
-		{			GENRES,            Util::StringToPath(getFile(QString::fromStdWString(DEFAULT_GENRES))) },
-		{  DB_CREATE_SCRIPT,  Util::StringToPath(getFile(QString::fromStdWString(DEFAULT_DB_CREATE_SCRIPT))) },
-		{  DB_UPDATE_SCRIPT,  Util::StringToPath(getFile(QString::fromStdWString(DEFAULT_DB_UPDATE_SCRIPT))) },
-		{ LANGUAGES_MAPPING, Util::StringToPath(getFile(QString::fromStdWString(DEFAULT_LANGUAGES_MAPPING))) },
-		{    ARCHIVE_FOLDER,													  Util::StringToPath(folder) },
-		{ ADDITIONAL_FOLDER,											Util::StringToPath(additionalFolder) },
+		{		   DB_PATH,								 db },
+		{			GENRES,            getFile(DEFAULT_GENRES) },
+		{  DB_CREATE_SCRIPT,  getFile(DEFAULT_DB_CREATE_SCRIPT) },
+		{  DB_UPDATE_SCRIPT,  getFile(DEFAULT_DB_UPDATE_SCRIPT) },
+		{ LANGUAGES_MAPPING, getFile(DEFAULT_LANGUAGES_MAPPING) },
+		{    ARCHIVE_FOLDER,							 folder },
+		{ ADDITIONAL_FOLDER,                   additionalFolder },
 	};
 
 	if (!inpx.isEmpty())
-		result.second.try_emplace(INPX_PATH, Util::StringToPath(inpx));
+		result.second.try_emplace(INPX_PATH, inpx);
 
 	for (auto& [key, value] : result.second)
 	{
-		value.make_preferred();
-		PLOGD << QString::fromStdWString(key) << ": " << QString::fromStdWString(value);
+		value = QDir::fromNativeSeparators(value);
+		PLOGD << key << ": " << value;
 	}
 
 	return result;

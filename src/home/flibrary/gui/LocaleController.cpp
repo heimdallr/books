@@ -3,7 +3,7 @@
 #include <QActionGroup>
 #include <QMenu>
 
-#include "interface/Localization.h"
+#include "interface/localization.h"
 
 #include "util/SortString.h"
 

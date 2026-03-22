@@ -9,7 +9,7 @@
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
 
-#include "interface/Localization.h"
+#include "interface/localization.h"
 
 #include "data/DataItem.h"
 #include "shared/ZipProgressCallback.h"

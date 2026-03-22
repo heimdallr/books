@@ -14,6 +14,7 @@ AddTarget(gui	shared_lib
 		logic
 		util
 		gutil
+		platform
 		ver
 		zip
 	DEPENDENCIES

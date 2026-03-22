@@ -19,11 +19,11 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/IInpxGenerator.h"
 #include "interface/logic/IOpdsController.h"

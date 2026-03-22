@@ -2,12 +2,12 @@
 
 #include <QCommandLineParser>
 
-#include "interface/Localization.h"
+#include "interface/localization.h"
 
 #include "logging/init.h"
+#include "platform/StrUtil.h"
 
 #include "config/version.h"
-#include "platform/StrUtil.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
