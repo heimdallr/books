@@ -7,6 +7,7 @@
 #include "logging/init.h"
 
 #include "config/version.h"
+#include "platform/StrUtil.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -45,7 +46,7 @@ CommandLine::CommandLine()
 		return;
 
 	firstStart = false;
-	if (const std::filesystem::path file = positionalArguments.front().toStdWString(); file.extension() == ".inpx")
+	if (const auto file = Util::StringToPath(positionalArguments.front()); file.extension() == ".inpx")
 		m_impl->inpx = file.parent_path().make_preferred();
 }
 

@@ -303,7 +303,7 @@ private: // IBookSelector
 
 	void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription& description) override
 	{
-		const auto folder = activeCollection.GetAdditionalFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER) + "/" + navigationId + ".7z";
+		const auto folder = activeCollection.GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER + "/" + navigationId + ".7z";
 		if (!QFile::exists(folder))
 			return;
 

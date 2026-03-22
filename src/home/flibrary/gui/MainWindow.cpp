@@ -764,7 +764,7 @@ private:
 		});
 
 		m_ui.actionShowReadersReviews->setVisible(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER)).exists()
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER).exists()
 		);
 
 		ConnectActionsSettingsAnnotationJokes();
@@ -878,7 +878,7 @@ private:
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
 
 		m_ui.actionShowAuthorAnnotation->setVisible(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + QString::fromStdWString(Inpx::AUTHORS_FOLDER)).exists()
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::AUTHORS_FOLDER).exists()
 		);
 
 		auto restoreDefaultSettings = [this] {

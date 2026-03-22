@@ -14,6 +14,7 @@ AddTarget(logic	shared_lib
 		inpx
 		logging
 		network
+		platform
 		rest
 		util
 		zip

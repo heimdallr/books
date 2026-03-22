@@ -19,6 +19,7 @@
 #include "zip.h"
 
 #include "config/version.h"
+#include "platform/StrUtil.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -95,7 +96,7 @@ public:
 		});
 
 		if (const auto inpxFolder = m_uiFactory->GetNewCollectionInpxFolder(); !inpxFolder.empty())
-			m_ui.editArchive->SetText(QDir::fromNativeSeparators(QString::fromStdWString(inpxFolder)));
+			m_ui.editArchive->SetText(QDir::fromNativeSeparators(Util::PathToString(inpxFolder)));
 
 		connect(m_ui.btnSetDefaultName, &QAbstractButton::clicked, &m_self, [&] {
 			SetDefaultCollectionName(true);
@@ -388,8 +389,8 @@ private:
 		try
 		{
 			Zip zip(inpxPath);
-			if (zip.GetFileNameList().contains(QString::fromStdWString(Inpx::COLLECTION_INFO)))
-				m_ui.editName->setText(zip.Read(QString::fromStdWString(Inpx::COLLECTION_INFO))->GetStream().readLine().simplified());
+			if (zip.GetFileNameList().contains(Inpx::COLLECTION_INFO))
+				m_ui.editName->setText(zip.Read(Inpx::COLLECTION_INFO)->GetStream().readLine().simplified());
 		}
 		catch (const std::exception& ex)
 		{

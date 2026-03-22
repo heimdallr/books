@@ -16,6 +16,7 @@
 
 #include "CollectionImpl.h"
 #include "log.h"
+#include "platform/StrUtil.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -187,17 +188,17 @@ ICollectionProvider::IniMapPair CollectionProvider::GetIniMap(const QString& db,
 	};
 
 	result.second = Inpx::Parser::IniMap {
-		{		   DB_PATH,														  db.toStdWString() },
-		{			GENRES,            getFile(QString::fromStdWString(DEFAULT_GENRES)).toStdWString() },
-		{  DB_CREATE_SCRIPT,  getFile(QString::fromStdWString(DEFAULT_DB_CREATE_SCRIPT)).toStdWString() },
-		{  DB_UPDATE_SCRIPT,  getFile(QString::fromStdWString(DEFAULT_DB_UPDATE_SCRIPT)).toStdWString() },
-		{ LANGUAGES_MAPPING, getFile(QString::fromStdWString(DEFAULT_LANGUAGES_MAPPING)).toStdWString() },
-		{    ARCHIVE_FOLDER,													  folder.toStdWString() },
-		{ ADDITIONAL_FOLDER,											additionalFolder.toStdWString() },
+		{		   DB_PATH,														  Util::StringToPath(db) },
+		{			GENRES,            Util::StringToPath(getFile(QString::fromStdWString(DEFAULT_GENRES))) },
+		{  DB_CREATE_SCRIPT,  Util::StringToPath(getFile(QString::fromStdWString(DEFAULT_DB_CREATE_SCRIPT))) },
+		{  DB_UPDATE_SCRIPT,  Util::StringToPath(getFile(QString::fromStdWString(DEFAULT_DB_UPDATE_SCRIPT))) },
+		{ LANGUAGES_MAPPING, Util::StringToPath(getFile(QString::fromStdWString(DEFAULT_LANGUAGES_MAPPING))) },
+		{    ARCHIVE_FOLDER,													  Util::StringToPath(folder) },
+		{ ADDITIONAL_FOLDER,											Util::StringToPath(additionalFolder) },
 	};
 
 	if (!inpx.isEmpty())
-		result.second.try_emplace(INPX_PATH, inpx.toStdWString());
+		result.second.try_emplace(INPX_PATH, Util::StringToPath(inpx));
 
 	for (auto& [key, value] : result.second)
 	{

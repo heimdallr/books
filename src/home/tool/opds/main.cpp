@@ -128,7 +128,7 @@ int run(int argc, char* argv[])
 
 int main(const int argc, char* argv[])
 {
-	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
+	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID));
 	PLOGI << QString("%1 started").arg(APP_ID);
 
 	try

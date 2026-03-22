@@ -16,6 +16,7 @@
 
 #include "CollectionImpl.h"
 #include "log.h"
+#include "platform/StrUtil.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -262,9 +263,9 @@ private:
 		auto  parser       = std::make_shared<Inpx::Parser>();
 		auto& parserRef    = *parser;
 		auto [tmpDir, ini] = m_collectionProvider->GetIniMap(db, folder, additionalFolder, inpx, true);
-		ini.try_emplace(DEFAULT_ARCHIVE_TYPE, defaultArchiveType.toStdWString());
+		ini.try_emplace(DEFAULT_ARCHIVE_TYPE, Util::StringToPath(defaultArchiveType));
 
-		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement().toStdWString());
+		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, Util::StringToPath(IDatabaseUser::GetDatabaseVersionStatement()));
 		auto callback = [this,
 		                 parser = std::move(parser),
 		                 name,
