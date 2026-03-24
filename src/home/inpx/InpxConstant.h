@@ -22,7 +22,6 @@ constexpr auto ADDITIONAL_FOLDER              = "additional_folder";
 constexpr auto INPX_PATH                      = "inpx_path";
 constexpr auto SET_DATABASE_VERSION_STATEMENT = "set_database_version";
 constexpr auto AUTHOR_UNKNOWN                 = "Unknown author";
-const QString  GENRE_NOT_SPECIFIED            = "unordered:";
 
 constexpr size_t LOG_INTERVAL = 10000;
 

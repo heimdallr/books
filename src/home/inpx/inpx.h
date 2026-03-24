@@ -1,7 +1,10 @@
 #pragma once
 
+#include <functional>
 #include <map>
 #include <memory>
+
+#include <QString>
 
 #include "fnd/EnumBitmask.h"
 #include "fnd/NonCopyMovable.h"

@@ -32,14 +32,14 @@ namespace HomeCompa
 
 struct Book
 {
-	size_t  id;
-	QString data;
+	size_t id { 0 };
 #define BOOK_BUF_FIELD_ITEM(NAME) QStringView NAME;
 	BOOK_BUF_FIELD_ITEMS_XMACRO
 #undef BOOK_BUF_FIELD_ITEM
 	QString fileName;
 	QString folder;
-	size_t  updateId;
+	size_t  folderId { 0 };
+	size_t  updateId { 0 };
 };
 
 struct Genre
@@ -73,91 +73,6 @@ struct Update
 	int                             title { 0 };
 	size_t                          parentId { 0 };
 	std::unordered_map<int, Update> children {};
-};
-
-class Dictionary
-{
-public:
-	std::pair<QStringView, size_t> emplace(QString key, const size_t value)
-	{
-		if (const auto it = m_view.find(key); it != m_view.end())
-			return std::make_pair(it->first, it->second);
-
-		const auto it = m_data.try_emplace(std::move(key), value).first;
-		return std::make_pair(it->first, it->second);
-	}
-
-	std::pair<QStringView, size_t> emplace(const QStringView key, const size_t value)
-	{
-		if (const auto it = m_data.find(key); it != m_data.end())
-			return std::make_pair(it->first, it->second);
-
-		const auto it = m_view.try_emplace(key, value).first;
-		return std::make_pair(it->first, it->second);
-	}
-
-	bool contains(const QStringView key) const
-	{
-		return m_view.contains(key) || m_data.contains(key);
-	}
-
-	std::optional<size_t> find(const QStringView key) const
-	{
-		if (const auto it = m_view.find(key); it != m_view.end())
-			return it->second;
-
-		if (const auto it = m_data.find(key); it != m_data.end())
-			return it->second;
-
-		return std::nullopt;
-	}
-
-	size_t size() const noexcept
-	{
-		return m_data.size() + m_view.size();
-	}
-
-	template <typename F>
-	std::optional<size_t> find_if(const F& f) const
-	{
-		if (const auto it = std::ranges::find_if(m_data, f); it != m_data.end())
-			return it->second;
-
-		if (const auto it = std::ranges::find_if(m_view, f); it != m_view.end())
-			return it->second;
-
-		return std::nullopt;
-	}
-
-private:
-	std::unordered_map<QString, size_t, Util::WStringHash, Util::WStringEqualTo>     m_data;
-	std::unordered_map<QStringView, size_t, Util::WStringHash, Util::WStringEqualTo> m_view;
-};
-
-using Books  = std::vector<Book>;
-using Genres = std::vector<Genre>;
-using Links  = std::unordered_map<size_t, std::vector<size_t>>;
-
-using GetIdFunctor = std::function<size_t(QStringView)>;
-using ParseChecker = std::function<bool(QStringView)>;
-using Splitter     = std::function<std::vector<QString>(QStringView)>;
-using InpxFolders  = std::map<std::pair<QString, QString>, QString, Util::CaseInsensitiveComparer<>>;
-using BooksSeries  = std::unordered_map<size_t, std::vector<std::pair<size_t, std::optional<int>>>>;
-using Reviews      = std::map<QString, std::set<QString>>;
-using Annotations  = std::vector<std::pair<size_t, QString>>;
-using FindFunctor  = std::function<std::optional<size_t>(const Dictionary&, QStringView)>;
-
-struct Data
-{
-	Books       books;
-	Dictionary  authors, series, keywords, bookFolders;
-	Genres      genres;
-	Update      updates;
-	Links       booksAuthors, booksGenres, booksKeywords;
-	InpxFolders inpxFolders;
-	BooksSeries booksSeries;
-	Reviews     reviews;
-	Annotations annotations;
 };
 
 inline std::ostream& operator<<(std::ostream& stream, const Book& book)
