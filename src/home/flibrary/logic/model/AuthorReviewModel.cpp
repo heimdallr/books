@@ -52,7 +52,7 @@ public:
 
 	Model(const bool showRemoved, const QString& folder, std::shared_ptr<const IDatabaseUser> databaseUser)
 		: m_showRemoved { showRemoved }
-		, m_folder { folder + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER) }
+		, m_folder { folder + "/" + Inpx::REVIEWS_FOLDER }
 		, m_databaseUser { std::move(databaseUser) }
 	{
 	}

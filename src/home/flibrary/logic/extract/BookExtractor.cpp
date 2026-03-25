@@ -7,7 +7,7 @@
 #include "interface/logic/IScriptController.h"
 
 #include "data/DataItem.h"
-#include "util/DyLib.h"
+#include "platform/DyLib.h"
 #include "util/translit.h"
 
 #include "log.h"

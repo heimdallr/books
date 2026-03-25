@@ -32,7 +32,7 @@ struct AuthorsModel::Impl : private IAuthorAnnotationController::IObserver
 private: // IAuthorAnnotationController::IObserver
 	void OnReadyChanged() override
 	{
-		if (Util::Set(isReady, authorAnnotationController->IsReady()))
+		if (Util::Set(isReady, authorAnnotationController->IsReady()) && self->rowCount() > 0)
 			self->dataChanged(self->index(0, 0), self->index(self->rowCount() - 1, self->columnCount() - 1), { Qt::CheckStateRole });
 	}
 

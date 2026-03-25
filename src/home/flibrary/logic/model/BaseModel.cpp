@@ -4,9 +4,9 @@
 #include "fnd/ScopedCall.h"
 #include "fnd/algorithm.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/localization.h"
 #include "interface/logic/ILibRateProvider.h"
 #include "interface/logic/IModelProvider.h"
 
@@ -114,7 +114,7 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 			return item->IsRemoved();
 
 		case Role::ChildCount:
-			return item->GetChildCount();
+			return static_cast<qulonglong>(item->GetChildCount());
 
 		case Role::Remap:
 			return item->RemapColumn(index.column());

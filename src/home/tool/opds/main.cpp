@@ -17,8 +17,8 @@
 #include "Hypodermic/Hypodermic.h"
 #include "logging/init.h"
 #include "logic/data/Genre.h"
+#include "platform/NativeEventFilter.h"
 #include "util/ISettings.h"
-#include "util/NativeEventFilter.h"
 #include "util/SortString.h"
 #include "util/xml/Initializer.h"
 
@@ -128,7 +128,7 @@ int run(int argc, char* argv[])
 
 int main(const int argc, char* argv[])
 {
-	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID).toStdWString());
+	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID));
 	PLOGI << QString("%1 started").arg(APP_ID);
 
 	try

@@ -13,9 +13,9 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/ICollectionProvider.h"
 
 #include "data/Genre.h"
@@ -328,7 +328,7 @@ void RequestNavigationReviews(
 		{ "Get navigation",
 	      [&cache, mode = navigationMode, folder = collectionProvider.GetActiveCollection().GetAdditionalFolder(), callback = std::move(callback)]() mutable {
 			  return CreateCalendarTree(mode, std::move(callback), cache, [&folder](std::unordered_map<long long, IDataItem::Ptr>& items) {
-				  for (const auto& reviewInfo : QDir(folder + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER)).entryInfoList({ "??????.7z" }))
+				  for (const auto& reviewInfo : QDir(folder + "/" + Inpx::REVIEWS_FOLDER).entryInfoList({ "??????.7z" }))
 				  {
 					  auto       name   = reviewInfo.completeBaseName();
 					  auto       year   = name.first(4);

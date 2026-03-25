@@ -20,6 +20,7 @@
 #include "logic/IFilterProvider.h"
 #include "logic/ILogicFactory.h"
 #include "logic/IScriptController.h"
+#include "platform/FileUtil.h"
 #include "ui/IStyleApplier.h"
 #include "util/files.h"
 

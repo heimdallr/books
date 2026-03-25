@@ -1,5 +1,7 @@
 #pragma once
 
+#include <vector>
+
 #include "fnd/observer.h"
 
 class QByteArray;

@@ -15,9 +15,10 @@
 #include "interface/constants/ExportStat.h"
 #include "interface/logic/IDataProvider.h"
 
-#include "Util/IExecutor.h"
 #include "data/DataItem.h"
+#include "platform/StrUtil.h"
 #include "util/Fb2InpxParser.h"
+#include "util/IExecutor.h"
 #include "util/ImageRestore.h"
 
 #include "Constant.h"
@@ -223,7 +224,7 @@ QByteArray Process(const std::filesystem::path& archiveFolder, const QString& ds
 	for (const auto& book : books)
 	{
 		const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
-		const auto folder   = QString::fromStdWString(archiveFolder / book.book->GetRawData(BookItem::Column::Folder).toStdWString());
+		const auto folder   = Util::PathToString(archiveFolder / Util::StringToPath(book.book->GetRawData(BookItem::Column::Folder)));
 		const Zip  zipInput(folder);
 		const auto input = zipInput.Read(fileName);
 		const auto bytes = Util::PrepareToExport(input->GetStream(), folder, fileName);
@@ -265,7 +266,7 @@ public:
 		m_taskCount = std::size(books) / 3000 + 1;
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor({ static_cast<int>(m_taskCount) }).swap(m_executor);
 		m_dstFolder     = std::move(dstFolder);
-		m_archiveFolder = m_collectionProvider->GetActiveCollection().GetFolder().toStdWString();
+		m_archiveFolder = Util::StringToPath(m_collectionProvider->GetActiveCollection().GetFolder());
 
 		CollectExistingFiles();
 
@@ -396,8 +397,8 @@ private:
 
 		if (!inpxFileExists)
 		{
-			zipFileController->AddFile(QString::fromStdWString(Inpx::COLLECTION_INFO), QString("%1, favorites").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
-			zipFileController->AddFile(QString::fromStdWString(Inpx::VERSION_INFO), QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile(Inpx::COLLECTION_INFO, QString("%1, favorites").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile(Inpx::VERSION_INFO, QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
 		}
 
 		for (const auto& [uid, data] : m_paths)
@@ -448,8 +449,8 @@ private:
 				QFile::remove(inpxFileName);
 
 			auto zipFileController = Zip::CreateZipFileController();
-			zipFileController->AddFile(QString::fromStdWString(Inpx::COLLECTION_INFO), QString("%1").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
-			zipFileController->AddFile(QString::fromStdWString(Inpx::VERSION_INFO), QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile(Inpx::COLLECTION_INFO, QString("%1").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile(Inpx::VERSION_INFO, QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
 
 			Zip                                         zip(inpxFileName, Zip::Format::Zip);
 			std::vector<std::pair<QString, QByteArray>> toZip;

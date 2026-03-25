@@ -8,6 +8,8 @@
 
 #include "fnd/Lockable.h"
 
+#include "interface/constants/Enums.h"
+
 #include "util/BookUtil.h"
 #include "util/executor/factory.h"
 
@@ -57,7 +59,7 @@ public:
 	virtual ~ILogicFactory() = default;
 
 public:
-	[[nodiscard]] virtual std::shared_ptr<class ITreeViewController>      GetTreeViewController(enum class ItemType type) const                                                                  = 0;
+	[[nodiscard]] virtual std::shared_ptr<class ITreeViewController>      GetTreeViewController(ItemType type) const                                                                             = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ArchiveParser>            CreateArchiveParser() const                                                                                            = 0;
 	[[nodiscard]] virtual std::unique_ptr<Util::IExecutor>                GetExecutor(Util::ExecutorInitializer initializer = {}) const                                                          = 0;
 	[[nodiscard]] virtual std::shared_ptr<class GroupController>          CreateGroupController() const                                                                                          = 0;

@@ -253,7 +253,7 @@ public:
 
 		const auto keyTemplate = QString(KEY_TEMPLATE).arg(it->second, "%1");
 		m_settings->Set(keyTemplate.arg(VISIBLE), true);
-		m_settings->Set(keyTemplate.arg(ORD_NUM), m_toolBars.size() + 1);
+		m_settings->Set(keyTemplate.arg(ORD_NUM), static_cast<qulonglong>(m_toolBars.size() + 1));
 		m_settings->Set(keyTemplate.arg(ALPHABET), alphabet);
 
 		AddToolBar(m_self, it->second, alphabet, true);
@@ -312,7 +312,7 @@ private:
 		}
 
 		m_toolBars.emplace_back(toolBar);
-		toolBar->setProperty(ORD_NUM, m_settings->Get(GetOrdNumKey(*toolBar), m_toolBars.size()));
+		toolBar->setProperty(ORD_NUM, m_settings->Get(GetOrdNumKey(*toolBar), static_cast<qulonglong>(m_toolBars.size())));
 	}
 
 	// ReSharper disable once CppMemberFunctionMayBeStatic

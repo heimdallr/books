@@ -14,13 +14,14 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 
-#include "Util/ImageRestore.h"
+#include "platform/FileUtil.h"
+#include "platform/PlatformUtil.h"
 #include "util/IExecutor.h"
-#include "util/PlatformUtil.h"
+#include "util/ImageRestore.h"
 #include "util/files.h"
 
 #include "log.h"

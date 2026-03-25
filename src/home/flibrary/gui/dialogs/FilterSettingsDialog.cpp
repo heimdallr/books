@@ -9,8 +9,8 @@
 #include "fnd/FindPair.h"
 #include "fnd/algorithm.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/localization.h"
 #include "interface/logic/IDataItem.h"
 
 #include "gutil/util.h"

@@ -7,7 +7,7 @@
 #include <QTimer>
 #include <QUuid>
 
-#include "interface/Localization.h"
+#include "interface/localization.h"
 
 #include "network/network/downloader.h"
 #include "network/rest/api/github/Release.h"
@@ -247,7 +247,7 @@ private:
 			case QMessageBox::DestructiveRole:
 				return Download();
 			case QMessageBox::ActionRole:
-				m_settings->Set(DISCARDED_UPDATE_KEY, m_release.id);
+				m_settings->Set(DISCARDED_UPDATE_KEY, static_cast<qlonglong>(m_release.id));
 				break;
 			case QMessageBox::RejectRole:
 			case QMessageBox::NoRole:

@@ -99,24 +99,24 @@ public:
 		return const_cast<IDataItem*>(this)->To<T>();
 	}
 
-#define DATA_ITEM(NAME)    \
-	template <>            \
-	NAME* To<>() noexcept  \
-	{                      \
-		return To##NAME(); \
-	} // NOLINT(bugprone-macro-parentheses)
-	DATA_ITEMS_X_MACRO
-#undef DATA_ITEM
-
 private:
 #define DATA_ITEM(NAME)                             \
-	[[nodiscard]] virtual NAME* To##NAME() noexcept \
-	{                                               \
-		return nullptr;                             \
-	} // NOLINT(bugprone-macro-parentheses)
+    [[nodiscard]] virtual NAME* To##NAME() noexcept \
+    {                                               \
+            return nullptr;                         \
+    } // NOLINT(bugprone-macro-parentheses)
 	DATA_ITEMS_X_MACRO
 #undef DATA_ITEM
 };
+
+#define DATA_ITEM(NAME)               \
+    template <>                       \
+    inline NAME* IDataItem::To<NAME>() noexcept  \
+    {                                 \
+        return To##NAME();            \
+	} // NOLINT(bugprone-macro-parentheses)
+DATA_ITEMS_X_MACRO
+#undef DATA_ITEM
 
 struct BookInfo
 {

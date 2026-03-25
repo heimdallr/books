@@ -166,19 +166,25 @@ bool ScriptController::RemoveScripts(const int row, const int count)
 bool ScriptController::SetScriptType(const int n, const Script::Type value)
 {
 	auto& item = m_impl->GetScript(n);
-	return Util::Set(item.type, value, item, &Base::SetUpdated);
+	return Util::Set(item.type, value, [&] {
+		item.SetUpdated();
+	});
 }
 
 bool ScriptController::SetScriptName(const int n, QString value)
 {
 	auto& item = m_impl->GetScript(n);
-	return Util::Set(item.name, std::move(value), item, &Base::SetUpdated);
+	return Util::Set(item.name, std::move(value), [&] {
+		item.SetUpdated();
+	});
 }
 
 bool ScriptController::SetScriptNumber(const int n, const int value)
 {
 	auto& item = m_impl->GetScript(n);
-	return Util::Set(item.number, value, item, &Base::SetUpdated);
+	return Util::Set(item.number, value, [&] {
+		item.SetUpdated();
+	});
 }
 
 const IScriptController::Commands& ScriptController::GetCommands() const noexcept
@@ -226,31 +232,41 @@ bool ScriptController::RemoveCommand(const int row, const int count)
 bool ScriptController::SetCommandType(const int n, const Command::Type value)
 {
 	auto& item = m_impl->GetCommand(n);
-	return Util::Set(item.type, value, item, &Base::SetUpdated);
+	return Util::Set(item.type, value, [&] {
+		item.SetUpdated();
+	});
 }
 
 bool ScriptController::SetCommandCommand(const int n, QString value)
 {
 	auto& item = m_impl->GetCommand(n);
-	return Util::Set(item.command, std::move(value), item, &Base::SetUpdated);
+	return Util::Set(item.command, std::move(value), [&] {
+		item.SetUpdated();
+	});
 }
 
 bool ScriptController::SetCommandArgs(const int n, QString value)
 {
 	auto& item = m_impl->GetCommand(n);
-	return Util::Set(item.args, std::move(value), item, &Base::SetUpdated);
+	return Util::Set(item.args, std::move(value), [&] {
+		item.SetUpdated();
+	});
 }
 
 bool ScriptController::SetCommandWorkingFolder(int n, QString value)
 {
 	auto& item = m_impl->GetCommand(n);
-	return Util::Set(item.workingFolder, std::move(value), item, &Base::SetUpdated);
+	return Util::Set(item.workingFolder, std::move(value), [&] {
+		item.SetUpdated();
+	});
 }
 
 bool ScriptController::SetCommandNumber(const int n, const int value)
 {
 	auto& item = m_impl->GetCommand(n);
-	return Util::Set(item.number, value, item, &Base::SetUpdated);
+	return Util::Set(item.number, value, [&] {
+		item.SetUpdated();
+	});
 }
 
 bool ScriptController::Execute(const Command& command) const

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "interface/constants/Enums.h"
+
 #include "gutil/interface/IUiFactory.h"
 
 class QAbstractItemView;
@@ -12,7 +14,7 @@ namespace HomeCompa::Flibrary
 class IUiFactory : virtual public Util::IUiFactory // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	[[nodiscard]] virtual std::shared_ptr<class TreeView>             CreateTreeViewWidget(enum class ItemType type) const              = 0;
+	[[nodiscard]] virtual std::shared_ptr<class TreeView>             CreateTreeViewWidget(ItemType type) const                         = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IAddCollectionDialog> CreateAddCollectionDialog(std::filesystem::path inpxFolder) const = 0;
 	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateScriptDialog() const                                        = 0;
 	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateSettingsDialog() const                                      = 0;

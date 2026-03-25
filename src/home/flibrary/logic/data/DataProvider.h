@@ -45,7 +45,7 @@ private: // IDataProvider
 
 private: // IBookInfoProvider
 	void     SetBookRequestCallback(Callback callback) override;
-	void     SetBooksViewMode(enum class ViewMode viewMode) override;
+	void     SetBooksViewMode(ViewMode viewMode) override;
 	BookInfo GetBookInfo(long long id) const override;
 
 private:

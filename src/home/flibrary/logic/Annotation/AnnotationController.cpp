@@ -17,9 +17,9 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/IJokeRequester.h"
 #include "interface/logic/IProgressController.h"
 
@@ -691,7 +691,7 @@ private:
 			for (query->Execute(); !query->Eof(); query->Next())
 				reviewFolders.emplace_back(query->Get<const char*>(0), query->Get<const char*>(1));
 		}
-		const auto archivesFolder = m_collectionProvider->GetActiveCollection().GetAdditionalFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER);
+		const auto archivesFolder = m_collectionProvider->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER;
 
 		Reviews reviews;
 		for (const auto& [uid, reviewFolder] : reviewFolders)
@@ -865,7 +865,10 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 	{
 		auto info = Table(strategy).Add(FILENAME, book.GetRawData(BookItem::Column::FileName)).Add(SOURCE_LIBRARY, dataProvider.GetSourceLibrary());
 		if (dataProvider.GetTextSize() > 0)
-			info.Add(BOOK_SIZE, Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000, -2))).arg(Round(dataProvider.GetWordCount(), -3)));
+			info.Add(
+				BOOK_SIZE,
+				Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000ULL, -2))).arg(Round(dataProvider.GetWordCount(), -3))
+			);
 		info.Add(Loc::RATE, strategy.GenerateLibRateStars(book.GetRawData(BookItem::Column::LibRate).toInt()));
 		info.Add(Loc::USER_RATE, strategy.GenerateUserRateStars(book.GetRawData(BookItem::Column::UserRate).toInt()));
 

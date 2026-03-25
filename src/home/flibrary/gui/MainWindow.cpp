@@ -19,11 +19,11 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/IInpxGenerator.h"
 #include "interface/logic/IOpdsController.h"
@@ -34,7 +34,6 @@
 
 #include "gutil/util.h"
 #include "logging/LogAppender.h"
-#include "util/DyLib.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/GeometryRestorable.h"
 #include "util/ObjectsConnector.h"
@@ -764,7 +763,7 @@ private:
 		});
 
 		m_ui.actionShowReadersReviews->setVisible(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER)).exists()
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER).exists()
 		);
 
 		ConnectActionsSettingsAnnotationJokes();
@@ -878,7 +877,7 @@ private:
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
 
 		m_ui.actionShowAuthorAnnotation->setVisible(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + QString::fromStdWString(Inpx::AUTHORS_FOLDER)).exists()
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::AUTHORS_FOLDER).exists()
 		);
 
 		auto restoreDefaultSettings = [this] {

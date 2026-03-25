@@ -59,6 +59,7 @@ if(MSVC)
 else()
 	add_compile_options(
 		-Wno-deprecated-declarations
+		-Wno-virtual-move-assign
 		-fPIC
 	)
 endif()

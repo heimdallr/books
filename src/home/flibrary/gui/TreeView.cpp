@@ -19,12 +19,12 @@
 #include "fnd/algorithm.h"
 #include "fnd/linear.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/IFilterProvider.h"
 #include "interface/logic/IModelSorter.h"
 #include "interface/logic/ITreeViewController.h"
@@ -32,10 +32,10 @@
 
 #include "gutil/util.h"
 #include "inpx/InpxConstant.h"
+#include "platform/FileUtil.h"
 #include "util/ColorUtil.h"
 #include "util/ObjectsConnector.h"
 #include "util/UiTimer.h"
-#include "util/files.h"
 #include "util/language.h"
 #include "widgets/ModeComboBox.h"
 
@@ -97,7 +97,7 @@ public:
 		{
 			assert(index < m_sort.size());
 			const auto key = QString("%1/%2/%3").arg(SORT_KEY, name, "%1");
-			settings.Set(key.arg(SORT_INDEX_KEY), index);
+			settings.Set(key.arg(SORT_INDEX_KEY), static_cast<qulonglong>(index));
 			settings.Set(key.arg(SORT_ORDER_KEY), static_cast<int>(m_sort[index].second));
 		}
 	}

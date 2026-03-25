@@ -17,8 +17,8 @@
 #include "database/interface/ITemporaryTable.h"
 #include "database/interface/ITransaction.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
+#include "interface/localization.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IFilterProvider.h"
@@ -303,7 +303,7 @@ private: // IBookSelector
 
 	void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription& description) override
 	{
-		const auto folder = activeCollection.GetAdditionalFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER) + "/" + navigationId + ".7z";
+		const auto folder = activeCollection.GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER + "/" + navigationId + ".7z";
 		if (!QFile::exists(folder))
 			return;
 

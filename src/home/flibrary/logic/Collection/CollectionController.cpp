@@ -1,16 +1,19 @@
 #include "CollectionController.h"
 
+#include <thread>
+
 #include <QTemporaryDir>
 #include <QTimer>
 
 #include "fnd/ScopedCall.h"
 #include "fnd/observable.h"
 
-#include "interface/Localization.h"
+#include "interface/localization.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
 #include "inpx/InpxConstant.h"
+#include "platform/StrUtil.h"
 #include "util/IExecutor.h"
 #include "util/files.h"
 
@@ -262,9 +265,9 @@ private:
 		auto  parser       = std::make_shared<Inpx::Parser>();
 		auto& parserRef    = *parser;
 		auto [tmpDir, ini] = m_collectionProvider->GetIniMap(db, folder, additionalFolder, inpx, true);
-		ini.try_emplace(DEFAULT_ARCHIVE_TYPE, defaultArchiveType.toStdWString());
+		ini.try_emplace(DEFAULT_ARCHIVE_TYPE, defaultArchiveType);
 
-		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement().toStdWString());
+		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement());
 		auto callback = [this,
 		                 parser = std::move(parser),
 		                 name,

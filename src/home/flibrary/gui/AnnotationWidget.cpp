@@ -17,10 +17,10 @@
 
 #include "fnd/FindPair.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/IDataItem.h"
 
 #include "gutil/util.h"
