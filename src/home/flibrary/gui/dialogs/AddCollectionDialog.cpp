@@ -9,8 +9,8 @@
 
 #include "interface/localization.h"
 
+#include "platform/DyLib.h"
 #include "platform/StrUtil.h"
-#include "util/DyLib.h"
 #include "util/GeometryRestorable.h"
 #include "util/files.h"
 #include "util/translit.h"

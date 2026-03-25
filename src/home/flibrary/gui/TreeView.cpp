@@ -32,10 +32,10 @@
 
 #include "gutil/util.h"
 #include "inpx/InpxConstant.h"
+#include "platform/FileUtil.h"
 #include "util/ColorUtil.h"
 #include "util/ObjectsConnector.h"
 #include "util/UiTimer.h"
-#include "util/files.h"
 #include "util/language.h"
 #include "widgets/ModeComboBox.h"
 

@@ -177,12 +177,12 @@ void CollectionProvider::OnNewCollectionCreating(const bool value)
 ICollectionProvider::IniMapPair CollectionProvider::GetIniMap(const QString& db, const QString& folder, const QString& additionalFolder, const QString& inpx, bool createFiles) const
 {
 	IniMapPair result { createFiles ? std::make_shared<QTemporaryDir>() : nullptr, Inpx::Parser::IniMap {} };
-	const auto getFile = [&tempDir = *result.first, createFiles](const QString& name) {
+	const auto getFile = [tempDir = result.first, createFiles](const QString& name) {
 		auto fileName = QCoreApplication::applicationDirPath() + QDir::separator() + name;
 		if (!createFiles || QFile(fileName).exists())
 			return fileName;
 
-		fileName = tempDir.filePath(name);
+		fileName = tempDir->filePath(name);
 		QFile::copy(":/data/" + name, fileName);
 		return fileName;
 	};

@@ -18,9 +18,10 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 
+#include "platform/FileUtil.h"
+#include "platform/PlatformUtil.h"
 #include "util/IExecutor.h"
 #include "util/ImageRestore.h"
-#include "util/PlatformUtil.h"
 #include "util/files.h"
 
 #include "log.h"

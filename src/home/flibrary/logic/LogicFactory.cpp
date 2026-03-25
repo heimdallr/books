@@ -20,9 +20,9 @@
 #include "data/Genre.h"
 #include "extract/BooksExtractor.h"
 #include "extract/InpxGenerator.h"
+#include "platform/DyLib.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/ZipProgressCallback.h"
-#include "util/DyLib.h"
 #include "util/translit.h"
 
 #include "log.h"

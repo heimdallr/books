@@ -17,8 +17,8 @@
 #include "Hypodermic/Hypodermic.h"
 #include "logging/init.h"
 #include "logic/data/Genre.h"
+#include "platform/NativeEventFilter.h"
 #include "util/ISettings.h"
-#include "util/NativeEventFilter.h"
 #include "util/SortString.h"
 #include "util/xml/Initializer.h"
 

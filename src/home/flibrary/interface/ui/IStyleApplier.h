@@ -4,7 +4,7 @@
 
 #include <QString>
 
-#include "util/DyLib.h"
+#include "platform/DyLib.h"
 
 #include "export/flint.h"
 

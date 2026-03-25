@@ -34,7 +34,6 @@
 
 #include "gutil/util.h"
 #include "logging/LogAppender.h"
-#include "util/DyLib.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/GeometryRestorable.h"
 #include "util/ObjectsConnector.h"

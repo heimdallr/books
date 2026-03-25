@@ -59,6 +59,7 @@ AddTarget(${PROJECT_NAME}	app
 		gutil
 		logging
 		logic
+		platform
 		rest
 		util
 		ver
