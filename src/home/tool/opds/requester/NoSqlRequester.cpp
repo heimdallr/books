@@ -207,7 +207,7 @@ std::pair<QString, QByteArray> NoSqlRequester::GetBook(const QString& bookId, co
 std::pair<QString, QByteArray> NoSqlRequester::GetBookZip(const QString& bookId, const bool restoreImages, const IRequester::Parameters& parameters) const
 {
 	auto [fileName, title, data] = m_impl->GetBook(bookId, restoreImages, parameters);
-	data                         = Compress(std::move(data), std::move(fileName));
+	data                         = Compress(data, std::move(fileName));
 	return std::make_pair(QFileInfo(title).fileName() + ".zip", std::move(data));
 }
 

@@ -23,7 +23,7 @@ constexpr auto STARTUP_KEY = "CurrentVersion/Run/FLibrary OPDS server";
 
 QString GetOpdsPath()
 {
-	return QCoreApplication::applicationDirPath() + "/opds.exe";
+    return QCoreApplication::applicationDirPath() + "/opds";
 }
 
 std::unique_ptr<QSettings> GetStartupSettings()

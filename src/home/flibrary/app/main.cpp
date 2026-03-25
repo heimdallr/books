@@ -131,6 +131,7 @@ int main(int argc, char* argv[])
 				case IDatabaseMigrator::NeedMigrateResult::Unexpected:
 					if (container->resolve<IUiFactory>()->ShowWarning(Tr(WRONG_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::No) == QMessageBox::No)
 						return EXIT_FAILURE;
+					break;
 
 				case IDatabaseMigrator::NeedMigrateResult::Unsupported:
 					container->resolve<IUiFactory>()->ShowError(Tr(UNSUPPORTED_DB_VERSION));

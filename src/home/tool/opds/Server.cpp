@@ -204,23 +204,6 @@ T GetParameters(const QHttpServerRequest& request)
 	return result;
 }
 
-template <typename T>
-T GetParameters(const QString& data)
-{
-	T result;
-	std::ranges::transform(
-		data.split('&', Qt::SkipEmptyParts) | std::views::filter([](const auto& item) {
-			return item.contains('=');
-		}),
-		std::inserter(result, result.end()),
-		[](const auto& item) {
-			const auto values = item.split('=');
-			return std::make_pair(QUrl::fromPercentEncoding(values.front().toUtf8()), QUrl::fromPercentEncoding(values.back().toUtf8()));
-		}
-	);
-	return result;
-}
-
 auto Authenticate()
 {
 	return QtConcurrent::run([] {
@@ -285,7 +268,7 @@ private:
 	{
 		return QtConcurrent::run([this, getter, value = std::move(value), acceptEncoding = std::move(acceptEncoding), contentType = std::move(contentType), restoreImages, parameters = std::move(parameters)] {
 			auto [fileName, body] = std::invoke(getter, *m_noSqlRequester, std::cref(value), restoreImages, parameters);
-			auto response         = EncodeContent(std::move(body), acceptEncoding);
+			auto response         = EncodeContent(body, acceptEncoding);
 			ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
 			ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(QUrl::toPercentEncoding(fileName)));
 			ReplaceOrAppendHeader(response, "content-description", "File Transfer");

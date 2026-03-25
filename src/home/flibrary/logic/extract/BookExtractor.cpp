@@ -61,7 +61,7 @@ join Author_List al on al.BookID = b.BookID
 join Authors a on a.AuthorID = al.AuthorID
 left join Series_List sl on sl.BookID = b.BookID
 left join Series s on s.SeriesID = sl.SeriesID
-where b.BookID = 1
+where b.BookID = ?
 order by al.OrdNum, sl.OrdNum limit 1
 )");
 		query->Bind(0, bookId.toLongLong());
