@@ -1956,7 +1956,7 @@ where b.FileName = ? and b.Ext = ?)");
 		{
 			Timer t("collect annotations");
 			for (const auto& file : zip->GetFileNameList() | std::views::filter([this](const QString& item) {
-										return m_data.bookFolders.contains(item.toStdWString());
+                                        return m_data.bookFolders.contains(item);
 									}))
 			{
 				const auto        stream = zip->Read(file);
@@ -2227,7 +2227,7 @@ where b.FileName = ? and b.Ext = ?)");
 
 	size_t AddBook(Book& buf)
 	{
-		const auto idFolder = Add<QStringView, size_t, -1>(buf.FOLDER, m_data.bookFolders);
+        const auto idFolder = Add<QStringView, long long, -1>(buf.FOLDER, m_data.bookFolders);
 		const auto seriesId = Add<QStringView, int, -1>(buf.SERIES, m_data.series);
 
 		{
