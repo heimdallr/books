@@ -92,16 +92,6 @@
       </widget>
      </item>
      <item>
-      <widget class="HomeCompa::Flibrary::ModeComboBox" name="cbValueMode">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
-       </property>
-      </widget>
-     </item>
-     <item>
       <widget class="QLabel" name="lblCount">
        <property name="text">
         <string notr="true"/>
@@ -183,11 +173,6 @@
   </action>
  </widget>
  <customwidgets>
-  <customwidget>
-   <class>HomeCompa::Flibrary::ModeComboBox</class>
-   <extends>QComboBox</extends>
-   <header>widgets/ModeComboBox.h</header>
-  </customwidget>
   <customwidget>
    <class>HomeCompa::Flibrary::FComboBox</class>
    <extends>QComboBox</extends>
