@@ -77,6 +77,7 @@ private: // ISingleInstanceController::IObserver
 	void OnStartAnotherApp() override;
 
 private: // QWidget
+	void changeEvent(QEvent*) override;
 	void closeEvent(QCloseEvent* event) override;
 	void keyPressEvent(QKeyEvent* event) override;
 	void hideEvent(QHideEvent* event) override;
