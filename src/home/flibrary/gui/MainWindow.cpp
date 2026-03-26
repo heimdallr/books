@@ -290,8 +290,14 @@ public:
 	{
 		const auto rect           = Util::GetGlobalGeometry(*m_ui.lineEditBookTitleToSearch);
 		const auto spacerNewWidth = m_searchBooksByTitleLeft->geometry().width() + geometry.x() - rect.x();
+		if (spacerNewWidth < 0)
+			return;
+
 		m_searchBooksByTitleLeft->changeSize(std::max(spacerNewWidth, 0), geometry.height(), QSizePolicy::Fixed, QSizePolicy::Expanding);
 		const auto lineEditBookTitleToSearchNewWidth = geometry.size().width() + std::min(spacerNewWidth, 0);
+		if (lineEditBookTitleToSearchNewWidth < 0)
+			return;
+
 		m_ui.lineEditBookTitleToSearch->setMinimumWidth(lineEditBookTitleToSearchNewWidth);
 		m_ui.lineEditBookTitleToSearch->setMaximumWidth(lineEditBookTitleToSearchNewWidth);
 		m_searchBooksByTitleLayout->invalidate();
@@ -372,7 +378,12 @@ public:
 
 	bool Close()
 	{
-		return CheckSystemTray() && CheckOpds() && (QCoreApplication::exit(), true);
+		return CheckSystemTray(m_hideToTray) && CheckOpds() && (QCoreApplication::exit(), true);
+	}
+
+	bool Change(const QEvent* event)
+	{
+		return event->type() != QEvent::WindowStateChange || m_self.windowState() != Qt::WindowState::WindowMinimized || CheckSystemTray(m_minimizeToTray);
 	}
 
 	void OnStartAnotherApp() const
@@ -575,7 +586,9 @@ private:
 
 	void SetupTrayMenu()
 	{
-		if (!m_settings->Get(Constant::Settings::PREFER_HIDE_TO_TRAY_KEY, false))
+		m_hideToTray     = m_settings->Get(Constant::Settings::PREFER_HIDE_TO_TRAY_KEY, m_hideToTray);
+		m_minimizeToTray = m_settings->Get(Constant::Settings::PREFER_MINIMIZE_TO_TRAY_KEY, m_hideToTray);
+		if (!(m_hideToTray || m_minimizeToTray))
 			return;
 
 		m_systemTray = new QSystemTrayIcon(QIcon(":/icons/main.ico"), &m_self);
@@ -1407,13 +1420,14 @@ private:
 		}
 	}
 
-	bool CheckSystemTray()
+	bool CheckSystemTray(const bool key)
 	{
-		if (!m_systemTray)
+		if (!key)
 			return true;
 
 		OnHideEvent();
 
+		assert(m_systemTray);
 		m_systemTray->show();
 		m_self.hide();
 		return false;
@@ -1506,8 +1520,11 @@ private:
 	QAction* m_disableAllJokes { nullptr };
 
 	QSystemTrayIcon* m_systemTray { nullptr };
-	bool             m_isMaximized { false };
-	bool             m_isFullScreen { false };
+	bool             m_hideToTray { false };
+	bool             m_minimizeToTray { false };
+
+	bool m_isMaximized { false };
+	bool m_isFullScreen { false };
 };
 
 MainWindow::MainWindow(
@@ -1580,6 +1597,12 @@ void MainWindow::Show()
 void MainWindow::OnStartAnotherApp()
 {
 	m_impl->OnStartAnotherApp();
+}
+
+void MainWindow::changeEvent(QEvent* event)
+{
+	if (!m_impl->Change(event))
+		event->ignore();
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)
