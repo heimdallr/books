@@ -224,12 +224,13 @@ private:
 		m_ui.view->header()->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
 
 		m_valueApplier = m_ui.value->Setup(m_settings, RECENT_VALUE_MODE_KEY);
+		m_indexToMode  = CreateTabs();
 
 		connect(&m_filterTimer, &QTimer::timeout, &m_self, [this] {
 			FilterImpl();
 		});
-		connect(m_ui.tabs, &QTabWidget::currentChanged, [this, indexToMode = CreateTabs()](const int tabIndex) {
-			OnTabChanged(indexToMode, tabIndex);
+		connect(m_ui.tabs, &QTabWidget::currentChanged, [this](const int tabIndex) {
+			OnTabChanged(tabIndex);
 		});
 		connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, &QDialog::reject);
 		connect(m_ui.btnApply, &QAbstractButton::clicked, [this] {
@@ -253,6 +254,14 @@ private:
 		connect(m_ui.showCheckedMode, &QLabel::linkActivated, &m_self, [this](const QString& link) {
 			m_settings->Set(QString(SHOW_CHECKED_MODE_KEY).arg(m_ui.tabs->currentIndex()), link);
 			InitShowCheckedMode();
+		});
+		connect(m_ui.radioButtonAnd, &QAbstractButton::toggled, &m_self, [this](const bool checked) {
+			if (checked)
+				m_filterController->SetFlagsAccumulationMode(m_indexToMode[m_ui.tabs->currentIndex()], m_ui.radioButtonAnd->accessibleName());
+		});
+		connect(m_ui.radioButtonOr, &QAbstractButton::toggled, &m_self, [this](const bool checked) {
+			if (checked)
+				m_filterController->SetFlagsAccumulationMode(m_indexToMode[m_ui.tabs->currentIndex()], m_ui.radioButtonOr->accessibleName());
 		});
 
 		QTimer::singleShot(0, [this] {
@@ -309,7 +318,7 @@ private:
 		return indexToMode;
 	}
 
-	void OnTabChanged(const std::vector<NavigationMode>& indexToMode, const int tabIndex)
+	void OnTabChanged(const int tabIndex)
 	{
 		if (m_model)
 			Util::SaveHeaderSectionWidth(*m_ui.view->header(), *this->m_settings, FIELD_WIDTH_KEY);
@@ -317,13 +326,24 @@ private:
 		m_ui.view->setModel(nullptr);
 		m_model.reset();
 		const auto index = static_cast<size_t>(tabIndex);
-		if (index >= indexToMode.size())
-			return m_ui.showCheckedMode->setVisible(false);
+		if (index >= m_indexToMode.size())
+		{
+			m_ui.showCheckedMode->setVisible(false);
+			m_ui.flagsAccumulationWidget->setVisible(false);
+			return;
+		}
 
-		m_filteredNavigation = &IFilterController::GetFilteredNavigationDescription(indexToMode[index]);
-		assert(m_filteredNavigation);
 		m_ui.showCheckedMode->setVisible(true);
-		m_dataProvider->SetNavigationMode(indexToMode[index]);
+		m_ui.flagsAccumulationWidget->setVisible(true);
+
+		const auto flagsAccumulationMode = m_filterController->GetFlagsAccumulationMode(m_indexToMode[index]);
+		for (auto* btn : m_self.findChildren<QRadioButton*>())
+			if (btn->accessibleName() == flagsAccumulationMode)
+				btn->setChecked(true);
+
+		m_filteredNavigation = &IFilterController::GetFilteredNavigationDescription(m_indexToMode[index]);
+		assert(m_filteredNavigation);
+		m_dataProvider->SetNavigationMode(m_indexToMode[index]);
 		m_dataProvider->RequestNavigation();
 		m_ui.tabs->widget(tabIndex)->layout()->addWidget(m_ui.content);
 		SetFont();
@@ -502,6 +522,7 @@ private:
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
 	PropagateConstPtr<QAbstractItemModel>                   m_model { std::unique_ptr<QAbstractItemModel> {} };
+	std::vector<NavigationMode>                             m_indexToMode;
 	const IFilterController::FilteredNavigation*            m_filteredNavigation { nullptr };
 	QTimer                                                  m_filterTimer;
 	int                                                     m_sectionClicked { -1 };
