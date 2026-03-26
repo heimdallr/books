@@ -36,7 +36,19 @@ using namespace Flibrary;
 namespace
 {
 
-using IdsSet = std::unordered_set<long long>;
+using IdsSet           = std::unordered_set<long long>;
+using BookToFlag       = std::unordered_map<long long, IDataItem::Flags>;
+using FlagsAccumulator = void (*)(BookToFlag& flags, const long long bookId, const IDataItem::Flags flag);
+
+void FlagsAnd(BookToFlag& flags, const long long bookId, const IDataItem::Flags flag)
+{
+	flags.try_emplace(bookId, IDataItem::Flags::BooksFiltered).first->second &= flag;
+}
+
+void FlagsOr(BookToFlag& flags, const long long bookId, const IDataItem::Flags flag)
+{
+	flags.try_emplace(bookId, IDataItem::Flags::None).first->second |= flag;
+}
 
 constexpr const char* BOOKS_COLUMN_NAMES[] {
 #define BOOKS_COLUMN_ITEM(NAME) #NAME,
@@ -452,7 +464,9 @@ join Series_List l on l.BookID = b.BookID
 join Series s on s.SeriesID = l.SeriesID
 {}
 )";
-			const auto            query     = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+
+			BookToFlag flags;
+			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				const auto id   = query->Get<long long>(0);
@@ -460,17 +474,17 @@ join Series s on s.SeriesID = l.SeriesID
 				if (!item)
 					item = DatabaseUtil::CreateSimpleListItem(*query);
 
-				auto& book = m_books[query->Get<long long>(4)];
+				const auto bookId = query->Get<long long>(4);
+				auto&      book   = m_books[bookId];
 				assert(book.book);
-				addFlag(*book.book, item->GetFlags());
-
-				if (IsFiltered(*item))
-					continue;
 
 				const auto seqNum = query->Get<int>(5);
 				const auto ordNum = query->Get<int>(6);
 				book.series.emplace(ordNum, std::make_pair(id, seqNum));
+				m_seriesFlagAccumulator(flags, bookId, item->GetFlags());
 			}
+			for (const auto& [bookId, flag] : flags)
+				addFlag(*m_books[bookId].book, flag);
 		}
 
 		{
@@ -481,7 +495,9 @@ join Author_List l on l.BookID = b.BookID
 join Authors a on a.AuthorID = l.AuthorID
 {}
 )";
-			const auto            query     = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+
+			BookToFlag flags;
+			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto  id   = query->Get<long long>(0);
@@ -489,11 +505,14 @@ join Authors a on a.AuthorID = l.AuthorID
 				if (!item)
 					item = DatabaseUtil::CreateFullAuthorItem(*query);
 
-				auto& book = m_books[query->Get<long long>(6)];
+				const auto bookId = query->Get<long long>(6);
+				auto&      book   = m_books[bookId];
 				assert(book.book);
 				Add(book.authors, static_cast<long long&&>(id), query->Get<int>(7));
-				addFlag(*book.book, item->GetFlags());
+				m_authorsFlagAccumulator(flags, bookId, item->GetFlags());
 			}
+			for (const auto& [bookId, flag] : flags)
+				addFlag(*m_books[bookId].book, flag);
 		}
 		{
 			static constexpr auto queryText = R"({}
@@ -503,7 +522,9 @@ join Genre_List l on l.BookID = b.BookID
 join Genres g on g.GenreCode = l.GenreCode
 {}
 )";
-			const auto            query     = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+
+			BookToFlag flags;
+			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				QString id   = query->Get<const char*>(0);
@@ -511,11 +532,14 @@ join Genres g on g.GenreCode = l.GenreCode
 				if (!item)
 					item = DatabaseUtil::CreateGenreItem(*query);
 
-				auto& book = m_books[query->Get<long long>(5)];
+				const auto bookId = query->Get<long long>(5);
+				auto&      book   = m_books[bookId];
 				assert(book.book);
 				Add(book.genres, std::move(id), query->Get<int>(6));
-				addFlag(*book.book, item->GetFlags());
+				m_genresFlagAccumulator(flags, bookId, item->GetFlags());
 			}
+			for (const auto& [bookId, flag] : flags)
+				addFlag(*m_books[bookId].book, flag);
 		}
 		{
 			static constexpr auto queryText = R"({}
@@ -525,13 +549,13 @@ join Keyword_List l on l.BookID = b.BookID
 join Keywords k on k.KeywordID = l.KeywordID
 {}
 )";
-			const auto            query     = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+
+			BookToFlag flags;
+			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
 			for (query->Execute(); !query->Eof(); query->Next())
-			{
-				auto& book = m_books[query->Get<long long>(1)];
-				assert(book.book);
-				addFlag(*book.book, static_cast<IDataItem::Flags>(query->Get<int>(0)));
-			}
+				m_keywordsFlagAccumulator(flags, query->Get<long long>(1), static_cast<IDataItem::Flags>(query->Get<int>(0)));
+			for (const auto& [bookId, flag] : flags)
+				addFlag(*m_books[bookId].book, flag);
 		}
 
 		for (auto& [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
@@ -635,6 +659,11 @@ private:
 	std::unordered_map<long long, IDataItem::Ptr>   m_series;
 	std::unordered_map<long long, IDataItem::Ptr>   m_authors;
 	std::unordered_map<QString, IDataItem::Ptr>     m_genres;
+
+	FlagsAccumulator m_authorsFlagAccumulator { &FlagsOr };
+	FlagsAccumulator m_seriesFlagAccumulator { &FlagsOr };
+	FlagsAccumulator m_genresFlagAccumulator { &FlagsOr };
+	FlagsAccumulator m_keywordsFlagAccumulator { &FlagsOr };
 };
 
 BooksTreeGenerator::BooksTreeGenerator(
