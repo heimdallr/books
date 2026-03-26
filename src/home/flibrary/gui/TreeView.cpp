@@ -63,8 +63,11 @@ constexpr auto RECENT_LANG_FILTER_KEY             = "ui/language";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTableColumnSettings";
 constexpr auto HASH_CONTEXT_MENU_ENABLED          = "Preferences/Books/ContextMenu/HashEnabled";
 constexpr auto LAST                               = "Last";
+constexpr auto TYPE                               = "type";
 
 TR_DEF
+
+using ValueApplier = void (ModeComboBox::IValueApplier::*)();
 
 class HeaderView final : public QHeaderView
 {
@@ -988,34 +991,60 @@ private:
 			m_hotkeyManager->Add(*m_ui.cbMode, Tr(IsNavigation() ? NAVIGATION : BOOK_VIEW_MODE));
 		});
 
-		const auto it = std::ranges::find_if(ModeComboBox::VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()](const auto& item) {
-			return mode == item.first;
-		});
-		if (it != std::cend(ModeComboBox::VALUE_MODES))
-			m_ui.cbValueMode->setCurrentIndex(static_cast<int>(std::distance(std::cbegin(ModeComboBox::VALUE_MODES), it)));
+		{
+			const auto it = std::ranges::find_if(ModeComboBox::VALUE_MODES, [mode = m_settings->Get(GetValueModeKey()).toString()](const auto& item) {
+				return mode == item.first;
+			});
+			if (it != std::cend(ModeComboBox::VALUE_MODES))
+				m_ui.cbValueMode->setCurrentIndex(static_cast<int>(std::distance(std::cbegin(ModeComboBox::VALUE_MODES), it)));
+		}
+		m_valueModeActions.emplace_back(m_ui.actionFindMode, &IValueApplier::Find);
+		m_valueModeActions.emplace_back(m_ui.actionFilterMode, &IValueApplier::Filter);
+		for (auto* action : m_valueModeActions | std::views::keys)
+		{
+			m_ui.value->addAction(action, QLineEdit::LeadingPosition);
+			action->setVisible(false);
+		}
+
+		if (const auto it = std::ranges::find(
+				m_valueModeActions,
+				m_settings->Get(GetValueModeKey(), (IsNavigation() ? m_ui.actionFindMode : m_ui.actionFilterMode)->property(TYPE).toString()),
+				[](const auto& item) {
+					return item.first->property(TYPE).toString();
+				}
+			);
+		    it != m_valueModeActions.end())
+		{
+			it->first->setVisible(true);
+			m_valueApplier = it->second;
+		}
 
 		m_recentMode = m_ui.cbMode->currentData().toString();
 	}
 
 	void Connect()
 	{
-		connect(m_ui.cbMode, &QComboBox::currentIndexChanged, &m_self, [&](const int) {
+		for (auto* action : m_valueModeActions | std::views::keys)
+			connect(action, &QAction::triggered, &m_self, [this] {
+				OnValueModeActionTriggered();
+			});
+		connect(m_ui.cbMode, &QComboBox::currentIndexChanged, &m_self, [this](const int) {
 			auto newMode = m_ui.cbMode->currentData().toString();
 			emit m_self.NavigationModeNameChanged(newMode);
 			m_recentMode = std::move(newMode);
 			m_controller->SetMode(m_recentMode);
 			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
 		});
-		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, &m_self, [&] {
+		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, &m_self, [this] {
 			m_settings->Set(GetValueModeKey(), m_ui.cbValueMode->currentData());
 			m_ui.treeView->model()->setData({}, {}, Role::TextFilter);
 			OnValueChanged();
 			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
 		});
-		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [&] {
+		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [this] {
 			OnValueChanged();
 		});
-		connect(&m_filterTimer, &QTimer::timeout, &m_self, [&] {
+		connect(&m_filterTimer, &QTimer::timeout, &m_self, [this] {
 			auto& model = *m_ui.treeView->model();
 			model.setData({}, m_ui.value->text(), Role::TextFilter);
 			OnCountChanged();
@@ -1024,14 +1053,39 @@ private:
 			if (model.rowCount() != 0 && !m_ui.treeView->currentIndex().isValid())
 				m_ui.treeView->setCurrentIndex(model.index(0, 0));
 		});
-		connect(m_ui.treeView, &QWidget::customContextMenuRequested, &m_self, [&] {
+		connect(m_ui.treeView, &QWidget::customContextMenuRequested, &m_self, [this] {
 			m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [&](const QString& id, const IDataItem::Ptr& item) {
 				OnContextMenuReady(id, item);
 			});
 		});
-		connect(m_ui.treeView, &QTreeView::doubleClicked, &m_self, [&] {
+		connect(m_ui.treeView, &QTreeView::doubleClicked, &m_self, [this] {
 			m_controller->OnDoubleClicked(m_ui.treeView->currentIndex());
 		});
+	}
+
+	void OnValueModeActionTriggered()
+	{
+		QMenu menu;
+		for (auto* item : m_valueModeActions | std::views::keys)
+		{
+			auto* action = menu.addAction(item->icon(), item->text());
+			connect(action, &QAction::triggered, &m_self, [this, item] {
+				m_settings->Set(GetValueModeKey(), item->property(TYPE));
+				m_ui.treeView->model()->setData({}, {}, Role::TextFilter);
+				for (const auto& [modeAction, applier] : m_valueModeActions)
+				{
+					const bool isActive = modeAction == item;
+					modeAction->setVisible(isActive);
+					if (isActive)
+						m_valueApplier = applier;
+				}
+				OnValueChanged();
+				m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
+			});
+		}
+		menu.setFont(m_self.font());
+		if (!menu.isEmpty())
+			menu.exec(QCursor::pos());
 	}
 
 	void SaveHeaderLayout()
@@ -1286,7 +1340,8 @@ private:
 
 	void OnValueChanged()
 	{
-		std::invoke(ModeComboBox::VALUE_MODES[m_ui.cbValueMode->currentIndex()].second, static_cast<IValueApplier&>(*this));
+		assert(m_valueApplier);
+		std::invoke(m_valueApplier, static_cast<IValueApplier&>(*this));
 	}
 
 	void Find(const QVariant& value, const int role) const
@@ -1368,6 +1423,8 @@ private:
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
 	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr>   m_delegate;
 	Ui::TreeView                                            m_ui {};
+	std::vector<std::pair<QAction*, ValueApplier>>          m_valueModeActions;
+	ValueApplier                                            m_valueApplier = nullptr;
 	QTimer                                                  m_filterTimer;
 	QString                                                 m_navigationModeName;
 	QString                                                 m_recentMode;
