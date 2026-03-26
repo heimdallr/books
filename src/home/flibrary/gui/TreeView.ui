@@ -74,7 +74,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="value">
+      <widget class="HomeCompa::Flibrary::ModeLineEdit" name="value">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -141,36 +141,6 @@
     </widget>
    </item>
   </layout>
-  <action name="actionFindMode">
-   <property name="icon">
-    <iconset resource="../icons/light/resources/light.qrc">
-     <normaloff>:/icons/Find.svg</normaloff>:/icons/Find.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Find</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-   <property name="type" stdset="0">
-    <string notr="true">Find</string>
-   </property>
-  </action>
-  <action name="actionFilterMode">
-   <property name="icon">
-    <iconset resource="../icons/light/resources/light.qrc">
-     <normaloff>:/icons/Filter.svg</normaloff>:/icons/Filter.svg</iconset>
-   </property>
-   <property name="text">
-    <string>Filter</string>
-   </property>
-   <property name="menuRole">
-    <enum>QAction::MenuRole::NoRole</enum>
-   </property>
-   <property name="type" stdset="0">
-    <string notr="true">Filter</string>
-   </property>
-  </action>
  </widget>
  <customwidgets>
   <customwidget>
@@ -182,6 +152,11 @@
    <class>HomeCompa::Flibrary::CustomTreeView</class>
    <extends>QTreeView</extends>
    <header>widgets/TreeView.h</header>
+  </customwidget>
+  <customwidget>
+   <class>HomeCompa::Flibrary::ModeLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>widgets/ModeLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <resources>

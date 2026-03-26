@@ -63,7 +63,6 @@ constexpr auto RECENT_LANG_FILTER_KEY             = "ui/language";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTableColumnSettings";
 constexpr auto HASH_CONTEXT_MENU_ENABLED          = "Preferences/Books/ContextMenu/HashEnabled";
 constexpr auto LAST                               = "Last";
-constexpr auto TYPE                               = "type";
 
 TR_DEF
 
@@ -388,24 +387,13 @@ void TreeOperation(const QAbstractItemModel& model, const QModelIndex& index, co
 		TreeOperation(model, model.index(row, 0, index), f);
 }
 
-class IValueApplier // NOLINT(cppcoreguidelines-special-member-functions)
-{
-public:
-	using Invoker = void (IValueApplier::*)();
-
-public:
-	virtual ~IValueApplier() = default;
-	virtual void Find()      = 0;
-	virtual void Filter()    = 0;
-};
-
 } // namespace
 
 class TreeView::Impl final
 	: ITreeViewController::IObserver
 	, ITreeViewDelegate::IObserver
 	, IFilterProvider::IObserver
-	, IValueApplier
+	, ModeLineEdit::IValueApplier
 	, HeaderView::IObserver
 	, IHotkeyManager::IBookMenuProvider
 {
@@ -998,36 +986,19 @@ private:
 			m_hotkeyManager->Add(*m_ui.cbMode, Tr(IsNavigation() ? NAVIGATION : BOOK_VIEW_MODE));
 		});
 
-		m_valueModeActions.emplace_back(m_ui.actionFindMode, &IValueApplier::Find);
-		m_valueModeActions.emplace_back(m_ui.actionFilterMode, &IValueApplier::Filter);
-		for (auto* action : m_valueModeActions | std::views::keys)
-		{
-			m_ui.value->addAction(action, QLineEdit::LeadingPosition);
-			action->setVisible(false);
-		}
-
-		if (const auto it = std::ranges::find(
-				m_valueModeActions,
-				m_settings->Get(GetValueModeKey(), (IsNavigation() ? m_ui.actionFindMode : m_ui.actionFilterMode)->property(TYPE).toString()),
-				[](const auto& item) {
-					return item.first->property(TYPE).toString();
-				}
-			);
-		    it != m_valueModeActions.end())
-		{
-			it->first->setVisible(true);
-			m_valueApplier = it->second;
-		}
+		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), IsNavigation());
 
 		m_recentMode = m_ui.cbMode->currentData().toString();
 	}
 
 	void Connect()
 	{
-		for (auto* action : m_valueModeActions | std::views::keys)
-			connect(action, &QAction::triggered, &m_self, [this] {
-				OnValueModeActionTriggered();
-			});
+		connect(m_ui.value, &ModeLineEdit::ValueApplierChanged, &m_self, [this](const ValueApplier valueApplier) {
+			m_valueApplier = valueApplier;
+			m_ui.treeView->model()->setData({}, {}, Role::TextFilter);
+			OnValueChanged();
+			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
+		});
 		connect(m_ui.cbMode, &QComboBox::currentIndexChanged, &m_self, [this](const int) {
 			auto newMode = m_ui.cbMode->currentData().toString();
 			emit m_self.NavigationModeNameChanged(newMode);
@@ -1055,31 +1026,6 @@ private:
 		connect(m_ui.treeView, &QTreeView::doubleClicked, &m_self, [this] {
 			m_controller->OnDoubleClicked(m_ui.treeView->currentIndex());
 		});
-	}
-
-	void OnValueModeActionTriggered()
-	{
-		QMenu menu;
-		for (auto* item : m_valueModeActions | std::views::keys)
-		{
-			auto* action = menu.addAction(item->icon(), item->text());
-			connect(action, &QAction::triggered, &m_self, [this, item] {
-				m_settings->Set(GetValueModeKey(), item->property(TYPE));
-				m_ui.treeView->model()->setData({}, {}, Role::TextFilter);
-				for (const auto& [modeAction, applier] : m_valueModeActions)
-				{
-					const bool isActive = modeAction == item;
-					modeAction->setVisible(isActive);
-					if (isActive)
-						m_valueApplier = applier;
-				}
-				OnValueChanged();
-				m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
-			});
-		}
-		menu.setFont(m_self.font());
-		if (!menu.isEmpty())
-			menu.exec(QCursor::pos());
 	}
 
 	void SaveHeaderLayout()
@@ -1406,33 +1352,32 @@ private:
 	}
 
 private:
-	TreeView&                                                m_self;
-	PropagateConstPtr<ITreeViewController, std::shared_ptr>  m_controller;
-	std::shared_ptr<const ICollectionProvider>               m_collectionProvider;
-	PropagateConstPtr<ISettings, std::shared_ptr>            m_settings;
-	PropagateConstPtr<IUiFactory, std::shared_ptr>           m_uiFactory;
-	PropagateConstPtr<IFilterProvider, std::shared_ptr>      m_filterProvider;
-	PropagateConstPtr<IHotkeyManager, std::shared_ptr>       m_hotkeyManager;
-	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>   m_itemViewToolTipper;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr>  m_scrollBarController;
-	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr>    m_delegate;
-	Ui::TreeView                                             m_ui {};
-	std::vector<std::pair<QAction*, IValueApplier::Invoker>> m_valueModeActions;
-	IValueApplier::Invoker                                   m_valueApplier = nullptr;
-	QTimer                                                   m_filterTimer;
-	QString                                                  m_navigationModeName;
-	QString                                                  m_recentMode;
-	QString                                                  m_currentId;
-	std::shared_ptr<QMenu>                                   m_languageContextMenu;
-	bool                                                     m_showRemoved { false };
-	QString                                                  m_lastRestoredLayoutKey;
-	ITreeViewController::RemoveItems                         m_removeItems;
-	MenuEventFilter                                          m_menuEventFilter;
-	HeaderView*                                              m_booksHeaderView;
-	IDataItem::Flags                                         m_navigationItemFlags { IDataItem::Flags::None };
-	const ArchiveSorter                                      m_archiveSorter;
-	const QStringList                                        m_hiddenColumns;
-	std::unique_ptr<QTimer>                                  m_countChangedTimer { Util::CreateUiTimer([this] {
+	TreeView&                                               m_self;
+	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_controller;
+	std::shared_ptr<const ICollectionProvider>              m_collectionProvider;
+	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
+	PropagateConstPtr<IUiFactory, std::shared_ptr>          m_uiFactory;
+	PropagateConstPtr<IFilterProvider, std::shared_ptr>     m_filterProvider;
+	PropagateConstPtr<IHotkeyManager, std::shared_ptr>      m_hotkeyManager;
+	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
+	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
+	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr>   m_delegate;
+	Ui::TreeView                                            m_ui {};
+	ValueApplier                                            m_valueApplier { nullptr };
+	QTimer                                                  m_filterTimer;
+	QString                                                 m_navigationModeName;
+	QString                                                 m_recentMode;
+	QString                                                 m_currentId;
+	std::shared_ptr<QMenu>                                  m_languageContextMenu;
+	bool                                                    m_showRemoved { false };
+	QString                                                 m_lastRestoredLayoutKey;
+	ITreeViewController::RemoveItems                        m_removeItems;
+	MenuEventFilter                                         m_menuEventFilter;
+	HeaderView*                                             m_booksHeaderView;
+	IDataItem::Flags                                        m_navigationItemFlags { IDataItem::Flags::None };
+	const ArchiveSorter                                     m_archiveSorter;
+	const QStringList                                       m_hiddenColumns;
+	std::unique_ptr<QTimer>                                 m_countChangedTimer { Util::CreateUiTimer([this] {
         if (m_ui.treeView->model())
             m_ui.lblCount->setText(m_ui.treeView->model()->data({}, Role::Count).toString());
     }) };
