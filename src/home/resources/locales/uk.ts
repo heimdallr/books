@@ -4908,6 +4908,17 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>ModeLineEdit</name>
+    <message>
+        <source>Filter</source>
+        <translation>Фільтр</translation>
+    </message>
+    <message>
+        <source>Find</source>
+        <translation>Пошук</translation>
+    </message>
+</context>
+<context>
     <name>Month</name>
     <message>
         <source>1</source>
@@ -5574,14 +5585,6 @@ Try again?</source>
     <message>
         <source>Books view mode</source>
         <translation>Режим перегляду книг</translation>
-    </message>
-    <message>
-        <source>Filter</source>
-        <translation>Фільтр</translation>
-    </message>
-    <message>
-        <source>Find</source>
-        <translation>Пошук</translation>
     </message>
     <message>
         <source>Navigation</source>
