@@ -133,7 +133,7 @@ private: // QSortFilterProxyModel
 class FilterSettingsDialog::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
-	, ModeComboBox::IValueApplier
+	, ModeLineEdit::IValueApplier
 	, public IFilterController::ICallback
 	, public std::enable_shared_from_this<Impl>
 {
@@ -223,7 +223,9 @@ private:
 		m_ui.view->viewport()->installEventFilter(m_scrollBarController.get());
 		m_ui.view->header()->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
 
-		connect(&m_filterTimer, &QTimer::timeout, &m_self, [&] {
+		m_valueApplier = m_ui.value->Setup(m_settings, RECENT_VALUE_MODE_KEY);
+
+		connect(&m_filterTimer, &QTimer::timeout, &m_self, [this] {
 			FilterImpl();
 		});
 		connect(m_ui.tabs, &QTabWidget::currentChanged, [this, indexToMode = CreateTabs()](const int tabIndex) {
@@ -233,11 +235,11 @@ private:
 		connect(m_ui.btnApply, &QAbstractButton::clicked, [this] {
 			Apply();
 		});
-		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [&] {
+		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [this] {
 			OnValueChanged();
 		});
-		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, &m_self, [&] {
-			OnValueModeIndexChanged();
+		connect(m_ui.value, &ModeLineEdit::ValueApplierChanged, &m_self, [this](const ValueApplier valueApplier) {
+			OnValueModeChanged(valueApplier);
 		});
 		connect(m_ui.view, &QWidget::customContextMenuRequested, &m_self, [this] {
 			OnViewContextMenuRequested();
@@ -256,15 +258,6 @@ private:
 		QTimer::singleShot(0, [this] {
 			m_ui.tabs->setCurrentIndex(m_settings->Get(RECENT_TAB_KEY, 0));
 		});
-
-		if (const auto it = std::ranges::find_if(
-				ModeComboBox::VALUE_MODES,
-				[mode = m_settings->Get(RECENT_VALUE_MODE_KEY).toString()](const auto& item) {
-					return mode == item.first;
-				}
-			);
-		    it != std::cend(ModeComboBox::VALUE_MODES))
-			m_ui.cbValueMode->setCurrentIndex(static_cast<int>(std::distance(std::cbegin(ModeComboBox::VALUE_MODES), it)));
 
 		LoadGeometry();
 	}
@@ -352,12 +345,12 @@ private:
 
 	void OnValueChanged()
 	{
-		std::invoke(ModeComboBox::VALUE_MODES[m_ui.cbValueMode->currentIndex()].second, static_cast<IValueApplier&>(*this));
+		std::invoke(m_valueApplier, static_cast<IValueApplier&>(*this));
 	}
 
-	void OnValueModeIndexChanged()
+	void OnValueModeChanged(const ValueApplier valueApplier)
 	{
-		m_settings->Set(RECENT_VALUE_MODE_KEY, m_ui.cbValueMode->currentData());
+		m_valueApplier = valueApplier;
 		if (m_model)
 			m_model->setData({}, {}, Role::TextFilter);
 		OnValueChanged();
@@ -513,6 +506,7 @@ private:
 	QTimer                                                  m_filterTimer;
 	int                                                     m_sectionClicked { -1 };
 	ShowCheckedMode                                         m_showCheckedMode { ShowCheckedMode::All };
+	ValueApplier                                            m_valueApplier { &IValueApplier::Filter };
 
 	std::atomic_bool                m_hideFilteredStarted { false };
 	Util::FunctorExecutionForwarder m_forwarder;
