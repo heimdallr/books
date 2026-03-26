@@ -147,7 +147,7 @@
           <number>0</number>
          </property>
          <item>
-          <widget class="QLineEdit" name="value">
+          <widget class="HomeCompa::Flibrary::ModeLineEdit" name="value">
            <property name="sizePolicy">
             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
              <horstretch>0</horstretch>
@@ -161,16 +161,6 @@
            </property>
            <property name="clearButtonEnabled">
             <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="HomeCompa::Flibrary::ModeComboBox" name="cbValueMode">
-           <property name="sizePolicy">
-            <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-             <horstretch>0</horstretch>
-             <verstretch>0</verstretch>
-            </sizepolicy>
            </property>
           </widget>
          </item>
@@ -322,9 +312,9 @@
  <layoutdefault spacing="6" margin="11"/>
  <customwidgets>
   <customwidget>
-   <class>HomeCompa::Flibrary::ModeComboBox</class>
-   <extends>QComboBox</extends>
-   <header>widgets/ModeComboBox.h</header>
+   <class>HomeCompa::Flibrary::ModeLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>widgets/ModeLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <tabstops>
