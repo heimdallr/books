@@ -37,7 +37,6 @@
 #include "util/ObjectsConnector.h"
 #include "util/UiTimer.h"
 #include "util/language.h"
-#include "widgets/ModeComboBox.h"
 
 #include "log.h"
 #include "zip.h"
