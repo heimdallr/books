@@ -290,8 +290,14 @@ public:
 	{
 		const auto rect           = Util::GetGlobalGeometry(*m_ui.lineEditBookTitleToSearch);
 		const auto spacerNewWidth = m_searchBooksByTitleLeft->geometry().width() + geometry.x() - rect.x();
+		if (spacerNewWidth < 0)
+			return;
+
 		m_searchBooksByTitleLeft->changeSize(std::max(spacerNewWidth, 0), geometry.height(), QSizePolicy::Fixed, QSizePolicy::Expanding);
 		const auto lineEditBookTitleToSearchNewWidth = geometry.size().width() + std::min(spacerNewWidth, 0);
+		if (lineEditBookTitleToSearchNewWidth < 0)
+			return;
+
 		m_ui.lineEditBookTitleToSearch->setMinimumWidth(lineEditBookTitleToSearchNewWidth);
 		m_ui.lineEditBookTitleToSearch->setMaximumWidth(lineEditBookTitleToSearchNewWidth);
 		m_searchBooksByTitleLayout->invalidate();
