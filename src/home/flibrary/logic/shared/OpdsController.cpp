@@ -4,12 +4,13 @@
 #include <QDir>
 #include <QLocalSocket>
 #include <QProcess>
-#include <QSettings>
 #include <QTimer>
 
 #include "fnd/observable.h"
 
 #include "interface/constants/ProductConstant.h"
+
+#include "platform/PlatformUtil.h"
 
 #include "log.h"
 
@@ -19,16 +20,11 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto STARTUP_KEY = "CurrentVersion/Run/FLibrary OPDS server";
+constexpr auto STARTUP_KEY = "FLibrary OPDS server";
 
 QString GetOpdsPath()
 {
-    return QCoreApplication::applicationDirPath() + "/opds";
-}
-
-std::unique_ptr<QSettings> GetStartupSettings()
-{
-	return std::make_unique<QSettings>(QSettings::NativeFormat, QSettings::UserScope, "Microsoft", "Windows");
+	return QCoreApplication::applicationDirPath() + "/opds";
 }
 
 }
@@ -120,15 +116,15 @@ void OpdsController::UnregisterObserver(IObserver* observer)
 
 bool OpdsController::InStartup() const
 {
-	return GetStartupSettings()->contains(STARTUP_KEY);
+	return Util::IsAppAddedToAutostart(STARTUP_KEY);
 }
 
 void OpdsController::AddToStartup() const
 {
-	GetStartupSettings()->setValue(STARTUP_KEY, QDir::toNativeSeparators(GetOpdsPath()));
+	Util::AddToAutostart(STARTUP_KEY, GetOpdsPath());
 }
 
 void OpdsController::RemoveFromStartup() const
 {
-	GetStartupSettings()->remove(STARTUP_KEY);
+	Util::RemoveFromAutostart(STARTUP_KEY);
 }
