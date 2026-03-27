@@ -971,6 +971,10 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <source>And</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Apply</source>
         <translation></translation>
     </message>
@@ -1005,6 +1009,10 @@ Restart now?</source>
     <message>
         <source>Hide unrated books</source>
         <translation>Hide unrated</translation>
+    </message>
+    <message>
+        <source>Or</source>
+        <translation></translation>
     </message>
     <message>
         <source>Rate</source>
