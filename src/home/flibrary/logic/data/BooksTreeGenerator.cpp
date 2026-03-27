@@ -10,6 +10,7 @@
 #include <QJsonDocument>
 #include <QJsonObject>
 
+#include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 
 #include "database/interface/IDatabase.h"
@@ -48,6 +49,18 @@ void FlagsAnd(BookToFlag& flags, const long long bookId, const IDataItem::Flags 
 void FlagsOr(BookToFlag& flags, const long long bookId, const IDataItem::Flags flag)
 {
 	flags.try_emplace(bookId, IDataItem::Flags::None).first->second |= flag;
+}
+
+constexpr std::pair<const char*, FlagsAccumulator> FLAG_ACCUMULATORS[] {
+#define ITEM(NAME) {#NAME, &Flags##NAME}
+	ITEM(Or),
+	ITEM(And),
+#undef ITEM
+};
+
+FlagsAccumulator GetFlagsAccumulator(const QString& key)
+{
+	return FindSecond(FLAG_ACCUMULATORS, key.toStdString().data(), PszComparer {});
 }
 
 constexpr const char* BOOKS_COLUMN_NAMES[] {
@@ -141,6 +154,10 @@ public:
 		, navigationId { std::move(navigationId) }
 		, filterProvider { filterProvider }
 		, m_settings { settings }
+		, m_authorsFlagAccumulator { GetFlagsAccumulator(filterProvider.GetFlagsAccumulationMode(NavigationMode::Authors)) }
+		, m_seriesFlagAccumulator { GetFlagsAccumulator(filterProvider.GetFlagsAccumulationMode(NavigationMode::Series)) }
+		, m_genresFlagAccumulator { GetFlagsAccumulator(filterProvider.GetFlagsAccumulationMode(NavigationMode::Genres)) }
+		, m_keywordsFlagAccumulator { GetFlagsAccumulator(filterProvider.GetFlagsAccumulationMode(NavigationMode::Keywords)) }
 	{
 		if (!this->navigationId.isEmpty())
 			std::invoke(description.bookSelector, static_cast<IBookSelector&>(*this), std::cref(activeCollection), std::ref(db), std::cref(description));
@@ -483,8 +500,9 @@ join Series s on s.SeriesID = l.SeriesID
 				book.series.emplace(ordNum, std::make_pair(id, seqNum));
 				m_seriesFlagAccumulator(flags, bookId, item->GetFlags());
 			}
-			for (const auto& [bookId, flag] : flags)
-				addFlag(*m_books[bookId].book, flag);
+			if (filterProvider.IsFilterEnabled())
+				for (const auto& [bookId, flag] : flags)
+					addFlag(*m_books[bookId].book, flag);
 		}
 
 		{
@@ -511,8 +529,9 @@ join Authors a on a.AuthorID = l.AuthorID
 				Add(book.authors, static_cast<long long&&>(id), query->Get<int>(7));
 				m_authorsFlagAccumulator(flags, bookId, item->GetFlags());
 			}
-			for (const auto& [bookId, flag] : flags)
-				addFlag(*m_books[bookId].book, flag);
+			if (filterProvider.IsFilterEnabled())
+				for (const auto& [bookId, flag] : flags)
+					addFlag(*m_books[bookId].book, flag);
 		}
 		{
 			static constexpr auto queryText = R"({}
@@ -538,8 +557,9 @@ join Genres g on g.GenreCode = l.GenreCode
 				Add(book.genres, std::move(id), query->Get<int>(6));
 				m_genresFlagAccumulator(flags, bookId, item->GetFlags());
 			}
-			for (const auto& [bookId, flag] : flags)
-				addFlag(*m_books[bookId].book, flag);
+			if (filterProvider.IsFilterEnabled())
+				for (const auto& [bookId, flag] : flags)
+					addFlag(*m_books[bookId].book, flag);
 		}
 		{
 			static constexpr auto queryText = R"({}
@@ -554,8 +574,9 @@ join Keywords k on k.KeywordID = l.KeywordID
 			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
 			for (query->Execute(); !query->Eof(); query->Next())
 				m_keywordsFlagAccumulator(flags, query->Get<long long>(1), static_cast<IDataItem::Flags>(query->Get<int>(0)));
-			for (const auto& [bookId, flag] : flags)
-				addFlag(*m_books[bookId].book, flag);
+			if (filterProvider.IsFilterEnabled())
+				for (const auto& [bookId, flag] : flags)
+					addFlag(*m_books[bookId].book, flag);
 		}
 
 		for (auto& [book, seriesId, authorIds, genreIds] : m_books | std::views::values)
@@ -660,10 +681,10 @@ private:
 	std::unordered_map<long long, IDataItem::Ptr>   m_authors;
 	std::unordered_map<QString, IDataItem::Ptr>     m_genres;
 
-	FlagsAccumulator m_authorsFlagAccumulator { &FlagsOr };
-	FlagsAccumulator m_seriesFlagAccumulator { &FlagsOr };
-	FlagsAccumulator m_genresFlagAccumulator { &FlagsOr };
-	FlagsAccumulator m_keywordsFlagAccumulator { &FlagsOr };
+	FlagsAccumulator m_authorsFlagAccumulator { std::cbegin(FLAG_ACCUMULATORS)->second };
+	FlagsAccumulator m_seriesFlagAccumulator { std::cbegin(FLAG_ACCUMULATORS)->second };
+	FlagsAccumulator m_genresFlagAccumulator { std::cbegin(FLAG_ACCUMULATORS)->second };
+	FlagsAccumulator m_keywordsFlagAccumulator { std::cbegin(FLAG_ACCUMULATORS)->second };
 };
 
 BooksTreeGenerator::BooksTreeGenerator(
