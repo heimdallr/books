@@ -546,14 +546,6 @@ private: // IJokeRequester::IClient
 	}
 
 private: // IFilterProvider::IObserver
-	void OnFilterEnabledChanged() override
-	{
-	}
-
-	void OnFilterNavigationChanged(NavigationMode) override
-	{
-	}
-
 	void OnFilterBooksChanged() override
 	{
 		Perform(&IAnnotationController::IObserver::OnAnnotationRequested);

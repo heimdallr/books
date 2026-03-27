@@ -981,6 +981,10 @@ Restart now?</source>
         <translation>Показано всі елементи</translation>
     </message>
     <message>
+        <source>And</source>
+        <translation>I</translation>
+    </message>
+    <message>
         <source>Apply</source>
         <translation>Застосувати</translation>
     </message>
@@ -1015,6 +1019,10 @@ Restart now?</source>
     <message>
         <source>Hide unrated books</source>
         <translation>Приховати без рейтингу</translation>
+    </message>
+    <message>
+        <source>Or</source>
+        <translation>Або</translation>
     </message>
     <message>
         <source>Rate</source>

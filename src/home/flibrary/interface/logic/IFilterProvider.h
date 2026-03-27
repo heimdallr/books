@@ -25,9 +25,21 @@ public:
 	class IObserver : public Observer
 	{
 	public:
-		virtual void OnFilterEnabledChanged()                                 = 0;
-		virtual void OnFilterNavigationChanged(NavigationMode navigationMode) = 0;
-		virtual void OnFilterBooksChanged()                                   = 0;
+		virtual void OnFilterEnabledChanged()
+		{
+		}
+
+		virtual void OnFilterNavigationChanged(NavigationMode)
+		{
+		}
+
+		virtual void OnFilterBooksChanged()
+		{
+		}
+
+		virtual void OnFilterFlagsAccumulationModeChanged()
+		{
+		}
 	};
 
 	using CommandBinder = void (*)(DB::ICommand& command, size_t index, const QString& value);
@@ -63,6 +75,7 @@ public:
 
 	[[nodiscard]] virtual bool                          IsFilterEnabled() const noexcept                                               = 0;
 	[[nodiscard]] virtual std::vector<IDataItem::Flags> GetFlags(NavigationMode navigationMode, const std::vector<QString>& ids) const = 0;
+	[[nodiscard]] virtual QString                       GetFlagsAccumulationMode(NavigationMode navigationMode) const                  = 0;
 	[[nodiscard]] virtual bool                          HideUnrated() const noexcept                                                   = 0;
 	[[nodiscard]] virtual bool                          IsMinimumRateEnabled() const noexcept                                          = 0;
 	[[nodiscard]] virtual bool                          IsMaximumRateEnabled() const noexcept                                          = 0;
