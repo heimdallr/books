@@ -257,11 +257,11 @@ private:
 		});
 		connect(m_ui.radioButtonAnd, &QAbstractButton::toggled, &m_self, [this](const bool checked) {
 			if (checked)
-				m_filterController->SetFlagsAccumulationMode(m_indexToMode[m_ui.tabs->currentIndex()], m_ui.radioButtonAnd->accessibleName());
+				m_changedAccumulations[m_indexToMode[m_ui.tabs->currentIndex()]] = m_ui.radioButtonAnd->accessibleName();
 		});
 		connect(m_ui.radioButtonOr, &QAbstractButton::toggled, &m_self, [this](const bool checked) {
 			if (checked)
-				m_filterController->SetFlagsAccumulationMode(m_indexToMode[m_ui.tabs->currentIndex()], m_ui.radioButtonOr->accessibleName());
+				m_changedAccumulations[m_indexToMode[m_ui.tabs->currentIndex()]] = m_ui.radioButtonOr->accessibleName();
 		});
 
 		QTimer::singleShot(0, [this] {
@@ -493,6 +493,8 @@ private:
 			m_ui.hideRatedHigher->isChecked() ? std::optional { m_ui.maximumRating->value() } : std::nullopt,
 			m_ui.hideUnrated->isChecked()
 		);
+		for (const auto& [navigationMode, key] : m_changedAccumulations)
+			m_filterController->SetFlagsAccumulationMode(navigationMode, key);
 		m_filterController->SetFilterEnabled(m_ui.checkBoxFilterEnabled->isChecked());
 		m_filterController->Apply();
 		m_self.accept();
@@ -523,6 +525,7 @@ private:
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
 	PropagateConstPtr<QAbstractItemModel>                   m_model { std::unique_ptr<QAbstractItemModel> {} };
 	std::vector<NavigationMode>                             m_indexToMode;
+	std::unordered_map<NavigationMode, QString>             m_changedAccumulations;
 	const IFilterController::FilteredNavigation*            m_filteredNavigation { nullptr };
 	QTimer                                                  m_filterTimer;
 	int                                                     m_sectionClicked { -1 };
