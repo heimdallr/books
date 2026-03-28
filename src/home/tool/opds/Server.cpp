@@ -182,7 +182,7 @@ std::optional<QHttpServerResponse> FromWebsite(
 		{   "js",          "text/javascript" },
 		{  "css",				 "text/css" },
 	};
-    const auto* contentType = FindSecond(types, QFileInfo(fileName).suffix().toStdString().data(), PszComparer {});
+	const auto* contentType = FindSecond(types, QFileInfo(fileName).suffix().toStdString().data(), PszComparer {});
 	if (auto result = FromFile(QString("%1/website/%2").arg(QCoreApplication::applicationDirPath(), fileName), acceptEncoding, contentType, dataUpdater))
 		return result;
 

@@ -35,7 +35,7 @@ protected:
 		const QString&                      text,
 		const QMessageBox::StandardButtons& buttons       = QMessageBox::Ok,
 		QMessageBox::StandardButton         defaultButton = QMessageBox::NoButton
-    ) const;
+	) const;
 
 protected:
 	PropagateConstPtr<IParentWidgetProvider, std::shared_ptr> m_parentProvider;

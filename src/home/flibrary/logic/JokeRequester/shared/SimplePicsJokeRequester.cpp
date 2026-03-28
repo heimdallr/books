@@ -70,9 +70,9 @@ void SimplePicsJokeRequester::OnImageReceived(const size_t id, const int code, c
 	});
 
 	if (code != QNetworkReply::NetworkError::NoError)
-    {
-        PLOGE << message;
-    }
+	{
+		PLOGE << message;
+	}
 
 	if (const auto client = it->second->client.lock())
 		client->OnImageReceived(it->second->data);

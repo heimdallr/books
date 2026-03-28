@@ -133,9 +133,9 @@ private:
 		}
 
 		if (!((m_icuTransliterate = m_icuLib->GetTypedProc<ICU::TransliterateType>(ICU::TRANSLITERATE_NAME))))
-        {
-            PLOGW << "Cannot find entry point " << ICU::TRANSLITERATE_NAME << " in " << ICU::LIB_NAME << " dynamic library";
-        }
+		{
+			PLOGW << "Cannot find entry point " << ICU::TRANSLITERATE_NAME << " in " << ICU::LIB_NAME << " dynamic library";
+		}
 	}
 
 	mutable std::unique_ptr<Util::DyLib> m_icuLib;

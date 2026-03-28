@@ -289,7 +289,7 @@ public:
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry) const
 	{
 		const auto rect           = Util::GetGlobalGeometry(*m_ui.lineEditBookTitleToSearch);
-        const auto spacerNewWidth = m_searchBooksByTitleLeft->geometry().width() + geometry.x() - rect.x();
+		const auto spacerNewWidth = m_searchBooksByTitleLeft->geometry().width() + geometry.x() - rect.x();
 
 		m_searchBooksByTitleLeft->changeSize(std::max(spacerNewWidth, 0), geometry.height(), QSizePolicy::Fixed, QSizePolicy::Expanding);
 		const auto lineEditBookTitleToSearchNewWidth = geometry.size().width() + std::min(spacerNewWidth, 0);
@@ -924,9 +924,9 @@ private:
 		const auto browse = [this](const QString& folder = {}) {
 			const auto url = QString("http://localhost:%1/%2").arg(m_settings->Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT)).arg(folder);
 			if (!QDesktopServices::openUrl(url))
-            {
-                PLOGE << "Cannot open " << url;
-            }
+			{
+				PLOGE << "Cannot open " << url;
+			}
 		};
 		connect(m_ui.actionBrowseHttpOpds, &QAction::triggered, [=] {
 			browse("opds");

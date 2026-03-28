@@ -103,9 +103,9 @@ private:
 		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), collection.GetInpx(), true);
 		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
 			if (updateResult.oldDataUpdateFound)
-            {
-                PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
-            }
+			{
+				PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
+			}
 
 			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
 				parser.reset();

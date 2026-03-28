@@ -20,6 +20,7 @@ namespace HomeCompa::Flibrary::DatabaseScheme
 
 namespace
 {
+
 /*
 bool FieldExists(DB::ITransaction& transaction, const QString& table, const QString& column)
 {

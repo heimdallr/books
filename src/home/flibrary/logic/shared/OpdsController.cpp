@@ -116,15 +116,15 @@ void OpdsController::UnregisterObserver(IObserver* observer)
 
 bool OpdsController::InStartup() const
 {
-    return Platform::IsAppAddedToAutostart(STARTUP_KEY);
+	return Platform::IsAppAddedToAutostart(STARTUP_KEY);
 }
 
 void OpdsController::AddToStartup() const
 {
-    Platform::AddToAutostart(STARTUP_KEY, GetOpdsPath());
+	Platform::AddToAutostart(STARTUP_KEY, GetOpdsPath());
 }
 
 void OpdsController::RemoveFromStartup() const
 {
-    Platform::RemoveFromAutostart(STARTUP_KEY);
+	Platform::RemoveFromAutostart(STARTUP_KEY);
 }

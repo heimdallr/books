@@ -5,6 +5,7 @@
 #include <QTimer>
 
 #include "interface/localization.h"
+
 #include "platform/PlatformUtil.h"
 
 #include "log.h"
@@ -51,7 +52,7 @@ Dialog::Show(const QMessageBox::Icon icon, const QString& title, const QString& 
 		auto       rect         = msgBox.geometry();
 		const auto parentCenter = parent->geometry().center();
 		rect.translate(parentCenter - rect.center());
-        Platform::SetGeometry(msgBox, rect);
+		Platform::SetGeometry(msgBox, rect);
 	}
 
 	return static_cast<QMessageBox::StandardButton>(msgBox.exec());
@@ -126,7 +127,7 @@ QString InputTextDialog::GetText(const QString& title, const QString& label, con
 	});
 	QTimer::singleShot(0, [&] {
 		if (auto geometry = m_settings->Get(INPUT_DIALOG_GEOMETRY_KEY); geometry.isValid())
-            Platform::SetGeometry(inputDialog, geometry.toRect());
+			Platform::SetGeometry(inputDialog, geometry.toRect());
 	});
 	return inputDialog.exec() == QDialog::Accepted ? inputDialog.textValue() : QString {};
 }

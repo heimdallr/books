@@ -93,9 +93,9 @@ private: // ILogicFactory::ITemporaryDir
 	QString filePath(const QString& fileName) const override
 	{
 		if (!m_impl.exists() && !m_impl.mkpath("."))
-        {
-            PLOGE << "Cannot create " << m_impl.path();
-        }
+		{
+			PLOGE << "Cannot create " << m_impl.path();
+		}
 
 		return m_impl.filePath(fileName);
 	}

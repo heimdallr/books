@@ -574,7 +574,7 @@ private: // IContextMenuHandler
 	{
 		auto logicFactory = ILogicFactory::Lock(m_logicFactory);
 		auto books        = logicFactory->GetSelectedBookIds(model, index, indexList, { Role::Folder, Role::FileName });
-        assert(IsOneOf(static_cast<int>(books.size()), 1, 2));
+		assert(IsOneOf(static_cast<int>(books.size()), 1, 2));
 
 		std::shared_ptr executor = logicFactory->GetExecutor();
 
