@@ -46,7 +46,7 @@ const auto CONTEXT       = "Http";
 const auto AUTH_REQUIRED = QT_TRANSLATE_NOOP("Http", "Authentication required");
 TR_DEF
 
-#define OPDS_REQUEST_ROOT_ITEM(NAME) constexpr auto(NAME) = "/" #NAME;
+#define OPDS_REQUEST_ROOT_ITEM(NAME) constexpr auto NAME = "/" #NAME;
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
@@ -182,7 +182,7 @@ std::optional<QHttpServerResponse> FromWebsite(
 		{   "js",          "text/javascript" },
 		{  "css",				 "text/css" },
 	};
-	const auto& contentType = FindSecond(types, QFileInfo(fileName).suffix().toStdString().data(), PszComparer {});
+    const auto* contentType = FindSecond(types, QFileInfo(fileName).suffix().toStdString().data(), PszComparer {});
 	if (auto result = FromFile(QString("%1/website/%2").arg(QCoreApplication::applicationDirPath(), fileName), acceptEncoding, contentType, dataUpdater))
 		return result;
 

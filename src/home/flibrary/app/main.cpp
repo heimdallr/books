@@ -79,7 +79,9 @@ int main(int argc, char* argv[])
 		PLOGI << "Commit hash: " << GIT_HASH;
 		// ReSharper disable CppCompileTimeConstantCanBeReplacedWithBooleanConstant
 		if constexpr (PERSONAL_BUILD_NAME && PERSONAL_BUILD_NAME[0]) //-V560
-			PLOGI << "Personal build: " << PERSONAL_BUILD_NAME;
+        {
+            PLOGI << "Personal build: " << PERSONAL_BUILD_NAME;
+        }
 		// ReSharper restore CppCompileTimeConstantCanBeReplacedWithBooleanConstant
 
 		PLOGD << "QApplication created";

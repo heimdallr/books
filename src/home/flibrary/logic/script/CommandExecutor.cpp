@@ -57,7 +57,9 @@ bool EmbeddedCommandDownload(const QString& argStr)
 		Network::Downloader downloader;
 		downloader.Download(url, buffer, [&](size_t, const int code, const QString& message) {
 			if (!message.isEmpty())
-				PLOGE << QString("Download %1 failed: %2. %3").arg(url).arg(code).arg(message);
+            {
+                PLOGE << QString("Download %1 failed: %2. %3").arg(url).arg(code).arg(message);
+            }
 			eventLoop.exit(code);
 		});
 		const auto result = eventLoop.exec();

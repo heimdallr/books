@@ -62,8 +62,12 @@ if(MSVC)
 	)
 else()
 	add_compile_options(
+		-Wall
+		-Wextra
+		-Werror
 		-Wno-deprecated-declarations
 		-Wno-virtual-move-assign
+		-Wno-missing-field-initializers
 		-fPIC
 	)
 endif()

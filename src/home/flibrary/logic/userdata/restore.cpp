@@ -264,7 +264,9 @@ void RestoreImpl(const Util::IExecutor& executor, DB::IDatabase& db, QString fil
 	executor({ "Restore user data", [&db, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
 				  auto createResult = [callback = std::move(callback)](QString error = {}) mutable {
 					  if (!error.isEmpty())
-						  PLOGE << error;
+                      {
+                          PLOGE << error;
+                      }
 
 					  return [callback = std::move(callback), error = std::move(error)](size_t) {
 						  callback(error);

@@ -783,7 +783,9 @@ size_t StoreRange(DB::IDatabase& db, const QString& process, const std::string_v
 
 		log();
 		if (rowsTotal != rowsInserted)
-			PLOGE << rowsTotal - rowsInserted << " rows lost";
+        {
+            PLOGE << rowsTotal - rowsInserted << " rows lost";
+        }
 
 		if (!queryAfter.empty())
 			tr->CreateCommand(queryAfter)->Execute();
@@ -1468,7 +1470,9 @@ private:
 						return Store(*m_db, m_data);
 					});
 		    failsCount != 0)
-			PLOGE << "Something went wrong";
+        {
+            PLOGE << "Something went wrong";
+        }
 
 		TRY("update database", [&] {
 			return ExecuteScript(*m_db, "update database", m_ini(DB_UPDATE_SCRIPT, DEFAULT_DB_UPDATE_SCRIPT));
@@ -1707,7 +1711,9 @@ private:
 		Filter(m_data.reviews, oldData.reviews);
 
 		if (const auto failsCount = Store(*m_db, m_data); failsCount != 0)
-			PLOGE << "Something went wrong";
+        {
+            PLOGE << "Something went wrong";
+        }
 
 		TRY("CollectCompilations", [this] {
 			CollectCompilations();
@@ -1910,11 +1916,11 @@ where b.FileName = ? and b.Ext = ?)");
 			const auto command = tr->CreateCommand("insert into Compilation_List(CompilationID, BookId, Part) values(?, ?, ?)");
 			for (const auto& compilation : compilations)
 			{
-				for (const auto bookId : compilation.books)
+                for (const auto& book : compilation.books)
 				{
 					command->Bind(0, compilation.id);
-					command->Bind(1, bookId.first);
-					command->Bind(2, bookId.second);
+                    command->Bind(1, book.first);
+                    command->Bind(2, book.second);
 					command->Execute();
 				}
 			}

@@ -42,7 +42,9 @@ private: // IProgressController::IObserver
 		const auto logicValue = m_progressController->GetValue();
 		const auto uiValue    = static_cast<int>(m_ui.bar->minimum() + logicValue * (m_ui.bar->maximum() - m_ui.bar->minimum()) + std::numeric_limits<double>::epsilon());
 		if (const auto loggedValue = uiValue / 10; m_loggedValue != loggedValue)
-			PLOGV << (m_loggedValue = loggedValue) * 10 << "%";
+        {
+            PLOGV << (m_loggedValue = loggedValue) * 10 << "%";
+        }
 
 		m_ui.bar->setValue(uiValue);
 	}

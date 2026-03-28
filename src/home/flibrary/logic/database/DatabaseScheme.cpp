@@ -20,7 +20,7 @@ namespace HomeCompa::Flibrary::DatabaseScheme
 
 namespace
 {
-
+/*
 bool FieldExists(DB::ITransaction& transaction, const QString& table, const QString& column)
 {
 	std::set<std::string> booksUserFields;
@@ -63,7 +63,7 @@ bool RecordsExists(DB::ITransaction& transaction, const std::string_view tableNa
 	query->Execute();
 	return query->Get<int>(0) != 0;
 }
-
+*/
 void AddUserTables(DB::ITransaction& /*transaction*/)
 {
 	PLOGI << "Add tables";

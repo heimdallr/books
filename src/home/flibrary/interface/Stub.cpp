@@ -310,7 +310,7 @@ void ILogicFactory::FillScriptTemplate(DB::IDatabase& db, QString& scriptTemplat
 {
 	const auto      authorNameSplitted = Util::RemoveIllegalPathCharacters(book.author).split(' ', Qt::SkipEmptyParts);
 	const QFileInfo fileInfo(book.file);
-	for (const auto [macro, applier] : MACRO_APPLIERS)
+    for (const auto& [macro, applier] : MACRO_APPLIERS)
 	{
 		const auto value = std::invoke(applier, std::ref(db), std::cref(book), std::cref(fileInfo), std::cref(authorNameSplitted));
 		IScriptController::SetMacro(scriptTemplate, macro, value);

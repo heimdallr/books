@@ -39,7 +39,7 @@ Genres GetGenres(DB::IDatabase& db)
 
 	const auto query = db.CreateQuery("select GenreCode, FB2Code, ParentCode from Genres");
 	for (query->Execute(); !query->Eof(); query->Next())
-		const auto& [code, name] = *result.try_emplace(query->Get<const char*>(0), query->Get<const char*>(1)).first;
+        result.try_emplace(query->Get<const char*>(0), query->Get<const char*>(1));
 
 	return result;
 }
