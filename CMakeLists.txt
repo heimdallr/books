@@ -65,6 +65,7 @@ else()
 		-Wall
 		-Wextra
 		-Werror
+		-pedantic
 		-Wno-deprecated-declarations
 		-Wno-virtual-move-assign
 		-Wno-missing-field-initializers
