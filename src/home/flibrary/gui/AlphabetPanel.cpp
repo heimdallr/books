@@ -245,8 +245,8 @@ public:
 		std::ranges::copy(languages | std::views::keys | std::views::values, std::back_inserter(items));
 		const auto title = m_uiFactory->GetText(Tr(SELECT_LANGUAGE_TITLE), Tr(SELECT_LANGUAGE_LABEL), {}, items);
 		const auto it    = std::ranges::find(languages, title, [](const auto& item) {
-            return item.first.second;
-        });
+			return item.first.second;
+		});
 		assert(it != languages.end());
 
 		const auto alphabet = m_uiFactory->GetText(Tr(SELECT_ALPHABET_TITLE), Tr(SELECT_ALPHABET_LABEL));
@@ -326,8 +326,8 @@ private:
 		auto*      parent   = m_uiFactory->GetParentWidget();
 		const auto children = parent->findChildren<QLineEdit*>();
 		const auto it       = std::ranges::find(children, m_linkedControl, [](const auto* item) {
-            return item->accessibleName();
-        });
+			return item->accessibleName();
+		});
 		if (it == children.end())
 			return nullptr;
 

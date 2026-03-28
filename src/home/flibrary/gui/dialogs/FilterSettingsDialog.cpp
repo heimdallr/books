@@ -470,7 +470,7 @@ private:
 
 		const auto flags = m_sectionClicked == 1 ? IDataItem::Flags::Filtered : m_sectionClicked == 2 ? IDataItem::Flags::BooksFiltered : (assert(false && "unexpected section"), IDataItem::Flags::None);
 		const auto skip  = [this](const QModelIndex& index) {
-            return m_filteredNavigation->navigationMode == NavigationMode::Genres && index.isValid() && !m_ui.view->isExpanded(index);
+			return m_filteredNavigation->navigationMode == NavigationMode::Genres && index.isValid() && !m_ui.view->isExpanded(index);
 		};
 		const auto process = [&](const QModelIndex& index) {
 			if (index.data(Role::ChildCount).toInt() > 0)

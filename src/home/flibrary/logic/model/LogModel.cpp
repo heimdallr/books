@@ -110,8 +110,8 @@ private:
 	std::mutex                      m_itemsGuard;
 	Util::FunctorExecutionForwarder m_forwarder {};
 	std::unique_ptr<QTimer>         m_timer { Util::CreateUiTimer([&] {
-        OnLogUpdated();
-    }) };
+		OnLogUpdated();
+	}) };
 	std::vector<Item> m_items;
 };
 

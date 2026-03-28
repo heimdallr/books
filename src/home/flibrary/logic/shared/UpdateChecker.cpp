@@ -263,9 +263,9 @@ private:
 	{
 		const auto installer = Util::GetInstallerDescription();
 		const auto it        = std::ranges::find_if(m_release.assets, [=](const Asset& asset) {
-            const auto ext = QFileInfo(asset.name).suffix();
-            return ext == installer.ext;
-        });
+			const auto ext = QFileInfo(asset.name).suffix();
+			return ext == installer.ext;
+		});
 		if (it == m_release.assets.end())
 		{
 			if (m_uiFactory->ShowWarning(Tr(INSTALLER_NOT_FOUND), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)

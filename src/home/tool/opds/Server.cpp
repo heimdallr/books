@@ -111,8 +111,8 @@ constexpr const char* CONTENT_TYPES[][std::size(ROOTS)] {
 void SetContentType(QHttpServerResponse& response, const QString& root, const MessageType type)
 {
 	const auto  rootIndex   = std::distance(std::begin(ROOTS), std::ranges::find_if(ROOTS, [root = root.toStdString()](const char* item) {
-                                             return root == item;
-                                         }));
+											 return root == item;
+											}));
 	const auto* contentType = CONTENT_TYPES[static_cast<size_t>(type)][rootIndex];
 	assert(contentType);
 	ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
@@ -345,9 +345,9 @@ private:
 #define OPDS_INVOKER_ITEM(NAME) { #NAME, &IRequester::Get##NAME },
 			OPDS_NAVIGATION_ITEMS_X_MACRO OPDS_ADDITIONAL_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM
-			{  nullptr,     &IRequester::GetRoot },
-			{ "search",      &IRequester::Search },
-			{   "read", &IRequester::GetBookText },
+			{ nullptr, &IRequester::GetRoot },
+			{ "search", &IRequester::Search },
+			{ "read", &IRequester::GetBookText },
 		};
 
 		for (const auto& [path, invoker] : descriptions)

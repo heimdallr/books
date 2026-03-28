@@ -88,10 +88,10 @@ private:
 		std::ranges::transform(settings->GetGroups(), std::back_inserter(scripts), [&](const QString& uid) {
 			const SettingsGroup scriptGuard(*settings, uid);
 			Script              script {
-							 { uid, settings->Get(NUMBER).toInt() },
-                settings->Get(NAME).toString(),
-                FindFirst(s_scriptTypes, settings->Get(TYPE).toString().toStdString().data(), Script::Type::Undefined, PszComparer {}
-                             )
+				{ uid, settings->Get(NUMBER).toInt() },
+				settings->Get(NAME).toString(),
+				FindFirst(s_scriptTypes, settings->Get(TYPE).toString().toStdString().data(), Script::Type::Undefined, PszComparer {}
+                )
 			};
 			std::ranges::transform(settings->GetGroups(), std::back_inserter(commands), [this, &uid](const QString& commandUid) {
 				const SettingsGroup commandGuard(*settings, commandUid);
@@ -203,8 +203,8 @@ bool ScriptController::InsertCommand(const QString& uid, const int row, const in
 {
 	auto       filtered = m_impl->commands | GetScriptUidFilter(uid);
 	const auto it       = std::ranges::max_element(filtered, [](const auto& lhs, const auto& rhs) {
-        return lhs.number < rhs.number;
-    });
+		return lhs.number < rhs.number;
+	});
 	Commands   commands;
 	commands.reserve(static_cast<size_t>(count));
 	std::generate_n(std::back_inserter(commands), count, [&, n = it == std::ranges::end(filtered) ? 0 : it->number]() mutable {

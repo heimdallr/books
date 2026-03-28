@@ -707,10 +707,10 @@ private:
 		if (CheckUniqueFileNames(books))
 			return callback(item);
 
-		auto ids = books | std::views::transform([](const auto book) {
+		auto       ids       = books | std::views::transform([](const auto book) {
 					   return QString::number(book.id);
-				   })
-		         | std::ranges::to<std::set<QString>>();
+							   })
+		                     | std::ranges::to<std::set<QString>>();
 		auto       extractor = logicFactory->CreateBooksExtractor();
 		const auto parameter = item->GetData(MenuItem::Column::Parameter);
 		((*extractor)

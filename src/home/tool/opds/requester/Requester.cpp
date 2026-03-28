@@ -408,14 +408,14 @@ public:
 
 using GetNavigation = Node (INavigationProvider::*)(const QString& root, const IRequester::Parameters& parameters, const NavigationDescription& d) const;
 using WriteEntries  = void (*)(
-    Node::Children&              children,
-    const QString&               root,
-    IRequester::Parameters       parameters,
-    const NavigationDescription& d,
-    DB::IDatabase&               db,
-    const IQueryTextFilter&      queryTextFilter,
-    QString                      join,
-    std::map<QString, QString>&  ones
+	Node::Children&              children,
+	const QString&               root,
+	IRequester::Parameters       parameters,
+	const NavigationDescription& d,
+	DB::IDatabase&               db,
+	const IQueryTextFilter&      queryTextFilter,
+	QString                      join,
+	std::map<QString, QString>&  ones
 );
 
 struct NavigationDescription
@@ -544,8 +544,8 @@ std::pair<QString, char> PrepareForLike(QString arg)
 {
 	static constexpr char ESCAPE[] { '\\', '|', '#', '@', '~', '^' };
 	const auto            it = std::ranges::find_if(ESCAPE, [&](const auto ch) {
-        return !arg.contains(ch);
-    });
+		return !arg.contains(ch);
+	});
 	assert(it != std::end(ESCAPE));
 	arg.replace('_', QString("%1_").arg(*it));
 	arg.replace('%', QString("%1%").arg(*it));
@@ -1040,8 +1040,8 @@ public:
 		}
 		{
 			const auto it              = std::ranges::find(head.children, ENTRY, [](const auto& item) {
-                return item.name;
-            });
+				return item.name;
+			});
 			const auto startEntryIndex = std::distance(head.children.begin(), it);
 			std::sort(it, head.children.end());
 
@@ -1207,14 +1207,14 @@ private: // INavigationProvider
 		{
 			typedParameters[d.type] = ToString(childItem.code);
 			auto [path, content]    = [&]() -> std::pair<QString, QString> {
-                if (!childItem.children.empty())
-                    return std::make_pair(QString(d.type), GetContent(childItem));
+				if (!childItem.children.empty())
+					return std::make_pair(QString(d.type), GetContent(childItem));
 
-                const auto query = db->CreateQuery(FilterQueryText(QString(d.content).arg(join)));
-                BindImpl(*query, 0, childItem.code);
-                query->Execute();
-                assert(!query->Eof());
-                return std::make_pair(QString {}, Tr(BOOKS_COUNTER).arg(query->template Get<int>(0)));
+				const auto query = db->CreateQuery(FilterQueryText(QString(d.content).arg(join)));
+				BindImpl(*query, 0, childItem.code);
+				query->Execute();
+				assert(!query->Eof());
+				return std::make_pair(QString {}, Tr(BOOKS_COUNTER).arg(query->template Get<int>(0)));
 			}();
 			WriteEntry(head.children, root, path, typedParameters, QString("%1/%2").arg(d.type).arg(childItem.code), childItem.name, std::move(content));
 		}

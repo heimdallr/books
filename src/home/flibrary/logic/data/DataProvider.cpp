@@ -210,8 +210,8 @@ private:
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr>    m_navigationQueryExecutor;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> m_authorAnnotationController;
 	std::unique_ptr<QTimer>                                         m_navigationTimer { Util::CreateUiTimer([&] {
-        RequestNavigationImpl();
-    }) };
+		RequestNavigationImpl();
+	}) };
 	std::unique_ptr<QTimer> m_booksTimer { Util::CreateUiTimer([&] {
 		RequestBooksImpl();
 	}) };

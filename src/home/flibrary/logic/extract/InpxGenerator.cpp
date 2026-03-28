@@ -199,15 +199,15 @@ void Write(
 	};
 
 	const auto genreList   = getList(genres, bookGenres, [](const auto& item) {
-        return item;
-    });
+		return item;
+	});
 	const auto keywordList = getList(keywords, bookKeywords, [](const auto& item) {
 		return item;
 	});
 	const auto authorList  = getList(authors, bookAuthors, [](const auto& item) {
-        const auto& [lastName, firstName, middleName] = item;
-        return (QStringList() << lastName << firstName << middleName).join(Util::Fb2InpxParser::NAMES_SEPARATOR);
-    });
+		const auto& [lastName, firstName, middleName] = item;
+		return (QStringList() << lastName << firstName << middleName).join(Util::Fb2InpxParser::NAMES_SEPARATOR);
+	});
 
 	auto book = QStringList {} << authorList.join("") << genreList.join("") << query.Get<const char*>(2) << seriesTitle << Util::Fb2InpxParser::GetSeqNumber(query.Get<const char*>(4))
 	                           << query.Get<const char*>(9) << QString::number(query.Get<long long>(11)) << query.Get<const char*>(1) << QString::number(query.Get<int>(12)) << query.Get<const char*>(10) + 1
@@ -332,8 +332,8 @@ private:
 	Util::IExecutor::Task CreateTask(BookInfoList&& books)
 	{
 		const auto      totalSize    = std::accumulate(books.cbegin(), books.cend(), 0LL, [](const size_t init, const auto& book) {
-            return init + book.book->GetRawData(BookItem::Column::Size).toLongLong();
-        });
+			return init + book.book->GetRawData(BookItem::Column::Size).toLongLong();
+		});
 		std::shared_ptr progressItem = m_progressController->Add(totalSize);
 
 		auto uid = [&] {
@@ -461,20 +461,20 @@ private:
 		QByteArray data;
 		int64_t    counter = 0;
 		const auto write   = [&] {
-            if (counter == 0)
-                return;
+			if (counter == 0)
+				return;
 
-            assert(!currentFolder.isEmpty() && !data.isEmpty());
+			assert(!currentFolder.isEmpty() && !data.isEmpty());
 
-            Zip zip(inpxFileName, Zip::Format::Auto, true);
+			Zip zip(inpxFileName, Zip::Format::Auto, true);
 
-            QFileInfo fileInfo(currentFolder);
-            auto      zipFileController = Zip::CreateZipFileController();
-            zipFileController->AddFile(fileInfo.completeBaseName() + ".inp", data, QDateTime::currentDateTime());
-            zip.Write(*zipFileController);
+			QFileInfo fileInfo(currentFolder);
+			auto      zipFileController = Zip::CreateZipFileController();
+			zipFileController->AddFile(fileInfo.completeBaseName() + ".inp", data, QDateTime::currentDateTime());
+			zip.Write(*zipFileController);
 
-            bookProgressItem->Increment(counter);
-            counter = 0;
+			bookProgressItem->Increment(counter);
+			counter = 0;
 		};
 
 		const auto query = db->CreateQuery(BOOK_QUERY);

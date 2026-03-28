@@ -83,13 +83,13 @@ int run(int argc, char* argv[])
 	NativeEventFilterObserver nativeEventFilterObserver;
 	Util::NativeEventFilter   nativeEventFilter(app);
 	const ScopedCall          nativeEventFilterRegisterGuard(
-        [&] {
-            nativeEventFilter.Register(&nativeEventFilterObserver);
-        },
-        [&] {
-            nativeEventFilter.Unregister(&nativeEventFilterObserver);
-        }
-    );
+		[&] {
+			nativeEventFilter.Register(&nativeEventFilterObserver);
+		},
+		[&] {
+			nativeEventFilter.Unregister(&nativeEventFilterObserver);
+		}
+	);
 
 	while (true)
 	{

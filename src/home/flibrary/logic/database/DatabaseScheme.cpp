@@ -27,8 +27,8 @@ bool FieldExists(DB::ITransaction& transaction, const QString& table, const QStr
 	const auto            booksUserFieldsQuery = transaction.CreateQuery(QString("PRAGMA table_info(%1)").arg(table).toStdString());
 	auto                  range                = std::views::iota(std::size_t { 0 }, booksUserFieldsQuery->ColumnCount());
 	const auto            it                   = std::ranges::find(range, "name", [&](const size_t n) {
-        return booksUserFieldsQuery->ColumnName(n);
-    });
+		return booksUserFieldsQuery->ColumnName(n);
+	});
 	assert(it != std::end(range));
 	for (booksUserFieldsQuery->Execute(); !booksUserFieldsQuery->Eof(); booksUserFieldsQuery->Next())
 		booksUserFields.emplace(booksUserFieldsQuery->GetString(*it));

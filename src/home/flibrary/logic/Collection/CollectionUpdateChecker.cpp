@@ -94,7 +94,7 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 			  auto [_, ini]          = m_impl->collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), explicitInpx, false);
 			  const auto checkResult = Inpx::Parser::CheckForUpdate(std::move(ini), *db);
 			  result                 = [checkResult, updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) mutable {
-                  callback(checkResult, updatedCollection);
+				  callback(checkResult, updatedCollection);
 			  };
 
 			  return result;

@@ -174,8 +174,8 @@ private:
 QString TranslateLang(const QString& code)
 {
 	const auto  it       = std::ranges::find(LANGUAGES, code, [](const auto& item) {
-        return item.key;
-    });
+		return item.key;
+	});
 	const auto* language = it != std::end(LANGUAGES) ? it->title : UNDEFINED;
 	return Loc::Tr(LANGUAGES_CONTEXT, language);
 }
@@ -770,8 +770,8 @@ private:
 	PropagateConstPtr<Util::IExecutor>       m_executor;
 	std::shared_ptr<IJokeRequester::IClient> m_jokeRequesterClientImpl;
 	PropagateConstPtr<QTimer>                m_extractInfoTimer { Util::CreateUiTimer([&] {
-        ExtractInfo();
-    }) };
+		ExtractInfo();
+	}) };
 
 	QString m_currentBookId;
 

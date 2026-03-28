@@ -138,8 +138,8 @@ private:
 		const QFileInfo fileInfo(outputFileName);
 		const auto      src = QString("%1/%2.%3").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), QUuid::createUuid().toString(QUuid::WithoutBraces), fileInfo.suffix());
 		ScopedCall      srcGuard([&] {
-            QFile::remove(src);
-        });
+			QFile::remove(src);
+		});
 		{
 			QFile file(src);
 			if (!file.open(QIODevice::WriteOnly))
@@ -219,9 +219,9 @@ QString INoSqlRequester::GetProfileRoot(const ISettings& settings, const QString
 	SettingsGroup group(settings, CONVERTERS_ROOT);
 	auto          profiles = settings.GetGroups();
 	const auto    it       = std::ranges::find(profiles, profileTitle, [&](const QString& item) {
-        const auto title = settings.Get(QString("%1/%2").arg(item, CONVERTER_TITLE)).toString();
-        return title;
-    });
+		const auto title = settings.Get(QString("%1/%2").arg(item, CONVERTER_TITLE)).toString();
+		return title;
+	});
 
 	return it != profiles.end() ? QString("%1/%2").arg(CONVERTERS_ROOT, *it) : CONVERTER_ROOT;
 }

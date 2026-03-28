@@ -200,13 +200,13 @@ private: // QHeaderView
 		const auto size     = rect.height() / 4.0;
 		const auto height   = std::sqrt(2.0) * size / 2;
 		auto       triangle = QPolygonF(
-            {
-                QPointF {      0.0, height },
-                QPointF {     size, height },
-                QPointF { size / 2,      0 },
-                QPointF {      0.0, height }
+			{
+				QPointF {      0.0, height },
+				QPointF {     size, height },
+				QPointF { size / 2,      0 },
+				QPointF {      0.0, height }
         }
-        );
+		);
 
 		assert(it->second < m_sort.size());
 		if (m_sort[it->second].second == Qt::DescendingOrder)
@@ -1038,18 +1038,18 @@ private:
 		const auto* header           = m_ui.treeView->header();
 		const auto* model            = header->model();
 		const auto  saveHeaderLayout = [&] {
-            for (int i = 0, sz = header->count(); i < sz; ++i)
-            {
-                const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
-                m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), header->isSectionHidden(i));
-                if (header->isSectionHidden(i))
-                    continue;
+			for (int i = 0, sz = header->count(); i < sz; ++i)
+			{
+				const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
+				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), header->isSectionHidden(i));
+				if (header->isSectionHidden(i))
+					continue;
 
-                m_settings->Set(QString(COLUMN_WIDTH_LOCAL_KEY).arg(name), header->sectionSize(i));
-                m_settings->Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(name), header->visualIndex(i));
-            }
+				m_settings->Set(QString(COLUMN_WIDTH_LOCAL_KEY).arg(name), header->sectionSize(i));
+				m_settings->Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(name), header->visualIndex(i));
+			}
 
-            m_booksHeaderView->Save(*m_settings);
+			m_booksHeaderView->Save(*m_settings);
 		};
 
 		if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
@@ -1101,24 +1101,24 @@ private:
 
 		bool       needDataCollect = true;
 		const auto collectData     = [&] {
-            const auto columns = m_settings->GetGroups();
-            needDataCollect    = columns.isEmpty();
-            for (const auto& columnName : columns)
-            {
-                const auto it = nameToIndex.find(columnName);
-                if (it == nameToIndex.end())
-                    continue;
+			const auto columns = m_settings->GetGroups();
+			needDataCollect    = columns.isEmpty();
+			for (const auto& columnName : columns)
+			{
+				const auto it = nameToIndex.find(columnName);
+				if (it == nameToIndex.end())
+					continue;
 
-                const auto logicalIndex = it->second;
-                assert(logicalIndex < static_cast<int>(columnInfoList.size()));
+				const auto logicalIndex = it->second;
+				assert(logicalIndex < static_cast<int>(columnInfoList.size()));
 
-                auto& columnInfo  = columnInfoList[logicalIndex];
-                columnInfo.index  = m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(columnName), std::numeric_limits<int>::max());
-                columnInfo.width  = m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(columnName), header->minimumSectionSize());
-                columnInfo.hidden = m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), true);
-            }
+				auto& columnInfo  = columnInfoList[logicalIndex];
+				columnInfo.index  = m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(columnName), std::numeric_limits<int>::max());
+				columnInfo.width  = m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(columnName), header->minimumSectionSize());
+				columnInfo.hidden = m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), true);
+			}
 
-            m_booksHeaderView->Load(*m_settings);
+			m_booksHeaderView->Load(*m_settings);
 		};
 
 		if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
@@ -1377,9 +1377,9 @@ private:
 	const ArchiveSorter                                     m_archiveSorter;
 	const QStringList                                       m_hiddenColumns;
 	std::unique_ptr<QTimer>                                 m_countChangedTimer { Util::CreateUiTimer([this] {
-        if (m_ui.treeView->model())
-            m_ui.lblCount->setText(m_ui.treeView->model()->data({}, Role::Count).toString());
-    }) };
+		if (m_ui.treeView->model())
+			m_ui.lblCount->setText(m_ui.treeView->model()->data({}, Role::Count).toString());
+	}) };
 };
 
 TreeView::TreeView(

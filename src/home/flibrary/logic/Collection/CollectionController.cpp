@@ -94,10 +94,10 @@ public:
 		const auto dialog = m_uiFactory->CreateAddCollectionDialog(inpx);
 		const auto action = dialog->Exec();
 		const auto mode   = Inpx::CreateCollectionMode::None | (dialog->AddUnIndexedBooks() ? Inpx::CreateCollectionMode::AddUnIndexedFiles : Inpx::CreateCollectionMode::None)
-		                | (dialog->MarkUnIndexedBooksAsDeleted() ? Inpx::CreateCollectionMode::MarkUnIndexedFilesAsDeleted : Inpx::CreateCollectionMode::None)
-		                | (dialog->ScanUnIndexedFolders() ? Inpx::CreateCollectionMode::ScanUnIndexedFolders : Inpx::CreateCollectionMode::None)
-		                | (dialog->SkipLostBooks() ? Inpx::CreateCollectionMode::SkipLostBooks : Inpx::CreateCollectionMode::None)
-		                | (dialog->LoadAnnotations() ? Inpx::CreateCollectionMode::LoadAnnotations : Inpx::CreateCollectionMode::None);
+		                  | (dialog->MarkUnIndexedBooksAsDeleted() ? Inpx::CreateCollectionMode::MarkUnIndexedFilesAsDeleted : Inpx::CreateCollectionMode::None)
+		                  | (dialog->ScanUnIndexedFolders() ? Inpx::CreateCollectionMode::ScanUnIndexedFolders : Inpx::CreateCollectionMode::None)
+		                  | (dialog->SkipLostBooks() ? Inpx::CreateCollectionMode::SkipLostBooks : Inpx::CreateCollectionMode::None)
+		                  | (dialog->LoadAnnotations() ? Inpx::CreateCollectionMode::LoadAnnotations : Inpx::CreateCollectionMode::None);
 		switch (action)
 		{
 			case IAddCollectionDialog::Result::CreateNew:
@@ -122,12 +122,12 @@ public:
 		auto&       parserRef  = *parser;
 		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), collection.GetInpx(), true);
 		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable {
-            const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
-                parser.reset();
-            });
-            Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
-            ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
-            Perform(&ICollectionsObserver::OnActiveCollectionChanged);
+			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
+				parser.reset();
+			});
+			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
+			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
+			Perform(&ICollectionsObserver::OnActiveCollectionChanged);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.RescanCollection(ini, static_cast<Inpx::CreateCollectionMode>(collection.createCollectionMode), std::move(callback));
@@ -306,14 +306,14 @@ private:
 		auto&       parserRef  = *parser;
 		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), collection.GetInpx(), true);
 		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable {
-            if (updateResult.oldDataUpdateFound)
-                PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
-            const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
-                parser.reset();
-            });
-            Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
-            ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
-            Perform(&ICollectionsObserver::OnActiveCollectionChanged);
+			if (updateResult.oldDataUpdateFound)
+				PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
+			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
+				parser.reset();
+			});
+			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
+			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
+			Perform(&ICollectionsObserver::OnActiveCollectionChanged);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.UpdateCollection(ini, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));

@@ -395,11 +395,11 @@ struct CollectionCleaner::Impl
 
 				 auto logicFactoryPtr = ILogicFactory::Lock(logicFactory);
 				 auto allFiles        = CollectBookFiles(books, [&] {
-                     return logicFactoryPtr->CreateZipProgressCallback(progressController);
-                 });
+					 return logicFactoryPtr->CreateZipProgressCallback(progressController);
+				 });
 				 auto images          = CollectImageFiles(allFiles, collectionFolder, [&] {
-                     return logicFactoryPtr->CreateZipProgressCallback(progressController);
-                 });
+					 return logicFactoryPtr->CreateZipProgressCallback(progressController);
+				 });
 
 				 std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
 				 RemoveFiles(allFiles, collectionFolder);

@@ -178,8 +178,8 @@ void Process(
 )
 {
 	const auto needFile   = std::ranges::any_of(commands, [](const auto& command) {
-        return IScriptController::HasMacro(command.args, IScriptController::Macro::SourceFile);
-    });
+		return IScriptController::HasMacro(command.args, IScriptController::Macro::SourceFile);
+	});
 	const auto sourceFile = needFile ? Process(settings, archiveFolder, book, progress, {}, exportHelper, WriteMode::AsIs) : std::filesystem::path {};
 
 	std::ranges::sort(commands, {}, [](const IScriptController::Command& command) {

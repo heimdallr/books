@@ -42,9 +42,9 @@ constexpr auto        ABOUT_VERSION     = QT_TRANSLATE_NOOP("Dialog", "Version: 
 constexpr auto        ABOUT_LICENSE     = QT_TRANSLATE_NOOP("Dialog", "Distributed under license %1");
 constexpr auto        PERSONAL_BUILD    = QT_TRANSLATE_NOOP("Dialog", "<p>Personal <a href='%1'>%2</a> build</p>");
 constexpr const char* COMPONENTS[]      = {
-    "<hr><table style='font-size:50%'>",
-    QT_TRANSLATE_NOOP("Dialog", "<tr><td style='text-align: center'>Components / Libraries</td></tr>"),
-    // clang-format off
+	"<hr><table style='font-size:50%'>",
+	QT_TRANSLATE_NOOP("Dialog", "<tr><td style='text-align: center'>Components / Libraries</td></tr>"),
+	// clang-format off
 	"<tr><td><a href='https://wiki.qt.io/Main'>Qt</a> &copy; 2024 The Qt Company Ltd <a href='https://www.gnu.org/licenses/lgpl-3.0.html#license-text'>GNU LGPL v3</a></td></tr>",
 	"<tr><td><a href='https://github.com/ybainier/Hypodermic'>Hypodermic</a> &copy; 2016 Hypodermic Project <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
 	"<tr><td><a href='https://github.com/SergiusTheBest/plog'>plog</a> &copy; 2022 <a href='https://github.com/SergiusTheBest'>Sergey Podobry</a> <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
@@ -59,8 +59,8 @@ constexpr const char* COMPONENTS[]      = {
 	"<tr><td><a href='https://icu.unicode.org/'>ICU</a> &copy; 2016-2025 Unicode, Inc. <a href='https://www.unicode.org/copyright.html#License'>Open Source License</a></td></tr>",
 	"<tr><td><a href='https://cimg.eu/'>CImg</a> &copy; 2004, David Tschumperlé - GREYC UMR CNRS 6072, Image team. <a href='http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.txt'>CeCILL-C</a></td></tr>",
 	"<tr><td><a href='https://uxwing.com/'>UXWing</a> &copy; 2025 UXWing <a href='https://uxwing.com/license/'>License</a></td></tr>",
-    // clang-format on
-    "</table>"
+	// clang-format on
+	"</table>"
 };
 constexpr auto ABOUT_TEXT = "%1<p>%2<p><a href='%3'>%3</a><p>%4%5";
 TR_DEF
@@ -81,15 +81,15 @@ void CreateStackedPage(Hypodermic::Container& container, const QObject* signalRe
 	auto* collectionCleanerPtr = collectionCleaner.get();
 	auto  connection           = std::make_shared<QMetaObject::Connection>();
 	*connection                = QObject::connect(
-        collectionCleanerPtr,
-        qOverload<std::shared_ptr<QWidget>, int>(&StackedPage::StateChanged),
-        signalReceiver,
-        [collectionCleaner = std::move(collectionCleaner), connection]([[maybe_unused]] const std::shared_ptr<QWidget>& widget, [[maybe_unused]] const int state) mutable {
-            assert(widget.get() == collectionCleaner.get() && state == StackedPage::State::Created);
-            QObject::disconnect(*connection);
-        },
-        Qt::QueuedConnection
-    );
+		collectionCleanerPtr,
+		qOverload<std::shared_ptr<QWidget>, int>(&StackedPage::StateChanged),
+		signalReceiver,
+		[collectionCleaner = std::move(collectionCleaner), connection]([[maybe_unused]] const std::shared_ptr<QWidget>& widget, [[maybe_unused]] const int state) mutable {
+			assert(widget.get() == collectionCleaner.get() && state == StackedPage::State::Created);
+			QObject::disconnect(*connection);
+		},
+		Qt::QueuedConnection
+	);
 }
 
 } // namespace

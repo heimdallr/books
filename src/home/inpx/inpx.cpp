@@ -413,8 +413,8 @@ private:
 QStringView QNext(QString::const_iterator& beg, const QString::const_iterator end, const char separator)
 {
 	beg              = std::find_if(beg, end, [](const QChar c) {
-        return c.category() != QChar::Separator_Space;
-    });
+		return c.category() != QChar::Separator_Space;
+	});
 	auto        next = std::find(beg, end, separator);
 	QStringView result(beg, next);
 	beg = next != end ? std::next(next) : end;
@@ -494,8 +494,8 @@ std::vector<size_t> ParseItem(
 	std::unordered_set<size_t> unique;
 	std::vector<size_t>        result;
 	auto                       it = std::ranges::find_if(data, [=](const auto ch) {
-        return ch != separator;
-    });
+		return ch != separator;
+	});
 	while (it != std::cend(data))
 		if (const auto value = QNext(it, std::cend(data), separator); parseChecker(value))
 			if (const auto [valueIt, added] = unique.insert(Add<QStringView, size_t>(value, container, getId, find)); added)
@@ -803,28 +803,28 @@ size_t Store(DB::IDatabase& db, Data& data)
 {
 	size_t result  = 0;
 	result        += StoreRange(
-        db,
-        "Authors",
-        "INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, SearchName) VALUES(?, ?, ?, ?, ?)",
-        data.authors,
-        [](DB::ICommand& cmd, const Dictionary::value_type& item) {
-            const auto& [title, id] = item;
-            auto       it           = std::cbegin(title);
-            const auto last         = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
-            const auto first        = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
-            const auto middle       = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
-            const auto lastUp       = last.toString().toUpper();
+		db,
+		"Authors",
+		"INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, SearchName) VALUES(?, ?, ?, ?, ?)",
+		data.authors,
+		[](DB::ICommand& cmd, const Dictionary::value_type& item) {
+			const auto& [title, id] = item;
+			auto       it           = std::cbegin(title);
+			const auto last         = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
+			const auto first        = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
+			const auto middle       = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
+			const auto lastUp       = last.toString().toUpper();
 
-            cmd.Bind(0, id);
-            cmd.Bind(1, last);
-            cmd.Bind(2, first);
-            cmd.Bind(3, middle);
-            cmd.Bind(4, lastUp);
+			cmd.Bind(0, id);
+			cmd.Bind(1, last);
+			cmd.Bind(2, first);
+			cmd.Bind(3, middle);
+			cmd.Bind(4, lastUp);
 
-            return cmd.Execute();
-        },
-        "INSERT INTO Authors_Search(Authors_Search) VALUES('rebuild')"
-    );
+			return cmd.Execute();
+		},
+		"INSERT INTO Authors_Search(Authors_Search) VALUES('rebuild')"
+	);
 
 	result += StoreRange(
 		db,
@@ -888,30 +888,30 @@ size_t Store(DB::IDatabase& db, Data& data)
 							 "BookSize , IsDeleted, UpdateId, SourceLib, SearchTitle"
 							 ") VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)";
 	result                += StoreRange(
-        db,
-        "Books",
-        queryText,
-        data.books,
-        [](DB::ICommand& cmd, const Book& book) {
-            cmd.Bind(0, book.id);
-            cmd.Bind(1, book.LIBID);
-            cmd.Bind(2, book.TITLE);
-            cmd.Bind(3, book.DATE);
-            cmd.Bind(4, book.LIBRATE);
-            cmd.Bind(5, book.LANG);
-            book.YEAR.isEmpty() ? cmd.Bind(6) : cmd.Bind(6, book.YEAR);
-            cmd.Bind(7, book.folderId);
-            cmd.Bind(8, book.FILE);
-            cmd.Bind(9, QString(".%1").arg(book.EXT));
-            cmd.Bind(10, book.SIZE);
-            cmd.Bind(11, book.DEL);
-            cmd.Bind(12, book.updateId);
-            cmd.Bind(13, book.SOURCELIB);
-            cmd.Bind(14, book.TITLE.toString().toUpper());
-            return cmd.Execute();
-        },
-        "INSERT INTO Books_Search(Books_Search) VALUES('rebuild')"
-    );
+		db,
+		"Books",
+		queryText,
+		data.books,
+		[](DB::ICommand& cmd, const Book& book) {
+			cmd.Bind(0, book.id);
+			cmd.Bind(1, book.LIBID);
+			cmd.Bind(2, book.TITLE);
+			cmd.Bind(3, book.DATE);
+			cmd.Bind(4, book.LIBRATE);
+			cmd.Bind(5, book.LANG);
+			book.YEAR.isEmpty() ? cmd.Bind(6) : cmd.Bind(6, book.YEAR);
+			cmd.Bind(7, book.folderId);
+			cmd.Bind(8, book.FILE);
+			cmd.Bind(9, QString(".%1").arg(book.EXT));
+			cmd.Bind(10, book.SIZE);
+			cmd.Bind(11, book.DEL);
+			cmd.Bind(12, book.updateId);
+			cmd.Bind(13, book.SOURCELIB);
+			cmd.Bind(14, book.TITLE.toString().toUpper());
+			return cmd.Execute();
+		},
+		"INSERT INTO Books_Search(Books_Search) VALUES('rebuild')"
+	);
 
 	{
 		std::unordered_set<QStringView> languages;
@@ -1311,12 +1311,12 @@ public:
 		(*m_executor)({ "Update collection", [&, parse] {
 						   auto       foldersCount = TRY("update collection", parse);
 						   const auto genres       = static_cast<size_t>(std::ranges::count_if(
-                                                   m_data.genres,
-                                                   [](const Genre& genre) {
-                                                       return genre.newGenre;
-                                                   }
-                                               ))
-			                                 - 1;
+														 m_data.genres,
+														 [](const Genre& genre) {
+													   return genre.newGenre;
+														 }
+													 ))
+			                                       - 1;
 						   return [this, foldersCount, genres](size_t) {
 							   m_callback(UpdateResult { foldersCount, m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, m_oldDataUpdateFound });
 						   };
@@ -1346,8 +1346,8 @@ private: // IPool
 				const QFileInfo archiveFileInfo(m_ini(ARCHIVE_FOLDER) + "/" + folder);
 				const auto      archiveFileName = archiveFileInfo.filePath();
 				const auto      zip             = TRY(QString("open %1").arg(archiveFileName), [&]() -> std::unique_ptr<Zip> {
-                    return std::make_unique<Zip>(archiveFileName);
-                });
+					return std::make_unique<Zip>(archiveFileName);
+				});
 				if (!zip)
 					return -1;
 
@@ -1437,8 +1437,8 @@ private: // IPool
 			const Zip  subZip(zip.Read(fileName)->GetStream());
 			const auto subZipFiles = subZip.GetFileNameList();
 			const auto it          = std::ranges::find_if(subZipFiles, [](const QString& item) {
-                return QFileInfo(item).suffix().toLower() == "fbd";
-            });
+				return QFileInfo(item).suffix().toLower() == "fbd";
+			});
 			if (it == subZipFiles.end())
 				return;
 
@@ -1645,16 +1645,16 @@ private:
 	{
 		const auto inpxFolder = m_ini(ARCHIVE_FOLDER);
 		auto       folders    = TRY(std::format("iterate {}", inpxFolder), [&] {
-            std::vector<QString> result;
-            for (QDirIterator it(inpxFolder, { "*" }, QDir::Files); it.hasNext();)
-            {
-                const auto fileInfo = it.nextFileInfo();
-                auto       fileName = fileInfo.fileName();
-                if (!(IsOneOf(fileName, COMPILATIONS, CONTENTS) || m_data.bookFolders.contains(fileName)) && Zip::IsArchive(fileInfo.filePath()))
-                    result.emplace_back(std::move(fileName));
-            }
-            return result;
-        });
+			std::vector<QString> result;
+			for (QDirIterator it(inpxFolder, { "*" }, QDir::Files); it.hasNext();)
+			{
+				const auto fileInfo = it.nextFileInfo();
+				auto       fileName = fileInfo.fileName();
+				if (!(IsOneOf(fileName, COMPILATIONS, CONTENTS) || m_data.bookFolders.contains(fileName)) && Zip::IsArchive(fileInfo.filePath()))
+					result.emplace_back(std::move(fileName));
+			}
+			return result;
+		});
 
 		const auto result = folders.size();
 
@@ -1780,8 +1780,8 @@ private:
 			const auto fileInfo = it.nextFileInfo();
 			auto       fileName = fileInfo.fileName();
 			const auto zip      = TRY(QString("open %1").arg(fileName), [&] {
-                return std::make_unique<Zip>(fileInfo.filePath());
-            });
+				return std::make_unique<Zip>(fileInfo.filePath());
+			});
 			if (!zip)
 				continue;
 
@@ -1994,8 +1994,8 @@ where b.FileName = ? and b.Ext = ?)");
 			QFileInfo  archiveFileInfo(m_ini(ARCHIVE_FOLDER) + "/" + folder);
 			const auto archiveFileName = archiveFileInfo.filePath();
 			const auto zip             = TRY(QString("open %1").arg(archiveFileName), [&]() -> std::unique_ptr<Zip> {
-                return std::make_unique<Zip>(archiveFileName);
-            });
+				return std::make_unique<Zip>(archiveFileName);
+			});
 			if (!zip)
 				continue;
 
@@ -2011,19 +2011,19 @@ where b.FileName = ? and b.Ext = ?)");
 		const auto                   inpxFolder = m_ini(ARCHIVE_FOLDER);
 		static constexpr const char* specials[] { "authors", "covers", "images", "reviews", "etc", "faq", "program" };
 		const auto                   getUnIndexedFolders = [&] {
-            std::vector<QString> result;
-            for (QDirIterator it(inpxFolder, { "*" }, QDir::Files, QDirIterator::Subdirectories); it.hasNext();)
-            {
-                const auto fileInfo = it.nextFileInfo();
-                auto       fileName = fileInfo.filePath();
-                fileName.erase(fileName.begin(), std::next(fileName.begin(), inpxFolder.size() + 1));
-                if (!(m_foldersContent.contains(fileName) || fileName.endsWith(".inpx") || std::ranges::any_of(specials, [&](const auto* item) {
-                          return fileName.startsWith(item);
-                      })))
-                    result.emplace_back(std::move(fileName));
-            }
+			std::vector<QString> result;
+			for (QDirIterator it(inpxFolder, { "*" }, QDir::Files, QDirIterator::Subdirectories); it.hasNext();)
+			{
+				const auto fileInfo = it.nextFileInfo();
+				auto       fileName = fileInfo.filePath();
+				fileName.erase(fileName.begin(), std::next(fileName.begin(), inpxFolder.size() + 1));
+				if (!(m_foldersContent.contains(fileName) || fileName.endsWith(".inpx") || std::ranges::any_of(specials, [&](const auto* item) {
+						  return fileName.startsWith(item);
+					  })))
+					result.emplace_back(std::move(fileName));
+			}
 
-            return result;
+			return result;
 		};
 		auto folders = TRY(std::format("iterate {}", inpxFolder), getUnIndexedFolders);
 		std::ranges::for_each(std::move(folders), [this](auto&& item) {
@@ -2405,7 +2405,7 @@ bool Parser::CheckForUpdate(IniMap data, DB::IDatabase& database)
 
 		InpxFolders diff;
 		const auto  proj = [](const auto& item) {
-            return item.first;
+			return item.first;
 		};
 		std::ranges::set_difference(inpxFolders, dbFolders, std::inserter(diff, diff.end()), {}, proj, proj);
 		return !diff.empty();
