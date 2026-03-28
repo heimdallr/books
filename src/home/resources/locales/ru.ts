@@ -2620,13 +2620,6 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>Http</name>
-    <message>
-        <source>Authentication required</source>
-        <translation>Требуется аутентификация</translation>
-    </message>
-</context>
-<context>
     <name>JokeRequester</name>
     <message>
         <source>&lt;center&gt;&lt;b&gt;Warning!&lt;/b&gt;&lt;/center&gt;&lt;br/&gt;&lt;/br&gt;Jokes in this section may be rude, unsafe for work environment, religiously or politically offensive, sexist, or explicit. By clicking &quot;Yes&quot; you accept all responsibility for reading them. Otherwise you must click &quot;No&quot;.&lt;br/&gt;&lt;br/&gt;Do you still want to read such jokes?</source>
