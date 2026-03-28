@@ -2,6 +2,8 @@
 
 #include <QApplication>
 
+#include "platform/StrUtil.h"
+
 #include "log.h"
 
 using namespace HomeCompa;
@@ -23,10 +25,10 @@ IStyleApplier::Type DllStyleApplier::GetType() const noexcept
 	return Type::DllStyle;
 }
 
-std::unique_ptr<Util::DyLib> DllStyleApplier::Set(QApplication& app) const
+std::unique_ptr<Platform::DyLib> DllStyleApplier::Set(QApplication& app) const
 {
 	const auto fileName = m_settings->Get(THEME_FILE_KEY).toString();
-	auto       result   = std::make_unique<Util::DyLib>(fileName.toStdString());
+	auto       result   = std::make_unique<Platform::DyLib>(Platform::StringToPath(fileName));
 
 	if (!result->IsOpen())
 	{

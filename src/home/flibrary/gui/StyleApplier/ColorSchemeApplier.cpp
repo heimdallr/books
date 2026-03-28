@@ -40,7 +40,7 @@ std::pair<QString, QString> ColorSchemeApplier::GetChecked() const
 	return std::make_pair(m_settings->Get(COLOR_SCHEME_KEY, APP_COLOR_SCHEME_DEFAULT), QString {});
 }
 
-std::unique_ptr<Util::DyLib> ColorSchemeApplier::Set(QApplication&) const
+std::unique_ptr<Platform::DyLib> ColorSchemeApplier::Set(QApplication&) const
 {
 	using Scheme = std::tuple<Qt::ColorScheme, const char*>;
 	constexpr Scheme                         unknown { Qt::ColorScheme::Unknown, nullptr };
@@ -75,5 +75,5 @@ std::unique_ptr<Util::DyLib> ColorSchemeApplier::Set(QApplication&) const
 		iconSet                    = textLightness > windowLightness ? iconsDark : iconsLight;
 	}
 
-	return std::make_unique<Util::DyLib>(iconSet);
+	return std::make_unique<Platform::DyLib>(iconSet);
 }

@@ -82,7 +82,7 @@ public:
 		, m_settings { std::move(settings) }
 		, m_collectionController { std::move(collectionController) }
 		, m_uiFactory { std::move(uiFactory) }
-		, m_icuLib { std::make_unique<Util::DyLib>(ICU::LIB_NAME) }
+		, m_icuLib { std::make_unique<Platform::DyLib>(ICU::LIB_NAME) }
 		, m_icuTransliterate { m_icuLib->GetTypedProc<ICU::TransliterateType>(ICU::TRANSLITERATE_NAME) }
 	{
 		m_ui.setupUi(&m_self);
@@ -96,7 +96,7 @@ public:
 		});
 
 		if (const auto inpxFolder = m_uiFactory->GetNewCollectionInpxFolder(); !inpxFolder.empty())
-			m_ui.editArchive->SetText(QDir::fromNativeSeparators(Util::PathToString(inpxFolder)));
+			m_ui.editArchive->SetText(QDir::fromNativeSeparators(Platform::PathToString(inpxFolder)));
 
 		connect(m_ui.btnSetDefaultName, &QAbstractButton::clicked, &m_self, [&] {
 			SetDefaultCollectionName(true);
@@ -414,7 +414,7 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr>             m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 	std::shared_ptr<const IUiFactory>                         m_uiFactory;
-	std::unique_ptr<Util::DyLib>                              m_icuLib;
+	std::unique_ptr<Platform::DyLib>                          m_icuLib;
 	ICU::TransliterateType                                    m_icuTransliterate { nullptr };
 	bool                                                      m_createMode { false };
 	bool                                                      m_userDefinedDatabasePath { false };

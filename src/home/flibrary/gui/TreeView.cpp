@@ -768,7 +768,8 @@ private:
 			| addOption(m_settings->Get(HASH_CONTEXT_MENU_ENABLED, false), ITreeViewController::RequestContextMenuOptions::HashEnabled)
 			| addOption(hashCompareEnabled(), ITreeViewController::RequestContextMenuOptions::HashCompareEnabled)
 			| addOption(
-				currentIndex.isValid() && currentIndex.data(Role::Type).value<ItemType>() == ItemType::Books && Zip::IsArchive(Util::RemoveIllegalPathCharacters(currentIndex.data(Role::FileName).toString())),
+				currentIndex.isValid() && currentIndex.data(Role::Type).value<ItemType>() == ItemType::Books
+					&& Zip::IsArchive(Platform::RemoveIllegalPathCharacters(currentIndex.data(Role::FileName).toString())),
 				ITreeViewController::RequestContextMenuOptions::IsArchive
 			);
 

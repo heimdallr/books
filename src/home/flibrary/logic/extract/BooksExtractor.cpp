@@ -35,7 +35,7 @@ public:
 
 bool Write(const QByteArray& input, const std::filesystem::path& path)
 {
-	QFile output(Util::PathToString(path));
+	QFile output(Platform::PathToString(path));
 	return output.open(QIODevice::WriteOnly) && output.write(input) == input.size();
 }
 
@@ -43,7 +43,7 @@ bool Archive(const QByteArray& input, const std::filesystem::path& path, QString
 {
 	try
 	{
-		Zip  zip(Util::PathToString(path), Zip::Format::Zip, false, std::move(zipProgressCallback));
+		Zip  zip(Platform::PathToString(path), Zip::Format::Zip, false, std::move(zipProgressCallback));
 		auto zipFiles = Zip::CreateZipFileController();
 		zipFiles->AddFile(std::move(fileName), input, QDateTime::currentDateTime());
 		zip.Write(*zipFiles);
@@ -74,9 +74,9 @@ bool Unpack(QByteArray& input, const std::filesystem::path& path)
 		}
 
 		return std::ranges::all_of(zip.GetFileNameList(), [&](const auto& fileName) {
-			const auto fullPath = folder / Util::StringToPath(fileName);
+			const auto fullPath = folder / Platform::StringToPath(fileName);
 			std::filesystem::create_directories(fullPath.parent_path());
-			QFile      output(Util::PathToString(fullPath));
+			QFile      output(Platform::PathToString(fullPath));
 			const auto fileSize = zip.GetFileSize(fileName);
 			return output.open(QIODevice::WriteOnly) && output.write(zip.Read(fileName)->GetStream().readAll()) == static_cast<qint64>(fileSize);
 		});
@@ -112,7 +112,7 @@ std::pair<bool, std::filesystem::path> Write(
 	if (const auto dstDir = dstFileInfo.absolutePath(); !(QDir().exists(dstDir) || QDir().mkpath(dstDir)))
 		return result;
 
-	result.second = Util::StringToPath(QDir::toNativeSeparators(book.dstFileName));
+	result.second = Platform::StringToPath(QDir::toNativeSeparators(book.dstFileName));
 
 	exportHelper.CheckPath(result.second);
 
@@ -152,7 +152,7 @@ std::filesystem::path Process(
 	if (progress.IsStopped())
 		return {};
 
-	const auto folder = QDir::fromNativeSeparators(Util::PathToString(archiveFolder / Util::StringToPath(book.folder)));
+	const auto folder = QDir::fromNativeSeparators(Platform::PathToString(archiveFolder / Platform::StringToPath(book.folder)));
 	if (!QFile::exists(folder))
 		throw std::runtime_error((folder + ": archive not found").toStdString());
 
@@ -188,7 +188,7 @@ void Process(
 	for (auto command : commands)
 	{
 		if (needFile)
-			IScriptController::SetMacro(command.args, IScriptController::Macro::SourceFile, QDir::toNativeSeparators(Util::PathToString(sourceFile)));
+			IScriptController::SetMacro(command.args, IScriptController::Macro::SourceFile, QDir::toNativeSeparators(Platform::PathToString(sourceFile)));
 		IScriptController::SetMacro(command.args, IScriptController::Macro::UserDestinationFolder, QDir::toNativeSeparators(dstFolder));
 		ILogicFactory::FillScriptTemplate(db, command.args, book);
 
@@ -244,7 +244,7 @@ public:
 		m_processFunctor = std::move(processFunctor);
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor({ static_cast<int>(m_taskCount) }).swap(m_executor);
 		m_dstFolder     = std::move(dstFolder);
-		m_archiveFolder = Util::StringToPath(m_collectionController->GetActiveCollection().GetFolder());
+		m_archiveFolder = Platform::StringToPath(m_collectionController->GetActiveCollection().GetFolder());
 
 		const auto transaction = m_databaseUser->Database()->CreateTransaction();
 		const auto command     = transaction->CreateCommand(ExportStat::INSERT_QUERY);
@@ -289,7 +289,7 @@ private: // IExportHelper
 	void CheckPath(std::filesystem::path& path) override
 	{
 		std::lock_guard lock(m_usedPathGuard);
-		if (m_usedPath.emplace(Util::PathToString(path).toLower()).second)
+		if (m_usedPath.emplace(Platform::PathToString(path).toLower()).second)
 			return;
 
 		const auto folder   = path.parent_path();
@@ -299,7 +299,7 @@ private: // IExportHelper
 		{
 			path = folder / (basePath + std::to_wstring(i).append(ext));
 			path.make_preferred();
-			if (m_usedPath.emplace(Util::PathToString(path).toLower()).second)
+			if (m_usedPath.emplace(Platform::PathToString(path).toLower()).second)
 				return;
 		}
 	}

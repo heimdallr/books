@@ -9,5 +9,6 @@ AddTarget(gutil	shared_lib
 	LINK_TARGETS
 		flint
 		logging
+		platform
 		util
 )

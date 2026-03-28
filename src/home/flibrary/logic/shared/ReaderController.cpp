@@ -73,7 +73,7 @@ void Extract(const ISettings& settings, const ILogicFactory::ITemporaryDir& temp
 		const Zip  zip(archive);
 		const auto stream = zip.Read(fileName);
 
-		if (Zip::IsArchive(Util::RemoveIllegalPathCharacters(fileName)))
+		if (Zip::IsArchive(Platform::RemoveIllegalPathCharacters(fileName)))
 		{
 			const Zip   subZip(stream->GetStream());
 			const auto  fileList = subZip.GetFileNameList();
@@ -111,7 +111,7 @@ void Extract(const ISettings& settings, const ILogicFactory::ITemporaryDir& temp
 		}
 		else
 		{
-			auto fileNameDst = temporaryDir.filePath(Util::RemoveIllegalPathCharacters(fileName));
+			auto fileNameDst = temporaryDir.filePath(Platform::RemoveIllegalPathCharacters(fileName));
 			if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
 				file.write(Util::PrepareToExport(stream->GetStream(), archive, fileName));
 

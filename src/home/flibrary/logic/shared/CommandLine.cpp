@@ -46,7 +46,7 @@ CommandLine::CommandLine()
 		return;
 
 	firstStart = false;
-	if (const auto file = Util::StringToPath(positionalArguments.front()); file.extension() == ".inpx")
+	if (const auto file = Platform::StringToPath(positionalArguments.front()); file.extension() == ".inpx")
 		m_impl->inpx = file.parent_path().make_preferred();
 }
 

@@ -23,7 +23,7 @@ IStyleApplier::Type QssStyleApplier::GetType() const noexcept
 	return Type::QssStyle;
 }
 
-std::unique_ptr<Util::DyLib> QssStyleApplier::Set(QApplication& app) const
+std::unique_ptr<Platform::DyLib> QssStyleApplier::Set(QApplication& app) const
 {
 	const auto fileName = m_settings->Get(THEME_FILE_KEY).toString();
 

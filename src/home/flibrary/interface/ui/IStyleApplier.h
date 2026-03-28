@@ -56,11 +56,11 @@ public:
 	FLINT_EXPORT static QString TypeToString(Type type);
 
 public:
-	virtual ~IStyleApplier()                                                             = default;
-	virtual Type                         GetType() const noexcept                        = 0;
-	virtual void                         Apply(const QString& name, const QString& file) = 0;
-	virtual std::pair<QString, QString>  GetChecked() const                              = 0;
-	virtual std::unique_ptr<Util::DyLib> Set(QApplication& app) const                    = 0;
+	virtual ~IStyleApplier()                                                                 = default;
+	virtual Type                             GetType() const noexcept                        = 0;
+	virtual void                             Apply(const QString& name, const QString& file) = 0;
+	virtual std::pair<QString, QString>      GetChecked() const                              = 0;
+	virtual std::unique_ptr<Platform::DyLib> Set(QApplication& app) const                    = 0;
 };
 
 } // namespace HomeCompa::Flibrary

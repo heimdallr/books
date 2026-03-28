@@ -1211,7 +1211,7 @@ private:
 			return addLibList(currentList);
 		}
 
-		Util::DyLib lib(fileInfo.filePath().toStdString());
+		Platform::DyLib lib(fileInfo.filePath().toStdString());
 		if (!lib.IsOpen())
 		{
 			PLOGE << lib.GetErrorDescription();

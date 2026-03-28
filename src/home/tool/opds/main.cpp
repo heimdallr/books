@@ -36,7 +36,7 @@ namespace
 
 constexpr auto APP_ID = "opds";
 
-class NativeEventFilterObserver final : public Util::NativeEventFilter::IObserver
+class NativeEventFilterObserver final : public Platform::NativeEventFilter::IObserver
 {
 private: // NativeEventFilter::IObserver
 	void OnQueryEndSession(long long*) override
@@ -80,9 +80,9 @@ int run(int argc, char* argv[])
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
 	Util::XMLPlatformInitializer xmlPlatformInitializer;
 
-	NativeEventFilterObserver nativeEventFilterObserver;
-	Util::NativeEventFilter   nativeEventFilter(app);
-	const ScopedCall          nativeEventFilterRegisterGuard(
+	NativeEventFilterObserver   nativeEventFilterObserver;
+	Platform::NativeEventFilter nativeEventFilter(app);
+	const ScopedCall            nativeEventFilterRegisterGuard(
 		[&] {
 			nativeEventFilter.Register(&nativeEventFilterObserver);
 		},

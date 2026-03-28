@@ -142,7 +142,7 @@ class FilledTemplateTransliterator : public IFillTemplateConverter
 {
 protected:
 	FilledTemplateTransliterator()
-		: m_icuLib { std::make_unique<Util::DyLib>(ICU::LIB_NAME) }
+		: m_icuLib { std::make_unique<Platform::DyLib>(ICU::LIB_NAME) }
 		, m_icuTransliterate { m_icuLib->GetTypedProc<ICU::TransliterateType>(ICU::TRANSLITERATE_NAME) }
 	{
 	}
@@ -154,7 +154,7 @@ private: // IFilledTemplateConverter
 	}
 
 private:
-	std::unique_ptr<Util::DyLib> m_icuLib;
+	std::unique_ptr<Platform::DyLib> m_icuLib;
 
 protected:
 	ICU::TransliterateType m_icuTransliterate { nullptr };

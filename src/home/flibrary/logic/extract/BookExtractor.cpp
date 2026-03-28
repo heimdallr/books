@@ -126,7 +126,7 @@ private:
 		if (m_icuTransliterate)
 			return;
 
-		if (!((m_icuLib = std::make_unique<Util::DyLib>(ICU::LIB_NAME))))
+		if (!((m_icuLib = std::make_unique<Platform::DyLib>(ICU::LIB_NAME))))
 		{
 			PLOGW << "Cannot load " << ICU::LIB_NAME << " dynamic library";
 			return;
@@ -138,8 +138,8 @@ private:
 		}
 	}
 
-	mutable std::unique_ptr<Util::DyLib> m_icuLib;
-	mutable ICU::TransliterateType       m_icuTransliterate { nullptr };
+	mutable std::unique_ptr<Platform::DyLib> m_icuLib;
+	mutable ICU::TransliterateType           m_icuTransliterate { nullptr };
 };
 
 BookExtractor::BookExtractor(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)
