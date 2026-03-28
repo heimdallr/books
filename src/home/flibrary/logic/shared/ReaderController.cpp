@@ -183,7 +183,7 @@ struct ReaderController::Impl
 
 		if (reader.isEmpty())
 		{
-			if (Util::IsRegisteredExtension(ext))
+            if (Platform::IsRegisteredExtension(ext))
 				switch (uiFactory->ShowQuestion(Tr(USE_DEFAULT), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes)) // NOLINT(clang-diagnostic-switch-enum)
 				{
 					case QMessageBox::Yes:
