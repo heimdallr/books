@@ -34,10 +34,12 @@ foreach(locale ${locales})
     list(APPEND COPY_LIST "${QT_TRANSLATIONS_DIR}/qtbase_${locale}.qm")
     list(APPEND LRELEASE_LIST COMMAND "${QT_LRELEASE_TOOL}" "${CMAKE_CURRENT_LIST_DIR}/${locale}.ts" -qm "${CMAKE_BINARY_DIR}/bin/locales/FLibrary_${locale}.qm")
     list(APPEND LUPDATE_LIST -ts "${CMAKE_CURRENT_LIST_DIR}/${locale}.ts")
+    install(FILES "${CMAKE_BINARY_DIR}/bin/locales/FLibrary_${locale}.qm" DESTINATION "locales/")
 endforeach()
 
 configure_file("${BUILDSCRIPTS_ROOT}/helpers/locales.h.in" "${CMAKE_BINARY_DIR}/config/locales.h" @ONLY)
 file(COPY ${COPY_LIST} DESTINATION "${CMAKE_BINARY_DIR}/bin/locales/")
+install(FILES ${COPY_LIST} DESTINATION "locales/")
 
 set(LUPDATE_COMMAND
 	"${QT_LUPDATE_TOOL}"
