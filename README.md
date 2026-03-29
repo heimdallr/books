@@ -87,6 +87,18 @@
 
 
 # Сборка  
+
+### Зависимости [^4]
+* Qt6 (6.11.0) [^5]  
+* sqlite3  
+* xerces-c  
+* plog  
+* boost, header only  
+* 7zip  
+* libjxl  
+* cImg  
+* ICU  
+
 ### Windows  
 Не запустится на винде ниже 10-ки, т.к. используется [Qt6](https://doc.qt.io/qt-6/windows.html)  
 Используется C++23  
@@ -99,17 +111,6 @@
 * cmake.exe, версия cmake должна поддерживать вашу версию MSVS, conan,... короче, берите cmake посвежее  
 * git.exe, необязательно, но полезно, позволит в логах видеть хэш текущего коммита  
 * Inno Setup, если нужен инсталлятор  
-
-#### Зависимости [^4]
-* Qt6 (6.11.0) [^5]  
-* sqlite3  
-* xerces-c  
-* plog  
-* boost, header only  
-* 7zip  
-* libjxl  
-* cImg  
-* ICU  
 
 #### Сконфигурировать:
 Запустить батник configure.bat. Возможно, сработают и другие способы, типа cmake-gui, или открыть в MSVS папку с исходниками.  
@@ -127,14 +128,16 @@
 #### Установить и настроить conan  
 [Инструкция](https://docs.conan.io/2/installation.html)  
 
-Убедиться в наличии gcc с поддержкой c++23
-Выполнить команды
+##### Убедиться в наличии gcc с поддержкой c++23
+##### Выполнить команды  
+```
 cd your/path/to/cloned/repo/books
 mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DQt6_DIR=your/path/to/Qt6/lib/cmake/Qt6 -G Ninja
 cmake --build .
 cpack
+```
 
 В результате в папке build будет создан deb-пакет
 
