@@ -135,15 +135,6 @@ set(CPACK_PACKAGE_EXECUTABLES "FLibrary;FLibrary")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "FLibrary")
 set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_setup_${CMAKE_PROJECT_VERSION}")
 
-qt_generate_deploy_app_script(
-	TARGET ${PROJECT_NAME}
-	OUTPUT_SCRIPT deploy_script
-	NO_TRANSLATIONS
-	INCLUDE_PLUGIN_TYPES wayland-shell-integration
-	INCLUDE_PLUGINS qwayland
-)
-install(SCRIPT ${deploy_script})
-
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	set(CPACK_GENERATOR WIX)
 	set(CPACK_WIX_PRODUCT_GUID ${PRODUCT_UID})
@@ -153,13 +144,18 @@ if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
 	set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/heimdallr/books")
 	set(CPACK_WIX_UI_REF WixUI_FeatureTree)
 elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
-#	set(CMAKE_BUILD_RPATH_USE_ORIGIN TRUE)
-#	set(CMAKE_INSTALL_RPATH "\$ORIGIN/../lib")
-#	set(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-#	install(TARGETS ${PROJECT_NAME} opds DESTINATION "opt/${PROJECT_NAME}")
+	qt_generate_deploy_app_script(
+		TARGET ${PROJECT_NAME}
+		OUTPUT_SCRIPT deploy_script
+		NO_TRANSLATIONS
+		EXCLUDE_PLUGIN_TYPES egldeviceintegrations generic platforminputcontexts qmltooling vectorimageformats
+		INCLUDE_PLUGIN_TYPES wayland-shell-integration
+		INCLUDE_PLUGINS qwayland
+	)
+	install(SCRIPT ${deploy_script})
 	install(FILES "${CMAKE_CURRENT_LIST_DIR}/src/home/script/install/${PROJECT_NAME}.desktop" DESTINATION /usr/share/applications OPTIONAL)
 	install(FILES "${CMAKE_CURRENT_LIST_DIR}/src/home/resources/icons/${PROJECT_NAME}.png" DESTINATION /usr/share/icons OPTIONAL)
-	install(FILES "${CMAKE_CURRENT_LIST_DIR}/LICENSE_en.txt" DESTINATION "/opt/${PROJECT_NAME}/" RENAME LICENSE.txt OPTIONAL)
+	install(FILES "${CMAKE_CURRENT_LIST_DIR}/LICENSE_en.txt" DESTINATION . RENAME LICENSE.txt OPTIONAL)
 	set(CPACK_GENERATOR "DEB")
 	set(CPACK_DEBIAN_PACKAGE_SECTION "contrib")
 	set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Heimdallr <heimdallrnsk@gmail.com>")
@@ -174,3 +170,4 @@ if (PERSONAL_BUILD_NAME)
 	message(WARNING "Personal ${PERSONAL_BUILD_NAME} build")
 	execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 5)
 endif()
+
