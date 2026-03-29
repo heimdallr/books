@@ -101,7 +101,7 @@
 * Inno Setup, если нужен инсталлятор  
 
 #### Зависимости [^4]
-* Qt6 (6.11.0)  
+* Qt6 (6.11.0) [^5]  
 * sqlite3  
 * xerces-c  
 * plog  
@@ -121,7 +121,22 @@
 * Можно запустить батник build.bat. Если окружение настроено правильно, то в папке build/installer будут собраны инсталляторы и архив портабельной версии программы.  
 * Можно открыть CMakeLists.txt в QtCreator  
 
-### Не Windows  
-Увы, никак. Кое-где используется WinAPI. PR приветствуются.
+### Linux
+Проверялось на Ubuntu 24.04
+
+#### Установить и настроить conan  
+[Инструкция](https://docs.conan.io/2/installation.html)  
+
+Убедиться в наличии gcc с поддержкой c++23
+Выполнить команды
+cd your/path/to/cloned/repo/books
+mkdir build
+cd build
+cmake .. -DCMAKE_BUILD_TYPE=Release -DQt6_DIR=your/path/to/Qt6/lib/cmake/Qt6 -G Ninja
+cmake --build .
+cpack
+
+В результате в папке build будет создан deb-пакет
 
 [^4]: Подтянутся из conan, если необходимо - соберутся локально. Кроме Qt и 7zip, которые придётся найти/собрать самостоятельно.
+[^5]: Имеет смысл собрать самостоятельно, применив патчи src/home/script/conan/patch/qt
