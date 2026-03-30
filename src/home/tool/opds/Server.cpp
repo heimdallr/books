@@ -238,8 +238,8 @@ public:
 		}();
 		InitHttp(host, static_cast<uint16_t>(m_settings->Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT)));
 
-        if (const auto tmpFile = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).filePath(Flibrary::Constant::OPDS_SERVER_NAME); QFile::exists(tmpFile) && !QFile::remove(tmpFile))
-            throw std::runtime_error(std::format("Cannot remove local server temporary file: {}", tmpFile));
+		if (const auto tmpFile = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).filePath(Flibrary::Constant::OPDS_SERVER_NAME); QFile::exists(tmpFile) && !QFile::remove(tmpFile))
+			throw std::runtime_error(std::format("Cannot remove local server temporary file: {}", tmpFile));
 
 		if (!m_localServer.listen(Flibrary::Constant::OPDS_SERVER_NAME))
 			throw std::runtime_error(std::format("Cannot listen pipe {}", Flibrary::Constant::OPDS_SERVER_NAME));
@@ -287,7 +287,7 @@ private:
 
 		(void)tcpServer.release();
 
-        m_server.addAfterRequestHandler(&m_server, [](const QHttpServerRequest& request, QHttpServerResponse& resp) {
+		m_server.addAfterRequestHandler(&m_server, [](const QHttpServerRequest& request, QHttpServerResponse& resp) {
 			const auto log = QString("%1 requests %2%3").arg(request.remoteAddress().toString(), request.url().path(), request.query().isEmpty() ? "" : QString("?%1").arg(request.query().toString()));
 			PLOGD << log;
 
@@ -302,8 +302,8 @@ private:
 
 	void Route(const QHostAddress& host, const uint16_t port)
 	{
-        m_server.route(FAVICON, [] {
-            return QtConcurrent::run([] {
+		m_server.route(FAVICON, [] {
+			return QtConcurrent::run([] {
 				auto response = *FromFile(":/icons/main.ico", "", "image/x-icon");
 				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/x-icon");
 				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::CacheControl, "public, max-age=0");
@@ -374,8 +374,8 @@ private:
 			});
 		});
 
-        m_server.route(QString(GET_BOOKS_API_ASSETS).arg(ARG), [](const QString& fileName, const QHttpServerRequest& request) {
-            return QtConcurrent::run([fileName, acceptEncoding = GetAcceptEncoding(request)] {
+		m_server.route(QString(GET_BOOKS_API_ASSETS).arg(ARG), [](const QString& fileName, const QHttpServerRequest& request) {
+			return QtConcurrent::run([fileName, acceptEncoding = GetAcceptEncoding(request)] {
 				return *FromWebsite("assets/" + fileName, acceptEncoding);
 			});
 		});
@@ -427,7 +427,7 @@ private:
 		auto       parameters     = GetParameters<IRequester::Parameters>(request);
 
 		if (expectedAuth.isEmpty())
-            return QtConcurrent::run([allow = std::move(allow), acceptEncoding = std::move(acceptEncoding), parameters = std::move(parameters)] {
+			return QtConcurrent::run([allow = std::move(allow), acceptEncoding = std::move(acceptEncoding), parameters = std::move(parameters)] {
 				return allow(parameters, acceptEncoding);
 			});
 
@@ -447,7 +447,7 @@ private:
 			return Authenticate();
 		}
 
-        return QtConcurrent::run([url = std::move(url), allow = std::move(allow), parameters = std::move(parameters), acceptEncoding = std::move(acceptEncoding)]() mutable {
+		return QtConcurrent::run([url = std::move(url), allow = std::move(allow), parameters = std::move(parameters), acceptEncoding = std::move(acceptEncoding)]() mutable {
 			return allow(parameters, acceptEncoding);
 		});
 	}

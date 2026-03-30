@@ -6,11 +6,10 @@
 #include <QNetworkInterface>
 #include <QToolTip>
 
-#include "platform/PlatformUtil.h"
-
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 
+#include "platform/PlatformUtil.h"
 #include "util/GeometryRestorable.h"
 #include "util/hash.h"
 
@@ -53,9 +52,9 @@ struct OpdsDialog::Impl final
 		ui.setupUi(&self);
 		this->opdsController->RegisterObserver(this);
 
-        const auto addToStartupEnabled = Platform::GetPlatformType() == Platform::PlatformType::Windows;
-        ui.checkBoxAddToStartup->setVisible(addToStartupEnabled);
-        ui.labelAddToStartup->setVisible(addToStartupEnabled);
+		const auto addToStartupEnabled = Platform::GetPlatformType() == Platform::PlatformType::Windows;
+		ui.checkBoxAddToStartup->setVisible(addToStartupEnabled);
+		ui.labelAddToStartup->setVisible(addToStartupEnabled);
 
 		ui.comboBoxHosts->addItem(Tr(ANY), Constant::Settings::OPDS_HOST_DEFAULT);
 		for (const QHostAddress& address : QNetworkInterface::allAddresses())
@@ -96,10 +95,10 @@ struct OpdsDialog::Impl final
 			this->opdsController->Start();
 		});
 
-        if (addToStartupEnabled)
+		if (addToStartupEnabled)
 			connect(ui.checkBoxAddToStartup, &QAbstractButton::toggled, &self, [this](const bool checked) {
-                checked ? this->opdsController->AddToStartup() : this->opdsController->RemoveFromStartup();
-            });
+				checked ? this->opdsController->AddToStartup() : this->opdsController->RemoveFromStartup();
+			});
 
 		connect(ui.lineEditOpdsUser, &QLineEdit::editingFinished, &self, [this] {
 			SetAuth();

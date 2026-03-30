@@ -1274,7 +1274,6 @@ public:
 		, m_callback { std::move(callback) }
 		, m_executor { ExecutorFactory::Create(ExecutorImpl::Async) }
 	{
-		InitLanguagesMap(m_ini(LANGUAGES_MAPPING));
 	}
 
 	~Impl() override

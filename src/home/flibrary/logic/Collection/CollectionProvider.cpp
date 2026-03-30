@@ -188,13 +188,12 @@ ICollectionProvider::IniMapPair CollectionProvider::GetIniMap(const QString& db,
 	};
 
 	result.second = Inpx::Parser::IniMap {
-		{		   DB_PATH,								 db },
-		{			GENRES,            getFile(DEFAULT_GENRES) },
-		{  DB_CREATE_SCRIPT,  getFile(DEFAULT_DB_CREATE_SCRIPT) },
-		{  DB_UPDATE_SCRIPT,  getFile(DEFAULT_DB_UPDATE_SCRIPT) },
-		{ LANGUAGES_MAPPING, getFile(DEFAULT_LANGUAGES_MAPPING) },
-		{    ARCHIVE_FOLDER,							 folder },
-		{ ADDITIONAL_FOLDER,                   additionalFolder },
+		{		   DB_PATH,								db },
+		{			GENRES,           getFile(DEFAULT_GENRES) },
+		{  DB_CREATE_SCRIPT, getFile(DEFAULT_DB_CREATE_SCRIPT) },
+		{  DB_UPDATE_SCRIPT, getFile(DEFAULT_DB_UPDATE_SCRIPT) },
+		{    ARCHIVE_FOLDER,							folder },
+		{ ADDITIONAL_FOLDER,                  additionalFolder },
 	};
 
 	if (!inpx.isEmpty())

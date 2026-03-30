@@ -14,7 +14,6 @@ constexpr auto DEFAULT_DB_UPDATE_SCRIPT       = "UpdateCollection.json";
 constexpr auto DEFAULT_GENRES                 = "genres.lst";
 constexpr auto DEFAULT_ARCHIVE_TYPE           = "default_archive_type";
 constexpr auto GENRES                         = "genres";
-constexpr auto LANGUAGES_MAPPING              = "languages_mapping";
 constexpr auto INPX_EXT                       = ".inpx";
 constexpr auto INP_EXT                        = ".inp";
 constexpr auto ARCHIVE_FOLDER                 = "archive_folder";

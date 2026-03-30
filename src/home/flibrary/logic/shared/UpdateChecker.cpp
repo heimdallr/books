@@ -219,7 +219,7 @@ private:
 		std::vector<std::pair<QMessageBox::ButtonRole, QString>> buttons;
 		if (!m_release.assets.empty() && !m_release.assets.front().browser_download_url.isEmpty())
 		{
-            if (installer.installable)
+			if (installer.installable)
 				buttons.emplace_back(QMessageBox::AcceptRole, Tr(INSTALL).arg(m_release.name));
 			buttons.emplace_back(QMessageBox::DestructiveRole, Tr(DOWNLOAD));
 		}
@@ -264,7 +264,7 @@ private:
 		const auto installer = Util::GetInstallerDescription();
 		const auto it        = std::ranges::find_if(m_release.assets, [=](const Asset& asset) {
 			const auto ext = QFileInfo(asset.name).suffix();
-            return ext.compare(installer.ext, Qt::CaseInsensitive) == 0;
+			return ext.compare(installer.ext, Qt::CaseInsensitive) == 0;
 		});
 		if (it == m_release.assets.end())
 		{
