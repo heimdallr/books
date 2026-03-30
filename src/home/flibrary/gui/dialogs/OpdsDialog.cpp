@@ -6,6 +6,8 @@
 #include <QNetworkInterface>
 #include <QToolTip>
 
+#include "platform/PlatformUtil.h"
+
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 
@@ -51,6 +53,10 @@ struct OpdsDialog::Impl final
 		ui.setupUi(&self);
 		this->opdsController->RegisterObserver(this);
 
+        const auto addToStartupEnabled = Platform::GetPlatformType() == Platform::PlatformType::Windows;
+        ui.checkBoxAddToStartup->setVisible(addToStartupEnabled);
+        ui.labelAddToStartup->setVisible(addToStartupEnabled);
+
 		ui.comboBoxHosts->addItem(Tr(ANY), Constant::Settings::OPDS_HOST_DEFAULT);
 		for (const QHostAddress& address : QNetworkInterface::allAddresses())
 			if (address.protocol() == QAbstractSocket::IPv4Protocol)
@@ -68,7 +74,7 @@ struct OpdsDialog::Impl final
 			ui.comboBoxHosts->setCurrentIndex(index);
 
 		ui.spinBoxPort->setValue(this->settings->Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT));
-		ui.checkBoxAddToSturtup->setChecked(this->opdsController->InStartup());
+		ui.checkBoxAddToStartup->setChecked(addToStartupEnabled && this->opdsController->InStartup());
 		ui.checkBoxAuth->setChecked(!this->settings->Get(Constant::Settings::OPDS_AUTH, QString {}).isEmpty());
 
 		ui.checkBoxReactApp->setChecked(this->settings->Get(Constant::Settings::OPDS_REACT_APP_ENABLED, ui.checkBoxReactApp->isChecked()));
@@ -90,9 +96,11 @@ struct OpdsDialog::Impl final
 			this->opdsController->Start();
 		});
 
-		connect(ui.checkBoxAddToSturtup, &QAbstractButton::toggled, &self, [this](const bool checked) {
-			checked ? this->opdsController->AddToStartup() : this->opdsController->RemoveFromStartup();
-		});
+        if (addToStartupEnabled)
+			connect(ui.checkBoxAddToStartup, &QAbstractButton::toggled, &self, [this](const bool checked) {
+                checked ? this->opdsController->AddToStartup() : this->opdsController->RemoveFromStartup();
+            });
+
 		connect(ui.lineEditOpdsUser, &QLineEdit::editingFinished, &self, [this] {
 			SetAuth();
 		});
