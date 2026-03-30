@@ -161,9 +161,6 @@
      </item>
      <item row="5" column="0">
       <widget class="QCheckBox" name="checkBoxAuth">
-       <property name="layoutDirection">
-        <enum>Qt::LayoutDirection::RightToLeft</enum>
-       </property>
        <property name="text">
         <string>Authorization</string>
        </property>
@@ -232,7 +229,7 @@
       <widget class="QComboBox" name="comboBoxOnExit"/>
      </item>
      <item row="6" column="1">
-      <widget class="QCheckBox" name="checkBoxAddToSturtup">
+      <widget class="QCheckBox" name="checkBoxAddToStartup">
        <property name="text">
         <string>Start automatically</string>
        </property>
@@ -359,7 +356,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>checkBoxAddToSturtup</sender>
+   <sender>checkBoxAddToStartup</sender>
    <signal>toggled(bool)</signal>
    <receiver>comboBoxOnExit</receiver>
    <slot>setDisabled(bool)</slot>
@@ -375,7 +372,7 @@
    </hints>
   </connection>
   <connection>
-   <sender>checkBoxAddToSturtup</sender>
+   <sender>checkBoxAddToStartup</sender>
    <signal>toggled(bool)</signal>
    <receiver>labelOnExit</receiver>
    <slot>setDisabled(bool)</slot>
