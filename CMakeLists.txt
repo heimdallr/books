@@ -124,6 +124,7 @@ include("src/ext/sqlite.cmake")
 include("src/home/home.cmake")
 
 include("src/home/script/cmake/pack.cmake")
+install(FILES "${CMAKE_SOURCE_DIR}/LICENSE_en.txt" DESTINATION . RENAME LICENSE.txt)
 
 if (PERSONAL_BUILD_NAME)
 	message(WARNING "Personal ${PERSONAL_BUILD_NAME} build")

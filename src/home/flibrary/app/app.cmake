@@ -34,13 +34,7 @@ if (MSVC)
 		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/platforms DESTINATION .)
 		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/styles DESTINATION .)
 		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/tls DESTINATION .)
-		install(
-			FILES
-				"${CMAKE_BINARY_DIR}/config/installer_mode"
-				"${CMAKE_BINARY_DIR}/bin/LICENSE.txt"
-				${QT_BIN_FILES}
-			DESTINATION .
-			)
+		install(FILES ${QT_BIN_FILES} DESTINATION .)
 	endif()
 endif()
 
