@@ -214,35 +214,8 @@
        </layout>
       </widget>
      </item>
-     <item row="6" column="1">
-      <layout class="QHBoxLayout" name="_7">
-       <item>
-        <widget class="QCheckBox" name="checkBoxAddToSturtup">
-         <property name="layoutDirection">
-          <enum>Qt::LayoutDirection::RightToLeft</enum>
-         </property>
-         <property name="text">
-          <string>Start automatically</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-      </layout>
-     </item>
      <item row="6" column="0">
-      <widget class="QLabel" name="label_2">
+      <widget class="QLabel" name="labelAddToStartup">
        <property name="text">
         <string>Autostart</string>
        </property>
@@ -257,6 +230,13 @@
      </item>
      <item row="7" column="1">
       <widget class="QComboBox" name="comboBoxOnExit"/>
+     </item>
+     <item row="6" column="1">
+      <widget class="QCheckBox" name="checkBoxAddToSturtup">
+       <property name="text">
+        <string>Start automatically</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
