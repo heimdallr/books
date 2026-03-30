@@ -29,8 +29,6 @@ if (MSVC)
 	file(COPY ${QT_BIN_FILES} ${QT_PDB_FILES} DESTINATION ${CMAKE_BINARY_DIR}/bin)
 	
 	if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-		file(WRITE "${CMAKE_BINARY_DIR}/config/installer_mode" "msi")	
-	
 		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/imageformats DESTINATION .)
 		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/locales DESTINATION .)
 		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/platforms DESTINATION .)

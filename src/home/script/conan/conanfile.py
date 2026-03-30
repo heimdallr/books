@@ -30,7 +30,7 @@ class FLibrary(ConanFile):
         self.requires("boost/1.88.0")
         self.requires("plog/1.1.10")
         self.requires("xerces-c/3.3.0")
-        self.requires("icu/77.1")
+        self.requires("icu/78.2")
         self.requires("libjxl/0.11.1")
         self.requires("cimg/3.3.2")
         self.requires("sqlite3/3.51.0")
