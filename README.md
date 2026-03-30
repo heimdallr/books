@@ -136,10 +136,11 @@ mkdir build
 cd build
 cmake .. -DCMAKE_BUILD_TYPE=Release -DQt6_DIR=your/path/to/Qt6/lib/cmake/Qt6 -G Ninja
 cmake --build .
-cpack
+cmake --install .
 ```
-
-В результате в папке build будет создан deb-пакет
+##### Вариант
+Запустить скрипт build.sh  
+В результате в папке build будет создан пакет FLibrary_setup_x.y.z.deb  
 
 [^4]: Подтянутся из conan, если необходимо - соберутся локально. Кроме Qt и 7zip, которые придётся найти/собрать самостоятельно.
 [^5]: Имеет смысл собрать самостоятельно, применив патчи src/home/script/conan/patch/qt

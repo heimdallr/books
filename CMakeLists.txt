@@ -123,48 +123,7 @@ include_directories("src/ext/Hypodermic")
 include("src/ext/sqlite.cmake")
 include("src/home/home.cmake")
 
-set(CPACK_PACKAGE_NAME ${PROJECT_NAME})
-set(CPACK_PACKAGE_VENDOR "Heimdallr HomeCompa")
-set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_NAME}: another e-book cataloger")
-set(CPACK_PACKAGE_VERSION "${PRODUCT_VERSION}")
-set(CPACK_RESOURCE_FILE_LICENSE "${CMAKE_CURRENT_LIST_DIR}/LICENSE_en.txt")
-set(CPACK_PACKAGE_HOMEPAGE_URL "https://github.com/heimdallr/books")
-set(CPACK_PACKAGE_ICON "${CMAKE_CURRENT_LIST_DIR}/src/home/flibrary/app/resources/icons/main.ico")
-set(CPACK_MONOLITHIC_INSTALL TRUE)
-set(CPACK_PACKAGE_EXECUTABLES "FLibrary;FLibrary")
-set(CPACK_PACKAGE_INSTALL_DIRECTORY "FLibrary")
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_setup_${CMAKE_PROJECT_VERSION}")
-
-if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Windows")
-	set(CPACK_GENERATOR WIX)
-	set(CPACK_WIX_PRODUCT_GUID ${PRODUCT_UID})
-	set(CPACK_WIX_UPGRADE_GUID "c39e21ad-9c07-4af6-a36a-bc65ae265075")
-	set(CPACK_WIX_PRODUCT_ICON "${CMAKE_CURRENT_LIST_DIR}/src/home/resources/icons/main.ico")
-	set(CPACK_WIX_CULTURES "en-US,ru-RU")
-	set(CPACK_WIX_PROPERTY_ARPURLINFOABOUT "https://github.com/heimdallr/books")
-	set(CPACK_WIX_UI_REF WixUI_FeatureTree)
-elseif(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
-	qt_generate_deploy_app_script(
-		TARGET ${PROJECT_NAME}
-		OUTPUT_SCRIPT deploy_script
-		NO_TRANSLATIONS
-		EXCLUDE_PLUGIN_TYPES egldeviceintegrations generic platforminputcontexts qmltooling vectorimageformats
-		INCLUDE_PLUGIN_TYPES wayland-shell-integration
-		INCLUDE_PLUGINS qwayland
-	)
-	install(SCRIPT ${deploy_script})
-	install(FILES "${CMAKE_CURRENT_LIST_DIR}/src/home/script/install/${PROJECT_NAME}.desktop" DESTINATION /usr/share/applications OPTIONAL)
-	install(FILES "${CMAKE_CURRENT_LIST_DIR}/src/home/resources/icons/${PROJECT_NAME}.png" DESTINATION /usr/share/icons OPTIONAL)
-	install(FILES "${CMAKE_CURRENT_LIST_DIR}/LICENSE_en.txt" DESTINATION . RENAME LICENSE.txt OPTIONAL)
-	set(CPACK_GENERATOR "DEB")
-	set(CPACK_DEBIAN_PACKAGE_SECTION "contrib")
-	set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Heimdallr <heimdallrnsk@gmail.com>")
-	set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/${PROJECT_NAME}/")
-	set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
-	set(CPACK_STRIP_FILES ON)
-endif()
-
-INCLUDE(CPack)
+include("src/home/script/cmake/pack.cmake")
 
 if (PERSONAL_BUILD_NAME)
 	message(WARNING "Personal ${PERSONAL_BUILD_NAME} build")
