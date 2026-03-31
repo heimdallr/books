@@ -33,6 +33,17 @@ if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
 		INCLUDE_PLUGINS qwayland
 	)
 	install(SCRIPT ${deploy_script})
+
+	qt_generate_deploy_app_script(
+		TARGET opds
+		OUTPUT_SCRIPT deploy_script
+		NO_TRANSLATIONS
+		EXCLUDE_PLUGIN_TYPES egldeviceintegrations generic platforminputcontexts qmltooling vectorimageformats
+		INCLUDE_PLUGIN_TYPES wayland-shell-integration
+		INCLUDE_PLUGINS qwayland
+	)
+	install(SCRIPT ${deploy_script})
+
 	install(FILES "${CMAKE_SOURCE_DIR}/src/home/script/install/start.sh" DESTINATION .)
 endif()
 
