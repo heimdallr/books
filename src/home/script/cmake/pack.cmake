@@ -43,8 +43,6 @@ if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
 		INCLUDE_PLUGINS qwayland
 	)
 	install(SCRIPT ${deploy_script})
-
-	install(FILES "${CMAKE_SOURCE_DIR}/src/home/script/install/start.sh" DESTINATION .)
 endif()
 
 if("${CPACK_GENERATOR}" STREQUAL "")
