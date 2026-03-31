@@ -105,6 +105,7 @@ public:
 		{
 			Key = 0,
 			Value,
+			Title,
 			Last
 		};
 	};
@@ -316,6 +317,7 @@ public:
 		{
 			Title = 0,
 			Id,
+			Key,
 			Parameter,
 			Enabled,
 			Checkable,
@@ -325,7 +327,7 @@ public:
 		};
 	};
 
-	static Ptr Create(IDataItem* parent = nullptr);
+	LOGIC_EXPORT static Ptr Create(IDataItem* parent = nullptr);
 	explicit MenuItem(IDataItem* parent);
 	~MenuItem() override = default;
 

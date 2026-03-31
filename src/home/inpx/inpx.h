@@ -1,9 +1,10 @@
 #pragma once
 
-#include <filesystem>
+#include <functional>
 #include <map>
 #include <memory>
-#include <string>
+
+#include <QString>
 
 #include "fnd/EnumBitmask.h"
 #include "fnd/NonCopyMovable.h"
@@ -29,6 +30,7 @@ enum class CreateCollectionMode
 	ScanUnIndexedFolders        = 1 << 1,
 	SkipLostBooks               = 1 << 2,
 	MarkUnIndexedFilesAsDeleted = 1 << 3,
+	LoadAnnotations             = 1 << 4,
 	// clang-format on
 };
 
@@ -50,7 +52,7 @@ class INPX_EXPORT Parser
 
 public:
 	using Callback = std::function<void(const UpdateResult&)>;
-	using IniMap   = std::map<std::wstring, std::filesystem::path>;
+	using IniMap   = std::map<QString, QString>;
 
 public:
 	Parser();

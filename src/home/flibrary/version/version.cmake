@@ -8,5 +8,5 @@ AddTarget(ver	shared_lib
 
 add_custom_command(TARGET ver
     POST_BUILD
-    COMMAND ${CMAKE_CURRENT_LIST_DIR}/../../script/bat/build.bat
+    COMMAND ${CMAKE_COMMAND} -D FILE=${CMAKE_CURRENT_LIST_DIR}/build.h -P ${CMAKE_CURRENT_LIST_DIR}/inc_build_no.cmake
 )

@@ -88,10 +88,10 @@ private:
 		std::ranges::transform(settings->GetGroups(), std::back_inserter(scripts), [&](const QString& uid) {
 			const SettingsGroup scriptGuard(*settings, uid);
 			Script              script {
-							 { uid, settings->Get(NUMBER).toInt() },
-                settings->Get(NAME).toString(),
-                FindFirst(s_scriptTypes, settings->Get(TYPE).toString().toStdString().data(), Script::Type::Undefined, PszComparer {}
-                             )
+				{ uid, settings->Get(NUMBER).toInt() },
+				settings->Get(NAME).toString(),
+				FindFirst(s_scriptTypes, settings->Get(TYPE).toString().toStdString().data(), Script::Type::Undefined, PszComparer {}
+                )
 			};
 			std::ranges::transform(settings->GetGroups(), std::back_inserter(commands), [this, &uid](const QString& commandUid) {
 				const SettingsGroup commandGuard(*settings, commandUid);
@@ -166,19 +166,25 @@ bool ScriptController::RemoveScripts(const int row, const int count)
 bool ScriptController::SetScriptType(const int n, const Script::Type value)
 {
 	auto& item = m_impl->GetScript(n);
-	return Util::Set(item.type, value, item, &Base::SetUpdated);
+	return Util::Set(item.type, value, [&] {
+		item.SetUpdated();
+	});
 }
 
 bool ScriptController::SetScriptName(const int n, QString value)
 {
 	auto& item = m_impl->GetScript(n);
-	return Util::Set(item.name, std::move(value), item, &Base::SetUpdated);
+	return Util::Set(item.name, std::move(value), [&] {
+		item.SetUpdated();
+	});
 }
 
 bool ScriptController::SetScriptNumber(const int n, const int value)
 {
 	auto& item = m_impl->GetScript(n);
-	return Util::Set(item.number, value, item, &Base::SetUpdated);
+	return Util::Set(item.number, value, [&] {
+		item.SetUpdated();
+	});
 }
 
 const IScriptController::Commands& ScriptController::GetCommands() const noexcept
@@ -197,8 +203,8 @@ bool ScriptController::InsertCommand(const QString& uid, const int row, const in
 {
 	auto       filtered = m_impl->commands | GetScriptUidFilter(uid);
 	const auto it       = std::ranges::max_element(filtered, [](const auto& lhs, const auto& rhs) {
-        return lhs.number < rhs.number;
-    });
+		return lhs.number < rhs.number;
+	});
 	Commands   commands;
 	commands.reserve(static_cast<size_t>(count));
 	std::generate_n(std::back_inserter(commands), count, [&, n = it == std::ranges::end(filtered) ? 0 : it->number]() mutable {
@@ -226,31 +232,41 @@ bool ScriptController::RemoveCommand(const int row, const int count)
 bool ScriptController::SetCommandType(const int n, const Command::Type value)
 {
 	auto& item = m_impl->GetCommand(n);
-	return Util::Set(item.type, value, item, &Base::SetUpdated);
+	return Util::Set(item.type, value, [&] {
+		item.SetUpdated();
+	});
 }
 
 bool ScriptController::SetCommandCommand(const int n, QString value)
 {
 	auto& item = m_impl->GetCommand(n);
-	return Util::Set(item.command, std::move(value), item, &Base::SetUpdated);
+	return Util::Set(item.command, std::move(value), [&] {
+		item.SetUpdated();
+	});
 }
 
 bool ScriptController::SetCommandArgs(const int n, QString value)
 {
 	auto& item = m_impl->GetCommand(n);
-	return Util::Set(item.args, std::move(value), item, &Base::SetUpdated);
+	return Util::Set(item.args, std::move(value), [&] {
+		item.SetUpdated();
+	});
 }
 
 bool ScriptController::SetCommandWorkingFolder(int n, QString value)
 {
 	auto& item = m_impl->GetCommand(n);
-	return Util::Set(item.workingFolder, std::move(value), item, &Base::SetUpdated);
+	return Util::Set(item.workingFolder, std::move(value), [&] {
+		item.SetUpdated();
+	});
 }
 
 bool ScriptController::SetCommandNumber(const int n, const int value)
 {
 	auto& item = m_impl->GetCommand(n);
-	return Util::Set(item.number, value, item, &Base::SetUpdated);
+	return Util::Set(item.number, value, [&] {
+		item.SetUpdated();
+	});
 }
 
 bool ScriptController::Execute(const Command& command) const

@@ -245,15 +245,15 @@ public:
 		std::ranges::copy(languages | std::views::keys | std::views::values, std::back_inserter(items));
 		const auto title = m_uiFactory->GetText(Tr(SELECT_LANGUAGE_TITLE), Tr(SELECT_LANGUAGE_LABEL), {}, items);
 		const auto it    = std::ranges::find(languages, title, [](const auto& item) {
-            return item.first.second;
-        });
+			return item.first.second;
+		});
 		assert(it != languages.end());
 
 		const auto alphabet = m_uiFactory->GetText(Tr(SELECT_ALPHABET_TITLE), Tr(SELECT_ALPHABET_LABEL));
 
 		const auto keyTemplate = QString(KEY_TEMPLATE).arg(it->second, "%1");
 		m_settings->Set(keyTemplate.arg(VISIBLE), true);
-		m_settings->Set(keyTemplate.arg(ORD_NUM), m_toolBars.size() + 1);
+		m_settings->Set(keyTemplate.arg(ORD_NUM), static_cast<qulonglong>(m_toolBars.size() + 1));
 		m_settings->Set(keyTemplate.arg(ALPHABET), alphabet);
 
 		AddToolBar(m_self, it->second, alphabet, true);
@@ -312,7 +312,7 @@ private:
 		}
 
 		m_toolBars.emplace_back(toolBar);
-		toolBar->setProperty(ORD_NUM, m_settings->Get(GetOrdNumKey(*toolBar), m_toolBars.size()));
+		toolBar->setProperty(ORD_NUM, m_settings->Get(GetOrdNumKey(*toolBar), static_cast<qulonglong>(m_toolBars.size())));
 	}
 
 	// ReSharper disable once CppMemberFunctionMayBeStatic
@@ -326,8 +326,8 @@ private:
 		auto*      parent   = m_uiFactory->GetParentWidget();
 		const auto children = parent->findChildren<QLineEdit*>();
 		const auto it       = std::ranges::find(children, m_linkedControl, [](const auto* item) {
-            return item->accessibleName();
-        });
+			return item->accessibleName();
+		});
 		if (it == children.end())
 			return nullptr;
 

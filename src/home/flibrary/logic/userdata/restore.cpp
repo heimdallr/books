@@ -9,8 +9,8 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/ITransaction.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/localization.h"
 
 #include "inpx/InpxConstant.h"
 #include "util/IExecutor.h"
@@ -264,7 +264,9 @@ void RestoreImpl(const Util::IExecutor& executor, DB::IDatabase& db, QString fil
 	executor({ "Restore user data", [&db, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
 				  auto createResult = [callback = std::move(callback)](QString error = {}) mutable {
 					  if (!error.isEmpty())
+					  {
 						  PLOGE << error;
+					  }
 
 					  return [callback = std::move(callback), error = std::move(error)](size_t) {
 						  callback(error);

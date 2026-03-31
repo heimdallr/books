@@ -50,7 +50,7 @@ QByteArray Decompress(const QString& path, const QString& archive, const QString
 	return data;
 }
 
-QByteArray Compress(QByteArray data, QString fileName)
+QByteArray Compress(const QByteArray& data, QString fileName)
 {
 	QByteArray zippedData;
 	{
@@ -66,8 +66,8 @@ QByteArray Compress(QByteArray data, QString fileName)
 		buffer.open(QIODevice::WriteOnly);
 		Zip  zip(buffer, Zip::Format::Zip);
 		auto zipFiles = Zip::CreateZipFileController();
-		zipFiles->AddFile(std::move(fileName), std::move(data));
-		zip.Write(std::move(zipFiles));
+		zipFiles->AddFile(std::move(fileName), data);
+		zip.Write(*zipFiles);
 	}
 	return zippedData;
 }
@@ -138,8 +138,8 @@ private:
 		const QFileInfo fileInfo(outputFileName);
 		const auto      src = QString("%1/%2.%3").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), QUuid::createUuid().toString(QUuid::WithoutBraces), fileInfo.suffix());
 		ScopedCall      srcGuard([&] {
-            QFile::remove(src);
-        });
+			QFile::remove(src);
+		});
 		{
 			QFile file(src);
 			if (!file.open(QIODevice::WriteOnly))
@@ -159,7 +159,7 @@ private:
 		arguments.replace("%src%", src);
 		arguments.replace("%dst%", dst);
 
-		if (!Util::RunProcess(command, arguments, getParameter(CONVERTER_CWD)))
+		if (!Util::RunProcess(command, arguments, getParameter(CONVERTER_CWD), true))
 			return;
 
 		QFile file(dst);
@@ -207,7 +207,7 @@ std::pair<QString, QByteArray> NoSqlRequester::GetBook(const QString& bookId, co
 std::pair<QString, QByteArray> NoSqlRequester::GetBookZip(const QString& bookId, const bool restoreImages, const IRequester::Parameters& parameters) const
 {
 	auto [fileName, title, data] = m_impl->GetBook(bookId, restoreImages, parameters);
-	data                         = Compress(std::move(data), std::move(fileName));
+	data                         = Compress(data, std::move(fileName));
 	return std::make_pair(QFileInfo(title).fileName() + ".zip", std::move(data));
 }
 
@@ -219,9 +219,9 @@ QString INoSqlRequester::GetProfileRoot(const ISettings& settings, const QString
 	SettingsGroup group(settings, CONVERTERS_ROOT);
 	auto          profiles = settings.GetGroups();
 	const auto    it       = std::ranges::find(profiles, profileTitle, [&](const QString& item) {
-        const auto title = settings.Get(QString("%1/%2").arg(item, CONVERTER_TITLE)).toString();
-        return title;
-    });
+		const auto title = settings.Get(QString("%1/%2").arg(item, CONVERTER_TITLE)).toString();
+		return title;
+	});
 
 	return it != profiles.end() ? QString("%1/%2").arg(CONVERTERS_ROOT, *it) : CONVERTER_ROOT;
 }

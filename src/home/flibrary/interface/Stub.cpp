@@ -20,6 +20,7 @@
 #include "logic/IFilterProvider.h"
 #include "logic/ILogicFactory.h"
 #include "logic/IScriptController.h"
+#include "platform/FileUtil.h"
 #include "ui/IStyleApplier.h"
 #include "util/files.h"
 
@@ -30,6 +31,8 @@ namespace HomeCompa::Flibrary
 
 namespace
 {
+
+int SEQ_NUMBER_WIDTH = 1;
 
 void SetMacroImpl(QString& str, const IScriptController::Macro macro, const QString& value)
 {
@@ -76,27 +79,27 @@ QString ApplyMacroUserDestinationFolder(DB::IDatabase&, const Util::ExtractedBoo
 
 QString ApplyMacroTitle(DB::IDatabase&, const Util::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
-	return Util::RemoveIllegalPathCharacters(book.title);
+	return Platform::RemoveIllegalPathCharacters(book.title);
 }
 
 QString ApplyMacroFileName(DB::IDatabase&, const Util::ExtractedBook&, const QFileInfo& fileInfo, const QStringList&)
 {
-	return Util::RemoveIllegalPathCharacters(fileInfo.fileName());
+	return Platform::RemoveIllegalPathCharacters(fileInfo.fileName());
 }
 
 QString ApplyMacroFileExt(DB::IDatabase&, const Util::ExtractedBook&, const QFileInfo& fileInfo, const QStringList&)
 {
-	return Util::RemoveIllegalPathCharacters(fileInfo.suffix());
+	return Platform::RemoveIllegalPathCharacters(fileInfo.suffix());
 }
 
 QString ApplyMacroBaseFileName(DB::IDatabase&, const Util::ExtractedBook&, const QFileInfo& fileInfo, const QStringList&)
 {
-	return Util::RemoveIllegalPathCharacters(fileInfo.completeBaseName());
+	return Platform::RemoveIllegalPathCharacters(fileInfo.completeBaseName());
 }
 
 QString ApplyMacroAuthor(DB::IDatabase&, const Util::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
-	return Util::RemoveIllegalPathCharacters(book.author);
+	return Platform::RemoveIllegalPathCharacters(book.author);
 }
 
 QString ApplyMacroAuthorLastFM(DB::IDatabase&, const Util::ExtractedBook&, const QFileInfo&, const QStringList& authorNameSplitted)
@@ -135,12 +138,12 @@ QString ApplyMacroAuthorM(DB::IDatabase&, const Util::ExtractedBook&, const QFil
 
 QString ApplyMacroSeries(DB::IDatabase&, const Util::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
-	return Util::RemoveIllegalPathCharacters(book.series);
+	return Platform::RemoveIllegalPathCharacters(book.series);
 }
 
 QString ApplyMacroSeqNumber(DB::IDatabase&, const Util::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
-	return book.seqNumber > 0 ? QString::number(book.seqNumber) : QString {};
+	return book.seqNumber > 0 ? QString("%1").arg(book.seqNumber, SEQ_NUMBER_WIDTH, 10, QChar { '0' }) : QString {};
 }
 
 QString ApplyMacroFileSize(DB::IDatabase&, const Util::ExtractedBook& book, const QFileInfo&, const QStringList&)
@@ -150,13 +153,13 @@ QString ApplyMacroFileSize(DB::IDatabase&, const Util::ExtractedBook& book, cons
 
 QString ApplyMacroGenre(DB::IDatabase&, const Util::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
-	return Util::RemoveIllegalPathCharacters(book.genre);
+	return Platform::RemoveIllegalPathCharacters(book.genre);
 }
 
 QString ApplyMacroGenreTree(DB::IDatabase&, const Util::ExtractedBook& book, const QFileInfo&, const QStringList&)
 {
 	QStringList genreTree;
-	std::ranges::transform(book.genreTree, std::back_inserter(genreTree), &Util::RemoveIllegalPathCharacters);
+	std::ranges::transform(book.genreTree, std::back_inserter(genreTree), &Platform::RemoveIllegalPathCharacters);
 	return genreTree.join('/');
 }
 
@@ -170,7 +173,7 @@ QString ApplyQuery(DB::IDatabase& db, const Util::ExtractedBook& book, const std
 	const auto query = db.CreateQuery(queryText);
 	query->Bind(0, book.id);
 	query->Execute();
-	return query->Eof() ? QString {} : Util::RemoveIllegalPathCharacters(query->Get<const char*>(0));
+	return query->Eof() ? QString {} : Platform::RemoveIllegalPathCharacters(query->Get<const char*>(0));
 }
 
 QString ApplyMacroKeyword(DB::IDatabase& db, const Util::ExtractedBook& book, const QFileInfo&, const QStringList&)
@@ -219,6 +222,11 @@ QString Collection::GetDatabase() const
 QString Collection::GetFolder() const
 {
 	return Util::ToAbsolutePath(m_folder);
+}
+
+QString Collection::GetAdditionalFolder() const
+{
+	return Util::ToAbsolutePath(m_additionalFolder);
 }
 
 QString Collection::GetInpx() const
@@ -275,6 +283,11 @@ QString IScriptController::GetDefaultOutputFileNameTemplate()
 	    .arg(GetMacro(Macro::FileExt));
 }
 
+void IScriptController::SetSeqNumberWidth(const int value)
+{
+	SEQ_NUMBER_WIDTH = value;
+}
+
 std::vector<std::vector<QString>> ILogicFactory::GetSelectedBookIds(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, const std::vector<int>& roles)
 {
 	QModelIndexList selected;
@@ -295,9 +308,9 @@ std::vector<std::vector<QString>> ILogicFactory::GetSelectedBookIds(QAbstractIte
 
 void ILogicFactory::FillScriptTemplate(DB::IDatabase& db, QString& scriptTemplate, const Util::ExtractedBook& book)
 {
-	const auto      authorNameSplitted = Util::RemoveIllegalPathCharacters(book.author).split(' ', Qt::SkipEmptyParts);
+	const auto      authorNameSplitted = Platform::RemoveIllegalPathCharacters(book.author).split(' ', Qt::SkipEmptyParts);
 	const QFileInfo fileInfo(book.file);
-	for (const auto [macro, applier] : MACRO_APPLIERS)
+	for (const auto& [macro, applier] : MACRO_APPLIERS)
 	{
 		const auto value = std::invoke(applier, std::ref(db), std::cref(book), std::cref(fileInfo), std::cref(authorNameSplitted));
 		IScriptController::SetMacro(scriptTemplate, macro, value);

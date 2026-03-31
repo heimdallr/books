@@ -31,6 +31,8 @@
 *.out
 *.app
 
+*.user
+
 bin/*
 bin*/
 build*/

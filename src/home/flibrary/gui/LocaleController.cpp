@@ -3,7 +3,7 @@
 #include <QActionGroup>
 #include <QMenu>
 
-#include "interface/Localization.h"
+#include "interface/localization.h"
 
 #include "util/SortString.h"
 
@@ -47,6 +47,7 @@ public:
 			auto* action = menu.addAction(Loc::Tr(Loc::Ctx::LANG, locale), [&, locale] {
 				SetLocale(locale);
 			});
+			action->setObjectName(locale);
 			action->setProperty(NAME, QString(locale));
 			m_actionGroup.addAction(action);
 			action->setCheckable(true);

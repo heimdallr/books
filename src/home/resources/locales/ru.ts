@@ -20,6 +20,10 @@
         <translation>Добавлять неиндексированные книги</translation>
     </message>
     <message>
+        <source>Additional</source>
+        <translation>Дополнительно</translation>
+    </message>
+    <message>
         <source>Archive folder</source>
         <translation>Папка с архивами</translation>
     </message>
@@ -56,12 +60,16 @@
         <translation>Файл базы данных</translation>
     </message>
     <message>
-        <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
-        <translation>Базы данных FLibrary (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
+        <source>FLibrary database files (*.db *.sqlite *.sqlite3);;All files (*.*)</source>
+        <translation>Базы данных FLibrary (*.db *.sqlite *.sqlite3);;Все файлы (*.*)</translation>
     </message>
     <message>
         <source>Index file</source>
         <translation>Индексный файл</translation>
+    </message>
+    <message>
+        <source>Load annotations</source>
+        <translation>Загружать аннотации</translation>
     </message>
     <message>
         <source>Mark unindexed books as deleted</source>
@@ -88,6 +96,10 @@
         <translation>Сканировать неиндексированные архивы</translation>
     </message>
     <message>
+        <source>Select additional data folder</source>
+        <translation>Выберите папку с дополнительными данными</translation>
+    </message>
+    <message>
         <source>Select archives folder</source>
         <translation>Выберите папку с архивами</translation>
     </message>
@@ -98,14 +110,6 @@
     <message>
         <source>Select database file</source>
         <translation>Выберите файл базы данных</translation>
-    </message>
-    <message>
-        <source>Transform path to absolute</source>
-        <translation>Преобразовать путь в абсолютный</translation>
-    </message>
-    <message>
-        <source>Transform path to relative</source>
-        <translation>Преобразовать путь в относительный</translation>
     </message>
 </context>
 <context>
@@ -888,6 +892,10 @@ Restart now?</source>
 <context>
     <name>Error</name>
     <message>
+        <source>Additional info folder not found</source>
+        <translation>Папка с дополнительной информацией не найдена</translation>
+    </message>
+    <message>
         <source>Archive folder cannot be empty</source>
         <translation>Папка с архивами не может быть пустой</translation>
     </message>
@@ -973,6 +981,10 @@ Restart now?</source>
         <translation>Показаны все элементы</translation>
     </message>
     <message>
+        <source>And</source>
+        <translation>И</translation>
+    </message>
+    <message>
         <source>Apply</source>
         <translation>Применить</translation>
     </message>
@@ -1007,6 +1019,10 @@ Restart now?</source>
     <message>
         <source>Hide unrated books</source>
         <translation>Скрыть без рейтинга</translation>
+    </message>
+    <message>
+        <source>Or</source>
+        <translation>Или</translation>
     </message>
     <message>
         <source>Rate</source>
@@ -2586,10 +2602,21 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>Http</name>
+    <name>HotkeyDialog</name>
     <message>
-        <source>Authentication required</source>
-        <translation>Требуется аутентификация</translation>
+        <source>Hotkey settings</source>
+        <translation>Настройка горячих клавиш</translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation>Сброс</translation>
+    </message>
+</context>
+<context>
+    <name>HotkeyManager</name>
+    <message>
+        <source>Book</source>
+        <translation>Книга</translation>
     </message>
 </context>
 <context>
@@ -4442,9 +4469,17 @@ Try again?</source>
         <source>It looks like you&apos;re trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?</source>
         <translation>Похоже, вы пытаетесь использовать старую версию программы с коллекцией из новой версии. Работа в таком режиме может быть нестабильной. Уверены, что желаете продолжать?</translation>
     </message>
+    <message>
+        <source>The database version is not supported. You must recreate the collection</source>
+        <translation>Версия базы данных не поддерживается. Необходимо пересоздать коллекцию</translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>
+    <message>
+        <source> or %1</source>
+        <translation> или %1</translation>
+    </message>
     <message>
         <source>&amp;About...</source>
         <translation>&amp;О программе...</translation>
@@ -4460,6 +4495,10 @@ Try again?</source>
     <message>
         <source>&amp;Annotation</source>
         <translation>&amp;Аннотация</translation>
+    </message>
+    <message>
+        <source>&amp;Author</source>
+        <translation>&amp;Автор</translation>
     </message>
     <message>
         <source>&amp;Clear log</source>
@@ -4542,6 +4581,10 @@ Try again?</source>
         <translation>&amp;Скрипты...</translation>
     </message>
     <message>
+        <source>&amp;Series</source>
+        <translation>&amp;Серия</translation>
+    </message>
+    <message>
         <source>&amp;Settings</source>
         <translation>&amp;Настройки</translation>
     </message>
@@ -4558,12 +4601,20 @@ Try again?</source>
         <translation>&amp;Тема</translation>
     </message>
     <message>
+        <source>&amp;Title</source>
+        <translation>На&amp;звание</translation>
+    </message>
+    <message>
         <source>&amp;User data</source>
         <translation>&amp;Пользовательские данные</translation>
     </message>
     <message>
         <source>&amp;View</source>
         <translation>&amp;Вид</translation>
+    </message>
+    <message>
+        <source>A&amp;nnotation</source>
+        <translation>А&amp;ннотация</translation>
     </message>
     <message>
         <source>About the author</source>
@@ -4682,6 +4733,10 @@ Try again?</source>
         <translation>Перейти к у&amp;прощенному веб-интерфейсу</translation>
     </message>
     <message>
+        <source>Hot&amp;keys...</source>
+        <translation>Горячие &amp;клавиши...</translation>
+    </message>
+    <message>
         <source>Http server management</source>
         <translation>Управление HTTP-сервером</translation>
     </message>
@@ -4700,6 +4755,10 @@ Try again?</source>
     <message>
         <source>Log &amp;verbosity level</source>
         <translation>&amp;Уровень детализации журнала</translation>
+    </message>
+    <message>
+        <source>Main menu</source>
+        <translation>Главное меню</translation>
     </message>
     <message>
         <source>My export folder</source>
@@ -4740,6 +4799,10 @@ Try again?</source>
     <message>
         <source>Search &amp;bar by title</source>
         <translation>Панель поиска по &amp;названию</translation>
+    </message>
+    <message>
+        <source>Search &amp;by</source>
+        <translation>Поиск &amp;по</translation>
     </message>
     <message>
         <source>Search book by title</source>
@@ -4798,8 +4861,8 @@ Try again?</source>
         <translation>Правильное решение!</translation>
     </message>
     <message>
-        <source>To search for books by author, series, or title, enter the name or title here and press Enter</source>
-        <translation>Для поиска книг по автору, серии или названию введите имя или название здесь и нажмите Enter</translation>
+        <source>To search for books by %1, enter the name or title here and press Enter</source>
+        <translation>Для поиска книг по %1 введите имя или название здесь и нажмите Enter</translation>
     </message>
     <message>
         <source>View &amp;Help</source>
@@ -4808,6 +4871,22 @@ Try again?</source>
     <message>
         <source>Well, you only have yourself to blame!</source>
         <translation>Что ж, пеняйте теперь на себя!</translation>
+    </message>
+    <message>
+        <source>annotation</source>
+        <translation>аннотации</translation>
+    </message>
+    <message>
+        <source>author</source>
+        <translation>автору</translation>
+    </message>
+    <message>
+        <source>series</source>
+        <translation>серии</translation>
+    </message>
+    <message>
+        <source>title</source>
+        <translation>названию</translation>
     </message>
 </context>
 <context>
@@ -4827,6 +4906,17 @@ Try again?</source>
     <message>
         <source>%1 b</source>
         <translation>%1 б</translation>
+    </message>
+</context>
+<context>
+    <name>ModeLineEdit</name>
+    <message>
+        <source>Filter</source>
+        <translation>Фильтр</translation>
+    </message>
+    <message>
+        <source>Find</source>
+        <translation>Поиск</translation>
     </message>
 </context>
 <context>
@@ -5145,6 +5235,17 @@ Try again?</source>
     <message>
         <source>Use the default reader?</source>
         <translation>Использовать системную читалку?</translation>
+    </message>
+</context>
+<context>
+    <name>RelativePathLineEdit</name>
+    <message>
+        <source>Transform path to absolute</source>
+        <translation>Преобразовать путь в абсолютный</translation>
+    </message>
+    <message>
+        <source>Transform path to relative</source>
+        <translation>Преобразовать путь в относительный</translation>
     </message>
 </context>
 <context>
@@ -5483,12 +5584,12 @@ Try again?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <source>Filter</source>
-        <translation>Фильтр</translation>
+        <source>Books view mode</source>
+        <translation>Режим просмотра книг</translation>
     </message>
     <message>
-        <source>Find</source>
-        <translation>Поиск</translation>
+        <source>Navigation</source>
+        <translation>Навигация</translation>
     </message>
 </context>
 <context>

@@ -13,6 +13,7 @@ public:
 		Actual,
 		NeedMigrate,
 		Unexpected,
+		Unsupported,
 	};
 
 public:

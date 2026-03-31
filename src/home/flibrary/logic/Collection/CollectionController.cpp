@@ -1,16 +1,19 @@
 #include "CollectionController.h"
 
+#include <thread>
+
 #include <QTemporaryDir>
 #include <QTimer>
 
 #include "fnd/ScopedCall.h"
 #include "fnd/observable.h"
 
-#include "interface/Localization.h"
+#include "interface/localization.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
 #include "inpx/InpxConstant.h"
+#include "platform/StrUtil.h"
 #include "util/IExecutor.h"
 #include "util/files.h"
 
@@ -91,17 +94,18 @@ public:
 		const auto dialog = m_uiFactory->CreateAddCollectionDialog(inpx);
 		const auto action = dialog->Exec();
 		const auto mode   = Inpx::CreateCollectionMode::None | (dialog->AddUnIndexedBooks() ? Inpx::CreateCollectionMode::AddUnIndexedFiles : Inpx::CreateCollectionMode::None)
-		                | (dialog->MarkUnIndexedBooksAsDeleted() ? Inpx::CreateCollectionMode::MarkUnIndexedFilesAsDeleted : Inpx::CreateCollectionMode::None)
-		                | (dialog->ScanUnIndexedFolders() ? Inpx::CreateCollectionMode::ScanUnIndexedFolders : Inpx::CreateCollectionMode::None)
-		                | (dialog->SkipLostBooks() ? Inpx::CreateCollectionMode::SkipLostBooks : Inpx::CreateCollectionMode::None);
+		                  | (dialog->MarkUnIndexedBooksAsDeleted() ? Inpx::CreateCollectionMode::MarkUnIndexedFilesAsDeleted : Inpx::CreateCollectionMode::None)
+		                  | (dialog->ScanUnIndexedFolders() ? Inpx::CreateCollectionMode::ScanUnIndexedFolders : Inpx::CreateCollectionMode::None)
+		                  | (dialog->SkipLostBooks() ? Inpx::CreateCollectionMode::SkipLostBooks : Inpx::CreateCollectionMode::None)
+		                  | (dialog->LoadAnnotations() ? Inpx::CreateCollectionMode::LoadAnnotations : Inpx::CreateCollectionMode::None);
 		switch (action)
 		{
 			case IAddCollectionDialog::Result::CreateNew:
-				CreateNew(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), dialog->GetInpx(), dialog->GetDefaultArchiveType(), mode);
+				CreateNew(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), dialog->GetAdditionalFolder(), dialog->GetInpx(), dialog->GetDefaultArchiveType(), mode);
 				break;
 
 			case IAddCollectionDialog::Result::Add:
-				Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), dialog->GetInpx(), mode);
+				Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), dialog->GetAdditionalFolder(), dialog->GetInpx(), mode);
 				break;
 
 			default:
@@ -116,14 +120,14 @@ public:
 		const auto& collection = GetActiveCollection();
 		auto        parser     = std::make_shared<Inpx::Parser>();
 		auto&       parserRef  = *parser;
-		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetInpx(), true);
+		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), collection.GetInpx(), true);
 		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable {
-            const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
-                parser.reset();
-            });
-            Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
-            ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
-            Perform(&ICollectionsObserver::OnActiveCollectionChanged);
+			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
+				parser.reset();
+			});
+			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
+			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
+			Perform(&ICollectionsObserver::OnActiveCollectionChanged);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.RescanCollection(ini, static_cast<Inpx::CreateCollectionMode>(collection.createCollectionMode), std::move(callback));
@@ -192,9 +196,9 @@ public:
 		CollectionImpl::Serialize(collection, *m_settings);
 	}
 
-	IniMapPair GetIniMap(const QString& db, const QString& folder, const QString& inpx, const bool createFiles) const
+	IniMapPair GetIniMap(const QString& db, const QString& folder, const QString& additionalFolder, const QString& inpx, const bool createFiles) const
 	{
-		return m_collectionProvider->GetIniMap(db, folder, inpx, createFiles);
+		return m_collectionProvider->GetIniMap(db, folder, additionalFolder, inpx, createFiles);
 	}
 
 	Collection& GetActiveCollection() noexcept
@@ -238,11 +242,12 @@ public:
 	}
 
 private:
-	void CreateNew(QString name, QString dbOrigin, QString folderOrigin, QString inpxOrigin, const QString& defaultArchiveType, const Inpx::CreateCollectionMode mode)
+	void CreateNew(QString name, QString dbOrigin, QString folderOrigin, QString additionalFolderOrigin, QString inpxOrigin, const QString& defaultArchiveType, const Inpx::CreateCollectionMode mode)
 	{
-		const auto db     = Util::ToAbsolutePath(dbOrigin);
-		const auto folder = Util::ToAbsolutePath(folderOrigin);
-		const auto inpx   = Util::ToAbsolutePath(inpxOrigin);
+		const auto db               = Util::ToAbsolutePath(dbOrigin);
+		const auto folder           = Util::ToAbsolutePath(folderOrigin);
+		const auto additionalFolder = Util::ToAbsolutePath(additionalFolderOrigin);
+		const auto inpx             = Util::ToAbsolutePath(inpxOrigin);
 		if (QFile(db).exists())
 		{
 			if (m_uiFactory->ShowWarning(Tr(CONFIRM_OVERWRITE_DATABASE), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
@@ -259,28 +264,34 @@ private:
 
 		auto  parser       = std::make_shared<Inpx::Parser>();
 		auto& parserRef    = *parser;
-		auto [tmpDir, ini] = m_collectionProvider->GetIniMap(db, folder, inpx, true);
-		ini.try_emplace(DEFAULT_ARCHIVE_TYPE, defaultArchiveType.toStdWString());
+		auto [tmpDir, ini] = m_collectionProvider->GetIniMap(db, folder, additionalFolder, inpx, true);
+		ini.try_emplace(DEFAULT_ARCHIVE_TYPE, defaultArchiveType);
 
-		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement().toStdWString());
-		auto callback = [this, parser = std::move(parser), name, db = std::move(dbOrigin), folder = std::move(folderOrigin), inpx = std::move(inpxOrigin), mode, tmpDir = std::move(tmpDir)](
-							const Inpx::UpdateResult& updateResult
-						) mutable {
+		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement());
+		auto callback = [this,
+		                 parser = std::move(parser),
+		                 name,
+		                 db               = std::move(dbOrigin),
+		                 folder           = std::move(folderOrigin),
+		                 additionalFolder = std::move(additionalFolderOrigin),
+		                 inpx             = std::move(inpxOrigin),
+		                 mode,
+		                 tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
 			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
 				parser.reset();
 			});
 			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
 			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_CREATED);
 			if (!updateResult.error)
-				Add(std::move(name), std::move(db), std::move(folder), std::move(inpx), mode);
+				Add(std::move(name), std::move(db), std::move(folder), std::move(additionalFolder), std::move(inpx), mode);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.CreateNewCollection(std::move(ini), mode, std::move(callback));
 	}
 
-	void Add(QString name, QString db, QString folder, QString inpx, const Inpx::CreateCollectionMode mode)
+	void Add(QString name, QString db, QString folder, QString additionalFolder, QString inpx, const Inpx::CreateCollectionMode mode)
 	{
-		CollectionImpl collection(std::move(name), std::move(db), std::move(folder), std::move(inpx));
+		CollectionImpl collection(std::move(name), std::move(db), std::move(folder), std::move(additionalFolder), std::move(inpx));
 		collection.createCollectionMode = static_cast<int>(mode);
 		CollectionImpl::Serialize(collection, *m_settings);
 		auto& collections = m_collectionProvider->GetCollections();
@@ -293,16 +304,18 @@ private:
 		const auto& collection = GetActiveCollection();
 		auto        parser     = std::make_shared<Inpx::Parser>();
 		auto&       parserRef  = *parser;
-		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetInpx(), true);
+		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), collection.GetInpx(), true);
 		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable {
-            if (updateResult.oldDataUpdateFound)
-                PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
-            const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
-                parser.reset();
-            });
-            Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
-            ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
-            Perform(&ICollectionsObserver::OnActiveCollectionChanged);
+			if (updateResult.oldDataUpdateFound)
+			{
+				PLOGW << "Old indices changed. It is recommended to recreate the collection again.";
+			}
+			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
+				parser.reset();
+			});
+			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
+			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_UPDATED);
+			Perform(&ICollectionsObserver::OnActiveCollectionChanged);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.UpdateCollection(ini, static_cast<Inpx::CreateCollectionMode>(updatedCollection.createCollectionMode), std::move(callback));
@@ -435,9 +448,9 @@ void CollectionController::AllowDestructiveOperation(const bool value)
 	m_impl->AllowDestructiveOperation(value);
 }
 
-ICollectionProvider::IniMapPair CollectionController::GetIniMap(const QString& db, const QString& folder, const QString& inpx, const bool createFiles) const
+ICollectionProvider::IniMapPair CollectionController::GetIniMap(const QString& db, const QString& folder, const QString& additionalFolder, const QString& inpx, const bool createFiles) const
 {
-	return m_impl->GetIniMap(db, folder, inpx, createFiles);
+	return m_impl->GetIniMap(db, folder, additionalFolder, inpx, createFiles);
 }
 
 void CollectionController::RegisterObserver(ICollectionsObserver* observer)

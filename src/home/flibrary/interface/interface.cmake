@@ -7,5 +7,6 @@ AddTarget(flint	shared_lib
 		Qt${QT_MAJOR_VERSION}::Widgets
 	LINK_TARGETS
 		logging
+		platform
 		util
 )

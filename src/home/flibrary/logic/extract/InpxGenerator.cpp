@@ -15,9 +15,10 @@
 #include "interface/constants/ExportStat.h"
 #include "interface/logic/IDataProvider.h"
 
-#include "Util/IExecutor.h"
 #include "data/DataItem.h"
+#include "platform/StrUtil.h"
 #include "util/Fb2InpxParser.h"
+#include "util/IExecutor.h"
 #include "util/ImageRestore.h"
 
 #include "Constant.h"
@@ -38,7 +39,7 @@ Genres GetGenres(DB::IDatabase& db)
 
 	const auto query = db.CreateQuery("select GenreCode, FB2Code, ParentCode from Genres");
 	for (query->Execute(); !query->Eof(); query->Next())
-		const auto& [code, name] = *result.try_emplace(query->Get<const char*>(0), query->Get<const char*>(1)).first;
+		result.try_emplace(query->Get<const char*>(0), query->Get<const char*>(1));
 
 	return result;
 }
@@ -160,12 +161,12 @@ void Write(QByteArray& stream, const QString& uid, const BookInfo& book, size_t&
 
 constexpr auto BOOK_QUERY = R"(
 select
-b.BookID, b.LibID, b.Title, sl.SeriesID, sl.SeqNumber, b.UpdateDate, b.LibRate, b.Lang, f.FolderTitle, b.FileName, b.InsideNo, b.Ext, b.BookSize, coalesce(bu.IsDeleted, b.IsDeleted)
+b.BookID, b.LibID, b.Title, sl.SeriesID, sl.SeqNumber, b.UpdateDate, b.LibRate, b.Lang, f.FolderTitle, b.FileName, b.Ext, b.BookSize, coalesce(bu.IsDeleted, b.IsDeleted)
 from Books b
 join Folders f on f.FolderID = b.FolderID
 left join Books_User bu on bu.BookID = b.BookID
 left join Series_List sl on sl.BookID = b.BookID
-order by f.FolderID, b.InsideNo
+order by f.FolderID
 )";
 
 void Write(
@@ -198,18 +199,18 @@ void Write(
 	};
 
 	const auto genreList   = getList(genres, bookGenres, [](const auto& item) {
-        return item;
-    });
+		return item;
+	});
 	const auto keywordList = getList(keywords, bookKeywords, [](const auto& item) {
 		return item;
 	});
 	const auto authorList  = getList(authors, bookAuthors, [](const auto& item) {
-        const auto& [lastName, firstName, middleName] = item;
-        return (QStringList() << lastName << firstName << middleName).join(Util::Fb2InpxParser::NAMES_SEPARATOR);
-    });
+		const auto& [lastName, firstName, middleName] = item;
+		return (QStringList() << lastName << firstName << middleName).join(Util::Fb2InpxParser::NAMES_SEPARATOR);
+	});
 
 	auto book = QStringList {} << authorList.join("") << genreList.join("") << query.Get<const char*>(2) << seriesTitle << Util::Fb2InpxParser::GetSeqNumber(query.Get<const char*>(4))
-	                           << query.Get<const char*>(9) << QString::number(query.Get<long long>(12)) << query.Get<const char*>(1) << QString::number(query.Get<int>(13)) << query.Get<const char*>(11) + 1
+	                           << query.Get<const char*>(9) << QString::number(query.Get<long long>(11)) << query.Get<const char*>(1) << QString::number(query.Get<int>(12)) << query.Get<const char*>(10) + 1
 	                           << query.Get<const char*>(5) << query.Get<const char*>(7) << Util::Fb2InpxParser::GetSeqNumber(query.Get<const char*>(6)) << keywordList.join("");
 
 	stream.append(book.join(Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8()).append(Util::Fb2InpxParser::FIELDS_SEPARATOR).append("\r\n");
@@ -223,17 +224,17 @@ QByteArray Process(const std::filesystem::path& archiveFolder, const QString& ds
 	for (const auto& book : books)
 	{
 		const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
-		const auto folder   = QString::fromStdWString(archiveFolder / book.book->GetRawData(BookItem::Column::Folder).toStdWString());
+		const auto folder   = Platform::PathToString(archiveFolder / Platform::StringToPath(book.book->GetRawData(BookItem::Column::Folder)));
 		const Zip  zipInput(folder);
 		const auto input = zipInput.Read(fileName);
-		auto       bytes = Util::PrepareToExport(input->GetStream(), folder, fileName);
+		const auto bytes = Util::PrepareToExport(input->GetStream(), folder, fileName);
 		progress.Increment(bytes.size());
 		Write(inpx, uid, book, n);
 
 		auto zipFiles = Zip::CreateZipFileController();
 		zipFiles->AddFile(book.book->GetRawData(BookItem::Column::FileName), bytes, QDateTime::currentDateTime());
 		Zip zip(QString("%1/%2.zip").arg(dstFolder, uid), Zip::Format::Zip, true);
-		zip.Write(std::move(zipFiles));
+		zip.Write(*zipFiles);
 	}
 
 	return inpx;
@@ -265,7 +266,7 @@ public:
 		m_taskCount = std::size(books) / 3000 + 1;
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor({ static_cast<int>(m_taskCount) }).swap(m_executor);
 		m_dstFolder     = std::move(dstFolder);
-		m_archiveFolder = m_collectionProvider->GetActiveCollection().GetFolder().toStdWString();
+		m_archiveFolder = Platform::StringToPath(m_collectionProvider->GetActiveCollection().GetFolder());
 
 		CollectExistingFiles();
 
@@ -331,8 +332,8 @@ private:
 	Util::IExecutor::Task CreateTask(BookInfoList&& books)
 	{
 		const auto      totalSize    = std::accumulate(books.cbegin(), books.cend(), 0LL, [](const size_t init, const auto& book) {
-            return init + book.book->GetRawData(BookItem::Column::Size).toLongLong();
-        });
+			return init + book.book->GetRawData(BookItem::Column::Size).toLongLong();
+		});
 		std::shared_ptr progressItem = m_progressController->Add(totalSize);
 
 		auto uid = [&] {
@@ -396,16 +397,16 @@ private:
 
 		if (!inpxFileExists)
 		{
-			zipFileController->AddFile(QString::fromStdWString(Inpx::COLLECTION_INFO), QString("%1, favorites").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
-			zipFileController->AddFile(QString::fromStdWString(Inpx::VERSION_INFO), QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile(Inpx::COLLECTION_INFO, QString("%1, favorites").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile(Inpx::VERSION_INFO, QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
 		}
 
-		for (auto&& [uid, data] : m_paths)
+		for (const auto& [uid, data] : m_paths)
 			if (!data.isEmpty())
-				zipFileController->AddFile(QString("%1.inp").arg(uid), std::move(data), QDateTime::currentDateTime());
+				zipFileController->AddFile(QString("%1.inp").arg(uid), data, QDateTime::currentDateTime());
 
 		Zip zip(inpxFileName, Zip::Format::Zip, inpxFileExists);
-		zip.Write(std::move(zipFileController));
+		zip.Write(*zipFileController);
 
 		m_callback(m_hasError);
 	}
@@ -448,32 +449,32 @@ private:
 				QFile::remove(inpxFileName);
 
 			auto zipFileController = Zip::CreateZipFileController();
-			zipFileController->AddFile(QString::fromStdWString(Inpx::COLLECTION_INFO), QString("%1").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
-			zipFileController->AddFile(QString::fromStdWString(Inpx::VERSION_INFO), QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile(Inpx::COLLECTION_INFO, QString("%1").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile(Inpx::VERSION_INFO, QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
 
 			Zip                                         zip(inpxFileName, Zip::Format::Zip);
 			std::vector<std::pair<QString, QByteArray>> toZip;
-			zip.Write(std::move(zipFileController));
+			zip.Write(*zipFileController);
 		}
 
 		QString    currentFolder;
 		QByteArray data;
 		int64_t    counter = 0;
 		const auto write   = [&] {
-            if (counter == 0)
-                return;
+			if (counter == 0)
+				return;
 
-            assert(!currentFolder.isEmpty() && !data.isEmpty());
+			assert(!currentFolder.isEmpty() && !data.isEmpty());
 
-            Zip zip(inpxFileName, Zip::Format::Auto, true);
+			Zip zip(inpxFileName, Zip::Format::Auto, true);
 
-            QFileInfo fileInfo(currentFolder);
-            auto      zipFileController = Zip::CreateZipFileController();
-            zipFileController->AddFile(fileInfo.completeBaseName() + ".inp", std::move(data), QDateTime::currentDateTime());
-            zip.Write(std::move(zipFileController));
+			QFileInfo fileInfo(currentFolder);
+			auto      zipFileController = Zip::CreateZipFileController();
+			zipFileController->AddFile(fileInfo.completeBaseName() + ".inp", data, QDateTime::currentDateTime());
+			zip.Write(*zipFileController);
 
-            bookProgressItem->Increment(counter);
-            counter = 0;
+			bookProgressItem->Increment(counter);
+			counter = 0;
 		};
 
 		const auto query = db->CreateQuery(BOOK_QUERY);

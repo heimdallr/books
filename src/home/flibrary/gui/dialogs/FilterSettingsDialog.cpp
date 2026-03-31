@@ -9,8 +9,8 @@
 #include "fnd/FindPair.h"
 #include "fnd/algorithm.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/localization.h"
 #include "interface/logic/IDataItem.h"
 
 #include "gutil/util.h"
@@ -133,7 +133,7 @@ private: // QSortFilterProxyModel
 class FilterSettingsDialog::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
-	, ModeComboBox::IValueApplier
+	, ModeLineEdit::IValueApplier
 	, public IFilterController::ICallback
 	, public std::enable_shared_from_this<Impl>
 {
@@ -223,21 +223,24 @@ private:
 		m_ui.view->viewport()->installEventFilter(m_scrollBarController.get());
 		m_ui.view->header()->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
 
-		connect(&m_filterTimer, &QTimer::timeout, &m_self, [&] {
+		m_valueApplier = m_ui.value->Setup(m_settings, RECENT_VALUE_MODE_KEY);
+		m_indexToMode  = CreateTabs();
+
+		connect(&m_filterTimer, &QTimer::timeout, &m_self, [this] {
 			FilterImpl();
 		});
-		connect(m_ui.tabs, &QTabWidget::currentChanged, [this, indexToMode = CreateTabs()](const int tabIndex) {
-			OnTabChanged(indexToMode, tabIndex);
+		connect(m_ui.tabs, &QTabWidget::currentChanged, [this](const int tabIndex) {
+			OnTabChanged(tabIndex);
 		});
 		connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, &QDialog::reject);
 		connect(m_ui.btnApply, &QAbstractButton::clicked, [this] {
 			Apply();
 		});
-		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [&] {
+		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [this] {
 			OnValueChanged();
 		});
-		connect(m_ui.cbValueMode, &QComboBox::currentIndexChanged, &m_self, [&] {
-			OnValueModeIndexChanged();
+		connect(m_ui.value, &ModeLineEdit::ValueApplierChanged, &m_self, [this](const ValueApplier valueApplier) {
+			OnValueModeChanged(valueApplier);
 		});
 		connect(m_ui.view, &QWidget::customContextMenuRequested, &m_self, [this] {
 			OnViewContextMenuRequested();
@@ -252,19 +255,18 @@ private:
 			m_settings->Set(QString(SHOW_CHECKED_MODE_KEY).arg(m_ui.tabs->currentIndex()), link);
 			InitShowCheckedMode();
 		});
+		connect(m_ui.radioButtonAnd, &QAbstractButton::toggled, &m_self, [this](const bool checked) {
+			if (checked)
+				m_changedAccumulations[m_indexToMode[m_ui.tabs->currentIndex()]] = m_ui.radioButtonAnd->accessibleName();
+		});
+		connect(m_ui.radioButtonOr, &QAbstractButton::toggled, &m_self, [this](const bool checked) {
+			if (checked)
+				m_changedAccumulations[m_indexToMode[m_ui.tabs->currentIndex()]] = m_ui.radioButtonOr->accessibleName();
+		});
 
 		QTimer::singleShot(0, [this] {
 			m_ui.tabs->setCurrentIndex(m_settings->Get(RECENT_TAB_KEY, 0));
 		});
-
-		if (const auto it = std::ranges::find_if(
-				ModeComboBox::VALUE_MODES,
-				[mode = m_settings->Get(RECENT_VALUE_MODE_KEY).toString()](const auto& item) {
-					return mode == item.first;
-				}
-			);
-		    it != std::cend(ModeComboBox::VALUE_MODES))
-			m_ui.cbValueMode->setCurrentIndex(static_cast<int>(std::distance(std::cbegin(ModeComboBox::VALUE_MODES), it)));
 
 		LoadGeometry();
 	}
@@ -316,7 +318,7 @@ private:
 		return indexToMode;
 	}
 
-	void OnTabChanged(const std::vector<NavigationMode>& indexToMode, const int tabIndex)
+	void OnTabChanged(const int tabIndex)
 	{
 		if (m_model)
 			Util::SaveHeaderSectionWidth(*m_ui.view->header(), *this->m_settings, FIELD_WIDTH_KEY);
@@ -324,13 +326,24 @@ private:
 		m_ui.view->setModel(nullptr);
 		m_model.reset();
 		const auto index = static_cast<size_t>(tabIndex);
-		if (index >= indexToMode.size())
-			return m_ui.showCheckedMode->setVisible(false);
+		if (index >= m_indexToMode.size())
+		{
+			m_ui.showCheckedMode->setVisible(false);
+			m_ui.flagsAccumulationWidget->setVisible(false);
+			return;
+		}
 
-		m_filteredNavigation = &IFilterController::GetFilteredNavigationDescription(indexToMode[index]);
-		assert(m_filteredNavigation);
 		m_ui.showCheckedMode->setVisible(true);
-		m_dataProvider->SetNavigationMode(indexToMode[index]);
+		m_ui.flagsAccumulationWidget->setVisible(true);
+
+		const auto flagsAccumulationMode = m_filterController->GetFlagsAccumulationMode(m_indexToMode[index]);
+		for (auto* btn : m_self.findChildren<QRadioButton*>())
+			if (btn->accessibleName() == flagsAccumulationMode)
+				btn->setChecked(true);
+
+		m_filteredNavigation = &IFilterController::GetFilteredNavigationDescription(m_indexToMode[index]);
+		assert(m_filteredNavigation);
+		m_dataProvider->SetNavigationMode(m_indexToMode[index]);
 		m_dataProvider->RequestNavigation();
 		m_ui.tabs->widget(tabIndex)->layout()->addWidget(m_ui.content);
 		SetFont();
@@ -352,12 +365,12 @@ private:
 
 	void OnValueChanged()
 	{
-		std::invoke(ModeComboBox::VALUE_MODES[m_ui.cbValueMode->currentIndex()].second, static_cast<IValueApplier&>(*this));
+		std::invoke(m_valueApplier, static_cast<IValueApplier&>(*this));
 	}
 
-	void OnValueModeIndexChanged()
+	void OnValueModeChanged(const ValueApplier valueApplier)
 	{
-		m_settings->Set(RECENT_VALUE_MODE_KEY, m_ui.cbValueMode->currentData());
+		m_valueApplier = valueApplier;
 		if (m_model)
 			m_model->setData({}, {}, Role::TextFilter);
 		OnValueChanged();
@@ -457,7 +470,7 @@ private:
 
 		const auto flags = m_sectionClicked == 1 ? IDataItem::Flags::Filtered : m_sectionClicked == 2 ? IDataItem::Flags::BooksFiltered : (assert(false && "unexpected section"), IDataItem::Flags::None);
 		const auto skip  = [this](const QModelIndex& index) {
-            return m_filteredNavigation->navigationMode == NavigationMode::Genres && index.isValid() && !m_ui.view->isExpanded(index);
+			return m_filteredNavigation->navigationMode == NavigationMode::Genres && index.isValid() && !m_ui.view->isExpanded(index);
 		};
 		const auto process = [&](const QModelIndex& index) {
 			if (index.data(Role::ChildCount).toInt() > 0)
@@ -480,6 +493,8 @@ private:
 			m_ui.hideRatedHigher->isChecked() ? std::optional { m_ui.maximumRating->value() } : std::nullopt,
 			m_ui.hideUnrated->isChecked()
 		);
+		for (const auto& [navigationMode, key] : m_changedAccumulations)
+			m_filterController->SetFlagsAccumulationMode(navigationMode, key);
 		m_filterController->SetFilterEnabled(m_ui.checkBoxFilterEnabled->isChecked());
 		m_filterController->Apply();
 		m_self.accept();
@@ -509,10 +524,13 @@ private:
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
 	PropagateConstPtr<QAbstractItemModel>                   m_model { std::unique_ptr<QAbstractItemModel> {} };
+	std::vector<NavigationMode>                             m_indexToMode;
+	std::unordered_map<NavigationMode, QString>             m_changedAccumulations;
 	const IFilterController::FilteredNavigation*            m_filteredNavigation { nullptr };
 	QTimer                                                  m_filterTimer;
 	int                                                     m_sectionClicked { -1 };
 	ShowCheckedMode                                         m_showCheckedMode { ShowCheckedMode::All };
+	ValueApplier                                            m_valueApplier { &IValueApplier::Filter };
 
 	std::atomic_bool                m_hideFilteredStarted { false };
 	Util::FunctorExecutionForwarder m_forwarder;

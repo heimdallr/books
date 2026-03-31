@@ -24,7 +24,7 @@ IStyleApplier::Type PluginStyleApplier::GetType() const noexcept
 	return Type::PluginStyle;
 }
 
-std::unique_ptr<Util::DyLib> PluginStyleApplier::Set(QApplication& app) const
+std::unique_ptr<Platform::DyLib> PluginStyleApplier::Set(QApplication& app) const
 {
 	auto style = m_settings->Get(THEME_NAME_KEY, THEME_NAME_DEFAULT);
 	if (!QStyleFactory::keys().contains(style, Qt::CaseInsensitive))

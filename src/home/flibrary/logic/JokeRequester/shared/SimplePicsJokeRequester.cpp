@@ -55,8 +55,8 @@ bool SimplePicsJokeRequester::Process(const QJsonValue& value, std::weak_ptr<ICl
 
 	auto       item = std::make_unique<Item>(std::move(client));
 	const auto id   = m_impl->downloader.Download(uri.toString(), item->stream, [this](const size_t idMessage, const int code, const QString& message) {
-        OnImageReceived(idMessage, code, message);
-    });
+		OnImageReceived(idMessage, code, message);
+	});
 	m_impl->requests.try_emplace(id, std::move(item));
 	return true;
 }
@@ -70,7 +70,9 @@ void SimplePicsJokeRequester::OnImageReceived(const size_t id, const int code, c
 	});
 
 	if (code != QNetworkReply::NetworkError::NoError)
+	{
 		PLOGE << message;
+	}
 
 	if (const auto client = it->second->client.lock())
 		client->OnImageReceived(it->second->data);

@@ -6,7 +6,8 @@
 #include "fnd/EnumBitmask.h"
 #include "fnd/observer.h"
 
-#include "IDataItem.h"
+#include "interface/constants/Enums.h"
+#include "interface/logic/IDataItem.h"
 
 class QModelIndex;
 class QPoint;
@@ -59,7 +60,7 @@ public:
 	[[nodiscard]] virtual int                                      GetModeIndex() const                                                                                                 = 0;
 	[[nodiscard]] virtual ItemType                                 GetItemType() const noexcept                                                                                         = 0;
 	[[nodiscard]] virtual QString                                  GetItemName() const                                                                                                  = 0;
-	[[nodiscard]] virtual enum class ViewMode                      GetViewMode() const noexcept                                                                                         = 0;
+	[[nodiscard]] virtual ViewMode                                 GetViewMode() const noexcept                                                                                         = 0;
 	virtual void                                                   RequestContextMenu(const QModelIndex& index, RequestContextMenuOptions options, RequestContextMenuCallback callback) = 0;
 	virtual void                                                   OnContextMenuTriggered(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item) = 0;
 	virtual void                                                   OnDoubleClicked(const QModelIndex& index) const                                                                                       = 0;

@@ -8,6 +8,7 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IFilterProvider.h"
+#include "interface/logic/IHotkeyManager.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"
@@ -33,6 +34,7 @@ public:
 		std::shared_ptr<ISettings>                  settings,
 		std::shared_ptr<IUiFactory>                 uiFactory,
 		std::shared_ptr<IFilterProvider>            filterProvider,
+		std::shared_ptr<IHotkeyManager>             hotkeyManager,
 		std::shared_ptr<ItemViewToolTipper>         itemViewToolTipper,
 		std::shared_ptr<ScrollBarController>        scrollBarController,
 		QWidget*                                    parent = nullptr

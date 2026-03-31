@@ -45,14 +45,14 @@ public:
 	{
 		return std::make_unique<Model>(
 			settings.Get(Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false),
-			collectionProvider.ActiveCollectionExists() ? collectionProvider.GetActiveCollection().GetFolder() : QString {},
+			collectionProvider.ActiveCollectionExists() ? collectionProvider.GetActiveCollection().GetAdditionalFolder() : QString {},
 			std::move(databaseUser)
 		);
 	}
 
 	Model(const bool showRemoved, const QString& folder, std::shared_ptr<const IDatabaseUser> databaseUser)
 		: m_showRemoved { showRemoved }
-		, m_folder { folder + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER) }
+		, m_folder { folder + "/" + Inpx::REVIEWS_FOLDER }
 		, m_databaseUser { std::move(databaseUser) }
 	{
 	}
@@ -128,22 +128,22 @@ select r.Folder, b.BookID, f.FolderTitle||'#'||b.FileName, b.Title
 		std::shared_ptr<const Zip> zip;
 		QString                    folder;
 		const auto                 getZip = [&] {
-            if (!Util::Set(folder, QString(query->Get<const char*>(0))))
-                return assert(zip);
+			if (!Util::Set(folder, QString(query->Get<const char*>(0))))
+				return assert(zip);
 
-            try
-            {
-                zip.reset();
-                zip = std::make_shared<Zip>(m_folder.filePath(folder));
-            }
-            catch (const std::exception& ex)
-            {
-                PLOGE << ex.what();
-            }
-            catch (...)
-            {
-                PLOGE << "unknown error";
-            }
+			try
+			{
+				zip.reset();
+				zip = std::make_shared<Zip>(m_folder.filePath(folder));
+			}
+			catch (const std::exception& ex)
+			{
+				PLOGE << ex.what();
+			}
+			catch (...)
+			{
+				PLOGE << "unknown error";
+			}
 		};
 
 		for (query->Execute(); !query->Eof(); query->Next())

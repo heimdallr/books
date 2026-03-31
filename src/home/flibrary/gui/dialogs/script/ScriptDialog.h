@@ -6,7 +6,6 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/IModelProvider.h"
-#include "interface/ui/dialogs/IScriptDialog.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
 #include "gutil/interface/IUiFactory.h"
@@ -18,9 +17,7 @@
 namespace HomeCompa::Flibrary
 {
 
-class ScriptDialog final
-	: public QDialog
-	, virtual public IScriptDialog
+class ScriptDialog final : public QDialog
 {
 	NON_COPY_MOVABLE(ScriptDialog)
 
@@ -34,9 +31,6 @@ public:
 		std::shared_ptr<ScriptNameDelegate>           scriptNameLineEditDelegate
 	);
 	~ScriptDialog() override;
-
-private: // IScriptDialog
-	int Exec() override;
 
 private:
 	class Impl;

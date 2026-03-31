@@ -25,6 +25,7 @@ AddTarget(opds	app
 		fnd
 		logging
 		logic
+		platform
 		util
 		ver
 		zip

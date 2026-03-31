@@ -23,6 +23,7 @@ public:
 private: // IFilterProvider
 	[[nodiscard]] bool                          IsFilterEnabled() const noexcept override;
 	[[nodiscard]] std::vector<IDataItem::Flags> GetFlags(NavigationMode navigationMode, const std::vector<QString>& ids) const override;
+	[[nodiscard]] QString                       GetFlagsAccumulationMode(NavigationMode navigationMode) const override;
 	[[nodiscard]] bool                          HideUnrated() const noexcept override;
 	[[nodiscard]] bool                          IsMinimumRateEnabled() const noexcept override;
 	[[nodiscard]] bool                          IsMaximumRateEnabled() const noexcept override;
@@ -36,6 +37,7 @@ private: // IFilterController
 	void SetFilterEnabled(bool enabled) override;
 	void Apply() override;
 	void SetFlags(NavigationMode navigationMode, QString id, IDataItem::Flags flags) override;
+	void SetFlagsAccumulationMode(NavigationMode navigationMode, const QString& mode) override;
 	void SetRating(const std::optional<int>& min, const std::optional<int>& max, bool hideUnrated) override;
 	void SetNavigationItemFlags(NavigationMode navigationMode, QStringList navigationIds, IDataItem::Flags flags, Callback callback) override;
 	void ClearNavigationItemFlags(NavigationMode navigationMode, QStringList navigationIds, IDataItem::Flags flags, Callback callback) override;

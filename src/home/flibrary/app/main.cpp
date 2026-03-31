@@ -12,6 +12,7 @@
 #include "interface/logic/IDatabaseMigrator.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IOpdsController.h"
+#include "interface/logic/IScriptController.h"
 #include "interface/logic/ISingleInstanceController.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/IMainWindow.h"
@@ -40,9 +41,12 @@ using namespace HomeCompa;
 namespace
 {
 
+constexpr auto SEQ_NUMBER_WIDTH_KEY = "Preferences/Export/seqNumberWidth";
+
 constexpr auto CONTEXT = "Main";
 constexpr auto WRONG_DB_VERSION =
 	QT_TRANSLATE_NOOP("Main", "It looks like you're trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?");
+constexpr auto UNSUPPORTED_DB_VERSION = QT_TRANSLATE_NOOP("Main", "The database version is not supported. You must recreate the collection");
 TR_DEF
 
 }
@@ -67,7 +71,7 @@ int main(int argc, char* argv[])
 		const auto logOption      = Log::LoggingInitializer::AddLogFileOption(parser, defaultLogPath);
 		parser.process(app);
 
-		Log::LoggingInitializer logging((parser.isSet(logOption) ? parser.value(logOption) : defaultLogPath).toStdWString());
+		Log::LoggingInitializer logging(parser.isSet(logOption) ? parser.value(logOption) : defaultLogPath);
 		LogModelAppender        logModelAppender;
 
 		PLOGI << "App started";
@@ -75,7 +79,9 @@ int main(int argc, char* argv[])
 		PLOGI << "Commit hash: " << GIT_HASH;
 		// ReSharper disable CppCompileTimeConstantCanBeReplacedWithBooleanConstant
 		if constexpr (PERSONAL_BUILD_NAME && PERSONAL_BUILD_NAME[0]) //-V560
+		{
 			PLOGI << "Personal build: " << PERSONAL_BUILD_NAME;
+		}
 		// ReSharper restore CppCompileTimeConstantCanBeReplacedWithBooleanConstant
 
 		PLOGD << "QApplication created";
@@ -99,6 +105,8 @@ int main(int argc, char* argv[])
 			Genre::SetSortMode(*settings);
 			if (!settings->HasKey(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks)))
 				settings->Set(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks), false);
+
+			IScriptController::SetSeqNumberWidth(settings->Get(SEQ_NUMBER_WIDTH_KEY, 1));
 
 			auto       styleApplierFactory = container->resolve<IStyleApplierFactory>();
 			const auto themeLib            = styleApplierFactory->CreateThemeApplier()->Set(app);
@@ -125,6 +133,11 @@ int main(int argc, char* argv[])
 				case IDatabaseMigrator::NeedMigrateResult::Unexpected:
 					if (container->resolve<IUiFactory>()->ShowWarning(Tr(WRONG_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::No) == QMessageBox::No)
 						return EXIT_FAILURE;
+					break;
+
+				case IDatabaseMigrator::NeedMigrateResult::Unsupported:
+					container->resolve<IUiFactory>()->ShowError(Tr(UNSUPPORTED_DB_VERSION));
+					return EXIT_FAILURE;
 			}
 
 			container->resolve<ITaskQueue>()->Execute();

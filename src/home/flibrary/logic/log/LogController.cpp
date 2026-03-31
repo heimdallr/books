@@ -8,8 +8,8 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/PLogSeverityLocalization.h"
+#include "interface/localization.h"
 #include "interface/logic/LogModelRole.h"
 
 #include "model/LogModel.h"

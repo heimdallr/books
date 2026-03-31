@@ -12,8 +12,9 @@
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/SettingsConstant.h"
 
-#include "Util/IExecutor.h"
-#include "Util/ImageRestore.h"
+#include "platform/StrUtil.h"
+#include "util/IExecutor.h"
+#include "util/ImageRestore.h"
 
 #include "log.h"
 #include "zip.h"
@@ -34,18 +35,18 @@ public:
 
 bool Write(const QByteArray& input, const std::filesystem::path& path)
 {
-	QFile output(QString::fromStdWString(path));
+	QFile output(Platform::PathToString(path));
 	return output.open(QIODevice::WriteOnly) && output.write(input) == input.size();
 }
 
-bool Archive(QByteArray input, const std::filesystem::path& path, QString fileName, std::shared_ptr<Zip::ProgressCallback> zipProgressCallback)
+bool Archive(const QByteArray& input, const std::filesystem::path& path, QString fileName, std::shared_ptr<Zip::ProgressCallback> zipProgressCallback)
 {
 	try
 	{
-		Zip  zip(QString::fromStdWString(path), Zip::Format::Zip, false, std::move(zipProgressCallback));
+		Zip  zip(Platform::PathToString(path), Zip::Format::Zip, false, std::move(zipProgressCallback));
 		auto zipFiles = Zip::CreateZipFileController();
-		zipFiles->AddFile(std::move(fileName), std::move(input), QDateTime::currentDateTime());
-		zip.Write(std::move(zipFiles));
+		zipFiles->AddFile(std::move(fileName), input, QDateTime::currentDateTime());
+		zip.Write(*zipFiles);
 		return true;
 	}
 	catch (const std::exception& ex)
@@ -73,9 +74,9 @@ bool Unpack(QByteArray& input, const std::filesystem::path& path)
 		}
 
 		return std::ranges::all_of(zip.GetFileNameList(), [&](const auto& fileName) {
-			const auto fullPath = folder / fileName.toStdWString();
+			const auto fullPath = folder / Platform::StringToPath(fileName);
 			std::filesystem::create_directories(fullPath.parent_path());
-			QFile      output(QString::fromStdWString(fullPath));
+			QFile      output(Platform::PathToString(fullPath));
 			const auto fileSize = zip.GetFileSize(fileName);
 			return output.open(QIODevice::WriteOnly) && output.write(zip.Read(fileName)->GetStream().readAll()) == static_cast<qint64>(fileSize);
 		});
@@ -111,7 +112,7 @@ std::pair<bool, std::filesystem::path> Write(
 	if (const auto dstDir = dstFileInfo.absolutePath(); !(QDir().exists(dstDir) || QDir().mkpath(dstDir)))
 		return result;
 
-	result.second = QDir::toNativeSeparators(book.dstFileName).toStdWString();
+	result.second = Platform::StringToPath(QDir::toNativeSeparators(book.dstFileName));
 
 	exportHelper.CheckPath(result.second);
 
@@ -151,7 +152,7 @@ std::filesystem::path Process(
 	if (progress.IsStopped())
 		return {};
 
-	const auto folder = QDir::fromNativeSeparators(QString::fromStdWString(archiveFolder / book.folder.toStdWString()));
+	const auto folder = QDir::fromNativeSeparators(Platform::PathToString(archiveFolder / Platform::StringToPath(book.folder)));
 	if (!QFile::exists(folder))
 		throw std::runtime_error((folder + ": archive not found").toStdString());
 
@@ -177,8 +178,8 @@ void Process(
 )
 {
 	const auto needFile   = std::ranges::any_of(commands, [](const auto& command) {
-        return IScriptController::HasMacro(command.args, IScriptController::Macro::SourceFile);
-    });
+		return IScriptController::HasMacro(command.args, IScriptController::Macro::SourceFile);
+	});
 	const auto sourceFile = needFile ? Process(settings, archiveFolder, book, progress, {}, exportHelper, WriteMode::AsIs) : std::filesystem::path {};
 
 	std::ranges::sort(commands, {}, [](const IScriptController::Command& command) {
@@ -187,7 +188,7 @@ void Process(
 	for (auto command : commands)
 	{
 		if (needFile)
-			IScriptController::SetMacro(command.args, IScriptController::Macro::SourceFile, QDir::toNativeSeparators(QString::fromStdWString(sourceFile)));
+			IScriptController::SetMacro(command.args, IScriptController::Macro::SourceFile, QDir::toNativeSeparators(Platform::PathToString(sourceFile)));
 		IScriptController::SetMacro(command.args, IScriptController::Macro::UserDestinationFolder, QDir::toNativeSeparators(dstFolder));
 		ILogicFactory::FillScriptTemplate(db, command.args, book);
 
@@ -243,7 +244,7 @@ public:
 		m_processFunctor = std::move(processFunctor);
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor({ static_cast<int>(m_taskCount) }).swap(m_executor);
 		m_dstFolder     = std::move(dstFolder);
-		m_archiveFolder = m_collectionController->GetActiveCollection().GetFolder().toStdWString();
+		m_archiveFolder = Platform::StringToPath(m_collectionController->GetActiveCollection().GetFolder());
 
 		const auto transaction = m_databaseUser->Database()->CreateTransaction();
 		const auto command     = transaction->CreateCommand(ExportStat::INSERT_QUERY);
@@ -288,7 +289,7 @@ private: // IExportHelper
 	void CheckPath(std::filesystem::path& path) override
 	{
 		std::lock_guard lock(m_usedPathGuard);
-		if (m_usedPath.emplace(QString::fromStdWString(path).toLower()).second)
+		if (m_usedPath.emplace(Platform::PathToString(path).toLower()).second)
 			return;
 
 		const auto folder   = path.parent_path();
@@ -298,7 +299,7 @@ private: // IExportHelper
 		{
 			path = folder / (basePath + std::to_wstring(i).append(ext));
 			path.make_preferred();
-			if (m_usedPath.emplace(QString::fromStdWString(path).toLower()).second)
+			if (m_usedPath.emplace(Platform::PathToString(path).toLower()).second)
 				return;
 		}
 	}

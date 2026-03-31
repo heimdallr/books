@@ -74,7 +74,7 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="value">
+      <widget class="HomeCompa::Flibrary::ModeLineEdit" name="value">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
          <horstretch>0</horstretch>
@@ -88,16 +88,6 @@
        </property>
        <property name="clearButtonEnabled">
         <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="HomeCompa::Flibrary::ModeComboBox" name="cbValueMode">
-       <property name="sizePolicy">
-        <sizepolicy hsizetype="Fixed" vsizetype="Fixed">
-         <horstretch>0</horstretch>
-         <verstretch>0</verstretch>
-        </sizepolicy>
        </property>
       </widget>
      </item>
@@ -154,11 +144,6 @@
  </widget>
  <customwidgets>
   <customwidget>
-   <class>HomeCompa::Flibrary::ModeComboBox</class>
-   <extends>QComboBox</extends>
-   <header>widgets/ModeComboBox.h</header>
-  </customwidget>
-  <customwidget>
    <class>HomeCompa::Flibrary::FComboBox</class>
    <extends>QComboBox</extends>
    <header>widgets/FComboBox.h</header>
@@ -167,6 +152,11 @@
    <class>HomeCompa::Flibrary::CustomTreeView</class>
    <extends>QTreeView</extends>
    <header>widgets/TreeView.h</header>
+  </customwidget>
+  <customwidget>
+   <class>HomeCompa::Flibrary::ModeLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>widgets/ModeLineEdit.h</header>
   </customwidget>
  </customwidgets>
  <resources>

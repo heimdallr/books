@@ -229,6 +229,7 @@ public:
 	FLINT_EXPORT static const char* GetMacro(Macro macro);
 	FLINT_EXPORT static void        ExecuteContextMenu(QLineEdit* lineEdit);
 	FLINT_EXPORT static QString     GetDefaultOutputFileNameTemplate();
+	FLINT_EXPORT static void        SetSeqNumberWidth(int value);
 
 public:
 	virtual ~IScriptController() = default;

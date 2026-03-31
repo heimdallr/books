@@ -17,10 +17,10 @@
 
 #include "fnd/FindPair.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/IDataItem.h"
 
 #include "gutil/util.h"
@@ -92,7 +92,9 @@ bool SaveImage(QString& fileName, const QByteArray& bytes)
 		fileName += QString(mediaType) == Util::IMAGE_PNG ? ".png" : ".jpg";
 
 	if (QFile::exists(fileName))
+	{
 		PLOGW << fileName << " already exists and will be overwritten";
+	}
 
 	QFile file(fileName);
 	if (!file.open(QIODevice::WriteOnly))

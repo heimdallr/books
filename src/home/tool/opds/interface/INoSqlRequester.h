@@ -3,7 +3,9 @@
 
 namespace HomeCompa
 {
+
 class ISettings;
+
 }
 
 class QByteArray;

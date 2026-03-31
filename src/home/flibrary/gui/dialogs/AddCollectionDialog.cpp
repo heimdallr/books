@@ -7,9 +7,10 @@
 
 #include "fnd/ScopedCall.h"
 
-#include "interface/Localization.h"
+#include "interface/localization.h"
 
-#include "util/DyLib.h"
+#include "platform/DyLib.h"
+#include "platform/StrUtil.h"
 #include "util/GeometryRestorable.h"
 #include "util/files.h"
 #include "util/translit.h"
@@ -28,27 +29,19 @@ namespace
 
 constexpr auto RECENT_TEMPLATE                  = "ui/AddCollectionDialog/%1";
 constexpr auto NAME                             = "Name";
-constexpr auto DATABASE                         = "DatabaseFileName";
-constexpr auto FOLDER                           = "ArchiveFolder";
-constexpr auto INPX                             = "Inpx";
+constexpr auto ADDITIONAL_FOLDER_ENABLED        = "AdditionalFolderEnabled";
 constexpr auto INPX_EXPLICIT                    = "InpxExplicit";
 constexpr auto ADD_UN_INDEXED_BOOKS             = "AddUnIndexedBooks";
 constexpr auto SCAN_UN_INDEXED_FOLDERS          = "ScanUnIndexedFolders";
 constexpr auto SKIP_NOT_IN_ARCHIVES             = "SkipNotInArchives";
+constexpr auto LOAD_ANNOTATIONS                 = "LoadAnnotations";
 constexpr auto MARK_UN_INDEXED_BOOKS_AS_DELETED = "MarkUnIndexedBooksAsDeleted";
 constexpr auto DEFAULT_ARCHIVE_TYPE             = "DefaultArchiveType";
-constexpr auto DATABASE_RELATIVE_PATH           = "DatabaseRelativePath";
-constexpr auto ARCHIVE_RELATIVE_PATH            = "ArchiveRelativePath";
-constexpr auto INPX_RELATIVE_PATH               = "InpxRelativePath";
+constexpr auto DEFAULT_ADDITIONAL_FOLDER        = "/etc";
 
-constexpr auto CONTEXT                  = "AddCollectionDialog";
-constexpr auto DATABASE_FILENAME_FILTER = QT_TRANSLATE_NOOP("AddCollectionDialog", "Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)");
-constexpr auto INPX_FILENAME_FILTER     = QT_TRANSLATE_NOOP("AddCollectionDialog", "Collection index files (*.inpx);;All files (*.*)");
-constexpr auto SELECT_DATABASE_FILE     = QT_TRANSLATE_NOOP("AddCollectionDialog", "Select database file");
-constexpr auto SELECT_ARCHIVES_FOLDER   = QT_TRANSLATE_NOOP("AddCollectionDialog", "Select archives folder");
-constexpr auto SELECT_INPX_FILE         = QT_TRANSLATE_NOOP("AddCollectionDialog", "Select collection index file");
-constexpr auto CREATE_NEW_COLLECTION    = QT_TRANSLATE_NOOP("AddCollectionDialog", "Create new");
-constexpr auto ADD_COLLECTION           = QT_TRANSLATE_NOOP("AddCollectionDialog", "Add");
+constexpr auto CONTEXT               = "AddCollectionDialog";
+constexpr auto CREATE_NEW_COLLECTION = QT_TRANSLATE_NOOP("AddCollectionDialog", "Create new");
+constexpr auto ADD_COLLECTION        = QT_TRANSLATE_NOOP("AddCollectionDialog", "Add");
 
 constexpr auto EMPTY_NAME                         = QT_TRANSLATE_NOOP("Error", "Name cannot be empty");
 constexpr auto COLLECTION_NAME_ALREADY_EXISTS     = QT_TRANSLATE_NOOP("Error", "Same named collection has already been added");
@@ -58,13 +51,10 @@ constexpr auto DATABASE_NOT_FOUND                 = QT_TRANSLATE_NOOP("Error", "
 constexpr auto BAD_DATABASE_EXT                   = QT_TRANSLATE_NOOP("Error", "Bad database file extension (.inpx)");
 constexpr auto EMPTY_ARCHIVES_NAME                = QT_TRANSLATE_NOOP("Error", "Archive folder name cannot be empty");
 constexpr auto ARCHIVES_FOLDER_NOT_FOUND          = QT_TRANSLATE_NOOP("Error", "Archive folder not found");
+constexpr auto ADDITIONAL_FOLDER_NOT_FOUND        = QT_TRANSLATE_NOOP("Error", "Additional info folder not found");
 constexpr auto EMPTY_ARCHIVES_FOLDER              = QT_TRANSLATE_NOOP("Error", "Archive folder cannot be empty");
 constexpr auto INPX_NOT_FOUND                     = QT_TRANSLATE_NOOP("Error", "Index file (*.inpx) not found");
 constexpr auto CANNOT_CREATE_FOLDER               = QT_TRANSLATE_NOOP("Error", "Cannot create database folder %1");
-
-constexpr auto DIALOG_KEY_DB   = "Database";
-constexpr auto DIALOG_KEY_ARCH = "Archives";
-constexpr auto DIALOG_KEY_INPX = "Inpx";
 
 QString Error(const char* str)
 {
@@ -75,16 +65,6 @@ QString Error(const char* str)
 }
 
 TR_DEF
-
-QString GetDatabase(const IUiFactory& uiController, const QString& file)
-{
-	return uiController.GetSaveFileName(DIALOG_KEY_DB, Tr(SELECT_DATABASE_FILE), Tr(DATABASE_FILENAME_FILTER), QFileInfo(file).path(), QFileDialog::DontConfirmOverwrite);
-}
-
-QString GetFolder(const IUiFactory& uiController, const QString& dir)
-{
-	return uiController.GetExistingDirectory(DIALOG_KEY_ARCH, Tr(SELECT_ARCHIVES_FOLDER), dir);
-}
 
 } // namespace
 
@@ -102,21 +82,21 @@ public:
 		, m_settings { std::move(settings) }
 		, m_collectionController { std::move(collectionController) }
 		, m_uiFactory { std::move(uiFactory) }
-		, m_icuLib { std::make_unique<Util::DyLib>(ICU::LIB_NAME) }
+		, m_icuLib { std::make_unique<Platform::DyLib>(ICU::LIB_NAME) }
 		, m_icuTransliterate { m_icuLib->GetTypedProc<ICU::TransliterateType>(ICU::TRANSLITERATE_NAME) }
 	{
 		m_ui.setupUi(&m_self);
 
 		m_ui.comboBoxDefaultArchiveType->addItems(Zip::GetTypes());
 
-		connect(m_ui.editArchive, &QLineEdit::textChanged, &m_self, [&](const QString& text) {
+		connect(m_ui.editArchive, &RelativePathLineEdit::Changed, &m_self, [&](const QString& text) {
 			m_ui.btnSetDefaultName->setEnabled(!text.isEmpty());
 			if (m_ui.editName->text().isEmpty())
 				SetDefaultCollectionName();
 		});
 
 		if (const auto inpxFolder = m_uiFactory->GetNewCollectionInpxFolder(); !inpxFolder.empty())
-			m_ui.editArchive->setText(QDir::fromNativeSeparators(QString::fromStdWString(inpxFolder)));
+			m_ui.editArchive->SetText(QDir::fromNativeSeparators(Platform::PathToString(inpxFolder)));
 
 		connect(m_ui.btnSetDefaultName, &QAbstractButton::clicked, &m_self, [&] {
 			SetDefaultCollectionName(true);
@@ -139,93 +119,51 @@ public:
 		connect(m_ui.btnCancel, &QAbstractButton::clicked, &m_self, [&] {
 			m_self.done(Result::Cancel);
 		});
-		connect(m_ui.btnDatabase, &QAbstractButton::clicked, &m_self, [&] {
-			auto file = GetDatabase(*m_uiFactory, GetDatabaseFileName());
-			if (file.isEmpty())
-				return;
-
-			if (m_settings->Get(QString(RECENT_TEMPLATE).arg(DATABASE_RELATIVE_PATH), false))
-				file = Util::ToRelativePath(file);
-
-			m_ui.editDatabase->setText(file);
-			m_userDefinedDatabasePath = true;
-		});
-		connect(m_ui.btnArchive, &QAbstractButton::clicked, &m_self, [&] {
-			if (auto dir = GetFolder(*m_uiFactory, GetArchiveFolder()); !dir.isEmpty())
-			{
-				if (m_settings->Get(QString(RECENT_TEMPLATE).arg(ARCHIVE_RELATIVE_PATH), false))
-					dir = Util::ToRelativePath(dir);
-				m_ui.editArchive->setText(dir);
-			}
-		});
-		connect(m_ui.btnInpx, &QAbstractButton::clicked, &m_self, [&] {
-			auto file = m_uiFactory->GetOpenFileName(DIALOG_KEY_INPX, SELECT_INPX_FILE, INPX_FILENAME_FILTER);
-			if (file.isEmpty())
-				return;
-
-			if (m_settings->Get(QString(RECENT_TEMPLATE).arg(INPX_RELATIVE_PATH), false))
-				file = Util::ToRelativePath(file);
-
-			m_ui.editInpx->setText(file);
-		});
 
 		connect(m_ui.editName, &QLineEdit::textChanged, &m_self, [&](const QString& text) {
 			UpdateDatabasePath(text);
 			(void)CheckData();
 		});
-		connect(m_ui.editDatabase, &QLineEdit::textEdited, &m_self, [this] {
+		connect(m_ui.editDatabase, &RelativePathLineEdit::Edited, &m_self, [this] {
 			m_userDefinedDatabasePath = true;
 		});
-		connect(m_ui.editDatabase, &QLineEdit::textChanged, &m_self, [&](const QString& db) {
+		connect(m_ui.editDatabase, &RelativePathLineEdit::Changed, &m_self, [&](const QString& db) {
 			OnDatabaseNameChanged(db);
 		});
-		connect(m_ui.editArchive, &QLineEdit::textChanged, &m_self, [&](const QString& folder) {
+		connect(m_ui.editArchive, &RelativePathLineEdit::Changed, &m_self, [&](const QString& folder) {
 			OnArchiveFolderPathChanged(folder);
+		});
+		connect(m_ui.editAdditional, &RelativePathLineEdit::Changed, &m_self, [&] {
+			(void)CheckData();
 		});
 		connect(m_ui.checkBoxScanUnindexedArchives, &QCheckBox::checkStateChanged, &m_self, [&] {
 			(void)CheckData();
 		});
-		connect(m_ui.editInpx, &QLineEdit::textChanged, &m_self, [&](const QString& path) {
-			OnPathChanged(path, m_ui.editInpx, m_ui.actionInpxToAbsolutePath, m_ui.actionInpxToRelativePath);
+		connect(m_ui.editInpx, &RelativePathLineEdit::Changed, &m_self, [&] {
 			(void)CheckData();
 		});
 		connect(m_ui.checkBoxInpx, &QCheckBox::toggled, &m_self, [&] {
 			(void)CheckData();
 		});
 
-		connect(m_ui.actionDatabaseToAbsolutePath, &QAction::triggered, &m_self, [&] {
-			m_ui.editDatabase->setText(Util::ToAbsolutePath(m_ui.editDatabase->text()));
-			m_settings->Set(QString(RECENT_TEMPLATE).arg(DATABASE_RELATIVE_PATH), false);
-		});
-		connect(m_ui.actionDatabaseToRelativePath, &QAction::triggered, &m_self, [&] {
-			m_ui.editDatabase->setText(Util::ToRelativePath(m_ui.editDatabase->text()));
-			m_settings->Set(QString(RECENT_TEMPLATE).arg(DATABASE_RELATIVE_PATH), true);
-		});
-		connect(m_ui.actionArchiveToAbsolutePath, &QAction::triggered, &m_self, [&] {
-			m_ui.editArchive->setText(Util::ToAbsolutePath(m_ui.editArchive->text()));
-			m_settings->Set(QString(RECENT_TEMPLATE).arg(ARCHIVE_RELATIVE_PATH), false);
-		});
-		connect(m_ui.actionArchiveToRelativePath, &QAction::triggered, &m_self, [&] {
-			m_ui.editArchive->setText(Util::ToRelativePath(m_ui.editArchive->text()));
-			m_settings->Set(QString(RECENT_TEMPLATE).arg(ARCHIVE_RELATIVE_PATH), true);
-		});
-		connect(m_ui.actionInpxToAbsolutePath, &QAction::triggered, &m_self, [&] {
-			m_ui.editInpx->setText(Util::ToAbsolutePath(m_ui.editInpx->text()));
-			m_settings->Set(QString(RECENT_TEMPLATE).arg(INPX_RELATIVE_PATH), false);
-		});
-		connect(m_ui.actionInpxToRelativePath, &QAction::triggered, &m_self, [&] {
-			m_ui.editInpx->setText(Util::ToRelativePath(m_ui.editInpx->text()));
-			m_settings->Set(QString(RECENT_TEMPLATE).arg(INPX_RELATIVE_PATH), true);
+		connect(m_ui.checkBoxAdditional, &QCheckBox::toggled, [this](const bool checked) {
+			if (checked && QDir(m_ui.editArchive->GetText() + DEFAULT_ADDITIONAL_FOLDER).exists())
+				m_ui.editAdditional->SetText(m_ui.editArchive->GetText() + DEFAULT_ADDITIONAL_FOLDER);
+			(void)CheckData();
 		});
 
 		m_ui.editName->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(NAME), QString("FLibrary")));
-		m_ui.editDatabase->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(DATABASE), QString("%1/%2.db").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation), PRODUCT_ID)));
-		m_ui.editArchive->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(FOLDER)).toString());
-		m_ui.editInpx->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(INPX)).toString());
+		m_ui.editDatabase->Setup(&m_self, m_settings.get(), m_uiFactory.get(), m_ui.btnDatabase, QString("%1/%2.db").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation), PRODUCT_ID));
+		m_ui.editInpx->Setup(&m_self, m_settings.get(), m_uiFactory.get(), m_ui.btnInpx);
+		m_ui.editArchive->Setup(&m_self, m_settings.get(), m_uiFactory.get(), m_ui.btnArchive);
+		m_ui.editAdditional->Setup(&m_self, m_settings.get(), m_uiFactory.get(), m_ui.btnAdditional);
+
 		m_ui.checkBoxAddUnindexedBooks->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), true));
 		m_ui.checkBoxMarkUnindexedAdDeleted->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(MARK_UN_INDEXED_BOOKS_AS_DELETED), true));
 		m_ui.checkBoxScanUnindexedArchives->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), false));
 		m_ui.checkBoxAddMissingBooks->setChecked(!m_settings->Get(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), true));
+		m_ui.checkBoxAdditional->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(ADDITIONAL_FOLDER_ENABLED), true));
+		m_ui.checkBoxAnnotation->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(LOAD_ANNOTATIONS), false));
 		m_ui.checkBoxInpx->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(INPX_EXPLICIT), false));
 
 		m_ui.comboBoxDefaultArchiveType->setCurrentIndex([this] {
@@ -249,13 +187,12 @@ public:
 			return;
 
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(NAME), GetName());
-		m_settings->Set(QString(RECENT_TEMPLATE).arg(DATABASE), GetDatabaseFileName());
-		m_settings->Set(QString(RECENT_TEMPLATE).arg(FOLDER), GetArchiveFolder());
-		m_settings->Set(QString(RECENT_TEMPLATE).arg(INPX), GetInpx());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), m_ui.checkBoxAddUnindexedBooks->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(MARK_UN_INDEXED_BOOKS_AS_DELETED), m_ui.checkBoxMarkUnindexedAdDeleted->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), m_ui.checkBoxScanUnindexedArchives->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), !m_ui.checkBoxAddMissingBooks->isChecked());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(ADDITIONAL_FOLDER_ENABLED), m_ui.checkBoxAdditional->isChecked());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(LOAD_ANNOTATIONS), m_ui.checkBoxAnnotation->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(INPX_EXPLICIT), m_ui.checkBoxInpx->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(DEFAULT_ARCHIVE_TYPE), m_ui.comboBoxDefaultArchiveType->currentText());
 	}
@@ -267,17 +204,22 @@ public:
 
 	QString GetDatabaseFileName() const
 	{
-		return m_ui.editDatabase->text();
+		return m_ui.editDatabase->GetText();
 	}
 
 	QString GetArchiveFolder() const
 	{
-		return m_ui.editArchive->text();
+		return m_ui.editArchive->GetText();
+	}
+
+	QString GetAdditionalFolder() const
+	{
+		return m_ui.checkBoxAdditional->isChecked() ? m_ui.editAdditional->GetText() : QString {};
 	}
 
 	QString GetInpx() const
 	{
-		return m_ui.checkBoxInpx->isChecked() ? m_ui.editInpx->text() : QString {};
+		return m_ui.checkBoxInpx->isChecked() ? m_ui.editInpx->GetText() : QString {};
 	}
 
 	QString GetDefaultArchiveType() const
@@ -305,6 +247,11 @@ public:
 		return m_ui.checkBoxMarkUnindexedAdDeleted->isChecked();
 	}
 
+	bool LoadAnnotations() const
+	{
+		return m_ui.checkBoxAdditional->isChecked() && m_ui.checkBoxAnnotation->isChecked();
+	}
+
 private: // GeometryRestorableObserver
 	void OnFontChanged(const QFont&) override
 	{
@@ -323,14 +270,12 @@ private:
 		if (m_userDefinedDatabasePath || text.isEmpty())
 			return;
 
-		const QFileInfo fileInfo(m_ui.editDatabase->text().isEmpty() ? QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) : m_ui.editDatabase->text());
-		m_ui.editDatabase->setText(QString("%1.db").arg(fileInfo.dir().filePath(Util::Transliterate(m_icuTransliterate, std::move(text)))));
+		const QFileInfo fileInfo(m_ui.editDatabase->GetText().isEmpty() ? QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) : m_ui.editDatabase->GetText());
+		m_ui.editDatabase->SetText(QString("%1.db").arg(fileInfo.dir().filePath(Util::Transliterate(m_icuTransliterate, std::move(text)))));
 	}
 
 	void OnDatabaseNameChanged(const QString& db)
 	{
-		OnPathChanged(db, m_ui.editDatabase, m_ui.actionDatabaseToAbsolutePath, m_ui.actionDatabaseToRelativePath);
-
 		m_createMode = !db.isEmpty() && !QFile::exists(db);
 		m_ui.btnAdd->setText(Tr(m_createMode ? CREATE_NEW_COLLECTION : ADD_COLLECTION));
 		m_ui.options->setEnabled(m_createMode);
@@ -338,24 +283,8 @@ private:
 
 	void OnArchiveFolderPathChanged(const QString& path) const
 	{
-		OnPathChanged(path, m_ui.editArchive, m_ui.actionArchiveToAbsolutePath, m_ui.actionArchiveToRelativePath);
-	}
-
-	void OnPathChanged(const QString& path, QLineEdit* edit, QAction* absolute, QAction* relative) const
-	{
-		const ScopedCall checkDataGuard([this] {
-			(void)CheckData();
-		});
-		edit->removeAction(absolute);
-		edit->removeAction(relative);
-
-		if (path.isEmpty())
-			return;
-
-		if (const QFileInfo fileInfo(path); !fileInfo.isAbsolute())
-			edit->addAction(absolute, QLineEdit::TrailingPosition);
-		else if (QCoreApplication::applicationFilePath().front().toUpper() == fileInfo.absoluteFilePath().front().toUpper())
-			edit->addAction(relative, QLineEdit::TrailingPosition);
+		if (m_ui.checkBoxAdditional->isChecked() && m_ui.editAdditional->GetText().isEmpty() && QDir(path + DEFAULT_ADDITIONAL_FOLDER).exists())
+			m_ui.editAdditional->SetText(path + DEFAULT_ADDITIONAL_FOLDER);
 	}
 
 	bool CheckData() const
@@ -414,12 +343,15 @@ private:
 		{
 			if (m_ui.checkBoxInpx->isChecked())
 			{
-				if (!QFile::exists(Util::ToAbsolutePath(m_ui.editInpx->text())))
+				if (!QFile::exists(Util::ToAbsolutePath(m_ui.editInpx->GetText())))
 					return SetErrorText(m_ui.editInpx, Error(INPX_NOT_FOUND));
 			}
 			else if (!m_collectionController->IsCollectionFolderHasInpx(folder))
 				return SetErrorText(m_ui.editArchive, Error(INPX_NOT_FOUND));
 		}
+
+		if (m_ui.checkBoxAdditional->isChecked() && !QDir(m_ui.editAdditional->GetText()).exists())
+			return SetErrorText(m_ui.editAdditional, Error(ADDITIONAL_FOLDER_NOT_FOUND));
 
 		return true;
 	}
@@ -457,8 +389,8 @@ private:
 		try
 		{
 			Zip zip(inpxPath);
-			if (zip.GetFileNameList().contains(QString::fromStdWString(Inpx::COLLECTION_INFO)))
-				m_ui.editName->setText(zip.Read(QString::fromStdWString(Inpx::COLLECTION_INFO))->GetStream().readLine().simplified());
+			if (zip.GetFileNameList().contains(Inpx::COLLECTION_INFO))
+				m_ui.editName->setText(zip.Read(Inpx::COLLECTION_INFO)->GetStream().readLine().simplified());
 		}
 		catch (const std::exception& ex)
 		{
@@ -473,6 +405,7 @@ private:
 		SetErrorText(m_ui.editName);
 		SetErrorText(m_ui.editDatabase);
 		SetErrorText(m_ui.editArchive);
+		SetErrorText(m_ui.editAdditional);
 		SetErrorText(m_ui.editInpx);
 	}
 
@@ -481,7 +414,7 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr>             m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 	std::shared_ptr<const IUiFactory>                         m_uiFactory;
-	std::unique_ptr<Util::DyLib>                              m_icuLib;
+	std::unique_ptr<Platform::DyLib>                          m_icuLib;
 	ICU::TransliterateType                                    m_icuTransliterate { nullptr };
 	bool                                                      m_createMode { false };
 	bool                                                      m_userDefinedDatabasePath { false };
@@ -525,6 +458,11 @@ QString AddCollectionDialog::GetArchiveFolder() const
 	return m_impl->GetArchiveFolder();
 }
 
+QString AddCollectionDialog::GetAdditionalFolder() const
+{
+	return m_impl->GetAdditionalFolder();
+}
+
 QString AddCollectionDialog::GetInpx() const
 {
 	return m_impl->GetInpx();
@@ -553,4 +491,9 @@ bool AddCollectionDialog::SkipLostBooks() const
 bool AddCollectionDialog::MarkUnIndexedBooksAsDeleted() const
 {
 	return m_impl->MarkUnIndexedBooksAsDeleted();
+}
+
+bool AddCollectionDialog::LoadAnnotations() const
+{
+	return m_impl->LoadAnnotations();
 }

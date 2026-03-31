@@ -1,7 +1,5 @@
 #include "Server.h"
 
-#include <ranges>
-
 #include <QHttpServer>
 #include <QLocalServer>
 #include <QLocalSocket>
@@ -10,6 +8,7 @@
 
 #include "fnd/FindPair.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/StrUtil.h"
 
 #include "interface/IReactAppRequester.h"
 #include "interface/IRequester.h"
@@ -42,11 +41,9 @@ constexpr auto GET_BOOKS_API_BOOK_DATA         = "/Images/fb2/%1";
 constexpr auto GET_BOOKS_API_BOOK_ZIP          = "/Images/zip/%1";
 constexpr auto GET_BOOKS_API_BOOK_DATA_COMPACT = "/Images/fb2compact/%1";
 
-const auto CONTEXT       = "Http";
-const auto AUTH_REQUIRED = QT_TRANSLATE_NOOP("Http", "Authentication required");
-TR_DEF
+const auto AUTH_REQUIRED = "Authentication required";
 
-#define OPDS_REQUEST_ROOT_ITEM(NAME) constexpr auto(NAME) = "/" #NAME;
+#define OPDS_REQUEST_ROOT_ITEM(NAME) constexpr auto NAME = "/" #NAME;
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
@@ -111,14 +108,14 @@ constexpr const char* CONTENT_TYPES[][std::size(ROOTS)] {
 void SetContentType(QHttpServerResponse& response, const QString& root, const MessageType type)
 {
 	const auto  rootIndex   = std::distance(std::begin(ROOTS), std::ranges::find_if(ROOTS, [root = root.toStdString()](const char* item) {
-                                             return root == item;
-                                         }));
+											 return root == item;
+											}));
 	const auto* contentType = CONTENT_TYPES[static_cast<size_t>(type)][rootIndex];
 	assert(contentType);
 	ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
 }
 
-QHttpServerResponse EncodeContent(QByteArray src, const QString& acceptEncoding)
+QHttpServerResponse EncodeContent(const QByteArray& src, const QString& acceptEncoding)
 {
 	if (!acceptEncoding.contains("gzip"))
 		return QHttpServerResponse { src };
@@ -138,8 +135,8 @@ QHttpServerResponse EncodeContent(QByteArray src, const QString& acceptEncoding)
 		zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Deflate));
 		zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Fast));
 		auto zipFiles = Zip::CreateZipFileController();
-		zipFiles->AddFile("file", std::move(src));
-		zip.Write(std::move(zipFiles));
+		zipFiles->AddFile("file", src);
+		zip.Write(*zipFiles);
 	}
 
 	QHttpServerResponse result { zipped };
@@ -182,7 +179,7 @@ std::optional<QHttpServerResponse> FromWebsite(
 		{   "js",          "text/javascript" },
 		{  "css",				 "text/css" },
 	};
-	const auto& contentType = FindSecond(types, QFileInfo(fileName).suffix().toStdString().data(), PszComparer {});
+	const auto* contentType = FindSecond(types, QFileInfo(fileName).suffix().toStdString().data(), PszComparer {});
 	if (auto result = FromFile(QString("%1/website/%2").arg(QCoreApplication::applicationDirPath(), fileName), acceptEncoding, contentType, dataUpdater))
 		return result;
 
@@ -201,23 +198,6 @@ T GetParameters(const QHttpServerRequest& request)
 	std::ranges::transform(request.query().queryItems(QUrl::FullyDecoded), std::inserter(result, result.end()), [](const auto& item) {
 		return std::make_pair(item.first, item.second);
 	});
-	return result;
-}
-
-template <typename T>
-T GetParameters(const QString& data)
-{
-	T result;
-	std::ranges::transform(
-		data.split('&', Qt::SkipEmptyParts) | std::views::filter([](const auto& item) {
-			return item.contains('=');
-		}),
-		std::inserter(result, result.end()),
-		[](const auto& item) {
-			const auto values = item.split('=');
-			return std::make_pair(QUrl::fromPercentEncoding(values.front().toUtf8()), QUrl::fromPercentEncoding(values.back().toUtf8()));
-		}
-	);
 	return result;
 }
 
@@ -258,6 +238,9 @@ public:
 		}();
 		InitHttp(host, static_cast<uint16_t>(m_settings->Get(Flibrary::Constant::Settings::OPDS_PORT_KEY, Flibrary::Constant::Settings::OPDS_PORT_DEFAULT)));
 
+		if (const auto tmpFile = QDir(QStandardPaths::writableLocation(QStandardPaths::TempLocation)).filePath(Flibrary::Constant::OPDS_SERVER_NAME); QFile::exists(tmpFile) && !QFile::remove(tmpFile))
+			throw std::runtime_error(std::format("Cannot remove local server temporary file: {}", tmpFile));
+
 		if (!m_localServer.listen(Flibrary::Constant::OPDS_SERVER_NAME))
 			throw std::runtime_error(std::format("Cannot listen pipe {}", Flibrary::Constant::OPDS_SERVER_NAME));
 
@@ -285,7 +268,7 @@ private:
 	{
 		return QtConcurrent::run([this, getter, value = std::move(value), acceptEncoding = std::move(acceptEncoding), contentType = std::move(contentType), restoreImages, parameters = std::move(parameters)] {
 			auto [fileName, body] = std::invoke(getter, *m_noSqlRequester, std::cref(value), restoreImages, parameters);
-			auto response         = EncodeContent(std::move(body), acceptEncoding);
+			auto response         = EncodeContent(body, acceptEncoding);
 			ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
 			ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(QUrl::toPercentEncoding(fileName)));
 			ReplaceOrAppendHeader(response, "content-description", "File Transfer");
@@ -304,7 +287,7 @@ private:
 
 		(void)tcpServer.release();
 
-		m_server.addAfterRequestHandler(&m_server, [this](const QHttpServerRequest& request, QHttpServerResponse& resp) {
+		m_server.addAfterRequestHandler(&m_server, [](const QHttpServerRequest& request, QHttpServerResponse& resp) {
 			const auto log = QString("%1 requests %2%3").arg(request.remoteAddress().toString(), request.url().path(), request.query().isEmpty() ? "" : QString("?%1").arg(request.query().toString()));
 			PLOGD << log;
 
@@ -319,8 +302,8 @@ private:
 
 	void Route(const QHostAddress& host, const uint16_t port)
 	{
-		m_server.route(FAVICON, [this] {
-			return QtConcurrent::run([this] {
+		m_server.route(FAVICON, [] {
+			return QtConcurrent::run([] {
 				auto response = *FromFile(":/icons/main.ico", "", "image/x-icon");
 				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/x-icon");
 				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::CacheControl, "public, max-age=0");
@@ -362,9 +345,9 @@ private:
 #define OPDS_INVOKER_ITEM(NAME) { #NAME, &IRequester::Get##NAME },
 			OPDS_NAVIGATION_ITEMS_X_MACRO OPDS_ADDITIONAL_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM
-			{  nullptr,     &IRequester::GetRoot },
-			{ "search",      &IRequester::Search },
-			{   "read", &IRequester::GetBookText },
+			{ nullptr, &IRequester::GetRoot },
+			{ "search", &IRequester::Search },
+			{ "read", &IRequester::GetBookText },
 		};
 
 		for (const auto& [path, invoker] : descriptions)
@@ -391,8 +374,8 @@ private:
 			});
 		});
 
-		m_server.route(QString(GET_BOOKS_API_ASSETS).arg(ARG), [this](const QString& fileName, const QHttpServerRequest& request) {
-			return QtConcurrent::run([this, fileName, acceptEncoding = GetAcceptEncoding(request)] {
+		m_server.route(QString(GET_BOOKS_API_ASSETS).arg(ARG), [](const QString& fileName, const QHttpServerRequest& request) {
+			return QtConcurrent::run([fileName, acceptEncoding = GetAcceptEncoding(request)] {
 				return *FromWebsite("assets/" + fileName, acceptEncoding);
 			});
 		});
@@ -444,7 +427,7 @@ private:
 		auto       parameters     = GetParameters<IRequester::Parameters>(request);
 
 		if (expectedAuth.isEmpty())
-			return QtConcurrent::run([this, allow = std::move(allow), acceptEncoding = std::move(acceptEncoding), parameters = std::move(parameters)] {
+			return QtConcurrent::run([allow = std::move(allow), acceptEncoding = std::move(acceptEncoding), parameters = std::move(parameters)] {
 				return allow(parameters, acceptEncoding);
 			});
 
@@ -464,7 +447,7 @@ private:
 			return Authenticate();
 		}
 
-		return QtConcurrent::run([this, url = std::move(url), allow = std::move(allow), parameters = std::move(parameters), acceptEncoding = std::move(acceptEncoding)]() mutable {
+		return QtConcurrent::run([url = std::move(url), allow = std::move(allow), parameters = std::move(parameters), acceptEncoding = std::move(acceptEncoding)]() mutable {
 			return allow(parameters, acceptEncoding);
 		});
 	}

@@ -46,8 +46,8 @@ constexpr auto DadJokeRequesterDisclaimer         = "";
 constexpr auto DogPicsJokeRequesterDisclaimer     = "";
 constexpr auto FoxPicsJokeRequesterDisclaimer     = "";
 constexpr auto JokeApiJokeRequesterDisclaimer     = QT_TRANSLATE_NOOP(
-    "JokeRequester",
-    R"(<center><b>Warning!</b></center><br/></br>Jokes in this section may be rude, unsafe for work environment, religiously or politically offensive, sexist, or explicit. By clicking "Yes" you accept all responsibility for reading them. Otherwise you must click "No".<br/><br/>Do you still want to read such jokes?)"
+	"JokeRequester",
+	R"(<center><b>Warning!</b></center><br/></br>Jokes in this section may be rude, unsafe for work environment, religiously or politically offensive, sexist, or explicit. By clicking "Yes" you accept all responsibility for reading them. Otherwise you must click "No".<br/><br/>Do you still want to read such jokes?)"
 );
 constexpr auto QuoteJokeRequesterDisclaimer          = "";
 constexpr auto QuotePicJokeRequesterDisclaimer       = "";

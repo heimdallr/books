@@ -29,6 +29,9 @@ constexpr auto ADD_FILTER_QUERY   = "update {} set Flags = Flags | ? where {} = 
 constexpr auto CLEAR_FILTER_QUERY = "update {} set Flags = Flags & ~? where {} = ?";
 constexpr auto SET_FILTER_QUERY   = "update {} set Flags = ? where {} = ?";
 
+constexpr auto ACCUMULATION_MODE_KEY     = "ui/View/UniFilter/accumulationMode%1";
+constexpr auto DEFAULT_ACCUMULATION_MODE = "Or";
+
 }
 
 struct FilterController::Impl final : Observable<IObserver>
@@ -111,6 +114,11 @@ std::vector<IDataItem::Flags> FilterController::GetFlags(const NavigationMode na
 	return result;
 }
 
+QString FilterController::GetFlagsAccumulationMode(const NavigationMode navigationMode) const
+{
+	return m_impl->settings->Get(QString(ACCUMULATION_MODE_KEY).arg(static_cast<int>(navigationMode)), QString { DEFAULT_ACCUMULATION_MODE });
+}
+
 bool FilterController::HideUnrated() const noexcept
 {
 	return m_impl->settings->Get(FILTER_RATING_HIDE_UNRATED_KEY, false);
@@ -184,6 +192,11 @@ void FilterController::SetFlags(const NavigationMode navigationMode, QString id,
 	const auto index = static_cast<size_t>(navigationMode);
 	assert(index < m_impl->changes.size());
 	m_impl->changes[index][std::move(id)] = flags;
+}
+
+void FilterController::SetFlagsAccumulationMode(NavigationMode navigationMode, const QString& mode)
+{
+	m_impl->settings->Set(QString(ACCUMULATION_MODE_KEY).arg(static_cast<int>(navigationMode)), mode);
 }
 
 void FilterController::SetRating(const std::optional<int>& min, const std::optional<int>& max, const bool hideUnrated)

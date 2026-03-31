@@ -4,7 +4,7 @@
 #include "fnd/ScopedCall.h"
 #include "fnd/algorithm.h"
 
-#include "interface/Localization.h"
+#include "interface/localization.h"
 #include "interface/logic/IScriptController.h"
 
 #include "ScriptSortFilterModel.h"

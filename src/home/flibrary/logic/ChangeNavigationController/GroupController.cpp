@@ -5,8 +5,8 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
+#include "interface/localization.h"
 
 #include "log.h"
 
@@ -211,8 +211,8 @@ struct GroupController::Impl
 								   const auto db          = databaseUser->Database();
 								   const auto transaction = db->CreateTransaction();
 								   const auto command     = transaction->CreateCommand(
-                                       QString("delete from Groups_List_User where GroupID = ? and exists (select 42 from %1 = Groups_List_User.ObjectID)").arg(queryArg).toStdString()
-                                   );
+									   QString("delete from Groups_List_User where GroupID = ? and exists (select 42 from %1 = Groups_List_User.ObjectID)").arg(queryArg).toStdString()
+								   );
 								   command->Bind(0, id);
 								   const auto ok = command->Execute() && transaction->Commit();
 
@@ -301,16 +301,16 @@ void GroupController::RemoveFromGroup(const Id id, Ids ids, Callback callback) c
 									   const auto transaction = db->CreateTransaction();
 									   const auto command     = transaction->CreateCommand(queryText);
 									   const auto ok          = std::ranges::all_of(
-                                                           ids,
-                                                           [&](const Id idBook) {
-                                                               command->Bind(0, idBook);
-                                                               if (id >= 0)
-                                                                   command->Bind(1, id);
+																	ids,
+																	[&](const Id idBook) {
+															   command->Bind(0, idBook);
+															   if (id >= 0)
+																   command->Bind(1, id);
 
-                                                               return command->Execute();
-                                                           }
-                                                       )
-		                                            && transaction->Commit();
+															   return command->Execute();
+																	}
+																)
+		                                                     && transaction->Commit();
 
 									   return [this, id, callback = std::move(callback), ok](size_t) {
 										   if (!ok)

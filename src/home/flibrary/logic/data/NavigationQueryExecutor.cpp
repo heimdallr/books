@@ -13,12 +13,14 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/Enums.h"
+#include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/ICollectionProvider.h"
 
 #include "data/Genre.h"
 #include "database/DatabaseUtil.h"
+#include "util/ISettings.h"
 #include "util/SortString.h"
 #include "util/language.h"
 
@@ -37,29 +39,62 @@ with Ids as (
 		select Title
 		from Searches_User where SearchID = %1
 	)
+	%2
+)
+)";
+
+constexpr auto SEARCH_WITH_TITLE = R"(
 	select b.BookID
 		from Books b
 		join Books_Search fts on fts.rowid = b.BookID
 		join Search s on Books_Search match s.Title
 	union
+	select c.BookID
+		from Compilations c
+		join Compilations_Search fts on fts.rowid = c.CompilationID
+		join Search s on Compilations_Search match s.Title
+
+)";
+
+constexpr auto SEARCH_WITH_AUTHOR = R"(
 	select b.BookID
 		from Books b
 		join Author_List l on l.BookID = b.BookID
 		join Authors_Search fts on fts.rowid = l.AuthorID
 		join Search s on Authors_Search match s.Title
-	union
+
+)";
+
+constexpr auto SEARCH_WITH_SERIES = R"(
 	select b.BookID
 		from Books b
 		join Series_List l on l.BookID = b.BookID
 		join Series_Search fts on fts.rowid = l.SeriesID
 		join Search s on Series_Search match s.Title
-	union
-	select c.BookID
-		from Compilations c
-		join Compilations_Search fts on fts.rowid = c.CompilationID
-		join Search s on Compilations_Search match s.Title
-)
 )";
+
+constexpr auto SEARCH_WITH_ANNOTATION = R"(
+	select b.BookID
+         from Books b
+         join Annotations_Search fts on fts.rowid = b.BookID
+         join Search s on Annotations_Search match s.Title
+)";
+
+QString GetSearchWith(const ISettings& settings, const QString& id)
+{
+	QStringList result;
+#define ITEM(NAME, DEFAULT) if (settings.Get(Constant::Settings::NAME, DEFAULT)) result << NAME
+	ITEM(SEARCH_WITH_TITLE, true);
+	ITEM(SEARCH_WITH_AUTHOR, true);
+	ITEM(SEARCH_WITH_SERIES, true);
+	ITEM(SEARCH_WITH_ANNOTATION, false);
+#undef ITEM
+
+	if (result.isEmpty())
+		result << "select -1";
+
+	return QString(SEARCH_WITH).arg(id, result.join("union"));
+}
 
 using Cache = std::unordered_map<NavigationMode, IDataItem::Ptr>;
 
@@ -291,9 +326,9 @@ void RequestNavigationReviews(
 
 	databaseUser.Execute(
 		{ "Get navigation",
-	      [&cache, mode = navigationMode, folder = collectionProvider.GetActiveCollection().GetFolder(), callback = std::move(callback)]() mutable {
+	      [&cache, mode = navigationMode, folder = collectionProvider.GetActiveCollection().GetAdditionalFolder(), callback = std::move(callback)]() mutable {
 			  return CreateCalendarTree(mode, std::move(callback), cache, [&folder](std::unordered_map<long long, IDataItem::Ptr>& items) {
-				  for (const auto& reviewInfo : QDir(folder + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER)).entryInfoList({ "??????.7z" }))
+				  for (const auto& reviewInfo : QDir(folder + "/" + Inpx::REVIEWS_FOLDER).entryInfoList({ "??????.7z" }))
 				  {
 					  auto       name   = reviewInfo.completeBaseName();
 					  auto       year   = name.first(4);
@@ -449,7 +484,7 @@ from PublishYears y)",
      { &RequestNavigationSimpleList,
      { "select SearchID, Title, 0 IsDeleted, 0 Flags from Searches_User",
      &DatabaseUtil::CreateSimpleListItem,
-     { .booksFrom = "from Ids i join Books_View b on b.BookID = i.BookID", .navigationFrom = "from Ids b", .with = SEARCH_WITH },
+     { .booksFrom = "from Ids i join Books_View b on b.BookID = i.BookID", .navigationFrom = "from Ids b", .with = &GetSearchWith },
      &IBooksListCreator::CreateGeneralList,
      &IBooksTreeCreator::CreateGeneralTree,
      BookItem::Mapping(MAPPING_FULL),

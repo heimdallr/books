@@ -244,13 +244,13 @@ void Backup(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName
 
 				  Util::XmlWriter xmlWriter(out);
 				  ScopedCall      rootElement(
-                      [&] {
-                          xmlWriter.WriteStartElement(Constant::FlibraryBackup, XmlAttributes {});
-                      },
-                      [&] {
-                          xmlWriter.WriteEndElement();
-                      }
-                  );
+					  [&] {
+						  xmlWriter.WriteStartElement(Constant::FlibraryBackup, XmlAttributes {});
+					  },
+					  [&] {
+						  xmlWriter.WriteEndElement();
+					  }
+				  );
 				  ScopedCall(
 					  [&] {
 						  xmlWriter.WriteStartElement(

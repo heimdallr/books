@@ -10,9 +10,9 @@
 
 #include "interface/INoSqlRequester.h"
 #include "interface/IRequester.h"
-#include "interface/Localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/IAnnotationController.h"
 
 #include "util/ISettings.h"

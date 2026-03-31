@@ -7,7 +7,7 @@
 #include "interface/logic/IScriptController.h"
 
 #include "data/DataItem.h"
-#include "util/DyLib.h"
+#include "platform/DyLib.h"
 #include "util/translit.h"
 
 #include "log.h"
@@ -52,16 +52,17 @@ select
     b.FileName||b.Ext,
     b.BookSize,
     s.SeriesTitle,
-    b.SeqNumber,
+    sl.SeqNumber,
     b.Title,
     a.FirstName, a.MiddleName, a.LastName
 from Books b
 join Folders f on f.FolderID = b.FolderID
 join Author_List al on al.BookID = b.BookID
 join Authors a on a.AuthorID = al.AuthorID
-left join Series s on s.SeriesID = b.SeriesID
+left join Series_List sl on sl.BookID = b.BookID
+left join Series s on s.SeriesID = sl.SeriesID
 where b.BookID = ?
-order by al.OrdNum limit 1
+order by al.OrdNum, sl.OrdNum limit 1
 )");
 		query->Bind(0, bookId.toLongLong());
 		query->Execute();
@@ -125,18 +126,20 @@ private:
 		if (m_icuTransliterate)
 			return;
 
-		if (!((m_icuLib = std::make_unique<Util::DyLib>(ICU::LIB_NAME))))
+		if (!((m_icuLib = std::make_unique<Platform::DyLib>(ICU::LIB_NAME))))
 		{
 			PLOGW << "Cannot load " << ICU::LIB_NAME << " dynamic library";
 			return;
 		}
 
 		if (!((m_icuTransliterate = m_icuLib->GetTypedProc<ICU::TransliterateType>(ICU::TRANSLITERATE_NAME))))
+		{
 			PLOGW << "Cannot find entry point " << ICU::TRANSLITERATE_NAME << " in " << ICU::LIB_NAME << " dynamic library";
+		}
 	}
 
-	mutable std::unique_ptr<Util::DyLib> m_icuLib;
-	mutable ICU::TransliterateType       m_icuTransliterate { nullptr };
+	mutable std::unique_ptr<Platform::DyLib> m_icuLib;
+	mutable ICU::TransliterateType           m_icuTransliterate { nullptr };
 };
 
 BookExtractor::BookExtractor(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)

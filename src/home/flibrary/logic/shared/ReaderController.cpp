@@ -14,13 +14,14 @@
 #include "database/interface/IQuery.h"
 #include "database/interface/ITransaction.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 
-#include "Util/ImageRestore.h"
+#include "platform/FileUtil.h"
+#include "platform/PlatformUtil.h"
 #include "util/IExecutor.h"
-#include "util/PlatformUtil.h"
+#include "util/ImageRestore.h"
 #include "util/files.h"
 
 #include "log.h"
@@ -45,6 +46,8 @@ constexpr auto READER_KEY = "Reader/%1";
 constexpr auto DIALOG_KEY = "Reader";
 constexpr auto DEFAULT    = "default";
 
+constexpr auto DEFAULT_FOLDER_KEY = "Preferences/Export/readFolder";
+
 TR_DEF
 
 class ReaderProcess final : QProcess
@@ -63,15 +66,14 @@ private:
 	std::shared_ptr<ILogicFactory::ITemporaryDir> m_temporaryDir;
 };
 
-std::shared_ptr<ILogicFactory::ITemporaryDir> Extract(const ISettings& settings, const ILogicFactory& logicFactory, const QString& archive, QString& fileName, QString& error)
+void Extract(const ISettings& settings, const ILogicFactory::ITemporaryDir& temporaryDir, const QString& archive, QString& fileName, QString& error)
 {
 	try
 	{
 		const Zip  zip(archive);
-		const auto stream       = zip.Read(fileName);
-		auto       temporaryDir = logicFactory.CreateTemporaryDir(true);
+		const auto stream = zip.Read(fileName);
 
-		if (Zip::IsArchive(Util::RemoveIllegalPathCharacters(fileName)))
+		if (Zip::IsArchive(Platform::RemoveIllegalPathCharacters(fileName)))
 		{
 			const Zip   subZip(stream->GetStream());
 			const auto  fileList = subZip.GetFileNameList();
@@ -85,7 +87,7 @@ std::shared_ptr<ILogicFactory::ITemporaryDir> Extract(const ISettings& settings,
 						filesWithReader << archiveFileName;
 				}
 
-				auto       fileNameDst = temporaryDir->filePath(archiveFileName);
+				auto       fileNameDst = temporaryDir.filePath(archiveFileName);
 				const auto dir         = QFileInfo(fileNameDst).dir();
 				if (!dir.exists() && !dir.mkpath("."))
 				{
@@ -101,28 +103,25 @@ std::shared_ptr<ILogicFactory::ITemporaryDir> Extract(const ISettings& settings,
 			}
 
 			if (fileList.size() == 1)
-				fileName = temporaryDir->filePath(fileList.front());
+				fileName = temporaryDir.filePath(fileList.front());
 			else if (filesWithReader.size() == 1)
-				fileName = temporaryDir->filePath(filesWithReader.front());
+				fileName = temporaryDir.filePath(filesWithReader.front());
 			else
 				fileName.clear();
 		}
 		else
 		{
-			auto fileNameDst = temporaryDir->filePath(Util::RemoveIllegalPathCharacters(fileName));
+			auto fileNameDst = temporaryDir.filePath(Platform::RemoveIllegalPathCharacters(fileName));
 			if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
 				file.write(Util::PrepareToExport(stream->GetStream(), archive, fileName));
 
 			fileName = std::move(fileNameDst);
 		}
-		return temporaryDir;
 	}
 	catch (const std::exception& ex)
 	{
 		error = ex.what();
 	}
-
-	return {};
 }
 
 } // namespace
@@ -184,7 +183,7 @@ struct ReaderController::Impl
 
 		if (reader.isEmpty())
 		{
-			if (Util::IsRegisteredExtension(ext))
+			if (Platform::IsRegisteredExtension(ext))
 				switch (uiFactory->ShowQuestion(Tr(USE_DEFAULT), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes)) // NOLINT(clang-diagnostic-switch-enum)
 				{
 					case QMessageBox::Yes:
@@ -276,7 +275,13 @@ void ReaderController::Read(long long id) const
 					 QString folderName = query->Get<const char*>(0), fileName = query->Get<const char*>(1);
 					 auto    archive = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection().GetFolder(), folderName);
 					 QString error;
-					 auto    temporaryDir = Extract(*m_impl->settings, *ILogicFactory::Lock(m_impl->logicFactory), archive, fileName, error);
+					 auto    temporaryDir = [this] {
+						 const auto logicFactory = ILogicFactory::Lock(m_impl->logicFactory);
+						 if (const auto folder = m_impl->settings->Get(DEFAULT_FOLDER_KEY); folder.isValid())
+							 return logicFactory->CreateTemporaryDir(folder.toString());
+						 return logicFactory->CreateTemporaryDir(true);
+					 }();
+					 Extract(*m_impl->settings, *temporaryDir, archive, fileName, error);
 					 return [this, executor = std::move(executor), fileName = std::move(fileName), temporaryDir = std::move(temporaryDir), error(std::move(error))](size_t) mutable {
 						 m_impl->Read(std::move(temporaryDir), std::move(fileName), error);
 						 executor.reset();

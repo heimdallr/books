@@ -1,0 +1,9 @@
+[Desktop Entry]
+Name=FLibrary
+Comment=FLibrary: another e-book cataloger
+Exec=bash -ic "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/FLibrary/lib ; /opt/FLibrary/FLibrary"
+Icon=/usr/share/icons/FLibrary.png
+Type=Application
+Categories=Utility;
+Terminal=false
+

@@ -27,9 +27,10 @@ TR_DEF
 
 }
 
-IDataItem::Ptr AddMenuItem(const IDataItem::Ptr& dst, QString title, const int id)
+IDataItem::Ptr AddMenuItem(const IDataItem::Ptr& dst, QString key, QString title, const int id)
 {
 	auto item = MenuItem::Create();
+	item->SetData(key.remove('&'), MenuItem::Column::Key);
 	item->SetData(std::move(title), MenuItem::Column::Title);
 	item->SetData(QString::number(id), MenuItem::Column::Id);
 	return dst->AppendChild(std::move(item));
@@ -44,19 +45,19 @@ left join Groups_List_User gl on gl.GroupID = g.GroupID and gl.ObjectID = :id
 left join Groups_List_User_View gw on gw.GroupID = g.GroupID and gw.BookID = :id
 )";
 
-	const auto parent = AddMenuItem(root, Tr(GROUPS));
+	const auto parent = AddMenuItem(root, GROUPS, Tr(GROUPS));
 
-	const auto add    = AddMenuItem(parent, Tr(GROUPS_ADD_TO), GroupsMenuAction::AddToGroup);
-	const auto remove = AddMenuItem(parent, Tr(GROUPS_REMOVE_FROM), GroupsMenuAction::RemoveFromGroup);
+	const auto add    = AddMenuItem(parent, GROUPS_ADD_TO, Tr(GROUPS_ADD_TO), GroupsMenuAction::AddToGroup);
+	const auto remove = AddMenuItem(parent, GROUPS_REMOVE_FROM, Tr(GROUPS_REMOVE_FROM), GroupsMenuAction::RemoveFromGroup);
 
 	const auto createMenuItem = [&](const DB::IQuery& query) -> IDataItem::Ptr {
 		if (const auto itemExistsInLinkTable = query.Get<long long>(2) >= 0; itemExistsInLinkTable)
-			return AddMenuItem(remove, query.Get<const char*>(1), GroupsMenuAction::RemoveFromGroup);
+			return AddMenuItem(remove, QString("removeFromGroup%1").arg(query.Get<long long>(0)), query.Get<const char*>(1), GroupsMenuAction::RemoveFromGroup);
 
 		if (const auto bookAlreadyExistsInLinkView = query.Get<long long>(3) >= 0; bookAlreadyExistsInLinkView)
 			return {};
 
-		return AddMenuItem(add, query.Get<const char*>(1), GroupsMenuAction::AddToGroup);
+		return AddMenuItem(add, QString("addToGroup%1").arg(query.Get<long long>(0)), query.Get<const char*>(1), GroupsMenuAction::AddToGroup);
 	};
 
 	const auto query = db.CreateQuery(GROUPS_QUERY);
@@ -68,7 +69,7 @@ left join Groups_List_User_View gw on gw.GroupID = g.GroupID and gw.BookID = :id
 	if (remove->GetChildCount() > 0)
 	{
 		AddMenuItem(remove);
-		AddMenuItem(remove, Tr(GROUPS_REMOVE_FROM_ALL), GroupsMenuAction::RemoveFromAllGroups)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+		AddMenuItem(remove, GROUPS_REMOVE_FROM_ALL, Tr(GROUPS_REMOVE_FROM_ALL), GroupsMenuAction::RemoveFromAllGroups)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 	}
 	else
 	{
@@ -79,7 +80,7 @@ left join Groups_List_User_View gw on gw.GroupID = g.GroupID and gw.BookID = :id
 	if (add->GetChildCount() > 0)
 		AddMenuItem(add);
 
-	AddMenuItem(add, Tr(GROUPS_ADD_TO_NEW), GroupsMenuAction::AddToNewGroup)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+	AddMenuItem(add, GROUPS_ADD_TO_NEW, Tr(GROUPS_ADD_TO_NEW), GroupsMenuAction::AddToNewGroup)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 }
 
 void ExecuteGroupAction(const GroupController& controller, GroupActionFunction invoker, const GroupController::Id id, GroupController::Ids ids, GroupController::Callback callback)

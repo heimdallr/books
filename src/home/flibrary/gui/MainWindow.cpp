@@ -16,11 +16,14 @@
 
 #include "fnd/IsOneOf.h"
 
-#include "interface/Localization.h"
+#include "database/interface/IDatabase.h"
+#include "database/interface/IQuery.h"
+
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/IInpxGenerator.h"
 #include "interface/logic/IOpdsController.h"
@@ -28,12 +31,9 @@
 #include "interface/logic/IUpdateChecker.h"
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/IAlphabetPanel.h"
-#include "interface/ui/dialogs/IScriptDialog.h"
-#include "interface/ui/dialogs/ISettingsDialog.h"
 
 #include "gutil/util.h"
 #include "logging/LogAppender.h"
-#include "util/DyLib.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/GeometryRestorable.h"
 #include "util/ObjectsConnector.h"
@@ -66,11 +66,17 @@ constexpr auto        SELECT_QSS_FILE                      = QT_TRANSLATE_NOOP("
 constexpr auto        SELECT_SETTINGS_FILE                 = QT_TRANSLATE_NOOP("MainWindow", "Select settings file");
 constexpr auto        QSS_FILE_FILTER                      = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
 constexpr auto        SETTINGS_FILE_FILTER                 = QT_TRANSLATE_NOOP("MainWindow", "Settings files (*.ini);;All files (*.*)");
-constexpr auto        SEARCH_BOOKS_BY_TITLE_PLACEHOLDER    = QT_TRANSLATE_NOOP("MainWindow", "To search for books by author, series, or title, enter the name or title here and press Enter");
+constexpr auto        SEARCH_BOOKS_PLACEHOLDER             = QT_TRANSLATE_NOOP("MainWindow", "To search for books by %1, enter the name or title here and press Enter");
+constexpr auto        SEARCH_BOOKS_PLACEHOLDER_AUTHOR      = QT_TRANSLATE_NOOP("MainWindow", "author");
+constexpr auto        SEARCH_BOOKS_PLACEHOLDER_SERIES      = QT_TRANSLATE_NOOP("MainWindow", "series");
+constexpr auto        SEARCH_BOOKS_PLACEHOLDER_TITLE       = QT_TRANSLATE_NOOP("MainWindow", "title");
+constexpr auto        SEARCH_BOOKS_PLACEHOLDER_OR          = QT_TRANSLATE_NOOP("MainWindow", " or %1");
+constexpr auto        SEARCH_BOOKS_PLACEHOLDER_ANNOTATION  = QT_TRANSLATE_NOOP("MainWindow", "annotation");
 constexpr auto        ENABLE_ALL                           = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
 constexpr auto        DISABLE_ALL                          = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
 constexpr auto        STOP_HTTP                            = QT_TRANSLATE_NOOP("MainWindow", "The HTTP server is still running. Would you like to stop it?");
 constexpr auto        MY_FOLDER                            = QT_TRANSLATE_NOOP("MainWindow", "My export folder");
+constexpr auto        MAIN_MENU                            = QT_TRANSLATE_NOOP("MainWindow", "Main menu");
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
 	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
@@ -94,23 +100,40 @@ constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedCon
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 
+#define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO  \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)       \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(SERIES)       \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(TITLE)        \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(ANNOTATION)
+
 class LineEditPlaceholderTextController final : public QObject
 {
 public:
-	LineEditPlaceholderTextController(MainWindow& mainWindow, QLineEdit& lineEdit, QString placeholderText)
+	LineEditPlaceholderTextController(
+		MainWindow& mainWindow,
+		QLineEdit& lineEdit
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , QAction& action##NAME
+			SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+#undef SEARCH_BOOKS_PLACEHOLDER_ITEM
+	)
 		: QObject(&lineEdit)
 		, m_mainWindow { mainWindow }
 		, m_lineEdit { lineEdit }
-		, m_placeholderText { std::move(placeholderText) }
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , m_action##NAME { action##NAME }
+		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+#undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 	{
-		m_lineEdit.setPlaceholderText(m_placeholderText);
+		m_lineEdit.setPlaceholderText(GetPlaceholderText());
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) QObject::connect(&m_action##NAME, &QAction::toggled, [this]{m_lineEdit.setPlaceholderText(GetPlaceholderText());});
+		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+#undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 	}
 
 private: // QObject
 	bool eventFilter(QObject* watched, QEvent* event) override
 	{
 		if (event->type() == QEvent::Enter)
-			m_lineEdit.setPlaceholderText(m_placeholderText);
+			m_lineEdit.setPlaceholderText(GetPlaceholderText());
 		else if (event->type() == QEvent::Leave)
 			m_lineEdit.setPlaceholderText({});
 		else if (event->type() == QEvent::Show)
@@ -118,10 +141,30 @@ private: // QObject
 		return QObject::eventFilter(watched, event);
 	}
 
+	QString GetPlaceholderText() const
+	{
+		QStringList list;
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) if (m_action##NAME.isVisible() && m_action##NAME.isChecked()) list << Tr(SEARCH_BOOKS_PLACEHOLDER_##NAME);
+		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+#undef SEARCH_BOOKS_PLACEHOLDER_ITEM
+
+		m_lineEdit.setVisible(!list.isEmpty());
+		if (!m_lineEdit.isVisible())
+			return {};
+
+		auto last = list.size() > 1 ? std::move(list.back()) : QString {};
+		if (!last.isEmpty())
+			list.pop_back();
+
+		return Tr(SEARCH_BOOKS_PLACEHOLDER).arg(QString("%1%2").arg(list.join(", "), last.isEmpty() ? "" : Tr(SEARCH_BOOKS_PLACEHOLDER_OR).arg(last)));
+	}
+
 private:
-	MainWindow&   m_mainWindow;
-	QLineEdit&    m_lineEdit;
-	const QString m_placeholderText;
+	MainWindow& m_mainWindow;
+	QLineEdit&  m_lineEdit;
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) QAction& m_action##NAME;
+	SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+#undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 };
 
 std::set<QString> GetQssList()
@@ -168,7 +211,8 @@ public:
 		std::shared_ptr<QWidget>                        progressBar,
 		std::shared_ptr<QStyledItemDelegate>            logItemDelegate,
 		std::shared_ptr<ILineOption>                    lineOption,
-		std::shared_ptr<IAlphabetPanel>                 alphabetPanel
+		std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
+		std::shared_ptr<IHotkeyManager>                 hotkeyManager
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
@@ -190,6 +234,7 @@ public:
 		, m_logItemDelegate { std::move(logItemDelegate) }
 		, m_lineOption { std::move(lineOption) }
 		, m_alphabetPanel { std::move(alphabetPanel) }
+		, m_hotkeyManager { std::move(hotkeyManager) }
 		, m_navigationViewController { ILogicFactory::Lock(m_logicFactory)->GetTreeViewController(ItemType::Navigation) }
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
 		, m_navigationWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Navigation) }
@@ -200,6 +245,7 @@ public:
 		CreateLogMenu();
 		CreateCollectionsMenu();
 		CreateViewNavigationMenu();
+		SetupHotkeys();
 		LoadGeometry();
 		StartDelayed([this, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable {
 			if (m_collectionController->IsEmpty() || !commandLine->GetInpxDir().empty())
@@ -244,8 +290,12 @@ public:
 	{
 		const auto rect           = Util::GetGlobalGeometry(*m_ui.lineEditBookTitleToSearch);
 		const auto spacerNewWidth = m_searchBooksByTitleLeft->geometry().width() + geometry.x() - rect.x();
+
 		m_searchBooksByTitleLeft->changeSize(std::max(spacerNewWidth, 0), geometry.height(), QSizePolicy::Fixed, QSizePolicy::Expanding);
 		const auto lineEditBookTitleToSearchNewWidth = geometry.size().width() + std::min(spacerNewWidth, 0);
+		if (lineEditBookTitleToSearchNewWidth < 0)
+			return;
+
 		m_ui.lineEditBookTitleToSearch->setMinimumWidth(lineEditBookTitleToSearchNewWidth);
 		m_ui.lineEditBookTitleToSearch->setMaximumWidth(lineEditBookTitleToSearchNewWidth);
 		m_searchBooksByTitleLayout->invalidate();
@@ -326,7 +376,12 @@ public:
 
 	bool Close()
 	{
-		return CheckSystemTray() && CheckOpds() && (QCoreApplication::exit(), true);
+		return CheckSystemTray(m_hideToTray) && CheckOpds() && (QCoreApplication::exit(), true);
+	}
+
+	bool Change(const QEvent* event)
+	{
+		return event->type() != QEvent::WindowStateChange || m_self.windowState() != Qt::WindowState::WindowMinimized || CheckSystemTray(m_minimizeToTray);
 	}
 
 	void OnStartAnotherApp() const
@@ -372,12 +427,10 @@ private: // ILineOption::IObserver
 		if (books.empty())
 			return;
 
-		auto scriptTemplate = value;
-		auto db             = m_databaseUser->Database();
-
 		const auto converter = logicFactory->CreateFillTemplateConverter();
-		converter->Fill(*db, scriptTemplate, books.front(), Tr(MY_FOLDER));
-		PLOGI << scriptTemplate;
+		auto       db        = m_databaseUser->Database();
+		converter->Fill(*db, value, books.front(), Tr(MY_FOLDER));
+		PLOGI << books.front().dstFileName;
 	}
 
 	void OnOptionEditingFinished(const QString& /*value*/) override
@@ -411,9 +464,11 @@ private: // IAlphabetPanel::IObserver
 
 		for (auto* toolBar : m_alphabetPanel->GetToolBars())
 		{
-			auto* action = m_ui.menuAlphabets->addAction(toolBar->accessibleName());
+			const auto name   = toolBar->accessibleName();
+			auto*      action = m_ui.menuAlphabets->addAction(name);
 			action->setCheckable(true);
 			action->setChecked(m_alphabetPanel->Visible(toolBar));
+			action->setObjectName(name.toUtf8().toHex());
 
 			connect(action, &QAction::toggled, [this, toolBar, hasVisible](const bool checked) {
 				m_alphabetPanel->SetVisible(toolBar, checked);
@@ -509,7 +564,13 @@ private:
 	void ReplaceMenuBar()
 	{
 		PLOGV << "ReplaceMenuBar";
-		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(m_self, *m_ui.lineEditBookTitleToSearch, Tr(SEARCH_BOOKS_BY_TITLE_PLACEHOLDER)));
+		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(
+			m_self,
+			*m_ui.lineEditBookTitleToSearch
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , *m_ui.actionSearchBy##NAME
+				 SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+#undef SEARCH_BOOKS_PLACEHOLDER_ITEM
+		));
 		auto* menuBar              = new QWidget(&m_self);
 		m_searchBooksByTitleLayout = new QHBoxLayout(menuBar);
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -523,7 +584,9 @@ private:
 
 	void SetupTrayMenu()
 	{
-		if (!m_settings->Get(Constant::Settings::PREFER_HIDE_TO_TRAY_KEY, false))
+		m_hideToTray     = m_settings->Get(Constant::Settings::PREFER_HIDE_TO_TRAY_KEY, m_hideToTray);
+		m_minimizeToTray = m_settings->Get(Constant::Settings::PREFER_MINIMIZE_TO_TRAY_KEY, m_hideToTray);
+		if (!(m_hideToTray || m_minimizeToTray))
 			return;
 
 		m_systemTray = new QSystemTrayIcon(QIcon(":/icons/main.ico"), &m_self);
@@ -659,6 +722,7 @@ private:
 				continue;
 
 			auto* action = m_ui.menuJokes->addAction(title);
+			action->setObjectName(name);
 			action->setProperty(actionName, name);
 			action->setProperty(hasDisclaimer, !disclaimer.isEmpty());
 			action->setCheckable(true);
@@ -686,12 +750,14 @@ private:
 				action->setChecked(checked);
 			}
 		};
-		m_enableAllJokes  = m_ui.menuJokes->addAction(Tr(ENABLE_ALL), [this, checkAll, mayBeChecked] {
-            checkAll(mayBeChecked, true);
-        });
+		m_enableAllJokes = m_ui.menuJokes->addAction(Tr(ENABLE_ALL), [this, checkAll, mayBeChecked] {
+			checkAll(mayBeChecked, true);
+		});
+		m_enableAllJokes->setObjectName(ENABLE_ALL);
 		m_disableAllJokes = m_ui.menuJokes->addAction(Tr(DISABLE_ALL), [this, checkAll, mayBeUnchecked] {
 			checkAll(mayBeUnchecked, false);
 		});
+		m_disableAllJokes->setObjectName(DISABLE_ALL);
 		setEnabled();
 	}
 
@@ -708,7 +774,7 @@ private:
 		});
 
 		m_ui.actionShowReadersReviews->setVisible(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::REVIEWS_FOLDER)).exists()
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER).exists()
 		);
 
 		ConnectActionsSettingsAnnotationJokes();
@@ -822,7 +888,7 @@ private:
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
 
 		m_ui.actionShowAuthorAnnotation->setVisible(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + QString::fromStdWString(Inpx::AUTHORS_FOLDER)).exists()
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::AUTHORS_FOLDER).exists()
 		);
 
 		auto restoreDefaultSettings = [this] {
@@ -858,7 +924,9 @@ private:
 		const auto browse = [this](const QString& folder = {}) {
 			const auto url = QString("http://localhost:%1/%2").arg(m_settings->Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT)).arg(folder);
 			if (!QDesktopServices::openUrl(url))
+			{
 				PLOGE << "Cannot open " << url;
+			}
 		};
 		connect(m_ui.actionBrowseHttpOpds, &QAction::triggered, [=] {
 			browse("opds");
@@ -878,12 +946,28 @@ private:
 		});
 	}
 
+	void ConnectActionsSettingsSearch()
+	{
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) ConnectSettings(m_ui.actionSearchBy##NAME, Constant::Settings::SEARCH_WITH_##NAME);
+		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+#undef SEARCH_BOOKS_PLACEHOLDER_ITEM
+
+		const auto db = m_databaseUser->Database();
+		if (!db)
+			return;
+
+		const auto query = db->CreateQuery("SELECT exists(SELECT 42 FROM Annotations)");
+		query->Execute();
+		m_ui.actionSearchByANNOTATION->setVisible(query->Get<int>(0) != 0);
+	}
+
 	void ConnectActionsSettings()
 	{
 		PLOGV << "ConnectActionsSettings";
 		ConnectActionsSettingsExport();
 		ConnectActionsSettingsView();
 		ConnectActionsSettingsHttp();
+		ConnectActionsSettingsSearch();
 
 		connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] {
 			Reboot();
@@ -892,10 +976,13 @@ private:
 			m_uiFactory->CreateFilterSettingsDialog()->exec();
 		});
 		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] {
-			m_uiFactory->CreateScriptDialog()->Exec();
+			m_uiFactory->CreateScriptDialog()->exec();
+		});
+		connect(m_ui.actionShowHotkeyDialog, &QAction::triggered, &m_self, [&] {
+			m_uiFactory->CreateHotkeyDialog()->exec();
 		});
 		connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
-			m_uiFactory->CreateSettingsDialog()->Exec();
+			m_uiFactory->CreateSettingsDialog()->exec();
 		});
 	}
 
@@ -905,7 +992,7 @@ private:
 		if (!m_collectionController->ActiveCollectionExists())
 			return;
 
-		auto helpFile = QString("%1/faq/%2/index.html").arg(m_collectionController->GetActiveCollection().GetFolder(), Loc::GetLocale(*m_settings));
+		auto helpFile = QString("%1/faq/%2/index.html").arg(m_collectionController->GetActiveCollection().GetAdditionalFolder(), Loc::GetLocale(*m_settings));
 		if (!QFile::exists(helpFile))
 			return;
 
@@ -1030,6 +1117,7 @@ private:
 	QAction* CreateStyleAction(QMenu& menu, const IStyleApplier::Type type, const QString& actionName, const QString& name, const QString& file = {})
 	{
 		auto* action = menu.addAction(QFileInfo(actionName).completeBaseName());
+		action->setObjectName(QString::fromUtf8(actionName.toUtf8().toBase64().toHex()));
 
 		action->setProperty(IStyleApplier::ACTION_PROPERTY_THEME_NAME, name);
 		action->setProperty(IStyleApplier::ACTION_PROPERTY_THEME_TYPE, static_cast<int>(type));
@@ -1123,7 +1211,7 @@ private:
 			return addLibList(currentList);
 		}
 
-		Util::DyLib lib(fileInfo.filePath().toStdString());
+		Platform::DyLib lib(fileInfo.filePath().toStdString());
 		if (!lib.IsOpen())
 		{
 			PLOGE << lib.GetErrorDescription();
@@ -1212,6 +1300,7 @@ private:
 				m_settings->Set(LOG_SEVERITY_KEY, n);
 				m_logController->SetSeverity(n);
 			});
+			action->setObjectName(name);
 			action->setCheckable(true);
 			action->setChecked(n == currentSeverity);
 			group->addAction(action);
@@ -1244,6 +1333,7 @@ private:
 			connect(action, &QAction::triggered, &m_self, [&, id = collection->id] {
 				m_collectionController->SetActiveCollection(id);
 			});
+			action->setObjectName(collection->id);
 			action->setCheckable(true);
 			action->setChecked(active);
 			action->setEnabled(!active);
@@ -1262,6 +1352,7 @@ private:
 	{
 		const auto createAction = [this](const char* name) {
 			auto* action = m_ui.menuNavigation->addAction(Loc::Tr(Loc::NAVIGATION, name));
+			action->setObjectName(name);
 			action->setCheckable(true);
 			action->setChecked(true);
 			ConnectSettings(action, QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(name));
@@ -1273,6 +1364,11 @@ private:
 #define NAVIGATION_MODE_ITEM(NAME) createAction(#NAME);
 		NAVIGATION_MODE_ITEMS_X_MACRO
 #undef NAVIGATION_MODE_ITEM
+	}
+
+	void SetupHotkeys()
+	{
+		m_hotkeyManager->Add(*m_ui.menuBar, Tr(MAIN_MENU));
 	}
 
 	void CheckForUpdates(const bool force) const
@@ -1324,13 +1420,14 @@ private:
 		}
 	}
 
-	bool CheckSystemTray()
+	bool CheckSystemTray(const bool key)
 	{
-		if (!m_systemTray)
+		if (!key)
 			return true;
 
 		OnHideEvent();
 
+		assert(m_systemTray);
 		m_systemTray->show();
 		m_self.hide();
 		return false;
@@ -1397,6 +1494,7 @@ private:
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr>    m_logItemDelegate;
 	PropagateConstPtr<ILineOption, std::shared_ptr>            m_lineOption;
 	PropagateConstPtr<IAlphabetPanel, std::shared_ptr>         m_alphabetPanel;
+	PropagateConstPtr<IHotkeyManager, std::shared_ptr>         m_hotkeyManager;
 
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationViewController;
 
@@ -1422,8 +1520,11 @@ private:
 	QAction* m_disableAllJokes { nullptr };
 
 	QSystemTrayIcon* m_systemTray { nullptr };
-	bool             m_isMaximized { false };
-	bool             m_isFullScreen { false };
+	bool             m_hideToTray { false };
+	bool             m_minimizeToTray { false };
+
+	bool m_isMaximized { false };
+	bool m_isFullScreen { false };
 };
 
 MainWindow::MainWindow(
@@ -1447,6 +1548,7 @@ MainWindow::MainWindow(
 	std::shared_ptr<LogItemDelegate>                logItemDelegate,
 	std::shared_ptr<ILineOption>                    lineOption,
 	std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
+	std::shared_ptr<IHotkeyManager>                 hotkeyManager,
 	QWidget*                                        parent
 )
 	: QMainWindow(parent)
@@ -1471,7 +1573,8 @@ MainWindow::MainWindow(
 		  std::move(progressBar),
 		  std::move(logItemDelegate),
 		  std::move(lineOption),
-		  std::move(alphabetPanel)
+		  std::move(alphabetPanel),
+		  std::move(hotkeyManager)
 	  )
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
@@ -1494,6 +1597,12 @@ void MainWindow::Show()
 void MainWindow::OnStartAnotherApp()
 {
 	m_impl->OnStartAnotherApp();
+}
+
+void MainWindow::changeEvent(QEvent* event)
+{
+	if (!m_impl->Change(event))
+		event->ignore();
 }
 
 void MainWindow::closeEvent(QCloseEvent* event)

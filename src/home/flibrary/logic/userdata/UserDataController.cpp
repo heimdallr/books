@@ -1,6 +1,6 @@
 #include "UserDataController.h"
 
-#include "interface/Localization.h"
+#include "interface/localization.h"
 
 #include "backup.h"
 #include "log.h"

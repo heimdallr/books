@@ -2,9 +2,10 @@
 
 #include <QCommandLineParser>
 
-#include "interface/Localization.h"
+#include "interface/localization.h"
 
 #include "logging/init.h"
+#include "platform/StrUtil.h"
 
 #include "config/version.h"
 
@@ -45,7 +46,7 @@ CommandLine::CommandLine()
 		return;
 
 	firstStart = false;
-	if (const std::filesystem::path file = positionalArguments.front().toStdWString(); file.extension() == ".inpx")
+	if (const auto file = Platform::StringToPath(positionalArguments.front()); file.extension() == ".inpx")
 		m_impl->inpx = file.parent_path().make_preferred();
 }
 

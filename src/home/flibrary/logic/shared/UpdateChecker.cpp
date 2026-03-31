@@ -7,7 +7,7 @@
 #include <QTimer>
 #include <QUuid>
 
-#include "interface/Localization.h"
+#include "interface/localization.h"
 
 #include "network/network/downloader.h"
 #include "network/rest/api/github/Release.h"
@@ -219,7 +219,7 @@ private:
 		std::vector<std::pair<QMessageBox::ButtonRole, QString>> buttons;
 		if (!m_release.assets.empty() && !m_release.assets.front().browser_download_url.isEmpty())
 		{
-			if (installer.type != Util::InstallerType::portable)
+			if (installer.installable)
 				buttons.emplace_back(QMessageBox::AcceptRole, Tr(INSTALL).arg(m_release.name));
 			buttons.emplace_back(QMessageBox::DestructiveRole, Tr(DOWNLOAD));
 		}
@@ -247,7 +247,7 @@ private:
 			case QMessageBox::DestructiveRole:
 				return Download();
 			case QMessageBox::ActionRole:
-				m_settings->Set(DISCARDED_UPDATE_KEY, m_release.id);
+				m_settings->Set(DISCARDED_UPDATE_KEY, static_cast<qlonglong>(m_release.id));
 				break;
 			case QMessageBox::RejectRole:
 			case QMessageBox::NoRole:
@@ -263,9 +263,12 @@ private:
 	{
 		const auto installer = Util::GetInstallerDescription();
 		const auto it        = std::ranges::find_if(m_release.assets, [=](const Asset& asset) {
-            const auto ext = QFileInfo(asset.name).suffix();
-            return ext == installer.ext;
-        });
+			if (asset.browser_download_url.isEmpty() || !asset.name.startsWith(PRODUCT_ID, Qt::CaseInsensitive))
+				return false;
+
+			const auto ext = QFileInfo(asset.name).suffix();
+			return ext.compare(installer.ext, Qt::CaseInsensitive) == 0;
+		});
 		if (it == m_release.assets.end())
 		{
 			if (m_uiFactory->ShowWarning(Tr(INSTALLER_NOT_FOUND), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)

@@ -124,13 +124,13 @@ private: // IRateRenderer
 	{
 		o.displayAlignment = m_alignment;
 		o.text             = [&]() -> QString {
-            const auto rateVar = index.data(m_role).toString();
-            bool       ok      = false;
-            const auto rate    = rateVar.toInt(&ok);
-            if (!ok)
-                return {};
+			const auto rateVar = index.data(m_role).toString();
+			bool       ok      = false;
+			const auto rate    = rateVar.toInt(&ok);
+			if (!ok)
+				return {};
 
-            return rate == 0 ? m_zeroSymbol : rate < 0 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
+			return rate == 0 ? m_zeroSymbol : rate < 0 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
 		}();
 		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
 	}

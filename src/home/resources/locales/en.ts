@@ -20,6 +20,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Additional</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Archive folder</source>
         <translation></translation>
     </message>
@@ -56,11 +60,15 @@
         <translation></translation>
     </message>
     <message>
-        <source>Flibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</source>
-        <translation>FLibrary database files (*.db *.db3 *.s3db *.sl3 *.sqlite *.sqlite3 *.hlc *.hlc2);;All files (*.*)</translation>
+        <source>FLibrary database files (*.db *.sqlite *.sqlite3);;All files (*.*)</source>
+        <translation></translation>
     </message>
     <message>
         <source>Index file</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Load annotations</source>
         <translation></translation>
     </message>
     <message>
@@ -88,6 +96,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Select additional data folder</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Select archives folder</source>
         <translation></translation>
     </message>
@@ -97,14 +109,6 @@
     </message>
     <message>
         <source>Select database file</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Transform path to absolute</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Transform path to relative</source>
         <translation></translation>
     </message>
 </context>
@@ -878,6 +882,10 @@ Restart now?</source>
 <context>
     <name>Error</name>
     <message>
+        <source>Additional info folder not found</source>
+        <translation>Folder with additional information not found</translation>
+    </message>
+    <message>
         <source>Archive folder cannot be empty</source>
         <translation></translation>
     </message>
@@ -963,6 +971,10 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <source>And</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Apply</source>
         <translation></translation>
     </message>
@@ -997,6 +1009,10 @@ Restart now?</source>
     <message>
         <source>Hide unrated books</source>
         <translation>Hide unrated</translation>
+    </message>
+    <message>
+        <source>Or</source>
+        <translation></translation>
     </message>
     <message>
         <source>Rate</source>
@@ -2574,9 +2590,20 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>Http</name>
+    <name>HotkeyDialog</name>
     <message>
-        <source>Authentication required</source>
+        <source>Hotkey settings</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Reset</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>HotkeyManager</name>
+    <message>
+        <source>Book</source>
         <translation></translation>
     </message>
 </context>
@@ -4430,9 +4457,17 @@ Try again?</source>
         <source>It looks like you&apos;re trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?</source>
         <translation></translation>
     </message>
+    <message>
+        <source>The database version is not supported. You must recreate the collection</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>MainWindow</name>
+    <message>
+        <source> or %1</source>
+        <translation></translation>
+    </message>
     <message>
         <source>&amp;About...</source>
         <translation></translation>
@@ -4447,6 +4482,10 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;Annotation</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Author</source>
         <translation></translation>
     </message>
     <message>
@@ -4530,6 +4569,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Series</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Settings</source>
         <translation></translation>
     </message>
@@ -4546,11 +4589,19 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Title</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;User data</source>
         <translation></translation>
     </message>
     <message>
         <source>&amp;View</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>A&amp;nnotation</source>
         <translation></translation>
     </message>
     <message>
@@ -4670,6 +4721,10 @@ Try again?</source>
         <translation>Go to the &amp;simplified web interface</translation>
     </message>
     <message>
+        <source>Hot&amp;keys...</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Http server management</source>
         <translation></translation>
     </message>
@@ -4687,6 +4742,10 @@ Try again?</source>
     </message>
     <message>
         <source>Log &amp;verbosity level</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Main menu</source>
         <translation></translation>
     </message>
     <message>
@@ -4727,6 +4786,10 @@ Try again?</source>
     </message>
     <message>
         <source>Search &amp;bar by title</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Search &amp;by</source>
         <translation></translation>
     </message>
     <message>
@@ -4786,7 +4849,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>To search for books by author, series, or title, enter the name or title here and press Enter</source>
+        <source>To search for books by %1, enter the name or title here and press Enter</source>
         <translation></translation>
     </message>
     <message>
@@ -4795,6 +4858,22 @@ Try again?</source>
     </message>
     <message>
         <source>Well, you only have yourself to blame!</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>annotation</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>author</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>series</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>title</source>
         <translation></translation>
     </message>
 </context>
@@ -4815,6 +4894,17 @@ Try again?</source>
     <message>
         <source>%1 b</source>
         <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ModeLineEdit</name>
+    <message>
+        <source>Filter</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Find</source>
+        <translation>Search</translation>
     </message>
 </context>
 <context>
@@ -5132,6 +5222,17 @@ Try again?</source>
     </message>
     <message>
         <source>Use the default reader?</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>RelativePathLineEdit</name>
+    <message>
+        <source>Transform path to absolute</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Transform path to relative</source>
         <translation></translation>
     </message>
 </context>
@@ -5468,12 +5569,12 @@ Try again?</source>
 <context>
     <name>TreeView</name>
     <message>
-        <source>Filter</source>
+        <source>Books view mode</source>
         <translation></translation>
     </message>
     <message>
-        <source>Find</source>
-        <translation>Search</translation>
+        <source>Navigation</source>
+        <translation></translation>
     </message>
 </context>
 <context>

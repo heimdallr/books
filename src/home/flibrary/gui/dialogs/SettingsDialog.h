@@ -6,7 +6,6 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/IModelProvider.h"
-#include "interface/ui/dialogs/ISettingsDialog.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
 #include "util/ISettings.h"
@@ -17,9 +16,7 @@
 namespace HomeCompa::Flibrary
 {
 
-class SettingsDialog final
-	: public QDialog
-	, virtual public ISettingsDialog
+class SettingsDialog final : public QDialog
 {
 	NON_COPY_MOVABLE(SettingsDialog)
 
@@ -33,9 +30,6 @@ public:
 		QWidget*                                      parent = nullptr
 	);
 	~SettingsDialog() override;
-
-private: // ISettingsDialog
-	int Exec() override;
 
 private:
 	class Impl;

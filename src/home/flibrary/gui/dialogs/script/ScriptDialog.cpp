@@ -8,8 +8,8 @@
 #include "fnd/FindPair.h"
 #include "fnd/algorithm.h"
 
-#include "interface/Localization.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 #include "interface/logic/IScriptController.h"
 
 #include "util/GeometryRestorable.h"
@@ -325,11 +325,12 @@ private:
 		if (const auto index = m_ui.comboBoxCommandType->findData(commandTypeVar); index >= 0)
 			m_ui.comboBoxCommandType->setCurrentIndex(index);
 
-		const auto commandType = commandTypeVar.value<IScriptController::Command::Type>();
-		FindSecond(COMMAND_GETTERS, commandType).second(m_commandTextWidgets, commandType, m_ui.viewCommand->currentIndex().data(Role::Command));
+		const auto commandType  = commandTypeVar.value<IScriptController::Command::Type>();
+		const auto currentIndex = m_ui.viewCommand->currentIndex();
+		FindSecond(COMMAND_GETTERS, commandType).second(m_commandTextWidgets, commandType, currentIndex.data(Role::Command));
 
-		m_ui.lineEditCommandArguments->setText(m_ui.viewCommand->currentIndex().data(Role::Arguments).toString());
-		m_ui.lineEditCommandWorkingFolder->setText(m_ui.viewCommand->currentIndex().data(Role::WorkingFolder).toString());
+		m_ui.lineEditCommandArguments->setText(currentIndex.data(Role::Arguments).toString());
+		m_ui.lineEditCommandWorkingFolder->setText(currentIndex.data(Role::WorkingFolder).toString());
 
 		m_ui.stackedWidgetCommand->setCurrentWidget(m_ui.scriptCommandEditorPage);
 	}
@@ -435,9 +436,4 @@ ScriptDialog::ScriptDialog(
 ScriptDialog::~ScriptDialog()
 {
 	PLOGV << "ScriptDialog destroyed";
-}
-
-int ScriptDialog::Exec()
-{
-	return QDialog::exec();
 }
