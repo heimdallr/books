@@ -263,7 +263,7 @@ private:
 	{
 		const auto installer = Util::GetInstallerDescription();
 		const auto it        = std::ranges::find_if(m_release.assets, [=](const Asset& asset) {
-			if (!asset.name.startsWith(PRODUCT_ID, Qt::CaseInsensitive))
+			if (asset.browser_download_url.isEmpty() || !asset.name.startsWith(PRODUCT_ID, Qt::CaseInsensitive))
 				return false;
 
 			const auto ext = QFileInfo(asset.name).suffix();
