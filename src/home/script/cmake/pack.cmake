@@ -67,4 +67,3 @@ else()
 endif()
 
 INCLUDE(CPack)
-
