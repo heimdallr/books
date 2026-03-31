@@ -2020,8 +2020,7 @@ where b.FileName = ? and b.Ext = ?)");
 			for (QDirIterator it(inpxFolder, { "*" }, QDir::Files, QDirIterator::Subdirectories); it.hasNext();)
 			{
 				const auto fileInfo = it.nextFileInfo();
-				auto       fileName = fileInfo.filePath();
-				fileName.erase(fileName.begin(), std::next(fileName.begin(), inpxFolder.size() + 1));
+				auto       fileName = fileInfo.filePath().mid(inpxFolder.length() + 1);
 				if (!(m_foldersContent.contains(fileName) || fileName.endsWith(".inpx") || std::ranges::any_of(specials, [&](const auto* item) {
 						  return fileName.startsWith(item);
 					  })))
