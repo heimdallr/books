@@ -66,8 +66,9 @@ void RelativePathLineEdit::Setup(const QDialog* dialog, ISettings* settings, con
 	});
 
 	connect(btn, &QAbstractButton::clicked, this, [this] {
-		auto path = m_isDir ? m_uiFactory->GetExistingDirectory(objectName(), m_selectDialogTitle, m_ui->edit->text())
-		                    : m_uiFactory->GetSaveFileName(objectName(), m_selectDialogTitle, m_fileFilter, QFileInfo(m_ui->edit->text()).path(), QFileDialog::DontConfirmOverwrite);
+		auto path = m_isDir      ? m_uiFactory->GetExistingDirectory(objectName(), m_selectDialogTitle, m_ui->edit->text())
+		          : m_isWritable ? m_uiFactory->GetSaveFileName(objectName(), m_selectDialogTitle, m_fileFilter, QFileInfo(m_ui->edit->text()).path(), QFileDialog::DontConfirmOverwrite)
+		                         : m_uiFactory->GetOpenFileName(objectName(), m_selectDialogTitle, m_fileFilter, QFileInfo(m_ui->edit->text()).path());
 		if (path.isEmpty())
 			return;
 

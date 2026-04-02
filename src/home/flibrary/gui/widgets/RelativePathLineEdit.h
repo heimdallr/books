@@ -37,6 +37,7 @@ class RelativePathLineEdit : public QLineEdit
 	NON_COPY_MOVABLE(RelativePathLineEdit)
 
 	Q_PROPERTY(bool isDir MEMBER m_isDir)
+	Q_PROPERTY(bool isWritable MEMBER m_isWritable)
 	Q_PROPERTY(bool isSaveFile MEMBER m_isSaveFile)
 	Q_PROPERTY(QString selectDialogTitle MEMBER m_selectDialogTitle)
 	Q_PROPERTY(QString fileFilter MEMBER m_fileFilter)
@@ -60,6 +61,7 @@ private:
 	const Util::IUiFactory*                     m_uiFactory { nullptr };
 
 	bool    m_isDir { false };
+	bool    m_isWritable { false };
 	bool    m_isSaveFile { false };
 	QString m_selectDialogTitle;
 	QString m_fileFilter;
