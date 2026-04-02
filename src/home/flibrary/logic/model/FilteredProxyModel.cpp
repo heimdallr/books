@@ -13,8 +13,6 @@ namespace
 
 void EnumerateLeafs(const QAbstractItemModel& model, const QModelIndexList& indexList, const std::function<void(const QModelIndex&)>& f)
 {
-	std::set<QString> processed;
-
 	std::queue<QModelIndex> queue;
 	for (const auto& index : indexList)
 		if (!index.isValid() || index.column() == 0)
@@ -25,7 +23,7 @@ void EnumerateLeafs(const QAbstractItemModel& model, const QModelIndexList& inde
 		const auto parent = queue.front();
 		queue.pop();
 		const auto rowCount = model.rowCount(parent);
-		if (parent.isValid() && rowCount == 0 && processed.emplace(parent.data(Role::Id).toString()).second)
+		if (parent.isValid() && rowCount == 0)
 			f(parent);
 
 		for (int i = 0; i < rowCount; ++i)
@@ -195,12 +193,12 @@ QStringList FilteredProxyModel::CollectLanguages() const
 
 int FilteredProxyModel::GetCount() const
 {
-	int result = 0;
-	EnumerateLeafs(*this, { QModelIndex {} }, [&](const QModelIndex&) {
-		++result;
+	std::unordered_set<QString> unique;
+	EnumerateLeafs(*this, { QModelIndex {} }, [&](const QModelIndex& index) {
+		unique.emplace(index.data(Role::Id).toString());
 	});
 
-	return result;
+	return static_cast<int>(unique.size());
 }
 
 void FilteredProxyModel::GetSelected(const QModelIndex& index, const QModelIndexList& indexList, QModelIndexList* selected) const
