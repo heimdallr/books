@@ -1,5 +1,7 @@
 #include "UpdateChecker.h"
 
+#include <ranges>
+
 #include <QCoreApplication>
 #include <QDesktopServices>
 #include <QProcess>
@@ -154,6 +156,15 @@ private:
 		if (m_settings->Get(DISCARDED_UPDATE_KEY, -1) == m_release.id)
 			return CheckResult::Discard;
 
+		const auto logVersion = [](const QString& title, const std::vector<int>& version) {
+			PLOGD << title << ": "
+				  << (version | std::views::transform([](const auto item) {
+						  return QString::number(item);
+					  })
+			          | std::ranges::to<QStringList>())
+						 .join('.');
+		};
+
 		std::vector<int> latestVersion;
 		if (!std::ranges::all_of(m_nameSplitted.back().split('.', Qt::SkipEmptyParts), [&](const QString& item) {
 				bool ok = false;
@@ -161,6 +172,7 @@ private:
 				return ok;
 			}))
 			return CheckResult::Error;
+		logVersion("latest version", latestVersion);
 
 		std::vector<int> currentVersion;
 		std::ranges::transform(QString(PRODUCT_VERSION).split('.', Qt::SkipEmptyParts), std::back_inserter(currentVersion), [](const QString& item) {
@@ -169,6 +181,7 @@ private:
 			assert(ok);
 			return value;
 		});
+		logVersion("current version", currentVersion);
 
 		if (latestVersion.size() != currentVersion.size())
 			return CheckResult::Error;
@@ -185,23 +198,28 @@ private:
 		switch (checkResult)
 		{
 			case CheckResult::NeedUpdate:
+				PLOGI << "need update";
 				return ShowUpdateMessage();
 
 			case CheckResult::Error:
+				PLOGI << "check error error";
 				message = Tr(CHECK_FAILED);
 				break;
 
 			case CheckResult::Discard:
+				PLOGI << "update discarded";
 				if (force)
 					return ShowUpdateMessage();
 
 				break;
 
 			case CheckResult::Actual:
+				PLOGI << "version actual";
 				message = Tr(VERSION_ACTUAL).arg(PRODUCT_VERSION);
 				break;
 
 			case CheckResult::MoreActual:
+				PLOGI << "miracle happened";
 				message = Tr(VERSION_MIRACLE).arg(m_nameSplitted.back()).arg(PRODUCT_VERSION);
 				break;
 		}
