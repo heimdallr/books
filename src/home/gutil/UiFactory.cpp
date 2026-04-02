@@ -12,6 +12,7 @@
 
 #include "Dialog.h"
 #include "log.h"
+#include "util/GeometryRestorable.h"
 
 namespace HomeCompa::Util
 {
@@ -116,6 +117,8 @@ QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
 	for (auto* widget : msgBox.findChildren<QWidget*>())
 		widget->setFont(font);
 
+	msgBox.show();
+	MoveToParentCenter(msgBox);
 	msgBox.exec();
 
 	return FindSecond(msgBoxButtons, msgBox.clickedButton(), QMessageBox::NoRole);

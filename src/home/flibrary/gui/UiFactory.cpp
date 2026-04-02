@@ -28,6 +28,7 @@
 
 #include "config/git_hash.h"
 #include "config/version.h"
+#include "util/GeometryRestorable.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -226,6 +227,8 @@ void UiFactory::ShowAbout() const
 		return Loc::Tr(CONTEXT, str);
 	});
 	msgBox.setInformativeText(QString(R"(<font size="%1px;">%2</font>)").arg(msgBox.font().pointSize() * 9 / 10).arg(text.join("")));
+	msgBox.show();
+	Util::MoveToParentCenter(msgBox);
 	msgBox.exec();
 }
 
