@@ -118,7 +118,7 @@ public:
 		(*executor)({ "Check for app updates", [this, executor, client = std::move(client), force]() mutable {
 						 Requester requester { CreateQtConnection("https://api.github.com") };
 						 requester.GetLatestRelease(client, "heimdallr", "books");
-						 const auto checkResult = Check();
+						 const auto checkResult = Check(force);
 
 						 return [this, executor = std::move(executor), force, checkResult](size_t) mutable {
 							 QTimer::singleShot(0, [&, force, checkResult] {
@@ -147,13 +147,13 @@ private:
 		return true;
 	}
 
-	CheckResult Check()
+	CheckResult Check(const bool force)
 	{
 		m_nameSplitted = m_release.name.split(' ', Qt::SkipEmptyParts);
 		if (m_nameSplitted.size() != 2)
 			return CheckResult::Error;
 
-		if (m_settings->Get(DISCARDED_UPDATE_KEY, -1) == m_release.id)
+		if (!force && m_settings->Get(DISCARDED_UPDATE_KEY, -1) == m_release.id)
 			return CheckResult::Discard;
 
 		const auto logVersion = [](const QString& title, const std::vector<int>& version) {
@@ -208,10 +208,7 @@ private:
 
 			case CheckResult::Discard:
 				PLOGI << "update discarded";
-				if (force)
-					return ShowUpdateMessage();
-
-				break;
+				return m_callback();
 
 			case CheckResult::Actual:
 				PLOGI << "version actual";
