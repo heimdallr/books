@@ -39,6 +39,7 @@
 #include "shared/OpdsController.h"
 #include "shared/ProgressController.h"
 #include "shared/ReaderController.h"
+#include "shared/RecentOpenBookController.h"
 #include "shared/SingleInstanceController.h"
 #include "shared/TaskQueue.h"
 #include "shared/UpdateChecker.h"
@@ -67,6 +68,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<ListModel>().as<AbstractListModel>();
 	builder.registerType<OpdsController>().as<IOpdsController>();
 	builder.registerType<ProgressController>().as<IAnnotationProgressController>();
+	builder.registerType<RecentOpenBookController>().as<IRecentOpenBookController>();
 	builder.registerType<ScriptController>().as<IScriptController>();
 	builder.registerType<SingleInstanceController>().as<ISingleInstanceController>();
 	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();

@@ -320,6 +320,12 @@
      <addaction name="actionExportSettings"/>
      <addaction name="actionImportSettings"/>
     </widget>
+    <widget class="QMenu" name="menuRecentBooks">
+     <property name="title">
+      <string>&amp;Recent books</string>
+     </property>
+    </widget>
+    <addaction name="menuRecentBooks"/>
     <addaction name="menuUserData"/>
     <addaction name="menuSettingsFile"/>
     <addaction name="actionExit"/>

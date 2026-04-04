@@ -15,6 +15,7 @@
 #include "interface/logic/IJokeRequesterFactory.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IRecentOpenBookController.h"
 #include "interface/ui/IAlphabetPanel.h"
 #include "interface/ui/ILineOption.h"
 #include "interface/ui/IMainWindow.h"
@@ -63,6 +64,7 @@ public:
 		std::shared_ptr<ILineOption>                    lineOption,
 		std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
 		std::shared_ptr<IHotkeyManager>                 hotkeyManager,
+		std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
 		QWidget*                                        parent = nullptr
 	);
 	~MainWindow() override;

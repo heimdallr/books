@@ -455,21 +455,6 @@ public:
 		return m_ui.treeView;
 	}
 
-	void SetMode(const int mode, const QString& id)
-	{
-		assert(IsNavigation());
-		const auto modeIndex = m_ui.cbMode->findData(mode, Qt::UserRole + 1);
-		const auto modeName  = m_ui.cbMode->itemData(modeIndex).toString();
-		m_settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(m_collectionProvider->GetActiveCollectionId()).arg(modeName), id);
-
-		if (m_controller->GetModeIndex() != mode)
-			return m_ui.cbMode->setCurrentIndex(modeIndex);
-
-		const auto& model = *m_ui.treeView->model();
-		if (const auto matched = model.match(model.index(0, 0), Role::Id, id, 1, Qt::MatchFlag::MatchExactly | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
-			m_ui.treeView->setCurrentIndex(matched.front());
-	}
-
 	void OnBookTitleToSearchVisibleChanged() const
 	{
 		emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.value));
@@ -1335,7 +1320,10 @@ private:
 
 	QString GetRecentIdKey() const
 	{
-		auto key = QString("Collections/%1/%2%3/LastId").arg(m_collectionProvider->GetActiveCollection().id).arg(m_controller->TrContext()).arg(IsNavigation() ? QString("/%1").arg(m_recentMode) : QString {});
+		auto key = QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY)
+		               .arg(m_collectionProvider->GetActiveCollection().id)
+		               .arg(m_controller->TrContext())
+		               .arg(IsNavigation() ? QString("/%1").arg(m_recentMode) : QString {});
 
 		return key;
 	}
@@ -1428,11 +1416,6 @@ void TreeView::ShowRemoved(const bool showRemoved)
 QAbstractItemView* TreeView::GetView() const
 {
 	return m_impl->GetView();
-}
-
-void TreeView::SetMode(const int mode, const QString& id)
-{
-	m_impl->SetMode(mode, id);
 }
 
 void TreeView::OnBookTitleToSearchVisibleChanged() const

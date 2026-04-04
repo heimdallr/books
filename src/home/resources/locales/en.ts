@@ -4553,6 +4553,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Recent books</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Remove collection</source>
         <translation></translation>
     </message>
