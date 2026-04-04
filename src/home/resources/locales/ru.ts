@@ -4565,6 +4565,10 @@ Try again?</source>
         <translation>&amp;Метаданные</translation>
     </message>
     <message>
+        <source>&amp;Recent books</source>
+        <translation>&amp;Недавние книги</translation>
+    </message>
+    <message>
         <source>&amp;Remove collection</source>
         <translation>&amp;Удалить коллекцию</translation>
     </message>
