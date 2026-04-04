@@ -49,7 +49,7 @@ public:
 		, m_menuItemTitleFormat { settings.Get(MENU_ITEM_TITLE_FORMAT_KEY, MENU_ITEM_TITLE_FORMAT_DEFAULT) }
 	{
 		if (m_maxMenuItemCount > 0)
-			m_databaseUser->CheckDatabase()->RegisterObserver(this);
+			m_databaseUser->Database()->RegisterObserver(this);
 	}
 
 	void SetMenu(QMenu* menu)
@@ -61,7 +61,8 @@ public:
 	~Impl() override
 	{
 		if (m_maxMenuItemCount > 0)
-			m_databaseUser->CheckDatabase()->UnregisterObserver(this);
+			if (auto db = m_databaseUser->CheckDatabase())
+				db->UnregisterObserver(this);
 	}
 
 private: // IDatabaseObserver
