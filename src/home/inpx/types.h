@@ -45,7 +45,7 @@ struct Book
 struct Genre
 {
 	QString code;
-	QString parentCore;
+	QString parentCode;
 	QString name;
 	size_t  parentId { 0 };
 	QString dbCode;
@@ -60,7 +60,7 @@ struct Genre
 
 	Genre(QString code_, QString parentCode_, QString name_, const size_t parentId_ = 0)
 		: code { std::move(code_) }
-		, parentCore { std::move(parentCode_) }
+		, parentCode { std::move(parentCode_) }
 		, name { std::move(name_) }
 		, parentId { parentId_ }
 	{
