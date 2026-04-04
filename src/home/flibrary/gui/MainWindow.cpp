@@ -212,7 +212,8 @@ public:
 		std::shared_ptr<QStyledItemDelegate>            logItemDelegate,
 		std::shared_ptr<ILineOption>                    lineOption,
 		std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
-		std::shared_ptr<IHotkeyManager>                 hotkeyManager
+		std::shared_ptr<IHotkeyManager>                 hotkeyManager,
+		std::shared_ptr<IRecentOpenBookController>      recentOpenBookController
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
@@ -235,6 +236,7 @@ public:
 		, m_lineOption { std::move(lineOption) }
 		, m_alphabetPanel { std::move(alphabetPanel) }
 		, m_hotkeyManager { std::move(hotkeyManager) }
+		, m_recentOpenBookController { std::move(recentOpenBookController) }
 		, m_navigationViewController { ILogicFactory::Lock(m_logicFactory)->GetTreeViewController(ItemType::Navigation) }
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
 		, m_navigationWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Navigation) }
@@ -248,30 +250,8 @@ public:
 		SetupHotkeys();
 		LoadGeometry();
 		StartDelayed([this, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable {
-			if (m_collectionController->IsEmpty() || !commandLine->GetInpxDir().empty())
-			{
-				m_self.showNormal();
-				m_self.raise();
-				m_self.activateWindow();
-
-				if (!m_ui.actionShowLog->isChecked())
-					m_ui.actionShowLog->trigger();
-				return m_collectionController->AddCollection(commandLine->GetInpxDir());
-			}
-
-			if (!databaseChecker->IsDatabaseValid())
-			{
-				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection().GetDatabase()));
-				return QCoreApplication::exit(Global::APP_FAILED);
-			}
-
-			auto& collectionUpdateCheckerRef = *collectionUpdateChecker;
-			collectionUpdateCheckerRef.CheckForUpdate([this, collectionUpdateChecker = std::move(collectionUpdateChecker)](const bool result, const Collection& updatedCollection) mutable {
-				if (result)
-					m_collectionController->OnInpxUpdateChecked(updatedCollection);
-
-				collectionUpdateChecker.reset();
-			});
+			CheckForUpdateCollection(*commandLine, *databaseChecker, std::move(collectionUpdateChecker));
+			m_recentOpenBookController->SetMenu(m_ui.menuRecentBooks);
 		});
 
 		if (m_checkForUpdateOnStartEnabled && m_collectionController->ActiveCollectionExists())
@@ -1379,6 +1359,34 @@ private:
 		});
 	}
 
+	void CheckForUpdateCollection(const ICommandLine& commandLine, const IDatabaseChecker& databaseChecker, std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker)
+	{
+		if (m_collectionController->IsEmpty() || !commandLine.GetInpxDir().empty())
+		{
+			m_self.showNormal();
+			m_self.raise();
+			m_self.activateWindow();
+
+			if (!m_ui.actionShowLog->isChecked())
+				m_ui.actionShowLog->trigger();
+			return m_collectionController->AddCollection(commandLine.GetInpxDir());
+		}
+
+		if (!databaseChecker.IsDatabaseValid())
+		{
+			m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection().GetDatabase()));
+			return QCoreApplication::exit(Global::APP_FAILED);
+		}
+
+		auto& collectionUpdateCheckerRef = *collectionUpdateChecker;
+		collectionUpdateCheckerRef.CheckForUpdate([this, collectionUpdateChecker = std::move(collectionUpdateChecker)](const bool result, const Collection& updatedCollection) mutable {
+			if (result)
+				m_collectionController->OnInpxUpdateChecked(updatedCollection);
+
+			collectionUpdateChecker.reset();
+		});
+	}
+
 	void StartDelayed(std::function<void()> f)
 	{
 		PLOGV << "StartDelayed";
@@ -1482,19 +1490,20 @@ private:
 	std::shared_ptr<const IUiFactory>            m_uiFactory;
 	std::shared_ptr<const IDatabaseUser>         m_databaseUser;
 
-	PropagateConstPtr<ISettings, std::shared_ptr>              m_settings;
-	PropagateConstPtr<ICollectionController, std::shared_ptr>  m_collectionController;
-	PropagateConstPtr<IParentWidgetProvider, std::shared_ptr>  m_parentWidgetProvider;
-	PropagateConstPtr<IAnnotationController, std::shared_ptr>  m_annotationController;
-	PropagateConstPtr<AnnotationWidget, std::shared_ptr>       m_annotationWidget;
-	PropagateConstPtr<AuthorAnnotationWidget, std::shared_ptr> m_authorAnnotationWidget;
-	PropagateConstPtr<LocaleController, std::shared_ptr>       m_localeController;
-	PropagateConstPtr<ILogController, std::shared_ptr>         m_logController;
-	PropagateConstPtr<QWidget, std::shared_ptr>                m_progressBar;
-	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr>    m_logItemDelegate;
-	PropagateConstPtr<ILineOption, std::shared_ptr>            m_lineOption;
-	PropagateConstPtr<IAlphabetPanel, std::shared_ptr>         m_alphabetPanel;
-	PropagateConstPtr<IHotkeyManager, std::shared_ptr>         m_hotkeyManager;
+	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
+	PropagateConstPtr<ICollectionController, std::shared_ptr>     m_collectionController;
+	PropagateConstPtr<IParentWidgetProvider, std::shared_ptr>     m_parentWidgetProvider;
+	PropagateConstPtr<IAnnotationController, std::shared_ptr>     m_annotationController;
+	PropagateConstPtr<AnnotationWidget, std::shared_ptr>          m_annotationWidget;
+	PropagateConstPtr<AuthorAnnotationWidget, std::shared_ptr>    m_authorAnnotationWidget;
+	PropagateConstPtr<LocaleController, std::shared_ptr>          m_localeController;
+	PropagateConstPtr<ILogController, std::shared_ptr>            m_logController;
+	PropagateConstPtr<QWidget, std::shared_ptr>                   m_progressBar;
+	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr>       m_logItemDelegate;
+	PropagateConstPtr<ILineOption, std::shared_ptr>               m_lineOption;
+	PropagateConstPtr<IAlphabetPanel, std::shared_ptr>            m_alphabetPanel;
+	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
+	PropagateConstPtr<IRecentOpenBookController, std::shared_ptr> m_recentOpenBookController;
 
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationViewController;
 
@@ -1549,6 +1558,7 @@ MainWindow::MainWindow(
 	std::shared_ptr<ILineOption>                    lineOption,
 	std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
 	std::shared_ptr<IHotkeyManager>                 hotkeyManager,
+	std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
 	QWidget*                                        parent
 )
 	: QMainWindow(parent)
@@ -1574,7 +1584,8 @@ MainWindow::MainWindow(
 		  std::move(logItemDelegate),
 		  std::move(lineOption),
 		  std::move(alphabetPanel),
-		  std::move(hotkeyManager)
+		  std::move(hotkeyManager),
+		  std::move(recentOpenBookController)
 	  )
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));

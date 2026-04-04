@@ -28,6 +28,7 @@ public:
 private:
 	void OnLinkActivated(long long bookId) const override;
 	void OnDoubleClicked(long long bookId) const override;
+	void OnRecentBookMenuTriggered(long long bookId) const override;
 
 private:
 	struct Impl;

@@ -12,8 +12,9 @@ using namespace HomeCompa::Flibrary;
 namespace
 {
 
-constexpr auto ON_BOOK_LINK_KEY      = "Preferences/Interaction/Book/OnLink";
-constexpr auto ON_BOOK_DBL_CLICK_KEY = "Preferences/Interaction/Book/OnDoubleClick";
+constexpr auto ON_BOOK_LINK_KEY             = "Preferences/Interaction/Book/OnLink";
+constexpr auto ON_BOOK_DBL_CLICK_KEY        = "Preferences/Interaction/Book/OnDoubleClick";
+constexpr auto ON_BOOK_RECENT_TRIGGERED_KEY = "Preferences/Interaction/Book/OnRecentSelect";
 
 class IBookInteractorImpl // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -130,4 +131,9 @@ void BookInteractor::OnLinkActivated(const long long bookId) const
 void BookInteractor::OnDoubleClicked(const long long bookId) const
 {
 	m_impl->Interact(bookId, ON_BOOK_DBL_CLICK_KEY);
+}
+
+void BookInteractor::OnRecentBookMenuTriggered(const long long bookId) const
+{
+	m_impl->Interact(bookId, ON_BOOK_RECENT_TRIGGERED_KEY);
 }
