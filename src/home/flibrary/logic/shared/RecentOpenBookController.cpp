@@ -95,7 +95,7 @@ private:
 		m_menu->clear();
 		m_menu->menuAction()->setEnabled(false);
 		if (m_maxMenuItemCount < 1)
-			return;
+			return m_menu->menuAction()->setVisible(false);
 
 		auto db = m_databaseUser->Database();
 		m_databaseUser->Execute({ "Update recent books menu", [this, db = std::move(db)] {
