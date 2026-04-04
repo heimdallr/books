@@ -2,6 +2,7 @@
 
 #include "interface/logic/IBookExtractor.h"
 #include "interface/logic/IBookInteractor.h"
+#include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IReaderController.h"
 
@@ -21,7 +22,8 @@ public:
 		std::shared_ptr<const ISettings>            settings,
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
 		std::shared_ptr<const IReaderController>    readerController,
-		std::shared_ptr<const IDatabaseUser>        databaseUser
+		std::shared_ptr<const IDatabaseUser>        databaseUser,
+		std::shared_ptr<const ICollectionProvider>  collectionProvider
 	);
 	~BookInteractor() override;
 

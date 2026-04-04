@@ -5,7 +5,9 @@
 #include "fnd/FindPair.h"
 
 #include "interface/constants/Enums.h"
+#include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/IOpdsController.h"
@@ -440,6 +442,18 @@ Util::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel* model, 
 	});
 
 	return books;
+}
+
+void LogicFactory::FindBook(const QString& navigationMode, const QString& navigationId, const long long bookId) const
+{
+	const auto  settings   = m_impl->container.resolve<ISettings>();
+	const auto& collection = m_impl->container.resolve<ICollectionProvider>()->GetActiveCollection();
+
+	if (bookId > 0)
+		settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(collection.id, Loc::Books, ""), bookId);
+
+	settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(collection.id, QString("%1/").arg(Loc::NAVIGATION), navigationMode), navigationId);
+	GetTreeViewController(ItemType::Navigation)->SetMode(navigationMode);
 }
 
 std::shared_ptr<IProgressController> LogicFactory::GetProgressController() const

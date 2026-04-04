@@ -1265,7 +1265,7 @@ private:
 			if (id <= 0)
 				return;
 
-			m_navigationWidget->SetMode(static_cast<int>(NavigationMode::Search), QString::number(id));
+			ILogicFactory::Lock(m_logicFactory)->FindBook("Search", QString::number(id));
 			searchController.reset();
 		});
 	}
