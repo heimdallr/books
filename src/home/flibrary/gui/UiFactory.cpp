@@ -18,6 +18,7 @@
 #include "dialogs/OpdsDialog.h"
 #include "dialogs/SettingsDialog.h"
 #include "dialogs/script/ScriptDialog.h"
+#include "util/GeometryRestorable.h"
 #include "version/AppVersion.h"
 
 #include "AuthorReview.h"
@@ -28,7 +29,6 @@
 
 #include "config/git_hash.h"
 #include "config/version.h"
-#include "util/GeometryRestorable.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

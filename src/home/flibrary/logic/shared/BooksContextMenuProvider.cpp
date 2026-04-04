@@ -799,7 +799,7 @@ private:
 					continue;
 			}
 
-			auto [it, inserted] = unique.emplace(book.dstFileName, index);
+			auto [it, inserted] = unique.try_emplace(book.dstFileName, index);
 			if (inserted)
 				continue;
 
@@ -834,12 +834,10 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr& parent, co
 		AddMenuItem(parent, TREE_EXPAND, Tr(TREE_EXPAND), BooksMenuAction::Expand);
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::NodeExpanded))
 		AddMenuItem(parent, TREE_COLLAPSE, Tr(TREE_COLLAPSE), BooksMenuAction::Collapse);
-	if (const auto item = AddMenuItem(parent, Loc::TREE_COLLAPSE_ALL, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll); //-V821
-	    !(options & ITreeViewController::RequestContextMenuOptions::HasExpanded))
-		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
-	if (const auto item = AddMenuItem(parent, Loc::TREE_EXPAND_ALL, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_EXPAND_ALL), BooksMenuAction::ExpandAll);
-	    !(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed)) //-V821
-		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+	AddMenuItem(parent, Loc::TREE_COLLAPSE_ALL, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll)
+		->SetData(QVariant(!!(options & ITreeViewController::RequestContextMenuOptions::HasExpanded)).toString(), MenuItem::Column::Enabled);
+	AddMenuItem(parent, Loc::TREE_EXPAND_ALL, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_EXPAND_ALL), BooksMenuAction::ExpandAll)
+		->SetData(QVariant(!!(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed)).toString(), MenuItem::Column::Enabled);
 }
 
 BooksContextMenuProvider::BooksContextMenuProvider(

@@ -575,7 +575,10 @@ private:
 					}
 				);
 			    it != zipFileList.end())
-				return std::make_pair(std::move(subZipPtr), subZipPtr->Read(*it));
+			{
+				auto subSubStream = subZipPtr->Read(*it);
+				return std::make_pair(std::move(subZipPtr), std::move(subSubStream));
+			}
 			return {};
 		}();
 

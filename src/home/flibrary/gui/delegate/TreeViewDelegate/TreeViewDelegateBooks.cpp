@@ -267,7 +267,7 @@ private:
 	void RenderBooks(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const
 	{
 		const auto column  = index.data(Role::Remap).toInt();
-		o.displayAlignment = m_alignments[column];
+		o.displayAlignment = m_alignments[static_cast<size_t>(column)];
 
 		const auto markColor = m_readMarkColor ? *m_readMarkColor : o.palette.color(QPalette::ColorRole::Text);
 

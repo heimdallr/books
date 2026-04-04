@@ -188,9 +188,10 @@ public:
 		m_ui.view->setModel(m_model.get());
 		m_ui.view->viewport()->installEventFilter(m_itemViewToolTipper.get());
 		m_ui.view->viewport()->installEventFilter(m_scrollBarController.get());
-		m_ui.view->header()->setDefaultAlignment(Qt::AlignCenter);
-		m_ui.view->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
-		m_ui.view->header()->setSectionResizeMode(0, QHeaderView::Stretch);
+		auto& header = *m_ui.view->header();
+		header.setDefaultAlignment(Qt::AlignCenter);
+		header.setSectionResizeMode(1, QHeaderView::ResizeToContents);
+		header.setSectionResizeMode(0, QHeaderView::Stretch);
 		m_ui.view->setItemDelegateForColumn(1, new HotkeyDelegate(&m_self));
 		m_ui.view->setCurrentIndex({});
 		for (int i = 0, sz = m_model->rowCount(); i < sz; ++i)

@@ -8,11 +8,11 @@
 #include "interface/IParentWidgetProvider.h"
 
 #include "Hypodermic/Hypodermic.h"
+#include "util/GeometryRestorable.h"
 #include "util/ISettings.h"
 
 #include "Dialog.h"
 #include "log.h"
-#include "util/GeometryRestorable.h"
 
 namespace HomeCompa::Util
 {

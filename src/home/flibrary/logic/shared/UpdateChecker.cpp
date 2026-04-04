@@ -229,7 +229,7 @@ private:
 
 	void ShowUpdateMessage()
 	{
-		const auto installer = Util::GetInstallerDescription();
+		const auto& installer = Util::GetInstallerDescription();
 
 		std::vector<std::pair<QMessageBox::ButtonRole, QString>> buttons;
 		if (!m_release.assets.empty() && !m_release.assets.front().browser_download_url.isEmpty())

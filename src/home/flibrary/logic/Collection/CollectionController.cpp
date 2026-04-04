@@ -283,7 +283,7 @@ private:
 			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
 			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_CREATED);
 			if (!updateResult.error)
-				Add(std::move(name), std::move(db), std::move(folder), std::move(additionalFolder), std::move(inpx), mode);
+				Add(std::move(name), std::move(db), std::move(folder), std::move(additionalFolder), std::move(inpx), mode); //-V833
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.CreateNewCollection(std::move(ini), mode, std::move(callback));

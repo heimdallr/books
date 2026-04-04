@@ -127,7 +127,7 @@ std::pair<bool, std::filesystem::path> Write(
 			case WriteMode::AsIs:
 				return Write(bytes, result.second);
 			case WriteMode::Archive:
-				return Archive(std::move(bytes), result.second, dstFileInfo.completeBaseName() + "." + QFileInfo(book.file).suffix(), std::move(zipProgressCallback));
+				return Archive(bytes, result.second, dstFileInfo.completeBaseName() + "." + QFileInfo(book.file).suffix(), std::move(zipProgressCallback));
 			case WriteMode::Unpack:
 				return Unpack(bytes, result.second);
 			default: // NOLINT(clang-diagnostic-covered-switch-default)
