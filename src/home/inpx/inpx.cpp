@@ -69,8 +69,6 @@ public:
 	class const_iterator : public boost::iterator_facade<const_iterator, value_type, boost::forward_traversal_tag>
 	{
 	public:
-		const_iterator() = default;
-
 		const_iterator(const DataStorage& dataStorage, const ViewStorage& viewStorage, const DataStorage::const_iterator& dataIt, const ViewStorage::const_iterator& viewIt)
 			: m_dataStorage { &dataStorage }
 			, m_viewStorage { &viewStorage }
@@ -430,7 +428,7 @@ auto LoadGenres(const QString& genresIniFileName)
 	if (!stream.open(QIODevice::ReadOnly))
 		throw std::invalid_argument(std::format("Cannot open '{}'", genresIniFileName));
 
-	genres.emplace_back("0");
+	genres.emplace_back("");
 	index.emplace(genres.front().code, size_t { 0 });
 
 	for (auto byteArray = stream.readLine(); !byteArray.isEmpty(); byteArray = stream.readLine())
@@ -454,11 +452,11 @@ auto LoadGenres(const QString& genresIniFileName)
 	}
 
 	std::for_each(std::next(std::begin(genres)), std::end(genres), [&index, &genres](Genre& genre) {
-		if (const auto it = index.find(genre.parentCore))
+		if (const auto it = index.find(genre.parentCode))
 		{
 			auto& parent   = genres[*it];
 			genre.parentId = *it;
-			genre.dbCode   = QString("%1.%2").arg(parent.code).arg(++parent.childrenCount, 3, 10, QChar { '0' });
+			genre.dbCode   = QString("%1%2").arg(parent.dbCode.isEmpty() ? QString {} : parent.dbCode + '.').arg(++parent.childrenCount, 3, 10, QChar { '0' });
 		}
 		else
 		{
@@ -1171,7 +1169,7 @@ std::pair<Genres, Dictionary> ReadGenres(DB::IDatabase& db, const QString& genre
 		for (const auto k : it->second)
 		{
 			genres[k].parentId   = i;
-			genres[k].parentCore = genres[i].code;
+			genres[k].parentCode = genres[i].code;
 		}
 	}
 
