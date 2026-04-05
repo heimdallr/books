@@ -49,7 +49,8 @@ public:
 		, m_menuItemTitleFormat { settings.Get(MENU_ITEM_TITLE_FORMAT_KEY, MENU_ITEM_TITLE_FORMAT_DEFAULT) }
 	{
 		if (m_maxMenuItemCount > 0)
-			m_databaseUser->Database()->RegisterObserver(this);
+			if (auto db = m_databaseUser->CheckDatabase())
+				db->RegisterObserver(this);
 	}
 
 	void SetMenu(QMenu* menu)
@@ -97,7 +98,10 @@ private:
 		if (m_maxMenuItemCount < 1)
 			return m_menu->menuAction()->setVisible(false);
 
-		auto db = m_databaseUser->Database();
+		auto db = m_databaseUser->CheckDatabase();
+		if (!db)
+			return;
+
 		m_databaseUser->Execute({ "Update recent books menu", [this, db = std::move(db)] {
 									 const auto                                 query = db->CreateQuery(std::format(QUERY, m_maxMenuItemCount));
 									 std::vector<std::pair<long long, QString>> data;
