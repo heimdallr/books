@@ -77,7 +77,7 @@ else()
 	)
 endif()
 
-set(QtModules Core Gui Widgets Xml Network Svg Concurrent HttpServer)
+set(QtModules Core Gui Widgets Xml Network Svg Concurrent HttpServer WebSockets)
 find_package(Qt${QT_MAJOR_VERSION} REQUIRED COMPONENTS ${QtModules})
 
 set(BIT7Z_AUTO_FORMAT ON CACHE BOOL "enable auto format support" FORCE)
