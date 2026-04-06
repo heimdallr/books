@@ -220,14 +220,17 @@ void UiFactory::ShowAbout() const
 	msgBox.setIcon(QMessageBox::Information);
 	msgBox.setWindowTitle(Tr(ABOUT_TITLE));
 	msgBox.setTextFormat(Qt::RichText);
-	msgBox.setText(QString(ABOUT_TEXT)
-	                   .arg(
-						   Tr(ABOUT_DESCRIPTION),
-						   Tr(ABOUT_VERSION).arg(GetApplicationVersion(), GIT_HASH, QString("<a href='%1'>%2</a>").arg(COPY_VERSION_LINK, QChar { 0x29C9 })),
-						   "https://github.com/heimdallr/books",
-						   Tr(ABOUT_LICENSE).arg("<a href='https://opensource.org/license/mit'>MIT</a>"),
-						   GetPersonalBuildString()
-					   ));
+	msgBox.setText(
+		QString(ABOUT_TEXT)
+			.arg(
+				Tr(ABOUT_DESCRIPTION),
+				Tr(ABOUT_VERSION)
+					.arg(GetApplicationVersion(), GIT_HASH, QString("<font size='%1px;'><a href='%2'>%3</a></font>").arg(msgBox.font().pointSize() * 9 / 10).arg(COPY_VERSION_LINK, QChar { 0x29C9 })),
+				"https://github.com/heimdallr/books",
+				Tr(ABOUT_LICENSE).arg("<a href='https://opensource.org/license/mit'>MIT</a>"),
+				GetPersonalBuildString()
+			)
+	);
 
 	for (auto* label : msgBox.findChildren<QLabel*>())
 	{
