@@ -34,6 +34,7 @@ constexpr auto CONFIRM_REMOVE_COLLECTION        = QT_TRANSLATE_NOOP("CollectionC
 constexpr auto CONFIRM_REMOVE_DATABASE          = QT_TRANSLATE_NOOP("CollectionController", "Delete collection database as well?");
 constexpr auto CANNOT_WRITE_TO_DATABASE         = QT_TRANSLATE_NOOP("CollectionController", "No write access to %1");
 constexpr auto ERROR                            = QT_TRANSLATE_NOOP("CollectionController", "The collection was not %1 due to errors. See log.");
+constexpr auto BAD_ARCHIVES_DETECTED            = QT_TRANSLATE_NOOP("CollectionController", "Corrupted archives detected:\n%1");
 constexpr auto COLLECTION_UPDATED               = QT_TRANSLATE_NOOP("CollectionController", "Looks like the collection has been updated. Apply changes?");
 constexpr auto COLLECTION_UPDATE_ACTION_CREATED = QT_TRANSLATE_NOOP("CollectionController", "created");
 constexpr auto COLLECTION_UPDATE_ACTION_UPDATED = QT_TRANSLATE_NOOP("CollectionController", "updated");
@@ -325,6 +326,9 @@ private:
 	{
 		if (updateResult.error)
 			return m_uiFactory->ShowError(Tr(ERROR).arg(Tr(action)));
+
+		if (!updateResult.badFolders.isEmpty())
+			m_uiFactory->ShowWarning(Tr(BAD_ARCHIVES_DETECTED).arg(updateResult.badFolders.join('\n')));
 
 		updateResult.folders == 0 ? m_uiFactory->ShowInfo(Tr(NO_UPDATES_FOUND))
 								  : m_uiFactory->ShowInfo(Tr(COLLECTION_UPDATE_RESULT)
