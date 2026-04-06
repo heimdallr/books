@@ -1298,7 +1298,8 @@ public:
 									 ))
 			                       - 1;
 				 return [this, genres, hasError = !ok](size_t) {
-					 m_badFolders.resize(5);
+					 if (m_badFolders.size() > 5)
+						 m_badFolders.resize(5);
 					 m_callback(
 						 UpdateResult { m_data.bookFolders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, false, hasError, std::move(m_badFolders) }
 					 );
