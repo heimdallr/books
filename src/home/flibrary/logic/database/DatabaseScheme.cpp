@@ -65,14 +65,15 @@ bool RecordsExists(DB::ITransaction& transaction, const std::string_view tableNa
 	return query->Get<int>(0) != 0;
 }
 */
-void AddUserTables(DB::ITransaction& /*transaction*/)
+void AddUserTables(DB::ITransaction& transaction)
 {
 	PLOGI << "Add tables";
-	//static constexpr const char* commands[] {
-	//};
+	static constexpr const char* commands[] {
+		"CREATE INDEX IF NOT EXISTS IX_ExportListUser_ExportType_CreatedAt ON Export_List_User (ExportType, CreatedAt DESC)",
+	};
 
-	//for (const auto* command : commands)
-	//	transaction.CreateCommand(command)->Execute();
+	for (const auto* command : commands)
+		transaction.CreateCommand(command)->Execute();
 }
 
 void AddTableFields(DB::ITransaction& /*transaction*/)
