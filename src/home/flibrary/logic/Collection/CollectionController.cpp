@@ -14,7 +14,6 @@
 
 #include "inpx/InpxConstant.h"
 #include "platform/StrUtil.h"
-#include "util/IExecutor.h"
 #include "util/files.h"
 
 #include "CollectionImpl.h"
