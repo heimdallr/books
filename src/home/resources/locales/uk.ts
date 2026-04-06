@@ -727,6 +727,12 @@
         <translation>Впевнені, що хочете видалити колекцію?</translation>
     </message>
     <message>
+        <source>Corrupted archives detected:
+%1</source>
+        <translation>Виявлено пошкоджені архіви
+%1</translation>
+    </message>
+    <message>
         <source>Delete collection database as well?</source>
         <translation>Видалити та базу даних колекції?</translation>
     </message>

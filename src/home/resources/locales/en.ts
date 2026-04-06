@@ -719,6 +719,11 @@
         <translation></translation>
     </message>
     <message>
+        <source>Corrupted archives detected:
+%1</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Delete collection database as well?</source>
         <translation></translation>
     </message>
