@@ -880,7 +880,11 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Version: %1 (%2)</source>
+        <source>The program version has been copied to the clipboard</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Version: %1 (%2) %3</source>
         <translation></translation>
     </message>
 </context>

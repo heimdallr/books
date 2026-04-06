@@ -1,6 +1,10 @@
 #include "UiFactory.h"
 
+#include <QClipboard>
+#include <QDesktopServices>
 #include <QFileInfo>
+#include <QGuiApplication>
+#include <QToolTip>
 
 #include "fnd/FindPair.h"
 
@@ -20,6 +24,7 @@
 #include "dialogs/script/ScriptDialog.h"
 #include "util/GeometryRestorable.h"
 #include "version/AppVersion.h"
+#include "widgets/ClickableLabel.h"
 
 #include "AuthorReview.h"
 #include "CollectionCleaner.h"
@@ -39,9 +44,10 @@ namespace
 constexpr auto        CONTEXT           = "Dialog";
 constexpr auto        ABOUT_TITLE       = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
 constexpr auto        ABOUT_DESCRIPTION = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger");
-constexpr auto        ABOUT_VERSION     = QT_TRANSLATE_NOOP("Dialog", "Version: %1 (%2)");
+constexpr auto        ABOUT_VERSION     = QT_TRANSLATE_NOOP("Dialog", "Version: %1 (%2) %3");
 constexpr auto        ABOUT_LICENSE     = QT_TRANSLATE_NOOP("Dialog", "Distributed under license %1");
 constexpr auto        PERSONAL_BUILD    = QT_TRANSLATE_NOOP("Dialog", "<p>Personal <a href='%1'>%2</a> build</p>");
+constexpr auto        VERSION_COPIED    = QT_TRANSLATE_NOOP("Dialog", "The program version has been copied to the clipboard");
 constexpr const char* COMPONENTS[]      = {
 	"<hr><table style='font-size:50%'>",
 	QT_TRANSLATE_NOOP("Dialog", "<tr><td style='text-align: center'>Components / Libraries</td></tr>"),
@@ -63,7 +69,8 @@ constexpr const char* COMPONENTS[]      = {
 	// clang-format on
 	"</table>"
 };
-constexpr auto ABOUT_TEXT = "%1<p>%2<p><a href='%3'>%3</a><p>%4%5";
+constexpr auto ABOUT_TEXT        = "%1<p>%2<p><a href='%3'>%3</a><p>%4%5";
+constexpr auto COPY_VERSION_LINK = "copy://version";
 TR_DEF
 
 QString GetPersonalBuildString()
@@ -216,11 +223,25 @@ void UiFactory::ShowAbout() const
 	msgBox.setText(QString(ABOUT_TEXT)
 	                   .arg(
 						   Tr(ABOUT_DESCRIPTION),
-						   Tr(ABOUT_VERSION).arg(GetApplicationVersion(), GIT_HASH),
+						   Tr(ABOUT_VERSION).arg(GetApplicationVersion(), GIT_HASH, QString("<a href='%1'>%2</a>").arg(COPY_VERSION_LINK, QChar { 0x29C9 })),
 						   "https://github.com/heimdallr/books",
 						   Tr(ABOUT_LICENSE).arg("<a href='https://opensource.org/license/mit'>MIT</a>"),
 						   GetPersonalBuildString()
 					   ));
+
+	for (auto* label : msgBox.findChildren<QLabel*>())
+	{
+		label->setOpenExternalLinks(false);
+		connect(label, &QLabel::linkActivated, [&](const QString& link) {
+			if (link != COPY_VERSION_LINK)
+				return (void)QDesktopServices::openUrl(link);
+
+			QGuiApplication::clipboard()->setText(QString("%1 (%2)").arg(GetApplicationVersion(), GIT_HASH));
+			QToolTip::setFont(msgBox.font());
+			QToolTip::showText(QCursor::pos(), Tr(VERSION_COPIED));
+		});
+	}
+
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	QStringList text;
 	std::ranges::transform(COMPONENTS, std::back_inserter(text), [](const char* str) {

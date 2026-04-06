@@ -891,8 +891,12 @@ Restart now?</source>
         <translation>Распространяется по лицензии %1</translation>
     </message>
     <message>
-        <source>Version: %1 (%2)</source>
-        <translation>Версия: %1 (%2)</translation>
+        <source>The program version has been copied to the clipboard</source>
+        <translation>Версия программы скопирована в буфер обмена</translation>
+    </message>
+    <message>
+        <source>Version: %1 (%2) %3</source>
+        <translation>Версия: %1 (%2) %3</translation>
     </message>
 </context>
 <context>
