@@ -13,7 +13,7 @@ def configure_xercesc(recipe):
     recipe.options["xerces-c"].shared = False
 
 def configure_icu(recipe):
-    recipe.options["icu"].shared = False
+    recipe.options["icu"].shared = True
 
 def configure_libjxl(recipe):
     recipe.options["libjxl"].shared = False

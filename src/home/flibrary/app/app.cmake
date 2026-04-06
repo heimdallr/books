@@ -9,32 +9,13 @@ CreateWinRC(app
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/../../../../LICENSE_en.txt" DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(RENAME "${CMAKE_BINARY_DIR}/bin/LICENSE_en.txt" "${CMAKE_BINARY_DIR}/bin/LICENSE.txt")
 
-set(D)
-if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-	set(D d)
-endif()
-
 if (MSVC)
 	#Да, колхоз. Но я устал
-	set(QT_LIBS Qt6Core Qt6Gui Qt6Network Qt6Svg Qt6Widgets Qt6HttpServer Qt6WebSockets)
-	set(QT_BIN_FILES)
-	set(QT_PDB_FILES)
-	foreach(lib ${QT_LIBS})
-		list(APPEND QT_BIN_FILES ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/${lib}${D}.dll)
-		if (${CMAKE_BUILD_TYPE} STREQUAL "Debug")
-			list(APPEND QT_PDB_FILES ${QT6_INSTALL_PREFIX}/${QT6_INSTALL_BINS}/${lib}${D}.pdb)
-		endif()
-	endforeach()
-		
-	file(COPY ${QT_BIN_FILES} ${QT_PDB_FILES} DESTINATION ${CMAKE_BINARY_DIR}/bin)
-	
+	CopyAndInstallICU(tu dt uc in)
+	CopyAndInstallQt(${QtModules})
+	InstallQtPlugins(imageformats platforms styles tls)
 	if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/imageformats DESTINATION .)
 		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/locales DESTINATION .)
-		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/platforms DESTINATION .)
-		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/styles DESTINATION .)
-		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/tls DESTINATION .)
-		install(FILES ${QT_BIN_FILES} DESTINATION .)
 	endif()
 endif()
 

@@ -77,7 +77,7 @@ else()
 	)
 endif()
 
-set(QtModules Widgets Xml Network Svg SvgWidgets Concurrent HttpServer)
+set(QtModules Core Gui Widgets Xml Network Svg Concurrent HttpServer)
 find_package(Qt${QT_MAJOR_VERSION} REQUIRED COMPONENTS ${QtModules})
 
 set(BIT7Z_AUTO_FORMAT ON CACHE BOOL "enable auto format support" FORCE)
@@ -97,6 +97,7 @@ find_package(cimg REQUIRED)
 find_package(SQLite3 REQUIRED)
 
 include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)
+include(${BUILDSCRIPTS_ROOT}/cmake/sdk.cmake)
 
 include_directories(${FOUNDATION_ROOT})
 include(${FOUNDATION_ROOT}/fnd/fnd.cmake)
