@@ -4,7 +4,7 @@
 #include <map>
 #include <memory>
 
-#include <QString>
+#include <QStringList>
 
 #include "fnd/EnumBitmask.h"
 #include "fnd/NonCopyMovable.h"
@@ -36,14 +36,15 @@ enum class CreateCollectionMode
 
 struct UpdateResult
 {
-	size_t folders { 0 };
-	size_t authors { 0 };
-	size_t series { 0 };
-	size_t books { 0 };
-	size_t keywords { 0 };
-	size_t genres { 0 };
-	bool   oldDataUpdateFound { false };
-	bool   error { false };
+	size_t      folders { 0 };
+	size_t      authors { 0 };
+	size_t      series { 0 };
+	size_t      books { 0 };
+	size_t      keywords { 0 };
+	size_t      genres { 0 };
+	bool        oldDataUpdateFound { false };
+	bool        error { false };
+	QStringList badFolders;
 };
 
 class INPX_EXPORT Parser

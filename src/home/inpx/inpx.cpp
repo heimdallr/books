@@ -1286,20 +1286,26 @@ public:
 			ProcessImpl(processed);
 			return processed;
 		};
-		(*m_executor)({ "Create collection", [&, process] {
-						   const auto ok = TRY("create collection", process);
+		(*m_executor)(
+			{ "Create collection", [&, process] {
+				 const auto ok = TRY("create collection", process);
 
-						   const auto genres = static_cast<size_t>(std::ranges::count_if(
-												   m_data.genres,
-												   [](const Genre& genre) {
-													   return genre.newGenre;
-												   }
-											   ))
-			                                 - 1;
-						   return [this, genres, hasError = !ok](size_t) {
-							   m_callback(UpdateResult { m_data.bookFolders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, false, hasError });
-						   };
-					   } });
+				 const auto genres = static_cast<size_t>(std::ranges::count_if(
+										 m_data.genres,
+										 [](const Genre& genre) {
+											 return genre.newGenre;
+										 }
+									 ))
+			                       - 1;
+				 return [this, genres, hasError = !ok](size_t) {
+					 if (m_badFolders.size() > 5)
+						 m_badFolders.resize(5);
+					 m_callback(
+						 UpdateResult { m_data.bookFolders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, false, hasError, std::move(m_badFolders) }
+					 );
+				 };
+			 } }
+		);
 	}
 
 	void UpdateDatabase(const ArchiveParser archiveParser)
@@ -2146,10 +2152,18 @@ where b.FileName = ? and b.Ext = ?)");
 		if (!archiveFileInfo.exists())
 			return fileList;
 
-		Zip archiveFile(archiveFileInfo.filePath());
-		std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [&](const auto& item) {
-			return std::make_pair(item, std::make_pair(archiveFile.GetFileSize(item), 0));
-		});
+		try
+		{
+			Zip archiveFile(archiveFileInfo.filePath());
+			std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [&](const auto& item) {
+				return std::make_pair(item, std::make_pair(archiveFile.GetFileSize(item), 0));
+			});
+		}
+		catch (...)
+		{
+			m_badFolders << archiveFileInfo.fileName();
+			throw;
+		}
 
 		return fileList;
 	}
@@ -2322,6 +2336,7 @@ private:
 	std::unordered_map<std::pair<size_t, QString>, size_t, PairHash<size_t, QString>>                                                          m_uniqueFiles;
 	std::unordered_map<QString, std::unordered_map<QString, std::pair<size_t, int>, WStringHash, WStringEqualTo>, WStringHash, WStringEqualTo> m_foldersContent;
 	bool                                                                                                                                       m_oldDataUpdateFound { false };
+	QStringList                                                                                                                                m_badFolders;
 
 	BookBufMapping m_bookBufMapping;
 
