@@ -35,9 +35,9 @@
 #include "gutil/util.h"
 #include "logging/LogAppender.h"
 #include "util/FunctorExecutionForwarder.h"
-#include "util/GeometryRestorable.h"
 #include "util/ObjectsConnector.h"
 #include "util/serializer/Font.h"
+#include "utilgui/GeometryRestorable.h"
 
 #include "Constant.h"
 #include "StackedPage.h"
@@ -838,7 +838,7 @@ private:
 			m_settingsLineEditExecuteContextMenuConnection = connect(m_ui.settingsLineEdit, &QWidget::customContextMenuRequested, &m_self, [this] {
 				{
 					QSignalBlocker blocker(m_ui.settingsLineEdit);
-					IScriptController::ExecuteContextMenu(m_ui.settingsLineEdit);
+					m_uiFactory->ExecuteContextMenu(m_ui.settingsLineEdit);
 				}
 				emit m_ui.settingsLineEdit->textChanged(m_ui.settingsLineEdit->text());
 			});

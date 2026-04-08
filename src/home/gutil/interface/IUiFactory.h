@@ -18,6 +18,7 @@ public:
 
 	[[nodiscard]] virtual QObject* GetParentObject(QObject* defaultObject = nullptr) const noexcept = 0;
 	[[nodiscard]] virtual QWidget* GetParentWidget(QWidget* defaultWidget = nullptr) const noexcept = 0;
+	[[nodiscard]] virtual int      GetParentWidgetFontSize() const noexcept                         = 0;
 
 	[[nodiscard]] virtual QMessageBox::ButtonRole ShowCustomDialog(
 		QMessageBox::Icon                                               icon,

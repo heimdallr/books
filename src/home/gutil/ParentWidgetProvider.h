@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <QPointer>
+
 #include "interface/IParentWidgetProvider.h"
 
 namespace HomeCompa::Util
@@ -8,7 +10,7 @@ namespace HomeCompa::Util
 class ParentWidgetProvider final : public IParentWidgetProvider
 {
 private: // IParentWidgetProvider
-	void     SetWidget(QPointer<QWidget> widget) override;
+	void     SetWidget(QWidget* widget) override;
 	QWidget* GetWidget(QWidget* parentWidget) const override;
 
 private:

@@ -1,15 +1,22 @@
 #include "UiFactory.h"
 
 #include <QClipboard>
+#include <QComboBox>
 #include <QDesktopServices>
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QMenuBar>
+#include <QShortcut>
 #include <QToolTip>
 
 #include "fnd/FindPair.h"
 
+#include "database/interface/IDatabase.h"
+
+#include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IScriptController.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IComboBoxTextDialog.h"
 
@@ -22,7 +29,8 @@
 #include "dialogs/OpdsDialog.h"
 #include "dialogs/SettingsDialog.h"
 #include "dialogs/script/ScriptDialog.h"
-#include "util/GeometryRestorable.h"
+#include "logic/data/DataItem.h"
+#include "utilgui/GeometryRestorable.h"
 #include "version/AppVersion.h"
 #include "widgets/ClickableLabel.h"
 
@@ -140,6 +148,11 @@ QWidget* UiFactory::GetParentWidget(QWidget* defaultWidget) const noexcept
 	return m_impl->container.resolve<Util::IUiFactory>()->GetParentWidget(defaultWidget);
 }
 
+int UiFactory::GetParentWidgetFontSize() const noexcept
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetParentWidgetFontSize();
+}
+
 std::shared_ptr<TreeView> UiFactory::CreateTreeViewWidget(const ItemType type) const
 {
 	m_impl->treeViewController = m_impl->container.resolve<ILogicFactory>()->GetTreeViewController(type);
@@ -210,6 +223,23 @@ void UiFactory::CreateAuthorReview(const long long id) const
 	assert(id >= 0 && m_impl->authorId < 0);
 	m_impl->authorId = id;
 	CreateStackedPage<AuthorReview>(m_impl->container, this);
+}
+
+void UiFactory::ExecuteContextMenu(QLineEdit* lineEdit) const
+{
+	QMenu menu(lineEdit);
+	for (const auto& item : IScriptController::s_commandMacros | std::views::values)
+	{
+		const auto menuItemTitle = QString("%1\t%2").arg(Loc::Tr(IScriptController::s_context, item), item);
+		menu.addAction(menuItemTitle, [=, value = QString(item)] {
+			auto       currentText     = lineEdit->text();
+			const auto currentPosition = lineEdit->cursorPosition();
+			lineEdit->setText(currentText.insert(currentPosition, value));
+			lineEdit->setCursorPosition(currentPosition + static_cast<int>(value.size()));
+		});
+	}
+	menu.setFont(lineEdit->font());
+	menu.exec(QCursor::pos());
 }
 
 void UiFactory::ShowAbout() const
@@ -354,4 +384,145 @@ long long UiFactory::GetAuthorId() const noexcept
 	const auto result = m_impl->authorId;
 	m_impl->authorId  = -1;
 	return result;
+}
+
+namespace
+{
+
+QString GetName(const QString& parent, const QString& child)
+{
+	return QString("%1/%2").arg(parent, child);
+}
+
+QString RemoveAmp(QString str)
+{
+	return str.remove('&');
+}
+
+}
+
+IDataItem::Ptr UiFactory::AddMenuBarToHotkeys(const ISettings& settings, const QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*)>& functor) const
+{
+	auto menuBarItem = SettingsItem::Create();
+	menuBarItem->SetData(menuBar.objectName(), SettingsItem::Column::Key);
+	menuBarItem->SetData(title, SettingsItem::Column::Title);
+
+	const auto addChild = [&](IDataItem& parent, const QObject& obj, QString objTitle) -> IDataItem::Ptr& {
+		auto child = SettingsItem::Create();
+		child->SetData(GetName(parent.GetData(SettingsItem::Column::Key), obj.objectName()), SettingsItem::Column::Key);
+		child->SetData(RemoveAmp(std::move(objTitle)), SettingsItem::Column::Title);
+		return parent.AppendChild(std::move(child));
+	};
+
+	const auto enumerate = [&](const QList<QMenu*>& menuList, IDataItem& parent, std::unordered_set<const QAction*>& menuActions, const auto& r) -> void {
+		for (const auto* menu : menuList)
+		{
+			if (menu->title().isEmpty())
+				continue;
+
+			menuActions.emplace(menu->menuAction());
+			auto& child = addChild(parent, *menu, menu->title());
+
+			std::unordered_set<const QAction*> actions;
+			r(menu->findChildren<QMenu*>(Qt::FindDirectChildrenOnly), *child, actions, r);
+
+			for (auto* action : menu->actions() | std::views::filter([&](const QAction* item) {
+									return !(item->isSeparator() || actions.contains(item));
+								}))
+			{
+				if (action->objectName().isEmpty())
+				{
+					PLOGW << action->text() << ": objectName is empty";
+					continue;
+				}
+
+				auto& actionItem = addChild(*child, *action, action->text());
+				functor(actionItem, action);
+				if (const auto shortCut = settings.Get(GetName(Constant::Settings::HOTKEYS_ROOT, actionItem->GetData(SettingsItem::Column::Key))); shortCut.isValid())
+					action->setShortcut(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
+				actionItem->SetData(action->shortcut().toString(), SettingsItem::Column::Value);
+			}
+		}
+	};
+
+	std::unordered_set<const QAction*> actions;
+	enumerate(menuBar.findChildren<QMenu*>(Qt::FindDirectChildrenOnly), *menuBarItem, actions, enumerate);
+
+	return menuBarItem;
+}
+
+IDataItem::Ptr UiFactory::AddComboBoxToHotkeys(const ISettings& settings, QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*)>& functor) const
+{
+	auto comboBoxItem = SettingsItem::Create();
+	comboBoxItem->SetData(comboBox.objectName(), SettingsItem::Column::Key);
+	comboBoxItem->SetData(title, SettingsItem::Column::Title);
+
+	for (int i = 0, sz = comboBox.count(); i < sz; ++i)
+	{
+		auto& child = comboBoxItem->AppendChild(SettingsItem::Create());
+		child->SetData(GetName(comboBoxItem->GetData(SettingsItem::Column::Key), comboBox.itemData(i).toString()), SettingsItem::Column::Key);
+		child->SetData(comboBox.itemText(i), SettingsItem::Column::Title);
+
+		auto* shortcut = new QShortcut(&comboBox);
+		shortcut->setObjectName(comboBox.itemData(i).toString());
+		connect(shortcut, &QShortcut::activated, [comboBox = &comboBox, i] {
+			comboBox->setCurrentIndex(i);
+		});
+		functor(child, shortcut);
+		if (const auto shortCut = settings.Get(GetName(Constant::Settings::HOTKEYS_ROOT, child->GetData(SettingsItem::Column::Key))); shortCut.isValid())
+			shortcut->setKey(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
+		child->SetData(shortcut->key().toString(), SettingsItem::Column::Value);
+	}
+
+	return comboBoxItem;
+}
+
+void UiFactory::UpdateRecentOpenBookControllerMenu(QMenu& menu, const int maxMenuItemCount, QString menuItemTitleFormat, std::function<void(long long)> onMenuTriggered) const
+{
+	static constexpr auto QUERY = R"(select distinct b.BookID, b.Title, (
+    select(group_concat(author, ', ')) from (
+        select a.LastName || coalesce(' ' || substr(nullif(a.FirstName, ''), 1, 1)||'.', '') || coalesce(substr(nullif(a.MiddleName, ''), 1, 1)||'.', '') author
+        from Authors a
+        join Author_List l on l.AuthorID = a.AuthorID and l.BookID = b.BookID
+        order by l.OrdNum
+        limit 3
+    )
+) Author
+from Export_List_User e
+join Books b on b.BookID = e.BookID
+where e.ExportType = 0 
+order by e.CreatedAt desc
+limit {}
+)";
+
+	menu.clear();
+	menu.menuAction()->setEnabled(false);
+	if (maxMenuItemCount < 1)
+		return menu.menuAction()->setVisible(false);
+
+	const auto databaseUser = m_impl->container.resolve<IDatabaseUser>();
+
+	auto db = databaseUser->CheckDatabase();
+	if (!db)
+		return;
+
+	databaseUser->Execute(
+		{ "Update recent books menu", [&menu, maxMenuItemCount, menuItemTitleFormat = std::move(menuItemTitleFormat), onMenuTriggered = std::move(onMenuTriggered), db = std::move(db)]() mutable {
+			 const auto                                 query = db->CreateQuery(std::format(QUERY, maxMenuItemCount));
+			 std::vector<std::pair<long long, QString>> data;
+			 for (query->Execute(); !query->Eof(); query->Next())
+				 data.emplace_back(query->Get<long long>(0), menuItemTitleFormat.arg(query->Get<const char*>(2), query->Get<const char*>(1)));
+
+			 return [&menu, onMenuTriggered = std::move(onMenuTriggered), data = std::move(data)](size_t) {
+				 menu.menuAction()->setEnabled(!data.empty());
+				 for (const auto& [id, title] : data)
+				 {
+					 auto* action = menu.addAction(title);
+					 connect(action, &QAction::triggered, [onMenuTriggered, id] {
+						 onMenuTriggered(id);
+					 });
+				 }
+			 };
+		 } }
+	);
 }

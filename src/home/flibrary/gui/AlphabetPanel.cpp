@@ -16,8 +16,8 @@
 
 #include "interface/localization.h"
 
-#include "util/GeometryRestorable.h"
 #include "util/language.h"
+#include "utilgui/GeometryRestorable.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

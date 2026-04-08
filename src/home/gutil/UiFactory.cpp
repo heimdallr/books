@@ -8,8 +8,8 @@
 #include "interface/IParentWidgetProvider.h"
 
 #include "Hypodermic/Hypodermic.h"
-#include "util/GeometryRestorable.h"
 #include "util/ISettings.h"
+#include "utilgui/GeometryRestorable.h"
 
 #include "Dialog.h"
 #include "log.h"
@@ -81,6 +81,11 @@ QObject* UiFactory::GetParentObject(QObject* defaultObject) const noexcept
 QWidget* UiFactory::GetParentWidget(QWidget* defaultWidget) const noexcept
 {
 	return m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(defaultWidget);
+}
+
+int UiFactory::GetParentWidgetFontSize() const noexcept
+{
+	return GetParentWidget(nullptr)->font().pointSize();
 }
 
 QMessageBox::ButtonRole UiFactory::ShowCustomDialog(

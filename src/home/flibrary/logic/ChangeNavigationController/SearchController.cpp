@@ -1,7 +1,5 @@
 #include "SearchController.h"
 
-#include <QComboBox>
-
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"

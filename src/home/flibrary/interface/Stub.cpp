@@ -1,8 +1,6 @@
 #include <ranges>
 
 #include <QFileInfo>
-#include <QLineEdit>
-#include <QMenu>
 #include <QUuid>
 
 #include "fnd/FindPair.h"
@@ -253,23 +251,6 @@ QString& IScriptController::SetMacro(QString& str, const Macro macro, const QStr
 const char* IScriptController::GetMacro(const Macro macro)
 {
 	return s_commandMacros[static_cast<int>(macro)].second;
-}
-
-void IScriptController::ExecuteContextMenu(QLineEdit* lineEdit)
-{
-	QMenu menu(lineEdit);
-	for (const auto& item : s_commandMacros | std::views::values)
-	{
-		const auto menuItemTitle = QString("%1\t%2").arg(Loc::Tr(s_context, item), item);
-		menu.addAction(menuItemTitle, [=, value = QString(item)] {
-			auto       currentText     = lineEdit->text();
-			const auto currentPosition = lineEdit->cursorPosition();
-			lineEdit->setText(currentText.insert(currentPosition, value));
-			lineEdit->setCursorPosition(currentPosition + static_cast<int>(value.size()));
-		});
-	}
-	menu.setFont(lineEdit->font());
-	menu.exec(QCursor::pos());
 }
 
 QString IScriptController::GetDefaultOutputFileNameTemplate()

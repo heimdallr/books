@@ -10,11 +10,12 @@ AddTarget(gui	shared_lib
 		Qt${QT_MAJOR_VERSION}::Svg
 	LINK_TARGETS
 		flint
+		gutil
 		logging
 		logic
-		util
-		gutil
 		platform
+		util
+		utilgui
 		ver
 		zip
 	DEPENDENCIES

@@ -6,8 +6,8 @@
 
 #include "interface/localization.h"
 
-#include "platform/PlatformUtil.h"
-#include "util/GeometryRestorable.h"
+#include "platformgui/PlatformGuiUtil.h"
+#include "utilgui/GeometryRestorable.h"
 
 #include "log.h"
 
