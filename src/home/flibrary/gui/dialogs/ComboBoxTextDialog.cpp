@@ -4,7 +4,7 @@
 
 #include <QPushButton>
 
-#include "util/GeometryRestorable.h"
+#include "utilgui/GeometryRestorable.h"
 
 using namespace HomeCompa::Flibrary;
 

@@ -1,12 +1,9 @@
 #include "HotkeyManager.h"
 
-#include <ranges>
-
-#include <QComboBox>
 #include <QEventLoop>
-#include <QMenuBar>
 #include <QShortcut>
 
+#include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 
 #include "data/DataItem.h"
@@ -22,8 +19,6 @@ namespace
 
 constexpr auto CONTEXT = "HotkeyManager";
 constexpr auto BOOK    = QT_TRANSLATE_NOOP("HotkeyManager", "Book");
-
-constexpr auto ROOT = "ui/Hotkeys";
 
 TR_DEF
 
@@ -90,8 +85,9 @@ class HotkeyManager::Impl
 	};
 
 public:
-	explicit Impl(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<ISettings> settings)
+	explicit Impl(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<ISettings> settings)
 		: m_parentWidgetProvider { std::move(parentWidgetProvider) }
+		, m_uiFactory { std::move(uiFactory) }
 		, m_settings { std::move(settings) }
 	{
 	}
@@ -110,74 +106,16 @@ public:
 
 	void Add(const QMenuBar& menuBar, const QString& title)
 	{
-		auto& menuBarItem = m_root->AppendChild(SettingsItem::Create());
-		menuBarItem->SetData(menuBar.objectName(), SettingsItem::Column::Key);
-		menuBarItem->SetData(title, SettingsItem::Column::Title);
-
-		const auto addChild = [&](IDataItem& parent, const QObject& obj, QString objTitle) -> IDataItem::Ptr& {
-			auto child = SettingsItem::Create();
-			child->SetData(GetName(parent.GetData(SettingsItem::Column::Key), obj.objectName()), SettingsItem::Column::Key);
-			child->SetData(RemoveAmp(std::move(objTitle)), SettingsItem::Column::Title);
-			return parent.AppendChild(std::move(child));
-		};
-
-		const auto enumerate = [&](const QList<QMenu*>& menuList, IDataItem& parent, std::unordered_set<const QAction*>& menuActions, const auto& r) -> void {
-			for (const auto* menu : menuList)
-			{
-				if (menu->title().isEmpty())
-					continue;
-
-				menuActions.emplace(menu->menuAction());
-				auto& child = addChild(parent, *menu, menu->title());
-
-				std::unordered_set<const QAction*> actions;
-				r(menu->findChildren<QMenu*>(Qt::FindDirectChildrenOnly), *child, actions, r);
-
-				for (auto* action : menu->actions() | std::views::filter([&](const QAction* item) {
-										return !(item->isSeparator() || actions.contains(item));
-									}))
-				{
-					if (action->objectName().isEmpty())
-					{
-						PLOGW << action->text() << ": objectName is empty";
-						continue;
-					}
-
-					auto& actionItem = addChild(*child, *action, action->text());
-					m_actions.try_emplace(actionItem->GetData(SettingsItem::Column::Key), Item { actionItem, action });
-					if (const auto shortCut = m_settings->Get(GetName(ROOT, actionItem->GetData(SettingsItem::Column::Key))); shortCut.isValid())
-						action->setShortcut(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
-					actionItem->SetData(action->shortcut().toString(), SettingsItem::Column::Value);
-				}
-			}
-		};
-
-		std::unordered_set<const QAction*> actions;
-		enumerate(menuBar.findChildren<QMenu*>(Qt::FindDirectChildrenOnly), *menuBarItem, actions, enumerate);
+		m_root->AppendChild(m_uiFactory->AddMenuBarToHotkeys(*m_settings, menuBar, title, [this](const IDataItem::Ptr& actionItem, QAction* action) {
+			m_actions.try_emplace(actionItem->GetData(SettingsItem::Column::Key), Item { actionItem, action });
+		}));
 	}
 
 	void Add(QComboBox& comboBox, const QString& title)
 	{
-		auto& comboBoxItem = m_root->AppendChild(SettingsItem::Create());
-		comboBoxItem->SetData(comboBox.objectName(), SettingsItem::Column::Key);
-		comboBoxItem->SetData(title, SettingsItem::Column::Title);
-
-		for (int i = 0, sz = comboBox.count(); i < sz; ++i)
-		{
-			auto& child = comboBoxItem->AppendChild(SettingsItem::Create());
-			child->SetData(GetName(comboBoxItem->GetData(SettingsItem::Column::Key), comboBox.itemData(i).toString()), SettingsItem::Column::Key);
-			child->SetData(comboBox.itemText(i), SettingsItem::Column::Title);
-
-			auto* shortcut = new QShortcut(&comboBox);
-			shortcut->setObjectName(comboBox.itemData(i).toString());
-			QObject::connect(shortcut, &QShortcut::activated, [comboBox = &comboBox, i] {
-				comboBox->setCurrentIndex(i);
-			});
-			m_actions.try_emplace(child->GetData(SettingsItem::Column::Key), Item { .item = child, .shortcut = shortcut });
-			if (const auto shortCut = m_settings->Get(GetName(ROOT, child->GetData(SettingsItem::Column::Key))); shortCut.isValid())
-				shortcut->setKey(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
-			child->SetData(shortcut->key().toString(), SettingsItem::Column::Value);
-		}
+		m_root->AppendChild(m_uiFactory->AddComboBoxToHotkeys(*m_settings, comboBox, title, [this](const IDataItem::Ptr& actionItem, QShortcut* shortcut) {
+			m_actions.try_emplace(actionItem->GetData(SettingsItem::Column::Key), Item { .item = actionItem, .shortcut = shortcut });
+		}));
 	}
 
 	void Set(const QString& key, const QString& shortCut)
@@ -186,7 +124,7 @@ public:
 		assert(it != m_actions.end());
 
 		auto value = it->second.SetShortCut(shortCut, m_parentWidgetProvider->GetWidget(), m_bookMenuProvider);
-		m_settings->Set(GetName(ROOT, it->second.item->GetData(SettingsItem::Column::Key)), value);
+		m_settings->Set(GetName(Constant::Settings::HOTKEYS_ROOT, it->second.item->GetData(SettingsItem::Column::Key)), value);
 	}
 
 	bool Reset(const QString& key)
@@ -196,7 +134,7 @@ public:
 			return false;
 
 		it->second.SetShortCut();
-		m_settings->Remove(GetName(ROOT, it->second.item->GetData(SettingsItem::Column::Key)));
+		m_settings->Remove(GetName(Constant::Settings::HOTKEYS_ROOT, it->second.item->GetData(SettingsItem::Column::Key)));
 
 		return true;
 	}
@@ -229,7 +167,7 @@ public:
 			}
 		};
 
-		const SettingsGroup settingsGroup(*m_settings, GetName(ROOT, BOOK));
+		const SettingsGroup settingsGroup(*m_settings, GetName(Constant::Settings::HOTKEYS_ROOT, BOOK));
 		enumerate(BOOK, enumerate);
 	}
 
@@ -297,6 +235,7 @@ private:
 
 private:
 	std::shared_ptr<const IParentWidgetProvider>  m_parentWidgetProvider;
+	std::shared_ptr<const IUiFactory>             m_uiFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 
 	IDataItem::Ptr m_root { SettingsItem::Create() };
@@ -305,8 +244,8 @@ private:
 	IBookMenuProvider*      m_bookMenuProvider { nullptr };
 };
 
-HotkeyManager::HotkeyManager(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<ISettings> settings)
-	: m_impl(std::move(parentWidgetProvider), std::move(settings))
+HotkeyManager::HotkeyManager(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<ISettings> settings)
+	: m_impl(std::move(parentWidgetProvider), std::move(uiFactory), std::move(settings))
 {
 }
 

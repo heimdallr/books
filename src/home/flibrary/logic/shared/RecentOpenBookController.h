@@ -6,6 +6,7 @@
 #include "interface/logic/IBookInteractor.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IRecentOpenBookController.h"
+#include "interface/ui/IUiFactory.h"
 
 #include "util/ISettings.h"
 
@@ -17,7 +18,12 @@ class RecentOpenBookController final : public IRecentOpenBookController
 	NON_COPY_MOVABLE(RecentOpenBookController)
 
 public:
-	RecentOpenBookController(const std::shared_ptr<const ISettings>& settings, std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const IBookInteractor> bookInteractor);
+	RecentOpenBookController(
+		const std::shared_ptr<const ISettings>& settings,
+		std::shared_ptr<const IUiFactory>       uiFactory,
+		std::shared_ptr<const IDatabaseUser>    databaseUser,
+		std::shared_ptr<const IBookInteractor>  bookInteractor
+	);
 	~RecentOpenBookController() override;
 
 private: // IRecentOpenBookController

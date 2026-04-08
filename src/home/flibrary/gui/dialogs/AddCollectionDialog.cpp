@@ -11,9 +11,9 @@
 
 #include "platform/DyLib.h"
 #include "platform/StrUtil.h"
-#include "util/GeometryRestorable.h"
 #include "util/files.h"
 #include "util/translit.h"
+#include "utilgui/GeometryRestorable.h"
 
 #include "Constant.h"
 #include "log.h"

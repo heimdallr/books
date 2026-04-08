@@ -10,8 +10,8 @@
 #include "interface/localization.h"
 
 #include "platform/PlatformUtil.h"
-#include "util/GeometryRestorable.h"
 #include "util/hash.h"
+#include "utilgui/GeometryRestorable.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

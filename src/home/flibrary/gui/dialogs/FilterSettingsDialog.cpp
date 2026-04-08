@@ -15,7 +15,7 @@
 
 #include "gutil/util.h"
 #include "util/FunctorExecutionForwarder.h"
-#include "util/GeometryRestorable.h"
+#include "utilgui/GeometryRestorable.h"
 
 #include "log.h"
 

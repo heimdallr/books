@@ -12,8 +12,8 @@
 #include "interface/localization.h"
 #include "interface/logic/IScriptController.h"
 
-#include "util/GeometryRestorable.h"
 #include "util/files.h"
+#include "utilgui/GeometryRestorable.h"
 
 #include "log.h"
 
@@ -139,12 +139,12 @@ class ScriptDialog::Impl final
 
 public:
 	Impl(
-		ScriptDialog&                           self,
-		const IModelProvider&                   modelProvider,
-		std::shared_ptr<const Util::IUiFactory> uiFactory,
-		std::shared_ptr<ISettings>              settings,
-		std::shared_ptr<ComboBoxDelegate>       scriptTypeDelegate,
-		std::shared_ptr<QStyledItemDelegate>    scriptNameLineEditDelegate
+		ScriptDialog&                        self,
+		const IModelProvider&                modelProvider,
+		std::shared_ptr<const IUiFactory>    uiFactory,
+		std::shared_ptr<ISettings>           settings,
+		std::shared_ptr<ComboBoxDelegate>    scriptTypeDelegate,
+		std::shared_ptr<QStyledItemDelegate> scriptNameLineEditDelegate
 	)
 		: GeometryRestorable(*this, settings, "ScriptDialog")
 		, GeometryRestorableObserver(self)
@@ -289,7 +289,7 @@ private:
 			OnCommandOkClicked();
 		});
 		connect(m_ui.lineEditCommandArguments, &QWidget::customContextMenuRequested, &m_self, [this] {
-			IScriptController::ExecuteContextMenu(m_ui.lineEditCommandArguments);
+			m_uiFactory->ExecuteContextMenu(m_ui.lineEditCommandArguments);
 		});
 		connect(m_ui.actionOpenExe, &QAction::triggered, &m_self, [this] {
 			OnOpenImpl(m_uiFactory->GetOpenFileName(DIALOG_KEY, Tr(FILE_DIALOG_TITLE), Tr(APP_FILE_FILTER)), *m_ui.lineEditCommandTextExe);
@@ -408,7 +408,7 @@ private:
 
 private:
 	ScriptDialog&                                           m_self;
-	std::shared_ptr<const Util::IUiFactory>                 m_uiFactory;
+	std::shared_ptr<const IUiFactory>                       m_uiFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_scriptModel;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_commandModel;
@@ -422,7 +422,7 @@ private:
 ScriptDialog::ScriptDialog(
 	const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
 	const std::shared_ptr<const IModelProvider>&  modelProvider,
-	std::shared_ptr<const Util::IUiFactory>       uiFactory,
+	std::shared_ptr<const IUiFactory>             uiFactory,
 	std::shared_ptr<ISettings>                    settings,
 	std::shared_ptr<ScriptComboBoxDelegate>       scriptTypeDelegate,
 	std::shared_ptr<ScriptNameDelegate>           scriptNameLineEditDelegate

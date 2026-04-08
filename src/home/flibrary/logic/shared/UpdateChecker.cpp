@@ -251,7 +251,7 @@ private:
 		switch (m_uiFactory->ShowCustomDialog( // NOLINT(clang-diagnostic-switch-enum)
 			QMessageBox::Information,
 			Loc::Tr(Loc::Ctx::COMMON, Loc::WARNING),
-			Tr(RELEASED).arg(m_release.name, m_release.html_url).arg(m_uiFactory->GetParentWidget()->font().pointSize() * 9 / 10),
+			Tr(RELEASED).arg(m_release.name, m_release.html_url).arg(m_uiFactory->GetParentWidgetFontSize() * 9 / 10),
 			buttons,
 			buttons.front().first,
 			m_release.whatsNew.join("\n")

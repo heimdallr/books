@@ -4,7 +4,7 @@
 
 #include "interface/logic/AuthorReviewModelRole.h"
 
-#include "util/GeometryRestorable.h"
+#include "utilgui/GeometryRestorable.h"
 
 using namespace HomeCompa::Flibrary;
 
