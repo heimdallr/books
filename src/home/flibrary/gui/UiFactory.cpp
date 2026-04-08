@@ -59,6 +59,7 @@ constexpr auto        VERSION_COPIED    = QT_TRANSLATE_NOOP("Dialog", "The progr
 constexpr const char* COMPONENTS[]      = {
 	"<hr><table style='font-size:50%'>",
 	QT_TRANSLATE_NOOP("Dialog", "<tr><td style='text-align: center'>Components / Libraries</td></tr>"),
+	// ReSharper disable StringLiteralTypo
 	// clang-format off
 	"<tr><td><a href='https://wiki.qt.io/Main'>Qt</a> &copy; 2024 The Qt Company Ltd <a href='https://www.gnu.org/licenses/lgpl-3.0.html#license-text'>GNU LGPL v3</a></td></tr>",
 	"<tr><td><a href='https://github.com/ybainier/Hypodermic'>Hypodermic</a> &copy; 2016 Hypodermic Project <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
@@ -75,6 +76,7 @@ constexpr const char* COMPONENTS[]      = {
 	"<tr><td><a href='https://cimg.eu/'>CImg</a> &copy; 2004, David Tschumperlé - GREYC UMR CNRS 6072, Image team. <a href='http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.txt'>CeCILL-C</a></td></tr>",
 	"<tr><td><a href='https://uxwing.com/'>UXWing</a> &copy; 2025 UXWing <a href='https://uxwing.com/license/'>License</a></td></tr>",
 	// clang-format on
+	// ReSharper enable StringLiteralTypo
 	"</table>"
 };
 constexpr auto ABOUT_TEXT        = "%1<p>%2<p><a href='%3'>%3</a><p>%4%5";
