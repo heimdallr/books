@@ -115,6 +115,7 @@ include(${FOUNDATION_ROOT}/platformgui/platformgui.cmake)
 file(WRITE "${CMAKE_BINARY_DIR}/var/7z" "${7zip_BIN_DIR}/")
 file(WRITE "${CMAKE_BINARY_DIR}/var/version" ${PRODUCT_VERSION})
 file(WRITE "${CMAKE_BINARY_DIR}/var/uid" ${PRODUCT_GUI})
+file(WRITE "${CMAKE_BINARY_DIR}/var/os" ${CMAKE_HOST_SYSTEM_NAME})
 
 set(PLOG_SHARED_IMPORT PLOG_GLOBAL)
 if(WIN32)
