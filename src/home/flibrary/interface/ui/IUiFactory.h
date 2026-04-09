@@ -6,9 +6,11 @@
 #include "gutil/interface/IUiFactory.h"
 
 class QAbstractItemView;
+class QComboBox;
 class QDialog;
 class QMainWindow;
 class QMenuBar;
+class QShortcut;
 class QTreeView;
 
 namespace HomeCompa
