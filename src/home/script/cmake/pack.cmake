@@ -24,25 +24,8 @@ function(__Pack_Archive)
 endfunction()
 
 if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
-	qt_generate_deploy_app_script(
-		TARGET ${PROJECT_NAME}
-		OUTPUT_SCRIPT deploy_script
-		NO_TRANSLATIONS
-		EXCLUDE_PLUGIN_TYPES egldeviceintegrations generic platforminputcontexts qmltooling vectorimageformats
-		INCLUDE_PLUGIN_TYPES wayland-shell-integration
-		INCLUDE_PLUGINS qwayland
-	)
-	install(SCRIPT ${deploy_script})
-
-	qt_generate_deploy_app_script(
-		TARGET opds
-		OUTPUT_SCRIPT deploy_script
-		NO_TRANSLATIONS
-		EXCLUDE_PLUGIN_TYPES egldeviceintegrations generic platforminputcontexts qmltooling vectorimageformats
-		INCLUDE_PLUGIN_TYPES wayland-shell-integration
-		INCLUDE_PLUGINS qwayland
-	)
-	install(SCRIPT ${deploy_script})
+	DeployTarget(${PROJECT_NAME})
+	DeployTarget(opds)
 endif()
 
 if("${CPACK_GENERATOR}" STREQUAL "")
