@@ -37,7 +37,7 @@ if %errorlevel% NEQ 0 goto Error
 echo portable creating
 echo portable > %BUILD_DIR%/FLibrary/installer_mode
 
-%SEVEN_ZIP_PATH%7z a %~dp0build\installer\FLibrary_portable_%PRODUCT_VERSION%_%OS%.7z %BUILD_DIR%\FLibrary
+%SEVEN_ZIP_PATH%7z a %~dp0build\installer\FLibrary-%PRODUCT_VERSION%-portable-%OS%.7z %BUILD_DIR%\FLibrary
 
 goto End
 
