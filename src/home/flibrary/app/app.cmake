@@ -9,15 +9,15 @@ CreateWinRC(app
 file(COPY "${CMAKE_CURRENT_LIST_DIR}/../../../../LICENSE_en.txt" DESTINATION ${CMAKE_BINARY_DIR}/bin)
 file(RENAME "${CMAKE_BINARY_DIR}/bin/LICENSE_en.txt" "${CMAKE_BINARY_DIR}/bin/LICENSE.txt")
 
+#Да, колхоз. Но я устал
+CopyAndInstallICU()
 if (MSVC)
-	#Да, колхоз. Но я устал
-	CopyAndInstallICU(tu dt uc in)
 	CopyAndInstallQt(${QtModules})
 	InstallQtPlugins(imageformats platforms styles tls)
-	if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
-		install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/locales DESTINATION .)
-	endif()
 endif()
+#if (${CMAKE_BUILD_TYPE} STREQUAL "Release")
+#	install(DIRECTORY ${CMAKE_BINARY_DIR}/bin/locales DESTINATION .)
+#endif()
 
 AddTarget(${PROJECT_NAME}	app
 	PROJECT_GROUP App
