@@ -134,6 +134,6 @@ cmake --install .
 ```
 ##### Вариант
 Запустить скрипт build.sh  
-В результате в папке build будет создан пакет FLibrary_setup_x.y.z.deb  
+В результате в папке build будет создан архив FLibrary-x.y.z-portable.tar.xz  
 
 [^4]: Имеет смысл собрать самостоятельно, применив патчи src/home/script/conan/patch/qt
