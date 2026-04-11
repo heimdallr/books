@@ -24,6 +24,7 @@
 #include "logging/init.h"
 #include "logic/data/Genre.h"
 #include "logic/model/LogModel.h"
+#include "platform/PlatformUtil.h"
 #include "util/ISettings.h"
 #include "util/xml/Initializer.h"
 #include "version/AppVersion.h"
@@ -41,7 +42,9 @@ using namespace HomeCompa;
 namespace
 {
 
-constexpr auto SEQ_NUMBER_WIDTH_KEY = "Preferences/Export/seqNumberWidth";
+constexpr auto SEQ_NUMBER_WIDTH_KEY     = "Preferences/Export/seqNumberWidth";
+constexpr auto KEYBOARD_LAYOUT_KEY      = "ui/recentKeyboardLayout";
+constexpr auto SAVE_KEYBOARD_LAYOUT_KEY = "Preferences/saveKeyboardLayout";
 
 constexpr auto CONTEXT = "Main";
 constexpr auto WRONG_DB_VERSION =
@@ -95,7 +98,12 @@ int main(int argc, char* argv[])
 			}
 			PLOGD << "DI-container created";
 
-			const auto settings    = container->resolve<ISettings>();
+			const auto settings = container->resolve<ISettings>();
+
+			if (settings->Get(SAVE_KEYBOARD_LAYOUT_KEY, false))
+				if (const auto keyboardLayoutId = settings->Get(KEYBOARD_LAYOUT_KEY, QString {}); !keyboardLayoutId.isEmpty())
+					Platform::SetKeyboardLayoutId(keyboardLayoutId);
+
 			const auto translators = Loc::LoadLocales(*settings); //-V808
 
 			auto singleInstanceController = container->resolve<ISingleInstanceController>();
@@ -151,6 +159,8 @@ int main(int argc, char* argv[])
 
 			if (const auto code = QApplication::exec(); code != Global::RESTART_APP)
 			{
+				if (settings->Get(SAVE_KEYBOARD_LAYOUT_KEY, false))
+					settings->Set(KEYBOARD_LAYOUT_KEY, Platform::GetKeyboardLayoutId());
 				PLOGI << "App finished with " << code;
 				return code;
 			}
