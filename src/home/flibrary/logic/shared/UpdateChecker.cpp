@@ -15,6 +15,7 @@
 #include "network/rest/api/github/Release.h"
 #include "network/rest/api/github/Requester.h"
 #include "network/rest/connection/ConnectionFactory.h"
+#include "platform/PlatformUtil.h"
 #include "util/IExecutor.h"
 #include "util/app.h"
 
@@ -278,7 +279,7 @@ private:
 	{
 		const auto installer = Util::GetInstallerDescription();
 		const auto it        = std::ranges::find_if(m_release.assets, [=](const Asset& asset) {
-			if (asset.browser_download_url.isEmpty() || !asset.name.startsWith(PRODUCT_ID, Qt::CaseInsensitive))
+			if (asset.browser_download_url.isEmpty() || !asset.name.startsWith(PRODUCT_ID, Qt::CaseInsensitive) || !asset.name.contains(Platform::GetPlatformName()))
 				return false;
 
 			const auto ext = QFileInfo(asset.name).suffix();
