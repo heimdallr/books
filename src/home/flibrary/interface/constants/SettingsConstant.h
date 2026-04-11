@@ -3,6 +3,8 @@
 namespace HomeCompa::Flibrary::Constant::Settings
 {
 
+constexpr auto LOCALE_KEY = "ui/locale";
+
 constexpr auto VIEW_MODE_KEY_TEMPLATE       = "ui/%1/Mode";
 constexpr auto VIEW_NAVIGATION_KEY_TEMPLATE = "ui/View/Navigation/%1";
 constexpr auto FONT_KEY                     = "ui/Font";
