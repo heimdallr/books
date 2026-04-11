@@ -5,10 +5,6 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
 
-SET(CMAKE_SKIP_BUILD_RPATH FALSE)
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-SET(CMAKE_INSTALL_RPATH "\$ORIGIN/lib")
-
 set(QT_MAJOR_VERSION 6)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
@@ -65,6 +61,10 @@ if(MSVC)
 		/bigobj # number of sections exceeded object file format limit
 	)
 else()
+	SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+	SET(CMAKE_INSTALL_RPATH lib)
+
 	add_compile_options(
 		-Wall
 		-Wextra
@@ -73,7 +73,7 @@ else()
 		-Wno-deprecated-declarations
 		-Wno-virtual-move-assign
 		-Wno-missing-field-initializers
-		-fPIC
+		-fPIC		
 	)
 endif()
 
@@ -137,12 +137,5 @@ install(FILES "${CMAKE_SOURCE_DIR}/LICENSE_en.txt" DESTINATION . RENAME LICENSE.
 if (PERSONAL_BUILD_NAME)
 	message(WARNING "Personal ${PERSONAL_BUILD_NAME} build")
 	execute_process(COMMAND ${CMAKE_COMMAND} -E sleep 5)
-endif()
-
-if (NOT WIN32)
-	file(WRITE "${CMAKE_BINARY_DIR}/start.sh" "#!/bin/bash\nLD_LIBRARY_PATH=$(dirname \"$0\")/lib:$LD_LIBRARY_PATH ./FLibrary")
-	install(FILES "${CMAKE_BINARY_DIR}/start.sh" DESTINATION .
-		PERMISSIONS OWNER_EXECUTE OWNER_WRITE OWNER_READ GROUP_EXECUTE GROUP_READ WORLD_EXECUTE WORLD_READ
-	)
 endif()
 
