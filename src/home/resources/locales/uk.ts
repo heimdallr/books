@@ -716,7 +716,7 @@
     </message>
     <message>
         <source>&lt;p&gt;&lt;p&gt;Warning! A change to previous data was detected, it is recommended to recreate the collection again. Don&apos;t forget to save user data&lt;/p&gt;&lt;/p&gt;</source>
-        <translation>&lt;p&gt;&lt;p&gt;Увага! Виявлено зміну попередніх даних, рекомендуємо знову перетворити колекцію. Не забудьте зберегти дані користувача&lt;/p&gt;&lt;/p&gt;</translation>
+        <translation>&lt;p&gt;&lt;p&gt;Увага! Виявлено зміни в раніше збережених даних. Радимо створити колекцію заново. Не забудьте зберегти дані користувача&lt;/p&gt;&lt;/p&gt;</translation>
     </message>
     <message>
         <source>&lt;tr&gt;&lt;td&gt;Genres:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
@@ -734,7 +734,7 @@
     </message>
     <message>
         <source>Delete collection database as well?</source>
-        <translation>Видалити та базу даних колекції?</translation>
+        <translation>Базу даних колекції також видалити?</translation>
     </message>
     <message>
         <source>Looks like the collection has been updated. Apply changes?</source>
@@ -923,7 +923,7 @@ Restart now?</source>
     </message>
     <message>
         <source>Bad database file extension (.inpx)</source>
-        <translation>Погане розширення файлу бази даних (.inpx)</translation>
+        <translation>Неправильне розширення для файлу бази даних (.inpx)</translation>
     </message>
     <message>
         <source>Cannot create database folder %1</source>
@@ -1044,15 +1044,15 @@ Restart now?</source>
     </message>
     <message>
         <source>Show checked only</source>
-        <translation>Показати тільки зазначені</translation>
+        <translation>Показати лише відмічені</translation>
     </message>
     <message>
         <source>Show unchecked only</source>
-        <translation>Показати тільки непомічені</translation>
+        <translation>Показати лише невідмічені</translation>
     </message>
     <message>
         <source>Unchecked items shown</source>
-        <translation>Показані невідзначені елементи</translation>
+        <translation>Показано невідмічені елементи</translation>
     </message>
 </context>
 <context>
@@ -2633,7 +2633,7 @@ Try again?</source>
     <name>JokeRequester</name>
     <message>
         <source>&lt;center&gt;&lt;b&gt;Warning!&lt;/b&gt;&lt;/center&gt;&lt;br/&gt;&lt;/br&gt;Jokes in this section may be rude, unsafe for work environment, religiously or politically offensive, sexist, or explicit. By clicking &quot;Yes&quot; you accept all responsibility for reading them. Otherwise you must click &quot;No&quot;.&lt;br/&gt;&lt;br/&gt;Do you still want to read such jokes?</source>
-        <translation>&lt;center&gt;&lt;b&gt;Увага!&lt;/b&gt;&lt;/center&gt;&lt;br/&gt;&lt;/br&gt;Жарти в цьому розділі можуть бути грубими, небезпечними для робочого середовища, релігійно чи політично образливими, сексистськими або відвертими. Натискаючи «Так», ви берете на себе всю відповідальність за їх прочитання. В іншому випадку ви повинні натиснути «Ні».&lt;br/&gt;&lt;br/&gt;Ви все ще хочете читати такі жарти?</translation>
+        <translation>&lt;center&gt;&lt;b&gt;Увага!&lt;/b&gt;&lt;/center&gt;&lt;br/&gt;&lt;/br&gt;Жарти в цьому розділі можуть містити грубі вирази, бути неприйнятними для перегляду на робочому місці, ображати релігійні чи політичні переконання, мати сексистський характер або містити відверті сцени. Натискаючи «Так», ви берете на себе повну відповідальність за їх перегляд. В іншому випадку ви повинні натиснути «Ні».&lt;br/&gt;&lt;br/&gt;Ви все ще хочете читати такі жарти?</translation>
     </message>
     <message>
         <source>CatFacts</source>
@@ -5352,7 +5352,7 @@ Try again?</source>
     </message>
     <message>
         <source>%base_file_name%</source>
-        <translation>Ім&apos;я файлу без розширення</translation>
+        <translation>Назва файлу без розширення</translation>
     </message>
     <message>
         <source>%db_id%</source>
@@ -5364,7 +5364,7 @@ Try again?</source>
     </message>
     <message>
         <source>%file_name%</source>
-        <translation>Ім&apos;я файлу</translation>
+        <translation>Назва файлу</translation>
     </message>
     <message>
         <source>%file_size%</source>
@@ -5642,7 +5642,7 @@ Try again?</source>
     </message>
     <message>
         <source>Select folder for app installer</source>
-        <translation>Вкажіть папку для скачування інсталятора</translation>
+        <translation>Оберіть папку для завантаження інсталятора програми</translation>
     </message>
     <message>
         <source>Skip</source>
