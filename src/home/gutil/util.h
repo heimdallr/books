@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <qmetatype.h>
+
 #include <QRect>
 
 #include "export/gutil.h"
@@ -25,3 +27,5 @@ GUTIL_EXPORT void   LoadHeaderSectionWidth(QHeaderView& header, const ISettings&
 GUTIL_EXPORT QMenu& FillTreeContextMenu(QTreeView& view, QMenu& menu);
 
 }
+
+Q_DECLARE_METATYPE(QVector<int>)
