@@ -1,9 +1,12 @@
 #include "TreeModel.h"
 
+#include <set>
+
 #include "fnd/algorithm.h"
 
 #include "interface/constants/ModelRole.h"
 
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
@@ -40,8 +43,8 @@ QModelIndex TreeModel::parent(const QModelIndex& index) const
 	if (!index.isValid())
 		return {};
 
-	const auto* childItem  = static_cast<IDataItem*>(index.internalPointer());
-	const auto* parentItem = childItem->GetParent();
+	auto* childItem  = static_cast<IDataItem*>(index.internalPointer());
+	auto* parentItem = childItem->GetParent();
 
 	return parentItem != m_data.get() ? createIndex(static_cast<int>(parentItem->GetRow()), 0, parentItem) : QModelIndex();
 }

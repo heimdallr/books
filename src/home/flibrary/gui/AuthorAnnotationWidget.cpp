@@ -5,6 +5,7 @@
 #include <QAbstractTableModel>
 #include <QDesktopServices>
 #include <QTimer>
+#include <QUrl>
 
 #include "fnd/ScopedCall.h"
 
@@ -155,6 +156,8 @@ private: // QAbstractItemModel
 
 		auto       pixmap = m_images[static_cast<size_t>(index.column())];
 		const auto height = m_ui.gallery->height();
+		if (pixmap.isNull())
+			return {};
 
 		switch (role)
 		{

@@ -1,5 +1,7 @@
 #include "ui_AnnotationWidget.h"
 
+#include <ranges>
+
 #include "AnnotationWidget.h"
 
 #include <QPainterPath>

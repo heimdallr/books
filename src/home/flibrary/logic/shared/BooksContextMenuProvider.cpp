@@ -30,6 +30,7 @@
 
 #include "Constant.h"
 #include "MenuItems.h"
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa;

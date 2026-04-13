@@ -1,9 +1,12 @@
 #include "LibRateProvider.h"
 
+#include <ranges>
+
 #include <QDirIterator>
 #include <QFile>
 #include <QGuiApplication>
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QJsonObject>
 #include <QPalette>
 #include <QString>

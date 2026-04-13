@@ -30,7 +30,7 @@ QString GetFileHash(const std::set<QString>& fileNames)
 		const auto     buf  = std::make_unique<char[]>(size);
 
 		while (const auto readSize = file.read(buf.get(), size))
-			hash.addData(QByteArrayView(buf.get(), static_cast<int>(readSize)));
+			hash.addData(buf.get(), static_cast<int>(readSize));
 	}
 
 	return hash.result().toHex();

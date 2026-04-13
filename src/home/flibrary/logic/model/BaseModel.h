@@ -1,5 +1,8 @@
 #pragma once
 
+#include <set>
+#include <unordered_set>
+
 #include <QAbstractItemModel>
 
 #include "fnd/NonCopyMovable.h"

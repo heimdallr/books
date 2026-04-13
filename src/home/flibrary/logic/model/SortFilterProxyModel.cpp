@@ -8,6 +8,8 @@
 
 #include "util/SortString.h"
 
+#include "QtTypes.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -44,7 +46,7 @@ private: // IModelSorter
 		const auto lhs = sourceLeft.data(), rhs = sourceRight.data();
 		if (lhs.isValid() && rhs.isValid())
 		{
-			const auto lhsType = lhs.typeId(), rhsType = rhs.typeId();
+			const auto lhsType = TypeId(lhs), rhsType = TypeId(rhs);
 			return lhsType != rhsType ? lhsType < rhsType
 			     : lhsType == QMetaType::Type::QString
 			         ? (assert(rhsType == QMetaType::Type::QString), Util::QStringWrapper::Compare(Util::QStringWrapper { lhs.toString() }, Util::QStringWrapper { rhs.toString() }, emptyStringWeight))
@@ -117,10 +119,10 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 			oldValue,
 			std::forward<T>(newValue),
 			[this] {
-				beginFilterChange();
+				BEGIN_FILTER_CHANGE;
 			},
 			[this] {
-				endFilterChange(Direction::Rows);
+				END_FILTER_CHANGE;
 			}
 		);
 	};
@@ -143,7 +145,7 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 			return setFilter(m_impl->uniFilterEnabled, value.toBool());
 
 		case Role::UniFilterChanged:
-			return beginFilterChange(), endFilterChange(Direction::Rows), true;
+			return BEGIN_FILTER_CHANGE, END_FILTER_CHANGE, true;
 
 		case Role::UniFilterHideUnrated:
 			return setFilter(m_impl->hideUnrated, value.toBool());

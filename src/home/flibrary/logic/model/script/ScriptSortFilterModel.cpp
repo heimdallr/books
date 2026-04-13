@@ -2,6 +2,7 @@
 
 #include "interface/logic/IScriptController.h"
 
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa;
@@ -81,6 +82,5 @@ bool ScriptSortFilterModel::lessThan(const QModelIndex& left, const QModelIndex&
 
 void ScriptSortFilterModel::OnRowsRemoved(int /*row*/, int /*count*/)
 {
-	beginFilterChange();
-	endFilterChange(Direction::Rows);
+	BEGIN_FILTER_CHANGE, END_FILTER_CHANGE;
 }

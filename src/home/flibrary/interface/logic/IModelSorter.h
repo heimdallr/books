@@ -1,5 +1,7 @@
 #pragma once
 
+#include <qmetatype.h>
+
 namespace HomeCompa::Flibrary
 {
 
@@ -12,3 +14,5 @@ public:
 };
 
 } // namespace HomeCompa::Flibrary
+
+Q_DECLARE_METATYPE(const HomeCompa::Flibrary::IModelSorter*);

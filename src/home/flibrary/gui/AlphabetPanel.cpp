@@ -19,6 +19,8 @@
 #include "util/language.h"
 #include "utilgui/GeometryRestorable.h"
 
+#include "QtTypes.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -89,7 +91,7 @@ auto CreateLetterClickFunctor(const QChar ch, const IControlGetter* controlGette
 
 		const auto text     = edit->text();
 		const auto position = edit->cursorPosition();
-		edit->setText(text.first(position) + ch + text.last(text.length() - position));
+		edit->setText(First(text, position) + ch + First(text, text.length() - position));
 		edit->setCursorPosition(position + 1);
 	};
 }

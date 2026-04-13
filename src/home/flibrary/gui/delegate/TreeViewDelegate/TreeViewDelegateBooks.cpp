@@ -1,5 +1,6 @@
 #include "TreeViewDelegateBooks.h"
 
+#include <array>
 #include <ranges>
 
 #include <QApplication>

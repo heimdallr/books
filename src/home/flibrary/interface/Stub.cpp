@@ -22,6 +22,7 @@
 #include "ui/IStyleApplier.h"
 #include "util/files.h"
 
+#include "QtTypes.h"
 #include "localization.h"
 
 namespace HomeCompa::Flibrary
@@ -39,8 +40,8 @@ void SetMacroImpl(QString& str, const IScriptController::Macro macro, const QStr
 	if (start < 0)
 		return;
 
-	const auto replace = [&](const QString& s, const qsizetype startPos, const qsizetype endPos) {
-		str.erase(std::next(str.begin(), startPos), std::next(str.begin(), endPos));
+	const auto replace = [&](const QString& s, const qsizetype_t startPos, const qsizetype_t endPos) {
+		Erase(str, std::next(str.begin(), startPos), std::next(str.begin(), endPos));
 		str.insert(startPos, s);
 	};
 
@@ -58,10 +59,10 @@ void SetMacroImpl(QString& str, const IScriptController::Macro macro, const QStr
 		return replace(value, start, start + macroStr.length());
 
 	if (value.isEmpty())
-		return replace(value, start - 1, std::distance(str.cbegin(), itEnd) + 1);
+		return replace(value, start - 1, static_cast<qsizetype_t>(std::distance(str.cbegin(), itEnd) + 1));
 
-	str.erase(itEnd);
-	str.erase(std::next(str.begin(), start) - 1);
+	Erase(str, itEnd);
+	Erase(str, std::next(str.begin(), start - 1));
 	return replace(value, start - 1, start + macroStr.length() - 1);
 }
 

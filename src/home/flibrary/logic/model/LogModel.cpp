@@ -22,6 +22,8 @@
 #include "util/FunctorExecutionForwarder.h"
 #include "util/UiTimer.h"
 
+#include "QtTypes.h"
+
 namespace HomeCompa::Flibrary
 {
 
@@ -233,10 +235,10 @@ private: // QAbstractListModel
 				m_logLevel,
 				value.toInt(),
 				[this] {
-					beginFilterChange();
+					BEGIN_FILTER_CHANGE;
 				},
 				[this] {
-					endFilterChange(Direction::Rows);
+					END_FILTER_CHANGE;
 				}
 			);
 		}

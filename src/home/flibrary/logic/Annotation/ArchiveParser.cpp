@@ -17,6 +17,7 @@
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 
+#include "QtTypes.h"
 #include "log.h"
 #include "zip.h"
 
@@ -294,7 +295,7 @@ private:
 	{
 		for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
 			if (const auto attributeName = attributes.GetName(i); attributeName.startsWith("xmlns:"))
-				return (m_hrefLink = attributeName.last(attributeName.length() - 6) + ":href"), true;
+				return (m_hrefLink = Last(attributeName, attributeName.length() - 6) + ":href"), true;
 
 		return true;
 	}
@@ -305,7 +306,7 @@ private:
 		const auto it = std::ranges::find_if(m_coverpage, [](const auto ch) {
 			return ch != '#';
 		});
-		m_coverpage   = m_coverpage.last(std::distance(it, m_coverpage.end()));
+		m_coverpage   = Last(m_coverpage, std::distance(it, m_coverpage.end()));
 
 		return true;
 	}

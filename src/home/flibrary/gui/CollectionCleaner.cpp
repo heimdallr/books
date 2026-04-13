@@ -156,10 +156,10 @@ public:
 			Analyze();
 		});
 
-		connect(m_ui.minimumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) {
+		connect(m_ui.minimumSize, qOverload<int>(&QSpinBox::valueChanged), &m_self, [this](const int value) {
 			m_ui.minimumSize->setSingleStep(std::max(1, value / 2));
 		});
-		connect(m_ui.maximumSize, &QSpinBox::valueChanged, &m_self, [this](const int value) {
+		connect(m_ui.maximumSize, qOverload<int>(&QSpinBox::valueChanged), &m_self, [this](const int value) {
 			m_ui.maximumSize->setSingleStep(std::max(1, value / 2));
 		});
 

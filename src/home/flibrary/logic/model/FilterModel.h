@@ -8,6 +8,8 @@
 #include "interface/logic/IFilterController.h"
 #include "interface/logic/IModelProvider.h"
 
+#include "QtTypes.h"
+
 namespace HomeCompa::Flibrary
 {
 

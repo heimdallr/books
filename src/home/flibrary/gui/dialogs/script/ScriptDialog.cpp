@@ -176,7 +176,7 @@ public:
 		for (const auto* name : IScriptController::s_embeddedCommands | std::views::values)
 			m_ui.comboBoxCommandTextEmbedded->addItem(Loc::Tr(IScriptController::s_context, name), QVariant::fromValue(QString { name }));
 
-		if (auto commands = m_settings->Get(SYS_COMMAND_KEY).toStringList(); !commands.isEmpty())
+		if (auto commands = m_settings->Get(SYS_COMMAND_KEY).toStringList() | std::ranges::to<std::vector>(); !commands.empty())
 		{
 			std::ranges::sort(commands);
 			for (const auto& command : commands)
@@ -279,7 +279,7 @@ private:
 
 	void SetConnectionsCommandEdit()
 	{
-		connect(m_ui.comboBoxCommandType, &QComboBox::currentIndexChanged, [this](const int index) {
+		connect(m_ui.comboBoxCommandType, qOverload<int>(&QComboBox::currentIndexChanged), [this](const int index) {
 			OnComboBoxCommandTypeIndexChanged(index);
 		});
 		connect(m_ui.btnCommandCancel, &QAbstractButton::clicked, &m_self, [this] {

@@ -39,6 +39,7 @@
 
 #include "Constant.h"
 #include "InpxConstant.h"
+#include "QtTypes.h"
 #include "log.h"
 #include "types.h"
 #include "zip.h"
@@ -333,7 +334,7 @@ public:
 
 				return ch;
 			});
-			str.removeIf([](const QChar ch) {
+			RemoveIf(str, [](const QChar ch) {
 				return ch != ' ' && !IsOneOf(ch.category(), QChar::Number_DecimalDigit, QChar::Letter_Lowercase);
 			});
 
@@ -388,7 +389,7 @@ private: // SaxParser
 
 		m_command.Execute();
 
-		m_annotation = {};
+		m_annotation = QStringList{};
 
 		return true;
 	}
@@ -553,7 +554,7 @@ std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& key
 						}
 					);
 			        it != keyword.begin())
-					keyword = keyword.last(std::distance(it, keyword.end()));
+					keyword = Last(keyword, std::distance(it, keyword.end()));
 				keyword = keyword.simplified();
 				if (!keyword.isEmpty())
 					keyword[0] = keyword[0].toUpper();
@@ -1038,7 +1039,10 @@ std::vector<QString> GetInpxFilesInFolder(const Ini& ini)
 
 	std::vector<QString> result;
 	for (QDirIterator it(ini(ARCHIVE_FOLDER), { "*.inpx" }, QDir::Files); it.hasNext();)
-		result.emplace_back(it.nextFileInfo().filePath());
+	{
+		it.next();
+		result.emplace_back(it.fileInfo().filePath());
+	}
 
 	PLOGV << "GetInpxFilesInFolder finished";
 	return result;
@@ -1299,7 +1303,7 @@ public:
 			                       - 1;
 				 return [this, genres, hasError = !ok](size_t) {
 					 if (m_badFolders.size() > 5)
-						 m_badFolders.resize(5);
+						 m_badFolders = QStringList(m_badFolders.begin(), std::next(m_badFolders.begin(), 5));
 					 m_callback(
 						 UpdateResult { m_data.bookFolders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, false, hasError, std::move(m_badFolders) }
 					 );
@@ -1655,7 +1659,8 @@ private:
 			std::vector<QString> result;
 			for (QDirIterator it(inpxFolder, { "*" }, QDir::Files); it.hasNext();)
 			{
-				const auto fileInfo = it.nextFileInfo();
+				it.next();
+				const auto fileInfo = it.fileInfo();
 				auto       fileName = fileInfo.fileName();
 				if (!(IsOneOf(fileName, COMPILATIONS, CONTENTS) || m_data.bookFolders.contains(fileName)) && Zip::IsArchive(fileInfo.filePath()))
 					result.emplace_back(std::move(fileName));
@@ -1786,7 +1791,8 @@ private:
 
 		for (QDirIterator it(m_ini(ADDITIONAL_FOLDER) + "/" + REVIEWS_FOLDER, { "*.7z" }, QDir::Files); it.hasNext();)
 		{
-			const auto fileInfo = it.nextFileInfo();
+			it.next();
+			const auto fileInfo = it.fileInfo();
 			auto       fileName = fileInfo.fileName();
 			const auto zip      = TRY(QString("open %1").arg(fileName), [&] {
 				return std::make_unique<Zip>(fileInfo.filePath());
@@ -1849,7 +1855,7 @@ where b.FileName = ? and b.Ext = ?)");
 				auto       title  = query->Get<QString>(1).toLower();
 				query->Reset();
 
-				title.removeIf([&](const QChar ch) {
+				RemoveIf(title, [&](const QChar ch) {
 					return ch != ' ' && ch.category() != QChar::Letter_Lowercase;
 				});
 
@@ -2023,7 +2029,8 @@ where b.FileName = ? and b.Ext = ?)");
 			std::vector<QString> result;
 			for (QDirIterator it(inpxFolder, { "*" }, QDir::Files, QDirIterator::Subdirectories); it.hasNext();)
 			{
-				const auto fileInfo = it.nextFileInfo();
+				it.next();
+				const auto fileInfo = it.fileInfo();
 				auto       fileName = fileInfo.filePath().mid(inpxFolder.length() + 1);
 				if (!(m_foldersContent.contains(fileName) || fileName.endsWith(".inpx") || std::ranges::any_of(specials, [&](const auto* item) {
 						  return fileName.startsWith(item);

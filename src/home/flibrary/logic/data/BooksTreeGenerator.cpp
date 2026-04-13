@@ -384,8 +384,8 @@ private: // IBookSelector
 		}
 
 		auto       queryClause     = description.queryClause;
-		const auto booksFrom       = QString(queryClause.booksFrom).arg(tmpTable->GetName()).toStdString();
-		const auto navigationFrom  = QString(queryClause.navigationFrom).arg(tmpTable->GetName()).toStdString();
+		const auto booksFrom       = QString(queryClause.booksFrom).arg(tmpTable->GetName().data()).toStdString();
+		const auto navigationFrom  = QString(queryClause.navigationFrom).arg(tmpTable->GetName().data()).toStdString();
 		queryClause.booksFrom      = booksFrom.data();
 		queryClause.navigationFrom = navigationFrom.data();
 
