@@ -122,6 +122,20 @@ template <>
 	return QString::fromStdWString(source);
 }
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+QString GetStyleName(const QString& key)
+{
+	if (const auto* style = QStyleFactory::create(key))
+		return style->name();
+	return {};
+}
+#else
+QString GetStyleName(const QString& key)
+{
+	return QStyleFactory::create(key) ? key : QString {};
+}
+#endif
+
 class LineEditPlaceholderTextController final : public QObject
 {
 public:
@@ -1145,9 +1159,9 @@ private:
 		addActionGroup({ m_ui.actionColorSchemeSystem, m_ui.actionColorSchemeLight, m_ui.actionColorSchemeDark }, new QActionGroup(&m_self));
 
 		std::vector<QAction*> styles;
-		for (const auto& key : QStyleFactory::keys())
-			if (const auto* style = QStyleFactory::create(key))
-				styles.emplace_back(CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::PluginStyle, style->name(), key));
+		for (const auto& name : QStyleFactory::keys())
+			if (const auto actionName = GetStyleName(name); !actionName.isEmpty())
+				styles.emplace_back(CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::PluginStyle, actionName, name));
 
 		m_ui.menuTheme->addSeparator();
 
