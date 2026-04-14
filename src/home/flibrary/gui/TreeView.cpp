@@ -1328,17 +1328,6 @@ private:
 		return key;
 	}
 
-	void Filter(const int role, const std::function<std::unordered_set<QString>()>& getValues) const
-	{
-		auto* model = m_ui.treeView->model();
-		if (!model)
-			return;
-
-		model->setData({}, QVariant::fromValue(getValues()), role);
-		OnCountChanged();
-		Find(m_currentId, Role::Id);
-	}
-
 private:
 	TreeView&                                               m_self;
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_controller;
