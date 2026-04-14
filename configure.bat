@@ -17,6 +17,7 @@ del %BUILD_DIR%\*.sln
 cmake -B %BUILD_DIR% ^
 --no-warn-unused-cli ^
 -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
+-DQT_MAJOR_VERSION=6 ^
 -DQt6_DIR=D:/sdk/Qt/Qt6/6.11.0/msvc2022_64_%BUILD_TYPE%/lib/cmake/Qt6 ^
 -D7zip_BIN_DIR=D:/sdk/7z/x64/bin ^
 -DCPACK_GENERATOR=WIX ^
@@ -27,3 +28,6 @@ echo -- Start: %start_time%
 echo -- Stop:  %DATE% %TIME%
 
 :end
+
+rem -DQt5_DIR=D:/sdk/Qt/Qt5/5.15.16/msvc2022_64_%BUILD_TYPE%/lib/cmake/Qt5 ^
+rem -DQt6_DIR=D:/sdk/Qt/Qt6/6.11.0/msvc2022_64_%BUILD_TYPE%/lib/cmake/Qt6 ^

@@ -984,7 +984,7 @@ private:
 			OnValueChanged();
 			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
 		});
-		connect(m_ui.cbMode, &QComboBox::currentIndexChanged, &m_self, [this](const int) {
+		connect(m_ui.cbMode, qOverload<int>(&QComboBox::currentIndexChanged), &m_self, [this](const int) {
 			auto newMode = m_ui.cbMode->currentData().toString();
 			emit m_self.NavigationModeNameChanged(newMode);
 			m_recentMode = std::move(newMode);

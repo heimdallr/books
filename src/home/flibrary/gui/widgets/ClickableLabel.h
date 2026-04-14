@@ -5,6 +5,8 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "QtTypes.h"
+
 namespace HomeCompa::Flibrary
 {
 
@@ -20,12 +22,12 @@ public:
 signals:
 	void clicked(const QPoint& pos) const;
 	void doubleClicked(const QPoint& pos) const;
-	void mouseEnter(QEnterEvent* event) const;
+	void mouseEnter(QEvent* event) const;
 	void mouseLeave(QEvent* event) const;
 
 private: // QWidget
 	void mousePressEvent(QMouseEvent* event) override;
-	void enterEvent(QEnterEvent* event) override;
+	void enterEvent(enter_event_t* event) override;
 	void leaveEvent(QEvent* event) override;
 
 private:

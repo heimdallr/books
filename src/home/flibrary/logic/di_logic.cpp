@@ -53,28 +53,35 @@
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 	#include "joke/factory/JokeRequesterFactory.h"
 #else
-class JokeRequesterFactory : public HomeCompa::Flibrary::IJokeRequesterFactory
+namespace HomeCompa::Flibrary
+{
+
+class JokeRequesterFactory final : public IJokeRequesterFactory
 {
 public:
-	std::shared_ptr<JokeRequesterFactory> JokeRequesterFactory::Create(Hypodermic::Container&)
+	static std::shared_ptr<JokeRequesterFactory> Create(Hypodermic::Container&)
 	{
 		return std::make_shared<JokeRequesterFactory>();
 	}
 
 private:
-	std::shared_ptr<HomeCompa::Flibrary::IJokeRequester> Create(Implementation) const override
+	std::shared_ptr<IJokeRequester> Create(Implementation) const override
 	{
 		return {};
 	}
-	std::shared_ptr<HomeCompa::Network::Downloader> GetDownloader() const override
+
+	std::shared_ptr<Network::Downloader> GetDownloader() const override
 	{
 		return {};
 	}
+
 	std::vector<ImplementationDescription> GetImplementations() const override
 	{
 		return {};
 	}
 };
+
+} // namespace HomeCompa::Flibrary
 #endif
 
 namespace HomeCompa::Flibrary

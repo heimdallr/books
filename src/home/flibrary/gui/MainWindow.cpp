@@ -40,6 +40,7 @@
 #include "utilgui/GeometryRestorable.h"
 
 #include "Constant.h"
+#include "QtTypes.h"
 #include "StackedPage.h"
 #include "TreeView.h"
 #include "log.h"
@@ -105,6 +106,21 @@ constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(SERIES)       \
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(TITLE)        \
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(ANNOTATION)
+
+template <typename T>
+QString ToString(const T* source) = delete;
+
+template <>
+[[maybe_unused]] QString ToString<char>(const char* source)
+{
+	return QString::fromStdString(source);
+}
+
+template <>
+[[maybe_unused]] QString ToString<wchar_t>(const wchar_t* source)
+{
+	return QString::fromStdWString(source);
+}
 
 class LineEditPlaceholderTextController final : public QObject
 {
@@ -325,9 +341,7 @@ public:
 			return;
 
 		auto list = m_settings->Get(IStyleApplier::THEME_FILES_KEY).toStringList();
-		if (!erase_if(list, [this](const auto& item) {
-				return item == m_lastStyleFileHovered;
-			}))
+		if (!list.removeAll(m_lastStyleFileHovered))
 			return;
 
 		m_settings->Set(IStyleApplier::THEME_FILES_KEY, list);
@@ -343,7 +357,7 @@ public:
 		    it != actions.end())
 		{
 			m_ui.menuTheme->removeAction(*it);
-			if (auto* menu = (*it)->menu<>())
+			if (auto* menu = (*it)->menu())
 				menu->close();
 		}
 
@@ -393,7 +407,7 @@ private: // plog::IAppender
 	void write(const plog::Record& record) override
 	{
 		if (record.getSeverity() < plog::Severity::verbose && m_ui.statusBar && m_ui.statusBar->isVisible())
-			m_forwarder.Forward([&, message = QString(record.getMessage())] {
+			m_forwarder.Forward([&, message = ToString(record.getMessage())] {
 				m_ui.statusBar->showMessage(message, 2000);
 			});
 	}
@@ -1139,7 +1153,7 @@ private:
 
 		if (const auto externalThemesVar = m_settings->Get(IStyleApplier::THEME_FILES_KEY); externalThemesVar.isValid())
 		{
-			auto externalThemes = externalThemesVar.toStringList();
+			auto externalThemes = externalThemesVar.toStringList() | std::ranges::to<std::vector>();
 			std::ranges::sort(externalThemes);
 			for (const auto& fileName : externalThemes)
 				std::ranges::copy(AddExternalStyle(fileName), std::back_inserter(styles));
@@ -1262,7 +1276,7 @@ private:
 			return;
 
 		auto searchString = m_ui.lineEditBookTitleToSearch->text().toLower();
-		searchString.removeIf([](const QChar ch) {
+		RemoveIf(searchString, [](const QChar ch) {
 			return ch != ' ' && !IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit);
 		});
 

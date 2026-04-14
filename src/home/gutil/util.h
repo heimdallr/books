@@ -3,6 +3,7 @@
 #include <qmetatype.h>
 
 #include <QRect>
+#include <QVector>
 
 #include "export/gutil.h"
 

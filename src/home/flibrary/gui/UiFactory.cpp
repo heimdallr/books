@@ -426,7 +426,7 @@ IDataItem::Ptr UiFactory::AddMenuBarToHotkeys(const ISettings& settings, const Q
 			auto& child = addChild(parent, *menu, menu->title());
 
 			std::unordered_set<const QAction*> actions;
-			r(menu->findChildren<QMenu*>(Qt::FindDirectChildrenOnly), *child, actions, r);
+			r(menu->findChildren<QMenu*>(QString{}, Qt::FindDirectChildrenOnly), *child, actions, r);
 
 			for (auto* action : menu->actions() | std::views::filter([&](const QAction* item) {
 									return !(item->isSeparator() || actions.contains(item));
@@ -448,7 +448,7 @@ IDataItem::Ptr UiFactory::AddMenuBarToHotkeys(const ISettings& settings, const Q
 	};
 
 	std::unordered_set<const QAction*> actions;
-	enumerate(menuBar.findChildren<QMenu*>(Qt::FindDirectChildrenOnly), *menuBarItem, actions, enumerate);
+	enumerate(menuBar.findChildren<QMenu*>(QString {}, Qt::FindDirectChildrenOnly), *menuBarItem, actions, enumerate);
 
 	return menuBarItem;
 }
