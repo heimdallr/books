@@ -407,9 +407,12 @@ private:
 	{
 		QJsonArray array;
 
+		std::unordered_set<long long> uniqueIds;
+
 		const auto query = CreateParameterQuery(queryText, parameter, isSearch);
 		for (query->Execute(); !query->Eof(); query->Next())
-			array.append(FromQuery<const char*>(*query));
+			if (uniqueIds.emplace(query->Get<long long>(0)).second)
+				array.append(FromQuery<const char*>(*query));
 
 		return QJsonObject {
 			{ resultName, array }
