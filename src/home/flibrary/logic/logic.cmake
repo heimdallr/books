@@ -7,6 +7,7 @@ AddTarget(logic	shared_lib
 		plog::plog
 		Qt${QT_MAJOR_VERSION}::Gui
 		Qt${QT_MAJOR_VERSION}::Network
+		[ QT5 Qt${QT_MAJOR_VERSION}::Widgets ]
 	LINK_TARGETS
 		dbfactory
 		flint
@@ -17,6 +18,7 @@ AddTarget(logic	shared_lib
 		rest
 		util
 		zip
+		[ QT6 joke ]
 )
 
 file(COPY ${CMAKE_CURRENT_LIST_DIR}/resources/data/genres.lst DESTINATION ${CMAKE_BINARY_DIR}/bin)

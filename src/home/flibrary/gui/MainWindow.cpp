@@ -757,7 +757,11 @@ private:
 			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER).exists()
 		);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		ConnectActionsSettingsAnnotationJokes();
+#else
+		m_ui.menuJokes->menuAction()->setVisible(false);
+#endif
 	}
 
 	void ConnectActionsSettingsFont()
@@ -946,7 +950,13 @@ private:
 		PLOGV << "ConnectActionsSettings";
 		ConnectActionsSettingsExport();
 		ConnectActionsSettingsView();
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		ConnectActionsSettingsHttp();
+#else
+		m_ui.menuHttp->menuAction()->setVisible(false);
+#endif
+
 		ConnectActionsSettingsSearch();
 
 		connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] {

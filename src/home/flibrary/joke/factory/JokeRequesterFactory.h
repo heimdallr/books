@@ -4,6 +4,8 @@
 
 #include "interface/logic/IJokeRequesterFactory.h"
 
+#include "export/joke.h"
+
 namespace Hypodermic
 {
 
@@ -17,6 +19,9 @@ namespace HomeCompa::Flibrary
 class JokeRequesterFactory final : public IJokeRequesterFactory
 {
 	NON_COPY_MOVABLE(JokeRequesterFactory)
+
+public:
+	JOKE_EXPORT static std::shared_ptr<JokeRequesterFactory> Create(Hypodermic::Container& container);
 
 public:
 	explicit JokeRequesterFactory(Hypodermic::Container& container);

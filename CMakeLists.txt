@@ -5,10 +5,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
 
-set(QT_MAJOR_VERSION 6)
+if ("${QT_MAJOR_VERSION}" STREQUAL "")
+	set(QT_MAJOR_VERSION 6)
+endif()
+
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+set(QT${QT_MAJOR_VERSION} "QT${QT_MAJOR_VERSION}")
 
 set(EXT_ROOT ${CMAKE_SOURCE_DIR}/src/ext CACHE STRING "EXT_ROOT")
 set(BUILDSCRIPTS_ROOT ${EXT_ROOT}/scripts CACHE STRING "BUILDSCRIPTS_ROOT")
@@ -81,7 +85,11 @@ else()
 	)
 endif()
 
-set(QtModules Core Gui Widgets Xml Network Svg Concurrent HttpServer WebSockets)
+set(QtModules Core Gui Widgets Xml Network Svg Concurrent)
+if(QT6)
+	list(APPEND QtModules HttpServer WebSockets)
+endif()
+get_filename_component(QT_ROOT "${Qt${QT_MAJOR_VERSION}_DIR}/../../.." ABSOLUTE)
 find_package(Qt${QT_MAJOR_VERSION} REQUIRED COMPONENTS ${QtModules})
 
 set(BIT7Z_AUTO_FORMAT ON CACHE BOOL "enable auto format support" FORCE)
@@ -102,6 +110,7 @@ find_package(SQLite3 REQUIRED)
 
 include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)
 include(${BUILDSCRIPTS_ROOT}/cmake/sdk.cmake)
+include(${BUILDSCRIPTS_ROOT}/cmake/utils.cmake)
 
 include_directories(${FOUNDATION_ROOT})
 include(${FOUNDATION_ROOT}/fnd/fnd.cmake)
