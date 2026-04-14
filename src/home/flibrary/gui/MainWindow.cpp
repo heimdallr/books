@@ -197,6 +197,39 @@ private:
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 };
 
+class VisibleChangedHandler final : public QObject
+{
+public:
+	explicit VisibleChangedHandler(std::function<void(bool)> callback, QObject* parent = nullptr)
+		: QObject(parent)
+		, m_callback { std::move(callback) }
+	{
+	}
+
+private: // QObject
+	bool eventFilter(QObject* watched, QEvent* event) override
+	{
+		switch (event->type())
+		{
+			case QEvent::Show:
+				m_callback(true);
+				break;
+
+			case QEvent::Hide:
+				m_callback(false);
+				break;
+
+			default:
+				break;
+		}
+
+		return QObject::eventFilter(watched, event);
+	}
+
+private:
+	std::function<void(bool)> m_callback;
+};
+
 std::set<QString> GetQssList()
 {
 	std::set<QString> list;
@@ -291,6 +324,7 @@ public:
 	~Impl() override
 	{
 		SaveGeometry();
+		m_ui.annotationWidget->removeEventFilter(m_annotationWidgetEventFilter);
 		m_navigationViewController->UnregisterObserver(this);
 		m_collectionController->UnregisterObserver(this);
 		m_alphabetPanel->UnregisterObserver(this);
@@ -777,9 +811,14 @@ private:
 		ConnectSettings(m_ui.actionShowAnnotationMetadata, SHOW_ANNOTATION_METADATA_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowMetadata);
 		ConnectSettings(m_ui.actionShowAnnotationCoverButtons, SHOW_ANNOTATION_COVER_BUTTONS_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons);
 		ConnectSettings(m_ui.actionShowReadersReviews, SHOW_REVIEWS_KEY, m_annotationController.get(), &IAnnotationController::ShowReviews);
-		connect(m_ui.actionHideAnnotation, &QAction::visibleChanged, &m_self, [&] {
-			m_ui.menuAnnotation->menuAction()->setVisible(m_ui.actionHideAnnotation->isVisible());
-		});
+		m_annotationWidgetEventFilter = new VisibleChangedHandler(
+			[this](const bool isVisible) {
+				m_ui.menuAnnotation->menuAction()->setVisible(isVisible);
+			},
+			m_ui.menuAnnotation
+		);
+		m_ui.annotationWidget->installEventFilter(m_annotationWidgetEventFilter);
+		m_ui.menuAnnotation->menuAction()->setVisible(m_settings->Get(SHOW_ANNOTATION_KEY, true));
 
 		m_ui.actionShowReadersReviews->setVisible(
 			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER).exists()
@@ -1557,6 +1596,7 @@ private:
 	QMetaObject::Connection m_settingsLineEditExecuteContextMenuConnection;
 	QSpacerItem*            m_searchBooksByTitleLeft;
 	QLayout*                m_searchBooksByTitleLayout;
+	QObject*                m_annotationWidgetEventFilter;
 
 	bool m_checkForUpdateOnStartEnabled { true };
 
