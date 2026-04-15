@@ -89,8 +89,9 @@ set(QtModules Core Gui Widgets Xml Network Svg Concurrent)
 if(QT6)
 	list(APPEND QtModules HttpServer WebSockets)
 endif()
-get_filename_component(QT_ROOT "${Qt${QT_MAJOR_VERSION}_DIR}/../../.." ABSOLUTE)
+
 find_package(Qt${QT_MAJOR_VERSION} REQUIRED COMPONENTS ${QtModules})
+get_filename_component(QT_ROOT "${Qt${QT_MAJOR_VERSION}_DIR}/../../.." ABSOLUTE)
 
 set(BIT7Z_AUTO_FORMAT ON CACHE BOOL "enable auto format support" FORCE)
 set(BIT7Z_USE_NATIVE_STRING ON CACHE BOOL "enable native string" FORCE)
