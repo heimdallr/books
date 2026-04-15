@@ -272,3 +272,6 @@ public:
 };
 
 } // namespace HomeCompa::Flibrary
+
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::IScriptController::Mode)
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::IScriptController::Command::Type)

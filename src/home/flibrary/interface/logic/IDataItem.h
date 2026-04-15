@@ -1,14 +1,13 @@
 ﻿#pragma once
 
 #include <qnamespace.h>
+#include <qmetatype.h>
 
 #include <functional>
 #include <memory>
 #include <vector>
 
 #include "fnd/EnumBitmask.h"
-
-class QString;
 
 namespace HomeCompa::Flibrary
 {
@@ -130,3 +129,4 @@ using BookInfoList = std::vector<BookInfo>;
 } // namespace HomeCompa::Flibrary
 
 ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::IDataItem::Flags);
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::IDataItem::Flags);

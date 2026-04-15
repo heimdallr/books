@@ -17,6 +17,7 @@
 #include "util/FunctorExecutionForwarder.h"
 #include "utilgui/GeometryRestorable.h"
 
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
@@ -88,15 +89,15 @@ private:
 					checkedOnly,
 					QVariant { value },
 					[this] {
-						beginFilterChange();
+						BEGIN_FILTER_CHANGE;
 					},
 					[this] {
-						endFilterChange(Direction::Rows);
+						END_FILTER_CHANGE;
 					}
 				);
 
 			case Role::FilterDataChanged:
-				return beginFilterChange(), endFilterChange(Direction::Rows), true;
+				return BEGIN_FILTER_CHANGE, END_FILTER_CHANGE, true;
 
 			default:
 				break;

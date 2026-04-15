@@ -774,7 +774,7 @@ private:
 			std::stack<QModelIndex> stack { { QModelIndex {} } };
 			while (!stack.empty())
 			{
-				const auto parent = stack.top();
+				const auto parent = std::move(stack.top());
 				stack.pop();
 
 				if ((options & hasCollapsedExpanded) == hasCollapsedExpanded)
@@ -984,7 +984,7 @@ private:
 			OnValueChanged();
 			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
 		});
-		connect(m_ui.cbMode, &QComboBox::currentIndexChanged, &m_self, [this](const int) {
+		connect(m_ui.cbMode, qOverload<int>(&QComboBox::currentIndexChanged), &m_self, [this](const int) {
 			auto newMode = m_ui.cbMode->currentData().toString();
 			emit m_self.NavigationModeNameChanged(newMode);
 			m_recentMode = std::move(newMode);
@@ -1326,17 +1326,6 @@ private:
 		               .arg(IsNavigation() ? QString("/%1").arg(m_recentMode) : QString {});
 
 		return key;
-	}
-
-	void Filter(const int role, const std::function<std::unordered_set<QString>()>& getValues) const
-	{
-		auto* model = m_ui.treeView->model();
-		if (!model)
-			return;
-
-		model->setData({}, QVariant::fromValue(getValues()), role);
-		OnCountChanged();
-		Find(m_currentId, Role::Id);
 	}
 
 private:

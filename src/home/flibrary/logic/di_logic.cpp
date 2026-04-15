@@ -13,7 +13,6 @@
 #include "Collection/CollectionProvider.h"
 #include "Collection/CollectionUpdateChecker.h"
 #include "Hypodermic/Hypodermic.h"
-#include "JokeRequester/factory/JokeRequesterFactory.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
 #include "data/NavigationQueryExecutor.h"
@@ -50,6 +49,40 @@
 #include "LogicFactory.h"
 
 #include "config/version.h"
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	#include "joke/factory/JokeRequesterFactory.h"
+#else
+namespace HomeCompa::Flibrary
+{
+
+class JokeRequesterFactory final : public IJokeRequesterFactory
+{
+public:
+	static std::shared_ptr<JokeRequesterFactory> Create(Hypodermic::Container&)
+	{
+		return std::make_shared<JokeRequesterFactory>();
+	}
+
+private:
+	std::shared_ptr<IJokeRequester> Create(Implementation) const override
+	{
+		return {};
+	}
+
+	std::shared_ptr<Network::Downloader> GetDownloader() const override
+	{
+		return {};
+	}
+
+	std::vector<ImplementationDescription> GetImplementations() const override
+	{
+		return {};
+	}
+};
+
+} // namespace HomeCompa::Flibrary
+#endif
 
 namespace HomeCompa::Flibrary
 {
@@ -113,7 +146,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 
 	builder
 		.registerInstanceFactory([&](Hypodermic::ComponentContext&) {
-			return std::make_shared<JokeRequesterFactory>(*container);
+			return JokeRequesterFactory::Create(*container);
 		})
 		.as<IJokeRequesterFactory>()
 		.singleInstance();

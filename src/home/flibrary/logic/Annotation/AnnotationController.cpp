@@ -47,7 +47,7 @@ constexpr auto IMAGES            = QT_TRANSLATE_NOOP("Annotation", "Images:");
 constexpr auto TRANSLATORS       = QT_TRANSLATE_NOOP("Annotation", "Translators:");
 constexpr auto TEXT_SIZE         = QT_TRANSLATE_NOOP("Annotation", "%L1 letters (%2%3 pages, %2%L4 words)");
 constexpr auto EXPORT_STATISTICS = QT_TRANSLATE_NOOP("Annotation", "Export statistics:");
-constexpr auto OR                = QT_TRANSLATE_NOOP("Annotation", " or %1");
+constexpr auto OR_SUFFIX         = QT_TRANSLATE_NOOP("Annotation", " or %1");
 constexpr auto TRANSLATION_FROM  = QT_TRANSLATE_NOOP("Annotation", ", translated from %1");
 constexpr auto REVIEWS           = QT_TRANSLATE_NOOP("Annotation", "Readers' Reviews");
 
@@ -195,7 +195,7 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, c
 
 	if (!fbLang.isEmpty())
 		if (const auto fbLangTr = TranslateLang(fbLang); fbLangTr != langTr && fbLangTr != Loc::Tr(LANGUAGES_CONTEXT, UNDEFINED))
-			langStr.append(Tr(OR).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbLang, fbLangTr, !!(langFlags[1] & IDataItem::Flags::Filtered))));
+			langStr.append(Tr(OR_SUFFIX).arg(strategy.GenerateUrl(Loc::LANGUAGE, fbLang, fbLangTr, !!(langFlags[1] & IDataItem::Flags::Filtered))));
 
 	if (!fbSourceLang.isEmpty() && fbSourceLang != lang && fbSourceLang != fbLang)
 		if (const auto fbSourceLangTr = TranslateLang(fbSourceLang); fbSourceLangTr != langTr)

@@ -1,6 +1,6 @@
 #pragma once
 
-#include <qttranslation.h>
+#include <QtGlobal>
 
 #include <QColor>
 

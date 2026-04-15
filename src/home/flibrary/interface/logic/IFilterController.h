@@ -1,5 +1,7 @@
 #pragma once
 
+#include <qmetatype.h>
+
 #include <QPointer>
 
 #include "interface/logic/IDataItem.h"
@@ -37,3 +39,5 @@ public:
 };
 
 } // namespace HomeCompa::Flibrary
+
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::IFilterController::ICallback*);

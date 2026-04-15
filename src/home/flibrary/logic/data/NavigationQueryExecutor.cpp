@@ -25,6 +25,7 @@
 #include "util/language.h"
 
 #include "BooksTreeGenerator.h"
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa;
@@ -331,8 +332,8 @@ void RequestNavigationReviews(
 				  for (const auto& reviewInfo : QDir(folder + "/" + Inpx::REVIEWS_FOLDER).entryInfoList({ "??????.7z" }))
 				  {
 					  auto       name   = reviewInfo.completeBaseName();
-					  auto       year   = name.first(4);
-					  const auto yearId = year.toLongLong(), monthId = name.last(2).toLongLong();
+					  auto       year   = First(name, 4);
+					  const auto yearId = year.toLongLong(), monthId = Last(name, 2).toLongLong();
 					  auto       parentIt = items.find(yearId);
 					  if (parentIt == items.end())
 					  {

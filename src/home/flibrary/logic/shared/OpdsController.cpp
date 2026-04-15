@@ -81,7 +81,7 @@ void OpdsController::Start()
 {
 	assert(!IsRunning());
 
-	if (QProcess::startDetached(GetOpdsPath()))
+	if (QProcess::startDetached(GetOpdsPath(), QStringList{}))
 		m_impl->timer.start();
 }
 

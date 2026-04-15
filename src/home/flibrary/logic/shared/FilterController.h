@@ -49,3 +49,5 @@ private:
 };
 
 } // namespace HomeCompa::Flibrary
+
+Q_DECLARE_METATYPE(std::unordered_set<QString>)

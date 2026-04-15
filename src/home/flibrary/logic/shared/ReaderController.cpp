@@ -59,7 +59,7 @@ public:
 	{
 		start(process, { fileName });
 		waitForStarted();
-		connect(this, &QProcess::finished, this, &QObject::deleteLater);
+		connect(this, qOverload<int, ExitStatus>(&QProcess::finished), this, &QObject::deleteLater);
 	}
 
 private:

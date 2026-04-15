@@ -1,5 +1,7 @@
 #pragma once
 
+#include <filesystem>
+
 #include "interface/constants/Enums.h"
 #include "interface/logic/IDataItem.h"
 

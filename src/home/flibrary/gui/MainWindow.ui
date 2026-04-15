@@ -431,11 +431,11 @@
       </property>
      </widget>
      <addaction name="actionShowRemoved"/>
-     <addaction name="actionShowAnnotation"/>
      <addaction name="actionShowStatusBar"/>
      <addaction name="actionShowSearchBookString"/>
      <addaction name="actionShowAuthorAnnotation"/>
      <addaction name="menuNavigation"/>
+     <addaction name="actionShowAnnotation"/>
      <addaction name="menuAnnotation"/>
      <addaction name="menuFont"/>
      <addaction name="menuAlphabets"/>

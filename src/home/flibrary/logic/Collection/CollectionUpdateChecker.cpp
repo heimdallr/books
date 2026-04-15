@@ -7,6 +7,7 @@
 #include "database/interface/IDatabase.h"
 
 #include "inpx/inpx.h"
+#include "QtTypes.h"
 
 #include "log.h"
 #include "zip.h"
@@ -30,7 +31,7 @@ QString GetFileHash(const std::set<QString>& fileNames)
 		const auto     buf  = std::make_unique<char[]>(size);
 
 		while (const auto readSize = file.read(buf.get(), size))
-			hash.addData(QByteArrayView(buf.get(), static_cast<int>(readSize)));
+			AddData(hash, buf.get(), readSize);
 	}
 
 	return hash.result().toHex();

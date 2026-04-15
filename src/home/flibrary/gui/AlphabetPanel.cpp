@@ -19,6 +19,8 @@
 #include "util/language.h"
 #include "utilgui/GeometryRestorable.h"
 
+#include "QtTypes.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -33,7 +35,7 @@ constexpr auto SELECT_ALPHABET_LABEL = QT_TRANSLATE_NOOP("AlphabetPanel", "Type 
 
 TR_DEF
 
-constexpr auto ID             = "id";
+constexpr auto ID_KEY         = "id";
 constexpr auto GROUP_KEY      = "ui/View/Alphabets";
 constexpr auto LINKED_CONTROL = "Preferences/Alphabets/LinkedControl";
 constexpr auto KEY_TEMPLATE   = "ui/View/Alphabets/%1/%2";
@@ -43,12 +45,12 @@ constexpr auto ALPHABET       = "alphabet";
 
 QString GetVisibleKey(const QWidget& widget)
 {
-	return QString(KEY_TEMPLATE).arg(widget.property(ID).toString(), VISIBLE);
+	return QString(KEY_TEMPLATE).arg(widget.property(ID_KEY).toString(), VISIBLE);
 }
 
 QString GetOrdNumKey(const QWidget& widget)
 {
-	return QString(KEY_TEMPLATE).arg(widget.property(ID).toString(), ORD_NUM);
+	return QString(KEY_TEMPLATE).arg(widget.property(ID_KEY).toString(), ORD_NUM);
 }
 
 class ToolBar final : public QToolBar
@@ -58,7 +60,7 @@ public:
 		: QToolBar(title, parent)
 	{
 		setMovable(false);
-		setProperty(ID, id);
+		setProperty(ID_KEY, id);
 		setAccessibleName(title);
 		mainWindow.addToolBar(Qt::ToolBarArea::TopToolBarArea, this);
 		mainWindow.addToolBarBreak(Qt::ToolBarArea::TopToolBarArea);
@@ -89,7 +91,7 @@ auto CreateLetterClickFunctor(const QChar ch, const IControlGetter* controlGette
 
 		const auto text     = edit->text();
 		const auto position = edit->cursorPosition();
-		edit->setText(text.first(position) + ch + text.last(text.length() - position));
+		edit->setText(First(text, position) + ch + First(text, text.length() - position));
 		edit->setCursorPosition(position + 1);
 	};
 }
@@ -125,7 +127,7 @@ public:
 		std::ranges::for_each(doc.array(), [this](const auto alphabetValue) {
 			assert(alphabetValue.isObject());
 			const auto alphabetObject = alphabetValue.toObject();
-			AddToolBar(m_self, alphabetObject[ID].toString(), alphabetObject["data"].toString());
+			AddToolBar(m_self, alphabetObject[ID_KEY].toString(), alphabetObject["data"].toString());
 		});
 
 		const auto customIds = [this] {
@@ -133,7 +135,7 @@ public:
 			const SettingsGroup         group(*m_settings, GROUP_KEY);
 			std::unordered_set<QString> unique;
 			std::ranges::transform(m_toolBars, std::inserter(unique, unique.end()), [](const auto* item) {
-				return item->property(ID).toString();
+				return item->property(ID_KEY).toString();
 			});
 			std::ranges::copy(
 				m_settings->GetGroups() | std::views::filter([&](const auto& item) {
@@ -226,7 +228,7 @@ public:
 
 		std::unordered_set<QString> keysFilter { UNDEFINED_KEY };
 		std::ranges::transform(m_toolBars, std::inserter(keysFilter, keysFilter.end()), [](const auto* toolBar) {
-			return toolBar->property(ID).toString();
+			return toolBar->property(ID_KEY).toString();
 		});
 
 		std::map<std::pair<int, QString>, const char*> languages;
@@ -305,7 +307,7 @@ private:
 				std::erase_if(m_toolBars, [&](const auto* item) {
 					return item == toolBar;
 				});
-				m_settings->Remove(QString("%1/%2").arg(GROUP_KEY, toolBar->property(ID).toString()));
+				m_settings->Remove(QString("%1/%2").arg(GROUP_KEY, toolBar->property(ID_KEY).toString()));
 				Perform(&IAlphabetPanel::IObserver::OnToolBarChanged);
 				OnShow();
 			});

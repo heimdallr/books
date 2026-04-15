@@ -136,17 +136,17 @@ public:
 		connect(m_ui.editAdditional, &RelativePathLineEdit::Changed, &m_self, [&] {
 			(void)CheckData();
 		});
-		connect(m_ui.checkBoxScanUnindexedArchives, &QCheckBox::checkStateChanged, &m_self, [&] {
+		connect(m_ui.checkBoxScanUnindexedArchives, &QAbstractButton::toggled, &m_self, [&] {
 			(void)CheckData();
 		});
 		connect(m_ui.editInpx, &RelativePathLineEdit::Changed, &m_self, [&] {
 			(void)CheckData();
 		});
-		connect(m_ui.checkBoxInpx, &QCheckBox::toggled, &m_self, [&] {
+		connect(m_ui.checkBoxInpx, &QAbstractButton::toggled, &m_self, [&] {
 			(void)CheckData();
 		});
 
-		connect(m_ui.checkBoxAdditional, &QCheckBox::toggled, [this](const bool checked) {
+		connect(m_ui.checkBoxAdditional, &QAbstractButton::toggled, [this](const bool checked) {
 			if (checked && QDir(m_ui.editArchive->GetText() + DEFAULT_ADDITIONAL_FOLDER).exists())
 				m_ui.editAdditional->SetText(m_ui.editArchive->GetText() + DEFAULT_ADDITIONAL_FOLDER);
 			(void)CheckData();

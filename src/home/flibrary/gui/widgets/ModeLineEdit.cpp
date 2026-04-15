@@ -2,6 +2,8 @@
 
 #include "ModeLineEdit.h"
 
+#include <ranges>
+
 #include <QMenu>
 
 #include "util/ISettings.h"

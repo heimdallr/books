@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <qmetatype.h>
+
 namespace HomeCompa::Flibrary
 {
 
@@ -128,3 +130,6 @@ struct MenuAction
 };
 
 } // namespace HomeCompa::Flibrary
+
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::ItemType);
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::NavigationMode);

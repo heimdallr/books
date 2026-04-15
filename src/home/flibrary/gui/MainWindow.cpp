@@ -40,6 +40,7 @@
 #include "utilgui/GeometryRestorable.h"
 
 #include "Constant.h"
+#include "QtTypes.h"
 #include "StackedPage.h"
 #include "TreeView.h"
 #include "log.h"
@@ -106,6 +107,35 @@ constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(TITLE)        \
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(ANNOTATION)
 
+template <typename T>
+QString ToString(const T* source) = delete;
+
+template <>
+[[maybe_unused]] QString ToString<char>(const char* source)
+{
+	return QString::fromStdString(source);
+}
+
+template <>
+[[maybe_unused]] QString ToString<wchar_t>(const wchar_t* source)
+{
+	return QString::fromStdWString(source);
+}
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+QString GetStyleName(const QString& key)
+{
+	if (const auto* style = QStyleFactory::create(key))
+		return style->name();
+	return {};
+}
+#else
+QString GetStyleName(const QString& key)
+{
+	return QStyleFactory::create(key) ? key : QString {};
+}
+#endif
+
 class LineEditPlaceholderTextController final : public QObject
 {
 public:
@@ -165,6 +195,39 @@ private:
 #define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) QAction& m_action##NAME;
 	SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
+};
+
+class VisibleChangedHandler final : public QObject
+{
+public:
+	explicit VisibleChangedHandler(std::function<void(bool)> callback, QObject* parent = nullptr)
+		: QObject(parent)
+		, m_callback { std::move(callback) }
+	{
+	}
+
+private: // QObject
+	bool eventFilter(QObject* watched, QEvent* event) override
+	{
+		switch (event->type())
+		{
+			case QEvent::Show:
+				m_callback(true);
+				break;
+
+			case QEvent::Hide:
+				m_callback(false);
+				break;
+
+			default:
+				break;
+		}
+
+		return QObject::eventFilter(watched, event);
+	}
+
+private:
+	std::function<void(bool)> m_callback;
 };
 
 std::set<QString> GetQssList()
@@ -261,6 +324,7 @@ public:
 	~Impl() override
 	{
 		SaveGeometry();
+		m_ui.annotationWidget->removeEventFilter(m_annotationWidgetEventFilter);
 		m_navigationViewController->UnregisterObserver(this);
 		m_collectionController->UnregisterObserver(this);
 		m_alphabetPanel->UnregisterObserver(this);
@@ -325,9 +389,7 @@ public:
 			return;
 
 		auto list = m_settings->Get(IStyleApplier::THEME_FILES_KEY).toStringList();
-		if (!erase_if(list, [this](const auto& item) {
-				return item == m_lastStyleFileHovered;
-			}))
+		if (!list.removeAll(m_lastStyleFileHovered))
 			return;
 
 		m_settings->Set(IStyleApplier::THEME_FILES_KEY, list);
@@ -343,7 +405,7 @@ public:
 		    it != actions.end())
 		{
 			m_ui.menuTheme->removeAction(*it);
-			if (auto* menu = (*it)->menu<>())
+			if (auto* menu = (*it)->menu())
 				menu->close();
 		}
 
@@ -393,7 +455,7 @@ private: // plog::IAppender
 	void write(const plog::Record& record) override
 	{
 		if (record.getSeverity() < plog::Severity::verbose && m_ui.statusBar && m_ui.statusBar->isVisible())
-			m_forwarder.Forward([&, message = QString(record.getMessage())] {
+			m_forwarder.Forward([&, message = ToString(record.getMessage())] {
 				m_ui.statusBar->showMessage(message, 2000);
 			});
 	}
@@ -749,15 +811,24 @@ private:
 		ConnectSettings(m_ui.actionShowAnnotationMetadata, SHOW_ANNOTATION_METADATA_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowMetadata);
 		ConnectSettings(m_ui.actionShowAnnotationCoverButtons, SHOW_ANNOTATION_COVER_BUTTONS_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons);
 		ConnectSettings(m_ui.actionShowReadersReviews, SHOW_REVIEWS_KEY, m_annotationController.get(), &IAnnotationController::ShowReviews);
-		connect(m_ui.actionHideAnnotation, &QAction::visibleChanged, &m_self, [&] {
-			m_ui.menuAnnotation->menuAction()->setVisible(m_ui.actionHideAnnotation->isVisible());
-		});
+		m_annotationWidgetEventFilter = new VisibleChangedHandler(
+			[this](const bool isVisible) {
+				m_ui.menuAnnotation->menuAction()->setVisible(isVisible);
+			},
+			m_ui.menuAnnotation
+		);
+		m_ui.annotationWidget->installEventFilter(m_annotationWidgetEventFilter);
+		m_ui.menuAnnotation->menuAction()->setVisible(m_settings->Get(SHOW_ANNOTATION_KEY, true));
 
 		m_ui.actionShowReadersReviews->setVisible(
 			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER).exists()
 		);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		ConnectActionsSettingsAnnotationJokes();
+#else
+		m_ui.menuJokes->menuAction()->setVisible(false);
+#endif
 	}
 
 	void ConnectActionsSettingsFont()
@@ -946,7 +1017,13 @@ private:
 		PLOGV << "ConnectActionsSettings";
 		ConnectActionsSettingsExport();
 		ConnectActionsSettingsView();
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		ConnectActionsSettingsHttp();
+#else
+		m_ui.menuHttp->menuAction()->setVisible(false);
+#endif
+
 		ConnectActionsSettingsSearch();
 
 		connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] {
@@ -1121,15 +1198,15 @@ private:
 		addActionGroup({ m_ui.actionColorSchemeSystem, m_ui.actionColorSchemeLight, m_ui.actionColorSchemeDark }, new QActionGroup(&m_self));
 
 		std::vector<QAction*> styles;
-		for (const auto& key : QStyleFactory::keys())
-			if (const auto* style = QStyleFactory::create(key))
-				styles.emplace_back(CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::PluginStyle, style->name(), key));
+		for (const auto& name : QStyleFactory::keys())
+			if (const auto actionName = GetStyleName(name); !actionName.isEmpty())
+				styles.emplace_back(CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::PluginStyle, actionName, name));
 
 		m_ui.menuTheme->addSeparator();
 
 		if (const auto externalThemesVar = m_settings->Get(IStyleApplier::THEME_FILES_KEY); externalThemesVar.isValid())
 		{
-			auto externalThemes = externalThemesVar.toStringList();
+			auto externalThemes = externalThemesVar.toStringList() | std::ranges::to<std::vector>();
 			std::ranges::sort(externalThemes);
 			for (const auto& fileName : externalThemes)
 				std::ranges::copy(AddExternalStyle(fileName), std::back_inserter(styles));
@@ -1252,7 +1329,7 @@ private:
 			return;
 
 		auto searchString = m_ui.lineEditBookTitleToSearch->text().toLower();
-		searchString.removeIf([](const QChar ch) {
+		RemoveIf(searchString, [](const QChar ch) {
 			return ch != ' ' && !IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit);
 		});
 
@@ -1519,6 +1596,7 @@ private:
 	QMetaObject::Connection m_settingsLineEditExecuteContextMenuConnection;
 	QSpacerItem*            m_searchBooksByTitleLeft;
 	QLayout*                m_searchBooksByTitleLayout;
+	QObject*                m_annotationWidgetEventFilter;
 
 	bool m_checkForUpdateOnStartEnabled { true };
 

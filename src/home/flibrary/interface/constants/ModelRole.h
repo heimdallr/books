@@ -65,3 +65,5 @@ struct SelectedRequest
 };
 
 }
+
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::SelectedRequest)

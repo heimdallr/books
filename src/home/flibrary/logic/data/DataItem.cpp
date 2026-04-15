@@ -5,6 +5,8 @@
 #include "interface/constants/Enums.h"
 #include "interface/localization.h"
 
+#include "QtTypes.h"
+
 using namespace HomeCompa::Flibrary;
 
 namespace
@@ -284,7 +286,7 @@ void AuthorItem::Reduce()
 		if (str.isEmpty())
 			return;
 
-		AppendTitle(name, str.first(1) + ".");
+		AppendTitle(name, First(str, 1) + ".");
 	};
 
 	append(first);

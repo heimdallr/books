@@ -6,6 +6,7 @@
 #include <QDesktopServices>
 #include <QProcess>
 #include <QStandardPaths>
+#include <QTextStream>
 #include <QTimer>
 #include <QUuid>
 
@@ -336,7 +337,7 @@ private:
 						downloader.reset();
 						callback();
 						if (startInstaller
-				            && (installer.type == Util::InstallerType::exe   ? QProcess::startDetached(downloadFileName)
+				            && (installer.type == Util::InstallerType::exe   ? QProcess::startDetached(downloadFileName, QStringList{})
 				                : installer.type == Util::InstallerType::msi ? (silent ? ReinstallMsi(downloadFileName) : QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder)))
 				                                                             : (assert(false), false)))
 							return QCoreApplication::exit();

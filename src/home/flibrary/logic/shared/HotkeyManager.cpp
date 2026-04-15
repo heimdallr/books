@@ -1,5 +1,6 @@
 #include "HotkeyManager.h"
 
+#include <QAction>
 #include <QEventLoop>
 #include <QShortcut>
 
@@ -59,7 +60,7 @@ class HotkeyManager::Impl
 		QAction*       action { nullptr };
 		QShortcut*     shortcut { nullptr };
 
-		QString SetShortCut(const QString& value = {}, QObject* parent = nullptr, IBookMenuProvider* bookMenuProvider = nullptr)
+		QString SetShortCut(const QString& value = {}, QWidget* parent = nullptr, IBookMenuProvider* bookMenuProvider = nullptr)
 		{
 			item->SetData(value, SettingsItem::Column::Value);
 

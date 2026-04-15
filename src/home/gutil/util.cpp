@@ -1,5 +1,7 @@
 #include "util.h"
 
+#include <ranges>
+
 #include <QHeaderView>
 #include <QMenu>
 #include <QTreeView>
@@ -23,20 +25,17 @@ QRect GetGlobalGeometry(const QWidget& widget)
 
 void SaveHeaderSectionWidth(const QHeaderView& header, ISettings& settings, const QString& key)
 {
-	QVector<int> widths;
+	QStringList widths;
 	for (auto i = 0, sz = header.count() - 1; i < sz; ++i)
-		widths << header.sectionSize(i);
-	settings.Set(key, QVariant::fromValue(widths));
+		widths << QString::number(header.sectionSize(i));
+	settings.Set(key, widths);
 }
 
 void LoadHeaderSectionWidth(QHeaderView& header, const ISettings& settings, const QString& key)
 {
 	if (const auto var = settings.Get(key, QVariant {}); var.isValid())
-	{
-		const auto widths = var.value<QVector<int>>();
-		for (auto i = 0, sz = std::min(header.count() - 1, static_cast<int>(widths.size())); i < sz; ++i)
-			header.resizeSection(i, widths[static_cast<qsizetype>(i)]);
-	}
+		for (const auto widths = var.toStringList(); auto&& [index, width] : std::views::zip(std::views::iota(0, header.count() - 1), widths))
+			header.resizeSection(index, width.toInt());
 }
 
 QMenu& FillTreeContextMenu(QTreeView& view, QMenu& menu)

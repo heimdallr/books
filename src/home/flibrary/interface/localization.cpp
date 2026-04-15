@@ -4,6 +4,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QLocale>
 #include <QTranslator>
 
 #include "constants/SettingsConstant.h"
