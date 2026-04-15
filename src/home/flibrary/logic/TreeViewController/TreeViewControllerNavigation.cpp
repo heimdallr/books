@@ -53,7 +53,7 @@ template <typename T>
 std::unordered_set<T> GetSelected(const QModelIndex& index, const QList<QModelIndex>& indexList)
 {
 	std::unordered_set<T> ids { index.data(Role::Id).value<T>() };
-	ids.reserve(indexList.size() + 1);
+	ids.reserve(static_cast<size_t>(indexList.size()) + 1);
 	std::ranges::transform(indexList, std::inserter(ids, ids.end()), [](const auto& item) {
 		return item.data(Role::Id).template value<T>();
 	});

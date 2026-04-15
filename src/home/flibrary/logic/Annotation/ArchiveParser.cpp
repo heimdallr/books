@@ -33,9 +33,9 @@ constexpr auto DESCRIPTION = QT_TRANSLATE_NOOP("Annotation", "Description");
 constexpr auto FILE_EMPTY  = QT_TRANSLATE_NOOP("Annotation", "File is empty");
 TR_DEF
 
-constexpr auto ID                     = "id";
-constexpr auto A                      = "a";
-constexpr auto P                      = "p";
+constexpr auto ID_KEY                 = "id";
+constexpr auto A_KEY                  = "a";
+constexpr auto P_KEY                  = "p";
 constexpr auto EMPHASIS               = "emphasis";
 constexpr auto DESCRIPTION_NODE       = "FictionBook/description/";
 constexpr auto TRANSLATOR             = "FictionBook/description/title-info/translator";
@@ -146,7 +146,7 @@ public:
 private: // Util::SaxParser
 	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
-		if (name.compare(A, Qt::CaseInsensitive) == 0)
+		if (name.compare(A_KEY, Qt::CaseInsensitive) == 0)
 			m_href = attributes.GetAttribute(m_hrefLink);
 
 		if (m_annotationMode)
@@ -169,7 +169,7 @@ private: // Util::SaxParser
 			}
 		}
 
-		m_textMode = path.startsWith(BODY) && (name.compare(P, Qt::CaseInsensitive) == 0 || name.compare(EMPHASIS, Qt::CaseInsensitive) == 0);
+		m_textMode = path.startsWith(BODY) && (name.compare(P_KEY, Qt::CaseInsensitive) == 0 || name.compare(EMPHASIS, Qt::CaseInsensitive) == 0);
 
 		if (path.startsWith(DESCRIPTION_NODE, Qt::CaseInsensitive))
 		{
@@ -313,7 +313,7 @@ private:
 
 	bool OnStartElementBinary(const Util::XmlAttributes& attributes)
 	{
-		m_covers.emplace_back(attributes.GetAttribute(ID), QByteArray {});
+		m_covers.emplace_back(attributes.GetAttribute(ID_KEY), QByteArray {});
 		return true;
 	}
 
