@@ -14,11 +14,22 @@ set BUILD_DIR=%~dp0build\%BUILD_TYPE%
 mkdir %BUILD_DIR%
 del %BUILD_DIR%\*.sln
 
+set QT_MAJOR_VERSION=6
+
+if %QT_MAJOR_VERSION%==5 (
+	set QT_DIR=D:/sdk/Qt/Qt5/5.15.16/msvc2022_64_%BUILD_TYPE%/lib/cmake/Qt5
+) else if %QT_MAJOR_VERSION%==6 (
+	set QT_DIR=D:/sdk/Qt/Qt6/6.11.0/msvc2022_64_%BUILD_TYPE%/lib/cmake/Qt6
+) else (
+	echo unsupported Qt major version: %QT_MAJOR_VERSION%
+	goto end
+)
+
 cmake -B %BUILD_DIR% ^
 --no-warn-unused-cli ^
 -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
--DQT_MAJOR_VERSION=6 ^
--DQt6_DIR=D:/sdk/Qt/Qt6/6.11.0/msvc2022_64_%BUILD_TYPE%/lib/cmake/Qt6 ^
+-DQT_MAJOR_VERSION=%QT_MAJOR_VERSION% ^
+-DQt%QT_MAJOR_VERSION%_DIR=%QT_DIR% ^
 -D7zip_BIN_DIR=D:/sdk/7z/x64/bin ^
 -DCPACK_GENERATOR=WIX ^
 %* ^
