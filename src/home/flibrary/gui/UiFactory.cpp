@@ -12,6 +12,7 @@
 #include "fnd/FindPair.h"
 
 #include "database/interface/IDatabase.h"
+#include "database/interface/ITransaction.h"
 
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
@@ -49,14 +50,15 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto        CONTEXT           = "Dialog";
-constexpr auto        ABOUT_TITLE       = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
-constexpr auto        ABOUT_DESCRIPTION = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger");
-constexpr auto        ABOUT_VERSION     = QT_TRANSLATE_NOOP("Dialog", "Version: %1 (%2) %3");
-constexpr auto        ABOUT_LICENSE     = QT_TRANSLATE_NOOP("Dialog", "Distributed under license %1");
-constexpr auto        PERSONAL_BUILD    = QT_TRANSLATE_NOOP("Dialog", "<p>Personal <a href='%1'>%2</a> build</p>");
-constexpr auto        VERSION_COPIED    = QT_TRANSLATE_NOOP("Dialog", "The program version has been copied to the clipboard");
-constexpr const char* COMPONENTS[]      = {
+constexpr auto        CONTEXT            = "Dialog";
+constexpr auto        ABOUT_TITLE        = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
+constexpr auto        ABOUT_DESCRIPTION  = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger");
+constexpr auto        ABOUT_VERSION      = QT_TRANSLATE_NOOP("Dialog", "Version: %1 (%2) %3");
+constexpr auto        ABOUT_LICENSE      = QT_TRANSLATE_NOOP("Dialog", "Distributed under license %1");
+constexpr auto        PERSONAL_BUILD     = QT_TRANSLATE_NOOP("Dialog", "<p>Personal <a href='%1'>%2</a> build</p>");
+constexpr auto        VERSION_COPIED     = QT_TRANSLATE_NOOP("Dialog", "The program version has been copied to the clipboard");
+constexpr auto        CLEAR_RECENT_BOOKS = QT_TRANSLATE_NOOP("Dialog", "Cleanup recent books list");
+constexpr const char* COMPONENTS[]       = {
 	"<hr><table style='font-size:50%'>",
 	QT_TRANSLATE_NOOP("Dialog", "<tr><td style='text-align: center'>Components / Libraries</td></tr>"),
 	// ReSharper disable StringLiteralTypo
@@ -82,6 +84,12 @@ constexpr const char* COMPONENTS[]      = {
 constexpr auto ABOUT_TEXT        = "%1<p>%2<p><a href='%3'>%3</a><p>%4%5";
 constexpr auto COPY_VERSION_LINK = "copy://version";
 TR_DEF
+
+constexpr auto MAX_MENU_ITEM_COUNT_KEY    = "Preferences/RecentBooksMenuMaxCount";
+constexpr auto MENU_ITEM_TITLE_FORMAT_KEY = "Preferences/RecentBooksMenuTitleFormat";
+
+constexpr auto MAX_MENU_ITEM_DEFAULT          = 16;
+constexpr auto MENU_ITEM_TITLE_FORMAT_DEFAULT = "%1 \t %2";
 
 QString GetPersonalBuildString()
 {
@@ -426,7 +434,7 @@ IDataItem::Ptr UiFactory::AddMenuBarToHotkeys(const ISettings& settings, const Q
 			auto& child = addChild(parent, *menu, menu->title());
 
 			std::unordered_set<const QAction*> actions;
-			r(menu->findChildren<QMenu*>(QString{}, Qt::FindDirectChildrenOnly), *child, actions, r);
+			r(menu->findChildren<QMenu*>(QString {}, Qt::FindDirectChildrenOnly), *child, actions, r);
 
 			for (auto* action : menu->actions() | std::views::filter([&](const QAction* item) {
 									return !(item->isSeparator() || actions.contains(item));
@@ -479,7 +487,7 @@ IDataItem::Ptr UiFactory::AddComboBoxToHotkeys(const ISettings& settings, QCombo
 	return comboBoxItem;
 }
 
-void UiFactory::UpdateRecentOpenBookControllerMenu(QMenu& menu, const int maxMenuItemCount, QString menuItemTitleFormat, std::function<void(long long)> onMenuTriggered) const
+void UiFactory::UpdateRecentOpenBookControllerMenu(QMenu& menu) const
 {
 	static constexpr auto QUERY = R"(select distinct b.BookID, b.Title, (
     select(group_concat(author, ', ')) from (
@@ -492,10 +500,17 @@ void UiFactory::UpdateRecentOpenBookControllerMenu(QMenu& menu, const int maxMen
 ) Author
 from Export_List_User e
 join Books b on b.BookID = e.BookID
-where e.ExportType = 0 
+left join Settings s on s.SettingID = {}
+where e.ExportType = 0 and e.CreatedAt > coalesce(s.SettingValue, datetime('1974-01-01 11:18:31'))
 order by e.CreatedAt desc
 limit {}
 )";
+
+	const auto collectionProvider = m_impl->container.resolve<ICollectionProvider>();
+
+	auto       settings            = m_impl->container.resolve<ISettings>();
+	const auto maxMenuItemCount    = settings->Get(MAX_MENU_ITEM_COUNT_KEY, MAX_MENU_ITEM_DEFAULT);
+	auto       menuItemTitleFormat = settings->Get(MENU_ITEM_TITLE_FORMAT_KEY, MENU_ITEM_TITLE_FORMAT_DEFAULT).replace(R"(\t)", "\t").replace(R"(\n)", "\n");
 
 	menu.clear();
 	menu.menuAction()->setEnabled(false);
@@ -508,23 +523,37 @@ limit {}
 	if (!db)
 		return;
 
-	databaseUser->Execute(
-		{ "Update recent books menu", [&menu, maxMenuItemCount, menuItemTitleFormat = std::move(menuItemTitleFormat), onMenuTriggered = std::move(onMenuTriggered), db = std::move(db)]() mutable {
-			 const auto                                 query = db->CreateQuery(std::format(QUERY, maxMenuItemCount));
-			 std::vector<std::pair<long long, QString>> data;
-			 for (query->Execute(); !query->Eof(); query->Next())
-				 data.emplace_back(query->Get<long long>(0), menuItemTitleFormat.arg(query->Get<const char*>(2), query->Get<const char*>(1)));
+	auto queryText = std::format(QUERY, std::to_underlying(IDatabaseUser::Key::RecentBookDateTime), maxMenuItemCount);
+	databaseUser->Execute({ "Update recent books menu", [this, &menu, queryText = std::move(queryText), menuItemTitleFormat = std::move(menuItemTitleFormat), db = std::move(db)]() mutable {
+							   const auto                                 query = db->CreateQuery(queryText);
+							   std::vector<std::pair<long long, QString>> data;
+							   for (query->Execute(); !query->Eof(); query->Next())
+								   data.emplace_back(query->Get<long long>(0), menuItemTitleFormat.arg(query->Get<const char*>(2), query->Get<const char*>(1)));
 
-			 return [&menu, onMenuTriggered = std::move(onMenuTriggered), data = std::move(data)](size_t) {
-				 menu.menuAction()->setEnabled(!data.empty());
-				 for (const auto& [id, title] : data)
-				 {
-					 auto* action = menu.addAction(title);
-					 connect(action, &QAction::triggered, [onMenuTriggered, id] {
-						 onMenuTriggered(id);
-					 });
-				 }
-			 };
-		 } }
-	);
+							   return [this, &menu, data = std::move(data)](size_t) {
+								   menu.menuAction()->setEnabled(!data.empty());
+								   for (const auto& [id, title] : data)
+								   {
+									   auto* action = menu.addAction(title);
+									   connect(action, &QAction::triggered, [this, id] {
+										   m_impl->container.resolve<IBookInteractor>()->OnRecentBookMenuTriggered(id);
+									   });
+								   }
+								   menu.addSeparator();
+								   auto* action = menu.addAction(Tr(CLEAR_RECENT_BOOKS));
+								   connect(action, &QAction::triggered, [this, &menu] {
+									   const auto database = m_impl->container.resolve<IDatabaseUser>()->Database();
+									   const auto tr       = database->CreateTransaction();
+									   tr->CreateCommand(
+											 std::format(
+												 "insert or replace into Settings(SettingID, SettingValue) values({}, datetime(CURRENT_TIMESTAMP, 'localtime'))",
+												 std::to_underlying(IDatabaseUser::Key::RecentBookDateTime)
+											 )
+									   )
+										   ->Execute();
+									   tr->Commit();
+									   UpdateRecentOpenBookControllerMenu(menu);
+								   });
+							   };
+						   } });
 }

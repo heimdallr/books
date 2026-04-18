@@ -887,6 +887,10 @@ Restart now?</source>
         <translation>Ще один каталогізатор електронної бібліотеки</translation>
     </message>
     <message>
+        <source>Cleanup recent books list</source>
+        <translation>Очистити список недавніх книг</translation>
+    </message>
+    <message>
         <source>Distributed under license %1</source>
         <translation>Розповсюджується за ліцензією %1</translation>
     </message>

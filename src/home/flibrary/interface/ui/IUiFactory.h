@@ -43,13 +43,12 @@ public:
 	virtual void                                                      CreateAuthorReview(long long id) const                            = 0;
 	virtual void                                                      ExecuteContextMenu(QLineEdit* lineEdit) const                     = 0;
 	virtual void                                                      ShowAbout() const                                                 = 0;
+	virtual void                                                      UpdateRecentOpenBookControllerMenu(QMenu& menu) const             = 0;
 
 	[[nodiscard]] virtual IDataItem::Ptr
 	AddMenuBarToHotkeys(const ISettings& settings, const QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*)>& functor) const = 0;
 	[[nodiscard]] virtual IDataItem::Ptr
 	AddComboBoxToHotkeys(const ISettings& settings, QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*)>& functor) const = 0;
-
-	virtual void UpdateRecentOpenBookControllerMenu(QMenu& menu, const int maxMenuItemCount, QString menuItemTitleFormat, std::function<void(long long)> onMenuTriggered) const = 0;
 
 public: // special
 	[[nodiscard]] virtual std::filesystem::path                      GetNewCollectionInpxFolder() const noexcept = 0;

@@ -876,6 +876,10 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Cleanup recent books list</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Distributed under license %1</source>
         <translation></translation>
     </message>

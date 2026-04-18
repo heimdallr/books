@@ -24,6 +24,7 @@ public:
 	{
 		DatabaseVersion,
 		DisabledBookFields,
+		RecentBookDateTime,
 	};
 
 public:

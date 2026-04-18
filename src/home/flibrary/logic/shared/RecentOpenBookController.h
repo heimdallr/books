@@ -3,12 +3,9 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-#include "interface/logic/IBookInteractor.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IRecentOpenBookController.h"
 #include "interface/ui/IUiFactory.h"
-
-#include "util/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -19,10 +16,8 @@ class RecentOpenBookController final : public IRecentOpenBookController
 
 public:
 	RecentOpenBookController(
-		const std::shared_ptr<const ISettings>& settings,
 		std::shared_ptr<const IUiFactory>       uiFactory,
-		std::shared_ptr<const IDatabaseUser>    databaseUser,
-		std::shared_ptr<const IBookInteractor>  bookInteractor
+		std::shared_ptr<const IDatabaseUser>    databaseUser
 	);
 	~RecentOpenBookController() override;
 

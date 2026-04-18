@@ -65,11 +65,11 @@ private: // IUiFactory
 	QString     GetSaveFileName(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const override;
 	QString     GetExistingDirectory(const QString& key, const QString& title, const QString& dir, const QFileDialog::Options& options) const override;
 	void        ExecuteContextMenu(QLineEdit* lineEdit) const override;
+	void        UpdateRecentOpenBookControllerMenu(QMenu& menu) const override;
 
 	IDataItem::Ptr AddMenuBarToHotkeys(const ISettings& settings, const QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*)>& functor) const override;
 	IDataItem::Ptr AddComboBoxToHotkeys(const ISettings& settings, QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*)>& functor) const override;
 
-	void UpdateRecentOpenBookControllerMenu(QMenu& menu, const int maxMenuItemCount, QString menuItemTitleFormat, std::function<void(long long)> onMenuTriggered) const override;
 
 private: // special
 	std::filesystem::path                GetNewCollectionInpxFolder() const noexcept override;
