@@ -48,6 +48,7 @@ AddTarget(${PROJECT_NAME}	app
 		qjpeg
 		qsvg
 		qschannelbackend
+		qsvgicon
 	DEPENDENCIES
 		locales
 )
