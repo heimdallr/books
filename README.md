@@ -89,7 +89,7 @@
 
 #### Клонируем исходники с сабмодулями
 ```
-git clone git@github.com:heimdallr/books.git --recursive
+git clone https://github.com/heimdallr/books.git --recursive
 ```
 
 #### Устанавливаем и настраиваем conan
