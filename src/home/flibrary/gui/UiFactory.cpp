@@ -85,9 +85,9 @@ constexpr auto ABOUT_TEXT        = "%1<p>%2<p><a href='%3'>%3</a><p>%4%5";
 constexpr auto COPY_VERSION_LINK = "copy://version";
 TR_DEF
 
-constexpr auto MAX_MENU_ITEM_COUNT_KEY       = "Preferences/RecentBooksMenuMaxCount";
-constexpr auto MENU_ITEM_TITLE_FORMAT_KEY    = "Preferences/RecentBooksMenuTitleFormat";
-constexpr auto MENU_ITEM_DATETIME_FORMAT_KEY = "Preferences/RecentBooksMenuDateTimeFormat";
+constexpr auto MAX_MENU_ITEM_COUNT_KEY       = "Preferences/RecentBooksMenu/MaxCount";
+constexpr auto MENU_ITEM_TITLE_FORMAT_KEY    = "Preferences/RecentBooksMenu/TitleFormat";
+constexpr auto MENU_ITEM_DATETIME_FORMAT_KEY = "Preferences/RecentBooksMenu/DateTimeFormat";
 
 constexpr auto MAX_MENU_ITEM_DEFAULT             = 16;
 constexpr auto MENU_ITEM_TITLE_FORMAT_DEFAULT    = "%1 \t %2";
