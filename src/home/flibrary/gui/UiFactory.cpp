@@ -90,7 +90,7 @@ constexpr auto MENU_ITEM_TITLE_FORMAT_KEY    = "Preferences/RecentBooksMenu/Titl
 constexpr auto MENU_ITEM_DATETIME_FORMAT_KEY = "Preferences/RecentBooksMenu/DateTimeFormat";
 
 constexpr auto MAX_MENU_ITEM_DEFAULT             = 16;
-constexpr auto MENU_ITEM_TITLE_FORMAT_DEFAULT    = "%1 \t %2";
+constexpr auto MENU_ITEM_TITLE_FORMAT_DEFAULT    = "%author% \t %title%";
 constexpr auto MENU_ITEM_DATETIME_FORMAT_DEFAULT = "yyyy-MM-dd hh:mm:ss";
 
 QString GetPersonalBuildString()
@@ -498,7 +498,7 @@ left join Settings s on s.SettingID = {}
 where e.ExportType = 0 and e.CreatedAt > coalesce(s.SettingValue, datetime('1974-01-01 11:18:31'))
 group by e.BookID
 )
-select distinct b.BookID, b.Title, (
+select b.BookID, b.Title, (
     select(group_concat(author, ', ')) from (
         select a.LastName || coalesce(' ' || substr(nullif(a.FirstName, ''), 1, 1)||'.', '') || coalesce(substr(nullif(a.MiddleName, ''), 1, 1)||'.', '') author
         from Authors a
@@ -540,7 +540,9 @@ limit {}
 			  for (query->Execute(); !query->Eof(); query->Next())
 			  {
 				  const auto dateTime = QDateTime::fromString(query->Get<const char*>(3), MENU_ITEM_DATETIME_FORMAT_DEFAULT).toString(menuItemDateTimeFormat);
-				  data.emplace_back(query->Get<long long>(0), menuItemTitleFormat.arg(query->Get<const char*>(2), query->Get<const char*>(1), dateTime));
+				  auto       title    = menuItemTitleFormat;
+				  title.replace("%title%", query->Get<const char*>(1)).replace("%author%", query->Get<const char*>(2)).replace("%time%", dateTime);
+				  data.emplace_back(query->Get<long long>(0), std::move(title));
 			  }
 
 			  return [this, &menu, data = std::move(data)](size_t) {
