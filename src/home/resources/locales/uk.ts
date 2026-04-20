@@ -418,6 +418,10 @@
         <translation>&amp;Прочитано</translation>
     </message>
     <message>
+        <source>&amp;Move to</source>
+        <translation>&amp;Перемістити до</translation>
+    </message>
+    <message>
         <source>&amp;My rate</source>
         <translation>&amp;Мій рейтинг</translation>
     </message>
