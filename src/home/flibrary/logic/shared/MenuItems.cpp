@@ -19,8 +19,9 @@ namespace
 constexpr auto CONTEXT                = "BookContextMenu";
 constexpr auto GROUPS                 = QT_TRANSLATE_NOOP("BookContextMenu", "&Groups");
 constexpr auto GROUPS_ADD_TO          = QT_TRANSLATE_NOOP("BookContextMenu", "&Add to");
-constexpr auto GROUPS_ADD_TO_NEW      = QT_TRANSLATE_NOOP("BookContextMenu", "&New group...");
+constexpr auto GROUPS_TO_NEW          = QT_TRANSLATE_NOOP("BookContextMenu", "&New group...");
 constexpr auto GROUPS_REMOVE_FROM     = QT_TRANSLATE_NOOP("BookContextMenu", "&Remove from");
+constexpr auto GROUPS_MOVE_TO         = QT_TRANSLATE_NOOP("BookContextMenu", "&Move to");
 constexpr auto GROUPS_REMOVE_FROM_ALL = QT_TRANSLATE_NOOP("BookContextMenu", "&All");
 
 TR_DEF
@@ -49,22 +50,24 @@ left join Groups_List_User_View gw on gw.GroupID = g.GroupID and gw.BookID = :id
 
 	const auto add    = AddMenuItem(parent, GROUPS_ADD_TO, Tr(GROUPS_ADD_TO), GroupsMenuAction::AddToGroup);
 	const auto remove = AddMenuItem(parent, GROUPS_REMOVE_FROM, Tr(GROUPS_REMOVE_FROM), GroupsMenuAction::RemoveFromGroup);
+	const auto move   = AddMenuItem(parent, GROUPS_MOVE_TO, Tr(GROUPS_MOVE_TO), GroupsMenuAction::MoveToGroup);
 
-	const auto createMenuItem = [&](const DB::IQuery& query) -> IDataItem::Ptr {
+	const auto createMenuItem = [&](const DB::IQuery& query) -> void {
+		const auto groupId = QString::number(query.Get<long long>(0));
 		if (const auto itemExistsInLinkTable = query.Get<long long>(2) >= 0; itemExistsInLinkTable)
-			return AddMenuItem(remove, QString("removeFromGroup%1").arg(query.Get<long long>(0)), query.Get<const char*>(1), GroupsMenuAction::RemoveFromGroup);
+			return (void)AddMenuItem(remove, QString("removeFromGroup%1").arg(groupId), query.Get<const char*>(1), GroupsMenuAction::RemoveFromGroup)->SetData(groupId, MenuItem::Column::Parameter);
 
 		if (const auto bookAlreadyExistsInLinkView = query.Get<long long>(3) >= 0; bookAlreadyExistsInLinkView)
-			return {};
+			return;
 
-		return AddMenuItem(add, QString("addToGroup%1").arg(query.Get<long long>(0)), query.Get<const char*>(1), GroupsMenuAction::AddToGroup);
+		AddMenuItem(add, QString("addToGroup%1").arg(groupId), query.Get<const char*>(1), GroupsMenuAction::AddToGroup)->SetData(groupId, MenuItem::Column::Parameter);
+		AddMenuItem(move, QString("moveToGroup%1").arg(groupId), query.Get<const char*>(1), GroupsMenuAction::MoveToGroup)->SetData(groupId, MenuItem::Column::Parameter);
 	};
 
 	const auto query = db.CreateQuery(GROUPS_QUERY);
 	query->Bind(":id", id.toInt());
 	for (query->Execute(); !query->Eof(); query->Next())
-		if (const auto menuItem = createMenuItem(*query))
-			menuItem->SetData(QString::number(query->Get<long long>(0)), MenuItem::Column::Parameter);
+		createMenuItem(*query);
 
 	if (remove->GetChildCount() > 0)
 	{
@@ -75,12 +78,17 @@ left join Groups_List_User_View gw on gw.GroupID = g.GroupID and gw.BookID = :id
 	{
 		AddMenuItem(remove);
 		remove->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+		move->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
 	}
 
 	if (add->GetChildCount() > 0)
 		AddMenuItem(add);
 
-	AddMenuItem(add, GROUPS_ADD_TO_NEW, Tr(GROUPS_ADD_TO_NEW), GroupsMenuAction::AddToNewGroup)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+	if (move->GetChildCount() > 0)
+		AddMenuItem(move);
+
+	AddMenuItem(add, GROUPS_TO_NEW, Tr(GROUPS_TO_NEW), GroupsMenuAction::AddToNewGroup)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+	AddMenuItem(move, GROUPS_TO_NEW, Tr(GROUPS_TO_NEW), GroupsMenuAction::MoveToNewGroup)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 }
 
 void ExecuteGroupAction(const GroupController& controller, GroupActionFunction invoker, const GroupController::Id id, GroupController::Ids ids, GroupController::Callback callback)

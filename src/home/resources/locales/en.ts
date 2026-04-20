@@ -418,6 +418,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Move to</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;My rate</source>
         <translation></translation>
     </message>

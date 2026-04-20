@@ -48,6 +48,8 @@ enum class ItemType
 #define GROUPS_MENU_ACTION_ITEMS_X_MACRO \
 	MENU_ACTION_ITEM(AddToNewGroup)      \
 	MENU_ACTION_ITEM(AddToGroup)         \
+	MENU_ACTION_ITEM(MoveToNewGroup)     \
+	MENU_ACTION_ITEM(MoveToGroup)        \
 	MENU_ACTION_ITEM(RemoveFromGroup)    \
 	MENU_ACTION_ITEM(RemoveFromAllGroups)
 
