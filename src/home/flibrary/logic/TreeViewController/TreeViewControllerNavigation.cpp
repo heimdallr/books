@@ -250,6 +250,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      &IContextMenuHandler::OnRemoveSearchTriggered }																								 },
 
 	{	  Loc::Reviews, { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Reviews, &INavigationFilter::IsFolderExists, "reviews" } },
+	{  Loc::AlreadyRead,											{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AlreadyRead } },
 	{     Loc::AllBooks,											   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
 };
 
@@ -640,6 +641,11 @@ private: // IContextMenuProvider
 	IDataItem::Ptr CreateReviewsContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
 	{
 		return TreeMenuRequester(db, id, options);
+	}
+
+	IDataItem::Ptr CreateAlreadyReadContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, RequestContextMenuOptions /*options*/) override
+	{
+		return {};
 	}
 
 	IDataItem::Ptr CreateAllBooksContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, RequestContextMenuOptions /*options*/) override

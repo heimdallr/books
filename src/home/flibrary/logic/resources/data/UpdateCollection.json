@@ -33,6 +33,7 @@
 	"CREATE INDEX IX_Update_ParentID ON Updates (ParentID)",
 	"CREATE UNIQUE INDEX UIX_Reviews_PrimaryKey ON Reviews (BookID, Folder)",
 	"CREATE INDEX IX_ExportListUser_ExportType_CreatedAt ON Export_List_User (ExportType, CreatedAt DESC)",
+	"CREATE INDEX IF NOT EXISTS IX_Books_User_UserRate ON Books_User (UserRate)",
 	[
 		"CREATE VIEW Books_View (",
 		"	  BookID,   LibID,   Title,   UpdateDate,   LibRate,   Lang,   Year,   FolderID,                        FileName,   BookSize,   UpdateID,                                        IsDeleted,    UserRate,   SourceLib,   SearchTitle,               BaseFileName,   Ext",

@@ -528,7 +528,7 @@ private: // IAlphabetPanel::IObserver
 private: // ITreeViewController::::IObserver
 	void OnModeChanged(const int index) override
 	{
-		m_ui.leftWidget->setVisible(index != static_cast<int>(NavigationMode::AllBooks));
+		m_ui.leftWidget->setVisible(!IsOneOf(static_cast<NavigationMode>(index), NavigationMode::AlreadyRead, NavigationMode::AllBooks));
 	}
 
 	void OnModelChanged(QAbstractItemModel* /*model*/) override

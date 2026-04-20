@@ -5011,6 +5011,10 @@ Try again?</source>
         <translation>Усі книги</translation>
     </message>
     <message>
+        <source>AlreadyRead</source>
+        <translation>Прочитані книги</translation>
+    </message>
+    <message>
         <source>Archives</source>
         <translation>Архіви</translation>
     </message>

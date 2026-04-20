@@ -70,6 +70,8 @@ void AddUserTables(DB::ITransaction& transaction)
 	PLOGI << "Add tables";
 	static constexpr const char* commands[] {
 		"CREATE INDEX IF NOT EXISTS IX_ExportListUser_ExportType_CreatedAt ON Export_List_User (ExportType, CreatedAt DESC)",
+		"CREATE INDEX IF NOT EXISTS IX_Books_User_UserRate ON Books_User (UserRate)",
+		"ANALYZE"
 	};
 
 	for (const auto* command : commands)

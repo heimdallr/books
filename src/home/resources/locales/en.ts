@@ -4998,6 +4998,10 @@ Try again?</source>
         <translation>All books</translation>
     </message>
     <message>
+        <source>AlreadyRead</source>
+        <translation>Already read books</translation>
+    </message>
+    <message>
         <source>Archives</source>
         <translation></translation>
     </message>

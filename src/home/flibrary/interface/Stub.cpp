@@ -429,6 +429,7 @@ constexpr IFilterProvider::FilteredNavigation FILTERED_NAVIGATION_DESCRIPTION[] 
 		{ NavigationMode::Groups     , Loc::Groups      , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::Search     , Loc::Search      , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::Reviews    , Loc::Reviews     , &IModelProvider::CreateFilterListModel },
+		{ NavigationMode::AlreadyRead, Loc::AlreadyRead , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::AllBooks   , Loc::AllBooks    , &IModelProvider::CreateFilterListModel },
 	// clang-format on
 };
