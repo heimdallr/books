@@ -1329,8 +1329,8 @@ private:
 			return;
 
 		auto searchString = m_ui.lineEditBookTitleToSearch->text().toLower();
-		RemoveIf(searchString, [](const QChar ch) {
-			return ch != ' ' && !IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit);
+		std::ranges::transform(searchString, searchString.begin(), [](const QChar ch) {
+			return IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit) ? ch : ' ';
 		});
 
 		if (searchString.isEmpty())
