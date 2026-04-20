@@ -14,7 +14,7 @@ set BUILD_DIR=%~dp0build\%BUILD_TYPE%
 mkdir %BUILD_DIR%
 del %BUILD_DIR%\*.sln
 
-set QT_MAJOR_VERSION=5
+set QT_MAJOR_VERSION=6
 
 if %QT_MAJOR_VERSION%==5 (
 	set QT_DIR=D:/sdk/Qt/Qt5/5.15.16/msvc2022_64_%BUILD_TYPE%/lib/cmake/Qt5
