@@ -91,7 +91,6 @@ if(QT6)
 endif()
 
 find_package(Qt${QT_MAJOR_VERSION} REQUIRED COMPONENTS ${QtModules})
-get_filename_component(QT_ROOT "${Qt${QT_MAJOR_VERSION}_DIR}/../../.." ABSOLUTE)
 
 set(BIT7Z_AUTO_FORMAT ON CACHE BOOL "enable auto format support" FORCE)
 set(BIT7Z_USE_NATIVE_STRING ON CACHE BOOL "enable native string" FORCE)

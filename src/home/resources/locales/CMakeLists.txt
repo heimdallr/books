@@ -5,15 +5,14 @@ if (WIN32)
 	set(EXECUTABLE_EXT ".exe")
 endif()
 
-set(QT_LUPDATE_TOOL ${QT_ROOT}/bin/lupdate${EXECUTABLE_EXT})
+set(QT_LUPDATE_TOOL ${QT_BIN_DIR}/lupdate${EXECUTABLE_EXT})
 if (NOT EXISTS ${QT_LUPDATE_TOOL})
 	message(FATAL_ERROR "QT_LUPDATE_TOOL not found: ${QT_LUPDATE_TOOL}")
 endif()
-set(QT_LRELEASE_TOOL ${QT_ROOT}/bin/lrelease${EXECUTABLE_EXT})
+set(QT_LRELEASE_TOOL ${QT_BIN_DIR}/lrelease${EXECUTABLE_EXT})
 if (NOT EXISTS ${QT_LRELEASE_TOOL})
 	message(FATAL_ERROR "QT_LRELEASE_TOOL not found: ${QT_LRELEASE_TOOL}")
 endif()
-set(QT_TRANSLATIONS_DIR ${QT_ROOT}/translations)
 if (NOT EXISTS ${QT_TRANSLATIONS_DIR})
 	message(FATAL_ERROR "QT_TRANSLATIONS_DIR not found: ${QT_TRANSLATIONS_DIR}")
 endif()
@@ -37,13 +36,20 @@ configure_file("${BUILDSCRIPTS_ROOT}/helpers/locales.h.in" "${CMAKE_BINARY_DIR}/
 file(COPY ${COPY_LIST} DESTINATION "${CMAKE_BINARY_DIR}/bin/locales/")
 install(FILES ${COPY_LIST} DESTINATION "locales/")
 
+set(LUPDATE_COMMAND_PARAMETERS
+	-recursive ./
+	-locations none
+)
+if(QT6)
+	list(APPEND LUPDATE_COMMAND_PARAMETERS -sort-messages)
+endif()
+
+
 set(LUPDATE_COMMAND
 	"${QT_LUPDATE_TOOL}"
 	"${CMAKE_BINARY_DIR}/config/locales.h"
 	"${FOUNDATION_ROOT}/util/language.h"
-	-recursive ./
-	-locations none
-	-sort-messages
+	${LUPDATE_COMMAND_PARAMETERS}
 	-extensions cpp,h,ui
 	${LUPDATE_LIST}
 )
