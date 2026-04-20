@@ -398,6 +398,16 @@ private: // IContextMenuHandler
 		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::AddToGroup);
 	}
 
+	void MoveToNewGroup(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		MoveToGroup(model, index, indexList, std::move(item), std::move(callback));
+	}
+
+	void MoveToGroup(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::MoveToGroup);
+	}
+
 	void RemoveFromGroup(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::RemoveFromGroup);

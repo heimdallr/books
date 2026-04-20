@@ -361,6 +361,16 @@ private: // IContextMenuHandler
 		ExecuteGroupActionImpl(&GroupController::AddToGroup, indexList, index, item, std::move(callback));
 	}
 
+	void OnMoveToNewGroupTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
+	{
+		OnMoveToGroupTriggered(indexList, index, item, std::move(callback));
+	}
+
+	void OnMoveToGroupTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
+	{
+		ExecuteGroupActionImpl(&GroupController::MoveToGroup, indexList, index, item, std::move(callback));
+	}
+
 	void OnRemoveFromGroupTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
 		ExecuteGroupActionImpl(&GroupController::RemoveFromGroup, indexList, index, item, std::move(callback));
