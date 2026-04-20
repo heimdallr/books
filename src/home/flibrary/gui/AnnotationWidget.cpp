@@ -1,10 +1,10 @@
 #include "ui_AnnotationWidget.h"
 
-#include <ranges>
-
 #include "AnnotationWidget.h"
 
 #include <QPainterPath>
+
+#include <ranges>
 
 #include <QBuffer>
 #include <QClipboard>
@@ -56,7 +56,8 @@ constexpr std::pair<const char*, std::pair<const char*, bool>> TYPE_TO_NAVIGATIO
 	{	   Loc::GROUPS,       { Loc::Groups, true } },
     {          "Search",      { Loc::Search, false } },
     {         "Reviews",     { Loc::Reviews, false } },
-    {        "AllBooks",    { Loc::AllBooks, false } },
+    {  Loc::AlreadyRead, { Loc::AlreadyRead, false } },
+	{		"AllBooks",    { Loc::AllBooks, false } },
 };
 static_assert(std::size(TYPE_TO_NAVIGATION) == static_cast<size_t>(NavigationMode::Last));
 
