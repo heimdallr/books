@@ -1,7 +1,7 @@
 ﻿#pragma once
 
-#include <qnamespace.h>
 #include <qmetatype.h>
+#include <qnamespace.h>
 
 #include <functional>
 #include <memory>

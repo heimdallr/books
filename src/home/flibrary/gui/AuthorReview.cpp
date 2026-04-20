@@ -1,8 +1,8 @@
 #include "ui_AuthorReview.h"
 
-#include <QAction>
-
 #include "AuthorReview.h"
+
+#include <QAction>
 
 #include "interface/logic/AuthorReviewModelRole.h"
 

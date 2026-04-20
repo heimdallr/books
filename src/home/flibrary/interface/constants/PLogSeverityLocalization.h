@@ -1,8 +1,7 @@
 #pragma once
 
-#include <QtGlobal>
-
 #include <QColor>
+#include <QtGlobal>
 
 #include <plog/Severity.h>
 

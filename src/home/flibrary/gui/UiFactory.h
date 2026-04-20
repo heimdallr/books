@@ -70,7 +70,6 @@ private: // IUiFactory
 	IDataItem::Ptr AddMenuBarToHotkeys(const ISettings& settings, const QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*)>& functor) const override;
 	IDataItem::Ptr AddComboBoxToHotkeys(const ISettings& settings, QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*)>& functor) const override;
 
-
 private: // special
 	std::filesystem::path                GetNewCollectionInpxFolder() const noexcept override;
 	std::shared_ptr<ITreeViewController> GetTreeViewController() const noexcept override;

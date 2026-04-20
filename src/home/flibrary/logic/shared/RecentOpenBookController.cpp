@@ -76,10 +76,7 @@ private:
 	Util::FunctorExecutionForwarder      m_forwarder;
 };
 
-RecentOpenBookController::RecentOpenBookController(
-	std::shared_ptr<const IUiFactory>       uiFactory,
-	std::shared_ptr<const IDatabaseUser>    databaseUser
-)
+RecentOpenBookController::RecentOpenBookController(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseUser> databaseUser)
 	: m_impl { std::move(uiFactory), std::move(databaseUser) }
 {
 }

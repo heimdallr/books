@@ -389,7 +389,7 @@ private: // SaxParser
 
 		m_command.Execute();
 
-		m_annotation = QStringList{};
+		m_annotation = QStringList {};
 
 		return true;
 	}

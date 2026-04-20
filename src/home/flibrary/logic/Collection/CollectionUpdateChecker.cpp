@@ -7,8 +7,8 @@
 #include "database/interface/IDatabase.h"
 
 #include "inpx/inpx.h"
-#include "QtTypes.h"
 
+#include "QtTypes.h"
 #include "log.h"
 #include "zip.h"
 
