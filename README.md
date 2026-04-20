@@ -96,11 +96,11 @@ git clone https://github.com/heimdallr/books.git --recursive
 [Инструкция](https://docs.conan.io/2/installation.html)  
 
 #### Устанавливаем модули, которых нет в conan
-* Qt6 (6.10.0 минимум, но лучше 6.11.0. Если есть желание, можно попытаться собрать с Qt5) [^4]  
+* Qt6 (6.10.0 минимум, но лучше 6.11.0) [^4] [^5]  
 * 7zip  
 
 ### Windows  
-Проверялось компилятором от MS в средах MSVS2022 и QtCreator
+Проверялось на Windows 10 и 11, компилятор от MS в средах MSVS2022 и QtCreator
 
 #### Добавляем в PATH пути к: 
 * conan.exe  
@@ -136,3 +136,4 @@ cmake --install .
 * Запустить скрипт с параметром `build.sh DEB`. В папке build будет собран пакет FLibrary-x.y.z-setup.deb  
 
 [^4]: Имеет смысл собрать самостоятельно, применив патчи src/home/script/conan/patch/qt, линкуя с icu из conan.
+[^5]: Если есть необходимость запуска на Windows7, можно и с Qt5. Я собирал с 5.15.16
