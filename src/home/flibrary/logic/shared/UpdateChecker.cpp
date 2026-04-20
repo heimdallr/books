@@ -204,7 +204,7 @@ private:
 				return ShowUpdateMessage();
 
 			case CheckResult::Error:
-				PLOGI << "check error error";
+				PLOGI << "check error";
 				message = Tr(CHECK_FAILED);
 				break;
 
