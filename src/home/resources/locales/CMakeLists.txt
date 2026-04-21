@@ -20,21 +20,23 @@ endif()
 set(locales en ru uk)
 
 set(LOCALES_HEADER_CONTENT)
-set(COPY_LIST)
 set(LRELEASE_LIST)
 set(LUPDATE_LIST)
 
 foreach(locale ${locales})
     set(LOCALES_HEADER_CONTENT "${LOCALES_HEADER_CONTENT}\tQT_TRANSLATE_NOOP(\"Language\", \"${locale}\"),\n")
-    list(APPEND COPY_LIST "${QT_TRANSLATIONS_DIR}/qtbase_${locale}.qm")
-    list(APPEND LRELEASE_LIST COMMAND "${QT_LRELEASE_TOOL}" "${CMAKE_CURRENT_LIST_DIR}/${locale}.ts" -qm "${CMAKE_BINARY_DIR}/bin/locales/FLibrary_${locale}.qm")
-    list(APPEND LUPDATE_LIST -ts "${CMAKE_CURRENT_LIST_DIR}/${locale}.ts")
-    install(FILES "${CMAKE_BINARY_DIR}/bin/locales/FLibrary_${locale}.qm" DESTINATION "locales/")
+    set(QTBASE_QMFILE "${QT_TRANSLATIONS_DIR}/qtbase_${locale}.qm")
+    set(QMFILE "${CMAKE_BINARY_DIR}/bin/locales/FLibrary_${locale}.qm")
+    set(TSFILE "${CMAKE_CURRENT_LIST_DIR}/${locale}.ts")
+    
+	file(COPY ${QTBASE_QMFILE} DESTINATION "${CMAKE_BINARY_DIR}/bin/locales/")
+	install(FILES ${QTBASE_QMFILE} ${QMFILE} DESTINATION "locales/")
+    
+    list(APPEND LRELEASE_LIST COMMAND "${QT_LRELEASE_TOOL}" "${TSFILE}" -qm "${QMFILE}")
+    list(APPEND LUPDATE_LIST -ts "${TSFILE}")
 endforeach()
 
 configure_file("${BUILDSCRIPTS_ROOT}/helpers/locales.h.in" "${CMAKE_BINARY_DIR}/config/locales.h" @ONLY)
-file(COPY ${COPY_LIST} DESTINATION "${CMAKE_BINARY_DIR}/bin/locales/")
-install(FILES ${COPY_LIST} DESTINATION "locales/")
 
 set(LUPDATE_COMMAND_PARAMETERS
 	-recursive ./

@@ -23,11 +23,6 @@ function(__Pack_Archive)
 	set(CPACK_ARCHIVE_FILE_NAME ${CPACK_PACKAGE_FILE_NAME})
 endfunction()
 
-if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
-	DeployTarget(${PROJECT_NAME})
-	DeployTarget(opds)
-endif()
-
 if("${CPACK_GENERATOR}" STREQUAL "")
 	return()
 endif()

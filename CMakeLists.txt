@@ -89,6 +89,21 @@ set(QtModules Core Gui Widgets Xml Network Svg Concurrent)
 if(QT6)
 	list(APPEND QtModules HttpServer WebSockets)
 endif()
+set(QtPlugins
+	QSvgIcon
+	QGif QICNS QICO QJpeg QSvg QTga QTiff QWbmp QWebp
+	QWindowsIntegration
+)
+if(QT5)
+	list(APPEND QtPlugins
+		QWindowsVistaStyle
+	)
+elseif(QT6)
+	list(APPEND QtPlugins
+		QModernWindowsStyle
+		QTlsBackendCertOnly QSchannelBackend
+	)
+endif()
 
 find_package(Qt${QT_MAJOR_VERSION} REQUIRED COMPONENTS ${QtModules})
 
@@ -111,6 +126,10 @@ find_package(SQLite3 REQUIRED)
 include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)
 include(${BUILDSCRIPTS_ROOT}/cmake/sdk.cmake)
 include(${BUILDSCRIPTS_ROOT}/cmake/utils.cmake)
+
+CopyAndInstallICU()
+CopyAndInstallQtModules(${QtModules})
+CopyAndInstallQtPlugins(${QtPlugins})
 
 include_directories(${FOUNDATION_ROOT})
 include(${FOUNDATION_ROOT}/fnd/fnd.cmake)
