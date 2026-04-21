@@ -92,17 +92,32 @@ endif()
 set(QtPlugins
 	QSvgIcon
 	QGif QICNS QICO QJpeg QSvg QTga QTiff QWbmp QWebp
-	QWindowsIntegration
 )
 if(QT5)
 	list(APPEND QtPlugins
+		QWindowsIntegration
 		QWindowsVistaStyle
 	)
 elseif(QT6)
 	list(APPEND QtPlugins
-		QModernWindowsStyle
-		QTlsBackendCertOnly QSchannelBackend
+		QTlsBackendCertOnly
 	)
+	if(WIN32)
+		list(APPEND QtPlugins
+			QWindowsIntegration
+			QModernWindowsStyle
+			QSchannelBackend
+		)
+	else()
+		list(APPEND QtPlugins
+			QWaylandIntegration QXcbIntegration
+			QNetworkManagerNetworkInformation QGlibNetworkInformation QConnManNetworkInformation
+			QGtk3Theme QXdgDesktopPortalTheme
+			QWaylandAdwaitaDecoration QWaylandBradientDecoration
+			DrmEglServerBuffer QWaylandEglClientBuffer ShmServerBuffer
+			QWaylandFullScreenShellV1Integration QWaylandIviShellIntegration QWaylandQtShellIntegration QWaylandWlShellIntegration QWaylandXdgShellIntegration
+		)
+	endif()
 endif()
 
 find_package(Qt${QT_MAJOR_VERSION} REQUIRED COMPONENTS ${QtModules})
