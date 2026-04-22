@@ -10,7 +10,7 @@ function(__Pack_WIX)
 endfunction()
 
 function(__Pack_DEB)
-	install(FILES "${CMAKE_SOURCE_DIR}/src/home/script/install/${PROJECT_NAME}.desktop" DESTINATION /usr/share/applications OPTIONAL)
+	install(PROGRAMS "${CMAKE_SOURCE_DIR}/src/home/script/install/${PROJECT_NAME}.desktop" DESTINATION /usr/share/applications OPTIONAL)
 	install(FILES "${CMAKE_SOURCE_DIR}/src/home/resources/icons/${PROJECT_NAME}.png" DESTINATION /usr/share/icons OPTIONAL)
 	set(CPACK_DEBIAN_PACKAGE_SECTION "contrib" PARENT_SCOPE)
 	set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Heimdallr <heimdallrnsk@gmail.com>" PARENT_SCOPE)
@@ -21,6 +21,8 @@ endfunction()
 
 function(__Pack_Archive)
 	set(CPACK_ARCHIVE_FILE_NAME ${CPACK_PACKAGE_FILE_NAME})
+	file(WRITE "${CMAKE_BINARY_DIR}/start.sh" "#!/bin/bash\nLD_LIBRARY_PATH=$(dirname \"\${BASH_SOURCE[0]}\")/lib:$LD_LIBRARY_PATH $(dirname \"\${BASH_SOURCE[0]}\")/${PROJECT_NAME}")
+	install(PROGRAMS "${CMAKE_BINARY_DIR}/start.sh" DESTINATION .)
 endfunction()
 
 if("${CPACK_GENERATOR}" STREQUAL "")

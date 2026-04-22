@@ -70,7 +70,7 @@ if(MSVC)
 	)
 else()
 	SET(CMAKE_SKIP_BUILD_RPATH FALSE)
-	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH FALSE)
 	SET(CMAKE_INSTALL_RPATH lib)
 
 	add_compile_options(
@@ -89,6 +89,10 @@ set(QtModules Core Gui Widgets Xml Network Svg Concurrent)
 if(QT6)
 	list(APPEND QtModules HttpServer WebSockets)
 endif()
+if(NOT WIN32)
+	list(APPEND QtModules DBus WaylandClient)
+endif()
+
 set(QtPlugins
 	QSvgIcon
 	QGif QICNS QICO QJpeg QSvg QTga QTiff QWbmp QWebp
