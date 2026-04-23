@@ -23,7 +23,7 @@ public:
 		: m_uiFactory { std::move(uiFactory) }
 		, m_databaseUser { std::move(databaseUser) }
 	{
-		if (const auto db = m_databaseUser->CheckDatabase())
+		if (const auto db = m_databaseUser->Database())
 			db->RegisterObserver(this);
 	}
 
