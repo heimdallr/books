@@ -40,6 +40,8 @@ public:
 private: // IUserDataController
 	void Backup(Callback callback) const override;
 	void Restore(Callback callback) const override;
+	void Backup(QString path, Callback callback) const override;
+	void Restore(QString path, Callback callback) const override;
 
 private:
 	using DoFunction = void (*)(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName, UserData::Callback callback);
