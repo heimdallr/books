@@ -9,12 +9,14 @@
 #include <QDirIterator>
 #include <QGuiApplication>
 #include <QKeyEvent>
+#include <QStandardPaths>
 #include <QStyleFactory>
 #include <QSystemTrayIcon>
 #include <QTimer>
 #include <QToolBar>
 
 #include "fnd/IsOneOf.h"
+#include "fnd/ScopedCall.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -433,6 +435,11 @@ public:
 			m_systemTray->hide();
 	}
 
+	void CreateCollection(Collection collection)
+	{
+		m_collectionToRecreate = std::move(collection);
+	}
+
 	void OnHideEvent()
 	{
 		m_isMaximized  = m_self.isMaximized();
@@ -447,8 +454,25 @@ private: // ICollectionsObserver
 
 	void OnNewCollectionCreating(const bool running) override
 	{
-		if (m_ui.actionShowLog->isChecked() != running)
-			m_ui.actionShowLog->trigger();
+		const ScopedCall triggerGuard([this, running] {
+			if (m_ui.actionShowLog->isChecked() != running)
+				m_ui.actionShowLog->trigger();
+		});
+
+		if (running || !m_collectionToRecreate)
+			return;
+
+		auto controller = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
+		const auto backupPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/" + m_collectionToRecreate->id + ".flibk";
+
+		QEventLoop eventLoop;
+		controller->Restore(backupPath, [&](bool, const QString& message) {
+			PLOGV << message;
+			eventLoop.exit();
+		});
+		eventLoop.exec();
+		QFile::remove(backupPath);
+		m_collectionToRecreate = std::nullopt;
 	}
 
 private: // plog::IAppender
@@ -690,15 +714,16 @@ private:
 		PLOGV << "ConnectActionsFile";
 		const auto userDataOperation = [this](const auto& operation) {
 			auto controller = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
-			std::invoke(operation, *controller, [controller]() mutable {
+			std::invoke(operation, *controller, [&, controller](const bool ok, const QString& message) mutable {
+				ok ? m_uiFactory->ShowInfo(message) : m_uiFactory->ShowError(message);
 				controller.reset();
 			});
 		};
 		connect(m_ui.actionExportUserData, &QAction::triggered, &m_self, [=] {
-			userDataOperation(&IUserDataController::Backup);
+			userDataOperation(static_cast<void (IUserDataController::*)(IUserDataController::Callback) const>(&IUserDataController::Backup));
 		});
 		connect(m_ui.actionImportUserData, &QAction::triggered, &m_self, [=] {
-			userDataOperation(&IUserDataController::Restore);
+			userDataOperation(static_cast<void (IUserDataController::*)(IUserDataController::Callback) const>(&IUserDataController::Restore));
 		});
 		connect(m_ui.actionExportSettings, &QAction::triggered, &m_self, [this] {
 			ExportSettings();
@@ -1438,6 +1463,9 @@ private:
 
 	void CheckForUpdateCollection(const ICommandLine& commandLine, const IDatabaseChecker& databaseChecker, std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker)
 	{
+		if (m_collectionToRecreate)
+			return m_collectionController->CreateCollection(*m_collectionToRecreate);
+
 		if (m_collectionController->IsEmpty() || !commandLine.GetInpxDir().empty())
 		{
 			m_self.showNormal();
@@ -1612,6 +1640,8 @@ private:
 
 	bool m_isMaximized { false };
 	bool m_isFullScreen { false };
+
+	std::optional<Collection> m_collectionToRecreate;
 };
 
 MainWindow::MainWindow(
@@ -1676,6 +1706,11 @@ MainWindow::MainWindow(
 MainWindow::~MainWindow()
 {
 	PLOGV << "MainWindow destroyed";
+}
+
+void MainWindow::CreateCollection(Collection collection)
+{
+	m_impl->CreateCollection(std::move(collection));
 }
 
 void MainWindow::Show()

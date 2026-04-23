@@ -73,6 +73,7 @@ signals:
 	void BookTitleToSearchVisibleChanged() const;
 
 private: // IMainWindow
+	void CreateCollection(Collection collection) override;
 	void Show() override;
 
 private: // ISingleInstanceController::IObserver
