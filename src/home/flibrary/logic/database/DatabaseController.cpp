@@ -101,14 +101,19 @@ public:
 		return m_db;
 	}
 
-private: // ICollectionsObserver
-	void OnActiveCollectionChanged() override
+	void Reset() const
 	{
 		if (m_db)
 			Perform(&IObserver::BeforeDatabaseDestroyed, std::ref(*m_db));
 
 		std::lock_guard lock(m_dbGuard);
 		m_db.reset();
+	}
+
+private: // ICollectionsObserver
+	void OnActiveCollectionChanged() override
+	{
+		Reset();
 	}
 
 	void OnNewCollectionCreating(bool) override
@@ -141,6 +146,11 @@ std::shared_ptr<DB::IDatabase> DatabaseController::GetDatabase(const bool readOn
 std::shared_ptr<DB::IDatabase> DatabaseController::CheckDatabase() const
 {
 	return m_impl->GetDatabase(false, true);
+}
+
+void DatabaseController::Reset() const
+{
+	m_impl->Reset();
 }
 
 void DatabaseController::RegisterObserver(IObserver* observer)
