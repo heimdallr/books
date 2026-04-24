@@ -15,7 +15,6 @@ constexpr auto RECENT_NAVIGATION_ID_KEY     = "Collections/%1/%2%3/LastId";
 constexpr auto EXPORT_DIALOG_KEY           = "Export";
 constexpr auto EXPORT_TEMPLATE_KEY         = "ui/Export/OutputTemplate";
 constexpr auto EXPORT_REPLACE_METADATA_KEY = "ui/Export/ReplaceMetadata";
-constexpr auto EXPORT_CONVERT_IMAGES_KEY   = "ui/Export/ConvertImagesToJpegPng";
 
 constexpr auto PERMANENT_LANG_FILTER_KEY         = "ui/permanentLanguageFilter";
 constexpr auto PERMANENT_LANG_FILTER_ENABLED_KEY = "ui/permanentLanguageFilterEnabled";

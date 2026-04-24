@@ -943,7 +943,7 @@ private:
 		});
 
 		ConnectSettings(m_ui.actionExportRewriteMetadata, Constant::Settings::EXPORT_REPLACE_METADATA_KEY);
-		ConnectSettings(m_ui.actionExportConvertImagesToJpegPng, Constant::Settings::EXPORT_CONVERT_IMAGES_KEY);
+		ConnectSettings(m_ui.actionExportConvertImagesToJpegPng, Export::CONVERT_IMAGES_KEY);
 		ConnectSettings(m_ui.actionExportConvertCoverToGrayscale, Export::GRAYSCALE_COVER_KEY);
 		ConnectSettings(m_ui.actionExportConvertImagesToGrayscale, Export::GRAYSCALE_IMAGES_KEY);
 		ConnectSettings(m_ui.actionExportRemoveCover, Export::REMOVE_COVER_KEY);
