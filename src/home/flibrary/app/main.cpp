@@ -1,5 +1,3 @@
-#include <expected>
-
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QStandardPaths>
@@ -58,8 +56,15 @@ constexpr auto REMOVE_DATABASE_MANUALLY = QT_TRANSLATE_NOOP("Main", "In that cas
 constexpr auto CANNOT_REMOVE_DATABASE   = QT_TRANSLATE_NOOP("Main", "The collection database file could not be deleted. Please delete it manually before restarting the program:<br><br><b>%1</b><br>");
 TR_DEF
 
-std::expected<Collection, QString> RecreateDatabase(Hypodermic::Container& container)
+std::optional<Collection> RecreateDatabase(Hypodermic::Container& container)
 {
+	const auto uiFactory = container.resolve<IUiFactory>();
+	if (uiFactory->ShowWarning(Tr(UNSUPPORTED_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::Yes) == QMessageBox::No)
+	{
+		container.resolve<IDatabaseController>()->Reset();
+		return (void)uiFactory->ShowWarning(Tr(REMOVE_DATABASE_MANUALLY).arg(container.resolve<ICollectionProvider>()->GetActiveCollection().GetDatabase())), std::nullopt;
+	}
+
 	auto activeCollection = [&] {
 		const auto collectionProvider = container.resolve<ICollectionProvider>();
 		assert(collectionProvider->ActiveCollectionExists());
@@ -79,7 +84,7 @@ std::expected<Collection, QString> RecreateDatabase(Hypodermic::Container& conta
 	eventLoop.exec();
 
 	if (!errorMessage.isEmpty())
-		return std::unexpected(errorMessage);
+		return (void)uiFactory->ShowWarning(errorMessage), std::nullopt;
 
 	container.resolve<IDatabaseController>()->Reset();
 
@@ -89,7 +94,7 @@ std::expected<Collection, QString> RecreateDatabase(Hypodermic::Container& conta
 		db.remove();
 
 	if (db.exists())
-		return std::unexpected(Tr(CANNOT_REMOVE_DATABASE).arg(activeCollection.GetDatabase()));
+		return (void)uiFactory->ShowWarning(Tr(CANNOT_REMOVE_DATABASE).arg(activeCollection.GetDatabase())), std::nullopt;
 
 	return activeCollection;
 }
@@ -188,25 +193,9 @@ int main(int argc, char* argv[])
 					break;
 
 				case IDatabaseMigrator::NeedMigrateResult::Unsupported:
-				{
-					const auto uiFactory = container->resolve<IUiFactory>();
-					if (uiFactory->ShowWarning(Tr(UNSUPPORTED_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::No) == QMessageBox::No)
-					{
-						container->resolve<IDatabaseController>()->Reset();
-						return uiFactory->ShowWarning(Tr(REMOVE_DATABASE_MANUALLY).arg(container->resolve<ICollectionProvider>()->GetActiveCollection().GetDatabase())), EXIT_FAILURE;
-					}
-
-					if (const auto recreateResult = RecreateDatabase(*container); recreateResult.has_value())
-					{
-						collectionToRecreate = recreateResult.value();
-					}
-					else
-					{
-						container->resolve<IUiFactory>()->ShowError(recreateResult.error());
-						return EXIT_FAILURE;
-					}
-					continue;
-				}
+					if ((collectionToRecreate = RecreateDatabase(*container)))
+						continue;
+					return EXIT_FAILURE;
 			}
 
 			container->resolve<ITaskQueue>()->Execute();
