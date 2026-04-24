@@ -4484,12 +4484,20 @@ Try again?</source>
 <context>
     <name>Main</name>
     <message>
+        <source>In that case, before restarting the program please manually delete the collection database file:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</source>
+        <translation>В таком случае перед перезапуском программы удалите файл базы данных коллекции вручную:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</translation>
+    </message>
+    <message>
         <source>It looks like you&apos;re trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?</source>
         <translation>Похоже, вы пытаетесь использовать старую версию программы с коллекцией из новой версии. Работа в таком режиме может быть нестабильной. Уверены, что желаете продолжать?</translation>
     </message>
     <message>
-        <source>The database version is not supported. You must recreate the collection</source>
-        <translation>Версия базы данных не поддерживается. Необходимо пересоздать коллекцию</translation>
+        <source>The collection database file could not be deleted. Please delete it manually before restarting the program:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</source>
+        <translation>Не удалось удалить файл базы данных коллекции. Пожалуйста, удалите его вручную перед перезапуском программы:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</translation>
+    </message>
+    <message>
+        <source>The database version is not supported. You need to save the user data and recreate the collection. Shall we do it?</source>
+        <translation>Эта версия базы данных не поддерживается. Необходимо сохранить пользовательские данные и заново создать коллекцию. Приступим?</translation>
     </message>
 </context>
 <context>

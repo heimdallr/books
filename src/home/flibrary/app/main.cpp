@@ -6,15 +6,17 @@
 
 #include "fnd/FindPair.h"
 
-#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
+#include "interface/logic/ICollectionProvider.h"
+#include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseMigrator.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IOpdsController.h"
 #include "interface/logic/IScriptController.h"
 #include "interface/logic/ISingleInstanceController.h"
 #include "interface/logic/ITaskQueue.h"
+#include "interface/logic/IUserDataController.h"
 #include "interface/ui/IMainWindow.h"
 #include "interface/ui/IMigrateWindow.h"
 #include "interface/ui/IStyleApplierFactory.h"
@@ -49,10 +51,55 @@ constexpr auto SAVE_KEYBOARD_LAYOUT_KEY = "Preferences/saveKeyboardLayout";
 constexpr auto CONTEXT = "Main";
 constexpr auto WRONG_DB_VERSION =
 	QT_TRANSLATE_NOOP("Main", "It looks like you're trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?");
-constexpr auto UNSUPPORTED_DB_VERSION = QT_TRANSLATE_NOOP("Main", "The database version is not supported. You must recreate the collection");
+constexpr auto UNSUPPORTED_DB_VERSION   = QT_TRANSLATE_NOOP("Main", "The database version is not supported. You need to save the user data and recreate the collection. Shall we do it?");
+constexpr auto REMOVE_DATABASE_MANUALLY = QT_TRANSLATE_NOOP("Main", "In that case, before restarting the program please manually delete the collection database file:<br><br><b>%1</b><br>");
+constexpr auto CANNOT_REMOVE_DATABASE   = QT_TRANSLATE_NOOP("Main", "The collection database file could not be deleted. Please delete it manually before restarting the program:<br><br><b>%1</b><br>");
 TR_DEF
 
+std::optional<Collection> RecreateDatabase(Hypodermic::Container& container)
+{
+	const auto uiFactory = container.resolve<IUiFactory>();
+	if (uiFactory->ShowWarning(Tr(UNSUPPORTED_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::Yes) == QMessageBox::No)
+	{
+		container.resolve<IDatabaseController>()->Reset();
+		return (void)uiFactory->ShowWarning(Tr(REMOVE_DATABASE_MANUALLY).arg(container.resolve<ICollectionProvider>()->GetActiveCollection().GetDatabase())), std::nullopt;
+	}
+
+	auto activeCollection = [&] {
+		const auto collectionProvider = container.resolve<ICollectionProvider>();
+		assert(collectionProvider->ActiveCollectionExists());
+		return collectionProvider->GetActiveCollection();
+	}();
+	const auto backupPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/" + activeCollection.id + ".flibk";
+
+	QString errorMessage;
+
+	QEventLoop eventLoop;
+	container.resolve<IUserDataController>()->Backup(backupPath, [&](const bool ok, const QString& message) {
+		PLOGV << message;
+		if (!ok)
+			errorMessage = message;
+		eventLoop.exit();
+	});
+	eventLoop.exec();
+
+	if (!errorMessage.isEmpty())
+		return (void)uiFactory->ShowWarning(errorMessage), std::nullopt;
+
+	container.resolve<IDatabaseController>()->Reset();
+
+	QFile db(activeCollection.GetDatabase());
+	db.remove();
+	for (int i = 0; i < 20 && db.exists(); std::this_thread::sleep_for(std::chrono::milliseconds(50)), ++i)
+		db.remove();
+
+	if (db.exists())
+		return (void)uiFactory->ShowWarning(Tr(CANNOT_REMOVE_DATABASE).arg(activeCollection.GetDatabase())), std::nullopt;
+
+	return activeCollection;
 }
+
+} // namespace
 
 int main(int argc, char* argv[])
 {
@@ -88,6 +135,8 @@ int main(int argc, char* argv[])
 		// ReSharper restore CppCompileTimeConstantCanBeReplacedWithBooleanConstant
 
 		PLOGD << "QApplication created";
+
+		std::optional<Collection> collectionToRecreate;
 
 		while (true)
 		{
@@ -144,7 +193,8 @@ int main(int argc, char* argv[])
 					break;
 
 				case IDatabaseMigrator::NeedMigrateResult::Unsupported:
-					container->resolve<IUiFactory>()->ShowError(Tr(UNSUPPORTED_DB_VERSION));
+					if ((collectionToRecreate = RecreateDatabase(*container)))
+						continue;
 					return EXIT_FAILURE;
 			}
 
@@ -155,6 +205,11 @@ int main(int argc, char* argv[])
 			if (singleInstanceController)
 				singleInstanceController->RegisterObserver(mainWindow.get());
 
+			if (collectionToRecreate)
+			{
+				mainWindow->CreateCollection(std::move(*collectionToRecreate));
+				collectionToRecreate = std::nullopt;
+			}
 			mainWindow->Show();
 
 			if (const auto code = QApplication::exec(); code != Global::RESTART_APP)

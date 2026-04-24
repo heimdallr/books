@@ -19,6 +19,7 @@ public:
 public:
 	std::shared_ptr<DB::IDatabase> GetDatabase(bool readOnly) const override;
 	std::shared_ptr<DB::IDatabase> CheckDatabase() const override;
+	void                           Reset() const override;
 
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;

@@ -115,6 +115,19 @@ public:
 		m_overwriteConfirmCount = 0;
 	}
 
+	void CreateCollection(const Collection& collection)
+	{
+		CreateNew(
+			collection.name,
+			collection.GetDatabase(),
+			collection.GetFolder(),
+			collection.GetAdditionalFolder(),
+			collection.GetInpx(),
+			"7z",
+			static_cast<Inpx::CreateCollectionMode>(collection.createCollectionMode)
+		);
+	}
+
 	void RescanCollectionFolder()
 	{
 		const auto& collection = GetActiveCollection();
@@ -369,6 +382,11 @@ CollectionController::~CollectionController()
 void CollectionController::AddCollection(const std::filesystem::path& inpxDir)
 {
 	m_impl->AddCollection(inpxDir);
+}
+
+void CollectionController::CreateCollection(const Collection& collection)
+{
+	m_impl->CreateCollection(collection);
 }
 
 void CollectionController::RescanCollectionFolder()

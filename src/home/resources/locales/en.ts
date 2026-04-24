@@ -4471,11 +4471,19 @@ Try again?</source>
 <context>
     <name>Main</name>
     <message>
+        <source>In that case, before restarting the program please manually delete the collection database file:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>It looks like you&apos;re trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?</source>
         <translation></translation>
     </message>
     <message>
-        <source>The database version is not supported. You must recreate the collection</source>
+        <source>The collection database file could not be deleted. Please delete it manually before restarting the program:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>The database version is not supported. You need to save the user data and recreate the collection. Shall we do it?</source>
         <translation></translation>
     </message>
 </context>
