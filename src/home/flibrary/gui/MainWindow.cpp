@@ -942,12 +942,8 @@ private:
 			m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
 		});
 
-		m_ui.menuImages->setEnabled(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + Global::COVERS).exists()
-			&& QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + Global::IMAGES).exists()
-		);
-
 		ConnectSettings(m_ui.actionExportRewriteMetadata, Constant::Settings::EXPORT_REPLACE_METADATA_KEY);
+		ConnectSettings(m_ui.actionExportConvertImagesToJpegPng, Constant::Settings::EXPORT_CONVERT_IMAGES_KEY);
 		ConnectSettings(m_ui.actionExportConvertCoverToGrayscale, Export::GRAYSCALE_COVER_KEY);
 		ConnectSettings(m_ui.actionExportConvertImagesToGrayscale, Export::GRAYSCALE_IMAGES_KEY);
 		ConnectSettings(m_ui.actionExportRemoveCover, Export::REMOVE_COVER_KEY);
@@ -1122,6 +1118,7 @@ private:
 	template <typename T = QAction>
 	void ConnectSettings(QAction* action, QString key, T* obj = nullptr, void (T::*f)(bool) = nullptr)
 	{
+		assert(action->isCheckable());
 		if (!key.isEmpty())
 			action->setChecked(m_settings->Get(key, action->isChecked()));
 		auto invoker = [obj, f](const bool checked) {

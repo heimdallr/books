@@ -464,6 +464,7 @@
        <addaction name="actionExportConvertImagesToGrayscale"/>
        <addaction name="actionExportRemoveImages"/>
       </widget>
+      <addaction name="actionExportConvertImagesToJpegPng"/>
       <addaction name="menuCovers"/>
       <addaction name="menuIllustrations"/>
      </widget>
@@ -1187,6 +1188,17 @@
   <action name="actionShowHotkeyDialog">
    <property name="text">
     <string>Hot&amp;keys...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionExportConvertImagesToJpegPng">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>Convert to j&amp;peg/png</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
