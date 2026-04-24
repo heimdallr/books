@@ -4698,6 +4698,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Convert to j&amp;peg/png</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Cover navigation &amp;buttons</source>
         <translation></translation>
     </message>
