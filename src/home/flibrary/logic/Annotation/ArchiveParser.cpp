@@ -115,7 +115,7 @@ public:
 
 		std::multimap<int, QByteArray> covers;
 
-		Util::ExtractBookImages(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)), book.GetRawData(BookItem::Column::FileName), [this, &covers](QString name, QByteArray data) {
+		Util::ExtractBookImages(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)), book.GetRawData(BookItem::Column::FileName), [this, &covers](QString name, bool, QByteArray data) {
 			bool       ok = false;
 			const auto id = name.toInt(&ok);
 			if (ok)
