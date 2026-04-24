@@ -52,4 +52,4 @@ private:
 	std::shared_ptr<const IUiFactory>    m_uiFactory;
 };
 
-}
+} // namespace HomeCompa::Flibrary

@@ -55,7 +55,7 @@ constexpr auto WRONG_DB_VERSION =
 	QT_TRANSLATE_NOOP("Main", "It looks like you're trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?");
 constexpr auto UNSUPPORTED_DB_VERSION   = QT_TRANSLATE_NOOP("Main", "The database version is not supported. You need to save the user data and recreate the collection. Shall we do it?");
 constexpr auto REMOVE_DATABASE_MANUALLY = QT_TRANSLATE_NOOP("Main", "In that case, before restarting the program please manually delete the collection database file:<br><br><b>%1</b><br>");
-constexpr auto CANNOT_REMOVE_DATABASE = QT_TRANSLATE_NOOP("Main", "The collection database file could not be deleted. Please delete it manually before restarting the program:<br><br><b>%1</b><br>");
+constexpr auto CANNOT_REMOVE_DATABASE   = QT_TRANSLATE_NOOP("Main", "The collection database file could not be deleted. Please delete it manually before restarting the program:<br><br><b>%1</b><br>");
 TR_DEF
 
 std::expected<Collection, QString> RecreateDatabase(Hypodermic::Container& container)

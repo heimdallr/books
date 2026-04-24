@@ -462,7 +462,7 @@ private: // ICollectionsObserver
 		if (running || !m_collectionToRecreate)
 			return;
 
-		auto controller = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
+		auto       controller = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
 		const auto backupPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/" + m_collectionToRecreate->id + ".flibk";
 
 		QEventLoop eventLoop;
