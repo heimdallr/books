@@ -513,9 +513,11 @@ order by l.CreatedAt desc
 limit {}
 )";
 
-	const auto collectionProvider = m_impl->container.resolve<ICollectionProvider>();
+	auto& container = m_impl->container;
 
-	auto       settings               = m_impl->container.resolve<ISettings>();
+	const auto collectionProvider = container.resolve<ICollectionProvider>();
+
+	auto       settings               = container.resolve<ISettings>();
 	const auto maxMenuItemCount       = settings->Get(MAX_MENU_ITEM_COUNT_KEY, MAX_MENU_ITEM_DEFAULT);
 	auto       menuItemTitleFormat    = settings->Get(MENU_ITEM_TITLE_FORMAT_KEY, MENU_ITEM_TITLE_FORMAT_DEFAULT).replace(R"(\t)", "\t").replace(R"(\n)", "\n");
 	auto       menuItemDateTimeFormat = settings->Get(MENU_ITEM_DATETIME_FORMAT_KEY, MENU_ITEM_DATETIME_FORMAT_DEFAULT);
@@ -525,7 +527,7 @@ limit {}
 	if (maxMenuItemCount < 1)
 		return menu.menuAction()->setVisible(false);
 
-	const auto databaseUser = m_impl->container.resolve<IDatabaseUser>();
+	const auto databaseUser = container.resolve<IDatabaseUser>();
 
 	auto db = databaseUser->CheckDatabase();
 	if (!db)

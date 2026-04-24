@@ -58,11 +58,16 @@ TR_DEF
 
 std::optional<Collection> RecreateDatabase(Hypodermic::Container& container)
 {
-	const auto uiFactory = container.resolve<IUiFactory>();
+	const auto uiFactory   = container.resolve<IUiFactory>();
+	const auto showWarning = [&](const QString& message) {
+		(void)uiFactory->ShowWarning(message);
+		return std::nullopt;
+	};
+
 	if (uiFactory->ShowWarning(Tr(UNSUPPORTED_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::Yes) == QMessageBox::No)
 	{
 		container.resolve<IDatabaseController>()->Reset();
-		return (void)uiFactory->ShowWarning(Tr(REMOVE_DATABASE_MANUALLY).arg(container.resolve<ICollectionProvider>()->GetActiveCollection().GetDatabase())), std::nullopt;
+		return showWarning(Tr(REMOVE_DATABASE_MANUALLY).arg(container.resolve<ICollectionProvider>()->GetActiveCollection().GetDatabase()));
 	}
 
 	auto activeCollection = [&] {
@@ -84,7 +89,7 @@ std::optional<Collection> RecreateDatabase(Hypodermic::Container& container)
 	eventLoop.exec();
 
 	if (!errorMessage.isEmpty())
-		return (void)uiFactory->ShowWarning(errorMessage), std::nullopt;
+		return showWarning(errorMessage);
 
 	container.resolve<IDatabaseController>()->Reset();
 
@@ -94,7 +99,7 @@ std::optional<Collection> RecreateDatabase(Hypodermic::Container& container)
 		db.remove();
 
 	if (db.exists())
-		return (void)uiFactory->ShowWarning(Tr(CANNOT_REMOVE_DATABASE).arg(activeCollection.GetDatabase())), std::nullopt;
+		return showWarning(Tr(CANNOT_REMOVE_DATABASE).arg(activeCollection.GetDatabase()));
 
 	return activeCollection;
 }

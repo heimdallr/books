@@ -305,7 +305,7 @@ void GroupController::MoveToGroup(const Id id, Ids ids, Callback callback) const
 		if (name.isEmpty())
 			return callback(id);
 
-		auto idsCopy = ids;
+		auto idsCopy = ids; //-V836
 		return RemoveFromGroup(-1, std::move(ids), [this, id, ids = std::move(idsCopy), callback = std::move(callback), name = std::move(name)](const auto) mutable {
 			m_impl->AddToGroup(id, std::move(ids), std::move(name), std::move(callback));
 		});
