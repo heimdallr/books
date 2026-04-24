@@ -4711,6 +4711,10 @@ Try again?</source>
         <translation>Перетворювати на відтінки сірого</translation>
     </message>
     <message>
+        <source>Convert to j&amp;peg/png</source>
+        <translation>Конвертувати в j&amp;peg/png</translation>
+    </message>
+    <message>
         <source>Cover navigation &amp;buttons</source>
         <translation>&amp;Кнопки навігації на обкладинці</translation>
     </message>
