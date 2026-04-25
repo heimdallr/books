@@ -1,3 +1,5 @@
+#include <thread>
+
 #include <QApplication>
 #include <QCommandLineParser>
 #include <QStandardPaths>
