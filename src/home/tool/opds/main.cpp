@@ -1,4 +1,5 @@
 ﻿#include <QCoreApplication>
+#include <QGuiApplication>
 #include <QStandardPaths>
 #include <QTimer>
 #include <QTranslator>
@@ -75,7 +76,7 @@ private:
 
 int run(int argc, char* argv[])
 {
-	QCoreApplication app(argc, argv);
+	QGuiApplication app(argc, argv);
 	QCoreApplication::setApplicationName(APP_ID);
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
 	Util::XMLPlatformInitializer xmlPlatformInitializer;
