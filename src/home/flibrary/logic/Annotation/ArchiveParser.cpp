@@ -83,10 +83,11 @@ QString AnnotationReplaceAttributeName(const QString& name)
 class XmlParser final : public Util::SaxParser
 {
 public:
-	explicit XmlParser(QIODevice& ioDevice)
+	XmlParser(QIODevice& ioDevice, std::shared_ptr<const ISettings> settings)
 		: SaxParser(ioDevice)
-		, m_ioDevice(ioDevice)
-		, m_total(m_ioDevice.size())
+		, m_settings { std::move(settings) }
+		, m_ioDevice { ioDevice }
+		, m_total { m_ioDevice.size() }
 	{
 		m_data.content->SetData(Tr(CONTENT), NavigationItem::Column::Title);
 		m_data.description->SetData(Tr(DESCRIPTION), NavigationItem::Column::Title);
@@ -115,16 +116,21 @@ public:
 
 		std::multimap<int, QByteArray> covers;
 
-		Util::ExtractBookImages(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)), book.GetRawData(BookItem::Column::FileName), [this, &covers](QString name, bool, QByteArray data) {
-			bool       ok = false;
-			const auto id = name.toInt(&ok);
-			if (ok)
-				covers.emplace(id, std::move(data));
-			else
-				m_data.covers.emplace_back(std::move(name), std::move(data));
+		Util::ExtractBookImages(
+			QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)),
+			book.GetRawData(BookItem::Column::FileName),
+			*m_settings,
+			[this, &covers](QString name, bool, QByteArray data) {
+				bool       ok = false;
+				const auto id = name.toInt(&ok);
+				if (ok)
+					covers.emplace(id, std::move(data));
+				else
+					m_data.covers.emplace_back(std::move(name), std::move(data));
 
-			return false;
-		});
+				return false;
+			}
+		);
 
 		std::ranges::transform(std::move(covers), std::back_inserter(m_data.covers), [](auto&& item) {
 			return IAnnotationController::IDataProvider::Cover { QString::number(item.first), std::move(item.second) };
@@ -462,6 +468,7 @@ private:
 	}
 
 private:
+	std::shared_ptr<const ISettings>                    m_settings;
 	QIODevice&                                          m_ioDevice;
 	int64_t                                             m_total;
 	std::unique_ptr<IProgressController::IProgressItem> m_progressItem;
@@ -583,7 +590,7 @@ private:
 			return {};
 		}();
 
-		XmlParser parser(subStream ? subStream->GetStream() : stream->GetStream());
+		XmlParser parser(subStream ? subStream->GetStream() : stream->GetStream(), m_logicFactory->CreateSettingsStub());
 		return parser.Parse(collection.GetFolder(), book, std::move(parseProgressItem));
 	}
 

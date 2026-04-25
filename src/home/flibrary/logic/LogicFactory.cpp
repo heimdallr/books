@@ -25,6 +25,7 @@
 #include "platform/DyLib.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/ZipProgressCallback.h"
+#include "util/Settings.h"
 #include "util/translit.h"
 
 #include "log.h"
@@ -385,6 +386,11 @@ std::shared_ptr<IFillTemplateConverter> LogicFactory::CreateFillTemplateConverte
 {
 	const auto settings = m_impl->container.resolve<ISettings>();
 	return needStub ? FilledTemplateConverterNone::Create() : CreateFilledTemplateConverter(*settings);
+}
+
+std::shared_ptr<ISettings> LogicFactory::CreateSettingsStub() const
+{
+	return SettingsFactory::CreateStub();
 }
 
 std::shared_ptr<Zip::ProgressCallback> LogicFactory::CreateZipProgressCallback(std::shared_ptr<IProgressController> progressController) const

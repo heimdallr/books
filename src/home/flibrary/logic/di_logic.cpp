@@ -187,9 +187,9 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 		.as<ITaskQueue>();
 
 	builder
-		.registerInstanceFactory([](Hypodermic::ComponentContext&) {
-			return Util::GetInstallerDescription().type == Util::InstallerType::portable ? std::make_shared<Settings>(QString("%1/%2.ini").arg(QCoreApplication::applicationDirPath()).arg(PRODUCT_ID))
-		                                                                                 : std::make_shared<Settings>(COMPANY_ID, PRODUCT_ID);
+		.registerInstanceFactory([](Hypodermic::ComponentContext&) -> std::shared_ptr<SettingsFactory::AbstractSettings> {
+			return Util::GetInstallerDescription().type == Util::InstallerType::portable ? SettingsFactory::Create(QString("%1/%2.ini").arg(QCoreApplication::applicationDirPath()).arg(PRODUCT_ID))
+		                                                                                 : SettingsFactory::Create(COMPANY_ID, PRODUCT_ID);
 		})
 		.as<ISettings>()
 		.singleInstance();

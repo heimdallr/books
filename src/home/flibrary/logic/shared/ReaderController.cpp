@@ -66,12 +66,13 @@ private:
 	std::shared_ptr<ILogicFactory::ITemporaryDir> m_temporaryDir;
 };
 
-void Extract(const ISettings& settings, const ILogicFactory::ITemporaryDir& temporaryDir, const QString& archive, QString& fileName, QString& error)
+void Extract(const ISettings& settings, const ILogicFactory::ITemporaryDir& temporaryDir, const QString& archive, QString& fileName, QString& error, std::weak_ptr<const ILogicFactory> logicFactory)
 {
 	try
 	{
 		const Zip  zip(archive);
 		const auto stream = zip.Read(fileName);
+		const auto settingsStub = ILogicFactory::Lock(logicFactory)->CreateSettingsStub();
 
 		if (Zip::IsArchive(Platform::RemoveIllegalPathCharacters(fileName)))
 		{
@@ -98,7 +99,7 @@ void Extract(const ISettings& settings, const ILogicFactory::ITemporaryDir& temp
 				if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
 				{
 					const auto subStream = subZip.Read(archiveFileName);
-					file.write(Util::PrepareToExport(subStream->GetStream(), archive, fileName));
+					file.write(Util::PrepareToExport(subStream->GetStream(), archive, fileName, *settingsStub));
 				}
 			}
 
@@ -113,7 +114,7 @@ void Extract(const ISettings& settings, const ILogicFactory::ITemporaryDir& temp
 		{
 			auto fileNameDst = temporaryDir.filePath(Platform::RemoveIllegalPathCharacters(fileName));
 			if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
-				file.write(Util::PrepareToExport(stream->GetStream(), archive, fileName));
+				file.write(Util::PrepareToExport(stream->GetStream(), archive, fileName, *settingsStub));
 
 			fileName = std::move(fileNameDst);
 		}
@@ -281,7 +282,7 @@ void ReaderController::Read(long long id) const
 							 return logicFactory->CreateTemporaryDir(folder.toString());
 						 return logicFactory->CreateTemporaryDir(true);
 					 }();
-					 Extract(*m_impl->settings, *temporaryDir, archive, fileName, error);
+					 Extract(*m_impl->settings, *temporaryDir, archive, fileName, error, m_impl->logicFactory);
 					 return [this, executor = std::move(executor), fileName = std::move(fileName), temporaryDir = std::move(temporaryDir), error(std::move(error))](size_t) mutable {
 						 m_impl->Read(std::move(temporaryDir), std::move(fileName), error);
 						 executor.reset();

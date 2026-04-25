@@ -216,7 +216,7 @@ void Write(
 	stream.append(book.join(Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8()).append(Util::Fb2InpxParser::FIELDS_SEPARATOR).append("\r\n");
 }
 
-QByteArray Process(const std::filesystem::path& archiveFolder, const QString& dstFolder, const QString& uid, const BookInfoList& books, IProgressController::IProgressItem& progress)
+QByteArray Process(const std::filesystem::path& archiveFolder, const QString& dstFolder, const QString& uid, const BookInfoList& books, IProgressController::IProgressItem& progress, const ISettings& settings)
 {
 	size_t     n = 0;
 	QByteArray inpx;
@@ -227,7 +227,7 @@ QByteArray Process(const std::filesystem::path& archiveFolder, const QString& ds
 		const auto folder   = Platform::PathToString(archiveFolder / Platform::StringToPath(book.book->GetRawData(BookItem::Column::Folder)));
 		const Zip  zipInput(folder);
 		const auto input = zipInput.Read(fileName);
-		const auto bytes = Util::PrepareToExport(input->GetStream(), folder, fileName);
+		const auto bytes = Util::PrepareToExport(input->GetStream(), folder, fileName, settings);
 		progress.Increment(bytes.size());
 		Write(inpx, uid, book, n);
 
@@ -260,11 +260,14 @@ public:
 
 	void Extract(QString dstFolder, BookInfoList&& books, Callback callback)
 	{
+		const auto logicFactory = ILogicFactory::Lock(m_logicFactory);
+
 		assert(!m_callback);
 		m_hasError  = false;
 		m_callback  = std::move(callback);
 		m_taskCount = std::size(books) / 3000 + 1;
-		ILogicFactory::Lock(m_logicFactory)->GetExecutor({ static_cast<int>(m_taskCount) }).swap(m_executor);
+		logicFactory->GetExecutor({ static_cast<int>(m_taskCount) }).swap(m_executor);
+		m_settingsStub  = logicFactory->CreateSettingsStub();
 		m_dstFolder     = std::move(dstFolder);
 		m_archiveFolder = Platform::StringToPath(m_collectionProvider->GetActiveCollection().GetFolder());
 
@@ -355,7 +358,7 @@ private:
 										  QByteArray inpx;
 										  try
 										  {
-											  inpx = Process(m_archiveFolder, m_dstFolder, uid, books, *progressItem);
+											  inpx = Process(m_archiveFolder, m_dstFolder, uid, books, *progressItem, *m_settingsStub);
 										  }
 										  catch (const std::exception& ex)
 										  {
@@ -498,6 +501,7 @@ private:
 	std::weak_ptr<const ILogicFactory>                      m_logicFactory;
 	std::shared_ptr<const ICollectionProvider>              m_collectionProvider;
 	std::shared_ptr<const IDatabaseUser>                    m_databaseUser;
+	std::shared_ptr<const ISettings>                        m_settingsStub;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
 
 	Callback                                m_callback;
