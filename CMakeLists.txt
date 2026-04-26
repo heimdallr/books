@@ -115,6 +115,7 @@ elseif(QT6)
 	else()
 		list(APPEND QtPlugins
 			QWaylandIntegration QXcbIntegration
+			QTlsBackendOpenSSL
 			QNetworkManagerNetworkInformation QGlibNetworkInformation QConnManNetworkInformation
 			QGtk3Theme QXdgDesktopPortalTheme
 			QWaylandAdwaitaDecoration QWaylandBradientDecoration
