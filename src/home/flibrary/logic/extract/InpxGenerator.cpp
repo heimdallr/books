@@ -455,8 +455,7 @@ private:
 			zipFileController->AddFile(Inpx::COLLECTION_INFO, QString("%1").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
 			zipFileController->AddFile(Inpx::VERSION_INFO, QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
 
-			Zip                                         zip(inpxFileName, Zip::Format::Zip);
-			std::vector<std::pair<QString, QByteArray>> toZip;
+			Zip zip(inpxFileName, Zip::Format::Zip);
 			zip.Write(*zipFileController);
 		}
 

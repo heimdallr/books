@@ -11,7 +11,7 @@ class ProgressBar::Impl final : IProgressController::IObserver
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	explicit Impl(ProgressBar& self, std::shared_ptr<IProgressController> progressController)
+	Impl(ProgressBar& self, std::shared_ptr<IProgressController> progressController)
 		: m_self(self)
 		, m_progressController(std::move(progressController))
 	{
@@ -21,7 +21,7 @@ public:
 		});
 		m_progressController->RegisterObserver(this);
 
-		OnStartedChanged();
+		Impl::OnStartedChanged();
 	}
 
 	~Impl() override

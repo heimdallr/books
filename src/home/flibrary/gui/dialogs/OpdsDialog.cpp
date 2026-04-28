@@ -137,7 +137,7 @@ struct OpdsDialog::Impl final
 		actionSetup(ui.actionCopySite, ui.lineEditReactApp);
 
 		OnConnectionChanged();
-		OnRunningChanged();
+		Impl::OnRunningChanged();
 		LoadGeometry();
 	}
 

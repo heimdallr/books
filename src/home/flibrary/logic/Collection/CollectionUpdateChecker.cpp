@@ -86,7 +86,7 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 			  Collection updatedCollection = collection;
 			  if (updatedCollection.discardedUpdate = GetFileHash(inpxFiles); updatedCollection.discardedUpdate == collection.discardedUpdate)
 			  {
-				  result = [&updatedCollection, callback = std::move(callback)](size_t) {
+				  result = [updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) {
 					  callback(false, updatedCollection);
 				  };
 				  return result;

@@ -256,7 +256,7 @@ void ReaderController::Read(long long id) const
 {
 	std::shared_ptr executor = ILogicFactory::Lock(m_impl->logicFactory)->GetExecutor();
 
-	auto& executorRef = *executor;
+	const auto& executorRef = *executor;
 	executorRef({ "Get archive and file names", [this, id, executor = std::move(executor)]() mutable {
 					 const auto db = m_impl->databaseUser->Database();
 					 {

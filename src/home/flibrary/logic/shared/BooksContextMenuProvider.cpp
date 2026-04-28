@@ -548,8 +548,8 @@ private: // IContextMenuHandler
 		std::shared_ptr progressItem = m_progressController->Add(std::ssize(books));
 		std::shared_ptr executor     = logicFactory->GetExecutor();
 
-		auto& executorPtr = *executor;
-		executorPtr(
+		const auto& executorRef = *executor;
+		executorRef(
 			{ "calculate book hashes",
 		      [item         = std::move(item),
 		       callback     = std::move(callback),
@@ -589,8 +589,8 @@ private: // IContextMenuHandler
 
 		std::shared_ptr executor = logicFactory->GetExecutor();
 
-		auto& executorPtr = *executor;
-		executorPtr(
+		const auto& executorRef = *executor;
+		executorRef(
 			{ "compare book hashes",
 		      [item         = std::move(item),
 		       callback     = std::move(callback),
@@ -775,20 +775,21 @@ private:
 	{
 		const auto whatTodo = [&] {
 			std::unordered_set<QString> uniqueNames;
-			for (const auto& book : books)
-				if (QFile::exists(book.dstFileName) || !uniqueNames.emplace(book.dstFileName).second)
-					return m_uiFactory->ShowCustomDialog(
-						QMessageBox::Question,
-						Loc::Tr(Loc::Ctx::COMMON, Loc::WARNING),
-						Tr(SAME_NAMED_FILES),
-						{
-							{      QMessageBox::AcceptRole,      Tr(SAME_NAMED_FILES_SKIP) },
-							{ QMessageBox::DestructiveRole, Tr(SAME_NAMED_FILES_OVERWRITE) },
-							{          QMessageBox::NoRole,    Tr(SAME_NAMED_FILES_RENAME) },
-							{      QMessageBox::RejectRole,    Tr(SAME_NAMED_FILES_CANCEL) },
-                    },
-						QMessageBox::AcceptRole
-					);
+			if (std::ranges::any_of(books, [&](const auto& book) {
+					return QFile::exists(book.dstFileName) || !uniqueNames.emplace(book.dstFileName).second;
+				}))
+				return m_uiFactory->ShowCustomDialog(
+					QMessageBox::Question,
+					Loc::Tr(Loc::Ctx::COMMON, Loc::WARNING),
+					Tr(SAME_NAMED_FILES),
+					{
+						{      QMessageBox::AcceptRole,      Tr(SAME_NAMED_FILES_SKIP) },
+						{ QMessageBox::DestructiveRole, Tr(SAME_NAMED_FILES_OVERWRITE) },
+						{          QMessageBox::NoRole,    Tr(SAME_NAMED_FILES_RENAME) },
+						{      QMessageBox::RejectRole,    Tr(SAME_NAMED_FILES_CANCEL) },
+                },
+					QMessageBox::AcceptRole
+				);
 
 			return QMessageBox::AcceptRole;
 		}();

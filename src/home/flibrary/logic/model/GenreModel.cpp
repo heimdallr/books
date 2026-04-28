@@ -86,8 +86,8 @@ private: // QAbstractItemModel
 		if (!index.isValid())
 			return {};
 
-		auto* childItem  = static_cast<Genre*>(index.internalPointer());
-		auto* parentItem = childItem->parent;
+		const auto* childItem  = static_cast<Genre*>(index.internalPointer());
+		const auto* parentItem = childItem->parent;
 
 		return parentItem != &m_root ? createIndex(static_cast<int>(parentItem->row), 0, parentItem) : QModelIndex {};
 	}

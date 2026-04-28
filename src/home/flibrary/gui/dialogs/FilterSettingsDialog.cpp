@@ -277,7 +277,7 @@ private:
 		if (!m_model)
 			return;
 
-		std::tuple<const char* /*title*/, const char* /*tooltip*/, QVariant> showCheckedModes[] {
+		const std::tuple<const char* /*title*/, const char* /*tooltip*/, QVariant> showCheckedModes[] {
 			{ QT_TRANSLATE_NOOP("FilterSettingsDialog",       "All items shown"), QT_TRANSLATE_NOOP("FilterSettingsDialog",   "Show checked only"),    {} },
 			{ QT_TRANSLATE_NOOP("FilterSettingsDialog",   "Checked items shown"), QT_TRANSLATE_NOOP("FilterSettingsDialog", "Show unchecked only"),  true },
 			{ QT_TRANSLATE_NOOP("FilterSettingsDialog", "Unchecked items shown"), QT_TRANSLATE_NOOP("FilterSettingsDialog",      "Show all items"), false },

@@ -542,8 +542,7 @@ std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& key
 			}));
 
 			for (const auto& keyword : list)
-				for (auto&& word : keyword.split(':', Qt::SkipEmptyParts))
-					keywordsList.emplace_back(std::move(word));
+				std::ranges::move(keyword.split(':', Qt::SkipEmptyParts), std::back_inserter(keywordsList));
 
 			for (auto& keyword : keywordsList)
 			{
@@ -596,11 +595,11 @@ Book ParseBook(const QString& line, const BookBufMapping& f, QString folder)
 {
 	Book buf;
 
-	auto       it  = std::cbegin(line);
-	const auto end = std::cend(line);
+	auto       it    = std::cbegin(line);
+	const auto endIt = std::cend(line);
 
-	for (size_t i = 0, sz = f.size(); i < sz && it != end; ++i)
-		f[i](buf) = QNext(it, end, Fb2InpxParser::FIELDS_SEPARATOR);
+	for (size_t i = 0, sz = f.size(); i < sz && it != endIt; ++i)
+		f[i](buf) = QNext(it, endIt, Fb2InpxParser::FIELDS_SEPARATOR);
 
 	buf.fileName = QString("%1.%2").arg(buf.FILE, buf.EXT);
 
@@ -2233,7 +2232,7 @@ where b.FileName = ? and b.Ext = ?)");
 		{
 			constexpr auto noDateTitle = std::numeric_limits<int>::max();
 			const auto     it          = data.updates.children.find(noDateTitle);
-			auto&          update      = it != data.updates.children.end() ? it->second : data.updates.children.try_emplace(noDateTitle, createUpdate(noDateTitle, 0)).first->second;
+			const auto&    update      = it != data.updates.children.end() ? it->second : data.updates.children.try_emplace(noDateTitle, createUpdate(noDateTitle, 0)).first->second;
 			return update.id;
 		}
 
@@ -2242,10 +2241,10 @@ where b.FileName = ? and b.Ext = ?)");
 		const auto year    = QNext(itDate, endDate, DATE_SEPARATOR).toInt();
 		const auto month   = QNext(itDate, endDate, DATE_SEPARATOR).toInt();
 
-		const auto itYear      = data.updates.children.find(year);
-		auto&      yearUpdate  = itYear != data.updates.children.end() ? itYear->second : data.updates.children.try_emplace(year, createUpdate(year, 0)).first->second;
-		const auto itMonth     = yearUpdate.children.find(month);
-		auto&      monthUpdate = itMonth != yearUpdate.children.end() ? itMonth->second : yearUpdate.children.try_emplace(month, createUpdate(month, yearUpdate.id)).first->second;
+		const auto  itYear      = data.updates.children.find(year);
+		auto&       yearUpdate  = itYear != data.updates.children.end() ? itYear->second : data.updates.children.try_emplace(year, createUpdate(year, 0)).first->second;
+		const auto  itMonth     = yearUpdate.children.find(month);
+		const auto& monthUpdate = itMonth != yearUpdate.children.end() ? itMonth->second : yearUpdate.children.try_emplace(month, createUpdate(month, yearUpdate.id)).first->second;
 		return monthUpdate.id;
 	}
 
@@ -2339,7 +2338,6 @@ private:
 	std::vector<QString>                                                                                                                       m_unknownGenres;
 	size_t                                                                                                                                     m_unknownGenreId { 0 };
 	std::unordered_set<size_t>                                                                                                                 m_newUpdates;
-	std::unordered_map<QString, QString>                                                                                                       m_uniqueKeywords;
 	std::unordered_map<std::pair<size_t, QString>, size_t, PairHash<size_t, QString>>                                                          m_uniqueFiles;
 	std::unordered_map<QString, std::unordered_map<QString, std::pair<size_t, int>, WStringHash, WStringEqualTo>, WStringHash, WStringEqualTo> m_foldersContent;
 	bool                                                                                                                                       m_oldDataUpdateFound { false };

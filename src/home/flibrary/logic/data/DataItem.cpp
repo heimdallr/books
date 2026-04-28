@@ -46,7 +46,7 @@ void DataItem::RemoveChild(size_t row, size_t count)
 	}
 
 	m_children.erase(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)), std::next(std::begin(m_children), static_cast<ptrdiff_t>(row + count)));
-	std::for_each(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)), std::end(m_children), [&](auto& item) {
+	std::for_each(std::next(std::begin(m_children), static_cast<ptrdiff_t>(row)), std::end(m_children), [&](const auto& item) {
 		item->template To<DataItem>()->m_row -= count;
 	});
 }

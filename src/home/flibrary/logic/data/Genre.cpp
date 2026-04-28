@@ -171,10 +171,12 @@ T LoadImpl(DB::IDatabase& db, const std::unordered_set<typename T::CodeType>& ne
 		}
 		buffer.clear();
 
-		for (auto&& treeItem : allItems | std::views::values | std::views::filter([](const auto& item) {
-								   return !std::get<0>(item).children.empty();
-							   }))
-			buffer.emplace_back(std::move(treeItem));
+		std::ranges::move(
+			allItems | std::views::values | std::views::filter([](const auto& item) {
+				return !std::get<0>(item).children.empty();
+			}),
+			std::back_inserter(buffer)
+		);
 		for (const auto& [treeItem, _] : buffer)
 			allItems.erase(treeItem.code);
 	}

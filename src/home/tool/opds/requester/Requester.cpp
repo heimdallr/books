@@ -311,7 +311,7 @@ struct Node
 
 QString& GetContent(Node& node)
 {
-	const auto it = std::ranges::find(node.children, CONTENT, [](auto& item) {
+	const auto it = std::ranges::find(node.children, CONTENT, [](const auto& item) {
 		return item.name;
 	});
 	assert(it != node.children.end());
@@ -394,8 +394,8 @@ Node& WriteEntry(Node::Children& children, const QString& root, const QString& p
 }
 
 struct NavigationDescription;
-void WriteBookEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase&, const IQueryTextFilter&, QString, std::map<QString, QString>&);
-void WriteNavigationEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase&, const IQueryTextFilter&, QString, std::map<QString, QString>&);
+void WriteBookEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase&, const IQueryTextFilter&, QString, std::map<QString, QString>&&);
+void WriteNavigationEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase&, const IQueryTextFilter&, QString, std::map<QString, QString>&&);
 
 class INavigationProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -415,7 +415,7 @@ using WriteEntries  = void (*)(
 	DB::IDatabase&               db,
 	const IQueryTextFilter&      queryTextFilter,
 	QString                      join,
-	std::map<QString, QString>&  ones
+	std::map<QString, QString>&& ones
 );
 
 struct NavigationDescription
@@ -482,7 +482,7 @@ void WriteBookEntries(
 	DB::IDatabase&               db,
 	const IQueryTextFilter&      queryTextFilter,
 	QString,
-	std::map<QString, QString>& ones
+	std::map<QString, QString>&& ones
 )
 {
 	const auto needAuthor = !parameters.contains(Loc::Authors);
@@ -524,7 +524,7 @@ void WriteNavigationEntries(
 	DB::IDatabase&               db,
 	const IQueryTextFilter&      queryTextFilter,
 	QString                      join,
-	std::map<QString, QString>&  ones
+	std::map<QString, QString>&& ones
 )
 {
 	if (join.isEmpty())
@@ -1028,7 +1028,7 @@ public:
 			auto p = parameters;
 			p.erase("q");
 			p.erase(SEPARATED);
-			writeEntries(head.children, root, std::move(p), navigationDescription, *db, *this, {}, ones);
+			writeEntries(head.children, root, std::move(p), navigationDescription, *db, *this, {}, std::move(ones));
 		}
 
 		if (n != head.children.size())
@@ -1247,7 +1247,6 @@ private:
 	{
 		const auto db = m_databaseController->GetDatabase(true);
 
-		ptrdiff_t                                         equalCount = 0;
 		QStringList                                       equal;
 		std::map<QString, QString>                        ones;
 		std::multimap<long long, QString, std::greater<>> buffer;
@@ -1292,6 +1291,7 @@ private:
 		}
 		else
 		{
+			ptrdiff_t  equalCount   = 0;
 			const auto selectStarts = [&](const auto startsWith) {
 				const auto [startsWithLike, escape] = PrepareForLike(startsWith);
 				const auto queryText                = QString(d.startsWith).arg(escape).arg(join);
@@ -1346,7 +1346,7 @@ private:
 
 		Parameters typedParameters = parameters;
 		typedParameters.erase(STARTS);
-		d.writeEntries(children, root, std::move(typedParameters), d, *db, *this, std::move(join), ones);
+		d.writeEntries(children, root, std::move(typedParameters), d, *db, *this, std::move(join), std::move(ones));
 	}
 
 	ptrdiff_t GetMaxResultSize() const
