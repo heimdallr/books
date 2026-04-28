@@ -75,8 +75,8 @@ private: // QAbstractItemModel
 		if (!hasIndex(row, column, parent))
 			return {};
 
-		auto* parentItem = const_cast<Genre*>(parent.isValid() ? static_cast<Genre*>(parent.internalPointer()) : &m_root);
-		auto& childItem  = parentItem->children[static_cast<size_t>(row)];
+		QT_CONST auto* parentItem = const_cast<Genre*>(parent.isValid() ? static_cast<Genre*>(parent.internalPointer()) : &m_root);
+		QT_CONST auto& childItem  = parentItem->children[static_cast<size_t>(row)];
 
 		return createIndex(row, column, &childItem);
 	}
@@ -86,8 +86,8 @@ private: // QAbstractItemModel
 		if (!index.isValid())
 			return {};
 
-		const auto* childItem  = static_cast<Genre*>(index.internalPointer());
-		const auto* parentItem = childItem->parent;
+		const auto*    childItem  = static_cast<Genre*>(index.internalPointer());
+		QT_CONST auto* parentItem = childItem->parent;
 
 		return parentItem != &m_root ? createIndex(static_cast<int>(parentItem->row), 0, parentItem) : QModelIndex {};
 	}

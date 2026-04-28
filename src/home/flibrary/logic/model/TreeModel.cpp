@@ -43,8 +43,8 @@ QModelIndex TreeModel::parent(const QModelIndex& index) const
 	if (!index.isValid())
 		return {};
 
-	auto* childItem  = static_cast<IDataItem*>(index.internalPointer());
-	auto* parentItem = childItem->GetParent();
+	QT_CONST auto* childItem  = static_cast<IDataItem*>(index.internalPointer());
+	QT_CONST auto* parentItem = childItem->GetParent();
 
 	return parentItem != m_data.get() ? createIndex(static_cast<int>(parentItem->GetRow()), 0, parentItem) : QModelIndex();
 }
