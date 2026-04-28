@@ -384,8 +384,8 @@ private: // IBookSelector
 		}
 
 		auto       queryClause     = description.queryClause;
-		const auto booksFrom       = QString(queryClause.booksFrom).arg(tmpTable->GetName()).toStdString();
-		const auto navigationFrom  = QString(queryClause.navigationFrom).arg(tmpTable->GetName()).toStdString();
+		const auto booksFrom       = QString(queryClause.booksFrom).arg(tmpTable->GetName().data()).toStdString();
+		const auto navigationFrom  = QString(queryClause.navigationFrom).arg(tmpTable->GetName().data()).toStdString();
 		queryClause.booksFrom      = booksFrom.data();
 		queryClause.navigationFrom = navigationFrom.data();
 
@@ -443,7 +443,7 @@ private:
 
 		{
 			QString booksWhere = queryClause.booksWhere;
-			if (!booksWhere.isEmpty())
+			if (!booksWhere.isEmpty() && booksWhere.contains('%'))
 				booksWhere = booksWhere.arg(navigationId);
 
 			const auto query = db.CreateQuery(std::format(DatabaseUtil::BOOKS_QUERY, with, queryClause.additionalFields, queryClause.booksFrom, booksWhere.toStdString()));
@@ -468,7 +468,7 @@ private:
 
 		auto where = [&] {
 			QString result(queryClause.navigationWhere);
-			if (!result.isEmpty())
+			if (!result.isEmpty() && result.contains('%'))
 				result = result.arg(navigationId);
 			return result.toStdString();
 		}();

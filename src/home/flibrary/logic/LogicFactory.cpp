@@ -5,7 +5,9 @@
 #include "fnd/FindPair.h"
 
 #include "interface/constants/Enums.h"
+#include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/IOpdsController.h"
@@ -20,9 +22,9 @@
 #include "data/Genre.h"
 #include "extract/BooksExtractor.h"
 #include "extract/InpxGenerator.h"
-#include "platform/DyLib.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/ZipProgressCallback.h"
+#include "util/Settings.h"
 #include "util/translit.h"
 
 #include "log.h"
@@ -141,23 +143,16 @@ private: // IFilledTemplateConverter
 class FilledTemplateTransliterator : public IFillTemplateConverter
 {
 protected:
-	FilledTemplateTransliterator()
-		: m_icuLib { std::make_unique<Platform::DyLib>(ICU::LIB_NAME) }
-		, m_icuTransliterate { m_icuLib->GetTypedProc<ICU::TransliterateType>(ICU::TRANSLITERATE_NAME) }
-	{
-	}
+	FilledTemplateTransliterator() = default;
 
 private: // IFilledTemplateConverter
 	bool IsValid() const noexcept override
 	{
-		return !!m_icuTransliterate;
+		return m_transliterator.IsReady();
 	}
 
-private:
-	std::unique_ptr<Platform::DyLib> m_icuLib;
-
 protected:
-	ICU::TransliterateType m_icuTransliterate { nullptr };
+	Util::Transliterator m_transliterator;
 };
 
 class FilledTemplateConverterFileNameOnly final : public FilledTemplateTransliterator
@@ -182,7 +177,7 @@ private: // IFilledTemplateConverter
 
 		const QFileInfo fileInfo(book.dstFileName);
 		auto            fileName = fileInfo.fileName();
-		fileName                 = Util::Transliterate(m_icuTransliterate, fileName);
+		fileName                 = m_transliterator.Transliterate(fileName);
 		book.dstFileName         = fileInfo.dir().filePath(fileName);
 	}
 };
@@ -208,7 +203,7 @@ private: // IFilledTemplateConverter
 		book.dstFileName.replace(userDestinationFolder, "|UserDestinationFolder|");
 		ILogicFactory::FillScriptTemplate(db, book.dstFileName, book);
 		book.dstFileName.replace("|UserDestinationFolder|", userDestinationFolder);
-		book.dstFileName = Util::Transliterate(m_icuTransliterate, outputFileTemplate);
+		book.dstFileName = m_transliterator.Transliterate(outputFileTemplate);
 		IScriptController::SetMacro(book.dstFileName, IScriptController::Macro::UserDestinationFolder, dstFolder);
 	}
 };
@@ -232,7 +227,7 @@ private: // IFilledTemplateConverter
 		book.dstFileName = outputFileTemplate;
 		IScriptController::SetMacro(book.dstFileName, IScriptController::Macro::UserDestinationFolder, dstFolder);
 		ILogicFactory::FillScriptTemplate(db, book.dstFileName, book);
-		book.dstFileName = Util::Transliterate(m_icuTransliterate, outputFileTemplate);
+		book.dstFileName = m_transliterator.Transliterate(outputFileTemplate);
 	}
 };
 
@@ -385,6 +380,11 @@ std::shared_ptr<IFillTemplateConverter> LogicFactory::CreateFillTemplateConverte
 	return needStub ? FilledTemplateConverterNone::Create() : CreateFilledTemplateConverter(*settings);
 }
 
+std::shared_ptr<ISettings> LogicFactory::CreateSettingsStub() const
+{
+	return SettingsFactory::CreateStub();
+}
+
 std::shared_ptr<Zip::ProgressCallback> LogicFactory::CreateZipProgressCallback(std::shared_ptr<IProgressController> progressController) const
 {
 	m_impl->progressControllerGuard.lock();
@@ -440,6 +440,18 @@ Util::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel* model, 
 	});
 
 	return books;
+}
+
+void LogicFactory::FindBook(const QString& navigationMode, const QString& navigationId, const long long bookId) const
+{
+	const auto  settings   = m_impl->container.resolve<ISettings>();
+	const auto& collection = m_impl->container.resolve<ICollectionProvider>()->GetActiveCollection();
+
+	if (bookId > 0)
+		settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(collection.id, Loc::Books, ""), bookId);
+
+	settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(collection.id, QString("%1/").arg(Loc::NAVIGATION), navigationMode), navigationId);
+	GetTreeViewController(ItemType::Navigation)->SetMode(navigationMode);
 }
 
 std::shared_ptr<IProgressController> LogicFactory::GetProgressController() const

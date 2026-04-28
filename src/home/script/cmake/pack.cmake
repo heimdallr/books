@@ -10,7 +10,7 @@ function(__Pack_WIX)
 endfunction()
 
 function(__Pack_DEB)
-	install(FILES "${CMAKE_SOURCE_DIR}/src/home/script/install/${PROJECT_NAME}.desktop" DESTINATION /usr/share/applications OPTIONAL)
+	install(PROGRAMS "${CMAKE_SOURCE_DIR}/src/home/script/install/${PROJECT_NAME}.desktop" DESTINATION /usr/share/applications OPTIONAL)
 	install(FILES "${CMAKE_SOURCE_DIR}/src/home/resources/icons/${PROJECT_NAME}.png" DESTINATION /usr/share/icons OPTIONAL)
 	set(CPACK_DEBIAN_PACKAGE_SECTION "contrib" PARENT_SCOPE)
 	set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Heimdallr <heimdallrnsk@gmail.com>" PARENT_SCOPE)
@@ -22,28 +22,6 @@ endfunction()
 function(__Pack_Archive)
 	set(CPACK_ARCHIVE_FILE_NAME ${CPACK_PACKAGE_FILE_NAME})
 endfunction()
-
-if(${CMAKE_HOST_SYSTEM_NAME} STREQUAL "Linux")
-	qt_generate_deploy_app_script(
-		TARGET ${PROJECT_NAME}
-		OUTPUT_SCRIPT deploy_script
-		NO_TRANSLATIONS
-		EXCLUDE_PLUGIN_TYPES egldeviceintegrations generic platforminputcontexts qmltooling vectorimageformats
-		INCLUDE_PLUGIN_TYPES wayland-shell-integration
-		INCLUDE_PLUGINS qwayland
-	)
-	install(SCRIPT ${deploy_script})
-
-	qt_generate_deploy_app_script(
-		TARGET opds
-		OUTPUT_SCRIPT deploy_script
-		NO_TRANSLATIONS
-		EXCLUDE_PLUGIN_TYPES egldeviceintegrations generic platforminputcontexts qmltooling vectorimageformats
-		INCLUDE_PLUGIN_TYPES wayland-shell-integration
-		INCLUDE_PLUGINS qwayland
-	)
-	install(SCRIPT ${deploy_script})
-endif()
 
 if("${CPACK_GENERATOR}" STREQUAL "")
 	return()
@@ -59,9 +37,14 @@ set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/src/home/flibrary/app/resources/icon
 set(CPACK_MONOLITHIC_INSTALL TRUE)
 set(CPACK_PACKAGE_EXECUTABLES "FLibrary;FLibrary")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "FLibrary")
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}_setup_${CMAKE_PROJECT_VERSION}")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CMAKE_PROJECT_VERSION}-setup-${OS_NAME}")
 file(WRITE "${CMAKE_BINARY_DIR}/bin/installer_mode" ${CPACK_GENERATOR})
 install(FILES "${CMAKE_BINARY_DIR}/bin/installer_mode" DESTINATION .)
+
+if(NOT WIN32)
+	file(WRITE "${CMAKE_BINARY_DIR}/start.sh" "#!/bin/bash\nLD_LIBRARY_PATH=$(dirname \"\${BASH_SOURCE[0]}\")/lib:$LD_LIBRARY_PATH ICU_DATA=$(dirname \"\${BASH_SOURCE[0]}\")/lib $(dirname \"\${BASH_SOURCE[0]}\")/${PROJECT_NAME}")
+	install(PROGRAMS "${CMAKE_BINARY_DIR}/start.sh" DESTINATION .)
+endif()
 
 if("${CPACK_GENERATOR}" STREQUAL "WIX")
 	__Pack_WIX()
@@ -73,6 +56,7 @@ else()
 	if (${index} EQUAL -1)
 		message(FATAL_ERROR "Unsupported cpack generator: ${CPACK_GENERATOR}")
 	endif()
+	set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CMAKE_PROJECT_VERSION}-portable-${OS_NAME}")
 	__Pack_Archive()
 endif()
 

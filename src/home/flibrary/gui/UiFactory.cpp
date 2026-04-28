@@ -1,11 +1,23 @@
 #include "UiFactory.h"
 
+#include <QClipboard>
+#include <QComboBox>
+#include <QDesktopServices>
 #include <QFileInfo>
+#include <QGuiApplication>
+#include <QMenuBar>
+#include <QShortcut>
+#include <QToolTip>
 
 #include "fnd/FindPair.h"
 
+#include "database/interface/IDatabase.h"
+#include "database/interface/ITransaction.h"
+
+#include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IScriptController.h"
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/dialogs/IComboBoxTextDialog.h"
 
@@ -18,7 +30,10 @@
 #include "dialogs/OpdsDialog.h"
 #include "dialogs/SettingsDialog.h"
 #include "dialogs/script/ScriptDialog.h"
+#include "logic/data/DataItem.h"
+#include "utilgui/GeometryRestorable.h"
 #include "version/AppVersion.h"
+#include "widgets/ClickableLabel.h"
 
 #include "AuthorReview.h"
 #include "CollectionCleaner.h"
@@ -35,15 +50,18 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto        CONTEXT           = "Dialog";
-constexpr auto        ABOUT_TITLE       = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
-constexpr auto        ABOUT_DESCRIPTION = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger");
-constexpr auto        ABOUT_VERSION     = QT_TRANSLATE_NOOP("Dialog", "Version: %1 (%2)");
-constexpr auto        ABOUT_LICENSE     = QT_TRANSLATE_NOOP("Dialog", "Distributed under license %1");
-constexpr auto        PERSONAL_BUILD    = QT_TRANSLATE_NOOP("Dialog", "<p>Personal <a href='%1'>%2</a> build</p>");
-constexpr const char* COMPONENTS[]      = {
+constexpr auto        CONTEXT            = "Dialog";
+constexpr auto        ABOUT_TITLE        = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
+constexpr auto        ABOUT_DESCRIPTION  = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger");
+constexpr auto        ABOUT_VERSION      = QT_TRANSLATE_NOOP("Dialog", "Version: %1 (%2) %3");
+constexpr auto        ABOUT_LICENSE      = QT_TRANSLATE_NOOP("Dialog", "Distributed under license %1");
+constexpr auto        PERSONAL_BUILD     = QT_TRANSLATE_NOOP("Dialog", "<p>Personal <a href='%1'>%2</a> build</p>");
+constexpr auto        VERSION_COPIED     = QT_TRANSLATE_NOOP("Dialog", "The program version has been copied to the clipboard");
+constexpr auto        CLEAR_RECENT_BOOKS = QT_TRANSLATE_NOOP("Dialog", "Cleanup recent books list");
+constexpr const char* COMPONENTS[]       = {
 	"<hr><table style='font-size:50%'>",
 	QT_TRANSLATE_NOOP("Dialog", "<tr><td style='text-align: center'>Components / Libraries</td></tr>"),
+	// ReSharper disable StringLiteralTypo
 	// clang-format off
 	"<tr><td><a href='https://wiki.qt.io/Main'>Qt</a> &copy; 2024 The Qt Company Ltd <a href='https://www.gnu.org/licenses/lgpl-3.0.html#license-text'>GNU LGPL v3</a></td></tr>",
 	"<tr><td><a href='https://github.com/ybainier/Hypodermic'>Hypodermic</a> &copy; 2016 Hypodermic Project <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
@@ -60,10 +78,20 @@ constexpr const char* COMPONENTS[]      = {
 	"<tr><td><a href='https://cimg.eu/'>CImg</a> &copy; 2004, David Tschumperlé - GREYC UMR CNRS 6072, Image team. <a href='http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.txt'>CeCILL-C</a></td></tr>",
 	"<tr><td><a href='https://uxwing.com/'>UXWing</a> &copy; 2025 UXWing <a href='https://uxwing.com/license/'>License</a></td></tr>",
 	// clang-format on
+	// ReSharper enable StringLiteralTypo
 	"</table>"
 };
-constexpr auto ABOUT_TEXT = "%1<p>%2<p><a href='%3'>%3</a><p>%4%5";
+constexpr auto ABOUT_TEXT        = "%1<p>%2<p><a href='%3'>%3</a><p>%4%5";
+constexpr auto COPY_VERSION_LINK = "copy://version";
 TR_DEF
+
+constexpr auto MAX_MENU_ITEM_COUNT_KEY       = "Preferences/RecentBooksMenu/MaxCount";
+constexpr auto MENU_ITEM_TITLE_FORMAT_KEY    = "Preferences/RecentBooksMenu/TitleFormat";
+constexpr auto MENU_ITEM_DATETIME_FORMAT_KEY = "Preferences/RecentBooksMenu/DateTimeFormat";
+
+constexpr auto MAX_MENU_ITEM_DEFAULT             = 16;
+constexpr auto MENU_ITEM_TITLE_FORMAT_DEFAULT    = "%author% \t %title%";
+constexpr auto MENU_ITEM_DATETIME_FORMAT_DEFAULT = "yyyy-MM-dd hh:mm:ss";
 
 QString GetPersonalBuildString()
 {
@@ -130,6 +158,11 @@ QObject* UiFactory::GetParentObject(QObject* defaultObject) const noexcept
 QWidget* UiFactory::GetParentWidget(QWidget* defaultWidget) const noexcept
 {
 	return m_impl->container.resolve<Util::IUiFactory>()->GetParentWidget(defaultWidget);
+}
+
+int UiFactory::GetParentWidgetFontSize() const noexcept
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetParentWidgetFontSize();
 }
 
 std::shared_ptr<TreeView> UiFactory::CreateTreeViewWidget(const ItemType type) const
@@ -204,6 +237,23 @@ void UiFactory::CreateAuthorReview(const long long id) const
 	CreateStackedPage<AuthorReview>(m_impl->container, this);
 }
 
+void UiFactory::ExecuteContextMenu(QLineEdit* lineEdit) const
+{
+	QMenu menu(lineEdit);
+	for (const auto& item : IScriptController::s_commandMacros | std::views::values)
+	{
+		const auto menuItemTitle = QString("%1\t%2").arg(Loc::Tr(IScriptController::s_context, item), item);
+		menu.addAction(menuItemTitle, [=, value = QString(item)] {
+			auto       currentText     = lineEdit->text();
+			const auto currentPosition = lineEdit->cursorPosition();
+			lineEdit->setText(currentText.insert(currentPosition, value));
+			lineEdit->setCursorPosition(currentPosition + static_cast<int>(value.size()));
+		});
+	}
+	menu.setFont(lineEdit->font());
+	menu.exec(QCursor::pos());
+}
+
 void UiFactory::ShowAbout() const
 {
 	auto*       parent = m_impl->container.resolve<IParentWidgetProvider>()->GetWidget();
@@ -212,20 +262,39 @@ void UiFactory::ShowAbout() const
 	msgBox.setIcon(QMessageBox::Information);
 	msgBox.setWindowTitle(Tr(ABOUT_TITLE));
 	msgBox.setTextFormat(Qt::RichText);
-	msgBox.setText(QString(ABOUT_TEXT)
-	                   .arg(
-						   Tr(ABOUT_DESCRIPTION),
-						   Tr(ABOUT_VERSION).arg(GetApplicationVersion(), GIT_HASH),
-						   "https://github.com/heimdallr/books",
-						   Tr(ABOUT_LICENSE).arg("<a href='https://opensource.org/license/mit'>MIT</a>"),
-						   GetPersonalBuildString()
-					   ));
+	msgBox.setText(
+		QString(ABOUT_TEXT)
+			.arg(
+				Tr(ABOUT_DESCRIPTION),
+				Tr(ABOUT_VERSION)
+					.arg(GetApplicationVersion(), GIT_HASH, QString("<font size='%1px;'><a href='%2'>%3</a></font>").arg(msgBox.font().pointSize() * 9 / 10).arg(COPY_VERSION_LINK, QChar { 0x29C9 })),
+				"https://github.com/heimdallr/books",
+				Tr(ABOUT_LICENSE).arg("<a href='https://opensource.org/license/mit'>MIT</a>"),
+				GetPersonalBuildString()
+			)
+	);
+
+	for (auto* label : msgBox.findChildren<QLabel*>())
+	{
+		label->setOpenExternalLinks(false);
+		connect(label, &QLabel::linkActivated, [&](const QString& link) {
+			if (link != COPY_VERSION_LINK)
+				return (void)QDesktopServices::openUrl(link);
+
+			QGuiApplication::clipboard()->setText(QString("%1 (%2)").arg(GetApplicationVersion(), GIT_HASH));
+			QToolTip::setFont(msgBox.font());
+			QToolTip::showText(QCursor::pos(), Tr(VERSION_COPIED));
+		});
+	}
+
 	msgBox.setStandardButtons(QMessageBox::Ok);
 	QStringList text;
 	std::ranges::transform(COMPONENTS, std::back_inserter(text), [](const char* str) {
 		return Loc::Tr(CONTEXT, str);
 	});
 	msgBox.setInformativeText(QString(R"(<font size="%1px;">%2</font>)").arg(msgBox.font().pointSize() * 9 / 10).arg(text.join("")));
+	msgBox.show();
+	Util::MoveToParentCenter(msgBox);
 	msgBox.exec();
 }
 
@@ -327,4 +396,182 @@ long long UiFactory::GetAuthorId() const noexcept
 	const auto result = m_impl->authorId;
 	m_impl->authorId  = -1;
 	return result;
+}
+
+namespace
+{
+
+QString GetName(const QString& parent, const QString& child)
+{
+	return QString("%1/%2").arg(parent, child);
+}
+
+QString RemoveAmp(QString str)
+{
+	return str.remove('&');
+}
+
+}
+
+IDataItem::Ptr UiFactory::AddMenuBarToHotkeys(const ISettings& settings, const QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*)>& functor) const
+{
+	auto menuBarItem = SettingsItem::Create();
+	menuBarItem->SetData(menuBar.objectName(), SettingsItem::Column::Key);
+	menuBarItem->SetData(title, SettingsItem::Column::Title);
+
+	const auto addChild = [&](IDataItem& parent, const QObject& obj, QString objTitle) -> IDataItem::Ptr& {
+		auto child = SettingsItem::Create();
+		child->SetData(GetName(parent.GetData(SettingsItem::Column::Key), obj.objectName()), SettingsItem::Column::Key);
+		child->SetData(RemoveAmp(std::move(objTitle)), SettingsItem::Column::Title);
+		return parent.AppendChild(std::move(child));
+	};
+
+	const auto enumerate = [&](const QList<QMenu*>& menuList, IDataItem& parent, std::unordered_set<const QAction*>& menuActions, const auto& r) -> void {
+		for (const auto* menu : menuList)
+		{
+			if (menu->title().isEmpty())
+				continue;
+
+			menuActions.emplace(menu->menuAction());
+			auto& child = addChild(parent, *menu, menu->title());
+
+			std::unordered_set<const QAction*> actions;
+			r(menu->findChildren<QMenu*>(QString {}, Qt::FindDirectChildrenOnly), *child, actions, r);
+
+			for (auto* action : menu->actions() | std::views::filter([&](const QAction* item) {
+									return !(item->isSeparator() || actions.contains(item));
+								}))
+			{
+				if (action->objectName().isEmpty())
+				{
+					PLOGW << action->text() << ": objectName is empty";
+					continue;
+				}
+
+				auto& actionItem = addChild(*child, *action, action->text());
+				functor(actionItem, action);
+				if (const auto shortCut = settings.Get(GetName(Constant::Settings::HOTKEYS_ROOT, actionItem->GetData(SettingsItem::Column::Key))); shortCut.isValid())
+					action->setShortcut(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
+				actionItem->SetData(action->shortcut().toString(), SettingsItem::Column::Value);
+			}
+		}
+	};
+
+	std::unordered_set<const QAction*> actions;
+	enumerate(menuBar.findChildren<QMenu*>(QString {}, Qt::FindDirectChildrenOnly), *menuBarItem, actions, enumerate);
+
+	return menuBarItem;
+}
+
+IDataItem::Ptr UiFactory::AddComboBoxToHotkeys(const ISettings& settings, QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*)>& functor) const
+{
+	auto comboBoxItem = SettingsItem::Create();
+	comboBoxItem->SetData(comboBox.objectName(), SettingsItem::Column::Key);
+	comboBoxItem->SetData(title, SettingsItem::Column::Title);
+
+	for (int i = 0, sz = comboBox.count(); i < sz; ++i)
+	{
+		auto& child = comboBoxItem->AppendChild(SettingsItem::Create());
+		child->SetData(GetName(comboBoxItem->GetData(SettingsItem::Column::Key), comboBox.itemData(i).toString()), SettingsItem::Column::Key);
+		child->SetData(comboBox.itemText(i), SettingsItem::Column::Title);
+
+		auto* shortcut = new QShortcut(&comboBox);
+		shortcut->setObjectName(comboBox.itemData(i).toString());
+		connect(shortcut, &QShortcut::activated, [comboBox = &comboBox, i] {
+			comboBox->setCurrentIndex(i);
+		});
+		functor(child, shortcut);
+		if (const auto shortCut = settings.Get(GetName(Constant::Settings::HOTKEYS_ROOT, child->GetData(SettingsItem::Column::Key))); shortCut.isValid())
+			shortcut->setKey(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
+		child->SetData(shortcut->key().toString(), SettingsItem::Column::Value);
+	}
+
+	return comboBoxItem;
+}
+
+void UiFactory::UpdateRecentOpenBookControllerMenu(QMenu& menu) const
+{
+	static constexpr auto QUERY = R"(with Last(BookId, CreatedAt) as(
+select e.BookID, max(e.CreatedAt)
+from Export_List_User e
+left join Settings s on s.SettingID = {}
+where e.ExportType = 0 and e.CreatedAt > coalesce(s.SettingValue, datetime('1974-01-01 11:18:31'))
+group by e.BookID
+)
+select b.BookID, b.Title, (
+    select(group_concat(author, ', ')) from (
+        select a.LastName || coalesce(' ' || substr(nullif(a.FirstName, ''), 1, 1)||'.', '') || coalesce(substr(nullif(a.MiddleName, ''), 1, 1)||'.', '') author
+        from Authors a
+        join Author_List l on l.AuthorID = a.AuthorID and l.BookID = b.BookID
+        order by l.OrdNum
+        limit 3
+    )
+) Author, l.CreatedAt
+from Last l
+join Books b on b.BookID = l.BookID
+order by l.CreatedAt desc
+limit {}
+)";
+
+	auto& container = m_impl->container;
+
+	const auto collectionProvider = container.resolve<ICollectionProvider>();
+
+	auto       settings               = container.resolve<ISettings>();
+	const auto maxMenuItemCount       = settings->Get(MAX_MENU_ITEM_COUNT_KEY, MAX_MENU_ITEM_DEFAULT);
+	auto       menuItemTitleFormat    = settings->Get(MENU_ITEM_TITLE_FORMAT_KEY, MENU_ITEM_TITLE_FORMAT_DEFAULT).replace(R"(\t)", "\t").replace(R"(\n)", "\n");
+	auto       menuItemDateTimeFormat = settings->Get(MENU_ITEM_DATETIME_FORMAT_KEY, MENU_ITEM_DATETIME_FORMAT_DEFAULT);
+
+	menu.clear();
+	menu.menuAction()->setEnabled(false);
+	if (maxMenuItemCount < 1)
+		return menu.menuAction()->setVisible(false);
+
+	const auto databaseUser = container.resolve<IDatabaseUser>();
+
+	auto db = databaseUser->CheckDatabase();
+	if (!db)
+		return;
+
+	auto queryText = std::format(QUERY, std::to_underlying(IDatabaseUser::Key::RecentBookDateTime), maxMenuItemCount);
+	databaseUser->Execute(
+		{ "Update recent books menu",
+	      [this, &menu, queryText = std::move(queryText), menuItemTitleFormat = std::move(menuItemTitleFormat), menuItemDateTimeFormat = std::move(menuItemDateTimeFormat), db = std::move(db)]() mutable {
+			  const auto                                 query = db->CreateQuery(queryText);
+			  std::vector<std::pair<long long, QString>> data;
+			  for (query->Execute(); !query->Eof(); query->Next())
+			  {
+				  const auto dateTime = QDateTime::fromString(query->Get<const char*>(3), MENU_ITEM_DATETIME_FORMAT_DEFAULT).toString(menuItemDateTimeFormat);
+				  auto       title    = menuItemTitleFormat;
+				  title.replace("%title%", query->Get<const char*>(1)).replace("%author%", query->Get<const char*>(2)).replace("%time%", dateTime);
+				  data.emplace_back(query->Get<long long>(0), std::move(title));
+			  }
+
+			  return [this, &menu, data = std::move(data)](size_t) {
+				  menu.menuAction()->setEnabled(!data.empty());
+				  for (const auto& [id, title] : data)
+				  {
+					  auto* action = menu.addAction(title);
+					  connect(action, &QAction::triggered, [this, id] {
+						  m_impl->container.resolve<IBookInteractor>()->OnRecentBookMenuTriggered(id);
+					  });
+				  }
+				  menu.addSeparator();
+				  auto* action = menu.addAction(Tr(CLEAR_RECENT_BOOKS));
+				  connect(action, &QAction::triggered, [this, &menu] {
+					  const auto database = m_impl->container.resolve<IDatabaseUser>()->Database();
+					  const auto tr       = database->CreateTransaction();
+					  tr->CreateCommand(
+							std::format(
+								"insert or replace into Settings(SettingID, SettingValue) values({}, datetime(CURRENT_TIMESTAMP, 'localtime'))",
+								std::to_underlying(IDatabaseUser::Key::RecentBookDateTime)
+							)
+					  )
+						  ->Execute();
+					  tr->Commit();
+					  UpdateRecentOpenBookControllerMenu(menu);
+				  });
+			  };
+		  } }
+	);
 }

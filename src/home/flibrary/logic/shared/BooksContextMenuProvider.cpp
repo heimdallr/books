@@ -30,6 +30,7 @@
 
 #include "Constant.h"
 #include "MenuItems.h"
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa;
@@ -397,6 +398,16 @@ private: // IContextMenuHandler
 		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::AddToGroup);
 	}
 
+	void MoveToNewGroup(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		MoveToGroup(model, index, indexList, std::move(item), std::move(callback));
+	}
+
+	void MoveToGroup(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
+	{
+		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::MoveToGroup);
+	}
+
 	void RemoveFromGroup(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		GroupAction(model, index, indexList, std::move(item), std::move(callback), &GroupController::RemoveFromGroup);
@@ -537,8 +548,8 @@ private: // IContextMenuHandler
 		std::shared_ptr progressItem = m_progressController->Add(std::ssize(books));
 		std::shared_ptr executor     = logicFactory->GetExecutor();
 
-		auto& executorPtr = *executor;
-		executorPtr(
+		const auto& executorRef = *executor;
+		executorRef(
 			{ "calculate book hashes",
 		      [item         = std::move(item),
 		       callback     = std::move(callback),
@@ -578,8 +589,8 @@ private: // IContextMenuHandler
 
 		std::shared_ptr executor = logicFactory->GetExecutor();
 
-		auto& executorPtr = *executor;
-		executorPtr(
+		const auto& executorRef = *executor;
+		executorRef(
 			{ "compare book hashes",
 		      [item         = std::move(item),
 		       callback     = std::move(callback),
@@ -764,20 +775,21 @@ private:
 	{
 		const auto whatTodo = [&] {
 			std::unordered_set<QString> uniqueNames;
-			for (const auto& book : books)
-				if (QFile::exists(book.dstFileName) || !uniqueNames.emplace(book.dstFileName).second)
-					return m_uiFactory->ShowCustomDialog(
-						QMessageBox::Question,
-						Loc::Tr(Loc::Ctx::COMMON, Loc::WARNING),
-						Tr(SAME_NAMED_FILES),
-						{
-							{      QMessageBox::AcceptRole,      Tr(SAME_NAMED_FILES_SKIP) },
-							{ QMessageBox::DestructiveRole, Tr(SAME_NAMED_FILES_OVERWRITE) },
-							{          QMessageBox::NoRole,    Tr(SAME_NAMED_FILES_RENAME) },
-							{      QMessageBox::RejectRole,    Tr(SAME_NAMED_FILES_CANCEL) },
-                    },
-						QMessageBox::AcceptRole
-					);
+			if (std::ranges::any_of(books, [&](const auto& book) {
+					return QFile::exists(book.dstFileName) || !uniqueNames.emplace(book.dstFileName).second;
+				}))
+				return m_uiFactory->ShowCustomDialog(
+					QMessageBox::Question,
+					Loc::Tr(Loc::Ctx::COMMON, Loc::WARNING),
+					Tr(SAME_NAMED_FILES),
+					{
+						{      QMessageBox::AcceptRole,      Tr(SAME_NAMED_FILES_SKIP) },
+						{ QMessageBox::DestructiveRole, Tr(SAME_NAMED_FILES_OVERWRITE) },
+						{          QMessageBox::NoRole,    Tr(SAME_NAMED_FILES_RENAME) },
+						{      QMessageBox::RejectRole,    Tr(SAME_NAMED_FILES_CANCEL) },
+                },
+					QMessageBox::AcceptRole
+				);
 
 			return QMessageBox::AcceptRole;
 		}();
@@ -799,7 +811,7 @@ private:
 					continue;
 			}
 
-			auto [it, inserted] = unique.emplace(book.dstFileName, index);
+			auto [it, inserted] = unique.try_emplace(book.dstFileName, index);
 			if (inserted)
 				continue;
 
@@ -834,12 +846,10 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr& parent, co
 		AddMenuItem(parent, TREE_EXPAND, Tr(TREE_EXPAND), BooksMenuAction::Expand);
 	if (!!(options & ITreeViewController::RequestContextMenuOptions::NodeExpanded))
 		AddMenuItem(parent, TREE_COLLAPSE, Tr(TREE_COLLAPSE), BooksMenuAction::Collapse);
-	if (const auto item = AddMenuItem(parent, Loc::TREE_COLLAPSE_ALL, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll); //-V821
-	    !(options & ITreeViewController::RequestContextMenuOptions::HasExpanded))
-		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
-	if (const auto item = AddMenuItem(parent, Loc::TREE_EXPAND_ALL, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_EXPAND_ALL), BooksMenuAction::ExpandAll);
-	    !(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed)) //-V821
-		item->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+	AddMenuItem(parent, Loc::TREE_COLLAPSE_ALL, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL), BooksMenuAction::CollapseAll)
+		->SetData(QVariant(!!(options & ITreeViewController::RequestContextMenuOptions::HasExpanded)).toString(), MenuItem::Column::Enabled);
+	AddMenuItem(parent, Loc::TREE_EXPAND_ALL, Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_EXPAND_ALL), BooksMenuAction::ExpandAll)
+		->SetData(QVariant(!!(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed)).toString(), MenuItem::Column::Enabled);
 }
 
 BooksContextMenuProvider::BooksContextMenuProvider(

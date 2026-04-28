@@ -227,7 +227,6 @@ public:
 	FLINT_EXPORT static bool        HasMacro(const QString& str, Macro macro);
 	FLINT_EXPORT static QString&    SetMacro(QString& str, Macro macro, const QString& value);
 	FLINT_EXPORT static const char* GetMacro(Macro macro);
-	FLINT_EXPORT static void        ExecuteContextMenu(QLineEdit* lineEdit);
 	FLINT_EXPORT static QString     GetDefaultOutputFileNameTemplate();
 	FLINT_EXPORT static void        SetSeqNumberWidth(int value);
 
@@ -273,3 +272,6 @@ public:
 };
 
 } // namespace HomeCompa::Flibrary
+
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::IScriptController::Mode)
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::IScriptController::Command::Type)

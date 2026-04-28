@@ -33,6 +33,7 @@ public:
 	void Rename(Id id, QString name, Callback callback) const;
 	void Remove(Ids ids, Callback callback) const;
 	void AddToGroup(Id id, Ids ids, Callback callback) const;
+	void MoveToGroup(Id id, Ids ids, Callback callback) const;
 	void RemoveFromGroup(Id id, Ids ids, Callback callback) const;
 	void RemoveBooks(Id id, Ids ids, Callback callback) const;
 	void RemoveAuthors(Id id, Ids ids, Callback callback) const;

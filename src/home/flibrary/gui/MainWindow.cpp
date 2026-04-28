@@ -9,12 +9,14 @@
 #include <QDirIterator>
 #include <QGuiApplication>
 #include <QKeyEvent>
+#include <QStandardPaths>
 #include <QStyleFactory>
 #include <QSystemTrayIcon>
 #include <QTimer>
 #include <QToolBar>
 
 #include "fnd/IsOneOf.h"
+#include "fnd/ScopedCall.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -35,11 +37,12 @@
 #include "gutil/util.h"
 #include "logging/LogAppender.h"
 #include "util/FunctorExecutionForwarder.h"
-#include "util/GeometryRestorable.h"
 #include "util/ObjectsConnector.h"
 #include "util/serializer/Font.h"
+#include "utilgui/GeometryRestorable.h"
 
 #include "Constant.h"
+#include "QtTypes.h"
 #include "StackedPage.h"
 #include "TreeView.h"
 #include "log.h"
@@ -106,6 +109,35 @@ constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(TITLE)        \
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(ANNOTATION)
 
+template <typename T>
+QString ToString(const T* source) = delete;
+
+template <>
+[[maybe_unused]] QString ToString<char>(const char* source)
+{
+	return QString::fromStdString(source);
+}
+
+template <>
+[[maybe_unused]] QString ToString<wchar_t>(const wchar_t* source)
+{
+	return QString::fromStdWString(source);
+}
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+QString GetStyleName(const QString& key)
+{
+	if (const auto* style = QStyleFactory::create(key))
+		return style->name();
+	return {};
+}
+#else
+QString GetStyleName(const QString& key)
+{
+	return QStyleFactory::create(key) ? key : QString {};
+}
+#endif
+
 class LineEditPlaceholderTextController final : public QObject
 {
 public:
@@ -167,6 +199,39 @@ private:
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 };
 
+class VisibleChangedHandler final : public QObject
+{
+public:
+	explicit VisibleChangedHandler(std::function<void(bool)> callback, QObject* parent = nullptr)
+		: QObject(parent)
+		, m_callback { std::move(callback) }
+	{
+	}
+
+private: // QObject
+	bool eventFilter(QObject* watched, QEvent* event) override
+	{
+		switch (event->type())
+		{
+			case QEvent::Show:
+				m_callback(true);
+				break;
+
+			case QEvent::Hide:
+				m_callback(false);
+				break;
+
+			default:
+				break;
+		}
+
+		return QObject::eventFilter(watched, event);
+	}
+
+private:
+	std::function<void(bool)> m_callback;
+};
+
 std::set<QString> GetQssList()
 {
 	std::set<QString> list;
@@ -212,7 +277,8 @@ public:
 		std::shared_ptr<QStyledItemDelegate>            logItemDelegate,
 		std::shared_ptr<ILineOption>                    lineOption,
 		std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
-		std::shared_ptr<IHotkeyManager>                 hotkeyManager
+		std::shared_ptr<IHotkeyManager>                 hotkeyManager,
+		std::shared_ptr<IRecentOpenBookController>      recentOpenBookController
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
@@ -235,6 +301,7 @@ public:
 		, m_lineOption { std::move(lineOption) }
 		, m_alphabetPanel { std::move(alphabetPanel) }
 		, m_hotkeyManager { std::move(hotkeyManager) }
+		, m_recentOpenBookController { std::move(recentOpenBookController) }
 		, m_navigationViewController { ILogicFactory::Lock(m_logicFactory)->GetTreeViewController(ItemType::Navigation) }
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
 		, m_navigationWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Navigation) }
@@ -248,30 +315,8 @@ public:
 		SetupHotkeys();
 		LoadGeometry();
 		StartDelayed([this, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable {
-			if (m_collectionController->IsEmpty() || !commandLine->GetInpxDir().empty())
-			{
-				m_self.showNormal();
-				m_self.raise();
-				m_self.activateWindow();
-
-				if (!m_ui.actionShowLog->isChecked())
-					m_ui.actionShowLog->trigger();
-				return m_collectionController->AddCollection(commandLine->GetInpxDir());
-			}
-
-			if (!databaseChecker->IsDatabaseValid())
-			{
-				m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection().GetDatabase()));
-				return QCoreApplication::exit(Global::APP_FAILED);
-			}
-
-			auto& collectionUpdateCheckerRef = *collectionUpdateChecker;
-			collectionUpdateCheckerRef.CheckForUpdate([this, collectionUpdateChecker = std::move(collectionUpdateChecker)](const bool result, const Collection& updatedCollection) mutable {
-				if (result)
-					m_collectionController->OnInpxUpdateChecked(updatedCollection);
-
-				collectionUpdateChecker.reset();
-			});
+			CheckForUpdateCollection(*commandLine, *databaseChecker, std::move(collectionUpdateChecker));
+			m_recentOpenBookController->SetMenu(m_ui.menuRecentBooks);
 		});
 
 		if (m_checkForUpdateOnStartEnabled && m_collectionController->ActiveCollectionExists())
@@ -281,6 +326,7 @@ public:
 	~Impl() override
 	{
 		SaveGeometry();
+		m_ui.annotationWidget->removeEventFilter(m_annotationWidgetEventFilter);
 		m_navigationViewController->UnregisterObserver(this);
 		m_collectionController->UnregisterObserver(this);
 		m_alphabetPanel->UnregisterObserver(this);
@@ -345,9 +391,7 @@ public:
 			return;
 
 		auto list = m_settings->Get(IStyleApplier::THEME_FILES_KEY).toStringList();
-		if (!erase_if(list, [this](const auto& item) {
-				return item == m_lastStyleFileHovered;
-			}))
+		if (!list.removeAll(m_lastStyleFileHovered))
 			return;
 
 		m_settings->Set(IStyleApplier::THEME_FILES_KEY, list);
@@ -363,7 +407,7 @@ public:
 		    it != actions.end())
 		{
 			m_ui.menuTheme->removeAction(*it);
-			if (auto* menu = (*it)->menu<>())
+			if (auto* menu = (*it)->menu())
 				menu->close();
 		}
 
@@ -391,6 +435,11 @@ public:
 			m_systemTray->hide();
 	}
 
+	void CreateCollection(Collection collection)
+	{
+		m_collectionToRecreate = std::move(collection);
+	}
+
 	void OnHideEvent()
 	{
 		m_isMaximized  = m_self.isMaximized();
@@ -405,15 +454,32 @@ private: // ICollectionsObserver
 
 	void OnNewCollectionCreating(const bool running) override
 	{
-		if (m_ui.actionShowLog->isChecked() != running)
-			m_ui.actionShowLog->trigger();
+		const ScopedCall triggerGuard([this, running] {
+			if (m_ui.actionShowLog->isChecked() != running)
+				m_ui.actionShowLog->trigger();
+		});
+
+		if (running || !m_collectionToRecreate)
+			return;
+
+		auto       controller = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
+		const auto backupPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/" + m_collectionToRecreate->id + ".flibk";
+
+		QEventLoop eventLoop;
+		controller->Restore(backupPath, [&](bool, const QString& message) {
+			PLOGV << message;
+			eventLoop.exit();
+		});
+		eventLoop.exec();
+		QFile::remove(backupPath);
+		m_collectionToRecreate = std::nullopt;
 	}
 
 private: // plog::IAppender
 	void write(const plog::Record& record) override
 	{
 		if (record.getSeverity() < plog::Severity::verbose && m_ui.statusBar && m_ui.statusBar->isVisible())
-			m_forwarder.Forward([&, message = QString(record.getMessage())] {
+			m_forwarder.Forward([&, message = ToString(record.getMessage())] {
 				m_ui.statusBar->showMessage(message, 2000);
 			});
 	}
@@ -486,7 +552,7 @@ private: // IAlphabetPanel::IObserver
 private: // ITreeViewController::::IObserver
 	void OnModeChanged(const int index) override
 	{
-		m_ui.leftWidget->setVisible(index != static_cast<int>(NavigationMode::AllBooks));
+		m_ui.leftWidget->setVisible(!IsOneOf(static_cast<NavigationMode>(index), NavigationMode::AlreadyRead, NavigationMode::AllBooks));
 	}
 
 	void OnModelChanged(QAbstractItemModel* /*model*/) override
@@ -648,15 +714,16 @@ private:
 		PLOGV << "ConnectActionsFile";
 		const auto userDataOperation = [this](const auto& operation) {
 			auto controller = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
-			std::invoke(operation, *controller, [controller]() mutable {
+			std::invoke(operation, *controller, [&, controller](const bool ok, const QString& message) mutable {
+				ok ? m_uiFactory->ShowInfo(message) : m_uiFactory->ShowError(message);
 				controller.reset();
 			});
 		};
 		connect(m_ui.actionExportUserData, &QAction::triggered, &m_self, [=] {
-			userDataOperation(&IUserDataController::Backup);
+			userDataOperation(static_cast<void (IUserDataController::*)(IUserDataController::Callback) const>(&IUserDataController::Backup));
 		});
 		connect(m_ui.actionImportUserData, &QAction::triggered, &m_self, [=] {
-			userDataOperation(&IUserDataController::Restore);
+			userDataOperation(static_cast<void (IUserDataController::*)(IUserDataController::Callback) const>(&IUserDataController::Restore));
 		});
 		connect(m_ui.actionExportSettings, &QAction::triggered, &m_self, [this] {
 			ExportSettings();
@@ -769,15 +836,24 @@ private:
 		ConnectSettings(m_ui.actionShowAnnotationMetadata, SHOW_ANNOTATION_METADATA_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowMetadata);
 		ConnectSettings(m_ui.actionShowAnnotationCoverButtons, SHOW_ANNOTATION_COVER_BUTTONS_KEY, m_annotationWidget.get(), &AnnotationWidget::ShowCoverButtons);
 		ConnectSettings(m_ui.actionShowReadersReviews, SHOW_REVIEWS_KEY, m_annotationController.get(), &IAnnotationController::ShowReviews);
-		connect(m_ui.actionHideAnnotation, &QAction::visibleChanged, &m_self, [&] {
-			m_ui.menuAnnotation->menuAction()->setVisible(m_ui.actionHideAnnotation->isVisible());
-		});
+		m_annotationWidgetEventFilter = new VisibleChangedHandler(
+			[this](const bool isVisible) {
+				m_ui.menuAnnotation->menuAction()->setVisible(isVisible);
+			},
+			m_ui.menuAnnotation
+		);
+		m_ui.annotationWidget->installEventFilter(m_annotationWidgetEventFilter);
+		m_ui.menuAnnotation->menuAction()->setVisible(m_settings->Get(SHOW_ANNOTATION_KEY, true));
 
 		m_ui.actionShowReadersReviews->setVisible(
 			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER).exists()
 		);
 
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		ConnectActionsSettingsAnnotationJokes();
+#else
+		m_ui.menuJokes->menuAction()->setVisible(false);
+#endif
 	}
 
 	void ConnectActionsSettingsFont()
@@ -858,7 +934,7 @@ private:
 			m_settingsLineEditExecuteContextMenuConnection = connect(m_ui.settingsLineEdit, &QWidget::customContextMenuRequested, &m_self, [this] {
 				{
 					QSignalBlocker blocker(m_ui.settingsLineEdit);
-					IScriptController::ExecuteContextMenu(m_ui.settingsLineEdit);
+					m_uiFactory->ExecuteContextMenu(m_ui.settingsLineEdit);
 				}
 				emit m_ui.settingsLineEdit->textChanged(m_ui.settingsLineEdit->text());
 			});
@@ -866,12 +942,8 @@ private:
 			m_lineOption->SetSettingsKey(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
 		});
 
-		m_ui.menuImages->setEnabled(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + Global::COVERS).exists()
-			&& QDir(m_collectionController->GetActiveCollection().GetFolder() + "/" + Global::IMAGES).exists()
-		);
-
 		ConnectSettings(m_ui.actionExportRewriteMetadata, Constant::Settings::EXPORT_REPLACE_METADATA_KEY);
+		ConnectSettings(m_ui.actionExportConvertImagesToJpegPng, Export::CONVERT_IMAGES_KEY);
 		ConnectSettings(m_ui.actionExportConvertCoverToGrayscale, Export::GRAYSCALE_COVER_KEY);
 		ConnectSettings(m_ui.actionExportConvertImagesToGrayscale, Export::GRAYSCALE_IMAGES_KEY);
 		ConnectSettings(m_ui.actionExportRemoveCover, Export::REMOVE_COVER_KEY);
@@ -966,7 +1038,13 @@ private:
 		PLOGV << "ConnectActionsSettings";
 		ConnectActionsSettingsExport();
 		ConnectActionsSettingsView();
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		ConnectActionsSettingsHttp();
+#else
+		m_ui.menuHttp->menuAction()->setVisible(false);
+#endif
+
 		ConnectActionsSettingsSearch();
 
 		connect(m_localeController.get(), &LocaleController::LocaleChanged, &m_self, [&] {
@@ -1040,6 +1118,7 @@ private:
 	template <typename T = QAction>
 	void ConnectSettings(QAction* action, QString key, T* obj = nullptr, void (T::*f)(bool) = nullptr)
 	{
+		assert(action->isCheckable());
 		if (!key.isEmpty())
 			action->setChecked(m_settings->Get(key, action->isChecked()));
 		auto invoker = [obj, f](const bool checked) {
@@ -1141,15 +1220,15 @@ private:
 		addActionGroup({ m_ui.actionColorSchemeSystem, m_ui.actionColorSchemeLight, m_ui.actionColorSchemeDark }, new QActionGroup(&m_self));
 
 		std::vector<QAction*> styles;
-		for (const auto& key : QStyleFactory::keys())
-			if (const auto* style = QStyleFactory::create(key))
-				styles.emplace_back(CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::PluginStyle, style->name(), key));
+		for (const auto& name : QStyleFactory::keys())
+			if (const auto actionName = GetStyleName(name); !actionName.isEmpty())
+				styles.emplace_back(CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::PluginStyle, actionName, name));
 
 		m_ui.menuTheme->addSeparator();
 
 		if (const auto externalThemesVar = m_settings->Get(IStyleApplier::THEME_FILES_KEY); externalThemesVar.isValid())
 		{
-			auto externalThemes = externalThemesVar.toStringList();
+			auto externalThemes = externalThemesVar.toStringList() | std::ranges::to<std::vector>();
 			std::ranges::sort(externalThemes);
 			for (const auto& fileName : externalThemes)
 				std::ranges::copy(AddExternalStyle(fileName), std::back_inserter(styles));
@@ -1272,8 +1351,8 @@ private:
 			return;
 
 		auto searchString = m_ui.lineEditBookTitleToSearch->text().toLower();
-		searchString.removeIf([](const QChar ch) {
-			return ch != ' ' && !IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit);
+		std::ranges::transform(searchString, searchString.begin(), [](const QChar ch) {
+			return IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit) ? ch : ' ';
 		});
 
 		if (searchString.isEmpty())
@@ -1285,7 +1364,7 @@ private:
 			if (id <= 0)
 				return;
 
-			m_navigationWidget->SetMode(static_cast<int>(NavigationMode::Search), QString::number(id));
+			ILogicFactory::Lock(m_logicFactory)->FindBook("Search", QString::number(id));
 			searchController.reset();
 		});
 	}
@@ -1376,6 +1455,37 @@ private:
 		auto updateChecker = ILogicFactory::Lock(m_logicFactory)->CreateUpdateChecker();
 		updateChecker->CheckForUpdate(force, [updateChecker]() mutable {
 			updateChecker.reset();
+		});
+	}
+
+	void CheckForUpdateCollection(const ICommandLine& commandLine, const IDatabaseChecker& databaseChecker, std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker)
+	{
+		if (m_collectionToRecreate)
+			return m_collectionController->CreateCollection(*m_collectionToRecreate);
+
+		if (m_collectionController->IsEmpty() || !commandLine.GetInpxDir().empty())
+		{
+			m_self.showNormal();
+			m_self.raise();
+			m_self.activateWindow();
+
+			if (!m_ui.actionShowLog->isChecked())
+				m_ui.actionShowLog->trigger();
+			return m_collectionController->AddCollection(commandLine.GetInpxDir());
+		}
+
+		if (!databaseChecker.IsDatabaseValid())
+		{
+			m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection().GetDatabase()));
+			return QCoreApplication::exit(Global::APP_FAILED);
+		}
+
+		auto& collectionUpdateCheckerRef = *collectionUpdateChecker;
+		collectionUpdateCheckerRef.CheckForUpdate([this, collectionUpdateChecker = std::move(collectionUpdateChecker)](const bool result, const Collection& updatedCollection) mutable {
+			if (result)
+				m_collectionController->OnInpxUpdateChecked(updatedCollection);
+
+			collectionUpdateChecker.reset();
 		});
 	}
 
@@ -1482,19 +1592,20 @@ private:
 	std::shared_ptr<const IUiFactory>            m_uiFactory;
 	std::shared_ptr<const IDatabaseUser>         m_databaseUser;
 
-	PropagateConstPtr<ISettings, std::shared_ptr>              m_settings;
-	PropagateConstPtr<ICollectionController, std::shared_ptr>  m_collectionController;
-	PropagateConstPtr<IParentWidgetProvider, std::shared_ptr>  m_parentWidgetProvider;
-	PropagateConstPtr<IAnnotationController, std::shared_ptr>  m_annotationController;
-	PropagateConstPtr<AnnotationWidget, std::shared_ptr>       m_annotationWidget;
-	PropagateConstPtr<AuthorAnnotationWidget, std::shared_ptr> m_authorAnnotationWidget;
-	PropagateConstPtr<LocaleController, std::shared_ptr>       m_localeController;
-	PropagateConstPtr<ILogController, std::shared_ptr>         m_logController;
-	PropagateConstPtr<QWidget, std::shared_ptr>                m_progressBar;
-	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr>    m_logItemDelegate;
-	PropagateConstPtr<ILineOption, std::shared_ptr>            m_lineOption;
-	PropagateConstPtr<IAlphabetPanel, std::shared_ptr>         m_alphabetPanel;
-	PropagateConstPtr<IHotkeyManager, std::shared_ptr>         m_hotkeyManager;
+	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
+	PropagateConstPtr<ICollectionController, std::shared_ptr>     m_collectionController;
+	PropagateConstPtr<IParentWidgetProvider, std::shared_ptr>     m_parentWidgetProvider;
+	PropagateConstPtr<IAnnotationController, std::shared_ptr>     m_annotationController;
+	PropagateConstPtr<AnnotationWidget, std::shared_ptr>          m_annotationWidget;
+	PropagateConstPtr<AuthorAnnotationWidget, std::shared_ptr>    m_authorAnnotationWidget;
+	PropagateConstPtr<LocaleController, std::shared_ptr>          m_localeController;
+	PropagateConstPtr<ILogController, std::shared_ptr>            m_logController;
+	PropagateConstPtr<QWidget, std::shared_ptr>                   m_progressBar;
+	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr>       m_logItemDelegate;
+	PropagateConstPtr<ILineOption, std::shared_ptr>               m_lineOption;
+	PropagateConstPtr<IAlphabetPanel, std::shared_ptr>            m_alphabetPanel;
+	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
+	PropagateConstPtr<IRecentOpenBookController, std::shared_ptr> m_recentOpenBookController;
 
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationViewController;
 
@@ -1510,6 +1621,7 @@ private:
 	QMetaObject::Connection m_settingsLineEditExecuteContextMenuConnection;
 	QSpacerItem*            m_searchBooksByTitleLeft;
 	QLayout*                m_searchBooksByTitleLayout;
+	QObject*                m_annotationWidgetEventFilter;
 
 	bool m_checkForUpdateOnStartEnabled { true };
 
@@ -1525,6 +1637,8 @@ private:
 
 	bool m_isMaximized { false };
 	bool m_isFullScreen { false };
+
+	std::optional<Collection> m_collectionToRecreate;
 };
 
 MainWindow::MainWindow(
@@ -1549,6 +1663,7 @@ MainWindow::MainWindow(
 	std::shared_ptr<ILineOption>                    lineOption,
 	std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
 	std::shared_ptr<IHotkeyManager>                 hotkeyManager,
+	std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
 	QWidget*                                        parent
 )
 	: QMainWindow(parent)
@@ -1574,7 +1689,8 @@ MainWindow::MainWindow(
 		  std::move(logItemDelegate),
 		  std::move(lineOption),
 		  std::move(alphabetPanel),
-		  std::move(hotkeyManager)
+		  std::move(hotkeyManager),
+		  std::move(recentOpenBookController)
 	  )
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
@@ -1587,6 +1703,11 @@ MainWindow::MainWindow(
 MainWindow::~MainWindow()
 {
 	PLOGV << "MainWindow destroyed";
+}
+
+void MainWindow::CreateCollection(Collection collection)
+{
+	m_impl->CreateCollection(std::move(collection));
 }
 
 void MainWindow::Show()

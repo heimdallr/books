@@ -1,5 +1,6 @@
 ﻿#include "StackedPage.h"
 
+#include <QAction>
 #include <QTimer>
 
 #include "interface/constants/ObjectConnectionID.h"
@@ -18,7 +19,7 @@ StackedPage::StackedPage(QWidget* parent)
 		StateChanged(State::Created);
 	});
 
-	closeAction->setShortcut(QKeySequence(Qt::SHIFT | Qt::Key_Escape));
+	closeAction->setShortcut(QKeySequence(static_cast<int>(Qt::SHIFT) | static_cast<int>(Qt::Key_Escape)));
 	addAction(closeAction);
 	connect(closeAction, &QAction::triggered, [this] {
 		StateChanged(State::Finished);

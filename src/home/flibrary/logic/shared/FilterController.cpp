@@ -1,5 +1,7 @@
 #include "FilterController.h"
 
+#include <array>
+
 #include <QString>
 
 #include "fnd/ScopedCall.h"

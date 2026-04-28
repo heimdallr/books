@@ -11,10 +11,13 @@ set BUILD_DIR=%~dp0build\%BUILD_TYPE%
 set /p PRODUCT_VERSION=<%BUILD_DIR%\var\version
 set /p PRODUCT_GUID=<%BUILD_DIR%\var\uid
 set /p SEVEN_ZIP_PATH=<%BUILD_DIR%\var\7z
+set /p OS=<%BUILD_DIR%\var\os
 
 echo building
 cmake --build %BUILD_DIR% --config Release
 if %errorlevel% NEQ 0 goto Error
+
+cmake --install %BUILD_DIR% --prefix %BUILD_DIR%/FLibrary
 
 rem echo testing
 rem ctest --test-dir %BUILD_DIR% -C Release
@@ -28,14 +31,13 @@ cd %originalDir%
 mkdir %~dp0build\installer
 move  %~dp0build\%BUILD_TYPE%\*.msi %~dp0build\installer\
 
-ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% /DMyAppUid=%PRODUCT_GUID% %~dp0src\home\script\innosetup\flibrary.iss
+ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% /DMyAppUid=%PRODUCT_GUID% /DMyOS=%OS% %~dp0src\home\script\innosetup\flibrary.iss
 if %errorlevel% NEQ 0 goto Error
 
 echo portable creating
-echo portable > %~dp0build/%BUILD_TYPE%/config/installer_mode
+echo portable > %BUILD_DIR%/FLibrary/installer_mode
 
-%SEVEN_ZIP_PATH%7z a %~dp0build\installer\FLibrary_portable_%PRODUCT_VERSION%.7z %~dp0build\%BUILD_TYPE%\bin\*
-%SEVEN_ZIP_PATH%7z a %~dp0build\installer\FLibrary_portable_%PRODUCT_VERSION%.7z %~dp0build\%BUILD_TYPE%\config\installer_mode
+%SEVEN_ZIP_PATH%7z a %~dp0build\installer\FLibrary-%PRODUCT_VERSION%-portable-%OS%.7z %BUILD_DIR%\FLibrary
 
 goto End
 

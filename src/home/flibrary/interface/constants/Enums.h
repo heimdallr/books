@@ -1,5 +1,7 @@
 ﻿#pragma once
 
+#include <qmetatype.h>
+
 namespace HomeCompa::Flibrary
 {
 
@@ -15,6 +17,7 @@ namespace HomeCompa::Flibrary
 	NAVIGATION_MODE_ITEM(Groups)      \
 	NAVIGATION_MODE_ITEM(Search)      \
 	NAVIGATION_MODE_ITEM(Reviews)     \
+	NAVIGATION_MODE_ITEM(AlreadyRead) \
 	NAVIGATION_MODE_ITEM(AllBooks)
 
 enum class NavigationMode
@@ -45,6 +48,8 @@ enum class ItemType
 #define GROUPS_MENU_ACTION_ITEMS_X_MACRO \
 	MENU_ACTION_ITEM(AddToNewGroup)      \
 	MENU_ACTION_ITEM(AddToGroup)         \
+	MENU_ACTION_ITEM(MoveToNewGroup)     \
+	MENU_ACTION_ITEM(MoveToGroup)        \
 	MENU_ACTION_ITEM(RemoveFromGroup)    \
 	MENU_ACTION_ITEM(RemoveFromAllGroups)
 
@@ -128,3 +133,6 @@ struct MenuAction
 };
 
 } // namespace HomeCompa::Flibrary
+
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::ItemType);
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::NavigationMode);

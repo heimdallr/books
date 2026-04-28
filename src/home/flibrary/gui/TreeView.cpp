@@ -58,7 +58,7 @@ constexpr auto COLUMN_HIDDEN_LOCAL_KEY            = "%1/Hidden";
 constexpr auto SORT_KEY                           = "Sort";
 constexpr auto SORT_INDEX_KEY                     = "Index";
 constexpr auto SORT_ORDER_KEY                     = "Order";
-constexpr auto RECENT_LANG_FILTER_KEY             = "ui/language";
+constexpr auto RECENT_LANG_FILTER_KEY             = "ui/recentLangFilter";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTableColumnSettings";
 constexpr auto HASH_CONTEXT_MENU_ENABLED          = "Preferences/Books/ContextMenu/HashEnabled";
 constexpr auto LAST                               = "Last";
@@ -455,21 +455,6 @@ public:
 		return m_ui.treeView;
 	}
 
-	void SetMode(const int mode, const QString& id)
-	{
-		assert(IsNavigation());
-		const auto modeIndex = m_ui.cbMode->findData(mode, Qt::UserRole + 1);
-		const auto modeName  = m_ui.cbMode->itemData(modeIndex).toString();
-		m_settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(m_collectionProvider->GetActiveCollectionId()).arg(modeName), id);
-
-		if (m_controller->GetModeIndex() != mode)
-			return m_ui.cbMode->setCurrentIndex(modeIndex);
-
-		const auto& model = *m_ui.treeView->model();
-		if (const auto matched = model.match(model.index(0, 0), Role::Id, id, 1, Qt::MatchFlag::MatchExactly | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
-			m_ui.treeView->setCurrentIndex(matched.front());
-	}
-
 	void OnBookTitleToSearchVisibleChanged() const
 	{
 		emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.value));
@@ -789,7 +774,7 @@ private:
 			std::stack<QModelIndex> stack { { QModelIndex {} } };
 			while (!stack.empty())
 			{
-				const auto parent = stack.top();
+				const auto parent = std::move(stack.top());
 				stack.pop();
 
 				if ((options & hasCollapsedExpanded) == hasCollapsedExpanded)
@@ -999,7 +984,7 @@ private:
 			OnValueChanged();
 			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
 		});
-		connect(m_ui.cbMode, &QComboBox::currentIndexChanged, &m_self, [this](const int) {
+		connect(m_ui.cbMode, qOverload<int>(&QComboBox::currentIndexChanged), &m_self, [this](const int) {
 			auto newMode = m_ui.cbMode->currentData().toString();
 			emit m_self.NavigationModeNameChanged(newMode);
 			m_recentMode = std::move(newMode);
@@ -1335,20 +1320,12 @@ private:
 
 	QString GetRecentIdKey() const
 	{
-		auto key = QString("Collections/%1/%2%3/LastId").arg(m_collectionProvider->GetActiveCollection().id).arg(m_controller->TrContext()).arg(IsNavigation() ? QString("/%1").arg(m_recentMode) : QString {});
+		auto key = QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY)
+		               .arg(m_collectionProvider->GetActiveCollection().id)
+		               .arg(m_controller->TrContext())
+		               .arg(IsNavigation() ? QString("/%1").arg(m_recentMode) : QString {});
 
 		return key;
-	}
-
-	void Filter(const int role, const std::function<std::unordered_set<QString>()>& getValues) const
-	{
-		auto* model = m_ui.treeView->model();
-		if (!model)
-			return;
-
-		model->setData({}, QVariant::fromValue(getValues()), role);
-		OnCountChanged();
-		Find(m_currentId, Role::Id);
 	}
 
 private:
@@ -1428,11 +1405,6 @@ void TreeView::ShowRemoved(const bool showRemoved)
 QAbstractItemView* TreeView::GetView() const
 {
 	return m_impl->GetView();
-}
-
-void TreeView::SetMode(const int mode, const QString& id)
-{
-	m_impl->SetMode(mode, id);
 }
 
 void TreeView::OnBookTitleToSearchVisibleChanged() const

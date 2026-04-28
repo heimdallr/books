@@ -1,6 +1,7 @@
 #pragma once
 
 #include "interface/logic/IHotkeyManager.h"
+#include "interface/ui/IUiFactory.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
 
@@ -14,7 +15,7 @@ class HotkeyManager final : virtual public IHotkeyManager
 	NON_COPY_MOVABLE(HotkeyManager)
 
 public:
-	HotkeyManager(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<ISettings> settings);
+	HotkeyManager(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<ISettings> settings);
 	~HotkeyManager() override;
 
 private: // IHotkeyManager

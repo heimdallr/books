@@ -1,9 +1,12 @@
 #include "ListModel.h"
 
+#include <set>
+
 #include "fnd/algorithm.h"
 
 #include "interface/constants/ModelRole.h"
 
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;

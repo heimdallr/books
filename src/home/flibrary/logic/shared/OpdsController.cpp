@@ -34,7 +34,7 @@ struct OpdsController::Impl : Observable<IObserver>
 	QLocalSocket socket;
 	QTimer       timer;
 
-	Impl(const IOpdsController& /*controller*/)
+	Impl()
 	{
 		QObject::connect(&socket, &QLocalSocket::connected, [&] {
 			PLOGD << "OPDS connected";
@@ -61,7 +61,6 @@ struct OpdsController::Impl : Observable<IObserver>
 };
 
 OpdsController::OpdsController()
-	: m_impl(*this)
 {
 	PLOGV << "OpdsController created";
 	m_impl->socket.connectToServer(Constant::OPDS_SERVER_NAME);
@@ -81,7 +80,7 @@ void OpdsController::Start()
 {
 	assert(!IsRunning());
 
-	if (QProcess::startDetached(GetOpdsPath()))
+	if (QProcess::startDetached(GetOpdsPath(), QStringList {}))
 		m_impl->timer.start();
 }
 

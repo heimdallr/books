@@ -20,6 +20,13 @@
 class QAbstractItemModel;
 class QTemporaryDir;
 
+namespace HomeCompa
+{
+
+class ISettings;
+
+}
+
 namespace HomeCompa::DB
 {
 
@@ -72,10 +79,13 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<class ICollectionCleaner>       CreateCollectionCleaner() const                                                                                        = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IOpdsController>          CreateOpdsController() const                                                                                           = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IFillTemplateConverter>   CreateFillTemplateConverter(bool needStub = false) const                                                               = 0;
+	[[nodiscard]] virtual std::shared_ptr<ISettings>                      CreateSettingsStub() const                                                                                             = 0;
 	[[nodiscard]] virtual std::shared_ptr<Zip::ProgressCallback>          CreateZipProgressCallback(std::shared_ptr<class IProgressController> progressController) const                         = 0;
 	[[nodiscard]] virtual std::shared_ptr<ITemporaryDir>                  CreateTemporaryDir(bool singleInstance = false) const                                                                  = 0;
 	[[nodiscard]] virtual std::shared_ptr<ITemporaryDir>                  CreateTemporaryDir(const QString& path) const                                                                          = 0;
 	[[nodiscard]] virtual Util::ExtractedBooks                            GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList = {}) const = 0;
+
+	virtual void FindBook(const QString& navigationMode, const QString& navigationId, long long bookId = -1) const = 0;
 
 public: // special
 	[[nodiscard]] virtual std::shared_ptr<IProgressController> GetProgressController() const = 0;

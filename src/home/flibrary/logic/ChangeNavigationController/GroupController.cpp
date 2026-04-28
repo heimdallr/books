@@ -290,6 +290,28 @@ void GroupController::AddToGroup(const Id id, Ids ids, Callback callback) const
 	});
 }
 
+void GroupController::MoveToGroup(const Id id, Ids ids, Callback callback) const
+{
+	if (id >= 0)
+	{
+		auto idsCopy = ids;
+		return RemoveFromGroup(-1, std::move(ids), [this, id, ids = std::move(idsCopy), callback = std::move(callback)](const auto) mutable {
+			m_impl->AddToGroup(id, std::move(ids), {}, std::move(callback));
+		});
+	}
+
+	m_impl->GetAllGroups([this, id, ids = std::move(ids), callback = std::move(callback)](const Names& names) mutable {
+		auto name = m_impl->GetNewGroupName(names);
+		if (name.isEmpty())
+			return callback(id);
+
+		auto idsCopy = ids; //-V836
+		return RemoveFromGroup(-1, std::move(ids), [this, id, ids = std::move(idsCopy), callback = std::move(callback), name = std::move(name)](const auto) mutable {
+			m_impl->AddToGroup(id, std::move(ids), std::move(name), std::move(callback));
+		});
+	});
+}
+
 void GroupController::RemoveFromGroup(const Id id, Ids ids, Callback callback) const
 {
 	m_impl->databaseUser->Execute({ "Remove from group", [&, id, ids = std::move(ids), callback = std::move(callback)]() mutable {

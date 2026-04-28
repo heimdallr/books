@@ -171,7 +171,7 @@ protected:
 	const QString                m_root;
 	const QString                m_session;
 	std::unique_ptr<QBuffer>     m_output { CreateStream() };
-	PropagateConstPtr<XmlWriter> m_writer { std::make_unique<XmlWriter>(*m_output, XmlWriter::Type::Html) };
+	PropagateConstPtr<XmlWriter> m_writer { std::make_unique<XmlWriter>(*m_output, XmlWriter::Options { .type = XmlWriter::Type::Html }) };
 };
 
 class ParserOpds : public AbstractParser

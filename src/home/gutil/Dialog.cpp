@@ -6,7 +6,8 @@
 
 #include "interface/localization.h"
 
-#include "platform/PlatformUtil.h"
+#include "platformgui/PlatformGuiUtil.h"
+#include "utilgui/GeometryRestorable.h"
 
 #include "log.h"
 
@@ -46,14 +47,7 @@ Dialog::Show(const QMessageBox::Icon icon, const QString& title, const QString& 
 	msgBox.setDefaultButton(defaultButton);
 
 	msgBox.show();
-
-	if (parent)
-	{
-		auto       rect         = msgBox.geometry();
-		const auto parentCenter = parent->geometry().center();
-		rect.translate(parentCenter - rect.center());
-		Platform::SetGeometry(msgBox, rect);
-	}
+	MoveToParentCenter(msgBox);
 
 	return static_cast<QMessageBox::StandardButton>(msgBox.exec());
 }

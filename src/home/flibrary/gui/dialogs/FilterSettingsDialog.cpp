@@ -15,8 +15,9 @@
 
 #include "gutil/util.h"
 #include "util/FunctorExecutionForwarder.h"
-#include "util/GeometryRestorable.h"
+#include "utilgui/GeometryRestorable.h"
 
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
@@ -88,15 +89,15 @@ private:
 					checkedOnly,
 					QVariant { value },
 					[this] {
-						beginFilterChange();
+						BEGIN_FILTER_CHANGE;
 					},
 					[this] {
-						endFilterChange(Direction::Rows);
+						END_FILTER_CHANGE;
 					}
 				);
 
 			case Role::FilterDataChanged:
-				return beginFilterChange(), endFilterChange(Direction::Rows), true;
+				return BEGIN_FILTER_CHANGE, END_FILTER_CHANGE, true;
 
 			default:
 				break;
@@ -276,7 +277,7 @@ private:
 		if (!m_model)
 			return;
 
-		std::tuple<const char* /*title*/, const char* /*tooltip*/, QVariant> showCheckedModes[] {
+		const std::tuple<const char* /*title*/, const char* /*tooltip*/, QVariant> showCheckedModes[] {
 			{ QT_TRANSLATE_NOOP("FilterSettingsDialog",       "All items shown"), QT_TRANSLATE_NOOP("FilterSettingsDialog",   "Show checked only"),    {} },
 			{ QT_TRANSLATE_NOOP("FilterSettingsDialog",   "Checked items shown"), QT_TRANSLATE_NOOP("FilterSettingsDialog", "Show unchecked only"),  true },
 			{ QT_TRANSLATE_NOOP("FilterSettingsDialog", "Unchecked items shown"), QT_TRANSLATE_NOOP("FilterSettingsDialog",      "Show all items"), false },

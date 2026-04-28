@@ -2,9 +2,7 @@
 
 #include "RelativePathLineEdit.h"
 
-#include <qabstractbutton.h>
-
-#include <QFileInfo>
+#include <QAbstractButton>
 
 #include "gutil/interface/IUiFactory.h"
 #include "util/ISettings.h"
@@ -35,18 +33,19 @@ RelativePathLineEdit::RelativePathLineEdit(QWidget* parent)
 		m_settings->Set(QString(RECENT_RELATIVE).arg(objectName()), true);
 	});
 	connect(m_ui->edit, &QLineEdit::textChanged, this, [this](const QString& path) {
-		m_ui->edit->removeAction(m_ui->actionToAbsolutePath);
-		m_ui->edit->removeAction(m_ui->actionToRelativePath);
+		auto& edit = *m_ui->edit;
+		edit.removeAction(m_ui->actionToAbsolutePath);
+		edit.removeAction(m_ui->actionToRelativePath);
 
-		emit Changed(m_ui->edit->text());
+		emit Changed(edit.text());
 
 		if (path.isEmpty())
 			return;
 
 		if (const QFileInfo fileInfo(path); !fileInfo.isAbsolute())
-			m_ui->edit->addAction(m_ui->actionToAbsolutePath, QLineEdit::TrailingPosition);
+			edit.addAction(m_ui->actionToAbsolutePath, TrailingPosition);
 		else if (QCoreApplication::applicationFilePath().front().toUpper() == fileInfo.absoluteFilePath().front().toUpper())
-			m_ui->edit->addAction(m_ui->actionToRelativePath, QLineEdit::TrailingPosition);
+			edit.addAction(m_ui->actionToRelativePath, TrailingPosition);
 	});
 	connect(m_ui->edit, &QLineEdit::textEdited, this, [this](const QString& path) {
 		emit Edited(path);
@@ -66,15 +65,17 @@ void RelativePathLineEdit::Setup(const QDialog* dialog, ISettings* settings, con
 	});
 
 	connect(btn, &QAbstractButton::clicked, this, [this] {
-		auto path = m_isDir ? m_uiFactory->GetExistingDirectory(objectName(), m_selectDialogTitle, m_ui->edit->text())
-		                    : m_uiFactory->GetSaveFileName(objectName(), m_selectDialogTitle, m_fileFilter, QFileInfo(m_ui->edit->text()).path(), QFileDialog::DontConfirmOverwrite);
+		auto& edit = *m_ui->edit;
+		auto  path = m_isDir      ? m_uiFactory->GetExistingDirectory(objectName(), m_selectDialogTitle, edit.text())
+		           : m_isWritable ? m_uiFactory->GetSaveFileName(objectName(), m_selectDialogTitle, m_fileFilter, QFileInfo(edit.text()).path(), QFileDialog::DontConfirmOverwrite)
+		                          : m_uiFactory->GetOpenFileName(objectName(), m_selectDialogTitle, m_fileFilter, QFileInfo(edit.text()).path());
 		if (path.isEmpty())
 			return;
 
 		if (m_settings->Get(QString(RECENT_RELATIVE).arg(objectName()), false))
 			path = Util::ToRelativePath(path);
 
-		m_ui->edit->setText(path);
+		edit.setText(path);
 	});
 }
 

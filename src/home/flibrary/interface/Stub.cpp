@@ -1,8 +1,6 @@
 #include <ranges>
 
 #include <QFileInfo>
-#include <QLineEdit>
-#include <QMenu>
 #include <QUuid>
 
 #include "fnd/FindPair.h"
@@ -24,6 +22,7 @@
 #include "ui/IStyleApplier.h"
 #include "util/files.h"
 
+#include "QtTypes.h"
 #include "localization.h"
 
 namespace HomeCompa::Flibrary
@@ -41,8 +40,8 @@ void SetMacroImpl(QString& str, const IScriptController::Macro macro, const QStr
 	if (start < 0)
 		return;
 
-	const auto replace = [&](const QString& s, const qsizetype startPos, const qsizetype endPos) {
-		str.erase(std::next(str.begin(), startPos), std::next(str.begin(), endPos));
+	const auto replace = [&](const QString& s, const qsizetype_t startPos, const qsizetype_t endPos) {
+		Erase(str, std::next(str.begin(), startPos), std::next(str.begin(), endPos));
 		str.insert(startPos, s);
 	};
 
@@ -60,10 +59,10 @@ void SetMacroImpl(QString& str, const IScriptController::Macro macro, const QStr
 		return replace(value, start, start + macroStr.length());
 
 	if (value.isEmpty())
-		return replace(value, start - 1, std::distance(str.cbegin(), itEnd) + 1);
+		return replace(value, start - 1, static_cast<qsizetype_t>(std::distance(str.cbegin(), itEnd) + 1));
 
-	str.erase(itEnd);
-	str.erase(std::next(str.begin(), start) - 1);
+	Erase(str, itEnd);
+	Erase(str, std::next(str.begin(), start - 1));
 	return replace(value, start - 1, start + macroStr.length() - 1);
 }
 
@@ -255,23 +254,6 @@ const char* IScriptController::GetMacro(const Macro macro)
 	return s_commandMacros[static_cast<int>(macro)].second;
 }
 
-void IScriptController::ExecuteContextMenu(QLineEdit* lineEdit)
-{
-	QMenu menu(lineEdit);
-	for (const auto& item : s_commandMacros | std::views::values)
-	{
-		const auto menuItemTitle = QString("%1\t%2").arg(Loc::Tr(s_context, item), item);
-		menu.addAction(menuItemTitle, [=, value = QString(item)] {
-			auto       currentText     = lineEdit->text();
-			const auto currentPosition = lineEdit->cursorPosition();
-			lineEdit->setText(currentText.insert(currentPosition, value));
-			lineEdit->setCursorPosition(currentPosition + static_cast<int>(value.size()));
-		});
-	}
-	menu.setFont(lineEdit->font());
-	menu.exec(QCursor::pos());
-}
-
 QString IScriptController::GetDefaultOutputFileNameTemplate()
 {
 	return QString("%1/%2/[%3/[%4-]]%5.%6")
@@ -447,6 +429,7 @@ constexpr IFilterProvider::FilteredNavigation FILTERED_NAVIGATION_DESCRIPTION[] 
 		{ NavigationMode::Groups     , Loc::Groups      , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::Search     , Loc::Search      , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::Reviews    , Loc::Reviews     , &IModelProvider::CreateFilterListModel },
+		{ NavigationMode::AlreadyRead, Loc::AlreadyRead , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::AllBooks   , Loc::AllBooks    , &IModelProvider::CreateFilterListModel },
 	// clang-format on
 };

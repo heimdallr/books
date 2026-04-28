@@ -25,6 +25,7 @@
 #include "util/language.h"
 
 #include "BooksTreeGenerator.h"
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa;
@@ -331,8 +332,8 @@ void RequestNavigationReviews(
 				  for (const auto& reviewInfo : QDir(folder + "/" + Inpx::REVIEWS_FOLDER).entryInfoList({ "??????.7z" }))
 				  {
 					  auto       name   = reviewInfo.completeBaseName();
-					  auto       year   = name.first(4);
-					  const auto yearId = year.toLongLong(), monthId = name.last(2).toLongLong();
+					  auto       year   = First(name, 4);
+					  const auto yearId = year.toLongLong(), monthId = Last(name, 2).toLongLong();
 					  auto       parentIt = items.find(yearId);
 					  if (parentIt == items.end())
 					  {
@@ -502,6 +503,16 @@ from PublishYears y)",
      BookItem::Mapping(MAPPING_FULL),
      BookItem::Mapping(MAPPING_FULL),
      &IBookSelector::SelectReviews } }         },
+
+	{ NavigationMode::AlreadyRead,
+     { &RequestNavigationSimpleList,
+     { "select 'Already read books'",
+     &DatabaseUtil::CreateSimpleListItem,
+     { .booksFrom = "from Books_View b", .booksWhere = "where b.UserRate is not null", .navigationFrom = "from Books_View b", .navigationWhere = "where b.UserRate is not null" },
+     &IBooksListCreator::CreateGeneralList,
+     &IBooksTreeCreator::CreateGeneralTree,
+     BookItem::Mapping(MAPPING_FULL),
+     BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 
 	{    NavigationMode::AllBooks,
      { &RequestNavigationSimpleList,

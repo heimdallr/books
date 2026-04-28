@@ -418,6 +418,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Move to</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;My rate</source>
         <translation></translation>
     </message>
@@ -719,6 +723,11 @@
         <translation></translation>
     </message>
     <message>
+        <source>Corrupted archives detected:
+%1</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Delete collection database as well?</source>
         <translation></translation>
     </message>
@@ -871,11 +880,19 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Cleanup recent books list</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Distributed under license %1</source>
         <translation></translation>
     </message>
     <message>
-        <source>Version: %1 (%2)</source>
+        <source>The program version has been copied to the clipboard</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Version: %1 (%2) %3</source>
         <translation></translation>
     </message>
 </context>
@@ -4017,10 +4034,6 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Serbo-Croatian</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Serer</source>
         <translation></translation>
     </message>
@@ -4454,11 +4467,19 @@ Try again?</source>
 <context>
     <name>Main</name>
     <message>
+        <source>In that case, before restarting the program please manually delete the collection database file:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>It looks like you&apos;re trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?</source>
         <translation></translation>
     </message>
     <message>
-        <source>The database version is not supported. You must recreate the collection</source>
+        <source>The collection database file could not be deleted. Please delete it manually before restarting the program:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>The database version is not supported. You need to save the user data and recreate the collection. Shall we do it?</source>
         <translation></translation>
     </message>
 </context>
@@ -4550,6 +4571,10 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;Metadata</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Recent books</source>
         <translation></translation>
     </message>
     <message>
@@ -4666,6 +4691,10 @@ Try again?</source>
     </message>
     <message>
         <source>Convert to grayscale</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Convert to j&amp;peg/png</source>
         <translation></translation>
     </message>
     <message>
@@ -4979,6 +5008,10 @@ Try again?</source>
     <message>
         <source>AllBooks</source>
         <translation>All books</translation>
+    </message>
+    <message>
+        <source>AlreadyRead</source>
+        <translation>Already read books</translation>
     </message>
     <message>
         <source>Archives</source>

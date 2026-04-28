@@ -108,7 +108,7 @@ static_assert(std::size(EMBEDDED_COMMANDS) == static_cast<size_t>(IScriptControl
 bool CommandExecutor::ExecuteSystem(const IScriptController::Command& command) const
 {
 	assert(command.type == IScriptController::Command::Type::System);
-	return Util::RunSystem(command.command, command.args, command.workingFolder, true);
+	return Util::RunSystem(command.command, command.args, command.workingFolder, true), true;
 }
 
 bool CommandExecutor::ExecuteLaunchConsoleApp(const IScriptController::Command& command) const

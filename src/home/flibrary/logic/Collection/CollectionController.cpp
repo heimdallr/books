@@ -14,7 +14,6 @@
 
 #include "inpx/InpxConstant.h"
 #include "platform/StrUtil.h"
-#include "util/IExecutor.h"
 #include "util/files.h"
 
 #include "CollectionImpl.h"
@@ -34,6 +33,7 @@ constexpr auto CONFIRM_REMOVE_COLLECTION        = QT_TRANSLATE_NOOP("CollectionC
 constexpr auto CONFIRM_REMOVE_DATABASE          = QT_TRANSLATE_NOOP("CollectionController", "Delete collection database as well?");
 constexpr auto CANNOT_WRITE_TO_DATABASE         = QT_TRANSLATE_NOOP("CollectionController", "No write access to %1");
 constexpr auto ERROR                            = QT_TRANSLATE_NOOP("CollectionController", "The collection was not %1 due to errors. See log.");
+constexpr auto BAD_ARCHIVES_DETECTED            = QT_TRANSLATE_NOOP("CollectionController", "Corrupted archives detected:\n%1");
 constexpr auto COLLECTION_UPDATED               = QT_TRANSLATE_NOOP("CollectionController", "Looks like the collection has been updated. Apply changes?");
 constexpr auto COLLECTION_UPDATE_ACTION_CREATED = QT_TRANSLATE_NOOP("CollectionController", "created");
 constexpr auto COLLECTION_UPDATE_ACTION_UPDATED = QT_TRANSLATE_NOOP("CollectionController", "updated");
@@ -113,6 +113,19 @@ public:
 		}
 
 		m_overwriteConfirmCount = 0;
+	}
+
+	void CreateCollection(const Collection& collection)
+	{
+		CreateNew(
+			collection.name,
+			collection.GetDatabase(),
+			collection.GetFolder(),
+			collection.GetAdditionalFolder(),
+			collection.GetInpx(),
+			"7z",
+			static_cast<Inpx::CreateCollectionMode>(collection.createCollectionMode)
+		);
 	}
 
 	void RescanCollectionFolder()
@@ -283,7 +296,7 @@ private:
 			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
 			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_CREATED);
 			if (!updateResult.error)
-				Add(std::move(name), std::move(db), std::move(folder), std::move(additionalFolder), std::move(inpx), mode);
+				Add(std::move(name), std::move(db), std::move(folder), std::move(additionalFolder), std::move(inpx), mode); //-V833
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.CreateNewCollection(std::move(ini), mode, std::move(callback));
@@ -326,6 +339,9 @@ private:
 		if (updateResult.error)
 			return m_uiFactory->ShowError(Tr(ERROR).arg(Tr(action)));
 
+		if (!updateResult.badFolders.isEmpty())
+			m_uiFactory->ShowWarning(Tr(BAD_ARCHIVES_DETECTED).arg(updateResult.badFolders.join('\n')));
+
 		updateResult.folders == 0 ? m_uiFactory->ShowInfo(Tr(NO_UPDATES_FOUND))
 								  : m_uiFactory->ShowInfo(Tr(COLLECTION_UPDATE_RESULT)
 		                                                      .arg(name)
@@ -366,6 +382,11 @@ CollectionController::~CollectionController()
 void CollectionController::AddCollection(const std::filesystem::path& inpxDir)
 {
 	m_impl->AddCollection(inpxDir);
+}
+
+void CollectionController::CreateCollection(const Collection& collection)
+{
+	m_impl->CreateCollection(collection);
 }
 
 void CollectionController::RescanCollectionFolder()

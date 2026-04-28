@@ -8,6 +8,7 @@
 
 #include "inpx/inpx.h"
 
+#include "QtTypes.h"
 #include "log.h"
 #include "zip.h"
 
@@ -30,7 +31,7 @@ QString GetFileHash(const std::set<QString>& fileNames)
 		const auto     buf  = std::make_unique<char[]>(size);
 
 		while (const auto readSize = file.read(buf.get(), size))
-			hash.addData(QByteArrayView(buf.get(), static_cast<int>(readSize)));
+			AddData(hash, buf.get(), readSize);
 	}
 
 	return hash.result().toHex();
@@ -85,7 +86,7 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 			  Collection updatedCollection = collection;
 			  if (updatedCollection.discardedUpdate = GetFileHash(inpxFiles); updatedCollection.discardedUpdate == collection.discardedUpdate)
 			  {
-				  result = [&updatedCollection, callback = std::move(callback)](size_t) {
+				  result = [updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) {
 					  callback(false, updatedCollection);
 				  };
 				  return result;

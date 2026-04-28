@@ -17,6 +17,7 @@
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 
+#include "QtTypes.h"
 #include "log.h"
 #include "zip.h"
 
@@ -32,9 +33,9 @@ constexpr auto DESCRIPTION = QT_TRANSLATE_NOOP("Annotation", "Description");
 constexpr auto FILE_EMPTY  = QT_TRANSLATE_NOOP("Annotation", "File is empty");
 TR_DEF
 
-constexpr auto ID                     = "id";
-constexpr auto A                      = "a";
-constexpr auto P                      = "p";
+constexpr auto ID_KEY                 = "id";
+constexpr auto A_KEY                  = "a";
+constexpr auto P_KEY                  = "p";
 constexpr auto EMPHASIS               = "emphasis";
 constexpr auto DESCRIPTION_NODE       = "FictionBook/description/";
 constexpr auto TRANSLATOR             = "FictionBook/description/title-info/translator";
@@ -82,10 +83,11 @@ QString AnnotationReplaceAttributeName(const QString& name)
 class XmlParser final : public Util::SaxParser
 {
 public:
-	explicit XmlParser(QIODevice& ioDevice)
+	XmlParser(QIODevice& ioDevice, std::shared_ptr<const ISettings> settings)
 		: SaxParser(ioDevice)
-		, m_ioDevice(ioDevice)
-		, m_total(m_ioDevice.size())
+		, m_settings { std::move(settings) }
+		, m_ioDevice { ioDevice }
+		, m_total { m_ioDevice.size() }
 	{
 		m_data.content->SetData(Tr(CONTENT), NavigationItem::Column::Title);
 		m_data.description->SetData(Tr(DESCRIPTION), NavigationItem::Column::Title);
@@ -114,16 +116,21 @@ public:
 
 		std::multimap<int, QByteArray> covers;
 
-		Util::ExtractBookImages(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)), book.GetRawData(BookItem::Column::FileName), [this, &covers](QString name, QByteArray data) {
-			bool       ok = false;
-			const auto id = name.toInt(&ok);
-			if (ok)
-				covers.emplace(id, std::move(data));
-			else
-				m_data.covers.emplace_back(std::move(name), std::move(data));
+		Util::ExtractBookImages(
+			QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)),
+			book.GetRawData(BookItem::Column::FileName),
+			*m_settings,
+			[this, &covers](QString name, bool, QByteArray data) {
+				bool       ok = false;
+				const auto id = name.toInt(&ok);
+				if (ok)
+					covers.emplace(id, std::move(data));
+				else
+					m_data.covers.emplace_back(std::move(name), std::move(data));
 
-			return false;
-		});
+				return false;
+			}
+		);
 
 		std::ranges::transform(std::move(covers), std::back_inserter(m_data.covers), [](auto&& item) {
 			return IAnnotationController::IDataProvider::Cover { QString::number(item.first), std::move(item.second) };
@@ -145,7 +152,7 @@ public:
 private: // Util::SaxParser
 	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
-		if (name.compare(A, Qt::CaseInsensitive) == 0)
+		if (name.compare(A_KEY, Qt::CaseInsensitive) == 0)
 			m_href = attributes.GetAttribute(m_hrefLink);
 
 		if (m_annotationMode)
@@ -168,7 +175,7 @@ private: // Util::SaxParser
 			}
 		}
 
-		m_textMode = path.startsWith(BODY) && (name.compare(P, Qt::CaseInsensitive) == 0 || name.compare(EMPHASIS, Qt::CaseInsensitive) == 0);
+		m_textMode = path.startsWith(BODY) && (name.compare(P_KEY, Qt::CaseInsensitive) == 0 || name.compare(EMPHASIS, Qt::CaseInsensitive) == 0);
 
 		if (path.startsWith(DESCRIPTION_NODE, Qt::CaseInsensitive))
 		{
@@ -294,7 +301,7 @@ private:
 	{
 		for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
 			if (const auto attributeName = attributes.GetName(i); attributeName.startsWith("xmlns:"))
-				return (m_hrefLink = attributeName.last(attributeName.length() - 6) + ":href"), true;
+				return (m_hrefLink = Last(attributeName, attributeName.length() - 6) + ":href"), true;
 
 		return true;
 	}
@@ -305,14 +312,14 @@ private:
 		const auto it = std::ranges::find_if(m_coverpage, [](const auto ch) {
 			return ch != '#';
 		});
-		m_coverpage   = m_coverpage.last(std::distance(it, m_coverpage.end()));
+		m_coverpage   = Last(m_coverpage, std::distance(it, m_coverpage.end()));
 
 		return true;
 	}
 
 	bool OnStartElementBinary(const Util::XmlAttributes& attributes)
 	{
-		m_covers.emplace_back(attributes.GetAttribute(ID), QByteArray {});
+		m_covers.emplace_back(attributes.GetAttribute(ID_KEY), QByteArray {});
 		return true;
 	}
 
@@ -461,6 +468,7 @@ private:
 	}
 
 private:
+	std::shared_ptr<const ISettings>                    m_settings;
 	QIODevice&                                          m_ioDevice;
 	int64_t                                             m_total;
 	std::unique_ptr<IProgressController::IProgressItem> m_progressItem;
@@ -575,11 +583,14 @@ private:
 					}
 				);
 			    it != zipFileList.end())
-				return std::make_pair(std::move(subZipPtr), subZipPtr->Read(*it));
+			{
+				auto subSubStream = subZipPtr->Read(*it);
+				return std::make_pair(std::move(subZipPtr), std::move(subSubStream));
+			}
 			return {};
 		}();
 
-		XmlParser parser(subStream ? subStream->GetStream() : stream->GetStream());
+		XmlParser parser(subStream ? subStream->GetStream() : stream->GetStream(), m_logicFactory->CreateSettingsStub());
 		return parser.Parse(collection.GetFolder(), book, std::move(parseProgressItem));
 	}
 

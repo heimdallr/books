@@ -70,6 +70,9 @@
        <property name="fileFilter" stdset="0">
         <string>FLibrary database files (*.db *.sqlite *.sqlite3);;All files (*.*)</string>
        </property>
+       <property name="isWritable" stdset="0">
+        <bool>true</bool>
+       </property>
       </widget>
      </item>
      <item row="4" column="2">
@@ -154,6 +157,9 @@
        </property>
        <property name="fileFilter" stdset="0">
         <string>Collection index files (*.inpx);;All files (*.*)</string>
+       </property>
+       <property name="isWritable" stdset="0">
+        <bool>false</bool>
        </property>
       </widget>
      </item>

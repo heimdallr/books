@@ -4,6 +4,8 @@
 
 #include <QPainterPath>
 
+#include <ranges>
+
 #include <QBuffer>
 #include <QClipboard>
 #include <QDesktopServices>
@@ -24,7 +26,6 @@
 #include "interface/logic/IDataItem.h"
 
 #include "gutil/util.h"
-#include "logic/TreeViewController/AbstractTreeViewController.h"
 #include "logic/data/DataItem.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
@@ -55,7 +56,8 @@ constexpr std::pair<const char*, std::pair<const char*, bool>> TYPE_TO_NAVIGATIO
 	{	   Loc::GROUPS,       { Loc::Groups, true } },
     {          "Search",      { Loc::Search, false } },
     {         "Reviews",     { Loc::Reviews, false } },
-    {        "AllBooks",    { Loc::AllBooks, false } },
+    {  Loc::AlreadyRead, { Loc::AlreadyRead, false } },
+	{		"AllBooks",    { Loc::AllBooks, false } },
 };
 static_assert(std::size(TYPE_TO_NAVIGATION) == static_cast<size_t>(NavigationMode::Last));
 
@@ -208,7 +210,6 @@ public:
 		, m_itemViewToolTipperContent { std::move(itemViewToolTipperContent) }
 		, m_scrollBarControllerContent { std::move(scrollBarControllerContent) }
 		, m_scrollBarControllerAnnotation { std::move(scrollBarControllerAnnotation) }
-		, m_navigationController { logicFactory->GetTreeViewController(ItemType::Navigation) }
 		, m_currentCollectionId { collectionController->GetActiveCollectionId() }
 	{
 		m_ui.setupUi(&m_self);
@@ -649,8 +650,7 @@ private:
 			return;
 		}
 
-		m_settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(m_currentCollectionId).arg(url.front()), url.back());
-		m_navigationController->SetMode(url.front());
+		ILogicFactory::Lock(m_logicFactory)->FindBook(url.front(), url.back());
 	}
 
 	void OnCoverEnter() const
@@ -690,9 +690,7 @@ private:
 	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>                m_itemViewToolTipperContent;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr>               m_scrollBarControllerContent;
 	PropagateConstPtr<ScrollBarController, std::shared_ptr>               m_scrollBarControllerAnnotation;
-
-	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationController;
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_contentModel { std::shared_ptr<QAbstractItemModel> {} };
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>                m_contentModel { std::shared_ptr<QAbstractItemModel> {} };
 
 	Ui::AnnotationWidget                            m_ui {};
 	IAnnotationController::IDataProvider::Covers    m_covers;

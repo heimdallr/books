@@ -26,6 +26,7 @@ public:
 private:
 	QObject* GetParentObject(QObject* defaultObject) const noexcept override;
 	QWidget* GetParentWidget(QWidget* defaultWidget) const noexcept override;
+	int      GetParentWidgetFontSize() const noexcept override;
 
 	QMessageBox::ButtonRole ShowCustomDialog(
 		QMessageBox::Icon                                               icon,

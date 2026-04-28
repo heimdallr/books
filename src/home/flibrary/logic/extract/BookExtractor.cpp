@@ -1,5 +1,7 @@
 #include "BookExtractor.h"
 
+#include <QTimer>
+
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
@@ -8,9 +10,8 @@
 
 #include "data/DataItem.h"
 #include "platform/DyLib.h"
+#include "util/FunctorExecutionForwarder.h"
 #include "util/translit.h"
-
-#include "log.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -41,6 +42,12 @@ struct BookExtractor::Impl
 		, collectionProvider { std::move(collectionProvider) }
 		, databaseUser { std::move(databaseUser) }
 	{
+		m_transliteratorTimer.setInterval(std::chrono::seconds(5));
+		m_transliteratorTimer.setSingleShot(false);
+		QObject::connect(&m_transliteratorTimer, &QTimer::timeout, [this] {
+			m_transliterator.reset();
+			m_transliteratorTimer.stop();
+		});
 	}
 
 	Util::ExtractedBook GetExtractedBook(const QString& bookId) const
@@ -116,30 +123,26 @@ order by al.OrdNum limit 1
 		if (!settings->Get(OPDS_TRANSLITERATE, false))
 			return outputFileName;
 
-		LoadICU();
-		return Util::Transliterate(m_icuTransliterate, outputFileName);
+		return GetTransliterator().Transliterate(outputFileName);
 	}
 
 private:
-	void LoadICU() const
+	Util::Transliterator& GetTransliterator() const
 	{
-		if (m_icuTransliterate)
-			return;
-
-		if (!((m_icuLib = std::make_unique<Platform::DyLib>(ICU::LIB_NAME))))
+		if (!m_transliterator)
 		{
-			PLOGW << "Cannot load " << ICU::LIB_NAME << " dynamic library";
-			return;
+			m_transliterator = std::make_unique<Util::Transliterator>();
+			m_forwarder.Forward([this] {
+				m_transliteratorTimer.start();
+			});
 		}
 
-		if (!((m_icuTransliterate = m_icuLib->GetTypedProc<ICU::TransliterateType>(ICU::TRANSLITERATE_NAME))))
-		{
-			PLOGW << "Cannot find entry point " << ICU::TRANSLITERATE_NAME << " in " << ICU::LIB_NAME << " dynamic library";
-		}
+		return *m_transliterator;
 	}
 
-	mutable std::unique_ptr<Platform::DyLib> m_icuLib;
-	mutable ICU::TransliterateType           m_icuTransliterate { nullptr };
+	mutable std::unique_ptr<Util::Transliterator> m_transliterator;
+	mutable QTimer                                m_transliteratorTimer;
+	Util::FunctorExecutionForwarder               m_forwarder;
 };
 
 BookExtractor::BookExtractor(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)

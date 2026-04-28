@@ -5,14 +5,14 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
 
-SET(CMAKE_SKIP_BUILD_RPATH FALSE)
-SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
-SET(CMAKE_INSTALL_RPATH "\$ORIGIN/lib")
+if ("${QT_MAJOR_VERSION}" STREQUAL "")
+	set(QT_MAJOR_VERSION 6)
+endif()
 
-set(QT_MAJOR_VERSION 6)
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_AUTORCC ON)
 set(CMAKE_AUTOUIC ON)
+set(QT${QT_MAJOR_VERSION} "QT${QT_MAJOR_VERSION}")
 
 set(EXT_ROOT ${CMAKE_SOURCE_DIR}/src/ext CACHE STRING "EXT_ROOT")
 set(BUILDSCRIPTS_ROOT ${EXT_ROOT}/scripts CACHE STRING "BUILDSCRIPTS_ROOT")
@@ -20,8 +20,12 @@ set(FOUNDATION_ROOT ${EXT_ROOT}/foundation CACHE STRING "FOUNDATION_ROOT")
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-set(PRODUCT_VERSION 2.6.1)
-set(PRODUCT_GUI 80B196FB-9529-459D-960E-0E0F00CE0981)
+set(MAJOR_PRODUCT_VERSION 2)
+set(MINOR_PRODUCT_VERSION 6)
+set(BUILD_PRODUCT_VERSION 2)
+
+set(PRODUCT_VERSION ${MAJOR_PRODUCT_VERSION}.${MINOR_PRODUCT_VERSION}.${BUILD_PRODUCT_VERSION})
+set(PRODUCT_UID 80B196FB-9529-459D-960E-0E0F00CE0981)
 project(FLibrary VERSION ${PRODUCT_VERSION})
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -65,6 +69,10 @@ if(MSVC)
 		/bigobj # number of sections exceeded object file format limit
 	)
 else()
+	SET(CMAKE_SKIP_BUILD_RPATH FALSE)
+	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)
+	SET(CMAKE_INSTALL_RPATH lib)
+
 	add_compile_options(
 		-Wall
 		-Wextra
@@ -73,11 +81,50 @@ else()
 		-Wno-deprecated-declarations
 		-Wno-virtual-move-assign
 		-Wno-missing-field-initializers
-		-fPIC
+		-fPIC		
 	)
 endif()
 
-set(QtModules Widgets Xml Network Svg SvgWidgets Concurrent HttpServer)
+set(QtModules Core Gui Widgets Xml Network Svg Concurrent)
+if(QT6)
+	list(APPEND QtModules HttpServer WebSockets)
+endif()
+if(NOT WIN32)
+	list(APPEND QtModules DBus WaylandClient)
+endif()
+
+set(QtPlugins
+	QSvgIcon
+	QGif QICNS QICO QJpeg QSvg QTga QTiff QWbmp QWebp
+)
+if(QT5)
+	list(APPEND QtPlugins
+		QWindowsIntegration
+		QWindowsVistaStyle
+	)
+elseif(QT6)
+	list(APPEND QtPlugins
+		QTlsBackendCertOnly
+	)
+	if(WIN32)
+		list(APPEND QtPlugins
+			QWindowsIntegration
+			QModernWindowsStyle
+			QSchannelBackend
+		)
+	else()
+		list(APPEND QtPlugins
+			QWaylandIntegration QXcbIntegration
+			QTlsBackendOpenSSL
+			QNetworkManagerNetworkInformation QGlibNetworkInformation QConnManNetworkInformation
+			QGtk3Theme QXdgDesktopPortalTheme
+			QWaylandAdwaitaDecoration QWaylandBradientDecoration
+			DrmEglServerBuffer QWaylandEglClientBuffer ShmServerBuffer
+			QWaylandFullScreenShellV1Integration QWaylandIviShellIntegration QWaylandQtShellIntegration QWaylandWlShellIntegration QWaylandXdgShellIntegration
+		)
+	endif()
+endif()
+
 find_package(Qt${QT_MAJOR_VERSION} REQUIRED COMPONENTS ${QtModules})
 
 set(BIT7Z_AUTO_FORMAT ON CACHE BOOL "enable auto format support" FORCE)
@@ -91,12 +138,18 @@ endif()
 find_package(plog REQUIRED)
 find_package(Boost REQUIRED)
 find_package(XercesC REQUIRED)
-find_package(ICU REQUIRED)
+find_package(ICU REQUIRED COMPONENTS tu io uc i18n data)
 find_package(libjxl REQUIRED)
 find_package(cimg REQUIRED)
 find_package(SQLite3 REQUIRED)
 
 include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)
+include(${BUILDSCRIPTS_ROOT}/cmake/sdk.cmake)
+include(${BUILDSCRIPTS_ROOT}/cmake/utils.cmake)
+
+CopyAndInstallICU()
+CopyAndInstallQtModules(${QtModules})
+CopyAndInstallQtPlugins(${QtPlugins})
 
 include_directories(${FOUNDATION_ROOT})
 include(${FOUNDATION_ROOT}/fnd/fnd.cmake)
@@ -106,12 +159,19 @@ include(${FOUNDATION_ROOT}/jxl/jxl.cmake)
 include(${FOUNDATION_ROOT}/zip/zip.cmake)
 include(${FOUNDATION_ROOT}/database/database.cmake)
 include(${FOUNDATION_ROOT}/util/util.cmake)
+include(${FOUNDATION_ROOT}/utilgui/utilgui.cmake)
 include(${FOUNDATION_ROOT}/icu/icu.cmake)
 include(${FOUNDATION_ROOT}/platform/platform.cmake)
+include(${FOUNDATION_ROOT}/platformgui/platformgui.cmake)
 
 file(WRITE "${CMAKE_BINARY_DIR}/var/7z" "${7zip_BIN_DIR}/")
 file(WRITE "${CMAKE_BINARY_DIR}/var/version" ${PRODUCT_VERSION})
-file(WRITE "${CMAKE_BINARY_DIR}/var/uid" ${PRODUCT_GUI})
+file(WRITE "${CMAKE_BINARY_DIR}/var/uid" ${PRODUCT_UID})
+set(OS_NAME ${CMAKE_HOST_SYSTEM_NAME})
+if (WIN32 AND QT5)
+	set(OS_NAME Win7)
+endif()
+file(WRITE "${CMAKE_BINARY_DIR}/var/os" ${OS_NAME})
 
 set(PLOG_SHARED_IMPORT PLOG_GLOBAL)
 if(WIN32)

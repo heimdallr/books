@@ -36,7 +36,7 @@ constexpr auto SELECTED_GROUP_ID = "selectedGroupID";
 
 #define AUTHOR_FULL_NAME "a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '')"
 
-constexpr auto MAIN_BOOK_FIELDS = "b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, b.BaseFileName, b.Ext, b.UpdateDate, b.Year";
+constexpr auto MAIN_BOOK_FIELDS = "b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, b.BaseFileName, b.Ext, b.UpdateDate, b.Year, b.UserRate";
 constexpr auto AUTHORS_FIELD    = "(select group_concat(" AUTHOR_FULL_NAME R"(, ', ')
 	from Authors a 
 	join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
@@ -407,9 +407,12 @@ private:
 	{
 		QJsonArray array;
 
+		std::unordered_set<long long> uniqueIds;
+
 		const auto query = CreateParameterQuery(queryText, parameter, isSearch);
 		for (query->Execute(); !query->Eof(); query->Next())
-			array.append(FromQuery<const char*>(*query));
+			if (uniqueIds.emplace(query->Get<long long>(0)).second)
+				array.append(FromQuery<const char*>(*query));
 
 		return QJsonObject {
 			{ resultName, array }

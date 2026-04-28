@@ -53,7 +53,7 @@ template <typename T>
 std::unordered_set<T> GetSelected(const QModelIndex& index, const QList<QModelIndex>& indexList)
 {
 	std::unordered_set<T> ids { index.data(Role::Id).value<T>() };
-	ids.reserve(indexList.size() + 1);
+	ids.reserve(static_cast<size_t>(indexList.size()) + 1);
 	std::ranges::transform(indexList, std::inserter(ids, ids.end()), [](const auto& item) {
 		return item.data(Role::Id).template value<T>();
 	});
@@ -250,6 +250,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      &IContextMenuHandler::OnRemoveSearchTriggered }																								 },
 
 	{	  Loc::Reviews, { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Reviews, &INavigationFilter::IsFolderExists, "reviews" } },
+	{  Loc::AlreadyRead,											{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AlreadyRead } },
 	{     Loc::AllBooks,											   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
 };
 
@@ -358,6 +359,16 @@ private: // IContextMenuHandler
 	void OnAddToGroupTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
 		ExecuteGroupActionImpl(&GroupController::AddToGroup, indexList, index, item, std::move(callback));
+	}
+
+	void OnMoveToNewGroupTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
+	{
+		OnMoveToGroupTriggered(indexList, index, item, std::move(callback));
+	}
+
+	void OnMoveToGroupTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
+	{
+		ExecuteGroupActionImpl(&GroupController::MoveToGroup, indexList, index, item, std::move(callback));
 	}
 
 	void OnRemoveFromGroupTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
@@ -640,6 +651,11 @@ private: // IContextMenuProvider
 	IDataItem::Ptr CreateReviewsContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
 	{
 		return TreeMenuRequester(db, id, options);
+	}
+
+	IDataItem::Ptr CreateAlreadyReadContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, RequestContextMenuOptions /*options*/) override
+	{
+		return {};
 	}
 
 	IDataItem::Ptr CreateAllBooksContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, RequestContextMenuOptions /*options*/) override

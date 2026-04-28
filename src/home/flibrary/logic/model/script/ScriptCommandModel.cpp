@@ -7,6 +7,7 @@
 #include "interface/localization.h"
 #include "interface/logic/IScriptController.h"
 
+#include "QtTypes.h"
 #include "ScriptSortFilterModel.h"
 #include "log.h"
 
@@ -63,6 +64,7 @@ private: // QAbstractItemModel
 				return QString("%1 %2").arg(Loc::Tr("ScriptController", item.command.toStdString().data()), item.args);
 
 			case Role::Name:
+			case Role::Command:
 				return item.command;
 
 			case Role::Mode:
@@ -70,9 +72,6 @@ private: // QAbstractItemModel
 
 			case Role::Type:
 				return QVariant::fromValue(item.type);
-
-			case Role::Command:
-				return item.command;
 
 			case Role::Arguments:
 				return item.args;
@@ -184,10 +183,7 @@ bool ScriptCommandModel::setData(const QModelIndex& index, const QVariant& value
 {
 	const auto result = QSortFilterProxyModel::setData(index, value, role);
 	if (result && role == Role::Uid)
-	{
-		beginFilterChange();
-		endFilterChange(Direction::Rows);
-	}
+		BEGIN_FILTER_CHANGE, END_FILTER_CHANGE;
 
 	return result;
 }

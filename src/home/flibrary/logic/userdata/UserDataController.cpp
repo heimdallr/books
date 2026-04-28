@@ -37,12 +37,22 @@ UserDataController::~UserDataController()
 
 void UserDataController::Backup(Callback callback) const
 {
-	Do(std::move(callback), m_uiFactory->GetSaveFileName(DIALOG_KEY, Tr(SELECT_EXPORT_FILE), Tr(FILE_FILTER)), EXPORT_SUCCESS, &UserData::Backup);
+	Backup(m_uiFactory->GetSaveFileName(DIALOG_KEY, Tr(SELECT_EXPORT_FILE), Tr(FILE_FILTER)), std::move(callback));
 }
 
 void UserDataController::Restore(Callback callback) const
 {
-	Do(std::move(callback), m_uiFactory->GetOpenFileName(DIALOG_KEY, Tr(SELECT_IMPORT_FILE), Tr(FILE_FILTER)), IMPORT_SUCCESS, &UserData::Restore);
+	Restore(m_uiFactory->GetOpenFileName(DIALOG_KEY, Tr(SELECT_IMPORT_FILE), Tr(FILE_FILTER)), std::move(callback));
+}
+
+void UserDataController::Backup(QString path, Callback callback) const
+{
+	Do(std::move(callback), std::move(path), EXPORT_SUCCESS, &UserData::Backup);
+}
+
+void UserDataController::Restore(QString path, Callback callback) const
+{
+	Do(std::move(callback), std::move(path), IMPORT_SUCCESS, &UserData::Restore);
 }
 
 void UserDataController::Do(Callback callback, QString fileName, const char* successMessage, const DoFunction f) const
@@ -53,10 +63,8 @@ void UserDataController::Do(Callback callback, QString fileName, const char* suc
 		return;
 
 	f(*executor, *db, std::move(fileName), [&, successMessage, executor, db, callback = std::move(callback)](const QString& error) mutable {
-		error.isEmpty() ? m_uiFactory->ShowInfo(Tr(successMessage)) : m_uiFactory->ShowError(Tr(error.toStdString().data()));
-
 		executor.reset();
 		db.reset();
-		callback();
+		callback(error.isEmpty(), Tr(error.isEmpty() ? successMessage : error.toStdString().data()));
 	});
 }

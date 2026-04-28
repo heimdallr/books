@@ -1,9 +1,12 @@
 #include "UpdateChecker.h"
 
+#include <ranges>
+
 #include <QCoreApplication>
 #include <QDesktopServices>
 #include <QProcess>
 #include <QStandardPaths>
+#include <QTextStream>
 #include <QTimer>
 #include <QUuid>
 
@@ -13,6 +16,7 @@
 #include "network/rest/api/github/Release.h"
 #include "network/rest/api/github/Requester.h"
 #include "network/rest/connection/ConnectionFactory.h"
+#include "platform/PlatformUtil.h"
 #include "util/IExecutor.h"
 #include "util/app.h"
 
@@ -116,7 +120,7 @@ public:
 		(*executor)({ "Check for app updates", [this, executor, client = std::move(client), force]() mutable {
 						 Requester requester { CreateQtConnection("https://api.github.com") };
 						 requester.GetLatestRelease(client, "heimdallr", "books");
-						 const auto checkResult = Check();
+						 const auto checkResult = Check(force);
 
 						 return [this, executor = std::move(executor), force, checkResult](size_t) mutable {
 							 QTimer::singleShot(0, [&, force, checkResult] {
@@ -145,14 +149,23 @@ private:
 		return true;
 	}
 
-	CheckResult Check()
+	CheckResult Check(const bool force)
 	{
 		m_nameSplitted = m_release.name.split(' ', Qt::SkipEmptyParts);
 		if (m_nameSplitted.size() != 2)
 			return CheckResult::Error;
 
-		if (m_settings->Get(DISCARDED_UPDATE_KEY, -1) == m_release.id)
+		if (!force && m_settings->Get(DISCARDED_UPDATE_KEY, -1) == m_release.id)
 			return CheckResult::Discard;
+
+		const auto logVersion = [](const QString& title, const std::vector<int>& version) {
+			PLOGD << title << ": "
+				  << (version | std::views::transform([](const auto item) {
+						  return QString::number(item);
+					  })
+			          | std::ranges::to<QStringList>())
+						 .join('.');
+		};
 
 		std::vector<int> latestVersion;
 		if (!std::ranges::all_of(m_nameSplitted.back().split('.', Qt::SkipEmptyParts), [&](const QString& item) {
@@ -161,6 +174,7 @@ private:
 				return ok;
 			}))
 			return CheckResult::Error;
+		logVersion("latest version", latestVersion);
 
 		std::vector<int> currentVersion;
 		std::ranges::transform(QString(PRODUCT_VERSION).split('.', Qt::SkipEmptyParts), std::back_inserter(currentVersion), [](const QString& item) {
@@ -169,6 +183,7 @@ private:
 			assert(ok);
 			return value;
 		});
+		logVersion("current version", currentVersion);
 
 		if (latestVersion.size() != currentVersion.size())
 			return CheckResult::Error;
@@ -185,23 +200,25 @@ private:
 		switch (checkResult)
 		{
 			case CheckResult::NeedUpdate:
+				PLOGI << "need update";
 				return ShowUpdateMessage();
 
 			case CheckResult::Error:
+				PLOGI << "check error";
 				message = Tr(CHECK_FAILED);
 				break;
 
 			case CheckResult::Discard:
-				if (force)
-					return ShowUpdateMessage();
-
-				break;
+				PLOGI << "update discarded";
+				return m_callback();
 
 			case CheckResult::Actual:
+				PLOGI << "version actual";
 				message = Tr(VERSION_ACTUAL).arg(PRODUCT_VERSION);
 				break;
 
 			case CheckResult::MoreActual:
+				PLOGI << "miracle happened";
 				message = Tr(VERSION_MIRACLE).arg(m_nameSplitted.back()).arg(PRODUCT_VERSION);
 				break;
 		}
@@ -214,7 +231,7 @@ private:
 
 	void ShowUpdateMessage()
 	{
-		const auto installer = Util::GetInstallerDescription();
+		const auto& installer = Util::GetInstallerDescription();
 
 		std::vector<std::pair<QMessageBox::ButtonRole, QString>> buttons;
 		if (!m_release.assets.empty() && !m_release.assets.front().browser_download_url.isEmpty())
@@ -236,7 +253,7 @@ private:
 		switch (m_uiFactory->ShowCustomDialog( // NOLINT(clang-diagnostic-switch-enum)
 			QMessageBox::Information,
 			Loc::Tr(Loc::Ctx::COMMON, Loc::WARNING),
-			Tr(RELEASED).arg(m_release.name, m_release.html_url).arg(m_uiFactory->GetParentWidget()->font().pointSize() * 9 / 10),
+			Tr(RELEASED).arg(m_release.name, m_release.html_url).arg(m_uiFactory->GetParentWidgetFontSize() * 9 / 10),
 			buttons,
 			buttons.front().first,
 			m_release.whatsNew.join("\n")
@@ -263,7 +280,7 @@ private:
 	{
 		const auto installer = Util::GetInstallerDescription();
 		const auto it        = std::ranges::find_if(m_release.assets, [=](const Asset& asset) {
-			if (asset.browser_download_url.isEmpty() || !asset.name.startsWith(PRODUCT_ID, Qt::CaseInsensitive))
+			if (asset.browser_download_url.isEmpty() || !asset.name.startsWith(PRODUCT_ID, Qt::CaseInsensitive) || !asset.name.contains(Platform::GetPlatformName()))
 				return false;
 
 			const auto ext = QFileInfo(asset.name).suffix();
@@ -320,7 +337,7 @@ private:
 						downloader.reset();
 						callback();
 						if (startInstaller
-				            && (installer.type == Util::InstallerType::exe   ? QProcess::startDetached(downloadFileName)
+				            && (installer.type == Util::InstallerType::exe   ? QProcess::startDetached(downloadFileName, QStringList {})
 				                : installer.type == Util::InstallerType::msi ? (silent ? ReinstallMsi(downloadFileName) : QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder)))
 				                                                             : (assert(false), false)))
 							return QCoreApplication::exit();

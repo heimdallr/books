@@ -418,6 +418,10 @@
         <translation>&amp;Прочитано</translation>
     </message>
     <message>
+        <source>&amp;Move to</source>
+        <translation>&amp;Переместить в</translation>
+    </message>
+    <message>
         <source>&amp;My rate</source>
         <translation>&amp;Мой рейтинг</translation>
     </message>
@@ -727,6 +731,12 @@
         <translation>Уверены, что хотите удалить коллекцию?</translation>
     </message>
     <message>
+        <source>Corrupted archives detected:
+%1</source>
+        <translation>Обнаружены поврежденные архивы
+%1</translation>
+    </message>
+    <message>
         <source>Delete collection database as well?</source>
         <translation>Удалить и базу данных коллекции?</translation>
     </message>
@@ -881,12 +891,20 @@ Restart now?</source>
         <translation>Ещё один каталогизатор электронной библиотеки</translation>
     </message>
     <message>
+        <source>Cleanup recent books list</source>
+        <translation>Очистить список недавних книг</translation>
+    </message>
+    <message>
         <source>Distributed under license %1</source>
         <translation>Распространяется по лицензии %1</translation>
     </message>
     <message>
-        <source>Version: %1 (%2)</source>
-        <translation>Версия: %1 (%2)</translation>
+        <source>The program version has been copied to the clipboard</source>
+        <translation>Версия программы скопирована в буфер обмена</translation>
+    </message>
+    <message>
+        <source>Version: %1 (%2) %3</source>
+        <translation>Версия: %1 (%2) %3</translation>
     </message>
 </context>
 <context>
@@ -4029,10 +4047,6 @@ Try again?</source>
         <translation>Сербский</translation>
     </message>
     <message>
-        <source>Serbo-Croatian</source>
-        <translation>Cербско-хорватский</translation>
-    </message>
-    <message>
         <source>Serer</source>
         <translation>Серер</translation>
     </message>
@@ -4466,12 +4480,20 @@ Try again?</source>
 <context>
     <name>Main</name>
     <message>
+        <source>In that case, before restarting the program please manually delete the collection database file:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</source>
+        <translation>В таком случае перед перезапуском программы удалите файл базы данных коллекции вручную:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</translation>
+    </message>
+    <message>
         <source>It looks like you&apos;re trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?</source>
         <translation>Похоже, вы пытаетесь использовать старую версию программы с коллекцией из новой версии. Работа в таком режиме может быть нестабильной. Уверены, что желаете продолжать?</translation>
     </message>
     <message>
-        <source>The database version is not supported. You must recreate the collection</source>
-        <translation>Версия базы данных не поддерживается. Необходимо пересоздать коллекцию</translation>
+        <source>The collection database file could not be deleted. Please delete it manually before restarting the program:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</source>
+        <translation>Не удалось удалить файл базы данных коллекции. Пожалуйста, удалите его вручную перед перезапуском программы:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</translation>
+    </message>
+    <message>
+        <source>The database version is not supported. You need to save the user data and recreate the collection. Shall we do it?</source>
+        <translation>Эта версия базы данных не поддерживается. Необходимо сохранить пользовательские данные и заново создать коллекцию. Приступим?</translation>
     </message>
 </context>
 <context>
@@ -4563,6 +4585,10 @@ Try again?</source>
     <message>
         <source>&amp;Metadata</source>
         <translation>&amp;Метаданные</translation>
+    </message>
+    <message>
+        <source>&amp;Recent books</source>
+        <translation>&amp;Недавние книги</translation>
     </message>
     <message>
         <source>&amp;Remove collection</source>
@@ -4679,6 +4705,10 @@ Try again?</source>
     <message>
         <source>Convert to grayscale</source>
         <translation>Преобразовывать в оттенки серого</translation>
+    </message>
+    <message>
+        <source>Convert to j&amp;peg/png</source>
+        <translation>Конвертировать в j&amp;peg/png</translation>
     </message>
     <message>
         <source>Cover navigation &amp;buttons</source>
@@ -4991,6 +5021,10 @@ Try again?</source>
     <message>
         <source>AllBooks</source>
         <translation>Все книги</translation>
+    </message>
+    <message>
+        <source>AlreadyRead</source>
+        <translation>Прочитанные книги</translation>
     </message>
     <message>
         <source>Archives</source>

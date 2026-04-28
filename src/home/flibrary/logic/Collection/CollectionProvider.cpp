@@ -58,8 +58,8 @@ public:
 
 	bool ActiveCollectionExists() noexcept
 	{
-		const auto id         = GetActiveCollectionId();
-		const auto collection = FindCollectionById(id);
+		const auto  id         = GetActiveCollectionId();
+		const auto* collection = FindCollectionById(id);
 		return !!collection;
 	}
 

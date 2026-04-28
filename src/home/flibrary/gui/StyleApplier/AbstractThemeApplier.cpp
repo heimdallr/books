@@ -1,6 +1,7 @@
 #include "AbstractThemeApplier.h"
 
 #include <QFile>
+#include <QTextStream>
 
 #include "log.h"
 

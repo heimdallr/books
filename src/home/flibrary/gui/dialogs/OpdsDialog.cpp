@@ -10,8 +10,8 @@
 #include "interface/localization.h"
 
 #include "platform/PlatformUtil.h"
-#include "util/GeometryRestorable.h"
 #include "util/hash.h"
+#include "utilgui/GeometryRestorable.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -65,7 +65,7 @@ struct OpdsDialog::Impl final
 			ui.comboBoxOnExit->addItem(Tr(item), QString { item });
 		if (const auto index = ui.comboBoxOnExit->findData(this->settings->Get(Constant::Settings::OPDS_ON_APP_EXIT_KEY, QString { IOpdsController::ON_APP_EXIT[0] })); index >= 0)
 			ui.comboBoxOnExit->setCurrentIndex(index);
-		connect(ui.comboBoxOnExit, &QComboBox::currentIndexChanged, &self, [this] {
+		connect(ui.comboBoxOnExit, qOverload<int>(&QComboBox::currentIndexChanged), &self, [this] {
 			this->settings->Set(Constant::Settings::OPDS_ON_APP_EXIT_KEY, ui.comboBoxOnExit->currentData().toString());
 		});
 
@@ -80,10 +80,10 @@ struct OpdsDialog::Impl final
 		ui.checkBoxSimpleWeb->setChecked(this->settings->Get(Constant::Settings::OPDS_WEB_ENABLED, ui.checkBoxSimpleWeb->isChecked()));
 		ui.checkBoxOpds->setChecked(this->settings->Get(Constant::Settings::OPDS_OPDS_ENABLED, ui.checkBoxOpds->isChecked()));
 
-		connect(ui.spinBoxPort, &QSpinBox::valueChanged, &self, [this] {
+		connect(ui.spinBoxPort, qOverload<int>(&QSpinBox::valueChanged), &self, [this] {
 			OnConnectionChanged();
 		});
-		connect(ui.comboBoxHosts, &QComboBox::currentIndexChanged, &self, [this] {
+		connect(ui.comboBoxHosts, qOverload<int>(&QComboBox::currentIndexChanged), &self, [this] {
 			OnConnectionChanged();
 		});
 		connect(ui.btnStop, &QAbstractButton::clicked, &self, [this] {
@@ -137,7 +137,7 @@ struct OpdsDialog::Impl final
 		actionSetup(ui.actionCopySite, ui.lineEditReactApp);
 
 		OnConnectionChanged();
-		OnRunningChanged();
+		Impl::OnRunningChanged();
 		LoadGeometry();
 	}
 

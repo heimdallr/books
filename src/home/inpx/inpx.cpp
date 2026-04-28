@@ -39,6 +39,7 @@
 
 #include "Constant.h"
 #include "InpxConstant.h"
+#include "QtTypes.h"
 #include "log.h"
 #include "types.h"
 #include "zip.h"
@@ -69,8 +70,6 @@ public:
 	class const_iterator : public boost::iterator_facade<const_iterator, value_type, boost::forward_traversal_tag>
 	{
 	public:
-		const_iterator() = default;
-
 		const_iterator(const DataStorage& dataStorage, const ViewStorage& viewStorage, const DataStorage::const_iterator& dataIt, const ViewStorage::const_iterator& viewIt)
 			: m_dataStorage { &dataStorage }
 			, m_viewStorage { &viewStorage }
@@ -154,7 +153,7 @@ public:
 		return std::make_pair(it->first, it->second);
 	}
 
-	std::pair<QStringView, size_t> emplace(const QStringView key, const size_t value)
+	std::pair<QStringView, size_t> emplace(const QStringView key, const size_t value) //-V801
 	{
 		if (const auto it = m_data.find(key); it != m_data.end())
 			return std::make_pair(it->first, it->second);
@@ -163,12 +162,12 @@ public:
 		return std::make_pair(it->first, it->second);
 	}
 
-	bool contains(const QStringView key) const
+	bool contains(const QStringView key) const //-V801
 	{
 		return m_view.contains(key) || m_data.contains(key);
 	}
 
-	std::optional<size_t> find(const QStringView key) const
+	std::optional<size_t> find(const QStringView key) const //-V801
 	{
 		if (const auto it = m_view.find(key); it != m_view.end())
 			return it->second;
@@ -196,7 +195,7 @@ public:
 		return std::nullopt;
 	}
 
-	size_t erase(const QStringView key)
+	size_t erase(const QStringView key) //-V801
 	{
 		const auto it = m_data.find(key);
 		return static_cast<size_t>(it != m_data.end() ? (m_data.erase(it), 1) : 0) + m_view.erase(key);
@@ -268,19 +267,19 @@ bool ParseCheckerDefault(QStringView)
 	return true;
 }
 
-bool ParseCheckerAuthor(const QStringView str)
+bool ParseCheckerAuthor(const QStringView str) //-V801
 {
 	return !str.empty() && !std::ranges::all_of(str, [](const auto ch) {
 		return ch == ',';
 	});
 }
 
-std::optional<size_t> FindDefault(const Dictionary& container, const QStringView value)
+std::optional<size_t> FindDefault(const Dictionary& container, const QStringView value) //-V801
 {
 	return container.find(value);
 }
 
-bool IsComment(const QStringView line)
+bool IsComment(const QStringView line) //-V801
 {
 	return std::size(line) < 3 || line.startsWith(COMMENT_START);
 }
@@ -335,7 +334,7 @@ public:
 
 				return ch;
 			});
-			str.removeIf([](const QChar ch) {
+			RemoveIf(str, [](const QChar ch) {
 				return ch != ' ' && !IsOneOf(ch.category(), QChar::Number_DecimalDigit, QChar::Letter_Lowercase);
 			});
 
@@ -390,7 +389,7 @@ private: // SaxParser
 
 		m_command.Execute();
 
-		m_annotation = {};
+		m_annotation = QStringList {};
 
 		return true;
 	}
@@ -430,7 +429,7 @@ auto LoadGenres(const QString& genresIniFileName)
 	if (!stream.open(QIODevice::ReadOnly))
 		throw std::invalid_argument(std::format("Cannot open '{}'", genresIniFileName));
 
-	genres.emplace_back("0");
+	genres.emplace_back("");
 	index.emplace(genres.front().code, size_t { 0 });
 
 	for (auto byteArray = stream.readLine(); !byteArray.isEmpty(); byteArray = stream.readLine())
@@ -454,11 +453,11 @@ auto LoadGenres(const QString& genresIniFileName)
 	}
 
 	std::for_each(std::next(std::begin(genres)), std::end(genres), [&index, &genres](Genre& genre) {
-		if (const auto it = index.find(genre.parentCore))
+		if (const auto it = index.find(genre.parentCode))
 		{
 			auto& parent   = genres[*it];
 			genre.parentId = *it;
-			genre.dbCode   = QString("%1.%2").arg(parent.code).arg(++parent.childrenCount, 3, 10, QChar { '0' });
+			genre.dbCode   = QString("%1%2").arg(parent.dbCode.isEmpty() ? QString {} : parent.dbCode + '.').arg(++parent.childrenCount, 3, 10, QChar { '0' });
 		}
 		else
 		{
@@ -483,7 +482,7 @@ ReturnType Add(ValueType value, Dictionary& container, const GetIdFunctor& getId
 }
 
 std::vector<size_t> ParseItem(
-	const QStringView   data,
+	const QStringView   data, //-V801
 	Dictionary&         container,
 	const char          separator    = Fb2InpxParser::LIST_SEPARATOR,
 	const ParseChecker& parseChecker = &ParseCheckerDefault,
@@ -504,7 +503,7 @@ std::vector<size_t> ParseItem(
 	return result;
 }
 
-std::vector<size_t> ParseItem(const QStringView data, Dictionary& container, const Splitter& splitter, const GetIdFunctor& getId = &GetIdDefault, const FindFunctor& find = &FindDefault)
+std::vector<size_t> ParseItem(const QStringView data, Dictionary& container, const Splitter& splitter, const GetIdFunctor& getId = &GetIdDefault, const FindFunctor& find = &FindDefault) //-V801
 {
 	std::unordered_set<size_t> unique;
 	std::vector<size_t>        result;
@@ -515,7 +514,7 @@ std::vector<size_t> ParseItem(const QStringView data, Dictionary& container, con
 	return result;
 }
 
-std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& keywordsLinks)
+std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& keywordsLinks) //-V801
 {
 	return ParseItem(
 		keywordsSrc,
@@ -543,8 +542,7 @@ std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& key
 			}));
 
 			for (const auto& keyword : list)
-				for (auto&& word : keyword.split(':', Qt::SkipEmptyParts))
-					keywordsList.emplace_back(std::move(word));
+				std::ranges::move(keyword.split(':', Qt::SkipEmptyParts), std::back_inserter(keywordsList));
 
 			for (auto& keyword : keywordsList)
 			{
@@ -555,7 +553,7 @@ std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& key
 						}
 					);
 			        it != keyword.begin())
-					keyword = keyword.last(std::distance(it, keyword.end()));
+					keyword = Last(keyword, std::distance(it, keyword.end()));
 				keyword = keyword.simplified();
 				if (!keyword.isEmpty())
 					keyword[0] = keyword[0].toUpper();
@@ -597,11 +595,11 @@ Book ParseBook(const QString& line, const BookBufMapping& f, QString folder)
 {
 	Book buf;
 
-	auto       it  = std::cbegin(line);
-	const auto end = std::cend(line);
+	auto       it    = std::cbegin(line);
+	const auto endIt = std::cend(line);
 
-	for (size_t i = 0, sz = f.size(); i < sz && it != end; ++i)
-		f[i](buf) = QNext(it, end, Fb2InpxParser::FIELDS_SEPARATOR);
+	for (size_t i = 0, sz = f.size(); i < sz && it != endIt; ++i)
+		f[i](buf) = QNext(it, endIt, Fb2InpxParser::FIELDS_SEPARATOR);
 
 	buf.fileName = QString("%1.%2").arg(buf.FILE, buf.EXT);
 
@@ -1040,7 +1038,10 @@ std::vector<QString> GetInpxFilesInFolder(const Ini& ini)
 
 	std::vector<QString> result;
 	for (QDirIterator it(ini(ARCHIVE_FOLDER), { "*.inpx" }, QDir::Files); it.hasNext();)
-		result.emplace_back(it.nextFileInfo().filePath());
+	{
+		it.next();
+		result.emplace_back(it.fileInfo().filePath());
+	}
 
 	PLOGV << "GetInpxFilesInFolder finished";
 	return result;
@@ -1171,7 +1172,7 @@ std::pair<Genres, Dictionary> ReadGenres(DB::IDatabase& db, const QString& genre
 		for (const auto k : it->second)
 		{
 			genres[k].parentId   = i;
-			genres[k].parentCore = genres[i].code;
+			genres[k].parentCode = genres[i].code;
 		}
 	}
 
@@ -1288,20 +1289,26 @@ public:
 			ProcessImpl(processed);
 			return processed;
 		};
-		(*m_executor)({ "Create collection", [&, process] {
-						   const auto ok = TRY("create collection", process);
+		(*m_executor)(
+			{ "Create collection", [&, process] {
+				 const auto ok = TRY("create collection", process);
 
-						   const auto genres = static_cast<size_t>(std::ranges::count_if(
-												   m_data.genres,
-												   [](const Genre& genre) {
-													   return genre.newGenre;
-												   }
-											   ))
-			                                 - 1;
-						   return [this, genres, hasError = !ok](size_t) {
-							   m_callback(UpdateResult { m_data.bookFolders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, false, hasError });
-						   };
-					   } });
+				 const auto genres = static_cast<size_t>(std::ranges::count_if(
+										 m_data.genres,
+										 [](const Genre& genre) {
+											 return genre.newGenre;
+										 }
+									 ))
+			                       - 1;
+				 return [this, genres, hasError = !ok](size_t) {
+					 if (m_badFolders.size() > 5)
+						 m_badFolders = QStringList(m_badFolders.begin(), std::next(m_badFolders.begin(), 5));
+					 m_callback(
+						 UpdateResult { m_data.bookFolders.size(), m_data.authors.size(), m_data.series.size(), m_data.books.size(), m_data.keywords.size(), genres, false, hasError, std::move(m_badFolders) }
+					 );
+				 };
+			 } }
+		);
 	}
 
 	void UpdateDatabase(const ArchiveParser archiveParser)
@@ -1651,7 +1658,8 @@ private:
 			std::vector<QString> result;
 			for (QDirIterator it(inpxFolder, { "*" }, QDir::Files); it.hasNext();)
 			{
-				const auto fileInfo = it.nextFileInfo();
+				it.next();
+				const auto fileInfo = it.fileInfo();
 				auto       fileName = fileInfo.fileName();
 				if (!(IsOneOf(fileName, COMPILATIONS, CONTENTS) || m_data.bookFolders.contains(fileName)) && Zip::IsArchive(fileInfo.filePath()))
 					result.emplace_back(std::move(fileName));
@@ -1782,7 +1790,8 @@ private:
 
 		for (QDirIterator it(m_ini(ADDITIONAL_FOLDER) + "/" + REVIEWS_FOLDER, { "*.7z" }, QDir::Files); it.hasNext();)
 		{
-			const auto fileInfo = it.nextFileInfo();
+			it.next();
+			const auto fileInfo = it.fileInfo();
 			auto       fileName = fileInfo.fileName();
 			const auto zip      = TRY(QString("open %1").arg(fileName), [&] {
 				return std::make_unique<Zip>(fileInfo.filePath());
@@ -1845,7 +1854,7 @@ where b.FileName = ? and b.Ext = ?)");
 				auto       title  = query->Get<QString>(1).toLower();
 				query->Reset();
 
-				title.removeIf([&](const QChar ch) {
+				RemoveIf(title, [&](const QChar ch) {
 					return ch != ' ' && ch.category() != QChar::Letter_Lowercase;
 				});
 
@@ -2019,7 +2028,8 @@ where b.FileName = ? and b.Ext = ?)");
 			std::vector<QString> result;
 			for (QDirIterator it(inpxFolder, { "*" }, QDir::Files, QDirIterator::Subdirectories); it.hasNext();)
 			{
-				const auto fileInfo = it.nextFileInfo();
+				it.next();
+				const auto fileInfo = it.fileInfo();
 				auto       fileName = fileInfo.filePath().mid(inpxFolder.length() + 1);
 				if (!(m_foldersContent.contains(fileName) || fileName.endsWith(".inpx") || std::ranges::any_of(specials, [&](const auto* item) {
 						  return fileName.startsWith(item);
@@ -2135,7 +2145,7 @@ where b.FileName = ? and b.Ext = ?)");
 		return n;
 	}
 
-	auto& GetFileList(const QString& rootFolder, const QStringView folder)
+	auto& GetFileList(const QString& rootFolder, const QStringView folder) //-V801
 	{
 		if (const auto it = m_foldersContent.find(folder); it != m_foldersContent.end())
 			return it->second;
@@ -2148,10 +2158,18 @@ where b.FileName = ? and b.Ext = ?)");
 		if (!archiveFileInfo.exists())
 			return fileList;
 
-		Zip archiveFile(archiveFileInfo.filePath());
-		std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [&](const auto& item) {
-			return std::make_pair(item, std::make_pair(archiveFile.GetFileSize(item), 0));
-		});
+		try
+		{
+			Zip archiveFile(archiveFileInfo.filePath());
+			std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [&](const auto& item) {
+				return std::make_pair(item, std::make_pair(archiveFile.GetFileSize(item), 0));
+			});
+		}
+		catch (...)
+		{
+			m_badFolders << archiveFileInfo.fileName();
+			throw;
+		}
 
 		return fileList;
 	}
@@ -2202,7 +2220,7 @@ where b.FileName = ? and b.Ext = ?)");
 		return index;
 	}
 
-	size_t ParseDate(const QStringView date, Data& data)
+	size_t ParseDate(const QStringView date, Data& data) //-V801
 	{
 		const auto createUpdate = [this](const int title, const size_t parentId) {
 			const auto [it, ok] = m_newUpdates.emplace(GetId());
@@ -2214,7 +2232,7 @@ where b.FileName = ? and b.Ext = ?)");
 		{
 			constexpr auto noDateTitle = std::numeric_limits<int>::max();
 			const auto     it          = data.updates.children.find(noDateTitle);
-			auto&          update      = it != data.updates.children.end() ? it->second : data.updates.children.try_emplace(noDateTitle, createUpdate(noDateTitle, 0)).first->second;
+			const auto&    update      = it != data.updates.children.end() ? it->second : data.updates.children.try_emplace(noDateTitle, createUpdate(noDateTitle, 0)).first->second;
 			return update.id;
 		}
 
@@ -2223,10 +2241,10 @@ where b.FileName = ? and b.Ext = ?)");
 		const auto year    = QNext(itDate, endDate, DATE_SEPARATOR).toInt();
 		const auto month   = QNext(itDate, endDate, DATE_SEPARATOR).toInt();
 
-		const auto itYear      = data.updates.children.find(year);
-		auto&      yearUpdate  = itYear != data.updates.children.end() ? itYear->second : data.updates.children.try_emplace(year, createUpdate(year, 0)).first->second;
-		const auto itMonth     = yearUpdate.children.find(month);
-		auto&      monthUpdate = itMonth != yearUpdate.children.end() ? itMonth->second : yearUpdate.children.try_emplace(month, createUpdate(month, yearUpdate.id)).first->second;
+		const auto  itYear      = data.updates.children.find(year);
+		auto&       yearUpdate  = itYear != data.updates.children.end() ? itYear->second : data.updates.children.try_emplace(year, createUpdate(year, 0)).first->second;
+		const auto  itMonth     = yearUpdate.children.find(month);
+		const auto& monthUpdate = itMonth != yearUpdate.children.end() ? itMonth->second : yearUpdate.children.try_emplace(month, createUpdate(month, yearUpdate.id)).first->second;
 		return monthUpdate.id;
 	}
 
@@ -2320,10 +2338,10 @@ private:
 	std::vector<QString>                                                                                                                       m_unknownGenres;
 	size_t                                                                                                                                     m_unknownGenreId { 0 };
 	std::unordered_set<size_t>                                                                                                                 m_newUpdates;
-	std::unordered_map<QString, QString>                                                                                                       m_uniqueKeywords;
 	std::unordered_map<std::pair<size_t, QString>, size_t, PairHash<size_t, QString>>                                                          m_uniqueFiles;
 	std::unordered_map<QString, std::unordered_map<QString, std::pair<size_t, int>, WStringHash, WStringEqualTo>, WStringHash, WStringEqualTo> m_foldersContent;
 	bool                                                                                                                                       m_oldDataUpdateFound { false };
+	QStringList                                                                                                                                m_badFolders;
 
 	BookBufMapping m_bookBufMapping;
 

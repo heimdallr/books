@@ -16,19 +16,6 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
-
-template <typename F>
-void Enumerate(const IDataItem& root, const F& f)
-{
-	f(root);
-	for (size_t i = 0, sz = root.GetChildCount(); i < sz; ++i)
-		Enumerate(*root.GetChild(i), f);
-}
-
-}
-
 BaseModel::BaseModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent)
 	: QAbstractItemModel(parent)
 	, m_data { modelProvider->GetData() }

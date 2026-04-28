@@ -28,6 +28,7 @@ public:
 private: // IUiFactory
 	QObject* GetParentObject(QObject* defaultObject) const noexcept override;
 	QWidget* GetParentWidget(QWidget* defaultWidget) const noexcept override;
+	int      GetParentWidgetFontSize() const noexcept override;
 
 	std::shared_ptr<TreeView>             CreateTreeViewWidget(ItemType type) const override;
 	std::shared_ptr<IAddCollectionDialog> CreateAddCollectionDialog(std::filesystem::path inpxFolder) const override;
@@ -63,6 +64,11 @@ private: // IUiFactory
 	QString     GetOpenFileName(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const override;
 	QString     GetSaveFileName(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const override;
 	QString     GetExistingDirectory(const QString& key, const QString& title, const QString& dir, const QFileDialog::Options& options) const override;
+	void        ExecuteContextMenu(QLineEdit* lineEdit) const override;
+	void        UpdateRecentOpenBookControllerMenu(QMenu& menu) const override;
+
+	IDataItem::Ptr AddMenuBarToHotkeys(const ISettings& settings, const QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*)>& functor) const override;
+	IDataItem::Ptr AddComboBoxToHotkeys(const ISettings& settings, QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*)>& functor) const override;
 
 private: // special
 	std::filesystem::path                GetNewCollectionInpxFolder() const noexcept override;

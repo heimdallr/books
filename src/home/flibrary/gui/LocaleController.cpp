@@ -3,6 +3,7 @@
 #include <QActionGroup>
 #include <QMenu>
 
+#include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 
 #include "util/SortString.h"
@@ -15,8 +16,7 @@ namespace HomeCompa::Flibrary
 namespace
 {
 
-constexpr auto LOCALE = "ui/locale";
-constexpr auto NAME   = "name";
+constexpr auto NAME = "name";
 
 }
 
@@ -62,7 +62,7 @@ private:
 		for (auto* action : m_actionGroup.actions())
 			action->setEnabled(action->property(NAME).toString() != locale);
 
-		m_settings->Set(LOCALE, locale);
+		m_settings->Set(Constant::Settings::LOCALE_KEY, locale);
 
 		if (m_uiFactory->ShowQuestion(Loc::Tr(Loc::Ctx::COMMON, Loc::CONFIRM_RESTART), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes)
 			emit m_self.LocaleChanged();

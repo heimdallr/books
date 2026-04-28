@@ -4,7 +4,7 @@ AddTarget(flint	shared_lib
 		${CMAKE_CURRENT_LIST_DIR}
 	LINK_LIBRARIES
 		plog::plog
-		Qt${QT_MAJOR_VERSION}::Widgets
+		Qt${QT_MAJOR_VERSION}::Core
 	LINK_TARGETS
 		logging
 		platform

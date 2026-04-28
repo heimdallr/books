@@ -42,7 +42,7 @@ void ClickableLabel::mousePressEvent(QMouseEvent* event)
 	}
 }
 
-void ClickableLabel::enterEvent(QEnterEvent* event)
+void ClickableLabel::enterEvent(enter_event_t* event)
 {
 	emit mouseEnter(event);
 }

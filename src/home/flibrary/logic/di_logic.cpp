@@ -13,7 +13,6 @@
 #include "Collection/CollectionProvider.h"
 #include "Collection/CollectionUpdateChecker.h"
 #include "Hypodermic/Hypodermic.h"
-#include "JokeRequester/factory/JokeRequesterFactory.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
 #include "data/NavigationQueryExecutor.h"
@@ -39,6 +38,7 @@
 #include "shared/OpdsController.h"
 #include "shared/ProgressController.h"
 #include "shared/ReaderController.h"
+#include "shared/RecentOpenBookController.h"
 #include "shared/SingleInstanceController.h"
 #include "shared/TaskQueue.h"
 #include "shared/UpdateChecker.h"
@@ -49,6 +49,40 @@
 #include "LogicFactory.h"
 
 #include "config/version.h"
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	#include "joke/factory/JokeRequesterFactory.h"
+#else
+namespace HomeCompa::Flibrary
+{
+
+class JokeRequesterFactory final : public IJokeRequesterFactory
+{
+public:
+	static std::shared_ptr<JokeRequesterFactory> Create(Hypodermic::Container&)
+	{
+		return std::make_shared<JokeRequesterFactory>();
+	}
+
+private:
+	std::shared_ptr<IJokeRequester> Create(Implementation) const override
+	{
+		return {};
+	}
+
+	std::shared_ptr<Network::Downloader> GetDownloader() const override
+	{
+		return {};
+	}
+
+	std::vector<ImplementationDescription> GetImplementations() const override
+	{
+		return {};
+	}
+};
+
+} // namespace HomeCompa::Flibrary
+#endif
 
 namespace HomeCompa::Flibrary
 {
@@ -67,6 +101,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<ListModel>().as<AbstractListModel>();
 	builder.registerType<OpdsController>().as<IOpdsController>();
 	builder.registerType<ProgressController>().as<IAnnotationProgressController>();
+	builder.registerType<RecentOpenBookController>().as<IRecentOpenBookController>();
 	builder.registerType<ScriptController>().as<IScriptController>();
 	builder.registerType<SingleInstanceController>().as<ISingleInstanceController>();
 	builder.registerType<SortFilterProxyModel>().as<AbstractSortFilterProxyModel>();
@@ -111,7 +146,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 
 	builder
 		.registerInstanceFactory([&](Hypodermic::ComponentContext&) {
-			return std::make_shared<JokeRequesterFactory>(*container);
+			return JokeRequesterFactory::Create(*container);
 		})
 		.as<IJokeRequesterFactory>()
 		.singleInstance();
@@ -152,9 +187,9 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 		.as<ITaskQueue>();
 
 	builder
-		.registerInstanceFactory([](Hypodermic::ComponentContext&) {
-			return Util::GetInstallerDescription().type == Util::InstallerType::portable ? std::make_shared<Settings>(QString("%1/%2.ini").arg(QCoreApplication::applicationDirPath()).arg(PRODUCT_ID))
-		                                                                                 : std::make_shared<Settings>(COMPANY_ID, PRODUCT_ID);
+		.registerInstanceFactory([](Hypodermic::ComponentContext&) -> std::shared_ptr<SettingsFactory::AbstractSettings> {
+			return Util::GetInstallerDescription().type == Util::InstallerType::portable ? SettingsFactory::Create(QString("%1/%2.ini").arg(QCoreApplication::applicationDirPath()).arg(PRODUCT_ID))
+		                                                                                 : SettingsFactory::Create(COMPANY_ID, PRODUCT_ID);
 		})
 		.as<ISettings>()
 		.singleInstance();

@@ -22,6 +22,7 @@ public:
 
 public: // ICollectionController
 	void                             AddCollection(const std::filesystem::path& inpxDir) override;
+	void                             CreateCollection(const Collection& collection) override;
 	void                             RescanCollectionFolder() override;
 	void                             RemoveCollection() override;
 	[[nodiscard]] bool               IsEmpty() const noexcept override;

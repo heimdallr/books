@@ -18,7 +18,7 @@ constexpr auto FlibraryBackupVersionNumber = 8;
 constexpr auto FlibraryUserData            = "FlibraryUserData";
 
 constexpr auto MinimumFlibraryDatabaseVersionNumber = 11;
-constexpr auto FlibraryDatabaseVersionNumber        = 11;
+constexpr auto FlibraryDatabaseVersionNumber        = 12;
 
 constexpr size_t MAX_LOG_SIZE = 10000;
 

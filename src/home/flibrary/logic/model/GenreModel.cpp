@@ -9,6 +9,8 @@
 
 #include "data/Genre.h"
 
+#include "QtTypes.h"
+
 using namespace HomeCompa;
 using namespace Flibrary;
 
@@ -73,8 +75,8 @@ private: // QAbstractItemModel
 		if (!hasIndex(row, column, parent))
 			return {};
 
-		auto* parentItem = parent.isValid() ? static_cast<Genre*>(parent.internalPointer()) : &m_root;
-		auto& childItem  = parentItem->children[static_cast<size_t>(row)];
+		QT_CONST auto* parentItem = const_cast<Genre*>(parent.isValid() ? static_cast<Genre*>(parent.internalPointer()) : &m_root);
+		QT_CONST auto& childItem  = parentItem->children[static_cast<size_t>(row)];
 
 		return createIndex(row, column, &childItem);
 	}
@@ -84,8 +86,8 @@ private: // QAbstractItemModel
 		if (!index.isValid())
 			return {};
 
-		auto* childItem  = static_cast<Genre*>(index.internalPointer());
-		auto* parentItem = childItem->parent;
+		const auto*    childItem  = static_cast<Genre*>(index.internalPointer());
+		QT_CONST auto* parentItem = childItem->parent;
 
 		return parentItem != &m_root ? createIndex(static_cast<int>(parentItem->row), 0, parentItem) : QModelIndex {};
 	}
@@ -290,10 +292,10 @@ private: // QAbstractItemModel
 					m_visibleGenres,
 					value.value<std::unordered_set<QString>>(),
 					[this] {
-						beginFilterChange();
+						BEGIN_FILTER_CHANGE;
 					},
 					[this] {
-						endFilterChange(Direction::Rows);
+						END_FILTER_CHANGE;
 					}
 				);
 

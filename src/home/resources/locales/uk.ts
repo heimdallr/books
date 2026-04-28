@@ -418,6 +418,10 @@
         <translation>&amp;Прочитано</translation>
     </message>
     <message>
+        <source>&amp;Move to</source>
+        <translation>&amp;Перемістити до</translation>
+    </message>
+    <message>
         <source>&amp;My rate</source>
         <translation>&amp;Мій рейтинг</translation>
     </message>
@@ -716,7 +720,7 @@
     </message>
     <message>
         <source>&lt;p&gt;&lt;p&gt;Warning! A change to previous data was detected, it is recommended to recreate the collection again. Don&apos;t forget to save user data&lt;/p&gt;&lt;/p&gt;</source>
-        <translation>&lt;p&gt;&lt;p&gt;Увага! Виявлено зміну попередніх даних, рекомендуємо знову перетворити колекцію. Не забудьте зберегти дані користувача&lt;/p&gt;&lt;/p&gt;</translation>
+        <translation>&lt;p&gt;&lt;p&gt;Увага! Виявлено зміни в раніше збережених даних. Радимо створити колекцію заново. Не забудьте зберегти дані користувача&lt;/p&gt;&lt;/p&gt;</translation>
     </message>
     <message>
         <source>&lt;tr&gt;&lt;td&gt;Genres:&lt;/td&gt;&lt;td align=&apos;right&apos;&gt;%1&lt;/td&gt;&lt;/tr&gt;</source>
@@ -727,8 +731,14 @@
         <translation>Впевнені, що хочете видалити колекцію?</translation>
     </message>
     <message>
+        <source>Corrupted archives detected:
+%1</source>
+        <translation>Виявлено пошкоджені архіви
+%1</translation>
+    </message>
+    <message>
         <source>Delete collection database as well?</source>
-        <translation>Видалити та базу даних колекції?</translation>
+        <translation>Базу даних колекції також видалити?</translation>
     </message>
     <message>
         <source>Looks like the collection has been updated. Apply changes?</source>
@@ -881,12 +891,20 @@ Restart now?</source>
         <translation>Ще один каталогізатор електронної бібліотеки</translation>
     </message>
     <message>
+        <source>Cleanup recent books list</source>
+        <translation>Очистити список недавніх книг</translation>
+    </message>
+    <message>
         <source>Distributed under license %1</source>
         <translation>Розповсюджується за ліцензією %1</translation>
     </message>
     <message>
-        <source>Version: %1 (%2)</source>
-        <translation>Версія: %1 (%2)</translation>
+        <source>The program version has been copied to the clipboard</source>
+        <translation>Версія програми скопійована до буфера обміну</translation>
+    </message>
+    <message>
+        <source>Version: %1 (%2) %3</source>
+        <translation>Версія: %1 (%2) %3</translation>
     </message>
 </context>
 <context>
@@ -913,7 +931,7 @@ Restart now?</source>
     </message>
     <message>
         <source>Bad database file extension (.inpx)</source>
-        <translation>Погане розширення файлу бази даних (.inpx)</translation>
+        <translation>Неправильне розширення для файлу бази даних (.inpx)</translation>
     </message>
     <message>
         <source>Cannot create database folder %1</source>
@@ -1034,15 +1052,15 @@ Restart now?</source>
     </message>
     <message>
         <source>Show checked only</source>
-        <translation>Показати тільки зазначені</translation>
+        <translation>Показати лише відмічені</translation>
     </message>
     <message>
         <source>Show unchecked only</source>
-        <translation>Показати тільки непомічені</translation>
+        <translation>Показати лише невідмічені</translation>
     </message>
     <message>
         <source>Unchecked items shown</source>
-        <translation>Показані невідзначені елементи</translation>
+        <translation>Показано невідмічені елементи</translation>
     </message>
 </context>
 <context>
@@ -2623,7 +2641,7 @@ Try again?</source>
     <name>JokeRequester</name>
     <message>
         <source>&lt;center&gt;&lt;b&gt;Warning!&lt;/b&gt;&lt;/center&gt;&lt;br/&gt;&lt;/br&gt;Jokes in this section may be rude, unsafe for work environment, religiously or politically offensive, sexist, or explicit. By clicking &quot;Yes&quot; you accept all responsibility for reading them. Otherwise you must click &quot;No&quot;.&lt;br/&gt;&lt;br/&gt;Do you still want to read such jokes?</source>
-        <translation>&lt;center&gt;&lt;b&gt;Увага!&lt;/b&gt;&lt;/center&gt;&lt;br/&gt;&lt;/br&gt;Жарти в цьому розділі можуть бути грубими, небезпечними для робочого середовища, релігійно чи політично образливими, сексистськими або відвертими. Натискаючи «Так», ви берете на себе всю відповідальність за їх прочитання. В іншому випадку ви повинні натиснути «Ні».&lt;br/&gt;&lt;br/&gt;Ви все ще хочете читати такі жарти?</translation>
+        <translation>&lt;center&gt;&lt;b&gt;Увага!&lt;/b&gt;&lt;/center&gt;&lt;br/&gt;&lt;/br&gt;Жарти в цьому розділі можуть містити грубі вирази, бути неприйнятними для перегляду на робочому місці, ображати релігійні чи політичні переконання, мати сексистський характер або містити відверті сцени. Натискаючи «Так», ви берете на себе повну відповідальність за їх перегляд. В іншому випадку ви повинні натиснути «Ні».&lt;br/&gt;&lt;br/&gt;Ви все ще хочете читати такі жарти?</translation>
     </message>
     <message>
         <source>CatFacts</source>
@@ -4029,10 +4047,6 @@ Try again?</source>
         <translation>Сербська</translation>
     </message>
     <message>
-        <source>Serbo-Croatian</source>
-        <translation>Сербохорватська</translation>
-    </message>
-    <message>
         <source>Serer</source>
         <translation>Серерська</translation>
     </message>
@@ -4466,12 +4480,20 @@ Try again?</source>
 <context>
     <name>Main</name>
     <message>
+        <source>In that case, before restarting the program please manually delete the collection database file:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</source>
+        <translation>У такому разі перед перезапуском програми, будь ласка, вручну видаліть файл бази даних колекції:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</translation>
+    </message>
+    <message>
         <source>It looks like you&apos;re trying to use an older version of the app with a collection from the new version. This may cause instability. Are you sure you want to continue?</source>
         <translation>Схоже, ви намагаєтеся використати стару версію програми з колекцією для нової версії. Робота у такому режимі може бути нестабільною. Впевнені, що хочете продовжити?</translation>
     </message>
     <message>
-        <source>The database version is not supported. You must recreate the collection</source>
-        <translation>Ця версія бази даних не підтримується. Необхідно створити колекцію заново</translation>
+        <source>The collection database file could not be deleted. Please delete it manually before restarting the program:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</source>
+        <translation>Не вдалося видалити файл бази даних колекції. Будь ласка, видаліть його вручну перед перезапуском програми:&lt;br&gt;&lt;br&gt;&lt;b&gt;%1&lt;/b&gt;&lt;br&gt;</translation>
+    </message>
+    <message>
+        <source>The database version is not supported. You need to save the user data and recreate the collection. Shall we do it?</source>
+        <translation>Ця версія бази даних не підтримується. Вам потрібно зберегти дані користувача та створити колекцію заново. Приступимо?</translation>
     </message>
 </context>
 <context>
@@ -4563,6 +4585,10 @@ Try again?</source>
     <message>
         <source>&amp;Metadata</source>
         <translation>&amp;Метадані</translation>
+    </message>
+    <message>
+        <source>&amp;Recent books</source>
+        <translation>&amp;Недавнi книги</translation>
     </message>
     <message>
         <source>&amp;Remove collection</source>
@@ -4679,6 +4705,10 @@ Try again?</source>
     <message>
         <source>Convert to grayscale</source>
         <translation>Перетворювати на відтінки сірого</translation>
+    </message>
+    <message>
+        <source>Convert to j&amp;peg/png</source>
+        <translation>Конвертувати в j&amp;peg/png</translation>
     </message>
     <message>
         <source>Cover navigation &amp;buttons</source>
@@ -4991,6 +5021,10 @@ Try again?</source>
     <message>
         <source>AllBooks</source>
         <translation>Усі книги</translation>
+    </message>
+    <message>
+        <source>AlreadyRead</source>
+        <translation>Прочитані книги</translation>
     </message>
     <message>
         <source>Archives</source>
@@ -5338,7 +5372,7 @@ Try again?</source>
     </message>
     <message>
         <source>%base_file_name%</source>
-        <translation>Ім&apos;я файлу без розширення</translation>
+        <translation>Назва файлу без розширення</translation>
     </message>
     <message>
         <source>%db_id%</source>
@@ -5350,7 +5384,7 @@ Try again?</source>
     </message>
     <message>
         <source>%file_name%</source>
-        <translation>Ім&apos;я файлу</translation>
+        <translation>Назва файлу</translation>
     </message>
     <message>
         <source>%file_size%</source>
@@ -5628,7 +5662,7 @@ Try again?</source>
     </message>
     <message>
         <source>Select folder for app installer</source>
-        <translation>Вкажіть папку для скачування інсталятора</translation>
+        <translation>Оберіть папку для завантаження інсталятора програми</translation>
     </message>
     <message>
         <source>Skip</source>

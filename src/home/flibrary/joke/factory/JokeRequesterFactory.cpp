@@ -8,18 +8,19 @@
 
 #include "interface/localization.h"
 
-#include "JokeRequester/CatFactJokeRequester.h"
-#include "JokeRequester/CatPicsJokeRequester.h"
-#include "JokeRequester/ChuckNorrisJokeRequester.h"
-#include "JokeRequester/DadJokeRequester.h"
-#include "JokeRequester/DogPicsJokeRequester.h"
-#include "JokeRequester/FoxPicsJokeRequester.h"
-#include "JokeRequester/JokeApiJokeRequester.h"
-#include "JokeRequester/QuoteJokeRequester.h"
-#include "JokeRequester/QuotePicJokeRequester.h"
-#include "JokeRequester/SetupPunchlineJokeRequester.h"
-#include "JokeRequester/UselessFactJokeRequester.h"
 #include "network/network/downloader.h"
+
+#include "CatFactJokeRequester.h"
+#include "CatPicsJokeRequester.h"
+#include "ChuckNorrisJokeRequester.h"
+#include "DadJokeRequester.h"
+#include "DogPicsJokeRequester.h"
+#include "FoxPicsJokeRequester.h"
+#include "JokeApiJokeRequester.h"
+#include "QuoteJokeRequester.h"
+#include "QuotePicJokeRequester.h"
+#include "SetupPunchlineJokeRequester.h"
+#include "UselessFactJokeRequester.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -78,6 +79,11 @@ struct JokeRequesterFactory::Impl
 	Hypodermic::Container&               container;
 	std::shared_ptr<Network::Downloader> downloader;
 };
+
+std::shared_ptr<JokeRequesterFactory> JokeRequesterFactory::Create(Hypodermic::Container& container)
+{
+	return std::make_shared<JokeRequesterFactory>(container);
+}
 
 JokeRequesterFactory::JokeRequesterFactory(Hypodermic::Container& container)
 	: m_impl { std::make_unique<Impl>(container) }

@@ -4,8 +4,10 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QLocale>
 #include <QTranslator>
 
+#include "constants/SettingsConstant.h"
 #include "util/ISettings.h"
 
 #include "log.h"
@@ -14,13 +16,6 @@
 
 namespace HomeCompa::Loc
 {
-
-namespace
-{
-
-constexpr auto LOCALE = "ui/locale";
-
-}
 
 QString Tr(const char* context, const char* str)
 {
@@ -43,7 +38,7 @@ std::vector<const char*> GetLocales()
 
 QString GetLocale(const ISettings& settings)
 {
-	if (auto locale = settings.Get(LOCALE).toString(); !locale.isEmpty())
+	if (auto locale = settings.Get(Flibrary::Constant::Settings::LOCALE_KEY).toString(); !locale.isEmpty())
 		return locale;
 
 	if (const auto it = std::ranges::find_if(

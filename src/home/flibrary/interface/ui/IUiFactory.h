@@ -1,12 +1,26 @@
 #pragma once
 
+#include <filesystem>
+
 #include "interface/constants/Enums.h"
+#include "interface/logic/IDataItem.h"
 
 #include "gutil/interface/IUiFactory.h"
 
 class QAbstractItemView;
+class QComboBox;
+class QDialog;
 class QMainWindow;
+class QMenuBar;
+class QShortcut;
 class QTreeView;
+
+namespace HomeCompa
+{
+
+class ISettings;
+
+}
 
 namespace HomeCompa::Flibrary
 {
@@ -27,8 +41,14 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<QMainWindow>                CreateQueryWindow() const                                         = 0;
 	virtual void                                                      CreateCollectionCleaner() const                                   = 0;
 	virtual void                                                      CreateAuthorReview(long long id) const                            = 0;
+	virtual void                                                      ExecuteContextMenu(QLineEdit* lineEdit) const                     = 0;
+	virtual void                                                      ShowAbout() const                                                 = 0;
+	virtual void                                                      UpdateRecentOpenBookControllerMenu(QMenu& menu) const             = 0;
 
-	virtual void ShowAbout() const = 0;
+	[[nodiscard]] virtual IDataItem::Ptr
+	AddMenuBarToHotkeys(const ISettings& settings, const QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*)>& functor) const = 0;
+	[[nodiscard]] virtual IDataItem::Ptr
+	AddComboBoxToHotkeys(const ISettings& settings, QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*)>& functor) const = 0;
 
 public: // special
 	[[nodiscard]] virtual std::filesystem::path                      GetNewCollectionInpxFolder() const noexcept = 0;

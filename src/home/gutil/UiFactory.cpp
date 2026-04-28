@@ -9,6 +9,7 @@
 
 #include "Hypodermic/Hypodermic.h"
 #include "util/ISettings.h"
+#include "utilgui/GeometryRestorable.h"
 
 #include "Dialog.h"
 #include "log.h"
@@ -82,6 +83,11 @@ QWidget* UiFactory::GetParentWidget(QWidget* defaultWidget) const noexcept
 	return m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(defaultWidget);
 }
 
+int UiFactory::GetParentWidgetFontSize() const noexcept
+{
+	return GetParentWidget(nullptr)->font().pointSize();
+}
+
 QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
 	const QMessageBox::Icon                                         icon,
 	const QString&                                                  title,
@@ -116,6 +122,8 @@ QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
 	for (auto* widget : msgBox.findChildren<QWidget*>())
 		widget->setFont(font);
 
+	msgBox.show();
+	MoveToParentCenter(msgBox);
 	msgBox.exec();
 
 	return FindSecond(msgBoxButtons, msgBox.clickedButton(), QMessageBox::NoRole);

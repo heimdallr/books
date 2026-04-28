@@ -27,7 +27,7 @@ using namespace HomeCompa;
 namespace
 {
 
-QByteArray Decompress(const QString& path, const QString& archive, const QString& fileName, const bool restoreImages)
+QByteArray Decompress(const QString& path, const QString& archive, const QString& fileName, const bool restoreImages, const ISettings& settings)
 {
 	const Zip  unzip(path + "/" + archive);
 	const auto stream = unzip.Read(fileName);
@@ -45,7 +45,7 @@ QByteArray Decompress(const QString& path, const QString& archive, const QString
 				buffer.close();
 			}
 		);
-		buffer.write(Util::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName));
+		buffer.write(Util::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName, settings));
 	}
 	return data;
 }
@@ -114,7 +114,7 @@ struct NoSqlRequester::Impl
 	{
 		auto book           = bookExtractor->GetExtractedBook(bookId);
 		auto outputFileName = bookExtractor->GetFileName(book);
-		auto data           = Decompress(collectionProvider->GetActiveCollection().GetFolder(), book.folder, book.file, restoreImages);
+		auto data           = Decompress(collectionProvider->GetActiveCollection().GetFolder(), book.folder, book.file, restoreImages, *settings);
 
 		Convert(outputFileName, data, GetProfileRoot(*settings, IRequester::GetParameter(parameters, CONVERTER_PROFILE)));
 

@@ -1,11 +1,12 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
-[![CMake](https://img.shields.io/badge/CMake-%23008FBA.svg?logo=cmake&logoColor=white)](https://cmake.org/)
 [![C++](https://img.shields.io/badge/c++-%2300599C.svg?logo=c%2B%2B&logoColor=white)](https://cppreference.com/)
 [![Static Badge](https://img.shields.io/badge/C%2B%2BStandard-C%2B%2B23-green?style=flat&label=C%2B%2BStandard)](https://en.cppreference.com/w/cpp/23.html)
-[![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?logo=sqlite&logoColor=white)](https://sqlite.org/)
+[![CMake](https://img.shields.io/badge/CMake-%23008FBA.svg?logo=cmake&logoColor=white)](https://cmake.org/)
 [![Qt](https://img.shields.io/badge/Qt-%23217346.svg?logo=Qt&logoColor=white)](https://www.qt.io/)
+[![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?logo=sqlite&logoColor=white)](https://sqlite.org/)
 [![Visual Studio](https://img.shields.io/badge/Visual%20Studio-5C2D91.svg?logo=visual-studio&logoColor=white)](https://visualstudio.microsoft.com/)
 [![Windows](https://img.shields.io/badge/-Windows-6E46A2.svg?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODc1IDQ4NzUiPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0wIDBoMjMxMXYyMzEwSDB6bTI1NjQgMGgyMzExdjIzMTBIMjU2NHpNMCAyNTY0aDIzMTF2MjMxMUgwem0yNTY0IDBoMjMxMXYyMzExSDI1NjQiLz48L3N2Zz4=)](https://www.microsoft.com/en-us/windows/windows-11)
+[![Linux](https://img.shields.io/badge/-Linux-ad3a90.svg?style=flat&logo=linux&logoColor=white)](https://ubuntu.com/)
 
 # FLibrary
 
@@ -70,7 +71,6 @@
 * Умеет в web (2 варианта интерфейса) и OPDS
 * Развивается
 #### Недостатки
-* Windows 10 x64 минимум
 * Только inpx-коллекции, никакого онлайна
 * Меньшая интуитивность создания/добавления коллекций
 * Нет поиска по совокупности критериев
@@ -88,34 +88,31 @@
 
 # Сборка  
 
-### Зависимости [^4]
-* Qt6 (6.11.0) [^5]  
-* sqlite3  
-* xerces-c  
-* plog  
-* boost, header only  
-* 7zip  
-* libjxl  
-* cImg  
-* ICU  
+#### Клонируем исходники с сабмодулями
+```
+git clone https://github.com/heimdallr/books.git --recursive
+```
 
-### Windows  
-Не запустится на винде ниже 10-ки, т.к. используется [Qt6](https://doc.qt.io/qt-6/windows.html)  
-Используется C++23  
-
-#### Установить и настроить conan  
+#### Устанавливаем и настраиваем conan
 [Инструкция](https://docs.conan.io/2/installation.html)  
 
-#### Добавить в PATH пути к: 
+#### Устанавливаем модули, которых нет в conan
+* Qt6 (6.10.0 минимум, но лучше 6.11.0) [^4] [^5]  
+* 7zip  
+
+### Windows  
+Проверялось на Windows 10 и 11, компилятор от MS в средах MSVS2022 и QtCreator
+
+#### Добавляем в PATH пути к: 
 * conan.exe  
 * cmake.exe, версия cmake должна поддерживать вашу версию MSVS, conan,... короче, берите cmake посвежее  
 * git.exe, необязательно, но полезно, позволит в логах видеть хэш текущего коммита  
 * Inno Setup, если нужен инсталлятор  
 
-#### Сконфигурировать:
-Запустить батник configure.bat. Возможно, сработают и другие способы, типа cmake-gui, или открыть в MSVS папку с исходниками.  
+#### Конфигурируем:
+В батнике configure.bat поменять пути к зависимостям на ваши, запустить его. Возможно, сработают и другие способы, типа cmake-gui, или открыть в MSVS папку с исходниками.  
 
-#### Собрать:
+#### Собираем:
 В результате конфигурирования в папке build будет создан солюшн FLibrary.sln. В нём надо собрать проект FLibrary.  
 
 #### Ещё варианты:
@@ -123,13 +120,10 @@
 * Можно открыть CMakeLists.txt в QtCreator  
 
 ### Linux
-Проверялось на Ubuntu 24.04
+Проверялось на Ubuntu 24.04, компилировалось gcc15.2
 
-#### Установить и настроить conan  
-[Инструкция](https://docs.conan.io/2/installation.html)  
-
-##### Убедиться в наличии gcc с поддержкой c++23
-##### Выполнить команды  
+##### Убеждаемся в наличии gcc с поддержкой c++23
+##### Выполняем команды  
 ```
 cd your/path/to/cloned/repo/books
 mkdir build
@@ -138,9 +132,9 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DQt6_DIR=your/path/to/Qt6/lib/cmake/Qt6 -G 
 cmake --build .
 cmake --install .
 ```
-##### Вариант
-Запустить скрипт build.sh  
-В результате в папке build будет создан пакет FLibrary_setup_x.y.z.deb  
+##### Ещё варианты
+* Запустить скрипт `build.sh`. В результате в папке build будет создан архив FLibrary-x.y.z-portable.tar.xz  
+* Запустить скрипт с параметром `build.sh DEB`. В папке build будет собран пакет FLibrary-x.y.z-setup.deb  
 
-[^4]: Подтянутся из conan, если необходимо - соберутся локально. Кроме Qt и 7zip, которые придётся найти/собрать самостоятельно.
-[^5]: Имеет смысл собрать самостоятельно, применив патчи src/home/script/conan/patch/qt
+[^4]: Имеет смысл собрать самостоятельно, применив патчи src/home/script/conan/patch/qt, линкуя с icu из conan.
+[^5]: Если есть необходимость запуска на Windows7, можно и с Qt5. Я собирал с 5.15.16

@@ -9,8 +9,9 @@ public:
 	virtual ~IBookInteractor() = default;
 
 public:
-	virtual void OnLinkActivated(long long bookId) const = 0;
-	virtual void OnDoubleClicked(long long bookId) const = 0;
+	virtual void OnLinkActivated(long long bookId) const           = 0;
+	virtual void OnDoubleClicked(long long bookId) const           = 0;
+	virtual void OnRecentBookMenuTriggered(long long bookId) const = 0;
 };
 
 }

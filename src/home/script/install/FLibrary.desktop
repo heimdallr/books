@@ -1,7 +1,9 @@
 [Desktop Entry]
 Name=FLibrary
 Comment=FLibrary: another e-book cataloger
-Exec=bash -ic "export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:/opt/FLibrary/lib ; /opt/FLibrary/FLibrary"
+Comment[ru]=FLibrary: ещё один каталогизатор электронной библиотеки
+Comment[uk]=FLibrary: ще один каталогізатор електронної бібліотеки
+Exec=nohup /opt/FLibrary/start.sh > /dev/null 2>&1 &
 Icon=/usr/share/icons/FLibrary.png
 Type=Application
 Categories=Utility;

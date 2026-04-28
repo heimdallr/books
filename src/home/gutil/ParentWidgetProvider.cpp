@@ -1,10 +1,12 @@
 #include "ParentWidgetProvider.h"
 
+#include <QWidget>
+
 using namespace HomeCompa::Util;
 
-void ParentWidgetProvider::SetWidget(QPointer<QWidget> widget)
+void ParentWidgetProvider::SetWidget(QWidget* widget)
 {
-	m_widget = std::move(widget);
+	m_widget = widget;
 }
 
 QWidget* ParentWidgetProvider::GetWidget(QWidget* parentWidget) const
