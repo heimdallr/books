@@ -403,13 +403,10 @@ void BooksExtractor::ExtractAsArchives(QString folder, const QString& /*paramete
 		std::move(books),
 		std::move(callback),
 		ExportStat::Type::Archive,
-		[this, zipProgressCallback = std::move(zipProgressCallback)](
-			const std::filesystem::path& archiveFolder,
-			const QString& /*dstFolder*/,
-			const Util::ExtractedBook&          book,
-			IProgressController::IProgressItem& progress,
-			IExportHelper&                      exportHelper
-		) mutable {
+		[this,
+	     zipProgressCallback = std::move(
+			 zipProgressCallback
+		 )](const std::filesystem::path& archiveFolder, const QString& /*dstFolder*/, const Util::ExtractedBook& book, IProgressController::IProgressItem& progress, IExportHelper& exportHelper) mutable {
 			Process(m_impl->GetSettings(), archiveFolder, book, progress, std::move(zipProgressCallback), exportHelper, WriteMode::Archive);
 		}
 	);
@@ -422,13 +419,7 @@ void BooksExtractor::ExtractAsIs(QString folder, const QString& /*parameter*/, U
 		std::move(books),
 		std::move(callback),
 		ExportStat::Type::AsIs,
-		[this](
-			const std::filesystem::path& archiveFolder,
-			const QString& /*dstFolder*/,
-			const Util::ExtractedBook&          book,
-			IProgressController::IProgressItem& progress,
-			IExportHelper&                      exportHelper
-		) {
+		[this](const std::filesystem::path& archiveFolder, const QString& /*dstFolder*/, const Util::ExtractedBook& book, IProgressController::IProgressItem& progress, IExportHelper& exportHelper) {
 			Process(m_impl->GetSettings(), archiveFolder, book, progress, {}, exportHelper, WriteMode::AsIs);
 		}
 	);
@@ -441,13 +432,7 @@ void BooksExtractor::ExtractUnpack(QString folder, const QString& /*parameter*/,
 		std::move(books),
 		std::move(callback),
 		ExportStat::Type::Unpack,
-		[this](
-			const std::filesystem::path& archiveFolder,
-			const QString& /*dstFolder*/,
-			const Util::ExtractedBook&          book,
-			IProgressController::IProgressItem& progress,
-			IExportHelper&                      exportHelper
-		) {
+		[this](const std::filesystem::path& archiveFolder, const QString& /*dstFolder*/, const Util::ExtractedBook& book, IProgressController::IProgressItem& progress, IExportHelper& exportHelper) {
 			Process(m_impl->GetSettings(), archiveFolder, book, progress, {}, exportHelper, WriteMode::Unpack);
 		}
 	);

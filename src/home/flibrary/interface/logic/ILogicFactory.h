@@ -22,7 +22,9 @@ class QTemporaryDir;
 
 namespace HomeCompa
 {
+
 class ISettings;
+
 }
 
 namespace HomeCompa::DB

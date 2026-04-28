@@ -71,7 +71,7 @@ void Extract(const ISettings& settings, const ILogicFactory::ITemporaryDir& temp
 	try
 	{
 		const Zip  zip(archive);
-		const auto stream = zip.Read(fileName);
+		const auto stream       = zip.Read(fileName);
 		const auto settingsStub = ILogicFactory::Lock(logicFactory)->CreateSettingsStub();
 
 		if (Zip::IsArchive(Platform::RemoveIllegalPathCharacters(fileName)))
