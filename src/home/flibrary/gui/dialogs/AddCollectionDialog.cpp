@@ -82,8 +82,6 @@ public:
 		, m_settings { std::move(settings) }
 		, m_collectionController { std::move(collectionController) }
 		, m_uiFactory { std::move(uiFactory) }
-		, m_icuLib { std::make_unique<Platform::DyLib>(ICU::LIB_NAME) }
-		, m_icuTransliterate { m_icuLib->GetTypedProc<ICU::TransliterateType>(ICU::TRANSLITERATE_NAME) }
 	{
 		m_ui.setupUi(&m_self);
 
@@ -271,7 +269,7 @@ private:
 			return;
 
 		const QFileInfo fileInfo(m_ui.editDatabase->GetText().isEmpty() ? QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation) : m_ui.editDatabase->GetText());
-		m_ui.editDatabase->SetText(QString("%1.db").arg(fileInfo.dir().filePath(Util::Transliterate(m_icuTransliterate, std::move(text)))));
+		m_ui.editDatabase->SetText(QString("%1.db").arg(fileInfo.dir().filePath(m_transliterator.Transliterate(std::move(text)))));
 	}
 
 	void OnDatabaseNameChanged(const QString& db)
@@ -415,7 +413,7 @@ private:
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 	std::shared_ptr<const IUiFactory>                         m_uiFactory;
 	std::unique_ptr<Platform::DyLib>                          m_icuLib;
-	ICU::TransliterateType                                    m_icuTransliterate { nullptr };
+	Util::Transliterator                                      m_transliterator;
 	bool                                                      m_createMode { false };
 	bool                                                      m_userDefinedDatabasePath { false };
 	Ui::AddCollectionDialog                                   m_ui {};

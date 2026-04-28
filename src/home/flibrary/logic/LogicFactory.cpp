@@ -22,7 +22,6 @@
 #include "data/Genre.h"
 #include "extract/BooksExtractor.h"
 #include "extract/InpxGenerator.h"
-#include "platform/DyLib.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/ZipProgressCallback.h"
 #include "util/Settings.h"
@@ -144,23 +143,16 @@ private: // IFilledTemplateConverter
 class FilledTemplateTransliterator : public IFillTemplateConverter
 {
 protected:
-	FilledTemplateTransliterator()
-		: m_icuLib { std::make_unique<Platform::DyLib>(ICU::LIB_NAME) }
-		, m_icuTransliterate { m_icuLib->GetTypedProc<ICU::TransliterateType>(ICU::TRANSLITERATE_NAME) }
-	{
-	}
+	FilledTemplateTransliterator() = default;
 
 private: // IFilledTemplateConverter
 	bool IsValid() const noexcept override
 	{
-		return !!m_icuTransliterate;
+		return m_transliterator.IsReady();
 	}
 
-private:
-	std::unique_ptr<Platform::DyLib> m_icuLib;
-
 protected:
-	ICU::TransliterateType m_icuTransliterate { nullptr };
+	Util::Transliterator m_transliterator;
 };
 
 class FilledTemplateConverterFileNameOnly final : public FilledTemplateTransliterator
@@ -185,7 +177,7 @@ private: // IFilledTemplateConverter
 
 		const QFileInfo fileInfo(book.dstFileName);
 		auto            fileName = fileInfo.fileName();
-		fileName                 = Util::Transliterate(m_icuTransliterate, fileName);
+		fileName                 = m_transliterator.Transliterate(fileName);
 		book.dstFileName         = fileInfo.dir().filePath(fileName);
 	}
 };
@@ -211,7 +203,7 @@ private: // IFilledTemplateConverter
 		book.dstFileName.replace(userDestinationFolder, "|UserDestinationFolder|");
 		ILogicFactory::FillScriptTemplate(db, book.dstFileName, book);
 		book.dstFileName.replace("|UserDestinationFolder|", userDestinationFolder);
-		book.dstFileName = Util::Transliterate(m_icuTransliterate, outputFileTemplate);
+		book.dstFileName = m_transliterator.Transliterate(outputFileTemplate);
 		IScriptController::SetMacro(book.dstFileName, IScriptController::Macro::UserDestinationFolder, dstFolder);
 	}
 };
@@ -235,7 +227,7 @@ private: // IFilledTemplateConverter
 		book.dstFileName = outputFileTemplate;
 		IScriptController::SetMacro(book.dstFileName, IScriptController::Macro::UserDestinationFolder, dstFolder);
 		ILogicFactory::FillScriptTemplate(db, book.dstFileName, book);
-		book.dstFileName = Util::Transliterate(m_icuTransliterate, outputFileTemplate);
+		book.dstFileName = m_transliterator.Transliterate(outputFileTemplate);
 	}
 };
 
