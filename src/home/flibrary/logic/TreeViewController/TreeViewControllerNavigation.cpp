@@ -175,7 +175,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      NavigationMode::Authors,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Authors where AuthorId > (select min(AuthorId) from Authors))",
-     }																																			   },
+     }																																								   },
 	{	   Loc::Series,
      {
      ViewMode::List,
@@ -183,7 +183,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      NavigationMode::Series,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Series where SeriesId > (select min(SeriesId) from Series))",
-     }																																			   },
+     }																																								   },
 	{	   Loc::Genres,
      {
      ViewMode::Tree,
@@ -191,7 +191,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      NavigationMode::Genres,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Genres g join Genre_List l on l.GenreCode = g.GenreCode where g.rowid > (select min(g.rowid) from Genres g join Genre_List l on l.GenreCode = g.GenreCode))",
-     }																																			   },
+     }																																								   },
 	{ Loc::PublishYears,
      {
      ViewMode::List,
@@ -199,7 +199,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      NavigationMode::PublishYear,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Books where Year IS NOT NULL)",
-     }																																			   },
+     }																																								   },
 	{     Loc::Keywords,
      {
      ViewMode::List,
@@ -207,7 +207,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      NavigationMode::Keywords,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Keywords where KeywordId > (select min(KeywordId) from Keywords))",
-     }																																			   },
+     }																																								   },
 	{	  Loc::Updates,
      {
      ViewMode::Tree,
@@ -215,13 +215,13 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      NavigationMode::Updates,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Updates u join Books b on b.UpdateID = u.UpdateID where u.UpdateID > (select min(u.UpdateID) from Updates u join Books b on b.UpdateID = u.UpdateID))",
-     }																																			   },
+     }																																								   },
 	{     Loc::Archives,
      { ViewMode::List,
      &IModelProvider::CreateListModel,
      NavigationMode::Archives,
      &INavigationFilter::IsRecordExists,
-     "select exists (select 42 from Folders where FolderId > (select min(FolderId) from Folders))" }                                                 },
+     "select exists (select 42 from Folders where FolderId > (select min(FolderId) from Folders))" }                                                                     },
 
 	{    Loc::Languages,
      {
@@ -230,7 +230,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      NavigationMode::Languages,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Books where Lang > (select min(Lang) from Books))",
-     }																																			   },
+     }																																								   },
 	{	   Loc::Groups,
      { ViewMode::List,
      &IModelProvider::CreateListModel,
@@ -238,7 +238,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      &INavigationFilter::Stub,
      nullptr,
      &IContextMenuHandler::OnCreateNewGroupTriggered,
-     &IContextMenuHandler::OnRemoveGroupTriggered }																								  },
+     &IContextMenuHandler::OnRemoveGroupTriggered }																													  },
 
 	{	   Loc::Search,
      { ViewMode::List,
@@ -247,11 +247,16 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      &INavigationFilter::Stub,
      nullptr,
      &IContextMenuHandler::OnCreateNewSearchTriggered,
-     &IContextMenuHandler::OnRemoveSearchTriggered }																								 },
+     &IContextMenuHandler::OnRemoveSearchTriggered }																													 },
 
-	{	  Loc::Reviews, { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Reviews, &INavigationFilter::IsFolderExists, "reviews" } },
-	{  Loc::AlreadyRead,											{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AlreadyRead } },
-	{     Loc::AllBooks,											   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
+	{	  Loc::Reviews,					 { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Reviews, &INavigationFilter::IsFolderExists, "reviews" } },
+	{  Loc::AlreadyRead,
+     { ViewMode::List,
+     &IModelProvider::CreateListModel,
+     NavigationMode::AlreadyRead,
+     &INavigationFilter::IsRecordExists,
+     "select exists (select 42 from Books_User b where b.UserRate is not null and b.BookID > (select min(b.BookID) from Books_User b where b.UserRate is not null))" }   },
+	{     Loc::AllBooks,																   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
