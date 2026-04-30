@@ -8,11 +8,8 @@ set(MODULES
 	interface
 	version
 	app
+	joke
 )
 foreach(module ${MODULES})
 	include("${CMAKE_CURRENT_LIST_DIR}/${module}/${module}.cmake")
 endforeach()
-
-if (QT6)
-	include("${CMAKE_CURRENT_LIST_DIR}/joke/joke.cmake")
-endif()

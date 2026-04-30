@@ -12,7 +12,7 @@ class SimpleJokeRequester : public BaseJokeRequester
 	NON_COPY_MOVABLE(SimpleJokeRequester)
 
 public:
-	SimpleJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, QString fieldName, QString prefix = {}, QHttpHeaders headers = {});
+	SimpleJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, QString fieldName, QString prefix = {}, Network::Headers headers = {});
 	~SimpleJokeRequester() override;
 
 private: // BaseJokeRequester

@@ -1,13 +1,14 @@
 #pragma once
 
 #include <QBuffer>
-#include <QHttpHeaders>
 #include <QString>
 
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
 #include "interface/logic/IJokeRequester.h"
+
+#include "network/network/headers.h"
 
 namespace HomeCompa::Network
 {
@@ -16,7 +17,6 @@ class Downloader;
 
 }
 
-class QHttpHeaders;
 class QJsonValue;
 
 namespace HomeCompa::Flibrary
@@ -37,7 +37,7 @@ protected:
 	};
 
 public:
-	BaseJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, QHttpHeaders headers = {});
+	BaseJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, Network::Headers headers = {});
 	~BaseJokeRequester() override;
 
 private: // IJokeRequester

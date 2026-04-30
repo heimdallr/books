@@ -849,11 +849,7 @@ private:
 			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER).exists()
 		);
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		ConnectActionsSettingsAnnotationJokes();
-#else
-		m_ui.menuJokes->menuAction()->setVisible(false);
-#endif
 	}
 
 	void ConnectActionsSettingsFont()

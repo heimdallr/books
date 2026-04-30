@@ -16,6 +16,6 @@ TR_DEF
 }
 
 CatFactJokeRequester::CatFactJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory)
-	: SimpleJokeRequester(jokeRequesterFactory->GetDownloader(), "http://catfact.ninja/fact", "fact", Tr(PREFIX))
+	: SimpleJokeRequester(jokeRequesterFactory->GetDownloader(), "https://catfact.ninja/fact", "fact", Tr(PREFIX))
 {
 }

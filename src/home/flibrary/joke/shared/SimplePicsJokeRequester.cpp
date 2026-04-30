@@ -19,7 +19,7 @@ struct SimplePicsJokeRequester::Impl
 	Network::Downloader                               downloader;
 };
 
-SimplePicsJokeRequester::SimplePicsJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, QString fieldName, QHttpHeaders headers)
+SimplePicsJokeRequester::SimplePicsJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, QString fieldName, Network::Headers headers)
 	: BaseJokeRequester(std::move(downloader), std::move(uri), std::move(headers))
 	, m_impl { std::move(fieldName) }
 {

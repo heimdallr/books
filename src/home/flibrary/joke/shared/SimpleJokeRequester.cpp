@@ -5,7 +5,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-SimpleJokeRequester::SimpleJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, QString fieldName, QString prefix, QHttpHeaders headers)
+SimpleJokeRequester::SimpleJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, QString fieldName, QString prefix, Network::Headers headers)
 	: BaseJokeRequester(std::move(downloader), std::move(uri), std::move(headers))
 	, m_fieldName { std::move(fieldName) }
 	, m_prefix { std::move(prefix) }

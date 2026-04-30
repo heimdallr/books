@@ -23,11 +23,11 @@ struct BaseJokeRequester::Impl
 {
 	std::shared_ptr<Network::Downloader>              downloader;
 	const QString                                     uri;
-	QHttpHeaders                                      headers;
+	Network::Headers                                  headers;
 	std::unordered_map<size_t, std::unique_ptr<Item>> requests;
 };
 
-BaseJokeRequester::BaseJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, QHttpHeaders headers)
+BaseJokeRequester::BaseJokeRequester(std::shared_ptr<Network::Downloader> downloader, QString uri, Network::Headers headers)
 	: m_impl { std::move(downloader), std::move(uri), std::move(headers) }
 {
 }
@@ -37,9 +37,12 @@ BaseJokeRequester::~BaseJokeRequester() = default;
 void BaseJokeRequester::Request(std::weak_ptr<IClient> client)
 {
 	auto       item = std::make_unique<Item>(std::move(client));
-	const auto id   = m_impl->downloader->Download(m_impl->uri, m_impl->headers, item->stream, [this](const size_t idMessage, const int code, const QString& message) {
+	const auto id   = m_impl->downloader->Download(m_impl->uri, item->stream, [this](const size_t idMessage, const int code, const QString& message) {
 		OnResponse(idMessage, code, message);
-	});
+		},
+		{},
+		m_impl->headers
+	);
 	m_impl->requests.try_emplace(id, std::move(item));
 }
 
