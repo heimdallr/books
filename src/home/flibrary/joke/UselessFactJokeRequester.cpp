@@ -1,7 +1,5 @@
 #include "UselessFactJokeRequester.h"
 
-#include <QHttpHeaders>
-
 #include "interface/localization.h"
 #include "interface/logic/IJokeRequesterFactory.h"
 
@@ -15,10 +13,10 @@ constexpr auto CONTEXT = "JokeRequester";
 constexpr auto PREFIX  = QT_TRANSLATE_NOOP("JokeRequester", "One more useless fact");
 TR_DEF
 
-QHttpHeaders CreateHeaders()
+Network::Headers CreateHeaders()
 {
-	QHttpHeaders headers;
-	headers.append(QHttpHeaders::WellKnownHeader::Accept, "application/json");
+	Network::Headers headers;
+	headers.Append("Accept", "application/json");
 	return headers;
 }
 

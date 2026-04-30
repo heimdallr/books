@@ -12,13 +12,13 @@ AddTarget(logic	shared_lib
 		dbfactory
 		flint
 		inpx
+		joke
 		logging
 		network
 		platform
 		rest
 		util
 		zip
-		[ QT6 joke ]
 )
 
 file(COPY ${CMAKE_CURRENT_LIST_DIR}/resources/data/genres.lst DESTINATION ${CMAKE_BINARY_DIR}/bin)

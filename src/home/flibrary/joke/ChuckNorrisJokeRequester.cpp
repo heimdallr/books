@@ -16,6 +16,6 @@ TR_DEF
 }
 
 ChuckNorrisJokeRequester::ChuckNorrisJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory)
-	: SimpleJokeRequester(jokeRequesterFactory->GetDownloader(), "http://api.chucknorris.io/jokes/random", "value", Tr(PREFIX))
+	: SimpleJokeRequester(jokeRequesterFactory->GetDownloader(), "https://api.chucknorris.io/jokes/random", "value", Tr(PREFIX))
 {
 }

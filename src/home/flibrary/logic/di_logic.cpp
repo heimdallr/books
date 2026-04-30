@@ -21,6 +21,7 @@
 #include "database/DatabaseMigrator.h"
 #include "database/DatabaseUser.h"
 #include "extract/BookExtractor.h"
+#include "joke/factory/JokeRequesterFactory.h"
 #include "log/LogController.h"
 #include "model/FilteredProxyModel.h"
 #include "model/GenreModel.h"
@@ -49,40 +50,6 @@
 #include "LogicFactory.h"
 
 #include "config/version.h"
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-	#include "joke/factory/JokeRequesterFactory.h"
-#else
-namespace HomeCompa::Flibrary
-{
-
-class JokeRequesterFactory final : public IJokeRequesterFactory
-{
-public:
-	static std::shared_ptr<JokeRequesterFactory> Create(Hypodermic::Container&)
-	{
-		return std::make_shared<JokeRequesterFactory>();
-	}
-
-private:
-	std::shared_ptr<IJokeRequester> Create(Implementation) const override
-	{
-		return {};
-	}
-
-	std::shared_ptr<Network::Downloader> GetDownloader() const override
-	{
-		return {};
-	}
-
-	std::vector<ImplementationDescription> GetImplementations() const override
-	{
-		return {};
-	}
-};
-
-} // namespace HomeCompa::Flibrary
-#endif
 
 namespace HomeCompa::Flibrary
 {

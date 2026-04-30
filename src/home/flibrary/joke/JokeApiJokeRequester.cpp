@@ -54,7 +54,7 @@ constexpr std::pair<const char*, QString (*)(const QJsonObject&)> PARSERS[] {
 } // namespace
 
 JokeApiJokeRequester::JokeApiJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory)
-	: BaseJokeRequester(jokeRequesterFactory->GetDownloader(), "http://v2.jokeapi.dev/joke/Any")
+	: BaseJokeRequester(jokeRequesterFactory->GetDownloader(), "https://v2.jokeapi.dev/joke/Any")
 {
 }
 
