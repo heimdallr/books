@@ -1073,7 +1073,7 @@ private:
 		m_ui.actionViewHelp->setEnabled(true);
 		m_ui.actionViewHelp->setVisible(true);
 		connect(m_ui.actionViewHelp, &QAction::triggered, &m_self, [&, helpFile = std::move(helpFile)] {
-			QDesktopServices::openUrl(helpFile);
+			QDesktopServices::openUrl(QUrl::fromLocalFile(helpFile));
 		});
 	}
 
