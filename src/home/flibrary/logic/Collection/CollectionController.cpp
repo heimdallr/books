@@ -465,6 +465,11 @@ void CollectionController::AllowDestructiveOperation(const bool value)
 	m_impl->AllowDestructiveOperation(value);
 }
 
+Collection::Ptr CollectionController::CreateCollection(QString name, QString database, QString folder, QString additionalFolder, QString inpx)
+{
+	return std::make_unique<CollectionImpl>(std::move(name), std::move(database), std::move(folder), std::move(additionalFolder), std::move(inpx));
+}
+
 void CollectionController::RegisterObserver(ICollectionsObserver* observer)
 {
 	m_impl->Register(observer);
