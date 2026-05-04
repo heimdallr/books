@@ -338,8 +338,6 @@ QByteArray Pack(const QString& dstFolder, const QString& uid, const QString& boo
 			Write(inpx, book, fileName, n, fileFolder, QString::number(bytes.size()));
 		}
 		QFile::remove(inputPath);
-
-		progress.Increment(1);
 	}
 
 	Zip zip(QString("%1/%2.zip").arg(dstFolder, uid), Zip::Format::Zip, false, std::make_shared<ZipProgressCallback>(progress));
@@ -386,7 +384,7 @@ public:
 		m_inpxFileName = std::move(inpxFileName);
 		m_dstFolder    = QFileInfo(m_inpxFileName).absoluteDir().absolutePath();
 		m_tmpFolder    = m_dstFolder + "/" + QUuid::createUuid().toString(QUuid::WithoutBraces);
-		m_progressItem = m_progressController->Add(std::ssize(books) * 3 + 1);
+		m_progressItem = m_progressController->Add(std::ssize(books) * 2 + 1);
 
 		QDir(m_tmpFolder).mkpath(".");
 		const auto outputFolderCount = std::size(books) / 3200 + 1;
@@ -454,6 +452,7 @@ public:
 								   currentZip    = std::make_unique<Zip>(Platform::PathToString(m_archiveFolder / Platform::StringToPath(currentFolder)));
 							   }
 							   const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
+							   assert(stream && currentZip);
 							   if (const auto n = currentZip->GetFileIndex(fileName); n != Zip::INVALID_INDEX)
 								   Write(*stream, book, fileName, n, book.book->GetRawData(BookItem::Column::Folder), book.book->GetRawData(BookItem::Column::Size));
 
@@ -492,6 +491,12 @@ private: // IProgress
 	}
 
 private:
+	void OnStopped() const
+	{
+		if (m_packTaskCount + m_unpackTaskCount == 0)
+			m_callback(false);
+	}
+
 	Util::IExecutor::Task CreateUnpackTask(BookInfoList&& books)
 	{
 		++m_unpackTaskCount;
@@ -509,8 +514,11 @@ private:
 											  error = true;
 										  }
 										  return [this, error, inpx = std::move(inpx), books = std::move(books)](const size_t) mutable {
-											  std::ranges::move(books, std::back_inserter(m_unpackedBooks));
 											  --m_unpackTaskCount;
+											  if (m_progressItem->IsStopped())
+												  return OnStopped();
+
+											  std::ranges::move(books, std::back_inserter(m_unpackedBooks));
 
 											  while (m_unpackedBooks.size() >= m_chunkSize)
 												  (*m_executor)(CreatePackTask(), 1, false);
@@ -555,6 +563,10 @@ private:
 											  error = true;
 										  }
 										  return [this, error, inpx = std::move(inpx), uid = std::move(uid), unpackedCount = std::size(books)](const size_t) mutable {
+											  --m_packTaskCount;
+											  if (m_progressItem->IsStopped())
+												  return OnStopped();
+
 											  {
 												  std::lock_guard lock(m_pathsGuard);
 												  m_paths[uid] = std::move(inpx);
@@ -562,7 +574,7 @@ private:
 
 											  m_hasError = error || m_hasError;
 											  assert(m_packTaskCount > 0);
-											  if (--m_packTaskCount > 0 || m_unpackTaskCount > 0)
+											  if (m_packTaskCount > 0 || m_unpackTaskCount > 0)
 												  return;
 
 											  Increment(1);
@@ -668,6 +680,7 @@ private:
 				inputZip      = std::make_unique<Zip>(Platform::PathToString(m_archiveFolder / Platform::StringToPath(currentFolder)));
 				m_progressItem->Increment(-1);
 			}
+			assert(inputZip);
 			if (const auto index = inputZip->GetFileIndex(QString("%1%2").arg(query->Get<const char*>(9), query->Get<const char*>(10))); index != Zip::INVALID_INDEX)
 				data.try_emplace(index, Write(*query, series, genres, bookGenres, authors, bookAuthors, keywords, bookKeywords, index));
 
