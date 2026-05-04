@@ -16,7 +16,7 @@
  <img width="1871" alt="image" src="https://github.com/user-attachments/assets/fc0501c8-726b-4117-85c9-a5b358ca06d9" />
 </details>
 
-Замена для [MyHomeLib](https://github.com/OleksiyPenkov/MyHomeLib)
+[Сравнение с MyHomeLib](doc/compare/mhl.md)
 
 # Сборка  
 
