@@ -65,8 +65,8 @@ cmake --build .
 cmake --install .
 ```
 ##### Ещё варианты
-* Запустить скрипт `build.sh`. В результате в папке build будет создан архив FLibrary-x.y.z-portable.tar.xz  
-* Запустить скрипт с параметром `build.sh DEB`. В папке build будет собран пакет FLibrary-x.y.z-setup.deb  
+* Запустить скрипт `build.sh`. В результате в папке build будет создан архив FLibrary-x.y.z-portable-Linux.tar.xz  
+* Запустить скрипт с параметром `build.sh DEB`. В папке build будет собран пакет FLibrary-x.y.z-setup-Linux.deb  
 
 [^4]: Имеет смысл собрать самостоятельно, применив патчи src/home/script/conan/patch/qt, линкуя с icu из conan.
 [^5]: Если есть необходимость запуска на Windows7, можно и с Qt5. Я собирал с 5.15.16
