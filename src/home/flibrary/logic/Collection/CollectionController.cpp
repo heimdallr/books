@@ -13,6 +13,7 @@
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
 #include "inpx/InpxConstant.h"
+#include "inpx/inpx.h"
 #include "platform/StrUtil.h"
 #include "util/files.h"
 
@@ -133,7 +134,7 @@ public:
 		const auto& collection = GetActiveCollection();
 		auto        parser     = std::make_shared<Inpx::Parser>();
 		auto&       parserRef  = *parser;
-		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), collection.GetInpx(), true);
+		auto [tmpDir, ini]     = Inpx::Parser::GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), collection.GetInpx(), true);
 		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable {
 			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
 				parser.reset();
@@ -209,11 +210,6 @@ public:
 		CollectionImpl::Serialize(collection, *m_settings);
 	}
 
-	IniMapPair GetIniMap(const QString& db, const QString& folder, const QString& additionalFolder, const QString& inpx, const bool createFiles) const
-	{
-		return m_collectionProvider->GetIniMap(db, folder, additionalFolder, inpx, createFiles);
-	}
-
 	Collection& GetActiveCollection() noexcept
 	{
 		return m_collectionProvider->GetActiveCollection();
@@ -277,7 +273,7 @@ private:
 
 		auto  parser       = std::make_shared<Inpx::Parser>();
 		auto& parserRef    = *parser;
-		auto [tmpDir, ini] = m_collectionProvider->GetIniMap(db, folder, additionalFolder, inpx, true);
+		auto [tmpDir, ini] = Inpx::Parser::GetIniMap(db, folder, additionalFolder, inpx, true);
 		ini.try_emplace(DEFAULT_ARCHIVE_TYPE, defaultArchiveType);
 
 		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement());
@@ -317,7 +313,7 @@ private:
 		const auto& collection = GetActiveCollection();
 		auto        parser     = std::make_shared<Inpx::Parser>();
 		auto&       parserRef  = *parser;
-		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), collection.GetInpx(), true);
+		auto [tmpDir, ini]     = Inpx::Parser::GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), collection.GetInpx(), true);
 		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir), name = collection.name](const Inpx::UpdateResult& updateResult) mutable {
 			if (updateResult.oldDataUpdateFound)
 			{
@@ -467,11 +463,6 @@ void CollectionController::OnInpxUpdateChecked(const Collection& updatedCollecti
 void CollectionController::AllowDestructiveOperation(const bool value)
 {
 	m_impl->AllowDestructiveOperation(value);
-}
-
-ICollectionProvider::IniMapPair CollectionController::GetIniMap(const QString& db, const QString& folder, const QString& additionalFolder, const QString& inpx, const bool createFiles) const
-{
-	return m_impl->GetIniMap(db, folder, additionalFolder, inpx, createFiles);
 }
 
 void CollectionController::RegisterObserver(ICollectionsObserver* observer)

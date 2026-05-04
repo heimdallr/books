@@ -1,0 +1,7 @@
+<RCC>
+	<qresource prefix="data">
+		<file alias="CreateCollection.json">data/CreateCollection.json</file>
+		<file alias="UpdateCollection.json">data/UpdateCollection.json</file>
+		<file alias="genres.lst">data/genres.lst</file>
+	</qresource>
+</RCC>

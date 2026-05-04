@@ -1,19 +1,16 @@
 #include "CollectionProvider.h"
 
-#include <QCoreApplication>
-#include <QTemporaryDir>
+#include <QDir>
 #include <QTimer>
 
 #include "fnd/ScopedCall.h"
 #include "fnd/memory.h"
 #include "fnd/observable.h"
 
-#include "inpx/InpxConstant.h"
 #include "platform/StrUtil.h"
 #include "util/IExecutor.h"
 #include "util/files.h"
 #include "util/hash.h"
-#include "util/language.h"
 
 #include "CollectionImpl.h"
 #include "log.h"
@@ -172,38 +169,4 @@ void CollectionProvider::OnActiveCollectionChanged()
 void CollectionProvider::OnNewCollectionCreating(const bool value)
 {
 	m_impl->Perform(&ICollectionsObserver::OnNewCollectionCreating, value);
-}
-
-ICollectionProvider::IniMapPair CollectionProvider::GetIniMap(const QString& db, const QString& folder, const QString& additionalFolder, const QString& inpx, bool createFiles) const
-{
-	IniMapPair result { createFiles ? std::make_shared<QTemporaryDir>() : nullptr, Inpx::Parser::IniMap {} };
-	const auto getFile = [tempDir = result.first, createFiles](const QString& name) {
-		auto fileName = QCoreApplication::applicationDirPath() + QDir::separator() + name;
-		if (!createFiles || QFile(fileName).exists())
-			return fileName;
-
-		fileName = tempDir->filePath(name);
-		QFile::copy(":/data/" + name, fileName);
-		return fileName;
-	};
-
-	result.second = Inpx::Parser::IniMap {
-		{		   DB_PATH,								db },
-		{			GENRES,           getFile(DEFAULT_GENRES) },
-		{  DB_CREATE_SCRIPT, getFile(DEFAULT_DB_CREATE_SCRIPT) },
-		{  DB_UPDATE_SCRIPT, getFile(DEFAULT_DB_UPDATE_SCRIPT) },
-		{    ARCHIVE_FOLDER,							folder },
-		{ ADDITIONAL_FOLDER,                  additionalFolder },
-	};
-
-	if (!inpx.isEmpty())
-		result.second.try_emplace(INPX_PATH, inpx);
-
-	for (auto& [key, value] : result.second)
-	{
-		value = QDir::fromNativeSeparators(value);
-		PLOGD << key << ": " << value;
-	}
-
-	return result;
 }
