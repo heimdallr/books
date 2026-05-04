@@ -471,16 +471,12 @@ private: // IContextMenuHandler
 
 	void SendAsInpxCollection(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		SendAsInpxImpl(model, index, indexList, std::move(item), std::move(callback), &IInpxGenerator::ExtractAsInpxCollection, [this] {
-			return m_uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, Loc::SELECT_SEND_TO_FOLDER);
-		});
+		SendAsInpxImpl(model, index, indexList, std::move(item), std::move(callback), &IInpxGenerator::ExtractAsInpxCollection);
 	}
 
 	void SendAsInpxFile(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		SendAsInpxImpl(model, index, indexList, std::move(item), std::move(callback), &IInpxGenerator::GenerateInpx, [this] {
-			return m_uiFactory->GetSaveFileName(Constant::Settings::EXPORT_DIALOG_KEY, Loc::Tr(Loc::EXPORT, Loc::SELECT_INPX_FILE), Loc::Tr(Loc::EXPORT, Loc::SELECT_INPX_FILE_FILTER));
-		});
+		SendAsInpxImpl(model, index, indexList, std::move(item), std::move(callback), &IInpxGenerator::GenerateInpx);
 	}
 
 	void SendAsScript(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
@@ -638,8 +634,7 @@ private:
 		const QList<QModelIndex>& indexList,
 		IDataItem::Ptr            item,
 		Callback                  callback,
-		void (IInpxGenerator::*extractorMethod)(QString, const std::vector<QString>&, const IBookInfoProvider&, IInpxGenerator::Callback),
-		const std::function<QString()>& nameGenerator
+		void (IInpxGenerator::*extractorMethod)(QString, const std::vector<QString>&, const IBookInfoProvider&, IInpxGenerator::Callback)
 	) const
 	{
 		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id });
@@ -649,7 +644,8 @@ private:
 		std::transform(std::next(idList.begin()), idList.end(), std::back_inserter(idList.front()), [](auto& id) {
 			return std::move(id.front());
 		});
-		auto inpxName = nameGenerator();
+
+		auto inpxName = m_uiFactory->GetSaveFileName(Constant::Settings::EXPORT_DIALOG_KEY, Loc::Tr(Loc::EXPORT, Loc::SELECT_INPX_FILE), Loc::Tr(Loc::EXPORT, Loc::SELECT_INPX_FILE_FILTER));
 		if (inpxName.isEmpty())
 			return callback(item);
 
