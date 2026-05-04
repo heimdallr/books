@@ -53,8 +53,8 @@ public:
 public: // special
 	[[nodiscard]] virtual std::filesystem::path                      GetNewCollectionInpxFolder() const noexcept = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewController> GetTreeViewController() const noexcept      = 0;
-	[[nodiscard]] virtual QTreeView&                                 GetTreeView() const noexcept                = 0;
-	[[nodiscard]] virtual QAbstractItemView&                         GetAbstractItemView() const noexcept        = 0;
+	[[nodiscard]] virtual QTreeView&                                 GetTreeView() const                         = 0;
+	[[nodiscard]] virtual QAbstractItemView&                         GetAbstractItemView() const                 = 0;
 	[[nodiscard]] virtual QString                                    GetTitle() const noexcept                   = 0;
 	[[nodiscard]] virtual long long                                  GetAuthorId() const noexcept                = 0;
 };

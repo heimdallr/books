@@ -373,13 +373,13 @@ std::shared_ptr<ITreeViewController> UiFactory::GetTreeViewController() const no
 	return std::move(m_impl->treeViewController);
 }
 
-QTreeView& UiFactory::GetTreeView() const noexcept
+QTreeView& UiFactory::GetTreeView() const
 {
 	assert(m_impl->treeView);
 	return *m_impl->treeView;
 }
 
-QAbstractItemView& UiFactory::GetAbstractItemView() const noexcept
+QAbstractItemView& UiFactory::GetAbstractItemView() const
 {
 	assert(m_impl->abstractItemView);
 	return *m_impl->abstractItemView;
