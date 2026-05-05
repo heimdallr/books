@@ -1,7 +1,5 @@
 #include "inpx.h"
 
-#include <QCryptographicHash>
-
 #include <fstream>
 #include <future>
 #include <queue>
@@ -9,6 +7,7 @@
 #include <set>
 #include <sstream>
 
+#include <QCoreApplication>
 #include <QDirIterator>
 #include <QFile>
 #include <QJsonArray>
@@ -16,6 +15,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QRegularExpression>
+#include <QTemporaryDir>
 
 #include <boost/iterator/iterator_facade.hpp>
 
@@ -2434,4 +2434,38 @@ bool Parser::CheckForUpdate(IniMap data, DB::IDatabase& database)
 	};
 
 	return TRY("fill inpx", process);
+}
+
+Parser::IniMapPair Parser::GetIniMap(QString db, QString folder, QString additionalFolder, QString inpx, const bool createFiles)
+{
+	IniMapPair result { createFiles ? std::make_shared<QTemporaryDir>() : nullptr, IniMap {} };
+	const auto getFile = [tempDir = result.first, createFiles](const QString& name) {
+		auto fileName = QCoreApplication::applicationDirPath() + QDir::separator() + name;
+		if (!createFiles || QFile(fileName).exists())
+			return fileName;
+
+		fileName = tempDir->filePath(name);
+		QFile::copy(":/data/" + name, fileName);
+		return fileName;
+	};
+
+	result.second = IniMap {
+		{		   DB_PATH,					 std::move(db) },
+		{			GENRES,           getFile(DEFAULT_GENRES) },
+		{  DB_CREATE_SCRIPT, getFile(DEFAULT_DB_CREATE_SCRIPT) },
+		{  DB_UPDATE_SCRIPT, getFile(DEFAULT_DB_UPDATE_SCRIPT) },
+		{    ARCHIVE_FOLDER,                 std::move(folder) },
+		{ ADDITIONAL_FOLDER,       std::move(additionalFolder) },
+	};
+
+	if (!inpx.isEmpty())
+		result.second.try_emplace(INPX_PATH, std::move(inpx));
+
+	for (auto& [key, value] : result.second)
+	{
+		value = QDir::fromNativeSeparators(value);
+		PLOGD << key << ": " << value;
+	}
+
+	return result;
 }

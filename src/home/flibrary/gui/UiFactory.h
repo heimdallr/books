@@ -73,8 +73,8 @@ private: // IUiFactory
 private: // special
 	std::filesystem::path                GetNewCollectionInpxFolder() const noexcept override;
 	std::shared_ptr<ITreeViewController> GetTreeViewController() const noexcept override;
-	QTreeView&                           GetTreeView() const noexcept override;
-	QAbstractItemView&                   GetAbstractItemView() const noexcept override;
+	QTreeView&                           GetTreeView() const override;
+	QAbstractItemView&                   GetAbstractItemView() const override;
 	QString                              GetTitle() const noexcept override;
 	long long                            GetAuthorId() const noexcept override;
 

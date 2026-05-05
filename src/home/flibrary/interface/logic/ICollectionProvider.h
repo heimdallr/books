@@ -53,9 +53,6 @@ public:
 class ICollectionProvider : public ICollectionsObserver
 {
 public:
-	using IniMapPair = std::pair<std::shared_ptr<QTemporaryDir>, Inpx::Parser::IniMap>;
-
-public:
 	[[nodiscard]] virtual bool IsEmpty() const noexcept = 0;
 
 	[[nodiscard]] virtual bool              IsCollectionNameExists(const QString& name) const                = 0;
@@ -63,13 +60,12 @@ public:
 	[[nodiscard]] virtual std::set<QString> GetInpxFiles(const QString& archiveFolder) const                 = 0;
 	[[nodiscard]] virtual bool              IsCollectionFolderHasInpx(const QString& archiveFolder) const    = 0;
 
-	[[nodiscard]] virtual Collections&       GetCollections() noexcept                                                                                                         = 0;
-	[[nodiscard]] virtual const Collections& GetCollections() const noexcept                                                                                                   = 0;
-	[[nodiscard]] virtual Collection&        GetActiveCollection() noexcept                                                                                                    = 0;
-	[[nodiscard]] virtual const Collection&  GetActiveCollection() const noexcept                                                                                              = 0;
-	[[nodiscard]] virtual bool               ActiveCollectionExists() const noexcept                                                                                           = 0;
-	[[nodiscard]] virtual QString            GetActiveCollectionId() const noexcept                                                                                            = 0;
-	[[nodiscard]] virtual IniMapPair         GetIniMap(const QString& db, const QString& folder, const QString& additionalFolder, const QString& inpx, bool createFiles) const = 0;
+	[[nodiscard]] virtual Collections&       GetCollections() noexcept               = 0;
+	[[nodiscard]] virtual const Collections& GetCollections() const noexcept         = 0;
+	[[nodiscard]] virtual Collection&        GetActiveCollection() noexcept          = 0;
+	[[nodiscard]] virtual const Collection&  GetActiveCollection() const noexcept    = 0;
+	[[nodiscard]] virtual bool               ActiveCollectionExists() const noexcept = 0;
+	[[nodiscard]] virtual QString            GetActiveCollectionId() const noexcept  = 0;
 
 	virtual void RegisterObserver(ICollectionsObserver* observer)   = 0;
 	virtual void UnregisterObserver(ICollectionsObserver* observer) = 0;

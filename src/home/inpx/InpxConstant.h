@@ -7,7 +7,7 @@ constexpr auto INI_SEPARATOR   = '=';
 constexpr auto LIST_SEPARATOR  = ';';
 
 constexpr auto DB_CREATE_SCRIPT               = "db_create_script";
-constexpr auto DB_PATH                        = "db_path";
+constexpr auto DB_PATH                        = "database";
 constexpr auto DB_UPDATE_SCRIPT               = "db_update_script";
 constexpr auto DEFAULT_DB_CREATE_SCRIPT       = "CreateCollection.json";
 constexpr auto DEFAULT_DB_UPDATE_SCRIPT       = "UpdateCollection.json";
@@ -16,9 +16,9 @@ constexpr auto DEFAULT_ARCHIVE_TYPE           = "default_archive_type";
 constexpr auto GENRES                         = "genres";
 constexpr auto INPX_EXT                       = ".inpx";
 constexpr auto INP_EXT                        = ".inp";
-constexpr auto ARCHIVE_FOLDER                 = "archive_folder";
-constexpr auto ADDITIONAL_FOLDER              = "additional_folder";
-constexpr auto INPX_PATH                      = "inpx_path";
+constexpr auto ARCHIVE_FOLDER                 = "archives";
+constexpr auto ADDITIONAL_FOLDER              = "additional";
+constexpr auto INPX_PATH                      = "inpx";
 constexpr auto SET_DATABASE_VERSION_STATEMENT = "set_database_version";
 constexpr auto AUTHOR_UNKNOWN                 = "Unknown author";
 
