@@ -16,6 +16,7 @@
 #include "interface/localization.h"
 #include "interface/logic/ICollectionAutoUpdater.h"
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/IOpdsController.h"
 
 #include "Hypodermic/Hypodermic.h"
 #include "inpx/InpxConstant.h"
@@ -102,6 +103,18 @@ private:
 	QEventLoop& m_eventLoop;
 };
 
+bool CheckForStop(const QCommandLineParser& parser, Hypodermic::Container& container)
+{
+	if (!parser.isSet(Constant::OPDS_SERVER_COMMAND_STOP))
+		return false;
+
+	const auto opdsController = container.resolve<IOpdsController>();
+	if (opdsController->IsRunning())
+		return opdsController->Stop(), true;
+
+	return false;
+}
+
 void SetCollection(const QCommandLineParser& parser, Hypodermic::Container& container)
 {
 	const auto collectionController = container.resolve<ICollectionController>();
@@ -161,11 +174,12 @@ int run(int argc, char* argv[])
 	parser.addVersionOption();
 	parser.addOptions(
 		{
-			{			  NAME,                   "Collection name",              NAME },
-			{           DB_PATH,                     "Database path",           DB_PATH },
-			{    ARCHIVE_FOLDER,                   "Archives folder",    ARCHIVE_FOLDER },
+			{ NAME, "Collection name", NAME },
+			{ DB_PATH, "Database path", DB_PATH },
+			{ ARCHIVE_FOLDER, "Archives folder", ARCHIVE_FOLDER },
 			{ ADDITIONAL_FOLDER, "Additional data folder (optional)", ADDITIONAL_FOLDER },
-			{         INPX_PATH,        "Index inpx file (optional)",         INPX_PATH }
+			{ INPX_PATH, "Index inpx file (optional)", INPX_PATH },
+			{ Constant::OPDS_SERVER_COMMAND_STOP, "Stop server" },
     }
 	);
 	parser.process(app);
@@ -188,6 +202,9 @@ int run(int argc, char* argv[])
 			Hypodermic::ContainerBuilder builder;
 			DiInit(builder, container);
 		}
+
+		if (CheckForStop(parser, *container))
+			return 0;
 
 		SetCollection(parser, *container);
 
