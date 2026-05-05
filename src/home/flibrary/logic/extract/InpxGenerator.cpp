@@ -3,6 +3,7 @@
 #include <QCryptographicHash>
 
 #include <filesystem>
+#include <ranges>
 
 #include <QDir>
 #include <QFileInfo>
