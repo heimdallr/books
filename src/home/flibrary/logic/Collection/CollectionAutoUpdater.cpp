@@ -47,9 +47,17 @@ private:
 			m_timer.start();
 		});
 
-		const QDir folder(m_collectionProvider->GetActiveCollection().GetFolder());
-		for (const auto& inpx : folder.entryList({ "*.inpx" }, QDir::Files))
-			m_watcher.addPath(folder.filePath(inpx));
+		const auto& activeCollection = m_collectionProvider->GetActiveCollection();
+		if (const auto inpx = activeCollection.GetInpx(); !inpx.isEmpty())
+		{
+			m_watcher.addPath(inpx);
+		}
+		else
+		{
+			const QDir folder(m_collectionProvider->GetActiveCollection().GetFolder());
+			for (const auto& item : folder.entryList({ "*.inpx" }, QDir::Files))
+				m_watcher.addPath(folder.filePath(item));
+		}
 
 		PLOGD << "watch for: " << m_watcher.files().join(", ");
 	}
