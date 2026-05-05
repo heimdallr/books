@@ -123,8 +123,10 @@ BookKeywords GetBookKeywords(DB::IDatabase& db, const Keywords& keywords)
 }
 
 //"AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;INSNO;FOLDER;LANG;LIBRATE;KEYWORDS;"
-void Write(QByteArray& stream, const BookInfo& book, const QString& fileName, const size_t n, const QString& folder, const QString& size)
+QByteArray Write(const BookInfo& book, const QString& fileName, const size_t n, const QString& folder, const QString& size)
 {
+	QByteArray stream;
+
 	auto seqNumber = book.book->GetRawData(BookItem::Column::SeqNumber);
 	if (seqNumber.toInt() <= 0)
 		seqNumber.clear();
@@ -160,6 +162,8 @@ void Write(QByteArray& stream, const BookInfo& book, const QString& fileName, co
 	stream.append((QString() + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
 
 	stream.append("\n");
+
+	return stream;
 }
 
 constexpr auto BOOK_QUERY = R"(
@@ -336,7 +340,7 @@ QByteArray Pack(const QString& dstFolder, const QString& uid, const QString& boo
 
 			const auto bytes = file.readAll();
 			zipFiles->AddFile(fileName, bytes, QDateTime::currentDateTime());
-			Write(inpx, book, fileName, n, fileFolder, QString::number(bytes.size()));
+			inpx.append(Write(book, fileName, n, fileFolder, QString::number(bytes.size())));
 		}
 		QFile::remove(inputPath);
 	}
@@ -437,9 +441,22 @@ public:
 						   std::ranges::sort(books, {}, [](const auto& item) {
 							   return item.book->GetRawData(BookItem::Column::Folder);
 						   });
-						   QString              currentFolder;
-						   std::unique_ptr<Zip> currentZip;
-						   QByteArray*          stream { nullptr };
+						   QString                      currentFolder;
+						   std::unique_ptr<Zip>         currentZip;
+						   std::map<size_t, QByteArray> data;
+
+						   const auto write = [&] {
+							   if (data.empty())
+								   return;
+
+							   QByteArray stream;
+							   for (auto&& str : data | std::views::values)
+								   stream.append(str);
+
+							   m_paths.try_emplace(QFileInfo(currentFolder).completeBaseName(), std::move(stream));
+							   data.clear();
+						   };
+
 						   for (auto&& book : books)
 						   {
 							   if (m_progressItem->IsStopped())
@@ -448,17 +465,19 @@ public:
 							   const auto folder = book.book->GetRawData(BookItem::Column::Folder);
 							   if (currentFolder != folder)
 							   {
+								   write();
 								   currentFolder = folder;
-								   stream        = &m_paths[QFileInfo(folder).completeBaseName()];
 								   currentZip    = std::make_unique<Zip>(Platform::PathToString(m_archiveFolder / Platform::StringToPath(currentFolder)));
 							   }
+
 							   const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
-							   assert(stream && currentZip);
+							   assert(currentZip);
 							   if (const auto n = currentZip->GetFileIndex(fileName); n != Zip::INVALID_INDEX)
-								   Write(*stream, book, fileName, n, book.book->GetRawData(BookItem::Column::Folder), book.book->GetRawData(BookItem::Column::Size));
+								   data.try_emplace(n, Write(book, fileName, n + 1, book.book->GetRawData(BookItem::Column::Folder), book.book->GetRawData(BookItem::Column::Size)));
 
 							   m_progressItem->Increment(1);
 						   }
+						   write();
 						   return [this, inpxFileName = std::move(inpxFileName)](size_t) {
 							   WriteInpx(inpxFileName);
 						   };
@@ -683,7 +702,7 @@ private:
 			}
 			assert(inputZip);
 			if (const auto index = inputZip->GetFileIndex(QString("%1%2").arg(query->Get<const char*>(9), query->Get<const char*>(10))); index != Zip::INVALID_INDEX)
-				data.try_emplace(index, Write(*query, series, genres, bookGenres, authors, bookAuthors, keywords, bookKeywords, index));
+				data.try_emplace(index, Write(*query, series, genres, bookGenres, authors, bookAuthors, keywords, bookKeywords, index + 1));
 
 			m_progressItem->Increment(1);
 		}
