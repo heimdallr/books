@@ -1,6 +1,10 @@
 #!/bin/bash
+
+umask 077
+
 mkdir build
 cd build
+
 GENERATOR=$1
 if [ -z "$GENERATOR" ]; then
     GENERATOR=TXZ
