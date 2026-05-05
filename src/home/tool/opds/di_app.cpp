@@ -141,7 +141,7 @@ private: // IUiFactory
 		return {};
 	}
 
-	std::shared_ptr<Flibrary::IComboBoxTextDialog> CreateComboBoxTextDialog(QString title) const override
+    std::shared_ptr<Flibrary::IComboBoxTextDialog> CreateComboBoxTextDialog(QString) const override
 	{
 		return {};
 	}
