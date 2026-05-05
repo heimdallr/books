@@ -132,7 +132,7 @@ set(BIT7Z_USE_NATIVE_STRING ON CACHE BOOL "enable native string" FORCE)
 set(BIT7Z_USE_STD_BYTE ON CACHE BOOL "enable std::byte" FORCE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/ext/bit7z)
 if(MSVC)
-	set_property(TARGET bit7z PROPERTY FOLDER Foundation/zip)
+	set_property(TARGET bit7z PROPERTY FOLDER ThirdParty)
 endif()
 
 find_package(plog REQUIRED)
