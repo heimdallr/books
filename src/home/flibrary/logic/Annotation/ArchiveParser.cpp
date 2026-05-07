@@ -13,6 +13,7 @@
 
 #include "data/DataItem.h"
 #include "shared/ZipProgressCallback.h"
+#include "util/EpubParser.h"
 #include "util/ImageRestore.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
@@ -80,10 +81,26 @@ QString AnnotationReplaceAttributeName(const QString& name)
 	return it == std::end(ANNOTATION_REPLACE_ATTRIBUTE_NAME) ? name : it->second;
 }
 
-class XmlParser final : public Util::SaxParser
+class IParser // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	XmlParser(QIODevice& ioDevice, std::shared_ptr<const ISettings> settings)
+	virtual ~IParser() = default;
+
+	virtual ArchiveParser::Data Parse(const QString& rootFolder, const IDataItem& book, std::unique_ptr<IProgressController::IProgressItem> progressItem) = 0;
+};
+
+class Fb2Parser final
+	: public Util::SaxParser
+	, public IParser
+{
+public:
+	static std::unique_ptr<IParser> Create(QIODevice& ioDevice, std::shared_ptr<const ISettings> settings)
+	{
+		return std::make_unique<Fb2Parser>(ioDevice, std::move(settings));
+	}
+
+public:
+	Fb2Parser(QIODevice& ioDevice, std::shared_ptr<const ISettings> settings)
 		: SaxParser(ioDevice)
 		, m_settings { std::move(settings) }
 		, m_ioDevice { ioDevice }
@@ -93,7 +110,8 @@ public:
 		m_data.description->SetData(Tr(DESCRIPTION), NavigationItem::Column::Title);
 	}
 
-	ArchiveParser::Data Parse(const QString& rootFolder, const IDataItem& book, std::unique_ptr<IProgressController::IProgressItem> progressItem)
+private: // IParser
+	ArchiveParser::Data Parse(const QString& rootFolder, const IDataItem& book, std::unique_ptr<IProgressController::IProgressItem> progressItem) override
 	{
 		if (m_total == 0)
 		{
@@ -185,15 +203,15 @@ private: // Util::SaxParser
 				m_currentDescriptionItem->AppendChild(NavigationItem::Create())->SetData(QString("%1: %2").arg(attributes.GetName(i), attributes.GetValue(i)));
 		}
 
-		using ParseElementFunction = bool (XmlParser::*)(const Util::XmlAttributes&);
+		using ParseElementFunction = bool (Fb2Parser::*)(const Util::XmlAttributes&);
 		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
-			{    FICTION_BOOK,    &XmlParser::OnStartElementFictionBook },
-            { COVERPAGE_IMAGE, &XmlParser::OnStartElementCoverpageImage },
-            {          BINARY,         &XmlParser::OnStartElementBinary },
-			{         SECTION,        &XmlParser::OnStartElementSection },
-            {      TRANSLATOR,     &XmlParser::OnStartElementTranslator },
-            {      ANNOTATION,     &XmlParser::OnStartElementAnnotation },
+			{    FICTION_BOOK,    &Fb2Parser::OnStartElementFictionBook },
+            { COVERPAGE_IMAGE, &Fb2Parser::OnStartElementCoverpageImage },
+            {          BINARY,         &Fb2Parser::OnStartElementBinary },
+			{         SECTION,        &Fb2Parser::OnStartElementSection },
+            {      TRANSLATOR,     &Fb2Parser::OnStartElementTranslator },
+            {      ANNOTATION,     &Fb2Parser::OnStartElementAnnotation },
 		};
 
 		return SaxParser::Parse(*this, PARSERS, path, attributes);
@@ -208,11 +226,11 @@ private: // Util::SaxParser
 			m_percents = percents;
 		}
 
-		using ParseElementFunction = bool (XmlParser::*)();
+		using ParseElementFunction = bool (Fb2Parser::*)();
 		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
-			{    SECTION,    &XmlParser::OnEndElementSection },
-			{ ANNOTATION, &XmlParser::OnEndElementAnnotation },
+			{    SECTION,    &Fb2Parser::OnEndElementSection },
+			{ ANNOTATION, &Fb2Parser::OnEndElementAnnotation },
 		};
 
 		const auto result = SaxParser::Parse(*this, PARSERS, path);
@@ -234,28 +252,28 @@ private: // Util::SaxParser
 
 	bool OnCharacters(const QString& path, const QString& value) override
 	{
-		using ParseCharacterFunction = bool (XmlParser::*)(const QString&);
+		using ParseCharacterFunction = bool (Fb2Parser::*)(const QString&);
 		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
-			{             ANNOTATION,           &XmlParser::ParseAnnotation },
-			{			   KEYWORDS,             &XmlParser::ParseKeywords },
-			{				   LANG,                 &XmlParser::ParseLang },
-			{			   LANG_SRC,              &XmlParser::ParseSrcLang },
-			{				 BINARY,               &XmlParser::ParseBinary },
-			{          SECTION_TITLE,         &XmlParser::ParseSectionTitle },
-			{        SECTION_TITLE_P,         &XmlParser::ParseSectionTitle },
-			{ SECTION_TITLE_P_STRONG,         &XmlParser::ParseSectionTitle },
-			{			   EPIGRAPH,             &XmlParser::ParseEpigraph },
-			{             EPIGRAPH_P,             &XmlParser::ParseEpigraph },
-			{        EPIGRAPH_AUTHOR,       &XmlParser::ParseEpigraphAuthor },
-			{  TRANSLATOR_FIRST_NAME,  &XmlParser::ParseTranslatorFirstName },
-			{   TRANSLATOR_LAST_NAME,   &XmlParser::ParseTranslatorLastName },
-			{ TRANSLATOR_MIDDLE_NAME, &XmlParser::ParseTranslatorMiddleName },
-			{    TRANSLATOR_NICKNAME,   &XmlParser::ParseTranslatorNickname },
-			{ PUBLISH_INFO_PUBLISHER, &XmlParser::ParsePublishInfoPublisher },
-			{      PUBLISH_INFO_CITY,      &XmlParser::ParsePublishInfoCity },
-			{      PUBLISH_INFO_YEAR,      &XmlParser::ParsePublishInfoYear },
-			{      PUBLISH_INFO_ISBN,      &XmlParser::ParsePublishInfoIsbn },
+			{             ANNOTATION,           &Fb2Parser::ParseAnnotation },
+			{			   KEYWORDS,             &Fb2Parser::ParseKeywords },
+			{				   LANG,                 &Fb2Parser::ParseLang },
+			{			   LANG_SRC,              &Fb2Parser::ParseSrcLang },
+			{				 BINARY,               &Fb2Parser::ParseBinary },
+			{          SECTION_TITLE,         &Fb2Parser::ParseSectionTitle },
+			{        SECTION_TITLE_P,         &Fb2Parser::ParseSectionTitle },
+			{ SECTION_TITLE_P_STRONG,         &Fb2Parser::ParseSectionTitle },
+			{			   EPIGRAPH,             &Fb2Parser::ParseEpigraph },
+			{             EPIGRAPH_P,             &Fb2Parser::ParseEpigraph },
+			{        EPIGRAPH_AUTHOR,       &Fb2Parser::ParseEpigraphAuthor },
+			{  TRANSLATOR_FIRST_NAME,  &Fb2Parser::ParseTranslatorFirstName },
+			{   TRANSLATOR_LAST_NAME,   &Fb2Parser::ParseTranslatorLastName },
+			{ TRANSLATOR_MIDDLE_NAME, &Fb2Parser::ParseTranslatorMiddleName },
+			{    TRANSLATOR_NICKNAME,   &Fb2Parser::ParseTranslatorNickname },
+			{ PUBLISH_INFO_PUBLISHER, &Fb2Parser::ParsePublishInfoPublisher },
+			{      PUBLISH_INFO_CITY,      &Fb2Parser::ParsePublishInfoCity },
+			{      PUBLISH_INFO_YEAR,      &Fb2Parser::ParsePublishInfoYear },
+			{      PUBLISH_INFO_ISBN,      &Fb2Parser::ParsePublishInfoIsbn },
 		};
 
 		if (m_textMode)
@@ -485,10 +503,63 @@ private:
 	bool                                        m_annotationMode { false };
 };
 
+class EpubParser final : public IParser
+{
+public:
+	static std::unique_ptr<IParser> Create(QIODevice& ioDevice, std::shared_ptr<const ISettings> settings)
+	{
+		return std::make_unique<EpubParser>(ioDevice, std::move(settings));
+	}
+
+public:
+	EpubParser(QIODevice& ioDevice, std::shared_ptr<const ISettings>)
+		: m_ioDevice { ioDevice }
+	{
+	}
+
+private: // IParser
+	ArchiveParser::Data Parse(const QString& /*rootFolder*/, const IDataItem& /*book*/, std::unique_ptr<IProgressController::IProgressItem> /*progressItem*/) override
+	{
+		auto parsed = Util::EpubParser::Parse(m_ioDevice, true);
+		return { .annotation = std::move(parsed.annotation),
+			     .language   = std::move(parsed.language),
+			     .covers     = parsed.images | std::views::as_rvalue | std::views::transform([](auto&& item) {
+							   return IAnnotationController::IDataProvider::Cover { .name = std::move(item.id), .bytes = std::move(item.body) };
+						   })
+			             | std::ranges::to<std::vector>() };
+	}
+
+private:
+	QIODevice& m_ioDevice;
+};
+
+class StubParser final : public IParser
+{
+public:
+	static std::unique_ptr<IParser> Create(QIODevice&, std::shared_ptr<const ISettings>)
+	{
+		return std::make_unique<StubParser>();
+	}
+
+private: // IParser
+	ArchiveParser::Data Parse(const QString& /*rootFolder*/, const IDataItem& /*book*/, std::unique_ptr<IProgressController::IProgressItem> /*progressItem*/) override
+	{
+		return {};
+	}
+};
+
 } // namespace
 
 class ArchiveParser::Impl
 {
+	enum class FileType
+	{
+		Unknown = -1,
+		Fb2,
+		Epub,
+		Zip,
+	};
+
 public:
 	explicit Impl(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<IProgressController> progressController, std::shared_ptr<const ILogicFactory> logicFactory)
 		: m_collectionProvider { std::move(collectionProvider) }
@@ -508,7 +579,7 @@ public:
 		{
 			assert(m_collectionProvider->ActiveCollectionExists());
 
-			auto data = ParseFb2(book);
+			auto data = ParseFile(book);
 
 			return data;
 		}
@@ -529,7 +600,23 @@ public:
 	}
 
 private:
-	Data ParseFb2(const IDataItem& book) const
+	using FileTypePair = std::pair<FileType, bool /*parser exists*/>;
+	static constexpr std::pair<const char*, FileTypePair> TYPES[] {
+		{  "fb2",  { FileType::Fb2, true } },
+        { "epub", { FileType::Epub, true } },
+        {  "fbd",  { FileType::Fb2, true } },
+		{  "zip", { FileType::Zip, false } },
+        {   "7z", { FileType::Zip, false } },
+        {  "rar", { FileType::Zip, false } },
+	};
+
+	static FileTypePair GetFileType(const QString& ext)
+	{
+		constexpr FileTypePair unknown { FileType::Unknown, false };
+		return FindSecond(TYPES, ext.toUtf8().constData(), unknown, PszComparer {});
+	}
+
+	Data ParseFile(const IDataItem& book) const
 	{
 		const auto& collection = m_collectionProvider->GetActiveCollection();
 		const auto  folder     = QString("%1/%2").arg(collection.GetFolder(), book.GetRawData(BookItem::Column::Folder));
@@ -542,12 +629,12 @@ private:
 		auto parseProgressItem = m_progressController->Add(100);
 
 		const Zip zip(folder, m_logicFactory->CreateZipProgressCallback(m_progressController));
-		const auto [fileName, isZip] = [&]() -> std::pair<QString, bool> {
+		auto [fileName, fileType] = [&]() -> std::pair<QString, FileType> {
 			auto            file = book.GetRawData(BookItem::Column::FileName);
 			const QFileInfo fileInfo(file);
 			const auto      ext = fileInfo.suffix().toLower();
-			if (IsOneOf(ext, "fb2", "fbd", "zip"))
-				return std::make_pair(std::move(file), ext == "zip");
+			if (const auto [type, _] = GetFileType(ext); type != FileType::Unknown)
+				return std::make_pair(std::move(file), type);
 
 			auto zipFileList = zip.GetFileNameList();
 			if (const auto it = std::ranges::find_if(
@@ -559,7 +646,7 @@ private:
 					}
 				);
 			    it != zipFileList.end())
-				return std::make_pair(std::move(*it), false);
+				return std::make_pair(std::move(*it), FileType::Fb2);
 
 			return {};
 		}();
@@ -570,28 +657,51 @@ private:
 		const auto stream = zip.Read(fileName);
 
 		const auto [sibZip, subStream] = [&]() -> std::pair<std::unique_ptr<const Zip>, std::unique_ptr<Stream>> {
-			if (!isZip)
+			if (fileType != FileType::Zip)
 				return {};
 
 			auto subZipPtr = std::make_unique<Zip>(stream->GetStream());
 
 			auto zipFileList = subZipPtr->GetFileNameList();
-			if (const auto it = std::ranges::find_if(
-					zipFileList,
-					[](const QString& item) {
-						return QFileInfo(item).suffix().toLower() == "fbd";
-					}
-				);
-			    it != zipFileList.end())
+			if (zipFileList.size() == 1)
 			{
-				auto subSubStream = subZipPtr->Read(*it);
-				return std::make_pair(std::move(subZipPtr), std::move(subSubStream));
+				const QFileInfo fileInfo(zipFileList.front());
+				const auto      ext = fileInfo.suffix().toLower();
+				fileType            = GetFileType(ext).first;
+				if (!IsOneOf(fileType, FileType::Unknown, FileType::Zip))
+				{
+					auto subSubStream = subZipPtr->Read(zipFileList.front());
+					return std::make_pair(std::move(subZipPtr), std::move(subSubStream));
+				}
 			}
+
+			for (const auto& [ext, type] : TYPES | std::views::filter([](const auto& item) {
+											   return item.second.second;
+										   }))
+				if (const auto it = std::ranges::find_if(
+						zipFileList,
+						[=](const QString& item) {
+							return QFileInfo(item).suffix().toLower() == ext;
+						}
+					);
+				    it != zipFileList.end())
+				{
+					fileType          = type.first;
+					auto subSubStream = subZipPtr->Read(*it);
+					return std::make_pair(std::move(subZipPtr), std::move(subSubStream));
+				}
 			return {};
 		}();
 
-		XmlParser parser(subStream ? subStream->GetStream() : stream->GetStream(), m_logicFactory->CreateSettingsStub());
-		return parser.Parse(collection.GetFolder(), book, std::move(parseProgressItem));
+		using ParserCreator = std::unique_ptr<IParser> (*)(QIODevice&, std::shared_ptr<const ISettings>);
+		static constexpr std::pair<FileType, ParserCreator> parsers[] {
+			{  FileType::Fb2,  &Fb2Parser::Create },
+			{ FileType::Epub, &EpubParser::Create },
+		};
+
+		const auto parserCreator = FindSecond(parsers, fileType, &StubParser::Create);
+		const auto parser        = std::invoke(parserCreator, std::ref(subStream ? subStream->GetStream() : stream->GetStream()), m_logicFactory->CreateSettingsStub());
+		return parser->Parse(collection.GetFolder(), book, std::move(parseProgressItem));
 	}
 
 private:
