@@ -450,6 +450,8 @@ private: // IAnnotationController::IObserver
 		m_content.clear();
 		m_currentCoverIndex = 0;
 		m_contentModel.reset();
+		for (auto& btn : m_coverButtons)
+			btn->setVisible(false);
 	}
 
 	void OnAnnotationChanged(const IAnnotationController::IDataProvider& dataProvider) override
