@@ -83,9 +83,7 @@ public:
 		, m_observer { observer }
 		, m_currentId { currentId }
 	{
-		setFirstSectionMovable(false);
 		setSectionsMovable(true);
-
 		connect(this, &QHeaderView::sectionClicked, this, &HeaderView::OnSectionClicked);
 	}
 
@@ -472,7 +470,7 @@ public:
 		m_ui.btnNew->setMinimumSize(size, size);
 		m_ui.btnNew->setMaximumSize(size, size);
 
-		if (m_controller->GetItemType() != ItemType::Books)
+		if (IsNavigation())
 			return;
 
 		emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.value));
@@ -990,6 +988,8 @@ private:
 			m_recentMode = std::move(newMode);
 			m_controller->SetMode(m_recentMode);
 			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
+			if (!IsNavigation())
+				m_booksHeaderView->setFirstSectionMovable(m_recentMode == ListViewMode);
 		});
 		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [this] {
 			OnValueChanged();
@@ -1018,7 +1018,7 @@ private:
 		if (m_recentMode.isEmpty())
 			return;
 
-		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
+		if (IsNavigation() || m_navigationModeName.isEmpty())
 			return;
 
 		const auto* header           = m_ui.treeView->header();
@@ -1061,7 +1061,7 @@ private:
 		m_currentId = m_settings->Get(GetRecentIdKey(), m_currentId);
 
 		UpdateSectionSize();
-		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
+		if (IsNavigation() || m_navigationModeName.isEmpty())
 			return;
 
 		auto* header = m_ui.treeView->header();
@@ -1136,8 +1136,9 @@ private:
 			columnInfo.hidden ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
 		}
 
-		if (!columnInfoList.empty())
+		if (!columnInfoList.empty() && !m_booksHeaderView->isFirstSectionMovable())
 			columnInfoList.front().index = -1;
+
 		for (const auto [logicalIndex, visualIndex] : std::views::zip(
 				 std::views::zip(columnInfoList, std::views::iota(0)) | std::views::filter([](const auto& item) {
 					 return !get<0>(item).hidden;
@@ -1287,7 +1288,7 @@ private:
 
 	void UpdateSectionSize() const
 	{
-		if (m_controller->GetItemType() != ItemType::Navigation)
+		if (!IsNavigation())
 			return;
 
 		auto* header = m_ui.treeView->header();

@@ -227,7 +227,7 @@ public:
 
 	void OnModelChanged(const QAbstractItemModel& model)
 	{
-		const QString suffix = model.data({}, Role::IsTree).toBool() ? "Tree" : "List";
+		const QString suffix = model.data({}, Role::IsTree).toBool() ? TreeViewMode : ListViewMode;
 
 		if (!((m_readMarkColor = GetReadMarkColor(*m_settings, suffix))))
 			m_readMarkColor = GetReadMarkColor(*m_settings);
