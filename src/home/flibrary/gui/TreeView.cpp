@@ -472,7 +472,7 @@ public:
 		m_ui.btnNew->setMinimumSize(size, size);
 		m_ui.btnNew->setMaximumSize(size, size);
 
-		if (m_controller->GetItemType() != ItemType::Books)
+		if (IsNavigation())
 			return;
 
 		emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.value));
@@ -1018,7 +1018,7 @@ private:
 		if (m_recentMode.isEmpty())
 			return;
 
-		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
+		if (IsNavigation() || m_navigationModeName.isEmpty())
 			return;
 
 		const auto* header           = m_ui.treeView->header();
@@ -1061,7 +1061,7 @@ private:
 		m_currentId = m_settings->Get(GetRecentIdKey(), m_currentId);
 
 		UpdateSectionSize();
-		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
+		if (IsNavigation() || m_navigationModeName.isEmpty())
 			return;
 
 		auto* header = m_ui.treeView->header();
@@ -1287,7 +1287,7 @@ private:
 
 	void UpdateSectionSize() const
 	{
-		if (m_controller->GetItemType() != ItemType::Navigation)
+		if (!IsNavigation())
 			return;
 
 		auto* header = m_ui.treeView->header();
