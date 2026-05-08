@@ -83,9 +83,7 @@ public:
 		, m_observer { observer }
 		, m_currentId { currentId }
 	{
-		setFirstSectionMovable(false);
 		setSectionsMovable(true);
-
 		connect(this, &QHeaderView::sectionClicked, this, &HeaderView::OnSectionClicked);
 	}
 
@@ -990,6 +988,8 @@ private:
 			m_recentMode = std::move(newMode);
 			m_controller->SetMode(m_recentMode);
 			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
+			if (!IsNavigation())
+				m_booksHeaderView->setFirstSectionMovable(m_recentMode == ListViewMode);
 		});
 		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [this] {
 			OnValueChanged();
@@ -1136,8 +1136,9 @@ private:
 			columnInfo.hidden ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
 		}
 
-		if (!columnInfoList.empty())
+		if (!columnInfoList.empty() && !m_booksHeaderView->isFirstSectionMovable())
 			columnInfoList.front().index = -1;
+
 		for (const auto [logicalIndex, visualIndex] : std::views::zip(
 				 std::views::zip(columnInfoList, std::views::iota(0)) | std::views::filter([](const auto& item) {
 					 return !get<0>(item).hidden;
