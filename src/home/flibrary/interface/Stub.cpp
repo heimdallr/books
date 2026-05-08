@@ -75,13 +75,11 @@ void SetMacroImpl(QString& str, const std::unordered_map<IScriptController::Macr
 	MacroTreeItem  tree;
 	MacroTreeItem* node           = &tree;
 	int            bracketBalance = 0;
-	int            open = 0, close = 0;
 	for (const auto ch : str)
 	{
 		if (ch == '[')
 		{
 			++bracketBalance;
-			++open;
 			node = node->children.emplace_back(std::make_unique<MacroTreeItem>(node)).get();
 			continue;
 		}
@@ -89,7 +87,6 @@ void SetMacroImpl(QString& str, const std::unordered_map<IScriptController::Macr
 		if (ch == ']')
 		{
 			--bracketBalance;
-			++close;
 			if (node->parent)
 			{
 				node = node->parent;
@@ -113,9 +110,10 @@ void SetMacroImpl(QString& str, const std::unordered_map<IScriptController::Macr
 		child.value.append(ch);
 	}
 
-	PLOGI << bracketBalance << " " << open << ", " << close;
 	if (bracketBalance != 0)
+	{
 		PLOGW << "bracket balance violation";
+	}
 
 	str = tree.Get(
 		macroValues | std::views::transform([](const auto& item) {
