@@ -409,15 +409,20 @@ private:
 	QStringList m_annotation;
 };
 
-QStringView QNext(QString::const_iterator& beg, const QString::const_iterator end, const char separator)
+QStringView QNextRaw(QString::const_iterator& beg, const QString::const_iterator end, const char separator)
 {
-	beg              = std::find_if(beg, end, [](const QChar c) {
-		return c.category() != QChar::Separator_Space;
-	});
 	auto        next = std::find(beg, end, separator);
 	QStringView result(beg, next);
 	beg = next != end ? std::next(next) : end;
 	return result;
+}
+
+QStringView QNext(QString::const_iterator& beg, const QString::const_iterator end, const char separator)
+{
+	beg = std::find_if(beg, end, [](const QChar c) {
+		return c.category() != QChar::Separator_Space;
+	});
+	return QNextRaw(beg, end, separator);
 }
 
 auto LoadGenres(const QString& genresIniFileName)
@@ -574,7 +579,15 @@ std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& key
 }
 
 using BookBufFieldGetter = QStringView& (*)(Book&);
-using BookBufMapping     = std::vector<BookBufFieldGetter>;
+using NextParser         = QStringView (*)(QString::const_iterator& beg, QString::const_iterator end, char separator);
+
+struct BookBufFieldGetters
+{
+	BookBufFieldGetter bookBufFieldGetter { nullptr };
+	NextParser         next { &QNext };
+};
+
+using BookBufMapping = std::vector<BookBufFieldGetters>;
 
 #define BOOK_BUF_FIELD_ITEM(NAME)      \
 	QStringView& Get##NAME(Book& book) \
@@ -599,7 +612,7 @@ Book ParseBook(const QString& line, const BookBufMapping& f, QString folder)
 	const auto endIt = std::cend(line);
 
 	for (size_t i = 0, sz = f.size(); i < sz && it != endIt; ++i)
-		f[i](buf) = QNext(it, endIt, Fb2InpxParser::FIELDS_SEPARATOR);
+		f[i].bookBufFieldGetter(buf) = f[i].next(it, endIt, Fb2InpxParser::FIELDS_SEPARATOR);
 
 	buf.fileName = QString("%1.%2").arg(buf.FILE, buf.EXT);
 
@@ -2108,15 +2121,18 @@ where b.FileName = ? and b.Ext = ?)");
 		auto fields = fieldList.split(';', Qt::SkipEmptyParts);
 		m_bookBufMapping.clear();
 		m_bookBufMapping.reserve(fields.size());
-		std::ranges::transform(fields, std::back_inserter(m_bookBufMapping), [&](const auto& str) {
+		std::ranges::transform(fields, std::back_inserter(m_bookBufMapping), [&](const auto& str) -> decltype(m_bookBufMapping)::value_type {
 			const auto it = bookBufMapping.find(str.simplified());
 			if (it == bookBufMapping.end())
 			{
-				PLOGW << "unexpected field name " << str;
-				return &GetBookBufFieldDefault;
+				if (str != "INSNO")
+				{
+					PLOGW << "unexpected field name " << str;
+				}
+				return { &GetBookBufFieldDefault, &QNext };
 			}
 
-			return it->second;
+			return { it->second, IsOneOf(str, "FILE", "EXT") ? QNextRaw : &QNext };
 		});
 	}
 
@@ -2290,7 +2306,17 @@ where b.FileName = ? and b.Ext = ?)");
 			},
 			[&data = m_data.genres](const Dictionary& container, const QStringView value) {
 				if (auto itGenre = container.find(value))
+				{
+					while (data[*itGenre].childrenCount > 0)
+					{
+						const auto itChild = std::ranges::find(data, *itGenre, [](const auto& item) {
+							return item.parentId;
+						});
+
+						itGenre = container.find(itChild->code);
+					}
 					return itGenre;
+				}
 
 				return container.find_if([value, &data](const auto& item) {
 					return data[item.second].name.compare(value, Qt::CaseInsensitive) == 0;

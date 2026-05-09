@@ -8,6 +8,7 @@
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/try.h"
 
 #include "interface/localization.h"
 
@@ -628,7 +629,12 @@ private:
 
 		auto parseProgressItem = m_progressController->Add(100);
 
-		const Zip zip(folder, m_logicFactory->CreateZipProgressCallback(m_progressController));
+		const auto zip = TRY(QString("open %1").arg(folder), [&] {
+			return std::make_unique<Zip>(folder, m_logicFactory->CreateZipProgressCallback(m_progressController));
+		});
+		if (!zip)
+			return {};
+
 		auto [fileName, fileType] = [&]() -> std::pair<QString, FileType> {
 			auto            file = book.GetRawData(BookItem::Column::FileName);
 			const QFileInfo fileInfo(file);
@@ -636,7 +642,7 @@ private:
 			if (const auto [type, _] = GetFileType(ext); type != FileType::Unknown)
 				return std::make_pair(std::move(file), type);
 
-			auto zipFileList = zip.GetFileNameList();
+			auto zipFileList = zip->GetFileNameList();
 			if (const auto it = std::ranges::find_if(
 					zipFileList,
 					[&file, completeBaseName = fileInfo.completeBaseName()](const QString& item) {
@@ -654,13 +660,17 @@ private:
 		if (fileName.isEmpty())
 			return {};
 
-		const auto stream = zip.Read(fileName);
+		const auto stream = zip->Read(fileName);
 
 		const auto [sibZip, subStream] = [&]() -> std::pair<std::unique_ptr<const Zip>, std::unique_ptr<Stream>> {
 			if (fileType != FileType::Zip)
 				return {};
 
-			auto subZipPtr = std::make_unique<Zip>(stream->GetStream());
+			auto subZipPtr = TRY(QString("open %1").arg(fileName), [&] {
+				return std::make_unique<Zip>(stream->GetStream());
+			});
+			if (!subZipPtr)
+				return {};
 
 			auto zipFileList = subZipPtr->GetFileNameList();
 			if (zipFileList.size() == 1)

@@ -123,7 +123,7 @@ template <>
 void Select<Genre>(DB::IQuery& query, const std::unordered_set<Genre::CodeType>& neededItems, std::unordered_map<Genre::CodeType, AllTreeItem<Genre>>& allItems, std::vector<AllTreeItem<Genre>>& buffer)
 {
 	const auto* fb2Code    = query.Get<const char*>(1);
-	auto        translated = Loc::Tr(GENRE, fb2Code);
+	auto        translated = Loc::Tr(Util::GENRE, fb2Code);
 	translated.replace(',', QChar { 0x2E34 });
 	AllTreeItem<Genre> item {
 		Genre { .fb2Code = fb2Code,

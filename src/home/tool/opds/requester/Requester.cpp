@@ -17,7 +17,6 @@
 #include "database/interface/IQuery.h"
 
 #include "interface/constants/Enums.h"
-#include "interface/constants/GenresLocalization.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/IAnnotationController.h"
@@ -29,6 +28,7 @@
 #include "util/AnnotationControllerObserver.h"
 #include "util/BookView.h"
 #include "util/Fb2InpxParser.h"
+#include "util/GenresLocalization.h"
 #include "util/ImageUtil.h"
 #include "util/SortString.h"
 #include "util/timer.h"
@@ -439,7 +439,7 @@ struct NavigationDescription
 constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
 	{ Loc::Authors  ,  AUTHOR_COUNT,  AUTHOR_JOIN_PARAMETERS,  AUTHOR_JOIN_SELECT,  AUTHOR_SELECT,         nullptr,  AUTHOR_COUNT_STARTS_WITH,  AUTHOR_STARTS_WITH,  AUTHOR_SELECT_SINGLE,  AUTHOR_SELECT_EQUAL,  AUTHOR_CONTENT  },
 	{ Loc::Series   ,  SERIES_COUNT,  SERIES_JOIN_PARAMETERS,  SERIES_JOIN_SELECT,  SERIES_SELECT,         nullptr,  SERIES_COUNT_STARTS_WITH,  SERIES_STARTS_WITH,  SERIES_SELECT_SINGLE,  SERIES_SELECT_EQUAL,  SERIES_CONTENT  },
-	{ Loc::Genres   ,   GENRE_COUNT,   GENRE_JOIN_PARAMETERS,   GENRE_JOIN_SELECT,   GENRE_SELECT, Flibrary::GENRE,                   nullptr,             nullptr,               nullptr,   GENRE_SELECT_EQUAL,   GENRE_CONTENT, &INavigationProvider::GetNavigationGenre },
+	{ Loc::Genres   ,   GENRE_COUNT,   GENRE_JOIN_PARAMETERS,   GENRE_JOIN_SELECT,   GENRE_SELECT, Util::GENRE,                   nullptr,             nullptr,               nullptr,   GENRE_SELECT_EQUAL,   GENRE_CONTENT, &INavigationProvider::GetNavigationGenre },
 	{ Loc::PublishYears },
 	{ Loc::Keywords , KEYWORD_COUNT, KEYWORD_JOIN_PARAMETERS, KEYWORD_JOIN_SELECT, KEYWORD_SELECT,         nullptr, KEYWORD_COUNT_STARTS_WITH, KEYWORD_STARTS_WITH, KEYWORD_SELECT_SINGLE, KEYWORD_SELECT_EQUAL, KEYWORD_CONTENT },
 	{ Loc::Updates  ,  UPDATE_COUNT,  UPDATE_JOIN_PARAMETERS,  UPDATE_JOIN_SELECT,  UPDATE_SELECT, Loc::MONTHS_CONTEXT,  UPDATE_COUNT_STARTS_WITH,             nullptr,               nullptr,  UPDATE_SELECT_EQUAL,  UPDATE_CONTENT, &INavigationProvider::GetNavigationUpdate },

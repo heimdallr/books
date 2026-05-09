@@ -72,7 +72,7 @@ IDataItem::Ptr CreateGenreItem(const DB::IQuery& query)
 	UpdateItem(*item, query, {}, 3, 4);
 
 	const auto* fbCode     = query.Get<const char*>(2);
-	const auto  translated = Loc::Tr(GENRE, fbCode);
+	const auto  translated = Loc::Tr(Util::GENRE, fbCode);
 
 	item->SetData(fbCode, GenreItem::Column::Fb2Code);
 	item->SetData(translated != fbCode ? translated : query.Get<const char*>(1));
