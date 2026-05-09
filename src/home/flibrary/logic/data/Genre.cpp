@@ -7,10 +7,10 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
 #include "interface/localization.h"
 
+#include "util/GenresLocalization.h"
 #include "util/ISettings.h"
 #include "util/SortString.h"
 
@@ -124,7 +124,7 @@ void Select<Genre>(DB::IQuery& query, const std::unordered_set<Genre::CodeType>&
 {
 	const auto* fb2Code    = query.Get<const char*>(1);
 	auto        translated = Loc::Tr(GENRE, fb2Code);
-	assert(!translated.contains(','));
+	translated.replace(',', QChar { 0x2E34 });
 	AllTreeItem<Genre> item {
 		Genre { .fb2Code = fb2Code,
                .code    = query.Get<const char*>(0),
