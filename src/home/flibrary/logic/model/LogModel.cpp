@@ -1,6 +1,7 @@
 #include "LogModel.h"
 
 #include <chrono>
+#include <mutex>
 #include <vector>
 
 #include <QSortFilterProxyModel>

@@ -81,6 +81,7 @@ else()
 		-Wno-deprecated-declarations
 		-Wno-virtual-move-assign
 		-Wno-missing-field-initializers
+                -Wno-array-bounds
 		-fPIC		
 	)
 endif()
