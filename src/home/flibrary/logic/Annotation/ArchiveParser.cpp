@@ -13,12 +13,14 @@
 #include "interface/localization.h"
 
 #include "data/DataItem.h"
+#include "djvu/djvu.h"
 #include "shared/ZipProgressCallback.h"
 #include "util/EpubParser.h"
 #include "util/ImageRestore.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 
+#include "Constant.h"
 #include "QtTypes.h"
 #include "log.h"
 #include "zip.h"
@@ -534,6 +536,33 @@ private:
 	QIODevice& m_ioDevice;
 };
 
+class DjVuParser final : public IParser
+{
+public:
+	static std::unique_ptr<IParser> Create(QIODevice& ioDevice, std::shared_ptr<const ISettings> settings)
+	{
+		return std::make_unique<DjVuParser>(ioDevice, std::move(settings));
+	}
+
+public:
+	DjVuParser(QIODevice& ioDevice, std::shared_ptr<const ISettings>)
+		: m_ioDevice { ioDevice }
+	{
+	}
+
+private: // IParser
+	ArchiveParser::Data Parse(const QString& /*rootFolder*/, const IDataItem& /*book*/, std::unique_ptr<IProgressController::IProgressItem> /*progressItem*/) override
+	{
+		ArchiveParser::Data result;
+		if (auto bytes = DjVu::GetCover(m_ioDevice); !bytes.isEmpty())
+			result.covers.emplace_back(Global::COVER, std::move(bytes));
+		return result;
+	}
+
+private:
+	QIODevice& m_ioDevice;
+};
+
 class StubParser final : public IParser
 {
 public:
@@ -558,6 +587,7 @@ class ArchiveParser::Impl
 		Unknown = -1,
 		Fb2,
 		Epub,
+		DjVu,
 		Zip,
 	};
 
@@ -605,6 +635,7 @@ private:
 	static constexpr std::pair<const char*, FileTypePair> TYPES[] {
 		{  "fb2",  { FileType::Fb2, true } },
         { "epub", { FileType::Epub, true } },
+        { "djvu", { FileType::DjVu, true } },
         {  "fbd",  { FileType::Fb2, true } },
 		{  "zip", { FileType::Zip, false } },
         {   "7z", { FileType::Zip, false } },
@@ -707,6 +738,7 @@ private:
 		static constexpr std::pair<FileType, ParserCreator> parsers[] {
 			{  FileType::Fb2,  &Fb2Parser::Create },
 			{ FileType::Epub, &EpubParser::Create },
+			{ FileType::DjVu, &DjVuParser::Create },
 		};
 
 		const auto parserCreator = FindSecond(parsers, fileType, &StubParser::Create);
