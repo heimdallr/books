@@ -29,6 +29,7 @@
 #include "logic/data/Genre.h"
 #include "logic/model/LogModel.h"
 #include "platform/PlatformUtil.h"
+#include "util/GenresLocalization.h"
 #include "util/ISettings.h"
 #include "util/xml/Initializer.h"
 #include "version/AppVersion.h"
@@ -142,6 +143,8 @@ int main(int argc, char* argv[])
 		// ReSharper restore CppCompileTimeConstantCanBeReplacedWithBooleanConstant
 
 		PLOGD << "QApplication created";
+
+		Util::GenreFixerInitializer genreFixerInitializer;
 
 		std::optional<Collection> collectionToRecreate;
 
