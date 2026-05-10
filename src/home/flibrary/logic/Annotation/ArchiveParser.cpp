@@ -14,6 +14,7 @@
 
 #include "data/DataItem.h"
 #include "djvu/djvu.h"
+#include "pdf/pdf.h"
 #include "shared/ZipProgressCallback.h"
 #include "util/EpubParser.h"
 #include "util/ImageRestore.h"
@@ -536,17 +537,14 @@ private:
 	QIODevice& m_ioDevice;
 };
 
-class DjVuParser final : public IParser
+class ImageExtractor : public IParser
 {
-public:
-	static std::unique_ptr<IParser> Create(QIODevice& ioDevice, std::shared_ptr<const ISettings> settings)
-	{
-		return std::make_unique<DjVuParser>(ioDevice, std::move(settings));
-	}
+	using ImageExtractorImpl = QByteArray (*)(QIODevice& stream);
 
-public:
-	DjVuParser(QIODevice& ioDevice, std::shared_ptr<const ISettings>)
+protected:
+	ImageExtractor(QIODevice& ioDevice, const ImageExtractorImpl imageExtractor)
 		: m_ioDevice { ioDevice }
+		, m_imageExtractor { imageExtractor }
 	{
 	}
 
@@ -554,13 +552,42 @@ private: // IParser
 	ArchiveParser::Data Parse(const QString& /*rootFolder*/, const IDataItem& /*book*/, std::unique_ptr<IProgressController::IProgressItem> /*progressItem*/) override
 	{
 		ArchiveParser::Data result;
-		if (auto bytes = DjVu::GetCover(m_ioDevice); !bytes.isEmpty())
+		if (auto bytes = m_imageExtractor(m_ioDevice); !bytes.isEmpty())
 			result.covers.emplace_back(Global::COVER, std::move(bytes));
 		return result;
 	}
 
 private:
-	QIODevice& m_ioDevice;
+	QIODevice&         m_ioDevice;
+	ImageExtractorImpl m_imageExtractor;
+};
+
+class DjVuParser final : public ImageExtractor
+{
+public:
+	static std::unique_ptr<IParser> Create(QIODevice& ioDevice, std::shared_ptr<const ISettings>)
+	{
+		return std::make_unique<DjVuParser>(ioDevice);
+	}
+
+	explicit DjVuParser(QIODevice& ioDevice)
+		: ImageExtractor(ioDevice, &DjVu::GetCover)
+	{
+	}
+};
+
+class PdfParser final : public ImageExtractor
+{
+public:
+	static std::unique_ptr<IParser> Create(QIODevice& ioDevice, std::shared_ptr<const ISettings>)
+	{
+		return std::make_unique<PdfParser>(ioDevice);
+	}
+
+	explicit PdfParser(QIODevice& ioDevice)
+		: ImageExtractor(ioDevice, &Pdf::GetCover)
+	{
+	}
 };
 
 class StubParser final : public IParser
@@ -588,6 +615,7 @@ class ArchiveParser::Impl
 		Fb2,
 		Epub,
 		DjVu,
+		Pdf,
 		Zip,
 	};
 
@@ -636,8 +664,9 @@ private:
 		{  "fb2",  { FileType::Fb2, true } },
         { "epub", { FileType::Epub, true } },
         { "djvu", { FileType::DjVu, true } },
-        {  "fbd",  { FileType::Fb2, true } },
-		{  "zip", { FileType::Zip, false } },
+        {  "pdf",  { FileType::Pdf, true } },
+		{  "fbd",  { FileType::Fb2, true } },
+        {  "zip", { FileType::Zip, false } },
         {   "7z", { FileType::Zip, false } },
         {  "rar", { FileType::Zip, false } },
 	};
@@ -739,6 +768,7 @@ private:
 			{  FileType::Fb2,  &Fb2Parser::Create },
 			{ FileType::Epub, &EpubParser::Create },
 			{ FileType::DjVu, &DjVuParser::Create },
+			{  FileType::Pdf,  &PdfParser::Create },
 		};
 
 		const auto parserCreator = FindSecond(parsers, fileType, &StubParser::Create);
