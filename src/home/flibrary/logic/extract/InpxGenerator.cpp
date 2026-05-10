@@ -404,7 +404,7 @@ public:
 		std::unordered_map<QString, BookInfoList> ordered;
 		for (auto&& book : books)
 		{
-			auto fileName    = book.book->GetRawData(BookItem::Column::FileName);
+			auto fileName    = book.book->GetRawData(BookItem::Column::FileName); //-V821
 			auto& [key, ids] = uniqueFileNames[fileName.toLower()];
 			if (key.isEmpty())
 				key = std::move(fileName);
@@ -473,7 +473,7 @@ public:
 
 							   const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
 							   assert(currentZip);
-							   if (const auto n = currentZip->GetFileIndex(fileName); n != Zip::INVALID_INDEX)
+							   if (const auto n = currentZip->GetFileIndex(fileName); n != Zip::INVALID_INDEX) //-V614
 								   data.try_emplace(n, Write(book, fileName, n + 1, book.book->GetRawData(BookItem::Column::Folder), book.book->GetRawData(BookItem::Column::Size)));
 
 							   m_progressItem->Increment(1);
@@ -702,7 +702,7 @@ private:
 				m_progressItem->Increment(-1);
 			}
 			assert(inputZip);
-			if (const auto index = inputZip->GetFileIndex(QString("%1%2").arg(query->Get<const char*>(9), query->Get<const char*>(10))); index != Zip::INVALID_INDEX)
+			if (const auto index = inputZip->GetFileIndex(QString("%1%2").arg(query->Get<const char*>(9), query->Get<const char*>(10))); index != Zip::INVALID_INDEX) //-V614
 				data.try_emplace(index, Write(*query, series, genres, bookGenres, authors, bookAuthors, keywords, bookKeywords, index + 1));
 
 			m_progressItem->Increment(1);

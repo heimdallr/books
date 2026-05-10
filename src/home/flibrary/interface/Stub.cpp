@@ -114,10 +114,17 @@ void SetMacroImpl(QString& str, const std::unordered_map<IScriptController::Macr
 
 		if (ch == '%')
 		{
-			if (!child.macroPositions.empty() && child.macroPositions.back().second == 0)
-				child.macroPositions.back().second = child.value.length() - child.macroPositions.back().first + 1;
-			else
+			if (child.macroPositions.empty())
+			{
 				child.macroPositions.emplace_back(child.value.length(), 0);
+			}
+			else
+			{
+				if (auto& [from, length] = child.macroPositions.back(); length != 0)
+					child.macroPositions.emplace_back(child.value.length(), 0);
+				else
+					length = child.value.length() - from + 1;
+			}
 		}
 
 		child.value.append(ch);
