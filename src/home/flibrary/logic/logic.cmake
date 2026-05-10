@@ -10,6 +10,7 @@ AddTarget(logic	shared_lib
 		[ QT5 Qt${QT_MAJOR_VERSION}::Widgets ]
 	LINK_TARGETS
 		dbfactory
+		flidjvu
 		flint
 		inpx
 		joke
