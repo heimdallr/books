@@ -143,6 +143,7 @@ find_package(ICU REQUIRED COMPONENTS tu io uc i18n data)
 find_package(libjxl REQUIRED)
 find_package(cimg REQUIRED)
 find_package(SQLite3 REQUIRED)
+find_package(djvulibre REQUIRED)
 
 include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)
 include(${BUILDSCRIPTS_ROOT}/cmake/sdk.cmake)
