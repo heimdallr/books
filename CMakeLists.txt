@@ -163,6 +163,7 @@ include(${FOUNDATION_ROOT}/database/database.cmake)
 include(${FOUNDATION_ROOT}/util/util.cmake)
 include(${FOUNDATION_ROOT}/utilgui/utilgui.cmake)
 include(${FOUNDATION_ROOT}/icu/icu.cmake)
+include(${FOUNDATION_ROOT}/djvu/djvu.cmake)
 include(${FOUNDATION_ROOT}/platform/platform.cmake)
 include(${FOUNDATION_ROOT}/platformgui/platformgui.cmake)
 

@@ -25,6 +25,7 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "Hypodermic/Hypodermic.h"
+#include "djvu/djvu.h"
 #include "logging/init.h"
 #include "logic/data/Genre.h"
 #include "logic/model/LogModel.h"
@@ -145,6 +146,7 @@ int main(int argc, char* argv[])
 		PLOGD << "QApplication created";
 
 		Util::GenreFixerInitializer genreFixerInitializer;
+		DjVu::Initializer djvuInitializer;
 
 		std::optional<Collection> collectionToRecreate;
 
