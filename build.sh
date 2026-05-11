@@ -1,7 +1,5 @@
 #!/bin/bash
 
-umask 077
-
 mkdir build
 cd build
 
