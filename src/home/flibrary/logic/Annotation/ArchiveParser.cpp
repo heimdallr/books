@@ -537,11 +537,37 @@ private:
 	QIODevice& m_ioDevice;
 };
 
-class ImageExtractor : public IParser
-{
-	using ImageExtractorImpl = QByteArray (*)(QIODevice& stream);
+#define IMAGE_EXTRACTOR_FILE_TYPE_ITEMS_X_MACRO \
+	IMAGE_EXTRACTOR_FILE_TYPE_ITEM(DjVu) \
+	IMAGE_EXTRACTOR_FILE_TYPE_ITEM(Pdf)
 
-protected:
+enum class FileType
+{
+	Unknown = -1,
+	Fb2,
+	Epub,
+#define IMAGE_EXTRACTOR_FILE_TYPE_ITEM(NAME) NAME,
+	IMAGE_EXTRACTOR_FILE_TYPE_ITEMS_X_MACRO
+#undef IMAGE_EXTRACTOR_FILE_TYPE_ITEM
+		Zip,
+};
+
+using ImageExtractorImpl = QByteArray (*)(QIODevice& stream);
+template <FileType T>
+ImageExtractorImpl GetImageExtractorImpl() noexcept = delete;
+#define IMAGE_EXTRACTOR_FILE_TYPE_ITEM(NAME) template <> ImageExtractorImpl GetImageExtractorImpl<FileType::NAME>() noexcept { return &NAME::GetCover; }
+IMAGE_EXTRACTOR_FILE_TYPE_ITEMS_X_MACRO
+#undef IMAGE_EXTRACTOR_FILE_TYPE_ITEM
+
+class ImageExtractor final : public IParser
+{
+public:
+	template <FileType T>
+	static std::unique_ptr<IParser> Create(QIODevice& ioDevice, std::shared_ptr<const ISettings>)
+	{
+		return std::make_unique<ImageExtractor>(ioDevice, GetImageExtractorImpl<T>());
+	}
+
 	ImageExtractor(QIODevice& ioDevice, const ImageExtractorImpl imageExtractor)
 		: m_ioDevice { ioDevice }
 		, m_imageExtractor { imageExtractor }
@@ -560,34 +586,6 @@ private: // IParser
 private:
 	QIODevice&         m_ioDevice;
 	ImageExtractorImpl m_imageExtractor;
-};
-
-class DjVuParser final : public ImageExtractor
-{
-public:
-	static std::unique_ptr<IParser> Create(QIODevice& ioDevice, std::shared_ptr<const ISettings>)
-	{
-		return std::make_unique<DjVuParser>(ioDevice);
-	}
-
-	explicit DjVuParser(QIODevice& ioDevice)
-		: ImageExtractor(ioDevice, &DjVu::GetCover)
-	{
-	}
-};
-
-class PdfParser final : public ImageExtractor
-{
-public:
-	static std::unique_ptr<IParser> Create(QIODevice& ioDevice, std::shared_ptr<const ISettings>)
-	{
-		return std::make_unique<PdfParser>(ioDevice);
-	}
-
-	explicit PdfParser(QIODevice& ioDevice)
-		: ImageExtractor(ioDevice, &Pdf::GetCover)
-	{
-	}
 };
 
 class StubParser final : public IParser
@@ -609,16 +607,6 @@ private: // IParser
 
 class ArchiveParser::Impl
 {
-	enum class FileType
-	{
-		Unknown = -1,
-		Fb2,
-		Epub,
-		DjVu,
-		Pdf,
-		Zip,
-	};
-
 public:
 	explicit Impl(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<IProgressController> progressController, std::shared_ptr<const ILogicFactory> logicFactory)
 		: m_collectionProvider { std::move(collectionProvider) }
@@ -765,10 +753,10 @@ private:
 
 		using ParserCreator = std::unique_ptr<IParser> (*)(QIODevice&, std::shared_ptr<const ISettings>);
 		static constexpr std::pair<FileType, ParserCreator> parsers[] {
-			{  FileType::Fb2,  &Fb2Parser::Create },
-			{ FileType::Epub, &EpubParser::Create },
-			{ FileType::DjVu, &DjVuParser::Create },
-			{  FileType::Pdf,  &PdfParser::Create },
+			{  FileType::Fb2,                      &Fb2Parser::Create },
+			{ FileType::Epub,                     &EpubParser::Create },
+			{ FileType::DjVu, &ImageExtractor::Create<FileType::DjVu> },
+			{  FileType::Pdf,  &ImageExtractor::Create<FileType::Pdf> },
 		};
 
 		const auto parserCreator = FindSecond(parsers, fileType, &StubParser::Create);
