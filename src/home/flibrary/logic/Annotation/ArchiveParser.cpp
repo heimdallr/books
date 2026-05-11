@@ -14,6 +14,7 @@
 
 #include "data/DataItem.h"
 #include "djvu/djvu.h"
+#include "pdf/pdf.h"
 #include "shared/ZipProgressCallback.h"
 #include "util/EpubParser.h"
 #include "util/ImageRestore.h"
@@ -536,17 +537,40 @@ private:
 	QIODevice& m_ioDevice;
 };
 
-class DjVuParser final : public IParser
+#define IMAGE_EXTRACTOR_FILE_TYPE_ITEMS_X_MACRO \
+	IMAGE_EXTRACTOR_FILE_TYPE_ITEM(DjVu) \
+	IMAGE_EXTRACTOR_FILE_TYPE_ITEM(Pdf)
+
+enum class FileType
+{
+	Unknown = -1,
+	Fb2,
+	Epub,
+#define IMAGE_EXTRACTOR_FILE_TYPE_ITEM(NAME) NAME,
+	IMAGE_EXTRACTOR_FILE_TYPE_ITEMS_X_MACRO
+#undef IMAGE_EXTRACTOR_FILE_TYPE_ITEM
+		Zip,
+};
+
+using ImageExtractorImpl = QByteArray (*)(QIODevice& stream);
+template <FileType T>
+ImageExtractorImpl GetImageExtractorImpl() noexcept = delete;
+#define IMAGE_EXTRACTOR_FILE_TYPE_ITEM(NAME) template <> ImageExtractorImpl GetImageExtractorImpl<FileType::NAME>() noexcept { return &NAME::GetCover; }
+IMAGE_EXTRACTOR_FILE_TYPE_ITEMS_X_MACRO
+#undef IMAGE_EXTRACTOR_FILE_TYPE_ITEM
+
+class ImageExtractor final : public IParser
 {
 public:
-	static std::unique_ptr<IParser> Create(QIODevice& ioDevice, std::shared_ptr<const ISettings> settings)
+	template <FileType T>
+	static std::unique_ptr<IParser> Create(QIODevice& ioDevice, std::shared_ptr<const ISettings>)
 	{
-		return std::make_unique<DjVuParser>(ioDevice, std::move(settings));
+		return std::make_unique<ImageExtractor>(ioDevice, GetImageExtractorImpl<T>());
 	}
 
-public:
-	DjVuParser(QIODevice& ioDevice, std::shared_ptr<const ISettings>)
+	ImageExtractor(QIODevice& ioDevice, const ImageExtractorImpl imageExtractor)
 		: m_ioDevice { ioDevice }
+		, m_imageExtractor { imageExtractor }
 	{
 	}
 
@@ -554,13 +578,14 @@ private: // IParser
 	ArchiveParser::Data Parse(const QString& /*rootFolder*/, const IDataItem& /*book*/, std::unique_ptr<IProgressController::IProgressItem> /*progressItem*/) override
 	{
 		ArchiveParser::Data result;
-		if (auto bytes = DjVu::GetCover(m_ioDevice); !bytes.isEmpty())
+		if (auto bytes = m_imageExtractor(m_ioDevice); !bytes.isEmpty())
 			result.covers.emplace_back(Global::COVER, std::move(bytes));
 		return result;
 	}
 
 private:
-	QIODevice& m_ioDevice;
+	QIODevice&         m_ioDevice;
+	ImageExtractorImpl m_imageExtractor;
 };
 
 class StubParser final : public IParser
@@ -582,15 +607,6 @@ private: // IParser
 
 class ArchiveParser::Impl
 {
-	enum class FileType
-	{
-		Unknown = -1,
-		Fb2,
-		Epub,
-		DjVu,
-		Zip,
-	};
-
 public:
 	explicit Impl(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<IProgressController> progressController, std::shared_ptr<const ILogicFactory> logicFactory)
 		: m_collectionProvider { std::move(collectionProvider) }
@@ -636,8 +652,9 @@ private:
 		{  "fb2",  { FileType::Fb2, true } },
         { "epub", { FileType::Epub, true } },
         { "djvu", { FileType::DjVu, true } },
-        {  "fbd",  { FileType::Fb2, true } },
-		{  "zip", { FileType::Zip, false } },
+        {  "pdf",  { FileType::Pdf, true } },
+		{  "fbd",  { FileType::Fb2, true } },
+        {  "zip", { FileType::Zip, false } },
         {   "7z", { FileType::Zip, false } },
         {  "rar", { FileType::Zip, false } },
 	};
@@ -736,9 +753,10 @@ private:
 
 		using ParserCreator = std::unique_ptr<IParser> (*)(QIODevice&, std::shared_ptr<const ISettings>);
 		static constexpr std::pair<FileType, ParserCreator> parsers[] {
-			{  FileType::Fb2,  &Fb2Parser::Create },
-			{ FileType::Epub, &EpubParser::Create },
-			{ FileType::DjVu, &DjVuParser::Create },
+			{  FileType::Fb2,                      &Fb2Parser::Create },
+			{ FileType::Epub,                     &EpubParser::Create },
+			{ FileType::DjVu, &ImageExtractor::Create<FileType::DjVu> },
+			{  FileType::Pdf,  &ImageExtractor::Create<FileType::Pdf> },
 		};
 
 		const auto parserCreator = FindSecond(parsers, fileType, &StubParser::Create);

@@ -12,6 +12,7 @@ AddTarget(logic	shared_lib
 		dbfactory
 		flidjvu
 		flint
+		flipdf
 		inpx
 		joke
 		logging
