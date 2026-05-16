@@ -524,7 +524,7 @@ public:
 private: // IParser
 	ArchiveParser::Data Parse(const QString& /*rootFolder*/, const IDataItem& /*book*/, std::unique_ptr<IProgressController::IProgressItem> /*progressItem*/) override
 	{
-		auto parsed = Util::EpubParser::Parse(m_ioDevice, true);
+		auto parsed = Util::EpubParser::Parse(m_ioDevice, Util::EpubParser::Mode::Images);
 		return { .annotation = std::move(parsed.annotation),
 			     .language   = std::move(parsed.language),
 			     .covers     = parsed.images | std::views::as_rvalue | std::views::transform([](auto&& item) {
