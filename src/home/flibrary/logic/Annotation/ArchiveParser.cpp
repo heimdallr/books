@@ -85,6 +85,42 @@ QString AnnotationReplaceAttributeName(const QString& name)
 	return it == std::end(ANNOTATION_REPLACE_ATTRIBUTE_NAME) ? name : it->second;
 }
 
+void ExtractBookImages(
+	const QString&                                rootFolder,
+	const IDataItem&                              book,
+	const ISettings&                              settings,
+	std::vector<std::pair<QString, QByteArray>>&  srcCovers,
+	IAnnotationController::IDataProvider::Covers& dstCovers
+)
+{
+	std::multimap<int, QByteArray> covers;
+
+	Util::ExtractBookImages(QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)), book.GetRawData(BookItem::Column::FileName), settings, [&](QString name, bool, QByteArray data) {
+		bool       ok = false;
+		const auto id = name.toInt(&ok);
+		if (ok)
+			covers.emplace(id, std::move(data));
+		else
+			dstCovers.emplace_back(std::move(name), std::move(data));
+
+		return false;
+	});
+
+	std::ranges::transform(std::move(covers), std::back_inserter(dstCovers), [](auto&& item) {
+		return IAnnotationController::IDataProvider::Cover { QString::number(item.first), std::move(item.second) };
+	});
+
+	std::ranges::transform(
+		std::move(srcCovers) | std::views::filter([](const auto& item) {
+			return !item.second.isNull();
+		}),
+		std::back_inserter(dstCovers),
+		[](auto&& item) {
+			return IAnnotationController::IDataProvider::Cover { std::move(item.first), std::move(item.second) };
+		}
+	);
+}
+
 class IParser // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
@@ -136,37 +172,7 @@ private: // IParser
 		    it != m_covers.end())
 			m_data.covers.emplace_back(std::move(it->first), std::move(it->second));
 
-		std::multimap<int, QByteArray> covers;
-
-		Util::ExtractBookImages(
-			QString("%1/%2").arg(rootFolder, book.GetRawData(BookItem::Column::Folder)),
-			book.GetRawData(BookItem::Column::FileName),
-			*m_settings,
-			[this, &covers](QString name, bool, QByteArray data) {
-				bool       ok = false;
-				const auto id = name.toInt(&ok);
-				if (ok)
-					covers.emplace(id, std::move(data));
-				else
-					m_data.covers.emplace_back(std::move(name), std::move(data));
-
-				return false;
-			}
-		);
-
-		std::ranges::transform(std::move(covers), std::back_inserter(m_data.covers), [](auto&& item) {
-			return IAnnotationController::IDataProvider::Cover { QString::number(item.first), std::move(item.second) };
-		});
-
-		std::ranges::transform(
-			std::move(m_covers) | std::views::filter([](const auto& item) {
-				return !item.second.isNull();
-			}),
-			std::back_inserter(m_data.covers),
-			[](auto&& item) {
-				return IAnnotationController::IDataProvider::Cover { std::move(item.first), std::move(item.second) };
-			}
-		);
+		ExtractBookImages(rootFolder, book, *m_settings, m_covers, m_data.covers);
 
 		return m_data;
 	}
@@ -516,25 +522,31 @@ public:
 	}
 
 public:
-	EpubParser(QIODevice& ioDevice, std::shared_ptr<const ISettings>)
+	EpubParser(QIODevice& ioDevice, std::shared_ptr<const ISettings> settings)
 		: m_ioDevice { ioDevice }
+		, m_settings { std::move(settings) }
 	{
 	}
 
 private: // IParser
-	ArchiveParser::Data Parse(const QString& /*rootFolder*/, const IDataItem& /*book*/, std::unique_ptr<IProgressController::IProgressItem> /*progressItem*/) override
+	ArchiveParser::Data Parse(const QString& rootFolder, const IDataItem& book, std::unique_ptr<IProgressController::IProgressItem> progressItem) override
 	{
-		auto parsed = Util::EpubParser::Parse(m_ioDevice, Util::EpubParser::Mode::Images);
-		return { .annotation = std::move(parsed.annotation),
-			     .language   = std::move(parsed.language),
-			     .covers     = parsed.images | std::views::as_rvalue | std::views::transform([](auto&& item) {
-							   return IAnnotationController::IDataProvider::Cover { .name = std::move(item.id), .bytes = std::move(item.body) };
-						   })
-			             | std::ranges::to<std::vector>() };
+		auto                parsed = Util::EpubParser::Parse(m_ioDevice, Util::EpubParser::Mode::Images);
+		ArchiveParser::Data result { .annotation = std::move(parsed.annotation),
+			                         .language   = std::move(parsed.language),
+			                         .covers     = parsed.images | std::views::as_rvalue | std::views::transform([](auto&& item) {
+												   return IAnnotationController::IDataProvider::Cover { .name = std::move(item.id), .bytes = std::move(item.body) };
+											   })
+			                                 | std::ranges::to<std::vector>() };
+		std::vector<std::pair<QString, QByteArray>> _;
+		ExtractBookImages(rootFolder, book, *m_settings, _, result.covers);
+
+		return result;
 	}
 
 private:
-	QIODevice& m_ioDevice;
+	QIODevice&                       m_ioDevice;
+	std::shared_ptr<const ISettings> m_settings;
 };
 
 #define IMAGE_EXTRACTOR_FILE_TYPE_ITEMS_X_MACRO \
