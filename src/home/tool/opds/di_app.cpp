@@ -66,12 +66,12 @@ class UiFactory final : public Flibrary::IUiFactory
 	}
 
 	QMessageBox::ButtonRole ShowCustomDialog(
-		QMessageBox::Icon                                               /*icon*/,
-		const QString&                                                  /*title*/,
-		const QString&                                                  /*text*/,
+		QMessageBox::Icon /*icon*/,
+		const QString& /*title*/,
+		const QString& /*text*/,
 		const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& /*buttons*/,
-		QMessageBox::ButtonRole                                         /*defaultButton*/,
-		const QString&                                                  /*detailedText*/
+		QMessageBox::ButtonRole /*defaultButton*/,
+		const QString& /*detailedText*/
 	) const override
 	{
 		return {};
@@ -141,7 +141,7 @@ private: // IUiFactory
 		return {};
 	}
 
-    std::shared_ptr<Flibrary::IComboBoxTextDialog> CreateComboBoxTextDialog(QString) const override
+	std::shared_ptr<Flibrary::IComboBoxTextDialog> CreateComboBoxTextDialog(QString) const override
 	{
 		return {};
 	}

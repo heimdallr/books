@@ -39,7 +39,7 @@ public: // ICollectionController
 	void                             SetActiveCollection(const QString& id) override;
 	void                             OnInpxUpdateChecked(const Collection& updatedCollection) override;
 	void                             AllowDestructiveOperation(bool value) override;
-	Collection::Ptr CreateCollection(QString name, QString database, QString folder, QString additionalFolder, QString inpx) override;
+	Collection::Ptr                  CreateCollection(QString name, QString database, QString folder, QString additionalFolder, QString inpx) override;
 
 	void RegisterObserver(ICollectionsObserver* observer) override;
 	void UnregisterObserver(ICollectionsObserver* observer) override;
