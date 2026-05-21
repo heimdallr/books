@@ -374,7 +374,7 @@ private: // IModelSorter
 	}
 
 private:
-	QRegularExpression m_rx { "^.*?fb2.*?([0-9]+).*?$" };
+	QRegularExpression m_rx { "^.*?-([0-9]+)-.*?$" };
 };
 
 void TreeOperation(const QAbstractItemModel& model, const QModelIndex& index, const std::function<void(const QModelIndex&)>& f)
