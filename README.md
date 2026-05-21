@@ -29,7 +29,7 @@ git clone https://github.com/heimdallr/books.git --recursive
 [Инструкция](https://docs.conan.io/2/installation.html)  
 
 #### Устанавливаем модули, которых нет в conan
-* Qt6 (6.10.0 минимум, но лучше 6.11.0) [^4] [^5]  
+* Qt6 (6.10.0 минимум, но лучше 6.11) [^4] [^5]  
 * 7zip  
 
 ### Windows  
