@@ -30,6 +30,7 @@
 
 #include "database/factory/Factory.h"
 #include "util/Fb2InpxParser.h"
+#include "util/GenresLocalization.h"
 #include "util/IExecutor.h"
 #include "util/executor/factory.h"
 #include "util/language.h"
@@ -1703,7 +1704,7 @@ private:
 
 		m_db = Create(DB::Factory::Impl::Sqlite, connectionString);
 
-		const auto [oldData, oldGenresIndex] = ReadData(m_ini(GENRES, DEFAULT_GENRES));
+		const auto [oldData, oldGenresIndex] = ReadData(m_ini(GENRES_PATH, DEFAULT_GENRES));
 
 		m_data        = oldData;
 		m_genresIndex = oldGenresIndex;
@@ -1756,7 +1757,7 @@ private:
 	{
 		Timer t("parsing archives");
 
-		auto [genresData, genresIndex] = LoadGenres(m_ini(GENRES, DEFAULT_GENRES));
+		auto [genresData, genresIndex] = LoadGenres(m_ini(GENRES_PATH, DEFAULT_GENRES));
 		m_data.genres                  = std::move(genresData);
 		m_genresIndex                  = std::move(genresIndex);
 		SetUnknownGenreId();
@@ -2378,6 +2379,7 @@ private:
 	std::mutex m_dataGuard;
 
 	std::vector<std::unique_ptr<Thread>> m_threads;
+	Util::GenreFixerInitializer          m_genreFixerInitializer;
 };
 
 Parser::Parser()  = default;
@@ -2477,7 +2479,7 @@ Parser::IniMapPair Parser::GetIniMap(QString db, QString folder, QString additio
 
 	result.second = IniMap {
 		{		   DB_PATH,					 std::move(db) },
-		{			GENRES,           getFile(DEFAULT_GENRES) },
+		{       GENRES_PATH,           getFile(DEFAULT_GENRES) },
 		{  DB_CREATE_SCRIPT, getFile(DEFAULT_DB_CREATE_SCRIPT) },
 		{  DB_UPDATE_SCRIPT, getFile(DEFAULT_DB_UPDATE_SCRIPT) },
 		{    ARCHIVE_FOLDER,                 std::move(folder) },
