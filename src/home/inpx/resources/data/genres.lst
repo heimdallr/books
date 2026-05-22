@@ -61,7 +61,7 @@ boyar_anime|sf_all_root|Бояръ-аниме
 dorama|sf_all_root|Дорама
 
 # Фэнтези
-sf_fantasy|fantasy_all_root|Фэнтези
+sf_fantasy:romance_fantasy|fantasy_all_root|Фэнтези
 fantasy_alt_hist|fantasy_all_root|Альтернативная история. Фэнтези
 adventure_fantasy|fantasy_all_root|Приключенческое фэнтези
 fairy_fantasy|fantasy_all_root|Сказочное фэнтези
@@ -106,7 +106,7 @@ prose|prose_all_root|Проза
 prose_su_classics|prose_all_root|Советская классическая проза
 prose_classic|prose_all_root|Классическая проза
 prose_history|prose_all_root|Историческая проза
-prose_contemporary|prose_all_root|Современная проза
+prose_contemporary:foreign_contemporary:russian_contemporary|prose_all_root|Современная проза
 prose_counter|prose_all_root|Контркультура
 prose_rus_classic|prose_all_root|Русская классическая проза
 prose_military|prose_all_root|О войне
@@ -143,7 +143,7 @@ love_hard|love_all_root|Порно
 love_all|love_all_root|О любви: прочее
 
 # Приключения
-adventure:adv_all|adventure_all_root|Приключения
+adventure:adv_all:foreign_adventure|adventure_all_root|Приключения
 adv_western|adventure_all_root|Вестерн
 adv_history|adventure_all_root|Исторические приключения
 adv_indian|adventure_all_root|Приключения про индейцев
@@ -219,13 +219,13 @@ antique_all|antique_all_root|Старинная литература: проче
 # Наука. Образование
 science|science_all_root|Научная литература
 sci_history|science_all_root|История
-sci_psychology|science_all_root|Психология
+sci_psychology:psy_social:psy_generic:foreign_psychology|science_all_root|Психология
 psy_theraphy|science_all_root|Психотерапия
 sci_culture|science_all_root|Культурология
 sci_religion|science_all_root|Религиоведение
 sci_philosophy|science_all_root|Философия
 sci_politics|science_all_root|Политика
-sci_business|science_all_root|Деловая литература
+sci_business:foreign_business|science_all_root|Деловая литература
 sci_juris|science_all_root|Юриспруденция
 sci_linguistic|science_all_root|Языкознание
 sci_medicine|science_all_root|Медицина
@@ -362,7 +362,7 @@ job_hunting|busines_all_root|Поиск работы. Карьера
 economics_ref|busines_all_root|Справочники
 management|busines_all_root|Управление. Подбор персонала
 stock|busines_all_root|Ценные бумаги. Инвестиции
-economics|busines_all_root|Экономика
+economics:economics_all|busines_all_root|Экономика
 trade|busines_all_root|Торговля
 
 # Ноты и партитуры
