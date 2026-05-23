@@ -4,6 +4,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/IUiFactory.h"
 
@@ -17,7 +18,13 @@ class CollectionController final : public ICollectionController
 	NON_COPY_MOVABLE(CollectionController)
 
 public:
-	CollectionController(std::shared_ptr<ICollectionProvider> collectionProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<IUiFactory> uiFactory, const std::shared_ptr<ITaskQueue>& taskQueue);
+	CollectionController(
+		const std::shared_ptr<const ILogicFactory>& logicFactory,
+		std::shared_ptr<ICollectionProvider>        collectionProvider,
+		std::shared_ptr<ISettings>                  settings,
+		std::shared_ptr<IUiFactory>                 uiFactory,
+		const std::shared_ptr<ITaskQueue>&          taskQueue
+	);
 	~CollectionController() override;
 
 public: // ICollectionController
