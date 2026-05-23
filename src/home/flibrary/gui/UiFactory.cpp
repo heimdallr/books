@@ -312,14 +312,14 @@ QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
 	return m_impl->container.resolve<Util::IUiFactory>()->ShowCustomDialog(icon, title, text, buttons, defaultButton, detailedText);
 }
 
-QMessageBox::StandardButton UiFactory::ShowQuestion(const QString& text, const QMessageBox::StandardButtons& buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton UiFactory::ShowQuestion(Util::DialogInitializer& initializer) const
 {
-	return m_impl->container.resolve<Util::IUiFactory>()->ShowQuestion(text, buttons, defaultButton);
+	return m_impl->container.resolve<Util::IUiFactory>()->ShowQuestion(initializer);
 }
 
-QMessageBox::StandardButton UiFactory::ShowWarning(const QString& text, const QMessageBox::StandardButtons& buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton UiFactory::ShowWarning(Util::DialogInitializer& initializer) const
 {
-	return m_impl->container.resolve<Util::IUiFactory>()->ShowWarning(text, buttons, defaultButton);
+	return m_impl->container.resolve<Util::IUiFactory>()->ShowWarning(initializer);
 }
 
 void UiFactory::ShowInfo(const QString& text) const
