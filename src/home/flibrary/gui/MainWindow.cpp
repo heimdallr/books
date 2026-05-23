@@ -317,6 +317,8 @@ public:
 		StartDelayed([this, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable {
 			CheckForUpdateCollection(*commandLine, *databaseChecker, std::move(collectionUpdateChecker));
 			m_recentOpenBookController->SetMenu(m_ui.menuRecentBooks);
+			if (m_collectionController->ActiveCollectionExists())
+				RestoreUserData(m_collectionController->GetActiveCollectionId());
 		});
 
 		if (m_checkForUpdateOnStartEnabled && m_collectionController->ActiveCollectionExists())
@@ -462,16 +464,7 @@ private: // ICollectionsObserver
 		if (running || !m_collectionToRecreate)
 			return;
 
-		auto       controller = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
-		const auto backupPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/" + m_collectionToRecreate->id + ".flibk";
-
-		QEventLoop eventLoop;
-		controller->Restore(backupPath, [&](bool, const QString& message) {
-			PLOGV << message;
-			eventLoop.exit();
-		});
-		eventLoop.exec();
-		QFile::remove(backupPath);
+		RestoreUserData(m_collectionToRecreate->id);
 		m_collectionToRecreate = std::nullopt;
 	}
 
@@ -1568,6 +1561,23 @@ private:
 		}
 
 		return false;
+	}
+
+	void RestoreUserData(const QString& id) const
+	{
+		const auto backupPath = QDir(QDir::tempPath()).filePath(id + ".flibk");
+		if (!QFile::exists(backupPath))
+			return;
+
+		auto controller = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
+
+		QEventLoop eventLoop;
+		controller->Restore(backupPath, [&](bool, const QString& message) {
+			PLOGV << message;
+			eventLoop.exit();
+		});
+		eventLoop.exec();
+		QFile::remove(backupPath);
 	}
 
 	static void Reboot()
