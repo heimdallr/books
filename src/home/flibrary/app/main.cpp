@@ -144,7 +144,7 @@ int main(int argc, char* argv[])
 
 		PLOGD << "QApplication created";
 
-		DjVu::Initializer           djvuInitializer;
+		DjVu::Initializer djvuInitializer;
 
 		std::optional<Collection> collectionToRecreate;
 
