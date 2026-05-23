@@ -26,6 +26,7 @@
 #include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
+#include "interface/constants/ProductConstant.h"
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/IInpxGenerator.h"
 #include "interface/logic/IOpdsController.h"
@@ -1565,7 +1566,7 @@ private:
 
 	void RestoreUserData(const QString& id) const
 	{
-		const auto backupPath = QDir(QDir::tempPath()).filePath(id + ".flibk");
+		const auto backupPath = QDir(QDir::tempPath()).filePath(id + Constant::BACKUP_FILE_EXT);
 		if (!QFile::exists(backupPath))
 			return;
 

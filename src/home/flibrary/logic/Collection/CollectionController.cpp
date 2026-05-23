@@ -8,6 +8,7 @@
 #include "fnd/ScopedCall.h"
 #include "fnd/observable.h"
 
+#include "interface/constants/ProductConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IUserDataController.h"
@@ -294,7 +295,7 @@ private:
 		QEventLoop  eventLoop;
 		auto        controller    = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
 		const auto& controllerRef = *controller;
-		controllerRef.Backup(QDir(QDir::tempPath()).filePath(GetActiveCollectionId() + ".flibk"), [&, controller = std::move(controller)](const bool ok, const QString& errorMessage) mutable {
+		controllerRef.Backup(QDir(QDir::tempPath()).filePath(GetActiveCollectionId() + Constant::BACKUP_FILE_EXT), [&, controller = std::move(controller)](const bool ok, const QString& errorMessage) mutable {
 			if (!ok)
 				PLOGE << errorMessage;
 

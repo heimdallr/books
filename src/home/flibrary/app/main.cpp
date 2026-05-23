@@ -10,6 +10,7 @@
 
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
+#include "interface/constants/ProductConstant.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseMigrator.h"
@@ -78,7 +79,7 @@ std::optional<Collection> RecreateDatabase(Hypodermic::Container& container)
 		assert(collectionProvider->ActiveCollectionExists());
 		return collectionProvider->GetActiveCollection();
 	}();
-	const auto backupPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/" + activeCollection.id + ".flibk";
+	const auto backupPath = QDir(QDir::tempPath()).filePath(activeCollection.id + Constant::BACKUP_FILE_EXT);
 
 	QString errorMessage;
 

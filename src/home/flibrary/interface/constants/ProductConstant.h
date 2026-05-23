@@ -30,6 +30,8 @@ constexpr auto BOOK = "Book:";
 
 constexpr auto BOOK_HASH_MIME_DATA_TYPE = "FLIBRARY_BOOK_HASH_MIME_DATA_TYPE";
 
+constexpr auto BACKUP_FILE_EXT = ".flibk";
+
 const auto INFO = [] {
 	static constexpr char32_t info = 0x0001F6C8;
 	return QString::fromUcs4(&info, 1);
