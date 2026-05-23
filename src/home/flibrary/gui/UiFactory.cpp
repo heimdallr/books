@@ -551,6 +551,7 @@ limit {}
 
 			  return [this, &menu, data = std::move(data)](size_t) {
 				  menu.menuAction()->setEnabled(!data.empty());
+				  menu.clear();
 				  for (const auto& [id, title] : data)
 				  {
 					  auto* action = menu.addAction(title);
