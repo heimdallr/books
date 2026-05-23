@@ -529,7 +529,7 @@ public:
 	}
 
 private: // IParser
-	ArchiveParser::Data Parse(const QString& rootFolder, const IDataItem& book, std::unique_ptr<IProgressController::IProgressItem> progressItem) override
+    ArchiveParser::Data Parse(const QString& rootFolder, const IDataItem& book, std::unique_ptr<IProgressController::IProgressItem>) override
 	{
 		auto                parsed = Util::EpubParser::Parse(m_ioDevice, Util::EpubParser::Mode::Images);
 		ArchiveParser::Data result { .annotation = std::move(parsed.annotation),
