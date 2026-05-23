@@ -18,6 +18,7 @@
 #include "shared/ZipProgressCallback.h"
 #include "util/EpubParser.h"
 #include "util/ImageRestore.h"
+#include "util/ImageUtil.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 
@@ -529,7 +530,7 @@ public:
 	}
 
 private: // IParser
-    ArchiveParser::Data Parse(const QString& rootFolder, const IDataItem& book, std::unique_ptr<IProgressController::IProgressItem>) override
+	ArchiveParser::Data Parse(const QString& rootFolder, const IDataItem& book, std::unique_ptr<IProgressController::IProgressItem>) override
 	{
 		auto                parsed = Util::EpubParser::Parse(m_ioDevice, Util::EpubParser::Mode::Images);
 		ArchiveParser::Data result { .annotation = std::move(parsed.annotation),
@@ -722,7 +723,7 @@ private:
 
 		const auto stream = zip->Read(fileName);
 
-		const auto [sibZip, subStream] = [&]() -> std::pair<std::unique_ptr<const Zip>, std::unique_ptr<Stream>> {
+		auto [sibZip, subStream, images] = [&]() -> std::tuple<std::unique_ptr<const Zip>, std::unique_ptr<Stream>, std::vector<std::pair<QString, QByteArray>>> {
 			if (fileType != FileType::Zip)
 				return {};
 
@@ -741,13 +742,14 @@ private:
 				if (!IsOneOf(fileType, FileType::Unknown, FileType::Zip))
 				{
 					auto subSubStream = subZipPtr->Read(zipFileList.front());
-					return std::make_pair(std::move(subZipPtr), std::move(subSubStream));
+					return std::make_tuple(std::move(subZipPtr), std::move(subSubStream), std::vector<std::pair<QString, QByteArray>> {});
 				}
 			}
 
 			for (const auto& [ext, type] : TYPES | std::views::filter([](const auto& item) {
 											   return item.second.second;
 										   }))
+			{
 				if (const auto it = std::ranges::find_if(
 						zipFileList,
 						[=](const QString& item) {
@@ -758,9 +760,18 @@ private:
 				{
 					fileType          = type.first;
 					auto subSubStream = subZipPtr->Read(*it);
-					return std::make_pair(std::move(subZipPtr), std::move(subSubStream));
+					return std::make_tuple(std::move(subZipPtr), std::move(subSubStream), std::vector<std::pair<QString, QByteArray>> {});
 				}
-			return {};
+			}
+
+			auto imageBodies = zipFileList | std::views::as_rvalue | std::views::filter(&Util::IsImage) | std::views::transform([&](auto&& id) {
+								   auto result   = std::make_pair(std::forward<QString>(id), QByteArray {});
+								   result.second = subZipPtr->Read(result.first)->GetStream().readAll();
+								   return result;
+							   })
+			                 | std::ranges::to<std::vector>();
+
+			return std::make_tuple(std::unique_ptr<const Zip> {}, std::unique_ptr<Stream> {}, std::move(imageBodies));
 		}();
 
 		using ParserCreator = std::unique_ptr<IParser> (*)(QIODevice&, std::shared_ptr<const ISettings>);
@@ -773,7 +784,12 @@ private:
 
 		const auto parserCreator = FindSecond(parsers, fileType, &StubParser::Create);
 		const auto parser        = std::invoke(parserCreator, std::ref(subStream ? subStream->GetStream() : stream->GetStream()), m_logicFactory->CreateSettingsStub());
-		return parser->Parse(collection.GetFolder(), book, std::move(parseProgressItem));
+		auto       result        = parser->Parse(collection.GetFolder(), book, std::move(parseProgressItem));
+		if (result.covers.empty())
+			std::ranges::transform(images | std::views::as_rvalue, std::back_inserter(result.covers), [](auto&& item) {
+				return IAnnotationController::IDataProvider::Cover { .name = std::move(item.first), .bytes = std::move(item.second) };
+			});
+		return result;
 	}
 
 private:
