@@ -57,6 +57,7 @@
                 "id": "dystopian"
             },
             {
+                "aliases": [ "horror", "dark" ],
                 "description": "Ужасы и Мистика",
                 "id": "sf_horror"
             },
@@ -137,7 +138,7 @@
         "id": "fantasy_all_root",
         "subgenres": [
             {
-                "aliases": [ "romance_fantasy" ],
+                "aliases": [ "romance_fantasy", "fantasy fiction" ],
                 "description": "Фэнтези",
                 "id": "sf_fantasy"
             },
@@ -350,6 +351,7 @@
                 "id": "great_story"
             },
             {
+"aliases": [ "short stories" ],
                 "description": "Рассказ",
                 "id": "short_story"
             },
@@ -440,6 +442,7 @@
                 "id": "love_short"
             },
             {
+            	"aliases": [ "sex", "sexuality" ],
                 "description": "Эротика",
                 "id": "love_erotica"
             },
@@ -973,6 +976,7 @@
                 "id": "comp_www"
             },
             {
+"aliases": [ "programming languages", "javascript" ],
                 "description": "Программирование",
                 "id": "comp_programming"
             },
@@ -1038,6 +1042,7 @@
         "id": "nonfiction_all_root",
         "subgenres": [
             {
+                "aliases": [ "non fiction" ],
                 "description": "Документальная литература",
                 "id": "nonfiction"
             },
@@ -1416,6 +1421,7 @@
                 "id": "folk_songs"
             },
             {
+                "aliases": [ "folk fales" ],
                 "description": "Народные сказки",
                 "id": "folk_tale"
             },
@@ -1439,6 +1445,7 @@
         "id": "military_all_root",
         "subgenres": [
             {
+                "aliases": [ "war" ],
                 "description": "Военная история",
                 "id": "military_history"
             },
