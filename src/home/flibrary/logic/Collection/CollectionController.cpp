@@ -2,6 +2,7 @@
 
 #include <thread>
 
+#include <QEventLoop>
 #include <QTemporaryDir>
 #include <QTimer>
 

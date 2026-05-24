@@ -10,10 +10,21 @@
 #include "platformgui/PlatformGuiUtil.h"
 #include "utilgui/GeometryRestorable.h"
 
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa;
 using namespace Util;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	#define CHECK_STATE_CHANGED checkStateChanged
+	#define CHECK_STATE Qt::CheckState
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+	#define CHECK_STATE_CHANGED stateChanged
+	#define CHECK_STATE int
+#else
+	#error unsupported qt version
+#endif
 
 namespace
 {
@@ -50,8 +61,8 @@ QMessageBox::StandardButton Dialog::Show(const QMessageBox::Icon icon, const QSt
 	{
 		auto* checkBox = new QCheckBox(initializer.checkboxText, &msgBox);
 		msgBox.setCheckBox(checkBox);
-		QObject::connect(checkBox, &QCheckBox::checkStateChanged, [&](const Qt::CheckState checkState) {
-			initializer.checked = checkState;
+		QObject::connect(checkBox, &QCheckBox::CHECK_STATE_CHANGED, [&](const CHECK_STATE checkState) {
+			initializer.checked = static_cast<Qt::CheckState>(checkState);
 		});
 	}
 
