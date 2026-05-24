@@ -732,6 +732,14 @@
         <translation></translation>
     </message>
     <message>
+        <source>Don&apos;t ask anymore</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Keep your user data?</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation></translation>
     </message>
@@ -5688,8 +5696,8 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Flibrary export files (*.flibk)</source>
-        <translation>FLibrary export files (*.flibk)</translation>
+        <source>Flibrary export files (*%1)</source>
+        <translation></translation>
     </message>
     <message>
         <source>Invalid root node name, must be %1</source>
