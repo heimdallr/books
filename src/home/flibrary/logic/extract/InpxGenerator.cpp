@@ -1,11 +1,10 @@
 #include "InpxGenerator.h"
 
-#include <QCryptographicHash>
-
 #include <filesystem>
 #include <mutex>
 #include <ranges>
 
+#include <QCryptographicHash>
 #include <QDir>
 #include <QFileInfo>
 #include <QTimer>

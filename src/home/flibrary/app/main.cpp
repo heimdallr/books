@@ -8,9 +8,9 @@
 
 #include "fnd/FindPair.h"
 
+#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
-#include "interface/constants/ProductConstant.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseMigrator.h"

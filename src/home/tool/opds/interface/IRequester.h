@@ -1,7 +1,6 @@
 #pragma once
 
 #include <QHash>
-
 #include <QString>
 
 class QByteArray;

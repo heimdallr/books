@@ -2,8 +2,6 @@
 
 #include "AnnotationWidget.h"
 
-#include <QPainterPath>
-
 #include <ranges>
 
 #include <QBuffer>
@@ -12,6 +10,7 @@
 #include <QGuiApplication>
 #include <QMenu>
 #include <QPainter>
+#include <QPainterPath>
 #include <QSvgRenderer>
 #include <QTemporaryDir>
 #include <QTimer>

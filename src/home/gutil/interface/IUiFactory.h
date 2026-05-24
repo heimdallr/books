@@ -29,7 +29,7 @@ public:
 		const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
 		QMessageBox::ButtonRole                                         defaultButton = QMessageBox::NoRole,
 		const QString&                                                  detailedText  = {}
-	) const                                                                                                    = 0;
+	) const                                                                                              = 0;
 	[[nodiscard]] virtual QMessageBox::StandardButton ShowQuestion(DialogInitializer& initializer) const = 0;
 	virtual QMessageBox::StandardButton               ShowWarning(DialogInitializer& initializer) const  = 0;
 
@@ -49,8 +49,8 @@ public:
 		DialogInitializer initializer { .text = text, .buttons = buttons, .defaultButton = defaultButton, .checkboxText = {} };
 		return ShowQuestion(initializer);
 	}
-	QMessageBox::StandardButton
-	ShowWarning(const QString& text, const QMessageBox::StandardButtons& buttons = QMessageBox::Ok, const QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const
+
+	QMessageBox::StandardButton ShowWarning(const QString& text, const QMessageBox::StandardButtons& buttons = QMessageBox::Ok, const QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const
 	{
 		DialogInitializer initializer { .text = text, .buttons = buttons, .defaultButton = defaultButton, .checkboxText = {} };
 		return ShowWarning(initializer);

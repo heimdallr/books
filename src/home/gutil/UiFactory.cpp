@@ -143,14 +143,14 @@ QMessageBox::StandardButton UiFactory::ShowWarning(DialogInitializer& initialize
 
 void UiFactory::ShowInfo(const QString& text) const
 {
-	const auto dialog = m_impl->container.resolve<IInfoDialog>();
+	const auto        dialog = m_impl->container.resolve<IInfoDialog>();
 	DialogInitializer initializer { text };
 	(void)dialog->Show(initializer);
 }
 
 void UiFactory::ShowError(const QString& text) const
 {
-	const auto dialog = m_impl->container.resolve<IErrorDialog>();
+	const auto        dialog = m_impl->container.resolve<IErrorDialog>();
 	DialogInitializer initializer { text };
 	(void)dialog->Show(initializer);
 }

@@ -1,7 +1,6 @@
 #include "CollectionAutoUpdater.h"
 
 #include <QCryptographicHash>
-
 #include <QDir>
 #include <QFileSystemWatcher>
 #include <QTimer>

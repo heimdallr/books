@@ -1,7 +1,7 @@
 #include "UserDataController.h"
 
-#include "interface/localization.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/localization.h"
 
 #include "backup.h"
 #include "log.h"

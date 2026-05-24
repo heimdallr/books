@@ -1,7 +1,6 @@
 #include "CollectionUpdateChecker.h"
 
 #include <QCryptographicHash>
-
 #include <QFileInfo>
 
 #include "database/interface/IDatabase.h"

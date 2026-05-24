@@ -130,7 +130,7 @@ void Select<Genre>(DB::IQuery& query, const std::unordered_set<Genre::CodeType>&
 		if (translated == fb2Code)
 			translated = query.Get<const char*>(3);
 	}
-		
+
 	translated.replace(',', QChar { 0x2E34 });
 	AllTreeItem<Genre> item {
 		Genre { .fb2Code = fb2Code,
