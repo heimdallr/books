@@ -434,6 +434,7 @@ public:
 	void SetNavigationModeName(QString navigationModeName)
 	{
 		m_navigationModeName = std::move(navigationModeName);
+		m_restoreBooksLayoutPending = true;
 	}
 
 	void ShowRemoved(const bool showRemoved)
@@ -1018,7 +1019,7 @@ private:
 		if (m_recentMode.isEmpty())
 			return;
 
-		if (IsNavigation() || m_navigationModeName.isEmpty())
+		if (IsNavigation() || m_navigationModeName.isEmpty() || m_restoreBooksLayoutPending)
 			return;
 
 		const auto* header           = m_ui.treeView->header();
@@ -1063,6 +1064,10 @@ private:
 		UpdateSectionSize();
 		if (IsNavigation() || m_navigationModeName.isEmpty())
 			return;
+
+		m_restoreBooksLayoutPending = false;
+
+		const QSignalBlocker booksHeaderViewSignalBlocker(m_booksHeaderView);
 
 		auto* header = m_ui.treeView->header();
 
@@ -1348,6 +1353,7 @@ private:
 	QString                                                 m_currentId;
 	std::shared_ptr<QMenu>                                  m_languageContextMenu;
 	bool                                                    m_showRemoved { false };
+	bool                                                    m_restoreBooksLayoutPending { false };
 	QString                                                 m_lastRestoredLayoutKey;
 	ITreeViewController::RemoveItems                        m_removeItems;
 	MenuEventFilter                                         m_menuEventFilter;
