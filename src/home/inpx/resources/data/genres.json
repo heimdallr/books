@@ -4,10 +4,7 @@
         "id": "sf_all_root",
         "subgenres": [
             {
-                "aliases": [
-                    "romance_sf",
-                    "sf_writing"
-                ],
+                "aliases": [ "romance_sf", "sf_writing" ],
                 "description": "Научная Фантастика",
                 "id": "sf"
             },
@@ -80,9 +77,7 @@
                 "id": "magic_school"
             },
             {
-                "aliases": [
-                    "sf_all"
-                ],
+                "aliases": [ "sf_all" ],
                 "description": "Фантастика: прочее",
                 "id": "sf_etc"
             },
@@ -115,9 +110,7 @@
                 "id": "hronoopera"
             },
             {
-                "aliases": [
-                    "popadanec"
-                ],
+                "aliases": [ "popadanec" ],
                 "description": "Попаданцы",
                 "id": "popadancy"
             },
@@ -144,9 +137,7 @@
         "id": "fantasy_all_root",
         "subgenres": [
             {
-                "aliases": [
-                    "romance_fantasy"
-                ],
+                "aliases": [ "romance_fantasy" ],
                 "description": "Фэнтези",
                 "id": "sf_fantasy"
             },
@@ -171,9 +162,7 @@
                 "id": "dark_fantasy"
             },
             {
-                "aliases": [
-                    "humor_fantasy"
-                ],
+                "aliases": [ "humor_fantasy" ],
                 "description": "Ироническое фэнтези",
                 "id": "sf_fantasy_irony"
             },
@@ -296,16 +285,12 @@
                 "id": "thriller_techno"
             },
             {
-                "aliases": [
-                    "det_lady"
-                ],
+                "aliases": [ "det_lady" ],
                 "description": "Дамский детективный роман",
                 "id": "det_cozy"
             },
             {
-                "aliases": [
-                    "det_other"
-                ],
+                "aliases": [ "det_other" ],
                 "description": "Детектив: прочее",
                 "id": "det_all"
             }
@@ -332,10 +317,7 @@
                 "id": "prose_history"
             },
             {
-                "aliases": [
-                    "foreign_contemporary",
-                    "russian_contemporary"
-                ],
+                "aliases": [ "foreign_contemporary", "russian_contemporary" ],
                 "description": "Современная проза",
                 "id": "prose_contemporary"
             },
@@ -480,10 +462,7 @@
         "id": "adventure_all_root",
         "subgenres": [
             {
-                "aliases": [
-                    "adv_all",
-                    "foreign_adventure"
-                ],
+                "aliases": [ "adv_all", "foreign_adventure" ],
                 "description": "Приключения",
                 "id": "adventure"
             },
@@ -526,9 +505,7 @@
         "id": "children_all_root",
         "subgenres": [
             {
-                "aliases": [
-                    "child_all"
-                ],
+                "aliases": [ "child_all" ],
                 "description": "Детская литература",
                 "id": "children"
             },
@@ -635,9 +612,7 @@
                 "id": "poetry"
             },
             {
-                "aliases": [
-                    "dramaturgy_all"
-                ],
+                "aliases": [ "dramaturgy_all" ],
                 "description": "Драматургия",
                 "id": "dramaturgy"
             },
@@ -714,9 +689,7 @@
                 "id": "poem"
             },
             {
-                "aliases": [
-                    "poetry_for_classical"
-                ],
+                "aliases": [ "poetry_for_classical" ],
                 "description": "Классика",
                 "id": "poetry_classical"
             },
@@ -725,9 +698,7 @@
                 "id": "poetry_east"
             },
             {
-                "aliases": [
-                    "poetry_for_modern"
-                ],
+                "aliases": [ "poetry_for_modern" ],
                 "description": "Современная",
                 "id": "poetry_modern"
             },
@@ -792,11 +763,7 @@
                 "id": "sci_history"
             },
             {
-                "aliases": [
-                    "foreign_psychology",
-                    "psy_generic",
-                    "psy_social"
-                ],
+                "aliases": [ "foreign_psychology", "psy_generic", "psy_social" ],
                 "description": "Психология",
                 "id": "sci_psychology"
             },
@@ -821,9 +788,7 @@
                 "id": "sci_politics"
             },
             {
-                "aliases": [
-                    "foreign_business"
-                ],
+                "aliases": [ "foreign_business" ],
                 "description": "Деловая литература",
                 "id": "sci_business"
             },
@@ -1042,9 +1007,7 @@
         "id": "reference_all_root",
         "subgenres": [
             {
-                "aliases": [
-                    "ref_all"
-                ],
+                "aliases": [ "ref_all" ],
                 "description": "Справочная литература",
                 "id": "reference"
             },
@@ -1285,9 +1248,7 @@
                 "id": "home_sex"
             },
             {
-                "aliases": [
-                    "home_all"
-                ],
+                "aliases": [ "home_all" ],
                 "description": "Прочее",
                 "id": "family"
             }
@@ -1362,9 +1323,7 @@
                 "id": "stock"
             },
             {
-                "aliases": [
-                    "economics_all"
-                ],
+                "aliases": [ "economics_all" ],
                 "description": "Экономика",
                 "id": "economics"
             },
@@ -1465,9 +1424,7 @@
                 "id": "proverbs"
             },
             {
-                "aliases": [
-                    "folklore_all"
-                ],
+                "aliases": [ "folklore_all" ],
                 "description": "Фольклор: прочее",
                 "id": "folklore"
             },
@@ -1498,9 +1455,7 @@
                 "id": "military_weapon"
             },
             {
-                "aliases": [
-                    "military_all"
-                ],
+                "aliases": [ "military_all" ],
                 "description": "Военное дело: прочее",
                 "id": "military"
             }
@@ -1519,9 +1474,7 @@
                 "id": "art_world_culture"
             },
             {
-                "aliases": [
-                    "visual_arts"
-                ],
+                "aliases": [ "visual_arts" ],
                 "description": "Изобразительное искусство",
                 "id": "painting"
             },
@@ -1594,9 +1547,7 @@
                 "id": "unfinished"
             },
             {
-                "aliases": [
-                    "other_all"
-                ],
+                "aliases": [ "other_all" ],
                 "description": "Прочее",
                 "id": "other"
             },
