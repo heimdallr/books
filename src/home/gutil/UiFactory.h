@@ -36,8 +36,8 @@ private:
 		QMessageBox::ButtonRole                                         defaultButton,
 		const QString&                                                  detailedText
 	) const override;
-	QMessageBox::StandardButton ShowQuestion(const QString& text, const QMessageBox::StandardButtons& buttons, QMessageBox::StandardButton defaultButton) const override;
-	QMessageBox::StandardButton ShowWarning(const QString& text, const QMessageBox::StandardButtons& buttons, QMessageBox::StandardButton defaultButton) const override;
+	QMessageBox::StandardButton ShowQuestion(DialogInitializer& initializer) const override;
+	QMessageBox::StandardButton ShowWarning(DialogInitializer& initializer) const override;
 	void                        ShowInfo(const QString& text) const override;
 	void                        ShowError(const QString& text) const override;
 	QString                     GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, QLineEdit::EchoMode mode) const override;

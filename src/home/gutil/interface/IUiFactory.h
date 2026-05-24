@@ -5,6 +5,8 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMessageBox>
 
+#include "IDialog.h"
+
 class QDialog;
 class QWidget;
 
@@ -27,11 +29,10 @@ public:
 		const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
 		QMessageBox::ButtonRole                                         defaultButton = QMessageBox::NoRole,
 		const QString&                                                  detailedText  = {}
-	) const = 0;
-	[[nodiscard]] virtual QMessageBox::StandardButton
-	ShowQuestion(const QString& text, const QMessageBox::StandardButtons& buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
-	virtual QMessageBox::StandardButton
-								  ShowWarning(const QString& text, const QMessageBox::StandardButtons& buttons = QMessageBox::Ok, QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const = 0;
+	) const                                                                                                    = 0;
+	[[nodiscard]] virtual QMessageBox::StandardButton ShowQuestion(DialogInitializer& initializer) const = 0;
+	virtual QMessageBox::StandardButton               ShowWarning(DialogInitializer& initializer) const  = 0;
+
 	virtual void                  ShowInfo(const QString& text) const                                                                                                                                      = 0;
 	virtual void                  ShowError(const QString& text) const                                                                                                                                     = 0;
 	[[nodiscard]] virtual QString GetText(const QString& title, const QString& label, const QString& text = {}, const QStringList& comboBoxItems = {}, QLineEdit::EchoMode mode = QLineEdit::Normal) const = 0;
@@ -41,6 +42,19 @@ public:
 	[[nodiscard]] virtual QString     GetOpenFileName(const QString& key, const QString& title, const QString& filter = {}, const QString& dir = {}, const QFileDialog::Options& options = {}) const  = 0;
 	[[nodiscard]] virtual QString     GetSaveFileName(const QString& key, const QString& title, const QString& filter = {}, const QString& dir = {}, const QFileDialog::Options& options = {}) const  = 0;
 	[[nodiscard]] virtual QString     GetExistingDirectory(const QString& key, const QString& title, const QString& dir = {}, const QFileDialog::Options& options = QFileDialog::ShowDirsOnly) const  = 0;
+
+	[[nodiscard]] QMessageBox::StandardButton
+	ShowQuestion(const QString& text, const QMessageBox::StandardButtons& buttons = QMessageBox::Ok, const QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const
+	{
+		DialogInitializer initializer { .text = text, .buttons = buttons, .defaultButton = defaultButton, .checkboxText = {} };
+		return ShowQuestion(initializer);
+	}
+	QMessageBox::StandardButton
+	ShowWarning(const QString& text, const QMessageBox::StandardButtons& buttons = QMessageBox::Ok, const QMessageBox::StandardButton defaultButton = QMessageBox::NoButton) const
+	{
+		DialogInitializer initializer { .text = text, .buttons = buttons, .defaultButton = defaultButton, .checkboxText = {} };
+		return ShowWarning(initializer);
+	}
 };
 
 } // namespace HomeCompa::Util

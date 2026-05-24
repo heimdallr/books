@@ -85,12 +85,12 @@ class UiFactory final : public Flibrary::IUiFactory
 	{
 	}
 
-	QMessageBox::StandardButton ShowQuestion(const QString& /*text*/, const QMessageBox::StandardButtons& /*buttons*/, QMessageBox::StandardButton /*defaultButton*/) const override
+	QMessageBox::StandardButton ShowQuestion(Util::DialogInitializer&) const override
 	{
 		return {};
 	}
 
-	QMessageBox::StandardButton ShowWarning(const QString& /*text*/, const QMessageBox::StandardButtons& /*buttons*/, QMessageBox::StandardButton /*defaultButton*/) const override
+	QMessageBox::StandardButton ShowWarning(Util::DialogInitializer&) const override
 	{
 		return {};
 	}

@@ -1,6 +1,7 @@
 #include "UserDataController.h"
 
 #include "interface/localization.h"
+#include "interface/constants/ProductConstant.h"
 
 #include "backup.h"
 #include "log.h"
@@ -15,7 +16,7 @@ namespace
 constexpr auto CONTEXT            = "UserData";
 constexpr auto SELECT_EXPORT_FILE = QT_TRANSLATE_NOOP("UserData", "Specify a file to export user data");
 constexpr auto SELECT_IMPORT_FILE = QT_TRANSLATE_NOOP("UserData", "Select a file to import user data");
-constexpr auto FILE_FILTER        = QT_TRANSLATE_NOOP("UserData", "Flibrary export files (*.flibk)");
+constexpr auto FILE_FILTER        = QT_TRANSLATE_NOOP("UserData", "Flibrary export files (*%1)");
 constexpr auto IMPORT_SUCCESS     = QT_TRANSLATE_NOOP("UserData", "User data successfully recovered");
 constexpr auto EXPORT_SUCCESS     = QT_TRANSLATE_NOOP("UserData", "User data successfully saved");
 constexpr auto DIALOG_KEY         = "Backup";
@@ -37,12 +38,12 @@ UserDataController::~UserDataController()
 
 void UserDataController::Backup(Callback callback) const
 {
-	Backup(m_uiFactory->GetSaveFileName(DIALOG_KEY, Tr(SELECT_EXPORT_FILE), Tr(FILE_FILTER)), std::move(callback));
+	Backup(m_uiFactory->GetSaveFileName(DIALOG_KEY, Tr(SELECT_EXPORT_FILE), Tr(FILE_FILTER).arg(Constant::BACKUP_FILE_EXT)), std::move(callback));
 }
 
 void UserDataController::Restore(Callback callback) const
 {
-	Restore(m_uiFactory->GetOpenFileName(DIALOG_KEY, Tr(SELECT_IMPORT_FILE), Tr(FILE_FILTER)), std::move(callback));
+	Restore(m_uiFactory->GetOpenFileName(DIALOG_KEY, Tr(SELECT_IMPORT_FILE), Tr(FILE_FILTER).arg(Constant::BACKUP_FILE_EXT)), std::move(callback));
 }
 
 void UserDataController::Backup(QString path, Callback callback) const

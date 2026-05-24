@@ -8,8 +8,10 @@
 #include "fnd/ScopedCall.h"
 #include "fnd/observable.h"
 
+#include "interface/constants/ProductConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IUserDataController.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
 #include "inpx/InpxConstant.h"
@@ -28,11 +30,25 @@ namespace
 
 constexpr int MAX_OVERWRITE_CONFIRM_COUNT = 10;
 
+constexpr auto SAVE_USER_DATA_KEY = "ui/removeCollectionSaveUserData";
+
+struct NeedSaveUserData
+{
+	enum
+	{
+		Ask,
+		Yes,
+		No,
+	};
+};
+
 constexpr auto CONTEXT                          = "CollectionController";
 constexpr auto CONFIRM_OVERWRITE_DATABASE       = QT_TRANSLATE_NOOP("CollectionController", "The existing database file will be overwritten. Continue?");
 constexpr auto CONFIRM_REMOVE_COLLECTION        = QT_TRANSLATE_NOOP("CollectionController", "Are you sure you want to delete the collection?");
 constexpr auto CONFIRM_REMOVE_DATABASE          = QT_TRANSLATE_NOOP("CollectionController", "Delete collection database as well?");
 constexpr auto CANNOT_WRITE_TO_DATABASE         = QT_TRANSLATE_NOOP("CollectionController", "No write access to %1");
+constexpr auto SAVE_USER_DATA                   = QT_TRANSLATE_NOOP("CollectionController", "Keep your user data?");
+constexpr auto DONT_ASK_ANYMORE                 = QT_TRANSLATE_NOOP("CollectionController", "Don't ask anymore");
 constexpr auto ERROR                            = QT_TRANSLATE_NOOP("CollectionController", "The collection was not %1 due to errors. See log.");
 constexpr auto BAD_ARCHIVES_DETECTED            = QT_TRANSLATE_NOOP("CollectionController", "Corrupted archives detected:\n%1");
 constexpr auto COLLECTION_UPDATED               = QT_TRANSLATE_NOOP("CollectionController", "Looks like the collection has been updated. Apply changes?");
@@ -61,8 +77,15 @@ class CollectionController::Impl final : public Observable<ICollectionsObserver>
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(std::shared_ptr<ICollectionProvider> collectionProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<IUiFactory> uiFactory, const std::shared_ptr<ITaskQueue>& taskQueue)
-		: m_collectionProvider { std::move(collectionProvider) }
+	Impl(
+		std::weak_ptr<const ILogicFactory>   logicFactory,
+		std::shared_ptr<ICollectionProvider> collectionProvider,
+		std::shared_ptr<ISettings>           settings,
+		std::shared_ptr<IUiFactory>          uiFactory,
+		const std::shared_ptr<ITaskQueue>&   taskQueue
+	)
+		: m_logicFactory { std::move(logicFactory) }
+		, m_collectionProvider { std::move(collectionProvider) }
 		, m_settings { std::move(settings) }
 		, m_uiFactory { std::move(uiFactory) }
 		, m_taskQueue { taskQueue }
@@ -149,8 +172,10 @@ public:
 
 	void RemoveCollection()
 	{
-		if (m_uiFactory->ShowWarning(Tr(CONFIRM_REMOVE_COLLECTION), QMessageBox::Ok | QMessageBox::Cancel, QMessageBox::Cancel) == QMessageBox::Cancel)
+		if (m_uiFactory->ShowWarning(Tr(CONFIRM_REMOVE_COLLECTION), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
 			return;
+
+		SaveUserData();
 
 		const auto& collection = GetActiveCollection();
 		const auto  id         = collection.id;
@@ -251,6 +276,35 @@ public:
 	}
 
 private:
+	void SaveUserData()
+	{
+		const auto needSaveUserData = m_settings->Get(SAVE_USER_DATA_KEY, NeedSaveUserData::Ask);
+		if (needSaveUserData == NeedSaveUserData::No)
+			return;
+
+		if (needSaveUserData == NeedSaveUserData::Ask)
+		{
+			Util::DialogInitializer dialogInitializer { Tr(SAVE_USER_DATA), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, Tr(DONT_ASK_ANYMORE) };
+			const auto              answer = m_uiFactory->ShowQuestion(dialogInitializer);
+			if (dialogInitializer.checked && *dialogInitializer.checked == Qt::Checked)
+				m_settings->Set(SAVE_USER_DATA_KEY, answer == QMessageBox::Yes ? NeedSaveUserData::Yes : NeedSaveUserData::No);
+			if (answer != QMessageBox::Yes)
+				return;
+		}
+
+		QEventLoop  eventLoop;
+		auto        controller    = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
+		const auto& controllerRef = *controller;
+		controllerRef.Backup(QDir(QDir::tempPath()).filePath(GetActiveCollectionId() + Constant::BACKUP_FILE_EXT), [&, controller = std::move(controller)](const bool ok, const QString& errorMessage) mutable {
+			if (!ok)
+				PLOGE << errorMessage;
+
+			controller.reset();
+			eventLoop.exit();
+		});
+		eventLoop.exec();
+	}
+
 	void CreateNew(QString name, QString dbOrigin, QString folderOrigin, QString additionalFolderOrigin, QString inpxOrigin, const QString& defaultArchiveType, const Inpx::CreateCollectionMode mode)
 	{
 		const auto db               = Util::ToAbsolutePath(dbOrigin);
@@ -352,6 +406,7 @@ private:
 	}
 
 private:
+	std::weak_ptr<const ILogicFactory>                      m_logicFactory;
 	PropagateConstPtr<ICollectionProvider, std::shared_ptr> m_collectionProvider;
 	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>          m_uiFactory;
@@ -360,12 +415,13 @@ private:
 };
 
 CollectionController::CollectionController(
-	std::shared_ptr<ICollectionProvider> collectionProvider,
-	std::shared_ptr<ISettings>           settings,
-	std::shared_ptr<IUiFactory>          uiFactory,
-	const std::shared_ptr<ITaskQueue>&   taskQueue
+	const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<ICollectionProvider>        collectionProvider,
+	std::shared_ptr<ISettings>                  settings,
+	std::shared_ptr<IUiFactory>                 uiFactory,
+	const std::shared_ptr<ITaskQueue>&          taskQueue
 )
-	: m_impl(std::move(collectionProvider), std::move(settings), std::move(uiFactory), taskQueue)
+	: m_impl(logicFactory, std::move(collectionProvider), std::move(settings), std::move(uiFactory), taskQueue)
 {
 	PLOGV << "CollectionController created";
 }

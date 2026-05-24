@@ -129,28 +129,30 @@ QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
 	return FindSecond(msgBoxButtons, msgBox.clickedButton(), QMessageBox::NoRole);
 }
 
-QMessageBox::StandardButton UiFactory::ShowQuestion(const QString& text, const QMessageBox::StandardButtons& buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton UiFactory::ShowQuestion(DialogInitializer& initializer) const
 {
 	const auto dialog = m_impl->container.resolve<IQuestionDialog>();
-	return dialog->Show(text, buttons, defaultButton);
+	return dialog->Show(initializer);
 }
 
-QMessageBox::StandardButton UiFactory::ShowWarning(const QString& text, const QMessageBox::StandardButtons& buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton UiFactory::ShowWarning(DialogInitializer& initializer) const
 {
 	const auto dialog = m_impl->container.resolve<IWarningDialog>();
-	return dialog->Show(text, buttons, defaultButton);
+	return dialog->Show(initializer);
 }
 
 void UiFactory::ShowInfo(const QString& text) const
 {
 	const auto dialog = m_impl->container.resolve<IInfoDialog>();
-	(void)dialog->Show(text);
+	DialogInitializer initializer { text };
+	(void)dialog->Show(initializer);
 }
 
 void UiFactory::ShowError(const QString& text) const
 {
 	const auto dialog = m_impl->container.resolve<IErrorDialog>();
-	(void)dialog->Show(text);
+	DialogInitializer initializer { text };
+	(void)dialog->Show(initializer);
 }
 
 QString UiFactory::GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, const QLineEdit::EchoMode mode) const

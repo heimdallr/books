@@ -741,6 +741,14 @@
         <translation>Удалить и базу данных коллекции?</translation>
     </message>
     <message>
+        <source>Don&apos;t ask anymore</source>
+        <translation>Больше не спрашивать</translation>
+    </message>
+    <message>
+        <source>Keep your user data?</source>
+        <translation>Сохранить ваши пользовательские данные?</translation>
+    </message>
+    <message>
         <source>Looks like the collection has been updated. Apply changes?</source>
         <translation>Похоже, коллекция обновилась. Применить изменения?</translation>
     </message>
@@ -5704,8 +5712,8 @@ Try again?</source>
         <translation>Ошибка записи в %1</translation>
     </message>
     <message>
-        <source>Flibrary export files (*.flibk)</source>
-        <translation>Файлы экспорта FLibrary (*.flibk)</translation>
+        <source>Flibrary export files (*%1)</source>
+        <translation>Файлы экспорта FLibrary (*%1)</translation>
     </message>
     <message>
         <source>Invalid root node name, must be %1</source>

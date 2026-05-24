@@ -29,13 +29,7 @@ protected:
 	~Dialog() override;
 
 protected: // IDialog
-	QMessageBox::StandardButton Show(
-		QMessageBox::Icon                   icon,
-		const QString&                      title,
-		const QString&                      text,
-		const QMessageBox::StandardButtons& buttons       = QMessageBox::Ok,
-		QMessageBox::StandardButton         defaultButton = QMessageBox::NoButton
-	) const override;
+	QMessageBox::StandardButton Show(QMessageBox::Icon icon, const QString& title, DialogInitializer& initializer) const override;
 
 protected:
 	PropagateConstPtr<IParentWidgetProvider, std::shared_ptr> m_parentProvider;
@@ -51,7 +45,7 @@ protected:
 		NAME##Dialog(std::shared_ptr<IParentWidgetProvider> parentProvider, std::shared_ptr<ISettings> settings);                                                                        \
                                                                                                                                                                                          \
 	private:                                                                                                                                                                             \
-		QMessageBox::StandardButton Show(const QString& text, const QMessageBox::StandardButtons& buttons, QMessageBox::StandardButton defaultButton) const override;                    \
+		QMessageBox::StandardButton Show(DialogInitializer& initializer) const override;                                                                                                 \
 		QString                     GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, QLineEdit::EchoMode mode) const override; \
 	};
 STANDARD_DIALOG_ITEMS_X_MACRO

@@ -1,5 +1,7 @@
 #include "RecentOpenBookController.h"
 
+#include <QTimer>
+
 #include "database/interface/IDatabase.h"
 
 #include "util/FunctorExecutionForwarder.h"
@@ -23,6 +25,12 @@ public:
 		: m_uiFactory { std::move(uiFactory) }
 		, m_databaseUser { std::move(databaseUser) }
 	{
+		m_timer.setInterval(std::chrono::seconds(1));
+		m_timer.setSingleShot(true);
+		QObject::connect(&m_timer, &QTimer::timeout, [this] {
+			UpdateImpl();
+		});
+
 		if (const auto db = m_databaseUser->Database())
 			db->RegisterObserver(this);
 	}
@@ -56,10 +64,10 @@ private: // IDatabaseObserver
 	}
 
 private:
-	void Update() const
+	void Update()
 	{
 		m_forwarder.Forward([this] {
-			UpdateImpl();
+			m_timer.start();
 		});
 	}
 
@@ -74,6 +82,7 @@ private:
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 	QMenu*                               m_menu { nullptr };
 	Util::FunctorExecutionForwarder      m_forwarder;
+	QTimer                               m_timer;
 };
 
 RecentOpenBookController::RecentOpenBookController(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseUser> databaseUser)
