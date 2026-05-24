@@ -467,6 +467,8 @@ auto LoadGenres(const QString& genresIniFileName)
 			const auto obj = std::get<0>(item).toObject();
 			genre.code     = obj["id"].toString();
 			genre.name     = obj["description"].toString();
+			if (const auto it = obj.find("title"); it != obj.end())
+				genre.title = it.value().toString();
 
 			index.emplace(genre.code, std::get<2>(item));
 			if (const auto it = obj.find("aliases"); it != obj.end())
@@ -904,13 +906,17 @@ size_t Store(DB::IDatabase& db, Data& data)
 	result += StoreRange(
 		db,
 		"Genres",
-		"INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias) VALUES(?, ?, ?, ?)",
+		"INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias, GenreTitle) VALUES(?, ?, ?, ?, ?)",
 		newGenresIndex | std::views::drop(1),
 		[&genres = data.genres](DB::ICommand& cmd, const size_t n) {
 			cmd.Bind(0, genres[n].dbCode);
 			cmd.Bind(1, genres[genres[n].parentId].dbCode);
 			cmd.Bind(2, genres[n].code);
 			cmd.Bind(3, genres[n].name);
+			if (genres[n].title.isEmpty())
+				cmd.Bind(4);
+			else
+				cmd.Bind(4, genres[n].title);
 			return cmd.Execute();
 		}
 	);
@@ -1180,16 +1186,18 @@ std::pair<Genres, Dictionary> ReadGenres(DB::IDatabase& db, const QString& genre
 	std::map<QString, std::vector<size_t>> children;
 
 	auto       n     = std::size(genres);
-	const auto query = db.CreateQuery("select FB2Code, GenreCode, ParentCode, GenreAlias from Genres");
+	const auto query = db.CreateQuery("select FB2Code, GenreCode, ParentCode, GenreAlias, GenreTitle from Genres");
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
 		const auto* fb2Code    = query->Get<const char*>(0);
 		const auto* genreCode  = query->Get<const char*>(1);
 		const auto* parentCode = query->Get<const char*>(2);
 		const auto* genreAlias = query->Get<const char*>(3);
+		const auto* genreTitle = query->Get<const char*>(4);
 
 		Genre genre(fb2Code, "", genreAlias);
 		genre.dbCode = genreCode;
+		genre.title  = genreTitle;
 		children[parentCode].push_back(n);
 		index.emplace(genre.code, n++);
 		genre.newGenre = false;
