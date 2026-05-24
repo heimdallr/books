@@ -426,6 +426,14 @@ QStringView QNext(QString::const_iterator& beg, const QString::const_iterator en
 	return QNextRaw(beg, end, separator);
 }
 
+struct GenreItem
+{
+	using Ptr = std::shared_ptr<GenreItem>;
+	size_t            index;
+	std::vector<Ptr>  children;
+	std::set<QString> aliases;
+};
+
 auto LoadGenres(const QString& genresIniFileName)
 {
 	Genres     genres;
@@ -435,41 +443,55 @@ auto LoadGenres(const QString& genresIniFileName)
 	if (!stream.open(QIODevice::ReadOnly))
 		throw std::invalid_argument(std::format("Cannot open '{}'", genresIniFileName));
 
+	QJsonParseError parseError;
+	const auto      doc = QJsonDocument::fromJson(stream.readAll(), &parseError);
+	if (parseError.error != QJsonParseError::NoError)
+		throw std::invalid_argument(std::format("'{}' - parse error: {}", genresIniFileName, parseError.errorString()));
+
+	if (!doc.isArray())
+		throw std::invalid_argument(std::format("'{}' must be json array", genresIniFileName));
+
 	genres.emplace_back("");
 	index.emplace(genres.front().code, size_t { 0 });
 
-	for (auto byteArray = stream.readLine(); !byteArray.isEmpty(); byteArray = stream.readLine())
-	{
-		auto line = QString::fromUtf8(byteArray);
-		if (IsComment(line))
-			continue;
+	const auto enumerate = [&](const size_t parentId, const QString& parentCode, const QString& parentDbCode, const QJsonArray& array, const auto& r) -> size_t {
+		const auto currentSize = genres.size();
+		const auto result      = static_cast<size_t>(array.size());
 
-		auto it     = std::cbegin(line);
-		auto codes  = QNext(it, std::cend(line), GENRE_SEPARATOR).toString();
-		auto itCode = std::cbegin(codes);
-		auto code   = QNext(itCode, std::cend(codes), Fb2InpxParser::LIST_SEPARATOR).toString();
-		index.emplace(code, std::size(genres));
+		std::ranges::transform(std::views::zip(array, std::views::iota(1), std::views::iota(currentSize)), std::back_inserter(genres), [&, parentId, parentCode, parentDbCode](const auto& item) {
+			auto  dbCode = QString("%1").arg(std::get<1>(item), 3, 10, QChar { '0' });
+			Genre genre(parentDbCode.isEmpty() ? std::move(dbCode) : parentDbCode + '.' + std::move(dbCode));
+			genre.parentId   = parentId;
+			genre.parentCode = parentCode;
 
-		while (itCode != std::cend(codes))
-			index.emplace(QNext(itCode, std::cend(codes), Fb2InpxParser::LIST_SEPARATOR).toString(), std::size(genres));
+			const auto obj = std::get<0>(item).toObject();
+			genre.code     = obj["id"].toString();
+			genre.name     = obj["description"].toString();
+			if (const auto it = obj.find("title"); it != obj.end())
+				genre.title = it.value().toString();
 
-		const auto parent = QNext(it, std::end(line), GENRE_SEPARATOR);
-		const auto title  = QNext(it, std::end(line), GENRE_SEPARATOR);
-		genres.emplace_back(std::move(code), parent.toString(), title.toString());
-	}
+			index.emplace(genre.code, std::get<2>(item));
+			if (const auto it = obj.find("aliases"); it != obj.end())
+				for (const auto alias : it.value().toArray())
+					index.emplace(alias.toString(), std::get<2>(item));
 
-	std::for_each(std::next(std::begin(genres)), std::end(genres), [&index, &genres](Genre& genre) {
-		if (const auto it = index.find(genre.parentCode))
+			return genre;
+		});
+
+		for (auto&& [item, id] : std::views::zip(array, std::views::iota(currentSize)))
 		{
-			auto& parent   = genres[*it];
-			genre.parentId = *it;
-			genre.dbCode   = QString("%1%2").arg(parent.dbCode.isEmpty() ? QString {} : parent.dbCode + '.').arg(++parent.childrenCount, 3, 10, QChar { '0' });
+			const auto obj = item.toObject();
+			if (const auto it = obj.find("subgenres"); it != obj.end())
+			{
+				auto&      genre         = genres[id];
+				const auto size          = r(id, genre.code, genre.dbCode, it.value().toArray(), r);
+				genres[id].childrenCount = size;
+			}
 		}
-		else
-		{
-			assert(false && "unexpected parentCode");
-		}
-	});
+
+		return result;
+	};
+	genres[0].childrenCount = enumerate(0, {}, {}, doc.array(), enumerate);
 
 	return std::make_pair(std::move(genres), std::move(index));
 }
@@ -884,13 +906,17 @@ size_t Store(DB::IDatabase& db, Data& data)
 	result += StoreRange(
 		db,
 		"Genres",
-		"INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias) VALUES(?, ?, ?, ?)",
+		"INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias, GenreTitle) VALUES(?, ?, ?, ?, ?)",
 		newGenresIndex | std::views::drop(1),
 		[&genres = data.genres](DB::ICommand& cmd, const size_t n) {
 			cmd.Bind(0, genres[n].dbCode);
 			cmd.Bind(1, genres[genres[n].parentId].dbCode);
 			cmd.Bind(2, genres[n].code);
 			cmd.Bind(3, genres[n].name);
+			if (genres[n].title.isEmpty())
+				cmd.Bind(4);
+			else
+				cmd.Bind(4, genres[n].title);
 			return cmd.Execute();
 		}
 	);
@@ -1160,16 +1186,18 @@ std::pair<Genres, Dictionary> ReadGenres(DB::IDatabase& db, const QString& genre
 	std::map<QString, std::vector<size_t>> children;
 
 	auto       n     = std::size(genres);
-	const auto query = db.CreateQuery("select FB2Code, GenreCode, ParentCode, GenreAlias from Genres");
+	const auto query = db.CreateQuery("select FB2Code, GenreCode, ParentCode, GenreAlias, GenreTitle from Genres");
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
 		const auto* fb2Code    = query->Get<const char*>(0);
 		const auto* genreCode  = query->Get<const char*>(1);
 		const auto* parentCode = query->Get<const char*>(2);
 		const auto* genreAlias = query->Get<const char*>(3);
+		const auto* genreTitle = query->Get<const char*>(4);
 
 		Genre genre(fb2Code, "", genreAlias);
 		genre.dbCode = genreCode;
+		genre.title  = genreTitle;
 		children[parentCode].push_back(n);
 		index.emplace(genre.code, n++);
 		genre.newGenre = false;

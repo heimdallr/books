@@ -49,6 +49,7 @@ struct Genre
 	QString name;
 	size_t  parentId { 0 };
 	QString dbCode;
+	QString title;
 
 	size_t childrenCount { 0 };
 	bool   newGenre { true };

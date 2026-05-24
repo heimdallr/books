@@ -2,6 +2,6 @@
 	<qresource prefix="data">
 		<file alias="CreateCollection.json">data/CreateCollection.json</file>
 		<file alias="UpdateCollection.json">data/UpdateCollection.json</file>
-		<file alias="genres.lst">data/genres.lst</file>
+		<file alias="genres.json">data/genres.json</file>
 	</qresource>
 </RCC>
