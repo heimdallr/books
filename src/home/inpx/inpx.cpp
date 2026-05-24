@@ -489,67 +489,8 @@ auto LoadGenres(const QString& genresIniFileName)
 
 		return result;
 	};
-
 	genres[0].childrenCount = enumerate(0, {}, {}, doc.array(), enumerate);
-/*
-	auto genreTree = std::views::zip(genres, std::views::iota(size_t{0})) | std::views::transform([](const auto& item) {
-		return std::make_shared<GenreItem>(std::get<1>(item));
-	}) | std::ranges::to<std::vector>();
 
-	for (const auto& genreItem : genreTree | std::views::drop(1))
-		genreTree[genres[genreItem->index].parentId]->children.emplace_back(genreItem);
-
-	for (const auto& [code, n] : index)
-	{
-		const auto& genre = genres[n];
-		if (code != genre.code)
-			genreTree[n]->aliases.emplace(code);
-	}
-
-	const auto enumerateSave = [&](const GenreItem& parent, const auto& r) -> QJsonArray {
-		QJsonArray result;
-		for (auto&& child : parent.children)
-		{
-			QJsonObject obj;
-			const auto& genre = genres[child->index];
-			obj.insert("id", genre.code);
-			obj.insert("description", genre.name);
-
-			if (!child->aliases.empty())
-			{
-				QJsonArray aliases;
-				for (const auto& alias : child->aliases)
-					aliases.append(alias);
-				obj.insert("aliases", aliases);
-			}
-
-			if (!child->children.empty())
-				obj.insert("subgenres", r(*child, r));
-
-			result.append(obj);
-		}
-
-		return result;
-	};
-
-	auto array = enumerateSave(*genreTree[0], enumerateSave);
-
-	QFile output("t:/genres.json");
-	assert(output.open(QIODevice::WriteOnly));
-	output.write(QJsonDocument(array).toJson());
-	output.close();
-
-	QFile test("t:/test.txt");
-	assert(test.open(QIODevice::WriteOnly));
-	{
-		QTextStream textStream(&test);
-		for (const auto& genre : genres)
-			textStream << genre.code << ", " << genre.parentCode << ", " << genre.name << ", " << genre.parentId << ", " << genre.dbCode << ", " << genre.childrenCount << "\n";
-		for (const auto& [code, n] : index)
-			textStream << code << ", " << n << "\n";
-	}
-	test.close();
-*/
 	return std::make_pair(std::move(genres), std::move(index));
 }
 
