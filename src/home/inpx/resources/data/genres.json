@@ -1,0 +1,1613 @@
+[
+    {
+        "description": "Фантастика",
+        "id": "sf_all_root",
+        "subgenres": [
+            {
+                "aliases": [
+                    "romance_sf",
+                    "sf_writing"
+                ],
+                "description": "Научная Фантастика",
+                "id": "sf"
+            },
+            {
+                "description": "Альтернативная история",
+                "id": "sf_history"
+            },
+            {
+                "description": "Боевая фантастика",
+                "id": "sf_action"
+            },
+            {
+                "description": "Эпическая фантастика",
+                "id": "sf_epic"
+            },
+            {
+                "description": "Героическая фантастика",
+                "id": "sf_heroic"
+            },
+            {
+                "description": "Детективная фантастика",
+                "id": "sf_detective"
+            },
+            {
+                "description": "Киберпанк",
+                "id": "sf_cyberpunk"
+            },
+            {
+                "description": "Космическая фантастика",
+                "id": "sf_space"
+            },
+            {
+                "description": "Социально-психологическая фантастика",
+                "id": "sf_social"
+            },
+            {
+                "description": "Советская фантастика",
+                "id": "sf_su"
+            },
+            {
+                "description": "Зарубежная фантастика",
+                "id": "foreign_sf"
+            },
+            {
+                "description": "Утопия",
+                "id": "utopia"
+            },
+            {
+                "description": "Антиутопия",
+                "id": "dystopian"
+            },
+            {
+                "description": "Ужасы и Мистика",
+                "id": "sf_horror"
+            },
+            {
+                "description": "Юмористическая фантастика",
+                "id": "sf_humor"
+            },
+            {
+                "description": "Постапокалипсис",
+                "id": "sf_postapocalyptic"
+            },
+            {
+                "description": "Ненаучная фантастика",
+                "id": "nsf"
+            },
+            {
+                "description": "Магическая академия",
+                "id": "magic_school"
+            },
+            {
+                "aliases": [
+                    "sf_all"
+                ],
+                "description": "Фантастика: прочее",
+                "id": "sf_etc"
+            },
+            {
+                "description": "Ироническая фантастика",
+                "id": "sf_irony"
+            },
+            {
+                "description": "Мистика",
+                "id": "sf_mystic"
+            },
+            {
+                "description": "Космоопера",
+                "id": "sf_space_opera"
+            },
+            {
+                "description": "Стимпанк",
+                "id": "sf_stimpank"
+            },
+            {
+                "description": "РПГ",
+                "id": "sf_litrpg"
+            },
+            {
+                "description": "РеалРПГ",
+                "id": "sf_realrpg"
+            },
+            {
+                "description": "Хроноопера",
+                "id": "hronoopera"
+            },
+            {
+                "aliases": [
+                    "popadanec"
+                ],
+                "description": "Попаданцы",
+                "id": "popadancy"
+            },
+            {
+                "description": "Готический роман",
+                "id": "gothic_novel"
+            },
+            {
+                "description": "Производственная магия",
+                "id": "sf_industrial_magic"
+            },
+            {
+                "description": "Бояръ-аниме",
+                "id": "boyar_anime"
+            },
+            {
+                "description": "Дорама",
+                "id": "dorama"
+            }
+        ]
+    },
+    {
+        "description": "Фэнтези",
+        "id": "fantasy_all_root",
+        "subgenres": [
+            {
+                "aliases": [
+                    "romance_fantasy"
+                ],
+                "description": "Фэнтези",
+                "id": "sf_fantasy"
+            },
+            {
+                "description": "Альтернативная история. Фэнтези",
+                "id": "fantasy_alt_hist"
+            },
+            {
+                "description": "Приключенческое фэнтези",
+                "id": "adventure_fantasy"
+            },
+            {
+                "description": "Сказочное фэнтези",
+                "id": "fairy_fantasy"
+            },
+            {
+                "description": "Городское фэнтези",
+                "id": "sf_fantasy_city"
+            },
+            {
+                "description": "Тёмное фэнтези",
+                "id": "dark_fantasy"
+            },
+            {
+                "aliases": [
+                    "humor_fantasy"
+                ],
+                "description": "Ироническое фэнтези",
+                "id": "sf_fantasy_irony"
+            },
+            {
+                "description": "Историческое фэнтези",
+                "id": "historical_fantasy"
+            },
+            {
+                "description": "Бытовое фэнтези",
+                "id": "everyday_fantasy"
+            },
+            {
+                "description": "Технофэнтези",
+                "id": "sf_technofantasy"
+            },
+            {
+                "description": "Русское фэнтези",
+                "id": "russian_fantasy"
+            },
+            {
+                "description": "Славянское фэнтези",
+                "id": "slavic_fantasy"
+            },
+            {
+                "description": "Азиатское фэнтези",
+                "id": "asian_fantasy"
+            }
+        ]
+    },
+    {
+        "description": "Детективы и Триллеры",
+        "id": "detective_all_root",
+        "subgenres": [
+            {
+                "description": "Детектив",
+                "id": "detective"
+            },
+            {
+                "description": "Классический детектив",
+                "id": "det_classic"
+            },
+            {
+                "description": "Полицейский детектив",
+                "id": "det_police"
+            },
+            {
+                "description": "Боевик",
+                "id": "det_action"
+            },
+            {
+                "description": "Иронический детектив",
+                "id": "det_irony"
+            },
+            {
+                "description": "Фантастический детектив",
+                "id": "fantasy_det"
+            },
+            {
+                "description": "Исторический детектив",
+                "id": "det_history"
+            },
+            {
+                "description": "Шпионский детектив",
+                "id": "det_espionage"
+            },
+            {
+                "description": "Криминальный детектив",
+                "id": "det_crime"
+            },
+            {
+                "description": "Политический детектив",
+                "id": "det_political"
+            },
+            {
+                "description": "Маньяки",
+                "id": "det_maniac"
+            },
+            {
+                "description": "Крутой детектив",
+                "id": "det_hard"
+            },
+            {
+                "description": "Артефакт-детективы",
+                "id": "det_artifact"
+            },
+            {
+                "description": "Триллер",
+                "id": "thriller"
+            },
+            {
+                "description": "Мистический триллер",
+                "id": "thriller_mystery"
+            },
+            {
+                "description": "Советский детектив",
+                "id": "det_su"
+            },
+            {
+                "description": "Остросюжетные любовные романы",
+                "id": "love_detective"
+            },
+            {
+                "description": "Детские остросюжетные",
+                "id": "child_det"
+            },
+            {
+                "description": "Юридический триллер",
+                "id": "thriller_legal"
+            },
+            {
+                "description": "Медицинский триллер",
+                "id": "thriller_medical"
+            },
+            {
+                "description": "Психологический триллер",
+                "id": "thriller_psychology"
+            },
+            {
+                "description": "Техно триллер",
+                "id": "thriller_techno"
+            },
+            {
+                "aliases": [
+                    "det_lady"
+                ],
+                "description": "Дамский детективный роман",
+                "id": "det_cozy"
+            },
+            {
+                "aliases": [
+                    "det_other"
+                ],
+                "description": "Детектив: прочее",
+                "id": "det_all"
+            }
+        ]
+    },
+    {
+        "description": "Проза",
+        "id": "prose_all_root",
+        "subgenres": [
+            {
+                "description": "Проза",
+                "id": "prose"
+            },
+            {
+                "description": "Советская классическая проза",
+                "id": "prose_su_classics"
+            },
+            {
+                "description": "Классическая проза",
+                "id": "prose_classic"
+            },
+            {
+                "description": "Историческая проза",
+                "id": "prose_history"
+            },
+            {
+                "aliases": [
+                    "foreign_contemporary",
+                    "russian_contemporary"
+                ],
+                "description": "Современная проза",
+                "id": "prose_contemporary"
+            },
+            {
+                "description": "Контркультура",
+                "id": "prose_counter"
+            },
+            {
+                "description": "Русская классическая проза",
+                "id": "prose_rus_classic"
+            },
+            {
+                "description": "О войне",
+                "id": "prose_military"
+            },
+            {
+                "description": "Афоризмы",
+                "id": "aphorisms"
+            },
+            {
+                "description": "Эссе",
+                "id": "essay"
+            },
+            {
+                "description": "Новелла",
+                "id": "story"
+            },
+            {
+                "description": "Повесть",
+                "id": "great_story"
+            },
+            {
+                "description": "Рассказ",
+                "id": "short_story"
+            },
+            {
+                "description": "Роман",
+                "id": "roman"
+            },
+            {
+                "description": "Документалистика",
+                "id": "nonf_all"
+            },
+            {
+                "description": "Феерия",
+                "id": "extravaganza"
+            },
+            {
+                "description": "Эпистолярная проза",
+                "id": "epistolary_fiction"
+            },
+            {
+                "description": "Эпопея",
+                "id": "prose_epic"
+            },
+            {
+                "description": "Магический реализм",
+                "id": "prose_magic"
+            },
+            {
+                "description": "Антисоветская литература",
+                "id": "dissident"
+            },
+            {
+                "description": "Семейный роман/Семейная сага",
+                "id": "sagas"
+            },
+            {
+                "description": "Сентиментальная проза",
+                "id": "prose_sentimental"
+            },
+            {
+                "description": "Современная сказка",
+                "id": "modern_tale"
+            },
+            {
+                "description": "Неформат",
+                "id": "prose_neformatny"
+            },
+            {
+                "description": "Абс",
+                "id": "prose_abs"
+            },
+            {
+                "description": "Игры",
+                "id": "prose_game"
+            },
+            {
+                "description": "Комиксы",
+                "id": "comics"
+            },
+            {
+                "description": "О рыцарях",
+                "id": "tale_chivalry"
+            },
+            {
+                "description": "Проза: прочее",
+                "id": "prose_all"
+            }
+        ]
+    },
+    {
+        "description": "Любовные романы",
+        "id": "love_all_root",
+        "subgenres": [
+            {
+                "description": "О любви",
+                "id": "love"
+            },
+            {
+                "description": "Современные любовные романы",
+                "id": "love_contemporary"
+            },
+            {
+                "description": "Исторические любовные романы",
+                "id": "love_history"
+            },
+            {
+                "description": "Короткие любовные романы",
+                "id": "love_short"
+            },
+            {
+                "description": "Эротика",
+                "id": "love_erotica"
+            },
+            {
+                "description": "Любовно-фантастические романы",
+                "id": "love_sf"
+            },
+            {
+                "description": "Порно",
+                "id": "love_hard"
+            },
+            {
+                "description": "О любви: прочее",
+                "id": "love_all"
+            }
+        ]
+    },
+    {
+        "description": "Приключения",
+        "id": "adventure_all_root",
+        "subgenres": [
+            {
+                "aliases": [
+                    "adv_all",
+                    "foreign_adventure"
+                ],
+                "description": "Приключения",
+                "id": "adventure"
+            },
+            {
+                "description": "Вестерн",
+                "id": "adv_western"
+            },
+            {
+                "description": "Исторические приключения",
+                "id": "adv_history"
+            },
+            {
+                "description": "Приключения про индейцев",
+                "id": "adv_indian"
+            },
+            {
+                "description": "Морские приключения",
+                "id": "adv_maritime"
+            },
+            {
+                "description": "Путешествия и география",
+                "id": "adv_geo"
+            },
+            {
+                "description": "Природа и животные",
+                "id": "adv_animal"
+            },
+            {
+                "description": "Современное",
+                "id": "adv_modern"
+            },
+            {
+                "description": "Истории",
+                "id": "adv_story"
+            }
+        ]
+    },
+    {
+        "description": "Детское",
+        "id": "children_all_root",
+        "subgenres": [
+            {
+                "aliases": [
+                    "child_all"
+                ],
+                "description": "Детская литература",
+                "id": "children"
+            },
+            {
+                "description": "Сказка",
+                "id": "child_tale"
+            },
+            {
+                "description": "Детские стихи",
+                "id": "child_verse"
+            },
+            {
+                "description": "Детская проза",
+                "id": "child_prose"
+            },
+            {
+                "description": "О животных и природе",
+                "id": "child_adv_animal"
+            },
+            {
+                "description": "Детская фантастика",
+                "id": "child_sf"
+            },
+            {
+                "description": "Космические приключения. Пришельцы",
+                "id": "child_sf_space"
+            },
+            {
+                "description": "Фэнтези",
+                "id": "child_sf_fantasy"
+            },
+            {
+                "description": "Темпоральная фантастика. Попаданцы",
+                "id": "child_sf_hronoopera"
+            },
+            {
+                "description": "Ужасы и мистика",
+                "id": "child_sf_horror"
+            },
+            {
+                "description": "Детские приключения",
+                "id": "child_adv"
+            },
+            {
+                "description": "Детская образовательная литература",
+                "id": "child_education"
+            },
+            {
+                "description": "Драматургия для детей и подростков",
+                "id": "child_dramaturgy"
+            },
+            {
+                "description": "Подростковая литература",
+                "id": "ya"
+            },
+            {
+                "description": "Романтическое",
+                "id": "child_prose_romantic"
+            },
+            {
+                "description": "Классическая литература",
+                "id": "child_classical"
+            },
+            {
+                "description": "Военная и историческая литература",
+                "id": "child_prose_history"
+            },
+            {
+                "description": "Русские сказки",
+                "id": "child_tale_rus"
+            },
+            {
+                "description": "Сказки отечественных писателей",
+                "id": "child_tale_russian_writers"
+            },
+            {
+                "description": "Сказки зарубежных писателей",
+                "id": "child_tale_foreign_writers"
+            },
+            {
+                "description": "Детские детективы: дети-сыщики",
+                "id": "child_det_children_detectives"
+            },
+            {
+                "description": "Детские детективы: животные-сыщики",
+                "id": "child_det_animal_detectives"
+            },
+            {
+                "description": "Детские детективы: прочее",
+                "id": "child_det_other"
+            },
+            {
+                "description": "Детская проза: юмористическая",
+                "id": "child_prose_humor"
+            }
+        ]
+    },
+    {
+        "description": "Поэзия. Драматургия",
+        "id": "poetry_all_root",
+        "subgenres": [
+            {
+                "description": "Поэзия",
+                "id": "poetry"
+            },
+            {
+                "aliases": [
+                    "dramaturgy_all"
+                ],
+                "description": "Драматургия",
+                "id": "dramaturgy"
+            },
+            {
+                "description": "Басни",
+                "id": "fable"
+            },
+            {
+                "description": "Верлибры",
+                "id": "vers_libre"
+            },
+            {
+                "description": "Визуальная поэзия",
+                "id": "visual_poetry"
+            },
+            {
+                "description": "Лирика",
+                "id": "lyrics"
+            },
+            {
+                "description": "Палиндромы",
+                "id": "palindromes"
+            },
+            {
+                "description": "Песенная поэзия",
+                "id": "song_poetry"
+            },
+            {
+                "description": "Экспериментальная поэзия",
+                "id": "experimental_poetry"
+            },
+            {
+                "description": "Эпическая поэзия",
+                "id": "epic_poetry"
+            },
+            {
+                "description": "в стихах",
+                "id": "in_verse"
+            },
+            {
+                "description": "Драма",
+                "id": "drama"
+            },
+            {
+                "description": "Классическая драма",
+                "id": "drama_antique"
+            },
+            {
+                "description": "Киносценарии",
+                "id": "screenplays"
+            },
+            {
+                "description": "Комедия",
+                "id": "comedy"
+            },
+            {
+                "description": "Мистерия",
+                "id": "mystery"
+            },
+            {
+                "description": "Сценарии",
+                "id": "scenarios"
+            },
+            {
+                "description": "Трагедия",
+                "id": "tragedy"
+            },
+            {
+                "description": "Водевиль",
+                "id": "vaudeville"
+            },
+            {
+                "description": "Поэмы",
+                "id": "poem"
+            },
+            {
+                "aliases": [
+                    "poetry_for_classical"
+                ],
+                "description": "Классика",
+                "id": "poetry_classical"
+            },
+            {
+                "description": "Восток",
+                "id": "poetry_east"
+            },
+            {
+                "aliases": [
+                    "poetry_for_modern"
+                ],
+                "description": "Современная",
+                "id": "poetry_modern"
+            },
+            {
+                "description": "Русская классика",
+                "id": "poetry_rus_classical"
+            },
+            {
+                "description": "Русская современная",
+                "id": "poetry_rus_modern"
+            },
+            {
+                "description": "Поэзия: прочее",
+                "id": "poetry_all"
+            }
+        ]
+    },
+    {
+        "description": "Старинное",
+        "id": "antique_all_root",
+        "subgenres": [
+            {
+                "description": "Старинная литература",
+                "id": "antique"
+            },
+            {
+                "description": "Античная литература",
+                "id": "antique_ant"
+            },
+            {
+                "description": "Европейская старинная литература",
+                "id": "antique_european"
+            },
+            {
+                "description": "Древнерусская литература",
+                "id": "antique_russian"
+            },
+            {
+                "description": "Древневосточная литература",
+                "id": "antique_east"
+            },
+            {
+                "description": "Мифы. Легенды. Эпос",
+                "id": "antique_myths"
+            },
+            {
+                "description": "Старинная литература: прочее",
+                "id": "antique_all"
+            }
+        ]
+    },
+    {
+        "description": "Наука. Образование",
+        "id": "science_all_root",
+        "subgenres": [
+            {
+                "description": "Научная литература",
+                "id": "science"
+            },
+            {
+                "description": "История",
+                "id": "sci_history"
+            },
+            {
+                "aliases": [
+                    "foreign_psychology",
+                    "psy_generic",
+                    "psy_social"
+                ],
+                "description": "Психология",
+                "id": "sci_psychology"
+            },
+            {
+                "description": "Психотерапия",
+                "id": "psy_theraphy"
+            },
+            {
+                "description": "Культурология",
+                "id": "sci_culture"
+            },
+            {
+                "description": "Религиоведение",
+                "id": "sci_religion"
+            },
+            {
+                "description": "Философия",
+                "id": "sci_philosophy"
+            },
+            {
+                "description": "Политика",
+                "id": "sci_politics"
+            },
+            {
+                "aliases": [
+                    "foreign_business"
+                ],
+                "description": "Деловая литература",
+                "id": "sci_business"
+            },
+            {
+                "description": "Юриспруденция",
+                "id": "sci_juris"
+            },
+            {
+                "description": "Языкознание",
+                "id": "sci_linguistic"
+            },
+            {
+                "description": "Медицина",
+                "id": "sci_medicine"
+            },
+            {
+                "description": "Физика",
+                "id": "sci_phys"
+            },
+            {
+                "description": "Математика",
+                "id": "sci_math"
+            },
+            {
+                "description": "Химия",
+                "id": "sci_chem"
+            },
+            {
+                "description": "Биология",
+                "id": "sci_biology"
+            },
+            {
+                "description": "Технические науки",
+                "id": "sci_tech"
+            },
+            {
+                "description": "Биофизика",
+                "id": "sci_biophys"
+            },
+            {
+                "description": "Биохимия",
+                "id": "sci_biochem"
+            },
+            {
+                "description": "Государство и право",
+                "id": "sci_state"
+            },
+            {
+                "description": "Органическая химия",
+                "id": "sci_orgchem"
+            },
+            {
+                "description": "Аналитическая химия",
+                "id": "sci_anachem"
+            },
+            {
+                "description": "Физическая химия",
+                "id": "sci_physchem"
+            },
+            {
+                "description": "Геология и география",
+                "id": "sci_geo"
+            },
+            {
+                "description": "Астрономия и Космос",
+                "id": "sci_cosmos"
+            },
+            {
+                "description": "Филология",
+                "id": "sci_philology"
+            },
+            {
+                "description": "Педагогика",
+                "id": "sci_pedagogy"
+            },
+            {
+                "description": "Обществознание",
+                "id": "sci_social_studies"
+            },
+            {
+                "description": "Экология",
+                "id": "sci_ecology"
+            },
+            {
+                "description": "Ветеринария",
+                "id": "sci_veterinary"
+            },
+            {
+                "description": "Зоология",
+                "id": "sci_zoo"
+            },
+            {
+                "description": "Ботаника",
+                "id": "sci_botany"
+            },
+            {
+                "description": "Экономика",
+                "id": "sci_economy"
+            },
+            {
+                "description": "Востоковедение",
+                "id": "sci_oriental"
+            },
+            {
+                "description": "Учебники",
+                "id": "sci_textbook"
+            },
+            {
+                "description": "Шпаргалки",
+                "id": "sci_crib"
+            },
+            {
+                "description": "Рефераты",
+                "id": "sci_abstract"
+            },
+            {
+                "description": "Иностранные языки",
+                "id": "foreign_language"
+            },
+            {
+                "description": "Теории",
+                "id": "sci_theories"
+            },
+            {
+                "description": "Школа",
+                "id": "tbg_school"
+            },
+            {
+                "description": "Высшее образование",
+                "id": "tbg_higher"
+            },
+            {
+                "description": "Дополнительное образование",
+                "id": "tbg_secondary"
+            },
+            {
+                "description": "О компьютерах",
+                "id": "tbg_computers"
+            },
+            {
+                "description": "Секс и семейная психология",
+                "id": "psy_sex_and_family"
+            },
+            {
+                "description": "Детская психология",
+                "id": "psy_childs"
+            },
+            {
+                "description": "Научная литература: прочее",
+                "id": "sci_all"
+            }
+        ]
+    },
+    {
+        "description": "Антинаука. Мракобесие",
+        "id": "antiscience_all_root",
+        "subgenres": [
+            {
+                "description": "Альтернативная медицина",
+                "id": "sci_medicine_alternative"
+            },
+            {
+                "description": "Астрология",
+                "id": "astrology"
+            },
+            {
+                "description": "Хиромантия",
+                "id": "palmistry"
+            }
+        ]
+    },
+    {
+        "description": "Компьютеры и Интернет",
+        "id": "computers_all_root",
+        "subgenres": [
+            {
+                "description": "Околокомпьютерная литература",
+                "id": "computers"
+            },
+            {
+                "description": "Интернет",
+                "id": "comp_www"
+            },
+            {
+                "description": "Программирование",
+                "id": "comp_programming"
+            },
+            {
+                "description": "Программы",
+                "id": "comp_soft"
+            },
+            {
+                "description": "Базы данных",
+                "id": "comp_db"
+            },
+            {
+                "description": "ОС и Сети",
+                "id": "comp_osnet"
+            },
+            {
+                "description": "Цифровая обработка сигналов",
+                "id": "comp_dsp"
+            },
+            {
+                "description": "Железо",
+                "id": "comp_hard"
+            },
+            {
+                "description": "Компьютеры: прочее",
+                "id": "comp_all"
+            }
+        ]
+    },
+    {
+        "description": "Справочная литература",
+        "id": "reference_all_root",
+        "subgenres": [
+            {
+                "aliases": [
+                    "ref_all"
+                ],
+                "description": "Справочная литература",
+                "id": "reference"
+            },
+            {
+                "description": "Энциклопедии",
+                "id": "ref_encyc"
+            },
+            {
+                "description": "Словари",
+                "id": "ref_dict"
+            },
+            {
+                "description": "Справочники",
+                "id": "ref_ref"
+            },
+            {
+                "description": "Руководства",
+                "id": "ref_guide"
+            },
+            {
+                "description": "Путеводители",
+                "id": "geo_guides"
+            }
+        ]
+    },
+    {
+        "description": "Документальная литература",
+        "id": "nonfiction_all_root",
+        "subgenres": [
+            {
+                "description": "Документальная литература",
+                "id": "nonfiction"
+            },
+            {
+                "description": "Путевые заметки",
+                "id": "travel_notes"
+            },
+            {
+                "description": "Биографии и Мемуары",
+                "id": "nonf_biography"
+            },
+            {
+                "description": "Музыканты. Композиторы. Художники",
+                "id": "about_musicians"
+            },
+            {
+                "description": "Писатели. Поэты. Драматурги",
+                "id": "nonf_biography_writers"
+            },
+            {
+                "description": "Звезды кино. Театра. Балета. Шоу-бизнеса",
+                "id": "nonf_biography_celebrities"
+            },
+            {
+                "description": "Исторические персоны",
+                "id": "nonf_biography_historical"
+            },
+            {
+                "description": "Публицистика",
+                "id": "nonf_publicism"
+            },
+            {
+                "description": "Критика",
+                "id": "nonf_criticism"
+            },
+            {
+                "description": "Искусство и Дизайн",
+                "id": "design"
+            },
+            {
+                "description": "Музыка",
+                "id": "music"
+            },
+            {
+                "description": "Кино",
+                "id": "cine"
+            },
+            {
+                "description": "Театр",
+                "id": "theatre"
+            },
+            {
+                "description": "Военная документалистика и аналитика",
+                "id": "nonf_military"
+            },
+            {
+                "description": "Научпоп",
+                "id": "sci_popular"
+            },
+            {
+                "description": "Военные мемуары",
+                "id": "nonf_biography_military_figures"
+            }
+        ]
+    },
+    {
+        "description": "Религия и духовность",
+        "id": "religion_all_root",
+        "subgenres": [
+            {
+                "description": "Религия",
+                "id": "religion"
+            },
+            {
+                "description": "Эзотерика",
+                "id": "religion_esoterics"
+            },
+            {
+                "description": "Самосовершенствование",
+                "id": "religion_self"
+            },
+            {
+                "description": "Религиозная литература",
+                "id": "religion_rel"
+            },
+            {
+                "description": "Буддизм",
+                "id": "religion_budda"
+            },
+            {
+                "description": "Христианство",
+                "id": "religion_christianity"
+            },
+            {
+                "description": "Православие",
+                "id": "religion_orthodoxy"
+            },
+            {
+                "description": "Католицизм",
+                "id": "religion_catholicism"
+            },
+            {
+                "description": "Иудаизм",
+                "id": "religion_judaism"
+            },
+            {
+                "description": "Язычество",
+                "id": "religion_paganism"
+            },
+            {
+                "description": "Ислам",
+                "id": "religion_islam"
+            },
+            {
+                "description": "Протестантизм",
+                "id": "religion_protestantism"
+            },
+            {
+                "description": "Индуизм",
+                "id": "religion_hinduism"
+            },
+            {
+                "description": "Религия: прочее",
+                "id": "religion_all"
+            }
+        ]
+    },
+    {
+        "description": "Юмор",
+        "id": "humor_all_root",
+        "subgenres": [
+            {
+                "description": "Юмор",
+                "id": "humor"
+            },
+            {
+                "description": "Юмористическая проза",
+                "id": "humor_prose"
+            },
+            {
+                "description": "Юмористические стихи",
+                "id": "humor_verse"
+            },
+            {
+                "description": "Сатира",
+                "id": "humor_satire"
+            },
+            {
+                "description": "Юмор: прочее",
+                "id": "humor_all"
+            }
+        ]
+    },
+    {
+        "description": "Домоводство (Дом и семья)",
+        "id": "home_all_root",
+        "subgenres": [
+            {
+                "description": "Домоводство",
+                "id": "home"
+            },
+            {
+                "description": "Кулинария",
+                "id": "home_cooking"
+            },
+            {
+                "description": "Домашние животные",
+                "id": "home_pets"
+            },
+            {
+                "description": "Хобби и ремесла",
+                "id": "home_crafts"
+            },
+            {
+                "description": "Развлечения",
+                "id": "home_entertain"
+            },
+            {
+                "description": "Коллекционирование",
+                "id": "home_collecting"
+            },
+            {
+                "description": "Автомобили и ПДД",
+                "id": "auto_regulations"
+            },
+            {
+                "description": "Здоровье",
+                "id": "home_health"
+            },
+            {
+                "description": "Сад и огород",
+                "id": "home_garden"
+            },
+            {
+                "description": "Сделай сам",
+                "id": "home_diy"
+            },
+            {
+                "description": "Спорт",
+                "id": "home_sport"
+            },
+            {
+                "description": "Популярная психология",
+                "id": "sci_psychology_popular"
+            },
+            {
+                "description": "Эротика. Секс",
+                "id": "home_sex"
+            },
+            {
+                "aliases": [
+                    "home_all"
+                ],
+                "description": "Прочее",
+                "id": "family"
+            }
+        ]
+    },
+    {
+        "description": "Деловая литература",
+        "id": "busines_all_root",
+        "subgenres": [
+            {
+                "description": "Разное",
+                "id": "busines"
+            },
+            {
+                "description": "Бухучет. Налогообложение. Аудит",
+                "id": "accounting"
+            },
+            {
+                "description": "Банковское дело",
+                "id": "banking"
+            },
+            {
+                "description": "Внешнеэкономическая деятельность",
+                "id": "global_economy"
+            },
+            {
+                "description": "Делопроизводство",
+                "id": "paper_work"
+            },
+            {
+                "description": "Корпоративная культура",
+                "id": "org_behavior"
+            },
+            {
+                "description": "Личные финансы",
+                "id": "personal_finance"
+            },
+            {
+                "description": "Малый бизнес",
+                "id": "small_business"
+            },
+            {
+                "description": "Маркетинг. PR. Реклама",
+                "id": "marketing"
+            },
+            {
+                "description": "Недвижимость",
+                "id": "real_estate"
+            },
+            {
+                "description": "О бизнесе популярно",
+                "id": "popular_business"
+            },
+            {
+                "description": "Отраслевые издания",
+                "id": "industries"
+            },
+            {
+                "description": "Поиск работы. Карьера",
+                "id": "job_hunting"
+            },
+            {
+                "description": "Справочники",
+                "id": "economics_ref"
+            },
+            {
+                "description": "Управление. Подбор персонала",
+                "id": "management"
+            },
+            {
+                "description": "Ценные бумаги. Инвестиции",
+                "id": "stock"
+            },
+            {
+                "aliases": [
+                    "economics_all"
+                ],
+                "description": "Экономика",
+                "id": "economics"
+            },
+            {
+                "description": "Торговля",
+                "id": "trade"
+            }
+        ]
+    },
+    {
+        "description": "Ноты и партитуры",
+        "id": "notes_all_root",
+        "subgenres": [
+            {
+                "description": "Партитуры",
+                "id": "notes"
+            }
+        ]
+    },
+    {
+        "description": "Техника",
+        "id": "tech_all_root",
+        "subgenres": [
+            {
+                "description": "Техника",
+                "id": "tech"
+            },
+            {
+                "description": "Металлургия",
+                "id": "sci_metal"
+            },
+            {
+                "description": "Радиоэлектроника",
+                "id": "sci_radio"
+            },
+            {
+                "description": "Строительство и сопромат",
+                "id": "sci_build"
+            },
+            {
+                "description": "Транспорт и авиация",
+                "id": "sci_transport"
+            },
+            {
+                "description": "Автодело",
+                "id": "auto_business"
+            },
+            {
+                "description": "История техники",
+                "id": "equ_history"
+            },
+            {
+                "description": "Техника: прочее",
+                "id": "tech_all"
+            }
+        ]
+    },
+    {
+        "description": "Периодика",
+        "id": "periodic_all_root",
+        "subgenres": [
+            {
+                "description": "Журналы",
+                "id": "periodic"
+            }
+        ]
+    },
+    {
+        "description": "Фольклор",
+        "id": "epic_all_root",
+        "subgenres": [
+            {
+                "description": "Анекдоты",
+                "id": "humor_anecdote"
+            },
+            {
+                "description": "Былины",
+                "id": "epic"
+            },
+            {
+                "description": "Детский фольклор",
+                "id": "child_folklore"
+            },
+            {
+                "description": "Загадки",
+                "id": "riddles"
+            },
+            {
+                "description": "Народные песни",
+                "id": "folk_songs"
+            },
+            {
+                "description": "Народные сказки",
+                "id": "folk_tale"
+            },
+            {
+                "description": "Пословицы. Поговорки",
+                "id": "proverbs"
+            },
+            {
+                "aliases": [
+                    "folklore_all"
+                ],
+                "description": "Фольклор: прочее",
+                "id": "folklore"
+            },
+            {
+                "description": "Частушки. Прибаутки. Потешки",
+                "id": "limerick"
+            }
+        ]
+    },
+    {
+        "description": "Военное",
+        "id": "military_all_root",
+        "subgenres": [
+            {
+                "description": "Военная история",
+                "id": "military_history"
+            },
+            {
+                "description": "Боевые искусства",
+                "id": "military_arts"
+            },
+            {
+                "description": "Особое",
+                "id": "military_special"
+            },
+            {
+                "description": "Оружие",
+                "id": "military_weapon"
+            },
+            {
+                "aliases": [
+                    "military_all"
+                ],
+                "description": "Военное дело: прочее",
+                "id": "military"
+            }
+        ]
+    },
+    {
+        "description": "Искусство",
+        "id": "art_all_root",
+        "subgenres": [
+            {
+                "description": "Критика",
+                "id": "art_criticism"
+            },
+            {
+                "description": "Мировая культура",
+                "id": "art_world_culture"
+            },
+            {
+                "aliases": [
+                    "visual_arts"
+                ],
+                "description": "Изобразительное искусство",
+                "id": "painting"
+            },
+            {
+                "description": "Архитектура",
+                "id": "architecture_book"
+            },
+            {
+                "description": "Культура: прочее",
+                "id": "culture_all"
+            }
+        ]
+    },
+    {
+        "description": "Иностранная литература",
+        "id": "foreign_all_root",
+        "subgenres": [
+            {
+                "description": "Классика",
+                "id": "foreign_antique"
+            },
+            {
+                "description": "Для детей",
+                "id": "foreign_children"
+            },
+            {
+                "description": "Проза",
+                "id": "foreign_prose"
+            }
+        ]
+    },
+    {
+        "description": "Прочее",
+        "id": "other_all_root",
+        "subgenres": [
+            {
+                "description": "18-й век",
+                "id": "literature_18"
+            },
+            {
+                "description": "19-й век",
+                "id": "literature_19"
+            },
+            {
+                "description": "20-й век",
+                "id": "literature_20"
+            },
+            {
+                "description": "Сетевая литература",
+                "id": "network_literature"
+            },
+            {
+                "description": "Диафильмы",
+                "id": "diafilm"
+            },
+            {
+                "description": "Фанфик",
+                "id": "fanfiction"
+            },
+            {
+                "description": "Любительский перевод",
+                "id": "fan_translation"
+            },
+            {
+                "description": "Машинный перевод",
+                "id": "computer_translation"
+            },
+            {
+                "description": "Недописанное",
+                "id": "unfinished"
+            },
+            {
+                "aliases": [
+                    "other_all"
+                ],
+                "description": "Прочее",
+                "id": "other"
+            },
+            {
+                "description": "Неотсортированное",
+                "id": "unordered"
+            }
+        ]
+    },
+    {
+        "description": "Жанры не из справочника",
+        "id": "unknown_root"
+    }
+]
