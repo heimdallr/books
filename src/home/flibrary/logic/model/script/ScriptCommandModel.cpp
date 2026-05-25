@@ -61,6 +61,7 @@ private: // QAbstractItemModel
 		switch (role)
 		{
 			case Qt::DisplayRole:
+			case Qt::ToolTipRole:
 				return QString("%1 %2").arg(Loc::Tr("ScriptController", item.command.toStdString().data()), item.args);
 
 			case Role::Name:

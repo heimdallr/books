@@ -12,7 +12,9 @@
 #include "util/ISettings.h"
 
 #include "ComboBoxDelegate.h"
+#include "ItemViewToolTipper.h"
 #include "ScriptNameDelegate.h"
+#include "ScrollBarController.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -28,7 +30,12 @@ public:
 		std::shared_ptr<const IUiFactory>             uiFactory,
 		std::shared_ptr<ISettings>                    settings,
 		std::shared_ptr<ScriptComboBoxDelegate>       scriptTypeDelegate,
-		std::shared_ptr<ScriptNameDelegate>           scriptNameLineEditDelegate
+		std::shared_ptr<ScriptNameDelegate>           scriptNameLineEditDelegate,
+		std::shared_ptr<ItemViewToolTipper>           scriptItemViewToolTipper,
+		std::shared_ptr<ItemViewToolTipper>           commandItemViewToolTipper,
+		std::shared_ptr<ScrollBarController>          scriptScrollBarController,
+		std::shared_ptr<ScrollBarController>          commandScrollBarController
+
 	);
 	~ScriptDialog() override;
 
