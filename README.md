@@ -52,7 +52,7 @@ git clone https://github.com/heimdallr/books.git --recursive
 * Можно открыть CMakeLists.txt в QtCreator  
 
 ### Linux
-Проверялось на Ubuntu 24.04, компилировалось gcc15.2
+Проверялось на Ubuntu 24.04, компилировалось gcc 15.2, 16.1
 
 ##### Убеждаемся в наличии gcc с поддержкой c++23
 ##### Выполняем команды  
@@ -68,5 +68,5 @@ cmake --install .
 * Запустить скрипт `build.sh`. В результате в папке build будет создан архив FLibrary-x.y.z-portable-Linux.tar.xz  
 * Запустить скрипт с параметром `build.sh DEB`. В папке build будет собран пакет FLibrary-x.y.z-setup-Linux.deb  
 
-[^4]: Имеет смысл собрать самостоятельно, применив патчи src/home/script/conan/patch/qt, линкуя с icu из conan.
+[^4]: Ну ладно, Qt 6.11 уже есть в conan'е. Но всё равно лучше собрать самостоятельно, с патчами src/home/script/conan/patch/qt. И слинковать с icu из conan.
 [^5]: Если есть необходимость запуска на Windows7, можно и с Qt5. Я собирал с 5.15.16
