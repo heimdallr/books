@@ -275,7 +275,7 @@ private:
 		if (index.data(Role::IsRemoved).toBool())
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
-		if (m_readMarkWidth && index.column() == 0 && !index.data(Role::UserRate).toString().isEmpty())
+		if (m_readMarkWidth && m_view.header()->visualIndex(index.column()) == 0 && !index.data(Role::UserRate).toString().isEmpty())
 		{
 			const ScopedCall painterGuard(
 				[=] {

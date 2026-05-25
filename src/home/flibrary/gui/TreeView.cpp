@@ -433,7 +433,7 @@ public:
 
 	void SetNavigationModeName(QString navigationModeName)
 	{
-		m_navigationModeName = std::move(navigationModeName);
+		m_navigationModeName        = std::move(navigationModeName);
 		m_restoreBooksLayoutPending = true;
 	}
 
@@ -692,7 +692,6 @@ private:
 		else
 		{
 			m_languageContextMenu.reset();
-			model->setData({}, true, Role::Checkable);
 			model->setData({}, !!(m_navigationItemFlags & (IDataItem::Flags::Filtered | IDataItem::Flags::BooksFiltered)), Role::NavigationItemFiltered);
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
@@ -1048,6 +1047,8 @@ private:
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
 			saveHeaderLayout();
 		}
+
+		m_ui.treeView->model()->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
 	}
 
 	void RestoreHeaderLayout()
@@ -1066,8 +1067,6 @@ private:
 			return;
 
 		m_restoreBooksLayoutPending = false;
-
-		const QSignalBlocker booksHeaderViewSignalBlocker(m_booksHeaderView);
 
 		auto* header = m_ui.treeView->header();
 
@@ -1155,6 +1154,7 @@ private:
 			 ))
 			header->moveSection(header->visualIndex(logicalIndex), visualIndex);
 
+		m_ui.treeView->model()->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
 		CheckHeaderViewWidth(QResizeEvent(m_self.size(), m_self.size()));
 	}
 

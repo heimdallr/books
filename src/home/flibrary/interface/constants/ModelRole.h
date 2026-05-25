@@ -26,7 +26,7 @@ struct Role
 			// global
 			Count,
 		ChildCount,
-		Checkable,
+		CheckableColumn,
 		Languages,
 		TextFilter,
 		LanguageFilter,

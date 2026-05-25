@@ -41,7 +41,7 @@ private:
 protected:
 	IDataItem::Ptr                          m_data;
 	std::shared_ptr<const ILibRateProvider> m_libRateProvider;
-	bool                                    m_checkable { false };
+	std::optional<int>                      m_checkableColumn;
 };
 
 } // namespace HomeCompa::Flibrary

@@ -82,8 +82,8 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 		case Role::CheckState:
 			return item->GetCheckState();
 
-		case Role::Checkable:
-			return m_checkable;
+		case Role::CheckableColumn:
+			return m_checkableColumn ? QVariant::fromValue(*m_checkableColumn) : QVariant {};
 
 		case Role::Id:
 			return item->GetId();
@@ -144,8 +144,9 @@ bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const i
 
 	switch (role)
 	{
-		case Role::Checkable:
-			return Util::Set(m_checkable, value.toBool());
+		case Role::CheckableColumn:
+			m_checkableColumn = value.toInt();
+			return true;
 
 		case Role::Check:
 			return Check(value, Qt::Checked);
@@ -185,7 +186,7 @@ Qt::ItemFlags BaseModel::flags(const QModelIndex& index) const
 {
 	auto flags = QAbstractItemModel::flags(index);
 
-	if (m_checkable && index.column() == 0)
+	if (m_checkableColumn && index.column() == *m_checkableColumn)
 		flags |= Qt::ItemIsUserCheckable;
 
 	return flags;
