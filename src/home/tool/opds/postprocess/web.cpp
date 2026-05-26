@@ -481,11 +481,8 @@ private:
 
 		if (rel == "http://opds-spec.org/acquisition")
 		{
-			const auto type = attributes.GetAttribute("type");
-			if (type == "application/fb2")
-				m_downloadLinkFb2 = std::move(href);
-			else if (type == "application/fb2+zip")
-				m_downloadLinkZip = std::move(href);
+			if (const auto type = attributes.GetAttribute("type"); type.startsWith("application/"))
+				(type.endsWith("+zip") ? m_downloadLinkZip : m_downloadLinkFb2) = std::move(href);
 			return true;
 		}
 
