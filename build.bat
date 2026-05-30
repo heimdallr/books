@@ -1,12 +1,15 @@
 @echo off
 
 set BUILD_TYPE=Release
+set BUILD_DIR=%~dp0build\%BUILD_TYPE%
+
+rmdir /s /q %BUILD_DIR%\FLibrary
+rmdir /s /q %~dp0build\installer
+
 call %~dp0configure.bat %*
 if %errorlevel% NEQ 0 goto Error
 
 set start_time=%DATE% %TIME%
-
-set BUILD_DIR=%~dp0build\%BUILD_TYPE%
 
 set /p PRODUCT_VERSION=<%BUILD_DIR%\var\version
 set /p PRODUCT_GUID=<%BUILD_DIR%\var\uid
@@ -23,7 +26,6 @@ rem echo testing
 rem ctest --test-dir %BUILD_DIR% -C Release
 rem if %errorlevel% NEQ 0 goto Error
 
-rmdir /s /q %~dp0build\installer
 mkdir %~dp0build\installer
 
 echo installer creating
@@ -39,7 +41,7 @@ if %errorlevel% NEQ 0 goto Error
 echo portable creating
 echo portable > %BUILD_DIR%/FLibrary/installer_mode
 
-copy /Y %~dp0src\home\script\install\LinuxStart.sh %BUILD_DIR%\FLibrary\LinuxStart.sh
+copy /Y %~dp0src\home\script\install\ProtonStart.sh %BUILD_DIR%\FLibrary\ProtonStart.sh
 %SEVEN_ZIP_PATH%7z a %~dp0build\installer\FLibrary-%PRODUCT_VERSION%-portable-%OS%.7z %BUILD_DIR%\FLibrary
 
 goto End
