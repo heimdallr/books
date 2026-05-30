@@ -10,8 +10,8 @@
 
 #include "fnd/IsOneOf.h"
 
-#include "interface/localization.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 
 #include "gutil/util.h"
 #include "logic/data/DataItem.h"

@@ -33,9 +33,9 @@
 #include "gutil/util.h"
 #include "inpx/InpxConstant.h"
 #include "platform/FileUtil.h"
+#include "settings/UiTimer.h"
 #include "util/ColorUtil.h"
 #include "util/ObjectsConnector.h"
-#include "settings/UiTimer.h"
 #include "util/language.h"
 
 #include "log.h"

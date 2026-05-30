@@ -10,8 +10,8 @@
 #include "interface/constants/Localization.h"
 #include "interface/localization.h"
 
-#include "util/GenresLocalization.h"
 #include "settings/ISettings.h"
+#include "util/GenresLocalization.h"
 #include "util/SortString.h"
 
 using namespace HomeCompa;
@@ -223,7 +223,8 @@ Genre Genre::Load(DB::IDatabase& db, const std::unordered_set<QString>& neededGe
 	return LoadImpl<Genre>(
 		db,
 		neededGenres,
-		"select g.GenreCode, g.FB2Code, g.ParentCode, g.GenreAlias, coalesce(g.GenreTitle, ''), exists (select 42 from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount, IsDeleted, Flags from Genres g",
+		"select g.GenreCode, g.FB2Code, g.ParentCode, g.GenreAlias, coalesce(g.GenreTitle, ''), exists (select 42 from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount, IsDeleted, Flags from Genres "
+	    "g",
 		SORTER
 	);
 }

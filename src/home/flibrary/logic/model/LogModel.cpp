@@ -20,8 +20,8 @@
 #include "interface/logic/LogModelRole.h"
 
 #include "logging/LogAppender.h"
-#include "util/FunctorExecutionForwarder.h"
 #include "settings/UiTimer.h"
+#include "util/FunctorExecutionForwarder.h"
 
 #include "QtTypes.h"
 

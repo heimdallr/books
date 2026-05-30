@@ -25,8 +25,8 @@
 
 #include "data/DataItem.h"
 #include "database/DatabaseUtil.h"
-#include "util/language.h"
 #include "settings/UiTimer.h"
+#include "util/language.h"
 
 #include "ArchiveParser.h"
 #include "Constant.h"
