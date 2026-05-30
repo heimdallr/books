@@ -34,8 +34,8 @@ public:
 		std::shared_ptr<IUiFactory>                 uiFactory,
 		std::shared_ptr<IFilterProvider>            filterProvider,
 		std::shared_ptr<IHotkeyManager>             hotkeyManager,
-		std::shared_ptr<ItemViewToolTipper>         itemViewToolTipper,
-		std::shared_ptr<ScrollBarController>        scrollBarController,
+		std::shared_ptr<Util::ItemViewToolTipper>   itemViewToolTipper,
+		std::shared_ptr<Util::ScrollBarController>  scrollBarController,
 		QWidget*                                    parent = nullptr
 	);
 	~TreeView() override;

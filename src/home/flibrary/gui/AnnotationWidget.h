@@ -35,9 +35,9 @@ public:
 		std::shared_ptr<IAnnotationController>             annotationController,
 		std::shared_ptr<IUiFactory>                        uiFactory,
 		std::shared_ptr<IBooksExtractorProgressController> progressController,
-		std::shared_ptr<ItemViewToolTipper>                itemViewToolTipperContent,
-		std::shared_ptr<ScrollBarController>               scrollBarControllerContent,
-		std::shared_ptr<ScrollBarController>               scrollBarControllerAnnotation,
+		std::shared_ptr<Util::ItemViewToolTipper>          itemViewToolTipperContent,
+		std::shared_ptr<Util::ScrollBarController>         scrollBarControllerContent,
+		std::shared_ptr<Util::ScrollBarController>         scrollBarControllerAnnotation,
 		QWidget*                                           parent = nullptr
 	);
 	~AnnotationWidget() override;

@@ -28,8 +28,8 @@ public:
 		std::shared_ptr<ISettings>                          settings,
 		std::shared_ptr<IFilterController>                  filterController,
 		std::shared_ptr<IFilterDataProvider>                dataProvider,
-		std::shared_ptr<ItemViewToolTipper>                 itemViewToolTipper,
-		std::shared_ptr<ScrollBarController>                scrollBarController,
+		std::shared_ptr<Util::ItemViewToolTipper>           itemViewToolTipper,
+		std::shared_ptr<Util::ScrollBarController>          scrollBarController,
 		QWidget*                                            parent = nullptr
 	);
 	~FilterSettingsDialog() override;

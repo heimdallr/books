@@ -20,8 +20,8 @@ class AuthorAnnotationWidget : public QFrame
 public:
 	AuthorAnnotationWidget(
 		std::shared_ptr<IAuthorAnnotationController> annotationController,
-		std::shared_ptr<ScrollBarController>         scrollBarControllerText,
-		std::shared_ptr<ScrollBarController>         scrollBarControllerImages,
+		std::shared_ptr<Util::ScrollBarController>   scrollBarControllerText,
+		std::shared_ptr<Util::ScrollBarController>   scrollBarControllerImages,
 		QWidget*                                     parent = nullptr
 	);
 	~AuthorAnnotationWidget() override;

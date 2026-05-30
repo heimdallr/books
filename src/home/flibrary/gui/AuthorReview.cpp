@@ -18,12 +18,12 @@ class AuthorReview::Impl final
 
 public:
 	Impl(
-		StackedPage&                           self,
-		const IUiFactory&                      uiFactory,
-		const IModelProvider&                  modelProvider,
-		std::shared_ptr<const IBookInteractor> bookInteractor,
-		std::shared_ptr<ISettings>             settings,
-		std::shared_ptr<ScrollBarController>   scrollBarController
+		StackedPage&                               self,
+		const IUiFactory&                          uiFactory,
+		const IModelProvider&                      modelProvider,
+		std::shared_ptr<const IBookInteractor>     bookInteractor,
+		std::shared_ptr<ISettings>                 settings,
+		std::shared_ptr<Util::ScrollBarController> scrollBarController
 	)
 		: GeometryRestorable(*this, std::move(settings), "AuthorReview")
 		, GeometryRestorableObserver(self)
@@ -53,10 +53,10 @@ public:
 	}
 
 private:
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_model;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
-	std::shared_ptr<const IBookInteractor>                  m_bookInteractor;
-	Ui::AuthorReview                                        m_ui;
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>        m_model;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
+	std::shared_ptr<const IBookInteractor>                        m_bookInteractor;
+	Ui::AuthorReview                                              m_ui;
 };
 
 AuthorReview::AuthorReview(
@@ -64,7 +64,7 @@ AuthorReview::AuthorReview(
 	const std::shared_ptr<const IModelProvider>& modelProvider,
 	std::shared_ptr<const IBookInteractor>       bookInteractor,
 	std::shared_ptr<ISettings>                   settings,
-	std::shared_ptr<ScrollBarController>         scrollBarController,
+	std::shared_ptr<Util::ScrollBarController>   scrollBarController,
 	QWidget*                                     parent
 )
 	: StackedPage(parent)

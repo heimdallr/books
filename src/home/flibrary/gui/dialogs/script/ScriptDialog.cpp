@@ -139,16 +139,16 @@ class ScriptDialog::Impl final
 
 public:
 	Impl(
-		ScriptDialog&                        self,
-		const IModelProvider&                modelProvider,
-		std::shared_ptr<const IUiFactory>    uiFactory,
-		std::shared_ptr<ISettings>           settings,
-		std::shared_ptr<ComboBoxDelegate>    scriptTypeDelegate,
-		std::shared_ptr<QStyledItemDelegate> scriptNameLineEditDelegate,
-		std::shared_ptr<ItemViewToolTipper>  scriptItemViewToolTipper,
-		std::shared_ptr<ItemViewToolTipper>  commandItemViewToolTipper,
-		std::shared_ptr<ScrollBarController> scriptScrollBarController,
-		std::shared_ptr<ScrollBarController> commandScrollBarController
+		ScriptDialog&                              self,
+		const IModelProvider&                      modelProvider,
+		std::shared_ptr<const IUiFactory>          uiFactory,
+		std::shared_ptr<ISettings>                 settings,
+		std::shared_ptr<ComboBoxDelegate>          scriptTypeDelegate,
+		std::shared_ptr<QStyledItemDelegate>       scriptNameLineEditDelegate,
+		std::shared_ptr<Util::ItemViewToolTipper>  scriptItemViewToolTipper,
+		std::shared_ptr<Util::ItemViewToolTipper>  commandItemViewToolTipper,
+		std::shared_ptr<Util::ScrollBarController> scriptScrollBarController,
+		std::shared_ptr<Util::ScrollBarController> commandScrollBarController
 	)
 		: GeometryRestorable(*this, settings, "ScriptDialog")
 		, GeometryRestorableObserver(self)
@@ -423,20 +423,20 @@ private:
 	}
 
 private:
-	ScriptDialog&                                           m_self;
-	std::shared_ptr<const IUiFactory>                       m_uiFactory;
-	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_scriptModel;
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_commandModel;
-	PropagateConstPtr<ComboBoxDelegate, std::shared_ptr>    m_scriptTypeDelegate;
-	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_scriptNameLineEditDelegate;
-	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>  m_scriptItemViewToolTipper;
-	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>  m_commandItemViewToolTipper;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scriptScrollBarController;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_commandScrollBarController;
-	std::vector<QWidget*>                                   m_commandTextWidgets;
-	bool                                                    m_addMode { false };
-	Ui::ScriptDialog                                        m_ui {};
+	ScriptDialog&                                                 m_self;
+	std::shared_ptr<const IUiFactory>                             m_uiFactory;
+	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>        m_scriptModel;
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>        m_commandModel;
+	PropagateConstPtr<ComboBoxDelegate, std::shared_ptr>          m_scriptTypeDelegate;
+	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr>       m_scriptNameLineEditDelegate;
+	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_scriptItemViewToolTipper;
+	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_commandItemViewToolTipper;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scriptScrollBarController;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_commandScrollBarController;
+	std::vector<QWidget*>                                         m_commandTextWidgets;
+	bool                                                          m_addMode { false };
+	Ui::ScriptDialog                                              m_ui {};
 };
 
 ScriptDialog::ScriptDialog(
@@ -446,10 +446,10 @@ ScriptDialog::ScriptDialog(
 	std::shared_ptr<ISettings>                    settings,
 	std::shared_ptr<ScriptComboBoxDelegate>       scriptTypeDelegate,
 	std::shared_ptr<ScriptNameDelegate>           scriptNameLineEditDelegate,
-	std::shared_ptr<ItemViewToolTipper>           scriptItemViewToolTipper,
-	std::shared_ptr<ItemViewToolTipper>           commandItemViewToolTipper,
-	std::shared_ptr<ScrollBarController>          scriptScrollBarController,
-	std::shared_ptr<ScrollBarController>          commandScrollBarController
+	std::shared_ptr<Util::ItemViewToolTipper>     scriptItemViewToolTipper,
+	std::shared_ptr<Util::ItemViewToolTipper>     commandItemViewToolTipper,
+	std::shared_ptr<Util::ScrollBarController>    scriptScrollBarController,
+	std::shared_ptr<Util::ScrollBarController>    commandScrollBarController
 )
 	: QDialog(parentWidgetProvider->GetWidget())
 	, m_impl(

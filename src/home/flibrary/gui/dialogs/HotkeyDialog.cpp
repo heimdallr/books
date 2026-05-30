@@ -166,12 +166,12 @@ class HotkeyDialog::Impl final
 
 public:
 	Impl(
-		QDialog&                             self,
-		const IModelProvider&                modelProvider,
-		std::shared_ptr<ISettings>           settings,
-		std::shared_ptr<IHotkeyManager>      hotkeyManager,
-		std::shared_ptr<ItemViewToolTipper>  itemViewToolTipper,
-		std::shared_ptr<ScrollBarController> scrollBarController
+		QDialog&                                   self,
+		const IModelProvider&                      modelProvider,
+		std::shared_ptr<ISettings>                 settings,
+		std::shared_ptr<IHotkeyManager>            hotkeyManager,
+		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
+		std::shared_ptr<Util::ScrollBarController> scrollBarController
 	)
 		: GeometryRestorable(*this, settings, CONTEXT)
 		, GeometryRestorableObserver(self)
@@ -227,11 +227,11 @@ private:
 private:
 	QDialog& m_self;
 
-	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
-	PropagateConstPtr<IHotkeyManager, std::shared_ptr>      m_hotkeyManager;
-	PropagateConstPtr<QAbstractItemModel>                   m_model;
-	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
+	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
+	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
+	PropagateConstPtr<QAbstractItemModel>                         m_model;
+	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
 
 	Ui::HotkeyDialog m_ui;
 };
@@ -241,8 +241,8 @@ HotkeyDialog::HotkeyDialog(
 	const std::shared_ptr<IModelProvider>&        modelProvider,
 	std::shared_ptr<ISettings>                    settings,
 	std::shared_ptr<IHotkeyManager>               hotkeyManager,
-	std::shared_ptr<ItemViewToolTipper>           itemViewToolTipper,
-	std::shared_ptr<ScrollBarController>          scrollBarController,
+	std::shared_ptr<Util::ItemViewToolTipper>     itemViewToolTipper,
+	std::shared_ptr<Util::ScrollBarController>    scrollBarController,
 	QWidget*                                      parent
 )
 	: QDialog(parentWidgetProvider->GetWidget(parent))

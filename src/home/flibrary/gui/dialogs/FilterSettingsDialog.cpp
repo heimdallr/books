@@ -143,13 +143,13 @@ class FilterSettingsDialog::Impl final
 
 public:
 	Impl(
-		QDialog&                              self,
-		std::shared_ptr<const IModelProvider> modelProvider,
-		std::shared_ptr<ISettings>            settings,
-		std::shared_ptr<IFilterController>    filterController,
-		std::shared_ptr<IFilterDataProvider>  dataProvider,
-		std::shared_ptr<ItemViewToolTipper>   itemViewToolTipper,
-		std::shared_ptr<ScrollBarController>  scrollBarController
+		QDialog&                                   self,
+		std::shared_ptr<const IModelProvider>      modelProvider,
+		std::shared_ptr<ISettings>                 settings,
+		std::shared_ptr<IFilterController>         filterController,
+		std::shared_ptr<IFilterDataProvider>       dataProvider,
+		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
+		std::shared_ptr<Util::ScrollBarController> scrollBarController
 	)
 		: GeometryRestorable(*this, settings, "FilterSettingsDialog")
 		, GeometryRestorableObserver(self)
@@ -519,21 +519,21 @@ private:
 	}
 
 private:
-	QDialog&                                                m_self;
-	std::shared_ptr<const IModelProvider>                   m_modelProvider;
-	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
-	PropagateConstPtr<IFilterController, std::shared_ptr>   m_filterController;
-	PropagateConstPtr<IFilterDataProvider, std::shared_ptr> m_dataProvider;
-	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
-	PropagateConstPtr<QAbstractItemModel>                   m_model { std::unique_ptr<QAbstractItemModel> {} };
-	std::vector<NavigationMode>                             m_indexToMode;
-	std::unordered_map<NavigationMode, QString>             m_changedAccumulations;
-	const IFilterController::FilteredNavigation*            m_filteredNavigation { nullptr };
-	QTimer                                                  m_filterTimer;
-	int                                                     m_sectionClicked { -1 };
-	ShowCheckedMode                                         m_showCheckedMode { ShowCheckedMode::All };
-	ValueApplier                                            m_valueApplier { &IValueApplier::Filter };
+	QDialog&                                                      m_self;
+	std::shared_ptr<const IModelProvider>                         m_modelProvider;
+	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
+	PropagateConstPtr<IFilterController, std::shared_ptr>         m_filterController;
+	PropagateConstPtr<IFilterDataProvider, std::shared_ptr>       m_dataProvider;
+	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
+	PropagateConstPtr<QAbstractItemModel>                         m_model { std::unique_ptr<QAbstractItemModel> {} };
+	std::vector<NavigationMode>                                   m_indexToMode;
+	std::unordered_map<NavigationMode, QString>                   m_changedAccumulations;
+	const IFilterController::FilteredNavigation*                  m_filteredNavigation { nullptr };
+	QTimer                                                        m_filterTimer;
+	int                                                           m_sectionClicked { -1 };
+	ShowCheckedMode                                               m_showCheckedMode { ShowCheckedMode::All };
+	ValueApplier                                                  m_valueApplier { &IValueApplier::Filter };
 
 	std::atomic_bool                m_hideFilteredStarted { false };
 	Util::FunctorExecutionForwarder m_forwarder;
@@ -547,8 +547,8 @@ FilterSettingsDialog::FilterSettingsDialog(
 	std::shared_ptr<ISettings>                          settings,
 	std::shared_ptr<IFilterController>                  filterController,
 	std::shared_ptr<IFilterDataProvider>                dataProvider,
-	std::shared_ptr<ItemViewToolTipper>                 itemViewToolTipper,
-	std::shared_ptr<ScrollBarController>                scrollBarController,
+	std::shared_ptr<Util::ItemViewToolTipper>           itemViewToolTipper,
+	std::shared_ptr<Util::ScrollBarController>          scrollBarController,
 	QWidget*                                            parent
 )
 	: QDialog(parentWidgetProvider->GetWidget(parent))

@@ -31,10 +31,10 @@ public:
 		std::shared_ptr<ISettings>                    settings,
 		std::shared_ptr<ScriptComboBoxDelegate>       scriptTypeDelegate,
 		std::shared_ptr<ScriptNameDelegate>           scriptNameLineEditDelegate,
-		std::shared_ptr<ItemViewToolTipper>           scriptItemViewToolTipper,
-		std::shared_ptr<ItemViewToolTipper>           commandItemViewToolTipper,
-		std::shared_ptr<ScrollBarController>          scriptScrollBarController,
-		std::shared_ptr<ScrollBarController>          commandScrollBarController
+		std::shared_ptr<Util::ItemViewToolTipper>     scriptItemViewToolTipper,
+		std::shared_ptr<Util::ItemViewToolTipper>     commandItemViewToolTipper,
+		std::shared_ptr<Util::ScrollBarController>    scriptScrollBarController,
+		std::shared_ptr<Util::ScrollBarController>    commandScrollBarController
 
 	);
 	~ScriptDialog() override;
