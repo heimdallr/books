@@ -45,7 +45,6 @@ constexpr auto PREFER_LIBRATE_VIEW_PRECISION_KEY = "Preferences/LibRate/precisio
 constexpr auto PREFER_LIBRATE_VIEW_COLORS_KEY    = "Preferences/LibRate/colors";
 constexpr auto PREFER_OPDS_READ_URL_TEMPLATE     = "Preferences/opds/ReadUrlTemplate";
 constexpr auto PREFER_OPDS_AUTOUPDATE_COLLECTION = "Preferences/opds/AutoupdateCollection";
-constexpr auto PREFER_HIDE_SCROLLBARS_KEY        = "Preferences/hideScrollBars";
 constexpr auto PREFER_RELATIVE_PATHS             = "Preferences/RelativePaths";
 constexpr auto PREFER_HIDE_TO_TRAY_KEY           = "Preferences/HideToTray";
 constexpr auto PREFER_MINIMIZE_TO_TRAY_KEY       = "Preferences/MinimizeToTray";

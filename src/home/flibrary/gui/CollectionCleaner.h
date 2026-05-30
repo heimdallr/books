@@ -11,8 +11,8 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "settings/ISettings.h"
+#include "utilgui/ScrollBarController.h"
 
-#include "ScrollBarController.h"
 #include "StackedPage.h"
 
 namespace Ui

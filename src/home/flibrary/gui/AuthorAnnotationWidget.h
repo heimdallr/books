@@ -7,7 +7,7 @@
 
 #include "interface/logic/IAuthorAnnotationController.h"
 
-#include "ScrollBarController.h"
+#include "utilgui/ScrollBarController.h"
 
 namespace HomeCompa::Flibrary
 {

@@ -12,9 +12,8 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "settings/ISettings.h"
-
-#include "ItemViewToolTipper.h"
-#include "ScrollBarController.h"
+#include "utilgui/ItemViewToolTipper.h"
+#include "utilgui/ScrollBarController.h"
 
 class QAbstractItemView;
 class QModelIndex;

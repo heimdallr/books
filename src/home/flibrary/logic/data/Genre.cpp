@@ -224,7 +224,7 @@ Genre Genre::Load(DB::IDatabase& db, const std::unordered_set<QString>& neededGe
 		db,
 		neededGenres,
 		"select g.GenreCode, g.FB2Code, g.ParentCode, g.GenreAlias, coalesce(g.GenreTitle, ''), exists (select 42 from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount, IsDeleted, Flags from Genres "
-	    "g",
+		"g",
 		SORTER
 	);
 }

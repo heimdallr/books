@@ -11,9 +11,8 @@
 
 #include "gutil/interface/IParentWidgetProvider.h"
 #include "settings/ISettings.h"
-
-#include "ItemViewToolTipper.h"
-#include "ScrollBarController.h"
+#include "utilgui/ItemViewToolTipper.h"
+#include "utilgui/ScrollBarController.h"
 
 namespace HomeCompa::Flibrary
 {

@@ -10,11 +10,11 @@
 
 #include "gutil/interface/IParentWidgetProvider.h"
 #include "settings/ISettings.h"
+#include "utilgui/ItemViewToolTipper.h"
+#include "utilgui/ScrollBarController.h"
 
 #include "ComboBoxDelegate.h"
-#include "ItemViewToolTipper.h"
 #include "ScriptNameDelegate.h"
-#include "ScrollBarController.h"
 
 namespace HomeCompa::Flibrary
 {
