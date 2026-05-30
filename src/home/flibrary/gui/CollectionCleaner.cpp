@@ -108,11 +108,13 @@ public:
 
 		m_ui.genres->setModel(m_genreModel->GetModel());
 		m_ui.genres->viewport()->installEventFilter(m_scrollBarControllerGenre.get());
+		m_ui.genres->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 		m_scrollBarControllerGenre->SetScrollArea(m_ui.genres);
 
 		m_ui.languages->setModel(m_languageModel->GetModel());
 		m_ui.languages->horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
 		m_ui.languages->viewport()->installEventFilter(m_scrollBarControllerLanguage.get());
+		m_ui.languages->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 		m_scrollBarControllerLanguage->SetScrollArea(m_ui.languages);
 
 		m_ui.progressBar->setVisible(false);

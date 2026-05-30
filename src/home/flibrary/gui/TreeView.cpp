@@ -897,6 +897,7 @@ private:
 
 		auto& treeViewHeader = *m_ui.treeView->header();
 		m_ui.treeView->setHeaderHidden(IsNavigation());
+		m_ui.treeView->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 		treeViewHeader.setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
 		m_ui.treeView->viewport()->installEventFilter(m_scrollBarController.get());

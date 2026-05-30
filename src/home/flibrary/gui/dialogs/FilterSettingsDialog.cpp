@@ -10,6 +10,7 @@
 #include "fnd/algorithm.h"
 
 #include "interface/constants/ModelRole.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/IDataItem.h"
 
@@ -223,6 +224,7 @@ private:
 		m_ui.view->viewport()->installEventFilter(m_itemViewToolTipper.get());
 		m_ui.view->viewport()->installEventFilter(m_scrollBarController.get());
 		m_ui.view->header()->setContextMenuPolicy(Qt::ContextMenuPolicy::CustomContextMenu);
+		m_ui.view->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 
 		m_valueApplier = m_ui.value->Setup(m_settings, RECENT_VALUE_MODE_KEY);
 		m_indexToMode  = CreateTabs();
