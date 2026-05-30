@@ -21,7 +21,7 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "logic/data/DataItem.h"
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 #include "Measure.h"
 #include "log.h"

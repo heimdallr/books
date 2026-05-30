@@ -9,7 +9,7 @@
 #include "interface/logic/IProgressController.h"
 
 #include "util/FunctorExecutionForwarder.h"
-#include "util/UiTimer.h"
+#include "settings/UiTimer.h"
 
 #include "log.h"
 

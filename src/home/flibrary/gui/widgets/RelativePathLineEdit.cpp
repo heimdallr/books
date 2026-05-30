@@ -5,7 +5,7 @@
 #include <QAbstractButton>
 
 #include "gutil/interface/IUiFactory.h"
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 #include "util/files.h"
 
 using namespace HomeCompa::Flibrary;

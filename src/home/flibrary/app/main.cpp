@@ -31,7 +31,7 @@
 #include "logic/data/Genre.h"
 #include "logic/model/LogModel.h"
 #include "platform/PlatformUtil.h"
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 #include "util/xml/Initializer.h"
 #include "version/AppVersion.h"
 

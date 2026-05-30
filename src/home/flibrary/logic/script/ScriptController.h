@@ -5,7 +5,7 @@
 
 #include "interface/logic/IScriptController.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 namespace Hypodermic
 {

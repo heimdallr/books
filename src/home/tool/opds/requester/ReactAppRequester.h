@@ -9,7 +9,7 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 namespace HomeCompa::Opds
 {

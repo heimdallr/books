@@ -49,6 +49,7 @@ constexpr auto PREFER_HIDE_SCROLLBARS_KEY        = "Preferences/hideScrollBars";
 constexpr auto PREFER_RELATIVE_PATHS             = "Preferences/RelativePaths";
 constexpr auto PREFER_HIDE_TO_TRAY_KEY           = "Preferences/HideToTray";
 constexpr auto PREFER_MINIMIZE_TO_TRAY_KEY       = "Preferences/MinimizeToTray";
+constexpr auto PREFER_ALTERNATING_ROW_COLORS     = "Preferences/AlternatingRowColors";
 
 constexpr auto SEARCH_WITH_TITLE      = "SearchBy/Title";
 constexpr auto SEARCH_WITH_AUTHOR     = "SearchBy/Author";

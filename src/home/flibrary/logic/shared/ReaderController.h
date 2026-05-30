@@ -11,7 +11,7 @@
 #include "interface/logic/IReaderController.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 class QString;
 

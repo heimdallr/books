@@ -14,6 +14,7 @@ AddTarget(gui	shared_lib
 		logging
 		logic
 		platform
+		settings
 		util
 		utilgui
 		ver

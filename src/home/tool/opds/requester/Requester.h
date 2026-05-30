@@ -13,7 +13,7 @@
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IFilterProvider.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 class QIODevice;
 

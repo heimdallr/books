@@ -21,7 +21,7 @@
 
 #include "logging/LogAppender.h"
 #include "util/FunctorExecutionForwarder.h"
-#include "util/UiTimer.h"
+#include "settings/UiTimer.h"
 
 #include "QtTypes.h"
 

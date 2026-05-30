@@ -7,7 +7,7 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IFilterProvider.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 namespace HomeCompa::Opds::BookView
 {

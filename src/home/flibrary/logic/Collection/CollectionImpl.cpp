@@ -5,7 +5,7 @@
 
 #include "interface/constants/SettingsConstant.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 #include "util/hash.h"
 
 #include "log.h"

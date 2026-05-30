@@ -22,9 +22,9 @@
 #include "data/Genre.h"
 #include "extract/BooksExtractor.h"
 #include "extract/InpxGenerator.h"
+#include "settings/Settings.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/ZipProgressCallback.h"
-#include "util/Settings.h"
 #include "util/translit.h"
 
 #include "log.h"

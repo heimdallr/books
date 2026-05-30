@@ -19,6 +19,7 @@ AddTarget(logic	shared_lib
 		network
 		platform
 		rest
+		settings
 		util
 		zip
 )

@@ -44,7 +44,7 @@
 #include "shared/TaskQueue.h"
 #include "shared/UpdateChecker.h"
 #include "userdata/UserDataController.h"
-#include "util/Settings.h"
+#include "settings/Settings.h"
 #include "util/app.h"
 
 #include "LogicFactory.h"

@@ -9,7 +9,7 @@
 
 #include "interface/constants/Enums.h"
 
-#include "util/UiTimer.h"
+#include "settings/UiTimer.h"
 
 #include "BooksTreeGenerator.h"
 #include "DataItem.h"

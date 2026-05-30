@@ -6,7 +6,7 @@
 #include "interface/IDialog.h"
 #include "interface/IParentWidgetProvider.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 class QWidget;
 

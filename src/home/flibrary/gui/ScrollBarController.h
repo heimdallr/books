@@ -3,7 +3,7 @@
 #include <QObject>
 #include <QPointer>
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 class QAbstractScrollArea;
 class QTimer;

@@ -20,7 +20,7 @@
 
 #include "data/Genre.h"
 #include "database/DatabaseUtil.h"
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 #include "util/SortString.h"
 #include "util/language.h"
 

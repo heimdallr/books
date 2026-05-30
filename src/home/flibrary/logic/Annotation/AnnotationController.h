@@ -9,7 +9,7 @@
 #include "interface/logic/IFilterProvider.h"
 #include "interface/logic/ILogicFactory.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {

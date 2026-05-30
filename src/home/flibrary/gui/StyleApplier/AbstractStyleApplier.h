@@ -4,7 +4,7 @@
 
 #include "interface/ui/IStyleApplier.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {

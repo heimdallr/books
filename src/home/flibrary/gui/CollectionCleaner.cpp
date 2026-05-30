@@ -13,7 +13,7 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "gutil/util.h"
-#include "util/ISettingsObserver.h"
+#include "settings/ISettingsObserver.h"
 #include "utilgui/GeometryRestorable.h"
 
 using namespace HomeCompa;

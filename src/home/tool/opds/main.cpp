@@ -24,7 +24,7 @@
 #include "logic/Collection/CollectionImpl.h"
 #include "logic/data/Genre.h"
 #include "platform/NativeEventFilter.h"
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 #include "util/SortString.h"
 #include "util/xml/Initializer.h"
 

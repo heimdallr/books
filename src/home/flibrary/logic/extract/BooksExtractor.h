@@ -12,7 +12,7 @@
 #include "interface/logic/IProgressController.h"
 #include "interface/logic/IScriptController.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {

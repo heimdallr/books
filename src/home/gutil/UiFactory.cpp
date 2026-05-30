@@ -8,7 +8,7 @@
 #include "interface/IParentWidgetProvider.h"
 
 #include "Hypodermic/Hypodermic.h"
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 #include "utilgui/GeometryRestorable.h"
 
 #include "Dialog.h"

@@ -13,7 +13,7 @@
 #include "interface/logic/IProgressController.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 #include "ItemViewToolTipper.h"
 #include "ScrollBarController.h"

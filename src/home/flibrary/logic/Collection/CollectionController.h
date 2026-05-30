@@ -8,7 +8,7 @@
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {

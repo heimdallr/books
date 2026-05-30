@@ -7,7 +7,7 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {

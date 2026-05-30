@@ -15,7 +15,7 @@
 #include "interface/localization.h"
 #include "interface/logic/IAnnotationController.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"

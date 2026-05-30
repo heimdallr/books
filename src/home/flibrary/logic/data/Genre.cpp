@@ -11,7 +11,7 @@
 #include "interface/localization.h"
 
 #include "util/GenresLocalization.h"
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 #include "util/SortString.h"
 
 using namespace HomeCompa;

@@ -181,6 +181,7 @@ include(${FOUNDATION_ROOT}/djvu/djvu.cmake)
 include(${FOUNDATION_ROOT}/pdf/pdf.cmake)
 include(${FOUNDATION_ROOT}/platform/platform.cmake)
 include(${FOUNDATION_ROOT}/platformgui/platformgui.cmake)
+include(${FOUNDATION_ROOT}/settings/settings.cmake)
 
 file(WRITE "${CMAKE_BINARY_DIR}/var/7z" "${7zip_BIN_DIR}/")
 file(WRITE "${CMAKE_BINARY_DIR}/var/version" ${PRODUCT_VERSION})

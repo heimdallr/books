@@ -35,7 +35,7 @@
 #include "platform/FileUtil.h"
 #include "util/ColorUtil.h"
 #include "util/ObjectsConnector.h"
-#include "util/UiTimer.h"
+#include "settings/UiTimer.h"
 #include "util/language.h"
 
 #include "log.h"
