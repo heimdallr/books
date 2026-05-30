@@ -8,6 +8,7 @@
 #include <QMenu>
 
 #include "interface/localization.h"
+#include "interface/constants/SettingsConstant.h"
 
 #include "gutil/util.h"
 #include "logic/data/DataItem.h"
@@ -122,8 +123,8 @@ public:
 		m_ui.view->setModel(m_model.get());
 		m_ui.view->viewport()->installEventFilter(m_itemViewToolTipper.get());
 		m_ui.view->viewport()->installEventFilter(m_scrollBarController.get());
-
 		m_ui.view->header()->setDefaultAlignment(Qt::AlignCenter);
+		m_ui.view->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 
 		connect(&self, &QDialog::accepted, &self, [this] {
 			RemoveImpl();
