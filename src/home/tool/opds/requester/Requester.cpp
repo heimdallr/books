@@ -11,6 +11,7 @@
 #include <QUrl>
 
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
 
 #include "database/interface/IDatabase.h"
@@ -715,10 +716,21 @@ std::pair<QString, QString> ParseSearchString(const IRequester::Parameters& para
 {
 	const auto searchTerms = parameters.at("q");
 
-	auto terms    = searchTerms.split(QRegularExpression(R"(\s+|\+)"), Qt::SkipEmptyParts);
+	auto terms = searchTerms.toLower().split(QRegularExpression(R"(\s+|\+)"), Qt::SkipEmptyParts);
+	if (const auto [from, to] = std::ranges::remove_if(
+			terms,
+			[](const auto& item) {
+				return item.length() < 3;
+			}
+		);
+	    from != to)
+		terms.erase(from, to);
 	auto termsGui = terms.join(' ');
 
-	std::ranges::transform(terms, terms.begin(), [](const auto& item) {
+	std::ranges::transform(terms | std::views::as_rvalue, terms.begin(), [](QString&& item) {
+		item.removeIf([](const QChar& ch) {
+			return !IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit);
+		});
 		return item + '*';
 	});
 

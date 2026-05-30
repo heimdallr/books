@@ -506,7 +506,8 @@ private:
 				m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").CloseTag();
 
 				m_output->write(contents.front().toUtf8());
-				m_writer->Guard("a")->WriteAttribute("href", m_readTemplate.arg(m_feedId)).WriteCharacters(Tr(READ)).WriteStartElement("br").WriteEndElement().WriteStartElement("br").WriteEndElement();
+				if (QFileInfo(m_callback.GetFileName(m_feedId)).suffix().toLower() == "fb2")
+					m_writer->Guard("a")->WriteAttribute("href", m_readTemplate.arg(m_feedId)).WriteCharacters(Tr(READ)).WriteStartElement("br").WriteEndElement().WriteStartElement("br").WriteEndElement();
 
 				{
 					auto       linkTable  = m_writer->Guard("table");
