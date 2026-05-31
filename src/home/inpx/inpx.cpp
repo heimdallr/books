@@ -280,11 +280,6 @@ std::optional<size_t> FindDefault(const Dictionary& container, const QStringView
 	return container.find(value);
 }
 
-bool IsComment(const QStringView line) //-V801
-{
-	return std::size(line) < 3 || line.startsWith(COMMENT_START);
-}
-
 class Ini
 {
 public:
