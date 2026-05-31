@@ -850,8 +850,8 @@ private:
 	{
 		PLOGV << "ConnectActionsSettingsFont";
 		const auto incrementFontSize = [&](const int value) {
-			const auto fontSize = m_settings->Get(Constant::Settings::FONT_SIZE_KEY, Constant::Settings::FONT_SIZE_DEFAULT);
-			m_settings->Set(Constant::Settings::FONT_SIZE_KEY, fontSize + value);
+			const auto fontSize = m_settings->Get(Global::FONT_SIZE_KEY, Global::FONT_SIZE_DEFAULT);
+			m_settings->Set(Global::FONT_SIZE_KEY, fontSize + value);
 		};
 		connect(m_ui.actionFontSizeUp, &QAction::triggered, &m_self, [=] {
 			incrementFontSize(1);
@@ -862,7 +862,7 @@ private:
 		connect(m_ui.actionFontSettings, &QAction::triggered, &m_self, [&] {
 			if (const auto font = m_uiFactory->GetFont(Tr(FONT_DIALOG_TITLE), m_self.font()))
 			{
-				const SettingsGroup group(*m_settings, Constant::Settings::FONT_KEY);
+				const SettingsGroup group(*m_settings, Global::FONT_KEY);
 				Util::Serialize(*font, *m_settings);
 			}
 		});

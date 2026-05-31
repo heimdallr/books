@@ -7,9 +7,6 @@ constexpr auto LOCALE_KEY = "ui/locale";
 
 constexpr auto VIEW_MODE_KEY_TEMPLATE       = "ui/%1/Mode";
 constexpr auto VIEW_NAVIGATION_KEY_TEMPLATE = "ui/View/Navigation/%1";
-constexpr auto FONT_KEY                     = "ui/Font";
-constexpr auto FONT_SIZE_KEY                = "ui/Font/pointSizeF";
-constexpr auto FONT_SIZE_FAMILY             = "ui/Font/family";
 constexpr auto RECENT_NAVIGATION_ID_KEY     = "Collections/%1/%2%3/LastId";
 
 constexpr auto EXPORT_DIALOG_KEY           = "Export";
@@ -20,8 +17,6 @@ constexpr auto PERMANENT_LANG_FILTER_KEY         = "ui/permanentLanguageFilter";
 constexpr auto PERMANENT_LANG_FILTER_ENABLED_KEY = "ui/permanentLanguageFilterEnabled";
 constexpr auto SHOW_REMOVED_BOOKS_KEY            = "ui/View/RemovedBooks";
 constexpr auto HOTKEYS_ROOT                      = "ui/Hotkeys";
-
-constexpr auto FONT_SIZE_DEFAULT = 9;
 
 constexpr auto OPDS_HOST_KEY          = "opds/host";
 constexpr auto OPDS_PORT_KEY          = "opds/port";
