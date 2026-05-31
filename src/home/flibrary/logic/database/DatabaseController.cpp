@@ -1,5 +1,7 @@
 #include "DatabaseController.h"
 
+#include <mutex>
+
 #include "fnd/observable.h"
 
 #include "database/interface/IDatabase.h"

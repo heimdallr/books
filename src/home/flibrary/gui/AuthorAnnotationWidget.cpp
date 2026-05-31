@@ -63,8 +63,8 @@ public:
 	Impl(
 		QFrame*                                      self,
 		std::shared_ptr<IAuthorAnnotationController> annotationController,
-		std::shared_ptr<ScrollBarController>         scrollBarControllerText,
-		std::shared_ptr<ScrollBarController>         scrollBarControllerImages
+		std::shared_ptr<Util::ScrollBarController>   scrollBarControllerText,
+		std::shared_ptr<Util::ScrollBarController>   scrollBarControllerImages
 	)
 		: m_self { self }
 		, m_annotationController { std::move(annotationController) }
@@ -185,8 +185,8 @@ private:
 private:
 	QFrame*                                                         m_self;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> m_annotationController;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr>         m_scrollBarControllerText;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr>         m_scrollBarControllerImages;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr>   m_scrollBarControllerText;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr>   m_scrollBarControllerImages;
 	bool                                                            m_show { true };
 	std::vector<QPixmap>                                            m_images;
 	Ui::AuthorAnnotationWidget                                      m_ui {};
@@ -194,8 +194,8 @@ private:
 
 AuthorAnnotationWidget::AuthorAnnotationWidget(
 	std::shared_ptr<IAuthorAnnotationController> annotationController,
-	std::shared_ptr<ScrollBarController>         scrollBarControllerText,
-	std::shared_ptr<ScrollBarController>         scrollBarControllerImages,
+	std::shared_ptr<Util::ScrollBarController>   scrollBarControllerText,
+	std::shared_ptr<Util::ScrollBarController>   scrollBarControllerImages,
 	QWidget*                                     parent
 )
 	: QFrame(parent)

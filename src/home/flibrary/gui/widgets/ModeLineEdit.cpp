@@ -6,7 +6,7 @@
 
 #include <QMenu>
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;

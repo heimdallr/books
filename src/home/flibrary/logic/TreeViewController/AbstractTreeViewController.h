@@ -7,7 +7,7 @@
 #include "interface/logic/IModelProvider.h"
 #include "interface/logic/ITreeViewController.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 class QString;
 

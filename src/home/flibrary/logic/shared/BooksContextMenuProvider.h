@@ -16,7 +16,7 @@
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 #include "util/bookhash/flihash.h"
 
 class QAbstractItemModel;

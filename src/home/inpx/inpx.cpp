@@ -1,7 +1,5 @@
 #include "inpx.h"
 
-#include <QCryptographicHash>
-
 #include <fstream>
 #include <future>
 #include <queue>
@@ -9,6 +7,7 @@
 #include <set>
 #include <sstream>
 
+#include <QCoreApplication>
 #include <QDirIterator>
 #include <QFile>
 #include <QJsonArray>
@@ -16,6 +15,7 @@
 #include <QJsonObject>
 #include <QJsonValue>
 #include <QRegularExpression>
+#include <QTemporaryDir>
 
 #include <boost/iterator/iterator_facade.hpp>
 
@@ -30,6 +30,7 @@
 
 #include "database/factory/Factory.h"
 #include "util/Fb2InpxParser.h"
+#include "util/GenresLocalization.h"
 #include "util/IExecutor.h"
 #include "util/executor/factory.h"
 #include "util/language.h"
@@ -409,16 +410,29 @@ private:
 	QStringList m_annotation;
 };
 
-QStringView QNext(QString::const_iterator& beg, const QString::const_iterator end, const char separator)
+QStringView QNextRaw(QString::const_iterator& beg, const QString::const_iterator end, const char separator)
 {
-	beg              = std::find_if(beg, end, [](const QChar c) {
-		return c.category() != QChar::Separator_Space;
-	});
 	auto        next = std::find(beg, end, separator);
 	QStringView result(beg, next);
 	beg = next != end ? std::next(next) : end;
 	return result;
 }
+
+QStringView QNext(QString::const_iterator& beg, const QString::const_iterator end, const char separator)
+{
+	beg = std::find_if(beg, end, [](const QChar c) {
+		return c.category() != QChar::Separator_Space;
+	});
+	return QNextRaw(beg, end, separator);
+}
+
+struct GenreItem
+{
+	using Ptr = std::shared_ptr<GenreItem>;
+	size_t            index;
+	std::vector<Ptr>  children;
+	std::set<QString> aliases;
+};
 
 auto LoadGenres(const QString& genresIniFileName)
 {
@@ -429,41 +443,55 @@ auto LoadGenres(const QString& genresIniFileName)
 	if (!stream.open(QIODevice::ReadOnly))
 		throw std::invalid_argument(std::format("Cannot open '{}'", genresIniFileName));
 
+	QJsonParseError parseError;
+	const auto      doc = QJsonDocument::fromJson(stream.readAll(), &parseError);
+	if (parseError.error != QJsonParseError::NoError)
+		throw std::invalid_argument(std::format("'{}' - parse error: {}", genresIniFileName, parseError.errorString()));
+
+	if (!doc.isArray())
+		throw std::invalid_argument(std::format("'{}' must be json array", genresIniFileName));
+
 	genres.emplace_back("");
 	index.emplace(genres.front().code, size_t { 0 });
 
-	for (auto byteArray = stream.readLine(); !byteArray.isEmpty(); byteArray = stream.readLine())
-	{
-		auto line = QString::fromUtf8(byteArray);
-		if (IsComment(line))
-			continue;
+	const auto enumerate = [&](const size_t parentId, const QString& parentCode, const QString& parentDbCode, const QJsonArray& array, const auto& r) -> size_t {
+		const auto currentSize = genres.size();
+		const auto result      = static_cast<size_t>(array.size());
 
-		auto it     = std::cbegin(line);
-		auto codes  = QNext(it, std::cend(line), GENRE_SEPARATOR).toString();
-		auto itCode = std::cbegin(codes);
-		auto code   = QNext(itCode, std::cend(codes), Fb2InpxParser::LIST_SEPARATOR).toString();
-		index.emplace(code, std::size(genres));
+		std::ranges::transform(std::views::zip(array, std::views::iota(1), std::views::iota(currentSize)), std::back_inserter(genres), [&, parentId, parentCode, parentDbCode](const auto& item) {
+			auto  dbCode = QString("%1").arg(std::get<1>(item), 3, 10, QChar { '0' });
+			Genre genre(parentDbCode.isEmpty() ? std::move(dbCode) : parentDbCode + '.' + std::move(dbCode));
+			genre.parentId   = parentId;
+			genre.parentCode = parentCode;
 
-		while (itCode != std::cend(codes))
-			index.emplace(QNext(itCode, std::cend(codes), Fb2InpxParser::LIST_SEPARATOR).toString(), std::size(genres));
+			const auto obj = std::get<0>(item).toObject();
+			genre.code     = obj["id"].toString();
+			genre.name     = obj["description"].toString();
+			if (const auto it = obj.find("title"); it != obj.end())
+				genre.title = it.value().toString();
 
-		const auto parent = QNext(it, std::end(line), GENRE_SEPARATOR);
-		const auto title  = QNext(it, std::end(line), GENRE_SEPARATOR);
-		genres.emplace_back(std::move(code), parent.toString(), title.toString());
-	}
+			index.emplace(genre.code, std::get<2>(item));
+			if (const auto it = obj.find("aliases"); it != obj.end())
+				for (const auto alias : it.value().toArray())
+					index.emplace(alias.toString(), std::get<2>(item));
 
-	std::for_each(std::next(std::begin(genres)), std::end(genres), [&index, &genres](Genre& genre) {
-		if (const auto it = index.find(genre.parentCode))
+			return genre;
+		});
+
+		for (auto&& [item, id] : std::views::zip(array, std::views::iota(currentSize)))
 		{
-			auto& parent   = genres[*it];
-			genre.parentId = *it;
-			genre.dbCode   = QString("%1%2").arg(parent.dbCode.isEmpty() ? QString {} : parent.dbCode + '.').arg(++parent.childrenCount, 3, 10, QChar { '0' });
+			const auto obj = item.toObject();
+			if (const auto it = obj.find("subgenres"); it != obj.end())
+			{
+				auto&      genre         = genres[id];
+				const auto size          = r(id, genre.code, genre.dbCode, it.value().toArray(), r);
+				genres[id].childrenCount = size;
+			}
 		}
-		else
-		{
-			assert(false && "unexpected parentCode");
-		}
-	});
+
+		return result;
+	};
+	genres[0].childrenCount = enumerate(0, {}, {}, doc.array(), enumerate);
 
 	return std::make_pair(std::move(genres), std::move(index));
 }
@@ -574,7 +602,15 @@ std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& key
 }
 
 using BookBufFieldGetter = QStringView& (*)(Book&);
-using BookBufMapping     = std::vector<BookBufFieldGetter>;
+using NextParser         = QStringView (*)(QString::const_iterator& beg, QString::const_iterator end, char separator);
+
+struct BookBufFieldGetters
+{
+	BookBufFieldGetter bookBufFieldGetter { nullptr };
+	NextParser         next { &QNext };
+};
+
+using BookBufMapping = std::vector<BookBufFieldGetters>;
 
 #define BOOK_BUF_FIELD_ITEM(NAME)      \
 	QStringView& Get##NAME(Book& book) \
@@ -599,7 +635,7 @@ Book ParseBook(const QString& line, const BookBufMapping& f, QString folder)
 	const auto endIt = std::cend(line);
 
 	for (size_t i = 0, sz = f.size(); i < sz && it != endIt; ++i)
-		f[i](buf) = QNext(it, endIt, Fb2InpxParser::FIELDS_SEPARATOR);
+		f[i].bookBufFieldGetter(buf) = f[i].next(it, endIt, Fb2InpxParser::FIELDS_SEPARATOR);
 
 	buf.fileName = QString("%1.%2").arg(buf.FILE, buf.EXT);
 
@@ -870,13 +906,17 @@ size_t Store(DB::IDatabase& db, Data& data)
 	result += StoreRange(
 		db,
 		"Genres",
-		"INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias) VALUES(?, ?, ?, ?)",
+		"INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias, GenreTitle) VALUES(?, ?, ?, ?, ?)",
 		newGenresIndex | std::views::drop(1),
 		[&genres = data.genres](DB::ICommand& cmd, const size_t n) {
 			cmd.Bind(0, genres[n].dbCode);
 			cmd.Bind(1, genres[genres[n].parentId].dbCode);
 			cmd.Bind(2, genres[n].code);
 			cmd.Bind(3, genres[n].name);
+			if (genres[n].title.isEmpty())
+				cmd.Bind(4);
+			else
+				cmd.Bind(4, genres[n].title);
 			return cmd.Execute();
 		}
 	);
@@ -1146,16 +1186,18 @@ std::pair<Genres, Dictionary> ReadGenres(DB::IDatabase& db, const QString& genre
 	std::map<QString, std::vector<size_t>> children;
 
 	auto       n     = std::size(genres);
-	const auto query = db.CreateQuery("select FB2Code, GenreCode, ParentCode, GenreAlias from Genres");
+	const auto query = db.CreateQuery("select FB2Code, GenreCode, ParentCode, GenreAlias, GenreTitle from Genres");
 	for (query->Execute(); !query->Eof(); query->Next())
 	{
 		const auto* fb2Code    = query->Get<const char*>(0);
 		const auto* genreCode  = query->Get<const char*>(1);
 		const auto* parentCode = query->Get<const char*>(2);
 		const auto* genreAlias = query->Get<const char*>(3);
+		const auto* genreTitle = query->Get<const char*>(4);
 
 		Genre genre(fb2Code, "", genreAlias);
 		genre.dbCode = genreCode;
+		genre.title  = genreTitle;
 		children[parentCode].push_back(n);
 		index.emplace(genre.code, n++);
 		genre.newGenre = false;
@@ -1690,7 +1732,7 @@ private:
 
 		m_db = Create(DB::Factory::Impl::Sqlite, connectionString);
 
-		const auto [oldData, oldGenresIndex] = ReadData(m_ini(GENRES, DEFAULT_GENRES));
+		const auto [oldData, oldGenresIndex] = ReadData(m_ini(GENRES_PATH, DEFAULT_GENRES));
 
 		m_data        = oldData;
 		m_genresIndex = oldGenresIndex;
@@ -1743,7 +1785,7 @@ private:
 	{
 		Timer t("parsing archives");
 
-		auto [genresData, genresIndex] = LoadGenres(m_ini(GENRES, DEFAULT_GENRES));
+		auto [genresData, genresIndex] = LoadGenres(m_ini(GENRES_PATH, DEFAULT_GENRES));
 		m_data.genres                  = std::move(genresData);
 		m_genresIndex                  = std::move(genresIndex);
 		SetUnknownGenreId();
@@ -2108,15 +2150,18 @@ where b.FileName = ? and b.Ext = ?)");
 		auto fields = fieldList.split(';', Qt::SkipEmptyParts);
 		m_bookBufMapping.clear();
 		m_bookBufMapping.reserve(fields.size());
-		std::ranges::transform(fields, std::back_inserter(m_bookBufMapping), [&](const auto& str) {
+		std::ranges::transform(fields, std::back_inserter(m_bookBufMapping), [&](const auto& str) -> decltype(m_bookBufMapping)::value_type {
 			const auto it = bookBufMapping.find(str.simplified());
 			if (it == bookBufMapping.end())
 			{
-				PLOGW << "unexpected field name " << str;
-				return &GetBookBufFieldDefault;
+				if (str != "INSNO")
+				{
+					PLOGW << "unexpected field name " << str;
+				}
+				return { &GetBookBufFieldDefault, &QNext };
 			}
 
-			return it->second;
+			return { it->second, IsOneOf(str, "FILE", "EXT") ? QNextRaw : &QNext };
 		});
 	}
 
@@ -2290,7 +2335,17 @@ where b.FileName = ? and b.Ext = ?)");
 			},
 			[&data = m_data.genres](const Dictionary& container, const QStringView value) {
 				if (auto itGenre = container.find(value))
+				{
+					while (data[*itGenre].childrenCount > 0)
+					{
+						const auto itChild = std::ranges::find(data, *itGenre, [](const auto& item) {
+							return item.parentId;
+						});
+
+						itGenre = container.find(itChild->code);
+					}
 					return itGenre;
+				}
 
 				return container.find_if([value, &data](const auto& item) {
 					return data[item.second].name.compare(value, Qt::CaseInsensitive) == 0;
@@ -2352,6 +2407,7 @@ private:
 	std::mutex m_dataGuard;
 
 	std::vector<std::unique_ptr<Thread>> m_threads;
+	Util::GenreFixerInitializer          m_genreFixerInitializer;
 };
 
 Parser::Parser()  = default;
@@ -2434,4 +2490,38 @@ bool Parser::CheckForUpdate(IniMap data, DB::IDatabase& database)
 	};
 
 	return TRY("fill inpx", process);
+}
+
+Parser::IniMapPair Parser::GetIniMap(QString db, QString folder, QString additionalFolder, QString inpx, const bool createFiles)
+{
+	IniMapPair result { createFiles ? std::make_shared<QTemporaryDir>() : nullptr, IniMap {} };
+	const auto getFile = [tempDir = result.first, createFiles](const QString& name) {
+		auto fileName = QCoreApplication::applicationDirPath() + QDir::separator() + name;
+		if (!createFiles || QFile(fileName).exists())
+			return fileName;
+
+		fileName = tempDir->filePath(name);
+		QFile::copy(":/data/" + name, fileName);
+		return fileName;
+	};
+
+	result.second = IniMap {
+		{		   DB_PATH,					 std::move(db) },
+		{       GENRES_PATH,           getFile(DEFAULT_GENRES) },
+		{  DB_CREATE_SCRIPT, getFile(DEFAULT_DB_CREATE_SCRIPT) },
+		{  DB_UPDATE_SCRIPT, getFile(DEFAULT_DB_UPDATE_SCRIPT) },
+		{    ARCHIVE_FOLDER,                 std::move(folder) },
+		{ ADDITIONAL_FOLDER,       std::move(additionalFolder) },
+	};
+
+	if (!inpx.isEmpty())
+		result.second.try_emplace(INPX_PATH, std::move(inpx));
+
+	for (auto& [key, value] : result.second)
+	{
+		value = QDir::fromNativeSeparators(value);
+		PLOGD << key << ": " << value;
+	}
+
+	return result;
 }

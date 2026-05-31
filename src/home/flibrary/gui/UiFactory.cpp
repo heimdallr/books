@@ -70,6 +70,8 @@ constexpr const char* COMPONENTS[]       = {
 	"<tr><td><a href='https://www.boost.org/'>boost</a> &copy; boost C++ libraries <a href='https://www.boost.org/LICENSE_1_0.txt'>Boost Software License v1.0</a></td></tr>",
 	"<tr><td><a href='https://www.7-zip.org/'>7z</a> &copy; 1999-2023 Igor Pavlov <a href='https://www.7-zip.org/license.txt'>GNU LGPL, BSD 3-clause License</a></td></tr>",
 	"<tr><td><a href='https://github.com/libjxl/libjxl'>libjxl</a> &copy; the JPEG XL Project Authors <a href='https://opensource.org/license/bsd-3-clause'>BSD 3-clause License</a></td></tr>",
+	"<tr><td><a href='https://djvu.sourceforge.net/'>DjVu Libre</a> &copy; <a href='http://www.lizardtech.com/'>LizardTech Inc.</a> <a href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt'>GPL-2.0 License</a></td></tr>",
+	"<tr><td><a href='https://poppler.freedesktop.org/'>Poppler</a> &copy; <a href='https://www.freedesktop.org/wiki/'>freedesktop.org</a> <a href='https://www.gnu.org/licenses/gpl-3.0.txt'>GPL-3.0 License</a></td></tr>",
 	"<tr><td><a href='https://github.com/rikyoz/bit7z'>bit7z</a> &copy; 2014-2024 <a href='https://github.com/rikyoz'>Riccardo Ostani</a> <a href='https://github.com/rikyoz/bit7z/blob/master/LICENSE'>MPL-2.0</a></td></tr>",
 	"<tr><td><a href='https://www.sqlite.org/'>SQLite</a> <a href='https://www.sqlite.org/copyright.html'>Public Domain</a></td></tr>",
 	"<tr><td><a href='https://github.com/iwongu/sqlite3pp'>sqlite3pp</a> &copy; 2023 <a href='https://github.com/iwongu'>Wongoo Lee</a> <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
@@ -310,14 +312,14 @@ QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
 	return m_impl->container.resolve<Util::IUiFactory>()->ShowCustomDialog(icon, title, text, buttons, defaultButton, detailedText);
 }
 
-QMessageBox::StandardButton UiFactory::ShowQuestion(const QString& text, const QMessageBox::StandardButtons& buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton UiFactory::ShowQuestion(Util::DialogInitializer& initializer) const
 {
-	return m_impl->container.resolve<Util::IUiFactory>()->ShowQuestion(text, buttons, defaultButton);
+	return m_impl->container.resolve<Util::IUiFactory>()->ShowQuestion(initializer);
 }
 
-QMessageBox::StandardButton UiFactory::ShowWarning(const QString& text, const QMessageBox::StandardButtons& buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton UiFactory::ShowWarning(Util::DialogInitializer& initializer) const
 {
-	return m_impl->container.resolve<Util::IUiFactory>()->ShowWarning(text, buttons, defaultButton);
+	return m_impl->container.resolve<Util::IUiFactory>()->ShowWarning(initializer);
 }
 
 void UiFactory::ShowInfo(const QString& text) const
@@ -373,13 +375,13 @@ std::shared_ptr<ITreeViewController> UiFactory::GetTreeViewController() const no
 	return std::move(m_impl->treeViewController);
 }
 
-QTreeView& UiFactory::GetTreeView() const noexcept
+QTreeView& UiFactory::GetTreeView() const
 {
 	assert(m_impl->treeView);
 	return *m_impl->treeView;
 }
 
-QAbstractItemView& UiFactory::GetAbstractItemView() const noexcept
+QAbstractItemView& UiFactory::GetAbstractItemView() const
 {
 	assert(m_impl->abstractItemView);
 	return *m_impl->abstractItemView;
@@ -549,6 +551,7 @@ limit {}
 
 			  return [this, &menu, data = std::move(data)](size_t) {
 				  menu.menuAction()->setEnabled(!data.empty());
+				  menu.clear();
 				  for (const auto& [id, title] : data)
 				  {
 					  auto* action = menu.addAction(title);

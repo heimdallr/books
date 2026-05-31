@@ -8,7 +8,7 @@
 #include <QTranslator>
 
 #include "constants/SettingsConstant.h"
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 #include "log.h"
 

@@ -18,7 +18,7 @@ constexpr auto FlibraryBackupVersionNumber = 8;
 constexpr auto FlibraryUserData            = "FlibraryUserData";
 
 constexpr auto MinimumFlibraryDatabaseVersionNumber = 11;
-constexpr auto FlibraryDatabaseVersionNumber        = 12;
+constexpr auto FlibraryDatabaseVersionNumber        = 13;
 
 constexpr size_t MAX_LOG_SIZE = 10000;
 
@@ -30,9 +30,6 @@ constexpr auto BOOK = "Book:";
 
 constexpr auto BOOK_HASH_MIME_DATA_TYPE = "FLIBRARY_BOOK_HASH_MIME_DATA_TYPE";
 
-const auto INFO = [] {
-	static constexpr char32_t info = 0x0001F6C8;
-	return QString::fromUcs4(&info, 1);
-}();
+constexpr auto BACKUP_FILE_EXT = ".flibk";
 
 } // namespace HomeCompa::Flibrary::Constant

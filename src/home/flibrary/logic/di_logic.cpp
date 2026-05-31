@@ -31,6 +31,7 @@
 #include "model/TreeModel.h"
 #include "script/CommandExecutor.h"
 #include "script/ScriptController.h"
+#include "settings/Settings.h"
 #include "shared/BookInteractor.h"
 #include "shared/CommandLine.h"
 #include "shared/FilterController.h"
@@ -44,7 +45,6 @@
 #include "shared/TaskQueue.h"
 #include "shared/UpdateChecker.h"
 #include "userdata/UserDataController.h"
-#include "util/Settings.h"
 #include "util/app.h"
 
 #include "LogicFactory.h"

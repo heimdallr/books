@@ -6,7 +6,7 @@
 
 #include "interface/logic/ICollectionProvider.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -34,11 +34,10 @@ private: // ICollectionProvider
 	[[nodiscard]] bool               ActiveCollectionExists() const noexcept override;
 	[[nodiscard]] QString            GetActiveCollectionId() const noexcept override;
 
-	void       RegisterObserver(ICollectionsObserver* observer) override;
-	void       UnregisterObserver(ICollectionsObserver* observer) override;
-	void       OnActiveCollectionChanged() override;
-	void       OnNewCollectionCreating(bool) override;
-	IniMapPair GetIniMap(const QString& db, const QString& folder, const QString& additionalFolder, const QString& inpx, bool createFiles) const override;
+	void RegisterObserver(ICollectionsObserver* observer) override;
+	void UnregisterObserver(ICollectionsObserver* observer) override;
+	void OnActiveCollectionChanged() override;
+	void OnNewCollectionCreating(bool) override;
 
 private:
 	class Impl;

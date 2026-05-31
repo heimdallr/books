@@ -60,6 +60,7 @@ QVariant ScriptModel::data(const QModelIndex& index, const int role) const
 	switch (role)
 	{
 		case Qt::DisplayRole:
+		case Qt::ToolTipRole:
 			switch (index.column())
 			{
 				case 0:

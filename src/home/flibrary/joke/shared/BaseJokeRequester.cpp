@@ -37,8 +37,11 @@ BaseJokeRequester::~BaseJokeRequester() = default;
 void BaseJokeRequester::Request(std::weak_ptr<IClient> client)
 {
 	auto       item = std::make_unique<Item>(std::move(client));
-	const auto id   = m_impl->downloader->Download(m_impl->uri, item->stream, [this](const size_t idMessage, const int code, const QString& message) {
-		OnResponse(idMessage, code, message);
+	const auto id   = m_impl->downloader->Download(
+		m_impl->uri,
+		item->stream,
+		[this](const size_t idMessage, const int code, const QString& message) {
+			OnResponse(idMessage, code, message);
 		},
 		{},
 		m_impl->headers

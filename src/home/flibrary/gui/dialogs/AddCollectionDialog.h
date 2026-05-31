@@ -10,7 +10,7 @@
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {

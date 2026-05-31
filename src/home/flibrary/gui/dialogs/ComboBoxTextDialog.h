@@ -8,7 +8,7 @@
 #include "interface/ui/IUiFactory.h"
 #include "interface/ui/dialogs/IComboBoxTextDialog.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {

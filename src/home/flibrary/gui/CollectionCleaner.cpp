@@ -13,7 +13,7 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "gutil/util.h"
-#include "util/ISettingsObserver.h"
+#include "settings/ISettingsObserver.h"
 #include "utilgui/GeometryRestorable.h"
 
 using namespace HomeCompa;
@@ -78,17 +78,17 @@ class CollectionCleaner::Impl final
 
 public:
 	Impl(
-		CollectionCleaner&                        self,
-		const ICollectionProvider&                collectionProvider,
-		std::shared_ptr<const IUiFactory>         uiFactory,
-		std::shared_ptr<const IReaderController>  readerController,
-		std::shared_ptr<const ICollectionCleaner> collectionCleaner,
-		std::shared_ptr<const IBookInfoProvider>  dataProvider,
-		std::shared_ptr<ISettings>                settings,
-		std::shared_ptr<IGenreModel>              genreModel,
-		std::shared_ptr<ILanguageModel>           languageModel,
-		std::shared_ptr<ScrollBarController>      scrollBarControllerGenre,
-		std::shared_ptr<ScrollBarController>      scrollBarControllerLanguage
+		CollectionCleaner&                         self,
+		const ICollectionProvider&                 collectionProvider,
+		std::shared_ptr<const IUiFactory>          uiFactory,
+		std::shared_ptr<const IReaderController>   readerController,
+		std::shared_ptr<const ICollectionCleaner>  collectionCleaner,
+		std::shared_ptr<const IBookInfoProvider>   dataProvider,
+		std::shared_ptr<ISettings>                 settings,
+		std::shared_ptr<IGenreModel>               genreModel,
+		std::shared_ptr<ILanguageModel>            languageModel,
+		std::shared_ptr<Util::ScrollBarController> scrollBarControllerGenre,
+		std::shared_ptr<Util::ScrollBarController> scrollBarControllerLanguage
 	)
 		: GeometryRestorable(*this, settings, CONTEXT)
 		, GeometryRestorableObserver(self)
@@ -108,11 +108,13 @@ public:
 
 		m_ui.genres->setModel(m_genreModel->GetModel());
 		m_ui.genres->viewport()->installEventFilter(m_scrollBarControllerGenre.get());
+		m_ui.genres->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 		m_scrollBarControllerGenre->SetScrollArea(m_ui.genres);
 
 		m_ui.languages->setModel(m_languageModel->GetModel());
 		m_ui.languages->horizontalHeader()->setSortIndicator(0, Qt::AscendingOrder);
 		m_ui.languages->viewport()->installEventFilter(m_scrollBarControllerLanguage.get());
+		m_ui.languages->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 		m_scrollBarControllerLanguage->SetScrollArea(m_ui.languages);
 
 		m_ui.progressBar->setVisible(false);
@@ -431,19 +433,19 @@ private:
 	}
 
 private:
-	StackedPage&                                            m_self;
-	Ui::CollectionCleaner                                   m_ui;
-	std::shared_ptr<const IUiFactory>                       m_uiFactory;
-	std::shared_ptr<const IReaderController>                m_readerController;
-	std::shared_ptr<const ICollectionCleaner>               m_collectionCleaner;
-	std::shared_ptr<const IBookInfoProvider>                m_dataProvider;
-	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
-	PropagateConstPtr<IModel, std::shared_ptr>              m_genreModel;
-	PropagateConstPtr<IModel, std::shared_ptr>              m_languageModel;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerGenre;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarControllerLanguage;
-	const QString                                           m_destructiveOperationsAllowedKey;
-	bool                                                    m_analyzeCanceled { false };
+	StackedPage&                                                  m_self;
+	Ui::CollectionCleaner                                         m_ui;
+	std::shared_ptr<const IUiFactory>                             m_uiFactory;
+	std::shared_ptr<const IReaderController>                      m_readerController;
+	std::shared_ptr<const ICollectionCleaner>                     m_collectionCleaner;
+	std::shared_ptr<const IBookInfoProvider>                      m_dataProvider;
+	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
+	PropagateConstPtr<IModel, std::shared_ptr>                    m_genreModel;
+	PropagateConstPtr<IModel, std::shared_ptr>                    m_languageModel;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarControllerGenre;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarControllerLanguage;
+	const QString                                                 m_destructiveOperationsAllowedKey;
+	bool                                                          m_analyzeCanceled { false };
 };
 
 CollectionCleaner::CollectionCleaner(
@@ -455,8 +457,8 @@ CollectionCleaner::CollectionCleaner(
 	std::shared_ptr<ISettings>                        settings,
 	std::shared_ptr<IGenreModel>                      genreModel,
 	std::shared_ptr<ILanguageModel>                   languageModel,
-	std::shared_ptr<ScrollBarController>              scrollBarControllerGenre,
-	std::shared_ptr<ScrollBarController>              scrollBarControllerLanguage,
+	std::shared_ptr<Util::ScrollBarController>        scrollBarControllerGenre,
+	std::shared_ptr<Util::ScrollBarController>        scrollBarControllerLanguage,
 	QWidget*                                          parent
 )
 	: StackedPage(uiFactory->GetParentWidget(parent))

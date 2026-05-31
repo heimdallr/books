@@ -80,7 +80,11 @@ QVariant FilteredProxyModel::data(const QModelIndex& index, const int role) cons
 	if (index.isValid())
 	{
 		if (role == Qt::CheckStateRole)
-			return index.column() == 0 && index.data(Role::Checkable).toBool() ? GetCheckState(*this, index) : QVariant {};
+		{
+			if (const auto value = index.data(Role::CheckableColumn); value.isValid())
+				return index.column() == value.toInt() ? GetCheckState(*this, index) : QVariant {};
+			return {};
+		}
 
 		return QIdentityProxyModel::data(index, role);
 	}

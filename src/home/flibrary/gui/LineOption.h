@@ -5,7 +5,7 @@
 
 #include "interface/ui/ILineOption.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 class QLineEdit;
 class QString;

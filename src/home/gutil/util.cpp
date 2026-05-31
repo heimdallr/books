@@ -8,7 +8,7 @@
 
 #include "interface/localization.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 namespace HomeCompa::Util
 {

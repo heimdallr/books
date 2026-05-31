@@ -15,7 +15,7 @@
 #include "interface/localization.h"
 #include "interface/logic/IAnnotationController.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"
@@ -481,11 +481,8 @@ private:
 
 		if (rel == "http://opds-spec.org/acquisition")
 		{
-			const auto type = attributes.GetAttribute("type");
-			if (type == "application/fb2")
-				m_downloadLinkFb2 = std::move(href);
-			else if (type == "application/fb2+zip")
-				m_downloadLinkZip = std::move(href);
+			if (const auto type = attributes.GetAttribute("type"); type.startsWith("application/"))
+				(type.endsWith("+zip") ? m_downloadLinkZip : m_downloadLinkFb2) = std::move(href);
 			return true;
 		}
 
@@ -509,7 +506,8 @@ private:
 				m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").CloseTag();
 
 				m_output->write(contents.front().toUtf8());
-				m_writer->Guard("a")->WriteAttribute("href", m_readTemplate.arg(m_feedId)).WriteCharacters(Tr(READ)).WriteStartElement("br").WriteEndElement().WriteStartElement("br").WriteEndElement();
+				if (QFileInfo(m_callback.GetFileName(m_feedId)).suffix().toLower() == "fb2")
+					m_writer->Guard("a")->WriteAttribute("href", m_readTemplate.arg(m_feedId)).WriteCharacters(Tr(READ)).WriteStartElement("br").WriteEndElement().WriteStartElement("br").WriteEndElement();
 
 				{
 					auto       linkTable  = m_writer->Guard("table");

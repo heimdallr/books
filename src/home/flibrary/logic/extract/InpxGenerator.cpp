@@ -1,23 +1,25 @@
 #include "InpxGenerator.h"
 
-#include <QCryptographicHash>
-
 #include <filesystem>
+#include <mutex>
+#include <ranges>
 
+#include <QCryptographicHash>
+#include <QDir>
 #include <QFileInfo>
 #include <QTimer>
+#include <QUuid>
 
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
-#include "database/interface/ITransaction.h"
 
-#include "interface/constants/ExportStat.h"
 #include "interface/logic/IDataProvider.h"
 
 #include "data/DataItem.h"
 #include "platform/StrUtil.h"
 #include "util/Fb2InpxParser.h"
+#include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
 #include "util/ImageRestore.h"
 
@@ -120,15 +122,16 @@ BookKeywords GetBookKeywords(DB::IDatabase& db, const Keywords& keywords)
 	return result;
 }
 
-//"AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;LIBRATE;KEYWORDS;"
-
-void Write(QByteArray& stream, const QString& uid, const BookInfo& book, size_t& n)
+//"AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;INSNO;FOLDER;LANG;LIBRATE;KEYWORDS;"
+QByteArray Write(const BookInfo& book, const QString& fileName, const size_t n, const QString& folder, const QString& size)
 {
+	QByteArray stream;
+
 	auto seqNumber = book.book->GetRawData(BookItem::Column::SeqNumber);
 	if (seqNumber.toInt() <= 0)
-		seqNumber = "0";
+		seqNumber.clear();
 
-	const QFileInfo fileInfo(book.book->GetRawData(BookItem::Column::FileName));
+	const QFileInfo fileInfo(fileName);
 
 	QStringList authors;
 	for (const auto& author : book.authors)
@@ -147,16 +150,20 @@ void Write(QByteArray& stream, const QString& uid, const BookInfo& book, size_t&
 	stream.append((book.book->GetRawData(BookItem::Column::Series) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
 	stream.append((seqNumber + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
 	stream.append((fileInfo.completeBaseName() + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
-	stream.append((book.book->GetRawData(BookItem::Column::Size) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((size + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
 	stream.append((book.book->GetId() + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
 	stream.append((QString(book.book->IsRemoved() ? "1" : "0") + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
 	stream.append((fileInfo.suffix() + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
 	stream.append((book.book->GetRawData(BookItem::Column::UpdateDate) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
-	stream.append((QString::number(n++) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
-	stream.append((QString("%1.zip").arg(uid) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
-	stream.append((book.book->GetRawData(BookItem::Column::Lang) + Util::Fb2InpxParser::FIELDS_SEPARATOR + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((QString::number(n) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((folder + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((book.book->GetRawData(BookItem::Column::Lang) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((book.book->GetRawData(BookItem::Column::LibRate) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
+	stream.append((QString() + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
 
 	stream.append("\n");
+
+	return stream;
 }
 
 constexpr auto BOOK_QUERY = R"(
@@ -169,8 +176,7 @@ left join Series_List sl on sl.BookID = b.BookID
 order by f.FolderID
 )";
 
-void Write(
-	QByteArray&         stream,
+QString Write(
 	const DB::IQuery&   query,
 	const Series&       series,
 	const Genres&       genres,
@@ -178,7 +184,8 @@ void Write(
 	const Authors&      authors,
 	const BookAuthors&  bookAuthors,
 	const Keywords&     keywords,
-	const BookKeywords& bookKeywords
+	const BookKeywords& bookKeywords,
+	const size_t        n
 )
 {
 	const auto bookId = query.Get<long long>(0);
@@ -209,41 +216,146 @@ void Write(
 		return (QStringList() << lastName << firstName << middleName).join(Util::Fb2InpxParser::NAMES_SEPARATOR);
 	});
 
+	//	"AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;INSNO;FOLDER;LANG;LIBRATE;KEYWORDS;"
 	auto book = QStringList {} << authorList.join("") << genreList.join("") << query.Get<const char*>(2) << seriesTitle << Util::Fb2InpxParser::GetSeqNumber(query.Get<const char*>(4))
 	                           << query.Get<const char*>(9) << QString::number(query.Get<long long>(11)) << query.Get<const char*>(1) << QString::number(query.Get<int>(12)) << query.Get<const char*>(10) + 1
-	                           << query.Get<const char*>(5) << query.Get<const char*>(7) << Util::Fb2InpxParser::GetSeqNumber(query.Get<const char*>(6)) << keywordList.join("");
+	                           << query.Get<const char*>(5) << QString::number(n) << query.Get<const char*>(8) << query.Get<const char*>(7) << Util::Fb2InpxParser::GetSeqNumber(query.Get<const char*>(6))
+	                           << keywordList.join("");
 
-	stream.append(book.join(Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8()).append(Util::Fb2InpxParser::FIELDS_SEPARATOR).append("\r\n");
+	return book.join(Util::Fb2InpxParser::FIELDS_SEPARATOR).append(Util::Fb2InpxParser::FIELDS_SEPARATOR).append("\r\n");
 }
 
-QByteArray Process(const std::filesystem::path& archiveFolder, const QString& dstFolder, const QString& uid, const BookInfoList& books, IProgressController::IProgressItem& progress, const ISettings& settings)
+class IProgress // NOLINT(cppcoreguidelines-special-member-functions)
 {
-	size_t     n = 0;
-	QByteArray inpx;
+public:
+	virtual ~IProgress()            = default;
+	virtual void Increment(int64_t) = 0;
+	virtual bool IsStopped() const  = 0;
+};
 
-	for (const auto& book : books)
+void Unpack(
+	const std::filesystem::path&                archiveFolder,
+	const QString&                              dstFolder,
+	const BookInfoList&                         bookInfoLists,
+	const std::unordered_map<QString, QString>& idToFileName,
+	IProgress&                                  progress,
+	const ISettings&                            settings
+)
+{
+	if (bookInfoLists.empty())
+		return;
+
+	const auto archivePath = Platform::PathToString(archiveFolder / Platform::StringToPath(bookInfoLists.front().book->GetRawData(BookItem::Column::Folder)));
+	const Zip  zip(archivePath);
+
+	for (const auto& book : bookInfoLists)
 	{
-		const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
-		const auto folder   = Platform::PathToString(archiveFolder / Platform::StringToPath(book.book->GetRawData(BookItem::Column::Folder)));
-		const Zip  zipInput(folder);
-		const auto input = zipInput.Read(fileName);
-		const auto bytes = Util::PrepareToExport(input->GetStream(), folder, fileName, settings);
-		progress.Increment(bytes.size());
-		Write(inpx, uid, book, n);
+		if (progress.IsStopped())
+			break;
 
-		auto zipFiles = Zip::CreateZipFileController();
-		zipFiles->AddFile(book.book->GetRawData(BookItem::Column::FileName), bytes, QDateTime::currentDateTime());
-		Zip zip(QString("%1/%2.zip").arg(dstFolder, uid), Zip::Format::Zip, true);
-		zip.Write(*zipFiles);
+		auto       fileName = book.book->GetRawData(BookItem::Column::FileName);
+		const auto input    = zip.Read(fileName);
+		const auto bytes    = Util::PrepareToExport(input->GetStream(), archivePath, fileName, settings);
+		if (const auto it = idToFileName.find(book.book->GetId()); it != idToFileName.end())
+			fileName = it->second;
+
+		const auto outputPath = dstFolder + "/" + fileName;
+		QFile      file(outputPath);
+		if (!file.open(QIODevice::WriteOnly)) [[unlikely]]
+		{
+			PLOGE << "Cannot write to " + outputPath;
+			break;
+		}
+
+		file.write(bytes);
+		progress.Increment(1);
+	}
+}
+
+class ZipProgressCallback final : public Zip::ProgressCallback
+{
+public:
+	explicit ZipProgressCallback(IProgress& progress)
+		: m_progress { progress }
+	{
 	}
 
+private: // ProgressCallback
+	void OnStartWithTotal(int64_t) override
+	{
+	}
+
+	void OnIncrement(int64_t) override
+	{
+	}
+
+	void OnSetCompleted(int64_t) override
+	{
+	}
+
+	void OnDone() override
+	{
+	}
+
+	void OnFileDone(const QString&) override
+	{
+		m_progress.Increment(1);
+	}
+
+	bool OnCheckBreak() override
+	{
+		return m_progress.IsStopped();
+	}
+
+private:
+	IProgress& m_progress;
+};
+
+QByteArray Pack(const QString& dstFolder, const QString& uid, const QString& booksFolder, const BookInfoList& bookInfoLists, const std::unordered_map<QString, QString>& idToFileName, IProgress& progress)
+{
+	assert(!bookInfoLists.empty());
+
+	QByteArray inpx;
+
+	const auto zipFiles   = Zip::CreateZipFileController();
+	const auto fileFolder = uid + ".zip";
+
+	for (auto&& [book, n] : std::views::zip(bookInfoLists, std::views::iota(1)))
+	{
+		if (progress.IsStopped())
+			break;
+
+		auto fileName = book.book->GetRawData(BookItem::Column::FileName);
+		if (const auto it = idToFileName.find(book.book->GetId()); it != idToFileName.end())
+			fileName = it->second;
+
+		const auto inputPath = booksFolder + "/" + fileName;
+		{
+			QFile file(inputPath);
+			if (!file.open(QIODevice::ReadOnly))
+			{
+				PLOGE << "Cannot read from " + inputPath;
+				break;
+			}
+
+			const auto bytes = file.readAll();
+			zipFiles->AddFile(fileName, bytes, QDateTime::currentDateTime());
+			inpx.append(Write(book, fileName, n, fileFolder, QString::number(bytes.size())));
+		}
+		QFile::remove(inputPath);
+	}
+
+	Zip zip(QString("%1/%2.zip").arg(dstFolder, uid), Zip::Format::Zip, false, std::make_shared<ZipProgressCallback>(progress));
+	zip.Write(*zipFiles);
 	return inpx;
 }
 
 } // namespace
 
-class InpxGenerator::Impl final
+class InpxGenerator::Impl final : public IProgress
 {
+	NON_COPY_MOVABLE(Impl)
+
 public:
 	Impl(
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
@@ -255,43 +367,66 @@ public:
 		, m_collectionProvider(std::move(collectionProvider))
 		, m_databaseUser(std::move(databaseUser))
 		, m_progressController(std::move(progressController))
+		, m_archiveFolder { Platform::StringToPath(m_collectionProvider->GetActiveCollection().GetFolder()) }
 	{
 	}
 
-	void Extract(QString dstFolder, BookInfoList&& books, Callback callback)
+	~Impl() override
+	{
+		if (!m_tmpFolder.isEmpty())
+			if (QDir dir(m_tmpFolder); dir.exists())
+				dir.removeRecursively();
+	}
+
+	void Extract(QString inpxFileName, BookInfoList&& books, Callback callback)
 	{
 		const auto logicFactory = ILogicFactory::Lock(m_logicFactory);
 
 		assert(!m_callback);
-		m_hasError  = false;
-		m_callback  = std::move(callback);
-		m_taskCount = std::size(books) / 3000 + 1;
-		logicFactory->GetExecutor({ static_cast<int>(m_taskCount) }).swap(m_executor);
-		m_settingsStub  = logicFactory->CreateSettingsStub();
-		m_dstFolder     = std::move(dstFolder);
-		m_archiveFolder = Platform::StringToPath(m_collectionProvider->GetActiveCollection().GetFolder());
+		m_hasError     = false;
+		m_callback     = std::move(callback);
+		m_settingsStub = logicFactory->CreateSettingsStub();
+		m_inpxFileName = std::move(inpxFileName);
+		m_dstFolder    = QFileInfo(m_inpxFileName).absoluteDir().absolutePath();
+		m_tmpFolder    = m_dstFolder + "/" + QUuid::createUuid().toString(QUuid::WithoutBraces);
+		m_progressItem = m_progressController->Add(std::ssize(books) * 2 + 1);
 
-		CollectExistingFiles();
+		QDir(m_tmpFolder).mkpath(".");
+		const auto outputFolderCount = std::size(books) / 3200 + 1;
 
-		std::vector<BookInfoList> bookLists(m_taskCount);
-		for (size_t i = 0; auto&& book : books)
-			bookLists[i++ % m_taskCount].emplace_back(std::move(book));
+		m_chunkSize = std::size(books) / outputFolderCount;
+		if (outputFolderCount * m_chunkSize < std::size(books))
+			++m_chunkSize;
 
-		const auto transaction = m_databaseUser->Database()->CreateTransaction();
-		const auto command     = transaction->CreateCommand(ExportStat::INSERT_QUERY);
+		std::unordered_map<QString, std::pair<QString, std::vector<QString>>> uniqueFileNames;
 
-		std::for_each(std::make_move_iterator(std::begin(bookLists)), std::make_move_iterator(std::end(bookLists)), [&](BookInfoList&& bookInfoList) {
-			for (const auto& book : bookInfoList)
+		std::unordered_map<QString, BookInfoList> ordered;
+		for (auto&& book : books)
+		{
+			auto fileName    = book.book->GetRawData(BookItem::Column::FileName); //-V821
+			auto& [key, ids] = uniqueFileNames[fileName.toLower()];
+			if (key.isEmpty())
+				key = std::move(fileName);
+			ids.emplace_back(book.book->GetId());
+			const auto folder = book.book->GetRawData(BookItem::Column::Folder);
+			ordered[folder].emplace_back(std::move(book));
+		}
+
+		for (auto&& [fileName, ids] : uniqueFileNames | std::views::values | std::views::filter([](const auto& item) {
+										  return item.second.size() > 1;
+									  }))
+		{
+			for (auto&& [id, index] : std::views::zip(ids | std::views::drop(1), std::views::iota(1)))
 			{
-				command->Bind(0, book.book->GetId().toInt());
-				command->Bind(1, static_cast<int>(ExportStat::Type::Inpx));
-				command->Execute();
+				const QFileInfo fileInfo(fileName);
+				m_idToFileName.try_emplace(std::move(id), QString("%1_%2.%3").arg(fileInfo.completeBaseName()).arg(index).arg(fileInfo.suffix()));
 			}
+		}
 
-			(*m_executor)(CreateTask(std::move(bookInfoList)));
-		});
+		logicFactory->GetExecutor({ static_cast<int>(outputFolderCount) + static_cast<int>(ordered.size()) }).swap(m_executor);
 
-		transaction->Commit();
+		for (auto&& item : ordered | std::views::values)
+			(*m_executor)(CreateUnpackTask(std::move(item)));
 	}
 
 	void GenerateInpx(QString inpxFileName, BookInfoList&& books, Callback callback)
@@ -300,18 +435,49 @@ public:
 		m_hasError = false;
 		m_callback = std::move(callback);
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor().swap(m_executor);
-		std::shared_ptr progressItem = m_progressController->Add(static_cast<int64_t>(books.size()));
+		m_progressItem = m_progressController->Add(static_cast<int64_t>(books.size()) + 1);
 
-		(*m_executor)({ "Create inpx", [this, books = std::move(books), inpxFileName = std::move(inpxFileName), progressItem = std::move(progressItem), n = size_t { 0 }]() mutable {
+		(*m_executor)({ "Create inpx", [this, books = std::move(books), inpxFileName = std::move(inpxFileName)]() mutable {
+						   std::ranges::sort(books, {}, [](const auto& item) {
+							   return item.book->GetRawData(BookItem::Column::Folder);
+						   });
+						   QString                      currentFolder;
+						   std::unique_ptr<Zip>         currentZip;
+						   std::map<size_t, QByteArray> data;
+
+						   const auto write = [&] {
+							   if (data.empty())
+								   return;
+
+							   QByteArray stream;
+							   for (auto&& str : data | std::views::values)
+								   stream.append(str);
+
+							   m_paths.try_emplace(QFileInfo(currentFolder).completeBaseName(), std::move(stream));
+							   data.clear();
+						   };
+
 						   for (auto&& book : books)
 						   {
-							   const auto id     = QFileInfo(book.book->GetRawData(BookItem::Column::Folder)).completeBaseName();
-							   auto&      stream = m_paths[id];
-							   Write(stream, id, book, n);
-							   progressItem->Increment(1);
-							   if (progressItem->IsStopped())
+							   if (m_progressItem->IsStopped())
 								   break;
+
+							   const auto folder = book.book->GetRawData(BookItem::Column::Folder);
+							   if (currentFolder != folder)
+							   {
+								   write();
+								   currentFolder = folder;
+								   currentZip    = std::make_unique<Zip>(Platform::PathToString(m_archiveFolder / Platform::StringToPath(currentFolder)));
+							   }
+
+							   const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
+							   assert(currentZip);
+							   if (const auto n = currentZip->GetFileIndex(fileName); n != Zip::INVALID_INDEX) //-V614
+								   data.try_emplace(n, Write(book, fileName, n + 1, book.book->GetRawData(BookItem::Column::Folder), book.book->GetRawData(BookItem::Column::Size)));
+
+							   m_progressItem->Increment(1);
 						   }
+						   write();
 						   return [this, inpxFileName = std::move(inpxFileName)](size_t) {
 							   WriteInpx(inpxFileName);
 						   };
@@ -331,14 +497,60 @@ public:
 					   } });
 	}
 
-private:
-	Util::IExecutor::Task CreateTask(BookInfoList&& books)
+private: // IProgress
+	void Increment(const int64_t value) override
 	{
-		const auto      totalSize    = std::accumulate(books.cbegin(), books.cend(), 0LL, [](const size_t init, const auto& book) {
-			return init + book.book->GetRawData(BookItem::Column::Size).toLongLong();
+		m_forwarder.Forward([this, value] {
+			m_progressItem->Increment(value);
 		});
-		std::shared_ptr progressItem = m_progressController->Add(totalSize);
+	}
 
+	bool IsStopped() const override
+	{
+		return m_progressItem->IsStopped();
+	}
+
+private:
+	void OnStopped() const
+	{
+		if (m_packTaskCount + m_unpackTaskCount == 0)
+			m_callback(false);
+	}
+
+	Util::IExecutor::Task CreateUnpackTask(BookInfoList&& books)
+	{
+		++m_unpackTaskCount;
+		auto taskName = books.front().book->GetRawData(BookItem::Column::Folder).toStdString();
+		return Util::IExecutor::Task { std::move(taskName), [this, books = std::move(books)]() mutable {
+										  bool       error = false;
+										  QByteArray inpx;
+										  try
+										  {
+											  Unpack(m_archiveFolder, m_tmpFolder, books, m_idToFileName, *this, *m_settingsStub);
+										  }
+										  catch (const std::exception& ex)
+										  {
+											  PLOGE << ex.what();
+											  error = true;
+										  }
+										  return [this, error, inpx = std::move(inpx), books = std::move(books)](const size_t) mutable {
+											  --m_unpackTaskCount;
+											  if (m_progressItem->IsStopped())
+												  return OnStopped();
+
+											  std::ranges::move(books, std::back_inserter(m_unpackedBooks));
+
+											  while (m_unpackedBooks.size() >= m_chunkSize)
+												  (*m_executor)(CreatePackTask(), 1, false);
+
+											  if (m_unpackTaskCount == 0 && !m_unpackedBooks.empty())
+												  (*m_executor)(CreatePackTask(), 1, false);
+										  };
+									  } };
+	}
+
+	Util::IExecutor::Task CreatePackTask()
+	{
 		auto uid = [&] {
 			QCryptographicHash hash(QCryptographicHash::Algorithm::Md5);
 			hash.addData(QDateTime::currentDateTime().toString(Qt::ISODateWithMs).toUtf8());
@@ -352,44 +564,44 @@ private:
 			}
 		}();
 
+		BookInfoList books;
+		std::ranges::move(m_unpackedBooks | std::views::drop(m_unpackedBooks.size() > m_chunkSize ? m_unpackedBooks.size() - m_chunkSize : 0), std::back_inserter(books));
+		m_unpackedBooks.resize(m_unpackedBooks.size() - books.size());
+
 		auto taskName = uid.toStdString();
-		return Util::IExecutor::Task { std::move(taskName), [this, books = std::move(books), progressItem = std::move(progressItem), uid = std::move(uid)]() mutable {
+		++m_packTaskCount;
+		return Util::IExecutor::Task { std::move(taskName), [this, books = std::move(books), uid = std::move(uid)]() mutable {
 										  bool       error = false;
 										  QByteArray inpx;
 										  try
 										  {
-											  inpx = Process(m_archiveFolder, m_dstFolder, uid, books, *progressItem, *m_settingsStub);
+											  inpx = Pack(m_dstFolder, uid, m_tmpFolder, books, m_idToFileName, *this);
 										  }
 										  catch (const std::exception& ex)
 										  {
 											  PLOGE << ex.what();
 											  error = true;
 										  }
-										  return [this, error, inpx = std::move(inpx), uid = std::move(uid)](const size_t) mutable {
+										  return [this, error, inpx = std::move(inpx), uid = std::move(uid), unpackedCount = std::size(books)](const size_t) mutable {
+											  --m_packTaskCount;
+											  if (m_progressItem->IsStopped())
+												  return OnStopped();
+
 											  {
 												  std::lock_guard lock(m_pathsGuard);
 												  m_paths[uid] = std::move(inpx);
 											  }
 
 											  m_hasError = error || m_hasError;
-											  assert(m_taskCount > 0);
-											  if (--m_taskCount == 0)
-												  WriteInpx(GetInpxFileName());
+											  assert(m_packTaskCount > 0);
+											  if (m_packTaskCount > 0 || m_unpackTaskCount > 0)
+												  return;
+
+											  Increment(1);
+											  assert(m_unpackedBooks.empty());
+											  WriteInpx(m_inpxFileName);
 										  };
 									  } };
-	}
-
-	void CollectExistingFiles()
-	{
-		const auto inpxFileName = GetInpxFileName();
-		if (!QFile::exists(inpxFileName))
-			return;
-
-		const Zip  zip(inpxFileName);
-		const auto files = zip.GetFileNameList();
-		std::ranges::transform(files, std::inserter(m_paths, m_paths.end()), [](const QString& file) {
-			return std::make_pair(QFileInfo(file).completeBaseName(), QByteArray {});
-		});
 	}
 
 	void WriteInpx(const QString& inpxFileName)
@@ -402,6 +614,7 @@ private:
 		{
 			zipFileController->AddFile(Inpx::COLLECTION_INFO, QString("%1, favorites").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
 			zipFileController->AddFile(Inpx::VERSION_INFO, QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
+			zipFileController->AddFile(Inpx::STRUCTURE_INFO, "AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;INSNO;FOLDER;LANG;LIBRATE;KEYWORDS;", QDateTime::currentDateTime());
 		}
 
 		for (const auto& [uid, data] : m_paths)
@@ -429,7 +642,7 @@ private:
 			return query->Get<long long>(0);
 		}();
 
-		auto bookProgressItem = m_progressController->Add(2 * booksCount);
+		m_progressItem = m_progressController->Add(booksCount + 4);
 
 		const auto dictionaryProgressSize = booksCount / 10;
 		auto       dictionaryProgressItem = m_progressController->Add(dictionaryProgressSize);
@@ -447,53 +660,56 @@ private:
 		const auto bookKeywords = GetBookKeywords(*db, keywords);
 		dictionaryProgressItem.reset();
 
-		{
-			if (QFile::exists(inpxFileName))
-				QFile::remove(inpxFileName);
+		if (QFile::exists(inpxFileName))
+			QFile::remove(inpxFileName);
 
-			auto zipFileController = Zip::CreateZipFileController();
-			zipFileController->AddFile(Inpx::COLLECTION_INFO, QString("%1").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
-			zipFileController->AddFile(Inpx::VERSION_INFO, QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
+		auto zipFileController = Zip::CreateZipFileController();
+		zipFileController->AddFile(Inpx::COLLECTION_INFO, QString("%1").arg(m_collectionProvider->GetActiveCollection().name).toUtf8(), QDateTime::currentDateTime());
+		zipFileController->AddFile(Inpx::VERSION_INFO, QDateTime::currentDateTime().toString("yyyyMMdd").toUtf8(), QDateTime::currentDateTime());
+		zipFileController->AddFile(Inpx::STRUCTURE_INFO, "AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;INSNO;FOLDER;LANG;LIBRATE;KEYWORDS;", QDateTime::currentDateTime());
 
-			Zip zip(inpxFileName, Zip::Format::Zip);
-			zip.Write(*zipFileController);
-		}
+		std::unique_ptr<Zip> inputZip;
 
-		QString    currentFolder;
-		QByteArray data;
-		int64_t    counter = 0;
-		const auto write   = [&] {
-			if (counter == 0)
+		QString                   currentFolder;
+		std::map<size_t, QString> data;
+		const auto                write = [&] {
+			if (data.empty())
 				return;
 
-			assert(!currentFolder.isEmpty() && !data.isEmpty());
+			assert(!currentFolder.isEmpty());
+			QFileInfo  fileInfo(currentFolder);
+			QByteArray bytes;
+			for (const auto& str : data | std::views::values)
+				bytes.append(str.toUtf8());
 
-			Zip zip(inpxFileName, Zip::Format::Auto, true);
-
-			QFileInfo fileInfo(currentFolder);
-			auto      zipFileController = Zip::CreateZipFileController();
-			zipFileController->AddFile(fileInfo.completeBaseName() + ".inp", data, QDateTime::currentDateTime());
-			zip.Write(*zipFileController);
-
-			bookProgressItem->Increment(counter);
-			counter = 0;
+			zipFileController->AddFile(fileInfo.completeBaseName() + ".inp", bytes, QDateTime::currentDateTime());
 		};
 
 		const auto query = db->CreateQuery(BOOK_QUERY);
 		for (query->Execute(); !query->Eof(); query->Next())
 		{
+			if (m_progressItem->IsStopped())
+				return;
+
 			QString folder = query->Get<const char*>(8);
 			if (currentFolder != folder)
 			{
 				write();
-				currentFolder = std::move(folder);
 				data          = {};
+				currentFolder = std::move(folder);
+				inputZip      = std::make_unique<Zip>(Platform::PathToString(m_archiveFolder / Platform::StringToPath(currentFolder)));
+				m_progressItem->Increment(-1);
 			}
-			Write(data, *query, series, genres, bookGenres, authors, bookAuthors, keywords, bookKeywords);
-			++counter;
-			bookProgressItem->Increment(1);
+			assert(inputZip);
+			if (const auto index = inputZip->GetFileIndex(QString("%1%2").arg(query->Get<const char*>(9), query->Get<const char*>(10))); index != Zip::INVALID_INDEX) //-V614
+				data.try_emplace(index, Write(*query, series, genres, bookGenres, authors, bookAuthors, keywords, bookKeywords, index + 1));
+
+			m_progressItem->Increment(1);
 		}
 		write();
+
+		Zip zip(inpxFileName, Zip::Format::Zip, false, std::make_shared<ZipProgressCallback>(*this));
+		zip.Write(*zipFileController);
 	}
 
 private:
@@ -503,12 +719,23 @@ private:
 	std::shared_ptr<const ISettings>                        m_settingsStub;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
 
-	Callback                                m_callback;
-	size_t                                  m_taskCount { 0 };
+	Callback m_callback;
+
+	BookInfoList m_unpackedBooks;
+
+	std::unique_ptr<IProgressController::IProgressItem> m_progressItem;
+	Util::FunctorExecutionForwarder                     m_forwarder;
+
+	std::unordered_map<QString, QString>    m_idToFileName;
+	size_t                                  m_unpackTaskCount { 0 };
+	size_t                                  m_packTaskCount { 0 };
 	bool                                    m_hasError { false };
+	size_t                                  m_chunkSize { 0 };
 	std::unique_ptr<Util::IExecutor>        m_executor;
+	QString                                 m_inpxFileName;
 	QString                                 m_dstFolder;
 	std::filesystem::path                   m_archiveFolder;
+	QString                                 m_tmpFolder;
 	std::mutex                              m_pathsGuard;
 	std::unordered_map<QString, QByteArray> m_paths;
 };
@@ -529,7 +756,7 @@ InpxGenerator::~InpxGenerator()
 	PLOGV << "InpxGenerator destroyed";
 }
 
-void InpxGenerator::ExtractAsInpxCollection(QString folder, const std::vector<QString>& idList, const IBookInfoProvider& dataProvider, Callback callback)
+void InpxGenerator::ExtractAsInpxCollection(QString inpxFileName, const std::vector<QString>& idList, const IBookInfoProvider& dataProvider, Callback callback)
 {
 	PLOGD << QString("Extract %1 books as inpx-collection started").arg(idList.size());
 
@@ -538,7 +765,7 @@ void InpxGenerator::ExtractAsInpxCollection(QString folder, const std::vector<QS
 		return dataProvider.GetBookInfo(id.toLongLong());
 	});
 
-	m_impl->Extract(std::move(folder), std::move(bookInfo), std::move(callback));
+	m_impl->Extract(std::move(inpxFileName), std::move(bookInfo), std::move(callback));
 }
 
 void InpxGenerator::GenerateInpx(QString inpxFileName, const std::vector<QString>& idList, const IBookInfoProvider& dataProvider, Callback callback)

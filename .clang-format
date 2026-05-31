@@ -141,7 +141,7 @@
 
   IncludeBlocks: Regroup
   IncludeCategories:
-    - Regex: '^".*stdafx.h"$'
+    - Regex: '^".*stdafx\.h"$'
       Priority: -20
 
     # generated ui headers
@@ -149,7 +149,7 @@
       Priority: -10
 
     # system headers
-    - Regex: '^<[a-z]+.h>$'
+    - Regex: '^<[a-z]+\.h>$'
       Priority: 40
 
     # system headers

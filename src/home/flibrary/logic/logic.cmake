@@ -10,16 +10,16 @@ AddTarget(logic	shared_lib
 		[ QT5 Qt${QT_MAJOR_VERSION}::Widgets ]
 	LINK_TARGETS
 		dbfactory
+		flidjvu
 		flint
+		flipdf
 		inpx
 		joke
 		logging
 		network
 		platform
 		rest
+		settings
 		util
 		zip
 )
-
-file(COPY ${CMAKE_CURRENT_LIST_DIR}/resources/data/genres.lst DESTINATION ${CMAKE_BINARY_DIR}/bin)
-install(FILES ${CMAKE_CURRENT_LIST_DIR}/resources/data/genres.lst DESTINATION .)

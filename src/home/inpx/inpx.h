@@ -11,6 +11,8 @@
 
 #include "export/inpx.h"
 
+class QTemporaryDir;
+
 namespace HomeCompa::DB
 {
 
@@ -52,8 +54,9 @@ class INPX_EXPORT Parser
 	NON_COPY_MOVABLE(Parser)
 
 public:
-	using Callback = std::function<void(const UpdateResult&)>;
-	using IniMap   = std::map<QString, QString>;
+	using Callback   = std::function<void(const UpdateResult&)>;
+	using IniMap     = std::map<QString, QString>;
+	using IniMapPair = std::pair<std::shared_ptr<QTemporaryDir>, IniMap>;
 
 public:
 	Parser();
@@ -64,8 +67,9 @@ public:
 	void UpdateCollection(IniMap data, CreateCollectionMode mode, Callback callback);
 	void RescanCollection(IniMap data, CreateCollectionMode mode, Callback callback);
 
-	static void FillInpx(IniMap data, DB::ITransaction& transaction);
-	static bool CheckForUpdate(IniMap data, DB::IDatabase& database);
+	static void       FillInpx(IniMap data, DB::ITransaction& transaction);
+	static bool       CheckForUpdate(IniMap data, DB::IDatabase& database);
+	static IniMapPair GetIniMap(QString db, QString folder, QString additionalFolder, QString inpx, bool createFiles);
 
 private:
 	class Impl;

@@ -139,12 +139,16 @@ class ScriptDialog::Impl final
 
 public:
 	Impl(
-		ScriptDialog&                        self,
-		const IModelProvider&                modelProvider,
-		std::shared_ptr<const IUiFactory>    uiFactory,
-		std::shared_ptr<ISettings>           settings,
-		std::shared_ptr<ComboBoxDelegate>    scriptTypeDelegate,
-		std::shared_ptr<QStyledItemDelegate> scriptNameLineEditDelegate
+		ScriptDialog&                              self,
+		const IModelProvider&                      modelProvider,
+		std::shared_ptr<const IUiFactory>          uiFactory,
+		std::shared_ptr<ISettings>                 settings,
+		std::shared_ptr<ComboBoxDelegate>          scriptTypeDelegate,
+		std::shared_ptr<QStyledItemDelegate>       scriptNameLineEditDelegate,
+		std::shared_ptr<Util::ItemViewToolTipper>  scriptItemViewToolTipper,
+		std::shared_ptr<Util::ItemViewToolTipper>  commandItemViewToolTipper,
+		std::shared_ptr<Util::ScrollBarController> scriptScrollBarController,
+		std::shared_ptr<Util::ScrollBarController> commandScrollBarController
 	)
 		: GeometryRestorable(*this, settings, "ScriptDialog")
 		, GeometryRestorableObserver(self)
@@ -155,8 +159,15 @@ public:
 		, m_commandModel { modelProvider.CreateScriptCommandModel() }
 		, m_scriptTypeDelegate { std::move(scriptTypeDelegate) }
 		, m_scriptNameLineEditDelegate { std::move(scriptNameLineEditDelegate) }
+		, m_scriptItemViewToolTipper { std::move(scriptItemViewToolTipper) }
+		, m_commandItemViewToolTipper { std::move(commandItemViewToolTipper) }
+		, m_scriptScrollBarController { std::move(scriptScrollBarController) }
+		, m_commandScrollBarController { std::move(commandScrollBarController) }
 	{
 		m_ui.setupUi(&m_self);
+
+		m_scriptScrollBarController->SetScrollArea(m_ui.viewScript);
+		m_commandScrollBarController->SetScrollArea(m_ui.viewCommand);
 
 		m_commandTextWidgets.resize(std::size(IScriptController::s_commandTypes));
 		m_commandTextWidgets[static_cast<size_t>(IScriptController::Command::Type::LaunchConsoleApp)] = m_ui.lineEditCommandTextExe;
@@ -190,6 +201,11 @@ public:
 		SetConnections();
 
 		m_ui.viewScript->setCurrentIndex(m_scriptModel->index(0, 1));
+
+		m_ui.viewScript->viewport()->installEventFilter(m_scriptItemViewToolTipper.get());
+		m_ui.viewScript->viewport()->installEventFilter(m_scriptScrollBarController.get());
+		m_ui.viewCommand->viewport()->installEventFilter(m_commandItemViewToolTipper.get());
+		m_ui.viewCommand->viewport()->installEventFilter(m_commandScrollBarController.get());
 
 		LoadGeometry();
 	}
@@ -407,16 +423,20 @@ private:
 	}
 
 private:
-	ScriptDialog&                                           m_self;
-	std::shared_ptr<const IUiFactory>                       m_uiFactory;
-	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_scriptModel;
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_commandModel;
-	PropagateConstPtr<ComboBoxDelegate, std::shared_ptr>    m_scriptTypeDelegate;
-	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr> m_scriptNameLineEditDelegate;
-	std::vector<QWidget*>                                   m_commandTextWidgets;
-	bool                                                    m_addMode { false };
-	Ui::ScriptDialog                                        m_ui {};
+	ScriptDialog&                                                 m_self;
+	std::shared_ptr<const IUiFactory>                             m_uiFactory;
+	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>        m_scriptModel;
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>        m_commandModel;
+	PropagateConstPtr<ComboBoxDelegate, std::shared_ptr>          m_scriptTypeDelegate;
+	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr>       m_scriptNameLineEditDelegate;
+	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_scriptItemViewToolTipper;
+	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_commandItemViewToolTipper;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scriptScrollBarController;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_commandScrollBarController;
+	std::vector<QWidget*>                                         m_commandTextWidgets;
+	bool                                                          m_addMode { false };
+	Ui::ScriptDialog                                              m_ui {};
 };
 
 ScriptDialog::ScriptDialog(
@@ -425,10 +445,25 @@ ScriptDialog::ScriptDialog(
 	std::shared_ptr<const IUiFactory>             uiFactory,
 	std::shared_ptr<ISettings>                    settings,
 	std::shared_ptr<ScriptComboBoxDelegate>       scriptTypeDelegate,
-	std::shared_ptr<ScriptNameDelegate>           scriptNameLineEditDelegate
+	std::shared_ptr<ScriptNameDelegate>           scriptNameLineEditDelegate,
+	std::shared_ptr<Util::ItemViewToolTipper>     scriptItemViewToolTipper,
+	std::shared_ptr<Util::ItemViewToolTipper>     commandItemViewToolTipper,
+	std::shared_ptr<Util::ScrollBarController>    scriptScrollBarController,
+	std::shared_ptr<Util::ScrollBarController>    commandScrollBarController
 )
 	: QDialog(parentWidgetProvider->GetWidget())
-	, m_impl(*this, *modelProvider, std::move(uiFactory), std::move(settings), std::move(scriptTypeDelegate), std::move(scriptNameLineEditDelegate))
+	, m_impl(
+		  *this,
+		  *modelProvider,
+		  std::move(uiFactory),
+		  std::move(settings),
+		  std::move(scriptTypeDelegate),
+		  std::move(scriptNameLineEditDelegate),
+		  std::move(scriptItemViewToolTipper),
+		  std::move(commandItemViewToolTipper),
+		  std::move(scriptScrollBarController),
+		  std::move(commandScrollBarController)
+	  )
 {
 	PLOGV << "ScriptDialog created";
 }

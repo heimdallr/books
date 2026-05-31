@@ -23,7 +23,7 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 #include "AnnotationWidget.h"
 #include "AuthorAnnotationWidget.h"

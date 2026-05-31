@@ -20,3 +20,6 @@ AddTarget(inpx	shared_lib
 	COMPILE_DEFINITIONS
 		_SILENCE_CXX17_ITERATOR_BASE_CLASS_DEPRECATION_WARNING
 )
+
+file(COPY ${CMAKE_CURRENT_LIST_DIR}/resources/data/genres.json DESTINATION ${CMAKE_BINARY_DIR}/bin)
+install(FILES ${CMAKE_CURRENT_LIST_DIR}/resources/data/genres.json DESTINATION .)

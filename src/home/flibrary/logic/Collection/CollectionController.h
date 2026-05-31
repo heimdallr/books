@@ -4,10 +4,11 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ICollectionController.h"
+#include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -17,7 +18,13 @@ class CollectionController final : public ICollectionController
 	NON_COPY_MOVABLE(CollectionController)
 
 public:
-	CollectionController(std::shared_ptr<ICollectionProvider> collectionProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<IUiFactory> uiFactory, const std::shared_ptr<ITaskQueue>& taskQueue);
+	CollectionController(
+		const std::shared_ptr<const ILogicFactory>& logicFactory,
+		std::shared_ptr<ICollectionProvider>        collectionProvider,
+		std::shared_ptr<ISettings>                  settings,
+		std::shared_ptr<IUiFactory>                 uiFactory,
+		const std::shared_ptr<ITaskQueue>&          taskQueue
+	);
 	~CollectionController() override;
 
 public: // ICollectionController
@@ -39,7 +46,7 @@ public: // ICollectionController
 	void                             SetActiveCollection(const QString& id) override;
 	void                             OnInpxUpdateChecked(const Collection& updatedCollection) override;
 	void                             AllowDestructiveOperation(bool value) override;
-	IniMapPair                       GetIniMap(const QString& db, const QString& folder, const QString& additionalFolder, const QString& inpx, bool createFiles) const override;
+	Collection::Ptr                  CreateCollection(QString name, QString database, QString folder, QString additionalFolder, QString inpx) override;
 
 	void RegisterObserver(ICollectionsObserver* observer) override;
 	void UnregisterObserver(ICollectionsObserver* observer) override;

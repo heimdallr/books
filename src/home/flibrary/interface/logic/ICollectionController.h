@@ -17,6 +17,8 @@ public:
 	virtual void OnInpxUpdateChecked(const Collection& updatedCollection) = 0;
 
 	virtual void AllowDestructiveOperation(bool value) = 0;
+
+	virtual Collection::Ptr CreateCollection(QString name, QString database, QString folder, QString additionalFolder, QString inpx) = 0;
 };
 
 }

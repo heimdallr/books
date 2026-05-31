@@ -21,7 +21,7 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "logic/data/DataItem.h"
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 #include "Measure.h"
 #include "log.h"
@@ -227,7 +227,7 @@ public:
 
 	void OnModelChanged(const QAbstractItemModel& model)
 	{
-		const QString suffix = model.data({}, Role::IsTree).toBool() ? "Tree" : "List";
+		const QString suffix = model.data({}, Role::IsTree).toBool() ? TreeViewMode : ListViewMode;
 
 		if (!((m_readMarkColor = GetReadMarkColor(*m_settings, suffix))))
 			m_readMarkColor = GetReadMarkColor(*m_settings);
@@ -275,7 +275,7 @@ private:
 		if (index.data(Role::IsRemoved).toBool())
 			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
-		if (m_readMarkWidth && index.column() == 0 && !index.data(Role::UserRate).toString().isEmpty())
+		if (m_readMarkWidth && m_view.header()->visualIndex(index.column()) == 0 && !index.data(Role::UserRate).toString().isEmpty())
 		{
 			const ScopedCall painterGuard(
 				[=] {

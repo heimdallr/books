@@ -9,7 +9,7 @@
 #include "interface/logic/ILogController.h"
 #include "interface/ui/IMigrateWindow.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary
 {

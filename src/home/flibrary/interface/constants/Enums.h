@@ -29,13 +29,22 @@ enum class NavigationMode
 		Last
 };
 
+#define BOOKS_VIEW_MODE_ITEMS_X_MACRO \
+	BOOKS_VIEW_MODE_ITEM(List) \
+	BOOKS_VIEW_MODE_ITEM(Tree)
+
 enum class ViewMode
 {
 	Unknown = -1,
-	List,
-	Tree,
-	Last
+#define BOOKS_VIEW_MODE_ITEM(NAME) NAME,
+	BOOKS_VIEW_MODE_ITEMS_X_MACRO
+#undef BOOKS_VIEW_MODE_ITEM
+		Last
 };
+
+#define BOOKS_VIEW_MODE_ITEM(NAME) inline constexpr auto NAME##ViewMode = #NAME;
+BOOKS_VIEW_MODE_ITEMS_X_MACRO
+#undef BOOKS_VIEW_MODE_ITEM
 
 enum class ItemType
 {

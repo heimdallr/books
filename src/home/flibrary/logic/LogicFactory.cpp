@@ -22,9 +22,9 @@
 #include "data/Genre.h"
 #include "extract/BooksExtractor.h"
 #include "extract/InpxGenerator.h"
+#include "settings/Settings.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/ZipProgressCallback.h"
-#include "util/Settings.h"
 #include "util/translit.h"
 
 #include "log.h"
@@ -433,7 +433,10 @@ Util::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel* model, 
 			                         .libId     = book[9].toLongLong(),
 			                         .lang      = book[10] };
 
-		for (auto genre = result.genre; !genre.isEmpty(); genre = m_impl->genreParents.at(genre))
+		for (auto genre = result.genre; !genre.isEmpty(); genre = [&] {
+				 const auto it = m_impl->genreParents.find(genre);
+				 return it != m_impl->genreParents.end() ? it->second : QString {};
+			 }())
 			result.genreTree.push_front(genre);
 
 		return result;

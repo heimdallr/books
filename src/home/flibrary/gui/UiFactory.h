@@ -53,8 +53,8 @@ private: // IUiFactory
 		QMessageBox::ButtonRole                                         defaultButton,
 		const QString&                                                  detailedText
 	) const override;
-	QMessageBox::StandardButton ShowQuestion(const QString& text, const QMessageBox::StandardButtons& buttons, QMessageBox::StandardButton defaultButton) const override;
-	QMessageBox::StandardButton ShowWarning(const QString& text, const QMessageBox::StandardButtons& buttons, QMessageBox::StandardButton defaultButton) const override;
+	QMessageBox::StandardButton ShowQuestion(Util::DialogInitializer& initializer) const override;
+	QMessageBox::StandardButton ShowWarning(Util::DialogInitializer& initializer) const override;
 	void                        ShowInfo(const QString& text) const override;
 	void                        ShowError(const QString& text) const override;
 	QString                     GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, QLineEdit::EchoMode mode) const override;
@@ -73,8 +73,8 @@ private: // IUiFactory
 private: // special
 	std::filesystem::path                GetNewCollectionInpxFolder() const noexcept override;
 	std::shared_ptr<ITreeViewController> GetTreeViewController() const noexcept override;
-	QTreeView&                           GetTreeView() const noexcept override;
-	QAbstractItemView&                   GetAbstractItemView() const noexcept override;
+	QTreeView&                           GetTreeView() const override;
+	QAbstractItemView&                   GetAbstractItemView() const override;
 	QString                              GetTitle() const noexcept override;
 	long long                            GetAuthorId() const noexcept override;
 

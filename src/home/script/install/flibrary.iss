@@ -53,7 +53,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 
 [Files]
 Source: "{#RootDir}build\Release\bin\*.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}build\Release\bin\*.lst"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#RootDir}build\Release\bin\*.json"; DestDir: "{app}"; Flags: ignoreversion
 Source: "{#RootDir}build\Release\bin\*.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#RootDir}build\Release\bin\*.qm" ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#RootDir}build\Release\bin\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion; AfterInstall: RegisterLanguage

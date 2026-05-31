@@ -1,6 +1,7 @@
 #include "Dialog.h"
 
 #include <QApplication>
+#include <QCheckBox>
 #include <QInputDialog>
 #include <QTimer>
 
@@ -9,10 +10,21 @@
 #include "platformgui/PlatformGuiUtil.h"
 #include "utilgui/GeometryRestorable.h"
 
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa;
 using namespace Util;
+
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+	#define CHECK_STATE_CHANGED checkStateChanged
+	#define CHECK_STATE Qt::CheckState
+#elif QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
+	#define CHECK_STATE_CHANGED stateChanged
+	#define CHECK_STATE int
+#else
+	#error unsupported qt version
+#endif
 
 namespace
 {
@@ -33,8 +45,7 @@ Dialog::~Dialog()
 	PLOGV << "Dialog destroyed";
 }
 
-QMessageBox::StandardButton
-Dialog::Show(const QMessageBox::Icon icon, const QString& title, const QString& text, const QMessageBox::StandardButtons& buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton Dialog::Show(const QMessageBox::Icon icon, const QString& title, DialogInitializer& initializer) const
 {
 	auto*       parent = m_parentProvider->GetWidget();
 	QMessageBox msgBox(parent);
@@ -42,9 +53,18 @@ Dialog::Show(const QMessageBox::Icon icon, const QString& title, const QString& 
 	msgBox.setIcon(icon);
 	msgBox.setWindowTitle(title);
 	msgBox.setTextFormat(Qt::RichText);
-	msgBox.setText(text);
-	msgBox.setStandardButtons(buttons);
-	msgBox.setDefaultButton(defaultButton);
+	msgBox.setText(initializer.text);
+	msgBox.setStandardButtons(initializer.buttons);
+	msgBox.setDefaultButton(initializer.defaultButton);
+
+	if (!initializer.checkboxText.isEmpty())
+	{
+		auto* checkBox = new QCheckBox(initializer.checkboxText, &msgBox);
+		msgBox.setCheckBox(checkBox);
+		QObject::connect(checkBox, &QCheckBox::CHECK_STATE_CHANGED, [&](const CHECK_STATE checkState) {
+			initializer.checked = static_cast<Qt::CheckState>(checkState);
+		});
+	}
 
 	msgBox.show();
 	MoveToParentCenter(msgBox);
@@ -71,36 +91,32 @@ NO_GET_TEXT(Question)
 NO_GET_TEXT(Warning)
 #undef NO_GET_TEXT
 
-#define NO_SHOW(NAME)                                                           \
-	QMessageBox::StandardButton NAME##Dialog::Show(                             \
-		const QString& /*text*/                         = {},                   \
-		const QMessageBox::StandardButtons& /*buttons*/ = QMessageBox::Ok,      \
-		QMessageBox::StandardButton /*defaultButton*/   = QMessageBox::NoButton \
-	) const                                                                     \
-	{                                                                           \
-		throw std::runtime_error("not implemented");                            \
+#define NO_SHOW(NAME)                                                        \
+	QMessageBox::StandardButton NAME##Dialog::Show(DialogInitializer&) const \
+	{                                                                        \
+		throw std::runtime_error("not implemented");                         \
 	}
 NO_SHOW(InputText)
 #undef NO_SHOW
 
-QMessageBox::StandardButton QuestionDialog::Show(const QString& text, const QMessageBox::StandardButtons& buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton QuestionDialog::Show(DialogInitializer& initializer) const
 {
-	return Dialog::Show(QMessageBox::Question, Loc::Question(), text, buttons, defaultButton);
+	return Dialog::Show(QMessageBox::Question, Loc::Question(), initializer);
 }
 
-QMessageBox::StandardButton WarningDialog::Show(const QString& text, const QMessageBox::StandardButtons& buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton WarningDialog::Show(DialogInitializer& initializer) const
 {
-	return Dialog::Show(QMessageBox::Warning, Loc::Warning(), text, buttons, defaultButton);
+	return Dialog::Show(QMessageBox::Warning, Loc::Warning(), initializer);
 }
 
-QMessageBox::StandardButton InfoDialog::Show(const QString& text, const QMessageBox::StandardButtons& buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton InfoDialog::Show(DialogInitializer& initializer) const
 {
-	return Dialog::Show(QMessageBox::Information, Loc::Information(), text, buttons, defaultButton);
+	return Dialog::Show(QMessageBox::Information, Loc::Information(), initializer);
 }
 
-QMessageBox::StandardButton ErrorDialog::Show(const QString& text, const QMessageBox::StandardButtons& buttons, const QMessageBox::StandardButton defaultButton) const
+QMessageBox::StandardButton ErrorDialog::Show(DialogInitializer& initializer) const
 {
-	return Dialog::Show(QMessageBox::Critical, Loc::Error(), text, buttons, defaultButton);
+	return Dialog::Show(QMessageBox::Critical, Loc::Error(), initializer);
 }
 
 QString InputTextDialog::GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, const QLineEdit::EchoMode mode) const

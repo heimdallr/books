@@ -39,8 +39,13 @@ endforeach()
 configure_file("${BUILDSCRIPTS_ROOT}/helpers/locales.h.in" "${CMAKE_BINARY_DIR}/config/locales.h" @ONLY)
 
 set(LUPDATE_COMMAND_PARAMETERS
-	-recursive ./
+	"${CMAKE_BINARY_DIR}/config/locales.h"
+	"${FOUNDATION_ROOT}/util/language.h"
+	"${FOUNDATION_ROOT}/util/GenresLocalization.h"
+	./
+	-recursive
 	-locations none
+	-extensions cpp,h,ui
 )
 if(QT6)
 	list(APPEND LUPDATE_COMMAND_PARAMETERS -sort-messages)
@@ -49,10 +54,7 @@ endif()
 
 set(LUPDATE_COMMAND
 	"${QT_LUPDATE_TOOL}"
-	"${CMAKE_BINARY_DIR}/config/locales.h"
-	"${FOUNDATION_ROOT}/util/language.h"
 	${LUPDATE_COMMAND_PARAMETERS}
-	-extensions cpp,h,ui
 	${LUPDATE_LIST}
 )
 

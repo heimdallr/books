@@ -7,11 +7,11 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/constants/GenresLocalization.h"
 #include "interface/constants/Localization.h"
 #include "interface/localization.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
+#include "util/GenresLocalization.h"
 #include "util/SortString.h"
 
 using namespace HomeCompa;
@@ -123,17 +123,24 @@ template <>
 void Select<Genre>(DB::IQuery& query, const std::unordered_set<Genre::CodeType>& neededItems, std::unordered_map<Genre::CodeType, AllTreeItem<Genre>>& allItems, std::vector<AllTreeItem<Genre>>& buffer)
 {
 	const auto* fb2Code    = query.Get<const char*>(1);
-	auto        translated = Loc::Tr(GENRE, fb2Code);
-	assert(!translated.contains(','));
+	auto        translated = query.Get<QString>(4);
+	if (translated.isEmpty())
+	{
+		translated = Loc::Tr(Util::GENRE, fb2Code);
+		if (translated == fb2Code)
+			translated = query.Get<const char*>(3);
+	}
+
+	translated.replace(',', QChar { 0x2E34 });
 	AllTreeItem<Genre> item {
 		Genre { .fb2Code = fb2Code,
                .code    = query.Get<const char*>(0),
-               .name    = translated != fb2Code ? std::move(translated) : query.Get<const char*>(3),
-               .removed = static_cast<bool>(query.Get<int>(5)),
-               .flags   = static_cast<IDataItem::Flags>(query.Get<int>(6)) },
+               .name    = std::move(translated),
+               .removed = static_cast<bool>(query.Get<int>(6)),
+               .flags   = static_cast<IDataItem::Flags>(query.Get<int>(7)) },
 		query.Get<const char*>(2)
 	};
-	if (query.Get<int>(4) && (neededItems.empty() || neededItems.contains(std::get<0>(item).code)))
+	if (query.Get<int>(5) && (neededItems.empty() || neededItems.contains(std::get<0>(item).code)))
 		buffer.emplace_back(std::move(item));
 	else
 		allItems.try_emplace(std::get<0>(item).code, std::move(item));
@@ -216,7 +223,8 @@ Genre Genre::Load(DB::IDatabase& db, const std::unordered_set<QString>& neededGe
 	return LoadImpl<Genre>(
 		db,
 		neededGenres,
-		"select g.GenreCode, g.FB2Code, g.ParentCode, g.GenreAlias, exists (select 42 from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount, IsDeleted, Flags from Genres g",
+		"select g.GenreCode, g.FB2Code, g.ParentCode, g.GenreAlias, coalesce(g.GenreTitle, ''), exists (select 42 from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount, IsDeleted, Flags from Genres "
+		"g",
 		SORTER
 	);
 }

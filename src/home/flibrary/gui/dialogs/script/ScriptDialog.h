@@ -9,7 +9,9 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
+#include "utilgui/ItemViewToolTipper.h"
+#include "utilgui/ScrollBarController.h"
 
 #include "ComboBoxDelegate.h"
 #include "ScriptNameDelegate.h"
@@ -28,7 +30,12 @@ public:
 		std::shared_ptr<const IUiFactory>             uiFactory,
 		std::shared_ptr<ISettings>                    settings,
 		std::shared_ptr<ScriptComboBoxDelegate>       scriptTypeDelegate,
-		std::shared_ptr<ScriptNameDelegate>           scriptNameLineEditDelegate
+		std::shared_ptr<ScriptNameDelegate>           scriptNameLineEditDelegate,
+		std::shared_ptr<Util::ItemViewToolTipper>     scriptItemViewToolTipper,
+		std::shared_ptr<Util::ItemViewToolTipper>     commandItemViewToolTipper,
+		std::shared_ptr<Util::ScrollBarController>    scriptScrollBarController,
+		std::shared_ptr<Util::ScrollBarController>    commandScrollBarController
+
 	);
 	~ScriptDialog() override;
 

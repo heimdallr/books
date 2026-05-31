@@ -5,7 +5,7 @@
 
 #include "fnd/observable.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 #include "log.h"
 

@@ -11,7 +11,7 @@
 #include "interface/logic/IFilterProvider.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 
 class QString;
 

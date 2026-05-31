@@ -24,6 +24,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/ObjectConnectionID.h"
+#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/IBookSearchController.h"
@@ -36,9 +37,9 @@
 
 #include "gutil/util.h"
 #include "logging/LogAppender.h"
+#include "settings/Font.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ObjectsConnector.h"
-#include "util/serializer/Font.h"
 #include "utilgui/GeometryRestorable.h"
 
 #include "Constant.h"
@@ -317,6 +318,8 @@ public:
 		StartDelayed([this, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable {
 			CheckForUpdateCollection(*commandLine, *databaseChecker, std::move(collectionUpdateChecker));
 			m_recentOpenBookController->SetMenu(m_ui.menuRecentBooks);
+			if (m_collectionController->ActiveCollectionExists())
+				RestoreUserData(m_collectionController->GetActiveCollectionId());
 		});
 
 		if (m_checkForUpdateOnStartEnabled && m_collectionController->ActiveCollectionExists())
@@ -462,16 +465,7 @@ private: // ICollectionsObserver
 		if (running || !m_collectionToRecreate)
 			return;
 
-		auto       controller = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
-		const auto backupPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/" + m_collectionToRecreate->id + ".flibk";
-
-		QEventLoop eventLoop;
-		controller->Restore(backupPath, [&](bool, const QString& message) {
-			PLOGV << message;
-			eventLoop.exit();
-		});
-		eventLoop.exec();
-		QFile::remove(backupPath);
+		RestoreUserData(m_collectionToRecreate->id);
 		m_collectionToRecreate = std::nullopt;
 	}
 
@@ -856,8 +850,8 @@ private:
 	{
 		PLOGV << "ConnectActionsSettingsFont";
 		const auto incrementFontSize = [&](const int value) {
-			const auto fontSize = m_settings->Get(Constant::Settings::FONT_SIZE_KEY, Constant::Settings::FONT_SIZE_DEFAULT);
-			m_settings->Set(Constant::Settings::FONT_SIZE_KEY, fontSize + value);
+			const auto fontSize = m_settings->Get(Global::FONT_SIZE_KEY, Global::FONT_SIZE_DEFAULT);
+			m_settings->Set(Global::FONT_SIZE_KEY, fontSize + value);
 		};
 		connect(m_ui.actionFontSizeUp, &QAction::triggered, &m_self, [=] {
 			incrementFontSize(1);
@@ -868,7 +862,7 @@ private:
 		connect(m_ui.actionFontSettings, &QAction::triggered, &m_self, [&] {
 			if (const auto font = m_uiFactory->GetFont(Tr(FONT_DIALOG_TITLE), m_self.font()))
 			{
-				const SettingsGroup group(*m_settings, Constant::Settings::FONT_KEY);
+				const SettingsGroup group(*m_settings, Global::FONT_KEY);
 				Util::Serialize(*font, *m_settings);
 			}
 		});
@@ -1073,7 +1067,7 @@ private:
 		m_ui.actionViewHelp->setEnabled(true);
 		m_ui.actionViewHelp->setVisible(true);
 		connect(m_ui.actionViewHelp, &QAction::triggered, &m_self, [&, helpFile = std::move(helpFile)] {
-			QDesktopServices::openUrl(helpFile);
+			QDesktopServices::openUrl(QUrl::fromLocalFile(helpFile));
 		});
 	}
 
@@ -1568,6 +1562,23 @@ private:
 		}
 
 		return false;
+	}
+
+	void RestoreUserData(const QString& id) const
+	{
+		const auto backupPath = QDir(QDir::tempPath()).filePath(id + Constant::BACKUP_FILE_EXT);
+		if (!QFile::exists(backupPath))
+			return;
+
+		auto controller = ILogicFactory::Lock(m_logicFactory)->CreateUserDataController();
+
+		QEventLoop eventLoop;
+		controller->Restore(backupPath, [&](bool, const QString& message) {
+			PLOGV << message;
+			eventLoop.exit();
+		});
+		eventLoop.exec();
+		QFile::remove(backupPath);
 	}
 
 	static void Reboot()

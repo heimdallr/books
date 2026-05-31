@@ -24,6 +24,7 @@
 
 #include "QtTypes.h"
 #include "localization.h"
+#include "log.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -33,37 +34,113 @@ namespace
 
 int SEQ_NUMBER_WIDTH = 1;
 
-void SetMacroImpl(QString& str, const IScriptController::Macro macro, const QString& value)
+struct MacroTreeItem
 {
-	const QString macroStr = IScriptController::GetMacro(macro);
-	const auto    start    = str.indexOf(macroStr, 0, Qt::CaseInsensitive);
-	if (start < 0)
-		return;
+	using Ptr = std::unique_ptr<MacroTreeItem>;
+	MacroTreeItem*   parent { nullptr };
+	QString          value;
+	std::vector<Ptr> children;
 
-	const auto replace = [&](const QString& s, const qsizetype_t startPos, const qsizetype_t endPos) {
-		Erase(str, std::next(str.begin(), startPos), std::next(str.begin(), endPos));
-		str.insert(startPos, s);
-	};
+	std::vector<std::pair<qsizetype, qsizetype>> macroPositions;
 
-	if (start == 0 || str[start - 1] != '[')
-		return replace(value, start, start + macroStr.length());
+	QString Get(const std::unordered_map<QString, QString>& macroMap, const int level = 0)
+	{
+		if (value.isEmpty())
+			return (children | std::views::transform([&](const auto& item) {
+						return item->Get(macroMap, level + 1);
+					})
+			        | std::ranges::to<QStringList>())
+			    .join("");
 
-	const auto itEnd = std::find_if(std::next(str.cbegin(), start), str.cend(), [n = 1](const QChar ch) mutable {
-		if (ch == '[')
-			++n;
+		qsizetype shift = 0;
+		for (const auto& [from, length] : macroPositions)
+		{
+			const auto toReplace = value.mid(from + shift, length);
+			if (const auto it = macroMap.find(toReplace); it != macroMap.end())
+			{
+				if (level > 1 && it->second.isEmpty())
+					return {};
 
-		return ch == ']' && --n == 0;
-	});
+				value.replace(from + shift, length, it->second);
+				shift += it->second.length() - length;
+			}
+		}
 
-	if (itEnd == str.cend())
-		return replace(value, start, start + macroStr.length());
+		return value;
+	}
+};
 
-	if (value.isEmpty())
-		return replace(value, start - 1, static_cast<qsizetype_t>(std::distance(str.cbegin(), itEnd) + 1));
+void SetMacroImpl(QString& str, const std::unordered_map<IScriptController::Macro, QString>& macroValues)
+{
+	MacroTreeItem  tree;
+	MacroTreeItem* node           = &tree;
+	int            bracketBalance = 0;
+	bool           escapeMode     = false;
 
-	Erase(str, itEnd);
-	Erase(str, std::next(str.begin(), start - 1));
-	return replace(value, start - 1, start + macroStr.length() - 1);
+	for (const auto ch : str)
+	{
+		if (!escapeMode)
+		{
+			if (ch == '\\')
+			{
+				escapeMode = true;
+				continue;
+			}
+
+			if (ch == '[')
+			{
+				++bracketBalance;
+				node = node->children.emplace_back(std::make_unique<MacroTreeItem>(node)).get();
+				continue;
+			}
+
+			if (ch == ']')
+			{
+				--bracketBalance;
+				if (node->parent)
+				{
+					node = node->parent;
+					continue;
+				}
+			}
+		}
+
+		escapeMode = false;
+
+		if (node->children.empty() || node->children.back()->value.isEmpty())
+			node->children.emplace_back(std::make_unique<MacroTreeItem>(node));
+
+		auto& child = *node->children.back();
+
+		if (ch == '%')
+		{
+			if (child.macroPositions.empty())
+			{
+				child.macroPositions.emplace_back(child.value.length(), 0);
+			}
+			else
+			{
+				if (auto& [from, length] = child.macroPositions.back(); length != 0)
+					child.macroPositions.emplace_back(child.value.length(), 0);
+				else
+					length = child.value.length() - from + 1;
+			}
+		}
+
+		child.value.append(ch);
+	}
+
+	if (bracketBalance != 0)
+	{
+		PLOGW << "bracket balance violation";
+	}
+
+	str = tree.Get(
+		macroValues | std::views::transform([](const auto& item) {
+			return std::make_pair(QString { IScriptController::GetMacro(item.first) }, item.second);
+		})
+		| std::ranges::to<std::unordered_map>()
+	);
 }
 
 QString ApplyMacroSourceFile(DB::IDatabase&, const Util::ExtractedBook&, const QFileInfo&, const QStringList&)
@@ -240,13 +317,7 @@ bool IScriptController::HasMacro(const QString& str, const Macro macro)
 
 QString& IScriptController::SetMacro(QString& str, const Macro macro, const QString& value)
 {
-	while (true)
-	{
-		QString tmp = str;
-		SetMacroImpl(str, macro, value);
-		if (tmp == str)
-			return str;
-	}
+	return str.replace(GetMacro(macro), value);
 }
 
 const char* IScriptController::GetMacro(const Macro macro)
@@ -292,11 +363,9 @@ void ILogicFactory::FillScriptTemplate(DB::IDatabase& db, QString& scriptTemplat
 {
 	const auto      authorNameSplitted = Platform::RemoveIllegalPathCharacters(book.author).split(' ', Qt::SkipEmptyParts);
 	const QFileInfo fileInfo(book.file);
-	for (const auto& [macro, applier] : MACRO_APPLIERS)
-	{
-		const auto value = std::invoke(applier, std::ref(db), std::cref(book), std::cref(fileInfo), std::cref(authorNameSplitted));
-		IScriptController::SetMacro(scriptTemplate, macro, value);
-	}
+	SetMacroImpl(scriptTemplate, MACRO_APPLIERS | std::views::transform([&](const auto& item) {
+									 return std::make_pair(item.first, std::invoke(item.second, std::ref(db), std::cref(book), std::cref(fileInfo), std::cref(authorNameSplitted)));
+								 }) | std::ranges::to<std::unordered_map>());
 }
 
 QString IDatabaseUser::GetDatabaseVersionStatement()

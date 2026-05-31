@@ -11,10 +11,9 @@
 #include "interface/logic/IHotkeyManager.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "util/ISettings.h"
-
-#include "ItemViewToolTipper.h"
-#include "ScrollBarController.h"
+#include "settings/ISettings.h"
+#include "utilgui/ItemViewToolTipper.h"
+#include "utilgui/ScrollBarController.h"
 
 class QAbstractItemView;
 class QModelIndex;
@@ -35,8 +34,8 @@ public:
 		std::shared_ptr<IUiFactory>                 uiFactory,
 		std::shared_ptr<IFilterProvider>            filterProvider,
 		std::shared_ptr<IHotkeyManager>             hotkeyManager,
-		std::shared_ptr<ItemViewToolTipper>         itemViewToolTipper,
-		std::shared_ptr<ScrollBarController>        scrollBarController,
+		std::shared_ptr<Util::ItemViewToolTipper>   itemViewToolTipper,
+		std::shared_ptr<Util::ScrollBarController>  scrollBarController,
 		QWidget*                                    parent = nullptr
 	);
 	~TreeView() override;

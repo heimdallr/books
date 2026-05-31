@@ -1,7 +1,6 @@
 #include "CollectionUpdateChecker.h"
 
 #include <QCryptographicHash>
-
 #include <QFileInfo>
 
 #include "database/interface/IDatabase.h"
@@ -92,7 +91,7 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 				  return result;
 			  }
 
-			  auto [_, ini]          = m_impl->collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), explicitInpx, false);
+			  auto [_, ini]          = Inpx::Parser::GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), explicitInpx, false);
 			  const auto checkResult = Inpx::Parser::CheckForUpdate(std::move(ini), *db);
 			  result                 = [checkResult, updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) mutable {
 				  callback(checkResult, updatedCollection);

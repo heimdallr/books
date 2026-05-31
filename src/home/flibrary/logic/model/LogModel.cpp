@@ -1,6 +1,7 @@
 #include "LogModel.h"
 
 #include <chrono>
+#include <mutex>
 #include <vector>
 
 #include <QSortFilterProxyModel>
@@ -19,8 +20,8 @@
 #include "interface/logic/LogModelRole.h"
 
 #include "logging/LogAppender.h"
+#include "settings/UiTimer.h"
 #include "util/FunctorExecutionForwarder.h"
-#include "util/UiTimer.h"
 
 #include "QtTypes.h"
 

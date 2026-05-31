@@ -2,8 +2,6 @@
 
 #include "AnnotationWidget.h"
 
-#include <QPainterPath>
-
 #include <ranges>
 
 #include <QBuffer>
@@ -12,6 +10,7 @@
 #include <QGuiApplication>
 #include <QMenu>
 #include <QPainter>
+#include <QPainterPath>
 #include <QSvgRenderer>
 #include <QTemporaryDir>
 #include <QTimer>
@@ -195,9 +194,9 @@ public:
 		std::shared_ptr<IAnnotationController>             annotationController,
 		std::shared_ptr<IUiFactory>                        uiFactory,
 		std::shared_ptr<IBooksExtractorProgressController> progressController,
-		std::shared_ptr<ItemViewToolTipper>                itemViewToolTipperContent,
-		std::shared_ptr<ScrollBarController>               scrollBarControllerContent,
-		std::shared_ptr<ScrollBarController>               scrollBarControllerAnnotation
+		std::shared_ptr<Util::ItemViewToolTipper>          itemViewToolTipperContent,
+		std::shared_ptr<Util::ScrollBarController>         scrollBarControllerContent,
+		std::shared_ptr<Util::ScrollBarController>         scrollBarControllerAnnotation
 	)
 		: m_self { self }
 		, m_bookInteractor { std::move(bookInteractor) }
@@ -450,6 +449,8 @@ private: // IAnnotationController::IObserver
 		m_content.clear();
 		m_currentCoverIndex = 0;
 		m_contentModel.reset();
+		for (auto& btn : m_coverButtons)
+			btn->setVisible(false);
 	}
 
 	void OnAnnotationChanged(const IAnnotationController::IDataProvider& dataProvider) override
@@ -687,9 +688,9 @@ private:
 	std::weak_ptr<const ILogicFactory>                                    m_logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>                        m_uiFactory;
 	PropagateConstPtr<IBooksExtractorProgressController, std::shared_ptr> m_progressController;
-	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>                m_itemViewToolTipperContent;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr>               m_scrollBarControllerContent;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr>               m_scrollBarControllerAnnotation;
+	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>          m_itemViewToolTipperContent;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr>         m_scrollBarControllerContent;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr>         m_scrollBarControllerAnnotation;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>                m_contentModel { std::shared_ptr<QAbstractItemModel> {} };
 
 	Ui::AnnotationWidget                            m_ui {};
@@ -721,9 +722,9 @@ AnnotationWidget::AnnotationWidget(
 	std::shared_ptr<IAnnotationController>             annotationController,
 	std::shared_ptr<IUiFactory>                        uiFactory,
 	std::shared_ptr<IBooksExtractorProgressController> progressController,
-	std::shared_ptr<ItemViewToolTipper>                itemViewToolTipperContent,
-	std::shared_ptr<ScrollBarController>               scrollBarControllerContent,
-	std::shared_ptr<ScrollBarController>               scrollBarControllerAnnotation,
+	std::shared_ptr<Util::ItemViewToolTipper>          itemViewToolTipperContent,
+	std::shared_ptr<Util::ScrollBarController>         scrollBarControllerContent,
+	std::shared_ptr<Util::ScrollBarController>         scrollBarControllerAnnotation,
 	QWidget*                                           parent
 )
 	: QWidget(parent)

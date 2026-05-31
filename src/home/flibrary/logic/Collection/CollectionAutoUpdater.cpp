@@ -1,7 +1,6 @@
 #include "CollectionAutoUpdater.h"
 
 #include <QCryptographicHash>
-
 #include <QDir>
 #include <QFileSystemWatcher>
 #include <QTimer>
@@ -47,9 +46,17 @@ private:
 			m_timer.start();
 		});
 
-		const QDir folder(m_collectionProvider->GetActiveCollection().GetFolder());
-		for (const auto& inpx : folder.entryList({ "*.inpx" }, QDir::Files))
-			m_watcher.addPath(folder.filePath(inpx));
+		const auto& activeCollection = m_collectionProvider->GetActiveCollection();
+		if (const auto inpx = activeCollection.GetInpx(); !inpx.isEmpty())
+		{
+			m_watcher.addPath(inpx);
+		}
+		else
+		{
+			const QDir folder(m_collectionProvider->GetActiveCollection().GetFolder());
+			for (const auto& item : folder.entryList({ "*.inpx" }, QDir::Files))
+				m_watcher.addPath(folder.filePath(item));
+		}
 
 		PLOGD << "watch for: " << m_watcher.files().join(", ");
 	}
@@ -100,7 +107,7 @@ private:
 		const auto& collection = m_collectionProvider->GetActiveCollection();
 		auto        parser     = std::make_shared<Inpx::Parser>();
 		auto&       parserRef  = *parser;
-		auto [tmpDir, ini]     = m_collectionProvider->GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), collection.GetInpx(), true);
+		auto [tmpDir, ini]     = Inpx::Parser::GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), collection.GetInpx(), true);
 		auto callback          = [this, parser = std::move(parser), tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
 			if (updateResult.oldDataUpdateFound)
 			{

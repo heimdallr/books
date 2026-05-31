@@ -1,9 +1,17 @@
 cmake_minimum_required(VERSION 3.12)
 
+execute_process(COMMAND git log -1 --format=%h WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR} OUTPUT_VARIABLE GIT_HASH OUTPUT_STRIP_TRAILING_WHITESPACE)
+message(STATUS "Git commit hash: ${GIT_HASH}")
+
 set(CMAKE_GENERATOR_PLATFORM)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_INCLUDE_CURRENT_DIR ON)
 set(CMAKE_INSTALL_PREFIX "${CMAKE_BINARY_DIR}/install")
+
+set(COMPANY_NAME HomeCompa)
+set(COPYRIGHT "© 2026 heimdallr")
+set(PRODUCT_DESCRIPTION "another e-book cataloger")
+set(PRODUCT_ICON "${CMAKE_CURRENT_LIST_DIR}/src/home/resources/icons/main.ico")
 
 if ("${QT_MAJOR_VERSION}" STREQUAL "")
 	set(QT_MAJOR_VERSION 6)
@@ -22,10 +30,14 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(MAJOR_PRODUCT_VERSION 2)
 set(MINOR_PRODUCT_VERSION 6)
-set(BUILD_PRODUCT_VERSION 2)
+set(PATCH_PRODUCT_VERSION 3)
+file(READ ${CMAKE_CURRENT_LIST_DIR}/src/home/flibrary/version/build.h BUILD_PRODUCT_VERSION)
+string(REGEX MATCH "[0-9]+" BUILD_PRODUCT_VERSION ${BUILD_PRODUCT_VERSION})
 
-set(PRODUCT_VERSION ${MAJOR_PRODUCT_VERSION}.${MINOR_PRODUCT_VERSION}.${BUILD_PRODUCT_VERSION})
+set(PRODUCT_VERSION ${MAJOR_PRODUCT_VERSION}.${MINOR_PRODUCT_VERSION}.${PATCH_PRODUCT_VERSION})
+set(PRODUCT_VERSION_FULL ${PRODUCT_VERSION}.${BUILD_PRODUCT_VERSION})
 set(PRODUCT_UID 80B196FB-9529-459D-960E-0E0F00CE0981)
+
 project(FLibrary VERSION ${PRODUCT_VERSION})
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
@@ -81,6 +93,7 @@ else()
 		-Wno-deprecated-declarations
 		-Wno-virtual-move-assign
 		-Wno-missing-field-initializers
+		-Wno-array-bounds
 		-fPIC		
 	)
 endif()
@@ -132,7 +145,7 @@ set(BIT7Z_USE_NATIVE_STRING ON CACHE BOOL "enable native string" FORCE)
 set(BIT7Z_USE_STD_BYTE ON CACHE BOOL "enable std::byte" FORCE)
 add_subdirectory(${CMAKE_SOURCE_DIR}/src/ext/bit7z)
 if(MSVC)
-	set_property(TARGET bit7z PROPERTY FOLDER Foundation/zip)
+	set_property(TARGET bit7z PROPERTY FOLDER ThirdParty)
 endif()
 
 find_package(plog REQUIRED)
@@ -142,6 +155,9 @@ find_package(ICU REQUIRED COMPONENTS tu io uc i18n data)
 find_package(libjxl REQUIRED)
 find_package(cimg REQUIRED)
 find_package(SQLite3 REQUIRED)
+find_package(djvulibre REQUIRED)
+find_package(poppler REQUIRED)
+find_package(poppler-data REQUIRED)
 
 include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)
 include(${BUILDSCRIPTS_ROOT}/cmake/sdk.cmake)
@@ -161,8 +177,11 @@ include(${FOUNDATION_ROOT}/database/database.cmake)
 include(${FOUNDATION_ROOT}/util/util.cmake)
 include(${FOUNDATION_ROOT}/utilgui/utilgui.cmake)
 include(${FOUNDATION_ROOT}/icu/icu.cmake)
+include(${FOUNDATION_ROOT}/djvu/djvu.cmake)
+include(${FOUNDATION_ROOT}/pdf/pdf.cmake)
 include(${FOUNDATION_ROOT}/platform/platform.cmake)
 include(${FOUNDATION_ROOT}/platformgui/platformgui.cmake)
+include(${FOUNDATION_ROOT}/settings/settings.cmake)
 
 file(WRITE "${CMAKE_BINARY_DIR}/var/7z" "${7zip_BIN_DIR}/")
 file(WRITE "${CMAKE_BINARY_DIR}/var/version" ${PRODUCT_VERSION})

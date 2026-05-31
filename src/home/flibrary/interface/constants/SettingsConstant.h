@@ -7,9 +7,6 @@ constexpr auto LOCALE_KEY = "ui/locale";
 
 constexpr auto VIEW_MODE_KEY_TEMPLATE       = "ui/%1/Mode";
 constexpr auto VIEW_NAVIGATION_KEY_TEMPLATE = "ui/View/Navigation/%1";
-constexpr auto FONT_KEY                     = "ui/Font";
-constexpr auto FONT_SIZE_KEY                = "ui/Font/pointSizeF";
-constexpr auto FONT_SIZE_FAMILY             = "ui/Font/family";
 constexpr auto RECENT_NAVIGATION_ID_KEY     = "Collections/%1/%2%3/LastId";
 
 constexpr auto EXPORT_DIALOG_KEY           = "Export";
@@ -20,8 +17,6 @@ constexpr auto PERMANENT_LANG_FILTER_KEY         = "ui/permanentLanguageFilter";
 constexpr auto PERMANENT_LANG_FILTER_ENABLED_KEY = "ui/permanentLanguageFilterEnabled";
 constexpr auto SHOW_REMOVED_BOOKS_KEY            = "ui/View/RemovedBooks";
 constexpr auto HOTKEYS_ROOT                      = "ui/Hotkeys";
-
-constexpr auto FONT_SIZE_DEFAULT = 9;
 
 constexpr auto OPDS_HOST_KEY          = "opds/host";
 constexpr auto OPDS_PORT_KEY          = "opds/port";
@@ -45,10 +40,10 @@ constexpr auto PREFER_LIBRATE_VIEW_PRECISION_KEY = "Preferences/LibRate/precisio
 constexpr auto PREFER_LIBRATE_VIEW_COLORS_KEY    = "Preferences/LibRate/colors";
 constexpr auto PREFER_OPDS_READ_URL_TEMPLATE     = "Preferences/opds/ReadUrlTemplate";
 constexpr auto PREFER_OPDS_AUTOUPDATE_COLLECTION = "Preferences/opds/AutoupdateCollection";
-constexpr auto PREFER_HIDE_SCROLLBARS_KEY        = "Preferences/hideScrollBars";
 constexpr auto PREFER_RELATIVE_PATHS             = "Preferences/RelativePaths";
 constexpr auto PREFER_HIDE_TO_TRAY_KEY           = "Preferences/HideToTray";
 constexpr auto PREFER_MINIMIZE_TO_TRAY_KEY       = "Preferences/MinimizeToTray";
+constexpr auto PREFER_ALTERNATING_ROW_COLORS     = "Preferences/AlternatingRowColors";
 
 constexpr auto SEARCH_WITH_TITLE      = "SearchBy/Title";
 constexpr auto SEARCH_WITH_AUTHOR     = "SearchBy/Author";

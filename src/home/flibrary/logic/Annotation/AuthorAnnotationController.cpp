@@ -1,9 +1,8 @@
 #include "AuthorAnnotationController.h"
 
-#include <QCryptographicHash>
-
 #include <ranges>
 
+#include <QCryptographicHash>
 #include <QDir>
 
 #include "fnd/algorithm.h"

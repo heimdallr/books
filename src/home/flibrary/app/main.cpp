@@ -8,6 +8,7 @@
 
 #include "fnd/FindPair.h"
 
+#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/ICollectionProvider.h"
@@ -25,11 +26,12 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "Hypodermic/Hypodermic.h"
+#include "djvu/djvu.h"
 #include "logging/init.h"
 #include "logic/data/Genre.h"
 #include "logic/model/LogModel.h"
 #include "platform/PlatformUtil.h"
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
 #include "util/xml/Initializer.h"
 #include "version/AppVersion.h"
 
@@ -77,7 +79,7 @@ std::optional<Collection> RecreateDatabase(Hypodermic::Container& container)
 		assert(collectionProvider->ActiveCollectionExists());
 		return collectionProvider->GetActiveCollection();
 	}();
-	const auto backupPath = QStandardPaths::writableLocation(QStandardPaths::TempLocation) + "/" + activeCollection.id + ".flibk";
+	const auto backupPath = QDir(QDir::tempPath()).filePath(activeCollection.id + Constant::BACKUP_FILE_EXT);
 
 	QString errorMessage;
 
@@ -142,6 +144,8 @@ int main(int argc, char* argv[])
 		// ReSharper restore CppCompileTimeConstantCanBeReplacedWithBooleanConstant
 
 		PLOGD << "QApplication created";
+
+		DjVu::Initializer djvuInitializer;
 
 		std::optional<Collection> collectionToRecreate;
 

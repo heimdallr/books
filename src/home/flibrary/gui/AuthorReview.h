@@ -7,9 +7,9 @@
 #include "interface/logic/IModelProvider.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "util/ISettings.h"
+#include "settings/ISettings.h"
+#include "utilgui/ScrollBarController.h"
 
-#include "ScrollBarController.h"
 #include "StackedPage.h"
 
 namespace HomeCompa::Flibrary
@@ -25,7 +25,7 @@ public:
 		const std::shared_ptr<const IModelProvider>& modelProvider,
 		std::shared_ptr<const IBookInteractor>       bookInteractor,
 		std::shared_ptr<ISettings>                   settings,
-		std::shared_ptr<ScrollBarController>         scrollBarController,
+		std::shared_ptr<Util::ScrollBarController>   scrollBarController,
 		QWidget*                                     parent = nullptr
 	);
 	~AuthorReview() override;

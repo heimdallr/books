@@ -33,9 +33,9 @@
 #include "gutil/util.h"
 #include "inpx/InpxConstant.h"
 #include "platform/FileUtil.h"
+#include "settings/UiTimer.h"
 #include "util/ColorUtil.h"
 #include "util/ObjectsConnector.h"
-#include "util/UiTimer.h"
 #include "util/language.h"
 
 #include "log.h"
@@ -83,9 +83,7 @@ public:
 		, m_observer { observer }
 		, m_currentId { currentId }
 	{
-		setFirstSectionMovable(false);
 		setSectionsMovable(true);
-
 		connect(this, &QHeaderView::sectionClicked, this, &HeaderView::OnSectionClicked);
 	}
 
@@ -376,7 +374,7 @@ private: // IModelSorter
 	}
 
 private:
-	QRegularExpression m_rx { "^.*?fb2.*?([0-9]+).*?$" };
+	QRegularExpression m_rx { "^.*?-([0-9]+)-.*?$" };
 };
 
 void TreeOperation(const QAbstractItemModel& model, const QModelIndex& index, const std::function<void(const QModelIndex&)>& f)
@@ -407,8 +405,8 @@ public:
 		std::shared_ptr<IUiFactory>                uiFactory,
 		std::shared_ptr<IFilterProvider>           filterProvider,
 		std::shared_ptr<IHotkeyManager>            hotkeyManager,
-		std::shared_ptr<ItemViewToolTipper>        itemViewToolTipper,
-		std::shared_ptr<ScrollBarController>       scrollBarController
+		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
+		std::shared_ptr<Util::ScrollBarController> scrollBarController
 	)
 		: m_self { self }
 		, m_controller { uiFactory->GetTreeViewController() }
@@ -435,7 +433,8 @@ public:
 
 	void SetNavigationModeName(QString navigationModeName)
 	{
-		m_navigationModeName = std::move(navigationModeName);
+		m_navigationModeName        = std::move(navigationModeName);
+		m_restoreBooksLayoutPending = true;
 	}
 
 	void ShowRemoved(const bool showRemoved)
@@ -472,7 +471,7 @@ public:
 		m_ui.btnNew->setMinimumSize(size, size);
 		m_ui.btnNew->setMaximumSize(size, size);
 
-		if (m_controller->GetItemType() != ItemType::Books)
+		if (IsNavigation())
 			return;
 
 		emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.value));
@@ -693,7 +692,6 @@ private:
 		else
 		{
 			m_languageContextMenu.reset();
-			model->setData({}, true, Role::Checkable);
 			model->setData({}, !!(m_navigationItemFlags & (IDataItem::Flags::Filtered | IDataItem::Flags::BooksFiltered)), Role::NavigationItemFiltered);
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
@@ -899,6 +897,7 @@ private:
 
 		auto& treeViewHeader = *m_ui.treeView->header();
 		m_ui.treeView->setHeaderHidden(IsNavigation());
+		m_ui.treeView->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 		treeViewHeader.setDefaultAlignment(Qt::AlignCenter);
 		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
 		m_ui.treeView->viewport()->installEventFilter(m_scrollBarController.get());
@@ -990,6 +989,8 @@ private:
 			m_recentMode = std::move(newMode);
 			m_controller->SetMode(m_recentMode);
 			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
+			if (!IsNavigation())
+				m_booksHeaderView->setFirstSectionMovable(m_recentMode == ListViewMode);
 		});
 		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [this] {
 			OnValueChanged();
@@ -1018,7 +1019,7 @@ private:
 		if (m_recentMode.isEmpty())
 			return;
 
-		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
+		if (IsNavigation() || m_navigationModeName.isEmpty() || m_restoreBooksLayoutPending)
 			return;
 
 		const auto* header           = m_ui.treeView->header();
@@ -1047,6 +1048,8 @@ private:
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
 			saveHeaderLayout();
 		}
+
+		m_ui.treeView->model()->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
 	}
 
 	void RestoreHeaderLayout()
@@ -1061,8 +1064,10 @@ private:
 		m_currentId = m_settings->Get(GetRecentIdKey(), m_currentId);
 
 		UpdateSectionSize();
-		if (m_controller->GetItemType() != ItemType::Books || m_navigationModeName.isEmpty())
+		if (IsNavigation() || m_navigationModeName.isEmpty())
 			return;
+
+		m_restoreBooksLayoutPending = false;
 
 		auto* header = m_ui.treeView->header();
 
@@ -1136,8 +1141,9 @@ private:
 			columnInfo.hidden ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
 		}
 
-		if (!columnInfoList.empty())
+		if (!columnInfoList.empty() && !m_booksHeaderView->isFirstSectionMovable())
 			columnInfoList.front().index = -1;
+
 		for (const auto [logicalIndex, visualIndex] : std::views::zip(
 				 std::views::zip(columnInfoList, std::views::iota(0)) | std::views::filter([](const auto& item) {
 					 return !get<0>(item).hidden;
@@ -1149,6 +1155,7 @@ private:
 			 ))
 			header->moveSection(header->visualIndex(logicalIndex), visualIndex);
 
+		m_ui.treeView->model()->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
 		CheckHeaderViewWidth(QResizeEvent(m_self.size(), m_self.size()));
 	}
 
@@ -1287,7 +1294,7 @@ private:
 
 	void UpdateSectionSize() const
 	{
-		if (m_controller->GetItemType() != ItemType::Navigation)
+		if (!IsNavigation())
 			return;
 
 		auto* header = m_ui.treeView->header();
@@ -1329,32 +1336,33 @@ private:
 	}
 
 private:
-	TreeView&                                               m_self;
-	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_controller;
-	std::shared_ptr<const ICollectionProvider>              m_collectionProvider;
-	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
-	PropagateConstPtr<IUiFactory, std::shared_ptr>          m_uiFactory;
-	PropagateConstPtr<IFilterProvider, std::shared_ptr>     m_filterProvider;
-	PropagateConstPtr<IHotkeyManager, std::shared_ptr>      m_hotkeyManager;
-	PropagateConstPtr<ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
-	PropagateConstPtr<ScrollBarController, std::shared_ptr> m_scrollBarController;
-	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr>   m_delegate;
-	Ui::TreeView                                            m_ui {};
-	ValueApplier                                            m_valueApplier { nullptr };
-	QTimer                                                  m_filterTimer;
-	QString                                                 m_navigationModeName;
-	QString                                                 m_recentMode;
-	QString                                                 m_currentId;
-	std::shared_ptr<QMenu>                                  m_languageContextMenu;
-	bool                                                    m_showRemoved { false };
-	QString                                                 m_lastRestoredLayoutKey;
-	ITreeViewController::RemoveItems                        m_removeItems;
-	MenuEventFilter                                         m_menuEventFilter;
-	HeaderView*                                             m_booksHeaderView;
-	IDataItem::Flags                                        m_navigationItemFlags { IDataItem::Flags::None };
-	const ArchiveSorter                                     m_archiveSorter;
-	const QStringList                                       m_hiddenColumns;
-	std::unique_ptr<QTimer>                                 m_countChangedTimer { Util::CreateUiTimer([this] {
+	TreeView&                                                     m_self;
+	PropagateConstPtr<ITreeViewController, std::shared_ptr>       m_controller;
+	std::shared_ptr<const ICollectionProvider>                    m_collectionProvider;
+	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
+	PropagateConstPtr<IUiFactory, std::shared_ptr>                m_uiFactory;
+	PropagateConstPtr<IFilterProvider, std::shared_ptr>           m_filterProvider;
+	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
+	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
+	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr>         m_delegate;
+	Ui::TreeView                                                  m_ui {};
+	ValueApplier                                                  m_valueApplier { nullptr };
+	QTimer                                                        m_filterTimer;
+	QString                                                       m_navigationModeName;
+	QString                                                       m_recentMode;
+	QString                                                       m_currentId;
+	std::shared_ptr<QMenu>                                        m_languageContextMenu;
+	bool                                                          m_showRemoved { false };
+	bool                                                          m_restoreBooksLayoutPending { false };
+	QString                                                       m_lastRestoredLayoutKey;
+	ITreeViewController::RemoveItems                              m_removeItems;
+	MenuEventFilter                                               m_menuEventFilter;
+	HeaderView*                                                   m_booksHeaderView;
+	IDataItem::Flags                                              m_navigationItemFlags { IDataItem::Flags::None };
+	const ArchiveSorter                                           m_archiveSorter;
+	const QStringList                                             m_hiddenColumns;
+	std::unique_ptr<QTimer>                                       m_countChangedTimer { Util::CreateUiTimer([this] {
 		if (m_ui.treeView->model())
 			m_ui.lblCount->setText(m_ui.treeView->model()->data({}, Role::Count).toString());
 	}) };
@@ -1367,8 +1375,8 @@ TreeView::TreeView(
 	std::shared_ptr<IUiFactory>                 uiFactory,
 	std::shared_ptr<IFilterProvider>            filterProvider,
 	std::shared_ptr<IHotkeyManager>             hotkeyManager,
-	std::shared_ptr<ItemViewToolTipper>         itemViewToolTipper,
-	std::shared_ptr<ScrollBarController>        scrollBarController,
+	std::shared_ptr<Util::ItemViewToolTipper>   itemViewToolTipper,
+	std::shared_ptr<Util::ScrollBarController>  scrollBarController,
 	QWidget*                                    parent
 )
 	: QWidget(parent)

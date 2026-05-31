@@ -21,7 +21,6 @@ namespace HomeCompa::Flibrary::DatabaseScheme
 namespace
 {
 
-/*
 bool FieldExists(DB::ITransaction& transaction, const QString& table, const QString& column)
 {
 	std::set<std::string> booksUserFields;
@@ -50,6 +49,7 @@ bool AddUserTableField(DB::ITransaction& transaction, const QString& table, cons
 	return true;
 }
 
+/*
 long long GetNextID(DB::ITransaction& transaction)
 {
 	const auto query = transaction.CreateQuery(GET_MAX_ID_QUERY);
@@ -71,6 +71,8 @@ void AddUserTables(DB::ITransaction& transaction)
 	static constexpr const char* commands[] { "CREATE INDEX IF NOT EXISTS IX_ExportListUser_ExportType_CreatedAt ON Export_List_User (ExportType, CreatedAt DESC)",
 		                                      "CREATE INDEX IF NOT EXISTS IX_Books_User_UserRate ON Books_User (UserRate)",
 		                                      "ANALYZE" };
+
+	AddUserTableField(transaction, "Genres", "GenreTitle", "VARCHAR (50)");
 
 	for (const auto* command : commands)
 		transaction.CreateCommand(command)->Execute();

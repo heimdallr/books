@@ -7,13 +7,13 @@
 #include "database/interface/ITemporaryTable.h"
 #include "database/interface/ITransaction.h"
 
-#include "interface/constants/GenresLocalization.h"
 #include "interface/localization.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"
 #include "inpx/InpxConstant.h"
+#include "util/GenresLocalization.h"
 #include "util/language.h"
 
 #include "log.h"
@@ -72,7 +72,7 @@ IDataItem::Ptr CreateGenreItem(const DB::IQuery& query)
 	UpdateItem(*item, query, {}, 3, 4);
 
 	const auto* fbCode     = query.Get<const char*>(2);
-	const auto  translated = Loc::Tr(GENRE, fbCode);
+	const auto  translated = Loc::Tr(Util::GENRE, fbCode);
 
 	item->SetData(fbCode, GenreItem::Column::Fb2Code);
 	item->SetData(translated != fbCode ? translated : query.Get<const char*>(1));

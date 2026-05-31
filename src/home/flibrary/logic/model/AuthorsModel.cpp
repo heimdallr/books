@@ -4,9 +4,9 @@
 
 #include "fnd/algorithm.h"
 
-#include "interface/constants/ProductConstant.h"
 #include "interface/logic/IAuthorAnnotationController.h"
 
+#include "Constant.h"
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
@@ -69,7 +69,7 @@ QVariant AuthorsModel::data(const QModelIndex& index, const int role) const
 	switch (role)
 	{
 		case Qt::DisplayRole:
-			return m_impl->authorAnnotationController->CheckAuthor(author) ? Constant::INFO : QVariant {};
+			return m_impl->authorAnnotationController->CheckAuthor(author) ? Global::INFO : QVariant {};
 
 		case Qt::ToolTipRole:
 			return m_impl->authorAnnotationController->GetInfo(author);
