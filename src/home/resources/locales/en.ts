@@ -771,6 +771,10 @@
 <context>
     <name>CollectionStatistics</name>
     <message>
+        <source>Additional info: %1</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Authors:</source>
         <translation></translation>
     </message>
@@ -792,6 +796,10 @@
     </message>
     <message>
         <source>Folder: %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Index file: %1</source>
         <translation></translation>
     </message>
     <message>

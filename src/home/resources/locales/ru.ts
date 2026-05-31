@@ -781,6 +781,10 @@
 <context>
     <name>CollectionStatistics</name>
     <message>
+        <source>Additional info: %1</source>
+        <translation>Дополнительно: %1</translation>
+    </message>
+    <message>
         <source>Authors:</source>
         <translation>Авторы:</translation>
     </message>
@@ -803,6 +807,10 @@
     <message>
         <source>Folder: %1</source>
         <translation>Папка: %1</translation>
+    </message>
+    <message>
+        <source>Index file: %1</source>
+        <translation>Индексный файл: %1</translation>
     </message>
     <message>
         <source>Keywords:</source>
