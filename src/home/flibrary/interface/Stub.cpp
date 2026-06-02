@@ -76,33 +76,23 @@ void SetMacroImpl(QString& str, const std::unordered_map<IScriptController::Macr
 	MacroTreeItem  tree;
 	MacroTreeItem* node           = &tree;
 	int            bracketBalance = 0;
-	bool           escapeMode     = false;
 
 	for (const auto ch : str)
 	{
-		if (!escapeMode)
+		if (ch == '[')
 		{
-			if (ch == '\\')
-			{
-				escapeMode = true;
-				continue;
-			}
+			++bracketBalance;
+			node = node->children.emplace_back(std::make_unique<MacroTreeItem>(node)).get();
+			continue;
+		}
 
-			if (ch == '[')
+		if (ch == ']')
+		{
+			--bracketBalance;
+			if (node->parent)
 			{
-				++bracketBalance;
-				node = node->children.emplace_back(std::make_unique<MacroTreeItem>(node)).get();
+				node = node->parent;
 				continue;
-			}
-
-			if (ch == ']')
-			{
-				--bracketBalance;
-				if (node->parent)
-				{
-					node = node->parent;
-					continue;
-				}
 			}
 		}
 
@@ -110,10 +100,6 @@ void SetMacroImpl(QString& str, const std::unordered_map<IScriptController::Macr
 			node->children.emplace_back(std::make_unique<MacroTreeItem>(node));
 
 		auto& child = *node->children.back();
-
-		if (escapeMode && !IsOneOf(ch, '[', ']'))
-			child.value.append('\\');
-		escapeMode = false;
 
 		if (ch == '%')
 		{
