@@ -26,6 +26,8 @@ constexpr auto CONTEXT    = "CollectionStatistics";
 constexpr auto STATISTICS = QT_TRANSLATE_NOOP("CollectionStatistics", "Collection statistics:");
 constexpr auto NAME       = QT_TRANSLATE_NOOP("CollectionStatistics", "Name: %1");
 constexpr auto FOLDER     = QT_TRANSLATE_NOOP("CollectionStatistics", "Folder: %1");
+constexpr auto ADDITIONAL = QT_TRANSLATE_NOOP("CollectionStatistics", "Additional info: %1");
+constexpr auto INPX       = QT_TRANSLATE_NOOP("CollectionStatistics", "Index file: %1");
 constexpr auto DATABASE   = QT_TRANSLATE_NOOP("CollectionStatistics", "Database: %1");
 
 TR_DEF
@@ -95,8 +97,12 @@ void LogController::ShowCollectionStatistics() const
 
 									   const auto& collection = m_impl->collectionProvider->GetActiveCollection();
 									   QStringList stats;
-									   stats << Tr(STATISTICS) << Tr(NAME).arg(collection.name) << Tr(FOLDER).arg(QDir::toNativeSeparators(collection.GetFolder()))
-											 << Tr(DATABASE).arg(QDir::toNativeSeparators(collection.GetDatabase()));
+									   stats << Tr(STATISTICS) << Tr(NAME).arg(collection.name) << Tr(FOLDER).arg(QDir::toNativeSeparators(collection.GetFolder()));
+									   if (const auto value = collection.GetAdditionalFolder(); !value.isEmpty())
+										   stats << Tr(ADDITIONAL).arg(QDir::toNativeSeparators(value));
+									   if (const auto value = collection.GetInpx(); !value.isEmpty())
+										   stats << Tr(INPX).arg(QDir::toNativeSeparators(value));
+									   stats << Tr(DATABASE).arg(QDir::toNativeSeparators(collection.GetDatabase()));
 
 									   const auto bookQuery = m_impl->databaseUser->Database()->CreateQuery(QString(dbStatQueryText)
 		                                                                                                        .arg(

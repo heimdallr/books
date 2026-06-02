@@ -74,7 +74,7 @@ void Extract(const ISettings& settings, const ILogicFactory::ITemporaryDir& temp
 		const auto stream       = zip.Read(fileName);
 		const auto settingsStub = ILogicFactory::Lock(logicFactory)->CreateSettingsStub();
 
-		if (Zip::IsArchive(Platform::RemoveIllegalPathCharacters(fileName)))
+		if (!fileName.endsWith(".epub", Qt::CaseInsensitive) && Zip::IsArchive(Platform::RemoveIllegalPathCharacters(fileName)))
 		{
 			const Zip   subZip(stream->GetStream());
 			const auto  fileList = subZip.GetFileNameList();

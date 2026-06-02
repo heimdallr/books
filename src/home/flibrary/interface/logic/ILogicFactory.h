@@ -66,24 +66,25 @@ public:
 	virtual ~ILogicFactory() = default;
 
 public:
-	[[nodiscard]] virtual std::shared_ptr<class ITreeViewController>      GetTreeViewController(ItemType type) const                                                                             = 0;
-	[[nodiscard]] virtual std::shared_ptr<class ArchiveParser>            CreateArchiveParser() const                                                                                            = 0;
-	[[nodiscard]] virtual std::unique_ptr<Util::IExecutor>                GetExecutor(Util::ExecutorInitializer initializer = {}) const                                                          = 0;
-	[[nodiscard]] virtual std::shared_ptr<class GroupController>          CreateGroupController() const                                                                                          = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IBookSearchController>    CreateSearchController() const                                                                                         = 0;
-	[[nodiscard]] virtual std::shared_ptr<class BooksContextMenuProvider> CreateBooksContextMenuProvider() const                                                                                 = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IUserDataController>      CreateUserDataController() const                                                                                       = 0;
-	[[nodiscard]] virtual std::shared_ptr<class BooksExtractor>           CreateBooksExtractor() const                                                                                           = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IInpxGenerator>           CreateInpxGenerator() const                                                                                            = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IUpdateChecker>           CreateUpdateChecker() const                                                                                            = 0;
-	[[nodiscard]] virtual std::shared_ptr<class ICollectionCleaner>       CreateCollectionCleaner() const                                                                                        = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IOpdsController>          CreateOpdsController() const                                                                                           = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IFillTemplateConverter>   CreateFillTemplateConverter(bool needStub = false) const                                                               = 0;
-	[[nodiscard]] virtual std::shared_ptr<ISettings>                      CreateSettingsStub() const                                                                                             = 0;
-	[[nodiscard]] virtual std::shared_ptr<Zip::ProgressCallback>          CreateZipProgressCallback(std::shared_ptr<class IProgressController> progressController) const                         = 0;
-	[[nodiscard]] virtual std::shared_ptr<ITemporaryDir>                  CreateTemporaryDir(bool singleInstance = false) const                                                                  = 0;
-	[[nodiscard]] virtual std::shared_ptr<ITemporaryDir>                  CreateTemporaryDir(const QString& path) const                                                                          = 0;
-	[[nodiscard]] virtual Util::ExtractedBooks                            GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList = {}) const = 0;
+	[[nodiscard]] virtual std::shared_ptr<class ITreeViewController>      GetTreeViewController(ItemType type) const                                                                                 = 0;
+	[[nodiscard]] virtual std::shared_ptr<class ArchiveParser>            CreateArchiveParser() const                                                                                                = 0;
+	[[nodiscard]] virtual std::unique_ptr<Util::IExecutor>                GetExecutor(Util::ExecutorInitializer initializer = {}) const                                                              = 0;
+	[[nodiscard]] virtual std::shared_ptr<class GroupController>          CreateGroupController() const                                                                                              = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IBookSearchController>    CreateSearchController() const                                                                                             = 0;
+	[[nodiscard]] virtual std::shared_ptr<class BooksContextMenuProvider> CreateBooksContextMenuProvider() const                                                                                     = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IUserDataController>      CreateUserDataController() const                                                                                           = 0;
+	[[nodiscard]] virtual std::shared_ptr<class BooksExtractor>           CreateBooksExtractor() const                                                                                               = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IInpxGenerator>           CreateInpxGenerator() const                                                                                                = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IUpdateChecker>           CreateUpdateChecker() const                                                                                                = 0;
+	[[nodiscard]] virtual std::shared_ptr<class ICollectionCleaner>       CreateCollectionCleaner() const                                                                                            = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IOpdsController>          CreateOpdsController() const                                                                                               = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IFillTemplateConverter>   CreateFillTemplateConverter(bool needStub = false) const                                                                   = 0;
+	[[nodiscard]] virtual std::shared_ptr<ISettings>                      CreateSettingsStub() const                                                                                                 = 0;
+	[[nodiscard]] virtual std::shared_ptr<ISettings>                      CreateSettingsDecorator(std::shared_ptr<ISettings> settings, std::unordered_map<QString, QVariant> replacement = {}) const = 0;
+	[[nodiscard]] virtual std::shared_ptr<Zip::ProgressCallback>          CreateZipProgressCallback(std::shared_ptr<class IProgressController> progressController) const                             = 0;
+	[[nodiscard]] virtual std::shared_ptr<ITemporaryDir>                  CreateTemporaryDir(bool singleInstance = false) const                                                                      = 0;
+	[[nodiscard]] virtual std::shared_ptr<ITemporaryDir>                  CreateTemporaryDir(const QString& path) const                                                                              = 0;
+	[[nodiscard]] virtual Util::ExtractedBooks                            GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList = {}) const     = 0;
 
 	virtual void FindBook(const QString& navigationMode, const QString& navigationId, long long bookId = -1) const = 0;
 

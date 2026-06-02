@@ -298,9 +298,9 @@ private:
 		const auto& controllerRef = *controller;
 		controllerRef.Backup(QDir(QDir::tempPath()).filePath(GetActiveCollectionId() + Constant::BACKUP_FILE_EXT), [&, controller = std::move(controller)](const bool ok, const QString& errorMessage) mutable {
 			if (!ok)
-            {
-                PLOGE << errorMessage;
-            }
+			{
+				PLOGE << errorMessage;
+			}
 
 			controller.reset();
 			eventLoop.exit();
