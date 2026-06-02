@@ -57,7 +57,7 @@ namespace HomeCompa::Flibrary
 void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermic::Container>& container)
 {
 	builder.registerType<CollectionAutoUpdater>().as<ICollectionAutoUpdater>();
-	builder.registerType<CollectionCleaner>().as<ICollectionCleaner>();
+    builder.registerType<CollectionCleanerLogic>().as<ICollectionCleaner>();
 	builder.registerType<CollectionUpdateChecker>().as<ICollectionUpdateChecker>();
 	builder.registerType<CommandLine>().as<ICommandLine>();
 	builder.registerType<DatabaseChecker>().as<IDatabaseChecker>();

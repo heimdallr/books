@@ -237,7 +237,7 @@ join Compilation_List l on c.CompilationID = l.CompilationID
 
 } // namespace
 
-struct CollectionCleaner::Impl
+struct CollectionCleanerLogic::Impl
 {
 	std::weak_ptr<const ILogicFactory>                 logicFactory;
 	std::shared_ptr<const IDatabaseUser>               databaseUser;
@@ -419,7 +419,7 @@ struct CollectionCleaner::Impl
 	}
 };
 
-CollectionCleaner::CollectionCleaner(
+CollectionCleanerLogic::CollectionCleanerLogic(
 	const std::shared_ptr<const ILogicFactory>&        logicFactory,
 	std::shared_ptr<const IDatabaseUser>               databaseUser,
 	std::shared_ptr<const ICollectionProvider>         collectionProvider,
@@ -430,29 +430,29 @@ CollectionCleaner::CollectionCleaner(
 {
 }
 
-CollectionCleaner::~CollectionCleaner() = default;
+CollectionCleanerLogic::~CollectionCleanerLogic() = default;
 
-void CollectionCleaner::Remove(Books books, Callback callback) const
+void CollectionCleanerLogic::Remove(Books books, Callback callback) const
 {
 	m_impl->Remove(std::move(books), std::move(callback));
 }
 
-void CollectionCleaner::RemovePermanently(Books books, Callback callback) const
+void CollectionCleanerLogic::RemovePermanently(Books books, Callback callback) const
 {
 	m_impl->RemovePermanently(std::move(books), std::move(callback));
 }
 
-void CollectionCleaner::Analyze(IAnalyzeObserver& observer) const
+void CollectionCleanerLogic::Analyze(IAnalyzeObserver& observer) const
 {
 	m_impl->Analyze(observer);
 }
 
-void CollectionCleaner::AnalyzeCancel() const
+void CollectionCleanerLogic::AnalyzeCancel() const
 {
 	m_impl->AnalyzeCancel();
 }
 
-void CollectionCleaner::CompilationInfoExistsRequest(IAnalyzeObserver& callback) const
+void CollectionCleanerLogic::CompilationInfoExistsRequest(IAnalyzeObserver& callback) const
 {
 	const auto db    = m_impl->databaseUser->Database();
 	const auto query = db->CreateQuery(std::format("SELECT exists(SELECT 42 FROM Compilation_List)"));
