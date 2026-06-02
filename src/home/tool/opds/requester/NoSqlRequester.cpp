@@ -18,6 +18,7 @@
 #include "util/ImageUtil.h"
 #include "util/ProcessWrapper.h"
 
+#include "Constant.h"
 #include "log.h"
 #include "zip.h"
 
@@ -76,7 +77,8 @@ QByteArray Compress(const QByteArray& data, QString fileName)
 
 struct NoSqlRequester::Impl
 {
-	std::shared_ptr<const ISettings>                     settings;
+	std::weak_ptr<const Flibrary::ILogicFactory>         logicFactory;
+	std::shared_ptr<ISettings>                           settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
 	std::shared_ptr<const Flibrary::IBookExtractor>      bookExtractor;
 	std::shared_ptr<const ICoverCache>                   coverCache;
@@ -110,11 +112,26 @@ struct NoSqlRequester::Impl
 		return result;
 	}
 
-	std::tuple<QString, QString, QByteArray> GetBook(const QString& bookId, const bool restoreImages, const IRequester::Parameters& parameters) const
+	std::tuple<QString, QString, QByteArray> GetBook(const QString& bookId, bool restoreImages, const IRequester::Parameters& parameters) const
 	{
 		auto book           = bookExtractor->GetExtractedBook(bookId);
 		auto outputFileName = bookExtractor->GetFileName(book);
-		auto data           = Decompress(collectionProvider->GetActiveCollection().GetFolder(), book.folder, book.file, restoreImages, *settings);
+
+		auto settingsCopy = settings;
+		if (!restoreImages && book.file.endsWith(".epub", Qt::CaseInsensitive))
+		{
+			restoreImages = true;
+			settingsCopy  = Flibrary::ILogicFactory::Lock(logicFactory)
+			                    ->CreateSettingsDecorator(
+									std::move(settingsCopy),
+									{
+										{  Export::REMOVE_COVER_KEY, true },
+										{ Export::REMOVE_IMAGES_KEY, true }
+            }
+								);
+		}
+
+		auto data = Decompress(collectionProvider->GetActiveCollection().GetFolder(), book.folder, book.file, restoreImages, *settingsCopy);
 
 		Convert(outputFileName, data, GetProfileRoot(*settings, IRequester::GetParameter(parameters, CONVERTER_PROFILE)));
 
@@ -176,13 +193,14 @@ private:
 };
 
 NoSqlRequester::NoSqlRequester(
-	std::shared_ptr<const ISettings>                     settings,
-	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-	std::shared_ptr<const Flibrary::IBookExtractor>      bookExtractor,
-	std::shared_ptr<const ICoverCache>                   coverCache,
-	std::shared_ptr<Flibrary::IAnnotationController>     annotationController
+	const std::shared_ptr<const Flibrary::ILogicFactory>& logicFactory,
+	std::shared_ptr<ISettings>                            settings,
+	std::shared_ptr<const Flibrary::ICollectionProvider>  collectionProvider,
+	std::shared_ptr<const Flibrary::IBookExtractor>       bookExtractor,
+	std::shared_ptr<const ICoverCache>                    coverCache,
+	std::shared_ptr<Flibrary::IAnnotationController>      annotationController
 )
-	: m_impl { std::move(settings), std::move(collectionProvider), std::move(bookExtractor), std::move(coverCache), std::move(annotationController) }
+	: m_impl { logicFactory, std::move(settings), std::move(collectionProvider), std::move(bookExtractor), std::move(coverCache), std::move(annotationController) }
 {
 }
 

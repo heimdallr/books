@@ -20,11 +20,12 @@ class NoSqlRequester final : virtual public INoSqlRequester
 
 public:
 	NoSqlRequester(
-		std::shared_ptr<const ISettings>                     settings,
-		std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-		std::shared_ptr<const Flibrary::IBookExtractor>      bookExtractor,
-		std::shared_ptr<const ICoverCache>                   coverCache,
-		std::shared_ptr<Flibrary::IAnnotationController>     annotationController
+		const std::shared_ptr<const Flibrary::ILogicFactory>& logicFactory,
+		std::shared_ptr<ISettings>                            settings,
+		std::shared_ptr<const Flibrary::ICollectionProvider>  collectionProvider,
+		std::shared_ptr<const Flibrary::IBookExtractor>       bookExtractor,
+		std::shared_ptr<const ICoverCache>                    coverCache,
+		std::shared_ptr<Flibrary::IAnnotationController>      annotationController
 	);
 	~NoSqlRequester() override;
 
