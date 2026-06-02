@@ -385,6 +385,11 @@ std::shared_ptr<ISettings> LogicFactory::CreateSettingsStub() const
 	return SettingsFactory::CreateStub();
 }
 
+std::shared_ptr<ISettings> LogicFactory::CreateSettingsDecorator(std::shared_ptr<ISettings> settings, std::unordered_map<QString, QVariant> replacement) const
+{
+	return SettingsFactory::CreateDecorator(std::move(settings), std::move(replacement));
+}
+
 std::shared_ptr<Zip::ProgressCallback> LogicFactory::CreateZipProgressCallback(std::shared_ptr<IProgressController> progressController) const
 {
 	m_impl->progressControllerGuard.lock();
