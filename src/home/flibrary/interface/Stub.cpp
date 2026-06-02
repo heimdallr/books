@@ -4,6 +4,7 @@
 #include <QUuid>
 
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
 
 #include "database/interface/IDatabase.h"
@@ -105,12 +106,14 @@ void SetMacroImpl(QString& str, const std::unordered_map<IScriptController::Macr
 			}
 		}
 
-		escapeMode = false;
-
 		if (node->children.empty() || node->children.back()->value.isEmpty())
 			node->children.emplace_back(std::make_unique<MacroTreeItem>(node));
 
 		auto& child = *node->children.back();
+
+		if (escapeMode && !IsOneOf(ch, '[', ']'))
+			child.value.append('\\');
+		escapeMode = false;
 
 		if (ch == '%')
 		{
