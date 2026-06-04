@@ -2133,7 +2133,7 @@ where b.FileName = ? and b.Ext = ?)");
 	void GetFieldList(const Zip* zip = nullptr)
 	{
 		const auto fieldList = [&]() -> QString {
-			return zip && zip->GetFileNameList().contains(STRUCTURE_INFO) ? QString::fromUtf8(zip->Read(STRUCTURE_INFO)->GetStream().readAll()).simplified() : QString(INP_FIELDS_DESCRIPTION);
+			return zip && zip->GetFileNameList().contains(STRUCTURE_INFO) ? QString::fromUtf8(zip->Read(STRUCTURE_INFO)->GetStream().readAll()).simplified() : QString(INP_FIELDS_DESCRIPTION_DEFAULT);
 		}();
 
 		const std::unordered_map<QString, BookBufFieldGetter> bookBufMapping {
