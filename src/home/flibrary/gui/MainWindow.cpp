@@ -1461,6 +1461,7 @@ private:
 
 			if (!m_ui.actionShowLog->isChecked())
 				m_ui.actionShowLog->trigger();
+
 			return m_collectionController->AddCollection(commandLine.GetInpxDir());
 		}
 
@@ -1472,8 +1473,11 @@ private:
 
 		auto& collectionUpdateCheckerRef = *collectionUpdateChecker;
 		collectionUpdateCheckerRef.CheckForUpdate([this, collectionUpdateChecker = std::move(collectionUpdateChecker)](const bool result, const Collection& updatedCollection) mutable {
-			if (result)
-				m_collectionController->OnInpxUpdateChecked(updatedCollection);
+			if (result && m_collectionController->OnInpxUpdateChecked(updatedCollection))
+			{
+				m_databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, -1);
+				return Reboot();
+			}
 
 			collectionUpdateChecker.reset();
 		});

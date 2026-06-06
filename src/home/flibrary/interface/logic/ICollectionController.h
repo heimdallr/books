@@ -14,7 +14,7 @@ public:
 	virtual void RemoveCollection()                                  = 0;
 
 	virtual void SetActiveCollection(const QString& id)                   = 0;
-	virtual void OnInpxUpdateChecked(const Collection& updatedCollection) = 0;
+	virtual bool OnInpxUpdateChecked(const Collection& updatedCollection) = 0;
 
 	virtual void AllowDestructiveOperation(bool value) = 0;
 

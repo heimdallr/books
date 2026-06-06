@@ -51,6 +51,10 @@ constexpr auto CANNOT_WRITE_TO_DATABASE         = QT_TRANSLATE_NOOP("CollectionC
 constexpr auto SAVE_USER_DATA                   = QT_TRANSLATE_NOOP("CollectionController", "Keep your user data?");
 constexpr auto DONT_ASK_ANYMORE                 = QT_TRANSLATE_NOOP("CollectionController", "Don't ask anymore");
 constexpr auto ERROR                            = QT_TRANSLATE_NOOP("CollectionController", "The collection was not %1 due to errors. See log.");
+constexpr auto YES                              = QT_TRANSLATE_NOOP("CollectionController", "Yes");
+constexpr auto NO                               = QT_TRANSLATE_NOOP("CollectionController", "No");
+constexpr auto DISCARD                          = QT_TRANSLATE_NOOP("CollectionController", "Discard");
+constexpr auto RECREATE                         = QT_TRANSLATE_NOOP("CollectionController", "Recreate collection");
 constexpr auto BAD_ARCHIVES_DETECTED            = QT_TRANSLATE_NOOP("CollectionController", "Corrupted archives detected:\n%1");
 constexpr auto COLLECTION_UPDATED               = QT_TRANSLATE_NOOP("CollectionController", "Looks like the collection has been updated. Apply changes?");
 constexpr auto COLLECTION_UPDATE_ACTION_CREATED = QT_TRANSLATE_NOOP("CollectionController", "created");
@@ -210,22 +214,39 @@ public:
 		Perform(&ICollectionsObserver::OnActiveCollectionChanged);
 	}
 
-	void OnInpxUpdateChecked(const Collection& updatedCollection)
+	bool OnInpxUpdateChecked(const Collection& updatedCollection)
 	{
-		switch (m_uiFactory->ShowQuestion(Tr(COLLECTION_UPDATED), QMessageBox::Yes | QMessageBox::No | QMessageBox::Discard, QMessageBox::Yes)) // NOLINT(clang-diagnostic-switch-enum)
+		switch (m_uiFactory->ShowCustomDialog(
+			QMessageBox::Question,
+			"",
+			Tr(COLLECTION_UPDATED),
+			{
+				{   QMessageBox::ButtonRole::YesRole,      Tr(YES) },
+				{    QMessageBox::ButtonRole::NoRole,       Tr(NO) },
+				{ QMessageBox::ButtonRole::ResetRole,  Tr(DISCARD) },
+				{ QMessageBox::ButtonRole::ApplyRole, Tr(RECREATE) },
+        },
+			QMessageBox::ButtonRole::YesRole
+		))
 		{
-			case QMessageBox::No:
+			case QMessageBox::NoRole:
+			case QMessageBox::RejectRole:
 				break;
 
-			case QMessageBox::Yes:
-				return UpdateCollection(updatedCollection);
+			case QMessageBox::YesRole:
+				return UpdateCollection(updatedCollection), false;
 
-			case QMessageBox::Discard:
-				return CollectionImpl::Serialize(updatedCollection, *m_settings);
+			case QMessageBox::ResetRole:
+				return CollectionImpl::Serialize(updatedCollection, *m_settings), false;
+
+			case QMessageBox::ApplyRole:
+				return true;
 
 			default:
 				assert(false && "unexpected button");
 		}
+
+		return false;
 	}
 
 	void AllowDestructiveOperation(const bool value)
@@ -514,9 +535,9 @@ void CollectionController::SetActiveCollection(const QString& id)
 	m_impl->SetActiveCollection(id);
 }
 
-void CollectionController::OnInpxUpdateChecked(const Collection& updatedCollection)
+bool CollectionController::OnInpxUpdateChecked(const Collection& updatedCollection)
 {
-	m_impl->OnInpxUpdateChecked(updatedCollection);
+	return m_impl->OnInpxUpdateChecked(updatedCollection);
 }
 
 void CollectionController::AllowDestructiveOperation(const bool value)
