@@ -207,7 +207,7 @@ struct ReaderController::Impl
 
 		if (reader == DEFAULT)
 		{
-			if (QDesktopServices::openUrl(fileName))
+			if (QDesktopServices::openUrl(QUrl::fromLocalFile(fileName)))
 				return;
 
 			settings->Remove(key);
