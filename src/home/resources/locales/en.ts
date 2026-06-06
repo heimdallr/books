@@ -732,6 +732,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Discard</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Don&apos;t ask anymore</source>
         <translation></translation>
     </message>
@@ -744,6 +748,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>No</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>No updates found</source>
         <translation></translation>
     </message>
@@ -752,11 +760,19 @@
         <translation></translation>
     </message>
     <message>
+        <source>Recreate collection</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>The collection was not %1 due to errors. See log.</source>
         <translation></translation>
     </message>
     <message>
         <source>The existing database file will be overwritten. Continue?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Yes</source>
         <translation></translation>
     </message>
     <message>
@@ -4807,6 +4823,10 @@ Try again?</source>
     </message>
     <message>
         <source>Qt stylesheet files (*.%1 *.dll);;All files (*.*)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>R&amp;ecreate collection</source>
         <translation></translation>
     </message>
     <message>

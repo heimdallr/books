@@ -462,10 +462,6 @@ private: // ICollectionsObserver
 				m_ui.actionShowLog->trigger();
 		});
 
-		if (running || !m_collectionToRecreate)
-			return;
-
-		RestoreUserData(m_collectionToRecreate->id);
 		m_collectionToRecreate = std::nullopt;
 	}
 
@@ -735,6 +731,10 @@ private:
 		PLOGV << "ConnectActionsCollection";
 		connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [this] {
 			m_collectionController->AddCollection({});
+		});
+		connect(m_ui.actionRecreateCollection, &QAction::triggered, &m_self, [this] {
+			m_databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, -1);
+			Reboot();
 		});
 		connect(m_ui.actionRescanCollectionFolder, &QAction::triggered, &m_self, [this] {
 			m_collectionController->RescanCollectionFolder();
@@ -1461,6 +1461,7 @@ private:
 
 			if (!m_ui.actionShowLog->isChecked())
 				m_ui.actionShowLog->trigger();
+
 			return m_collectionController->AddCollection(commandLine.GetInpxDir());
 		}
 
@@ -1472,8 +1473,11 @@ private:
 
 		auto& collectionUpdateCheckerRef = *collectionUpdateChecker;
 		collectionUpdateCheckerRef.CheckForUpdate([this, collectionUpdateChecker = std::move(collectionUpdateChecker)](const bool result, const Collection& updatedCollection) mutable {
-			if (result)
-				m_collectionController->OnInpxUpdateChecked(updatedCollection);
+			if (result && m_collectionController->OnInpxUpdateChecked(updatedCollection))
+			{
+				m_databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, -1);
+				return Reboot();
+			}
 
 			collectionUpdateChecker.reset();
 		});

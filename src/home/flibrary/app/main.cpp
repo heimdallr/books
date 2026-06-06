@@ -60,7 +60,7 @@ constexpr auto REMOVE_DATABASE_MANUALLY = QT_TRANSLATE_NOOP("Main", "In that cas
 constexpr auto CANNOT_REMOVE_DATABASE   = QT_TRANSLATE_NOOP("Main", "The collection database file could not be deleted. Please delete it manually before restarting the program:<br><br><b>%1</b><br>");
 TR_DEF
 
-std::optional<Collection> RecreateDatabase(Hypodermic::Container& container)
+std::optional<Collection> RecreateDatabase(Hypodermic::Container& container, bool force = false)
 {
 	const auto uiFactory   = container.resolve<IUiFactory>();
 	const auto showWarning = [&](const QString& message) {
@@ -68,7 +68,7 @@ std::optional<Collection> RecreateDatabase(Hypodermic::Container& container)
 		return std::nullopt;
 	};
 
-	if (uiFactory->ShowWarning(Tr(UNSUPPORTED_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::Yes) == QMessageBox::No)
+	if (!force && uiFactory->ShowWarning(Tr(UNSUPPORTED_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::Yes) != QMessageBox::Yes)
 	{
 		container.resolve<IDatabaseController>()->Reset();
 		return showWarning(Tr(REMOVE_DATABASE_MANUALLY).arg(container.resolve<ICollectionProvider>()->GetActiveCollection().GetDatabase()));
@@ -205,6 +205,11 @@ int main(int argc, char* argv[])
 
 				case IDatabaseMigrator::NeedMigrateResult::Unsupported:
 					if ((collectionToRecreate = RecreateDatabase(*container)))
+						continue;
+					return EXIT_FAILURE;
+
+				case IDatabaseMigrator::NeedMigrateResult::Recreate:
+					if ((collectionToRecreate = RecreateDatabase(*container, true)))
 						continue;
 					return EXIT_FAILURE;
 			}

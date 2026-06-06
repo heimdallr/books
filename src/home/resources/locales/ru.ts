@@ -741,6 +741,10 @@
         <translation>Удалить и базу данных коллекции?</translation>
     </message>
     <message>
+        <source>Discard</source>
+        <translation>Отклонить</translation>
+    </message>
+    <message>
         <source>Don&apos;t ask anymore</source>
         <translation>Больше не спрашивать</translation>
     </message>
@@ -753,12 +757,20 @@
         <translation>Похоже, коллекция обновилась. Применить изменения?</translation>
     </message>
     <message>
+        <source>No</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
         <source>No updates found</source>
         <translation>Обновлений не найдено</translation>
     </message>
     <message>
         <source>No write access to %1</source>
         <translation>Нет доступа на запись в %1</translation>
+    </message>
+    <message>
+        <source>Recreate collection</source>
+        <translation>Создать коллекцию заново</translation>
     </message>
     <message>
         <source>The collection was not %1 due to errors. See log.</source>
@@ -768,6 +780,10 @@
         <source>The existing database file will be overwritten. Continue?</source>
         <translation>Существующий файл базы данных будет перезаписан.
 Продолжить?</translation>
+    </message>
+    <message>
+        <source>Yes</source>
+        <translation>Да</translation>
     </message>
     <message>
         <source>created</source>
@@ -4821,6 +4837,10 @@ Try again?</source>
     <message>
         <source>Qt stylesheet files (*.%1 *.dll);;All files (*.*)</source>
         <translation>Файлы стилей Qt (*.%1 *.dll);;Все файлы (*.*)</translation>
+    </message>
+    <message>
+        <source>R&amp;ecreate collection</source>
+        <translation>&amp;Пересоздать коллекцию</translation>
     </message>
     <message>
         <source>Readers&apos; &amp;Reviews</source>

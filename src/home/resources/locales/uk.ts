@@ -741,6 +741,10 @@
         <translation>Базу даних колекції також видалити?</translation>
     </message>
     <message>
+        <source>Discard</source>
+        <translation>Відхилити</translation>
+    </message>
+    <message>
         <source>Don&apos;t ask anymore</source>
         <translation>Більше не питати</translation>
     </message>
@@ -753,12 +757,20 @@
         <translation>Схоже, колекція оновлена. Застосувати зміни?</translation>
     </message>
     <message>
+        <source>No</source>
+        <translation>Ні</translation>
+    </message>
+    <message>
         <source>No updates found</source>
         <translation>Оновлень не знайдено</translation>
     </message>
     <message>
         <source>No write access to %1</source>
         <translation>Немає доступу до запису в %1</translation>
+    </message>
+    <message>
+        <source>Recreate collection</source>
+        <translation>Відтворити колекцію</translation>
     </message>
     <message>
         <source>The collection was not %1 due to errors. See log.</source>
@@ -768,6 +780,10 @@
         <source>The existing database file will be overwritten. Continue?</source>
         <translation>Існуючий файл бази даних буде перезаписано.
 Продовжити?</translation>
+    </message>
+    <message>
+        <source>Yes</source>
+        <translation>Так</translation>
     </message>
     <message>
         <source>created</source>
@@ -4821,6 +4837,10 @@ Try again?</source>
     <message>
         <source>Qt stylesheet files (*.%1 *.dll);;All files (*.*)</source>
         <translation>Файли стилів Qt (*.%1 *.dll);;Всі файли (*.*)</translation>
+    </message>
+    <message>
+        <source>R&amp;ecreate collection</source>
+        <translation>Від&amp;творити колекцію</translation>
     </message>
     <message>
         <source>Readers&apos; &amp;Reviews</source>

@@ -44,7 +44,8 @@ IDatabaseMigrator::NeedMigrateResult DatabaseMigrator::NeedMigrate() const
 
 	const auto dbVersion = m_impl->databaseUser->GetSetting(IDatabaseUser::Key::DatabaseVersion).toInt();
 
-	return dbVersion == Constant::FlibraryDatabaseVersionNumber       ? NeedMigrateResult::Actual
+	return dbVersion == -1                                            ? NeedMigrateResult::Recreate
+	     : dbVersion == Constant::FlibraryDatabaseVersionNumber       ? NeedMigrateResult::Actual
 	     : dbVersion < Constant::MinimumFlibraryDatabaseVersionNumber ? NeedMigrateResult::Unsupported
 	     : dbVersion < Constant::FlibraryDatabaseVersionNumber        ? NeedMigrateResult::NeedMigrate
 	                                                                  : (assert(dbVersion > Constant::FlibraryDatabaseVersionNumber && "unexpected result"), NeedMigrateResult::Unexpected);
