@@ -736,6 +736,10 @@ private:
 		connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [this] {
 			m_collectionController->AddCollection({});
 		});
+		connect(m_ui.actionRecreateCollection, &QAction::triggered, &m_self, [this] {
+			m_databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, -1);
+			Reboot();
+		});
 		connect(m_ui.actionRescanCollectionFolder, &QAction::triggered, &m_self, [this] {
 			m_collectionController->RescanCollectionFolder();
 		});

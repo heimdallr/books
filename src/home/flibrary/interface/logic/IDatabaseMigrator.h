@@ -14,6 +14,7 @@ public:
 		NeedMigrate,
 		Unexpected,
 		Unsupported,
+		Recreate,
 	};
 
 public:

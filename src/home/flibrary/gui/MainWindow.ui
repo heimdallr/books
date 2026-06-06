@@ -345,6 +345,7 @@
     <addaction name="menuSelectCollection"/>
     <addaction name="separator"/>
     <addaction name="actionAddNewCollection"/>
+    <addaction name="actionRecreateCollection"/>
     <addaction name="actionRescanCollectionFolder"/>
     <addaction name="actionRemoveCollection"/>
     <addaction name="separator"/>
@@ -1199,6 +1200,14 @@
    </property>
    <property name="text">
     <string>Convert to j&amp;peg/png</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionRecreateCollection">
+   <property name="text">
+    <string>R&amp;ecreate collection</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
