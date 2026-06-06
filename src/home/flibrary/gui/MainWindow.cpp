@@ -462,10 +462,6 @@ private: // ICollectionsObserver
 				m_ui.actionShowLog->trigger();
 		});
 
-		if (running || !m_collectionToRecreate)
-			return;
-
-		RestoreUserData(m_collectionToRecreate->id);
 		m_collectionToRecreate = std::nullopt;
 	}
 
