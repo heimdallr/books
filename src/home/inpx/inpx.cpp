@@ -55,8 +55,8 @@ namespace
 constexpr auto INVALID_INDEX = std::numeric_limits<size_t>::max();
 
 const QString UNKNOWN_ROOT        = "unknown_root";
-const QString AUTHOR_UNKNOWN_STR  = Global::AUTHOR_UNKNOWN;
-const QString GENRE_NOT_SPECIFIED = "unordered:";
+const QString AUTHOR_UNKNOWN_STR  = QString(Global::AUTHOR_UNKNOWN) + Inpx::LIST_SEPARATOR;
+const QString GENRE_NOT_SPECIFIED = QString(UNORDERED_GENRE) + Inpx::LIST_SEPARATOR;
 size_t        g_id                = 0;
 
 class Dictionary
@@ -507,7 +507,7 @@ ReturnType Add(ValueType value, Dictionary& container, const GetIdFunctor& getId
 std::vector<size_t> ParseItem(
 	const QStringView   data, //-V801
 	Dictionary&         container,
-	const char          separator    = Fb2InpxParser::LIST_SEPARATOR,
+	const char          separator    = Inpx::LIST_SEPARATOR,
 	const ParseChecker& parseChecker = &ParseCheckerDefault,
 	const GetIdFunctor& getId        = &GetIdDefault,
 	const FindFunctor&  find         = &FindDefault
@@ -565,7 +565,7 @@ std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& key
 			}));
 
 			for (const auto& keyword : list)
-				std::ranges::move(keyword.split(':', Qt::SkipEmptyParts), std::back_inserter(keywordsList));
+				std::ranges::move(keyword.split(Inpx::LIST_SEPARATOR, Qt::SkipEmptyParts), std::back_inserter(keywordsList));
 
 			for (auto& keyword : keywordsList)
 			{
@@ -2308,7 +2308,7 @@ where b.FileName = ? and b.Ext = ?)");
 
 		buf.folderId = idFolder;
 
-		auto authorIds = ParseItem(buf.AUTHOR, m_data.authors, Fb2InpxParser::LIST_SEPARATOR, &ParseCheckerAuthor);
+		auto authorIds = ParseItem(buf.AUTHOR, m_data.authors, Inpx::LIST_SEPARATOR, &ParseCheckerAuthor);
 		if (authorIds.empty())
 			authorIds = ParseItem(AUTHOR_UNKNOWN_STR, m_data.authors);
 		assert(!authorIds.empty() && "a book cannot be an orphan");
@@ -2317,7 +2317,7 @@ where b.FileName = ? and b.Ext = ?)");
 		auto idGenres = ParseItem(
 			buf.GENRE,
 			m_genresIndex,
-			Fb2InpxParser::LIST_SEPARATOR,
+			Inpx::LIST_SEPARATOR,
 			&ParseCheckerDefault,
 			[&, &data = m_data.genres](const QStringView newItemTitle) {
 				const auto title        = newItemTitle.toString();
