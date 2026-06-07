@@ -187,6 +187,7 @@ struct ReaderController::Impl
 			return fileName;
 
 		fileNameTemplate.replace("%file_ext%", QFileInfo(fileName).suffix());
+		fileNameTemplate.replace("%user_destination_folder%", "");
 
 		const auto db = databaseUser->Database();
 		ILogicFactory::FillScriptTemplate(*db, fileNameTemplate, ILogicFactory::Lock(logicFactory)->GetCurrentExtractedBook());
