@@ -20,7 +20,6 @@ constexpr auto ARCHIVE_FOLDER                 = "archives";
 constexpr auto ADDITIONAL_FOLDER              = "additional";
 constexpr auto INPX_PATH                      = "inpx";
 constexpr auto SET_DATABASE_VERSION_STATEMENT = "set_database_version";
-constexpr auto AUTHOR_UNKNOWN                 = "Unknown author";
 
 constexpr size_t LOG_INTERVAL = 10000;
 

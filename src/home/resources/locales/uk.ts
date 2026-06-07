@@ -770,7 +770,7 @@
     </message>
     <message>
         <source>Recreate collection</source>
-        <translationПерестворити колекцію</translation>
+        <translation>Перестворити колекцію</translation>
     </message>
     <message>
         <source>The collection was not %1 due to errors. See log.</source>

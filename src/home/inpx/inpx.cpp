@@ -55,7 +55,7 @@ namespace
 constexpr auto INVALID_INDEX = std::numeric_limits<size_t>::max();
 
 const QString UNKNOWN_ROOT        = "unknown_root";
-const QString AUTHOR_UNKNOWN_STR  = AUTHOR_UNKNOWN;
+const QString AUTHOR_UNKNOWN_STR  = Global::AUTHOR_UNKNOWN;
 const QString GENRE_NOT_SPECIFIED = "unordered:";
 size_t        g_id                = 0;
 
