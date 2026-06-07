@@ -8,6 +8,7 @@
 #include <QTemporaryDir>
 
 #include "fnd/ScopedCall.h"
+#include "fnd/StrUtil.h"
 
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
@@ -46,7 +47,8 @@ constexpr auto READER_KEY = "Reader/%1";
 constexpr auto DIALOG_KEY = "Reader";
 constexpr auto DEFAULT    = "default";
 
-constexpr auto DEFAULT_FOLDER_KEY = "Preferences/Export/readFolder";
+constexpr auto DEFAULT_FOLDER_KEY    = "Preferences/Export/readFolder";
+constexpr auto FILENAME_TEMPLATE_KEY = "Preferences/Export/fileNameTemplate";
 
 TR_DEF
 
@@ -65,65 +67,6 @@ public:
 private:
 	std::shared_ptr<ILogicFactory::ITemporaryDir> m_temporaryDir;
 };
-
-void Extract(const ISettings& settings, const ILogicFactory::ITemporaryDir& temporaryDir, const QString& archive, QString& fileName, QString& error, std::weak_ptr<const ILogicFactory> logicFactory)
-{
-	try
-	{
-		const Zip  zip(archive);
-		const auto stream       = zip.Read(fileName);
-		const auto settingsStub = ILogicFactory::Lock(logicFactory)->CreateSettingsStub();
-
-		if (!fileName.endsWith(".epub", Qt::CaseInsensitive) && Zip::IsArchive(Platform::RemoveIllegalPathCharacters(fileName)))
-		{
-			const Zip   subZip(stream->GetStream());
-			const auto  fileList = subZip.GetFileNameList();
-			QStringList filesWithReader;
-			for (const auto& archiveFileName : fileList)
-			{
-				if (auto ext = QFileInfo(archiveFileName).suffix(); !ext.isEmpty())
-				{
-					auto key = QString(READER_KEY).arg(ext);
-					if (auto reader = settings.Get(key).toString(); !reader.isEmpty())
-						filesWithReader << archiveFileName;
-				}
-
-				auto       fileNameDst = temporaryDir.filePath(archiveFileName);
-				const auto dir         = QFileInfo(fileNameDst).dir();
-				if (!dir.exists() && !dir.mkpath("."))
-				{
-					PLOGE << "Cannot create " << dir.dirName();
-					continue;
-				}
-
-				if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
-				{
-					const auto subStream = subZip.Read(archiveFileName);
-					file.write(Util::PrepareToExport(subStream->GetStream(), archive, fileName, *settingsStub));
-				}
-			}
-
-			if (fileList.size() == 1)
-				fileName = temporaryDir.filePath(fileList.front());
-			else if (filesWithReader.size() == 1)
-				fileName = temporaryDir.filePath(filesWithReader.front());
-			else
-				fileName.clear();
-		}
-		else
-		{
-			auto fileNameDst = temporaryDir.filePath(Platform::RemoveIllegalPathCharacters(fileName));
-			if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
-				file.write(Util::PrepareToExport(stream->GetStream(), archive, fileName, *settingsStub));
-
-			fileName = std::move(fileNameDst);
-		}
-	}
-	catch (const std::exception& ex)
-	{
-		error = ex.what();
-	}
-}
 
 } // namespace
 
@@ -233,6 +176,89 @@ struct ReaderController::Impl
 		assert(!reader.isEmpty());
 		new ReaderProcess(reader, fileName, std::move(temporaryDir), uiFactory->GetParentObject());
 	}
+
+	QString GenerateFileName(const QString& fileName, const bool useFileNameTemplate) const
+	{
+		if (!useFileNameTemplate)
+			return fileName;
+
+		auto fileNameTemplate = settings->Get(FILENAME_TEMPLATE_KEY, QString {});
+		if (fileNameTemplate.isEmpty())
+			return fileName;
+
+		fileNameTemplate.replace("%file_ext%", QFileInfo(fileName).suffix());
+		fileNameTemplate.replace("%user_destination_folder%", "");
+
+		const auto db = databaseUser->Database();
+		ILogicFactory::FillScriptTemplate(*db, fileNameTemplate, ILogicFactory::Lock(logicFactory)->GetCurrentExtractedBook());
+
+		return fileNameTemplate;
+	}
+
+	QString Write(const ILogicFactory::ITemporaryDir& temporaryDir, QIODevice& stream, const QString& archive, const QString& fileName, const bool useFileNameTemplate) const
+	{
+		auto fileNameDst = temporaryDir.filePath(Platform::RemoveIllegalPathCharacters(GenerateFileName(fileName, useFileNameTemplate)));
+
+		const auto dir = QFileInfo(fileNameDst).dir();
+		if (!dir.exists() && !dir.mkpath("."))
+			throw std::runtime_error(std::format("Cannot create {}", dir.dirName()));
+
+		const auto settingsStub = ILogicFactory::Lock(logicFactory)->CreateSettingsStub();
+
+		const auto bytes = Util::PrepareToExport(stream, archive, fileName, *settingsStub);
+		if (QFile file(fileNameDst); file.exists() && file.open(QIODevice::ReadOnly) && file.readAll() == bytes)
+			return fileNameDst;
+
+		if (QFile file(fileNameDst); file.open(QIODevice::WriteOnly))
+			file.write(bytes);
+
+		return fileNameDst;
+	}
+
+	QString Extract(const ILogicFactory::ITemporaryDir& temporaryDir, const QString& archive, QString& fileName) const
+	{
+		try
+		{
+			const Zip  zip(archive);
+			const auto stream = zip.Read(fileName);
+
+			if (!fileName.endsWith(".epub", Qt::CaseInsensitive) && Zip::IsArchive(Platform::RemoveIllegalPathCharacters(fileName)))
+			{
+				const Zip   subZip(stream->GetStream());
+				auto        fileList = subZip.GetFileNameList();
+				QStringList filesWithReader;
+				std::ranges::transform(fileList, fileList.begin(), [&](const auto& archiveFileName) {
+					if (auto ext = QFileInfo(archiveFileName).suffix(); !ext.isEmpty())
+					{
+						auto key = QString(READER_KEY).arg(ext);
+						if (auto reader = settings->Get(key).toString(); !reader.isEmpty())
+							filesWithReader << archiveFileName;
+					}
+
+					const auto subStream = subZip.Read(archiveFileName);
+					return Write(temporaryDir, subStream->GetStream(), archive, archiveFileName, fileList.size() == 1);
+				});
+
+				if (fileList.size() == 1)
+					fileName = temporaryDir.filePath(fileList.front());
+				else if (filesWithReader.size() == 1)
+					fileName = temporaryDir.filePath(filesWithReader.front());
+				else
+					fileName.clear();
+			}
+			else
+			{
+				auto nameTemplate = settings->Get(FILENAME_TEMPLATE_KEY, fileName);
+				fileName          = Write(temporaryDir, stream->GetStream(), archive, fileName, true);
+			}
+		}
+		catch (const std::exception& ex)
+		{
+			return ex.what();
+		}
+
+		return {};
+	}
 };
 
 ReaderController::ReaderController(
@@ -268,22 +294,24 @@ void ReaderController::Read(long long id) const
 						 transaction->Commit();
 					 }
 
-					 const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
-					 query->Bind(0, id);
-					 query->Execute();
-					 assert(!query->Eof());
+					 auto [folderName, fileName] = [&] {
+						 const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
+						 query->Bind(0, id);
+						 query->Execute();
+						 assert(!query->Eof());
 
-					 QString folderName = query->Get<const char*>(0), fileName = query->Get<const char*>(1);
-					 auto    archive = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection().GetFolder(), folderName);
-					 QString error;
-					 auto    temporaryDir = [this] {
+						 return std::make_pair(query->Get<QString>(0), query->Get<QString>(1));
+					 }();
+
+					 auto archive      = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection().GetFolder(), folderName);
+					 auto temporaryDir = [this] {
 						 const auto logicFactory = ILogicFactory::Lock(m_impl->logicFactory);
 						 if (const auto folder = m_impl->settings->Get(DEFAULT_FOLDER_KEY); folder.isValid())
 							 return logicFactory->CreateTemporaryDir(folder.toString());
 						 return logicFactory->CreateTemporaryDir(true);
 					 }();
-					 Extract(*m_impl->settings, *temporaryDir, archive, fileName, error, m_impl->logicFactory);
-					 return [this, executor = std::move(executor), fileName = std::move(fileName), temporaryDir = std::move(temporaryDir), error(std::move(error))](size_t) mutable {
+					 auto error = m_impl->Extract(*temporaryDir, archive, fileName);
+					 return [this, executor = std::move(executor), fileName = std::move(fileName), temporaryDir = std::move(temporaryDir), error = std::move(error)](size_t) mutable {
 						 m_impl->Read(std::move(temporaryDir), std::move(fileName), error);
 						 executor.reset();
 					 };

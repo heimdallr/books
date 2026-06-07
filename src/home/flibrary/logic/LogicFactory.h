@@ -44,6 +44,7 @@ private: // ILogicFactory
 	[[nodiscard]] std::shared_ptr<ITemporaryDir>            CreateTemporaryDir(bool singleInstance) const override;
 	[[nodiscard]] std::shared_ptr<ITemporaryDir>            CreateTemporaryDir(const QString& path) const override;
 	[[nodiscard]] Util::ExtractedBooks                      GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList) const override;
+	[[nodiscard]] Util::ExtractedBook                       GetCurrentExtractedBook() const override;
 
 	void FindBook(const QString& navigationMode, const QString& navigationId, long long bookId) const override;
 

@@ -450,6 +450,13 @@ Util::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel* model, 
 	return books;
 }
 
+Util::ExtractedBook LogicFactory::GetCurrentExtractedBook() const
+{
+	auto controller = GetTreeViewController(ItemType::Books);
+	auto books = GetExtractedBooks(controller->GetModel(), controller->GetCurrentIndex(), {});
+	return books.empty() ? Util::ExtractedBook {} : std::move(books.front());
+}
+
 void LogicFactory::FindBook(const QString& navigationMode, const QString& navigationId, const long long bookId) const
 {
 	const auto  settings   = m_impl->container.resolve<ISettings>();

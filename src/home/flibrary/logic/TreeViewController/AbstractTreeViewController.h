@@ -35,15 +35,18 @@ private: // ITreeViewController
 	{
 	}
 
-	CreateNewItem GetNewItemCreator() const override
+	[[nodiscard]] CreateNewItem GetNewItemCreator() const override
 	{
 		return {};
 	}
 
-	RemoveItems GetRemoveItems() const override
+	[[nodiscard]] RemoveItems GetRemoveItems() const override
 	{
 		return {};
 	}
+
+	[[nodiscard]] QAbstractItemModel* GetModel() const noexcept        override;
+	[[nodiscard]] QModelIndex         GetCurrentIndex() const noexcept override;
 
 protected:
 	void Setup();

@@ -186,7 +186,7 @@ IDataItem::Ptr ModelProvider::GetData() const noexcept
 	return std::move(m_impl->data);
 }
 
-[[nodiscard]] std::shared_ptr<QAbstractItemModel> ModelProvider::GetSourceModel() const noexcept
+std::shared_ptr<QAbstractItemModel> ModelProvider::GetSourceModel() const noexcept
 {
 	assert(m_impl->sourceModel);
 	return std::move(m_impl->sourceModel);
@@ -208,4 +208,14 @@ void ModelProvider::OnModelChanged(QAbstractItemModel* /*model*/)
 
 void ModelProvider::OnContextMenuTriggered(const QString& /*id*/, const IDataItem::Ptr& /*item*/)
 {
+}
+
+QAbstractItemModel* ModelProvider::GetModel() const noexcept
+{
+	return nullptr;
+}
+
+QModelIndex ModelProvider::GetCurrentIndex() const noexcept
+{
+	return {};
 }

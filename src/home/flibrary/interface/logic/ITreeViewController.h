@@ -46,9 +46,11 @@ public:
 	class IObserver : public Observer
 	{
 	public:
-		virtual void OnModeChanged(int index)                                              = 0;
-		virtual void OnModelChanged(QAbstractItemModel* model)                             = 0;
-		virtual void OnContextMenuTriggered(const QString& id, const IDataItem::Ptr& item) = 0;
+		virtual void                OnModeChanged(int index)                                              = 0;
+		virtual void                OnModelChanged(QAbstractItemModel* model)                             = 0;
+		virtual void                OnContextMenuTriggered(const QString& id, const IDataItem::Ptr& item) = 0;
+		virtual QAbstractItemModel* GetModel() const noexcept                                             = 0;
+		virtual QModelIndex         GetCurrentIndex() const noexcept                                      = 0;
 	};
 
 public:
@@ -64,9 +66,11 @@ public:
 	virtual void                                                   RequestContextMenu(const QModelIndex& index, RequestContextMenuOptions options, RequestContextMenuCallback callback) = 0;
 	virtual void                                                   OnContextMenuTriggered(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item) = 0;
 	virtual void                                                   OnDoubleClicked(const QModelIndex& index) const                                                                                       = 0;
-	virtual CreateNewItem                                          GetNewItemCreator() const                                                                                                             = 0;
-	virtual RemoveItems                                            GetRemoveItems() const                                                                                                                = 0;
-	virtual const QString&                                         GetNavigationId() const noexcept                                                                                                      = 0;
+	[[nodiscard]] virtual CreateNewItem                            GetNewItemCreator() const                                                                                                             = 0;
+	[[nodiscard]] virtual RemoveItems                              GetRemoveItems() const                                                                                                                = 0;
+	[[nodiscard]] virtual const QString&                           GetNavigationId() const noexcept                                                                                                      = 0;
+	[[nodiscard]] virtual QAbstractItemModel*                      GetModel() const noexcept                                                                                                             = 0;
+	[[nodiscard]] virtual QModelIndex                              GetCurrentIndex() const noexcept                                                                                                      = 0;
 
 	virtual void RegisterObserver(IObserver* observer)   = 0;
 	virtual void UnregisterObserver(IObserver* observer) = 0;
