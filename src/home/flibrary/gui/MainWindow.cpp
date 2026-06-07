@@ -553,6 +553,16 @@ private: // ITreeViewController::::IObserver
 	{
 	}
 
+	QAbstractItemModel* GetModel() const noexcept override
+	{
+		return nullptr;
+	}
+
+	QModelIndex GetCurrentIndex() const noexcept override
+	{
+		return {};
+	}
+
 private:
 	void Setup()
 	{

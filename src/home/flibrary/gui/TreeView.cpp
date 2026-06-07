@@ -531,6 +531,16 @@ private: // ITreeViewController::IObserver
 			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR_CTX, Loc::BOOKS_EXTRACT_ERROR));
 	}
 
+	QAbstractItemModel* GetModel() const noexcept override
+	{
+		return m_ui.treeView->model();
+	}
+
+	QModelIndex GetCurrentIndex() const noexcept override
+	{
+		return m_ui.treeView->currentIndex();
+	}
+
 private: // ITreeViewDelegate::IObserver
 	void OnButtonClicked(const QModelIndex&) override
 	{
