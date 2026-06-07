@@ -48,7 +48,7 @@ constexpr auto DIALOG_KEY = "Reader";
 constexpr auto DEFAULT    = "default";
 
 constexpr auto DEFAULT_FOLDER_KEY    = "Preferences/Export/readFolder";
-constexpr auto FILENAME_TEMPLATE_KEY = "Preferences/Export/fileNameTemplate";
+constexpr auto FILENAME_TEMPLATE_KEY = "Preferences/Export/readFileNameTemplate";
 
 TR_DEF
 
