@@ -746,7 +746,7 @@
     </message>
     <message>
         <source>Don&apos;t ask anymore</source>
-        <translation>Більше не питати</translation>
+        <translation>Більше не запитувати</translation>
     </message>
     <message>
         <source>Keep your user data?</source>
@@ -754,7 +754,7 @@
     </message>
     <message>
         <source>Looks like the collection has been updated. Apply changes?</source>
-        <translation>Схоже, колекція оновлена. Застосувати зміни?</translation>
+        <translation>Схоже, колекцію було оновлено. Застосувати зміни?</translation>
     </message>
     <message>
         <source>No</source>
@@ -766,11 +766,11 @@
     </message>
     <message>
         <source>No write access to %1</source>
-        <translation>Немає доступу до запису в %1</translation>
+        <translation>Відсутній доступ для запису в %1</translation>
     </message>
     <message>
         <source>Recreate collection</source>
-        <translation>Відтворити колекцію</translation>
+        <translationПерестворити колекцію</translation>
     </message>
     <message>
         <source>The collection was not %1 due to errors. See log.</source>
@@ -4840,7 +4840,7 @@ Try again?</source>
     </message>
     <message>
         <source>R&amp;ecreate collection</source>
-        <translation>Від&amp;творити колекцію</translation>
+        <translation>Пере&amp;створити колекцію</translation>
     </message>
     <message>
         <source>Readers&apos; &amp;Reviews</source>
