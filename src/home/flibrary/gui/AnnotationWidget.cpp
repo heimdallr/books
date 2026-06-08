@@ -25,7 +25,6 @@
 #include "interface/logic/IDataItem.h"
 
 #include "gutil/util.h"
-#include "logic/data/DataItem.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
 #include "util/ImageRestore.h"
@@ -214,11 +213,10 @@ public:
 		m_ui.setupUi(&m_self);
 
 		m_ui.mainWidget->installEventFilter(this);
-		m_ui.content->viewport()->installEventFilter(m_itemViewToolTipperContent.get());
-		m_ui.content->viewport()->installEventFilter(m_scrollBarControllerContent.get());
+		m_itemViewToolTipperContent->SetScrollArea(m_ui.content);
 		m_scrollBarControllerContent->SetScrollArea(m_ui.content);
 
-		m_ui.info->installEventFilter(m_scrollBarControllerAnnotation.get());
+		m_ui.info->installEventFilter(m_scrollBarControllerAnnotation.get()); // @todo
 		m_scrollBarControllerAnnotation->SetScrollArea(m_ui.scrollArea);
 
 		const auto setCustomPalette = [](QWidget& widget) {

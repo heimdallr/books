@@ -574,8 +574,6 @@ private:
 		m_self.setWindowTitle(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION));
 
 		m_scrollBarController->SetScrollArea(m_ui.logView);
-		m_ui.logView->viewport()->installEventFilter(m_scrollBarController.get());
-
 		m_parentWidgetProvider->SetWidget(&m_self);
 
 		m_delayStarter.setSingleShot(true);

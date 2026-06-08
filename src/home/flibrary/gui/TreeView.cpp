@@ -421,7 +421,6 @@ public:
 		, m_hiddenColumns { databaseUser.GetSetting(IDatabaseUser::Key::DisabledBookFields).toString().split(LIST_SEPARATOR, Qt::SkipEmptyParts) }
 	{
 		Setup();
-		m_scrollBarController->SetScrollArea(m_ui.treeView);
 	}
 
 	~Impl() override
@@ -890,6 +889,9 @@ private:
 	{
 		m_ui.setupUi(&m_self);
 
+		m_itemViewToolTipper->SetScrollArea(m_ui.treeView);
+		m_scrollBarController->SetScrollArea(m_ui.treeView);
+
 		if (!IsNavigation())
 		{
 			m_booksHeaderView = new HeaderView(*this, m_currentId, &m_self);
@@ -909,8 +911,6 @@ private:
 		m_ui.treeView->setHeaderHidden(IsNavigation());
 		m_ui.treeView->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 		treeViewHeader.setDefaultAlignment(Qt::AlignCenter);
-		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
-		m_ui.treeView->viewport()->installEventFilter(m_scrollBarController.get());
 
 		SetupNewItemButton();
 
