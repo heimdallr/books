@@ -276,6 +276,12 @@
           <property name="contextMenuPolicy">
            <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
           </property>
+          <property name="verticalScrollBarPolicy">
+           <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+          </property>
+          <property name="horizontalScrollBarPolicy">
+           <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+          </property>
           <property name="selectionMode">
            <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
           </property>

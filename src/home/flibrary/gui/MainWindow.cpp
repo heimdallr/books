@@ -279,7 +279,8 @@ public:
 		std::shared_ptr<ILineOption>                    lineOption,
 		std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
 		std::shared_ptr<IHotkeyManager>                 hotkeyManager,
-		std::shared_ptr<IRecentOpenBookController>      recentOpenBookController
+		std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
+		std::shared_ptr<Util::ScrollBarController>      scrollBarController
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
@@ -303,6 +304,7 @@ public:
 		, m_alphabetPanel { std::move(alphabetPanel) }
 		, m_hotkeyManager { std::move(hotkeyManager) }
 		, m_recentOpenBookController { std::move(recentOpenBookController) }
+		, m_scrollBarController { std::move(scrollBarController) }
 		, m_navigationViewController { ILogicFactory::Lock(m_logicFactory)->GetTreeViewController(ItemType::Navigation) }
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
 		, m_navigationWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Navigation) }
@@ -570,6 +572,9 @@ private:
 		m_ui.setupUi(&m_self);
 
 		m_self.setWindowTitle(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION));
+
+		m_scrollBarController->SetScrollArea(m_ui.logView);
+		m_ui.logView->viewport()->installEventFilter(m_scrollBarController.get());
 
 		m_parentWidgetProvider->SetWidget(&m_self);
 
@@ -1627,6 +1632,7 @@ private:
 	PropagateConstPtr<IAlphabetPanel, std::shared_ptr>            m_alphabetPanel;
 	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
 	PropagateConstPtr<IRecentOpenBookController, std::shared_ptr> m_recentOpenBookController;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
 
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationViewController;
 
@@ -1685,6 +1691,7 @@ MainWindow::MainWindow(
 	std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
 	std::shared_ptr<IHotkeyManager>                 hotkeyManager,
 	std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
+	std::shared_ptr<Util::ScrollBarController>      scrollBarController,
 	QWidget*                                        parent
 )
 	: QMainWindow(parent)
@@ -1711,7 +1718,8 @@ MainWindow::MainWindow(
 		  std::move(lineOption),
 		  std::move(alphabetPanel),
 		  std::move(hotkeyManager),
-		  std::move(recentOpenBookController)
+		  std::move(recentOpenBookController),
+		  std::move(scrollBarController)
 	  )
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
