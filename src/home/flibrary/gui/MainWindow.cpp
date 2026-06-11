@@ -1411,7 +1411,8 @@ private:
 		for (const auto& collection : m_collectionController->GetCollections())
 		{
 			const auto active = collection->id == activeCollection.id;
-			auto*      action = m_ui.menuSelectCollection->addAction(collection->name);
+			auto       title  = collection->name;
+			auto*      action = m_ui.menuSelectCollection->addAction(title.replace('&', "&&"));
 			connect(action, &QAction::triggered, &m_self, [&, id = collection->id] {
 				m_collectionController->SetActiveCollection(id);
 			});

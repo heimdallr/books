@@ -519,7 +519,7 @@ limit {}
 
 	const auto collectionProvider = container.resolve<ICollectionProvider>();
 
-	auto       settings               = container.resolve<ISettings>();
+	const auto settings               = container.resolve<ISettings>();
 	const auto maxMenuItemCount       = settings->Get(MAX_MENU_ITEM_COUNT_KEY, MAX_MENU_ITEM_DEFAULT);
 	auto       menuItemTitleFormat    = settings->Get(MENU_ITEM_TITLE_FORMAT_KEY, MENU_ITEM_TITLE_FORMAT_DEFAULT).replace(R"(\t)", "\t").replace(R"(\n)", "\n");
 	auto       menuItemDateTimeFormat = settings->Get(MENU_ITEM_DATETIME_FORMAT_KEY, MENU_ITEM_DATETIME_FORMAT_DEFAULT);
@@ -549,18 +549,18 @@ limit {}
 				  data.emplace_back(query->Get<long long>(0), std::move(title));
 			  }
 
-			  return [this, &menu, data = std::move(data)](size_t) {
+			  return [this, &menu, data = std::move(data)](size_t) mutable {
 				  menu.menuAction()->setEnabled(!data.empty());
 				  menu.clear();
-				  for (const auto& [id, title] : data)
+				  for (auto&& [id, title] : data)
 				  {
-					  auto* action = menu.addAction(title);
+					  const auto* action = menu.addAction(title.replace('&', "&&"));
 					  connect(action, &QAction::triggered, [this, id] {
 						  m_impl->container.resolve<IBookInteractor>()->OnRecentBookMenuTriggered(id);
 					  });
 				  }
 				  menu.addSeparator();
-				  auto* action = menu.addAction(Tr(CLEAR_RECENT_BOOKS));
+				  const auto* action = menu.addAction(Tr(CLEAR_RECENT_BOOKS));
 				  connect(action, &QAction::triggered, [this, &menu] {
 					  const auto database = m_impl->container.resolve<IDatabaseUser>()->Database();
 					  const auto tr       = database->CreateTransaction();
