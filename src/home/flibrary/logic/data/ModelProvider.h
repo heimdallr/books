@@ -42,9 +42,9 @@ private: // IModelProvider
 	[[nodiscard]] std::shared_ptr<const ILibRateProvider> GetLibRateProvider() const override;
 
 private: // ITreeViewController::IObserver
-	void OnModeChanged(int index) override;
-	void OnModelChanged(QAbstractItemModel* model) override;
-	void OnContextMenuTriggered(const QString& id, const IDataItem::Ptr& item) override;
+	void                OnModeChanged(int index) override;
+	void                OnModelChanged(QAbstractItemModel* model) override;
+	void                OnContextMenuTriggered(const QString& id, const IDataItem::Ptr& item) override;
 	QAbstractItemModel* GetModel() const noexcept override;
 	QModelIndex         GetCurrentIndex() const noexcept override;
 

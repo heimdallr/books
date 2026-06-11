@@ -45,7 +45,7 @@ private: // ITreeViewController
 		return {};
 	}
 
-	[[nodiscard]] QAbstractItemModel* GetModel() const noexcept        override;
+	[[nodiscard]] QAbstractItemModel* GetModel() const noexcept override;
 	[[nodiscard]] QModelIndex         GetCurrentIndex() const noexcept override;
 
 protected:

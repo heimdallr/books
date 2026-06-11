@@ -53,7 +53,7 @@ left join Groups_List_User_View gw on gw.GroupID = g.GroupID and gw.BookID = :id
 	const auto move   = AddMenuItem(parent, GROUPS_MOVE_TO, Tr(GROUPS_MOVE_TO), GroupsMenuAction::MoveToGroup);
 
 	const auto createMenuItem = [&](const DB::IQuery& query) -> void {
-		auto       title   = query.Get<QString>(1);
+		auto title         = query.Get<QString>(1);
 		title              = title.replace('&', "&&");
 		const auto groupId = QString::number(query.Get<long long>(0));
 		if (const auto itemExistsInLinkTable = query.Get<long long>(2) >= 0; itemExistsInLinkTable)

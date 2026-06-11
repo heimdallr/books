@@ -15,16 +15,16 @@ namespace HomeCompa::Flibrary
 
 class CollectionCleanerLogic final : public ICollectionCleaner
 {
-    NON_COPY_MOVABLE(CollectionCleanerLogic)
+	NON_COPY_MOVABLE(CollectionCleanerLogic)
 public:
-    CollectionCleanerLogic(
+	CollectionCleanerLogic(
 		const std::shared_ptr<const ILogicFactory>&        logicFactory,
 		std::shared_ptr<const IDatabaseUser>               databaseUser,
 		std::shared_ptr<const ICollectionProvider>         collectionProvider,
 		std::shared_ptr<const ILibRateProvider>            libRateProvider,
 		std::shared_ptr<IBooksExtractorProgressController> progressController
 	);
-    ~CollectionCleanerLogic() override;
+	~CollectionCleanerLogic() override;
 
 private: // ICollectionCleaner
 	void Remove(Util::Remove::Books books, Callback callback) const override;
