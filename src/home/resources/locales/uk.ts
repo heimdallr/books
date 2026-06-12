@@ -4907,6 +4907,10 @@ Try again?</source>
         <translation>Показати &amp;OPDS у браузері</translation>
     </message>
     <message>
+        <source>Show &amp;statistics..</source>
+        <translation>Показати &amp;статистику...</translation>
+    </message>
+    <message>
         <source>Show collection s&amp;tatistics</source>
         <translation>Показати с&amp;татистику колекції</translation>
     </message>

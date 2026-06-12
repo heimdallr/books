@@ -1222,7 +1222,7 @@
   </action>
   <action name="actionShowCollectionStatisticsDialog">
    <property name="text">
-    <string>Show statistics</string>
+    <string>Show &amp;statistics..</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
