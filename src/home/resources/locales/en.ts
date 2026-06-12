@@ -4894,6 +4894,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Show &amp;statistics..</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Show collection s&amp;tatistics</source>
         <translation></translation>
     </message>

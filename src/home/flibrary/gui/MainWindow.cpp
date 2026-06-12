@@ -752,6 +752,13 @@ private:
 		connect(m_ui.actionRescanCollectionFolder, &QAction::triggered, &m_self, [this] {
 			m_collectionController->RescanCollectionFolder();
 		});
+		connect(m_ui.actionShowCollectionStatisticsDialog, &QAction::triggered, &m_self, [this] {
+			auto stats = m_collectionController->GetCollectionStatistics(*m_databaseUser);
+			std::ranges::transform(stats, stats.begin(), [](const auto& item) {
+				return QString("<tr><td>%1</td></tr>").arg(item);
+			});
+			m_uiFactory->ShowInfo(QString("<table>%1</table>").arg(stats.join('\n')));
+		});
 		connect(m_ui.actionRemoveCollection, &QAction::triggered, &m_self, [this] {
 			m_collectionController->RemoveCollection();
 		});
@@ -911,7 +918,7 @@ private:
 				m_ui.actionShowLog->trigger();
 			std::invoke(action, *m_logController);
 		};
-		connect(m_ui.actionShowCollectionStatistics, &QAction::triggered, &m_self, [=] {
+		connect(m_ui.actionShowCollectionStatisticsLog, &QAction::triggered, &m_self, [=] {
 			logAction(&ILogController::ShowCollectionStatistics);
 		});
 		connect(m_ui.actionTestLogColors, &QAction::triggered, &m_self, [=] {
