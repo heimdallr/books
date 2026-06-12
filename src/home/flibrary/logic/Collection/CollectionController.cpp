@@ -297,6 +297,11 @@ public:
 		return m_collectionProvider->GetActiveCollectionId();
 	}
 
+	QStringList GetCollectionStatistics(const IDatabaseUser& databaseUser, const bool withAdditionalInfo) const
+	{
+		return m_collectionProvider->GetCollectionStatistics(databaseUser, withAdditionalInfo);
+	}
+
 private:
 	void SaveUserData()
 	{
@@ -528,6 +533,11 @@ bool CollectionController::ActiveCollectionExists() const noexcept
 QString CollectionController::GetActiveCollectionId() const noexcept
 {
 	return m_impl->GetActiveCollectionId();
+}
+
+QStringList CollectionController::GetCollectionStatistics(const IDatabaseUser& databaseUser, const bool withAdditionalInfo) const
+{
+	return m_impl->GetCollectionStatistics(databaseUser, withAdditionalInfo);
 }
 
 void CollectionController::SetActiveCollection(const QString& id)
