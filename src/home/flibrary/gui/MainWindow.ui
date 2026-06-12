@@ -353,6 +353,7 @@
     <addaction name="actionAddNewCollection"/>
     <addaction name="actionRecreateCollection"/>
     <addaction name="actionRescanCollectionFolder"/>
+    <addaction name="actionShowCollectionStatisticsDialog"/>
     <addaction name="actionRemoveCollection"/>
     <addaction name="separator"/>
     <addaction name="actionGenerateIndexInpx"/>
@@ -401,7 +402,7 @@
       </widget>
       <addaction name="actionShowLog"/>
       <addaction name="actionClearLog"/>
-      <addaction name="actionShowCollectionStatistics"/>
+      <addaction name="actionShowCollectionStatisticsLog"/>
       <addaction name="menuLogVerbosityLevel"/>
      </widget>
      <widget class="QMenu" name="menuFont">
@@ -615,7 +616,7 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
-  <action name="actionShowCollectionStatistics">
+  <action name="actionShowCollectionStatisticsLog">
    <property name="text">
     <string>Show collection s&amp;tatistics</string>
    </property>
@@ -1214,6 +1215,14 @@
   <action name="actionRecreateCollection">
    <property name="text">
     <string>R&amp;ecreate collection</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowCollectionStatisticsDialog">
+   <property name="text">
+    <string>Show statistics</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
