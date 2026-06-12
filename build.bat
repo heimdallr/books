@@ -3,8 +3,10 @@
 set BUILD_TYPE=Release
 set BUILD_DIR=%~dp0build\%BUILD_TYPE%
 
-rmdir /s /q %BUILD_DIR%\FLibrary
-rmdir /s /q %~dp0build\installer
+del /s /q %BUILD_DIR%\bin\*
+del /s /q %BUILD_DIR%\FLibrary\*
+del /s /q %~dp0build\installer\*
+
 
 call %~dp0configure.bat %*
 if %errorlevel% NEQ 0 goto Error
