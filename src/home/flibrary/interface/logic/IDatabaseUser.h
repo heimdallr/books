@@ -55,6 +55,7 @@ struct BookQueryFields
 		UpdateDate,
 		LibRate,
 		Lang,
+		Format,
 		Year,
 		Folder,
 		FileName,
