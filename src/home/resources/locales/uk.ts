@@ -805,6 +805,10 @@
         <translation>Додатково: %1</translation>
     </message>
     <message>
+        <source>Archives:</source>
+        <translation>Архіви:</translation>
+    </message>
+    <message>
         <source>Authors:</source>
         <translation>Автори:</translation>
     </message>
@@ -829,12 +833,20 @@
         <translation>Папка: %1</translation>
     </message>
     <message>
+        <source>Groups:</source>
+        <translation>Групи:</translation>
+    </message>
+    <message>
         <source>Index file: %1</source>
         <translation>Індексний файл: %1</translation>
     </message>
     <message>
         <source>Keywords:</source>
         <translation>Ключові слова:</translation>
+    </message>
+    <message>
+        <source>Languages:</source>
+        <translation>Мови:</translation>
     </message>
     <message>
         <source>Name: %1</source>

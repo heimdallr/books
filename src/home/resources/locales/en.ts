@@ -795,6 +795,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Archives:</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Authors:</source>
         <translation></translation>
     </message>
@@ -819,11 +823,19 @@
         <translation></translation>
     </message>
     <message>
+        <source>Groups:</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Index file: %1</source>
         <translation></translation>
     </message>
     <message>
         <source>Keywords:</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Languages:</source>
         <translation></translation>
     </message>
     <message>
