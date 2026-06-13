@@ -347,6 +347,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Format</source>
+        <translation>Type</translation>
+    </message>
+    <message>
         <source>Genre</source>
         <translation></translation>
     </message>

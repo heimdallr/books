@@ -347,6 +347,10 @@
         <translation>Папка</translation>
     </message>
     <message>
+        <source>Format</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
         <source>Genre</source>
         <translation>Жанр</translation>
     </message>
