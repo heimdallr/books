@@ -147,7 +147,7 @@ add_subdirectory(${EXT_ROOT}/bit7z)
 add_subdirectory(${EXT_ROOT}/libmobi)
 if(MSVC)
 	set_property(TARGET bit7z PROPERTY FOLDER ThirdParty)
-	set_property(TARGET mobi PROPERTY FOLDER ThirdParty/mobi)
+	set_property(TARGET mobi PROPERTY FOLDER ThirdParty)
 	set_target_properties(mobi PROPERTIES COMPILE_OPTIONS /W0)
 endif()
 
