@@ -143,6 +143,7 @@ using ParseImpl = Util::CommonParser::ParseResult (*)(QIODevice& stream, Util::C
 
 template <FileType T>
 ParseImpl GetParser() = delete;
+
 template <>
 ParseImpl GetParser<FileType::Mobi>()
 {
@@ -687,10 +688,11 @@ private:
         { "epub", { FileType::Epub, true } },
         { "mobi", { FileType::Mobi, true } },
         { "azw3", { FileType::Mobi, true } },
-        { "djvu", { FileType::DjVu, true } },
-		{  "pdf",  { FileType::Pdf, true } },
+		{ "djvu", { FileType::DjVu, true } },
+        {  "djv", { FileType::DjVu, true } },
+        {  "pdf",  { FileType::Pdf, true } },
         {  "fbd",  { FileType::Fb2, true } },
-        {  "zip", { FileType::Zip, false } },
+		{  "zip", { FileType::Zip, false } },
         {   "7z", { FileType::Zip, false } },
         {  "rar", { FileType::Zip, false } },
 	};
