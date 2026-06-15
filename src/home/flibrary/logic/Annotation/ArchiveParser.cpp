@@ -133,6 +133,7 @@ enum class FileType
 	Fb2,
 	Epub,
 	Mobi,
+	Img,
 #define IMAGE_EXTRACTOR_FILE_TYPE_ITEM(NAME) NAME,
 	IMAGE_EXTRACTOR_FILE_TYPE_ITEMS_X_MACRO
 #undef IMAGE_EXTRACTOR_FILE_TYPE_ITEM
@@ -154,6 +155,20 @@ template <>
 ParseImpl GetParser<FileType::Epub>()
 {
 	return &Util::EpubParser::Parse;
+}
+
+Util::CommonParser::ParseResult ParseImg(QIODevice& stream, Util::CommonParser::Mode)
+{
+	Util::CommonParser::ParseResult result;
+	result.images.emplace_back("cover", stream.readAll());
+	result.coverExists = true;
+	return result;
+}
+
+template <>
+ParseImpl GetParser<FileType::Img>()
+{
+	return &ParseImg;
 }
 
 class IParser // NOLINT(cppcoreguidelines-special-member-functions)
@@ -728,6 +743,9 @@ private:
 			if (const auto [type, _] = GetFileType(ext); type != FileType::Unknown)
 				return std::make_pair(std::move(file), type);
 
+			if (Util::IsImage(file))
+				return std::make_pair(std::move(file), FileType::Img);
+
 			auto zipFileList = zip->GetFileNameList();
 			if (const auto it = std::ranges::find_if(
 					zipFileList,
@@ -806,6 +824,7 @@ private:
 			{ FileType::Mobi,   &CommonParser::Create<FileType::Mobi> },
 			{ FileType::DjVu, &ImageExtractor::Create<FileType::DjVu> },
 			{  FileType::Pdf,  &ImageExtractor::Create<FileType::Pdf> },
+			{  FileType::Img,    &CommonParser::Create<FileType::Img> },
 		};
 
 		const auto parserCreator = FindSecond(parsers, fileType, &StubParser::Create);
