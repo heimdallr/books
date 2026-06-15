@@ -91,7 +91,6 @@ else()
 		-Werror
 		-pedantic
 		-Wno-deprecated-declarations
-		-Wno-virtual-move-assign
 		-Wno-missing-field-initializers
 		-Wno-array-bounds
 		-fPIC		
@@ -162,7 +161,7 @@ find_package(djvulibre REQUIRED)
 find_package(poppler REQUIRED)
 find_package(poppler-data REQUIRED)
 find_package(libxml2 REQUIRED)
-find_package(zlib REQUIRED)
+find_package(ZLIB REQUIRED)
 
 include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)
 include(${BUILDSCRIPTS_ROOT}/cmake/sdk.cmake)
