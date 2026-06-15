@@ -48,14 +48,16 @@ using Collections = std::vector<Collection::Ptr>;
 class ICollectionsObserver : public Observer
 {
 public:
-	virtual void OnActiveCollectionChanged()   = 0;
+    virtual void OnActiveCollectionChanged()   = 0;
 	virtual void OnNewCollectionCreating(bool) = 0;
 };
 
 class ICollectionProvider : public ICollectionsObserver
 {
 public:
-	[[nodiscard]] virtual bool IsEmpty() const noexcept = 0;
+    virtual ~ICollectionProvider() = default;
+
+    [[nodiscard]] virtual bool IsEmpty() const noexcept = 0;
 
 	[[nodiscard]] virtual bool              IsCollectionNameExists(const QString& name) const                = 0;
 	[[nodiscard]] virtual QString           GetCollectionDatabaseName(const QString& databaseFileName) const = 0;
