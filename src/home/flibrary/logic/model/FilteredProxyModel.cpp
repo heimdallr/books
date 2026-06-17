@@ -1,35 +1,16 @@
 #include "FilteredProxyModel.h"
 
-#include <queue>
 #include <set>
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
 
+#include "ModelUtil.h"
+
 using namespace HomeCompa::Flibrary;
 
 namespace
 {
-
-void EnumerateLeafs(const QAbstractItemModel& model, const QModelIndexList& indexList, const std::function<void(const QModelIndex&)>& f)
-{
-	std::queue<QModelIndex> queue;
-	for (const auto& index : indexList)
-		if (!index.isValid() || index.column() == 0)
-			queue.push(index);
-
-	while (!queue.empty())
-	{
-		const auto parent = queue.front();
-		queue.pop();
-		const auto rowCount = model.rowCount(parent);
-		if (parent.isValid() && rowCount == 0)
-			f(parent);
-
-		for (int i = 0; i < rowCount; ++i)
-			queue.push(model.index(i, 0, parent));
-	}
-}
 
 Qt::CheckState GetCheckState(const QIdentityProxyModel& model, const QModelIndex& parent)
 {
@@ -176,7 +157,7 @@ bool FilteredProxyModel::Check(const QVariant& value, const std::function<bool(c
 {
 	bool       result    = false;
 	const auto indexList = value.value<QList<QModelIndex>>();
-	EnumerateLeafs(*this, indexList.size() > 1 ? indexList : QList { QModelIndex {} }, [&](const QModelIndex& child) {
+	ModelUtil::EnumerateLeafs(*this, indexList.size() > 1 ? indexList : QList { QModelIndex {} }, [&](const QModelIndex& child) {
 		if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
 			result = f(child) || result;
 	});
@@ -198,7 +179,7 @@ QStringList FilteredProxyModel::CollectLanguages() const
 int FilteredProxyModel::GetCount() const
 {
 	std::unordered_set<QString> unique;
-	EnumerateLeafs(*this, { QModelIndex {} }, [&](const QModelIndex& index) {
+	ModelUtil::EnumerateLeafs(*this, { QModelIndex {} }, [&](const QModelIndex& index) {
 		unique.emplace(index.data(Role::Id).toString());
 	});
 
@@ -207,13 +188,13 @@ int FilteredProxyModel::GetCount() const
 
 void FilteredProxyModel::GetSelected(const QModelIndex& index, const QModelIndexList& indexList, QModelIndexList* selected) const
 {
-	EnumerateLeafs(*this, { QModelIndex {} }, [&](const QModelIndex& child) {
+	ModelUtil::EnumerateLeafs(*this, { QModelIndex {} }, [&](const QModelIndex& child) {
 		if (child.data(Role::Type).value<ItemType>() == ItemType::Books && child.data(Role::CheckState).value<Qt::CheckState>() == Qt::Checked)
 			(*selected) << child;
 	});
 
 	if (selected->isEmpty())
-		EnumerateLeafs(*this, indexList, [&](const QModelIndex& child) {
+		ModelUtil::EnumerateLeafs(*this, indexList, [&](const QModelIndex& child) {
 			if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
 				(*selected) << child;
 		});
