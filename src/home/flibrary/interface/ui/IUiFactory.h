@@ -7,6 +7,7 @@
 
 #include "gutil/interface/IUiFactory.h"
 
+class QAbstractItemModel;
 class QAbstractItemView;
 class QComboBox;
 class QDialog;
@@ -49,6 +50,8 @@ public:
 	AddMenuBarToHotkeys(const ISettings& settings, const QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*)>& functor) const = 0;
 	[[nodiscard]] virtual IDataItem::Ptr
 	AddComboBoxToHotkeys(const ISettings& settings, QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*)>& functor) const = 0;
+
+	[[nodiscard]] virtual QWidget* CreateFastFilterWidget(const QAbstractItemModel& model, int column, std::function<void(bool, QVariantList)> callback) const = 0;
 
 public: // special
 	[[nodiscard]] virtual std::filesystem::path                      GetNewCollectionInpxFolder() const noexcept = 0;

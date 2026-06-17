@@ -23,13 +23,17 @@ struct Role
 		BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 
-			// global
-			Count,
+	// global
+#define BOOKS_COLUMN_ITEM(NAME) NAME##Filter,
+			BOOKS_COLUMN_ITEMS_X_MACRO
+#undef BOOKS_COLUMN_ITEM
+#define BOOKS_COLUMN_ITEM(NAME) NAME##sAll,
+				BOOKS_COLUMN_ITEMS_X_MACRO
+#undef BOOKS_COLUMN_ITEM
+					Count,
 		ChildCount,
 		CheckableColumn,
-		Languages,
 		TextFilter,
-		LanguageFilter,
 		ShowRemovedFilter,
 		NavigationItemFiltered,
 		UniFilterEnabled,

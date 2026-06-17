@@ -72,9 +72,6 @@ QVariant FilteredProxyModel::data(const QModelIndex& index, const int role) cons
 
 	switch (role)
 	{
-		case Role::Languages:
-			return CollectLanguages();
-
 		case Role::Count:
 			return GetCount();
 
@@ -162,18 +159,6 @@ bool FilteredProxyModel::Check(const QVariant& value, const std::function<bool(c
 			result = f(child) || result;
 	});
 	return result;
-}
-
-QStringList FilteredProxyModel::CollectLanguages() const
-{
-	std::set<QString> languages;
-	EnumerateLeafs(*this, { QModelIndex {} }, [&](const QModelIndex& child) {
-		if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
-			languages.emplace(child.data(Role::Lang).toString().toLower());
-	});
-	languages.erase(QString());
-
-	return { languages.cbegin(), languages.cend() };
 }
 
 int FilteredProxyModel::GetCount() const
