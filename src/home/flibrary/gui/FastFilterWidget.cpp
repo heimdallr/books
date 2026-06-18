@@ -91,12 +91,12 @@ private:
 	std::unordered_map<QString, const char*> m_languagesMap { GetLanguagesMap() };
 };
 
-class TranslatorSeqNumber final : public Translator
+class TranslatorNumber final : public Translator
 {
 public:
 	static std::unique_ptr<const Translator> Create()
 	{
-		return std::make_unique<TranslatorSeqNumber>();
+		return std::make_unique<TranslatorNumber>();
 	}
 
 private: // ITranslator
@@ -108,10 +108,14 @@ private: // ITranslator
 	}
 };
 
+using TranslatorSeqNumber = TranslatorNumber;
+using TranslatorYear = TranslatorNumber;
+
 constexpr std::pair<int, std::unique_ptr<const Translator> (*)()> TRANSLATORS[] {
 #define ITEM(NAME) {BookItem::Column::NAME, &Translator##NAME::Create}
 	ITEM(Lang),
 	ITEM(SeqNumber),
+	ITEM(Year),
 #undef ITEM
 };
 
