@@ -10,6 +10,7 @@
 #include "fnd/algorithm.h"
 
 #include "interface/constants/ModelRole.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
@@ -52,7 +53,7 @@ public:
 	Translator()          = default;
 	virtual ~Translator() = default;
 
-	static std::unique_ptr<const Translator> Create()
+	static std::unique_ptr<const Translator> Create(const ISettings&)
 	{
 		return std::make_unique<Translator>();
 	}
@@ -74,7 +75,7 @@ public: // ITranslator
 class TranslatorLang final : public Translator
 {
 public:
-	static std::unique_ptr<const Translator> Create()
+	static std::unique_ptr<const Translator> Create(const ISettings&)
 	{
 		return std::make_unique<TranslatorLang>();
 	}
@@ -94,7 +95,7 @@ private:
 class TranslatorNumber final : public Translator
 {
 public:
-	static std::unique_ptr<const Translator> Create()
+	static std::unique_ptr<const Translator> Create(const ISettings&)
 	{
 		return std::make_unique<TranslatorNumber>();
 	}
@@ -108,23 +109,64 @@ private: // ITranslator
 	}
 };
 
-using TranslatorSeqNumber = TranslatorNumber;
-using TranslatorYear = TranslatorNumber;
+class TranslatorRate : public Translator
+{
+public:
+	TranslatorRate(const ISettings& settings, const char* key, const int zeroSymbol)
+		: m_symbol { settings.Get(key, Constant::Settings::STAR_SYMBOL_DEFAULT) }
+		, m_zeroSymbol { zeroSymbol }
+	{
+	}
 
-constexpr std::pair<int, std::unique_ptr<const Translator> (*)()> TRANSLATORS[] {
+private: // ITranslator
+	QString Translate(const Item& item) const override
+	{
+		if (item.id.toString().isEmpty())
+			return {};
+
+		const auto num = item.id.toInt();
+		return num ? QString { num, m_symbol } : m_zeroSymbol != QChar { 0 } ? QString { m_zeroSymbol } : QString {};
+	}
+
+private:
+	const QChar m_symbol, m_zeroSymbol;
+};
+
+namespace TranslatorLibRate
+{
+
+std::unique_ptr<const Translator> Create(const ISettings& settings)
+{
+	return std::make_unique<TranslatorRate>(settings, Constant::Settings::PREFER_LIB_RATE_STAR_SYMBOL_KEY, 0);
+}
+
+}
+
+namespace TranslatorUserRate
+{
+
+std::unique_ptr<const Translator> Create(const ISettings& settings)
+{
+	return std::make_unique<TranslatorRate>(settings, Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY, settings.Get(Constant::Settings::PREFER_USER_RATE_ZERO_SYMBOL_KEY, 0));
+}
+
+}
+
+using TranslatorSeqNumber = TranslatorNumber;
+using TranslatorYear      = TranslatorNumber;
+
+constexpr std::pair<int, std::unique_ptr<const Translator> (*)(const ISettings&)> TRANSLATORS[] {
 #define ITEM(NAME) {BookItem::Column::NAME, &Translator##NAME::Create}
-	ITEM(Lang),
-	ITEM(SeqNumber),
-	ITEM(Year),
+	ITEM(Lang), ITEM(SeqNumber), ITEM(Year), ITEM(LibRate), ITEM(UserRate),
 #undef ITEM
 };
 
 class Model final : public QAbstractListModel
 {
 public:
-	Model(const QAbstractItemModel& model, const int column, const QWidget* widget)
+	Model(const QAbstractItemModel& model, const int column, const ISettings& settings, const QWidget* widget)
 		: m_widget { widget }
-		, m_translator { FindSecond(TRANSLATORS, column, &Translator::Create)() }
+		, m_translator { FindSecond(TRANSLATORS, column, &Translator::Create)(settings) }
 		, m_items { model.data({}, Role::AuthorsAll + column).value<QVariantList>() | std::views::as_rvalue
 		            | std::views::transform([this, currentFilter = model.data({}, Role::AuthorFilter + column).value<const std::unordered_set<QVariant, Util::VariantHash>*>()](auto&& item) {
 						  Item element { .id = std::move(item) };
@@ -295,12 +337,13 @@ public:
 		const int                                  column,
 		Callback                                   callback,
 		const IParentWidgetProvider&               parentWidgetProvider,
+		const ISettings&                           settings,
 		std::shared_ptr<Util::ItemViewToolTipper>  toolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController
 	)
 		: m_self { self }
 		, m_callback { std::move(callback) }
-		, m_model { std::unique_ptr<QAbstractItemModel> { std::make_unique<Model>(model, column, parentWidgetProvider.GetWidget()) } }
+		, m_model { std::unique_ptr<QAbstractItemModel> { std::make_unique<Model>(model, column, settings, parentWidgetProvider.GetWidget()) } }
 		, m_toolTipper { std::move(toolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
 	{
@@ -366,12 +409,13 @@ FastFilterWidget::FastFilterWidget(
 	const int                                  column,
 	Callback                                   callback,
 	const IParentWidgetProvider&               parentWidgetProvider,
+	const ISettings&                           settings,
 	std::shared_ptr<Util::ItemViewToolTipper>  toolTipper,
 	std::shared_ptr<Util::ScrollBarController> scrollBarController,
 	QWidget*                                   parent
 )
 	: QWidget(parent)
-	, m_impl(this, model, column, std::move(callback), parentWidgetProvider, std::move(toolTipper), std::move(scrollBarController))
+	, m_impl(this, model, column, std::move(callback), parentWidgetProvider, settings, std::move(toolTipper), std::move(scrollBarController))
 {
 }
 

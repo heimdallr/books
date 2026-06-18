@@ -17,6 +17,7 @@ namespace HomeCompa
 {
 
 class IParentWidgetProvider;
+class ISettings;
 
 }
 
@@ -36,6 +37,7 @@ public:
 		int                                        column,
 		Callback                                   callback,
 		const IParentWidgetProvider&               parentWidgetProvider,
+		const ISettings&                           settings,
 		std::shared_ptr<Util::ItemViewToolTipper>  toolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController,
 		QWidget*                                   parent = nullptr
