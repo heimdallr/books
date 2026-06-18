@@ -5,11 +5,16 @@
 #include <QPushButton>
 #include <QScreen>
 
+#include "fnd/FindPair.h"
 #include "fnd/algorithm.h"
 
 #include "interface/constants/ModelRole.h"
+#include "interface/localization.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
+#include "logic/data/DataItem.h"
+#include "util/SortString.h"
+#include "util/language.h"
 #include "utilgui/GeometryRestorable.h"
 
 using namespace HomeCompa::Flibrary;
@@ -27,33 +32,83 @@ struct ModelRole
 	};
 };
 
+struct Item
+{
+	QVariant id;
+	QString  title;
+	bool     checked { false };
+};
+
+using Items = std::vector<Item>;
+
+class Translator
+{
+	NON_COPY_MOVABLE(Translator)
+public:
+	Translator()          = default;
+	virtual ~Translator() = default;
+
+	static std::unique_ptr<const Translator> Create()
+	{
+		return std::make_unique<Translator>();
+	}
+
+public: // ITranslator
+	virtual QString Translate(const Item& item) const
+	{
+		return item.id.toString();
+	}
+
+	virtual void Sort(Items& items) const
+	{
+		std::ranges::sort(items, [](const auto& lhs, const auto& rhs) {
+			return Util::QStringWrapper::Compare(Util::QStringWrapper { lhs.title }, Util::QStringWrapper { rhs.title });
+		});
+	}
+};
+
+class TranslatorLang final : public Translator
+{
+public:
+	static std::unique_ptr<const Translator> Create()
+	{
+		return std::make_unique<TranslatorLang>();
+	}
+
+private: // ITranslator
+	QString Translate(const Item& item) const override
+	{
+		auto       language = Translator::Translate(item);
+		const auto it       = m_languagesMap.find(language);
+		return it != m_languagesMap.end() ? Loc::Tr(LANGUAGES_CONTEXT, it->second) : language;
+	}
+
+private:
+	std::unordered_map<QString, const char*> m_languagesMap { GetLanguagesMap() };
+};
+
+constexpr std::pair<int, std::unique_ptr<const Translator> (*)()> TRANSLATORS[] {
+#define ITEM(NAME) {BookItem::Column::NAME, &Translator##NAME::Create}
+	ITEM(Lang),
+#undef ITEM
+};
+
 class Model final : public QAbstractListModel
 {
-private:
-	struct Item
-	{
-		QVariant id;
-		QString  title;
-		bool     checked { false };
-	};
-
-	using Items = std::vector<Item>;
-
 public:
 	Model(const QAbstractItemModel& model, const int column, const QWidget* widget)
 		: m_widget { widget }
+		, m_translator { FindSecond(TRANSLATORS, column, &Translator::Create)() }
 		, m_items { model.data({}, Role::AuthorsAll + column).value<QVariantList>() | std::views::as_rvalue
-		            | std::views::transform([currentFilter = model.data({}, Role::AuthorFilter + column).value<const std::unordered_set<QVariant, Util::VariantHash>*>()](auto&& item) {
+		            | std::views::transform([this, currentFilter = model.data({}, Role::AuthorFilter + column).value<const std::unordered_set<QVariant, Util::VariantHash>*>()](auto&& item) {
 						  Item element { .id = std::move(item) };
-						  element.title   = element.id.toString();
+						  element.title   = m_translator->Translate(element);
 						  element.checked = currentFilter->contains(element.id);
 						  return element;
 					  })
 		            | std::ranges::to<std::vector>() }
 	{
-		std::ranges::sort(m_items, {}, [](const auto& item) {
-			return item.title;
-		});
+		m_translator->Sort(m_items);
 	}
 
 private: // QAbstractItemModel
@@ -170,8 +225,9 @@ private:
 	}
 
 private:
-	const QWidget* const m_widget;
-	Items                m_items;
+	const QWidget* const              m_widget;
+	std::unique_ptr<const Translator> m_translator;
+	Items                             m_items;
 };
 
 } // namespace
