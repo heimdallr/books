@@ -91,9 +91,27 @@ private:
 	std::unordered_map<QString, const char*> m_languagesMap { GetLanguagesMap() };
 };
 
+class TranslatorSeqNumber final : public Translator
+{
+public:
+	static std::unique_ptr<const Translator> Create()
+	{
+		return std::make_unique<TranslatorSeqNumber>();
+	}
+
+private: // ITranslator
+	void Sort(Items& items) const override
+	{
+		std::ranges::sort(items, {}, [](const auto& item) {
+			return item.title.isEmpty() ? std::numeric_limits<int>::max() : item.title.toInt();
+		});
+	}
+};
+
 constexpr std::pair<int, std::unique_ptr<const Translator> (*)()> TRANSLATORS[] {
 #define ITEM(NAME) {BookItem::Column::NAME, &Translator##NAME::Create}
 	ITEM(Lang),
+	ITEM(SeqNumber),
 #undef ITEM
 };
 
