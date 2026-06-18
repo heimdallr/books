@@ -151,6 +151,14 @@ public:
 			view.scrollTo(matched.front(), PositionAtCenter);
 	}
 
+	void SetFilteredIndex(const int logicalIndex, const bool set)
+	{
+		if (set)
+			m_filtered.emplace(logicalIndex);
+		else
+			m_filtered.erase(logicalIndex);
+	}
+
 private: // QHeaderView
 	void paintSection(QPainter* painter, const QRect& rect, const int logicalIndex) const override
 	{
@@ -170,11 +178,6 @@ private: // QHeaderView
 
 		PaintIcon(painter, rect, logicalIndex);
 
-		const auto columnName = model()->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
-		const auto it         = m_columns.find(columnName);
-		if (it == m_columns.end())
-			return;
-
 		const ScopedCall painterGuard(
 			[=] {
 				painter->save();
@@ -183,11 +186,24 @@ private: // QHeaderView
 				painter->restore();
 			}
 		);
+
+		PaintSortIndicator(painter, rect, logicalIndex);
+		PaintFilterIndicator(painter, rect, logicalIndex);
+	}
+
+private:
+	void PaintSortIndicator(QPainter* painter, const QRect& rect, const int logicalIndex) const
+	{
+		const auto columnName = model()->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
+		const auto it         = m_columns.find(columnName);
+		if (it == m_columns.end())
+			return;
+
 		const auto palette = QApplication::palette();
 		const auto fgColor = palette.color(QPalette::Text);
 		const auto bgColor = palette.color(QPalette::Button);
 
-		QColor color = fgColor;
+		auto color = fgColor;
 		color.setRedF(Linear(size_t { 0 }, fgColor.redF(), m_sort.size(), bgColor.redF())(it->second));
 		color.setGreenF(Linear(size_t { 0 }, fgColor.greenF(), m_sort.size(), bgColor.greenF())(it->second));
 		color.setBlueF(Linear(size_t { 0 }, fgColor.blueF(), m_sort.size(), bgColor.blueF())(it->second));
@@ -210,10 +226,34 @@ private: // QHeaderView
 		if (m_sort[it->second].second == Qt::DescendingOrder)
 			triangle = QTransform(1, 0, 0, -1, 0, height).map(triangle);
 
-		painter->drawPolygon(triangle.translated(rect.right() - 4 * size / 3, size / 2));
+		painter->drawPolygon(triangle.translated(rect.right() - 9 * size / 8, height / 8));
 	}
 
-private:
+	void PaintFilterIndicator(QPainter* painter, const QRect& rect, const int logicalIndex) const
+	{
+		if (!m_filtered.contains(logicalIndex))
+			return;
+
+		painter->setPen(QApplication::palette().color(QPalette::Text));
+		painter->setBrush(QApplication::palette().color(QPalette::Button));
+
+		const auto size     = rect.height() / 4.0;
+		const auto height   = std::sqrt(2.0) * size / 2;
+		auto       triangle = QPolygonF(
+			{
+				QPointF {                 0.0,      height },
+				QPointF {                size,      height },
+				QPointF { size / 2 + size / 8,  height / 4 },
+				QPointF { size / 2 + size / 8, -height / 4 },
+				QPointF { size / 2 - size / 8, -height / 2 },
+				QPointF { size / 2 - size / 8,  height / 4 },
+				QPointF {                 0.0,      height }
+        }
+		);
+		triangle = QTransform(1, 0, 0, -1, 0, height).map(triangle);
+		painter->drawPolygon(triangle.translated(rect.right() - 9 * size / 8, rect.height() - 7 * height / 4));
+	}
+
 	bool PaintIcon(QPainter* painter, const QRect& rect, const int logicalIndex) const
 	{
 		const auto iconFileName = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
@@ -283,6 +323,7 @@ private:
 	const QString&                             m_currentId;
 	std::vector<std::pair<int, Qt::SortOrder>> m_sort;
 	std::unordered_map<QString, size_t>        m_columns;
+	std::unordered_set<int>                    m_filtered;
 };
 
 class ValueEventFilter final : public QObject
@@ -1233,22 +1274,24 @@ private:
 
 	std::shared_ptr<QMenu> GetFilterContextMenu(const QPoint& pos)
 	{
-		const auto column = BookItem::Remap(m_ui.treeView->header()->logicalIndexAt(pos));
+		const auto logicalIndex = m_ui.treeView->header()->logicalIndexAt(pos);
+		const auto column       = BookItem::Remap(logicalIndex);
 
-		auto& model = *m_ui.treeView->model();
-		auto valuesAll = model.data({}, Role::AuthorsAll + column).toStringList();
+		auto& model     = *m_ui.treeView->model();
+		auto  valuesAll = model.data({}, Role::AuthorsAll + column).toStringList();
 		if (valuesAll.size() < 2)
 			return GetHeaderContextMenu();
 
 		auto menu = std::make_unique<QMenu>();
 
-		auto* menuWidget = m_uiFactory->CreateFastFilterWidget(model, column, [this, column, menu = menu.get()](const bool accepted, QVariantList values) {
+		auto* menuWidget = m_uiFactory->CreateFastFilterWidget(model, column, [this, logicalIndex, column, menu = menu.get()](const bool accepted, QVariantList values) {
 			menu->close();
 			if (!accepted)
 				return;
 
 			std::unordered_set<QVariant, Util::VariantHash> set;
 			std::ranges::move(std::move(values), std::inserter(set, set.end()));
+			m_booksHeaderView->SetFilteredIndex(logicalIndex, !set.empty());
 			m_ui.treeView->model()->setData({}, QVariant::fromValue(&set), Role::AuthorFilter + column);
 			OnCountChanged();
 		});
