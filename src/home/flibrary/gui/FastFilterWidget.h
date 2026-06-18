@@ -5,9 +5,19 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+namespace HomeCompa::Util
+{
+
+class ItemViewToolTipper;
+class ScrollBarController;
+
+}
+
 namespace HomeCompa
 {
+
 class IParentWidgetProvider;
+
 }
 
 namespace HomeCompa::Flibrary
@@ -21,7 +31,15 @@ public:
 	using Callback = std::function<void(bool, QVariantList)>;
 
 public:
-	FastFilterWidget(const QAbstractItemModel& model, int column, Callback callback, const IParentWidgetProvider& parentWidgetProvider, QWidget* parent = nullptr);
+	FastFilterWidget(
+		const QAbstractItemModel&                  model,
+		int                                        column,
+		Callback                                   callback,
+		const IParentWidgetProvider&               parentWidgetProvider,
+		std::shared_ptr<Util::ItemViewToolTipper>  toolTipper,
+		std::shared_ptr<Util::ScrollBarController> scrollBarController,
+		QWidget*                                   parent = nullptr
+	);
 	~FastFilterWidget() override;
 
 private:

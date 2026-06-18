@@ -232,7 +232,7 @@ std::shared_ptr<QMainWindow> UiFactory::CreateQueryWindow() const
 QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, const int column, std::function<void(bool, QVariantList)> callback) const
 {
 	const auto parentWidgetProvider = m_impl->container.resolve<IParentWidgetProvider>();
-	return new FastFilterWidget(model, column, std::move(callback), *parentWidgetProvider);
+	return new FastFilterWidget(model, column, std::move(callback), *parentWidgetProvider, m_impl->container.resolve<Util::ItemViewToolTipper>(), m_impl->container.resolve<Util::ScrollBarController>());
 }
 
 void UiFactory::CreateCollectionCleaner() const

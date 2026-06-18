@@ -4,6 +4,7 @@
 
 #include <QPushButton>
 #include <QScreen>
+#include <QTimer>
 
 #include "fnd/FindPair.h"
 #include "fnd/algorithm.h"
@@ -16,6 +17,8 @@
 #include "util/SortString.h"
 #include "util/language.h"
 #include "utilgui/GeometryRestorable.h"
+#include "utilgui/ItemViewToolTipper.h"
+#include "utilgui/ScrollBarController.h"
 
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
@@ -28,7 +31,8 @@ struct ModelRole
 	enum
 	{
 		SizeRole = Role::Last,
-		Selected,
+		SelectedItems,
+		AllSelected,
 	};
 };
 
@@ -119,32 +123,28 @@ private: // QAbstractItemModel
 
 	QVariant data(const QModelIndex& index, const int role) const override
 	{
-		if (!index.isValid())
-		{
-			switch (role)
-			{
-				case ModelRole::SizeRole:
-					return GetWidth();
+		return index.isValid() ? GetData(index, role) : GetData(role);
+	}
 
-				case ModelRole::Selected:
-					return m_items | std::views::filter([](const auto& item) {
-							   return item.checked;
-						   })
-					     | std::views::transform([](const auto& item) {
-							   return item.id;
-						   })
-					     | std::ranges::to<QVariantList>();
+	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
+	{
+		return index.isValid() ? SetData(index, value, role) : SetData(value, role);
+	}
 
-				default:
-					assert(false && "unexpected role");
-			}
-		}
-		assert(index.isValid() && index.row() < rowCount({}));
+	Qt::ItemFlags flags(const QModelIndex& index) const override
+	{
+		return QAbstractListModel::flags(index) | Qt::ItemIsUserCheckable;
+	}
+
+private:
+	QVariant GetData(const QModelIndex& index, const int role) const
+	{
 		const auto& item = m_items[index.row()];
 
 		switch (role)
 		{
 			case Qt::DisplayRole:
+			case Qt::ToolTipRole:
 				return item.title;
 
 			case Qt::CheckStateRole:
@@ -160,45 +160,52 @@ private: // QAbstractItemModel
 		return {};
 	}
 
-	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
+	QVariant GetData(const int role) const
 	{
-		if (!index.isValid())
+		switch (role)
 		{
-			switch (role)
+			case ModelRole::SizeRole:
+				return GetWidth();
+
+			case ModelRole::SelectedItems:
+				return m_items | std::views::filter([](const auto& item) {
+						   return item.checked;
+					   })
+				     | std::views::transform([](const auto& item) {
+						   return item.id;
+					   })
+				     | std::ranges::to<QVariantList>();
+
+			case ModelRole::AllSelected:
 			{
-				case Qt::CheckStateRole:
-				{
-					const auto checked = value.value<Qt::CheckState>();
-					const auto f       = checked == Qt::Checked ? std::function<void(Item&)>([](Item& item) {
-						item.checked = true;
-					})
-					                                            : checked == Qt::Unchecked
-					                       ? [](Item& item) {
-										   item.checked = false;
-											 } : [](Item& item) {
-										   item.checked = !item.checked;
-											 };
-
-					for (auto& item : m_items)
-						f(item);
-
-					emit dataChanged(this->index(0, 0), this->index(rowCount({}) - 1), { Qt::CheckStateRole });
-					return true;
-				}
-
-				default:
-					break;
+				const auto firstChecked = m_items.front().checked;
+				return std::ranges::all_of(
+						   m_items | std::views::drop(1),
+						   [firstChecked](const auto& item) {
+							   return item.checked == firstChecked;
+						   }
+					   )
+				         ? (firstChecked ? Qt::Checked : Qt::Unchecked)
+				         : Qt::PartiallyChecked;
 			}
 
-			return assert(false && "unexpected role"), false;
+			default:
+				assert(false && "unexpected role");
 		}
-		assert(index.isValid() && index.row() < rowCount({}));
+
+		return {};
+	}
+
+	bool SetData(const QModelIndex& index, const QVariant& value, const int role)
+	{
 		auto& item = m_items[index.row()];
 
 		switch (role)
 		{
 			case Qt::CheckStateRole:
-				return Util::Set(item.checked, value.value<Qt::CheckState>() == Qt::Checked);
+				return Util::Set(item.checked, value.value<Qt::CheckState>() == Qt::Checked, [&] {
+					emit dataChanged(index, index, { role });
+				});
 
 			default:
 				assert(false && "unexpected role");
@@ -208,12 +215,37 @@ private: // QAbstractItemModel
 		return {};
 	}
 
-	Qt::ItemFlags flags(const QModelIndex& index) const override
+	bool SetData(const QVariant& value, const int role)
 	{
-		return QAbstractListModel::flags(index) | Qt::ItemIsUserCheckable;
+		switch (role)
+		{
+			case Qt::CheckStateRole:
+			{
+				const auto checked = value.value<Qt::CheckState>();
+				const auto f       = checked == Qt::Checked ? std::function<void(Item&)>([](Item& item) {
+						item.checked = true;
+					})
+					                                            : checked == Qt::Unchecked
+					                       ? [](Item& item) {
+										   item.checked = false;
+											 } : [](Item& item) {
+										   item.checked = !item.checked;
+											 };
+
+				for (auto& item : m_items)
+					f(item);
+
+				emit dataChanged(this->index(0, 0), this->index(rowCount({}) - 1), { Qt::CheckStateRole });
+				return true;
+			}
+
+			default:
+				break;
+		}
+
+		return assert(false && "unexpected role"), false;
 	}
 
-private:
 	int GetWidth() const
 	{
 		QFontMetrics fontMetrics(m_widget->font());
@@ -235,32 +267,57 @@ private:
 class FastFilterWidget::Impl final : public QObject
 {
 public:
-	Impl(QWidget* self, const QAbstractItemModel& model, const int column, Callback callback, const IParentWidgetProvider& parentWidgetProvider)
+	Impl(
+		QWidget*                                   self,
+		const QAbstractItemModel&                  model,
+		const int                                  column,
+		Callback                                   callback,
+		const IParentWidgetProvider&               parentWidgetProvider,
+		std::shared_ptr<Util::ItemViewToolTipper>  toolTipper,
+		std::shared_ptr<Util::ScrollBarController> scrollBarController
+	)
 		: m_self { self }
 		, m_callback { std::move(callback) }
-		, m_model { std::unique_ptr<QAbstractItemModel> { std::make_unique<Model>(model, column, self) } }
+		, m_model { std::unique_ptr<QAbstractItemModel> { std::make_unique<Model>(model, column, parentWidgetProvider.GetWidget()) } }
+		, m_toolTipper { std::move(toolTipper) }
+		, m_scrollBarController { std::move(scrollBarController) }
 	{
 		m_ui.setupUi(self);
 		m_ui.view->setModel(m_model.get());
+		m_ui.view->setFont(parentWidgetProvider.GetWidget()->font());
+		m_ui.checkBoxAll->setCheckState(m_model->data({}, ModelRole::AllSelected).value<Qt::CheckState>());
 
-		const auto contentWidth = m_model->data({}, ModelRole::SizeRole).toInt() + m_self->style()->pixelMetric(QStyle::PM_IndicatorWidth);
-		const auto toolbarWidth = 2 * m_ui.buttonBox->button(QDialogButtonBox::Ok)->width() + m_ui.btnSelectAll->height() * 3 + 6 * 6;
+		m_toolTipper->SetScrollArea(m_ui.view);
+		m_scrollBarController->SetScrollArea(m_ui.view);
+
+		const auto checkboxWidth = m_self->style()->pixelMetric(QStyle::PM_IndicatorWidth);
+		const auto contentWidth  = m_model->data({}, ModelRole::SizeRole).toInt() + checkboxWidth + 6 * 2;
+		const auto toolbarWidth  = 2 * m_ui.buttonBox->button(QDialogButtonBox::Ok)->width() + checkboxWidth * 2 + 6 * 6;
 
 		const auto contentHeight = m_model->rowCount() * m_ui.view->rowHeight(0);
-		const auto toolbarHeight = m_ui.btnSelectAll->height() + 6 * 2;
+		const auto toolbarHeight = m_ui.btnRevertSelection->height() + 6 * 2 + 4;
 
 		const auto screenSize = Util::GetActiveScreen(*parentWidgetProvider.GetWidget())->size();
-		m_self->setFixedSize(std::min(std::max(contentWidth, toolbarWidth), screenSize.width() / 5), std::min(contentHeight + toolbarHeight, screenSize.height() - QCursor::pos().y() - 10));
+		m_self->setFixedSize(std::min(std::max(contentWidth, toolbarWidth), screenSize.width() / 4), std::min(contentHeight + toolbarHeight, screenSize.height() - QCursor::pos().y() - 10));
 
 		connect(m_ui.buttonBox, &QDialogButtonBox::clicked, this, &Impl::OnDialogButtonClicked);
-		connect(m_ui.btnSelectAll, &QAbstractButton::clicked, this, [this] {
-			m_model->setData({}, Qt::Checked, Qt::CheckStateRole);
-		});
-		connect(m_ui.btnUnselectAll, &QAbstractButton::clicked, this, [this] {
-			m_model->setData({}, Qt::Unchecked, Qt::CheckStateRole);
+		connect(m_ui.checkBoxAll, &QCheckBox::checkStateChanged, this, [this](const Qt::CheckState checkState) {
+			if (checkState == Qt::PartiallyChecked)
+				return QTimer::singleShot(0, [this] {
+					m_ui.checkBoxAll->setCheckState(Qt::Checked);
+				});
+
+			m_model->setData({}, checkState, Qt::CheckStateRole);
 		});
 		connect(m_ui.btnRevertSelection, &QAbstractButton::clicked, this, [this] {
 			m_model->setData({}, Qt::PartiallyChecked, Qt::CheckStateRole);
+		});
+		connect(m_model.get(), &QAbstractItemModel::dataChanged, this, [this](const auto&, const auto&, const QList<int>& roles) {
+			if (roles.contains(Qt::CheckStateRole))
+			{
+				const QSignalBlocker signalBlocked(m_ui.checkBoxAll);
+				m_ui.checkBoxAll->setCheckState(m_model->data({}, ModelRole::AllSelected).value<Qt::CheckState>());
+			}
 		});
 	}
 
@@ -268,7 +325,7 @@ private:
 	void OnDialogButtonClicked(QAbstractButton* button) const
 	{
 		const auto role = m_ui.buttonBox->buttonRole(button);
-		m_callback(role == QDialogButtonBox::AcceptRole, m_model->data({}, ModelRole::Selected).value<QVariantList>());
+		m_callback(role == QDialogButtonBox::AcceptRole, m_model->data({}, ModelRole::SelectedItems).value<QVariantList>());
 	}
 
 private:
@@ -276,12 +333,23 @@ private:
 	const Callback                        m_callback;
 	PropagateConstPtr<QAbstractItemModel> m_model;
 
+	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_toolTipper;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
+
 	Ui::FastFilterWidget m_ui {};
 };
 
-FastFilterWidget::FastFilterWidget(const QAbstractItemModel& model, const int column, Callback callback, const IParentWidgetProvider& parentWidgetProvider, QWidget* parent)
+FastFilterWidget::FastFilterWidget(
+	const QAbstractItemModel&                  model,
+	const int                                  column,
+	Callback                                   callback,
+	const IParentWidgetProvider&               parentWidgetProvider,
+	std::shared_ptr<Util::ItemViewToolTipper>  toolTipper,
+	std::shared_ptr<Util::ScrollBarController> scrollBarController,
+	QWidget*                                   parent
+)
 	: QWidget(parent)
-	, m_impl(this, model, column, std::move(callback), parentWidgetProvider)
+	, m_impl(this, model, column, std::move(callback), parentWidgetProvider, std::move(toolTipper), std::move(scrollBarController))
 {
 }
 
