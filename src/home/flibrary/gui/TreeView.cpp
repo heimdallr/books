@@ -1237,7 +1237,7 @@ private:
 	void CreateHeaderContextMenu(const QPoint& pos)
 	{
 		const auto modifiers   = QGuiApplication::keyboardModifiers();
-		const auto contextMenu = (modifiers & (Qt::ShiftModifier | Qt::AltModifier | Qt::ControlModifier)) ? GetFilterContextMenu(pos) : GetHeaderContextMenu();
+		const auto contextMenu = (modifiers & (Qt::ShiftModifier | Qt::AltModifier | Qt::ControlModifier)) ? GetHeaderContextMenu() : GetFilterContextMenu(pos);
 		contextMenu->setFont(m_self.font());
 		contextMenu->exec(QCursor::pos());
 	}
