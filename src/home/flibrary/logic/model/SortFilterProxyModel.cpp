@@ -37,9 +37,15 @@ QVariantList ParserGenre(QVariant&& var)
 	     | std::ranges::to<QVariantList>();
 }
 
+QVariantList ParserFormat(QVariant&& var)
+{
+	return { QVariant::fromValue(var.toString().toLower()) };
+}
+
 constexpr std::pair<int, QVariantList (*)(QVariant&&)> PARSERS[] {
 #define ITEM(NAME) {Role::NAME, &Parser##NAME}
 	ITEM(Genre),
+	ITEM(Format),
 #undef ITEM
 };
 
@@ -67,6 +73,11 @@ bool FastFilterFunctorGenre(const FastFilterData& data, const QVariant& item)
 	return std::ranges::any_of(item.toString().split(", "), [&](const QString& genre) {
 		return data.contains(QVariant::fromValue(genre));
 	});
+}
+
+bool FastFilterFunctorFormat(const FastFilterData& data, const QVariant& item)
+{
+	return FastFilterFunctorDefault(data, item.toString().toLower());
 }
 
 } // namespace
@@ -99,7 +110,8 @@ struct SortFilterProxyModel::Impl final : IModelSorter
 		m_self.QSortFilterProxyModel::setSourceModel(sourceModel.get());
 		fastFilter.resize(BookItem::Column::Last);
 		fastFilterFunctor.assign(BookItem::Column::Last, &FastFilterFunctorDefault);
-		fastFilterFunctor[BookItem::Column::Genre] = &FastFilterFunctorGenre;
+		fastFilterFunctor[BookItem::Column::Genre]  = &FastFilterFunctorGenre;
+		fastFilterFunctor[BookItem::Column::Format] = &FastFilterFunctorFormat;
 	}
 
 private: // IModelSorter
