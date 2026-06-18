@@ -109,7 +109,7 @@ private: // ITranslator
 	}
 };
 
-class TranslatorRate : public Translator
+class TranslatorRate final : public Translator
 {
 public:
 	TranslatorRate(const ISettings& settings, const char* key, const int zeroSymbol)
