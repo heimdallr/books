@@ -1,8 +1,5 @@
 #include "SortFilterProxyModel.h"
 
-#include <QHash>
-#include <QIODevice>
-
 #include "fnd/FindPair.h"
 #include "fnd/algorithm.h"
 
@@ -21,8 +18,6 @@ using namespace Flibrary;
 
 namespace
 {
-
-using FastFilterData = std::unordered_set<QVariant, Util::VariantHash>;
 
 QVariantList ParserDefault(QVariant&& var)
 {
@@ -53,7 +48,7 @@ QVariantList CollectAllValues(const QAbstractItemModel& model, const int role)
 {
 	const auto parser = FindSecond(PARSERS, role, &ParserDefault);
 
-	FastFilterData values;
+	FastFilterItems values;
 	ModelUtil::EnumerateLeafs(model, { QModelIndex {} }, [&](const QModelIndex& child) {
 		if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
 			for (auto&& value : parser(child.data(role)))
@@ -63,24 +58,24 @@ QVariantList CollectAllValues(const QAbstractItemModel& model, const int role)
 	return { values.cbegin(), values.cend() };
 }
 
-bool FastFilterFunctorDefault(const FastFilterData& data, const QVariant& item)
+bool FastFilterFunctorDefault(const FastFilterItems& data, const QVariant& item)
 {
 	return data.contains(item);
 }
 
-bool FastFilterFunctorGenre(const FastFilterData& data, const QVariant& item)
+bool FastFilterFunctorGenre(const FastFilterItems& data, const QVariant& item)
 {
 	return std::ranges::any_of(item.toString().split(", "), [&](const QString& genre) {
 		return data.contains(QVariant::fromValue(genre));
 	});
 }
 
-bool FastFilterFunctorFormat(const FastFilterData& data, const QVariant& item)
+bool FastFilterFunctorFormat(const FastFilterItems& data, const QVariant& item)
 {
 	return FastFilterFunctorDefault(data, item.toString().toLower());
 }
 
-bool FastFilterFunctorSize(const FastFilterData& data, const QVariant& item)
+bool FastFilterFunctorSize(const FastFilterItems& data, const QVariant& item)
 {
 	const auto [min, max] = data.begin()->value<std::pair<int, int>>();
 	return Util::InBounds(item.toInt(), min * 1024, max * 1024);
@@ -95,19 +90,19 @@ AbstractSortFilterProxyModel::AbstractSortFilterProxyModel(QObject* parent)
 
 struct SortFilterProxyModel::Impl final : IModelSorter
 {
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>        sourceModel;
-	QString                                                       filter;
-	std::vector<FastFilterData>                                   fastFilter;
-	std::vector<bool (*)(const FastFilterData&, const QVariant&)> fastFilterFunctor;
-	bool                                                          showRemoved { true };
-	bool                                                          navigationFiltered { false };
-	bool                                                          uniFilterEnabled { false };
-	QVector<int>                                                  visibleColumns;
-	std::vector<std::pair<int, Qt::SortOrder>>                    sort;
-	const IModelSorter*                                           modelSorter { this };
-	std::optional<int>                                            minimumRate;
-	std::optional<int>                                            maximumRate;
-	bool                                                          hideUnrated { false };
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>         sourceModel;
+	QString                                                        filter;
+	std::vector<FastFilterItems>                                   fastFilter;
+	std::vector<bool (*)(const FastFilterItems&, const QVariant&)> fastFilterFunctor;
+	bool                                                           showRemoved { true };
+	bool                                                           navigationFiltered { false };
+	bool                                                           uniFilterEnabled { false };
+	QVector<int>                                                   visibleColumns;
+	std::vector<std::pair<int, Qt::SortOrder>>                     sort;
+	const IModelSorter*                                            modelSorter { this };
+	std::optional<int>                                             minimumRate;
+	std::optional<int>                                             maximumRate;
+	bool                                                           hideUnrated { false };
 
 	Impl(SortFilterProxyModel& self, const IModelProvider& modelProvider)
 		: sourceModel { modelProvider.GetSourceModel() }
@@ -242,7 +237,7 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 		case Role::UniFilterMaximumRate:
 			return setFilter(m_impl->maximumRate, value.isValid() ? std::optional { value.toInt() } : std::nullopt);
 
-#define BOOKS_COLUMN_ITEM(NAME) case Role::NAME##Filter: return setFilter(m_impl->fastFilter[BookItem::Column::NAME], std::move(*value.value<FastFilterData*>()));
+#define BOOKS_COLUMN_ITEM(NAME) case Role::NAME##Filter: return setFilter(m_impl->fastFilter[BookItem::Column::NAME], std::move(*value.value<FastFilterItems*>()));
 			BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 

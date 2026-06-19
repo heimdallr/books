@@ -2,7 +2,11 @@
 
 #include <qnamespace.h>
 
+#include <unordered_set>
+
 #include <QModelIndex>
+
+#include "fnd/algorithm.h"
 
 #include "logic/data/DataItem.h"
 
@@ -68,6 +72,10 @@ struct SelectedRequest
 	QModelIndexList* result { nullptr };
 };
 
-}
+using FastFilterItems = std::unordered_set<QVariant, Util::VariantHash>;
+
+} // namespace HomeCompa::Flibrary
 
 Q_DECLARE_METATYPE(HomeCompa::Flibrary::SelectedRequest)
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::FastFilterItems*)
+Q_DECLARE_METATYPE(const HomeCompa::Flibrary::FastFilterItems*)

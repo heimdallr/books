@@ -2,7 +2,10 @@
 
 #include "FastFilterWidget.h"
 
+#include <ranges>
+
 #include <QJsonArray>
+#include <QJsonDocument>
 #include <QPushButton>
 #include <QScreen>
 #include <QTimer>
@@ -22,6 +25,7 @@
 #include "utilgui/ItemViewToolTipper.h"
 #include "utilgui/ScrollBarController.h"
 
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
@@ -308,7 +312,7 @@ private:
 
 			case ModelRole::SelectedItems:
 			{
-				const auto values = value.value<QVariantList>() | std::ranges::to<std::unordered_set<QVariant, Util::VariantHash>>();
+				const auto    values = value.value<QVariantList>() | std::ranges::to<std::unordered_set<QVariant, Util::VariantHash>>();
 				std::set<int> changed;
 				for (auto&& [item, n] : std::views::zip(m_items, std::views::iota(0)))
 					if (item.checked != values.contains(item.id))
@@ -387,7 +391,7 @@ public:
 		self->setFixedSize(std::min(std::max(contentWidth, toolbarWidth), screenSize.width() / 4), std::min(contentHeight + toolbarHeight, screenSize.height() - QCursor::pos().y() - 10));
 
 		connect(m_ui.buttonBox, &QDialogButtonBox::clicked, this, &Impl::OnDialogButtonClicked);
-		connect(m_ui.checkBoxAll, &QCheckBox::checkStateChanged, this, [this](const Qt::CheckState checkState) {
+		connect(m_ui.checkBoxAll, &QCheckBox::CHECK_STATE_CHANGED, this, [this](const CHECK_STATE checkState) {
 			if (checkState == Qt::PartiallyChecked)
 				return QTimer::singleShot(0, [this] {
 					m_ui.checkBoxAll->setCheckState(Qt::Checked);
@@ -398,7 +402,7 @@ public:
 		connect(m_ui.btnRevertSelection, &QAbstractButton::clicked, this, [this] {
 			m_model->setData({}, Qt::PartiallyChecked, Qt::CheckStateRole);
 		});
-		connect(m_model.get(), &QAbstractItemModel::dataChanged, this, [this](const auto&, const auto&, const QList<int>& roles) {
+		connect(m_model.get(), &QAbstractItemModel::dataChanged, this, [this](const auto&, const auto&, const QVector<int>& roles) {
 			if (roles.contains(Qt::CheckStateRole))
 			{
 				const QSignalBlocker signalBlocked(m_ui.checkBoxAll);
@@ -471,8 +475,9 @@ private:
 			return true;
 
 		const auto values = doc.array() | std::views::transform([](const auto& item) {
-							 return item.toVariant();
-						 }) | std::ranges::to<QVariantList>();
+								return item.toVariant();
+							})
+		                  | std::ranges::to<QVariantList>();
 
 		return m_model->setData({}, values, ModelRole::SelectedItems);
 	}

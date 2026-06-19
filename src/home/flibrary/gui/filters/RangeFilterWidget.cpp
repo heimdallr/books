@@ -65,10 +65,10 @@ public:
 		m_ui.spinBoxMax->setMaximum(max);
 
 		connect(m_ui.slider, &RangeSlider::sliderMoved, this, &Impl::OnSliderMoved);
-		connect(m_ui.spinBoxMin, &QSpinBox::valueChanged, m_ui.spinBoxMax, &QSpinBox::setMinimum);
-		connect(m_ui.spinBoxMax, &QSpinBox::valueChanged, m_ui.spinBoxMin, &QSpinBox::setMaximum);
-		connect(m_ui.spinBoxMin, &QSpinBox::valueChanged, m_ui.slider, &RangeSlider::setLow);
-		connect(m_ui.spinBoxMax, &QSpinBox::valueChanged, m_ui.slider, &RangeSlider::setHigh);
+		connect(m_ui.spinBoxMin, qOverload<int>(&QSpinBox::valueChanged), m_ui.spinBoxMax, &QSpinBox::setMinimum);
+		connect(m_ui.spinBoxMax, qOverload<int>(&QSpinBox::valueChanged), m_ui.spinBoxMin, &QSpinBox::setMaximum);
+		connect(m_ui.spinBoxMin, qOverload<int>(&QSpinBox::valueChanged), m_ui.slider, &RangeSlider::setLow);
+		connect(m_ui.spinBoxMax, qOverload<int>(&QSpinBox::valueChanged), m_ui.slider, &RangeSlider::setHigh);
 		connect(m_ui.buttonBox, &QDialogButtonBox::clicked, this, &Impl::OnDialogButtonClicked);
 		connect(m_ui.btnReset, &QAbstractButton::clicked, this, &Impl::OnResetClicked);
 		connect(m_ui.btnLoad, &QAbstractButton::clicked, this, &Impl::OnLoadClicked);
@@ -108,7 +108,7 @@ private:
 		QVariantList result;
 		const auto   range = std::make_pair(m_ui.slider->low(), m_ui.slider->high());
 		if (m_fullRange != range)
-			result.emplace_back(QVariant::fromValue(range));
+			result.push_back(QVariant::fromValue(range));
 
 		const auto role = m_ui.buttonBox->buttonRole(button);
 		return m_callback(role != QDialogButtonBox::RejectRole, result);
@@ -151,7 +151,7 @@ private:
 			return false;
 
 		QJsonParseError parseError;
-		const auto doc = QJsonDocument::fromJson(bytes, &parseError);
+		const auto      doc = QJsonDocument::fromJson(bytes, &parseError);
 		if (parseError.error != QJsonParseError::NoError)
 		{
 			PLOGW << parseError.errorString();
