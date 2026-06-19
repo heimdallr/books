@@ -1026,6 +1026,25 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>FastFilterWidget</name>
+    <message>
+        <source>Invert selection</source>
+        <translation>Инвертировать выделение</translation>
+    </message>
+    <message>
+        <source>Load selection</source>
+        <translation>Загрузить выделение</translation>
+    </message>
+    <message>
+        <source>Save selection</source>
+        <translation>Сохранить выделение</translation>
+    </message>
+    <message>
+        <source>Select all</source>
+        <translation>Выделить всё</translation>
+    </message>
+</context>
+<context>
     <name>FilterModel</name>
     <message>
         <source>Books filtered</source>
@@ -2654,6 +2673,17 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>HomeCompa::Flibrary::FastFilterWidget::Impl</name>
+    <message>
+        <source>Deselect all</source>
+        <translation>Снять выделение</translation>
+    </message>
+    <message>
+        <source>Select all</source>
+        <translation>Выделить всё</translation>
+    </message>
+</context>
+<context>
     <name>HomeCompa::Flibrary::MigrateWindow</name>
     <message>
         <source>The database migration process is in progress...</source>
@@ -2665,6 +2695,13 @@ Try again?</source>
     <message>
         <source>Affected rows: %1</source>
         <translation>Затронуто строк: %1</translation>
+    </message>
+</context>
+<context>
+    <name>HomeCompa::Flibrary::RangeFilterWidget::Impl</name>
+    <message>
+        <source>%1 kB</source>
+        <translation>%1 Кб</translation>
     </message>
 </context>
 <context>
@@ -5294,6 +5331,25 @@ Try again?</source>
     <message>
         <source>Start &amp;transaction</source>
         <translation>Старт &amp;транзакции</translation>
+    </message>
+</context>
+<context>
+    <name>RangeFilterWidget</name>
+    <message>
+        <source> kB</source>
+        <translation> Кб</translation>
+    </message>
+    <message>
+        <source>Load range</source>
+        <translation>Загрузить диапазон</translation>
+    </message>
+    <message>
+        <source>Reset range</source>
+        <translation>Сбросить диапазон</translation>
+    </message>
+    <message>
+        <source>Save range</source>
+        <translation>Сохранить диапазон</translation>
     </message>
 </context>
 <context>

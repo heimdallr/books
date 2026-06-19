@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>282</width>
-    <height>161</height>
+    <height>163</height>
    </rect>
   </property>
   <property name="sizePolicy">
@@ -94,7 +94,7 @@
      <item>
       <widget class="QToolButton" name="btnReset">
        <property name="toolTip">
-        <string>Reset filter</string>
+        <string>Reset range</string>
        </property>
        <property name="icon">
         <iconset resource="../../icons/light/resources/light.qrc">
@@ -111,7 +111,7 @@
         <bool>false</bool>
        </property>
        <property name="toolTip">
-        <string>Load filter</string>
+        <string>Load range</string>
        </property>
        <property name="icon">
         <iconset resource="../../icons/light/resources/light.qrc">
@@ -125,7 +125,7 @@
      <item>
       <widget class="QToolButton" name="btnSave">
        <property name="toolTip">
-        <string>Save filter</string>
+        <string>Save range</string>
        </property>
        <property name="icon">
         <iconset resource="../../icons/light/resources/light.qrc">

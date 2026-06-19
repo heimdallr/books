@@ -70,6 +70,9 @@
      </property>
      <item>
       <widget class="QCheckBox" name="checkBoxAll">
+       <property name="toolTip">
+        <string>Select all</string>
+       </property>
        <property name="tristate">
         <bool>true</bool>
        </property>
@@ -78,7 +81,7 @@
      <item>
       <widget class="QToolButton" name="btnRevertSelection">
        <property name="toolTip">
-        <string>Revert</string>
+        <string>Invert selection</string>
        </property>
        <property name="text">
         <string notr="true"/>
@@ -95,7 +98,7 @@
      <item>
       <widget class="QToolButton" name="btnLoad">
        <property name="toolTip">
-        <string>Load filter</string>
+        <string>Load selection</string>
        </property>
        <property name="icon">
         <iconset resource="../../icons/light/resources/light.qrc">
@@ -109,7 +112,7 @@
      <item>
       <widget class="QToolButton" name="btnSave">
        <property name="toolTip">
-        <string>Save filter</string>
+        <string>Save selection</string>
        </property>
        <property name="icon">
         <iconset resource="../../icons/light/resources/light.qrc">

@@ -398,6 +398,7 @@ public:
 				});
 
 			m_model->setData({}, checkState, Qt::CheckStateRole);
+			m_ui.checkBoxAll->setToolTip(checkState == Qt::Checked ? tr("Deselect all") : tr("Select all"));
 		});
 		connect(m_ui.btnRevertSelection, &QAbstractButton::clicked, this, [this] {
 			m_model->setData({}, Qt::PartiallyChecked, Qt::CheckStateRole);
