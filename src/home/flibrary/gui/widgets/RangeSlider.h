@@ -32,13 +32,12 @@ private:
 	int pixelPosToRangeValue(int pos) const;
 
 private:
-	int m_lowLimit, m_highLimit;
+	int m_low, m_high;
 
 	QStyle::SubControl    m_pressedControl = QStyle::SC_None;
 	int                   m_tickInterval   = 0;
 	QSlider::TickPosition m_tickPosition   = QSlider::NoTicks;
 	QStyle::SubControl    m_hoverControl   = QStyle::SC_None;
-	int                   m_clickOffset    = 0;
 	int                   m_activeSlider   = 0;
 };
 
