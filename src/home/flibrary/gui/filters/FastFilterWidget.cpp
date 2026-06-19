@@ -341,8 +341,7 @@ public:
 		std::shared_ptr<Util::ItemViewToolTipper>  toolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController
 	)
-		: m_self { self }
-		, m_callback { std::move(callback) }
+		: m_callback { std::move(callback) }
 		, m_model { std::unique_ptr<QAbstractItemModel> { std::make_unique<Model>(model, column, settings, parentWidgetProvider.GetWidget()) } }
 		, m_toolTipper { std::move(toolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
@@ -355,15 +354,15 @@ public:
 		m_toolTipper->SetScrollArea(m_ui.view);
 		m_scrollBarController->SetScrollArea(m_ui.view);
 
-		const auto checkboxWidth = m_self->style()->pixelMetric(QStyle::PM_IndicatorWidth);
+		const auto checkboxWidth = m_ui.view->style()->pixelMetric(QStyle::PM_IndicatorWidth);
 		const auto contentWidth  = m_model->data({}, ModelRole::SizeRole).toInt() + checkboxWidth + 6 * 2;
-		const auto toolbarWidth  = 2 * m_ui.buttonBox->button(QDialogButtonBox::Ok)->width() + checkboxWidth * 2 + 6 * 6;
+		const auto toolbarWidth  = 2 * m_ui.buttonBox->button(QDialogButtonBox::Cancel)->width() + checkboxWidth * 2 + 6 * 6;
 
 		const auto contentHeight = m_model->rowCount() * m_ui.view->rowHeight(0);
 		const auto toolbarHeight = m_ui.btnRevertSelection->height() + 6 * 2 + 4;
 
 		const auto screenSize = Util::GetActiveScreen(*parentWidgetProvider.GetWidget())->size();
-		m_self->setFixedSize(std::min(std::max(contentWidth, toolbarWidth), screenSize.width() / 4), std::min(contentHeight + toolbarHeight, screenSize.height() - QCursor::pos().y() - 10));
+		self->setFixedSize(std::min(std::max(contentWidth, toolbarWidth), screenSize.width() / 4), std::min(contentHeight + toolbarHeight, screenSize.height() - QCursor::pos().y() - 10));
 
 		connect(m_ui.buttonBox, &QDialogButtonBox::clicked, this, &Impl::OnDialogButtonClicked);
 		connect(m_ui.checkBoxAll, &QCheckBox::checkStateChanged, this, [this](const Qt::CheckState checkState) {
@@ -390,11 +389,10 @@ private:
 	void OnDialogButtonClicked(QAbstractButton* button) const
 	{
 		const auto role = m_ui.buttonBox->buttonRole(button);
-		m_callback(role == QDialogButtonBox::AcceptRole, m_model->data({}, ModelRole::SelectedItems).value<QVariantList>());
+		m_callback(role == QDialogButtonBox::ApplyRole, m_model->data({}, ModelRole::SelectedItems).value<QVariantList>());
 	}
 
 private:
-	QWidget*                              m_self;
 	const Callback                        m_callback;
 	PropagateConstPtr<QAbstractItemModel> m_model;
 

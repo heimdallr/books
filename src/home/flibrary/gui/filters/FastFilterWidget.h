@@ -28,7 +28,7 @@ class FastFilterWidget final : public QWidget
 {
 	NON_COPY_MOVABLE(FastFilterWidget)
 
-public:
+private:
 	using Callback = std::function<void(bool, QVariantList)>;
 
 public:

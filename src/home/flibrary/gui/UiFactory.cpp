@@ -30,6 +30,8 @@
 #include "dialogs/OpdsDialog.h"
 #include "dialogs/SettingsDialog.h"
 #include "dialogs/script/ScriptDialog.h"
+#include "filters/FastFilterWidget.h"
+#include "filters/RangeFilterWidget.h"
 #include "logic/data/DataItem.h"
 #include "utilgui/GeometryRestorable.h"
 #include "version/AppVersion.h"
@@ -37,7 +39,6 @@
 
 #include "AuthorReview.h"
 #include "CollectionCleaner.h"
-#include "FastFilterWidget.h"
 #include "QueryWindow.h"
 #include "TreeView.h"
 #include "log.h"
@@ -232,7 +233,13 @@ std::shared_ptr<QMainWindow> UiFactory::CreateQueryWindow() const
 QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, const int column, std::function<void(bool, QVariantList)> callback) const
 {
 	const auto parentWidgetProvider = m_impl->container.resolve<IParentWidgetProvider>();
-	const auto settings             = m_impl->container.resolve<ISettings>();
+	auto       settings             = m_impl->container.resolve<ISettings>();
+
+	if (column == BookItem::Column::Size)
+	{
+		return new RangeFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings));
+	}
+
 	return new FastFilterWidget(
 		model,
 		column,

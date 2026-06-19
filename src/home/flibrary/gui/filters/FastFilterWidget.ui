@@ -84,7 +84,7 @@
         <string notr="true"/>
        </property>
        <property name="icon">
-        <iconset resource="../icons/light/resources/light.qrc">
+        <iconset resource="../../icons/light/resources/light.qrc">
          <normaloff>:/icons/change.svg</normaloff>:/icons/change.svg</iconset>
        </property>
        <property name="autoRaise">
@@ -95,7 +95,7 @@
      <item>
       <widget class="QDialogButtonBox" name="buttonBox">
        <property name="standardButtons">
-        <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+        <set>QDialogButtonBox::StandardButton::Apply|QDialogButtonBox::StandardButton::Cancel</set>
        </property>
       </widget>
      </item>
@@ -105,7 +105,7 @@
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>
-  <include location="../icons/light/resources/light.qrc"/>
+  <include location="../../icons/light/resources/light.qrc"/>
  </resources>
  <connections/>
 </ui>

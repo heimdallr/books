@@ -80,6 +80,12 @@ bool FastFilterFunctorFormat(const FastFilterData& data, const QVariant& item)
 	return FastFilterFunctorDefault(data, item.toString().toLower());
 }
 
+bool FastFilterFunctorSize(const FastFilterData& data, const QVariant& item)
+{
+	const auto [min, max] = data.begin()->value<std::pair<int, int>>();
+	return Util::InBounds(item.toInt(), min * 1024, max * 1024);
+}
+
 } // namespace
 
 AbstractSortFilterProxyModel::AbstractSortFilterProxyModel(QObject* parent)
@@ -112,6 +118,7 @@ struct SortFilterProxyModel::Impl final : IModelSorter
 		fastFilterFunctor.assign(BookItem::Column::Last, &FastFilterFunctorDefault);
 		fastFilterFunctor[BookItem::Column::Genre]  = &FastFilterFunctorGenre;
 		fastFilterFunctor[BookItem::Column::Format] = &FastFilterFunctorFormat;
+		fastFilterFunctor[BookItem::Column::Size]   = &FastFilterFunctorSize;
 	}
 
 private: // IModelSorter
