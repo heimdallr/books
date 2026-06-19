@@ -53,7 +53,7 @@ QVariantList CollectAllValues(const QAbstractItemModel& model, const int role)
 {
 	const auto parser = FindSecond(PARSERS, role, &ParserDefault);
 
-	std::unordered_set<QVariant, Util::VariantHash> values;
+	FastFilterData values;
 	ModelUtil::EnumerateLeafs(model, { QModelIndex {} }, [&](const QModelIndex& child) {
 		if (child.data(Role::Type).value<ItemType>() == ItemType::Books)
 			for (auto&& value : parser(child.data(role)))
@@ -242,7 +242,7 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 		case Role::UniFilterMaximumRate:
 			return setFilter(m_impl->maximumRate, value.isValid() ? std::optional { value.toInt() } : std::nullopt);
 
-#define BOOKS_COLUMN_ITEM(NAME) case Role::NAME##Filter: return setFilter(m_impl->fastFilter[BookItem::Column::NAME], std::move(*value.value<std::unordered_set<QVariant, Util::VariantHash>*>()));
+#define BOOKS_COLUMN_ITEM(NAME) case Role::NAME##Filter: return setFilter(m_impl->fastFilter[BookItem::Column::NAME], std::move(*value.value<FastFilterData*>()));
 			BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 

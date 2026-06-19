@@ -245,7 +245,7 @@ QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, cons
 		column,
 		std::move(callback),
 		*parentWidgetProvider,
-		*settings,
+		std::move(settings),
 		m_impl->container.resolve<Util::ItemViewToolTipper>(),
 		m_impl->container.resolve<Util::ScrollBarController>()
 	);

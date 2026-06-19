@@ -93,6 +93,34 @@
       </widget>
      </item>
      <item>
+      <widget class="QToolButton" name="btnLoad">
+       <property name="toolTip">
+        <string>Load filter</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../../icons/light/resources/light.qrc">
+         <normaloff>:/icons/load.svg</normaloff>:/icons/load.svg</iconset>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QToolButton" name="btnSave">
+       <property name="toolTip">
+        <string>Save filter</string>
+       </property>
+       <property name="icon">
+        <iconset resource="../../icons/light/resources/light.qrc">
+         <normaloff>:/icons/save.svg</normaloff>:/icons/save.svg</iconset>
+       </property>
+       <property name="autoRaise">
+        <bool>true</bool>
+       </property>
+      </widget>
+     </item>
+     <item>
       <widget class="QDialogButtonBox" name="buttonBox">
        <property name="standardButtons">
         <set>QDialogButtonBox::StandardButton::Apply|QDialogButtonBox::StandardButton::Cancel</set>

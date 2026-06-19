@@ -2,6 +2,7 @@
 
 #include "FastFilterWidget.h"
 
+#include <QJsonArray>
 #include <QPushButton>
 #include <QScreen>
 #include <QTimer>
@@ -20,6 +21,8 @@
 #include "utilgui/GeometryRestorable.h"
 #include "utilgui/ItemViewToolTipper.h"
 #include "utilgui/ScrollBarController.h"
+
+#include "log.h"
 
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
@@ -303,6 +306,23 @@ private:
 				return true;
 			}
 
+			case ModelRole::SelectedItems:
+			{
+				const auto values = value.value<QVariantList>() | std::ranges::to<std::unordered_set<QVariant, Util::VariantHash>>();
+				std::set<int> changed;
+				for (auto&& [item, n] : std::views::zip(m_items, std::views::iota(0)))
+					if (item.checked != values.contains(item.id))
+					{
+						item.checked = !item.checked;
+						changed.emplace(n);
+					}
+
+				for (const auto [begin, end] : Util::CreateRanges(changed))
+					emit dataChanged(index(begin, 0), index(end - 1, 0), { Qt::CheckStateRole });
+
+				return true;
+			}
+
 			default:
 				break;
 		}
@@ -337,14 +357,16 @@ public:
 		const int                                  column,
 		Callback                                   callback,
 		const IParentWidgetProvider&               parentWidgetProvider,
-		const ISettings&                           settings,
+		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<Util::ItemViewToolTipper>  toolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController
 	)
-		: m_callback { std::move(callback) }
-		, m_model { std::unique_ptr<QAbstractItemModel> { std::make_unique<Model>(model, column, settings, parentWidgetProvider.GetWidget()) } }
+		: m_column { column }
+		, m_callback { std::move(callback) }
+		, m_settings { std::move(settings) }
 		, m_toolTipper { std::move(toolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
+		, m_model { std::unique_ptr<QAbstractItemModel> { std::make_unique<Model>(model, column, *m_settings, parentWidgetProvider.GetWidget()) } }
 	{
 		m_ui.setupUi(self);
 		m_ui.view->setModel(m_model.get());
@@ -356,7 +378,7 @@ public:
 
 		const auto checkboxWidth = m_ui.view->style()->pixelMetric(QStyle::PM_IndicatorWidth);
 		const auto contentWidth  = m_model->data({}, ModelRole::SizeRole).toInt() + checkboxWidth + 6 * 2;
-		const auto toolbarWidth  = 2 * m_ui.buttonBox->button(QDialogButtonBox::Cancel)->width() + checkboxWidth * 2 + 6 * 6;
+		const auto toolbarWidth  = 3 * m_ui.buttonBox->button(QDialogButtonBox::Cancel)->width() + checkboxWidth * 2 + 6 * 6;
 
 		const auto contentHeight = m_model->rowCount() * m_ui.view->rowHeight(0);
 		const auto toolbarHeight = m_ui.btnRevertSelection->height() + 6 * 2 + 4;
@@ -383,6 +405,10 @@ public:
 				m_ui.checkBoxAll->setCheckState(m_model->data({}, ModelRole::AllSelected).value<Qt::CheckState>());
 			}
 		});
+		connect(m_ui.btnLoad, &QAbstractButton::clicked, this, &Impl::OnLoadClicked);
+		connect(m_ui.btnSave, &QAbstractButton::clicked, this, &Impl::OnSaveClicked);
+
+		m_ui.btnLoad->setEnabled(Deserialize(m_settings->Get(QString(Constant::Settings::FAST_FILTER_KEY_TEMPLATE).arg(m_column)).toByteArray(), true));
 	}
 
 private:
@@ -392,12 +418,74 @@ private:
 		m_callback(role == QDialogButtonBox::ApplyRole, m_model->data({}, ModelRole::SelectedItems).value<QVariantList>());
 	}
 
+	void OnSaveClicked()
+	{
+		m_ui.btnLoad->setEnabled(true);
+		m_settings->Set(QString(Constant::Settings::FAST_FILTER_KEY_TEMPLATE).arg(m_column), Serialize());
+		PLOGI << "Filter values saved";
+	}
+
+	void OnLoadClicked()
+	{
+		if (const auto rangeVar = m_settings->Get(QString(Constant::Settings::FAST_FILTER_KEY_TEMPLATE).arg(m_column)); rangeVar.isValid())
+		{
+			if (Deserialize(rangeVar.toByteArray()))
+			{
+				PLOGI << "Filter values loaded";
+				return;
+			}
+		}
+		PLOGW << "Filter values load failed";
+	}
+
+	QByteArray Serialize() const
+	{
+		QJsonArray array;
+
+		for (auto&& value : m_model->data({}, ModelRole::SelectedItems).value<QVariantList>())
+			array.append(value.toJsonValue());
+
+		return QJsonDocument(array).toJson(QJsonDocument::Compact);
+	}
+
+	bool Deserialize(const QByteArray& bytes, const bool checkOnly = false)
+	{
+		if (bytes.isEmpty())
+			return false;
+
+		QJsonParseError parseError;
+		const auto      doc = QJsonDocument::fromJson(bytes, &parseError);
+		if (parseError.error != QJsonParseError::NoError)
+		{
+			PLOGW << parseError.errorString();
+			return false;
+		}
+
+		if (!doc.isArray())
+		{
+			PLOGW << "value must be an array";
+			return false;
+		}
+
+		if (checkOnly)
+			return true;
+
+		const auto values = doc.array() | std::views::transform([](const auto& item) {
+							 return item.toVariant();
+						 }) | std::ranges::to<QVariantList>();
+
+		return m_model->setData({}, values, ModelRole::SelectedItems);
+	}
+
 private:
-	const Callback                        m_callback;
-	PropagateConstPtr<QAbstractItemModel> m_model;
+	const int                                     m_column;
+	const Callback                                m_callback;
+	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 
 	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_toolTipper;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
+
+	PropagateConstPtr<QAbstractItemModel> m_model;
 
 	Ui::FastFilterWidget m_ui {};
 };
@@ -407,13 +495,13 @@ FastFilterWidget::FastFilterWidget(
 	const int                                  column,
 	Callback                                   callback,
 	const IParentWidgetProvider&               parentWidgetProvider,
-	const ISettings&                           settings,
+	std::shared_ptr<ISettings>                 settings,
 	std::shared_ptr<Util::ItemViewToolTipper>  toolTipper,
 	std::shared_ptr<Util::ScrollBarController> scrollBarController,
 	QWidget*                                   parent
 )
 	: QWidget(parent)
-	, m_impl(this, model, column, std::move(callback), parentWidgetProvider, settings, std::move(toolTipper), std::move(scrollBarController))
+	, m_impl(this, model, column, std::move(callback), parentWidgetProvider, std::move(settings), std::move(toolTipper), std::move(scrollBarController))
 {
 }
 
