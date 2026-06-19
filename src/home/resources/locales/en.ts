@@ -1015,6 +1015,25 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>FastFilterWidget</name>
+    <message>
+        <source>Invert selection</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Load selection</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Save selection</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Select all</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>FilterModel</name>
     <message>
         <source>Books filtered</source>
@@ -2641,6 +2660,17 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>HomeCompa::Flibrary::FastFilterWidget::Impl</name>
+    <message>
+        <source>Deselect all</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Select all</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>HomeCompa::Flibrary::MigrateWindow</name>
     <message>
         <source>The database migration process is in progress...</source>
@@ -2652,6 +2682,13 @@ Try again?</source>
     <message>
         <source>Affected rows: %1</source>
         <translation></translation>
+    </message>
+</context>
+<context>
+    <name>HomeCompa::Flibrary::RangeFilterWidget::Impl</name>
+    <message>
+        <source>%1 kB</source>
+        <translation>%1 Kb</translation>
     </message>
 </context>
 <context>
@@ -5280,6 +5317,25 @@ Try again?</source>
     </message>
     <message>
         <source>Start &amp;transaction</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>RangeFilterWidget</name>
+    <message>
+        <source> kB</source>
+        <translation> Kb</translation>
+    </message>
+    <message>
+        <source>Load range</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Reset range</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Save range</source>
         <translation></translation>
     </message>
 </context>

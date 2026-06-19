@@ -19,5 +19,9 @@
         <file alias="a.svg">icons/a.svg</file>
         <file alias="r.svg">icons/r.svg</file>
         <file alias="inpx.svg">icons/inpx.svg</file>
+        <file alias="change.svg">icons/change.svg</file>
+        <file alias="blank.svg">icons/blank.svg</file>
+        <file alias="load.svg">icons/load.svg</file>
+        <file alias="save.svg">icons/save.svg</file>
 	</qresource>
 </RCC>

@@ -30,6 +30,8 @@
 #include "dialogs/OpdsDialog.h"
 #include "dialogs/SettingsDialog.h"
 #include "dialogs/script/ScriptDialog.h"
+#include "filters/FastFilterWidget.h"
+#include "filters/RangeFilterWidget.h"
 #include "logic/data/DataItem.h"
 #include "utilgui/GeometryRestorable.h"
 #include "version/AppVersion.h"
@@ -228,6 +230,27 @@ std::shared_ptr<QMainWindow> UiFactory::CreateQueryWindow() const
 	return m_impl->container.resolve<QueryWindow>();
 }
 
+QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, const int column, std::function<void(bool, QVariantList)> callback) const
+{
+	const auto parentWidgetProvider = m_impl->container.resolve<IParentWidgetProvider>();
+	auto       settings             = m_impl->container.resolve<ISettings>();
+
+	if (column == BookItem::Column::Size)
+	{
+		return new RangeFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings));
+	}
+
+	return new FastFilterWidget(
+		model,
+		column,
+		std::move(callback),
+		*parentWidgetProvider,
+		std::move(settings),
+		m_impl->container.resolve<Util::ItemViewToolTipper>(),
+		m_impl->container.resolve<Util::ScrollBarController>()
+	);
+}
+
 void UiFactory::CreateCollectionCleaner() const
 {
 	CreateStackedPage<CollectionCleaner>(m_impl->container, this);
@@ -373,7 +396,9 @@ std::filesystem::path UiFactory::GetNewCollectionInpxFolder() const noexcept
 std::shared_ptr<ITreeViewController> UiFactory::GetTreeViewController() const noexcept
 {
 	assert(m_impl->treeViewController);
-	return std::move(m_impl->treeViewController);
+	auto result                = std::move(m_impl->treeViewController);
+	m_impl->treeViewController = {};
+	return result;
 }
 
 QTreeView& UiFactory::GetTreeView() const
@@ -385,7 +410,9 @@ QTreeView& UiFactory::GetTreeView() const
 QAbstractItemView& UiFactory::GetAbstractItemView() const
 {
 	assert(m_impl->abstractItemView);
-	return *m_impl->abstractItemView;
+	auto* result             = m_impl->abstractItemView;
+	m_impl->abstractItemView = nullptr;
+	return *result;
 }
 
 QString UiFactory::GetTitle() const noexcept

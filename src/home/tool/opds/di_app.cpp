@@ -151,6 +151,11 @@ private: // IUiFactory
 		return {};
 	}
 
+	QWidget* CreateFastFilterWidget(const QAbstractItemModel&, int, std::function<void(bool, QVariantList)>) const override
+	{
+		return nullptr;
+	}
+
 	void CreateCollectionCleaner() const override
 	{
 	}
