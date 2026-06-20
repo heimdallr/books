@@ -1,5 +1,7 @@
 #include "BookInteractor.h"
 
+#include <QTemporaryDir>
+
 #include "fnd/FindPair.h"
 
 #include "database/interface/IDatabase.h"
@@ -9,6 +11,8 @@
 #include "interface/constants/SettingsConstant.h"
 
 #include "extract/BooksExtractor.h"
+
+#include "log.h"
 
 using namespace HomeCompa::Flibrary;
 
@@ -72,6 +76,16 @@ constexpr std::pair<const char*, void (IBookInteractorImpl::*)(long long, const 
 #undef NAVIGATION_MODE_ITEM
 };
 
+struct ExtractSettings
+{
+	QString parameter;
+	QString dstFileName;
+	QString ext;
+	bool    dstFolderRequired { true };
+	bool    createFillTemplateConverterParameter { false };
+	bool    tempFolder { false };
+};
+
 } // namespace
 
 struct BookInteractor::Impl final : IBookInteractorImpl
@@ -83,6 +97,7 @@ struct BookInteractor::Impl final : IBookInteractorImpl
 	std::shared_ptr<const IReaderController>   readerController;
 	std::shared_ptr<const IDatabaseUser>       databaseUser;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
+	std::shared_ptr<IScriptControllerProvider> scriptControllerProvider;
 
 	Impl(
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
@@ -91,7 +106,8 @@ struct BookInteractor::Impl final : IBookInteractorImpl
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
 		std::shared_ptr<const IReaderController>    readerController,
 		std::shared_ptr<const IDatabaseUser>        databaseUser,
-		std::shared_ptr<const ICollectionProvider>  collectionProvider
+		std::shared_ptr<const ICollectionProvider>  collectionProvider,
+		std::shared_ptr<IScriptControllerProvider>  scriptControllerProvider
 	)
 		: logicFactory { logicFactory }
 		, uiFactory { std::move(uiFactory) }
@@ -100,6 +116,7 @@ struct BookInteractor::Impl final : IBookInteractorImpl
 		, readerController { std::move(readerController) }
 		, databaseUser { std::move(databaseUser) }
 		, collectionProvider { std::move(collectionProvider) }
+		, scriptControllerProvider { std::move(scriptControllerProvider) }
 	{
 	}
 
@@ -125,11 +142,35 @@ private: // IBookInteractorImpl
 
 	void ExtractAsZip(const long long bookId, const QStringList&) const override
 	{
-		ExtractImpl(&BooksExtractor::ExtractAsArchives, bookId);
+		ExtractImpl(&BooksExtractor::ExtractAsArchives, bookId, { .ext = "zip" });
 	}
 
-	void Script(long long, const QStringList&) const override
+	void Script(const long long bookId, const QStringList& parameters) const override
 	{
+		assert(!parameters.isEmpty());
+		const auto  scriptController = scriptControllerProvider->GetScriptController();
+		const auto& scripts          = scriptController->GetScripts();
+		if (const auto it = std::ranges::find(
+				scripts,
+				parameters.front(),
+				[](const auto& item) {
+					return item.name;
+				}
+			);
+		    it != scripts.end())
+			return ExtractImpl(
+				&BooksExtractor::ExtractAsScript,
+				bookId,
+				{
+					.parameter   = it->uid,
+					.dstFileName = QString("%1/%2").arg(IScriptController::GetMacro(IScriptController::Macro::UserDestinationFolder)).arg(IScriptController::GetMacro(IScriptController::Macro::FileName)),
+					.dstFolderRequired                    = false,
+					.createFillTemplateConverterParameter = true,
+					.tempFolder                           = true,
+				}
+			);
+
+		PLOGW << "Script " << parameters.front() << " not found";
 	}
 
 #define NAVIGATION_MODE_ITEM(NAME) void FindWith##NAME(const long long bookId, const QStringList&) const override{ FindWithImpl(NavigationMode::NAME, bookId); }
@@ -137,21 +178,30 @@ private: // IBookInteractorImpl
 #undef NAVIGATION_MODE_ITEM
 
 private:
-	void ExtractImpl(const BooksExtractor::Extract invoker, const long long bookId) const
+	void ExtractImpl(const BooksExtractor::Extract invoker, const long long bookId, const ExtractSettings& options = {}) const
 	{
 		auto book        = bookExtractor->GetExtractedBook(QString::number(bookId));
-		book.dstFileName = settings->Get(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
+		book.dstFileName = options.dstFileName.isEmpty() ? settings->Get(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate()) : options.dstFileName;
 
-		const bool dstFolderRequired = IScriptController::HasMacro(book.dstFileName, IScriptController::Macro::UserDestinationFolder);
-		auto       folder            = dstFolderRequired ? uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, Loc::SELECT_SEND_TO_FOLDER) : QString {};
+		const bool                     dstFolderRequired = options.dstFolderRequired && IScriptController::HasMacro(book.dstFileName, IScriptController::Macro::UserDestinationFolder);
+		auto                           folder            = dstFolderRequired ? uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, Loc::SELECT_SEND_TO_FOLDER) : QString {};
+		std::shared_ptr<QTemporaryDir> tempDir;
+		if (options.tempFolder)
+			tempDir = std::make_shared<QTemporaryDir>();
 
-		const auto fillTemplateConverter = ILogicFactory::Lock(logicFactory)->CreateFillTemplateConverter();
+		const auto fillTemplateConverter = ILogicFactory::Lock(logicFactory)->CreateFillTemplateConverter(options.createFillTemplateConverterParameter);
 		const auto db                    = databaseUser->Database();
-		fillTemplateConverter->Fill(*db, book.dstFileName, book, folder);
+		fillTemplateConverter->Fill(*db, book.dstFileName, book, tempDir ? tempDir->filePath("") : folder);
+
+		if (!options.ext.isEmpty())
+		{
+			const QFileInfo fileInfo(book.dstFileName);
+			book.dstFileName = fileInfo.dir().filePath(fileInfo.completeBaseName() + "." + options.ext);
+		}
 
 		auto  extractor    = ILogicFactory::Lock(logicFactory)->CreateBooksExtractor();
 		auto& extractorRef = *extractor;
-		(extractorRef.*invoker)(folder, {}, { std::move(book) }, [extractor = std::move(extractor)](bool) mutable {
+		(extractorRef.*invoker)(folder, options.parameter, { std::move(book) }, [extractor = std::move(extractor)](bool) mutable {
 			extractor.reset();
 		});
 	}
@@ -180,9 +230,17 @@ BookInteractor::BookInteractor(
 	std::shared_ptr<const IBookExtractor>       bookExtractor,
 	std::shared_ptr<const IReaderController>    readerController,
 	std::shared_ptr<const IDatabaseUser>        databaseUser,
-	std::shared_ptr<const ICollectionProvider>  collectionProvider
+	std::shared_ptr<const ICollectionProvider>  collectionProvider,
+	std::shared_ptr<IScriptControllerProvider>  scriptControllerProvider
 )
-	: m_impl { logicFactory, std::move(uiFactory), std::move(settings), std::move(bookExtractor), std::move(readerController), std::move(databaseUser), std::move(collectionProvider) }
+	: m_impl { logicFactory,
+	           std::move(uiFactory),
+	           std::move(settings),
+	           std::move(bookExtractor),
+	           std::move(readerController),
+	           std::move(databaseUser),
+	           std::move(collectionProvider),
+	           std::move(scriptControllerProvider) }
 {
 }
 
