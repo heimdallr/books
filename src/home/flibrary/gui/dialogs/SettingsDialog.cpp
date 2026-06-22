@@ -118,11 +118,10 @@ public:
 	{
 		m_ui.setupUi(&self);
 
+		m_itemViewToolTipper->SetScrollArea(m_ui.view);
 		m_scrollBarController->SetScrollArea(m_ui.view);
 
 		m_ui.view->setModel(m_model.get());
-		m_ui.view->viewport()->installEventFilter(m_itemViewToolTipper.get());
-		m_ui.view->viewport()->installEventFilter(m_scrollBarController.get());
 		m_ui.view->header()->setDefaultAlignment(Qt::AlignCenter);
 		m_ui.view->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 

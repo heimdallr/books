@@ -43,8 +43,9 @@ public: // ICollectionController
 	[[nodiscard]] const Collection&  GetActiveCollection() const noexcept override;
 	[[nodiscard]] bool               ActiveCollectionExists() const noexcept override;
 	[[nodiscard]] QString            GetActiveCollectionId() const noexcept override;
+	[[nodiscard]] QStringList        GetCollectionStatistics(const IDatabaseUser& databaseUser, bool withAdditionalInfo) const override;
 	void                             SetActiveCollection(const QString& id) override;
-	void                             OnInpxUpdateChecked(const Collection& updatedCollection) override;
+	bool                             OnInpxUpdateChecked(const Collection& updatedCollection) override;
 	void                             AllowDestructiveOperation(bool value) override;
 	Collection::Ptr                  CreateCollection(QString name, QString database, QString folder, QString additionalFolder, QString inpx) override;
 

@@ -1,6 +1,6 @@
 #include "AbstractTreeViewController.h"
 
-#include "fnd/FindPair.h"
+#include <QModelIndex>
 
 #include "interface/constants/SettingsConstant.h"
 
@@ -9,6 +9,7 @@ using namespace HomeCompa::Flibrary;
 struct AbstractTreeViewController::Impl final
 {
 	AbstractTreeViewController& self;
+	IObserver*                  observer { nullptr };
 	QString                     settingsModeKey { QString(Constant::Settings::VIEW_MODE_KEY_TEMPLATE).arg(self.m_context) };
 
 	explicit Impl(AbstractTreeViewController& self)
@@ -39,11 +40,13 @@ int AbstractTreeViewController::GetModeIndex() const
 
 void AbstractTreeViewController::RegisterObserver(IObserver* observer)
 {
+	m_impl->observer = observer;
 	Register(observer);
 }
 
 void AbstractTreeViewController::UnregisterObserver(IObserver* observer)
 {
+	m_impl->observer = nullptr;
 	Unregister(observer);
 }
 
@@ -56,4 +59,14 @@ void AbstractTreeViewController::SetMode(const QString& mode)
 {
 	m_settings->Set(m_impl->settingsModeKey, mode);
 	OnModeChanged(mode);
+}
+
+QAbstractItemModel* AbstractTreeViewController::GetModel() const noexcept
+{
+	return m_impl->observer ? m_impl->observer->GetModel() : nullptr;
+}
+
+QModelIndex AbstractTreeViewController::GetCurrentIndex() const noexcept
+{
+	return m_impl->observer ? m_impl->observer->GetCurrentIndex() : QModelIndex {};
 }

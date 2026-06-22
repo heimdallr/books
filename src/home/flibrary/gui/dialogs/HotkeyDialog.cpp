@@ -54,7 +54,7 @@ private: // QAbstractItemModel
 
 	QVariant data(const QModelIndex& index, const int role) const override
 	{
-		if (!index.isValid() || role != Qt::DisplayRole || index.column() != 0)
+		if (!index.isValid() || !IsOneOf(role, Qt::DisplayRole, Qt::ToolTipRole) || index.column() != 0)
 			return QIdentityProxyModel::data(index, role);
 
 		const auto sourceIndex = mapToSource(index);
@@ -184,11 +184,10 @@ public:
 	{
 		m_ui.setupUi(&m_self);
 
+		m_itemViewToolTipper->SetScrollArea(m_ui.view);
 		m_scrollBarController->SetScrollArea(m_ui.view);
 
 		m_ui.view->setModel(m_model.get());
-		m_ui.view->viewport()->installEventFilter(m_itemViewToolTipper.get());
-		m_ui.view->viewport()->installEventFilter(m_scrollBarController.get());
 		m_ui.view->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 		auto& header = *m_ui.view->header();
 		header.setDefaultAlignment(Qt::AlignCenter);

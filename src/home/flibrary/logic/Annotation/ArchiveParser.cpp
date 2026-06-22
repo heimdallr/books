@@ -19,6 +19,7 @@
 #include "util/EpubParser.h"
 #include "util/ImageRestore.h"
 #include "util/ImageUtil.h"
+#include "util/MobiParser.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 
@@ -120,6 +121,54 @@ void ExtractBookImages(
 			return IAnnotationController::IDataProvider::Cover { std::move(item.first), std::move(item.second) };
 		}
 	);
+}
+
+#define IMAGE_EXTRACTOR_FILE_TYPE_ITEMS_X_MACRO \
+	IMAGE_EXTRACTOR_FILE_TYPE_ITEM(DjVu) \
+	IMAGE_EXTRACTOR_FILE_TYPE_ITEM(Pdf)
+
+enum class FileType
+{
+	Unknown = -1,
+	Fb2,
+	Epub,
+	Mobi,
+	Img,
+#define IMAGE_EXTRACTOR_FILE_TYPE_ITEM(NAME) NAME,
+	IMAGE_EXTRACTOR_FILE_TYPE_ITEMS_X_MACRO
+#undef IMAGE_EXTRACTOR_FILE_TYPE_ITEM
+		Zip,
+};
+
+using ParseImpl = Util::CommonParser::ParseResult (*)(QIODevice& stream, Util::CommonParser::Mode mode);
+
+template <FileType T>
+ParseImpl GetParser() = delete;
+
+template <>
+ParseImpl GetParser<FileType::Mobi>()
+{
+	return &Util::MobiParser::Parse;
+}
+
+template <>
+ParseImpl GetParser<FileType::Epub>()
+{
+	return &Util::EpubParser::Parse;
+}
+
+Util::CommonParser::ParseResult ParseImg(QIODevice& stream, Util::CommonParser::Mode)
+{
+	Util::CommonParser::ParseResult result;
+	result.images.emplace_back("cover", stream.readAll());
+	result.coverExists = true;
+	return result;
+}
+
+template <>
+ParseImpl GetParser<FileType::Img>()
+{
+	return &ParseImg;
 }
 
 class IParser // NOLINT(cppcoreguidelines-special-member-functions)
@@ -514,17 +563,19 @@ private:
 	bool                                        m_annotationMode { false };
 };
 
-class EpubParser final : public IParser
+class CommonParser final : public IParser
 {
 public:
+	template <FileType T>
 	static std::unique_ptr<IParser> Create(QIODevice& ioDevice, std::shared_ptr<const ISettings> settings)
 	{
-		return std::make_unique<EpubParser>(ioDevice, std::move(settings));
+		return std::make_unique<CommonParser>(GetParser<T>(), ioDevice, std::move(settings));
 	}
 
 public:
-	EpubParser(QIODevice& ioDevice, std::shared_ptr<const ISettings> settings)
-		: m_ioDevice { ioDevice }
+	CommonParser(const ParseImpl parser, QIODevice& ioDevice, std::shared_ptr<const ISettings> settings)
+		: m_parser { parser }
+		, m_ioDevice { ioDevice }
 		, m_settings { std::move(settings) }
 	{
 	}
@@ -532,7 +583,7 @@ public:
 private: // IParser
 	ArchiveParser::Data Parse(const QString& rootFolder, const IDataItem& book, std::unique_ptr<IProgressController::IProgressItem>) override
 	{
-		auto                parsed = Util::EpubParser::Parse(m_ioDevice, Util::EpubParser::Mode::Images);
+		auto                parsed = m_parser(m_ioDevice, Util::CommonParser::Mode::Images);
 		ArchiveParser::Data result { .annotation = std::move(parsed.annotation),
 			                         .language   = std::move(parsed.language),
 			                         .covers     = parsed.images | std::views::as_rvalue | std::views::transform([](auto&& item) {
@@ -546,23 +597,9 @@ private: // IParser
 	}
 
 private:
+	const ParseImpl                  m_parser;
 	QIODevice&                       m_ioDevice;
 	std::shared_ptr<const ISettings> m_settings;
-};
-
-#define IMAGE_EXTRACTOR_FILE_TYPE_ITEMS_X_MACRO \
-	IMAGE_EXTRACTOR_FILE_TYPE_ITEM(DjVu) \
-	IMAGE_EXTRACTOR_FILE_TYPE_ITEM(Pdf)
-
-enum class FileType
-{
-	Unknown = -1,
-	Fb2,
-	Epub,
-#define IMAGE_EXTRACTOR_FILE_TYPE_ITEM(NAME) NAME,
-	IMAGE_EXTRACTOR_FILE_TYPE_ITEMS_X_MACRO
-#undef IMAGE_EXTRACTOR_FILE_TYPE_ITEM
-		Zip,
 };
 
 using ImageExtractorImpl = QByteArray (*)(QIODevice& stream);
@@ -664,10 +701,13 @@ private:
 	static constexpr std::pair<const char*, FileTypePair> TYPES[] {
 		{  "fb2",  { FileType::Fb2, true } },
         { "epub", { FileType::Epub, true } },
-        { "djvu", { FileType::DjVu, true } },
+        { "mobi", { FileType::Mobi, true } },
+        { "azw3", { FileType::Mobi, true } },
+		{ "djvu", { FileType::DjVu, true } },
+        {  "djv", { FileType::DjVu, true } },
         {  "pdf",  { FileType::Pdf, true } },
-		{  "fbd",  { FileType::Fb2, true } },
-        {  "zip", { FileType::Zip, false } },
+        {  "fbd",  { FileType::Fb2, true } },
+		{  "zip", { FileType::Zip, false } },
         {   "7z", { FileType::Zip, false } },
         {  "rar", { FileType::Zip, false } },
 	};
@@ -702,6 +742,9 @@ private:
 			const auto      ext = fileInfo.suffix().toLower();
 			if (const auto [type, _] = GetFileType(ext); type != FileType::Unknown)
 				return std::make_pair(std::move(file), type);
+
+			if (Util::IsImage(file))
+				return std::make_pair(std::move(file), FileType::Img);
 
 			auto zipFileList = zip->GetFileNameList();
 			if (const auto it = std::ranges::find_if(
@@ -777,9 +820,11 @@ private:
 		using ParserCreator = std::unique_ptr<IParser> (*)(QIODevice&, std::shared_ptr<const ISettings>);
 		static constexpr std::pair<FileType, ParserCreator> parsers[] {
 			{  FileType::Fb2,                      &Fb2Parser::Create },
-			{ FileType::Epub,                     &EpubParser::Create },
+			{ FileType::Epub,   &CommonParser::Create<FileType::Epub> },
+			{ FileType::Mobi,   &CommonParser::Create<FileType::Mobi> },
 			{ FileType::DjVu, &ImageExtractor::Create<FileType::DjVu> },
 			{  FileType::Pdf,  &ImageExtractor::Create<FileType::Pdf> },
+			{  FileType::Img,    &CommonParser::Create<FileType::Img> },
 		};
 
 		const auto parserCreator = FindSecond(parsers, fileType, &StubParser::Create);

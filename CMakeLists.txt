@@ -30,7 +30,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(MAJOR_PRODUCT_VERSION 2)
 set(MINOR_PRODUCT_VERSION 6)
-set(PATCH_PRODUCT_VERSION 5)
+set(PATCH_PRODUCT_VERSION 6)
 file(READ ${CMAKE_CURRENT_LIST_DIR}/src/home/flibrary/version/build.h BUILD_PRODUCT_VERSION)
 string(REGEX MATCH "[0-9]+" BUILD_PRODUCT_VERSION ${BUILD_PRODUCT_VERSION})
 
@@ -91,7 +91,6 @@ else()
 		-Werror
 		-pedantic
 		-Wno-deprecated-declarations
-		-Wno-virtual-move-assign
 		-Wno-missing-field-initializers
 		-Wno-array-bounds
 		-fPIC		
@@ -143,9 +142,12 @@ find_package(Qt${QT_MAJOR_VERSION} REQUIRED COMPONENTS ${QtModules})
 set(BIT7Z_AUTO_FORMAT ON CACHE BOOL "enable auto format support" FORCE)
 set(BIT7Z_USE_NATIVE_STRING ON CACHE BOOL "enable native string" FORCE)
 set(BIT7Z_USE_STD_BYTE ON CACHE BOOL "enable std::byte" FORCE)
-add_subdirectory(${CMAKE_SOURCE_DIR}/src/ext/bit7z)
+add_subdirectory(${EXT_ROOT}/bit7z)
+add_subdirectory(${EXT_ROOT}/libmobi)
 if(MSVC)
 	set_property(TARGET bit7z PROPERTY FOLDER ThirdParty)
+	set_property(TARGET mobi PROPERTY FOLDER ThirdParty)
+	set_target_properties(mobi PROPERTIES COMPILE_OPTIONS /W0)
 endif()
 
 find_package(plog REQUIRED)
@@ -158,6 +160,8 @@ find_package(SQLite3 REQUIRED)
 find_package(djvulibre REQUIRED)
 find_package(poppler REQUIRED)
 find_package(poppler-data REQUIRED)
+find_package(libxml2 REQUIRED)
+find_package(ZLIB REQUIRED)
 
 include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)
 include(${BUILDSCRIPTS_ROOT}/cmake/sdk.cmake)
@@ -201,7 +205,7 @@ add_compile_definitions(UNICODE _UNICODE NOMINMAX _USE_MATH_DEFINES)
 add_compile_definitions(HYPODERMIC_OVERRIDE_CONSTRUCTOR_ARGUMENT_COUNT=32)
 add_compile_definitions(LOCALIZED_APPLICATION)
 
-include_directories("src/ext/Hypodermic")
+include_directories("${EXT_ROOT}/Hypodermic")
 
 include("src/ext/sqlite.cmake")
 include("src/home/home.cmake")

@@ -65,6 +65,7 @@ public:
 		std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
 		std::shared_ptr<IHotkeyManager>                 hotkeyManager,
 		std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
+		std::shared_ptr<Util::ScrollBarController>      scrollBarController,
 		QWidget*                                        parent = nullptr
 	);
 	~MainWindow() override;

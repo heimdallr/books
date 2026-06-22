@@ -347,6 +347,10 @@
         <translation>Папка</translation>
     </message>
     <message>
+        <source>Format</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
         <source>Genre</source>
         <translation>Жанр</translation>
     </message>
@@ -741,8 +745,12 @@
         <translation>Базу даних колекції також видалити?</translation>
     </message>
     <message>
+        <source>Discard</source>
+        <translation>Відхилити</translation>
+    </message>
+    <message>
         <source>Don&apos;t ask anymore</source>
-        <translation>Більше не питати</translation>
+        <translation>Більше не запитувати</translation>
     </message>
     <message>
         <source>Keep your user data?</source>
@@ -750,7 +758,11 @@
     </message>
     <message>
         <source>Looks like the collection has been updated. Apply changes?</source>
-        <translation>Схоже, колекція оновлена. Застосувати зміни?</translation>
+        <translation>Схоже, колекцію було оновлено. Застосувати зміни?</translation>
+    </message>
+    <message>
+        <source>No</source>
+        <translation>Ні</translation>
     </message>
     <message>
         <source>No updates found</source>
@@ -758,7 +770,11 @@
     </message>
     <message>
         <source>No write access to %1</source>
-        <translation>Немає доступу до запису в %1</translation>
+        <translation>Відсутній доступ для запису в %1</translation>
+    </message>
+    <message>
+        <source>Recreate collection</source>
+        <translation>Перестворити колекцію</translation>
     </message>
     <message>
         <source>The collection was not %1 due to errors. See log.</source>
@@ -768,6 +784,10 @@
         <source>The existing database file will be overwritten. Continue?</source>
         <translation>Існуючий файл бази даних буде перезаписано.
 Продовжити?</translation>
+    </message>
+    <message>
+        <source>Yes</source>
+        <translation>Так</translation>
     </message>
     <message>
         <source>created</source>
@@ -783,6 +803,10 @@
     <message>
         <source>Additional info: %1</source>
         <translation>Додатково: %1</translation>
+    </message>
+    <message>
+        <source>Archives:</source>
+        <translation>Архіви:</translation>
     </message>
     <message>
         <source>Authors:</source>
@@ -809,12 +833,20 @@
         <translation>Папка: %1</translation>
     </message>
     <message>
+        <source>Groups:</source>
+        <translation>Групи:</translation>
+    </message>
+    <message>
         <source>Index file: %1</source>
         <translation>Індексний файл: %1</translation>
     </message>
     <message>
         <source>Keywords:</source>
         <translation>Ключові слова:</translation>
+    </message>
+    <message>
+        <source>Languages:</source>
+        <translation>Мови:</translation>
     </message>
     <message>
         <source>Name: %1</source>
@@ -991,6 +1023,25 @@ Restart now?</source>
     <message>
         <source>Save index file</source>
         <translation>Зберегти індексний файл</translation>
+    </message>
+</context>
+<context>
+    <name>FastFilterWidget</name>
+    <message>
+        <source>Invert selection</source>
+        <translation>Інвертувати виділення</translation>
+    </message>
+    <message>
+        <source>Load selection</source>
+        <translation>Завантажувати виділення</translation>
+    </message>
+    <message>
+        <source>Save selection</source>
+        <translation>Зберегти виділення</translation>
+    </message>
+    <message>
+        <source>Select all</source>
+        <translation>Виділити все</translation>
     </message>
 </context>
 <context>
@@ -2622,6 +2673,17 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>HomeCompa::Flibrary::FastFilterWidget::Impl</name>
+    <message>
+        <source>Deselect all</source>
+        <translation>Скасувати виділення</translation>
+    </message>
+    <message>
+        <source>Select all</source>
+        <translation>Виділити все</translation>
+    </message>
+</context>
+<context>
     <name>HomeCompa::Flibrary::MigrateWindow</name>
     <message>
         <source>The database migration process is in progress...</source>
@@ -2633,6 +2695,13 @@ Try again?</source>
     <message>
         <source>Affected rows: %1</source>
         <translation>Рядки, на які це впливає: %1</translation>
+    </message>
+</context>
+<context>
+    <name>HomeCompa::Flibrary::RangeFilterWidget::Impl</name>
+    <message>
+        <source>%1 kB</source>
+        <translation>%1 Кб</translation>
     </message>
 </context>
 <context>
@@ -4823,6 +4892,10 @@ Try again?</source>
         <translation>Файли стилів Qt (*.%1 *.dll);;Всі файли (*.*)</translation>
     </message>
     <message>
+        <source>R&amp;ecreate collection</source>
+        <translation>Пере&amp;створити колекцію</translation>
+    </message>
+    <message>
         <source>Readers&apos; &amp;Reviews</source>
         <translation>Відгуки &amp;читачів</translation>
     </message>
@@ -4885,6 +4958,10 @@ Try again?</source>
     <message>
         <source>Show &amp;OPDS in browser</source>
         <translation>Показати &amp;OPDS у браузері</translation>
+    </message>
+    <message>
+        <source>Show &amp;statistics..</source>
+        <translation>Показати &amp;статистику...</translation>
     </message>
     <message>
         <source>Show collection s&amp;tatistics</source>
@@ -5254,6 +5331,25 @@ Try again?</source>
     <message>
         <source>Start &amp;transaction</source>
         <translation>Старт &amp;транзакції</translation>
+    </message>
+</context>
+<context>
+    <name>RangeFilterWidget</name>
+    <message>
+        <source> kB</source>
+        <translation> Кб</translation>
+    </message>
+    <message>
+        <source>Load range</source>
+        <translation>Завантажити діапазон</translation>
+    </message>
+    <message>
+        <source>Reset range</source>
+        <translation>Скинути діапазон</translation>
+    </message>
+    <message>
+        <source>Save range</source>
+        <translation>Зберегти діапазон</translation>
     </message>
 </context>
 <context>

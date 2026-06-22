@@ -30,6 +30,8 @@
 #include "dialogs/OpdsDialog.h"
 #include "dialogs/SettingsDialog.h"
 #include "dialogs/script/ScriptDialog.h"
+#include "filters/FastFilterWidget.h"
+#include "filters/RangeFilterWidget.h"
 #include "logic/data/DataItem.h"
 #include "utilgui/GeometryRestorable.h"
 #include "version/AppVersion.h"
@@ -72,6 +74,7 @@ constexpr const char* COMPONENTS[]       = {
 	"<tr><td><a href='https://github.com/libjxl/libjxl'>libjxl</a> &copy; the JPEG XL Project Authors <a href='https://opensource.org/license/bsd-3-clause'>BSD 3-clause License</a></td></tr>",
 	"<tr><td><a href='https://djvu.sourceforge.net/'>DjVu Libre</a> &copy; <a href='http://www.lizardtech.com/'>LizardTech Inc.</a> <a href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt'>GPL-2.0 License</a></td></tr>",
 	"<tr><td><a href='https://poppler.freedesktop.org/'>Poppler</a> &copy; <a href='https://www.freedesktop.org/wiki/'>freedesktop.org</a> <a href='https://www.gnu.org/licenses/gpl-3.0.txt'>GPL-3.0 License</a></td></tr>",
+	"<tr><td><a href='https://github.com/bfabiszewski/libmobi'>libmobi</a> &copy; <a href='https://github.com/bfabiszewski'>bfabiszewski</a> <a href='https://www.gnu.org/licenses/lgpl-3.0.html#license-text'>GNU LGPL v3</a></td></tr>",
 	"<tr><td><a href='https://github.com/rikyoz/bit7z'>bit7z</a> &copy; 2014-2024 <a href='https://github.com/rikyoz'>Riccardo Ostani</a> <a href='https://github.com/rikyoz/bit7z/blob/master/LICENSE'>MPL-2.0</a></td></tr>",
 	"<tr><td><a href='https://www.sqlite.org/'>SQLite</a> <a href='https://www.sqlite.org/copyright.html'>Public Domain</a></td></tr>",
 	"<tr><td><a href='https://github.com/iwongu/sqlite3pp'>sqlite3pp</a> &copy; 2023 <a href='https://github.com/iwongu'>Wongoo Lee</a> <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
@@ -227,6 +230,27 @@ std::shared_ptr<QMainWindow> UiFactory::CreateQueryWindow() const
 	return m_impl->container.resolve<QueryWindow>();
 }
 
+QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, const int column, std::function<void(bool, QVariantList)> callback) const
+{
+	const auto parentWidgetProvider = m_impl->container.resolve<IParentWidgetProvider>();
+	auto       settings             = m_impl->container.resolve<ISettings>();
+
+	if (column == BookItem::Column::Size)
+	{
+		return new RangeFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings));
+	}
+
+	return new FastFilterWidget(
+		model,
+		column,
+		std::move(callback),
+		*parentWidgetProvider,
+		std::move(settings),
+		m_impl->container.resolve<Util::ItemViewToolTipper>(),
+		m_impl->container.resolve<Util::ScrollBarController>()
+	);
+}
+
 void UiFactory::CreateCollectionCleaner() const
 {
 	CreateStackedPage<CollectionCleaner>(m_impl->container, this);
@@ -372,7 +396,9 @@ std::filesystem::path UiFactory::GetNewCollectionInpxFolder() const noexcept
 std::shared_ptr<ITreeViewController> UiFactory::GetTreeViewController() const noexcept
 {
 	assert(m_impl->treeViewController);
-	return std::move(m_impl->treeViewController);
+	auto result                = std::move(m_impl->treeViewController);
+	m_impl->treeViewController = {};
+	return result;
 }
 
 QTreeView& UiFactory::GetTreeView() const
@@ -384,7 +410,9 @@ QTreeView& UiFactory::GetTreeView() const
 QAbstractItemView& UiFactory::GetAbstractItemView() const
 {
 	assert(m_impl->abstractItemView);
-	return *m_impl->abstractItemView;
+	auto* result             = m_impl->abstractItemView;
+	m_impl->abstractItemView = nullptr;
+	return *result;
 }
 
 QString UiFactory::GetTitle() const noexcept
@@ -519,7 +547,7 @@ limit {}
 
 	const auto collectionProvider = container.resolve<ICollectionProvider>();
 
-	auto       settings               = container.resolve<ISettings>();
+	const auto settings               = container.resolve<ISettings>();
 	const auto maxMenuItemCount       = settings->Get(MAX_MENU_ITEM_COUNT_KEY, MAX_MENU_ITEM_DEFAULT);
 	auto       menuItemTitleFormat    = settings->Get(MENU_ITEM_TITLE_FORMAT_KEY, MENU_ITEM_TITLE_FORMAT_DEFAULT).replace(R"(\t)", "\t").replace(R"(\n)", "\n");
 	auto       menuItemDateTimeFormat = settings->Get(MENU_ITEM_DATETIME_FORMAT_KEY, MENU_ITEM_DATETIME_FORMAT_DEFAULT);
@@ -549,18 +577,18 @@ limit {}
 				  data.emplace_back(query->Get<long long>(0), std::move(title));
 			  }
 
-			  return [this, &menu, data = std::move(data)](size_t) {
+			  return [this, &menu, data = std::move(data)](size_t) mutable {
 				  menu.menuAction()->setEnabled(!data.empty());
 				  menu.clear();
-				  for (const auto& [id, title] : data)
+				  for (auto&& [id, title] : data)
 				  {
-					  auto* action = menu.addAction(title);
+					  const auto* action = menu.addAction(title.replace('&', "&&"));
 					  connect(action, &QAction::triggered, [this, id] {
 						  m_impl->container.resolve<IBookInteractor>()->OnRecentBookMenuTriggered(id);
 					  });
 				  }
 				  menu.addSeparator();
-				  auto* action = menu.addAction(Tr(CLEAR_RECENT_BOOKS));
+				  const auto* action = menu.addAction(Tr(CLEAR_RECENT_BOOKS));
 				  connect(action, &QAction::triggered, [this, &menu] {
 					  const auto database = m_impl->container.resolve<IDatabaseUser>()->Database();
 					  const auto tr       = database->CreateTransaction();

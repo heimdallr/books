@@ -16,16 +16,6 @@
 using namespace HomeCompa;
 using namespace Util;
 
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-	#define CHECK_STATE_CHANGED checkStateChanged
-	#define CHECK_STATE Qt::CheckState
-#elif QT_VERSION >= QT_VERSION_CHECK(5, 0, 0)
-	#define CHECK_STATE_CHANGED stateChanged
-	#define CHECK_STATE int
-#else
-	#error unsupported qt version
-#endif
-
 namespace
 {
 

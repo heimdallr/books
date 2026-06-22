@@ -8,6 +8,7 @@ constexpr auto LOCALE_KEY = "ui/locale";
 constexpr auto VIEW_MODE_KEY_TEMPLATE       = "ui/%1/Mode";
 constexpr auto VIEW_NAVIGATION_KEY_TEMPLATE = "ui/View/Navigation/%1";
 constexpr auto RECENT_NAVIGATION_ID_KEY     = "Collections/%1/%2%3/LastId";
+constexpr auto FAST_FILTER_KEY_TEMPLATE     = "ui/FastFilter/%1";
 
 constexpr auto EXPORT_DIALOG_KEY           = "Export";
 constexpr auto EXPORT_TEMPLATE_KEY         = "ui/Export/OutputTemplate";

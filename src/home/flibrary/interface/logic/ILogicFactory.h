@@ -85,6 +85,7 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<ITemporaryDir>                  CreateTemporaryDir(bool singleInstance = false) const                                                                      = 0;
 	[[nodiscard]] virtual std::shared_ptr<ITemporaryDir>                  CreateTemporaryDir(const QString& path) const                                                                              = 0;
 	[[nodiscard]] virtual Util::ExtractedBooks                            GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList = {}) const     = 0;
+	[[nodiscard]] virtual Util::ExtractedBook                             GetCurrentExtractedBook() const                                                                                            = 0;
 
 	virtual void FindBook(const QString& navigationMode, const QString& navigationId, long long bookId = -1) const = 0;
 

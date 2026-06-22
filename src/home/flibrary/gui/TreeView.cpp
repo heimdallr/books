@@ -12,6 +12,7 @@
 #include <QPainter>
 #include <QResizeEvent>
 #include <QTimer>
+#include <QWidgetAction>
 
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
@@ -58,7 +59,6 @@ constexpr auto COLUMN_HIDDEN_LOCAL_KEY            = "%1/Hidden";
 constexpr auto SORT_KEY                           = "Sort";
 constexpr auto SORT_INDEX_KEY                     = "Index";
 constexpr auto SORT_ORDER_KEY                     = "Order";
-constexpr auto RECENT_LANG_FILTER_KEY             = "ui/recentLangFilter";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTableColumnSettings";
 constexpr auto HASH_CONTEXT_MENU_ENABLED          = "Preferences/Books/ContextMenu/HashEnabled";
 constexpr auto LAST                               = "Last";
@@ -151,6 +151,14 @@ public:
 			view.scrollTo(matched.front(), PositionAtCenter);
 	}
 
+	void SetFilteredIndex(const int logicalIndex, const bool set)
+	{
+		if (set)
+			m_filtered.emplace(logicalIndex);
+		else
+			m_filtered.erase(logicalIndex);
+	}
+
 private: // QHeaderView
 	void paintSection(QPainter* painter, const QRect& rect, const int logicalIndex) const override
 	{
@@ -170,11 +178,6 @@ private: // QHeaderView
 
 		PaintIcon(painter, rect, logicalIndex);
 
-		const auto columnName = model()->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
-		const auto it         = m_columns.find(columnName);
-		if (it == m_columns.end())
-			return;
-
 		const ScopedCall painterGuard(
 			[=] {
 				painter->save();
@@ -183,11 +186,24 @@ private: // QHeaderView
 				painter->restore();
 			}
 		);
+
+		PaintSortIndicator(painter, rect, logicalIndex);
+		PaintFilterIndicator(painter, rect, logicalIndex);
+	}
+
+private:
+	void PaintSortIndicator(QPainter* painter, const QRect& rect, const int logicalIndex) const
+	{
+		const auto columnName = model()->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
+		const auto it         = m_columns.find(columnName);
+		if (it == m_columns.end())
+			return;
+
 		const auto palette = QApplication::palette();
 		const auto fgColor = palette.color(QPalette::Text);
 		const auto bgColor = palette.color(QPalette::Button);
 
-		QColor color = fgColor;
+		auto color = fgColor;
 		color.setRedF(Linear(size_t { 0 }, fgColor.redF(), m_sort.size(), bgColor.redF())(it->second));
 		color.setGreenF(Linear(size_t { 0 }, fgColor.greenF(), m_sort.size(), bgColor.greenF())(it->second));
 		color.setBlueF(Linear(size_t { 0 }, fgColor.blueF(), m_sort.size(), bgColor.blueF())(it->second));
@@ -210,10 +226,34 @@ private: // QHeaderView
 		if (m_sort[it->second].second == Qt::DescendingOrder)
 			triangle = QTransform(1, 0, 0, -1, 0, height).map(triangle);
 
-		painter->drawPolygon(triangle.translated(rect.right() - 4 * size / 3, size / 2));
+		painter->drawPolygon(triangle.translated(rect.right() - 9 * size / 8, height / 8));
 	}
 
-private:
+	void PaintFilterIndicator(QPainter* painter, const QRect& rect, const int logicalIndex) const
+	{
+		if (!m_filtered.contains(logicalIndex))
+			return;
+
+		painter->setPen(QApplication::palette().color(QPalette::Text));
+		painter->setBrush(QApplication::palette().color(QPalette::Button));
+
+		const auto size     = rect.height() / 4.0;
+		const auto height   = std::sqrt(2.0) * size / 2;
+		auto       triangle = QPolygonF(
+			{
+				QPointF {                 0.0,      height },
+				QPointF {                size,      height },
+				QPointF { size / 2 + size / 8,  height / 4 },
+				QPointF { size / 2 + size / 8, -height / 4 },
+				QPointF { size / 2 - size / 8, -height / 2 },
+				QPointF { size / 2 - size / 8,  height / 4 },
+				QPointF {                 0.0,      height }
+        }
+		);
+		triangle = QTransform(1, 0, 0, -1, 0, height).map(triangle);
+		painter->drawPolygon(triangle.translated(rect.right() - 9 * size / 8, rect.height() - 7 * height / 4));
+	}
+
 	bool PaintIcon(QPainter* painter, const QRect& rect, const int logicalIndex) const
 	{
 		const auto iconFileName = model()->headerData(logicalIndex, orientation(), Qt::DecorationRole);
@@ -283,6 +323,7 @@ private:
 	const QString&                             m_currentId;
 	std::vector<std::pair<int, Qt::SortOrder>> m_sort;
 	std::unordered_map<QString, size_t>        m_columns;
+	std::unordered_set<int>                    m_filtered;
 };
 
 class ValueEventFilter final : public QObject
@@ -421,7 +462,6 @@ public:
 		, m_hiddenColumns { databaseUser.GetSetting(IDatabaseUser::Key::DisabledBookFields).toString().split(LIST_SEPARATOR, Qt::SkipEmptyParts) }
 	{
 		Setup();
-		m_scrollBarController->SetScrollArea(m_ui.treeView);
 	}
 
 	~Impl() override
@@ -529,6 +569,16 @@ private: // ITreeViewController::IObserver
 
 		if (IsOneOf(item->GetData(MenuItem::Column::Id).toInt(), BooksMenuAction::SendAsArchive, BooksMenuAction::SendAsIs, BooksMenuAction::SendAsScript) && item->GetData(MenuItem::Column::HasError).toInt())
 			m_uiFactory->ShowWarning(Loc::Tr(Loc::Ctx::ERROR_CTX, Loc::BOOKS_EXTRACT_ERROR));
+	}
+
+	QAbstractItemModel* GetModel() const noexcept override
+	{
+		return m_ui.treeView->model();
+	}
+
+	QModelIndex GetCurrentIndex() const noexcept override
+	{
+		return m_ui.treeView->currentIndex();
 	}
 
 private: // ITreeViewDelegate::IObserver
@@ -691,7 +741,6 @@ private:
 		}
 		else
 		{
-			m_languageContextMenu.reset();
 			model->setData({}, !!(m_navigationItemFlags & (IDataItem::Flags::Filtered | IDataItem::Flags::BooksFiltered)), Role::NavigationItemFiltered);
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
@@ -772,7 +821,7 @@ private:
 			std::stack<QModelIndex> stack { { QModelIndex {} } };
 			while (!stack.empty())
 			{
-				const auto parent = std::move(stack.top());
+				const auto parent = stack.top();
 				stack.pop();
 
 				if ((options & hasCollapsedExpanded) == hasCollapsedExpanded)
@@ -880,6 +929,9 @@ private:
 	{
 		m_ui.setupUi(&m_self);
 
+		m_itemViewToolTipper->SetScrollArea(m_ui.treeView);
+		m_scrollBarController->SetScrollArea(m_ui.treeView);
+
 		if (!IsNavigation())
 		{
 			m_booksHeaderView = new HeaderView(*this, m_currentId, &m_self);
@@ -899,8 +951,6 @@ private:
 		m_ui.treeView->setHeaderHidden(IsNavigation());
 		m_ui.treeView->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 		treeViewHeader.setDefaultAlignment(Qt::AlignCenter);
-		m_ui.treeView->viewport()->installEventFilter(m_itemViewToolTipper.get());
-		m_ui.treeView->viewport()->installEventFilter(m_scrollBarController.get());
 
 		SetupNewItemButton();
 
@@ -1186,10 +1236,10 @@ private:
 
 	void CreateHeaderContextMenu(const QPoint& pos)
 	{
-		const auto column      = BookItem::Remap(m_ui.treeView->header()->logicalIndexAt(pos));
-		const auto contextMenu = column == BookItem::Column::Lang ? GetLanguageContextMenu() : GetHeaderContextMenu();
+		const auto modifiers   = QGuiApplication::keyboardModifiers();
+		const auto contextMenu = (modifiers & (Qt::ShiftModifier | Qt::AltModifier | Qt::ControlModifier)) ? GetHeaderContextMenu() : GetFilterContextMenu(pos);
 		contextMenu->setFont(m_self.font());
-		contextMenu->exec(m_ui.treeView->header()->mapToGlobal(pos));
+		contextMenu->exec(QCursor::pos());
 	}
 
 	std::shared_ptr<QMenu> GetHeaderContextMenu()
@@ -1222,52 +1272,37 @@ private:
 		return menu;
 	}
 
-	std::shared_ptr<QMenu> GetLanguageContextMenu()
+	std::shared_ptr<QMenu> GetFilterContextMenu(const QPoint& pos)
 	{
-		if (m_languageContextMenu)
-			return m_languageContextMenu;
+		const auto logicalIndex = m_ui.treeView->header()->logicalIndexAt(pos);
+		const auto column       = BookItem::Remap(logicalIndex);
 
-		const auto languageFilter = m_ui.treeView->model()->data({}, Role::LanguageFilter).toString();
-		auto       languages      = m_ui.treeView->model()->data({}, Role::Languages).toStringList();
-		if (languages.size() < 2)
+		auto& model     = *m_ui.treeView->model();
+		auto  valuesAll = model.data({}, Role::AuthorsAll + column).toStringList();
+		if (valuesAll.size() < 2)
 			return GetHeaderContextMenu();
 
-		m_languageContextMenu = std::make_unique<QMenu>();
-		auto* menuGroup       = new QActionGroup(m_languageContextMenu.get());
+		auto menu = std::make_unique<QMenu>();
 
-		languages.push_front("");
-		auto sortBeginIndex = 1;
+		auto* menuWidget = m_uiFactory->CreateFastFilterWidget(model, column, [this, logicalIndex, column, menu = menu.get()](const bool accepted, QVariantList values) {
+			menu->close();
+			if (!accepted)
+				return;
 
-		if (auto recentLanguage = m_settings->Get(RECENT_LANG_FILTER_KEY).toString(); !recentLanguage.isEmpty() && languages.contains(recentLanguage))
-		{
-			languages.push_front(recentLanguage);
-			sortBeginIndex = 2;
-		}
-
-		std::vector<std::pair<QString, QString>> languageTranslated;
-		languageTranslated.reserve(languages.size());
-		std::ranges::transform(std::move(languages), std::back_inserter(languageTranslated), [translations = GetLanguagesMap()](QString& language) {
-			const auto it         = translations.find(language);
-			auto       translated = it != translations.end() ? Loc::Tr(LANGUAGES_CONTEXT, it->second) : language;
-			return std::make_pair(std::move(language), std::move(translated));
+			std::unordered_set<QVariant, Util::VariantHash> set;
+			std::ranges::move(std::move(values), std::inserter(set, set.end()));
+			m_booksHeaderView->SetFilteredIndex(logicalIndex, !set.empty());
+			m_ui.treeView->model()->setData({}, QVariant::fromValue(&set), Role::AuthorFilter + column);
+			OnCountChanged();
 		});
-		std::ranges::sort(languageTranslated | std::views::drop(sortBeginIndex), {}, [](const auto& item) {
-			return item.second;
-		});
+		menuWidget->setFont(m_self.font());
+		auto action = new QWidgetAction(menu.get());
+		action->setFont(m_self.font());
+		action->setDefaultWidget(menuWidget);
+		menu->addAction(action);
+		menu->setFixedSize(menuWidget->width() + 5, menuWidget->height() + 4);
 
-		for (const auto& [language, translated] : languageTranslated)
-		{
-			auto* action = m_languageContextMenu->addAction(translated, &m_self, [&, language] {
-				m_ui.treeView->model()->setData({}, language, Role::LanguageFilter);
-				OnCountChanged();
-				m_settings->Set(RECENT_LANG_FILTER_KEY, language);
-			});
-			action->setCheckable(true);
-			action->setChecked(language == languageFilter);
-			menuGroup->addAction(action);
-		}
-
-		return m_languageContextMenu;
+		return menu;
 	}
 
 	void OnValueChanged()
@@ -1352,7 +1387,6 @@ private:
 	QString                                                       m_navigationModeName;
 	QString                                                       m_recentMode;
 	QString                                                       m_currentId;
-	std::shared_ptr<QMenu>                                        m_languageContextMenu;
 	bool                                                          m_showRemoved { false };
 	bool                                                          m_restoreBooksLayoutPending { false };
 	QString                                                       m_lastRestoredLayoutKey;

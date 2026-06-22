@@ -166,6 +166,8 @@ public:
 	{
 		m_ui.setupUi(&m_self);
 
+		m_scriptItemViewToolTipper->SetScrollArea(m_ui.viewScript);
+		m_commandItemViewToolTipper->SetScrollArea(m_ui.viewCommand);
 		m_scriptScrollBarController->SetScrollArea(m_ui.viewScript);
 		m_commandScrollBarController->SetScrollArea(m_ui.viewCommand);
 
@@ -201,11 +203,6 @@ public:
 		SetConnections();
 
 		m_ui.viewScript->setCurrentIndex(m_scriptModel->index(0, 1));
-
-		m_ui.viewScript->viewport()->installEventFilter(m_scriptItemViewToolTipper.get());
-		m_ui.viewScript->viewport()->installEventFilter(m_scriptScrollBarController.get());
-		m_ui.viewCommand->viewport()->installEventFilter(m_commandItemViewToolTipper.get());
-		m_ui.viewCommand->viewport()->installEventFilter(m_commandScrollBarController.get());
 
 		LoadGeometry();
 	}

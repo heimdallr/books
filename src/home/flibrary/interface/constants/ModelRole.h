@@ -2,7 +2,11 @@
 
 #include <qnamespace.h>
 
+#include <unordered_set>
+
 #include <QModelIndex>
+
+#include "fnd/algorithm.h"
 
 #include "logic/data/DataItem.h"
 
@@ -23,13 +27,17 @@ struct Role
 		BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 
-			// global
-			Count,
+	// global
+#define BOOKS_COLUMN_ITEM(NAME) NAME##Filter,
+			BOOKS_COLUMN_ITEMS_X_MACRO
+#undef BOOKS_COLUMN_ITEM
+#define BOOKS_COLUMN_ITEM(NAME) NAME##sAll,
+				BOOKS_COLUMN_ITEMS_X_MACRO
+#undef BOOKS_COLUMN_ITEM
+					Count,
 		ChildCount,
 		CheckableColumn,
-		Languages,
 		TextFilter,
-		LanguageFilter,
 		ShowRemovedFilter,
 		NavigationItemFiltered,
 		UniFilterEnabled,
@@ -64,6 +72,10 @@ struct SelectedRequest
 	QModelIndexList* result { nullptr };
 };
 
-}
+using FastFilterItems = std::unordered_set<QVariant, Util::VariantHash>;
+
+} // namespace HomeCompa::Flibrary
 
 Q_DECLARE_METATYPE(HomeCompa::Flibrary::SelectedRequest)
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::FastFilterItems*)
+Q_DECLARE_METATYPE(const HomeCompa::Flibrary::FastFilterItems*)

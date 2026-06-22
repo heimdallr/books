@@ -145,7 +145,8 @@ void CreateSendMenu(const IDataItem::Ptr& root, const ITreeViewController::Reque
 		AddMenuItem(send)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 		for (const auto& script : scripts)
 		{
-			const auto& scriptItem = AddMenuItem(send, script.uid, script.name, BooksMenuAction::SendAsScript);
+			auto        title      = script.name;
+			const auto& scriptItem = AddMenuItem(send, script.uid, title.replace('&', "&&"), BooksMenuAction::SendAsScript);
 			scriptItem->SetData(script.uid, MenuItem::Column::Parameter);
 		}
 	}

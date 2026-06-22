@@ -38,7 +38,6 @@ public:
 		m_model->setData({}, uiFactory.GetAuthorId(), AuthorReviewModelRole::AuthorId);
 
 		m_scrollBarController->SetScrollArea(m_ui.view);
-		m_ui.view->viewport()->installEventFilter(m_scrollBarController.get());
 
 		connect(m_ui.view, &QAbstractItemView::doubleClicked, [this](const QModelIndex& index) {
 			m_bookInteractor->OnDoubleClicked(index.data(AuthorReviewModelRole::BookId).toLongLong());

@@ -347,6 +347,10 @@
         <translation>Папка</translation>
     </message>
     <message>
+        <source>Format</source>
+        <translation>Тип</translation>
+    </message>
+    <message>
         <source>Genre</source>
         <translation>Жанр</translation>
     </message>
@@ -741,6 +745,10 @@
         <translation>Удалить и базу данных коллекции?</translation>
     </message>
     <message>
+        <source>Discard</source>
+        <translation>Отклонить</translation>
+    </message>
+    <message>
         <source>Don&apos;t ask anymore</source>
         <translation>Больше не спрашивать</translation>
     </message>
@@ -753,12 +761,20 @@
         <translation>Похоже, коллекция обновилась. Применить изменения?</translation>
     </message>
     <message>
+        <source>No</source>
+        <translation>Нет</translation>
+    </message>
+    <message>
         <source>No updates found</source>
         <translation>Обновлений не найдено</translation>
     </message>
     <message>
         <source>No write access to %1</source>
         <translation>Нет доступа на запись в %1</translation>
+    </message>
+    <message>
+        <source>Recreate collection</source>
+        <translation>Создать коллекцию заново</translation>
     </message>
     <message>
         <source>The collection was not %1 due to errors. See log.</source>
@@ -768,6 +784,10 @@
         <source>The existing database file will be overwritten. Continue?</source>
         <translation>Существующий файл базы данных будет перезаписан.
 Продолжить?</translation>
+    </message>
+    <message>
+        <source>Yes</source>
+        <translation>Да</translation>
     </message>
     <message>
         <source>created</source>
@@ -783,6 +803,10 @@
     <message>
         <source>Additional info: %1</source>
         <translation>Дополнительно: %1</translation>
+    </message>
+    <message>
+        <source>Archives:</source>
+        <translation>Архивы:</translation>
     </message>
     <message>
         <source>Authors:</source>
@@ -809,12 +833,20 @@
         <translation>Папка: %1</translation>
     </message>
     <message>
+        <source>Groups:</source>
+        <translation>Группы:</translation>
+    </message>
+    <message>
         <source>Index file: %1</source>
         <translation>Индексный файл: %1</translation>
     </message>
     <message>
         <source>Keywords:</source>
         <translation>Ключевые слова:</translation>
+    </message>
+    <message>
+        <source>Languages:</source>
+        <translation>Языки:</translation>
     </message>
     <message>
         <source>Name: %1</source>
@@ -991,6 +1023,25 @@ Restart now?</source>
     <message>
         <source>Save index file</source>
         <translation>Сохранить индексный файл</translation>
+    </message>
+</context>
+<context>
+    <name>FastFilterWidget</name>
+    <message>
+        <source>Invert selection</source>
+        <translation>Инвертировать выделение</translation>
+    </message>
+    <message>
+        <source>Load selection</source>
+        <translation>Загрузить выделение</translation>
+    </message>
+    <message>
+        <source>Save selection</source>
+        <translation>Сохранить выделение</translation>
+    </message>
+    <message>
+        <source>Select all</source>
+        <translation>Выделить всё</translation>
     </message>
 </context>
 <context>
@@ -2622,6 +2673,17 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>HomeCompa::Flibrary::FastFilterWidget::Impl</name>
+    <message>
+        <source>Deselect all</source>
+        <translation>Снять выделение</translation>
+    </message>
+    <message>
+        <source>Select all</source>
+        <translation>Выделить всё</translation>
+    </message>
+</context>
+<context>
     <name>HomeCompa::Flibrary::MigrateWindow</name>
     <message>
         <source>The database migration process is in progress...</source>
@@ -2633,6 +2695,13 @@ Try again?</source>
     <message>
         <source>Affected rows: %1</source>
         <translation>Затронуто строк: %1</translation>
+    </message>
+</context>
+<context>
+    <name>HomeCompa::Flibrary::RangeFilterWidget::Impl</name>
+    <message>
+        <source>%1 kB</source>
+        <translation>%1 Кб</translation>
     </message>
 </context>
 <context>
@@ -4823,6 +4892,10 @@ Try again?</source>
         <translation>Файлы стилей Qt (*.%1 *.dll);;Все файлы (*.*)</translation>
     </message>
     <message>
+        <source>R&amp;ecreate collection</source>
+        <translation>&amp;Пересоздать коллекцию</translation>
+    </message>
+    <message>
         <source>Readers&apos; &amp;Reviews</source>
         <translation>Отзывы &amp;читателей</translation>
     </message>
@@ -4885,6 +4958,10 @@ Try again?</source>
     <message>
         <source>Show &amp;OPDS in browser</source>
         <translation>Показать &amp;OPDS в браузере</translation>
+    </message>
+    <message>
+        <source>Show &amp;statistics..</source>
+        <translation>Показать &amp;статистику...</translation>
     </message>
     <message>
         <source>Show collection s&amp;tatistics</source>
@@ -5254,6 +5331,25 @@ Try again?</source>
     <message>
         <source>Start &amp;transaction</source>
         <translation>Старт &amp;транзакции</translation>
+    </message>
+</context>
+<context>
+    <name>RangeFilterWidget</name>
+    <message>
+        <source> kB</source>
+        <translation> Кб</translation>
+    </message>
+    <message>
+        <source>Load range</source>
+        <translation>Загрузить диапазон</translation>
+    </message>
+    <message>
+        <source>Reset range</source>
+        <translation>Сбросить диапазон</translation>
+    </message>
+    <message>
+        <source>Save range</source>
+        <translation>Сохранить диапазон</translation>
     </message>
 </context>
 <context>

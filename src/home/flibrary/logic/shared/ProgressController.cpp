@@ -71,12 +71,20 @@ private:
 struct ProgressController::Impl final
 	: Observable<IObserver>
 	, ProgressItem::IObserver
+	, std::enable_shared_from_this<Impl>
 {
-	std::atomic_bool                stopped { false };
-	int64_t                         globalMaximum { 0 };
-	std::atomic_int64_t             count { 0 };
-	std::atomic_int64_t             globalValue { 0 };
-	Util::FunctorExecutionForwarder forwarder;
+	std::atomic_bool                 stopped { false };
+	int64_t                          globalMaximum { 0 };
+	std::atomic_int64_t              count { 0 };
+	std::atomic_int64_t              globalValue { 0 };
+	Util::FunctorExecutionForwarder* forwarder { new Util::FunctorExecutionForwarder };
+
+	Impl() = default;
+
+	~Impl() override
+	{
+		forwarder->deleteLater();
+	}
 
 	void OnIncremented(const int64_t value) override
 	{
@@ -84,7 +92,7 @@ struct ProgressController::Impl final
 			return;
 
 		globalValue += value;
-		forwarder.Forward([&] {
+		forwarder->Forward([&] {
 			Perform(&IProgressController::IObserver::OnValueChanged);
 		});
 	}
@@ -94,12 +102,14 @@ struct ProgressController::Impl final
 		if (--count != 0)
 			return;
 
-		forwarder.Forward([&, maximum = globalMaximum, value = globalValue.load()] {
+		forwarder->Forward([&, maximum = globalMaximum, value = globalValue.load(), self = this->shared_from_this()] {
 			globalMaximum -= maximum;
 			globalValue   -= value;
 			Perform(&IProgressController::IObserver::OnStartedChanged);
 		});
 	}
+
+	NON_COPY_MOVABLE(Impl)
 };
 
 ProgressController::ProgressController()
@@ -135,7 +145,7 @@ std::unique_ptr<IProgressController::IProgressItem> ProgressController::Add(cons
 	if (justStarted)
 	{
 		m_impl->stopped = false;
-		m_impl->forwarder.Forward([&] {
+		m_impl->forwarder->Forward([&] {
 			m_impl->Perform(&IObserver::OnStartedChanged);
 		});
 	}

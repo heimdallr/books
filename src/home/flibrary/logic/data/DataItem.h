@@ -242,7 +242,8 @@ class LOGIC_EXPORT BookItem final : public DataItem
 	BOOKS_COLUMN_ITEM(LibID)       \
 	BOOKS_COLUMN_ITEM(Series)      \
 	BOOKS_COLUMN_ITEM(Genre)       \
-	BOOKS_COLUMN_ITEM(AuthorFull)
+	BOOKS_COLUMN_ITEM(AuthorFull)  \
+	BOOKS_COLUMN_ITEM(Format)
 
 	DEFAULT_COPY_MOVABLE(BookItem)
 

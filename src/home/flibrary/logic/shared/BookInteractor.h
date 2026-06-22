@@ -5,6 +5,7 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IReaderController.h"
+#include "interface/logic/IScriptController.h"
 
 #include "BooksContextMenuProvider.h"
 
@@ -23,7 +24,8 @@ public:
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
 		std::shared_ptr<const IReaderController>    readerController,
 		std::shared_ptr<const IDatabaseUser>        databaseUser,
-		std::shared_ptr<const ICollectionProvider>  collectionProvider
+		std::shared_ptr<const ICollectionProvider>  collectionProvider,
+		std::shared_ptr<IScriptControllerProvider>  scriptControllerProvider
 	);
 	~BookInteractor() override;
 

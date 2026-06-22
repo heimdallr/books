@@ -138,12 +138,12 @@ QByteArray Write(const BookInfo& book, const QString& fileName, const size_t n, 
 	{
 		const QStringList authorNames = QStringList() << author->GetRawData(AuthorItem::Column::LastName) << author->GetRawData(AuthorItem::Column::FirstName)
 		                                              << author->GetRawData(AuthorItem::Column::MiddleName);
-		authors << authorNames.join(Util::Fb2InpxParser::NAMES_SEPARATOR) << QString(Util::Fb2InpxParser::LIST_SEPARATOR);
+		authors << authorNames.join(Util::Fb2InpxParser::NAMES_SEPARATOR) << QString(Inpx::LIST_SEPARATOR);
 	}
 	stream.append((authors.join("") + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
 
 	for (const auto& genre : book.genres)
-		stream.append((genre->GetRawData(GenreItem::Column::Fb2Code) + Util::Fb2InpxParser::LIST_SEPARATOR).toUtf8());
+		stream.append((genre->GetRawData(GenreItem::Column::Fb2Code) + Inpx::LIST_SEPARATOR).toUtf8());
 	stream.append(QString(Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
 
 	stream.append((book.book->GetRawData(BookItem::Column::Title) + Util::Fb2InpxParser::FIELDS_SEPARATOR).toUtf8());
@@ -200,7 +200,7 @@ QString Write(
 			std::ranges::transform(it->second, std::back_inserter(result), [&](const auto& id) {
 				const auto itemIt = dictionary.find(id);
 				assert(itemIt != dictionary.end());
-				return f(itemIt->second) + Util::Fb2InpxParser::LIST_SEPARATOR;
+				return f(itemIt->second) + Inpx::LIST_SEPARATOR;
 			});
 		return result;
 	};

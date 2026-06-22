@@ -279,7 +279,8 @@ public:
 		std::shared_ptr<ILineOption>                    lineOption,
 		std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
 		std::shared_ptr<IHotkeyManager>                 hotkeyManager,
-		std::shared_ptr<IRecentOpenBookController>      recentOpenBookController
+		std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
+		std::shared_ptr<Util::ScrollBarController>      scrollBarController
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
@@ -303,6 +304,7 @@ public:
 		, m_alphabetPanel { std::move(alphabetPanel) }
 		, m_hotkeyManager { std::move(hotkeyManager) }
 		, m_recentOpenBookController { std::move(recentOpenBookController) }
+		, m_scrollBarController { std::move(scrollBarController) }
 		, m_navigationViewController { ILogicFactory::Lock(m_logicFactory)->GetTreeViewController(ItemType::Navigation) }
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
 		, m_navigationWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Navigation) }
@@ -462,10 +464,6 @@ private: // ICollectionsObserver
 				m_ui.actionShowLog->trigger();
 		});
 
-		if (running || !m_collectionToRecreate)
-			return;
-
-		RestoreUserData(m_collectionToRecreate->id);
 		m_collectionToRecreate = std::nullopt;
 	}
 
@@ -557,6 +555,16 @@ private: // ITreeViewController::::IObserver
 	{
 	}
 
+	QAbstractItemModel* GetModel() const noexcept override
+	{
+		return nullptr;
+	}
+
+	QModelIndex GetCurrentIndex() const noexcept override
+	{
+		return {};
+	}
+
 private:
 	void Setup()
 	{
@@ -565,6 +573,7 @@ private:
 
 		m_self.setWindowTitle(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION));
 
+		m_scrollBarController->SetScrollArea(m_ui.logView);
 		m_parentWidgetProvider->SetWidget(&m_self);
 
 		m_delayStarter.setSingleShot(true);
@@ -736,8 +745,19 @@ private:
 		connect(m_ui.actionAddNewCollection, &QAction::triggered, &m_self, [this] {
 			m_collectionController->AddCollection({});
 		});
+		connect(m_ui.actionRecreateCollection, &QAction::triggered, &m_self, [this] {
+			m_databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, -1);
+			Reboot();
+		});
 		connect(m_ui.actionRescanCollectionFolder, &QAction::triggered, &m_self, [this] {
 			m_collectionController->RescanCollectionFolder();
+		});
+		connect(m_ui.actionShowCollectionStatisticsDialog, &QAction::triggered, &m_self, [this] {
+			auto stats = m_collectionController->GetCollectionStatistics(*m_databaseUser);
+			std::ranges::transform(stats, stats.begin(), [](const auto& item) {
+				return QString("<tr><td>%1</td></tr>").arg(item);
+			});
+			m_uiFactory->ShowInfo(QString("<table>%1</table>").arg(stats.join('\n')));
 		});
 		connect(m_ui.actionRemoveCollection, &QAction::triggered, &m_self, [this] {
 			m_collectionController->RemoveCollection();
@@ -898,7 +918,7 @@ private:
 				m_ui.actionShowLog->trigger();
 			std::invoke(action, *m_logController);
 		};
-		connect(m_ui.actionShowCollectionStatistics, &QAction::triggered, &m_self, [=] {
+		connect(m_ui.actionShowCollectionStatisticsLog, &QAction::triggered, &m_self, [=] {
 			logAction(&ILogController::ShowCollectionStatistics);
 		});
 		connect(m_ui.actionTestLogColors, &QAction::triggered, &m_self, [=] {
@@ -1398,7 +1418,8 @@ private:
 		for (const auto& collection : m_collectionController->GetCollections())
 		{
 			const auto active = collection->id == activeCollection.id;
-			auto*      action = m_ui.menuSelectCollection->addAction(collection->name);
+			auto       title  = collection->name;
+			auto*      action = m_ui.menuSelectCollection->addAction(title.replace('&', "&&"));
 			connect(action, &QAction::triggered, &m_self, [&, id = collection->id] {
 				m_collectionController->SetActiveCollection(id);
 			});
@@ -1461,6 +1482,7 @@ private:
 
 			if (!m_ui.actionShowLog->isChecked())
 				m_ui.actionShowLog->trigger();
+
 			return m_collectionController->AddCollection(commandLine.GetInpxDir());
 		}
 
@@ -1472,8 +1494,11 @@ private:
 
 		auto& collectionUpdateCheckerRef = *collectionUpdateChecker;
 		collectionUpdateCheckerRef.CheckForUpdate([this, collectionUpdateChecker = std::move(collectionUpdateChecker)](const bool result, const Collection& updatedCollection) mutable {
-			if (result)
-				m_collectionController->OnInpxUpdateChecked(updatedCollection);
+			if (result && m_collectionController->OnInpxUpdateChecked(updatedCollection))
+			{
+				m_databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, -1);
+				return Reboot();
+			}
 
 			collectionUpdateChecker.reset();
 		});
@@ -1613,6 +1638,7 @@ private:
 	PropagateConstPtr<IAlphabetPanel, std::shared_ptr>            m_alphabetPanel;
 	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
 	PropagateConstPtr<IRecentOpenBookController, std::shared_ptr> m_recentOpenBookController;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
 
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationViewController;
 
@@ -1671,6 +1697,7 @@ MainWindow::MainWindow(
 	std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
 	std::shared_ptr<IHotkeyManager>                 hotkeyManager,
 	std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
+	std::shared_ptr<Util::ScrollBarController>      scrollBarController,
 	QWidget*                                        parent
 )
 	: QMainWindow(parent)
@@ -1697,7 +1724,8 @@ MainWindow::MainWindow(
 		  std::move(lineOption),
 		  std::move(alphabetPanel),
 		  std::move(hotkeyManager),
-		  std::move(recentOpenBookController)
+		  std::move(recentOpenBookController),
+		  std::move(scrollBarController)
 	  )
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
