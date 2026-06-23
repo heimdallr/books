@@ -11,6 +11,7 @@
 #include <QTimer>
 
 #include "fnd/FindPair.h"
+#include "fnd/SignalBlocker.h"
 #include "fnd/algorithm.h"
 
 #include "interface/constants/ModelRole.h"
@@ -405,10 +406,7 @@ public:
 		});
 		connect(m_model.get(), &QAbstractItemModel::dataChanged, this, [this](const auto&, const auto&, const QVector<int>& roles) {
 			if (roles.contains(Qt::CheckStateRole))
-			{
-				const QSignalBlocker signalBlocked(m_ui.checkBoxAll);
-				m_ui.checkBoxAll->setCheckState(m_model->data({}, ModelRole::AllSelected).value<Qt::CheckState>());
-			}
+				SignalBlocker(m_ui.checkBoxAll)->setCheckState(m_model->data({}, ModelRole::AllSelected).value<Qt::CheckState>());
 		});
 		connect(m_ui.btnLoad, &QAbstractButton::clicked, this, &Impl::OnLoadClicked);
 		connect(m_ui.btnSave, &QAbstractButton::clicked, this, &Impl::OnSaveClicked);
