@@ -25,4 +25,4 @@ void EnumerateLeafs(const QAbstractItemModel& model, const QModelIndexList& inde
 	}
 }
 
-} // namespace HomeCompa::Flibrary
+} // namespace HomeCompa::Flibrary::ModelUtil
