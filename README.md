@@ -70,6 +70,7 @@ cmake --install .
 
 #### Проблемы и решения
 * При использовании Qt, не собранного статически с libjpeg, возможна runtime-ошибка `qt.gui.imageio.jpeg: Wrong JPEG library version: library is 90, caller expects 62`. Некоторым помогает добавление в начало `start.sh` указания `LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjpeg.so.62.x.y`, где x.y - ваша версия системной libjpeg.so. Спасибо уважаемому Simply234 за этот workaround.  
+* Ошибка munmap_chunk(): invalid pointer при вызове окна выбора каталога. В start.sh добавил строку export QT_QPA_PLATFORMTHEME=generic - тема qt стала по умолчанию и окно выбора каталога перестало падать. К сожалению тему теперь не изменить. Linux Mint Mate 22.3 Zena.  
 
 [^4]: Ну ладно, Qt 6.11 уже есть в conan'е. Но всё равно лучше собрать самостоятельно, с патчами src/home/script/conan/patch/qt. И слинковать с icu из conan.
 [^5]: Если есть необходимость запуска на Windows7, можно и с Qt5. Я собирал с 5.15.16
