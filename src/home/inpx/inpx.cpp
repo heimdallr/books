@@ -782,7 +782,7 @@ void WriteDatabaseVersion(DB::IDatabase& db, const QString& statement)
 }
 
 template <typename Container, typename Functor>
-size_t StoreRange(DB::IDatabase& db, const QString& process, const std::string_view query, const Container& container, Functor&& f, const std::string_view queryAfter = {})
+size_t StoreRange(DB::IDatabase& db, const QString& process, const std::string_view query, Container&& container, Functor&& f, const std::string_view queryAfter = {})
 {
 	auto impl = [&] {
 		const auto rowsTotal = std::size(container);
@@ -799,16 +799,18 @@ size_t StoreRange(DB::IDatabase& db, const QString& process, const std::string_v
 			PLOGD << std::format("{0} rows inserted ({1}%)", rowsInserted, rowsInserted * 100 / rowsTotal);
 		};
 
-		const auto result =
-			std::accumulate(container.cbegin(), container.cend(), static_cast<size_t>(0), [f = std::forward<Functor>(f), &db, &cmd = *command, &rowsInserted, &log](const size_t init, const auto& value) {
-				if (!f(cmd, value))
-					return init + 1;
+		size_t result = 0;
+		auto   store  = [f = std::forward<Functor>(f), &cmd = *command, &rowsInserted, &log](const auto& value) mutable {
+			if (!f(cmd, value))
+				return false;
 
-				if (++rowsInserted % LOG_INTERVAL == 0)
-					log();
+			if (++rowsInserted % LOG_INTERVAL == 0)
+				log();
 
-				return init;
-			});
+			return true;
+		};
+		for (const auto& value : container)
+			result += store(value) ? 0 : 1;
 
 		log();
 		if (rowsTotal != rowsInserted)

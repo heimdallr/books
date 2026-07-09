@@ -101,7 +101,7 @@ set(QtModules Core Gui Widgets Xml Network Svg Concurrent)
 if(QT6)
 	list(APPEND QtModules HttpServer WebSockets)
 endif()
-if(NOT WIN32)
+if(${CMAKE_SYSTEM_NAME} STREQUAL Linux)
 	list(APPEND QtModules DBus WaylandClient)
 endif()
 
@@ -124,6 +124,10 @@ elseif(QT6)
 			QModernWindowsStyle
 			QSchannelBackend
 		)
+	elseif(APPLE)
+		list(APPEND QtPlugins
+			QCocoaIntegration
+		)
 	else()
 		list(APPEND QtPlugins
 			QWaylandIntegration QXcbIntegration
@@ -142,6 +146,9 @@ find_package(Qt${QT_MAJOR_VERSION} REQUIRED COMPONENTS ${QtModules})
 set(BIT7Z_AUTO_FORMAT ON CACHE BOOL "enable auto format support" FORCE)
 set(BIT7Z_USE_NATIVE_STRING ON CACHE BOOL "enable native string" FORCE)
 set(BIT7Z_USE_STD_BYTE ON CACHE BOOL "enable std::byte" FORCE)
+if(APPLE)
+	set(BIT7Z_USE_LEGACY_IUNKNOWN ON CACHE BOOL "enable p7zip-compatible IUnknown" FORCE)
+endif()
 add_subdirectory(${EXT_ROOT}/bit7z)
 add_subdirectory(${EXT_ROOT}/libmobi)
 if(MSVC)

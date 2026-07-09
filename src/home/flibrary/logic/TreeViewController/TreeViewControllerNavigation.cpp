@@ -47,8 +47,6 @@ constexpr auto FILTER_SETTINGS   = QT_TRANSLATE_NOOP("Navigation", "Filter setti
 using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr) const;
 using Callback     = std::function<void()>;
 
-TR_DEF
-
 template <typename T>
 std::unordered_set<T> GetSelected(const QModelIndex& index, const QList<QModelIndex>& indexList)
 {
@@ -842,7 +840,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 		  std::move(filterController)
 	  )
 {
-	static_cast<ITreeViewController*>(this)->RegisterObserver(modelProvider.get());
+	AbstractTreeViewController::RegisterObserver(modelProvider.get());
 	Setup();
 
 	m_impl->dataProvider->SetNavigationRequestCallback([&](IDataItem::Ptr data) {
@@ -858,7 +856,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 TreeViewControllerNavigation::~TreeViewControllerNavigation()
 {
 	if (auto modelProvider = m_modelProvider.lock())
-		static_cast<ITreeViewController*>(this)->UnregisterObserver(modelProvider.get());
+		AbstractTreeViewController::UnregisterObserver(modelProvider.get());
 	PLOGV << "TreeViewControllerNavigation destroyed";
 }
 

@@ -392,7 +392,7 @@ public:
 		createCoverButton(":/icons/right.svg", m_ui.actionImageNext);
 
 		m_ui.cover->addActions({ m_ui.actionImagePrev, m_ui.actionImageNext, m_ui.actionImageHome });
-		connect(m_ui.actionImagePrev, &QAction::triggered, [this, onCoverClicked] {
+		connect(m_ui.actionImagePrev, &QAction::triggered, [onCoverClicked] {
 			onCoverClicked(QPoint(1, 1));
 		});
 		connect(m_ui.actionImageNext, &QAction::triggered, [this, onCoverClicked] {
