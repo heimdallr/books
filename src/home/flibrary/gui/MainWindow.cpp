@@ -831,11 +831,11 @@ private:
 				action->setChecked(checked);
 			}
 		};
-		m_enableAllJokes = m_ui.menuJokes->addAction(Tr(ENABLE_ALL), [this, checkAll, mayBeChecked] {
+		m_enableAllJokes = m_ui.menuJokes->addAction(Tr(ENABLE_ALL), [checkAll, mayBeChecked] {
 			checkAll(mayBeChecked, true);
 		});
 		m_enableAllJokes->setObjectName(ENABLE_ALL);
-		m_disableAllJokes = m_ui.menuJokes->addAction(Tr(DISABLE_ALL), [this, checkAll, mayBeUnchecked] {
+		m_disableAllJokes = m_ui.menuJokes->addAction(Tr(DISABLE_ALL), [checkAll, mayBeUnchecked] {
 			checkAll(mayBeUnchecked, false);
 		});
 		m_disableAllJokes->setObjectName(DISABLE_ALL);

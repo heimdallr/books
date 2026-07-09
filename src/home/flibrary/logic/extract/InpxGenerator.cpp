@@ -522,8 +522,6 @@ private:
 		++m_unpackTaskCount;
 		auto taskName = books.front().book->GetRawData(BookItem::Column::Folder).toStdString();
 		return Util::IExecutor::Task { std::move(taskName), [this, books = std::move(books)]() mutable {
-										  bool       error = false;
-										  QByteArray inpx;
 										  try
 										  {
 											  Unpack(m_archiveFolder, m_tmpFolder, books, m_idToFileName, *this, *m_settingsStub);
@@ -531,9 +529,8 @@ private:
 										  catch (const std::exception& ex)
 										  {
 											  PLOGE << ex.what();
-											  error = true;
 										  }
-										  return [this, error, inpx = std::move(inpx), books = std::move(books)](const size_t) mutable {
+										  return [this, books = std::move(books)](const size_t) mutable {
 											  --m_unpackTaskCount;
 											  if (m_progressItem->IsStopped())
 												  return OnStopped();
