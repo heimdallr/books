@@ -27,8 +27,8 @@ std::unique_ptr<Platform::DyLib> QssStyleApplier::Set(QApplication& app) const
 {
 	const auto fileName = m_settings->Get(THEME_FILE_KEY).toString();
 
-	auto stylesheet = ReadStyleSheet(fileName);
-	stylesheet.append(ReadStyleSheet(STYLE_FILE_NAME));
+	auto stylesheet = ReadStyleSheet(STYLE_FILE_NAME);
+	stylesheet.append(ReadStyleSheet(fileName));
 	app.setStyleSheet(stylesheet);
 
 	return {};

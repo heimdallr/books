@@ -641,13 +641,15 @@ private:
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 		));
 		auto* menuBar              = new QWidget(&m_self);
+		menuBar->setObjectName("topBar");
 		m_searchBooksByTitleLayout = new QHBoxLayout(menuBar);
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 		m_searchBooksByTitleLayout->addWidget(m_self.menuBar());
 		m_searchBooksByTitleLayout->addItem((m_searchBooksByTitleLeft = new QSpacerItem(72, 20, QSizePolicy::Fixed)));
 		m_searchBooksByTitleLayout->addWidget(m_ui.lineEditBookTitleToSearch);
 		m_searchBooksByTitleLayout->addItem(new QSpacerItem(72, 20, QSizePolicy::Expanding));
-		m_searchBooksByTitleLayout->setContentsMargins(0, 0, 0, 0);
+		m_searchBooksByTitleLayout->setContentsMargins(8, 6, 8, 6);
+		m_searchBooksByTitleLayout->setSpacing(6);
 		m_self.setMenuWidget(menuBar);
 	}
 

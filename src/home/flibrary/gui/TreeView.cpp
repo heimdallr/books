@@ -949,6 +949,10 @@ private:
 	void Setup()
 	{
 		m_ui.setupUi(&m_self);
+		m_self.setProperty("navigationPane", IsNavigation());
+		m_ui.treeView->setProperty("navigationPane", IsNavigation());
+		m_ui.treeView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+		m_ui.treeView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
 
 		m_itemViewToolTipper->SetScrollArea(m_ui.treeView);
 		m_scrollBarController->SetScrollArea(m_ui.treeView);
@@ -971,7 +975,7 @@ private:
 		auto& treeViewHeader = *m_ui.treeView->header();
 		m_ui.treeView->setHeaderHidden(IsNavigation());
 		m_ui.treeView->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
-		treeViewHeader.setDefaultAlignment(Qt::AlignCenter);
+		treeViewHeader.setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
 
 		SetupNewItemButton();
 

@@ -1,5 +1,6 @@
 #include "ColorSchemeApplier.h"
 
+#include <QApplication>
 #include <QGuiApplication>
 #include <QPalette>
 #include <QStyleHints>
@@ -87,7 +88,9 @@ std::pair<QString, QString> ColorSchemeApplier::GetChecked() const
 	return std::make_pair(m_settings->Get(COLOR_SCHEME_KEY, APP_COLOR_SCHEME_DEFAULT), QString {});
 }
 
-std::unique_ptr<Platform::DyLib> ColorSchemeApplier::Set(QApplication&) const
+std::unique_ptr<Platform::DyLib> ColorSchemeApplier::Set(QApplication& app) const
 {
-	return ColorSchemeApplierSet(*m_settings);
+	auto result = ColorSchemeApplierSet(*m_settings);
+	app.setStyleSheet(app.styleSheet());
+	return result;
 }

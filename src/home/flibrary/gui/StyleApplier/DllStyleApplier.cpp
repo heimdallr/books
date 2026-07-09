@@ -37,8 +37,8 @@ std::unique_ptr<Platform::DyLib> DllStyleApplier::Set(QApplication& app) const
 	}
 
 	const auto qssName    = m_settings->Get(THEME_NAME_KEY).toString();
-	auto       stylesheet = ReadStyleSheet(qssName);
-	stylesheet.append(ReadStyleSheet(STYLE_FILE_NAME));
+	auto       stylesheet = ReadStyleSheet(STYLE_FILE_NAME);
+	stylesheet.append(ReadStyleSheet(qssName));
 	app.setStyleSheet(stylesheet);
 
 	return result;
