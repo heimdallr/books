@@ -1179,15 +1179,18 @@ private:
 		{
 			for (auto i = 0, sz = header->count(); i < sz; ++i)
 			{
-				header->showSection(i);
-				header->resizeSection(i, header->minimumSectionSize());
+				const auto name   = header->model()->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
+				const auto hidden = m_hiddenColumns.contains(name, Qt::CaseInsensitive);
+				header->setSectionHidden(i, hidden);
+				if (!hidden)
+					header->resizeSection(i, std::max(header->defaultSectionSize(), header->sectionSizeHint(i)));
 			}
 			return;
 		}
 
 		for (const auto [columnInfo, logicalIndex] : std::views::zip(columnInfoList, std::views::iota(0)))
 		{
-			header->resizeSection(logicalIndex, std::max(columnInfo.width, header->minimumSectionSize()));
+			header->resizeSection(logicalIndex, std::max(columnInfo.width, header->sectionSizeHint(logicalIndex)));
 			columnInfo.hidden ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
 		}
 
