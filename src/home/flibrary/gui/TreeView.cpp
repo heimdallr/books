@@ -494,6 +494,24 @@ public:
 		return m_ui.treeView;
 	}
 
+	void SetMode(const int mode, const QString& id)
+	{
+		assert(IsNavigation());
+		const auto modeIndex = m_ui.cbMode->findData(mode, Qt::UserRole + 1);
+		if (modeIndex < 0)
+			return;
+
+		if (m_controller->GetModeIndex() != mode)
+			m_ui.cbMode->setCurrentIndex(modeIndex);
+
+		m_currentId = id;
+		m_settings->Set(GetRecentIdKey(), id);
+
+		const auto& model = *m_ui.treeView->model();
+		if (const auto matched = model.match(model.index(0, 0), Role::Id, id, 1, Qt::MatchFlag::MatchExactly | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
+			m_ui.treeView->setCurrentIndex(matched.front());
+	}
+
 	void OnBookTitleToSearchVisibleChanged() const
 	{
 		emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.value));
@@ -1447,6 +1465,11 @@ void TreeView::ShowRemoved(const bool showRemoved)
 QAbstractItemView* TreeView::GetView() const
 {
 	return m_impl->GetView();
+}
+
+void TreeView::SetMode(const int mode, const QString& id)
+{
+	m_impl->SetMode(mode, id);
 }
 
 void TreeView::OnBookTitleToSearchVisibleChanged() const
