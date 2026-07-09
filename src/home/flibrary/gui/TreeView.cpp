@@ -7,6 +7,7 @@
 
 #include <QActionGroup>
 #include <QClipboard>
+#include <QHash>
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
@@ -64,6 +65,21 @@ constexpr auto HASH_CONTEXT_MENU_ENABLED          = "Preferences/Books/ContextMe
 constexpr auto LAST                               = "Last";
 
 constexpr auto CB_MODE_ID_ROLE = Qt::UserRole + 1;
+
+int GetMinimumBookSectionWidth(const QHeaderView& header, const int logicalIndex)
+{
+	static const QHash<QString, int> minimumWidths {
+		{   "Author", 180 },
+		{    "Title", 260 },
+		{   "Series", 160 },
+		{    "Genre", 200 },
+		{   "Folder", 120 },
+		{ "FileName", 130 },
+	};
+
+	const auto name = header.model()->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
+	return std::max(header.sectionSizeHint(logicalIndex), minimumWidths.value(name));
+}
 
 TR_DEF
 
@@ -953,6 +969,21 @@ private:
 		m_ui.treeView->setProperty("navigationPane", IsNavigation());
 		m_ui.treeView->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
 		m_ui.treeView->setHorizontalScrollMode(QAbstractItemView::ScrollPerPixel);
+		m_ui.horizontalLayout->setHorizontalSpacing(6);
+		m_ui.horizontalLayout->setVerticalSpacing(6);
+		if (IsNavigation())
+		{
+			m_ui.horizontalLayout->removeWidget(m_ui.value);
+			m_ui.horizontalLayout->removeWidget(m_ui.lblCount);
+			m_ui.horizontalLayout->addWidget(m_ui.lblCount, 0, 2, Qt::AlignRight | Qt::AlignVCenter);
+			m_ui.horizontalLayout->addWidget(m_ui.value, 1, 0, 1, 3);
+			m_ui.horizontalLayout->setColumnStretch(0, 1);
+			m_ui.cbMode->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
+		}
+		else
+		{
+			m_ui.horizontalLayout->setColumnStretch(2, 1);
+		}
 
 		m_itemViewToolTipper->SetScrollArea(m_ui.treeView);
 		m_scrollBarController->SetScrollArea(m_ui.treeView);
@@ -1208,14 +1239,14 @@ private:
 				const auto hidden = m_hiddenColumns.contains(name, Qt::CaseInsensitive);
 				header->setSectionHidden(i, hidden);
 				if (!hidden)
-					header->resizeSection(i, std::max(header->defaultSectionSize(), header->sectionSizeHint(i)));
+					header->resizeSection(i, std::max(header->defaultSectionSize(), GetMinimumBookSectionWidth(*header, i)));
 			}
 			return;
 		}
 
 		for (const auto [columnInfo, logicalIndex] : std::views::zip(columnInfoList, std::views::iota(0)))
 		{
-			header->resizeSection(logicalIndex, std::max(columnInfo.width, header->sectionSizeHint(logicalIndex)));
+			header->resizeSection(logicalIndex, std::max(columnInfo.width, GetMinimumBookSectionWidth(*header, logicalIndex)));
 			columnInfo.hidden ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
 		}
 

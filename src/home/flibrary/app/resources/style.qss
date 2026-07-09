@@ -10,7 +10,7 @@ QWidget#topBar {
 
 QWidget#leftWidget,
 QWidget[navigationPane="true"] {
-  background-color: palette(alternate-base);
+  background-color: palette(window);
 }
 
 QWidget#rightWidget,
@@ -76,6 +76,21 @@ QComboBox#cbValueMode::drop-down {
 QComboBox#cbValueMode::down-arrow {
   image: none;
   border-width: 0;
+}
+
+QComboBox#cbMode,
+QComboBox#cbMode:hover,
+QComboBox#cbMode:focus {
+  min-height: 28px;
+  padding: 0 24px 0 2px;
+  background-color: transparent;
+  border: 0;
+  border-radius: 6px;
+  font-weight: 600;
+}
+
+QComboBox#cbMode:hover {
+  background-color: palette(midlight);
 }
 
 QPushButton {
@@ -186,7 +201,7 @@ QListView {
 }
 
 QTreeView[navigationPane="true"] {
-  background-color: palette(alternate-base);
+  background-color: palette(window);
 }
 
 QTreeView::item,
@@ -353,8 +368,25 @@ QTreeView#content {
   border: 0;
 }
 
+QLabel#lblCount {
+  padding: 0 4px;
+  color: palette(mid);
+}
+
+QLabel#bookTitle {
+  padding: 0;
+  color: palette(text);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+QLabel#bookSubtitle {
+  padding: 0 0 8px 0;
+  color: palette(mid);
+}
+
 QLabel#info {
-  padding: 10px 14px;
+  padding: 0;
 }
 
 QLabel#lblError {

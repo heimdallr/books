@@ -1,5 +1,6 @@
 #include "TreeViewDelegateBooks.h"
 
+#include <algorithm>
 #include <array>
 #include <ranges>
 
@@ -264,6 +265,13 @@ private: // QStyledItemDelegate
 		return m_textDelegate(value);
 	}
 
+	QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override
+	{
+		auto size = QStyledItemDelegate::sizeHint(option, index);
+		size.setHeight(std::max(size.height(), option.fontMetrics.height() + 12));
+		return size;
+	}
+
 private:
 	void RenderBooks(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const
 	{
@@ -297,6 +305,13 @@ private:
 		ValueGuard  valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
 		const auto* renderer = FindSecond(m_rateRenderers, column, m_defaultRenderer.get());
 		renderer->Render(painter, o, index);
+
+		auto separator = o.palette.color(QPalette::ColorRole::Mid);
+		separator.setAlpha(72);
+		painter->save();
+		painter->setPen(separator);
+		painter->drawLine(o.rect.bottomLeft(), o.rect.bottomRight());
+		painter->restore();
 	}
 
 private:

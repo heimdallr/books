@@ -1,5 +1,7 @@
 #include "TreeViewDelegateNavigation.h"
 
+#include <algorithm>
+
 #include <QAbstractItemView>
 #include <QHBoxLayout>
 #include <QItemSelectionModel>
@@ -89,6 +91,13 @@ private: // QStyledItemDelegate
 		auto rect = option.rect;
 		rect.setLeft(rect.right() - rect.height());
 		editor->setGeometry(rect);
+	}
+
+	QSize sizeHint(const QStyleOptionViewItem& option, const QModelIndex& index) const override
+	{
+		auto size = QStyledItemDelegate::sizeHint(option, index);
+		size.setHeight(std::max(size.height(), option.fontMetrics.height() + 10));
+		return size;
 	}
 
 private:

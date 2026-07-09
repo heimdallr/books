@@ -2,6 +2,7 @@
 
 #include "AnnotationWidget.h"
 
+#include <algorithm>
 #include <ranges>
 
 #include <QBuffer>
@@ -11,6 +12,7 @@
 #include <QMenu>
 #include <QPainter>
 #include <QPainterPath>
+#include <QPalette>
 #include <QSvgRenderer>
 #include <QTemporaryDir>
 #include <QTimer>
@@ -25,10 +27,12 @@
 #include "interface/logic/IDataItem.h"
 
 #include "gutil/util.h"
+#include "logic/data/DataItem.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
 #include "util/ImageRestore.h"
 #include "util/ImageUtil.h"
+#include "util/language.h"
 
 #include "log.h"
 
@@ -238,6 +242,9 @@ public:
 
 		m_ui.cover->setStyleSheet("background-color: white;");
 
+		connect(m_ui.bookSubtitle, &QLabel::linkActivated, m_ui.bookSubtitle, [&](const QString& link) {
+			OnLinkActivated(link);
+		});
 		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&](const QString& link) {
 			OnLinkActivated(link);
 		});
@@ -442,6 +449,8 @@ private: // IAnnotationController::IObserver
 		m_ui.coverArea->setVisible(false);
 		m_ui.cover->setPixmap({});
 		m_ui.cover->setCursor(Qt::ArrowCursor);
+		m_ui.bookTitle->setText({});
+		m_ui.bookSubtitle->setText({});
 		m_ui.info->setText({});
 		m_covers.clear();
 		m_content.clear();
@@ -453,6 +462,9 @@ private: // IAnnotationController::IObserver
 
 	void OnAnnotationChanged(const IAnnotationController::IDataProvider& dataProvider) override
 	{
+		const auto& book = dataProvider.GetBook();
+		m_ui.bookTitle->setText(book.GetRawData(BookItem::Column::Title));
+		m_ui.bookSubtitle->setText(CreateBookSubtitle(dataProvider));
 		auto annotation = m_annotationController->CreateAnnotation(dataProvider, *this);
 
 		m_ui.info->setText(annotation);
@@ -508,6 +520,56 @@ private: // IAnnotationController::IObserver
 	}
 
 private: // IAnnotationController::IUrlGenerator
+	void Add(const Section section, QString& text, const QString& str, const char* pattern = "%1") const override
+	{
+		if (str.isEmpty() || section == Section::Title)
+			return;
+
+		switch (section)
+		{
+			case Section::UrlTable:
+			case Section::Translators:
+			case Section::BookInfo:
+			case Section::ExportStatistics:
+			case Section::Reviews:
+				text.append(str);
+				return;
+
+			default:
+				break;
+		}
+
+		IAnnotationController::IStrategy::Add(section, text, str, pattern);
+	}
+
+	QString AddTableRow(const char* name, const QString& value) const override
+	{
+		const auto key = QString::fromUtf8(name);
+		if (key == Loc::AUTHORS || key == Loc::SERIES || key == Loc::PUBLISH_YEAR)
+			return {};
+
+		const auto secondaryColor = m_ui.info->palette().color(QPalette::ColorRole::PlaceholderText).name();
+		return QString(R"(<tr><td style="vertical-align:top; padding:0 20px 7px 0; color:%1;">%2</td><td style="padding:0 0 7px 0;">%3</td></tr>)")
+		    .arg(secondaryColor, Loc::Tr(CONTEXT, name), value);
+	}
+
+	QString AddTableRow(const QStringList& values) const override
+	{
+		QString row("<tr>");
+		for (const auto& value : values)
+			row.append(QString(R"(<td style="vertical-align:top; padding:0 20px 8px 0;">%1</td>)").arg(value));
+		return row.append("</tr>");
+	}
+
+	QString TableRowsToString(const QStringList& values) const override
+	{
+		QStringList rows;
+		std::ranges::copy_if(values, std::back_inserter(rows), [](const QString& value) {
+			return !value.isEmpty();
+		});
+		return rows.isEmpty() ? QString {} : QString("<table cellspacing=\"0\" cellpadding=\"0\" style=\"margin-bottom:10px;\">%1</table>").arg(rows.join('\n'));
+	}
+
 	QString GenerateUrl(const char* type, const QString& id, const QString& str, const bool textMode) const override
 	{
 		if (str.isEmpty())
@@ -529,6 +591,32 @@ private: // IAnnotationController::IUrlGenerator
 	}
 
 private:
+	QString CreateBookSubtitle(const IAnnotationController::IDataProvider& dataProvider) const
+	{
+		const auto createLinks = [this](const char* type, const IDataItem& parent, const bool authors) {
+			QStringList links;
+			for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
+			{
+				const auto item = parent.GetChild(i);
+				auto       title = item->GetData(DataItem::Column::Title);
+				if (authors)
+				{
+					title = item->GetData(AuthorItem::Column::LastName);
+					AppendTitle(title, item->GetData(AuthorItem::Column::FirstName));
+					AppendTitle(title, item->GetData(AuthorItem::Column::MiddleName));
+				}
+				links << GenerateUrl(type, item->GetId(), title, false);
+			}
+			return links.join(", ");
+		};
+
+		QStringList parts;
+		parts << createLinks(Loc::AUTHORS, dataProvider.GetAuthors(), true) << createLinks(Loc::SERIES, dataProvider.GetSeries(), false)
+		      << dataProvider.GetBook().GetRawData(BookItem::Column::Year) << dataProvider.GetBook().GetRawData(BookItem::Column::Format);
+		parts.removeAll(QString {});
+		return parts.join(" &nbsp;&middot;&nbsp; ");
+	}
+
 	void OnResize()
 	{
 		m_ui.coverArea->setVisible(m_showCover);
