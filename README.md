@@ -4,7 +4,6 @@
 [![CMake](https://img.shields.io/badge/CMake-%23008FBA.svg?logo=cmake&logoColor=white)](https://cmake.org/)
 [![Qt](https://img.shields.io/badge/Qt-%23217346.svg?logo=Qt&logoColor=white)](https://www.qt.io/)
 [![SQLite](https://img.shields.io/badge/sqlite-%2307405e.svg?logo=sqlite&logoColor=white)](https://sqlite.org/)
-[![Visual Studio](https://img.shields.io/badge/Visual%20Studio-5C2D91.svg?logo=visual-studio&logoColor=white)](https://visualstudio.microsoft.com/)
 [![Windows](https://img.shields.io/badge/-Windows-6E46A2.svg?logo=data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA0ODc1IDQ4NzUiPjxwYXRoIGZpbGw9IiNmZmYiIGQ9Ik0wIDBoMjMxMXYyMzEwSDB6bTI1NjQgMGgyMzExdjIzMTBIMjU2NHpNMCAyNTY0aDIzMTF2MjMxMUgwem0yNTY0IDBoMjMxMXYyMzExSDI1NjQiLz48L3N2Zz4=)](https://www.microsoft.com/en-us/windows/windows-11)
 [![Linux](https://img.shields.io/badge/-Linux-ad3a90.svg?style=flat&logo=linux&logoColor=white)](https://ubuntu.com/)
 [![macOS](https://img.shields.io/badge/-macOS-000000.svg?logo=apple&logoColor=white)](https://www.apple.com/macos/)
@@ -33,7 +32,10 @@ git clone https://github.com/heimdallr/books.git --recursive
 * Qt6 (6.10.0 минимум, но лучше 6.11) [^4] [^5]  
 * 7zip  
 
+<br/>
+
 ### Windows  
+<hr/>
 Проверялось на Windows 10 и 11, компилятор от MS в средах MSVS2022 и QtCreator
 
 #### Добавляем в PATH пути к: 
@@ -52,7 +54,10 @@ git clone https://github.com/heimdallr/books.git --recursive
 * Можно запустить батник build.bat. Если окружение настроено правильно, то в папке build/installer будут собраны инсталляторы и архив портабельной версии программы.  
 * Можно открыть CMakeLists.txt в QtCreator  
 
+<br/>
+
 ### macOS
+<hr/>
 Скрипт `build-mac.sh` собирает `FLibrary.app`, добавляет HD-иконку, раскладывает Qt/framework зависимости внутрь bundle, подписывает приложение ad-hoc подписью и собирает DMG с `FLibrary.app` и ссылкой `Applications` для установки drag-and-drop.
 
 #### Устанавливаем зависимости
@@ -152,12 +157,15 @@ codesign --sign -
 
 Этого достаточно для локальной проверки bundle, но для публичного релиза через Gatekeeper нужен Developer ID certificate и notarization. Это отдельный release step, не выполняемый `build-mac.sh`.
 
-#### Частые проблемы
+#### Проблемы и решения
 * `missing command: rsvg-convert` - установите `librsvg`: `brew install librsvg`.
 * `skipping x86_64: Qt with x86_64 slice was not found` - установите Intel Homebrew в `/usr/local` и поставьте `x86_64` Qt/p7zip, либо укажите `QT_PREFIX_X86_64` и `P7ZIP_DIR_X86_64`.
 * `Finder layout was skipped` - на headless/CI окружениях Finder может не сохранить фон и позиции иконок. Это warning: DMG все равно содержит `FLibrary.app` и `Applications` symlink.
 
+<br/>
+
 ### Linux
+<hr/>
 Проверялось на Ubuntu 24.04, компилировалось gcc 15.2, 16.1
 
 ##### Убеждаемся в наличии gcc с поддержкой c++23
