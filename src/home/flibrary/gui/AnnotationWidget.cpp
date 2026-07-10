@@ -17,6 +17,7 @@
 #include <QTemporaryDir>
 #include <QTimer>
 #include <QToolButton>
+#include <QUrl>
 
 #include "fnd/FindPair.h"
 
@@ -268,9 +269,24 @@ public:
 			PLOGI_IF(!link.isEmpty()) << link;
 		});
 
-		const auto onCoverClicked = [this](const QPoint& pos) {
-			if (m_covers.size() < 2)
+		const auto openImage = [this] {
+			if (m_covers.empty() || m_currentCoverIndex >= m_covers.size())
 				return;
+
+			const auto& [coverName, bytes] = m_covers[m_currentCoverIndex];
+			auto name                      = coverName.isEmpty() ? QStringLiteral("cover") : coverName;
+			auto temporaryDir              = m_logicFactory.lock()->CreateTemporaryDir();
+			auto path                      = temporaryDir->filePath(name);
+
+			if (!SaveImage(path, bytes))
+				return m_uiFactory->ShowError(Tr(CANNOT_SAVE_IMAGE).arg(path));
+			if (!QDesktopServices::openUrl(QUrl::fromLocalFile(path)))
+				m_uiFactory->ShowError(Tr(CANNOT_OPEN_IMAGE).arg(path));
+		};
+
+		const auto onCoverClicked = [this, openImage](const QPoint& pos) {
+			if (m_covers.size() < 2)
+				return openImage();
 
 			switch (3 * pos.x() / m_ui.cover->width())
 			{
@@ -328,16 +344,6 @@ public:
 			Util::FillTreeContextMenu(*m_ui.content, menu).exec(QCursor::pos());
 		});
 
-		const auto openImage = [this] {
-			assert(!m_covers.empty());
-			const auto& [name, bytes] = m_covers[m_currentCoverIndex];
-			auto path                 = m_logicFactory.lock()->CreateTemporaryDir()->filePath(name);
-
-			if (!SaveImage(path, bytes))
-				return m_uiFactory->ShowError(Tr(CANNOT_SAVE_IMAGE).arg(path));
-			if (!QDesktopServices::openUrl(path))
-				m_uiFactory->ShowError(Tr(CANNOT_OPEN_IMAGE).arg(path));
-		};
 		connect(m_ui.cover, &ClickableLabel::doubleClicked, &m_self, openImage);
 
 		connect(m_ui.cover, &ClickableLabel::mouseEnter, &m_self, [this] {
@@ -489,7 +495,7 @@ private: // IAnnotationController::IObserver
 
 		m_currentCoverIndex = 0;
 
-		if (m_covers.size() > 1)
+		if (!m_covers.empty())
 			m_ui.cover->setCursor(Qt::PointingHandCursor);
 
 		if (auto content = dataProvider.GetContent(); content->GetChildCount() > 0)
