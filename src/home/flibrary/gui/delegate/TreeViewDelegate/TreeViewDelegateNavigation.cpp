@@ -1,6 +1,7 @@
 #include "TreeViewDelegateNavigation.h"
 
 #include <algorithm>
+#include <vector>
 
 #include <QAbstractItemView>
 #include <QHBoxLayout>
@@ -34,13 +35,18 @@ public:
 	void OnModelChanged()
 	{
 		disconnect(m_connection);
+		CloseEditors();
 		if (m_enabled)
-			m_connection = connect(m_view.selectionModel(), &QItemSelectionModel::selectionChanged, this, &Impl::OnSelectionChanged);
+		{
+			m_connection = connect(m_view.selectionModel(), &QItemSelectionModel::selectionChanged, this, &Impl::SyncEditors);
+			SyncEditors();
+		}
 	}
 
 	void SetEnabled(const bool enabled) noexcept
 	{
 		m_enabled = enabled;
+		SyncEditors();
 	}
 
 private: // QStyledItemDelegate
@@ -95,19 +101,32 @@ private: // QStyledItemDelegate
 	}
 
 private:
-	void OnSelectionChanged(const QItemSelection& selected, const QItemSelection& deselected) const
+	void CloseEditors()
 	{
-		for (const auto& index : deselected.indexes())
+		for (const auto& index : m_openEditors)
 			m_view.closePersistentEditor(index);
+		m_openEditors.clear();
+	}
 
-		for (const auto& index : selected.indexes())
+	void SyncEditors()
+	{
+		CloseEditors();
+
+		if (!m_enabled || !m_view.selectionModel())
+			return;
+
+		for (const auto& index : m_view.selectionModel()->selectedIndexes())
+		{
 			m_view.openPersistentEditor(index);
+			m_openEditors.emplace_back(index);
+		}
 	}
 
 private:
-	QAbstractItemView&      m_view;
-	QMetaObject::Connection m_connection;
-	bool                    m_enabled { false };
+	QAbstractItemView&                   m_view;
+	QMetaObject::Connection              m_connection;
+	std::vector<QPersistentModelIndex>    m_openEditors;
+	bool                                 m_enabled { false };
 };
 
 TreeViewDelegateNavigation::TreeViewDelegateNavigation(const std::shared_ptr<const IUiFactory>& uiFactory)
