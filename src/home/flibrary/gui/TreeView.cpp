@@ -54,6 +54,8 @@ constexpr auto NAVIGATION     = QT_TRANSLATE_NOOP("TreeView", "Navigation");
 constexpr auto BOOK_VIEW_MODE = QT_TRANSLATE_NOOP("TreeView", "Books view mode");
 
 constexpr auto VALUE_MODE_KEY                     = "ui/%1/ValueMode";
+constexpr auto VALUE_MODE_VERSION_KEY             = "ui/%1/ValueModeVersion";
+constexpr auto VALUE_MODE_VERSION                 = 1;
 constexpr auto COLUMN_WIDTH_LOCAL_KEY             = "%1/Width";
 constexpr auto COLUMN_INDEX_LOCAL_KEY             = "%1/Index";
 constexpr auto COLUMN_HIDDEN_LOCAL_KEY            = "%1/Hidden";
@@ -1118,6 +1120,8 @@ private:
 			m_hotkeyManager->Add(*m_ui.cbMode, Tr(IsNavigation() ? NAVIGATION : BOOK_VIEW_MODE));
 		});
 
+		if (!IsNavigation())
+			MigrateValueModeToFilter();
 		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), IsNavigation());
 
 		m_recentMode = m_ui.cbMode->currentData().toString();
@@ -1479,6 +1483,16 @@ private:
 	QString GetValueModeKey() const
 	{
 		return QString(VALUE_MODE_KEY).arg(m_controller->TrContext());
+	}
+
+	void MigrateValueModeToFilter()
+	{
+		const auto versionKey = QString(VALUE_MODE_VERSION_KEY).arg(m_controller->TrContext());
+		if (m_settings->Get(versionKey, 0) >= VALUE_MODE_VERSION)
+			return;
+
+		m_settings->Set(GetValueModeKey(), QStringLiteral("Filter"));
+		m_settings->Set(versionKey, VALUE_MODE_VERSION);
 	}
 
 	QString GetRecentIdKey() const
