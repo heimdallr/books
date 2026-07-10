@@ -8,6 +8,7 @@
 #include <QActionGroup>
 #include <QClipboard>
 #include <QHash>
+#include <QHBoxLayout>
 #include <QMenu>
 #include <QMimeData>
 #include <QPainter>
@@ -604,7 +605,9 @@ private: // ITreeViewController::IObserver
 	{
 		m_ui.value->setText({});
 		const auto idIndex = m_ui.cbMode->findData(index, CB_MODE_ID_ROLE);
-		m_ui.cbMode->setCurrentIndex(std::max(idIndex, 0));
+		const auto modeIndex = std::max(idIndex, 0);
+		m_ui.cbMode->setCurrentIndex(modeIndex);
+		UpdateBooksModeToggle(modeIndex);
 	}
 
 	void OnModelChanged(QAbstractItemModel* model) override
@@ -1114,6 +1117,7 @@ private:
 			m_ui.cbMode->setItemData(m_ui.cbMode->count() - 1, id, CB_MODE_ID_ROLE);
 		}
 		m_ui.cbMode->setCurrentIndex(-1);
+		SetupBooksModeToggle();
 
 		QTimer::singleShot(0, [this] {
 			m_hotkeyManager->Add(*m_ui.cbMode, Tr(IsNavigation() ? NAVIGATION : BOOK_VIEW_MODE));
@@ -1133,7 +1137,8 @@ private:
 			OnValueChanged();
 			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
 		});
-		connect(m_ui.cbMode, qOverload<int>(&QComboBox::currentIndexChanged), &m_self, [this](const int) {
+		connect(m_ui.cbMode, qOverload<int>(&QComboBox::currentIndexChanged), &m_self, [this](const int index) {
+			UpdateBooksModeToggle(index);
 			auto newMode = m_ui.cbMode->currentData().toString();
 			emit m_self.NavigationModeNameChanged(newMode);
 			m_recentMode = std::move(newMode);
@@ -1162,6 +1167,47 @@ private:
 		connect(m_ui.treeView, &QTreeView::doubleClicked, &m_self, [this] {
 			m_controller->OnDoubleClicked(m_ui.treeView->currentIndex());
 		});
+	}
+
+	void SetupBooksModeToggle()
+	{
+		if (IsNavigation())
+			return;
+
+		auto* toggle = new QWidget(&m_self);
+		toggle->setObjectName(QStringLiteral("booksModeToggle"));
+		toggle->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
+
+		auto* layout = new QHBoxLayout(toggle);
+		layout->setContentsMargins(1, 1, 1, 1);
+		layout->setSpacing(0);
+
+		for (int index = 0; index < m_ui.cbMode->count(); ++index)
+		{
+			auto* button = new QToolButton(toggle);
+			button->setText(m_ui.cbMode->itemText(index));
+			button->setToolButtonStyle(Qt::ToolButtonTextOnly);
+			button->setCheckable(true);
+			button->setAutoExclusive(true);
+			button->setProperty("segmentPosition", index == 0 ? "first" : "last");
+			connect(button, &QToolButton::clicked, &m_self, [this, index] {
+				m_ui.cbMode->setCurrentIndex(index);
+			});
+			layout->addWidget(button);
+			m_booksModeButtons.emplace_back(button);
+		}
+
+		m_ui.horizontalLayout->removeWidget(m_ui.cbMode);
+		m_ui.cbMode->hide();
+		m_ui.horizontalLayout->addWidget(toggle, 0, 0, 1, 2, Qt::AlignLeft | Qt::AlignVCenter);
+	}
+
+	void UpdateBooksModeToggle(const int index) const
+	{
+		if (IsNavigation() || index < 0 || static_cast<size_t>(index) >= m_booksModeButtons.size())
+			return;
+
+		m_booksModeButtons[static_cast<size_t>(index)]->setChecked(true);
 	}
 
 	void SaveHeaderLayout()
@@ -1511,6 +1557,7 @@ private:
 	ITreeViewController::RemoveItems                              m_removeItems;
 	MenuEventFilter                                               m_menuEventFilter;
 	HeaderView*                                                   m_booksHeaderView;
+	std::vector<QToolButton*>                                     m_booksModeButtons;
 	IDataItem::Flags                                              m_navigationItemFlags { IDataItem::Flags::None };
 	const ArchiveSorter                                           m_archiveSorter;
 	const QStringList                                             m_hiddenColumns;

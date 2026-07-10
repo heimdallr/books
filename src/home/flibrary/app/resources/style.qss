@@ -121,6 +121,47 @@ QComboBox#cbMode:hover {
   background-color: palette(alternate-base);
 }
 
+QWidget#booksModeToggle {
+  min-height: 34px;
+  max-height: 34px;
+  background-color: palette(base);
+  border: 1px solid palette(mid);
+  border-radius: 8px;
+}
+
+QWidget#booksModeToggle QToolButton {
+  min-width: 70px;
+  min-height: 32px;
+  max-height: 32px;
+  padding: 0 12px;
+  color: palette(text);
+  background-color: transparent;
+  border: 0;
+  border-radius: 7px;
+  font-weight: 500;
+}
+
+QWidget#booksModeToggle QToolButton[segmentPosition="first"] {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+  border-right: 1px solid palette(mid);
+}
+
+QWidget#booksModeToggle QToolButton[segmentPosition="last"] {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+}
+
+QWidget#booksModeToggle QToolButton:hover {
+  background-color: palette(alternate-base);
+}
+
+QWidget#booksModeToggle QToolButton:checked {
+  color: palette(highlighted-text);
+  background-color: palette(highlight);
+  font-weight: 600;
+}
+
 QPushButton {
   min-height: 32px;
   padding: 0 15px;
