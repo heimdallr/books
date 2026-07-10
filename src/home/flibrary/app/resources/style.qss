@@ -299,6 +299,40 @@ QTreeView[navigationPane="true"]::item:selected {
   border-left: 3px solid palette(highlight);
 }
 
+QWidget#groupsPane {
+  background-color: palette(base);
+}
+
+QWidget#groupsPaneHeader {
+  min-height: 44px;
+  border-bottom: 1px solid palette(mid);
+}
+
+QLabel#groupsPaneTitle {
+  font-size: 14pt;
+  font-weight: 600;
+}
+
+QPushButton#groupsPaneCreate {
+  margin: 10px 12px;
+}
+
+QListView#groupsPaneList {
+  background-color: palette(base);
+  border-top: 1px solid palette(mid);
+}
+
+QListView#groupsPaneList::item {
+  min-height: 38px;
+  padding: 5px 12px;
+  font-size: 12pt;
+}
+
+QListView#groupsPaneList::item:selected {
+  padding-left: 9px;
+  border-left: 3px solid palette(highlight);
+}
+
 QWidget[navigationPane="true"] QComboBox#cbMode,
 QWidget[navigationPane="true"] QComboBox#cbMode:hover,
 QWidget[navigationPane="true"] QComboBox#cbMode:focus {
@@ -415,6 +449,10 @@ QSplitter::handle:vertical {
 
 QSplitter::handle:hover {
   background-color: palette(highlight);
+}
+
+QSplitter#horizontalSplitterLeft::handle:vertical {
+  height: 6px;
 }
 
 QScrollBar:vertical {

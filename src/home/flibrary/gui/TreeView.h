@@ -51,6 +51,8 @@ public:
 	void               ShowRemoved(bool showRemoved);
 	QAbstractItemView* GetView() const;
 	void               SetMode(int mode, const QString& id);
+	void               SelectMode(int mode);
+	void               ClearSelection();
 
 private slots:
 	void OnBookTitleToSearchVisibleChanged() const;

@@ -12,6 +12,7 @@
 #include "interface/logic/IDatabaseChecker.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IHotkeyManager.h"
+#include "interface/logic/IDataProvider.h"
 #include "interface/logic/IJokeRequesterFactory.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
@@ -48,6 +49,7 @@ public:
 		std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
 		std::shared_ptr<const IUiFactory>               uiFactory,
 		std::shared_ptr<const IDatabaseUser>            databaseUser,
+		std::shared_ptr<INavigationInfoProvider>        navigationInfoProvider,
 		std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 		std::shared_ptr<const IDatabaseChecker>         databaseChecker,
 		std::shared_ptr<const ICommandLine>             commandLine,

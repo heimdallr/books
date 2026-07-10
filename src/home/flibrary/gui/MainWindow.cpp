@@ -9,6 +9,13 @@
 #include <QDirIterator>
 #include <QGuiApplication>
 #include <QKeyEvent>
+#include <QLabel>
+#include <QListView>
+#include <QMenu>
+#include <QPointer>
+#include <QPushButton>
+#include <QSplitter>
+#include <QStandardItemModel>
 #include <QStandardPaths>
 #include <QStyleFactory>
 #include <QSystemTrayIcon>
@@ -29,6 +36,7 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/IBookSearchController.h"
+#include "interface/logic/IDataProvider.h"
 #include "interface/logic/IInpxGenerator.h"
 #include "interface/logic/IOpdsController.h"
 #include "interface/logic/IScriptController.h"
@@ -47,6 +55,7 @@
 #include "QtTypes.h"
 #include "StackedPage.h"
 #include "TreeView.h"
+#include "logic/ChangeNavigationController/GroupController.h"
 #include "log.h"
 
 #include "config/version.h"
@@ -187,6 +196,229 @@ private:
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 };
 
+class GroupsPane final
+	: public QWidget
+	, private DB::IDatabaseObserver
+{
+public:
+	using SelectionCallback = std::function<void(long long)>;
+
+public:
+	GroupsPane(
+		std::weak_ptr<const ILogicFactory> logicFactory,
+		std::shared_ptr<const IDatabaseUser> databaseUser,
+		SelectionCallback selectionCallback,
+		QWidget* parent = nullptr
+	)
+		: QWidget(parent)
+		, m_logicFactory { std::move(logicFactory) }
+		, m_database { databaseUser->Database() }
+		, m_selectionCallback { std::move(selectionCallback) }
+		, m_model { this }
+	{
+		setObjectName("groupsPane");
+		setMinimumHeight(160);
+
+		auto* rootLayout = new QVBoxLayout(this);
+		rootLayout->setContentsMargins(0, 0, 0, 0);
+		rootLayout->setSpacing(0);
+
+		auto* header = new QWidget(this);
+		header->setObjectName("groupsPaneHeader");
+		auto* headerLayout = new QHBoxLayout(header);
+		headerLayout->setContentsMargins(12, 0, 12, 0);
+		auto* title = new QLabel(Loc::Tr(Loc::NAVIGATION, Loc::Groups), header);
+		title->setObjectName("groupsPaneTitle");
+		headerLayout->addWidget(title);
+		headerLayout->addStretch();
+		rootLayout->addWidget(header);
+
+		auto* createButton = new QPushButton(Loc::Tr("GroupController", "New group"), this);
+		createButton->setObjectName("groupsPaneCreate");
+		rootLayout->addWidget(createButton);
+
+		m_view = new QListView(this);
+		m_view->setObjectName("groupsPaneList");
+		m_view->setModel(&m_model);
+		m_view->setContextMenuPolicy(Qt::CustomContextMenu);
+		m_view->setEditTriggers(QAbstractItemView::NoEditTriggers);
+		m_view->setSelectionMode(QAbstractItemView::ExtendedSelection);
+		m_view->setVerticalScrollMode(QAbstractItemView::ScrollPerPixel);
+		rootLayout->addWidget(m_view, 1);
+
+		connect(createButton, &QPushButton::clicked, this, [this] {
+			CreateGroup();
+		});
+		connect(m_view->selectionModel(), &QItemSelectionModel::currentChanged, this, [this](const QModelIndex& index) {
+			Activate(index);
+		});
+		connect(m_view, &QWidget::customContextMenuRequested, this, [this](const QPoint& pos) {
+			ShowContextMenu(pos);
+		});
+
+		if (m_database)
+		{
+			m_database->RegisterObserver(this);
+			Reload();
+		}
+	}
+
+	~GroupsPane() override
+	{
+		if (m_database)
+			m_database->UnregisterObserver(this);
+	}
+
+	void ClearSelection() const
+	{
+		const QSignalBlocker blocker(m_view->selectionModel());
+		m_view->clearSelection();
+		m_view->setCurrentIndex({});
+	}
+
+private: // DB::IDatabaseObserver
+	void OnInsert(std::string_view, const std::string_view tableName, int64_t) override
+	{
+		OnDatabaseChanged(tableName);
+	}
+
+	void OnUpdate(std::string_view, const std::string_view tableName, int64_t) override
+	{
+		OnDatabaseChanged(tableName);
+	}
+
+	void OnDelete(std::string_view, const std::string_view tableName, int64_t) override
+	{
+		OnDatabaseChanged(tableName);
+	}
+
+private:
+	std::optional<long long> CurrentId() const
+	{
+		const auto index = m_view->currentIndex();
+		return index.isValid() ? std::optional { index.data(Qt::UserRole).toLongLong() } : std::nullopt;
+	}
+
+	void Reload(const std::optional<long long> selectId = std::nullopt)
+	{
+		if (!m_database)
+			return;
+
+		const auto targetId = selectId ? selectId : CurrentId();
+		QModelIndex targetIndex;
+		{
+			const QSignalBlocker blocker(m_view->selectionModel());
+			m_model.clear();
+
+			const auto query = m_database->CreateQuery("select GroupID, Title from Groups_User where IsDeleted = 0 order by Title collate nocase");
+			for (query->Execute(); !query->Eof(); query->Next())
+			{
+				auto* item = new QStandardItem(query->Get<QString>(1));
+				const auto id = query->Get<long long>(0);
+				item->setData(id, Qt::UserRole);
+				item->setEditable(false);
+				m_model.appendRow(item);
+				if (targetId && id == *targetId)
+					targetIndex = item->index();
+			}
+
+			if (targetIndex.isValid())
+				m_view->selectionModel()->setCurrentIndex(targetIndex, QItemSelectionModel::ClearAndSelect | QItemSelectionModel::Rows);
+		}
+
+		if (selectId && targetIndex.isValid())
+			Activate(targetIndex);
+	}
+
+	void Activate(const QModelIndex& index) const
+	{
+		if (index.isValid())
+			m_selectionCallback(index.data(Qt::UserRole).toLongLong());
+	}
+
+	void CreateGroup()
+	{
+		auto controller = ILogicFactory::Lock(m_logicFactory)->CreateGroupController();
+		const QPointer guard(this);
+		controller->CreateNew([guard, controller = std::move(controller)](const long long id) mutable {
+			if (guard && id > 0)
+				guard->Reload(id);
+			controller.reset();
+		});
+	}
+
+	void RenameGroup()
+	{
+		const auto index = m_view->currentIndex();
+		if (!index.isValid())
+			return;
+
+		auto controller = ILogicFactory::Lock(m_logicFactory)->CreateGroupController();
+		const QPointer guard(this);
+		controller->Rename(index.data(Qt::UserRole).toLongLong(), index.data().toString(), [guard, controller = std::move(controller)](const long long id) mutable {
+			if (guard && id > 0)
+				guard->Reload(id);
+			controller.reset();
+		});
+	}
+
+	void RemoveGroups()
+	{
+		GroupController::Ids ids;
+		for (const auto& index : m_view->selectionModel()->selectedIndexes())
+			ids.emplace(index.data(Qt::UserRole).toLongLong());
+		if (ids.empty())
+			return;
+
+		auto controller = ILogicFactory::Lock(m_logicFactory)->CreateGroupController();
+		const QPointer guard(this);
+		controller->Remove(std::move(ids), [guard, controller = std::move(controller)](long long) mutable {
+			if (guard)
+				guard->Reload();
+			controller.reset();
+		});
+	}
+
+	void ShowContextMenu(const QPoint& pos)
+	{
+		if (const auto index = m_view->indexAt(pos); index.isValid())
+			m_view->setCurrentIndex(index);
+
+		QMenu menu(this);
+		auto* createAction = menu.addAction(Loc::Tr("GroupController", "New group"));
+		auto* renameAction = menu.addAction(Loc::Tr(Loc::NAVIGATION, "Rename group..."));
+		auto* removeAction = menu.addAction(Loc::Tr(Loc::NAVIGATION, "Remove"));
+		const auto hasSelection = m_view->selectionModel()->hasSelection();
+		renameAction->setEnabled(hasSelection && m_view->selectionModel()->selectedIndexes().size() == 1);
+		removeAction->setEnabled(hasSelection);
+
+		const auto* selectedAction = menu.exec(m_view->viewport()->mapToGlobal(pos));
+		if (selectedAction == createAction)
+			CreateGroup();
+		else if (selectedAction == renameAction)
+			RenameGroup();
+		else if (selectedAction == removeAction)
+			RemoveGroups();
+	}
+
+	void OnDatabaseChanged(const std::string_view tableName)
+	{
+		if (tableName != "Groups_User")
+			return;
+
+		QMetaObject::invokeMethod(this, [this] {
+			Reload();
+		}, Qt::QueuedConnection);
+	}
+
+private:
+	std::weak_ptr<const ILogicFactory> m_logicFactory;
+	std::shared_ptr<DB::IDatabase>     m_database;
+	SelectionCallback                  m_selectionCallback;
+	QStandardItemModel                 m_model;
+	QListView*                         m_view { nullptr };
+};
+
 class VisibleChangedHandler final : public QObject
 {
 public:
@@ -250,6 +482,7 @@ public:
 		std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
 		std::shared_ptr<const IUiFactory>               uiFactory,
 		std::shared_ptr<const IDatabaseUser>            databaseUser,
+		std::shared_ptr<INavigationInfoProvider>        navigationInfoProvider,
 		std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 		std::shared_ptr<const IDatabaseChecker>         databaseChecker,
 		std::shared_ptr<const ICommandLine>             commandLine,
@@ -277,6 +510,7 @@ public:
 		, m_jokeRequesterFactory { std::move(jokeRequesterFactory) }
 		, m_uiFactory { std::move(uiFactory) }
 		, m_databaseUser { std::move(databaseUser) }
+		, m_navigationInfoProvider { std::move(navigationInfoProvider) }
 		, m_settings { std::move(settings) }
 		, m_collectionController { std::move(collectionController) }
 		, m_parentWidgetProvider { std::move(parentWidgetProvider) }
@@ -295,6 +529,16 @@ public:
 		, m_navigationViewController { ILogicFactory::Lock(m_logicFactory)->GetTreeViewController(ItemType::Navigation) }
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
 		, m_navigationWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Navigation) }
+		, m_groupsPane { std::make_shared<GroupsPane>(
+			  m_logicFactory,
+			  m_databaseUser,
+			  [this](const long long id) {
+				  m_navigationWidget->ClearSelection();
+				  m_booksWidget->SetNavigationModeName(QString(Loc::Groups));
+				  m_navigationInfoProvider->SetNavigationMode(NavigationMode::Groups);
+				  m_navigationInfoProvider->SetNavigationId(QString::number(id));
+			  }
+		  ) }
 	{
 		Setup();
 		ConnectActions();
@@ -555,8 +799,8 @@ private:
 		m_ui.rightWidget->setMinimumWidth(480);
 		m_ui.verticalSplitter->setStretchFactor(0, 6);
 		m_ui.verticalSplitter->setStretchFactor(1, 28);
-		m_ui.horizontalSplitterLeft->setStretchFactor(0, 1);
-		m_ui.horizontalSplitterLeft->setStretchFactor(1, 0);
+		m_ui.horizontalSplitterLeft->setStretchFactor(0, 3);
+		m_ui.horizontalSplitterLeft->setStretchFactor(1, 2);
 		m_ui.horizontalSplitterRight->setStretchFactor(0, 6);
 		m_ui.horizontalSplitterRight->setStretchFactor(1, 5);
 
@@ -576,7 +820,21 @@ private:
 		m_delayStarter.setInterval(std::chrono::milliseconds(200));
 
 		m_ui.navigationWidget->layout()->addWidget(m_navigationWidget.get());
-		m_ui.authorAnnotationWidget->layout()->addWidget(m_authorAnnotationWidget.get());
+		m_navigationWidget->SelectMode(static_cast<int>(NavigationMode::Search));
+
+		auto* groupsSplitter = new QSplitter(Qt::Vertical, m_ui.authorAnnotationWidget);
+		groupsSplitter->setObjectName("groupsAnnotationSplitter");
+		groupsSplitter->setChildrenCollapsible(false);
+		groupsSplitter->setStretchFactor(0, 2);
+		groupsSplitter->setStretchFactor(1, 1);
+		groupsSplitter->addWidget(m_groupsPane.get());
+		auto* authorAnnotationContainer = new QWidget(groupsSplitter);
+		auto* authorAnnotationLayout = new QVBoxLayout(authorAnnotationContainer);
+		authorAnnotationLayout->setContentsMargins(0, 0, 0, 0);
+		authorAnnotationLayout->setSpacing(0);
+		authorAnnotationLayout->addWidget(m_authorAnnotationWidget.get());
+		groupsSplitter->addWidget(authorAnnotationContainer);
+		m_ui.authorAnnotationWidget->layout()->addWidget(groupsSplitter);
 		m_ui.annotationWidget->layout()->addWidget(m_annotationWidget.get());
 		m_ui.booksWidget->layout()->addWidget(m_booksWidget.get());
 		m_ui.booksWidget->layout()->addWidget(m_progressBar.get());
@@ -1129,6 +1387,9 @@ private:
 		ConnectActionsHelp();
 
 		connect(m_navigationWidget.get(), &TreeView::NavigationModeNameChanged, m_booksWidget.get(), &TreeView::SetNavigationModeName);
+		connect(m_navigationWidget.get(), &TreeView::NavigationModeNameChanged, m_groupsPane.get(), [this] {
+			m_groupsPane->ClearSelection();
+		});
 		connect(m_ui.lineEditBookTitleToSearch, &QLineEdit::returnPressed, &m_self, [this] {
 			SearchBookByTitle();
 		});
@@ -1641,6 +1902,7 @@ private:
 	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
 	std::shared_ptr<const IUiFactory>            m_uiFactory;
 	std::shared_ptr<const IDatabaseUser>         m_databaseUser;
+	PropagateConstPtr<INavigationInfoProvider, std::shared_ptr> m_navigationInfoProvider;
 
 	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr>     m_collectionController;
@@ -1662,6 +1924,7 @@ private:
 
 	PropagateConstPtr<TreeView, std::shared_ptr> m_booksWidget;
 	PropagateConstPtr<TreeView, std::shared_ptr> m_navigationWidget;
+	PropagateConstPtr<GroupsPane, std::shared_ptr> m_groupsPane;
 
 	std::shared_ptr<QMainWindow> m_queryWindow;
 	std::shared_ptr<QWidget>     m_additionalWidget;
@@ -1697,6 +1960,7 @@ MainWindow::MainWindow(
 	std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
 	std::shared_ptr<const IUiFactory>               uiFactory,
 	std::shared_ptr<const IDatabaseUser>            databaseUser,
+	std::shared_ptr<INavigationInfoProvider>        navigationInfoProvider,
 	std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 	std::shared_ptr<const IDatabaseChecker>         databaseChecker,
 	std::shared_ptr<const ICommandLine>             commandLine,
@@ -1725,6 +1989,7 @@ MainWindow::MainWindow(
 		  std::move(jokeRequesterFactory),
 		  std::move(uiFactory),
 		  std::move(databaseUser),
+		  std::move(navigationInfoProvider),
 		  std::move(collectionUpdateChecker),
 		  std::move(databaseChecker),
 		  std::move(commandLine),

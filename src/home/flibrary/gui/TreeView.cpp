@@ -573,6 +573,21 @@ public:
 			m_ui.treeView->setCurrentIndex(matched.front());
 	}
 
+	void SelectMode(const int mode)
+	{
+		assert(IsNavigation());
+		const auto modeIndex = m_ui.cbMode->findData(mode, Qt::UserRole + 1);
+		if (modeIndex >= 0)
+			m_ui.cbMode->setCurrentIndex(modeIndex);
+	}
+
+	void ClearSelection() const
+	{
+		const QSignalBlocker blocker(m_ui.treeView->selectionModel());
+		m_ui.treeView->clearSelection();
+		m_ui.treeView->setCurrentIndex({});
+	}
+
 	void OnBookTitleToSearchVisibleChanged() const
 	{
 		emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.value));
@@ -783,6 +798,7 @@ private:
 
 			if (IsNavigation())
 			{
+				emit m_self.NavigationModeNameChanged(m_ui.cbMode->currentData().toString());
 				emit m_self.CurrentNavigationItemChanged(index);
 				if (m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Search))
 					emit m_self.SearchNavigationItemSelected(m_currentId.toLongLong(), index.data().toString());
@@ -1594,6 +1610,16 @@ QAbstractItemView* TreeView::GetView() const
 void TreeView::SetMode(const int mode, const QString& id)
 {
 	m_impl->SetMode(mode, id);
+}
+
+void TreeView::SelectMode(const int mode)
+{
+	m_impl->SelectMode(mode);
+}
+
+void TreeView::ClearSelection()
+{
+	m_impl->ClearSelection();
 }
 
 void TreeView::OnBookTitleToSearchVisibleChanged() const
