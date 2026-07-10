@@ -4583,7 +4583,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>&amp;All settings...</source>
+        <source>&amp;Settings...</source>
         <translation></translation>
     </message>
     <message>
@@ -5688,9 +5688,41 @@ Try again?</source>
 <context>
     <name>SettingsDialog</name>
     <message>
-        <source>All settings</source>
+        <source>Settings</source>
         <translation></translation>
     </message>
+    <message><source>Application</source><translation></translation></message>
+    <message><source>File handling and window behavior</source><translation></translation></message>
+    <message><source>Files and paths</source><translation></translation></message>
+    <message><source>Prefer relative paths when possible</source><translation></translation></message>
+    <message><source>Window behavior</source><translation></translation></message>
+    <message><source>Keep FLibrary in the system tray after closing the window</source><translation></translation></message>
+    <message><source>Send FLibrary to the system tray when minimized</source><translation></translation></message>
+    <message><source>Book list</source><translation></translation></message>
+    <message><source>Settings for the catalog table and quick search</source><translation></translation></message>
+    <message><source>Table</source><translation></translation></message>
+    <message><source>Use alternating row colors</source><translation></translation></message>
+    <message><source>Quick search fields</source><translation></translation></message>
+    <message><source>Title</source><translation></translation></message>
+    <message><source>Author</source><translation></translation></message>
+    <message><source>Series</source><translation></translation></message>
+    <message><source>Annotation</source><translation></translation></message>
+    <message><source>Reader</source><translation></translation></message>
+    <message><source>External applications used to open book formats</source><translation></translation></message>
+    <message><source>External applications</source><translation></translation></message>
+    <message><source>Use &quot;default&quot; for the system application</source><translation></translation></message>
+    <message><source>Network</source><translation></translation></message>
+    <message><source>OPDS and browser access settings</source><translation></translation></message>
+    <message><source>Server</source><translation></translation></message>
+    <message><source>Port</source><translation></translation></message>
+    <message><source>Enable the simple web interface</source><translation></translation></message>
+    <message><source>Enable the React web interface</source><translation></translation></message>
+    <message><source>Enable the OPDS catalog</source><translation></translation></message>
+    <message><source>Collection updates</source><translation></translation></message>
+    <message><source>Update the collection automatically for OPDS</source><translation></translation></message>
+    <message><source>Server changes take effect after the server is restarted.</source><translation></translation></message>
+    <message><source>Advanced</source><translation></translation></message>
+    <message><source>Stored application keys. Remove only values you understand.</source><translation></translation></message>
     <message>
         <source>Key</source>
         <translation></translation>

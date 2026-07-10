@@ -4596,8 +4596,8 @@ Try again?</source>
         <translation>Додати новий &amp;алфавіт...</translation>
     </message>
     <message>
-        <source>&amp;All settings...</source>
-        <translation>&amp;Усі налаштування...</translation>
+        <source>&amp;Settings...</source>
+        <translation>&amp;Налаштування...</translation>
     </message>
     <message>
         <source>&amp;Annotation</source>
@@ -5704,9 +5704,41 @@ Try again?</source>
 <context>
     <name>SettingsDialog</name>
     <message>
-        <source>All settings</source>
-        <translation>Усі налаштування</translation>
+        <source>Settings</source>
+        <translation>Налаштування</translation>
     </message>
+    <message><source>Application</source><translation>Застосунок</translation></message>
+    <message><source>File handling and window behavior</source><translation>Робота з файлами та поведінка вікна</translation></message>
+    <message><source>Files and paths</source><translation>Файли та шляхи</translation></message>
+    <message><source>Prefer relative paths when possible</source><translation>Використовувати відносні шляхи, коли можливо</translation></message>
+    <message><source>Window behavior</source><translation>Поведінка вікна</translation></message>
+    <message><source>Keep FLibrary in the system tray after closing the window</source><translation>Залишати FLibrary у системному треї після закриття вікна</translation></message>
+    <message><source>Send FLibrary to the system tray when minimized</source><translation>Згортати FLibrary у системний трей</translation></message>
+    <message><source>Book list</source><translation>Список книг</translation></message>
+    <message><source>Settings for the catalog table and quick search</source><translation>Налаштування таблиці каталогу та швидкого пошуку</translation></message>
+    <message><source>Table</source><translation>Таблиця</translation></message>
+    <message><source>Use alternating row colors</source><translation>Чергувати кольори рядків</translation></message>
+    <message><source>Quick search fields</source><translation>Поля швидкого пошуку</translation></message>
+    <message><source>Title</source><translation>Назва</translation></message>
+    <message><source>Author</source><translation>Автор</translation></message>
+    <message><source>Series</source><translation>Серія</translation></message>
+    <message><source>Annotation</source><translation>Анотація</translation></message>
+    <message><source>Reader</source><translation>Читання</translation></message>
+    <message><source>External applications used to open book formats</source><translation>Зовнішні застосунки для відкриття книг</translation></message>
+    <message><source>External applications</source><translation>Зовнішні застосунки</translation></message>
+    <message><source>Use &quot;default&quot; for the system application</source><translation>Вкажіть «default», щоб використати системний застосунок</translation></message>
+    <message><source>Network</source><translation>Мережа</translation></message>
+    <message><source>OPDS and browser access settings</source><translation>Налаштування доступу через OPDS і браузер</translation></message>
+    <message><source>Server</source><translation>Сервер</translation></message>
+    <message><source>Port</source><translation>Порт</translation></message>
+    <message><source>Enable the simple web interface</source><translation>Увімкнути простий вебінтерфейс</translation></message>
+    <message><source>Enable the React web interface</source><translation>Увімкнути вебінтерфейс React</translation></message>
+    <message><source>Enable the OPDS catalog</source><translation>Увімкнути каталог OPDS</translation></message>
+    <message><source>Collection updates</source><translation>Оновлення колекції</translation></message>
+    <message><source>Update the collection automatically for OPDS</source><translation>Автоматично оновлювати колекцію для OPDS</translation></message>
+    <message><source>Server changes take effect after the server is restarted.</source><translation>Зміни набудуть чинності після перезапуску сервера.</translation></message>
+    <message><source>Advanced</source><translation>Додатково</translation></message>
+    <message><source>Stored application keys. Remove only values you understand.</source><translation>Збережені ключі застосунку. Видаляйте лише зрозумілі вам значення.</translation></message>
     <message>
         <source>Key</source>
         <translation>Ключ</translation>

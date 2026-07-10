@@ -4596,8 +4596,8 @@ Try again?</source>
         <translation>Добавить новый &amp;алфавит...</translation>
     </message>
     <message>
-        <source>&amp;All settings...</source>
-        <translation>&amp;Все настройки...</translation>
+        <source>&amp;Settings...</source>
+        <translation>&amp;Настройки...</translation>
     </message>
     <message>
         <source>&amp;Annotation</source>
@@ -5704,9 +5704,41 @@ Try again?</source>
 <context>
     <name>SettingsDialog</name>
     <message>
-        <source>All settings</source>
-        <translation>Все настройки</translation>
+        <source>Settings</source>
+        <translation>Настройки</translation>
     </message>
+    <message><source>Application</source><translation>Приложение</translation></message>
+    <message><source>File handling and window behavior</source><translation>Работа с файлами и поведение окна</translation></message>
+    <message><source>Files and paths</source><translation>Файлы и пути</translation></message>
+    <message><source>Prefer relative paths when possible</source><translation>Использовать относительные пути, когда возможно</translation></message>
+    <message><source>Window behavior</source><translation>Поведение окна</translation></message>
+    <message><source>Keep FLibrary in the system tray after closing the window</source><translation>Оставлять FLibrary в системном трее после закрытия окна</translation></message>
+    <message><source>Send FLibrary to the system tray when minimized</source><translation>Сворачивать FLibrary в системный трей</translation></message>
+    <message><source>Book list</source><translation>Список книг</translation></message>
+    <message><source>Settings for the catalog table and quick search</source><translation>Настройки таблицы каталога и быстрого поиска</translation></message>
+    <message><source>Table</source><translation>Таблица</translation></message>
+    <message><source>Use alternating row colors</source><translation>Чередовать цвета строк</translation></message>
+    <message><source>Quick search fields</source><translation>Поля быстрого поиска</translation></message>
+    <message><source>Title</source><translation>Название</translation></message>
+    <message><source>Author</source><translation>Автор</translation></message>
+    <message><source>Series</source><translation>Серия</translation></message>
+    <message><source>Annotation</source><translation>Аннотация</translation></message>
+    <message><source>Reader</source><translation>Чтение</translation></message>
+    <message><source>External applications used to open book formats</source><translation>Внешние приложения для открытия книг</translation></message>
+    <message><source>External applications</source><translation>Внешние приложения</translation></message>
+    <message><source>Use &quot;default&quot; for the system application</source><translation>Укажите «default», чтобы использовать системное приложение</translation></message>
+    <message><source>Network</source><translation>Сеть</translation></message>
+    <message><source>OPDS and browser access settings</source><translation>Настройки доступа через OPDS и браузер</translation></message>
+    <message><source>Server</source><translation>Сервер</translation></message>
+    <message><source>Port</source><translation>Порт</translation></message>
+    <message><source>Enable the simple web interface</source><translation>Включить простой веб-интерфейс</translation></message>
+    <message><source>Enable the React web interface</source><translation>Включить веб-интерфейс React</translation></message>
+    <message><source>Enable the OPDS catalog</source><translation>Включить каталог OPDS</translation></message>
+    <message><source>Collection updates</source><translation>Обновление коллекции</translation></message>
+    <message><source>Update the collection automatically for OPDS</source><translation>Автоматически обновлять коллекцию для OPDS</translation></message>
+    <message><source>Server changes take effect after the server is restarted.</source><translation>Изменения применятся после перезапуска сервера.</translation></message>
+    <message><source>Advanced</source><translation>Дополнительно</translation></message>
+    <message><source>Stored application keys. Remove only values you understand.</source><translation>Сохранённые ключи приложения. Удаляйте только понятные вам значения.</translation></message>
     <message>
         <source>Key</source>
         <translation>Ключ</translation>

@@ -89,6 +89,7 @@ QTreeView::item:selected, QTableView::item:selected, QListView::item:selected {
 	background-color: rgba(%2, 0.18);
 	color: palette(text);
 }
+QListWidget#categories::item:selected { background-color: rgba(%2, 0.14); }
 QLabel[secondaryText="true"] { color: %3; }
 QLabel[tertiaryText="true"] { color: %4; }
 QLabel[rating="true"] { color: %5; }

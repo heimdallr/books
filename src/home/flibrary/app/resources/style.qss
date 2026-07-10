@@ -411,6 +411,78 @@ QLabel#lblError {
   color: palette(bright-text);
 }
 
+QWidget#categoryPane {
+  background-color: palette(alternate-base);
+  border-right: 1px solid palette(mid);
+}
+
+QListWidget#categories {
+  background-color: transparent;
+  border: 0;
+  outline: 0;
+  font-size: 10pt;
+  font-weight: 500;
+}
+
+QListWidget#categories::item {
+  min-height: 30px;
+  padding: 3px 10px;
+  border-radius: 8px;
+}
+
+QListWidget#categories::item:hover {
+  background-color: palette(midlight);
+}
+
+QListWidget#categories::item:selected {
+  color: palette(text);
+}
+
+QStackedWidget#pages,
+QWidget#settingsContent {
+  background-color: palette(base);
+}
+
+QWidget#settingsFooter {
+  background-color: palette(alternate-base);
+  border-top: 1px solid palette(mid);
+}
+
+QLabel#settingsPageTitle {
+  font-size: 12pt;
+  font-weight: 600;
+}
+
+QLabel#versionLabel {
+  font-family: "IBM Plex Mono";
+  font-size: 8pt;
+}
+
+QGroupBox[settingsGroup="true"] {
+  margin-top: 16px;
+  padding-top: 12px;
+  background-color: palette(alternate-base);
+  border: 1px solid palette(mid);
+  border-radius: 8px;
+}
+
+QGroupBox[settingsGroup="true"]::title {
+  color: palette(placeholder-text);
+  font-size: 8pt;
+  font-weight: 600;
+}
+
+QWidget[settingsRow="true"] {
+  min-height: 34px;
+  background-color: transparent;
+}
+
+QTreeView#view {
+  background-color: palette(alternate-base);
+  border: 1px solid palette(mid);
+  border-radius: 8px;
+}
+
 QLabel#lblCount {
   min-height: 20px;
   padding: 0 7px;

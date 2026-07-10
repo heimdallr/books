@@ -6,14 +6,20 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>788</width>
+    <height>548</height>
    </rect>
   </property>
-  <property name="windowTitle">
-   <string>All settings</string>
+  <property name="minimumSize">
+   <size>
+    <width>720</width>
+    <height>500</height>
+   </size>
   </property>
-  <layout class="QVBoxLayout">
+  <property name="windowTitle">
+   <string>Settings</string>
+  </property>
+  <layout class="QVBoxLayout" name="rootLayout">
    <property name="spacing">
     <number>0</number>
    </property>
@@ -30,47 +36,160 @@
     <number>0</number>
    </property>
    <item>
-    <widget class="QTreeView" name="view">
-     <property name="contextMenuPolicy">
-      <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
-     </property>
-     <property name="verticalScrollBarPolicy">
-      <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
-     </property>
-     <property name="horizontalScrollBarPolicy">
-      <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
-     </property>
-     <property name="selectionMode">
-      <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
-     </property>
+    <widget class="QWidget" name="settingsContent" native="true">
+     <layout class="QHBoxLayout" name="contentLayout">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QWidget" name="categoryPane" native="true">
+        <property name="minimumSize">
+         <size>
+          <width>200</width>
+          <height>0</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>200</width>
+          <height>16777215</height>
+         </size>
+        </property>
+        <layout class="QVBoxLayout" name="categoryLayout">
+         <property name="spacing">
+          <number>8</number>
+         </property>
+         <property name="leftMargin">
+          <number>12</number>
+         </property>
+         <property name="topMargin">
+          <number>14</number>
+         </property>
+         <property name="rightMargin">
+          <number>12</number>
+         </property>
+         <property name="bottomMargin">
+          <number>14</number>
+         </property>
+         <item>
+          <widget class="QListWidget" name="categories">
+           <property name="frameShape">
+            <enum>QFrame::Shape::NoFrame</enum>
+           </property>
+           <property name="horizontalScrollBarPolicy">
+            <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
+           </property>
+           <property name="selectionMode">
+            <enum>QAbstractItemView::SelectionMode::SingleSelection</enum>
+           </property>
+          </widget>
+         </item>
+         <item>
+          <widget class="QLabel" name="versionLabel">
+           <property name="text">
+            <string notr="true">FLibrary</string>
+           </property>
+          </widget>
+         </item>
+        </layout>
+       </widget>
+      </item>
+      <item>
+       <widget class="QStackedWidget" name="pages">
+        <property name="currentIndex">
+         <number>0</number>
+        </property>
+        <widget class="QWidget" name="applicationPage">
+         <layout class="QVBoxLayout" name="applicationPageLayout">
+          <property name="leftMargin"><number>26</number></property>
+          <property name="topMargin"><number>22</number></property>
+          <property name="rightMargin"><number>26</number></property>
+          <property name="bottomMargin"><number>22</number></property>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="bookListPage">
+         <layout class="QVBoxLayout" name="bookListPageLayout">
+          <property name="leftMargin"><number>26</number></property>
+          <property name="topMargin"><number>22</number></property>
+          <property name="rightMargin"><number>26</number></property>
+          <property name="bottomMargin"><number>22</number></property>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="readerPage">
+         <layout class="QVBoxLayout" name="readerPageLayout">
+          <property name="leftMargin"><number>26</number></property>
+          <property name="topMargin"><number>22</number></property>
+          <property name="rightMargin"><number>26</number></property>
+          <property name="bottomMargin"><number>22</number></property>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="networkPage">
+         <layout class="QVBoxLayout" name="networkPageLayout">
+          <property name="leftMargin"><number>26</number></property>
+          <property name="topMargin"><number>22</number></property>
+          <property name="rightMargin"><number>26</number></property>
+          <property name="bottomMargin"><number>22</number></property>
+         </layout>
+        </widget>
+        <widget class="QWidget" name="advancedPage">
+         <layout class="QVBoxLayout" name="advancedPageLayout">
+          <property name="spacing"><number>12</number></property>
+          <property name="leftMargin"><number>26</number></property>
+          <property name="topMargin"><number>22</number></property>
+          <property name="rightMargin"><number>26</number></property>
+          <property name="bottomMargin"><number>22</number></property>
+          <item>
+           <widget class="QLabel" name="advancedDescription">
+            <property name="wordWrap"><bool>true</bool></property>
+            <property name="text"><string>Stored application keys. Remove only values you understand.</string></property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QTreeView" name="view">
+            <property name="contextMenuPolicy"><enum>Qt::ContextMenuPolicy::CustomContextMenu</enum></property>
+            <property name="verticalScrollBarPolicy"><enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum></property>
+            <property name="horizontalScrollBarPolicy"><enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum></property>
+            <property name="selectionMode"><enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum></property>
+           </widget>
+          </item>
+         </layout>
+        </widget>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="_2">
-     <property name="leftMargin">
-      <number>9</number>
-     </property>
-     <property name="topMargin">
-      <number>9</number>
-     </property>
-     <property name="rightMargin">
-      <number>9</number>
-     </property>
-     <property name="bottomMargin">
-      <number>9</number>
-     </property>
-     <item>
-      <widget class="QDialogButtonBox" name="buttonBox">
-       <property name="standardButtons">
-        <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
-       </property>
-      </widget>
-     </item>
-    </layout>
+    <widget class="QWidget" name="settingsFooter" native="true">
+     <layout class="QHBoxLayout" name="footerLayout">
+      <property name="leftMargin"><number>20</number></property>
+      <property name="topMargin"><number>13</number></property>
+      <property name="rightMargin"><number>20</number></property>
+      <property name="bottomMargin"><number>13</number></property>
+      <item>
+       <widget class="QDialogButtonBox" name="buttonBox">
+        <property name="standardButtons">
+         <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::RestoreDefaults|QDialogButtonBox::StandardButton::Save</set>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
    </item>
   </layout>
  </widget>
- <layoutdefault spacing="6" margin="11"/>
  <resources/>
  <connections>
   <connection>
@@ -78,32 +197,12 @@
    <signal>accepted()</signal>
    <receiver>SettingsDialog</receiver>
    <slot>accept()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>299</x>
-     <y>378</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>299</x>
-     <y>199</y>
-    </hint>
-   </hints>
   </connection>
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
    <receiver>SettingsDialog</receiver>
    <slot>reject()</slot>
-   <hints>
-    <hint type="sourcelabel">
-     <x>299</x>
-     <y>378</y>
-    </hint>
-    <hint type="destinationlabel">
-     <x>299</x>
-     <y>199</y>
-    </hint>
-   </hints>
   </connection>
  </connections>
 </ui>
