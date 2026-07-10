@@ -63,6 +63,8 @@ constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTabl
 constexpr auto HASH_CONTEXT_MENU_ENABLED          = "Preferences/Books/ContextMenu/HashEnabled";
 constexpr auto LAST                               = "Last";
 
+constexpr auto CB_MODE_ID_ROLE = Qt::UserRole + 1;
+
 TR_DEF
 
 class HeaderView final : public QHeaderView
@@ -494,6 +496,25 @@ public:
 		return m_ui.treeView;
 	}
 
+	void SetMode(const int mode, const QString& id)
+	{
+		assert(IsNavigation());
+		if (m_controller->GetModeIndex() != mode)
+		{
+			const auto modeIndex = m_ui.cbMode->findData(mode, CB_MODE_ID_ROLE);
+			if (modeIndex < 0)
+				return;
+
+			m_ui.cbMode->setCurrentIndex(modeIndex);
+		}
+
+		m_settings->Set(GetRecentIdKey(), (m_currentId = id));
+
+		const auto& model = *m_ui.treeView->model();
+		if (const auto matched = model.match(model.index(0, 0), Role::Id, id, 1, Qt::MatchFlag::MatchExactly | Qt::MatchFlag::MatchRecursive); !matched.isEmpty())
+			m_ui.treeView->setCurrentIndex(matched.front());
+	}
+
 	void OnBookTitleToSearchVisibleChanged() const
 	{
 		emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.value));
@@ -526,7 +547,7 @@ private: // ITreeViewController::IObserver
 	void OnModeChanged(const int index) override
 	{
 		m_ui.value->setText({});
-		const auto idIndex = m_ui.cbMode->findData(index, Qt::UserRole + 1);
+		const auto idIndex = m_ui.cbMode->findData(index, CB_MODE_ID_ROLE);
 		m_ui.cbMode->setCurrentIndex(std::max(idIndex, 0));
 	}
 
@@ -1012,7 +1033,7 @@ private:
 		for (const auto& [name, id] : m_controller->GetModeNames())
 		{
 			m_ui.cbMode->addItem(Loc::Tr(m_controller->TrContext(), name), QString(name));
-			m_ui.cbMode->setItemData(m_ui.cbMode->count() - 1, id, Qt::UserRole + 1);
+			m_ui.cbMode->setItemData(m_ui.cbMode->count() - 1, id, CB_MODE_ID_ROLE);
 		}
 		m_ui.cbMode->setCurrentIndex(-1);
 
@@ -1447,6 +1468,11 @@ void TreeView::ShowRemoved(const bool showRemoved)
 QAbstractItemView* TreeView::GetView() const
 {
 	return m_impl->GetView();
+}
+
+void TreeView::SetMode(const int mode, const QString& id)
+{
+	m_impl->SetMode(mode, id);
 }
 
 void TreeView::OnBookTitleToSearchVisibleChanged() const
