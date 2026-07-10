@@ -34,8 +34,8 @@ struct ThemeColors
 const ThemeColors& GetColors(const bool dark)
 {
 	static const ThemeColors light {
-		QColor { "#e9edf3" }, QColor { "#ffffff" }, QColor { "#f4f7fb" }, QColor { "#18212f" }, QColor { "#55606f" }, QColor { "#8b95a4" },
-		QColor { "#2f6fc0" }, QColor { "#c6941a" }, QColor { "#d2d7df" }, QColor { "#b9c1cc" }, QColor { "#c33a32" },
+		QColor { "#cdd3dc" }, QColor { "#e0e4e9" }, QColor { "#d5dae2" }, QColor { "#202833" }, QColor { "#4f5967" }, QColor { "#6d7785" },
+		QColor { "#326cab" }, QColor { "#9f7007" }, QColor { "#b7bec8" }, QColor { "#9fa9b6" }, QColor { "#b93630" },
 	};
 	static const ThemeColors darkTheme {
 		QColor { "#12151a" }, QColor { "#171b22" }, QColor { "#1d222b" }, QColor { "#e8ecf2" }, QColor { "#a6afbc" }, QColor { "#6c7580" },

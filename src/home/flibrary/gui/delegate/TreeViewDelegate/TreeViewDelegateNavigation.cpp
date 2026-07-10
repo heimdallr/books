@@ -69,21 +69,15 @@ private: // QStyledItemDelegate
 
 		if (index.column() == 1)
 		{
-			o.displayAlignment = Qt::AlignRight;
+			o.displayAlignment = Qt::AlignRight | Qt::AlignVCenter;
 			o.textElideMode    = Qt::TextElideMode::ElideNone;
 		}
+		else
+		{
+			o.displayAlignment = Qt::AlignLeft | Qt::AlignVCenter;
+		}
 
-		if (!m_enabled || !(o.state & QStyle::State_Selected))
-			return QStyledItemDelegate::paint(painter, o, index);
-
-		const QWidget* widget = o.widget;
-		assert(widget);
-		QStyle* style = widget->style();
-		assert(style);
-		style->drawControl(QStyle::CE_ItemViewItem, &o, painter, widget);
-		const int textHMargin = style->pixelMetric(QStyle::PM_FocusFrameHMargin, nullptr, widget) + 1;
-		const int textVMargin = style->pixelMetric(QStyle::PM_FocusFrameVMargin, nullptr, widget) - 1;
-		style->drawItemText(painter, o.rect.adjusted(textHMargin, textVMargin, -textHMargin, -textVMargin), Qt::AlignLeft, o.palette, o.state & QStyle::State_Enabled, index.data(Qt::DisplayRole).toString());
+		QStyledItemDelegate::paint(painter, o, index);
 	}
 
 	void updateEditorGeometry(QWidget* editor, const QStyleOptionViewItem& option, [[maybe_unused]] const QModelIndex& index) const override

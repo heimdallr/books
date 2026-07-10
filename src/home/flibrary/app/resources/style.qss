@@ -1,5 +1,6 @@
 * {
   font-family: "IBM Plex Sans";
+  font-size: 12pt;
   letter-spacing: 0px;
 }
 
@@ -10,8 +11,8 @@ QDialog {
 }
 
 QWidget#topBar {
-  min-height: 44px;
-  max-height: 44px;
+  min-height: 48px;
+  max-height: 48px;
   background-color: palette(base);
   border-bottom: 1px solid palette(mid);
 }
@@ -38,8 +39,8 @@ QFrame#AuthorAnnotationWidget {
 QLineEdit,
 QComboBox,
 QAbstractSpinBox {
-  min-height: 32px;
-  padding: 0 10px;
+  min-height: 36px;
+  padding: 0 12px;
   background-color: palette(base);
   color: palette(text);
   border: 1px solid palette(mid);
@@ -49,16 +50,16 @@ QAbstractSpinBox {
 }
 
 QLineEdit#lineEditBookTitleToSearch {
-  min-height: 32px;
+  min-height: 36px;
   background-color: palette(window);
   border-radius: 9px;
 }
 
 QToolButton#themeToggle {
-  min-width: 32px;
-  max-width: 32px;
-  min-height: 32px;
-  max-height: 32px;
+  min-width: 36px;
+  max-width: 36px;
+  min-height: 36px;
+  max-height: 36px;
 }
 
 QLineEdit:hover,
@@ -226,7 +227,7 @@ QListView {
   show-decoration-selected: 1;
   selection-background-color: palette(highlight);
   selection-color: palette(highlighted-text);
-  font-size: 10pt;
+  font-size: 12pt;
 }
 
 QTreeView[navigationPane="true"] {
@@ -235,9 +236,9 @@ QTreeView[navigationPane="true"] {
 }
 
 QTreeView[navigationPane="true"]::item {
-  min-height: 32px;
-  padding: 4px 12px;
-  font-size: 10pt;
+  min-height: 38px;
+  padding: 5px 12px;
+  font-size: 12pt;
 }
 
 QTreeView[navigationPane="true"]::item:selected {
@@ -248,23 +249,23 @@ QTreeView[navigationPane="true"]::item:selected {
 QWidget[navigationPane="true"] QComboBox#cbMode,
 QWidget[navigationPane="true"] QComboBox#cbMode:hover,
 QWidget[navigationPane="true"] QComboBox#cbMode:focus {
-  min-height: 32px;
+  min-height: 36px;
   padding-left: 0;
-  font-size: 12pt;
+  font-size: 14pt;
   font-weight: 600;
 }
 
 QWidget[navigationPane="true"] QToolButton#btnNew {
-  min-width: 30px;
-  max-width: 30px;
-  min-height: 30px;
-  max-height: 30px;
+  min-width: 34px;
+  max-width: 34px;
+  min-height: 34px;
+  max-height: 34px;
   background-color: palette(alternate-base);
   border: 1px solid palette(mid);
 }
 
 QWidget[navigationPane="true"] QLineEdit#value {
-  min-height: 34px;
+  min-height: 36px;
   background-color: palette(window);
 }
 
@@ -273,14 +274,14 @@ QWidget[navigationPane="true"] QLabel#lblCount {
   padding: 2px 7px;
   background-color: palette(alternate-base);
   border-radius: 8px;
-  font-size: 9pt;
+  font-size: 10pt;
 }
 
 QTreeView::item,
 QTableView::item,
 QListView::item {
-  min-height: 27px;
-  padding: 3px 8px;
+  min-height: 34px;
+  padding: 4px 8px;
   border: 0;
 }
 
@@ -290,14 +291,14 @@ QHeaderView {
 }
 
 QHeaderView::section {
-  min-height: 34px;
-  padding: 4px 10px;
+  min-height: 38px;
+  padding: 5px 10px;
   background-color: palette(alternate-base);
   color: palette(placeholder-text);
   border: 0;
   border-right: 1px solid palette(mid);
   border-bottom: 1px solid palette(mid);
-  font-size: 10pt;
+  font-size: 12pt;
   font-weight: 600;
 }
 
@@ -439,17 +440,19 @@ QTreeView#content {
 QLabel#bookTitle {
   padding: 0;
   color: palette(text);
-  font-size: 14pt;
+  font-size: 16pt;
   font-weight: 600;
 }
 
 QLabel#bookSubtitle {
   padding: 0 0 8px 0;
   color: palette(placeholder-text);
+  font-size: 12pt;
 }
 
 QLabel#info {
   padding: 0;
+  font-size: 12pt;
 }
 
 QLabel#lblError {
@@ -465,7 +468,7 @@ QListWidget#categories {
   background-color: transparent;
   border: 0;
   outline: 0;
-  font-size: 10pt;
+  font-size: 12pt;
   font-weight: 500;
 }
 
@@ -494,13 +497,13 @@ QWidget#settingsFooter {
 }
 
 QLabel#settingsPageTitle {
-  font-size: 12pt;
+  font-size: 14pt;
   font-weight: 600;
 }
 
 QLabel#versionLabel {
   font-family: "IBM Plex Mono";
-  font-size: 8pt;
+  font-size: 9pt;
 }
 
 QGroupBox[settingsGroup="true"] {
@@ -513,7 +516,7 @@ QGroupBox[settingsGroup="true"] {
 
 QGroupBox[settingsGroup="true"]::title {
   color: palette(placeholder-text);
-  font-size: 8pt;
+  font-size: 10pt;
   font-weight: 600;
 }
 
@@ -535,7 +538,7 @@ QLabel#lblCount {
   color: palette(placeholder-text);
   border-radius: 10px;
   font-family: "IBM Plex Mono";
-  font-size: 8pt;
+  font-size: 10pt;
 }
 
 QWidget#annotationWidget {
@@ -558,19 +561,19 @@ QWidget#contentWidget {
 
 QTreeView#content {
   background-color: palette(base);
-  font-size: 9pt;
+  font-size: 11pt;
 }
 
 QTreeView#content::item {
-  min-height: 25px;
-  padding: 3px 10px;
+  min-height: 30px;
+  padding: 4px 10px;
 }
 
 QTreeView#content QHeaderView::section {
-  min-height: 34px;
+  min-height: 36px;
   padding: 0 14px;
   background-color: palette(base);
   border-right: 0;
-  font-size: 8pt;
+  font-size: 11pt;
   font-weight: 600;
 }
