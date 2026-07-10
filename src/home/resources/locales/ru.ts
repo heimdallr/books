@@ -4984,8 +4984,8 @@ Try again?</source>
         <translation>Правильное решение!</translation>
     </message>
     <message>
-        <source>Search books by %1</source>
-        <translation>Поиск книг по %1</translation>
+        <source>Search catalog</source>
+        <translation>Поиск в каталоге</translation>
     </message>
     <message>
         <source>View &amp;Help</source>
@@ -4994,22 +4994,6 @@ Try again?</source>
     <message>
         <source>Well, you only have yourself to blame!</source>
         <translation>Что ж, пеняйте теперь на себя!</translation>
-    </message>
-    <message>
-        <source>annotation</source>
-        <translation>аннотации</translation>
-    </message>
-    <message>
-        <source>author</source>
-        <translation>автору</translation>
-    </message>
-    <message>
-        <source>series</source>
-        <translation>серии</translation>
-    </message>
-    <message>
-        <source>title</source>
-        <translation>названию</translation>
     </message>
 </context>
 <context>

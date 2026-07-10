@@ -71,12 +71,7 @@ constexpr auto        SELECT_QSS_FILE                      = QT_TRANSLATE_NOOP("
 constexpr auto        SELECT_SETTINGS_FILE                 = QT_TRANSLATE_NOOP("MainWindow", "Select settings file");
 constexpr auto        QSS_FILE_FILTER                      = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
 constexpr auto        SETTINGS_FILE_FILTER                 = QT_TRANSLATE_NOOP("MainWindow", "Settings files (*.ini);;All files (*.*)");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER             = QT_TRANSLATE_NOOP("MainWindow", "Search books by %1");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_AUTHOR      = QT_TRANSLATE_NOOP("MainWindow", "author");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_SERIES      = QT_TRANSLATE_NOOP("MainWindow", "series");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_TITLE       = QT_TRANSLATE_NOOP("MainWindow", "title");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_OR          = QT_TRANSLATE_NOOP("MainWindow", " or %1");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_ANNOTATION  = QT_TRANSLATE_NOOP("MainWindow", "annotation");
+constexpr auto        SEARCH_BOOKS_PLACEHOLDER             = QT_TRANSLATE_NOOP("MainWindow", "Search catalog");
 constexpr auto        ENABLE_ALL                           = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
 constexpr auto        DISABLE_ALL                          = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
 constexpr auto        STOP_HTTP                            = QT_TRANSLATE_NOOP("MainWindow", "The HTTP server is still running. Would you like to stop it?");
@@ -175,20 +170,13 @@ private: // QObject
 
 	QString GetPlaceholderText() const
 	{
-		QStringList list;
-#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) if (m_action##NAME.isVisible() && m_action##NAME.isChecked()) list << Tr(SEARCH_BOOKS_PLACEHOLDER_##NAME);
+		bool enabled = false;
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) enabled = enabled || (m_action##NAME.isVisible() && m_action##NAME.isChecked());
 		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 
-		m_lineEdit.setVisible(!list.isEmpty());
-		if (!m_lineEdit.isVisible())
-			return {};
-
-		auto last = list.size() > 1 ? std::move(list.back()) : QString {};
-		if (!last.isEmpty())
-			list.pop_back();
-
-		return Tr(SEARCH_BOOKS_PLACEHOLDER).arg(QString("%1%2").arg(list.join(", "), last.isEmpty() ? "" : Tr(SEARCH_BOOKS_PLACEHOLDER_OR).arg(last)));
+		m_lineEdit.setVisible(enabled);
+		return enabled ? Tr(SEARCH_BOOKS_PLACEHOLDER) : QString {};
 	}
 
 private:

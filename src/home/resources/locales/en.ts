@@ -4971,7 +4971,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Search books by %1</source>
+        <source>Search catalog</source>
         <translation></translation>
     </message>
     <message>
@@ -4980,22 +4980,6 @@ Try again?</source>
     </message>
     <message>
         <source>Well, you only have yourself to blame!</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>annotation</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>author</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>series</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>title</source>
         <translation></translation>
     </message>
 </context>
