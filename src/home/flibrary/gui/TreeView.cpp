@@ -52,6 +52,8 @@ namespace
 constexpr auto CONTEXT        = "TreeView";
 constexpr auto NAVIGATION     = QT_TRANSLATE_NOOP("TreeView", "Navigation");
 constexpr auto BOOK_VIEW_MODE = QT_TRANSLATE_NOOP("TreeView", "Books view mode");
+constexpr auto SEARCH_BOOKS   = QT_TRANSLATE_NOOP("TreeView", "Search current book list");
+constexpr auto SEARCH_SAVED   = QT_TRANSLATE_NOOP("TreeView", "Search saved queries");
 
 constexpr auto COLUMN_WIDTH_LOCAL_KEY             = "%1/Width";
 constexpr auto COLUMN_INDEX_LOCAL_KEY             = "%1/Index";
@@ -1117,6 +1119,7 @@ private:
 			m_hotkeyManager->Add(*m_ui.cbMode, Tr(IsNavigation() ? NAVIGATION : BOOK_VIEW_MODE));
 		});
 
+		m_ui.value->setPlaceholderText(Tr(IsNavigation() ? SEARCH_SAVED : SEARCH_BOOKS));
 		m_valueApplier = m_ui.value->SetupFilter();
 
 		m_recentMode = m_ui.cbMode->currentData().toString();

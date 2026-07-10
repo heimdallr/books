@@ -4971,7 +4971,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>To search for books by %1, enter the name or title here and press Enter</source>
+        <source>Search books by %1</source>
         <translation></translation>
     </message>
     <message>
@@ -5751,6 +5751,14 @@ Try again?</source>
     </message>
     <message>
         <source>Navigation</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Search current book list</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Search saved queries</source>
         <translation></translation>
     </message>
 </context>

@@ -4984,8 +4984,8 @@ Try again?</source>
         <translation>Правильне рішення!</translation>
     </message>
     <message>
-        <source>To search for books by %1, enter the name or title here and press Enter</source>
-        <translation>Для пошуку книг за %1 введіть ім&apos;я або назву тут і натисніть Enter</translation>
+        <source>Search books by %1</source>
+        <translation>Пошук книг за %1</translation>
     </message>
     <message>
         <source>View &amp;Help</source>
@@ -5768,6 +5768,14 @@ Try again?</source>
     <message>
         <source>Navigation</source>
         <translation>Навігація</translation>
+    </message>
+    <message>
+        <source>Search current book list</source>
+        <translation>Пошук у поточному списку книг</translation>
+    </message>
+    <message>
+        <source>Search saved queries</source>
+        <translation>Пошук у збережених запитах</translation>
     </message>
 </context>
 <context>

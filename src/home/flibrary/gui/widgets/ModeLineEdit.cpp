@@ -81,7 +81,7 @@ ModeLineEdit::IValueApplier::ValueApplier ModeLineEdit::SetupFilter()
 	impl.fixedMode = true;
 
 	for (auto* action : impl.valueModeActions | std::views::keys)
-		action->setVisible(action == impl.ui.actionFilterMode);
+		action->setVisible(action == impl.ui.actionFindMode);
 
 	const auto result = &IValueApplier::Filter;
 	emit ValueApplierChanged(result);

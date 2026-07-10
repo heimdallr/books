@@ -71,7 +71,7 @@ constexpr auto        SELECT_QSS_FILE                      = QT_TRANSLATE_NOOP("
 constexpr auto        SELECT_SETTINGS_FILE                 = QT_TRANSLATE_NOOP("MainWindow", "Select settings file");
 constexpr auto        QSS_FILE_FILTER                      = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
 constexpr auto        SETTINGS_FILE_FILTER                 = QT_TRANSLATE_NOOP("MainWindow", "Settings files (*.ini);;All files (*.*)");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER             = QT_TRANSLATE_NOOP("MainWindow", "To search for books by %1, enter the name or title here and press Enter");
+constexpr auto        SEARCH_BOOKS_PLACEHOLDER             = QT_TRANSLATE_NOOP("MainWindow", "Search books by %1");
 constexpr auto        SEARCH_BOOKS_PLACEHOLDER_AUTHOR      = QT_TRANSLATE_NOOP("MainWindow", "author");
 constexpr auto        SEARCH_BOOKS_PLACEHOLDER_SERIES      = QT_TRANSLATE_NOOP("MainWindow", "series");
 constexpr auto        SEARCH_BOOKS_PLACEHOLDER_TITLE       = QT_TRANSLATE_NOOP("MainWindow", "title");
@@ -168,11 +168,7 @@ public:
 private: // QObject
 	bool eventFilter(QObject* watched, QEvent* event) override
 	{
-		if (event->type() == QEvent::Enter)
-			m_lineEdit.setPlaceholderText(GetPlaceholderText());
-		else if (event->type() == QEvent::Leave)
-			m_lineEdit.setPlaceholderText({});
-		else if (event->type() == QEvent::Show)
+		if (event->type() == QEvent::Show)
 			emit m_mainWindow.BookTitleToSearchVisibleChanged();
 		return QObject::eventFilter(watched, event);
 	}
@@ -342,11 +338,7 @@ public:
 
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry) const
 	{
-		const auto searchGeometry = Util::GetGlobalGeometry(*m_ui.lineEditBookTitleToSearch);
-		const auto leftWidth      = m_searchBooksByTitleLeft->geometry().width() + geometry.x() - searchGeometry.x();
-		m_searchBooksByTitleLeft->changeSize(std::max(leftWidth, 0), 20, QSizePolicy::Fixed);
-
-		const auto width = std::clamp(geometry.width() + std::min(leftWidth, 0), 300, 540);
+		const auto width = std::clamp(geometry.width(), 300, 540);
 		m_ui.lineEditBookTitleToSearch->setMinimumWidth(width);
 		m_ui.lineEditBookTitleToSearch->setMaximumWidth(width);
 		m_searchBooksByTitleLayout->invalidate();
@@ -661,8 +653,8 @@ private:
 		m_searchBooksByTitleLayout = new QHBoxLayout(menuBar);
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 		m_searchBooksByTitleLayout->addWidget(m_self.menuBar());
-		m_searchBooksByTitleLayout->addItem((m_searchBooksByTitleLeft = new QSpacerItem(72, 20, QSizePolicy::Fixed)));
 		m_searchBooksByTitleLayout->addWidget(m_ui.lineEditBookTitleToSearch);
+		m_searchBooksByTitleLayout->setAlignment(m_ui.lineEditBookTitleToSearch, Qt::AlignLeft | Qt::AlignVCenter);
 		m_searchBooksByTitleLayout->addItem(new QSpacerItem(72, 20, QSizePolicy::Expanding));
 		auto* themeToggle = new QToolButton(menuBar);
 		themeToggle->setObjectName("themeToggle");
@@ -1690,7 +1682,6 @@ private:
 	const Log::LogAppender          m_logAppender { this };
 
 	QMetaObject::Connection m_settingsLineEditExecuteContextMenuConnection;
-	QSpacerItem*            m_searchBooksByTitleLeft;
 	QLayout*                m_searchBooksByTitleLayout;
 	QObject*                m_annotationWidgetEventFilter;
 
