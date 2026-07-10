@@ -55,6 +55,18 @@ QLineEdit#lineEditBookTitleToSearch {
   border-radius: 9px;
 }
 
+QLineEdit#lineEditBookTitleToSearch QToolButton,
+QLineEdit#value QToolButton {
+  min-width: 20px;
+  max-width: 20px;
+  min-height: 20px;
+  max-height: 20px;
+  padding: 0;
+  margin: 0;
+  background-color: transparent;
+  border: 0;
+}
+
 QToolButton#themeToggle {
   min-width: 36px;
   max-width: 36px;
