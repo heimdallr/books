@@ -2,6 +2,7 @@
 
 #include <QApplication>
 #include <QCommandLineParser>
+#include <QFontDatabase>
 #include <QStandardPaths>
 #include <QStyleFactory>
 #include <QTranslator>
@@ -119,6 +120,9 @@ int main(int argc, char* argv[])
 		QApplication app(argc, argv);
 		QCoreApplication::setApplicationName(PRODUCT_ID);
 		QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
+		for (const auto* font : { ":/fonts/fonts/IBMPlexSans-Regular.ttf", ":/fonts/fonts/IBMPlexSans-Medium.ttf", ":/fonts/fonts/IBMPlexSans-SemiBold.ttf", ":/fonts/fonts/IBMPlexMono-Regular.ttf" })
+			QFontDatabase::addApplicationFont(font);
+		app.setFont(QFont { "IBM Plex Sans", 13 });
 		Util::XMLPlatformInitializer xmlPlatformInitializer;
 
 		QCommandLineParser parser;

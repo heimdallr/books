@@ -640,7 +640,7 @@ private:
 				 SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 		));
-		auto* menuBar              = new QWidget(&m_self);
+		auto* menuBar = new QWidget(&m_self);
 		menuBar->setObjectName("topBar");
 		m_searchBooksByTitleLayout = new QHBoxLayout(menuBar);
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
@@ -1183,9 +1183,11 @@ private:
 
 		action.setEnabled(false);
 
-		auto applier = m_styleApplierFactory->CreateStyleApplier(static_cast<IStyleApplier::Type>(action.property(IStyleApplier::ACTION_PROPERTY_THEME_TYPE).toInt()));
+		const auto type    = static_cast<IStyleApplier::Type>(action.property(IStyleApplier::ACTION_PROPERTY_THEME_TYPE).toInt());
+		auto       applier = m_styleApplierFactory->CreateStyleApplier(type);
 		applier->Apply(action.property(IStyleApplier::ACTION_PROPERTY_THEME_NAME).toString(), action.property(IStyleApplier::ACTION_PROPERTY_THEME_FILE).toString());
-		RebootDialog();
+		if (type != IStyleApplier::Type::ColorScheme)
+			RebootDialog();
 	}
 
 	void RebootDialog() const

@@ -126,13 +126,13 @@ private: // IRateRenderer
 	{
 		o.displayAlignment = m_alignment;
 		o.text             = [&]() -> QString {
-			const auto rateVar = index.data(m_role).toString();
-			bool       ok      = false;
-			const auto rate    = rateVar.toInt(&ok);
-			if (!ok)
-				return {};
+            const auto rateVar = index.data(m_role).toString();
+            bool       ok      = false;
+            const auto rate    = rateVar.toInt(&ok);
+            if (!ok)
+                return {};
 
-			return rate == 0 ? m_zeroSymbol : rate < 0 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
+            return rate == 0 ? m_zeroSymbol : rate < 0 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
 		}();
 		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
 	}
@@ -277,6 +277,28 @@ private:
 	{
 		const auto column  = index.data(Role::Remap).toInt();
 		o.displayAlignment = m_alignments[static_cast<size_t>(column)];
+		switch (column)
+		{
+			case BookItem::Column::SeqNumber:
+			case BookItem::Column::UpdateDate:
+			case BookItem::Column::Lang:
+			case BookItem::Column::Year:
+			case BookItem::Column::Folder:
+			case BookItem::Column::FileName:
+			case BookItem::Column::Size:
+			case BookItem::Column::LibID:
+			case BookItem::Column::Format:
+				o.font.setFamily(QStringLiteral("IBM Plex Mono"));
+				break;
+
+			case BookItem::Column::LibRate:
+			case BookItem::Column::UserRate:
+				o.palette.setColor(QPalette::ColorRole::Text, o.palette.color(QPalette::ColorRole::Window).lightness() < 128 ? QColor { "#e0b23f" } : QColor { "#c6941a" });
+				break;
+
+			default:
+				break;
+		}
 
 		const auto markColor = m_readMarkColor ? *m_readMarkColor : o.palette.color(QPalette::ColorRole::Text);
 
