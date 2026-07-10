@@ -2,6 +2,7 @@
 
 #include <algorithm>
 #include <array>
+#include <cmath>
 #include <ranges>
 
 #include <QApplication>
@@ -41,6 +42,32 @@ constexpr auto COLUMN_ALIGNMENT   = "Preferences/Books/Alignment/%1";
 
 constexpr auto LIB_RATE  = "LibRate";
 constexpr auto USER_RATE = "UserRate";
+
+std::optional<QColor> GetRateColor(const QVariant& value, const bool dark)
+{
+	bool       ok   = false;
+	const auto rate = value.toDouble(&ok);
+	if (!ok || rate < 1.0 || rate > 5.0)
+		return {};
+
+	static const std::array darkColors {
+		QColor { "#f06a6a" },
+		QColor { "#ed8952" },
+		QColor { "#e5bd4b" },
+		QColor { "#c4c54f" },
+		QColor { "#63c47a" },
+	};
+	static const std::array lightColors {
+		QColor { "#b42332" },
+		QColor { "#c54f32" },
+		QColor { "#a56f00" },
+		QColor { "#858500" },
+		QColor { "#257a43" },
+	};
+
+	const auto index = static_cast<size_t>(std::clamp(static_cast<int>(std::lround(rate)), 1, 5) - 1);
+	return (dark ? darkColors : lightColors)[index];
+}
 
 void SetAlignment(Qt::Alignment& alignment, const ISettings& settings, const QString& columnName)
 {
@@ -315,7 +342,9 @@ private:
 
 			case BookItem::Column::LibRate:
 			case BookItem::Column::UserRate:
-				setTextColor(dark ? QColor { "#e0b23f" } : QColor { "#c6941a" });
+				o.font.setWeight(QFont::Medium);
+				if (const auto color = GetRateColor(index.data(column == BookItem::Column::LibRate ? Role::LibRate : Role::UserRate), dark))
+					setTextColor(*color);
 				break;
 
 			default:
