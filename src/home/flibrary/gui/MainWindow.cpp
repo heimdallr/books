@@ -564,7 +564,7 @@ private:
 		PLOGV << "Setup";
 		m_ui.setupUi(&m_self);
 		m_ui.leftWidget->setMinimumWidth(188);
-		m_ui.leftWidget->setMaximumWidth(280);
+		m_ui.rightWidget->setMinimumWidth(480);
 		m_ui.verticalSplitter->setStretchFactor(0, 6);
 		m_ui.verticalSplitter->setStretchFactor(1, 28);
 		m_ui.horizontalSplitterLeft->setStretchFactor(0, 1);
