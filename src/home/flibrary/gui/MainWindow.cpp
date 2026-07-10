@@ -110,6 +110,8 @@ constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 constexpr auto CONSOLE_LAYOUT_VERSION_KEY         = "ui/MainWindow/ConsoleLayoutVersion";
 constexpr auto CONSOLE_LAYOUT_VERSION             = 1;
+constexpr auto LEFT_PANEL_LAYOUT_VERSION_KEY      = "ui/MainWindow/LeftPanelLayoutVersion";
+constexpr auto LEFT_PANEL_LAYOUT_VERSION          = 1;
 
 #define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO  \
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)       \
@@ -803,6 +805,12 @@ private:
 		m_ui.horizontalSplitterLeft->setStretchFactor(1, 2);
 		m_ui.horizontalSplitterRight->setStretchFactor(0, 6);
 		m_ui.horizontalSplitterRight->setStretchFactor(1, 5);
+
+		if (m_settings->Get(LEFT_PANEL_LAYOUT_VERSION_KEY, 0) < LEFT_PANEL_LAYOUT_VERSION)
+		{
+			m_settings->Remove("ui/MainWindow/horizontalSplitterLeft");
+			m_settings->Set(LEFT_PANEL_LAYOUT_VERSION_KEY, LEFT_PANEL_LAYOUT_VERSION);
+		}
 
 		if (m_settings->Get(CONSOLE_LAYOUT_VERSION_KEY, 0) < CONSOLE_LAYOUT_VERSION)
 		{
