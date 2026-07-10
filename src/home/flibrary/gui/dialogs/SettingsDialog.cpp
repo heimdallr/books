@@ -13,6 +13,7 @@
 #include <QLineEdit>
 #include <QListWidget>
 #include <QMenu>
+#include <QPushButton>
 #include <QSpinBox>
 #include <QVBoxLayout>
 
@@ -204,6 +205,7 @@ QSpinBox* AddSpinBox(QGroupBox& group, const QString& title)
 class SettingsDialog::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
+	, IOpdsController::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -212,6 +214,7 @@ public:
 		QDialog&                                   self,
 		const IModelProvider&                      modelProvider,
 		std::shared_ptr<ISettings>                 settings,
+		std::shared_ptr<IOpdsController>           opdsController,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController
 	)
@@ -219,6 +222,7 @@ public:
 		, GeometryRestorableObserver(self)
 		, m_self { self }
 		, m_settings { std::move(settings) }
+		, m_opdsController { std::move(opdsController) }
 		, m_model { Model::Create(modelProvider, *m_settings) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
@@ -227,6 +231,8 @@ public:
 		m_self.setWindowTitle(Tr(SETTINGS));
 		SetupPages();
 		LoadControlValues();
+		m_opdsController->RegisterObserver(this);
+		OnRunningChanged();
 
 		m_itemViewToolTipper->SetScrollArea(m_ui.view);
 		m_scrollBarController->SetScrollArea(m_ui.view);
@@ -254,6 +260,7 @@ public:
 
 	~Impl() override
 	{
+		m_opdsController->UnregisterObserver(this);
 		Util::SaveHeaderSectionWidth(*m_ui.view->header(), *m_settings, FIELD_WIDTH_KEY);
 		SaveGeometry();
 	}
@@ -302,6 +309,24 @@ private:
 		m_simpleWeb      = AddCheckBox(*server, Tr(SIMPLE_WEB));
 		m_reactWeb       = AddCheckBox(*server, Tr(REACT_WEB));
 		m_opdsCatalog    = AddCheckBox(*server, Tr(OPDS_CATALOG));
+		auto* serverControls = new QWidget(server);
+		auto* serverLayout   = new QHBoxLayout(serverControls);
+		serverLayout->setContentsMargins(0, 2, 0, 0);
+		serverLayout->addStretch();
+		m_serverStart = new QPushButton(Loc::Tr(IOpdsController::CONTEXT, "Start"), serverControls);
+		m_serverStop  = new QPushButton(Loc::Tr(IOpdsController::CONTEXT, "Stop"), serverControls);
+		serverLayout->addWidget(m_serverStart);
+		serverLayout->addWidget(m_serverStop);
+		server->layout()->addWidget(serverControls);
+		connect(m_serverStart, &QAbstractButton::clicked, &m_self, [this] {
+			SaveServerControlValues();
+			if (!m_opdsController->IsRunning())
+				m_opdsController->Start();
+		});
+		connect(m_serverStop, &QAbstractButton::clicked, &m_self, [this] {
+			if (m_opdsController->IsRunning())
+				m_opdsController->Stop();
+		});
 		auto* updates    = AddGroup(*m_ui.networkPageLayout, Tr(COLLECTION_UPDATES));
 		m_opdsAutoUpdate = AddCheckBox(*updates, Tr(OPDS_AUTOUPDATE));
 		auto* serverHint = new QLabel(Tr(SERVER_RESTART_HINT));
@@ -363,11 +388,16 @@ private:
 		m_settings->Set(QStringLiteral("Reader/fb2"), ReaderValue(*m_readerFb2));
 		m_settings->Set(QStringLiteral("Reader/epub"), ReaderValue(*m_readerEpub));
 		m_settings->Set(QStringLiteral("Reader/pdf"), ReaderValue(*m_readerPdf));
+		SaveServerControlValues();
+		m_settings->Set(Constant::Settings::PREFER_OPDS_AUTOUPDATE_COLLECTION, m_opdsAutoUpdate->isChecked());
+	}
+
+	void SaveServerControlValues()
+	{
 		m_settings->Set(Constant::Settings::OPDS_PORT_KEY, m_serverPort->value());
 		m_settings->Set(Constant::Settings::OPDS_WEB_ENABLED, m_simpleWeb->isChecked());
 		m_settings->Set(Constant::Settings::OPDS_REACT_APP_ENABLED, m_reactWeb->isChecked());
 		m_settings->Set(Constant::Settings::OPDS_OPDS_ENABLED, m_opdsCatalog->isChecked());
-		m_settings->Set(Constant::Settings::PREFER_OPDS_AUTOUPDATE_COLLECTION, m_opdsAutoUpdate->isChecked());
 	}
 
 	static QString ReaderValue(const QLineEdit& lineEdit)
@@ -403,10 +433,23 @@ private:
 			m_settings->Remove(key);
 	}
 
+private: // IOpdsController::IObserver
+	void OnRunningChanged() override
+	{
+		const auto running = m_opdsController->IsRunning();
+		m_serverPort->setEnabled(!running);
+		m_simpleWeb->setEnabled(!running);
+		m_reactWeb->setEnabled(!running);
+		m_opdsCatalog->setEnabled(!running);
+		m_serverStart->setVisible(!running);
+		m_serverStop->setVisible(running);
+	}
+
 private:
 	QWidget&                                                      m_self;
 	Ui::SettingsDialog                                            m_ui;
 	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
+	PropagateConstPtr<IOpdsController, std::shared_ptr>           m_opdsController;
 	PropagateConstPtr<QAbstractItemModel>                         m_model;
 	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
@@ -427,6 +470,8 @@ private:
 	QCheckBox*  m_reactWeb {};
 	QCheckBox*  m_opdsCatalog {};
 	QCheckBox*  m_opdsAutoUpdate {};
+	QPushButton* m_serverStart {};
+	QPushButton* m_serverStop {};
 	QStringList m_keysToRemove;
 };
 
@@ -434,12 +479,13 @@ SettingsDialog::SettingsDialog(
 	const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
 	const std::shared_ptr<IModelProvider>&        modelProvider,
 	std::shared_ptr<ISettings>                    settings,
+	std::shared_ptr<IOpdsController>              opdsController,
 	std::shared_ptr<Util::ItemViewToolTipper>     itemViewToolTipper,
 	std::shared_ptr<Util::ScrollBarController>    scrollBarController,
 	QWidget*                                      parent
 )
 	: QDialog(parentWidgetProvider->GetWidget(parent))
-	, m_impl(*this, *modelProvider, std::move(settings), std::move(itemViewToolTipper), std::move(scrollBarController))
+	, m_impl(*this, *modelProvider, std::move(settings), std::move(opdsController), std::move(itemViewToolTipper), std::move(scrollBarController))
 {
 }
 
