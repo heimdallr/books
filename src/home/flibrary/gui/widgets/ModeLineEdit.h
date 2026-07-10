@@ -41,6 +41,7 @@ public:
 
 public:
 	IValueApplier::ValueApplier Setup(std::shared_ptr<ISettings> settings, QString settingsKey, bool isFindDefault = false);
+	IValueApplier::ValueApplier SetupFilter();
 
 private:
 	void OnValueModeActionTriggered();

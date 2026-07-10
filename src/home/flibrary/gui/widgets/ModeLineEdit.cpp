@@ -24,6 +24,7 @@ struct ModeLineEdit::Impl
 
 	PropagateConstPtr<ISettings, std::shared_ptr> settings { std::shared_ptr<ISettings> {} };
 	QString                                       settingsKey;
+	bool                                          fixedMode { false };
 
 	std::vector<std::pair<QAction*, IValueApplier::ValueApplier>> valueModeActions;
 };
@@ -53,6 +54,7 @@ ModeLineEdit::IValueApplier::ValueApplier ModeLineEdit::Setup(std::shared_ptr<IS
 	IValueApplier::ValueApplier result = nullptr;
 
 	auto& impl = *m_impl;
+	impl.fixedMode = false;
 	impl.settings.reset(std::move(settings));
 	impl.settingsKey = std::move(settingsKey);
 
@@ -73,9 +75,25 @@ ModeLineEdit::IValueApplier::ValueApplier ModeLineEdit::Setup(std::shared_ptr<IS
 	return result;
 }
 
+ModeLineEdit::IValueApplier::ValueApplier ModeLineEdit::SetupFilter()
+{
+	auto& impl      = *m_impl;
+	impl.fixedMode = true;
+
+	for (auto* action : impl.valueModeActions | std::views::keys)
+		action->setVisible(action == impl.ui.actionFilterMode);
+
+	const auto result = &IValueApplier::Filter;
+	emit ValueApplierChanged(result);
+	return result;
+}
+
 void ModeLineEdit::OnValueModeActionTriggered()
 {
 	auto& impl = *m_impl;
+	if (impl.fixedMode)
+		return;
+
 	QMenu menu;
 	for (auto* item : impl.valueModeActions | std::views::keys)
 	{
