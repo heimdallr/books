@@ -60,20 +60,6 @@
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QToolButton" name="btnNew">
-       <property name="text">
-        <string notr="true"/>
-       </property>
-       <property name="icon">
-        <iconset resource="../icons/light/resources/light.qrc">
-         <normaloff>:/icons/plus.svg</normaloff>:/icons/plus.svg</iconset>
-       </property>
-       <property name="autoRaise">
-        <bool>true</bool>
-       </property>
-      </widget>
-     </item>
-     <item row="0" column="2">
       <widget class="HomeCompa::Flibrary::ModeLineEdit" name="value">
        <property name="sizePolicy">
         <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
@@ -86,7 +72,7 @@
        </property>
       </widget>
      </item>
-     <item row="0" column="3">
+     <item row="0" column="2">
       <widget class="QLabel" name="lblCount">
        <property name="text">
         <string notr="true"/>

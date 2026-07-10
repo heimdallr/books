@@ -14,6 +14,7 @@
 #include <QPainter>
 #include <QResizeEvent>
 #include <QTimer>
+#include <QToolButton>
 #include <QWidgetAction>
 
 #include "fnd/FindPair.h"
@@ -585,10 +586,6 @@ public:
 
 	void ResizeEvent(const QResizeEvent* event)
 	{
-		auto size = m_ui.cbMode->height();
-		m_ui.btnNew->setMinimumSize(size, size);
-		m_ui.btnNew->setMaximumSize(size, size);
-
 		if (IsNavigation())
 			return;
 
@@ -829,17 +826,6 @@ private:
 
 		const auto modelEmpty = model->rowCount() == 0;
 
-		if (auto newItemCreator = m_controller->GetNewItemCreator(); !newItemCreator)
-		{
-			m_ui.btnNew->setVisible(false);
-		}
-		else
-		{
-			m_ui.btnNew->setVisible(true);
-			m_ui.btnNew->disconnect(SIGNAL(clicked()));
-			connect(m_ui.btnNew, &QAbstractButton::clicked, &m_self, std::move(newItemCreator));
-		}
-
 		m_ui.value->setEnabled(!modelEmpty);
 		if (modelEmpty)
 			m_controller->SetCurrentId(ItemType::Unknown, {});
@@ -1021,14 +1007,14 @@ private:
 			m_ui.horizontalLayout->setVerticalSpacing(8);
 			m_ui.horizontalLayout->removeWidget(m_ui.value);
 			m_ui.horizontalLayout->removeWidget(m_ui.lblCount);
-			m_ui.horizontalLayout->addWidget(m_ui.lblCount, 0, 2, Qt::AlignRight | Qt::AlignVCenter);
-			m_ui.horizontalLayout->addWidget(m_ui.value, 1, 0, 1, 3);
+			m_ui.horizontalLayout->addWidget(m_ui.lblCount, 0, 1, Qt::AlignRight | Qt::AlignVCenter);
+			m_ui.horizontalLayout->addWidget(m_ui.value, 1, 0, 1, 2);
 			m_ui.horizontalLayout->setColumnStretch(0, 1);
 			m_ui.cbMode->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Fixed);
 		}
 		else
 		{
-			m_ui.horizontalLayout->setColumnStretch(2, 1);
+			m_ui.horizontalLayout->setColumnStretch(1, 1);
 		}
 
 		m_itemViewToolTipper->SetScrollArea(m_ui.treeView);
@@ -1053,8 +1039,6 @@ private:
 		m_ui.treeView->setHeaderHidden(IsNavigation());
 		m_ui.treeView->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 		treeViewHeader.setDefaultAlignment(Qt::AlignLeft | Qt::AlignVCenter);
-
-		SetupNewItemButton();
 
 		if (IsNavigation())
 		{
@@ -1100,13 +1084,6 @@ private:
 		QTimer::singleShot(0, [&] {
 			emit m_self.NavigationModeNameChanged(m_ui.cbMode->currentData().toString());
 		});
-	}
-
-	void SetupNewItemButton() const
-	{
-		m_ui.btnNew->setVisible(false);
-		m_ui.btnNew->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-		m_ui.btnNew->setIcon(QIcon(":/icons/plus.svg"));
 	}
 
 	void FillComboBoxes()
@@ -1199,7 +1176,7 @@ private:
 
 		m_ui.horizontalLayout->removeWidget(m_ui.cbMode);
 		m_ui.cbMode->hide();
-		m_ui.horizontalLayout->addWidget(toggle, 0, 0, 1, 2, Qt::AlignLeft | Qt::AlignVCenter);
+		m_ui.horizontalLayout->addWidget(toggle, 0, 0, Qt::AlignLeft | Qt::AlignVCenter);
 	}
 
 	void UpdateBooksModeToggle(const int index) const

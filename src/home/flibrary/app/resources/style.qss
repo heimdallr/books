@@ -308,15 +308,6 @@ QWidget[navigationPane="true"] QComboBox#cbMode:focus {
   font-weight: 600;
 }
 
-QWidget[navigationPane="true"] QToolButton#btnNew {
-  min-width: 34px;
-  max-width: 34px;
-  min-height: 34px;
-  max-height: 34px;
-  background-color: palette(alternate-base);
-  border: 1px solid palette(mid);
-}
-
 QWidget[navigationPane="true"] QLineEdit#value {
   min-height: 36px;
   background-color: palette(window);
