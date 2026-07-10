@@ -110,11 +110,12 @@ private:
 	const QStyledItemDelegate& m_impl;
 };
 
-class RateRendererStars final : virtual public IBookRenderer
+class RateRendererStars final : virtual public BookRendererDefault
 {
 public:
-	RateRendererStars(const int role, const ISettings& settings, const QString& columnName, const QString& starSymbolKey, QString zeroSymbol = {})
-		: m_role { role }
+	RateRendererStars(const QStyledItemDelegate& impl, const int role, const ISettings& settings, const QString& columnName, const QString& starSymbolKey, QString zeroSymbol = {})
+		: BookRendererDefault { impl }
+		, m_role { role }
 		, m_starSymbol { settings.Get(starSymbolKey, Constant::Settings::STAR_SYMBOL_DEFAULT) }
 		, m_zeroSymbol { std::move(zeroSymbol) }
 	{
@@ -134,7 +135,7 @@ private: // IRateRenderer
 
             return rate == 0 ? m_zeroSymbol : rate < 0 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
 		}();
-		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
+		BookRendererDefault::Render(painter, o, index);
 	}
 
 private:
@@ -168,7 +169,7 @@ private:
 std::unique_ptr<const IBookRenderer> GetLibRateRenderer(QStyledItemDelegate& impl, const ISettings& settings)
 {
 	return settings.Get(Constant::Settings::PREFER_LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT
-	         ? std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererStars>(Role::LibRate, settings, LIB_RATE, Constant::Settings::PREFER_LIB_RATE_STAR_SYMBOL_KEY) }
+	         ? std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererStars>(impl, Role::LibRate, settings, LIB_RATE, Constant::Settings::PREFER_LIB_RATE_STAR_SYMBOL_KEY) }
 	         : std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererNumber>(impl, settings) };
 }
 
@@ -211,7 +212,7 @@ public:
 		, m_settings { std::move(settings) }
 		, m_textDelegate { &PassThruDelegate }
 		, m_libRateRenderer { GetLibRateRenderer(*this, *m_settings) }
-		, m_userRateRenderer { std::make_unique<RateRendererStars>(Role::UserRate, *m_settings, USER_RATE, Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY, GetZeroSymbol(*m_settings)) }
+		, m_userRateRenderer { std::make_unique<RateRendererStars>(*this, Role::UserRate, *m_settings, USER_RATE, Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY, GetZeroSymbol(*m_settings)) }
 		, m_readMarkColor { GetReadMarkColor(*m_settings) }
 		, m_readMarkWidth { GetReadMarkWidth(*m_settings) }
 		, m_readMarkPosition { GetReadMarkPosition(*m_settings) }
@@ -275,10 +276,30 @@ private: // QStyledItemDelegate
 private:
 	void RenderBooks(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const
 	{
-		const auto column  = index.data(Role::Remap).toInt();
-		o.displayAlignment = m_alignments[static_cast<size_t>(column)];
+		const auto column       = index.data(Role::Remap).toInt();
+		o.displayAlignment      = m_alignments[static_cast<size_t>(column)];
+		const auto dark         = o.palette.color(QPalette::ColorRole::Window).lightness() < 128;
+		const auto secondary    = dark ? QColor { "#a6afbc" } : QColor { "#55606f" };
+		const auto tertiary     = dark ? QColor { "#6c7580" } : QColor { "#8b95a4" };
+		const auto setTextColor = [&o](const QColor& color) {
+			o.palette.setColor(QPalette::ColorRole::Text, color);
+			o.palette.setColor(QPalette::ColorRole::HighlightedText, color);
+		};
 		switch (column)
 		{
+			case BookItem::Column::Title:
+				o.font.setWeight(QFont::Medium);
+				break;
+
+			case BookItem::Column::Author:
+				setTextColor(secondary);
+				break;
+
+			case BookItem::Column::Series:
+			case BookItem::Column::Genre:
+				setTextColor(tertiary);
+				break;
+
 			case BookItem::Column::SeqNumber:
 			case BookItem::Column::UpdateDate:
 			case BookItem::Column::Lang:
@@ -289,11 +310,12 @@ private:
 			case BookItem::Column::LibID:
 			case BookItem::Column::Format:
 				o.font.setFamily(QStringLiteral("IBM Plex Mono"));
+				setTextColor(column == BookItem::Column::Size ? secondary : tertiary);
 				break;
 
 			case BookItem::Column::LibRate:
 			case BookItem::Column::UserRate:
-				o.palette.setColor(QPalette::ColorRole::Text, o.palette.color(QPalette::ColorRole::Window).lightness() < 128 ? QColor { "#e0b23f" } : QColor { "#c6941a" });
+				setTextColor(dark ? QColor { "#e0b23f" } : QColor { "#c6941a" });
 				break;
 
 			default:

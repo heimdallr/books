@@ -92,6 +92,8 @@ QTreeView::item:selected, QTableView::item:selected, QListView::item:selected {
 QLabel[secondaryText="true"] { color: %3; }
 QLabel[tertiaryText="true"] { color: %4; }
 QLabel[rating="true"] { color: %5; }
+QLabel#bookSubtitle, QLabel#lblCount { color: %4; }
+QLabel#info { color: %3; }
 QWidget[panel="true"] { background-color: %6; }
 QWidget[panel2="true"] { background-color: %7; }
 )")

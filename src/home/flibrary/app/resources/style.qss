@@ -1,6 +1,5 @@
 * {
   font-family: "IBM Plex Sans";
-  font-size: 13px;
   letter-spacing: 0px;
 }
 
@@ -11,7 +10,8 @@ QDialog {
 }
 
 QWidget#topBar {
-  min-height: 43px;
+  min-height: 44px;
+  max-height: 44px;
   background-color: palette(base);
   border-bottom: 1px solid palette(mid);
 }
@@ -19,6 +19,10 @@ QWidget#topBar {
 QWidget#leftWidget,
 QWidget[navigationPane="true"] {
   background-color: palette(base);
+}
+
+QWidget#leftWidget {
+  border-right: 1px solid palette(mid);
 }
 
 QWidget#rightWidget,
@@ -42,6 +46,12 @@ QAbstractSpinBox {
   border-radius: 8px;
   selection-background-color: palette(highlight);
   selection-color: palette(highlighted-text);
+}
+
+QLineEdit#lineEditBookTitleToSearch {
+  min-height: 32px;
+  background-color: palette(window);
+  border-radius: 9px;
 }
 
 QLineEdit:hover,
@@ -209,10 +219,16 @@ QListView {
   show-decoration-selected: 1;
   selection-background-color: palette(highlight);
   selection-color: palette(highlighted-text);
+  font-size: 10pt;
 }
 
 QTreeView[navigationPane="true"] {
   background-color: palette(base);
+}
+
+QTreeView[navigationPane="true"]::item {
+  min-height: 28px;
+  padding: 3px 10px;
 }
 
 QTreeView::item,
@@ -236,7 +252,7 @@ QHeaderView::section {
   border: 0;
   border-right: 1px solid palette(mid);
   border-bottom: 1px solid palette(mid);
-  font-size: 11px;
+  font-size: 8pt;
   font-weight: 600;
 }
 
@@ -378,7 +394,7 @@ QTreeView#content {
 QLabel#bookTitle {
   padding: 0;
   color: palette(text);
-  font-size: 18px;
+  font-size: 14pt;
   font-weight: 600;
 }
 
@@ -396,6 +412,48 @@ QLabel#lblError {
 }
 
 QLabel#lblCount {
-  padding: 0 4px;
+  min-height: 20px;
+  padding: 0 7px;
+  background-color: palette(alternate-base);
   color: palette(placeholder-text);
+  border-radius: 10px;
+  font-family: "IBM Plex Mono";
+  font-size: 8pt;
+}
+
+QWidget#annotationWidget {
+  border-top: 1px solid palette(mid);
+}
+
+QScrollArea#coverArea,
+QScrollArea#scrollArea,
+QScrollArea#coverArea > QWidget > QWidget,
+QScrollArea#scrollArea > QWidget > QWidget,
+QLabel#cover {
+  background-color: transparent;
+  border: 0;
+}
+
+QWidget#contentWidget {
+  background-color: palette(base);
+  border-left: 1px solid palette(mid);
+}
+
+QTreeView#content {
+  background-color: palette(base);
+  font-size: 9pt;
+}
+
+QTreeView#content::item {
+  min-height: 25px;
+  padding: 3px 10px;
+}
+
+QTreeView#content QHeaderView::section {
+  min-height: 34px;
+  padding: 0 14px;
+  background-color: palette(base);
+  border-right: 0;
+  font-size: 8pt;
+  font-weight: 600;
 }

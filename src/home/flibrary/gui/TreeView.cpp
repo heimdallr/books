@@ -178,6 +178,12 @@ public:
 	}
 
 private: // QHeaderView
+	void initStyleOptionForIndex(QStyleOptionHeader* option, const int logicalIndex) const override
+	{
+		QHeaderView::initStyleOptionForIndex(option, logicalIndex);
+		option->text = option->text.toUpper();
+	}
+
 	void paintSection(QPainter* painter, const QRect& rect, const int logicalIndex) const override
 	{
 		{

@@ -103,6 +103,8 @@ constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnSta
 constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
+constexpr auto CONSOLE_LAYOUT_VERSION_KEY         = "ui/MainWindow/ConsoleLayoutVersion";
+constexpr auto CONSOLE_LAYOUT_VERSION             = 1;
 
 #define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO  \
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)       \
@@ -339,16 +341,8 @@ public:
 
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry) const
 	{
-		const auto rect           = Util::GetGlobalGeometry(*m_ui.lineEditBookTitleToSearch);
-		const auto spacerNewWidth = m_searchBooksByTitleLeft->geometry().width() + geometry.x() - rect.x();
-
-		m_searchBooksByTitleLeft->changeSize(std::max(spacerNewWidth, 0), geometry.height(), QSizePolicy::Fixed, QSizePolicy::Expanding);
-		const auto lineEditBookTitleToSearchNewWidth = geometry.size().width() + std::min(spacerNewWidth, 0);
-		if (lineEditBookTitleToSearchNewWidth < 0)
-			return;
-
-		m_ui.lineEditBookTitleToSearch->setMinimumWidth(lineEditBookTitleToSearchNewWidth);
-		m_ui.lineEditBookTitleToSearch->setMaximumWidth(lineEditBookTitleToSearchNewWidth);
+		m_ui.lineEditBookTitleToSearch->setMinimumWidth(std::min(300, geometry.width()));
+		m_ui.lineEditBookTitleToSearch->setMaximumWidth(540);
 		m_searchBooksByTitleLayout->invalidate();
 	}
 
@@ -570,6 +564,21 @@ private:
 	{
 		PLOGV << "Setup";
 		m_ui.setupUi(&m_self);
+		m_ui.leftWidget->setMinimumWidth(188);
+		m_ui.leftWidget->setMaximumWidth(280);
+		m_ui.verticalSplitter->setStretchFactor(0, 6);
+		m_ui.verticalSplitter->setStretchFactor(1, 28);
+		m_ui.horizontalSplitterLeft->setStretchFactor(0, 1);
+		m_ui.horizontalSplitterLeft->setStretchFactor(1, 0);
+		m_ui.horizontalSplitterRight->setStretchFactor(0, 6);
+		m_ui.horizontalSplitterRight->setStretchFactor(1, 5);
+
+		if (m_settings->Get(CONSOLE_LAYOUT_VERSION_KEY, 0) < CONSOLE_LAYOUT_VERSION)
+		{
+			for (const auto* splitter : { "verticalSplitter", "horizontalSplitterLeft", "horizontalSplitterRight", "verticalSplitterAnnotation" })
+				m_settings->Remove(QStringLiteral("ui/MainWindow/%1").arg(splitter));
+			m_settings->Set(CONSOLE_LAYOUT_VERSION_KEY, CONSOLE_LAYOUT_VERSION);
+		}
 
 		m_self.setWindowTitle(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION));
 
@@ -650,6 +659,8 @@ private:
 		m_searchBooksByTitleLayout->addItem(new QSpacerItem(72, 20, QSizePolicy::Expanding));
 		m_searchBooksByTitleLayout->setContentsMargins(8, 6, 8, 6);
 		m_searchBooksByTitleLayout->setSpacing(6);
+		m_ui.lineEditBookTitleToSearch->setMinimumWidth(300);
+		m_ui.lineEditBookTitleToSearch->setMaximumWidth(540);
 		m_self.setMenuWidget(menuBar);
 	}
 

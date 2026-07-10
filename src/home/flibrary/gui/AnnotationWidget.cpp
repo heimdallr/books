@@ -87,6 +87,20 @@ QT_TRANSLATE_NOOP("Annotation", "cover")
 
 constexpr auto DIALOG_KEY = "Image";
 
+QPixmap RoundCover(QPixmap pixmap)
+{
+	QPixmap result(pixmap.size());
+	result.fill(Qt::transparent);
+
+	QPainter painter(&result);
+	painter.setRenderHint(QPainter::Antialiasing);
+	QPainterPath path;
+	path.addRoundedRect(QRectF(result.rect()).adjusted(0.5, 0.5, -0.5, -0.5), 9, 9);
+	painter.setClipPath(path);
+	painter.drawPixmap(0, 0, pixmap);
+	return result;
+}
+
 TR_DEF
 
 bool SaveImage(QString& fileName, const QByteArray& bytes)
@@ -237,10 +251,12 @@ public:
 		m_progressTimer.setInterval(std::chrono::milliseconds(300));
 
 		m_ui.content->header()->setDefaultAlignment(Qt::AlignCenter);
+		m_ui.contentWidget->setMinimumWidth(220);
+		m_ui.contentWidget->setMaximumWidth(320);
+		m_ui.verticalSplitterAnnotation->setStretchFactor(0, 3);
+		m_ui.verticalSplitterAnnotation->setStretchFactor(1, 1);
 
 		m_annotationController->RegisterObserver(this);
-
-		m_ui.cover->setStyleSheet("background-color: white;");
 
 		connect(m_ui.bookSubtitle, &QLabel::linkActivated, m_ui.bookSubtitle, [&](const QString& link) {
 			OnLinkActivated(link);
@@ -619,10 +635,14 @@ private:
 
 	void OnResize()
 	{
-		m_ui.coverArea->setVisible(m_showCover);
+		const auto hasCover = m_showCover && !m_covers.empty();
+		m_ui.coverArea->setVisible(hasCover);
+		m_ui.horizontalLayout->setContentsMargins(hasCover ? 18 : 0, hasCover ? 18 : 0, 0, hasCover ? 18 : 0);
+		m_ui.horizontalLayout->setSpacing(hasCover ? 28 : 0);
+		m_ui.verticalLayout_2->setContentsMargins(20, hasCover ? 0 : 18, 20, hasCover ? 0 : 18);
 		m_coverButtonsEnabled = false;
 
-		if (m_covers.empty() || !m_ui.coverArea->isVisible())
+		if (!hasCover)
 		{
 			m_ui.coverArea->setMinimumWidth(0);
 			m_ui.coverArea->setMaximumWidth(0);
@@ -631,28 +651,27 @@ private:
 
 		m_coverLabel->setText(Tr(m_covers[m_currentCoverIndex].name.toStdString().data()));
 
-		auto imgHeight = m_ui.mainWidget->height();
-		auto imgWidth  = m_ui.mainWidget->width() / 3;
+		auto imgHeight = std::max(1, m_ui.mainWidget->height() - 36);
+		auto imgWidth  = std::max(1, std::min(150, m_ui.mainWidget->width() / 3));
 
 		if (auto pixmap = Util::Decode(m_covers[m_currentCoverIndex].bytes); !pixmap.isNull())
 		{
-			if (imgHeight * pixmap.width() > pixmap.height() * imgWidth)
-				imgHeight = pixmap.height() * imgWidth / pixmap.width();
-			else
-				imgWidth = pixmap.width() * imgHeight / pixmap.height();
-
-			m_ui.cover->setPixmap(pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+			pixmap    = pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+			imgWidth  = pixmap.width();
+			imgHeight = pixmap.height();
+			m_ui.cover->setPixmap(RoundCover(std::move(pixmap)));
 		}
 		else
 		{
 			QSvgRenderer renderer(QString(":/icons/unsupported-image.svg"));
 			const auto   defaultSize = renderer.defaultSize();
-			imgWidth                 = imgHeight * defaultSize.width() / defaultSize.height();
+			imgWidth                 = std::min(imgWidth, imgHeight * defaultSize.width() / defaultSize.height());
+			imgHeight                = imgWidth * defaultSize.height() / defaultSize.width();
 			pixmap                   = QPixmap(imgWidth, imgHeight);
 			pixmap.fill(Qt::transparent);
 			QPainter painter(&pixmap);
 			renderer.render(&painter);
-			m_ui.cover->setPixmap(pixmap);
+			m_ui.cover->setPixmap(RoundCover(std::move(pixmap)));
 		}
 
 		if (m_covers.size() > 1)
@@ -664,27 +683,28 @@ private:
 		const QFontMetrics metrics(m_self.font());
 		const auto         height = 3 * metrics.lineSpacing() / 2;
 		const QSize        size { height, height };
-		const auto         top = imgHeight - height - height / 8;
+		const auto         origin = m_ui.cover->mapTo(&m_self, QPoint {});
+		const auto         top    = origin.y() + imgHeight - height - height / 8;
 		m_coverButtons[CoverButtonType::Previous]->setGeometry(
 			QRect {
-				QPoint { height / 8, top },
+				QPoint { origin.x() + height / 8, top },
 				size
         }
 		);
 		m_coverButtons[CoverButtonType::Next]->setGeometry(
 			QRect {
-				QPoint { imgWidth - height - height / 8, top },
+				QPoint { origin.x() + imgWidth - height - height / 8, top },
 				size
         }
 		);
 		m_coverButtons[CoverButtonType::Home]->setGeometry(
 			QRect {
-				QPoint { (imgWidth - height) / 2, top },
+				QPoint { origin.x() + (imgWidth - height) / 2, top },
 				size
         }
 		);
 
-		m_coverLabel->move(height / 8, height / 16);
+		m_coverLabel->move(origin + QPoint { height / 8, height / 16 });
 	}
 
 	void OnContentChanged()
