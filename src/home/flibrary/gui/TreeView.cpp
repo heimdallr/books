@@ -1120,9 +1120,8 @@ private:
 			m_hotkeyManager->Add(*m_ui.cbMode, Tr(IsNavigation() ? NAVIGATION : BOOK_VIEW_MODE));
 		});
 
-		if (!IsNavigation())
-			MigrateValueModeToFilter();
-		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), IsNavigation());
+		MigrateValueModeToFilter();
+		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), false);
 
 		m_recentMode = m_ui.cbMode->currentData().toString();
 	}
