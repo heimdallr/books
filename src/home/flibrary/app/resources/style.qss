@@ -54,6 +54,13 @@ QLineEdit#lineEditBookTitleToSearch {
   border-radius: 9px;
 }
 
+QToolButton#themeToggle {
+  min-width: 32px;
+  max-width: 32px;
+  min-height: 32px;
+  max-height: 32px;
+}
+
 QLineEdit:hover,
 QComboBox:hover,
 QAbstractSpinBox:hover {
@@ -224,11 +231,49 @@ QListView {
 
 QTreeView[navigationPane="true"] {
   background-color: palette(base);
+  border-top: 1px solid palette(mid);
 }
 
 QTreeView[navigationPane="true"]::item {
-  min-height: 28px;
-  padding: 3px 10px;
+  min-height: 32px;
+  padding: 4px 12px;
+  font-size: 10pt;
+}
+
+QTreeView[navigationPane="true"]::item:selected {
+  padding-left: 9px;
+  border-left: 3px solid palette(highlight);
+}
+
+QWidget[navigationPane="true"] QComboBox#cbMode,
+QWidget[navigationPane="true"] QComboBox#cbMode:hover,
+QWidget[navigationPane="true"] QComboBox#cbMode:focus {
+  min-height: 32px;
+  padding-left: 0;
+  font-size: 12pt;
+  font-weight: 600;
+}
+
+QWidget[navigationPane="true"] QToolButton#btnNew {
+  min-width: 30px;
+  max-width: 30px;
+  min-height: 30px;
+  max-height: 30px;
+  background-color: palette(alternate-base);
+  border: 1px solid palette(mid);
+}
+
+QWidget[navigationPane="true"] QLineEdit#value {
+  min-height: 34px;
+  background-color: palette(window);
+}
+
+QWidget[navigationPane="true"] QLabel#lblCount {
+  min-width: 22px;
+  padding: 2px 7px;
+  background-color: palette(alternate-base);
+  border-radius: 8px;
+  font-size: 9pt;
 }
 
 QTreeView::item,
@@ -245,14 +290,14 @@ QHeaderView {
 }
 
 QHeaderView::section {
-  min-height: 28px;
-  padding: 3px 10px;
+  min-height: 34px;
+  padding: 4px 10px;
   background-color: palette(alternate-base);
   color: palette(placeholder-text);
   border: 0;
   border-right: 1px solid palette(mid);
   border-bottom: 1px solid palette(mid);
-  font-size: 8pt;
+  font-size: 10pt;
   font-weight: 600;
 }
 

@@ -62,6 +62,8 @@ constexpr auto SORT_INDEX_KEY                     = "Index";
 constexpr auto SORT_ORDER_KEY                     = "Order";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTableColumnSettings";
 constexpr auto HASH_CONTEXT_MENU_ENABLED          = "Preferences/Books/ContextMenu/HashEnabled";
+constexpr auto COLUMN_LAYOUT_VERSION_LOCAL_KEY     = "LayoutVersion";
+constexpr auto COLUMN_LAYOUT_VERSION               = 1;
 constexpr auto LAST                               = "Last";
 
 constexpr auto CB_MODE_ID_ROLE = Qt::UserRole + 1;
@@ -69,16 +71,47 @@ constexpr auto CB_MODE_ID_ROLE = Qt::UserRole + 1;
 int GetMinimumBookSectionWidth(const QHeaderView& header, const int logicalIndex)
 {
 	static const QHash<QString, int> minimumWidths {
-		{   "Author", 180 },
-		{    "Title", 260 },
-		{   "Series", 160 },
-		{    "Genre", 200 },
-		{   "Folder", 120 },
-		{ "FileName", 130 },
+		{   "Author", 150 },
+		{    "Title", 240 },
+		{   "Series", 140 },
+		{    "Genre", 160 },
+		{   "Folder", 100 },
+		{ "FileName", 110 },
 	};
 
 	const auto name = header.model()->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
 	return std::max(header.sectionSizeHint(logicalIndex), minimumWidths.value(name));
+}
+
+int GetPreferredBookSectionWidth(const QHeaderView& header, const int logicalIndex)
+{
+	static const QHash<QString, int> preferredWidths {
+		{     "Author", 170 },
+		{      "Title", 330 },
+		{     "Series", 170 },
+		{  "SeqNumber",  56 },
+		{       "Size",  88 },
+		{      "Genre", 190 },
+		{     "Folder", 110 },
+		{   "FileName", 120 },
+		{    "LibRate",  88 },
+		{   "UserRate", 105 },
+		{ "UpdateDate", 112 },
+		{       "Year",  60 },
+		{       "Lang",  58 },
+		{     "Format",  64 },
+	};
+
+	const auto name = header.model()->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
+	return std::max(GetMinimumBookSectionWidth(header, logicalIndex), preferredWidths.value(name));
+}
+
+int GetBookSectionIndex(const QHeaderView& header, const QString& name)
+{
+	for (auto i = 0; i < header.count(); ++i)
+		if (header.model()->headerData(i, Qt::Horizontal, Role::HeaderName).toString() == name)
+			return i;
+	return -1;
 }
 
 TR_DEF
@@ -979,6 +1012,9 @@ private:
 		m_ui.horizontalLayout->setVerticalSpacing(6);
 		if (IsNavigation())
 		{
+			m_ui.horizontalLayout->setContentsMargins(12, 10, 12, 10);
+			m_ui.horizontalLayout->setHorizontalSpacing(8);
+			m_ui.horizontalLayout->setVerticalSpacing(8);
 			m_ui.horizontalLayout->removeWidget(m_ui.value);
 			m_ui.horizontalLayout->removeWidget(m_ui.lblCount);
 			m_ui.horizontalLayout->addWidget(m_ui.lblCount, 0, 2, Qt::AlignRight | Qt::AlignVCenter);
@@ -1239,20 +1275,26 @@ private:
 
 		if (needDataCollect)
 		{
+			const auto applyPreferredWidths = NeedsColumnLayoutMigration();
 			for (auto i = 0, sz = header->count(); i < sz; ++i)
 			{
 				const auto name   = header->model()->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
 				const auto hidden = m_hiddenColumns.contains(name, Qt::CaseInsensitive);
 				header->setSectionHidden(i, hidden);
 				if (!hidden)
-					header->resizeSection(i, std::max(header->defaultSectionSize(), GetMinimumBookSectionWidth(*header, i)));
+					header->resizeSection(i, applyPreferredWidths ? GetPreferredBookSectionWidth(*header, i)
+					                                                    : std::max(header->defaultSectionSize(), GetMinimumBookSectionWidth(*header, i)));
 			}
+			if (applyPreferredWidths)
+				SaveHeaderLayout();
 			return;
 		}
 
+		const auto applyPreferredWidths = NeedsColumnLayoutMigration();
 		for (const auto [columnInfo, logicalIndex] : std::views::zip(columnInfoList, std::views::iota(0)))
 		{
-			header->resizeSection(logicalIndex, std::max(columnInfo.width, GetMinimumBookSectionWidth(*header, logicalIndex)));
+			header->resizeSection(logicalIndex, applyPreferredWidths ? GetPreferredBookSectionWidth(*header, logicalIndex)
+			                                                        : std::max(columnInfo.width, GetMinimumBookSectionWidth(*header, logicalIndex)));
 			columnInfo.hidden ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
 		}
 
@@ -1271,7 +1313,19 @@ private:
 			header->moveSection(header->visualIndex(logicalIndex), visualIndex);
 
 		m_ui.treeView->model()->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
+		if (applyPreferredWidths)
+			SaveHeaderLayout();
 		CheckHeaderViewWidth(QResizeEvent(m_self.size(), m_self.size()));
+	}
+
+	bool NeedsColumnLayoutMigration()
+	{
+		SettingsGroup guard(*m_settings, GetColumnSettingsKey());
+		if (m_settings->Get(COLUMN_LAYOUT_VERSION_LOCAL_KEY, 0) >= COLUMN_LAYOUT_VERSION)
+			return false;
+
+		m_settings->Set(COLUMN_LAYOUT_VERSION_LOCAL_KEY, COLUMN_LAYOUT_VERSION);
+		return true;
 	}
 
 	void CheckHeaderViewWidth(const QResizeEvent& event)
@@ -1283,7 +1337,9 @@ private:
 			if (const auto offset = event.size().width() - length)
 			{
 				QSignalBlocker block(&header);
-				header.resizeSection(0, m_ui.treeView->header()->sectionSize(0) + offset);
+				const auto title = GetBookSectionIndex(header, QStringLiteral("Title"));
+				const auto section = title >= 0 && !header.isSectionHidden(title) ? title : 0;
+				header.resizeSection(section, std::max(GetMinimumBookSectionWidth(header, section), header.sectionSize(section) + offset));
 				SaveHeaderLayout();
 			}
 		}

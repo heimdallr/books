@@ -14,6 +14,7 @@
 #include <QSystemTrayIcon>
 #include <QTimer>
 #include <QToolBar>
+#include <QToolButton>
 
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
@@ -341,9 +342,15 @@ public:
 
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry) const
 	{
-		m_ui.lineEditBookTitleToSearch->setMinimumWidth(std::min(300, geometry.width()));
-		m_ui.lineEditBookTitleToSearch->setMaximumWidth(540);
+		const auto searchGeometry = Util::GetGlobalGeometry(*m_ui.lineEditBookTitleToSearch);
+		const auto leftWidth      = m_searchBooksByTitleLeft->geometry().width() + geometry.x() - searchGeometry.x();
+		m_searchBooksByTitleLeft->changeSize(std::max(leftWidth, 0), 20, QSizePolicy::Fixed);
+
+		const auto width = std::clamp(geometry.width() + std::min(leftWidth, 0), 300, 540);
+		m_ui.lineEditBookTitleToSearch->setMinimumWidth(width);
+		m_ui.lineEditBookTitleToSearch->setMaximumWidth(width);
 		m_searchBooksByTitleLayout->invalidate();
+		m_searchBooksByTitleLayout->activate();
 	}
 
 	void OnSearchNavigationItemSelected(long long /*id*/, const QString& text) const
@@ -657,6 +664,22 @@ private:
 		m_searchBooksByTitleLayout->addItem((m_searchBooksByTitleLeft = new QSpacerItem(72, 20, QSizePolicy::Fixed)));
 		m_searchBooksByTitleLayout->addWidget(m_ui.lineEditBookTitleToSearch);
 		m_searchBooksByTitleLayout->addItem(new QSpacerItem(72, 20, QSizePolicy::Expanding));
+		auto* themeToggle = new QToolButton(menuBar);
+		themeToggle->setObjectName("themeToggle");
+		themeToggle->setIcon(QIcon(":/icons/theme.svg"));
+		themeToggle->setIconSize(QSize(18, 18));
+		themeToggle->setToolTip(QString("%1 / %2").arg(m_ui.actionColorSchemeLight->text().remove('&'), m_ui.actionColorSchemeDark->text().remove('&')));
+		themeToggle->setAutoRaise(true);
+		themeToggle->setFocusPolicy(Qt::NoFocus);
+		connect(themeToggle, &QToolButton::clicked, &m_self, [this, themeToggle] {
+			const auto dark = QApplication::palette().color(QPalette::Window).lightness() < 128;
+			(dark ? m_ui.actionColorSchemeLight : m_ui.actionColorSchemeDark)->trigger();
+			QTimer::singleShot(0, themeToggle, [themeToggle] {
+				themeToggle->setIcon(QIcon());
+				themeToggle->setIcon(QIcon(":/icons/theme.svg"));
+			});
+		});
+		m_searchBooksByTitleLayout->addWidget(themeToggle);
 		m_searchBooksByTitleLayout->setContentsMargins(8, 6, 8, 6);
 		m_searchBooksByTitleLayout->setSpacing(6);
 		m_ui.lineEditBookTitleToSearch->setMinimumWidth(300);
