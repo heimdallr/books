@@ -108,21 +108,22 @@ QString GetPersonalBuildString()
 }
 
 template <typename T>
-void CreateStackedPage(Hypodermic::Container& container, const QObject* signalReceiver)
+QWidget* CreateStackedPage(Hypodermic::Container& container, const QObject* signalReceiver)
 {
-	auto  collectionCleaner    = container.resolve<T>();
-	auto* collectionCleanerPtr = collectionCleaner.get();
-	auto  connection           = std::make_shared<QMetaObject::Connection>();
-	*connection                = QObject::connect(
-		collectionCleanerPtr,
+	auto  page       = container.resolve<T>();
+	auto* pagePtr    = page.get();
+	auto  connection = std::make_shared<QMetaObject::Connection>();
+	*connection      = QObject::connect(
+		pagePtr,
 		qOverload<std::shared_ptr<QWidget>, int>(&StackedPage::StateChanged),
 		signalReceiver,
-		[collectionCleaner = std::move(collectionCleaner), connection]([[maybe_unused]] const std::shared_ptr<QWidget>& widget, [[maybe_unused]] const int state) mutable {
-			assert(widget.get() == collectionCleaner.get() && state == StackedPage::State::Created);
+		[page = std::move(page), connection]([[maybe_unused]] const std::shared_ptr<QWidget>& widget, [[maybe_unused]] const int state) mutable {
+			assert(widget.get() == page.get() && state == StackedPage::State::Created);
 			QObject::disconnect(*connection);
 		},
 		Qt::QueuedConnection
 	);
+	return pagePtr;
 }
 
 } // namespace
@@ -251,9 +252,9 @@ QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, cons
 	);
 }
 
-void UiFactory::CreateCollectionCleaner() const
+QWidget* UiFactory::CreateCollectionCleaner() const
 {
-	CreateStackedPage<CollectionCleaner>(m_impl->container, this);
+	return CreateStackedPage<CollectionCleaner>(m_impl->container, this);
 }
 
 void UiFactory::CreateAuthorReview(const long long id) const

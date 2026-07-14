@@ -875,8 +875,11 @@
    </property>
   </action>
   <action name="actionShowCollectionCleaner">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
    <property name="text">
-    <string>Cleaner...</string>
+    <string>Cleanup</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

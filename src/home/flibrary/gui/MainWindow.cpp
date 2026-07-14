@@ -765,8 +765,19 @@ private:
 		connect(m_ui.actionGenerateIndexInpx, &QAction::triggered, &m_self, [this] {
 			GenerateCollectionInpx();
 		});
-		connect(m_ui.actionShowCollectionCleaner, &QAction::triggered, &m_self, [this] {
-			m_uiFactory->CreateCollectionCleaner();
+
+		const auto openStacked = [this](QAction* action, QWidget*(IUiFactory::*create)()const) {
+			if (!action->isChecked())
+				return OnStackedPageStateChanged({}, StackedPage::State::Finished);
+
+			const auto* widget = std::invoke(create, *m_uiFactory);
+			connect(widget, &QObject::destroyed, widget, [this, action] {
+				action->setChecked(false);
+			});
+		};
+		connect(m_ui.actionShowCollectionCleaner, &QAction::triggered, &m_self, [this, openStacked] {
+			openStacked(m_ui.actionShowCollectionCleaner, &IUiFactory::CreateCollectionCleaner);
+		});
 		});
 		ConnectSettings(m_ui.actionAllowDestructiveOperations, {}, this, &Impl::AllowDestructiveOperation);
 	}
