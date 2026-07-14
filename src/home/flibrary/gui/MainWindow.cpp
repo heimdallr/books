@@ -778,7 +778,22 @@ private:
 		connect(m_ui.actionShowCollectionCleaner, &QAction::triggered, &m_self, [this, openStacked] {
 			openStacked(m_ui.actionShowCollectionCleaner, &IUiFactory::CreateCollectionCleaner);
 		});
-		});
+		m_ui.actionShowImageViewer->setVisible(false);
+		if (m_collectionController->ActiveCollectionExists())
+		{
+			const auto checkImageFolder = [this](const QString& folder) {
+				QDir dir(m_collectionController->GetActiveCollection().GetFolder());
+				return dir.cd(folder) && !dir.entryList({ "*.zip" }, QDir::Files).isEmpty();
+			};
+			if (checkImageFolder(Global::COVERS) || checkImageFolder(Global::IMAGES))
+			{
+				m_ui.actionShowImageViewer->setVisible(true);
+				connect(m_ui.actionShowImageViewer, &QAction::triggered, &m_self, [this, openStacked] {
+					openStacked(m_ui.actionShowImageViewer, &IUiFactory::CreateImageViewer);
+				});
+			}
+		}
+
 		ConnectSettings(m_ui.actionAllowDestructiveOperations, {}, this, &Impl::AllowDestructiveOperation);
 	}
 

@@ -43,6 +43,7 @@ private: // IUiFactory
 	std::shared_ptr<QMainWindow>          CreateQueryWindow() const override;
 	QWidget*                              CreateFastFilterWidget(const QAbstractItemModel& model, int column, std::function<void(bool, QVariantList)> callback) const override;
 	QWidget*                              CreateCollectionCleaner() const override;
+	QWidget*                              CreateImageViewer() const override;
 	void                                  CreateAuthorReview(long long id) const override;
 
 	void                    ShowAbout() const override;

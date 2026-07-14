@@ -39,6 +39,7 @@
 
 #include "AuthorReview.h"
 #include "CollectionCleaner.h"
+#include "ImageViewer.h"
 #include "QueryWindow.h"
 #include "TreeView.h"
 #include "log.h"
@@ -255,6 +256,11 @@ QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, cons
 QWidget* UiFactory::CreateCollectionCleaner() const
 {
 	return CreateStackedPage<CollectionCleaner>(m_impl->container, this);
+}
+
+QWidget* UiFactory::CreateImageViewer() const
+{
+	return CreateStackedPage<ImageViewer>(m_impl->container, this);
 }
 
 void UiFactory::CreateAuthorReview(const long long id) const

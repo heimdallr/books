@@ -354,6 +354,7 @@
     <addaction name="actionRecreateCollection"/>
     <addaction name="actionRescanCollectionFolder"/>
     <addaction name="actionShowCollectionStatisticsDialog"/>
+    <addaction name="actionShowImageViewer"/>
     <addaction name="actionRemoveCollection"/>
     <addaction name="separator"/>
     <addaction name="actionGenerateIndexInpx"/>
@@ -1226,6 +1227,17 @@
   <action name="actionShowCollectionStatisticsDialog">
    <property name="text">
     <string>Show &amp;statistics..</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowImageViewer">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>View images</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
