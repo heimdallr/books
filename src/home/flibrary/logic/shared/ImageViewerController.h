@@ -19,6 +19,10 @@ public:
 	~ImageViewerController() override;
 
 private: // IImageViewerController
+	QAbstractItemModel* GetImageModel() noexcept override;
+	void                SetFolder(const QModelIndex& index) override;
+	void                SetImageSize(int value) override;
+
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;
 

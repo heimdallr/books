@@ -94,6 +94,30 @@
          <property name="selectionBehavior">
           <enum>QAbstractItemView::SelectionBehavior::SelectItems</enum>
          </property>
+         <property name="iconSize">
+          <size>
+           <width>512</width>
+           <height>512</height>
+          </size>
+         </property>
+         <property name="verticalScrollMode">
+          <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
+         </property>
+         <property name="horizontalScrollMode">
+          <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
+         </property>
+         <property name="resizeMode">
+          <enum>QListView::ResizeMode::Adjust</enum>
+         </property>
+         <property name="gridSize">
+          <size>
+           <width>520</width>
+           <height>520</height>
+          </size>
+         </property>
+         <property name="viewMode">
+          <enum>QListView::ViewMode::IconMode</enum>
+         </property>
         </widget>
        </item>
       </layout>

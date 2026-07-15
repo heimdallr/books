@@ -35,6 +35,7 @@ private: // IModelProvider
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateScriptModel() const override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateScriptCommandModel() const override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateAuthorReviewModel() const override;
+	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateImageModel() const override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateFilterListModel(IDataItem::Ptr data) const override;
 	[[nodiscard]] std::shared_ptr<QAbstractItemModel>     CreateFilterTreeModel(IDataItem::Ptr data) const override;
 	[[nodiscard]] IDataItem::Ptr                          GetData() const noexcept override;

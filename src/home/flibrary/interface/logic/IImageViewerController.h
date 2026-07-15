@@ -19,8 +19,12 @@ public:
 public:
 	virtual ~IImageViewerController() = default;
 
-	virtual void RegisterObserver(IObserver* observer) = 0;
+	virtual QAbstractItemModel* GetImageModel() noexcept            = 0;
+	virtual void                SetFolder(const QModelIndex& index) = 0;
+	virtual void                SetImageSize(int value)             = 0;
+
+	virtual void RegisterObserver(IObserver* observer)   = 0;
 	virtual void UnregisterObserver(IObserver* observer) = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

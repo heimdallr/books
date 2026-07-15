@@ -2,14 +2,52 @@
 
 #include "ImageViewer.h"
 
+#include <QStyledItemDelegate>
+
+#include "interface/constants/ImageModelRole.h"
 #include "interface/constants/SettingsConstant.h"
 
 #include "utilgui/GeometryRestorable.h"
 
 using namespace HomeCompa::Flibrary;
 
+namespace
+{
+
+constexpr auto ICON_SIZE = "ui/ImageViewer/IconSize";
+
+class ImageDelegate final : public QStyledItemDelegate
+{
+public:
+	explicit ImageDelegate(QAbstractItemView* view = nullptr)
+		: QStyledItemDelegate(view)
+		, m_view { view }
+	{
+	}
+
+private: // QStyledItemDelegate
+	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
+	{
+		if (!index.data(ImageModelRole::Ready).toBool())
+			m_view->model()->setData(index, {}, ImageModelRole::Prepare);
+
+		QStyledItemDelegate::paint(painter, option, index);
+	}
+
+	QSize sizeHint(const QStyleOptionViewItem& /*option*/, const QModelIndex& /*index*/) const override
+	{
+		return m_view->iconSize();
+	}
+
+private:
+	const QAbstractItemView* m_view;
+};
+
+} // namespace
+
 class ImageViewer::Impl final
-	: Util::GeometryRestorable
+	: public QObject
+	, Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
 	, IImageViewerController::IObserver
 {
@@ -35,12 +73,19 @@ public:
 		m_ui.setupUi(&self);
 
 		m_ui.navigation->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
+		auto* delegate = new ImageDelegate(m_ui.images);
+		m_ui.images->setItemDelegate(delegate);
+		m_ui.images->setModel(m_imageViewerController->GetImageModel());
 
 		m_itemViewToolTipper->SetScrollArea(m_ui.navigation);
 		m_scrollBarControllerNavigation->SetScrollArea(m_ui.navigation);
 		m_scrollBarControllerImages->SetScrollArea(m_ui.images);
 
 		m_imageViewerController->RegisterObserver(this);
+
+		connect(m_ui.images, &QAbstractItemView::iconSizeChanged, this, &Impl::OnIconSizeChanged);
+		const auto iconSize = m_settings->Get(ICON_SIZE, 256);
+		m_ui.images->setIconSize(QSize(iconSize, iconSize));
 
 		LoadGeometry();
 	}
@@ -52,11 +97,22 @@ public:
 		SaveGeometry();
 	}
 
-private:
+private: // IImageViewerController::IObserver
 	void OnNavigationModelChanged(std::shared_ptr<QAbstractItemModel> model) override
 	{
 		m_navigationModel.reset(std::move(model));
 		m_ui.navigation->setModel(m_navigationModel.get());
+		connect(m_ui.navigation->selectionModel(), &QItemSelectionModel::currentChanged, [this](const QModelIndex& index) {
+			m_imageViewerController->SetFolder(index);
+		});
+	}
+
+private:
+	void OnIconSizeChanged(const QSize& iconSize)
+	{
+		m_settings->Set(ICON_SIZE, iconSize.width());
+		m_imageViewerController->SetImageSize(iconSize.width());
+		m_ui.images->setGridSize(iconSize + QSize(4, 4));
 	}
 
 private:
