@@ -2,6 +2,8 @@
 
 #include "ImageViewer.h"
 
+#include "interface/constants/SettingsConstant.h"
+
 #include "utilgui/GeometryRestorable.h"
 
 using namespace HomeCompa::Flibrary;
@@ -9,6 +11,7 @@ using namespace HomeCompa::Flibrary;
 class ImageViewer::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
+	, IImageViewerController::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -21,8 +24,9 @@ public:
 		std::shared_ptr<Util::ScrollBarController> scrollBarControllerNavigation,
 		std::shared_ptr<Util::ScrollBarController> scrollBarControllerImages
 	)
-		: GeometryRestorable(*this, std::move(settings), "ImageViewer")
+		: GeometryRestorable(*this, settings, "ImageViewer")
 		, GeometryRestorableObserver(self)
+		, m_settings { std::move(settings) }
 		, m_imageViewerController { std::move(imageViewerController) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarControllerNavigation { std::move(scrollBarControllerNavigation) }
@@ -30,23 +34,38 @@ public:
 	{
 		m_ui.setupUi(&self);
 
+		m_ui.navigation->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
+
 		m_itemViewToolTipper->SetScrollArea(m_ui.navigation);
 		m_scrollBarControllerNavigation->SetScrollArea(m_ui.navigation);
 		m_scrollBarControllerImages->SetScrollArea(m_ui.images);
+
+		m_imageViewerController->RegisterObserver(this);
 
 		LoadGeometry();
 	}
 
 	~Impl() override
 	{
+		m_imageViewerController->UnregisterObserver(this);
+
 		SaveGeometry();
 	}
 
 private:
+	void OnNavigationModelChanged(std::shared_ptr<QAbstractItemModel> model) override
+	{
+		m_navigationModel.reset(std::move(model));
+		m_ui.navigation->setModel(m_navigationModel.get());
+	}
+
+private:
+	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
 	PropagateConstPtr<IImageViewerController, std::shared_ptr>    m_imageViewerController;
 	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarControllerNavigation;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarControllerImages;
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>        m_navigationModel { std::shared_ptr<QAbstractItemModel> {} };
 
 	Ui::ImageViewer m_ui {};
 };

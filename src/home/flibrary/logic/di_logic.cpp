@@ -36,6 +36,7 @@
 #include "shared/CommandLine.h"
 #include "shared/FilterController.h"
 #include "shared/HotkeyManager.h"
+#include "shared/ImageViewerController.h"
 #include "shared/LibRateProvider.h"
 #include "shared/OpdsController.h"
 #include "shared/ProgressController.h"
@@ -64,6 +65,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<DatabaseMigrator>().as<IDatabaseMigrator>();
 	builder.registerType<FilteredProxyModel>().as<AbstractFilteredProxyModel>();
 	builder.registerType<GenreModel>().as<IGenreModel>();
+	builder.registerType<ImageViewerController>().as<IImageViewerController>();
 	builder.registerType<LanguageModel>().as<ILanguageModel>();
 	builder.registerType<ListModel>().as<AbstractListModel>();
 	builder.registerType<OpdsController>().as<IOpdsController>();
