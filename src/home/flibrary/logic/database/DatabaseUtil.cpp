@@ -55,21 +55,21 @@ void UpdateItem(IDataItem& item, const DB::IQuery& query, const std::initializer
 
 IDataItem::Ptr CreateSimpleListItem(const DB::IQuery& query)
 {
-	auto item = IDataItem::Ptr(NavigationItem::Create());
+	auto item = NavigationItem::Create();
 	UpdateItem(*item, query, { 1 }, 2, 3);
 	return item;
 }
 
 IDataItem::Ptr CreateSeriesItem(const DB::IQuery& query)
 {
-	auto item = IDataItem::Ptr(SeriesItem::Create());
+	auto item = SeriesItem::Create();
 	UpdateItem(*item, query, { 1, 2 }, 3, 4);
 	return item;
 }
 
 IDataItem::Ptr CreateGenreItem(const DB::IQuery& query)
 {
-	auto item = IDataItem::Ptr(GenreItem::Create());
+	auto item = GenreItem::Create();
 	UpdateItem(*item, query, {}, 3, 4);
 
 	const auto* fbCode     = query.Get<const char*>(2);
@@ -85,7 +85,7 @@ IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query)
 {
 	static const auto languages = GetLanguagesMap();
 
-	auto item = IDataItem::Ptr(NavigationItem::Create());
+	auto item = NavigationItem::Create();
 	UpdateItem(*item, query, {}, 1, 2);
 
 	const auto it = languages.find(item->GetId());
