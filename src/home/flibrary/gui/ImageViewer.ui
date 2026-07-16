@@ -6,11 +6,14 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>400</height>
+    <width>1023</width>
+    <height>559</height>
    </rect>
   </property>
-  <layout class="QHBoxLayout" name="horizontalLayout">
+  <layout class="QVBoxLayout">
+   <property name="spacing">
+    <number>0</number>
+   </property>
    <property name="leftMargin">
     <number>0</number>
    </property>
@@ -24,116 +27,85 @@
     <number>0</number>
    </property>
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayout">
+     <property name="spacing">
+      <number>8</number>
+     </property>
+     <property name="leftMargin">
+      <number>4</number>
+     </property>
+     <property name="topMargin">
+      <number>4</number>
+     </property>
+     <property name="rightMargin">
+      <number>4</number>
+     </property>
+     <property name="bottomMargin">
+      <number>4</number>
+     </property>
+     <item>
+      <widget class="QLineEdit" name="lineEdit"/>
+     </item>
+     <item>
+      <widget class="QLabel" name="count"/>
+     </item>
+    </layout>
+   </item>
+   <item>
     <widget class="QSplitter" name="splitter">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>0</verstretch>
+      </sizepolicy>
+     </property>
      <property name="orientation">
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
-     <property name="childrenCollapsible">
-      <bool>false</bool>
-     </property>
-     <widget class="HomeCompa::Flibrary::CustomTreeView" name="navigation">
+     <widget class="QListView" name="images">
       <property name="verticalScrollBarPolicy">
        <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
       </property>
       <property name="horizontalScrollBarPolicy">
        <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
       </property>
+      <property name="selectionMode">
+       <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
+      </property>
       <property name="selectionBehavior">
-       <enum>QAbstractItemView::SelectionBehavior::SelectRows</enum>
+       <enum>QAbstractItemView::SelectionBehavior::SelectItems</enum>
       </property>
-      <property name="autoExpandDelay">
-       <number>0</number>
+      <property name="iconSize">
+       <size>
+        <width>512</width>
+        <height>512</height>
+       </size>
       </property>
-      <property name="rootIsDecorated">
-       <bool>false</bool>
+      <property name="verticalScrollMode">
+       <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
       </property>
-      <property name="uniformRowHeights">
-       <bool>true</bool>
+      <property name="horizontalScrollMode">
+       <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
       </property>
-      <property name="animated">
-       <bool>true</bool>
+      <property name="resizeMode">
+       <enum>QListView::ResizeMode::Adjust</enum>
       </property>
-      <attribute name="headerVisible">
-       <bool>false</bool>
-      </attribute>
+      <property name="gridSize">
+       <size>
+        <width>520</width>
+        <height>520</height>
+       </size>
+      </property>
+      <property name="viewMode">
+       <enum>QListView::ViewMode::IconMode</enum>
+      </property>
      </widget>
-     <widget class="QWidget" name="verticalWidget" native="true">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-        <horstretch>30</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout">
-       <property name="leftMargin">
-        <number>0</number>
-       </property>
-       <property name="topMargin">
-        <number>0</number>
-       </property>
-       <property name="rightMargin">
-        <number>0</number>
-       </property>
-       <property name="bottomMargin">
-        <number>0</number>
-       </property>
-       <item>
-        <widget class="QLineEdit" name="lineEdit"/>
-       </item>
-       <item>
-        <widget class="QListView" name="images">
-         <property name="verticalScrollBarPolicy">
-          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
-         </property>
-         <property name="horizontalScrollBarPolicy">
-          <enum>Qt::ScrollBarPolicy::ScrollBarAlwaysOff</enum>
-         </property>
-         <property name="selectionMode">
-          <enum>QAbstractItemView::SelectionMode::ExtendedSelection</enum>
-         </property>
-         <property name="selectionBehavior">
-          <enum>QAbstractItemView::SelectionBehavior::SelectItems</enum>
-         </property>
-         <property name="iconSize">
-          <size>
-           <width>512</width>
-           <height>512</height>
-          </size>
-         </property>
-         <property name="verticalScrollMode">
-          <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
-         </property>
-         <property name="horizontalScrollMode">
-          <enum>QAbstractItemView::ScrollMode::ScrollPerPixel</enum>
-         </property>
-         <property name="resizeMode">
-          <enum>QListView::ResizeMode::Adjust</enum>
-         </property>
-         <property name="gridSize">
-          <size>
-           <width>520</width>
-           <height>520</height>
-          </size>
-         </property>
-         <property name="viewMode">
-          <enum>QListView::ViewMode::IconMode</enum>
-         </property>
-        </widget>
-       </item>
-      </layout>
-     </widget>
+     <widget class="QLabel" name="image"/>
     </widget>
    </item>
   </layout>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>HomeCompa::Flibrary::CustomTreeView</class>
-   <extends>QTreeView</extends>
-   <header>widgets/TreeView.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
 </ui>

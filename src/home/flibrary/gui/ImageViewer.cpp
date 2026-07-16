@@ -5,7 +5,6 @@
 #include <QStyledItemDelegate>
 
 #include "interface/constants/ImageModelRole.h"
-#include "interface/constants/SettingsConstant.h"
 
 #include "utilgui/GeometryRestorable.h"
 
@@ -49,7 +48,6 @@ class ImageViewer::Impl final
 	: public QObject
 	, Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
-	, IImageViewerController::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -58,30 +56,21 @@ public:
 		QWidget&                                   self,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IImageViewerController>    imageViewerController,
-		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
-		std::shared_ptr<Util::ScrollBarController> scrollBarControllerNavigation,
-		std::shared_ptr<Util::ScrollBarController> scrollBarControllerImages
+		std::shared_ptr<Util::ScrollBarController> scrollBarController
 	)
 		: GeometryRestorable(*this, settings, "ImageViewer")
 		, GeometryRestorableObserver(self)
 		, m_settings { std::move(settings) }
 		, m_imageViewerController { std::move(imageViewerController) }
-		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
-		, m_scrollBarControllerNavigation { std::move(scrollBarControllerNavigation) }
-		, m_scrollBarControllerImages { std::move(scrollBarControllerImages) }
+		, m_scrollBarController { std::move(scrollBarController) }
 	{
 		m_ui.setupUi(&self);
 
-		m_ui.navigation->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 		auto* delegate = new ImageDelegate(m_ui.images);
 		m_ui.images->setItemDelegate(delegate);
 		m_ui.images->setModel(m_imageViewerController->GetImageModel());
 
-		m_itemViewToolTipper->SetScrollArea(m_ui.navigation);
-		m_scrollBarControllerNavigation->SetScrollArea(m_ui.navigation);
-		m_scrollBarControllerImages->SetScrollArea(m_ui.images);
-
-		m_imageViewerController->RegisterObserver(this);
+		m_scrollBarController->SetScrollArea(m_ui.images);
 
 		connect(m_ui.images, &QAbstractItemView::iconSizeChanged, this, &Impl::OnIconSizeChanged);
 		const auto iconSize = m_settings->Get(ICON_SIZE, 256);
@@ -92,19 +81,7 @@ public:
 
 	~Impl() override
 	{
-		m_imageViewerController->UnregisterObserver(this);
-
 		SaveGeometry();
-	}
-
-private: // IImageViewerController::IObserver
-	void OnNavigationModelChanged(std::shared_ptr<QAbstractItemModel> model) override
-	{
-		m_navigationModel.reset(std::move(model));
-		m_ui.navigation->setModel(m_navigationModel.get());
-		connect(m_ui.navigation->selectionModel(), &QItemSelectionModel::currentChanged, [this](const QModelIndex& index) {
-			m_imageViewerController->SetFolder(index);
-		});
 	}
 
 private:
@@ -118,9 +95,7 @@ private:
 private:
 	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
 	PropagateConstPtr<IImageViewerController, std::shared_ptr>    m_imageViewerController;
-	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
-	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarControllerNavigation;
-	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarControllerImages;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>        m_navigationModel { std::shared_ptr<QAbstractItemModel> {} };
 
 	Ui::ImageViewer m_ui {};
@@ -130,13 +105,11 @@ ImageViewer::ImageViewer(
 	std::shared_ptr<const IUiFactory>          uiFactory,
 	std::shared_ptr<ISettings>                 settings,
 	std::shared_ptr<IImageViewerController>    imageViewerController,
-	std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
-	std::shared_ptr<Util::ScrollBarController> scrollBarControllerNavigation,
-	std::shared_ptr<Util::ScrollBarController> scrollBarControllerImages,
+	std::shared_ptr<Util::ScrollBarController> scrollBarController,
 	QWidget*                                   parent
 )
 	: StackedPage(*uiFactory, uiFactory->GetParentWidget(parent))
-	, m_impl(*this, std::move(settings), std::move(imageViewerController), std::move(itemViewToolTipper), std::move(scrollBarControllerNavigation), std::move(scrollBarControllerImages))
+	, m_impl(*this, std::move(settings), std::move(imageViewerController), std::move(scrollBarController))
 {
 }
 

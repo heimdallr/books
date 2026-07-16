@@ -8,7 +8,6 @@
 #include "interface/logic/IImageViewerController.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "utilgui/ItemViewToolTipper.h"
 #include "utilgui/ScrollBarController.h"
 
 #include "StackedPage.h"
@@ -25,9 +24,7 @@ public:
 		std::shared_ptr<const IUiFactory>          uiFactory,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IImageViewerController>    imageViewerController,
-		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
-		std::shared_ptr<Util::ScrollBarController> scrollBarControllerNavigation,
-		std::shared_ptr<Util::ScrollBarController> scrollBarControllerImages,
+		std::shared_ptr<Util::ScrollBarController> scrollBarController,
 		QWidget*                                   parent = nullptr
 	);
 	~ImageViewer() override;
