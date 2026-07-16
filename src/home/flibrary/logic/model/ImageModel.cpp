@@ -1,9 +1,5 @@
 #include "ImageModel.h"
 
-#include <Constant.h>
-
-#include <ranges>
-
 #include <QFileInfo>
 #include <QPixmap>
 #include <QSortFilterProxyModel>
@@ -14,6 +10,7 @@
 
 #include "interface/constants/ImageModelRole.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/localization.h"
 
 #include "data/DataItem.h"
 #include "settings/UiTimer.h"
@@ -21,6 +18,7 @@
 #include "util/ImageUtil.h"
 #include "util/executor/ThreadPool.h"
 
+#include "Constant.h"
 #include "zip.h"
 
 using namespace HomeCompa;
@@ -29,12 +27,19 @@ using namespace Flibrary;
 namespace
 {
 
+constexpr auto CONTEXT = "ImageModel";
+constexpr auto COVER   = QT_TRANSLATE_NOOP("ImageModel", "Cover");
+constexpr auto IMAGE   = QT_TRANSLATE_NOOP("ImageModel", "Image #%1");
+
+TR_DEF
+
 struct Item
 {
 	int            zipId;
 	QString        fileName;
 	IDataItem::Ptr book;
 	bool           isCover;
+	int            ordNum { -1 };
 	QPixmap        pixmap;
 };
 
@@ -76,8 +81,20 @@ public:
 			{
 				const auto split = fileName.split('/', Qt::SkipEmptyParts);
 				if (const auto it = bookFiles.find(split.front()); it != bookFiles.end())
-					items.emplace_back(n, std::move(fileName), it->second, split.size() == 1);
+				{
+					if (auto& item = items.emplace_back(n, std::move(fileName), it->second, split.size() == 1); !item.isCover)
+						item.ordNum = split.back().toInt();
+				}
 			}
+
+			std::ranges::sort(items, {}, [](const Item& item) {
+				return std::tuple<const QString&, const QString, const QString, int>(
+					item.book->GetRawData(BookItem::Column::AuthorFull),
+					item.book->GetRawData(BookItem::Column::Title),
+					item.book->GetId(),
+					item.ordNum
+				);
+			});
 
 			m_observer.OnItemsCreated(std::move(items));
 		});
@@ -224,6 +241,14 @@ private:
 		{
 			case Qt::DecorationRole:
 				return item.pixmap.isNull() ? m_imagePlaceholderScaled : item.pixmap;
+
+			case Qt::ToolTipRole:
+				return QString("%1. %2\n%3")
+				    .arg(
+						item.book->GetRawData(BookItem::Column::AuthorFull),
+						item.book->GetRawData(BookItem::Column::Title),
+						item.isCover ? Tr(COVER) : Tr(IMAGE).arg(item.fileName.split('/', Qt::SkipEmptyParts).back())
+					);
 
 			case ImageModelRole::Ready:
 				return !item.pixmap.isNull();

@@ -56,12 +56,14 @@ public:
 		QWidget&                                   self,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IImageViewerController>    imageViewerController,
+		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController
 	)
 		: GeometryRestorable(*this, settings, "ImageViewer")
 		, GeometryRestorableObserver(self)
 		, m_settings { std::move(settings) }
 		, m_imageViewerController { std::move(imageViewerController) }
+		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
 	{
 		m_ui.setupUi(&self);
@@ -70,6 +72,8 @@ public:
 		m_ui.images->setItemDelegate(delegate);
 		m_ui.images->setModel(m_imageViewerController->GetImageModel());
 
+		m_itemViewToolTipper->SetShowForceColumns({ 0 });
+		m_itemViewToolTipper->SetScrollArea(m_ui.images);
 		m_scrollBarController->SetScrollArea(m_ui.images);
 
 		connect(m_ui.images, &QAbstractItemView::iconSizeChanged, this, &Impl::OnIconSizeChanged);
@@ -95,6 +99,7 @@ private:
 private:
 	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
 	PropagateConstPtr<IImageViewerController, std::shared_ptr>    m_imageViewerController;
+	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>        m_navigationModel { std::shared_ptr<QAbstractItemModel> {} };
 
@@ -105,11 +110,12 @@ ImageViewer::ImageViewer(
 	std::shared_ptr<const IUiFactory>          uiFactory,
 	std::shared_ptr<ISettings>                 settings,
 	std::shared_ptr<IImageViewerController>    imageViewerController,
+	std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
 	std::shared_ptr<Util::ScrollBarController> scrollBarController,
 	QWidget*                                   parent
 )
 	: StackedPage(*uiFactory, uiFactory->GetParentWidget(parent))
-	, m_impl(*this, std::move(settings), std::move(imageViewerController), std::move(scrollBarController))
+	, m_impl(*this, std::move(settings), std::move(imageViewerController), std::move(itemViewToolTipper), std::move(scrollBarController))
 {
 }
 
