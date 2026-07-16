@@ -3,11 +3,13 @@
 #include <QTimer>
 
 #include "fnd/FindPair.h"
+#include "fnd/observable.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
 #include "interface/constants/Enums.h"
+#include "interface/logic/IDataProvider.h"
 
 #include "settings/UiTimer.h"
 
@@ -34,7 +36,7 @@ constexpr std::pair<ViewMode, BooksViewModeDescription> BOOKS_GENERATORS[] {
 
 }
 
-class DataProvider::Impl
+class DataProvider::Impl final : public Observable<IBookInfoProvider::IObserver>
 {
 public:
 	Impl(
@@ -111,6 +113,12 @@ public:
 		return m_booksGenerator->GetBookInfo(id);
 	}
 
+	void RequestRoot()
+	{
+		if (m_booksGenerator)
+			Perform(&IBookInfoProvider::IObserver::OnBooksSelected, m_navigationMode, static_cast<IBooksRootGenerator&>(*m_booksGenerator).GetRoot());
+	}
+
 private:
 	void RequestNavigationImpl()
 	{
@@ -165,14 +173,16 @@ private:
 
 				  generator->SetBooksViewMode(viewMode);
 				  auto root = std::invoke(booksGenerator, *generator, std::cref(description));
-				  return [this, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator), authorName = std::move(authorName), &description, &columnMapper](
-							 size_t
-						 ) mutable {
-					  m_booksGenerator = std::move(generator);
-					  SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());
-					  if (!authorName.isEmpty())
-						  m_authorAnnotationController->SetAuthor(navigationId.toLongLong(), std::move(authorName));
-				  };
+				  return
+					  [this, navigationMode, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator), authorName = std::move(authorName), &description, &columnMapper](
+						  size_t
+					  ) mutable {
+						  m_booksGenerator = std::move(generator);
+						  SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());
+						  Perform(&IBookInfoProvider::IObserver::OnBooksSelected, navigationMode, static_cast<IBooksRootGenerator&>(*m_booksGenerator).GetRoot());
+						  if (!authorName.isEmpty())
+							  m_authorAnnotationController->SetAuthor(navigationId.toLongLong(), std::move(authorName));
+					  };
 			  } },
 			2
 		);
@@ -278,4 +288,19 @@ const QString& DataProvider::GetNavigationID() const noexcept
 BookInfo DataProvider::GetBookInfo(const long long id) const
 {
 	return m_impl->GetBookInfo(id);
+}
+
+void DataProvider::RequestRoot()
+{
+	m_impl->RequestRoot();
+}
+
+void DataProvider::RegisterObserver(IObserver* observer)
+{
+	m_impl->Register(observer);
+}
+
+void DataProvider::UnregisterObserver(IObserver* observer)
+{
+	m_impl->Unregister(observer);
 }

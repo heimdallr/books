@@ -15,6 +15,7 @@
 #include "interface/constants/ImageModelRole.h"
 #include "interface/constants/ModelRole.h"
 
+#include "data/DataItem.h"
 #include "settings/UiTimer.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ImageUtil.h"
@@ -30,9 +31,11 @@ namespace
 
 struct Item
 {
-	int             zipId;
-	QString         fileName;
-	mutable QPixmap pixmap;
+	int            zipId;
+	QString        fileName;
+	IDataItem::Ptr book;
+	bool           isCover;
+	QPixmap        pixmap;
 };
 
 using Items = std::vector<Item>;
@@ -45,18 +48,46 @@ public:
 	public:
 		virtual ~IObserver() = default;
 
+		virtual void OnItemsCreated(Items items)                  = 0;
 		virtual void OnExtractFinished(int row, QByteArray bytes) = 0;
 	};
 
 public:
-	Extractor(std::unique_ptr<const Zip> zip, IObserver& observer)
-		: m_zip { std::move(zip) }
-		, m_observer { observer }
+	Extractor(int n, QString filePath, IDataItem::Items books, IObserver& observer)
+		: m_observer { observer }
 	{
+		m_threadPool.enqueue([this, n, filePath = std::move(filePath), books = std::move(books)](size_t&) mutable {
+			m_zip = TRY(QString("open %1").arg(filePath), [&] {
+				return std::make_unique<Zip>(filePath);
+			});
+			if (!m_zip)
+				return;
+
+			std::unordered_map<QString, IDataItem::Ptr> bookFiles;
+			for (auto&& book : books)
+			{
+				auto fileName = QFileInfo(book->GetRawData(BookItem::Column::FileName)).completeBaseName();
+				bookFiles.try_emplace(std::move(fileName), std::move(book));
+			}
+
+			Items items;
+
+			for (auto&& fileName : m_zip->GetFileNameList())
+			{
+				const auto split = fileName.split('/', Qt::SkipEmptyParts);
+				if (const auto it = bookFiles.find(split.front()); it != bookFiles.end())
+					items.emplace_back(n, std::move(fileName), it->second, split.size() == 1);
+			}
+
+			m_observer.OnItemsCreated(std::move(items));
+		});
 	}
 
 	void Enqueue(const int row, QString fileName)
 	{
+		if (!m_zip)
+			return;
+
 		m_threadPool.enqueue([this, row, fileName = std::move(fileName)](size_t&) {
 			auto bytes = m_zip->Read(fileName)->GetStream().readAll();
 			m_observer.OnExtractFinished(row, std::move(bytes));
@@ -64,8 +95,8 @@ public:
 	}
 
 private:
-	std::unique_ptr<const Zip> m_zip;
 	IObserver&                 m_observer;
+	std::unique_ptr<const Zip> m_zip;
 	Util::ThreadPool<>         m_threadPool { Util::ThreadPool<>::Initializer { .threadCount = 1 } };
 };
 
@@ -145,6 +176,24 @@ private: // QAbstractItemModel
 	}
 
 private: // Extractor::IObserver
+	void OnItemsCreated(Items items) override
+	{
+		if (items.empty())
+			return;
+
+		m_forwarder.Forward([this, items = std::move(items)]() mutable {
+			const ScopedCall insertGuard(
+				[&] {
+					beginInsertRows({}, static_cast<int>(m_items.size()), static_cast<int>(m_items.size() + items.size()) - 1);
+				},
+				[this] {
+					endInsertRows();
+				}
+			);
+			std::ranges::move(items, std::back_inserter(m_items));
+		});
+	}
+
 	void OnExtractFinished(const int row, QByteArray bytes) override
 	{
 		m_decoder->Enqueue(row, std::move(bytes));
@@ -189,8 +238,8 @@ private:
 	{
 		switch (role)
 		{
-			case ImageModelRole::Folder:
-				return Reset(value.value<QModelIndex>()), true;
+			case ImageModelRole::BooksRoot:
+				return Reset(value.value<IDataItem::Ptr>()), true;
 
 			case ImageModelRole::ImageSize:
 				return Util::Set(m_imageSize, value.toInt(), [&] {
@@ -224,9 +273,9 @@ private:
 	}
 
 private:
-	void Reset(const QModelIndex& index)
+	void Reset(IDataItem::Ptr root)
 	{
-		m_requestedFolderTitle = QFileInfo(index.data().toString()).completeBaseName();
+		m_bookRoot = std::move(root);
 		m_booksTimer->start();
 	}
 
@@ -243,33 +292,28 @@ private:
 
 		m_extractors.clear();
 		m_decoder.reset();
+		m_items.clear();
+
+		std::unordered_map<QString, IDataItem::Items> folders;
 
 		static constexpr const char* FOLDERS[] { Global::COVERS, Global::IMAGES };
 
-		const auto folder = m_collectionProvider->GetActiveCollection().GetFolder();
-		auto       zips   = FOLDERS | std::views::transform([&](const char* item) {
-						const auto filePath = QString("%1/%2/%3.zip").arg(folder, item, m_requestedFolderTitle);
-						if (!QFile::exists(filePath))
-							return std::unique_ptr<const Zip> {};
-						auto zip = TRY(QString("open %1").arg(m_requestedFolderTitle), [&] {
-							return std::make_unique<const Zip>(filePath);
-						});
-						return zip;
-							})
-		                  | std::views::filter([](const auto& item) {
-						return !!item;
-							})
-		                  | std::ranges::to<std::vector>();
-
-		m_items.clear();
-		for (auto&& [zipId, zip] : std::views::zip(std::views::iota(0), zips))
-			std::ranges::transform(zip->GetFileNameList(), std::back_inserter(m_items), [&](const auto& item) {
-				return Item { .zipId = zipId, .fileName = item };
-			});
+		const auto rootFolder = m_collectionProvider->GetActiveCollection().GetFolder();
+		for (size_t i = 0, sz = m_bookRoot->GetChildCount(); i < sz; ++i)
+		{
+			auto       book       = m_bookRoot->GetChild(i);
+			const auto folderName = QFileInfo(book->GetRawData(BookItem::Column::Folder)).completeBaseName();
+			for (const auto* folder : FOLDERS)
+			{
+				const auto filePath = QString("%1/%2/%3.zip").arg(rootFolder, folder, folderName);
+				if (QFile::exists(filePath))
+					folders[filePath].emplace_back(book);
+			}
+		}
 
 		m_decoder = std::make_unique<Decoder>(m_imageSize, *this);
-		for (auto&& zip : zips)
-			m_extractors.emplace_back(std::make_unique<Extractor>(std::move(zip), *this));
+		for (int n = 0; auto&& [filePath, books] : folders)
+			m_extractors.emplace_back(std::make_unique<Extractor>(n++, filePath, std::move(books), *this));
 	}
 
 	void Prepare(const int row)
@@ -285,7 +329,7 @@ private:
 	std::shared_ptr<const IDatabaseUser>       m_databaseUser;
 
 	int                     m_imageSize { -1 };
-	QString                 m_requestedFolderTitle;
+	IDataItem::Ptr          m_bookRoot;
 	std::unique_ptr<QTimer> m_booksTimer { Util::CreateUiTimer([this] {
 		ResetImpl();
 	}) };

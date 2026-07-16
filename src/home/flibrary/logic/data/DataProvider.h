@@ -47,6 +47,10 @@ private: // IBookInfoProvider
 	void     SetBookRequestCallback(Callback callback) override;
 	void     SetBooksViewMode(ViewMode viewMode) override;
 	BookInfo GetBookInfo(long long id) const override;
+	void RequestRoot() override;
+
+	void RegisterObserver(IObserver* observer) override;
+	void UnregisterObserver(IObserver* observer) override;
 
 private:
 	class Impl;

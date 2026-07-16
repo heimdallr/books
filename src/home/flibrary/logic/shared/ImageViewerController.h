@@ -6,6 +6,8 @@
 #include "interface/logic/IImageViewerController.h"
 #include "interface/logic/IModelProvider.h"
 
+#include "BooksContextMenuProvider.h"
+
 namespace HomeCompa::Flibrary
 {
 
@@ -14,7 +16,7 @@ class ImageViewerController final : public IImageViewerController
 	NON_COPY_MOVABLE(ImageViewerController)
 
 public:
-	explicit ImageViewerController(std::shared_ptr<const IModelProvider> modelProvider);
+	ImageViewerController(std::shared_ptr<const IModelProvider> modelProvider, std::shared_ptr<IBookInfoProvider> bookInfoProvider);
 	~ImageViewerController() override;
 
 private: // IImageViewerController

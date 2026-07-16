@@ -7,7 +7,7 @@ struct ImageModelRole
 {
 	enum Value
 	{
-		Folder = Qt::UserRole + 1,
+		BooksRoot = Qt::UserRole + 1,
 		Ready,
 		Prepare,
 		ImageSize,
