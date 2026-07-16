@@ -7,6 +7,7 @@
 
 #include "gutil/interface/IUiFactory.h"
 
+class QStackedWidget;
 class QAbstractItemModel;
 class QAbstractItemView;
 class QComboBox;
@@ -40,8 +41,8 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateFilterSettingsDialog() const                                = 0;
 	[[nodiscard]] virtual std::shared_ptr<class IComboBoxTextDialog>  CreateComboBoxTextDialog(QString title) const                     = 0;
 	[[nodiscard]] virtual std::shared_ptr<QMainWindow>                CreateQueryWindow() const                                         = 0;
-	virtual QWidget*                                                  CreateCollectionCleaner() const                                   = 0;
-	virtual QWidget*                                                  CreateImageViewer() const                                         = 0;
+	virtual QWidget*                                                  CreateCollectionCleaner(QStackedWidget* stackedWidget) const      = 0;
+	virtual QWidget*                                                  CreateImageViewer(QStackedWidget* stackedWidget) const            = 0;
 	virtual void                                                      CreateAuthorReview(long long id) const                            = 0;
 	virtual void                                                      ExecuteContextMenu(QLineEdit* lineEdit) const                     = 0;
 	virtual void                                                      ShowAbout() const                                                 = 0;
@@ -61,6 +62,7 @@ public: // special
 	[[nodiscard]] virtual QAbstractItemView&                         GetAbstractItemView() const                 = 0;
 	[[nodiscard]] virtual QString                                    GetTitle() const noexcept                   = 0;
 	[[nodiscard]] virtual long long                                  GetAuthorId() const noexcept                = 0;
+	[[nodiscard]] virtual QStackedWidget*                            GetStackedWidget() const noexcept           = 0;
 };
 
 } // namespace HomeCompa::Flibrary

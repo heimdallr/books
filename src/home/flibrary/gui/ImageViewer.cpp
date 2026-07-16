@@ -135,7 +135,7 @@ ImageViewer::ImageViewer(
 	std::shared_ptr<Util::ScrollBarController> scrollBarControllerImages,
 	QWidget*                                   parent
 )
-	: StackedPage(uiFactory->GetParentWidget(parent))
+	: StackedPage(*uiFactory, uiFactory->GetParentWidget(parent))
 	, m_impl(*this, std::move(settings), std::move(imageViewerController), std::move(itemViewToolTipper), std::move(scrollBarControllerNavigation), std::move(scrollBarControllerImages))
 {
 }

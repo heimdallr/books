@@ -116,9 +116,9 @@ QWidget* CreateStackedPage(Hypodermic::Container& container, const QObject* sign
 	auto  connection = std::make_shared<QMetaObject::Connection>();
 	*connection      = QObject::connect(
 		pagePtr,
-		qOverload<std::shared_ptr<QWidget>, int>(&StackedPage::StateChanged),
+		qOverload<QStackedWidget*, std::shared_ptr<QWidget>, int>(&StackedPage::StateChanged),
 		signalReceiver,
-		[page = std::move(page), connection]([[maybe_unused]] const std::shared_ptr<QWidget>& widget, [[maybe_unused]] const int state) mutable {
+		[page = std::move(page), connection](QStackedWidget*, [[maybe_unused]] const std::shared_ptr<QWidget>& widget, [[maybe_unused]] const int state) mutable {
 			assert(widget.get() == page.get() && state == StackedPage::State::Created);
 			QObject::disconnect(*connection);
 		},
@@ -139,6 +139,7 @@ struct UiFactory::Impl
 	mutable QAbstractItemView*                   abstractItemView { nullptr };
 	mutable QString                              title;
 	mutable long long                            authorId { -1 };
+	mutable QStackedWidget*                      stackedWidget { nullptr };
 
 	explicit Impl(Hypodermic::Container& container)
 		: container(container)
@@ -253,13 +254,15 @@ QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, cons
 	);
 }
 
-QWidget* UiFactory::CreateCollectionCleaner() const
+QWidget* UiFactory::CreateCollectionCleaner(QStackedWidget* stackedWidget) const
 {
+	m_impl->stackedWidget = stackedWidget;
 	return CreateStackedPage<CollectionCleaner>(m_impl->container, this);
 }
 
-QWidget* UiFactory::CreateImageViewer() const
+QWidget* UiFactory::CreateImageViewer(QStackedWidget* stackedWidget) const
 {
+	m_impl->stackedWidget = stackedWidget;
 	return CreateStackedPage<ImageViewer>(m_impl->container, this);
 }
 
@@ -432,6 +435,13 @@ long long UiFactory::GetAuthorId() const noexcept
 	assert(m_impl->authorId >= 0);
 	const auto result = m_impl->authorId;
 	m_impl->authorId  = -1;
+	return result;
+}
+
+QStackedWidget* UiFactory::GetStackedWidget() const noexcept
+{
+	auto* result          = m_impl->stackedWidget;
+	m_impl->stackedWidget = nullptr;
 	return result;
 }
 
