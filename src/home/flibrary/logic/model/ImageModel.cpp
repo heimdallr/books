@@ -62,11 +62,8 @@ public:
 	Extractor(int n, QString filePath, IDataItem::Items books, IObserver& observer)
 		: m_observer { observer }
 	{
-		m_threadPool.enqueue([this, n, filePath = std::move(filePath), books = std::move(books)](size_t&) mutable {
-			m_zip = TRY(QString("open %1").arg(filePath), [&] {
-				return std::make_unique<Zip>(filePath);
-			});
-			if (!m_zip)
+		m_threadPool.enqueue([this, n, filePath = std::move(filePath), books = std::move(books)](size_t&, const std::stop_token& stop) mutable {
+			if (books.empty() || stop.stop_requested())
 				return;
 
 			std::unordered_map<QString, IDataItem::Ptr> bookFiles;
@@ -75,6 +72,16 @@ public:
 				auto fileName = QFileInfo(book->GetRawData(BookItem::Column::FileName)).completeBaseName();
 				bookFiles.try_emplace(std::move(fileName), std::move(book));
 			}
+
+			if (stop.stop_requested())
+				return;
+
+			m_zip = TRY(QString("open %1").arg(filePath), [&] {
+				return std::make_unique<Zip>(filePath);
+			});
+
+			if (!m_zip || stop.stop_requested())
+				return;
 
 			Items items;
 
@@ -86,7 +93,12 @@ public:
 					if (auto& item = items.emplace_back(n, std::move(fileName), it->second, split.size() == 1); !item.isCover)
 						item.ordNum = split.back().toInt();
 				}
+				if (stop.stop_requested())
+					return;
 			}
+
+			if (stop.stop_requested())
+				return;
 
 			std::ranges::sort(items, {}, [](const Item& item) {
 				return std::tuple<const QString&, const QString, const QString, int>(
@@ -112,12 +124,12 @@ public:
 	}
 
 private:
-	void Enqueue(const int row, QString fileName, void(IObserver::*onFinished)(int, QByteArray))
+	void Enqueue(const int row, QString fileName, void (IObserver::*onFinished)(int, QByteArray))
 	{
 		if (!m_zip)
 			return;
 
-		m_threadPool.enqueue([this, row, fileName = std::move(fileName), onFinished](size_t&) {
+		m_threadPool.enqueue([this, row, fileName = std::move(fileName), onFinished](size_t&, const std::stop_token&) {
 			auto bytes = m_zip->Read(fileName)->GetStream().readAll();
 			std::invoke(onFinished, std::ref(m_observer), row, std::move(bytes));
 		});
@@ -155,7 +167,7 @@ public:
 
 	void DecodeScaled(const int row, QByteArray bytes)
 	{
-		m_threadPool.enqueue([this, row, bytes = std::move(bytes)](size_t&) {
+		m_threadPool.enqueue([this, row, bytes = std::move(bytes)](size_t&, const std::stop_token&) {
 			auto pixmap = Util::Decode(bytes);
 			if (std::max(pixmap.width(), pixmap.height()) > m_imageSize)
 				pixmap = pixmap.scaled(m_imageSize, m_imageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -166,10 +178,13 @@ public:
 
 	void Decode(const int row, QByteArray bytes)
 	{
-		m_threadPool.enqueue([this, row, bytes = std::move(bytes)](size_t&) {
-			auto pixmap = Util::Decode(bytes);
-			m_observer.OnDecodeFinished(row, std::move(pixmap));
-		}, true);
+		m_threadPool.enqueue(
+			[this, row, bytes = std::move(bytes)](size_t&, const std::stop_token&) {
+				auto pixmap = Util::Decode(bytes);
+				m_observer.OnDecodeFinished(row, std::move(pixmap));
+			},
+			true
+		);
 	}
 
 private:
@@ -256,9 +271,9 @@ private: // Decoder::IObserver
 	void OnDecodeFinished(const int row, QPixmap pixmap) override
 	{
 		m_forwarder.Forward([this, row, pixmap = std::move(pixmap)]() mutable {
-			m_imageRequested = std::move(pixmap);
+			m_imageRequested         = std::move(pixmap);
 			m_imageRequestedFileName = m_items[row].fileName;
-			const auto index = this->index(row, 0);
+			const auto index         = this->index(row, 0);
 			emit       dataChanged(index, index, { ImageModelRole::Image });
 		});
 	}
@@ -343,6 +358,8 @@ private:
 private:
 	void Reset(IDataItem::Ptr root)
 	{
+		m_extractors.clear();
+		m_decoder.reset();
 		m_bookRoot = std::move(root);
 		m_booksTimer->start();
 	}
@@ -358,8 +375,6 @@ private:
 			}
 		);
 
-		m_extractors.clear();
-		m_decoder.reset();
 		m_items.clear();
 
 		std::unordered_map<QString, IDataItem::Items> folders;
