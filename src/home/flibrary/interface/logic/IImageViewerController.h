@@ -27,6 +27,7 @@ public:
 	virtual void                SetImageSize(int value)          = 0;
 	virtual void                PrepareImage(const QModelIndex&) = 0;
 	virtual void                RequestImage(const QModelIndex&) = 0;
+	virtual void                Filter(QString filter)           = 0;
 
 	virtual void RegisterObserver(IObserver* observer)   = 0;
 	virtual void UnregisterObserver(IObserver* observer) = 0;

@@ -127,7 +127,7 @@
         <rect>
          <x>0</x>
          <y>0</y>
-         <width>69</width>
+         <width>79</width>
          <height>644</height>
         </rect>
        </property>
@@ -160,8 +160,22 @@
     </widget>
    </item>
   </layout>
+  <action name="actionFilter">
+   <property name="icon">
+    <iconset resource="../icons/light/resources/light.qrc">
+     <normaloff>:/icons/Filter.svg</normaloff>:/icons/Filter.svg</iconset>
+   </property>
+   <property name="text">
+    <string>Filter</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <resources/>
+ <resources>
+  <include location="../icons/light/resources/light.qrc"/>
+ </resources>
  <connections/>
 </ui>

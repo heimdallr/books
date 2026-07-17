@@ -24,6 +24,7 @@ private: // IImageViewerController
 	void                SetImageSize(int value) override;
 	void                PrepareImage(const QModelIndex& index) override;
 	void                RequestImage(const QModelIndex& index) override;
+	void                Filter(QString filter) override;
 
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;

@@ -19,6 +19,7 @@
 #include "util/executor/ThreadPool.h"
 
 #include "Constant.h"
+#include "QtTypes.h"
 #include "zip.h"
 
 using namespace HomeCompa;
@@ -300,6 +301,11 @@ private:
 						item.book->GetRawData(BookItem::Column::Title),
 						item.isCover ? Tr(COVER) : Tr(IMAGE).arg(item.fileName.split('/', Qt::SkipEmptyParts).back())
 					);
+			case ImageModelRole::Author:
+				return item.book->GetRawData(BookItem::Column::AuthorFull);
+
+			case ImageModelRole::Title:
+				return item.book->GetRawData(BookItem::Column::Title);
 
 			case ImageModelRole::Ready:
 				return !item.pixmap.isNull();
@@ -444,42 +450,40 @@ public:
 private: // QAbstractItemModel
 	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
 	{
-		//		if (index.isValid())
-		//		{
-		//			assert(role == Qt::CheckStateRole);
-		//			SetChecked(index, value.value<Qt::CheckState>());
-		//			return true;
-		//		}
-		//
-		//		switch (role)
-		//		{
-		//			case Role::VisibleGenreCodes:
-		//				return Util::Set(
-		//					m_visibleGenres,
-		//					value.value<std::unordered_set<QString>>(),
-		//					[this] {
-		//						BEGIN_FILTER_CHANGE;
-		//					},
-		//					[this] {
-		//						END_FILTER_CHANGE;
-		//					}
-		//				);
-		//
-		//			default:
-		//				break;
-		//		}
+		switch (role)
+		{
+			case ImageModelRole::Filter:
+				return Util::Set(
+					m_filter,
+					value.toString(),
+					[this] {
+						BEGIN_FILTER_CHANGE;
+					},
+					[this] {
+						END_FILTER_CHANGE;
+					}
+				);
+
+			default:
+				break;
+		}
 
 		return QSortFilterProxyModel::setData(index, value, role);
 	}
 
 private: // QSortFilterProxyModel
-	bool filterAcceptsRow(const int /*sourceRow*/, const QModelIndex& /*sourceParent*/) const override
+	bool filterAcceptsRow(const int sourceRow, const QModelIndex& sourceParent) const override
 	{
-		return true;
+		if (m_filter.isEmpty())
+			return true;
+
+		const auto index = m_sourceModel->index(sourceRow, 0, sourceParent);
+		return index.data(ImageModelRole::Author).toString().contains(m_filter, Qt::CaseInsensitive) || index.data(ImageModelRole::Title).toString().contains(m_filter, Qt::CaseInsensitive);
 	}
 
 private:
 	PropagateConstPtr<QAbstractItemModel> m_sourceModel;
+	QString                               m_filter;
 };
 
 } // namespace

@@ -67,6 +67,15 @@ public:
 		m_requestImageTimer->start();
 	}
 
+	void Filter(QString filter)
+	{
+		if (filter.length() < 3)
+			filter.clear();
+
+		m_filter = std::move(filter);
+		m_filterTimer->start();
+	}
+
 private: // IBookInfoProvider::IObserver
 	void OnBooksSelected(const NavigationMode /*navigationMode*/, IDataItem::Ptr root) override
 	{
@@ -76,7 +85,7 @@ private: // IBookInfoProvider::IObserver
 private:
 	void OnModelReset()
 	{
-		Perform(&IImageViewerController::IObserver::OnImageReceived, QPixmap{});
+		Perform(&IImageViewerController::IObserver::OnImageReceived, QPixmap {});
 	}
 
 	void OnModelDataChanged(const QModelIndex& topLeft, const QModelIndex& /*bottomRight*/, const QList<int>& roles)
@@ -90,13 +99,31 @@ private:
 		Perform(&IImageViewerController::IObserver::OnCountChanges, m_imageModel->rowCount());
 	}
 
+	void RequestImage()
+	{
+		if (const auto index = m_imageModel->index(m_requestedImageRow, 0); index.isValid())
+			m_imageModel->setData(index, {}, ImageModelRole::Image);
+	}
+
+	void ApplyFilter()
+	{
+		m_imageModel->setData({}, m_filter, ImageModelRole::Filter);
+		Perform(&IImageViewerController::IObserver::OnCountChanges, m_imageModel->rowCount());
+	}
+
 private:
 	std::shared_ptr<const IModelProvider>                  m_modelProvider;
 	PropagateConstPtr<IBookInfoProvider, std::shared_ptr>  m_bookInfoProvider;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_imageModel { m_modelProvider->CreateImageModel() };
-	int                                                    m_requestedImageRow { -1 };
-	std::unique_ptr<QTimer>                                m_requestImageTimer { Util::CreateUiTimer([this] {
-		m_imageModel->setData(m_imageModel->index(m_requestedImageRow, 0), {}, ImageModelRole::Image);
+
+	int     m_requestedImageRow { -1 };
+	QString m_filter;
+
+	std::unique_ptr<QTimer> m_requestImageTimer { Util::CreateUiTimer([this] {
+		RequestImage();
+	}) };
+	std::unique_ptr<QTimer> m_filterTimer { Util::CreateUiTimer([this] {
+		ApplyFilter();
 	}) };
 };
 
@@ -125,6 +152,11 @@ void ImageViewerController::PrepareImage(const QModelIndex& index)
 void ImageViewerController::RequestImage(const QModelIndex& index)
 {
 	m_impl->RequestImage(index);
+}
+
+void ImageViewerController::Filter(QString filter)
+{
+	m_impl->Filter(std::move(filter));
 }
 
 void ImageViewerController::RegisterObserver(IObserver* observer)

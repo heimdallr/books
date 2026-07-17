@@ -72,17 +72,19 @@ public:
 		m_ui.images->setModel(m_imageViewerController->GetImageModel());
 
 		m_ui.imageScrollArea->installEventFilter(this);
+		m_ui.filter->addAction(m_ui.actionFilter, QLineEdit::LeadingPosition);
 
 		m_itemViewToolTipper->SetShowForceColumns({ 0 });
 		m_itemViewToolTipper->SetScrollArea(m_ui.images);
 		m_scrollBarController->SetScrollArea(m_ui.images);
+		m_imageViewerController->RegisterObserver(this);
 
+		connect(m_ui.filter, &QLineEdit::textChanged, this, &Impl::OnFilterChanged);
 		connect(m_ui.images->selectionModel(), &QItemSelectionModel::currentChanged, this, &Impl::OnImageSelected);
 		connect(m_ui.images, &QAbstractItemView::iconSizeChanged, this, &Impl::OnIconSizeChanged);
+
 		const auto iconSize = m_settings->Get(ICON_SIZE, 256);
 		m_ui.images->setIconSize(QSize(iconSize, iconSize));
-
-		m_imageViewerController->RegisterObserver(this);
 
 		LoadGeometry();
 	}
@@ -140,6 +142,11 @@ private:
 			imageSize.rwidth() = pixmapSize.width() * imageSize.height() / pixmapSize.height();
 
 		m_ui.image->setPixmap(m_currentImage.scaled(imageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+	}
+
+	void OnFilterChanged(const QString& filter)
+	{
+		m_imageViewerController->Filter(filter);
 	}
 
 private:
