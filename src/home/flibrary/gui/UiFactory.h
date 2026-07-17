@@ -42,6 +42,7 @@ private: // IUiFactory
 	std::shared_ptr<IComboBoxTextDialog>  CreateComboBoxTextDialog(QString title) const override;
 	std::shared_ptr<QMainWindow>          CreateQueryWindow() const override;
 	QWidget*                              CreateFastFilterWidget(const QAbstractItemModel& model, int column, std::function<void(bool, QVariantList)> callback) const override;
+	QWidget*                              CreateChangeSizeWidget(int current, int minimum, int maximum, IChangeSizeWidgetObserver* observer) const override;
 	QWidget*                              CreateCollectionCleaner(QStackedWidget* stackedWidget) const override;
 	QWidget*                              CreateImageViewer(QStackedWidget* stackedWidget) const override;
 	void                                  CreateAuthorReview(long long id) const override;

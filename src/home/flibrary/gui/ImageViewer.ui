@@ -63,6 +63,9 @@
       <enum>Qt::Orientation::Horizontal</enum>
      </property>
      <widget class="QListView" name="images">
+      <property name="contextMenuPolicy">
+       <enum>Qt::ContextMenuPolicy::CustomContextMenu</enum>
+      </property>
       <property name="frameShape">
        <enum>QFrame::Shape::Box</enum>
       </property>
@@ -167,6 +170,31 @@
    </property>
    <property name="text">
     <string>Filter</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionChangeThumbnailSize">
+   <property name="text">
+    <string>Change thumbnail size...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+T</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionSave">
+   <property name="enabled">
+    <bool>false</bool>
+   </property>
+   <property name="text">
+    <string>Save...</string>
+   </property>
+   <property name="shortcut">
+    <string>Ctrl+S</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

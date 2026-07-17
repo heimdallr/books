@@ -156,6 +156,11 @@ private: // IUiFactory
 		return nullptr;
 	}
 
+	QWidget* CreateChangeSizeWidget(int, int, int, IChangeSizeWidgetObserver*) const override
+	{
+		return nullptr;
+	}
+
 	QWidget* CreateCollectionCleaner(QStackedWidget*) const override
 	{
 		return nullptr;

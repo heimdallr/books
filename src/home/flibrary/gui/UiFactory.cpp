@@ -46,6 +46,7 @@
 
 #include "config/git_hash.h"
 #include "config/version.h"
+#include "dialogs/ChangeSizeDialog.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -252,6 +253,11 @@ QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, cons
 		m_impl->container.resolve<Util::ItemViewToolTipper>(),
 		m_impl->container.resolve<Util::ScrollBarController>()
 	);
+}
+
+QWidget* UiFactory::CreateChangeSizeWidget(const int current, const int minimum, const int maximum, IChangeSizeWidgetObserver* observer) const
+{
+	return new ChangeSizeDialog(current, minimum, maximum, observer);
 }
 
 QWidget* UiFactory::CreateCollectionCleaner(QStackedWidget* stackedWidget) const

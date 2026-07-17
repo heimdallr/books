@@ -49,7 +49,9 @@ public:
 
 	void SetImageSize(const int value)
 	{
-		m_imageModel->setData({}, value, ImageModelRole::ImageSize);
+		const auto applyNow = m_imageSize < 0;
+		m_imageSize = value;
+		applyNow ? ApplyImageSize() : m_imageSizeTimer->start();
 	}
 
 	void PrepareImage(const QModelIndex& index)
@@ -63,7 +65,7 @@ public:
 		if (auto pixmap = m_imageModel->data(index, ImageModelRole::Image).value<QPixmap>(); !pixmap.isNull())
 			return Perform(&IImageViewerController::IObserver::OnImageReceived, std::move(pixmap));
 
-		m_requestedImageRow = index.row();
+		m_requestImage = index.row();
 		m_requestImageTimer->start();
 	}
 
@@ -101,7 +103,7 @@ private:
 
 	void RequestImage()
 	{
-		if (const auto index = m_imageModel->index(m_requestedImageRow, 0); index.isValid())
+		if (const auto index = m_imageModel->index(m_requestImage, 0); index.isValid())
 			m_imageModel->setData(index, {}, ImageModelRole::Image);
 	}
 
@@ -111,19 +113,29 @@ private:
 		Perform(&IImageViewerController::IObserver::OnCountChanges, m_imageModel->rowCount());
 	}
 
+	void ApplyImageSize()
+	{
+		m_imageModel->setData({}, m_imageSize, ImageModelRole::ImageSize);
+	}
+
 private:
 	std::shared_ptr<const IModelProvider>                  m_modelProvider;
 	PropagateConstPtr<IBookInfoProvider, std::shared_ptr>  m_bookInfoProvider;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_imageModel { m_modelProvider->CreateImageModel() };
 
-	int     m_requestedImageRow { -1 };
-	QString m_filter;
-
+	int                     m_requestImage { -1 };
 	std::unique_ptr<QTimer> m_requestImageTimer { Util::CreateUiTimer([this] {
 		RequestImage();
 	}) };
+
+	QString                 m_filter;
 	std::unique_ptr<QTimer> m_filterTimer { Util::CreateUiTimer([this] {
 		ApplyFilter();
+	}) };
+
+	int                     m_imageSize { -1 };
+	std::unique_ptr<QTimer> m_imageSizeTimer { Util::CreateUiTimer([this] {
+		ApplyImageSize();
 	}) };
 };
 

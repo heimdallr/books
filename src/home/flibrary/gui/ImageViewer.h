@@ -22,7 +22,7 @@ class ImageViewer final : public StackedPage
 
 public:
 	ImageViewer(
-		const std::shared_ptr<const IUiFactory>&   uiFactory,
+		std::shared_ptr<const IUiFactory>          uiFactory,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IImageViewerController>    imageViewerController,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
