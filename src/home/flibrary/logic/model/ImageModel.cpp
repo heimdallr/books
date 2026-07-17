@@ -169,7 +169,7 @@ public:
 		m_threadPool.enqueue([this, row, bytes = std::move(bytes)](size_t&) {
 			auto pixmap = Util::Decode(bytes);
 			m_observer.OnDecodeFinished(row, std::move(pixmap));
-		});
+		}, true);
 	}
 
 private:
