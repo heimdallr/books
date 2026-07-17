@@ -109,6 +109,11 @@ private: // IImageViewerController::IObserver
 		OnImageResized();
 	}
 
+	void OnCountChanges(const int count) override
+	{
+		m_ui.count->setText(QString::number(count));
+	}
+
 private:
 	void OnImageSelected(const QModelIndex& index)
 	{
@@ -124,7 +129,7 @@ private:
 
 	void OnImageResized() const
 	{
-		auto imageSize  = m_ui.imageScrollArea->size();
+		auto       imageSize  = m_ui.imageScrollArea->size();
 		const auto pixmapSize = m_currentImage.size();
 		if (pixmapSize.width() <= imageSize.width() && pixmapSize.height() <= imageSize.height())
 			return m_ui.image->setPixmap(m_currentImage);

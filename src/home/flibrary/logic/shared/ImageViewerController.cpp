@@ -32,6 +32,9 @@ public:
 		m_bookInfoProvider->RequestRoot();
 
 		connect(m_imageModel.get(), &QAbstractItemModel::dataChanged, this, &Impl::OnModelDataChanged);
+		connect(m_imageModel.get(), &QAbstractItemModel::modelReset, this, &Impl::OnModelReset);
+		connect(m_imageModel.get(), &QAbstractItemModel::modelReset, this, &Impl::OnModelRowCountChanged);
+		connect(m_imageModel.get(), &QAbstractItemModel::rowsInserted, this, &Impl::OnModelRowCountChanged);
 	}
 
 	~Impl() override
@@ -71,10 +74,20 @@ private: // IBookInfoProvider::IObserver
 	}
 
 private:
+	void OnModelReset()
+	{
+		Perform(&IImageViewerController::IObserver::OnImageReceived, QPixmap{});
+	}
+
 	void OnModelDataChanged(const QModelIndex& topLeft, const QModelIndex& /*bottomRight*/, const QList<int>& roles)
 	{
 		if (roles.contains(ImageModelRole::Image))
 			RequestImage(topLeft);
+	}
+
+	void OnModelRowCountChanged()
+	{
+		Perform(&IImageViewerController::IObserver::OnCountChanges, m_imageModel->rowCount());
 	}
 
 private:
