@@ -55,6 +55,7 @@ public:
 
 		virtual void OnItemsCreated(Items items)                  = 0;
 		virtual void OnExtractFinished(int row, QByteArray bytes) = 0;
+		virtual void OnRequestFinished(int row, QByteArray bytes) = 0;
 	};
 
 public:
@@ -100,14 +101,25 @@ public:
 		});
 	}
 
-	void Enqueue(const int row, QString fileName)
+	void ExtractImage(const int row, QString fileName)
+	{
+		Enqueue(row, std::move(fileName), &IObserver::OnExtractFinished);
+	}
+
+	void RequestImage(const int row, QString fileName)
+	{
+		Enqueue(row, std::move(fileName), &IObserver::OnRequestFinished);
+	}
+
+private:
+	void Enqueue(const int row, QString fileName, void(IObserver::*onFinished)(int, QByteArray))
 	{
 		if (!m_zip)
 			return;
 
-		m_threadPool.enqueue([this, row, fileName = std::move(fileName)](size_t&) {
+		m_threadPool.enqueue([this, row, fileName = std::move(fileName), onFinished](size_t&) {
 			auto bytes = m_zip->Read(fileName)->GetStream().readAll();
-			m_observer.OnExtractFinished(row, std::move(bytes));
+			std::invoke(onFinished, std::ref(m_observer), row, std::move(bytes));
 		});
 	}
 
@@ -131,7 +143,8 @@ public:
 	public:
 		virtual ~IObserver() = default;
 
-		virtual void OnDecodeFinished(int row, QPixmap bytes) = 0;
+		virtual void OnDecodeScaledFinished(int row, QPixmap pixmap) = 0;
+		virtual void OnDecodeFinished(int row, QPixmap pixmap)       = 0;
 	};
 
 	Decoder(const int imageSize, IObserver& observer)
@@ -140,13 +153,21 @@ public:
 	{
 	}
 
-	void Enqueue(const int row, QByteArray bytes)
+	void DecodeScaled(const int row, QByteArray bytes)
 	{
 		m_threadPool.enqueue([this, row, bytes = std::move(bytes)](size_t&) {
 			auto pixmap = Util::Decode(bytes);
 			if (std::max(pixmap.width(), pixmap.height()) > m_imageSize)
 				pixmap = pixmap.scaled(m_imageSize, m_imageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
+			m_observer.OnDecodeScaledFinished(row, std::move(pixmap));
+		});
+	}
+
+	void Decode(const int row, QByteArray bytes)
+	{
+		m_threadPool.enqueue([this, row, bytes = std::move(bytes)](size_t&) {
+			auto pixmap = Util::Decode(bytes);
 			m_observer.OnDecodeFinished(row, std::move(pixmap));
 		});
 	}
@@ -213,17 +234,32 @@ private: // Extractor::IObserver
 
 	void OnExtractFinished(const int row, QByteArray bytes) override
 	{
-		m_decoder->Enqueue(row, std::move(bytes));
+		m_decoder->DecodeScaled(row, std::move(bytes));
+	}
+
+	void OnRequestFinished(const int row, QByteArray bytes) override
+	{
+		m_decoder->Decode(row, std::move(bytes));
 	}
 
 private: // Decoder::IObserver
-	void OnDecodeFinished(const int row, QPixmap pixmap) override
+	void OnDecodeScaledFinished(const int row, QPixmap pixmap) override
 	{
 		m_forwarder.Forward([this, row, pixmap = std::move(pixmap)]() mutable {
 			auto& item       = m_items[row];
 			item.pixmap      = std::move(pixmap);
 			const auto index = this->index(row, 0);
 			emit       dataChanged(index, index, { Qt::DecorationRole });
+		});
+	}
+
+	void OnDecodeFinished(const int row, QPixmap pixmap) override
+	{
+		m_forwarder.Forward([this, row, pixmap = std::move(pixmap)]() mutable {
+			m_imageRequested = std::move(pixmap);
+			m_imageRequestedFileName = m_items[row].fileName;
+			const auto index = this->index(row, 0);
+			emit       dataChanged(index, index, { ImageModelRole::Image });
 		});
 	}
 
@@ -252,6 +288,9 @@ private:
 
 			case ImageModelRole::Ready:
 				return !item.pixmap.isNull();
+
+			case ImageModelRole::Image:
+				return item.fileName == m_imageRequestedFileName ? m_imageRequested : QVariant {};
 
 			default:
 				break;
@@ -286,10 +325,14 @@ private:
 
 	bool SetData(const QModelIndex& index, const QVariant& value, const int role)
 	{
+		const auto& item = m_items[index.row()];
 		switch (role)
 		{
 			case ImageModelRole::Prepare:
 				return Prepare(index.row()), true;
+
+			case ImageModelRole::Image:
+				return m_extractors[item.zipId]->RequestImage(index.row(), item.fileName), true;
 
 			default:
 				break;
@@ -345,7 +388,7 @@ private:
 	{
 		auto& item  = m_items[row];
 		item.pixmap = m_imagePlaceholderScaled;
-		m_extractors[item.zipId]->Enqueue(row, item.fileName);
+		m_extractors[item.zipId]->ExtractImage(row, item.fileName);
 	}
 
 private:
@@ -363,7 +406,8 @@ private:
 	std::vector<std::unique_ptr<Extractor>> m_extractors;
 
 	Items   m_items;
-	QPixmap m_imagePlaceholder, m_imagePlaceholderScaled;
+	QPixmap m_imagePlaceholder, m_imagePlaceholderScaled, m_imageRequested;
+	QString m_imageRequestedFileName;
 };
 
 class ModelFiltered final : public QSortFilterProxyModel

@@ -22,6 +22,11 @@ public:
 private: // IImageViewerController
 	QAbstractItemModel* GetImageModel() noexcept override;
 	void                SetImageSize(int value) override;
+	void                PrepareImage(const QModelIndex& index) override;
+	void                RequestImage(const QModelIndex& index) override;
+
+	void RegisterObserver(IObserver* observer) override;
+	void UnregisterObserver(IObserver* observer) override;
 
 private:
 	class Impl;

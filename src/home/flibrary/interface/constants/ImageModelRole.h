@@ -11,6 +11,7 @@ struct ImageModelRole
 		Ready,
 		Prepare,
 		ImageSize,
+		Image,
 		Last
 	};
 };
