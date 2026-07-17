@@ -4,6 +4,8 @@
 
 #include <QStyledItemDelegate>
 
+#include "interface/constants/SettingsConstant.h"
+
 #include "utilgui/GeometryRestorable.h"
 
 using namespace HomeCompa::Flibrary;
@@ -67,9 +69,12 @@ public:
 	{
 		m_ui.setupUi(&self);
 
+		m_ui.splitter->setSizes({ 400, 100 });
+
 		auto* delegate = new ImageDelegate(*m_imageViewerController, m_ui.images);
 		m_ui.images->setItemDelegate(delegate);
 		m_ui.images->setModel(m_imageViewerController->GetImageModel());
+		m_ui.images->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 
 		m_ui.imageScrollArea->installEventFilter(this);
 		m_ui.filter->addAction(m_ui.actionFilter, QLineEdit::LeadingPosition);
