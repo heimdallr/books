@@ -47,7 +47,7 @@ public:
 	};
 
 public:
-	ArchiveParser(std::shared_ptr<ICollectionProvider> collectionProvider, std::shared_ptr<IAnnotationProgressController> progressController, std::shared_ptr<const ILogicFactory> logicFactory);
+	ArchiveParser(std::shared_ptr<ICollectionProvider> collectionProvider, std::shared_ptr<IProgressController> progressController, std::shared_ptr<const ILogicFactory> logicFactory);
 	~ArchiveParser();
 
 public:

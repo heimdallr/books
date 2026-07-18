@@ -192,7 +192,7 @@ public:
 		std::shared_ptr<ISettings>                         settings,
 		std::shared_ptr<IAnnotationController>             annotationController,
 		std::shared_ptr<IUiFactory>                        uiFactory,
-		std::shared_ptr<IBooksExtractorProgressController> progressController,
+		std::shared_ptr<IMainProgressController> progressController,
 		std::shared_ptr<Util::ItemViewToolTipper>          itemViewToolTipperContent,
 		std::shared_ptr<Util::ScrollBarController>         scrollBarControllerContent,
 		std::shared_ptr<Util::ScrollBarController>         scrollBarControllerAnnotation
@@ -685,7 +685,7 @@ private:
 	std::weak_ptr<const IModelProvider>                                   m_modelProvider;
 	std::weak_ptr<const ILogicFactory>                                    m_logicFactory;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>                        m_uiFactory;
-	PropagateConstPtr<IBooksExtractorProgressController, std::shared_ptr> m_progressController;
+	PropagateConstPtr<IMainProgressController, std::shared_ptr> m_progressController;
 	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>          m_itemViewToolTipperContent;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr>         m_scrollBarControllerContent;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr>         m_scrollBarControllerAnnotation;
@@ -719,7 +719,7 @@ AnnotationWidget::AnnotationWidget(
 	std::shared_ptr<ISettings>                         settings,
 	std::shared_ptr<IAnnotationController>             annotationController,
 	std::shared_ptr<IUiFactory>                        uiFactory,
-	std::shared_ptr<IBooksExtractorProgressController> progressController,
+	std::shared_ptr<IMainProgressController> progressController,
 	std::shared_ptr<Util::ItemViewToolTipper>          itemViewToolTipperContent,
 	std::shared_ptr<Util::ScrollBarController>         scrollBarControllerContent,
 	std::shared_ptr<Util::ScrollBarController>         scrollBarControllerAnnotation,
