@@ -25,6 +25,7 @@
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
 #include "dialogs/AddCollectionDialog.h"
+#include "dialogs/ChangeSizeDialog.h"
 #include "dialogs/FilterSettingsDialog.h"
 #include "dialogs/HotkeyDialog.h"
 #include "dialogs/OpdsDialog.h"
@@ -46,7 +47,6 @@
 
 #include "config/git_hash.h"
 #include "config/version.h"
-#include "dialogs/ChangeSizeDialog.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -236,23 +236,16 @@ std::shared_ptr<QMainWindow> UiFactory::CreateQueryWindow() const
 
 QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, const int column, std::function<void(bool, QVariantList)> callback) const
 {
-	const auto parentWidgetProvider = m_impl->container.resolve<IParentWidgetProvider>();
-	auto       settings             = m_impl->container.resolve<ISettings>();
+	auto&      container            = m_impl->container;
+	const auto parentWidgetProvider = container.resolve<IParentWidgetProvider>();
+	auto       settings             = container.resolve<ISettings>();
 
 	if (column == BookItem::Column::Size)
 	{
 		return new RangeFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings));
 	}
 
-	return new FastFilterWidget(
-		model,
-		column,
-		std::move(callback),
-		*parentWidgetProvider,
-		std::move(settings),
-		m_impl->container.resolve<Util::ItemViewToolTipper>(),
-		m_impl->container.resolve<Util::ScrollBarController>()
-	);
+	return new FastFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings), container.resolve<Util::ItemViewToolTipper>(), container.resolve<Util::ScrollBarController>());
 }
 
 QWidget* UiFactory::CreateChangeSizeWidget(const int current, const int minimum, const int maximum, IChangeSizeWidgetObserver* observer) const

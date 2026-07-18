@@ -36,12 +36,13 @@ TR_DEF
 
 struct Item
 {
-	int            zipId;
+	int            zipId { -1 };
 	QString        fileName;
 	IDataItem::Ptr book;
-	bool           isCover;
+	bool           isCover { false };
 	int            ordNum { -1 };
 	QPixmap        pixmap;
+	QPixmap        fullPixmap;
 };
 
 using Items = std::vector<Item>;
@@ -54,9 +55,10 @@ public:
 	public:
 		virtual ~IObserver() = default;
 
-		virtual void OnItemsCreated(Items items)                  = 0;
-		virtual void OnExtractFinished(int row, QByteArray bytes) = 0;
-		virtual void OnRequestFinished(int row, QByteArray bytes) = 0;
+		virtual void OnItemsCreated(Items items)                           = 0;
+		virtual void OnExtractThumbnailFinished(int row, QByteArray bytes) = 0;
+		virtual void OnExtractViewImageFinished(int row, QByteArray bytes) = 0;
+		virtual void OnExtractSaveFinished(int row, QByteArray bytes)      = 0;
 	};
 
 public:
@@ -116,12 +118,17 @@ public:
 
 	void ExtractImage(const int row, QString fileName)
 	{
-		Enqueue(row, std::move(fileName), &IObserver::OnExtractFinished);
+		Enqueue(row, std::move(fileName), &IObserver::OnExtractThumbnailFinished);
 	}
 
 	void RequestImage(const int row, QString fileName)
 	{
-		Enqueue(row, std::move(fileName), &IObserver::OnRequestFinished);
+		Enqueue(row, std::move(fileName), &IObserver::OnExtractViewImageFinished);
+	}
+
+	void SaveImage(const int row, QString fileName)
+	{
+		Enqueue(row, std::move(fileName), &IObserver::OnExtractSaveFinished);
 	}
 
 private:
@@ -156,8 +163,9 @@ public:
 	public:
 		virtual ~IObserver() = default;
 
-		virtual void OnDecodeScaledFinished(int row, QPixmap pixmap) = 0;
-		virtual void OnDecodeFinished(int row, QPixmap pixmap)       = 0;
+		virtual void OnDecodeThumbnailFinished(int row, QPixmap pixmap) = 0;
+		virtual void OnDecodeViewFinished(int row, QPixmap pixmap)      = 0;
+		virtual void OnDecodeSaveFinished(int row, QPixmap pixmap)      = 0;
 	};
 
 	Decoder(const int imageSize, IObserver& observer)
@@ -166,25 +174,33 @@ public:
 	{
 	}
 
-	void DecodeScaled(const int row, QByteArray bytes)
+	void DecodeThumbnail(const int row, QByteArray bytes)
 	{
-		m_threadPool.enqueue([this, row, bytes = std::move(bytes)](size_t&, const std::stop_token&) {
-			auto pixmap = Util::Decode(bytes);
-			if (std::max(pixmap.width(), pixmap.height()) > m_imageSize)
-				pixmap = pixmap.scaled(m_imageSize, m_imageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-
-			m_observer.OnDecodeScaledFinished(row, std::move(pixmap));
-		});
+		Enqueue(row, std::move(bytes), true, &IObserver::OnDecodeThumbnailFinished);
 	}
 
-	void Decode(const int row, QByteArray bytes)
+	void DecodeView(const int row, QByteArray bytes)
+	{
+		Enqueue(row, std::move(bytes), false, &IObserver::OnDecodeViewFinished);
+	}
+
+	void DecodeSave(const int row, QByteArray bytes)
+	{
+		Enqueue(row, std::move(bytes), false, &IObserver::OnDecodeSaveFinished);
+	}
+
+private:
+	void Enqueue(const int row, QByteArray bytes, const bool needScale, void (IObserver::*invoker)(int, QPixmap))
 	{
 		m_threadPool.enqueue(
-			[this, row, bytes = std::move(bytes)](size_t&, const std::stop_token&) {
+			[this, row, needScale, invoker, bytes = std::move(bytes)](size_t&, const std::stop_token&) {
 				auto pixmap = Util::Decode(bytes);
-				m_observer.OnDecodeFinished(row, std::move(pixmap));
+				if (needScale && std::max(pixmap.width(), pixmap.height()) > m_imageSize)
+					pixmap = pixmap.scaled(m_imageSize, m_imageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+
+				std::invoke(invoker, std::ref(m_observer), row, std::move(pixmap));
 			},
-			true
+			!needScale
 		);
 	}
 
@@ -248,18 +264,24 @@ private: // Extractor::IObserver
 		});
 	}
 
-	void OnExtractFinished(const int row, QByteArray bytes) override
+	void OnExtractThumbnailFinished(const int row, QByteArray bytes) override
 	{
-		m_decoder->DecodeScaled(row, std::move(bytes));
+		m_decoder->DecodeThumbnail(row, std::move(bytes));
 	}
 
-	void OnRequestFinished(const int row, QByteArray bytes) override
+	void OnExtractViewImageFinished(const int row, QByteArray bytes) override
 	{
-		m_decoder->Decode(row, std::move(bytes));
+		m_decoder->DecodeView(row, std::move(bytes));
+	}
+
+	void OnExtractSaveFinished(const int row, QByteArray bytes) override
+	{
+		if (m_saveRunning)
+			m_decoder->DecodeSave(row, std::move(bytes));
 	}
 
 private: // Decoder::IObserver
-	void OnDecodeScaledFinished(const int row, QPixmap pixmap) override
+	void OnDecodeThumbnailFinished(const int row, QPixmap pixmap) override
 	{
 		m_forwarder.Forward([this, row, pixmap = std::move(pixmap)]() mutable {
 			auto& item       = m_items[row];
@@ -269,7 +291,7 @@ private: // Decoder::IObserver
 		});
 	}
 
-	void OnDecodeFinished(const int row, QPixmap pixmap) override
+	void OnDecodeViewFinished(const int row, QPixmap pixmap) override
 	{
 		m_forwarder.Forward([this, row, pixmap = std::move(pixmap)]() mutable {
 			m_imageRequested         = std::move(pixmap);
@@ -277,6 +299,17 @@ private: // Decoder::IObserver
 			const auto index         = this->index(row, 0);
 			emit       dataChanged(index, index, { ImageModelRole::Image });
 		});
+	}
+
+	void OnDecodeSaveFinished(int row, QPixmap pixmap) override
+	{
+		if (m_saveRunning)
+			m_forwarder.Forward([this, row, pixmap = std::move(pixmap)]() mutable {
+				m_items[row].fullPixmap = std::move(pixmap);
+				const auto index        = this->index(row, 0);
+				emit       dataChanged(index, index, { ImageModelRole::Save });
+				m_items[row].fullPixmap = {};
+			});
 	}
 
 private:
@@ -307,11 +340,17 @@ private:
 			case ImageModelRole::Title:
 				return item.book->GetRawData(BookItem::Column::Title);
 
+			case ImageModelRole::FileName:
+				return item.fileName;
+
 			case ImageModelRole::Ready:
 				return !item.pixmap.isNull();
 
 			case ImageModelRole::Image:
 				return item.fileName == m_imageRequestedFileName ? m_imageRequested : QVariant {};
+
+			case ImageModelRole::Save:
+				return item.fullPixmap;
 
 			default:
 				break;
@@ -354,6 +393,13 @@ private:
 
 			case ImageModelRole::Image:
 				return m_extractors[item.zipId]->RequestImage(index.row(), item.fileName), true;
+
+			case ImageModelRole::Save:
+				m_saveRunning = true;
+				return m_extractors[item.zipId]->SaveImage(index.row(), item.fileName), true;
+
+			case ImageModelRole::SaveStop:
+				return (m_saveRunning = false), true;
 
 			default:
 				break;
@@ -429,6 +475,8 @@ private:
 	Items   m_items;
 	QPixmap m_imagePlaceholder, m_imagePlaceholderScaled, m_imageRequested;
 	QString m_imageRequestedFileName;
+
+	std::atomic_bool m_saveRunning { false };
 };
 
 class ModelFiltered final : public QSortFilterProxyModel

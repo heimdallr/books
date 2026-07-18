@@ -11,6 +11,7 @@
 #include "utilgui/ItemViewToolTipper.h"
 #include "utilgui/ScrollBarController.h"
 
+#include "ProgressBar.h"
 #include "StackedPage.h"
 
 namespace HomeCompa::Flibrary
@@ -27,6 +28,7 @@ public:
 		std::shared_ptr<IImageViewerController>    imageViewerController,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController,
+		std::shared_ptr<ProgressBar>               progressBar,
 		QWidget*                                   parent = nullptr
 	);
 	~ImageViewer() override;

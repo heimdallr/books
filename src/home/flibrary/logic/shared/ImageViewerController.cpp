@@ -11,7 +11,11 @@
 #include "interface/logic/IDataProvider.h"
 #include "interface/logic/IImageViewerController.h"
 
+#include "TreeViewController/AbstractTreeViewController.h"
 #include "settings/UiTimer.h"
+#include "util/FunctorExecutionForwarder.h"
+#include "util/ImageUtil.h"
+#include "util/executor/ThreadPool.h"
 
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
@@ -23,10 +27,18 @@ class ImageViewerController::Impl final
 {
 	NON_COPY_MOVABLE(Impl)
 
+	struct SaveProgressItem
+	{
+		std::unique_ptr<IProgressController::IProgressItem> progressItem;
+		QDir                                                saveDir;
+		std::unordered_set<int>                             rows;
+	};
+
 public:
-	Impl(std::shared_ptr<const IModelProvider> modelProvider, std::shared_ptr<IBookInfoProvider> bookInfoProvider)
+	Impl(std::shared_ptr<const IModelProvider> modelProvider, std::shared_ptr<IBookInfoProvider> bookInfoProvider, std::shared_ptr<IProgressController> progressController)
 		: m_modelProvider { std::move(modelProvider) }
 		, m_bookInfoProvider { std::move(bookInfoProvider) }
+		, m_progressController { std::move(progressController) }
 	{
 		m_bookInfoProvider->RegisterObserver(this);
 		m_bookInfoProvider->RequestRoot();
@@ -50,7 +62,7 @@ public:
 	void SetImageSize(const int value)
 	{
 		const auto applyNow = m_imageSize < 0;
-		m_imageSize = value;
+		m_imageSize         = value;
 		applyNow ? ApplyImageSize() : m_imageSizeTimer->start();
 	}
 
@@ -78,6 +90,21 @@ public:
 		m_filterTimer->start();
 	}
 
+	void Save(const QString& folder, const QList<QModelIndex>& indices)
+	{
+		auto rows = indices | std::views::transform([](const auto& item) {
+						return item.row();
+					})
+		          | std::ranges::to<std::unordered_set>();
+		{
+			std::lock_guard lock(m_saveProgressItemsGuard);
+			m_saveProgressItems.emplace_back(m_progressController->Add(indices.size()), QDir(folder), std::move(rows));
+		}
+
+		for (const auto& index : indices)
+			m_imageModel->setData(index, {}, ImageModelRole::Save);
+	}
+
 private: // IBookInfoProvider::IObserver
 	void OnBooksSelected(const NavigationMode /*navigationMode*/, IDataItem::Ptr root) override
 	{
@@ -94,6 +121,9 @@ private:
 	{
 		if (roles.contains(ImageModelRole::Image))
 			RequestImage(topLeft);
+
+		if (roles.contains(ImageModelRole::Save))
+			SaveImage(topLeft);
 	}
 
 	void OnModelRowCountChanged()
@@ -118,10 +148,55 @@ private:
 		m_imageModel->setData({}, m_imageSize, ImageModelRole::ImageSize);
 	}
 
+	void SaveImage(const QModelIndex& index)
+	{
+		m_threadPool.enqueue([this,
+		                      pixmap   = m_imageModel->data(index, ImageModelRole::Save).value<QPixmap>(),
+		                      fileName = m_imageModel->data(index, ImageModelRole::FileName).toString(),
+		                      row      = index.row()](size_t&, const std::stop_token&) mutable {
+			fileName.replace('/', '_');
+			auto       image  = Util::HasAlpha(pixmap.toImage());
+			const auto format = image.pixelFormat().channelCount() > 3 ? Util::PNG : Util::JPEG;
+
+			const auto fileNames = [&] {
+				std::lock_guard lock(m_saveProgressItemsGuard);
+				return m_saveProgressItems | std::views::filter([row](const SaveProgressItem& item) {
+						   return item.rows.contains(row);
+					   })
+				     | std::views::transform([&](const SaveProgressItem& item) {
+						   return item.saveDir.filePath(fileName + "." + format);
+					   })
+				     | std::ranges::to<std::vector>();
+			}();
+
+			for (const auto& file : fileNames)
+				image.save(file);
+
+			m_forwarder.Forward([this, row] {
+				std::lock_guard lock(m_saveProgressItemsGuard);
+				for (auto& progress : m_saveProgressItems)
+				{
+					if (progress.progressItem->IsStopped())
+						m_imageModel->setData({}, {}, ImageModelRole::SaveStop);
+
+					if (progress.rows.erase(row))
+						progress.progressItem->Increment(1);
+				}
+
+				std::erase_if(m_saveProgressItems, [](const auto& item) {
+					return item.rows.empty() || item.progressItem->IsStopped();
+				});
+			});
+		});
+	}
+
 private:
-	std::shared_ptr<const IModelProvider>                  m_modelProvider;
-	PropagateConstPtr<IBookInfoProvider, std::shared_ptr>  m_bookInfoProvider;
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_imageModel { m_modelProvider->CreateImageModel() };
+	Util::FunctorExecutionForwarder m_forwarder;
+
+	std::shared_ptr<const IModelProvider>                   m_modelProvider;
+	PropagateConstPtr<IBookInfoProvider, std::shared_ptr>   m_bookInfoProvider;
+	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>  m_imageModel { m_modelProvider->CreateImageModel() };
 
 	int                     m_requestImage { -1 };
 	std::unique_ptr<QTimer> m_requestImageTimer { Util::CreateUiTimer([this] {
@@ -137,10 +212,18 @@ private:
 	std::unique_ptr<QTimer> m_imageSizeTimer { Util::CreateUiTimer([this] {
 		ApplyImageSize();
 	}) };
+
+	Util::ThreadPool<>          m_threadPool { Util::ThreadPool<>::Initializer { .threadCount = 1 } };
+	std::mutex                  m_saveProgressItemsGuard;
+	std::list<SaveProgressItem> m_saveProgressItems;
 };
 
-ImageViewerController::ImageViewerController(std::shared_ptr<const IModelProvider> modelProvider, std::shared_ptr<IBookInfoProvider> bookInfoProvider)
-	: m_impl { std::move(modelProvider), std::move(bookInfoProvider) }
+ImageViewerController::ImageViewerController(
+	std::shared_ptr<const IModelProvider>    modelProvider,
+	std::shared_ptr<IBookInfoProvider>       bookInfoProvider,
+	std::shared_ptr<IMainProgressController> progressController
+)
+	: m_impl { std::move(modelProvider), std::move(bookInfoProvider), std::move(progressController) }
 {
 }
 
@@ -169,6 +252,11 @@ void ImageViewerController::RequestImage(const QModelIndex& index)
 void ImageViewerController::Filter(QString filter)
 {
 	m_impl->Filter(std::move(filter));
+}
+
+void ImageViewerController::Save(const QString& folder, const QList<QModelIndex>& indices)
+{
+	m_impl->Save(folder, indices);
 }
 
 void ImageViewerController::RegisterObserver(IObserver* observer)

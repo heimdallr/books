@@ -6,18 +6,25 @@
 #include <QStyledItemDelegate>
 #include <QWidgetAction>
 
+#include "interface/localization.h"
 #include "interface/constants/SettingsConstant.h"
 
 #include "utilgui/GeometryRestorable.h"
 
 #include "log.h"
 
+using namespace HomeCompa;
 using namespace HomeCompa::Flibrary;
 
 namespace
 {
 
+constexpr auto CONTEXT = "ImageViewer";
+constexpr auto SELECT_FOLDER = QT_TRANSLATE_NOOP("ImageViewer", "Select images folder");
+
 constexpr auto ICON_SIZE = "ui/ImageViewer/IconSize";
+
+TR_DEF
 
 class ImageDelegate final : public QStyledItemDelegate
 {
@@ -64,9 +71,10 @@ public:
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IImageViewerController>    imageViewerController,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
-		std::shared_ptr<Util::ScrollBarController> scrollBarController
+		std::shared_ptr<Util::ScrollBarController> scrollBarController,
+		std::shared_ptr<ProgressBar>               progressBar
 	)
-		: GeometryRestorable(*this, settings, "ImageViewer")
+		: GeometryRestorable(*this, settings, CONTEXT)
 		, GeometryRestorableObserver(self)
 		, m_self { self }
 		, m_uiFactory { std::move(uiFactory) }
@@ -74,12 +82,14 @@ public:
 		, m_imageViewerController { std::move(imageViewerController) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
+		, m_progressBar { std::move(progressBar) }
 	{
 		m_ui.setupUi(&self);
 
 		self.addActions({ m_ui.actionSave, m_ui.actionChangeThumbnailSize });
 
 		m_ui.splitter->setSizes({ 400, 100 });
+		m_ui.progressLayout->addWidget(m_progressBar.get());
 
 		auto* delegate = new ImageDelegate(*m_imageViewerController, m_ui.images);
 		m_ui.images->setItemDelegate(delegate);
@@ -197,6 +207,8 @@ private:
 
 	void OnActionSaveTriggered()
 	{
+		if (const auto folder = m_uiFactory->GetExistingDirectory(CONTEXT, Tr(SELECT_FOLDER)); !folder.isEmpty())
+			m_imageViewerController->Save(folder, m_ui.images->selectionModel()->selectedIndexes());
 	}
 
 	void OnActionChangeThumbnailSizeTriggered()
@@ -213,7 +225,8 @@ private:
 	}
 
 private:
-	QWidget& m_self;
+	Ui::ImageViewer m_ui {};
+	QWidget&        m_self;
 
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 
@@ -221,11 +234,10 @@ private:
 	PropagateConstPtr<IImageViewerController, std::shared_ptr>    m_imageViewerController;
 	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
+	PropagateConstPtr<ProgressBar, std::shared_ptr>               m_progressBar;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>        m_navigationModel { std::shared_ptr<QAbstractItemModel> {} };
 
 	QPixmap m_currentImage;
-
-	Ui::ImageViewer m_ui {};
 };
 
 ImageViewer::ImageViewer(
@@ -234,10 +246,11 @@ ImageViewer::ImageViewer(
 	std::shared_ptr<IImageViewerController>    imageViewerController,
 	std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
 	std::shared_ptr<Util::ScrollBarController> scrollBarController,
+	std::shared_ptr<ProgressBar>               progressBar,
 	QWidget*                                   parent
 )
 	: StackedPage(*uiFactory, uiFactory->GetParentWidget(parent))
-	, m_impl(*this, std::move(uiFactory), std::move(settings), std::move(imageViewerController), std::move(itemViewToolTipper), std::move(scrollBarController))
+	, m_impl(*this, std::move(uiFactory), std::move(settings), std::move(imageViewerController), std::move(itemViewToolTipper), std::move(scrollBarController), std::move(progressBar))
 {
 }
 

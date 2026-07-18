@@ -12,9 +12,12 @@ struct ImageModelRole
 		Prepare,
 		ImageSize,
 		Image,
+		Save,
+		SaveStop,
 		Filter,
 		Author,
 		Title,
+		FileName,
 		Last
 	};
 };

@@ -10,7 +10,7 @@
     <height>677</height>
    </rect>
   </property>
-  <layout class="QVBoxLayout" name="verticalLayout">
+  <layout class="QVBoxLayout" name="_4">
    <property name="spacing">
     <number>0</number>
    </property>
@@ -108,6 +108,9 @@
       <property name="viewMode">
        <enum>QListView::ViewMode::IconMode</enum>
       </property>
+      <property name="uniformItemSizes">
+       <bool>true</bool>
+      </property>
      </widget>
      <widget class="QScrollArea" name="imageScrollArea">
       <property name="frameShape">
@@ -131,7 +134,7 @@
          <x>0</x>
          <y>0</y>
          <width>79</width>
-         <height>644</height>
+         <height>642</height>
         </rect>
        </property>
        <layout class="QVBoxLayout" name="_3">
@@ -161,6 +164,9 @@
       </widget>
      </widget>
     </widget>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="progressLayout"/>
    </item>
   </layout>
   <action name="actionFilter">

@@ -16,7 +16,7 @@ class ImageViewerController final : public IImageViewerController
 	NON_COPY_MOVABLE(ImageViewerController)
 
 public:
-	ImageViewerController(std::shared_ptr<const IModelProvider> modelProvider, std::shared_ptr<IBookInfoProvider> bookInfoProvider);
+	ImageViewerController(std::shared_ptr<const IModelProvider> modelProvider, std::shared_ptr<IBookInfoProvider> bookInfoProvider, std::shared_ptr<IMainProgressController> progressController);
 	~ImageViewerController() override;
 
 private: // IImageViewerController
@@ -25,6 +25,7 @@ private: // IImageViewerController
 	void                PrepareImage(const QModelIndex& index) override;
 	void                RequestImage(const QModelIndex& index) override;
 	void                Filter(QString filter) override;
+	void                Save(const QString& folder, const QList<QModelIndex>& indices) override;
 
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;
