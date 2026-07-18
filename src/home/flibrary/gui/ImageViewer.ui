@@ -185,9 +185,6 @@
    <property name="text">
     <string>Change thumbnail size...</string>
    </property>
-   <property name="shortcut">
-    <string notr="true">Ctrl+T</string>
-   </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
@@ -198,9 +195,6 @@
    </property>
    <property name="text">
     <string>Save...</string>
-   </property>
-   <property name="shortcut">
-    <string notr="true">Ctrl+S</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
