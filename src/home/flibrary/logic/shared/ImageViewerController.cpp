@@ -117,7 +117,7 @@ private:
 		Perform(&IImageViewerController::IObserver::OnImageReceived, QPixmap {});
 	}
 
-	void OnModelDataChanged(const QModelIndex& topLeft, const QModelIndex& /*bottomRight*/, const QList<int>& roles)
+	void OnModelDataChanged(const QModelIndex& topLeft, const QModelIndex& /*bottomRight*/, const QVector<int>& roles)
 	{
 		if (roles.contains(ImageModelRole::Image))
 			RequestImage(topLeft);

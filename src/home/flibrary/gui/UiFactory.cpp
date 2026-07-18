@@ -7,6 +7,7 @@
 #include <QGuiApplication>
 #include <QMenuBar>
 #include <QShortcut>
+#include <QStackedWidget>
 #include <QToolTip>
 
 #include "fnd/FindPair.h"
