@@ -3,6 +3,40 @@
 #include <ranges>
 #include <utility>
 
+#ifndef __cpp_lib_ranges_zip
+
+#include <range/v3/view/subrange.hpp>
+#include <range/v3/view/zip.hpp>
+
+namespace std::ranges
+{
+namespace flibrary_compat
+{
+template <viewable_range Range>
+auto ToRangeV3(Range&& range)
+{
+	return ::ranges::make_subrange(begin(range), end(range));
+}
+
+struct Zip
+{
+	template <viewable_range... Ranges>
+	auto operator()(Ranges&&... ranges) const
+	{
+		auto zipped = ::ranges::views::zip(ToRangeV3(std::forward<Ranges>(ranges))...);
+		return subrange(zipped.begin(), zipped.end());
+	}
+};
+}
+
+namespace views
+{
+inline constexpr flibrary_compat::Zip zip {};
+}
+}
+
+#endif
+
 #ifndef __cpp_lib_ranges_to_container
 
 namespace std::ranges
