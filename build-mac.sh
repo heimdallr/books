@@ -421,11 +421,13 @@ bundle_dependency_target() {
 }
 
 list_macho_dependencies() {
-  local file
+  local file install_id
 
   while IFS= read -r -d '' file; do
     is_macho "${file}" || continue
-    otool -L "${file}" 2>/dev/null | tail -n +2 | awk '{ print $1 }'
+    install_id="$(otool -D "${file}" 2>/dev/null | tail -n +2 | head -n 1)"
+    otool -L "${file}" 2>/dev/null | tail -n +2 | \
+      awk -v install_id="${install_id}" '$1 != install_id { print $1 }'
   done < <(find "${APP_PATH}/Contents" -type f -print0)
 }
 
@@ -516,6 +518,10 @@ set_bundle_install_id() {
       install_name_tool -id "${target}" "${file}" 2>/dev/null || true
       ;;
     "${APP_PATH}/Contents/Frameworks/"*.dylib|"${APP_PATH}/Contents/Frameworks/7z.so")
+      target="@rpath/$(basename "${file}")"
+      install_name_tool -id "${target}" "${file}" 2>/dev/null || true
+      ;;
+    "${APP_PATH}/Contents/PlugIns/"*.dylib)
       target="@rpath/$(basename "${file}")"
       install_name_tool -id "${target}" "${file}" 2>/dev/null || true
       ;;
