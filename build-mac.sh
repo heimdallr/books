@@ -420,14 +420,21 @@ bundle_dependency_target() {
   bundle_framework_target "${dep}" || bundle_dylib_target "${dep}"
 }
 
+macho_dependencies() {
+  local file="$1"
+  local install_id
+
+  install_id="$(otool -D -arch "${CURRENT_ARCH}" "${file}" 2>/dev/null | tail -n +2 | head -n 1)"
+  otool -L -arch "${CURRENT_ARCH}" "${file}" 2>/dev/null | tail -n +2 | \
+    awk -v install_id="${install_id}" '$1 != install_id { print $1 }'
+}
+
 list_macho_dependencies() {
-  local file install_id
+  local file
 
   while IFS= read -r -d '' file; do
     is_macho "${file}" || continue
-    install_id="$(otool -D "${file}" 2>/dev/null | tail -n +2 | head -n 1)"
-    otool -L "${file}" 2>/dev/null | tail -n +2 | \
-      awk -v install_id="${install_id}" '$1 != install_id { print $1 }'
+    macho_dependencies "${file}"
   done < <(find "${APP_PATH}/Contents" -type f -print0)
 }
 
@@ -544,7 +551,7 @@ fix_bundle_install_names() {
           fi
           ;;
       esac
-    done < <(otool -L "${file}" 2>/dev/null | tail -n +2 | awk '{ print $1 }')
+    done < <(macho_dependencies "${file}")
   done < <(find "${APP_PATH}/Contents" -type f -print0)
 }
 
@@ -686,11 +693,13 @@ sign_and_verify_app() {
   codesign --verify --deep --strict --verbose=2 "${APP_PATH}"
 
   log "Checking local absolute paths (${CURRENT_ARCH})"
-  local file
+  local file local_dependencies
   while IFS= read -r -d '' file; do
     is_macho "${file}" || continue
-    if otool -L "${file}" 2>/dev/null | tail -n +2 | grep -Eq '(/opt/homebrew|/usr/local|/Users/)'; then
+    local_dependencies="$(macho_dependencies "${file}" | grep -E '(/opt/homebrew|/usr/local|/Users/)' || true)"
+    if [[ -n "${local_dependencies}" ]]; then
       printf 'local dependency found in %s\n' "${file}" >&2
+      printf '%s\n' "${local_dependencies}" >&2
       die "bundle still contains local absolute dependency paths"
     fi
     if read_rpaths "${file}" | grep -Eq '(/opt/homebrew|/usr/local|/Users/)'; then
