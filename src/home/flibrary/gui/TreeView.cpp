@@ -1215,7 +1215,7 @@ private:
 			return;
 		}
 
-		for (const auto [columnInfo, logicalIndex] : std::views::zip(columnInfoList, std::views::iota(0)))
+		for (const auto& [columnInfo, logicalIndex] : std::views::zip(columnInfoList, std::views::iota(0)))
 		{
 			header->resizeSection(logicalIndex, std::max(columnInfo.width, header->sectionSizeHint(logicalIndex)));
 			columnInfo.hidden ? header->hideSection(logicalIndex) : header->showSection(logicalIndex);
@@ -1224,7 +1224,7 @@ private:
 		if (!columnInfoList.empty() && !m_booksHeaderView->isFirstSectionMovable())
 			columnInfoList.front().index = -1;
 
-		for (const auto [logicalIndex, visualIndex] : std::views::zip(
+		for (const auto& [logicalIndex, visualIndex] : std::views::zip(
 				 std::views::zip(columnInfoList, std::views::iota(0)) | std::views::filter([](const auto& item) {
 					 return !get<0>(item).hidden;
 				 }) | std::views::transform([](const auto& item) {
