@@ -654,7 +654,12 @@ bundle_app() {
   while IFS= read -r libpath; do
     [[ -n "${libpath}" && -d "${libpath}" ]] && deploy_args+=("-libpath=${libpath}")
   done < <(collect_qt_libpaths "${QT_PREFIX}")
-  deploy_args+=(-always-overwrite -no-codesign -verbose=1)
+  deploy_args+=(-always-overwrite -verbose=1)
+  local macdeployqt_help
+  macdeployqt_help="$("${MACDEPLOYQT}" -help 2>&1 || true)"
+  if grep -q -- '-no-codesign' <<< "${macdeployqt_help}"; then
+    deploy_args+=(-no-codesign)
+  fi
   "${MACDEPLOYQT}" "${deploy_args[@]}"
 
   write_qt_conf "${resources}"
