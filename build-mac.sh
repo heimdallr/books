@@ -478,6 +478,9 @@ copy_missing_bundle_dependencies() {
 
     while IFS= read -r dep; do
       case "${dep}" in
+        "${APP_PATH}/Contents/Frameworks/"*)
+          continue
+          ;;
         @rpath/*.framework/Versions/*/*)
           framework="${dep#@rpath/}"
           framework="${framework%%/Versions/*}"
@@ -486,9 +489,8 @@ copy_missing_bundle_dependencies() {
           fi
           ;;
         /opt/homebrew/*.framework/Versions/*/*|/usr/local/*.framework/Versions/*/*|/Users/*.framework/Versions/*/*)
-          framework="${dep##*/lib/}"
-          framework="${framework%%/Versions/*}"
           src="${dep%/Versions/*}"
+          framework="$(basename "${src}")"
           copy_framework_if_missing "${framework}" "${src}" && copied=1
           ;;
         /opt/homebrew/*.dylib|/usr/local/*.dylib|/Users/*.dylib)
@@ -499,6 +501,8 @@ copy_missing_bundle_dependencies() {
 
     (( copied == 0 )) && break
   done
+
+  return 0
 }
 
 set_bundle_install_id() {
