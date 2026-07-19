@@ -282,8 +282,19 @@ jobs:
       - name: Configure and build
         shell: pwsh
         run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsPath = & $vswhere -latest -products '*' `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+            -property installationPath
+          if (-not $vsPath) {
+            throw 'Visual Studio C++ tools were not found.'
+          }
+          $devShell = Join-Path $vsPath.Trim() `
+            'Common7\Tools\Launch-VsDevShell.ps1'
+          & $devShell -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+
           cmake -S . -B build/windows `
-            -G "Visual Studio 17 2022" -A x64 `
+            -G Ninja `
             "-DCMAKE_BUILD_TYPE=$env:BUILD_TYPE" `
             -DCONAN_PROFILE=msvc2022_x86_64 `
             "-DQt6_DIR=$env:QT_PREFIX/lib/cmake/Qt6" `
