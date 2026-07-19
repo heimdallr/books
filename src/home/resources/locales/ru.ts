@@ -4694,6 +4694,10 @@ Try again?</source>
         <translation>&amp;Светлая</translation>
     </message>
     <message>
+        <source>&amp;Load...</source>
+        <translation>&amp;Восстановить...</translation>
+    </message>
+    <message>
         <source>&amp;Log</source>
         <translation>&amp;Журнал</translation>
     </message>
@@ -4716,6 +4720,10 @@ Try again?</source>
     <message>
         <source>&amp;Restore default values</source>
         <translation>&amp;Восстановить исходные значения</translation>
+    </message>
+    <message>
+        <source>&amp;Save...</source>
+        <translation>&amp;Сохранить...</translation>
     </message>
     <message>
         <source>&amp;Scripts...</source>
@@ -4810,10 +4818,6 @@ Try again?</source>
         <translation>Проверять обновление на &amp;старте</translation>
     </message>
     <message>
-        <source>Cleaner...</source>
-        <translation type="vanished">Очистка...</translation>
-    </message>
-    <message>
         <source>Cleanup</source>
         <translation>Очистка</translation>
     </message>
@@ -4854,10 +4858,6 @@ Try again?</source>
         <translation>В&amp;ыход</translation>
     </message>
     <message>
-        <source>E&amp;xport</source>
-        <translation>&amp;Экспорт</translation>
-    </message>
-    <message>
         <source>Enable all</source>
         <translation>Включить все</translation>
     </message>
@@ -4888,10 +4888,6 @@ Try again?</source>
     <message>
         <source>Http server management</source>
         <translation>Управление HTTP-сервером</translation>
-    </message>
-    <message>
-        <source>I&amp;mport</source>
-        <translation>&amp;Импорт</translation>
     </message>
     <message>
         <source>Illustrations</source>

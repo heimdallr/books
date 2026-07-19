@@ -172,7 +172,7 @@
                 <verstretch>0</verstretch>
                </sizepolicy>
               </property>
-              <widget class="QWidget" name="booksPage" native="true">
+              <widget class="QWidget" name="booksPage">
                <layout class="QVBoxLayout" name="_7">
                 <property name="leftMargin">
                  <number>0</number>
@@ -643,7 +643,7 @@
   </action>
   <action name="actionExportUserData">
    <property name="text">
-    <string>E&amp;xport</string>
+    <string>&amp;Save...</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -654,7 +654,7 @@
   </action>
   <action name="actionImportUserData">
    <property name="text">
-    <string>I&amp;mport</string>
+    <string>&amp;Load...</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -1093,7 +1093,7 @@
   </action>
   <action name="actionExportSettings">
    <property name="text">
-    <string>E&amp;xport</string>
+    <string>&amp;Save...</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -1101,7 +1101,7 @@
   </action>
   <action name="actionImportSettings">
    <property name="text">
-    <string>I&amp;mport</string>
+    <string>&amp;Load...</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
