@@ -3,6 +3,17 @@
 #include <ranges>
 #include <utility>
 
+#ifndef __cpp_lib_ranges_as_rvalue
+
+namespace std::ranges::views
+{
+inline constexpr auto as_rvalue = transform([](auto&& value) -> decltype(auto) {
+	return std::move(value);
+});
+}
+
+#endif
+
 #ifndef __cpp_lib_ranges_zip
 
 #include <range/v3/view/subrange.hpp>
