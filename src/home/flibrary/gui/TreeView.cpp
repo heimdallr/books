@@ -161,6 +161,11 @@ public:
 			m_filtered.erase(logicalIndex);
 	}
 
+	void ResetFilteredIndex(std::unordered_set<int> filtered = {})
+	{
+		m_filtered = std::move(filtered);
+	}
+
 private: // QHeaderView
 	void paintSection(QPainter* painter, const QRect& rect, const int logicalIndex) const override
 	{
@@ -762,6 +767,7 @@ private:
 		}
 		else
 		{
+			m_booksHeaderView->ResetFilteredIndex();
 			model->setData({}, !!(m_navigationItemFlags & (IDataItem::Flags::Filtered | IDataItem::Flags::BooksFiltered)), Role::NavigationItemFiltered);
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
