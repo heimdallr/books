@@ -97,12 +97,10 @@ jobs:
       - name: Install Qt
         if: steps.qt-cache.outputs.cache-hit != 'true'
         run: |
-          mirrors=(
-            "https://ftp.fau.de/qtproject/"
-            "https://mirror.netcologne.de/qtproject/"
-            "https://mirrors.ukfast.co.uk/sites/qt.io/"
-          )
-          for mirror in "${mirrors[@]}"; do
+          for mirror in \
+            "https://ftp.fau.de/qtproject/" \
+            "https://mirror.netcologne.de/qtproject/" \
+            "https://mirrors.ukfast.co.uk/sites/qt.io/"; do
             rm -rf "${QT_ROOT}"
             echo "Installing Qt from ${mirror}"
             if aqt install-qt linux desktop "${QT_VERSION}" linux_gcc_64 \
@@ -437,12 +435,10 @@ jobs:
       - name: Install Qt
         if: steps.qt-cache.outputs.cache-hit != 'true'
         run: |
-          mirrors=(
-            "https://ftp.fau.de/qtproject/"
-            "https://mirror.netcologne.de/qtproject/"
-            "https://mirrors.ukfast.co.uk/sites/qt.io/"
-          )
-          for mirror in "${mirrors[@]}"; do
+          for mirror in \
+            "https://ftp.fau.de/qtproject/" \
+            "https://mirror.netcologne.de/qtproject/" \
+            "https://mirrors.ukfast.co.uk/sites/qt.io/"; do
             rm -rf "${QT_ROOT}"
             echo "Installing Qt from ${mirror}"
             if aqt install-qt mac desktop "${QT_VERSION}" clang_64 \
