@@ -1,0 +1,442 @@
+name: Cross-platform builds
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - develop
+      - master
+  push:
+    branches:
+      - develop
+      - master
+    tags:
+      - "v*"
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  AQT_VERSION: 3.3.0
+  BUILD_TYPE: Release
+  CONAN_VERSION: 2.30.0
+  QT_VERSION: 6.11.0
+
+jobs:
+  linux:
+    name: Linux x86_64
+    runs-on: ubuntu-24.04
+    timeout-minutes: 240
+    env:
+      QT_ROOT: ${{ github.workspace }}/.ci/Qt
+    steps:
+      - name: Check out sources and submodules
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version: "3.13"
+
+      - name: Install system build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            clang-18 \
+            dpkg-dev \
+            libdbus-1-dev \
+            libegl1-mesa-dev \
+            libfontconfig1 \
+            libgl1-mesa-dev \
+            libgtk-3-0 \
+            libwayland-dev \
+            libxcb-cursor0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-render-util0 \
+            libxcb-xinerama0 \
+            libxkbcommon-dev \
+            libxkbcommon-x11-0 \
+            ninja-build \
+            p7zip-full \
+            xvfb
+          python -m pip install \
+            "aqtinstall==${AQT_VERSION}" \
+            "conan==${CONAN_VERSION}"
+
+      - name: Restore Qt
+        id: qt-cache
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ${{ env.QT_ROOT }}
+          key: qt-linux-x86_64-${{ env.QT_VERSION }}-http-image-wayland-websockets
+
+      - name: Install Qt
+        if: steps.qt-cache.outputs.cache-hit != 'true'
+        run: |
+          for attempt in 1 2 3; do
+            if aqt install-qt linux desktop "${QT_VERSION}" linux_gcc_64 \
+              -O "${QT_ROOT}" \
+              -m qthttpserver qtimageformats qtwaylandcompositor qtwebsockets; then
+              exit 0
+            fi
+            if [ "${attempt}" -eq 3 ]; then
+              exit 1
+            fi
+            sleep $((attempt * 15))
+          done
+
+      - name: Locate Qt and 7-Zip
+        run: |
+          qt_config="$(find "${QT_ROOT}" -path '*/lib/cmake/Qt6/Qt6Config.cmake' -print -quit)"
+          test -n "${qt_config}"
+          qt_prefix="${qt_config%/lib/cmake/Qt6/Qt6Config.cmake}"
+          p7zip_library="$(find /usr/lib -name 7z.so -print -quit)"
+          test -n "${p7zip_library}"
+          printf 'QT_PREFIX=%s\n' "${qt_prefix}" >> "${GITHUB_ENV}"
+          printf 'P7ZIP_DIR=%s\n' "$(dirname "${p7zip_library}")" >> "${GITHUB_ENV}"
+
+      - name: Restore Conan packages
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ~/.conan2
+          key: conan-linux-x86_64-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', 'src/ext/scripts/conan/profiles/*') }}
+          restore-keys: |
+            conan-linux-x86_64-${{ env.CONAN_VERSION }}-
+
+      - name: Configure and build
+        env:
+          CC: clang-18
+          CXX: clang++-18
+        run: |
+          cmake -S . -B build/linux -G Ninja \
+            -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
+            -DCONAN_PROFILE=clang_x86_64 \
+            -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
+            -D7zip_BIN_DIR="${P7ZIP_DIR}" \
+            -DCPACK_GENERATOR=TXZ
+          cmake --build build/linux --config "${BUILD_TYPE}" --parallel 2
+
+      - name: Package and smoke test
+        env:
+          CC: clang-18
+          CXX: clang++-18
+        run: |
+          artifact_dir="${GITHUB_WORKSPACE}/build/artifacts/linux-x86_64"
+          smoke_dir="${RUNNER_TEMP}/flibrary-linux-smoke"
+          rm -rf "${artifact_dir}" "${smoke_dir}"
+          mkdir -p "${artifact_dir}" "${smoke_dir}"
+
+          cpack --config build/linux/CPackConfig.cmake \
+            -G TXZ -C "${BUILD_TYPE}" -B "${artifact_dir}"
+
+          cmake -S . -B build/linux -G Ninja \
+            -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
+            -DCONAN_PROFILE=clang_x86_64 \
+            -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
+            -D7zip_BIN_DIR="${P7ZIP_DIR}" \
+            -DCPACK_GENERATOR=DEB
+          cpack --config build/linux/CPackConfig.cmake \
+            -G DEB -C "${BUILD_TYPE}" -B "${artifact_dir}"
+
+          archive="$(find "${artifact_dir}" -maxdepth 1 -name '*.tar.xz' -print -quit)"
+          package="$(find "${artifact_dir}" -maxdepth 1 -name '*.deb' -print -quit)"
+          test -n "${archive}"
+          test -n "${package}"
+          tar -xJf "${archive}" -C "${smoke_dir}"
+          binary="$(find "${smoke_dir}" -type f -name FLibrary -perm -111 -print -quit)"
+          test -n "${binary}"
+          xvfb-run -a env \
+            LD_LIBRARY_PATH="$(dirname "${binary}")/lib" \
+            ICU_DATA="$(dirname "${binary}")/lib" \
+            timeout 30 "${binary}" --version
+          dpkg-deb --info "${package}" >/dev/null
+          (cd "${artifact_dir}" && sha256sum FLibrary-* > SHA256SUMS)
+
+      - name: Upload Linux packages
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: FLibrary-linux-x86_64
+          path: build/artifacts/linux-x86_64
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 14
+
+  windows:
+    name: Windows x86_64
+    runs-on: windows-2022
+    timeout-minutes: 240
+    env:
+      QT_ROOT: ${{ github.workspace }}\.ci\Qt
+    steps:
+      - name: Check out sources and submodules
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Set up Python
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version: "3.13"
+
+      - name: Install Python build dependencies
+        shell: pwsh
+        run: |
+          python -m pip install `
+            "aqtinstall==$env:AQT_VERSION" `
+            "conan==$env:CONAN_VERSION"
+
+      - name: Restore Qt
+        id: qt-cache
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ${{ env.QT_ROOT }}
+          key: qt-windows-x86_64-${{ env.QT_VERSION }}-http-image-websockets
+
+      - name: Install Qt
+        if: steps.qt-cache.outputs.cache-hit != 'true'
+        shell: pwsh
+        run: |
+          $installed = $false
+          foreach ($attempt in 1..3) {
+            & aqt install-qt windows desktop $env:QT_VERSION `
+              win64_msvc2022_64 -O $env:QT_ROOT `
+              -m qthttpserver qtimageformats qtwebsockets
+            if ($LASTEXITCODE -eq 0) {
+              $installed = $true
+              break
+            }
+            Start-Sleep -Seconds ($attempt * 15)
+          }
+          if (-not $installed) {
+            throw 'Qt installation failed after three attempts.'
+          }
+
+      - name: Locate Qt
+        shell: pwsh
+        run: |
+          $config = Get-ChildItem $env:QT_ROOT -Filter Qt6Config.cmake -Recurse |
+            Where-Object { $_.FullName -match '[\\/]lib[\\/]cmake[\\/]Qt6[\\/]' } |
+            Select-Object -First 1
+          if (-not $config) {
+            throw 'Qt6Config.cmake was not found.'
+          }
+          $prefix = Split-Path (Split-Path (Split-Path (Split-Path `
+            $config.FullName -Parent) -Parent) -Parent) -Parent
+          "QT_PREFIX=$prefix" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+      - name: Match Conan profile to the runner compiler
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsPath = & $vswhere -latest -products '*' `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+            -property installationPath
+          if (-not $vsPath) {
+            throw 'Visual Studio C++ tools were not found.'
+          }
+
+          $versionFile = Join-Path $vsPath.Trim() `
+            'VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt'
+          $toolsetVersion = (Get-Content $versionFile).Trim()
+          $toolsetMinor = [int]$toolsetVersion.Split('.')[1]
+          $conanCompiler = if ($toolsetMinor -ge 40) { '194' } else { '193' }
+          $profile = 'src/ext/scripts/conan/profiles/msvc2022_x86_64_Release'
+          (Get-Content $profile) `
+            -replace '^compiler.version=.*', "compiler.version=$conanCompiler" |
+            Set-Content $profile
+          Select-String '^compiler.version=' $profile
+
+      - name: Restore Conan packages
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ~/.conan2
+          key: conan-windows-x86_64-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', 'src/ext/scripts/conan/profiles/*') }}
+          restore-keys: |
+            conan-windows-x86_64-${{ env.CONAN_VERSION }}-
+
+      - name: Configure and build
+        shell: pwsh
+        run: |
+          cmake -S . -B build/windows `
+            -G "Visual Studio 17 2022" -A x64 `
+            "-DCMAKE_BUILD_TYPE=$env:BUILD_TYPE" `
+            -DCONAN_PROFILE=msvc2022_x86_64 `
+            "-DQt6_DIR=$env:QT_PREFIX/lib/cmake/Qt6" `
+            "-D7zip_BIN_DIR=C:/Program Files/7-Zip" `
+            -DCPACK_GENERATOR=ZIP
+          cmake --build build/windows `
+            --config $env:BUILD_TYPE --parallel 2
+
+      - name: Package and smoke test
+        shell: pwsh
+        run: |
+          $artifactDir = "$env:GITHUB_WORKSPACE\build\artifacts\windows-x86_64"
+          $smokeDir = "$env:RUNNER_TEMP\flibrary-windows-smoke"
+          Remove-Item $artifactDir, $smokeDir -Recurse -Force `
+            -ErrorAction SilentlyContinue
+          New-Item $artifactDir, $smokeDir -ItemType Directory -Force |
+            Out-Null
+
+          cpack --config build/windows/CPackConfig.cmake `
+            -G ZIP -C $env:BUILD_TYPE -B $artifactDir
+          if ($LASTEXITCODE -ne 0) {
+            throw 'CPack failed.'
+          }
+
+          $archive = Get-ChildItem $artifactDir -Filter '*.zip' |
+            Select-Object -First 1
+          if (-not $archive) {
+            throw 'Portable ZIP was not produced.'
+          }
+          Expand-Archive $archive.FullName -DestinationPath $smokeDir
+          $binary = Get-ChildItem $smokeDir -Filter FLibrary.exe -Recurse |
+            Select-Object -First 1
+          if (-not $binary) {
+            throw 'FLibrary.exe was not found in the package.'
+          }
+          & $binary.FullName --version
+          if ($LASTEXITCODE -ne 0) {
+            throw 'Packaged application smoke test failed.'
+          }
+
+          Get-ChildItem $artifactDir -Filter 'FLibrary-*' |
+            Get-FileHash -Algorithm SHA256 |
+            ForEach-Object {
+              "$($_.Hash.ToLower())  $($_.Path | Split-Path -Leaf)"
+            } | Set-Content "$artifactDir\SHA256SUMS"
+
+      - name: Upload Windows package
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: FLibrary-windows-x86_64
+          path: build/artifacts/windows-x86_64
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 14
+
+  macos:
+    name: macOS ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - arch: arm64
+            conan-profile: apple_clang_armv8_Release
+            runner: macos-15
+          - arch: x86_64
+            conan-profile: apple_clang_x86_64_Release
+            runner: macos-15-intel
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 300
+    env:
+      MACOSX_DEPLOYMENT_TARGET: "13.0"
+      QT_ROOT: ${{ github.workspace }}/.ci/Qt
+    steps:
+      - name: Check out sources and submodules
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Select Xcode
+        run: |
+          sudo xcode-select --switch \
+            /Applications/Xcode_26.3.app/Contents/Developer
+          clang --version
+
+      - name: Set up Python
+        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        with:
+          python-version: "3.13"
+
+      - name: Install build dependencies
+        run: |
+          brew install p7zip librsvg
+          python -m pip install \
+            "aqtinstall==${AQT_VERSION}" \
+            "conan==${CONAN_VERSION}"
+
+      - name: Restore Qt
+        id: qt-cache
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ${{ env.QT_ROOT }}
+          key: qt-macos-${{ matrix.arch }}-${{ env.QT_VERSION }}-http-image-pdf-virtualkeyboard-websockets
+
+      - name: Install Qt
+        if: steps.qt-cache.outputs.cache-hit != 'true'
+        run: |
+          for attempt in 1 2 3; do
+            if aqt install-qt mac desktop "${QT_VERSION}" clang_64 \
+              -O "${QT_ROOT}" \
+              -m qthttpserver qtimageformats qtpdf qtvirtualkeyboard qtwebsockets; then
+              exit 0
+            fi
+            if [ "${attempt}" -eq 3 ]; then
+              exit 1
+            fi
+            sleep $((attempt * 15))
+          done
+
+      - name: Locate Qt and 7-Zip
+        run: |
+          qt_config="$(find "${QT_ROOT}" -path '*/lib/cmake/Qt6/Qt6Config.cmake' -print -quit)"
+          test -n "${qt_config}"
+          qt_prefix="${qt_config%/lib/cmake/Qt6/Qt6Config.cmake}"
+          p7zip_library="$(find "$(brew --prefix p7zip)" -name 7z.so -print -quit)"
+          test -n "${p7zip_library}"
+          printf 'QT_PREFIX=%s\n' "${qt_prefix}" >> "${GITHUB_ENV}"
+          printf 'P7ZIP_DIR=%s\n' "$(dirname "${p7zip_library}")" >> "${GITHUB_ENV}"
+
+      - name: Match Conan profile to the runner compiler
+        run: |
+          compiler_major="$(clang --version | \
+            sed -nE 's/^Apple clang version ([0-9]+).*/\1/p' | head -1)"
+          test -n "${compiler_major}"
+          profile="src/ext/scripts/conan/profiles/${{ matrix.conan-profile }}"
+          sed -i.bak -E \
+            "s/^compiler.version=.*/compiler.version=${compiler_major}/" \
+            "${profile}"
+          rm -f "${profile}.bak"
+          grep '^compiler.version=' "${profile}"
+
+      - name: Restore Conan packages
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ~/.conan2
+          key: conan-macos-${{ matrix.arch }}-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', 'src/ext/scripts/conan/profiles/*') }}
+          restore-keys: |
+            conan-macos-${{ matrix.arch }}-${{ env.CONAN_VERSION }}-
+
+      - name: Build and package DMG
+        run: |
+          artifact_dir="${GITHUB_WORKSPACE}/build/artifacts/macos-${{ matrix.arch }}"
+          rm -rf "${artifact_dir}"
+          mkdir -p "${artifact_dir}"
+          ARCHS="${{ matrix.arch }}" \
+          ALLOW_MISSING_ARCHS=0 \
+          ARTIFACT_DIR="${artifact_dir}" \
+          BUILD_DIR="${GITHUB_WORKSPACE}/build/macos-${{ matrix.arch }}" \
+          P7ZIP_DIR="${P7ZIP_DIR}" \
+          QT_PREFIX="${QT_PREFIX}" \
+            ./build-mac.sh
+          (cd "${artifact_dir}" && shasum -a 256 FLibrary-*.dmg > SHA256SUMS)
+
+      - name: Upload macOS DMG
+        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        with:
+          name: FLibrary-macos-${{ matrix.arch }}
+          path: build/artifacts/macos-${{ matrix.arch }}
+          compression-level: 0
+          if-no-files-found: error
+          retention-days: 14
