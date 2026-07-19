@@ -105,9 +105,7 @@ else()
 		include_directories(BEFORE "${CMAKE_SOURCE_DIR}/src/home/compat")
 		add_compile_options(
 			"$<$<COMPILE_LANGUAGE:CXX>:-include>"
-			"$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/home/compat/format>"
-			"$<$<COMPILE_LANGUAGE:CXX>:-include>"
-			"$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/home/compat/RangesTo.h>"
+			"$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/home/compat/StandardLibrary.h>"
 		)
 	endif()
 endif()
