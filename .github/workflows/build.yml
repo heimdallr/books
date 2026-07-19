@@ -119,6 +119,11 @@ jobs:
           printf 'QT_PREFIX=%s\n' "${qt_prefix}" >> "${GITHUB_ENV}"
           printf 'P7ZIP_DIR=%s\n' "$(dirname "${p7zip_library}")" >> "${GITHUB_ENV}"
 
+      - name: Prepare Conan profile
+        run: |
+          cp .github/conan/clang-18-linux-x86_64 \
+            src/ext/scripts/conan/profiles/clang-18-linux-x86_64_Release
+
       - name: Restore Conan packages
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
@@ -134,7 +139,7 @@ jobs:
         run: |
           cmake -S . -B build/linux -G Ninja \
             -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
-            -DCONAN_PROFILE="${GITHUB_WORKSPACE}/.github/conan/clang-18-linux-x86_64" \
+            -DCONAN_PROFILE=clang-18-linux-x86_64 \
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
             -D7zip_BIN_DIR="${P7ZIP_DIR}" \
             -DCPACK_GENERATOR=TXZ
@@ -155,7 +160,7 @@ jobs:
 
           cmake -S . -B build/linux -G Ninja \
             -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
-            -DCONAN_PROFILE="${GITHUB_WORKSPACE}/.github/conan/clang-18-linux-x86_64" \
+            -DCONAN_PROFILE=clang-18-linux-x86_64 \
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
             -D7zip_BIN_DIR="${P7ZIP_DIR}" \
             -DCPACK_GENERATOR=DEB
@@ -265,10 +270,22 @@ jobs:
           $toolsetVersion = (Get-Content $versionFile).Trim()
           $toolsetMinor = [int]$toolsetVersion.Split('.')[1]
           $conanCompiler = if ($toolsetMinor -ge 40) { '194' } else { '193' }
+          $compiler = Join-Path $vsPath.Trim() `
+            "VC\Tools\MSVC\$toolsetVersion\bin\Hostx64\x64\cl.exe"
+          if (-not (Test-Path $compiler)) {
+            throw 'MSVC compiler was not found.'
+          }
+          $compilerForConan = $compiler.Replace('\', '/')
           $profile = 'src/ext/scripts/conan/profiles/msvc2022_x86_64_Release'
           (Get-Content $profile) `
             -replace '^compiler.version=.*', "compiler.version=$conanCompiler" |
             Set-Content $profile
+          @(
+            '[conf]'
+            "tools.build:compiler_executables={`"c`": `"$compilerForConan`", `"cpp`": `"$compilerForConan`"}"
+          ) | Add-Content $profile
+          "MSVC_COMPILER=$compiler" | Out-File `
+            -FilePath $env:GITHUB_ENV -Append
           Select-String '^compiler.version=' $profile
 
       - name: Restore Conan packages
@@ -292,7 +309,7 @@ jobs:
           $devShell = Join-Path $vsPath.Trim() `
             'Common7\Tools\Launch-VsDevShell.ps1'
           & $devShell -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
-          $compiler = (Get-Command cl.exe -ErrorAction Stop).Source
+          $compiler = $env:MSVC_COMPILER
           $compilerDir = Split-Path $compiler -Parent
           $env:Path = "$compilerDir;$env:Path"
 
