@@ -1,0 +1,11 @@
+[settings]
+os=Linux
+arch=x86_64
+compiler=clang
+compiler.cppstd=gnu23
+compiler.version=18
+compiler.libcxx=libstdc++11
+build_type=Release
+
+[conf]
+tools.build:compiler_executables={"c": "/usr/bin/clang-18", "cpp": "/usr/bin/clang++-18"}

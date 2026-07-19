@@ -123,7 +123,7 @@ jobs:
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ~/.conan2
-          key: conan-linux-ubuntu-22.04-x86_64-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', 'src/ext/scripts/conan/profiles/*') }}
+          key: conan-linux-ubuntu-22.04-x86_64-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', '.github/conan/*') }}
           restore-keys: |
             conan-linux-ubuntu-22.04-x86_64-${{ env.CONAN_VERSION }}-
 
@@ -134,7 +134,7 @@ jobs:
         run: |
           cmake -S . -B build/linux -G Ninja \
             -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
-            -DCONAN_PROFILE=clang_x86_64 \
+            -DCONAN_PROFILE="${GITHUB_WORKSPACE}/.github/conan/clang-18-linux-x86_64" \
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
             -D7zip_BIN_DIR="${P7ZIP_DIR}" \
             -DCPACK_GENERATOR=TXZ
@@ -155,7 +155,7 @@ jobs:
 
           cmake -S . -B build/linux -G Ninja \
             -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
-            -DCONAN_PROFILE=clang_x86_64 \
+            -DCONAN_PROFILE="${GITHUB_WORKSPACE}/.github/conan/clang-18-linux-x86_64" \
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
             -D7zip_BIN_DIR="${P7ZIP_DIR}" \
             -DCPACK_GENERATOR=DEB
