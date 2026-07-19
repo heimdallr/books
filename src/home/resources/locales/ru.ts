@@ -5695,6 +5695,13 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>ScrollBarController</name>
+    <message>
+        <source>Options...</source>
+        <translation>Параметры...</translation>
+    </message>
+</context>
+<context>
     <name>SearchController</name>
     <message>
         <source>Are you sure you want to delete the search results (%1)?</source>

@@ -42,6 +42,7 @@ set(LUPDATE_COMMAND_PARAMETERS
 	"${CMAKE_BINARY_DIR}/config/locales.h"
 	"${FOUNDATION_ROOT}/util/language.h"
 	"${FOUNDATION_ROOT}/util/GenresLocalization.h"
+	"${FOUNDATION_ROOT}/utilgui/"
 	./
 	-recursive
 	-locations none
