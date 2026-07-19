@@ -107,6 +107,9 @@ else()
 			"$<$<COMPILE_LANGUAGE:CXX>:-include>"
 			"$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/home/compat/StandardLibrary.h>"
 		)
+		if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+			add_compile_options(-Wno-restrict)
+		endif()
 	endif()
 endif()
 
