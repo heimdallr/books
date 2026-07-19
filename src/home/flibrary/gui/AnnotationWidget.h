@@ -34,7 +34,7 @@ public:
 		std::shared_ptr<ISettings>                         settings,
 		std::shared_ptr<IAnnotationController>             annotationController,
 		std::shared_ptr<IUiFactory>                        uiFactory,
-		std::shared_ptr<IBooksExtractorProgressController> progressController,
+		std::shared_ptr<IMainProgressController> progressController,
 		std::shared_ptr<Util::ItemViewToolTipper>          itemViewToolTipperContent,
 		std::shared_ptr<Util::ScrollBarController>         scrollBarControllerContent,
 		std::shared_ptr<Util::ScrollBarController>         scrollBarControllerAnnotation,

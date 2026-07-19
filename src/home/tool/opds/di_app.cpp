@@ -156,8 +156,19 @@ private: // IUiFactory
 		return nullptr;
 	}
 
-	void CreateCollectionCleaner() const override
+	QWidget* CreateChangeSizeWidget(int, int, int, IChangeSizeWidgetObserver*) const override
 	{
+		return nullptr;
+	}
+
+	QWidget* CreateCollectionCleaner(QStackedWidget*) const override
+	{
+		return nullptr;
+	}
+
+	QWidget* CreateImageViewer(QStackedWidget*) const override
+	{
+		return nullptr;
 	}
 
 	void CreateAuthorReview(long long /*id*/) const override
@@ -217,6 +228,11 @@ public: // special
 	long long GetAuthorId() const noexcept override
 	{
 		return {};
+	}
+
+	QStackedWidget* GetStackedWidget() const noexcept override
+	{
+		return nullptr;
 	}
 };
 

@@ -4,8 +4,11 @@
 
 #include "fnd/NonCopyMovable.h"
 
+class QStackedWidget;
+
 namespace HomeCompa::Flibrary
 {
+class IUiFactory;
 
 class StackedPage
 	: public QWidget
@@ -27,10 +30,10 @@ public:
 	};
 
 signals:
-	void StateChanged(std::shared_ptr<QWidget> widget, int state) const;
+	void StateChanged(QStackedWidget* stackedWidget, std::shared_ptr<QWidget> widget, int state) const;
 
 public:
-	explicit StackedPage(QWidget* parent = nullptr);
+	explicit StackedPage(const IUiFactory& uiFactory, QWidget* parent = nullptr);
 	~StackedPage() override;
 
 public:
@@ -38,6 +41,7 @@ public:
 
 public:
 	QAction* closeAction;
+	QStackedWidget* stackedWidget;
 };
 
 } // namespace HomeCompa::Flibrary

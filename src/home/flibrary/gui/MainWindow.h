@@ -89,7 +89,7 @@ private: // QWidget
 private slots:
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry);
 	void OnSearchNavigationItemSelected(long long id, const QString& text);
-	void OnStackedPageStateChanged(std::shared_ptr<QWidget> widget, int state);
+	void OnStackedPageStateChanged(QStackedWidget* stackedWidget, std::shared_ptr<QWidget> widget, int state);
 
 private:
 	class Impl;

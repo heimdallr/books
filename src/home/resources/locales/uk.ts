@@ -2723,6 +2723,36 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>ImageModel</name>
+    <message>
+        <source>Cover</source>
+        <translation>Обкладинка</translation>
+    </message>
+    <message>
+        <source>Image #%1</source>
+        <translation>Ілюстрація %1</translation>
+    </message>
+</context>
+<context>
+    <name>ImageViewer</name>
+    <message>
+        <source>Change thumbnail size...</source>
+        <translation>Змінити розмір мініатюри...</translation>
+    </message>
+    <message>
+        <source>Filter</source>
+        <translation>Фільтр</translation>
+    </message>
+    <message>
+        <source>Save...</source>
+        <translation>Зберегти...</translation>
+    </message>
+    <message>
+        <source>Select images folder</source>
+        <translation>Вкажіть папку для збереження зображень</translation>
+    </message>
+</context>
+<context>
     <name>JokeRequester</name>
     <message>
         <source>&lt;center&gt;&lt;b&gt;Warning!&lt;/b&gt;&lt;/center&gt;&lt;br/&gt;&lt;/br&gt;Jokes in this section may be rude, unsafe for work environment, religiously or politically offensive, sexist, or explicit. By clicking &quot;Yes&quot; you accept all responsibility for reading them. Otherwise you must click &quot;No&quot;.&lt;br/&gt;&lt;br/&gt;Do you still want to read such jokes?</source>
@@ -4781,7 +4811,11 @@ Try again?</source>
     </message>
     <message>
         <source>Cleaner...</source>
-        <translation>Очищення...</translation>
+        <translation type="vanished">Очищення...</translation>
+    </message>
+    <message>
+        <source>Cleanup</source>
+        <translation>Очищення</translation>
     </message>
     <message>
         <source>Co&amp;ver and illustrations</source>
@@ -4990,6 +5024,10 @@ Try again?</source>
     <message>
         <source>View &amp;Help</source>
         <translation>&amp;Довідка</translation>
+    </message>
+    <message>
+        <source>View images</source>
+        <translation>Перегляд зображень</translation>
     </message>
     <message>
         <source>Well, you only have yourself to blame!</source>

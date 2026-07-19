@@ -12,6 +12,7 @@
 #include "model/FilterListModel.h"
 #include "model/FilterTreeModel.h"
 #include "model/FilteredProxyModel.h"
+#include "model/ImageModel.h"
 #include "model/ListModel.h"
 #include "model/ReviewListModel.h"
 #include "model/ReviewTreeModel.h"
@@ -149,6 +150,11 @@ std::shared_ptr<QAbstractItemModel> ModelProvider::CreateScriptCommandModel() co
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateAuthorReviewModel() const
 {
 	return m_impl->container.resolve<AuthorReviewModel>();
+}
+
+std::shared_ptr<QAbstractItemModel> ModelProvider::CreateImageModel() const
+{
+	return m_impl->container.resolve<ImageModel>();
 }
 
 std::shared_ptr<QAbstractItemModel> ModelProvider::CreateFilterListModel(IDataItem::Ptr data) const

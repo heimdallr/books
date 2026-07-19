@@ -858,7 +858,7 @@ BooksContextMenuProvider::BooksContextMenuProvider(
 	std::shared_ptr<const IBookInfoProvider>           dataProvider,
 	std::shared_ptr<const IUiFactory>                  uiFactory,
 	std::shared_ptr<IScriptController>                 scriptController,
-	std::shared_ptr<IBooksExtractorProgressController> progressController
+	std::shared_ptr<IMainProgressController> progressController
 )
 	: m_impl(
 		  logicFactory,

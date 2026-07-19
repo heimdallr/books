@@ -2710,6 +2710,36 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>ImageModel</name>
+    <message>
+        <source>Cover</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Image #%1</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ImageViewer</name>
+    <message>
+        <source>Change thumbnail size...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Filter</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Save...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Select images folder</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>JokeRequester</name>
     <message>
         <source>&lt;center&gt;&lt;b&gt;Warning!&lt;/b&gt;&lt;/center&gt;&lt;br/&gt;&lt;/br&gt;Jokes in this section may be rude, unsafe for work environment, religiously or politically offensive, sexist, or explicit. By clicking &quot;Yes&quot; you accept all responsibility for reading them. Otherwise you must click &quot;No&quot;.&lt;br/&gt;&lt;br/&gt;Do you still want to read such jokes?</source>
@@ -4767,7 +4797,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Cleaner...</source>
+        <source>Cleanup</source>
         <translation></translation>
     </message>
     <message>
@@ -4976,6 +5006,10 @@ Try again?</source>
     </message>
     <message>
         <source>View &amp;Help</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>View images</source>
         <translation></translation>
     </message>
     <message>

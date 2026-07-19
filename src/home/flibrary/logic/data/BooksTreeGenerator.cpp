@@ -163,6 +163,11 @@ public:
 			std::invoke(description.bookSelector, static_cast<IBookSelector&>(*this), std::cref(activeCollection), std::ref(db), std::cref(description));
 	}
 
+	[[nodiscard]] IDataItem::Ptr GetRoot() const
+	{
+		return CreateGeneralList();
+	}
+
 	[[nodiscard]] IDataItem::Ptr CreateReviewsList() const
 	{
 		IDataItem::Items items;
@@ -737,6 +742,11 @@ BookInfo BooksTreeGenerator::GetBookInfo(const long long id) const
 }
 
 // IBooksRootGenerator
+IDataItem::Ptr BooksTreeGenerator::GetRoot() const
+{
+	return m_impl->GetRoot();
+}
+
 IDataItem::Ptr BooksTreeGenerator::GetList(const QueryDescription& queryDescription) const
 {
 	return std::invoke(queryDescription.listCreator, static_cast<const IBooksListCreator&>(*this));

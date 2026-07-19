@@ -741,7 +741,7 @@ InpxGenerator::InpxGenerator(
 	const std::shared_ptr<const ILogicFactory>&        logicFactory,
 	std::shared_ptr<const ICollectionProvider>         collectionProvider,
 	std::shared_ptr<const IDatabaseUser>               databaseUser,
-	std::shared_ptr<IBooksExtractorProgressController> progressController
+	std::shared_ptr<IMainProgressController> progressController
 )
 	: m_impl(logicFactory, std::move(collectionProvider), std::move(databaseUser), std::move(progressController))
 {

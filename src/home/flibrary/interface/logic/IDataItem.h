@@ -130,3 +130,4 @@ using BookInfoList = std::vector<BookInfo>;
 
 ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::IDataItem::Flags);
 Q_DECLARE_METATYPE(HomeCompa::Flibrary::IDataItem::Flags);
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::IDataItem::Ptr);

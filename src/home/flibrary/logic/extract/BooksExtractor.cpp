@@ -379,7 +379,7 @@ private:
 BooksExtractor::BooksExtractor(
 	std::shared_ptr<const ISettings>                   settings,
 	std::shared_ptr<ICollectionController>             collectionController,
-	std::shared_ptr<IBooksExtractorProgressController> progressController,
+	std::shared_ptr<IMainProgressController> progressController,
 	const std::shared_ptr<const ILogicFactory>&        logicFactory,
 	std::shared_ptr<const IScriptController>           scriptController,
 	std::shared_ptr<const IBookExtractor>              bookExtractor,

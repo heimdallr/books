@@ -1,5 +1,7 @@
 #pragma once
 
+#include "fnd/observer.h"
+
 #include "interface/constants/Enums.h"
 #include "interface/logic/IDataItem.h"
 
@@ -34,9 +36,20 @@ public:
 class IBookInfoProvider : virtual public IDataProviderDetails::IDataProvider
 {
 public:
+	class IObserver : public Observer
+	{
+	public:
+		virtual void OnBooksSelected(NavigationMode navigationMode, IDataItem::Ptr root) = 0;
+	};
+
+public:
 	virtual void     SetBookRequestCallback(Callback callback) = 0;
 	virtual void     SetBooksViewMode(ViewMode viewMode)       = 0;
 	virtual BookInfo GetBookInfo(long long id) const           = 0;
+	virtual void     RequestRoot()                             = 0;
+
+	virtual void RegisterObserver(IObserver* observer)   = 0;
+	virtual void UnregisterObserver(IObserver* observer) = 0;
 };
 
 class IAbstractDataProvider

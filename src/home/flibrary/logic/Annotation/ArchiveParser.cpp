@@ -843,7 +843,7 @@ private:
 	std::shared_ptr<const ILogicFactory>                          m_logicFactory;
 };
 
-ArchiveParser::ArchiveParser(std::shared_ptr<ICollectionProvider> collectionProvider, std::shared_ptr<IAnnotationProgressController> progressController, std::shared_ptr<const ILogicFactory> logicFactory)
+ArchiveParser::ArchiveParser(std::shared_ptr<ICollectionProvider> collectionProvider, std::shared_ptr<IProgressController> progressController, std::shared_ptr<const ILogicFactory> logicFactory)
 	: m_impl(std::move(collectionProvider), std::move(progressController), std::move(logicFactory))
 {
 	PLOGV << "AnnotationParser created";

@@ -61,6 +61,7 @@ public:
 
 public:
 	virtual ~IBooksRootGenerator()                                = default;
+	virtual IDataItem::Ptr GetRoot() const                        = 0;
 	virtual IDataItem::Ptr GetList(const QueryDescription&) const = 0;
 	virtual IDataItem::Ptr GetTree(const QueryDescription&) const = 0;
 };
@@ -148,6 +149,7 @@ public:
 	BookInfo       GetBookInfo(long long id) const;
 
 private: // IBooksRootGenerator
+	[[nodiscard]] IDataItem::Ptr GetRoot() const override;
 	[[nodiscard]] IDataItem::Ptr GetList(const QueryDescription&) const override;
 	[[nodiscard]] IDataItem::Ptr GetTree(const QueryDescription&) const override;
 
