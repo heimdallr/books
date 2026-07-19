@@ -292,10 +292,15 @@ jobs:
           $devShell = Join-Path $vsPath.Trim() `
             'Common7\Tools\Launch-VsDevShell.ps1'
           & $devShell -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
+          $compiler = (Get-Command cl.exe -ErrorAction Stop).Source
+          $compilerDir = Split-Path $compiler -Parent
+          $env:Path = "$compilerDir;$env:Path"
 
           cmake -S . -B build/windows `
             -G Ninja `
             "-DCMAKE_BUILD_TYPE=$env:BUILD_TYPE" `
+            "-DCMAKE_C_COMPILER=$compiler" `
+            "-DCMAKE_CXX_COMPILER=$compiler" `
             -DCONAN_PROFILE=msvc2022_x86_64 `
             "-DQt6_DIR=$env:QT_PREFIX/lib/cmake/Qt6" `
             "-D7zip_BIN_DIR=C:/Program Files/7-Zip" `
