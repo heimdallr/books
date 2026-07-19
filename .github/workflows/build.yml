@@ -136,6 +136,29 @@ jobs:
           restore-keys: |
             conan-linux-ubuntu-22.04-x86_64-${{ env.CONAN_VERSION }}-
 
+      - name: Seed Conan source fallback
+        run: |
+          source_cache="${HOME}/.conan2/sources"
+          source_sha256="fff1ffcf2b0da84d308a14de513a1aa23d4e9aa3464d17e64b9714bfdd0bbfb6"
+          source_file="${source_cache}/s/${source_sha256}"
+          global_conf="${HOME}/.conan2/global.conf"
+
+          mkdir -p "$(dirname "${source_file}")"
+          if [ -f "${global_conf}" ]; then
+            sed -i '/^core\.sources:download_cache=/d' "${global_conf}"
+          fi
+          printf 'core.sources:download_cache=%s\n' "${source_cache}" >> "${global_conf}"
+
+          if [ ! -f "${source_file}" ]; then
+            curl --fail --silent --show-error --location \
+              --retry 3 --retry-all-errors --connect-timeout 30 \
+              --output "${source_file}.tmp" \
+              https://github.com/tukaani-project/xz/releases/download/v5.8.3/xz-5.8.3.tar.xz
+            printf '%s  %s\n' "${source_sha256}" "${source_file}.tmp" | \
+              sha256sum --check -
+            mv "${source_file}.tmp" "${source_file}"
+          fi
+
       - name: Configure and build
         env:
           CC: clang-18
