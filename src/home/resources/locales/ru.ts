@@ -2673,7 +2673,7 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>HomeCompa::Flibrary::FastFilterWidget::Impl</name>
+    <name>HomeCompa::Flibrary::FastFilterWidget</name>
     <message>
         <source>Deselect all</source>
         <translation>Снять выделение</translation>
@@ -2698,7 +2698,7 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>HomeCompa::Flibrary::RangeFilterWidget::Impl</name>
+    <name>HomeCompa::Flibrary::RangeFilterWidget</name>
     <message>
         <source>%1 kB</source>
         <translation>%1 Кб</translation>

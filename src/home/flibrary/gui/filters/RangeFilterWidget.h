@@ -20,6 +20,7 @@ namespace HomeCompa::Flibrary
 
 class RangeFilterWidget final : public QWidget
 {
+	Q_OBJECT
 	NON_COPY_MOVABLE(RangeFilterWidget)
 
 private:

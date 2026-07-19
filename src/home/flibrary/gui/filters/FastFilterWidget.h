@@ -26,6 +26,7 @@ namespace HomeCompa::Flibrary
 
 class FastFilterWidget final : public QWidget
 {
+	Q_OBJECT
 	NON_COPY_MOVABLE(FastFilterWidget)
 
 private:
