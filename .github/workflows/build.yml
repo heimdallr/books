@@ -354,7 +354,7 @@ jobs:
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 300
     env:
-      MACOSX_DEPLOYMENT_TARGET: "13.0"
+      MACOSX_DEPLOYMENT_TARGET: "13.3"
       QT_ROOT: ${{ github.workspace }}/.ci/Qt
     steps:
       - name: Check out sources and submodules
