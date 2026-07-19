@@ -101,6 +101,7 @@ constexpr auto SHOW_REVIEWS_KEY                   = "ui/View/ShowReadersReviews"
 constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
 constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
+constexpr auto SHOW_ALL_SETTINGS_KEY              = "Preferences/ShowAllSettingsMenuItem";
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 
@@ -1098,9 +1099,12 @@ private:
 		connect(m_ui.actionShowHotkeyDialog, &QAction::triggered, &m_self, [&] {
 			m_uiFactory->CreateHotkeyDialog()->exec();
 		});
-		connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
-			m_uiFactory->CreateSettingsDialog()->exec();
-		});
+
+		m_ui.actionAllSettings->setVisible(m_settings->Get(SHOW_ALL_SETTINGS_KEY, false));
+		if (m_ui.actionAllSettings->isVisible())
+			connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
+				m_uiFactory->CreateSettingsDialog()->exec();
+			});
 	}
 
 	void ConnectActionsHelpView()
@@ -1760,7 +1764,7 @@ MainWindow::MainWindow(
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)), true);
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, this, SLOT(OnSearchNavigationItemSelected(long long, const QString&)), true);
-	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::STACKED_PAGE_STATE_CHANGED, this, SLOT(OnStackedPageStateChanged(QStackedWidget *, std::shared_ptr<QWidget>, int)), true);
+	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::STACKED_PAGE_STATE_CHANGED, this, SLOT(OnStackedPageStateChanged(QStackedWidget*, std::shared_ptr<QWidget>, int)), true);
 	PLOGV << "MainWindow created";
 }
 
