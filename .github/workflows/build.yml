@@ -28,8 +28,8 @@ env:
 
 jobs:
   linux:
-    name: Linux x86_64
-    runs-on: ubuntu-24.04
+    name: Linux x86_64 (Ubuntu 22.04)
+    runs-on: ubuntu-22.04
     timeout-minutes: 240
     env:
       QT_ROOT: ${{ github.workspace }}/.ci/Qt
@@ -47,6 +47,12 @@ jobs:
 
       - name: Install system build dependencies
         run: |
+          curl --fail --silent --show-error --location \
+            https://apt.llvm.org/llvm-snapshot.gpg.key | \
+            sudo gpg --dearmor --yes \
+              --output /usr/share/keyrings/apt.llvm.org.gpg
+          echo "deb [signed-by=/usr/share/keyrings/apt.llvm.org.gpg] https://apt.llvm.org/jammy/ llvm-toolchain-jammy-18 main" | \
+            sudo tee /etc/apt/sources.list.d/llvm-18.list >/dev/null
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends \
             clang-18 \
@@ -77,7 +83,7 @@ jobs:
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ${{ env.QT_ROOT }}
-          key: qt-linux-x86_64-${{ env.QT_VERSION }}-http-image-wayland-websockets
+          key: qt-linux-ubuntu-22.04-x86_64-${{ env.QT_VERSION }}-http-image-wayland-websockets
 
       - name: Install Qt
         if: steps.qt-cache.outputs.cache-hit != 'true'
@@ -108,9 +114,9 @@ jobs:
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ~/.conan2
-          key: conan-linux-x86_64-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', 'src/ext/scripts/conan/profiles/*') }}
+          key: conan-linux-ubuntu-22.04-x86_64-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', 'src/ext/scripts/conan/profiles/*') }}
           restore-keys: |
-            conan-linux-x86_64-${{ env.CONAN_VERSION }}-
+            conan-linux-ubuntu-22.04-x86_64-${{ env.CONAN_VERSION }}-
 
       - name: Configure and build
         env:
