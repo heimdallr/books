@@ -83,7 +83,6 @@ constexpr auto USER_RATE_QUERY = "select coalesce(bu.UserRate, -1) from Books b 
 
 struct SendSettings
 {
-	QString ext;
 	bool    tempFolder { false };
 	bool    createFillTemplateConverterParameter { false };
 };
@@ -457,7 +456,7 @@ private: // IContextMenuHandler
 
 	void SendAsArchive(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsArchives, { .ext = "zip" });
+		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsArchives);
 	}
 
 	void SendAsIs(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
@@ -702,15 +701,6 @@ private:
 		const auto db = m_databaseUser->Database();
 		for (auto& book : books)
 			fillTemplateConverter->Fill(*db, outputFileNameTemplate, book, tempDir ? tempDir->filePath("") : dir);
-
-		if (!sendSettings.ext.isEmpty())
-		{
-			for (auto& book : books)
-			{
-				const QFileInfo fileInfo(book.dstFileName);
-				book.dstFileName = fileInfo.dir().filePath(fileInfo.completeBaseName() + "." + sendSettings.ext);
-			}
-		}
 
 		if (CheckUniqueFileNames(books))
 			return callback(item);
