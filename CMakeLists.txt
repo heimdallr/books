@@ -95,6 +95,12 @@ else()
 		-Wno-array-bounds
 		-fPIC		
 	)
+	if(${CMAKE_SYSTEM_NAME} STREQUAL Linux)
+		add_compile_options(
+			"$<$<COMPILE_LANGUAGE:CXX>:-include>"
+			"$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/home/compat/RangesTo.h>"
+		)
+	endif()
 endif()
 
 set(QtModules Core Gui Widgets Xml Network Svg Concurrent)
