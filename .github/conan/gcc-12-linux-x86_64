@@ -1,0 +1,11 @@
+[settings]
+os=Linux
+arch=x86_64
+compiler=gcc
+compiler.cppstd=gnu23
+compiler.version=12
+compiler.libcxx=libstdc++11
+build_type=Release
+
+[conf]
+tools.build:compiler_executables={"c": "/usr/bin/gcc-12", "cpp": "/usr/bin/g++-12"}

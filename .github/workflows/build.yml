@@ -43,8 +43,7 @@ jobs:
           apt-get install --yes --no-install-recommends \
             ca-certificates \
             curl \
-            git \
-            gnupg
+            git
 
       - name: Check out sources and submodules
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -54,17 +53,11 @@ jobs:
 
       - name: Install system build dependencies
         run: |
-          curl --fail --silent --show-error --location \
-            https://apt.llvm.org/llvm-snapshot.gpg.key | \
-            gpg --dearmor --yes \
-              --output /usr/share/keyrings/apt.llvm.org.gpg
-          echo "deb [signed-by=/usr/share/keyrings/apt.llvm.org.gpg] https://apt.llvm.org/jammy/ llvm-toolchain-jammy-18 main" | \
-            tee /etc/apt/sources.list.d/llvm-18.list >/dev/null
           apt-get update
           apt-get install --yes --no-install-recommends \
-            clang-18 \
             cmake \
             dpkg-dev \
+            g++-12 \
             libdbus-1-dev \
             libegl1-mesa-dev \
             libfontconfig1 \
@@ -126,8 +119,8 @@ jobs:
 
       - name: Prepare Conan profile
         run: |
-          cp .github/conan/clang-18-linux-x86_64 \
-            src/ext/scripts/conan/profiles/clang-18-linux-x86_64_Release
+          cp .github/conan/gcc-12-linux-x86_64 \
+            src/ext/scripts/conan/profiles/gcc-12-linux-x86_64_Release
 
       - name: Restore Conan packages
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
@@ -162,12 +155,12 @@ jobs:
 
       - name: Configure and build
         env:
-          CC: clang-18
-          CXX: clang++-18
+          CC: gcc-12
+          CXX: g++-12
         run: |
           cmake -S . -B build/linux -G Ninja \
             -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
-            -DCONAN_PROFILE=clang-18-linux-x86_64 \
+            -DCONAN_PROFILE=gcc-12-linux-x86_64 \
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
             -D7zip_BIN_DIR="${P7ZIP_DIR}" \
             -DCPACK_GENERATOR=TXZ
@@ -175,8 +168,8 @@ jobs:
 
       - name: Package and smoke test
         env:
-          CC: clang-18
-          CXX: clang++-18
+          CC: gcc-12
+          CXX: g++-12
         run: |
           artifact_dir="${GITHUB_WORKSPACE}/build/artifacts/linux-x86_64"
           smoke_dir="${RUNNER_TEMP}/flibrary-linux-smoke"
@@ -188,7 +181,7 @@ jobs:
 
           cmake -S . -B build/linux -G Ninja \
             -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
-            -DCONAN_PROFILE=clang-18-linux-x86_64 \
+            -DCONAN_PROFILE=gcc-12-linux-x86_64 \
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
             -D7zip_BIN_DIR="${P7ZIP_DIR}" \
             -DCPACK_GENERATOR=DEB
