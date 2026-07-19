@@ -28,12 +28,23 @@ env:
 
 jobs:
   linux:
-    name: Linux x86_64 (Ubuntu 22.04)
-    runs-on: ubuntu-22.04
+    name: Linux x86_64 (Ubuntu 22.04 container)
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
     timeout-minutes: 240
     env:
       QT_ROOT: ${{ github.workspace }}/.ci/Qt
     steps:
+      - name: Bootstrap Ubuntu 22.04 container
+        run: |
+          apt-get update
+          apt-get install --yes --no-install-recommends \
+            ca-certificates \
+            curl \
+            git \
+            gnupg
+
       - name: Check out sources and submodules
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
         with:
@@ -49,12 +60,12 @@ jobs:
         run: |
           curl --fail --silent --show-error --location \
             https://apt.llvm.org/llvm-snapshot.gpg.key | \
-            sudo gpg --dearmor --yes \
+            gpg --dearmor --yes \
               --output /usr/share/keyrings/apt.llvm.org.gpg
           echo "deb [signed-by=/usr/share/keyrings/apt.llvm.org.gpg] https://apt.llvm.org/jammy/ llvm-toolchain-jammy-18 main" | \
-            sudo tee /etc/apt/sources.list.d/llvm-18.list >/dev/null
-          sudo apt-get update
-          sudo apt-get install --yes --no-install-recommends \
+            tee /etc/apt/sources.list.d/llvm-18.list >/dev/null
+          apt-get update
+          apt-get install --yes --no-install-recommends \
             clang-18 \
             dpkg-dev \
             libdbus-1-dev \
