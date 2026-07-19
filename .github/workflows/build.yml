@@ -24,7 +24,7 @@ env:
   AQT_VERSION: 3.3.0
   BUILD_TYPE: Release
   CONAN_VERSION: 2.30.0
-  QT_VERSION: 6.11.0
+  QT_VERSION: 6.10.3
 
 jobs:
   linux:
@@ -50,11 +50,6 @@ jobs:
         with:
           persist-credentials: false
           submodules: recursive
-
-      - name: Set up Python
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
-        with:
-          python-version: "3.13"
 
       - name: Install system build dependencies
         run: |
@@ -84,8 +79,10 @@ jobs:
             libxkbcommon-x11-0 \
             ninja-build \
             p7zip-full \
+            python3 \
+            python3-pip \
             xvfb
-          python -m pip install \
+          python3 -m pip install \
             "aqtinstall==${AQT_VERSION}" \
             "conan==${CONAN_VERSION}"
 
@@ -410,7 +407,7 @@ jobs:
           qt_config="$(find "${QT_ROOT}" -path '*/lib/cmake/Qt6/Qt6Config.cmake' -print -quit)"
           test -n "${qt_config}"
           qt_prefix="${qt_config%/lib/cmake/Qt6/Qt6Config.cmake}"
-          p7zip_library="$(find "$(brew --prefix p7zip)" -name 7z.so -print -quit)"
+          p7zip_library="$(find -L "$(brew --prefix p7zip)" -name 7z.so -print -quit)"
           test -n "${p7zip_library}"
           printf 'QT_PREFIX=%s\n' "${qt_prefix}" >> "${GITHUB_ENV}"
           printf 'P7ZIP_DIR=%s\n' "$(dirname "${p7zip_library}")" >> "${GITHUB_ENV}"
