@@ -4681,6 +4681,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Load...</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Log</source>
         <translation></translation>
     </message>
@@ -4702,6 +4706,10 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;Restore default values</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Save...</source>
         <translation></translation>
     </message>
     <message>
@@ -4837,10 +4845,6 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>E&amp;xport</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Enable all</source>
         <translation></translation>
     </message>
@@ -4870,10 +4874,6 @@ Try again?</source>
     </message>
     <message>
         <source>Http server management</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>I&amp;mport</source>
         <translation></translation>
     </message>
     <message>
