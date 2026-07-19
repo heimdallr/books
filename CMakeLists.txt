@@ -172,6 +172,8 @@ if(MSVC)
 	set_property(TARGET ${BIT7Z_LIBRARY_TARGET} PROPERTY FOLDER ThirdParty)
 	set_property(TARGET mobi PROPERTY FOLDER ThirdParty)
 	set_target_properties(mobi PROPERTIES COMPILE_OPTIONS /W0)
+elseif(CMAKE_SYSTEM_NAME STREQUAL "Linux" AND CMAKE_C_COMPILER_ID STREQUAL "GNU")
+	target_compile_options(mobi PRIVATE "$<$<COMPILE_LANGUAGE:C>:-Wno-stringop-overread>")
 endif()
 
 find_package(plog REQUIRED)
