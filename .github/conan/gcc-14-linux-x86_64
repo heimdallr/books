@@ -9,4 +9,3 @@ build_type=Release
 
 [conf]
 tools.build:compiler_executables={"c": "/usr/bin/gcc-14", "cpp": "/usr/bin/g++-14"}
-
