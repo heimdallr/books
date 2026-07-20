@@ -63,12 +63,6 @@ conan_install(
 set(CMAKE_TOOLCHAIN_FILE "${CMAKE_BINARY_DIR}/conan_toolchain.cmake")
 include("${CMAKE_BINARY_DIR}/conan_toolchain.cmake")
 
-if(CMAKE_SYSTEM_NAME STREQUAL "Linux")
-	find_package(fmt REQUIRED)
-	find_package(range-v3 REQUIRED)
-	link_libraries(fmt::fmt-header-only range-v3::range-v3)
-endif()
-
 if(MSVC)
 	if (NOT ${CMAKE_CXX_FLAGS} STREQUAL "")
 		string(REGEX REPLACE "/W3" " " CMAKE_C_FLAGS ${CMAKE_CXX_FLAGS})
@@ -101,16 +95,6 @@ else()
 		-Wno-array-bounds
 		-fPIC		
 	)
-	if(${CMAKE_SYSTEM_NAME} STREQUAL Linux)
-		include_directories(BEFORE "${CMAKE_SOURCE_DIR}/src/home/compat")
-		add_compile_options(
-			"$<$<COMPILE_LANGUAGE:CXX>:-include>"
-			"$<$<COMPILE_LANGUAGE:CXX>:${CMAKE_SOURCE_DIR}/src/home/compat/StandardLibrary.h>"
-		)
-		if(CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
-			add_compile_options(-Wno-restrict)
-		endif()
-	endif()
 endif()
 
 set(QtModules Core Gui Widgets Xml Network Svg Concurrent)

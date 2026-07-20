@@ -34,9 +34,6 @@ def configure_sqlite3(recipe):
     recipe.options["sqlite3"].threadsafe = 0
     recipe.options["sqlite3"].enable_fts5 = True
 
-def configure_fmt(recipe):
-    recipe.options["fmt"].header_only = True
-
 class FLibrary(ConanFile):
     name = "FLibrary"
     settings = "os", "compiler", "build_type", "arch"
@@ -53,9 +50,6 @@ class FLibrary(ConanFile):
         self.requires("poppler/25.11.0")
         self.requires("libxml2/2.15.3")
         self.requires("zlib/1.3.1")
-        if self.settings.os == "Linux":
-            self.requires("fmt/11.2.0")
-            self.requires("range-v3/0.12.0")
 
     def configure(self):
         configure_boost(self)
@@ -67,9 +61,6 @@ class FLibrary(ConanFile):
         configure_poppler(self)
         configure_libxml2(self)
         configure_zlib(self)
-        if self.settings.os == "Linux":
-            configure_fmt(self)
-
     def generate(self):
         deps = CMakeDeps(self)
         deps.generate()

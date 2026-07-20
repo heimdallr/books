@@ -43,7 +43,9 @@ jobs:
           apt-get install --yes --no-install-recommends \
             ca-certificates \
             curl \
-            git
+            git \
+            gnupg \
+            software-properties-common
 
       - name: Check out sources and submodules
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -53,12 +55,13 @@ jobs:
 
       - name: Install system build dependencies
         run: |
+          add-apt-repository --yes ppa:ubuntu-toolchain-r/test
           apt-get update
           apt-get install --yes --no-install-recommends \
             cmake \
             dpkg-dev \
             file \
-            g++-12 \
+            g++-14 \
             libdbus-1-dev \
             libegl1-mesa-dev \
             libfontconfig1 \
@@ -121,8 +124,8 @@ jobs:
 
       - name: Prepare Conan profile
         run: |
-          cp .github/conan/gcc-12-linux-x86_64 \
-            src/ext/scripts/conan/profiles/gcc-12-linux-x86_64_Release
+          cp .github/conan/gcc-14-linux-x86_64 \
+            src/ext/scripts/conan/profiles/gcc-14-linux-x86_64_Release
 
       - name: Restore Conan packages
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
@@ -157,12 +160,12 @@ jobs:
 
       - name: Configure and build
         env:
-          CC: gcc-12
-          CXX: g++-12
+          CC: gcc-14
+          CXX: g++-14
         run: |
           cmake -S . -B build/linux -G Ninja \
             -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
-            -DCONAN_PROFILE=gcc-12-linux-x86_64 \
+            -DCONAN_PROFILE=gcc-14-linux-x86_64 \
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
             -D7zip_BIN_DIR="${P7ZIP_DIR}" \
             -DCPACK_GENERATOR=TXZ
@@ -170,8 +173,8 @@ jobs:
 
       - name: Package and smoke test
         env:
-          CC: gcc-12
-          CXX: g++-12
+          CC: gcc-14
+          CXX: g++-14
         run: |
           artifact_dir="${GITHUB_WORKSPACE}/build/artifacts/linux-x86_64"
           smoke_dir="${RUNNER_TEMP}/flibrary-linux-smoke"
@@ -183,7 +186,7 @@ jobs:
 
           cmake -S . -B build/linux -G Ninja \
             -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
-            -DCONAN_PROFILE=gcc-12-linux-x86_64 \
+            -DCONAN_PROFILE=gcc-14-linux-x86_64 \
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
             -D7zip_BIN_DIR="${P7ZIP_DIR}" \
             -DCPACK_GENERATOR=DEB
