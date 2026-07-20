@@ -1224,15 +1224,14 @@ private:
 		if (!columnInfoList.empty() && !m_booksHeaderView->isFirstSectionMovable())
 			columnInfoList.front().index = -1;
 
-		for (const auto& [logicalIndex, visualIndex] : std::views::zip(
-				 std::views::zip(columnInfoList, std::views::iota(0)) | std::views::filter([](const auto& item) {
-					 return !get<0>(item).hidden;
-				 }) | std::views::transform([](const auto& item) {
-					 return std::make_pair(std::get<0>(item).index, std::get<1>(item));
-				 }) | std::ranges::to<std::map<int, int>>()
-					 | std::views::values,
-				 std::views::iota(0)
-			 ))
+		std::map<int, int> visibleColumns;
+		for (const auto& [columnInfo, logicalIndex] : std::views::zip(columnInfoList, std::views::iota(0)))
+		{
+			if (!columnInfo.hidden)
+				visibleColumns.emplace(columnInfo.index, logicalIndex);
+		}
+
+		for (const auto& [logicalIndex, visualIndex] : std::views::zip(visibleColumns | std::views::values, std::views::iota(0)))
 			header->moveSection(header->visualIndex(logicalIndex), visualIndex);
 
 		m_ui.treeView->model()->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
