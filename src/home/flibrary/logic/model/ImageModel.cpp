@@ -434,17 +434,27 @@ private:
 		static constexpr const char* FOLDERS[] { Global::COVERS, Global::IMAGES };
 
 		const auto rootFolder = m_collectionProvider->GetActiveCollection().GetFolder();
-		for (size_t i = 0, sz = m_bookRoot->GetChildCount(); i < sz; ++i)
-		{
-			auto       book       = m_bookRoot->GetChild(i);
-			const auto folderName = QFileInfo(book->GetRawData(BookItem::Column::Folder)).completeBaseName();
-			for (const auto* folder : FOLDERS)
+
+		const auto enumerate = [&](const IDataItem& parent, const auto& r) -> void {
+			for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
 			{
-				const auto filePath = QString("%1/%2/%3.zip").arg(rootFolder, folder, folderName);
-				if (QFile::exists(filePath))
-					folders[filePath].emplace_back(book);
+				if (auto child = parent.GetChild(i); child->To<BookItem>())
+				{
+					const auto folderName = QFileInfo(child->GetRawData(BookItem::Column::Folder)).completeBaseName();
+					for (const auto* folder : FOLDERS)
+					{
+						const auto filePath = QString("%1/%2/%3.zip").arg(rootFolder, folder, folderName);
+						if (QFile::exists(filePath))
+							folders[filePath].emplace_back(child);
+					}
+				}
+				else
+				{
+					r(*child, r);
+				}
 			}
-		}
+		};
+		enumerate(*m_bookRoot, enumerate);
 
 		m_decoder = std::make_unique<Decoder>(m_imageSize, *this);
 		for (int n = 0; auto&& [filePath, books] : folders)

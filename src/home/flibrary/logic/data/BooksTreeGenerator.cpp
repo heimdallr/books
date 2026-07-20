@@ -165,7 +165,7 @@ public:
 
 	[[nodiscard]] IDataItem::Ptr GetRoot() const
 	{
-		return CreateGeneralList();
+		return rootCached;
 	}
 
 	[[nodiscard]] IDataItem::Ptr CreateReviewsList() const
