@@ -61,6 +61,7 @@ class FLibrary(ConanFile):
         configure_poppler(self)
         configure_libxml2(self)
         configure_zlib(self)
+
     def generate(self):
         deps = CMakeDeps(self)
         deps.generate()
