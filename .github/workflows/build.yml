@@ -199,6 +199,8 @@ jobs:
           cpack --config build/linux/CPackConfig.cmake \
             -G DEB -C "${BUILD_TYPE}" -B "${artifact_dir}"
 
+          rm -rf "${artifact_dir}/_CPack_Packages"
+
           archive="$(find "${artifact_dir}" -maxdepth 1 -name '*.tar.xz' -print -quit)"
           package="$(find "${artifact_dir}" -maxdepth 1 -name '*.deb' -print -quit)"
           test -n "${archive}"
@@ -380,6 +382,9 @@ jobs:
           if ($LASTEXITCODE -ne 0) {
             throw 'CPack failed.'
           }
+
+          Remove-Item $artifactDir\_CPack_Packages -Recurse -Force `
+            -ErrorAction SilentlyContinue
 
           $archive = Get-ChildItem $artifactDir -Filter '*.zip' |
             Select-Object -First 1
