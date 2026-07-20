@@ -420,12 +420,21 @@ bundle_dependency_target() {
   bundle_framework_target "${dep}" || bundle_dylib_target "${dep}"
 }
 
+macho_dependencies() {
+  local file="$1"
+  local install_id
+
+  install_id="$(otool -D -arch "${CURRENT_ARCH}" "${file}" 2>/dev/null | tail -n +2 | head -n 1)"
+  otool -L -arch "${CURRENT_ARCH}" "${file}" 2>/dev/null | tail -n +2 | \
+    awk -v install_id="${install_id}" '$1 != install_id { print $1 }'
+}
+
 list_macho_dependencies() {
   local file
 
   while IFS= read -r -d '' file; do
     is_macho "${file}" || continue
-    otool -L "${file}" 2>/dev/null | tail -n +2 | awk '{ print $1 }'
+    macho_dependencies "${file}"
   done < <(find "${APP_PATH}/Contents" -type f -print0)
 }
 
@@ -478,6 +487,9 @@ copy_missing_bundle_dependencies() {
 
     while IFS= read -r dep; do
       case "${dep}" in
+        "${APP_PATH}/Contents/Frameworks/"*)
+          continue
+          ;;
         @rpath/*.framework/Versions/*/*)
           framework="${dep#@rpath/}"
           framework="${framework%%/Versions/*}"
@@ -486,9 +498,8 @@ copy_missing_bundle_dependencies() {
           fi
           ;;
         /opt/homebrew/*.framework/Versions/*/*|/usr/local/*.framework/Versions/*/*|/Users/*.framework/Versions/*/*)
-          framework="${dep##*/lib/}"
-          framework="${framework%%/Versions/*}"
           src="${dep%/Versions/*}"
+          framework="$(basename "${src}")"
           copy_framework_if_missing "${framework}" "${src}" && copied=1
           ;;
         /opt/homebrew/*.dylib|/usr/local/*.dylib|/Users/*.dylib)
@@ -499,6 +510,8 @@ copy_missing_bundle_dependencies() {
 
     (( copied == 0 )) && break
   done
+
+  return 0
 }
 
 set_bundle_install_id() {
@@ -512,6 +525,10 @@ set_bundle_install_id() {
       install_name_tool -id "${target}" "${file}" 2>/dev/null || true
       ;;
     "${APP_PATH}/Contents/Frameworks/"*.dylib|"${APP_PATH}/Contents/Frameworks/7z.so")
+      target="@rpath/$(basename "${file}")"
+      install_name_tool -id "${target}" "${file}" 2>/dev/null || true
+      ;;
+    "${APP_PATH}/Contents/PlugIns/"*.dylib)
       target="@rpath/$(basename "${file}")"
       install_name_tool -id "${target}" "${file}" 2>/dev/null || true
       ;;
@@ -534,7 +551,7 @@ fix_bundle_install_names() {
           fi
           ;;
       esac
-    done < <(otool -L "${file}" 2>/dev/null | tail -n +2 | awk '{ print $1 }')
+    done < <(macho_dependencies "${file}")
   done < <(find "${APP_PATH}/Contents" -type f -print0)
 }
 
@@ -654,7 +671,12 @@ bundle_app() {
   while IFS= read -r libpath; do
     [[ -n "${libpath}" && -d "${libpath}" ]] && deploy_args+=("-libpath=${libpath}")
   done < <(collect_qt_libpaths "${QT_PREFIX}")
-  deploy_args+=(-always-overwrite -no-codesign -verbose=1)
+  deploy_args+=(-always-overwrite -verbose=1)
+  local macdeployqt_help
+  macdeployqt_help="$("${MACDEPLOYQT}" -help 2>&1 || true)"
+  if grep -q -- '-no-codesign' <<< "${macdeployqt_help}"; then
+    deploy_args+=(-no-codesign)
+  fi
   "${MACDEPLOYQT}" "${deploy_args[@]}"
 
   write_qt_conf "${resources}"
@@ -671,11 +693,13 @@ sign_and_verify_app() {
   codesign --verify --deep --strict --verbose=2 "${APP_PATH}"
 
   log "Checking local absolute paths (${CURRENT_ARCH})"
-  local file
+  local file local_dependencies
   while IFS= read -r -d '' file; do
     is_macho "${file}" || continue
-    if otool -L "${file}" 2>/dev/null | tail -n +2 | grep -Eq '(/opt/homebrew|/usr/local|/Users/)'; then
+    local_dependencies="$(macho_dependencies "${file}" | grep -E '(/opt/homebrew|/usr/local|/Users/)' || true)"
+    if [[ -n "${local_dependencies}" ]]; then
       printf 'local dependency found in %s\n' "${file}" >&2
+      printf '%s\n' "${local_dependencies}" >&2
       die "bundle still contains local absolute dependency paths"
     fi
     if read_rpaths "${file}" | grep -Eq '(/opt/homebrew|/usr/local|/Users/)'; then

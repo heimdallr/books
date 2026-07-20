@@ -775,7 +775,7 @@ private:
 				return OnStackedPageStateChanged(stackedWidget, {}, StackedPage::State::Finished);
 
 			const auto* widget = std::invoke(create, *m_uiFactory, stackedWidget);
-			connect(widget, &QObject::destroyed, widget, [this, action] {
+			connect(widget, &QObject::destroyed, widget, [action] {
 				action->setChecked(false);
 			});
 		};
