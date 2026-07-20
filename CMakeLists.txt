@@ -118,7 +118,7 @@ if(QT6)
 	list(APPEND QtModules HttpServer WebSockets)
 endif()
 if(${CMAKE_SYSTEM_NAME} STREQUAL Linux)
-	list(APPEND QtModules DBus WaylandClient)
+	list(APPEND QtModules DBus OpenGL WaylandClient)
 endif()
 
 set(QtPlugins
