@@ -1,5 +1,7 @@
 rem @echo off
 
+set QT_MAJOR_VERSION=5
+
 set start_time=%DATE% %TIME%
 
 call src\ext\scripts\batch\check_executable.bat cmake
@@ -9,12 +11,13 @@ set tee_name=tee.exe
 call src\ext\scripts\batch\check_executable.bat %tee_name%
 if NOT [%ERRORLEVEL%]==[0] goto end
 
+set BUILD_FOLDER=build
+if [%QT_MAJOR_VERSION%]==[5] set BUILD_FOLDER=build_Qt5
+
 if [%BUILD_TYPE%]==[] set BUILD_TYPE=Debug
-set BUILD_DIR=%~dp0build\%BUILD_TYPE%
+set BUILD_DIR=%~dp0%BUILD_FOLDER%\%BUILD_TYPE%
 mkdir %BUILD_DIR%
 del %BUILD_DIR%\*.sln
-
-set QT_MAJOR_VERSION=6
 
 if %QT_MAJOR_VERSION%==5 (
 	set QT_DIR=D:/sdk/Qt/Qt5/5.15.16/msvc2022_64_%BUILD_TYPE%/lib/cmake/Qt5

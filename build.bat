@@ -1,11 +1,14 @@
 @echo off
 
+set BUILD_FOLDER=build
+if [%QT_MAJOR_VERSION%]==[5] set BUILD_FOLDER=build_Qt5
+
 set BUILD_TYPE=Release
-set BUILD_DIR=%~dp0build\%BUILD_TYPE%
+set BUILD_DIR=%~dp0%BUILD_FOLDER%\%BUILD_TYPE%
 
 del /s /q %BUILD_DIR%\bin\*
 del /s /q %BUILD_DIR%\FLibrary\*
-del /s /q %~dp0build\installer\*
+del /s /q %~dp0%BUILD_FOLDER%\installer\*
 
 
 call %~dp0configure.bat %*
@@ -28,14 +31,14 @@ rem echo testing
 rem ctest --test-dir %BUILD_DIR% -C Release
 rem if %errorlevel% NEQ 0 goto Error
 
-mkdir %~dp0build\installer
+mkdir %~dp0%BUILD_FOLDER%\installer
 
 echo installer creating
 cd %BUILD_DIR%
 cpack -G WIX -C Release
 if %errorlevel% NEQ 0 goto Error
 cd %originalDir%
-move  %~dp0build\%BUILD_TYPE%\*.msi %~dp0build\installer\
+move  %~dp0%BUILD_FOLDER%\%BUILD_TYPE%\*.msi %~dp0%BUILD_FOLDER%\installer\
 
 ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% /DMyAppUid=%PRODUCT_GUID% /DMyOS=%OS% %~dp0src\home\script\install\flibrary.iss
 if %errorlevel% NEQ 0 goto Error
@@ -44,7 +47,7 @@ echo portable creating
 echo portable > %BUILD_DIR%/FLibrary/installer_mode
 
 copy /Y %~dp0src\home\script\install\ProtonStart.sh %BUILD_DIR%\FLibrary\ProtonStart.sh
-%SEVEN_ZIP_PATH%7z a %~dp0build\installer\FLibrary-%PRODUCT_VERSION%-portable-%OS%.7z %BUILD_DIR%\FLibrary
+%SEVEN_ZIP_PATH%7z a %~dp0%BUILD_FOLDER%\installer\FLibrary-%PRODUCT_VERSION%-portable-%OS%.7z %BUILD_DIR%\FLibrary
 
 goto End
 
