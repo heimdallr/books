@@ -421,14 +421,6 @@ QStringView QNext(QString::const_iterator& beg, const QString::const_iterator en
 	return QNextRaw(beg, end, separator);
 }
 
-struct GenreItem
-{
-	using Ptr = std::shared_ptr<GenreItem>;
-	size_t            index;
-	std::vector<Ptr>  children;
-	std::set<QString> aliases;
-};
-
 auto LoadGenres(const QString& genresIniFileName)
 {
 	Genres     genres;
