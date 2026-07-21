@@ -348,8 +348,7 @@ public:
 		if (lineEditBookTitleToSearchNewWidth < 0)
 			return;
 
-		m_ui.lineEditBookTitleToSearch->setMinimumWidth(lineEditBookTitleToSearchNewWidth);
-		m_ui.lineEditBookTitleToSearch->setMaximumWidth(lineEditBookTitleToSearchNewWidth);
+		m_ui.lineEditBookTitleToSearch->setFixedWidth(lineEditBookTitleToSearchNewWidth);
 		m_searchBooksByTitleLayout->invalidate();
 	}
 

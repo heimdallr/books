@@ -346,7 +346,7 @@ public:
 private: // QObject
 	bool eventFilter(QObject* /*watched*/, QEvent* event) override
 	{
-		if (event->type() == QEvent::Resize)
+		if (IsOneOf(event->type(), QEvent::Resize, QEvent::Show))
 			emit m_view.ValueGeometryChanged(Util::GetGlobalGeometry(m_widget));
 
 		return false;

@@ -6,9 +6,12 @@
 #include <QStyledItemDelegate>
 #include <QWidgetAction>
 
-#include "interface/localization.h"
+#include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 
+#include "gutil/util.h"
+#include "util/ObjectsConnector.h"
 #include "utilgui/GeometryRestorable.h"
 
 #include "log.h"
@@ -19,7 +22,7 @@ using namespace HomeCompa::Flibrary;
 namespace
 {
 
-constexpr auto CONTEXT = "ImageViewer";
+constexpr auto CONTEXT       = "ImageViewer";
 constexpr auto SELECT_FOLDER = QT_TRANSLATE_NOOP("ImageViewer", "Select images folder");
 
 constexpr auto ICON_SIZE = "ui/ImageViewer/IconSize";
@@ -66,7 +69,7 @@ class ImageViewer::Impl final
 
 public:
 	Impl(
-		QWidget&                                   self,
+		ImageViewer&                               self,
 		std::shared_ptr<const IUiFactory>          uiFactory,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IImageViewerController>    imageViewerController,
@@ -97,6 +100,7 @@ public:
 		m_ui.images->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 
 		m_ui.imageScrollArea->installEventFilter(this);
+		m_ui.filter->installEventFilter(this);
 		m_ui.filter->addAction(m_ui.actionFilter, QLineEdit::LeadingPosition);
 
 		m_itemViewToolTipper->SetShowForceColumns({ 0 });
@@ -131,8 +135,14 @@ public:
 private: // QObject
 	bool eventFilter(QObject* obj, QEvent* event) override
 	{
-		if (obj == m_ui.imageScrollArea && event->type() == QEvent::Type::Resize)
-			OnImageResized();
+		if (event->type() == QEvent::Type::Resize)
+		{
+			if (obj == m_ui.imageScrollArea)
+				OnImageResized();
+
+			if (obj == m_ui.filter)
+				emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.filter));
+		}
 
 		return QObject::eventFilter(obj, event);
 	}
@@ -226,7 +236,7 @@ private:
 
 private:
 	Ui::ImageViewer m_ui {};
-	QWidget&        m_self;
+	ImageViewer&    m_self;
 
 	std::shared_ptr<const IUiFactory> m_uiFactory;
 
@@ -252,6 +262,7 @@ ImageViewer::ImageViewer(
 	: StackedPage(*uiFactory, uiFactory->GetParentWidget(parent))
 	, m_impl(*this, std::move(uiFactory), std::move(settings), std::move(imageViewerController), std::move(itemViewToolTipper), std::move(scrollBarController), std::move(progressBar))
 {
+	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SIGNAL(ValueGeometryChanged(const QRect&)));
 }
 
 ImageViewer::~ImageViewer() = default;

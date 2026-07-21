@@ -19,7 +19,11 @@ namespace HomeCompa::Flibrary
 
 class ImageViewer final : public StackedPage
 {
+	Q_OBJECT
 	NON_COPY_MOVABLE(ImageViewer)
+
+signals:
+	void ValueGeometryChanged(const QRect& geometry) const;
 
 public:
 	ImageViewer(
