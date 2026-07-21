@@ -848,7 +848,7 @@ private:
 			std::stack<QModelIndex> stack { { QModelIndex {} } };
 			while (!stack.empty())
 			{
-				const auto parent = stack.top();
+				const auto parent = std::move(stack.top());
 				stack.pop();
 
 				if ((options & hasCollapsedExpanded) == hasCollapsedExpanded)

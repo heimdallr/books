@@ -284,7 +284,7 @@ private: // Decoder::IObserver
 	void OnDecodeThumbnailFinished(const int row, QPixmap pixmap) override
 	{
 		m_forwarder.Forward([this, row, pixmap = std::move(pixmap)]() mutable {
-			auto& item       = m_items[row];
+			auto& item       = m_items[static_cast<size_t>(row)];
 			item.pixmap      = std::move(pixmap);
 			const auto index = this->index(row, 0);
 			emit       dataChanged(index, index, { Qt::DecorationRole });
@@ -295,7 +295,7 @@ private: // Decoder::IObserver
 	{
 		m_forwarder.Forward([this, row, pixmap = std::move(pixmap)]() mutable {
 			m_imageRequested         = std::move(pixmap);
-			m_imageRequestedFileName = m_items[row].fileName;
+			m_imageRequestedFileName = m_items[static_cast<size_t>(row)].fileName;
 			const auto index         = this->index(row, 0);
 			emit       dataChanged(index, index, { ImageModelRole::Image });
 		});
@@ -305,10 +305,10 @@ private: // Decoder::IObserver
 	{
 		if (m_saveRunning)
 			m_forwarder.Forward([this, row, pixmap = std::move(pixmap)]() mutable {
-				m_items[row].fullPixmap = std::move(pixmap);
-				const auto index        = this->index(row, 0);
+				m_items[static_cast<size_t>(row)].fullPixmap = std::move(pixmap);
+				const auto index                             = this->index(row, 0);
 				emit       dataChanged(index, index, { ImageModelRole::Save });
-				m_items[row].fullPixmap = {};
+				m_items[static_cast<size_t>(row)].fullPixmap = {};
 			});
 	}
 
@@ -392,11 +392,11 @@ private:
 				return Prepare(index.row()), true;
 
 			case ImageModelRole::Image:
-				return m_extractors[item.zipId]->RequestImage(index.row(), item.fileName), true;
+				return m_extractors[static_cast<size_t>(item.zipId)]->RequestImage(index.row(), item.fileName), true;
 
 			case ImageModelRole::Save:
 				m_saveRunning = true;
-				return m_extractors[item.zipId]->SaveImage(index.row(), item.fileName), true;
+				return m_extractors[static_cast<size_t>(item.zipId)]->SaveImage(index.row(), item.fileName), true;
 
 			case ImageModelRole::SaveStop:
 				return (m_saveRunning = false), true;
@@ -460,9 +460,9 @@ private:
 
 	void Prepare(const int row)
 	{
-		auto& item  = m_items[row];
+		auto& item  = m_items[static_cast<size_t>(row)];
 		item.pixmap = m_imagePlaceholderScaled;
-		m_extractors[item.zipId]->ExtractImage(row, item.fileName);
+		m_extractors[static_cast<size_t>(item.zipId)]->ExtractImage(row, item.fileName);
 	}
 
 private:
