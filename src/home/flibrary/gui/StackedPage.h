@@ -8,6 +8,7 @@ class QStackedWidget;
 
 namespace HomeCompa::Flibrary
 {
+
 class IUiFactory;
 
 class StackedPage
@@ -40,7 +41,7 @@ public:
 	void StateChanged(int state);
 
 public:
-	QAction* closeAction;
+	QAction*        closeAction;
 	QStackedWidget* stackedWidget;
 };
 

@@ -17,7 +17,7 @@ public:
 
 private:
 	class Impl;
-	PropagateConstPtr<Impl>   m_impl;
+	PropagateConstPtr<Impl> m_impl;
 };
 
 }

@@ -376,10 +376,10 @@ private:
 };
 
 UpdateChecker::UpdateChecker(
-	const std::shared_ptr<const ILogicFactory>&        logicFactory,
-	std::shared_ptr<const Util::IUiFactory>            uiFactory,
-	std::shared_ptr<ISettings>                         settings,
-	std::shared_ptr<IMainProgressController> progressController
+	const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const Util::IUiFactory>     uiFactory,
+	std::shared_ptr<ISettings>                  settings,
+	std::shared_ptr<IMainProgressController>    progressController
 )
 	: m_impl(std::make_shared<Impl>(logicFactory, std::move(uiFactory), std::move(settings), std::move(progressController)))
 {

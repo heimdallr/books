@@ -184,18 +184,18 @@ class AnnotationWidget::Impl final
 
 public:
 	Impl(
-		AnnotationWidget&                                  self,
-		const std::shared_ptr<const IModelProvider>&       modelProvider,
-		const std::shared_ptr<const ILogicFactory>&        logicFactory,
-		const std::shared_ptr<ICollectionController>&      collectionController,
-		std::shared_ptr<const IBookInteractor>             bookInteractor,
-		std::shared_ptr<ISettings>                         settings,
-		std::shared_ptr<IAnnotationController>             annotationController,
-		std::shared_ptr<IUiFactory>                        uiFactory,
-		std::shared_ptr<IMainProgressController> progressController,
-		std::shared_ptr<Util::ItemViewToolTipper>          itemViewToolTipperContent,
-		std::shared_ptr<Util::ScrollBarController>         scrollBarControllerContent,
-		std::shared_ptr<Util::ScrollBarController>         scrollBarControllerAnnotation
+		AnnotationWidget&                             self,
+		const std::shared_ptr<const IModelProvider>&  modelProvider,
+		const std::shared_ptr<const ILogicFactory>&   logicFactory,
+		const std::shared_ptr<ICollectionController>& collectionController,
+		std::shared_ptr<const IBookInteractor>        bookInteractor,
+		std::shared_ptr<ISettings>                    settings,
+		std::shared_ptr<IAnnotationController>        annotationController,
+		std::shared_ptr<IUiFactory>                   uiFactory,
+		std::shared_ptr<IMainProgressController>      progressController,
+		std::shared_ptr<Util::ItemViewToolTipper>     itemViewToolTipperContent,
+		std::shared_ptr<Util::ScrollBarController>    scrollBarControllerContent,
+		std::shared_ptr<Util::ScrollBarController>    scrollBarControllerAnnotation
 	)
 		: m_self { self }
 		, m_bookInteractor { std::move(bookInteractor) }
@@ -678,18 +678,18 @@ private:
 	}
 
 private:
-	AnnotationWidget&                                                     m_self;
-	std::shared_ptr<const IBookInteractor>                                m_bookInteractor;
-	PropagateConstPtr<ISettings, std::shared_ptr>                         m_settings;
-	PropagateConstPtr<IAnnotationController, std::shared_ptr>             m_annotationController;
-	std::weak_ptr<const IModelProvider>                                   m_modelProvider;
-	std::weak_ptr<const ILogicFactory>                                    m_logicFactory;
-	PropagateConstPtr<IUiFactory, std::shared_ptr>                        m_uiFactory;
-	PropagateConstPtr<IMainProgressController, std::shared_ptr> m_progressController;
-	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>          m_itemViewToolTipperContent;
-	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr>         m_scrollBarControllerContent;
-	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr>         m_scrollBarControllerAnnotation;
-	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>                m_contentModel { std::shared_ptr<QAbstractItemModel> {} };
+	AnnotationWidget&                                             m_self;
+	std::shared_ptr<const IBookInteractor>                        m_bookInteractor;
+	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
+	PropagateConstPtr<IAnnotationController, std::shared_ptr>     m_annotationController;
+	std::weak_ptr<const IModelProvider>                           m_modelProvider;
+	std::weak_ptr<const ILogicFactory>                            m_logicFactory;
+	PropagateConstPtr<IUiFactory, std::shared_ptr>                m_uiFactory;
+	PropagateConstPtr<IMainProgressController, std::shared_ptr>   m_progressController;
+	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipperContent;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarControllerContent;
+	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarControllerAnnotation;
+	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>        m_contentModel { std::shared_ptr<QAbstractItemModel> {} };
 
 	Ui::AnnotationWidget                            m_ui {};
 	IAnnotationController::IDataProvider::Covers    m_covers;
@@ -712,18 +712,18 @@ private:
 };
 
 AnnotationWidget::AnnotationWidget(
-	const std::shared_ptr<const IModelProvider>&       modelProvider,
-	const std::shared_ptr<const ILogicFactory>&        logicFactory,
-	const std::shared_ptr<ICollectionController>&      collectionController,
-	std::shared_ptr<const IBookInteractor>             bookInteractor,
-	std::shared_ptr<ISettings>                         settings,
-	std::shared_ptr<IAnnotationController>             annotationController,
-	std::shared_ptr<IUiFactory>                        uiFactory,
-	std::shared_ptr<IMainProgressController> progressController,
-	std::shared_ptr<Util::ItemViewToolTipper>          itemViewToolTipperContent,
-	std::shared_ptr<Util::ScrollBarController>         scrollBarControllerContent,
-	std::shared_ptr<Util::ScrollBarController>         scrollBarControllerAnnotation,
-	QWidget*                                           parent
+	const std::shared_ptr<const IModelProvider>&  modelProvider,
+	const std::shared_ptr<const ILogicFactory>&   logicFactory,
+	const std::shared_ptr<ICollectionController>& collectionController,
+	std::shared_ptr<const IBookInteractor>        bookInteractor,
+	std::shared_ptr<ISettings>                    settings,
+	std::shared_ptr<IAnnotationController>        annotationController,
+	std::shared_ptr<IUiFactory>                   uiFactory,
+	std::shared_ptr<IMainProgressController>      progressController,
+	std::shared_ptr<Util::ItemViewToolTipper>     itemViewToolTipperContent,
+	std::shared_ptr<Util::ScrollBarController>    scrollBarControllerContent,
+	std::shared_ptr<Util::ScrollBarController>    scrollBarControllerAnnotation,
+	QWidget*                                      parent
 )
 	: QWidget(parent)
 	, m_impl(

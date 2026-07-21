@@ -35,15 +35,15 @@ public:
 
 public:
 	BooksContextMenuProvider(
-		const std::shared_ptr<const ILogicFactory>&        logicFactory,
-		std::shared_ptr<const ISettings>                   settings,
-		std::shared_ptr<const ICollectionProvider>         collectionProvider,
-		std::shared_ptr<const IReaderController>           readerController,
-		std::shared_ptr<const IDatabaseUser>               databaseUser,
-		std::shared_ptr<const IBookInfoProvider>           dataProvider,
-		std::shared_ptr<const IUiFactory>                  uiFactory,
-		std::shared_ptr<IScriptController>                 scriptController,
-		std::shared_ptr<IMainProgressController> progressController
+		const std::shared_ptr<const ILogicFactory>& logicFactory,
+		std::shared_ptr<const ISettings>            settings,
+		std::shared_ptr<const ICollectionProvider>  collectionProvider,
+		std::shared_ptr<const IReaderController>    readerController,
+		std::shared_ptr<const IDatabaseUser>        databaseUser,
+		std::shared_ptr<const IBookInfoProvider>    dataProvider,
+		std::shared_ptr<const IUiFactory>           uiFactory,
+		std::shared_ptr<IScriptController>          scriptController,
+		std::shared_ptr<IMainProgressController>    progressController
 	);
 	~BooksContextMenuProvider();
 

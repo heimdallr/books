@@ -83,8 +83,8 @@ constexpr auto USER_RATE_QUERY = "select coalesce(bu.UserRate, -1) from Books b 
 
 struct SendSettings
 {
-	bool    tempFolder { false };
-	bool    createFillTemplateConverterParameter { false };
+	bool tempFolder { false };
+	bool createFillTemplateConverterParameter { false };
 };
 
 class IContextMenuHandler // NOLINT(cppcoreguidelines-special-member-functions)
@@ -840,15 +840,15 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr& parent, co
 }
 
 BooksContextMenuProvider::BooksContextMenuProvider(
-	const std::shared_ptr<const ILogicFactory>&        logicFactory,
-	std::shared_ptr<const ISettings>                   settings,
-	std::shared_ptr<const ICollectionProvider>         collectionProvider,
-	std::shared_ptr<const IReaderController>           readerController,
-	std::shared_ptr<const IDatabaseUser>               databaseUser,
-	std::shared_ptr<const IBookInfoProvider>           dataProvider,
-	std::shared_ptr<const IUiFactory>                  uiFactory,
-	std::shared_ptr<IScriptController>                 scriptController,
-	std::shared_ptr<IMainProgressController> progressController
+	const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const ISettings>            settings,
+	std::shared_ptr<const ICollectionProvider>  collectionProvider,
+	std::shared_ptr<const IReaderController>    readerController,
+	std::shared_ptr<const IDatabaseUser>        databaseUser,
+	std::shared_ptr<const IBookInfoProvider>    dataProvider,
+	std::shared_ptr<const IUiFactory>           uiFactory,
+	std::shared_ptr<IScriptController>          scriptController,
+	std::shared_ptr<IMainProgressController>    progressController
 )
 	: m_impl(
 		  logicFactory,
