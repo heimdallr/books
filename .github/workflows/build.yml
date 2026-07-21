@@ -228,8 +228,22 @@ jobs:
           retention-days: 14
 
   windows:
-    name: Windows x86_64
+    name: Windows ${{ matrix.ver }} x86_64
     if: ${{ inputs.windows || github.event_name == 'push' }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - ver: 7
+            qt_version: 5.15.2
+            qt_major_version: 5
+            qt_additional:
+            qt_build: win64_msvc2019_64
+          - ver: 10
+            qt_version: 6.10.3
+            qt_major_version: 6
+            qt_additional: -m qthttpserver qtimageformats qtwebsockets
+            qt_build: win64_msvc2022_64
     runs-on: windows-2022
     timeout-minutes: 240
     env:
@@ -258,7 +272,7 @@ jobs:
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
         with:
           path: ${{ env.QT_ROOT }}
-          key: qt-windows-x86_64-${{ env.QT_VERSION }}-http-image-websockets
+          key: qt-windows-x86_64-${{ matrix.qt_version }}-http-image-websockets
 
       - name: Install Qt
         if: steps.qt-cache.outputs.cache-hit != 'true'
@@ -273,10 +287,10 @@ jobs:
           foreach ($mirror in $mirrors) {
             Remove-Item -Recurse -Force $env:QT_ROOT -ErrorAction SilentlyContinue
             Write-Host "Installing Qt from $mirror"
-            & aqt install-qt windows desktop $env:QT_VERSION `
-              win64_msvc2022_64 -O $env:QT_ROOT `
+            & aqt install-qt windows desktop ${{ matrix.qt_version }} `
+              ${{ matrix.qt_build }} -O $env:QT_ROOT `
               --base $mirror --timeout 30 `
-              -m qthttpserver qtimageformats qtwebsockets
+              ${{ matrix.qt_aditional }}
             if ($LASTEXITCODE -eq 0) {
               $installed = $true
               break
@@ -289,8 +303,8 @@ jobs:
       - name: Locate Qt
         shell: pwsh
         run: |
-          $config = Get-ChildItem $env:QT_ROOT -Filter Qt6Config.cmake -Recurse |
-            Where-Object { $_.FullName -match '[\\/]lib[\\/]cmake[\\/]Qt6[\\/]' } |
+          $config = Get-ChildItem $env:QT_ROOT -Filter Qt${{ matrix.qt_major_version }}Config.cmake -Recurse |
+            Where-Object { $_.FullName -match '[\\/]lib[\\/]cmake[\\/]Qt${{ matrix.qt_major_version }}[\\/]' } |
             Select-Object -First 1
           if (-not $config) {
             throw 'Qt6Config.cmake was not found.'
@@ -364,7 +378,8 @@ jobs:
             "-DCMAKE_C_COMPILER=$compiler" `
             "-DCMAKE_CXX_COMPILER=$compiler" `
             -DCONAN_PROFILE=msvc2022_x86_64 `
-            "-DQt6_DIR=$env:QT_PREFIX/lib/cmake/Qt6" `
+            -DQT_MAJOR_VERSION=${{ matrix.qt_major_version }} `
+            "-DQt${{ matrix.qt_major_version }}_DIR=$env:QT_PREFIX/lib/cmake/Qt${{ matrix.qt_major_version }}" `
             "-D7zip_BIN_DIR=C:/Program Files/7-Zip" `
             -DCPACK_GENERATOR=ZIP
           cmake --build build/windows `
@@ -373,7 +388,7 @@ jobs:
       - name: Package and smoke test
         shell: pwsh
         run: |
-          $artifactDir = "$env:GITHUB_WORKSPACE\build\artifacts\windows-x86_64"
+          $artifactDir = "$env:GITHUB_WORKSPACE\build\artifacts\windows-${{ matrix.ver }}-x86_64"
           $smokeDir = "$env:RUNNER_TEMP\flibrary-windows-smoke"
           Remove-Item $artifactDir, $smokeDir -Recurse -Force `
             -ErrorAction SilentlyContinue
@@ -414,8 +429,8 @@ jobs:
       - name: Upload Windows package
         uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
         with:
-          name: FLibrary-windows-x86_64
-          path: build/artifacts/windows-x86_64
+          name: FLibrary-windows-${{ matrix.ver }}-x86_64
+          path: build/artifacts/windows-${{ matrix.ver }}-x86_64
           compression-level: 0
           if-no-files-found: error
           retention-days: 14

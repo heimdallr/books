@@ -1,6 +1,6 @@
 rem @echo off
 
-set QT_MAJOR_VERSION=5
+set QT_MAJOR_VERSION=6
 
 set start_time=%DATE% %TIME%
 
