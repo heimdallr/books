@@ -16,8 +16,11 @@ on:
       windows:
         description: Build the optional Windows x86_64 package
         required: true
-        default: false
+        default: true
         type: boolean
+
+  push:
+    branches: [ develop, master ]
 
 permissions:
   contents: read
@@ -35,7 +38,7 @@ env:
 jobs:
   linux:
     name: Linux x86_64 (Ubuntu 22.04 container)
-    if: ${{ inputs.linux }}
+    if: ${{ inputs.linux || github.event_name == 'push' }}
     runs-on: ubuntu-latest
     container:
       image: ubuntu:22.04
@@ -226,7 +229,7 @@ jobs:
 
   windows:
     name: Windows x86_64
-    if: ${{ inputs.windows }}
+    if: ${{ inputs.windows || github.event_name == 'push' }}
     runs-on: windows-2022
     timeout-minutes: 240
     env:
@@ -419,7 +422,7 @@ jobs:
 
   macos:
     name: macOS ${{ matrix.arch }}
-    if: ${{ inputs.macos }}
+    if: ${{ inputs.macos || github.event_name == 'push' }}
     strategy:
       fail-fast: false
       matrix:
