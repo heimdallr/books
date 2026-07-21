@@ -431,11 +431,8 @@ private:
 
 		std::unordered_map<QString, IDataItem::Items> folders;
 
-		static constexpr const char* FOLDERS[] { Global::COVERS, Global::IMAGES };
-
-		const auto rootFolder = m_collectionProvider->GetActiveCollection().GetFolder();
-
-		const auto enumerate = [&](const IDataItem& parent, const auto& r) -> void {
+		const auto enumerate = [&folders, rootFolder = m_collectionProvider->GetActiveCollection().GetFolder()](const IDataItem& parent, const auto& r) -> void {
+			static constexpr const char* FOLDERS[] { Global::COVERS, Global::IMAGES };
 			for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
 			{
 				if (auto child = parent.GetChild(i); child->To<BookItem>())
