@@ -1277,32 +1277,39 @@ private:
 
 	std::shared_ptr<QMenu> GetHeaderContextMenu()
 	{
-		auto        menu   = std::make_shared<QMenu>();
 		auto*       header = m_ui.treeView->header();
 		const auto* model  = header->model();
-		for (int i = 1, sz = header->count(); i < sz; ++i)
-		{
-			const auto index = header->logicalIndex(i);
-			if (m_hiddenColumns.contains(model->headerData(index, Qt::Horizontal, Role::HeaderName).toString(), Qt::CaseInsensitive))
-				continue;
 
-			auto* action = menu->addAction(model->headerData(index, Qt::Horizontal, Role::HeaderTitle).toString(), &m_self, [this_ = this, header, index](const bool checked) {
-				const QSignalBlocker signalBlocker(header);
-				if (!checked)
-					header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
-				header->setSectionHidden(index, !checked);
-				if (checked && header->sectionSize(index) < header->minimumSectionSize())
-					header->resizeSection(index, header->minimumSectionSize());
-				if (checked)
-					header->resizeSection(0, header->sectionSize(0) - header->sectionSize(index));
+		const auto values = std::views::iota(1, header->count() - 1) | std::views::filter([&](const int n) {
+								const auto index = header->logicalIndex(n);
+								const auto name  = model->headerData(index, Qt::Horizontal, Role::HeaderName).toString();
+								return !m_hiddenColumns.contains(name, Qt::CaseInsensitive);
+							})
+		                  | std::views::transform([&](const int n) {
+								const auto index = header->logicalIndex(n);
+								auto       name  = model->headerData(index, Qt::Horizontal, Role::HeaderTitle).toString();
+								return std::make_pair(std::move(name), !header->isSectionHidden(index));
+							})
+		                  | std::ranges::to<std::vector>();
 
-				this_->SaveHeaderLayout();
-				this_->OnHeaderSectionsVisibleChanged();
-			});
-			action->setCheckable(true);
-			action->setChecked(!header->isSectionHidden(index));
-		}
-		return menu;
+		auto* menu = m_uiFactory->CreateCheckableMenu(values, [this, header](const int row, const bool checked) {
+			const auto           index = header->logicalIndex(row + 1);
+			const QSignalBlocker signalBlocker(header);
+			if (!checked)
+				header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
+			header->setSectionHidden(index, !checked);
+			if (checked && header->sectionSize(index) < header->minimumSectionSize())
+				header->resizeSection(index, header->minimumSectionSize());
+			if (checked)
+				header->resizeSection(0, header->sectionSize(0) - header->sectionSize(index));
+
+			SaveHeaderLayout();
+			OnHeaderSectionsVisibleChanged();
+
+			m_ui.treeView->viewport()->update();
+		});
+
+		return std::shared_ptr<QMenu> { menu };
 	}
 
 	std::shared_ptr<QMenu> GetFilterContextMenu(const QPoint& pos)

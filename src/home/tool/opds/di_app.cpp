@@ -171,6 +171,11 @@ private: // IUiFactory
 		return nullptr;
 	}
 
+	QMenu* CreateCheckableMenu(const std::vector<std::pair<QString, bool>>&, std::function<void(int, bool)>) const override
+	{
+		return nullptr;
+	}
+
 	void CreateAuthorReview(long long /*id*/) const override
 	{
 	}
