@@ -35,6 +35,7 @@
 #include "filters/FastFilterWidget.h"
 #include "filters/RangeFilterWidget.h"
 #include "logic/data/DataItem.h"
+#include "utilgui/CheckableMenu.h"
 #include "utilgui/GeometryRestorable.h"
 #include "version/AppVersion.h"
 #include "widgets/ClickableLabel.h"
@@ -252,6 +253,11 @@ QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, cons
 QWidget* UiFactory::CreateChangeSizeWidget(const int current, const int minimum, const int maximum, IChangeSizeWidgetObserver* observer) const
 {
 	return new ChangeSizeDialog(current, minimum, maximum, observer);
+}
+
+QMenu* UiFactory::CreateCheckableMenu(const std::vector<std::pair<QString, bool>>& values, std::function<void(int, bool)> callback) const
+{
+	return Util::CreateCheckableMenu(values, std::move(callback), GetParentWidget(nullptr));
 }
 
 QWidget* UiFactory::CreateCollectionCleaner(QStackedWidget* stackedWidget) const

@@ -43,6 +43,7 @@ private: // IUiFactory
 	std::shared_ptr<QMainWindow>          CreateQueryWindow() const override;
 	QWidget*                              CreateFastFilterWidget(const QAbstractItemModel& model, int column, std::function<void(bool, QVariantList)> callback) const override;
 	QWidget*                              CreateChangeSizeWidget(int current, int minimum, int maximum, IChangeSizeWidgetObserver* observer) const override;
+	QMenu*                                CreateCheckableMenu(const std::vector<std::pair<QString, bool>>& values, std::function<void(int, bool)> callback) const override;
 	QWidget*                              CreateCollectionCleaner(QStackedWidget* stackedWidget) const override;
 	QWidget*                              CreateImageViewer(QStackedWidget* stackedWidget) const override;
 	void                                  CreateAuthorReview(long long id) const override;
