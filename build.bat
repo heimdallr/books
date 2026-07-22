@@ -40,7 +40,7 @@ if %errorlevel% NEQ 0 goto Error
 cd %originalDir%
 move  %~dp0%BUILD_FOLDER%\%BUILD_TYPE%\*.msi %~dp0%BUILD_FOLDER%\installer\
 
-ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% /DMyAppUid=%PRODUCT_GUID% /DMyOS=%OS% %~dp0src\home\script\install\flibrary.iss
+ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% /DMyAppUid=%PRODUCT_GUID% /DMyOS=%OS% /DMyBuildFolder=%BUILD_FOLDER% %~dp0src\home\script\install\flibrary.iss
 if %errorlevel% NEQ 0 goto Error
 
 echo portable creating
