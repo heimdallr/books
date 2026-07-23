@@ -14,6 +14,8 @@
 #include "util/ObjectsConnector.h"
 #include "utilgui/GeometryRestorable.h"
 
+#include "QtTypes.h"
+
 #include "log.h"
 
 using namespace HomeCompa;
@@ -22,10 +24,13 @@ using namespace HomeCompa::Flibrary;
 namespace
 {
 
-constexpr auto CONTEXT       = "ImageViewer";
-constexpr auto SELECT_FOLDER = QT_TRANSLATE_NOOP("ImageViewer", "Select images folder");
+constexpr auto CONTEXT                       = "ImageViewer";
+constexpr auto SELECT_FOLDER                 = QT_TRANSLATE_NOOP("ImageViewer", "Select images folder");
+constexpr auto SELECT_IMAGE_BACKGROUND_COLOR = QT_TRANSLATE_NOOP("ImageViewer", "Specify the background color of the image");
 
-constexpr auto ICON_SIZE = "ui/ImageViewer/IconSize";
+constexpr auto ICON_SIZE                       = "ui/ImageViewer/IconSize";
+constexpr auto IMAGE_BACKGROUND_COLOR          = "ui/ImageViewer/ImageBackgroundColor";
+constexpr auto IMAGE_BACKGROUND_COLOR_TEMPLATE = "background-color: %1;";
 
 TR_DEF
 
@@ -112,9 +117,11 @@ public:
 		connect(m_ui.images->selectionModel(), &QItemSelectionModel::currentChanged, this, &Impl::OnCurrentImageChanged);
 		connect(m_ui.images->selectionModel(), &QItemSelectionModel::selectionChanged, this, &Impl::OnImageSelectionChanged);
 		connect(m_ui.images, &QAbstractItemView::iconSizeChanged, this, &Impl::OnIconSizeChanged);
-		connect(m_ui.images, &QWidget::customContextMenuRequested, this, &Impl::OnContextMenuRequested);
+		connect(m_ui.images, &QWidget::customContextMenuRequested, this, &Impl::OnImagesContextMenuRequested);
+		connect(m_ui.image, &QWidget::customContextMenuRequested, this, &Impl::OnImageContextMenuRequested);
 		connect(m_ui.actionSave, &QAction::triggered, this, &Impl::OnActionSaveTriggered);
 		connect(m_ui.actionChangeThumbnailSize, &QAction::triggered, this, &Impl::OnActionChangeThumbnailSizeTriggered);
+		connect(m_ui.actionSetBackgroundColor, &QAction::triggered, this, &Impl::OnActionSetBackgroundColorTriggered);
 
 		const auto iconSize = m_settings->Get(ICON_SIZE, 256);
 		m_ui.images->setIconSize(QSize(iconSize, iconSize));
@@ -150,6 +157,15 @@ private: // QObject
 private: // IImageViewerController::IObserver
 	void OnImageReceived(QPixmap pixmap) override
 	{
+		const QString styleSheet = [&] {
+			if (pixmap.isNull())
+				return QString {};
+			if (const auto colorName = m_settings->Get(IMAGE_BACKGROUND_COLOR, QString {}); QColor::IS_VALID_COLOR_NAME(colorName))
+				return QString(IMAGE_BACKGROUND_COLOR_TEMPLATE).arg(colorName);
+			return QString {};
+		}();
+		m_ui.image->setStyleSheet(styleSheet);
+
 		m_currentImage = std::move(pixmap);
 		OnImageResized();
 	}
@@ -203,7 +219,7 @@ private:
 		m_imageViewerController->Filter(filter);
 	}
 
-	void OnContextMenuRequested(const QPoint&)
+	void OnImagesContextMenuRequested(const QPoint&)
 	{
 		if (QGuiApplication::keyboardModifiers() & Qt::ControlModifier)
 			return OnActionChangeThumbnailSizeTriggered();
@@ -212,6 +228,14 @@ private:
 		menu.setFont(m_self.font());
 		menu.addAction(m_ui.actionSave);
 		menu.addAction(m_ui.actionChangeThumbnailSize);
+		menu.exec(QCursor::pos());
+	}
+
+	void OnImageContextMenuRequested(const QPoint&) const
+	{
+		QMenu menu(&m_self);
+		menu.setFont(m_self.font());
+		menu.addAction(m_ui.actionSetBackgroundColor);
 		menu.exec(QCursor::pos());
 	}
 
@@ -232,6 +256,26 @@ private:
 		menu.addAction(action);
 		menu.setFixedSize(menuWidget->width() + 4, menuWidget->height() + 5);
 		menu.exec(QCursor::pos());
+	}
+
+	void OnActionSetBackgroundColorTriggered()
+	{
+		const auto backgroundColor = m_uiFactory->GetColor(Tr(SELECT_IMAGE_BACKGROUND_COLOR), [this] {
+			if (const auto colorName = m_settings->Get(IMAGE_BACKGROUND_COLOR, QString {}); QColor::IS_VALID_COLOR_NAME(colorName))
+				return QColor(colorName);
+			return QColor { Qt::white };
+		}());
+
+		if (!backgroundColor)
+		{
+			m_settings->Remove(IMAGE_BACKGROUND_COLOR);
+			m_ui.image->setStyleSheet({});
+			return;
+		}
+
+		const auto colorName = backgroundColor->name();
+		m_settings->Set(IMAGE_BACKGROUND_COLOR, colorName);
+		m_ui.image->setStyleSheet(QString(IMAGE_BACKGROUND_COLOR_TEMPLATE).arg(colorName));
 	}
 
 private:

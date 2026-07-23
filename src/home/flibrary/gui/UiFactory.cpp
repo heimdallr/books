@@ -382,6 +382,11 @@ std::optional<QFont> UiFactory::GetFont(const QString& title, const QFont& font,
 	return m_impl->container.resolve<Util::IUiFactory>()->GetFont(title, font, options);
 }
 
+std::optional<QColor> UiFactory::GetColor(const QString& title, const QColor& color, const QColorDialog::ColorDialogOptions options) const
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetColor(title, color, options);
+}
+
 QStringList UiFactory::GetOpenFileNames(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
 {
 	return m_impl->container.resolve<Util::IUiFactory>()->GetOpenFileNames(key, title, filter, dir, options);

@@ -2738,6 +2738,14 @@ Try again?</source>
         <source>Select images folder</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Set background color</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Specify the background color of the image</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>JokeRequester</name>

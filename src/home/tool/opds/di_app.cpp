@@ -30,6 +30,11 @@ class UiFactory final : public Flibrary::IUiFactory
 		return {};
 	}
 
+	std::optional<QColor> GetColor(const QString& /*title*/, const QColor& /*color*/, const QColorDialog::ColorDialogOptions /*options*/) const override
+	{
+		return {};
+	}
+
 	QString GetOpenFileName(const QString& /*key*/, const QString& /*title*/, const QString& /*filter*/, const QString& /*dir*/, const QFileDialog::Options& /*options*/) const override
 	{
 		return {};

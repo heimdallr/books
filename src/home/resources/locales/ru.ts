@@ -2751,6 +2751,14 @@ Try again?</source>
         <source>Select images folder</source>
         <translation>Укажите папку для сохранения изображений</translation>
     </message>
+    <message>
+        <source>Set background color</source>
+        <translation>Сменить цвет фона</translation>
+    </message>
+    <message>
+        <source>Specify the background color of the image</source>
+        <translation>Укажите цвет фона изображения</translation>
+    </message>
 </context>
 <context>
     <name>JokeRequester</name>
