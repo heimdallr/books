@@ -1,5 +1,7 @@
 #include "SortFilterProxyModel.h"
 
+#include <QDate>
+
 #include "fnd/FindPair.h"
 #include "fnd/algorithm.h"
 
@@ -81,6 +83,12 @@ bool FastFilterFunctorSize(const FastFilterItems& data, const QVariant& item)
 	return Util::InBounds(item.toInt(), min * 1024, max * 1024);
 }
 
+bool FastFilterFunctorUpdated(const FastFilterItems& data, const QVariant& item)
+{
+	const auto [min, max] = data.begin()->value<std::pair<QDate, QDate>>();
+	return Util::InBounds(item.toDate(), min, max);
+}
+
 } // namespace
 
 AbstractSortFilterProxyModel::AbstractSortFilterProxyModel(QObject* parent)
@@ -111,9 +119,10 @@ struct SortFilterProxyModel::Impl final : IModelSorter
 		m_self.QSortFilterProxyModel::setSourceModel(sourceModel.get());
 		fastFilter.resize(BookItem::Column::Last);
 		fastFilterFunctor.assign(BookItem::Column::Last, &FastFilterFunctorDefault);
-		fastFilterFunctor[BookItem::Column::Genre]  = &FastFilterFunctorGenre;
-		fastFilterFunctor[BookItem::Column::Format] = &FastFilterFunctorFormat;
-		fastFilterFunctor[BookItem::Column::Size]   = &FastFilterFunctorSize;
+		fastFilterFunctor[BookItem::Column::Genre]      = &FastFilterFunctorGenre;
+		fastFilterFunctor[BookItem::Column::Format]     = &FastFilterFunctorFormat;
+		fastFilterFunctor[BookItem::Column::Size]       = &FastFilterFunctorSize;
+		fastFilterFunctor[BookItem::Column::UpdateDate] = &FastFilterFunctorUpdated;
 	}
 
 private: // IModelSorter
