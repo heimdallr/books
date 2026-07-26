@@ -321,7 +321,7 @@ private:
 
 				const auto startInstaller =
 					code == 0
-					&& (silent || installer.type == Util::InstallerType::msi
+					&& (silent || installer.type == Util::InstallerType::wix
 			            || (installer.type == Util::InstallerType::exe && m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes));
 
 				QTimer::singleShot(
@@ -338,7 +338,7 @@ private:
 						callback();
 						if (startInstaller
 				            && (installer.type == Util::InstallerType::exe   ? QProcess::startDetached(downloadFileName, QStringList {})
-				                : installer.type == Util::InstallerType::msi ? (silent ? ReinstallMsi(downloadFileName) : QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder)))
+				                : installer.type == Util::InstallerType::wix ? (silent ? ReinstallMsi(downloadFileName) : QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder)))
 				                                                             : (assert(false), false)))
 							return QCoreApplication::exit();
 
