@@ -32,6 +32,7 @@
 #include "dialogs/OpdsDialog.h"
 #include "dialogs/SettingsDialog.h"
 #include "dialogs/script/ScriptDialog.h"
+#include "filters/DateIntervalFilterWidget.h"
 #include "filters/FastFilterWidget.h"
 #include "filters/RangeFilterWidget.h"
 #include "logic/data/DataItem.h"
@@ -49,7 +50,6 @@
 
 #include "config/git_hash.h"
 #include "config/version.h"
-#include "filters/DateIntervalFilterWidget.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
