@@ -1280,28 +1280,31 @@ private:
 		auto*       header = m_ui.treeView->header();
 		const auto* model  = header->model();
 
-		const auto values = std::views::iota(1, header->count() - 1) | std::views::filter([&](const int n) {
-								const auto index = header->logicalIndex(n);
-								const auto name  = model->headerData(index, Qt::Horizontal, Role::HeaderName).toString();
+		std::vector<int> index;
+
+		const auto values = std::views::iota(m_controller->GetViewMode() == ViewMode::Tree ? 1 : 0, header->count()) | std::views::filter([&](const int n) {
+								const auto logicalIndex = header->logicalIndex(n);
+								const auto name         = model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
 								return !m_hiddenColumns.contains(name, Qt::CaseInsensitive);
 							})
 		                  | std::views::transform([&](const int n) {
-								const auto index = header->logicalIndex(n);
-								auto       name  = model->headerData(index, Qt::Horizontal, Role::HeaderTitle).toString();
-								return std::make_pair(std::move(name), !header->isSectionHidden(index));
+								const auto logicalIndex = header->logicalIndex(n);
+								auto       name         = model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderTitle).toString();
+								index.emplace_back(logicalIndex);
+								return std::make_pair(std::move(name), !header->isSectionHidden(logicalIndex));
 							})
 		                  | std::ranges::to<std::vector>();
 
-		auto* menu = m_uiFactory->CreateCheckableMenu(values, [this, header](const int row, const bool checked) {
-			const auto           index = header->logicalIndex(row + 1);
+		auto* menu = m_uiFactory->CreateCheckableMenu(values, [this, header, index = std::move(index)](const int row, const bool checked) {
+			const auto           logicalIndex = index[row];
 			const QSignalBlocker signalBlocker(header);
 			if (!checked)
-				header->resizeSection(0, header->sectionSize(0) + header->sectionSize(index));
-			header->setSectionHidden(index, !checked);
-			if (checked && header->sectionSize(index) < header->minimumSectionSize())
-				header->resizeSection(index, header->minimumSectionSize());
+				header->resizeSection(0, header->sectionSize(0) + header->sectionSize(logicalIndex));
+			header->setSectionHidden(logicalIndex, !checked);
+			if (checked && header->sectionSize(logicalIndex) < header->minimumSectionSize())
+				header->resizeSection(logicalIndex, header->minimumSectionSize());
 			if (checked)
-				header->resizeSection(0, header->sectionSize(0) - header->sectionSize(index));
+				header->resizeSection(0, header->sectionSize(0) - header->sectionSize(logicalIndex));
 
 			SaveHeaderLayout();
 			OnHeaderSectionsVisibleChanged();
