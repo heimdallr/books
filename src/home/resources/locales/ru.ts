@@ -921,6 +921,21 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>DateIntervalFilterWidget</name>
+    <message>
+        <source>Load range</source>
+        <translation>Загрузить диапазон</translation>
+    </message>
+    <message>
+        <source>Reset range</source>
+        <translation>Сбросить диапазон</translation>
+    </message>
+    <message>
+        <source>Save range</source>
+        <translation>Сохранить диапазон</translation>
+    </message>
+</context>
+<context>
     <name>Dialog</name>
     <message>
         <source>&lt;p&gt;Personal &lt;a href=&apos;%1&apos;&gt;%2&lt;/a&gt; build&lt;/p&gt;</source>
