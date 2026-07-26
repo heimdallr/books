@@ -1,15 +1,12 @@
 @echo off
 
-set BUILD_FOLDER=build
-if [%QT_MAJOR_VERSION%]==[5] set BUILD_FOLDER=build_Qt5
-
 set BUILD_TYPE=Release
-set BUILD_DIR=%~dp0%BUILD_FOLDER%\%BUILD_TYPE%
+
+call init.bat
 
 del /s /q %BUILD_DIR%\bin\*
 del /s /q %BUILD_DIR%\FLibrary\*
 del /s /q %~dp0%BUILD_FOLDER%\installer\*
-
 
 call %~dp0configure.bat %*
 if %errorlevel% NEQ 0 goto Error
