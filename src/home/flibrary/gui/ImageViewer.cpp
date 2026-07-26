@@ -15,7 +15,6 @@
 #include "utilgui/GeometryRestorable.h"
 
 #include "QtTypes.h"
-
 #include "log.h"
 
 using namespace HomeCompa;

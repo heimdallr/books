@@ -32,6 +32,7 @@
 #include "dialogs/OpdsDialog.h"
 #include "dialogs/SettingsDialog.h"
 #include "dialogs/script/ScriptDialog.h"
+#include "filters/DateIntervalFilterWidget.h"
 #include "filters/FastFilterWidget.h"
 #include "filters/RangeFilterWidget.h"
 #include "logic/data/DataItem.h"
@@ -242,9 +243,16 @@ QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, cons
 	const auto parentWidgetProvider = container.resolve<IParentWidgetProvider>();
 	auto       settings             = container.resolve<ISettings>();
 
-	if (column == BookItem::Column::Size)
+	switch (column)
 	{
-		return new RangeFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings));
+		case BookItem::Column::Size:
+			return new RangeFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings));
+
+		case BookItem::Column::UpdateDate:
+			return new DateIntervalFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings));
+
+		default:
+			break;
 	}
 
 	return new FastFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings), container.resolve<Util::ItemViewToolTipper>(), container.resolve<Util::ScrollBarController>());
