@@ -239,12 +239,12 @@ join Compilation_List l on c.CompilationID = l.CompilationID
 
 struct CollectionCleanerLogic::Impl
 {
-	std::weak_ptr<const ILogicFactory>                 logicFactory;
-	std::shared_ptr<const IDatabaseUser>               databaseUser;
-	std::shared_ptr<const ICollectionProvider>         collectionProvider;
-	std::shared_ptr<const ILibRateProvider>            libRateProvider;
-	std::shared_ptr<IBooksExtractorProgressController> progressController;
-	std::atomic_bool                                   analyzeCanceled { false };
+	std::weak_ptr<const ILogicFactory>         logicFactory;
+	std::shared_ptr<const IDatabaseUser>       databaseUser;
+	std::shared_ptr<const ICollectionProvider> collectionProvider;
+	std::shared_ptr<const ILibRateProvider>    libRateProvider;
+	std::shared_ptr<IMainProgressController>   progressController;
+	std::atomic_bool                           analyzeCanceled { false };
 
 	void Analyze(IAnalyzeObserver& observer) const
 	{
@@ -420,11 +420,11 @@ struct CollectionCleanerLogic::Impl
 };
 
 CollectionCleanerLogic::CollectionCleanerLogic(
-	const std::shared_ptr<const ILogicFactory>&        logicFactory,
-	std::shared_ptr<const IDatabaseUser>               databaseUser,
-	std::shared_ptr<const ICollectionProvider>         collectionProvider,
-	std::shared_ptr<const ILibRateProvider>            libRateProvider,
-	std::shared_ptr<IBooksExtractorProgressController> progressController
+	const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const IDatabaseUser>        databaseUser,
+	std::shared_ptr<const ICollectionProvider>  collectionProvider,
+	std::shared_ptr<const ILibRateProvider>     libRateProvider,
+	std::shared_ptr<IMainProgressController>    progressController
 )
 	: m_impl { std::make_unique<Impl>(logicFactory, std::move(databaseUser), std::move(collectionProvider), std::move(libRateProvider), std::move(progressController)) }
 {

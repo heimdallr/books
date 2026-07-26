@@ -910,6 +910,21 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>DateIntervalFilterWidget</name>
+    <message>
+        <source>Load range</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Reset range</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Save range</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>Dialog</name>
     <message>
         <source>&lt;p&gt;Personal &lt;a href=&apos;%1&apos;&gt;%2&lt;/a&gt; build&lt;/p&gt;</source>
@@ -2660,7 +2675,7 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>HomeCompa::Flibrary::FastFilterWidget::Impl</name>
+    <name>HomeCompa::Flibrary::FastFilterWidget</name>
     <message>
         <source>Deselect all</source>
         <translation></translation>
@@ -2685,7 +2700,7 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>HomeCompa::Flibrary::RangeFilterWidget::Impl</name>
+    <name>HomeCompa::Flibrary::RangeFilterWidget</name>
     <message>
         <source>%1 kB</source>
         <translation>%1 Kb</translation>
@@ -2706,6 +2721,44 @@ Try again?</source>
     <name>HotkeyManager</name>
     <message>
         <source>Book</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ImageModel</name>
+    <message>
+        <source>Cover</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Image #%1</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ImageViewer</name>
+    <message>
+        <source>Change thumbnail size...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Filter</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Save...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Select images folder</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Set background color</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Specify the background color of the image</source>
         <translation></translation>
     </message>
 </context>
@@ -4651,6 +4704,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Load...</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Log</source>
         <translation></translation>
     </message>
@@ -4672,6 +4729,10 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;Restore default values</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Save...</source>
         <translation></translation>
     </message>
     <message>
@@ -4767,7 +4828,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Cleaner...</source>
+        <source>Cleanup</source>
         <translation></translation>
     </message>
     <message>
@@ -4807,10 +4868,6 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>E&amp;xport</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Enable all</source>
         <translation></translation>
     </message>
@@ -4840,10 +4897,6 @@ Try again?</source>
     </message>
     <message>
         <source>Http server management</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>I&amp;mport</source>
         <translation></translation>
     </message>
     <message>
@@ -4976,6 +5029,10 @@ Try again?</source>
     </message>
     <message>
         <source>View &amp;Help</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>View images</source>
         <translation></translation>
     </message>
     <message>
@@ -5644,6 +5701,13 @@ Try again?</source>
     </message>
     <message>
         <source>Type</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ScrollBarController</name>
+    <message>
+        <source>Options...</source>
         <translation></translation>
     </message>
 </context>

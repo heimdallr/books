@@ -83,9 +83,8 @@ constexpr auto USER_RATE_QUERY = "select coalesce(bu.UserRate, -1) from Books b 
 
 struct SendSettings
 {
-	QString ext;
-	bool    tempFolder { false };
-	bool    createFillTemplateConverterParameter { false };
+	bool tempFolder { false };
+	bool createFillTemplateConverterParameter { false };
 };
 
 class IContextMenuHandler // NOLINT(cppcoreguidelines-special-member-functions)
@@ -457,7 +456,7 @@ private: // IContextMenuHandler
 
 	void SendAsArchive(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsArchives, { .ext = "zip" });
+		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsArchives);
 	}
 
 	void SendAsIs(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
@@ -703,15 +702,6 @@ private:
 		for (auto& book : books)
 			fillTemplateConverter->Fill(*db, outputFileNameTemplate, book, tempDir ? tempDir->filePath("") : dir);
 
-		if (!sendSettings.ext.isEmpty())
-		{
-			for (auto& book : books)
-			{
-				const QFileInfo fileInfo(book.dstFileName);
-				book.dstFileName = fileInfo.dir().filePath(fileInfo.completeBaseName() + "." + sendSettings.ext);
-			}
-		}
-
 		if (CheckUniqueFileNames(books))
 			return callback(item);
 
@@ -850,15 +840,15 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr& parent, co
 }
 
 BooksContextMenuProvider::BooksContextMenuProvider(
-	const std::shared_ptr<const ILogicFactory>&        logicFactory,
-	std::shared_ptr<const ISettings>                   settings,
-	std::shared_ptr<const ICollectionProvider>         collectionProvider,
-	std::shared_ptr<const IReaderController>           readerController,
-	std::shared_ptr<const IDatabaseUser>               databaseUser,
-	std::shared_ptr<const IBookInfoProvider>           dataProvider,
-	std::shared_ptr<const IUiFactory>                  uiFactory,
-	std::shared_ptr<IScriptController>                 scriptController,
-	std::shared_ptr<IBooksExtractorProgressController> progressController
+	const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const ISettings>            settings,
+	std::shared_ptr<const ICollectionProvider>  collectionProvider,
+	std::shared_ptr<const IReaderController>    readerController,
+	std::shared_ptr<const IDatabaseUser>        databaseUser,
+	std::shared_ptr<const IBookInfoProvider>    dataProvider,
+	std::shared_ptr<const IUiFactory>           uiFactory,
+	std::shared_ptr<IScriptController>          scriptController,
+	std::shared_ptr<IMainProgressController>    progressController
 )
 	: m_impl(
 		  logicFactory,

@@ -30,6 +30,11 @@ class UiFactory final : public Flibrary::IUiFactory
 		return {};
 	}
 
+	std::optional<QColor> GetColor(const QString& /*title*/, const QColor& /*color*/, const QColorDialog::ColorDialogOptions /*options*/) const override
+	{
+		return {};
+	}
+
 	QString GetOpenFileName(const QString& /*key*/, const QString& /*title*/, const QString& /*filter*/, const QString& /*dir*/, const QFileDialog::Options& /*options*/) const override
 	{
 		return {};
@@ -156,8 +161,24 @@ private: // IUiFactory
 		return nullptr;
 	}
 
-	void CreateCollectionCleaner() const override
+	QWidget* CreateChangeSizeWidget(int, int, int, IChangeSizeWidgetObserver*) const override
 	{
+		return nullptr;
+	}
+
+	QWidget* CreateCollectionCleaner(QStackedWidget*) const override
+	{
+		return nullptr;
+	}
+
+	QWidget* CreateImageViewer(QStackedWidget*) const override
+	{
+		return nullptr;
+	}
+
+	QMenu* CreateCheckableMenu(const std::vector<std::pair<QString, bool>>&, std::function<void(int, bool)>) const override
+	{
+		return nullptr;
 	}
 
 	void CreateAuthorReview(long long /*id*/) const override
@@ -217,6 +238,11 @@ public: // special
 	long long GetAuthorId() const noexcept override
 	{
 		return {};
+	}
+
+	QStackedWidget* GetStackedWidget() const noexcept override
+	{
+		return nullptr;
 	}
 };
 

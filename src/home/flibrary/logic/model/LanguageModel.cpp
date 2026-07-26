@@ -176,7 +176,7 @@ private:
 			++n;
 		});
 
-		for (const auto [begin, end] : Util::CreateRanges(indices))
+		for (const auto& [begin, end] : Util::CreateRanges(indices))
 			emit dataChanged(index(begin, 0), index(end - 1, 0), { Qt::CheckStateRole });
 
 		return !indices.empty();

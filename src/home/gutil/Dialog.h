@@ -45,6 +45,7 @@ protected:
 		NAME##Dialog(std::shared_ptr<IParentWidgetProvider> parentProvider, std::shared_ptr<ISettings> settings);                                                                        \
                                                                                                                                                                                          \
 	private:                                                                                                                                                                             \
+		using Dialog::Show;                                                                                                                                                              \
 		QMessageBox::StandardButton Show(DialogInitializer& initializer) const override;                                                                                                 \
 		QString                     GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, QLineEdit::EchoMode mode) const override; \
 	};

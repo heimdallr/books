@@ -7,6 +7,7 @@
 #include <QGuiApplication>
 #include <QMenuBar>
 #include <QShortcut>
+#include <QStackedWidget>
 #include <QToolTip>
 
 #include "fnd/FindPair.h"
@@ -25,20 +26,24 @@
 #include "delegate/TreeViewDelegate/TreeViewDelegateBooks.h"
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
 #include "dialogs/AddCollectionDialog.h"
+#include "dialogs/ChangeSizeDialog.h"
 #include "dialogs/FilterSettingsDialog.h"
 #include "dialogs/HotkeyDialog.h"
 #include "dialogs/OpdsDialog.h"
 #include "dialogs/SettingsDialog.h"
 #include "dialogs/script/ScriptDialog.h"
+#include "filters/DateIntervalFilterWidget.h"
 #include "filters/FastFilterWidget.h"
 #include "filters/RangeFilterWidget.h"
 #include "logic/data/DataItem.h"
+#include "utilgui/CheckableMenu.h"
 #include "utilgui/GeometryRestorable.h"
 #include "version/AppVersion.h"
 #include "widgets/ClickableLabel.h"
 
 #include "AuthorReview.h"
 #include "CollectionCleaner.h"
+#include "ImageViewer.h"
 #include "QueryWindow.h"
 #include "TreeView.h"
 #include "log.h"
@@ -108,21 +113,22 @@ QString GetPersonalBuildString()
 }
 
 template <typename T>
-void CreateStackedPage(Hypodermic::Container& container, const QObject* signalReceiver)
+QWidget* CreateStackedPage(Hypodermic::Container& container, const QObject* signalReceiver)
 {
-	auto  collectionCleaner    = container.resolve<T>();
-	auto* collectionCleanerPtr = collectionCleaner.get();
-	auto  connection           = std::make_shared<QMetaObject::Connection>();
-	*connection                = QObject::connect(
-		collectionCleanerPtr,
-		qOverload<std::shared_ptr<QWidget>, int>(&StackedPage::StateChanged),
+	auto  page       = container.resolve<T>();
+	auto* pagePtr    = page.get();
+	auto  connection = std::make_shared<QMetaObject::Connection>();
+	*connection      = QObject::connect(
+		pagePtr,
+		qOverload<QStackedWidget*, std::shared_ptr<QWidget>, int>(&StackedPage::StateChanged),
 		signalReceiver,
-		[collectionCleaner = std::move(collectionCleaner), connection]([[maybe_unused]] const std::shared_ptr<QWidget>& widget, [[maybe_unused]] const int state) mutable {
-			assert(widget.get() == collectionCleaner.get() && state == StackedPage::State::Created);
+		[page = std::move(page), connection](QStackedWidget*, [[maybe_unused]] const std::shared_ptr<QWidget>& widget, [[maybe_unused]] const int state) mutable {
+			assert(widget.get() == page.get() && state == StackedPage::State::Created);
 			QObject::disconnect(*connection);
 		},
 		Qt::QueuedConnection
 	);
+	return pagePtr;
 }
 
 } // namespace
@@ -137,6 +143,7 @@ struct UiFactory::Impl
 	mutable QAbstractItemView*                   abstractItemView { nullptr };
 	mutable QString                              title;
 	mutable long long                            authorId { -1 };
+	mutable QStackedWidget*                      stackedWidget { nullptr };
 
 	explicit Impl(Hypodermic::Container& container)
 		: container(container)
@@ -232,28 +239,45 @@ std::shared_ptr<QMainWindow> UiFactory::CreateQueryWindow() const
 
 QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, const int column, std::function<void(bool, QVariantList)> callback) const
 {
-	const auto parentWidgetProvider = m_impl->container.resolve<IParentWidgetProvider>();
-	auto       settings             = m_impl->container.resolve<ISettings>();
+	auto&      container            = m_impl->container;
+	const auto parentWidgetProvider = container.resolve<IParentWidgetProvider>();
+	auto       settings             = container.resolve<ISettings>();
 
-	if (column == BookItem::Column::Size)
+	switch (column)
 	{
-		return new RangeFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings));
+		case BookItem::Column::Size:
+			return new RangeFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings));
+
+		case BookItem::Column::UpdateDate:
+			return new DateIntervalFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings));
+
+		default:
+			break;
 	}
 
-	return new FastFilterWidget(
-		model,
-		column,
-		std::move(callback),
-		*parentWidgetProvider,
-		std::move(settings),
-		m_impl->container.resolve<Util::ItemViewToolTipper>(),
-		m_impl->container.resolve<Util::ScrollBarController>()
-	);
+	return new FastFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings), container.resolve<Util::ItemViewToolTipper>(), container.resolve<Util::ScrollBarController>());
 }
 
-void UiFactory::CreateCollectionCleaner() const
+QWidget* UiFactory::CreateChangeSizeWidget(const int current, const int minimum, const int maximum, IChangeSizeWidgetObserver* observer) const
 {
-	CreateStackedPage<CollectionCleaner>(m_impl->container, this);
+	return new ChangeSizeDialog(current, minimum, maximum, observer);
+}
+
+QMenu* UiFactory::CreateCheckableMenu(const std::vector<std::pair<QString, bool>>& values, std::function<void(int, bool)> callback) const
+{
+	return Util::CreateCheckableMenu(values, std::move(callback), GetParentWidget(nullptr));
+}
+
+QWidget* UiFactory::CreateCollectionCleaner(QStackedWidget* stackedWidget) const
+{
+	m_impl->stackedWidget = stackedWidget;
+	return CreateStackedPage<CollectionCleaner>(m_impl->container, this);
+}
+
+QWidget* UiFactory::CreateImageViewer(QStackedWidget* stackedWidget) const
+{
+	m_impl->stackedWidget = stackedWidget;
+	return CreateStackedPage<ImageViewer>(m_impl->container, this);
 }
 
 void UiFactory::CreateAuthorReview(const long long id) const
@@ -366,6 +390,11 @@ std::optional<QFont> UiFactory::GetFont(const QString& title, const QFont& font,
 	return m_impl->container.resolve<Util::IUiFactory>()->GetFont(title, font, options);
 }
 
+std::optional<QColor> UiFactory::GetColor(const QString& title, const QColor& color, const QColorDialog::ColorDialogOptions options) const
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetColor(title, color, options);
+}
+
 QStringList UiFactory::GetOpenFileNames(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
 {
 	return m_impl->container.resolve<Util::IUiFactory>()->GetOpenFileNames(key, title, filter, dir, options);
@@ -425,6 +454,13 @@ long long UiFactory::GetAuthorId() const noexcept
 	assert(m_impl->authorId >= 0);
 	const auto result = m_impl->authorId;
 	m_impl->authorId  = -1;
+	return result;
+}
+
+QStackedWidget* UiFactory::GetStackedWidget() const noexcept
+{
+	auto* result          = m_impl->stackedWidget;
+	m_impl->stackedWidget = nullptr;
 	return result;
 }
 

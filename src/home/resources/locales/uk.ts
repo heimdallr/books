@@ -921,6 +921,21 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>DateIntervalFilterWidget</name>
+    <message>
+        <source>Load range</source>
+        <translation>Завантажити діапазон</translation>
+    </message>
+    <message>
+        <source>Reset range</source>
+        <translation>Скинути діапазон</translation>
+    </message>
+    <message>
+        <source>Save range</source>
+        <translation>Зберегти діапазон</translation>
+    </message>
+</context>
+<context>
     <name>Dialog</name>
     <message>
         <source>&lt;p&gt;Personal &lt;a href=&apos;%1&apos;&gt;%2&lt;/a&gt; build&lt;/p&gt;</source>
@@ -2673,7 +2688,7 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>HomeCompa::Flibrary::FastFilterWidget::Impl</name>
+    <name>HomeCompa::Flibrary::FastFilterWidget</name>
     <message>
         <source>Deselect all</source>
         <translation>Скасувати виділення</translation>
@@ -2698,7 +2713,7 @@ Try again?</source>
     </message>
 </context>
 <context>
-    <name>HomeCompa::Flibrary::RangeFilterWidget::Impl</name>
+    <name>HomeCompa::Flibrary::RangeFilterWidget</name>
     <message>
         <source>%1 kB</source>
         <translation>%1 Кб</translation>
@@ -2720,6 +2735,44 @@ Try again?</source>
     <message>
         <source>Book</source>
         <translation>Книга</translation>
+    </message>
+</context>
+<context>
+    <name>ImageModel</name>
+    <message>
+        <source>Cover</source>
+        <translation>Обкладинка</translation>
+    </message>
+    <message>
+        <source>Image #%1</source>
+        <translation>Ілюстрація %1</translation>
+    </message>
+</context>
+<context>
+    <name>ImageViewer</name>
+    <message>
+        <source>Change thumbnail size...</source>
+        <translation>Змінити розмір мініатюри...</translation>
+    </message>
+    <message>
+        <source>Filter</source>
+        <translation>Фільтр</translation>
+    </message>
+    <message>
+        <source>Save...</source>
+        <translation>Зберегти...</translation>
+    </message>
+    <message>
+        <source>Select images folder</source>
+        <translation>Вкажіть папку для збереження зображень</translation>
+    </message>
+    <message>
+        <source>Set background color</source>
+        <translation>Змінити колір фону</translation>
+    </message>
+    <message>
+        <source>Specify the background color of the image</source>
+        <translation>Вкажіть колір фону зображення</translation>
     </message>
 </context>
 <context>
@@ -4664,6 +4717,10 @@ Try again?</source>
         <translation>&amp;Світла</translation>
     </message>
     <message>
+        <source>&amp;Load...</source>
+        <translation>&amp;Відновити...</translation>
+    </message>
+    <message>
         <source>&amp;Log</source>
         <translation>&amp;Журнал</translation>
     </message>
@@ -4686,6 +4743,10 @@ Try again?</source>
     <message>
         <source>&amp;Restore default values</source>
         <translation>&amp;Відновити початкові значення</translation>
+    </message>
+    <message>
+        <source>&amp;Save...</source>
+        <translation>&amp;Зберегти...</translation>
     </message>
     <message>
         <source>&amp;Scripts...</source>
@@ -4780,8 +4841,8 @@ Try again?</source>
         <translation>Перевіряти оновлення на &amp;старті</translation>
     </message>
     <message>
-        <source>Cleaner...</source>
-        <translation>Очищення...</translation>
+        <source>Cleanup</source>
+        <translation>Очищення</translation>
     </message>
     <message>
         <source>Co&amp;ver and illustrations</source>
@@ -4820,10 +4881,6 @@ Try again?</source>
         <translation>В&amp;ихід</translation>
     </message>
     <message>
-        <source>E&amp;xport</source>
-        <translation>&amp;Експорт</translation>
-    </message>
-    <message>
         <source>Enable all</source>
         <translation>Включити все</translation>
     </message>
@@ -4854,10 +4911,6 @@ Try again?</source>
     <message>
         <source>Http server management</source>
         <translation>Керування сервером Http</translation>
-    </message>
-    <message>
-        <source>I&amp;mport</source>
-        <translation>&amp;Імпорт</translation>
     </message>
     <message>
         <source>Illustrations</source>
@@ -4990,6 +5043,10 @@ Try again?</source>
     <message>
         <source>View &amp;Help</source>
         <translation>&amp;Довідка</translation>
+    </message>
+    <message>
+        <source>View images</source>
+        <translation>Перегляд зображень</translation>
     </message>
     <message>
         <source>Well, you only have yourself to blame!</source>
@@ -5658,6 +5715,13 @@ Try again?</source>
     <message>
         <source>Type</source>
         <translation>Тип</translation>
+    </message>
+</context>
+<context>
+    <name>ScrollBarController</name>
+    <message>
+        <source>Options...</source>
+        <translation>Параметри...</translation>
     </message>
 </context>
 <context>

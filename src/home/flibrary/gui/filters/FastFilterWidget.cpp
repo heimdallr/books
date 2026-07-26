@@ -11,6 +11,7 @@
 #include <QTimer>
 
 #include "fnd/FindPair.h"
+#include "fnd/SignalBlocker.h"
 #include "fnd/algorithm.h"
 
 #include "interface/constants/ModelRole.h"
@@ -59,11 +60,6 @@ class Translator
 public:
 	Translator()          = default;
 	virtual ~Translator() = default;
-
-	static std::unique_ptr<const Translator> Create(const ISettings&)
-	{
-		return std::make_unique<Translator>();
-	}
 
 public: // ITranslator
 	virtual QString Translate(const Item& item) const
@@ -139,6 +135,16 @@ private:
 	const QChar m_symbol, m_zeroSymbol;
 };
 
+namespace TranslatorBase
+{
+
+static std::unique_ptr<const Translator> Create(const ISettings&)
+{
+	return std::make_unique<Translator>();
+}
+
+}
+
 namespace TranslatorLibRate
 {
 
@@ -173,7 +179,7 @@ class Model final : public QAbstractListModel
 public:
 	Model(const QAbstractItemModel& model, const int column, const ISettings& settings, const QWidget* widget)
 		: m_widget { widget }
-		, m_translator { FindSecond(TRANSLATORS, column, &Translator::Create)(settings) }
+		, m_translator { FindSecond(TRANSLATORS, column, &TranslatorBase::Create)(settings) }
 		, m_items { model.data({}, Role::AuthorsAll + column).value<QVariantList>() | std::views::as_rvalue
 		            | std::views::transform([this, currentFilter = model.data({}, Role::AuthorFilter + column).value<const std::unordered_set<QVariant, Util::VariantHash>*>()](auto&& item) {
 						  Item element { .id = std::move(item) };
@@ -208,7 +214,7 @@ private: // QAbstractItemModel
 	}
 
 private:
-	QVariant GetData(const QModelIndex& index, const int role) const
+	[[nodiscard]] QVariant GetData(const QModelIndex& index, const int role) const
 	{
 		const auto& item = m_items[index.row()];
 
@@ -231,7 +237,7 @@ private:
 		return {};
 	}
 
-	QVariant GetData(const int role) const
+	[[nodiscard]] QVariant GetData(const int role) const
 	{
 		switch (role)
 		{
@@ -321,7 +327,7 @@ private:
 						changed.emplace(n);
 					}
 
-				for (const auto [begin, end] : Util::CreateRanges(changed))
+				for (const auto& [begin, end] : Util::CreateRanges(changed))
 					emit dataChanged(index(begin, 0), index(end - 1, 0), { Qt::CheckStateRole });
 
 				return true;
@@ -334,12 +340,12 @@ private:
 		return assert(false && "unexpected role"), false;
 	}
 
-	int GetWidth() const
+	[[nodiscard]] int GetWidth() const
 	{
 		QFontMetrics fontMetrics(m_widget->font());
-		int          width = -1;
-		for (const auto& item : m_items)
-			width = std::max(width, fontMetrics.boundingRect(item.title).width());
+		const auto   width = std::accumulate(m_items.cbegin(), m_items.cend(), -1, [&](const int init, const Item& item) {
+			return std::max(init, fontMetrics.boundingRect(item.title).width());
+		});
 
 		return width + 20;
 	}
@@ -405,10 +411,7 @@ public:
 		});
 		connect(m_model.get(), &QAbstractItemModel::dataChanged, this, [this](const auto&, const auto&, const QVector<int>& roles) {
 			if (roles.contains(Qt::CheckStateRole))
-			{
-				const QSignalBlocker signalBlocked(m_ui.checkBoxAll);
-				m_ui.checkBoxAll->setCheckState(m_model->data({}, ModelRole::AllSelected).value<Qt::CheckState>());
-			}
+				SignalBlocker(m_ui.checkBoxAll)->setCheckState(m_model->data({}, ModelRole::AllSelected).value<Qt::CheckState>());
 		});
 		connect(m_ui.btnLoad, &QAbstractButton::clicked, this, &Impl::OnLoadClicked);
 		connect(m_ui.btnSave, &QAbstractButton::clicked, this, &Impl::OnSaveClicked);

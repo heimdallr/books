@@ -459,7 +459,7 @@ CollectionCleaner::CollectionCleaner(
 	std::shared_ptr<Util::ScrollBarController>        scrollBarControllerLanguage,
 	QWidget*                                          parent
 )
-	: StackedPage(uiFactory->GetParentWidget(parent))
+	: StackedPage(*uiFactory, uiFactory->GetParentWidget(parent))
 	, m_impl(
 		  *this,
 		  *collectionProvider,

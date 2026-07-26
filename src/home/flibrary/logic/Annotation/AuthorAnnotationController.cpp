@@ -7,6 +7,7 @@
 
 #include "fnd/algorithm.h"
 #include "fnd/observable.h"
+#include "fnd/try.h"
 
 #include "interface/constants/Enums.h"
 
@@ -109,8 +110,17 @@ private:
 				  std::unordered_map<QString, int> authorToArchive;
 				  for (const auto& file : m_authorsDir.entryList(QDir::Files))
 				  {
-					  Zip zip(m_authorsDir.filePath(file));
-					  std::ranges::transform(zip.GetFileNameList(), std::inserter(authorToArchive, authorToArchive.end()), [&](const auto& item) {
+					  const auto path = m_authorsDir.filePath(file);
+					  const auto zip  = TRY(QString("open %1").arg(path), [&] {
+						  return std::make_unique<Zip>(path);
+					  });
+					  if (!zip)
+					  {
+						  PLOGW << "Cannot open " << path;
+						  continue;
+					  }
+
+					  std::ranges::transform(zip->GetFileNameList(), std::inserter(authorToArchive, authorToArchive.end()), [&](const auto& item) {
 						  return std::make_pair(item, QFileInfo(file).baseName().toInt());
 					  });
 				  }

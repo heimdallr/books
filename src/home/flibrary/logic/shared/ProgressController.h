@@ -8,9 +8,7 @@
 namespace HomeCompa::Flibrary
 {
 
-class ProgressController final
-	: public IAnnotationProgressController
-	, public IBooksExtractorProgressController
+class ProgressController final : public IMainProgressController
 {
 	NON_COPY_MOVABLE(ProgressController)
 

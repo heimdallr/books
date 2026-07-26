@@ -321,7 +321,7 @@ private:
 
 				const auto startInstaller =
 					code == 0
-					&& (silent || installer.type == Util::InstallerType::msi
+					&& (silent || installer.type == Util::InstallerType::wix
 			            || (installer.type == Util::InstallerType::exe && m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes));
 
 				QTimer::singleShot(
@@ -338,7 +338,7 @@ private:
 						callback();
 						if (startInstaller
 				            && (installer.type == Util::InstallerType::exe   ? QProcess::startDetached(downloadFileName, QStringList {})
-				                : installer.type == Util::InstallerType::msi ? (silent ? ReinstallMsi(downloadFileName) : QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder)))
+				                : installer.type == Util::InstallerType::wix ? (silent ? ReinstallMsi(downloadFileName) : QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder)))
 				                                                             : (assert(false), false)))
 							return QCoreApplication::exit();
 
@@ -376,10 +376,10 @@ private:
 };
 
 UpdateChecker::UpdateChecker(
-	const std::shared_ptr<const ILogicFactory>&        logicFactory,
-	std::shared_ptr<const Util::IUiFactory>            uiFactory,
-	std::shared_ptr<ISettings>                         settings,
-	std::shared_ptr<IBooksExtractorProgressController> progressController
+	const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const Util::IUiFactory>     uiFactory,
+	std::shared_ptr<ISettings>                  settings,
+	std::shared_ptr<IMainProgressController>    progressController
 )
 	: m_impl(std::make_shared<Impl>(logicFactory, std::move(uiFactory), std::move(settings), std::move(progressController)))
 {

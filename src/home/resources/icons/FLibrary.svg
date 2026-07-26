@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="page" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f5fbfb"/>
+      <stop offset="0.45" stop-color="#d6e1e0"/>
+      <stop offset="1" stop-color="#879492"/>
+    </linearGradient>
+    <linearGradient id="pageEdge" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0" stop-color="#44504f"/>
+      <stop offset="0.55" stop-color="#27302f"/>
+      <stop offset="1" stop-color="#111716"/>
+    </linearGradient>
+    <linearGradient id="coverLight" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#edf4f4"/>
+      <stop offset="0.48" stop-color="#b7c4c3"/>
+      <stop offset="1" stop-color="#596563"/>
+    </linearGradient>
+    <linearGradient id="spine" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#8f9b99"/>
+      <stop offset="0.36" stop-color="#404947"/>
+      <stop offset="1" stop-color="#111514"/>
+    </linearGradient>
+    <linearGradient id="spineDark" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#343b3a"/>
+      <stop offset="1" stop-color="#060808"/>
+    </linearGradient>
+    <filter id="shadow" x="-20%" y="-20%" width="140%" height="150%">
+      <feDropShadow dx="0" dy="28" stdDeviation="24" flood-color="#000000" flood-opacity="0.34"/>
+    </filter>
+  </defs>
+
+  <g filter="url(#shadow)">
+    <path d="M94 18 310 214 802 214 606 18Z" fill="url(#coverLight)"/>
+    <path d="M94 18 310 214 246 381 31 177Z" fill="url(#spine)"/>
+    <path d="M310 214 802 214 927 333 392 333Z" fill="url(#page)"/>
+    <path d="M246 381 392 333 927 333 823 453 348 453Z" fill="url(#pageEdge)"/>
+
+    <path d="M31 236 218 414 338 536 146 359Z" fill="url(#spine)"/>
+    <path d="M218 414 802 414 920 531 338 536Z" fill="url(#page)"/>
+    <path d="M146 359 338 536 291 657 99 478Z" fill="url(#spineDark)"/>
+    <path d="M291 657 338 536 920 531 813 652Z" fill="url(#pageEdge)"/>
+
+    <path d="M99 530 286 706 402 827 214 650Z" fill="url(#spine)"/>
+    <path d="M286 706 804 706 924 824 402 827Z" fill="url(#page)"/>
+    <path d="M214 650 402 827 353 952 166 773Z" fill="url(#spineDark)"/>
+    <path d="M353 952 402 827 924 824 811 944Z" fill="url(#pageEdge)"/>
+
+    <path d="M31 520 167 651 209 604 73 473Z" fill="#dbe5e3"/>
+    <path d="M20 339 153 467 194 420 61 292Z" fill="#e5eeee"/>
+    <path d="M17 164 150 292 190 246 56 118Z" fill="#eff6f6"/>
+
+    <path d="M310 214 392 333 927 333 802 214Z" fill="#ffffff" opacity="0.18"/>
+    <path d="M218 414 338 536 920 531 802 414Z" fill="#ffffff" opacity="0.14"/>
+    <path d="M286 706 402 827 924 824 804 706Z" fill="#ffffff" opacity="0.14"/>
+  </g>
+</svg>

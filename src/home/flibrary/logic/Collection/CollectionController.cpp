@@ -49,10 +49,10 @@ constexpr auto CONFIRM_REMOVE_COLLECTION        = QT_TRANSLATE_NOOP("CollectionC
 constexpr auto CONFIRM_REMOVE_DATABASE          = QT_TRANSLATE_NOOP("CollectionController", "Delete collection database as well?");
 constexpr auto CANNOT_WRITE_TO_DATABASE         = QT_TRANSLATE_NOOP("CollectionController", "No write access to %1");
 constexpr auto SAVE_USER_DATA                   = QT_TRANSLATE_NOOP("CollectionController", "Keep your user data?");
-constexpr auto DONT_ASK_ANYMORE                 = QT_TRANSLATE_NOOP("CollectionController", "Don't ask anymore");
+constexpr auto DO_NOT_ASK_ANYMORE               = QT_TRANSLATE_NOOP("CollectionController", "Don't ask anymore");
 constexpr auto ERROR                            = QT_TRANSLATE_NOOP("CollectionController", "The collection was not %1 due to errors. See log.");
-constexpr auto YES                              = QT_TRANSLATE_NOOP("CollectionController", "Yes");
-constexpr auto NO                               = QT_TRANSLATE_NOOP("CollectionController", "No");
+constexpr auto YES_WORD                         = QT_TRANSLATE_NOOP("CollectionController", "Yes");
+constexpr auto NO_WORD                          = QT_TRANSLATE_NOOP("CollectionController", "No");
 constexpr auto DISCARD                          = QT_TRANSLATE_NOOP("CollectionController", "Discard");
 constexpr auto RECREATE                         = QT_TRANSLATE_NOOP("CollectionController", "Recreate collection");
 constexpr auto BAD_ARCHIVES_DETECTED            = QT_TRANSLATE_NOOP("CollectionController", "Corrupted archives detected:\n%1");
@@ -221,8 +221,8 @@ public:
 			"",
 			Tr(COLLECTION_UPDATED),
 			{
-				{   QMessageBox::ButtonRole::YesRole,      Tr(YES) },
-				{    QMessageBox::ButtonRole::NoRole,       Tr(NO) },
+				{   QMessageBox::ButtonRole::YesRole, Tr(YES_WORD) },
+				{    QMessageBox::ButtonRole::NoRole,  Tr(NO_WORD) },
 				{ QMessageBox::ButtonRole::ResetRole,  Tr(DISCARD) },
 				{ QMessageBox::ButtonRole::ApplyRole, Tr(RECREATE) },
         },
@@ -311,7 +311,7 @@ private:
 
 		if (needSaveUserData == NeedSaveUserData::Ask)
 		{
-			Util::DialogInitializer dialogInitializer { Tr(SAVE_USER_DATA), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, Tr(DONT_ASK_ANYMORE) };
+			Util::DialogInitializer dialogInitializer { Tr(SAVE_USER_DATA), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes, Tr(DO_NOT_ASK_ANYMORE) };
 			const auto              answer = m_uiFactory->ShowQuestion(dialogInitializer);
 			if (dialogInitializer.checked && *dialogInitializer.checked == Qt::Checked)
 				m_settings->Set(SAVE_USER_DATA_KEY, answer == QMessageBox::Yes ? NeedSaveUserData::Yes : NeedSaveUserData::No);

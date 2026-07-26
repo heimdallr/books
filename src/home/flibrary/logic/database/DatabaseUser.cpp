@@ -85,10 +85,10 @@ struct DatabaseUser::Impl
 			{ 1,
 		      [] {
 			  },
-		      [this] {
+		      [] {
 				  APPLICATION_CURSOR_CONTROLLER->Set(true);
 			  },
-		      [this] {
+		      [] {
 				  APPLICATION_CURSOR_CONTROLLER->Set(false);
 			  },
 		      [] {

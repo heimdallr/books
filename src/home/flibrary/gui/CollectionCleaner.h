@@ -15,13 +15,6 @@
 
 #include "StackedPage.h"
 
-namespace Ui
-{
-
-class CollectionCleaner;
-
-};
-
 namespace HomeCompa::Flibrary
 {
 

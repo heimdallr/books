@@ -2,4 +2,7 @@
 	<qresource prefix="data">
 		<file alias="alphabet.json">data/alphabet.json</file>
 	</qresource>
+	<qresource prefix="images">
+		<file alias="image-placeholder.png">images/image-placeholder.png</file>
+	</qresource>
 </RCC>

@@ -101,6 +101,7 @@ constexpr auto SHOW_REVIEWS_KEY                   = "ui/View/ShowReadersReviews"
 constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
 constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
+constexpr auto SHOW_ALL_SETTINGS_KEY              = "Preferences/ShowAllSettingsMenuItem";
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 
@@ -347,8 +348,7 @@ public:
 		if (lineEditBookTitleToSearchNewWidth < 0)
 			return;
 
-		m_ui.lineEditBookTitleToSearch->setMinimumWidth(lineEditBookTitleToSearchNewWidth);
-		m_ui.lineEditBookTitleToSearch->setMaximumWidth(lineEditBookTitleToSearchNewWidth);
+		m_ui.lineEditBookTitleToSearch->setFixedWidth(lineEditBookTitleToSearchNewWidth);
 		m_searchBooksByTitleLayout->invalidate();
 	}
 
@@ -357,14 +357,17 @@ public:
 		m_ui.lineEditBookTitleToSearch->setText(text);
 	}
 
-	void OnStackedPageStateChanged(std::shared_ptr<QWidget> widget, const int state)
+	void OnStackedPageStateChanged(QStackedWidget* stackedWidget, std::shared_ptr<QWidget> widget, const int state)
 	{
-		const auto reset = [this] {
+		if (!stackedWidget)
+			stackedWidget = m_ui.stackedWidget;
+
+		const auto reset = [&] {
 			if (!m_additionalWidget)
 				return;
 
 			m_additionalWidget->setParent(nullptr);
-			m_ui.stackedWidget->removeWidget(m_additionalWidget.get());
+			stackedWidget->removeWidget(m_additionalWidget.get());
 			m_additionalWidget.reset();
 		};
 
@@ -373,7 +376,7 @@ public:
 			case StackedPage::State::Created:
 				reset();
 				m_additionalWidget = std::move(widget);
-				m_ui.stackedWidget->setCurrentIndex(m_ui.stackedWidget->addWidget(m_additionalWidget.get()));
+				stackedWidget->setCurrentIndex(stackedWidget->addWidget(m_additionalWidget.get()));
 				break;
 
 			case StackedPage::State::Finished:
@@ -382,7 +385,7 @@ public:
 				[[fallthrough]];
 
 			case StackedPage::State::Started:
-				m_ui.stackedWidget->setCurrentIndex(0);
+				stackedWidget->setCurrentIndex(0);
 				break;
 
 			default:
@@ -765,9 +768,35 @@ private:
 		connect(m_ui.actionGenerateIndexInpx, &QAction::triggered, &m_self, [this] {
 			GenerateCollectionInpx();
 		});
-		connect(m_ui.actionShowCollectionCleaner, &QAction::triggered, &m_self, [this] {
-			m_uiFactory->CreateCollectionCleaner();
+
+		const auto openStacked = [this](QStackedWidget* stackedWidget, QAction* action, QWidget* (IUiFactory::*create)(QStackedWidget*) const) {
+			if (!action->isChecked())
+				return OnStackedPageStateChanged(stackedWidget, {}, StackedPage::State::Finished);
+
+			const auto* widget = std::invoke(create, *m_uiFactory, stackedWidget);
+			connect(widget, &QObject::destroyed, widget, [action] {
+				action->setChecked(false);
+			});
+		};
+		connect(m_ui.actionShowCollectionCleaner, &QAction::triggered, &m_self, [this, openStacked] {
+			openStacked(m_ui.stackedWidget, m_ui.actionShowCollectionCleaner, &IUiFactory::CreateCollectionCleaner);
 		});
+		m_ui.actionShowImageViewer->setVisible(false);
+		if (m_collectionController->ActiveCollectionExists())
+		{
+			const auto checkImageFolder = [this](const QString& folder) {
+				QDir dir(m_collectionController->GetActiveCollection().GetFolder());
+				return dir.cd(folder) && !dir.entryList({ "*.zip" }, QDir::Files).isEmpty();
+			};
+			if (checkImageFolder(Global::COVERS) || checkImageFolder(Global::IMAGES))
+			{
+				m_ui.actionShowImageViewer->setVisible(true);
+				connect(m_ui.actionShowImageViewer, &QAction::triggered, &m_self, [this, openStacked] {
+					openStacked(m_ui.rightStackedWidget, m_ui.actionShowImageViewer, &IUiFactory::CreateImageViewer);
+				});
+			}
+		}
+
 		ConnectSettings(m_ui.actionAllowDestructiveOperations, {}, this, &Impl::AllowDestructiveOperation);
 	}
 
@@ -831,11 +860,11 @@ private:
 				action->setChecked(checked);
 			}
 		};
-		m_enableAllJokes = m_ui.menuJokes->addAction(Tr(ENABLE_ALL), [this, checkAll, mayBeChecked] {
+		m_enableAllJokes = m_ui.menuJokes->addAction(Tr(ENABLE_ALL), [checkAll, mayBeChecked] {
 			checkAll(mayBeChecked, true);
 		});
 		m_enableAllJokes->setObjectName(ENABLE_ALL);
-		m_disableAllJokes = m_ui.menuJokes->addAction(Tr(DISABLE_ALL), [this, checkAll, mayBeUnchecked] {
+		m_disableAllJokes = m_ui.menuJokes->addAction(Tr(DISABLE_ALL), [checkAll, mayBeUnchecked] {
 			checkAll(mayBeUnchecked, false);
 		});
 		m_disableAllJokes->setObjectName(DISABLE_ALL);
@@ -1069,9 +1098,12 @@ private:
 		connect(m_ui.actionShowHotkeyDialog, &QAction::triggered, &m_self, [&] {
 			m_uiFactory->CreateHotkeyDialog()->exec();
 		});
-		connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
-			m_uiFactory->CreateSettingsDialog()->exec();
-		});
+
+		m_ui.actionAllSettings->setVisible(m_settings->Get(SHOW_ALL_SETTINGS_KEY, false));
+		if (m_ui.actionAllSettings->isVisible())
+			connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
+				m_uiFactory->CreateSettingsDialog()->exec();
+			});
 	}
 
 	void ConnectActionsHelpView()
@@ -1374,7 +1406,7 @@ private:
 			if (id <= 0)
 				return;
 
-			ILogicFactory::Lock(m_logicFactory)->FindBook("Search", QString::number(id));
+			m_navigationWidget->SetMode(static_cast<int>(NavigationMode::Search), QString::number(id));
 			searchController.reset();
 		});
 	}
@@ -1731,7 +1763,7 @@ MainWindow::MainWindow(
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)), true);
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, this, SLOT(OnSearchNavigationItemSelected(long long, const QString&)), true);
-	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::STACKED_PAGE_STATE_CHANGED, this, SLOT(OnStackedPageStateChanged(std::shared_ptr<QWidget>, int)), true);
+	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::STACKED_PAGE_STATE_CHANGED, this, SLOT(OnStackedPageStateChanged(QStackedWidget*, std::shared_ptr<QWidget>, int)), true);
 	PLOGV << "MainWindow created";
 }
 
@@ -1790,7 +1822,7 @@ void MainWindow::OnSearchNavigationItemSelected(const long long id, const QStrin
 	m_impl->OnSearchNavigationItemSelected(id, text);
 }
 
-void MainWindow::OnStackedPageStateChanged(std::shared_ptr<QWidget> widget, const int state)
+void MainWindow::OnStackedPageStateChanged(QStackedWidget* stackedWidget, std::shared_ptr<QWidget> widget, const int state)
 {
-	m_impl->OnStackedPageStateChanged(std::move(widget), state);
+	m_impl->OnStackedPageStateChanged(stackedWidget, std::move(widget), state);
 }

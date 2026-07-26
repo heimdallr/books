@@ -27,6 +27,7 @@ public:
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel>     CreateScriptModel() const                         = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel>     CreateScriptCommandModel() const                  = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel>     CreateAuthorReviewModel() const                   = 0;
+	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel>     CreateImageModel() const                          = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel>     CreateFilterListModel(IDataItem::Ptr data) const  = 0;
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel>     CreateFilterTreeModel(IDataItem::Ptr data) const  = 0;
 	[[nodiscard]] virtual IDataItem::Ptr                          GetData() const noexcept                          = 0;

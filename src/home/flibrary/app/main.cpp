@@ -60,7 +60,7 @@ constexpr auto REMOVE_DATABASE_MANUALLY = QT_TRANSLATE_NOOP("Main", "In that cas
 constexpr auto CANNOT_REMOVE_DATABASE   = QT_TRANSLATE_NOOP("Main", "The collection database file could not be deleted. Please delete it manually before restarting the program:<br><br><b>%1</b><br>");
 TR_DEF
 
-std::optional<Collection> RecreateDatabase(Hypodermic::Container& container, bool force = false)
+std::optional<Collection> RecreateDatabase(Hypodermic::Container& container, const bool force = false)
 {
 	const auto uiFactory   = container.resolve<IUiFactory>();
 	const auto showWarning = [&](const QString& message) {

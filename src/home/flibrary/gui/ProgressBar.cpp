@@ -61,7 +61,7 @@ private:
 	int                                                     m_loggedValue { 0 };
 };
 
-ProgressBar::ProgressBar(std::shared_ptr<IBooksExtractorProgressController> progressController, QWidget* parent)
+ProgressBar::ProgressBar(std::shared_ptr<IMainProgressController> progressController, QWidget* parent)
 	: QWidget(parent)
 	, m_impl(*this, std::move(progressController))
 {

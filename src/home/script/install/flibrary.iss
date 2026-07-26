@@ -27,7 +27,7 @@ ChangesAssociations=yes
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir={#RootDir}build\installer
+OutputDir={#RootDir}{#MyBuildFolder}\installer
 OutputBaseFilename={#MyAppName}-{#MyAppVersion}-setup-{#MyOS}
 SetupIconFile={#RootDir}src\home\resources\icons\main.ico
 Compression=lzma
@@ -52,11 +52,11 @@ Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"; LicenseFile
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "{#RootDir}build\Release\bin\*.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}build\Release\bin\*.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}build\Release\bin\*.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#RootDir}build\Release\bin\*.qm" ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#RootDir}build\Release\bin\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion; AfterInstall: RegisterLanguage
+Source: "{#RootDir}{#MyBuildFolder}\Release\bin\*.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#RootDir}{#MyBuildFolder}\Release\bin\*.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#RootDir}{#MyBuildFolder}\Release\bin\*.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#RootDir}{#MyBuildFolder}\Release\bin\*.qm" ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#RootDir}{#MyBuildFolder}\Release\bin\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion; AfterInstall: RegisterLanguage
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

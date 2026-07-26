@@ -66,7 +66,7 @@ AuthorReview::AuthorReview(
 	std::shared_ptr<Util::ScrollBarController>   scrollBarController,
 	QWidget*                                     parent
 )
-	: StackedPage(parent)
+	: StackedPage(*uiFactory, parent)
 	, m_impl(*this, *uiFactory, *modelProvider, std::move(bookInteractor), std::move(settings), std::move(scrollBarController))
 {
 }
