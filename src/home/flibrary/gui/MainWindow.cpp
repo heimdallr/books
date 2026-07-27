@@ -40,6 +40,7 @@
 #include "settings/Font.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ObjectsConnector.h"
+#include "util/app.h"
 #include "utilgui/GeometryRestorable.h"
 
 #include "Constant.h"
@@ -574,7 +575,11 @@ private:
 		PLOGV << "Setup";
 		m_ui.setupUi(&m_self);
 
-		m_self.setWindowTitle(QString("%1 %2").arg(PRODUCT_ID, PRODUCT_VERSION));
+		const auto getProductName = [] {
+			return QString("%1 %2 %3").arg(PRODUCT_ID, PRODUCT_VERSION, Util::GetInstallerDescription().name);
+		};
+
+		m_self.setWindowTitle(getProductName());
 
 		m_scrollBarController->SetScrollArea(m_ui.logView);
 		m_parentWidgetProvider->SetWidget(&m_self);
@@ -608,7 +613,7 @@ private:
 			m_logController->SetSeverity(severity.toInt());
 
 		if (m_collectionController->ActiveCollectionExists())
-			m_self.setWindowTitle(QString("%1 %2 - %3").arg(PRODUCT_ID, PRODUCT_VERSION, m_collectionController->GetActiveCollection().name));
+			m_self.setWindowTitle(QString("%1 - %2").arg(getProductName(), m_collectionController->GetActiveCollection().name));
 
 		m_self.addAction(m_ui.actionShowQueryWindow);
 
