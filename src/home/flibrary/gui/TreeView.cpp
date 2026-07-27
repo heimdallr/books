@@ -1269,8 +1269,10 @@ private:
 
 	void CreateHeaderContextMenu(const QPoint& pos)
 	{
-		const auto modifiers   = QGuiApplication::keyboardModifiers();
-		const auto contextMenu = (modifiers & (Qt::ShiftModifier | Qt::AltModifier | Qt::ControlModifier)) ? GetHeaderContextMenu() : GetFilterContextMenu(pos);
+		const auto logicalIndex = m_ui.treeView->header()->logicalIndexAt(pos);
+		const auto contextMenu =
+			logicalIndex < 0 || (QGuiApplication::keyboardModifiers() & (Qt::ShiftModifier | Qt::AltModifier | Qt::ControlModifier)) ? GetHeaderContextMenu() : GetFilterContextMenu(logicalIndex);
+
 		contextMenu->setFont(m_self.font());
 		contextMenu->exec(QCursor::pos());
 	}
@@ -1296,7 +1298,7 @@ private:
 		                  | std::ranges::to<std::vector>();
 
 		auto* menu = m_uiFactory->CreateCheckableMenu(values, [this, header, index = std::move(index)](const int row, const bool checked) {
-			const auto           logicalIndex = index[row];
+			const auto           logicalIndex = index[static_cast<size_t>(row)];
 			const QSignalBlocker signalBlocker(header);
 			if (!checked)
 				header->resizeSection(0, header->sectionSize(0) + header->sectionSize(logicalIndex));
@@ -1315,10 +1317,9 @@ private:
 		return std::shared_ptr<QMenu> { menu };
 	}
 
-	std::shared_ptr<QMenu> GetFilterContextMenu(const QPoint& pos)
+	std::shared_ptr<QMenu> GetFilterContextMenu(const int logicalIndex)
 	{
-		const auto logicalIndex = m_ui.treeView->header()->logicalIndexAt(pos);
-		const auto column       = BookItem::Remap(logicalIndex);
+		const auto column = BookItem::Remap(logicalIndex);
 
 		auto& model     = *m_ui.treeView->model();
 		auto  valuesAll = model.data({}, Role::AuthorsAll + column).toStringList();
