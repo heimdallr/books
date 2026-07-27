@@ -1837,7 +1837,12 @@ private:
 
 	void CollectCompilations() const
 	{
-		const auto fileName = m_ini(ADDITIONAL_FOLDER) + "/" + COMPILATIONS;
+		const QDir additionalFolder(m_ini(ADDITIONAL_FOLDER));
+		const auto fileNames = additionalFolder.entryList({ QString("%1.*").arg(QFileInfo(COMPILATION).completeBaseName()) }, QDir::Files);
+		if (fileNames.isEmpty())
+			return;
+
+		const auto fileName = additionalFolder.filePath(fileNames.front());
 		if (!QFile::exists(fileName))
 			return;
 
