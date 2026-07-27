@@ -33,7 +33,7 @@ env:
   AQT_VERSION: 3.3.0
   BUILD_TYPE: Release
   CONAN_VERSION: 2.30.0
-  QT_VERSION: 6.10.3
+  QT_VERSION: 6.11.1
 
 jobs:
   linux:
