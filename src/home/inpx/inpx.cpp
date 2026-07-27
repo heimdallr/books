@@ -1835,15 +1835,24 @@ private:
 		}
 	}
 
-	void CollectCompilations() const
+	QString GetExistingsFilePathFromAdditionalFolder(const QString& fileName) const
 	{
 		const QDir additionalFolder(m_ini(ADDITIONAL_FOLDER));
-		const auto fileNames = additionalFolder.entryList({ QString("%1.*").arg(QFileInfo(COMPILATION).completeBaseName()) }, QDir::Files);
+		const auto fileNames = additionalFolder.entryList({ QString("%1.*").arg(QFileInfo(fileName).completeBaseName()) }, QDir::Files);
 		if (fileNames.isEmpty())
-			return;
+			return {};
 
-		const auto fileName = additionalFolder.filePath(fileNames.front());
-		if (!QFile::exists(fileName))
+		auto result = additionalFolder.filePath(fileNames.front());
+		if (!QFile::exists(result))
+			return {};
+
+		return result;
+	}
+
+	void CollectCompilations() const
+	{
+		const auto fileName = GetExistingsFilePathFromAdditionalFolder(COMPILATIONS);
+		if (fileName.isEmpty())
 			return;
 
 		const auto zip = TRY(QString("open %1").arg(fileName), [&] {
@@ -1980,8 +1989,8 @@ where b.FileName = ? and b.Ext = ?)");
 		if (!(m_mode & CreateCollectionMode::LoadAnnotations))
 			return;
 
-		const auto fileName = m_ini(ADDITIONAL_FOLDER) + "/" + ANNOTATIONS;
-		if (!QFile::exists(fileName))
+		const auto fileName = GetExistingsFilePathFromAdditionalFolder(ANNOTATIONS);
+		if (fileName.isEmpty())
 			return;
 
 		const auto zip = TRY(QString("open %1").arg(fileName), [&] {
