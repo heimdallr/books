@@ -231,7 +231,7 @@ private:
 
 	void OnImageContextMenuRequested(const QPoint&) const
 	{
-		if (Util::HasAlpha(m_ui.image->pixmap().toImage()).pixelFormat().channelCount() < 4)
+		if (Util::HasAlpha(m_ui.image->pixmap(Qt::ReturnByValue).toImage()).pixelFormat().channelCount() < 4)
 			return;
 
 		QMenu menu(&m_self);

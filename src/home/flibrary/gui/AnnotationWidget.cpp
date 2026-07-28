@@ -281,7 +281,7 @@ public:
 			menu.addAction(m_ui.actionCopyImage);
 			menu.addAction(m_ui.actionSaveImageAs);
 			menu.addAction(m_ui.actionSaveAllImages);
-			if (Util::HasAlpha(m_ui.cover->pixmap().toImage()).pixelFormat().channelCount() > 3)
+			if (Util::HasAlpha(m_ui.cover->pixmap(Qt::ReturnByValue).toImage()).pixelFormat().channelCount() > 3)
 				menu.addAction(m_ui.actionSetBackgroundColor);
 			menu.setFont(m_self.font());
 			menu.exec(m_ui.cover->mapToGlobal(pos));
