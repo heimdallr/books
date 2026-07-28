@@ -416,7 +416,7 @@
   </action>
   <action name="actionSetBackgroundColor">
    <property name="text">
-    <string>Specify the background color of the image</string>
+    <string>Set background color</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

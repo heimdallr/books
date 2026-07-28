@@ -316,6 +316,10 @@
         <source>&amp;Save image as...</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Set background color</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>AuthorReview</name>
@@ -948,6 +952,10 @@ Restart now?</source>
     </message>
     <message>
         <source>Distributed under license %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Specify the background color of the image</source>
         <translation></translation>
     </message>
     <message>
@@ -2755,10 +2763,6 @@ Try again?</source>
     </message>
     <message>
         <source>Set background color</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Specify the background color of the image</source>
         <translation></translation>
     </message>
 </context>
