@@ -217,17 +217,9 @@ public:
 		m_scrollBarControllerContent->SetScrollArea(m_ui.content);
 
 		m_ui.info->installEventFilter(m_scrollBarControllerAnnotation.get()); // @todo
-		m_scrollBarControllerAnnotation->SetScrollArea(m_ui.scrollArea);
-
-		const auto setCustomPalette = [](QWidget& widget) {
-			auto palette = widget.palette();
-			palette.setColor(QPalette::ColorRole::Window, palette.color(QPalette::ColorRole::Base));
-			widget.setPalette(palette);
-		};
+		m_scrollBarControllerAnnotation->SetScrollArea(m_ui.infoArea);
 
 		m_ui.coverArea->setVisible(false);
-		setCustomPalette(*m_ui.coverArea);
-		setCustomPalette(*m_ui.scrollArea->viewport());
 
 		m_progressTimer.setSingleShot(true);
 		m_progressTimer.setInterval(std::chrono::milliseconds(300));
