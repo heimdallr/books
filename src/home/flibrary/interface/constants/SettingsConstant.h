@@ -51,4 +51,6 @@ constexpr auto SEARCH_WITH_AUTHOR     = "SearchBy/Author";
 constexpr auto SEARCH_WITH_SERIES     = "SearchBy/Series";
 constexpr auto SEARCH_WITH_ANNOTATION = "SearchBy/Annotation";
 
+constexpr auto BACKGROUND_COLOR_TEMPLATE = "background-color: %1;";
+
 } // namespace HomeCompa::Flibrary::Constant::Settings
