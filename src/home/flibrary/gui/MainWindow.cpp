@@ -850,7 +850,7 @@ private:
 
 			connect(action, &QAction::triggered, [this, action, name, disclaimer](const bool checked) {
 				if (!checked || disclaimer.isEmpty() || m_uiFactory->ShowWarning(disclaimer, QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
-					return m_settings->Set(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name), checked);
+					return (void)m_settings->Set(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name), checked);
 				QTimer::singleShot(0, [action] {
 					action->setChecked(false);
 				});

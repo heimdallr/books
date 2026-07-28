@@ -212,7 +212,7 @@ private:
 	void SetAuth()
 	{
 		ui.lineEditOpdsUser->text().isEmpty() ? settings->Remove(Constant::Settings::OPDS_AUTH)
-											  : settings->Set(Constant::Settings::OPDS_AUTH, Util::GetSaltedHash(ui.lineEditOpdsUser->text(), ui.lineEditOpdsPassword->text()));
+											  : (void)settings->Set(Constant::Settings::OPDS_AUTH, Util::GetSaltedHash(ui.lineEditOpdsUser->text(), ui.lineEditOpdsPassword->text()));
 	}
 
 private:
