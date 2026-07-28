@@ -38,7 +38,9 @@ using namespace HomeCompa;
 namespace
 {
 
-constexpr auto SHOW_JOKE_ERRORS = "Preferences/AnnotationJokes/ShowErrors";
+constexpr auto SHOW_JOKE_ERRORS               = "Preferences/AnnotationJokes/ShowErrors";
+constexpr auto IMAGE_BACKGROUND_COLOR         = "ui/Annotation/ImageBackgroundColor";
+constexpr auto IMAGE_BACKGROUND_COLOR_DEFAULT = "white";
 
 constexpr std::pair<const char*, bool> NO_NAVIGATION { nullptr, false };
 
@@ -228,7 +230,13 @@ public:
 
 		m_annotationController->RegisterObserver(this);
 
-		m_ui.cover->setStyleSheet("background-color: white;");
+		const QString styleSheet = [&] {
+			if (const auto colorName = m_settings->Get(IMAGE_BACKGROUND_COLOR, QString { IMAGE_BACKGROUND_COLOR_DEFAULT }); QColor::IS_VALID_COLOR_NAME(colorName))
+				return QString(Constant::Settings::BACKGROUND_COLOR_TEMPLATE).arg(colorName);
+			return QString(Constant::Settings::BACKGROUND_COLOR_TEMPLATE).arg(IMAGE_BACKGROUND_COLOR_DEFAULT);
+		}();
+
+		m_ui.cover->setStyleSheet(styleSheet);
 
 		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&](const QString& link) {
 			OnLinkActivated(link);
@@ -273,6 +281,8 @@ public:
 			menu.addAction(m_ui.actionCopyImage);
 			menu.addAction(m_ui.actionSaveImageAs);
 			menu.addAction(m_ui.actionSaveAllImages);
+			if (Util::HasAlpha(m_ui.cover->pixmap().toImage()).pixelFormat().channelCount() > 3)
+				menu.addAction(m_ui.actionSetBackgroundColor);
 			menu.setFont(m_self.font());
 			menu.exec(m_ui.cover->mapToGlobal(pos));
 		});
@@ -392,6 +402,9 @@ public:
 		});
 		connect(m_ui.actionImageHome, &QAction::triggered, [this, onCoverClicked] {
 			onCoverClicked(QPoint(m_ui.cover->width() / 2, 1));
+		});
+		connect(m_ui.actionSetBackgroundColor, &QAction::triggered, [this] {
+			m_uiFactory->SetBackgroundStyleSheet(*m_ui.cover, IMAGE_BACKGROUND_COLOR);
 		});
 	}
 
@@ -547,7 +560,7 @@ private:
 
 			pixmap = pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 			m_ui.cover->setPixmap(pixmap);
-			imgWidth = pixmap.width();
+			imgWidth  = pixmap.width();
 			imgHeight = pixmap.height();
 		}
 		else
