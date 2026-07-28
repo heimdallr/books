@@ -545,7 +545,10 @@ private:
 			else
 				imgWidth = pixmap.width() * imgHeight / pixmap.height();
 
-			m_ui.cover->setPixmap(pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+			pixmap = pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+			m_ui.cover->setPixmap(pixmap);
+			imgWidth = pixmap.width();
+			imgHeight = pixmap.height();
 		}
 		else
 		{
@@ -562,8 +565,8 @@ private:
 		if (m_covers.size() > 1)
 			m_coverButtonsEnabled = true;
 
-		m_ui.coverArea->setMinimumWidth(imgWidth);
-		m_ui.coverArea->setMaximumWidth(imgWidth);
+		m_ui.coverArea->setFixedWidth(imgWidth);
+		m_ui.cover->setFixedSize(imgWidth, imgHeight);
 
 		const QFontMetrics metrics(m_self.font());
 		const auto         height = 3 * metrics.lineSpacing() / 2;

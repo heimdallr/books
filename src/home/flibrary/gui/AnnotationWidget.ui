@@ -167,9 +167,6 @@
                 <property name="alignment">
                  <set>Qt::AlignmentFlag::AlignCenter</set>
                 </property>
-                <property name="wordWrap">
-                 <bool>true</bool>
-                </property>
                 <property name="textInteractionFlags">
                  <set>Qt::TextInteractionFlag::NoTextInteraction</set>
                 </property>
