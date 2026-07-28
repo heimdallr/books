@@ -167,7 +167,7 @@ std::optional<QFont> UiFactory::GetFont(const QString& title, const QFont& font,
 	return QFontDialog::getFont(&ok, font, m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(), title, options);
 }
 
-std::optional<QColor> UiFactory::GetColor(const QString& title, const QColor& color, const QColorDialog::ColorDialogOptions options) const
+std::optional<QColor> UiFactory::GetColor(const QString& title, const QColor& color, const QColorDialog::ColorDialogOptions& options) const
 {
 	auto result = QColorDialog::getColor(color, GetParentWidget(nullptr), title, options);
 	return result.isValid() ? std::optional { result } : std::nullopt;

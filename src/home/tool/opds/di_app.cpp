@@ -30,7 +30,7 @@ class UiFactory final : public Flibrary::IUiFactory
 		return {};
 	}
 
-	std::optional<QColor> GetColor(const QString& /*title*/, const QColor& /*color*/, const QColorDialog::ColorDialogOptions /*options*/) const override
+	std::optional<QColor> GetColor(const QString& /*title*/, const QColor& /*color*/, const QColorDialog::ColorDialogOptions& /*options*/) const override
 	{
 		return {};
 	}

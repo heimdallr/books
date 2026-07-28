@@ -390,7 +390,7 @@ std::optional<QFont> UiFactory::GetFont(const QString& title, const QFont& font,
 	return m_impl->container.resolve<Util::IUiFactory>()->GetFont(title, font, options);
 }
 
-std::optional<QColor> UiFactory::GetColor(const QString& title, const QColor& color, const QColorDialog::ColorDialogOptions options) const
+std::optional<QColor> UiFactory::GetColor(const QString& title, const QColor& color, const QColorDialog::ColorDialogOptions& options) const
 {
 	return m_impl->container.resolve<Util::IUiFactory>()->GetColor(title, color, options);
 }
