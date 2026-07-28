@@ -197,6 +197,10 @@ private: // IUiFactory
 	{
 	}
 
+	void SetBackgroundStyleSheet(QWidget& /*widget*/, const QString& /*key*/) const override
+	{
+	}
+
 	Flibrary::IDataItem::Ptr
 	AddMenuBarToHotkeys(const ISettings& /*settings*/, const QMenuBar& /*menuBar*/, const QString& /*title*/, const std::function<void(const Flibrary::IDataItem::Ptr&, QAction*)>& /*functor*/) const override
 	{
