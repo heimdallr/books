@@ -38,23 +38,24 @@ public:
 	};
 
 public:
-	[[nodiscard]] virtual std::shared_ptr<class TreeView>             CreateTreeViewWidget(ItemType type) const                         = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IAddCollectionDialog> CreateAddCollectionDialog(std::filesystem::path inpxFolder) const = 0;
-	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateScriptDialog() const                                        = 0;
-	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateSettingsDialog() const                                      = 0;
-	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate>    CreateTreeViewDelegateBooks(QTreeView& parent) const              = 0;
-	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate>    CreateTreeViewDelegateNavigation(QAbstractItemView& parent) const = 0;
-	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateOpdsDialog() const                                          = 0;
-	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateHotkeyDialog() const                                        = 0;
-	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateFilterSettingsDialog() const                                = 0;
-	[[nodiscard]] virtual std::shared_ptr<class IComboBoxTextDialog>  CreateComboBoxTextDialog(QString title) const                     = 0;
-	[[nodiscard]] virtual std::shared_ptr<QMainWindow>                CreateQueryWindow() const                                         = 0;
-	virtual QWidget*                                                  CreateCollectionCleaner(QStackedWidget* stackedWidget) const      = 0;
-	virtual QWidget*                                                  CreateImageViewer(QStackedWidget* stackedWidget) const            = 0;
-	virtual void                                                      CreateAuthorReview(long long id) const                            = 0;
-	virtual void                                                      ExecuteContextMenu(QLineEdit* lineEdit) const                     = 0;
-	virtual void                                                      ShowAbout() const                                                 = 0;
-	virtual void                                                      UpdateRecentOpenBookControllerMenu(QMenu& menu) const             = 0;
+	[[nodiscard]] virtual std::shared_ptr<class TreeView>             CreateTreeViewWidget(ItemType type) const                          = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IAddCollectionDialog> CreateAddCollectionDialog(std::filesystem::path inpxFolder) const  = 0;
+	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateScriptDialog() const                                         = 0;
+	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateSettingsDialog() const                                       = 0;
+	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate>    CreateTreeViewDelegateBooks(QTreeView& parent) const               = 0;
+	[[nodiscard]] virtual std::shared_ptr<class ITreeViewDelegate>    CreateTreeViewDelegateNavigation(QAbstractItemView& parent) const  = 0;
+	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateOpdsDialog() const                                           = 0;
+	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateHotkeyDialog() const                                         = 0;
+	[[nodiscard]] virtual std::shared_ptr<QDialog>                    CreateFilterSettingsDialog() const                                 = 0;
+	[[nodiscard]] virtual std::shared_ptr<class IComboBoxTextDialog>  CreateComboBoxTextDialog(QString title) const                      = 0;
+	[[nodiscard]] virtual std::shared_ptr<QMainWindow>                CreateQueryWindow() const                                          = 0;
+	virtual QWidget*                                                  CreateCollectionCleaner(QStackedWidget* stackedWidget) const       = 0;
+	virtual QWidget*                                                  CreateImageViewer(QStackedWidget* stackedWidget) const             = 0;
+	virtual void                                                      CreateAuthorReview(long long id) const                             = 0;
+	virtual void                                                      ExecuteContextMenu(QLineEdit* lineEdit) const                      = 0;
+	virtual void                                                      ShowAbout() const                                                  = 0;
+	virtual void                                                      UpdateRecentOpenBookControllerMenu(QMenu& menu) const              = 0;
+	virtual void                                                      SetBackgroundStyleSheet(QWidget& widget, const QString& key) const = 0;
 
 	[[nodiscard]] virtual IDataItem::Ptr
 	AddMenuBarToHotkeys(const ISettings& settings, const QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*)>& functor) const = 0;

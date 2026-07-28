@@ -414,6 +414,14 @@
     <string notr="true">Alt+Down</string>
    </property>
   </action>
+  <action name="actionSetBackgroundColor">
+   <property name="text">
+    <string>Set background color</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <customwidgets>
   <customwidget>

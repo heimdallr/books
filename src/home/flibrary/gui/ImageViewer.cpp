@@ -11,6 +11,7 @@
 #include "interface/localization.h"
 
 #include "gutil/util.h"
+#include "util/ImageUtil.h"
 #include "util/ObjectsConnector.h"
 #include "utilgui/GeometryRestorable.h"
 
@@ -23,13 +24,11 @@ using namespace HomeCompa::Flibrary;
 namespace
 {
 
-constexpr auto CONTEXT                       = "ImageViewer";
-constexpr auto SELECT_FOLDER                 = QT_TRANSLATE_NOOP("ImageViewer", "Select images folder");
-constexpr auto SELECT_IMAGE_BACKGROUND_COLOR = QT_TRANSLATE_NOOP("ImageViewer", "Specify the background color of the image");
+constexpr auto CONTEXT       = "ImageViewer";
+constexpr auto SELECT_FOLDER = QT_TRANSLATE_NOOP("ImageViewer", "Select images folder");
 
-constexpr auto ICON_SIZE                       = "ui/ImageViewer/IconSize";
-constexpr auto IMAGE_BACKGROUND_COLOR          = "ui/ImageViewer/ImageBackgroundColor";
-constexpr auto IMAGE_BACKGROUND_COLOR_TEMPLATE = "background-color: %1;";
+constexpr auto ICON_SIZE              = "ui/ImageViewer/IconSize";
+constexpr auto IMAGE_BACKGROUND_COLOR = "ui/ImageViewer/ImageBackgroundColor";
 
 TR_DEF
 
@@ -160,7 +159,7 @@ private: // IImageViewerController::IObserver
 			if (pixmap.isNull())
 				return QString {};
 			if (const auto colorName = m_settings->Get(IMAGE_BACKGROUND_COLOR, QString {}); QColor::IS_VALID_COLOR_NAME(colorName))
-				return QString(IMAGE_BACKGROUND_COLOR_TEMPLATE).arg(colorName);
+				return QString(Constant::Settings::BACKGROUND_COLOR_TEMPLATE).arg(colorName);
 			return QString {};
 		}();
 		m_ui.image->setStyleSheet(styleSheet);
@@ -232,6 +231,9 @@ private:
 
 	void OnImageContextMenuRequested(const QPoint&) const
 	{
+		if (Util::HasAlpha(m_ui.image->pixmap().toImage()).pixelFormat().channelCount() < 4)
+			return;
+
 		QMenu menu(&m_self);
 		menu.setFont(m_self.font());
 		menu.addAction(m_ui.actionSetBackgroundColor);
@@ -257,24 +259,9 @@ private:
 		menu.exec(QCursor::pos());
 	}
 
-	void OnActionSetBackgroundColorTriggered()
+	void OnActionSetBackgroundColorTriggered() const
 	{
-		const auto backgroundColor = m_uiFactory->GetColor(Tr(SELECT_IMAGE_BACKGROUND_COLOR), [this] {
-			if (const auto colorName = m_settings->Get(IMAGE_BACKGROUND_COLOR, QString {}); QColor::IS_VALID_COLOR_NAME(colorName))
-				return QColor(colorName);
-			return QColor { Qt::white };
-		}());
-
-		if (!backgroundColor)
-		{
-			m_settings->Remove(IMAGE_BACKGROUND_COLOR);
-			m_ui.image->setStyleSheet({});
-			return;
-		}
-
-		const auto colorName = backgroundColor->name();
-		m_settings->Set(IMAGE_BACKGROUND_COLOR, colorName);
-		m_ui.image->setStyleSheet(QString(IMAGE_BACKGROUND_COLOR_TEMPLATE).arg(colorName));
+		m_uiFactory->SetBackgroundStyleSheet(*m_ui.image, IMAGE_BACKGROUND_COLOR);
 	}
 
 private:

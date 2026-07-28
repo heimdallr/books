@@ -57,15 +57,16 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto        CONTEXT            = "Dialog";
-constexpr auto        ABOUT_TITLE        = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
-constexpr auto        ABOUT_DESCRIPTION  = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger");
-constexpr auto        ABOUT_VERSION      = QT_TRANSLATE_NOOP("Dialog", "Version: %1 (%2) %3");
-constexpr auto        ABOUT_LICENSE      = QT_TRANSLATE_NOOP("Dialog", "Distributed under license %1");
-constexpr auto        PERSONAL_BUILD     = QT_TRANSLATE_NOOP("Dialog", "<p>Personal <a href='%1'>%2</a> build</p>");
-constexpr auto        VERSION_COPIED     = QT_TRANSLATE_NOOP("Dialog", "The program version has been copied to the clipboard");
-constexpr auto        CLEAR_RECENT_BOOKS = QT_TRANSLATE_NOOP("Dialog", "Cleanup recent books list");
-constexpr const char* COMPONENTS[]       = {
+constexpr auto        CONTEXT                       = "Dialog";
+constexpr auto        ABOUT_TITLE                   = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
+constexpr auto        ABOUT_DESCRIPTION             = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger");
+constexpr auto        ABOUT_VERSION                 = QT_TRANSLATE_NOOP("Dialog", "Version: %1 (%2) %3");
+constexpr auto        ABOUT_LICENSE                 = QT_TRANSLATE_NOOP("Dialog", "Distributed under license %1");
+constexpr auto        PERSONAL_BUILD                = QT_TRANSLATE_NOOP("Dialog", "<p>Personal <a href='%1'>%2</a> build</p>");
+constexpr auto        VERSION_COPIED                = QT_TRANSLATE_NOOP("Dialog", "The program version has been copied to the clipboard");
+constexpr auto        CLEAR_RECENT_BOOKS            = QT_TRANSLATE_NOOP("Dialog", "Cleanup recent books list");
+constexpr auto        SELECT_IMAGE_BACKGROUND_COLOR = QT_TRANSLATE_NOOP("Dialog", "Specify the background color of the image");
+constexpr const char* COMPONENTS[]                  = {
 	"<hr><table style='font-size:50%'>",
 	QT_TRANSLATE_NOOP("Dialog", "<tr><td style='text-align: center'>Components / Libraries</td></tr>"),
 	// ReSharper disable StringLiteralTypo
@@ -641,4 +642,25 @@ limit {}
 			  };
 		  } }
 	);
+}
+
+void UiFactory::SetBackgroundStyleSheet(QWidget& widget, const QString& key) const
+{
+	const auto settings        = m_impl->container.resolve<ISettings>();
+	const auto backgroundColor = GetColor(Tr(SELECT_IMAGE_BACKGROUND_COLOR), [&] {
+		if (const auto colorName = settings->Get(key, QString {}); QColor::IS_VALID_COLOR_NAME(colorName))
+			return QColor(colorName);
+		return QColor { Qt::white };
+	}());
+
+	if (!backgroundColor)
+	{
+		settings->Remove(key);
+		widget.setStyleSheet({});
+		return;
+	}
+
+	const auto colorName = backgroundColor->name();
+	settings->Set(key, colorName);
+	widget.setStyleSheet(QString(Constant::Settings::BACKGROUND_COLOR_TEMPLATE).arg(colorName));
 }

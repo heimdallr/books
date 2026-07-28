@@ -316,6 +316,10 @@
         <source>&amp;Save image as...</source>
         <translation>&amp;Зберегти зображення як...</translation>
     </message>
+    <message>
+        <source>Set background color</source>
+        <translation>Змінити колір фону</translation>
+    </message>
 </context>
 <context>
     <name>AuthorReview</name>
@@ -960,6 +964,10 @@ Restart now?</source>
     <message>
         <source>Distributed under license %1</source>
         <translation>Розповсюджується за ліцензією %1</translation>
+    </message>
+    <message>
+        <source>Specify the background color of the image</source>
+        <translation>Вкажіть колір фону зображення</translation>
     </message>
     <message>
         <source>The program version has been copied to the clipboard</source>
@@ -2769,10 +2777,6 @@ Try again?</source>
     <message>
         <source>Set background color</source>
         <translation>Змінити колір фону</translation>
-    </message>
-    <message>
-        <source>Specify the background color of the image</source>
-        <translation>Вкажіть колір фону зображення</translation>
     </message>
 </context>
 <context>
