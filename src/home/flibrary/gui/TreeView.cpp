@@ -1091,7 +1091,7 @@ private:
 		});
 	}
 
-	void SaveHeaderLayout()
+	void SaveHeaderLayout(const bool headerContextMenuClicked = false)
 	{
 		if (m_recentMode.isEmpty())
 			return;
@@ -1105,7 +1105,8 @@ private:
 			for (int i = 0, sz = header->count(); i < sz; ++i)
 			{
 				const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
-				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), header->isSectionHidden(i));
+				if (m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), header->isSectionHidden(i)) && !headerContextMenuClicked)
+					m_uiFactory->ShowError("Gotcha!");
 				if (header->isSectionHidden(i))
 					continue;
 
@@ -1308,7 +1309,7 @@ private:
 			if (checked)
 				header->resizeSection(0, header->sectionSize(0) - header->sectionSize(logicalIndex));
 
-			SaveHeaderLayout();
+			SaveHeaderLayout(true);
 			OnHeaderSectionsVisibleChanged();
 
 			m_ui.treeView->viewport()->update();
