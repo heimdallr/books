@@ -1148,6 +1148,7 @@ private:
 		m_restoreBooksLayoutPending = false;
 
 		auto* header = m_ui.treeView->header();
+		const QSignalBlocker resizeGuard(header);
 
 		auto lastRestoredLayoutKey = m_ui.treeView->model()->rowCount() == 0 ? QString {} : QString("%1_%2").arg(m_navigationModeName, m_ui.cbMode->currentData().toString());
 		if (!Util::Set(m_lastRestoredLayoutKey, lastRestoredLayoutKey))
@@ -1200,8 +1201,6 @@ private:
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
 			collectData();
 		}
-
-		const QSignalBlocker resizeGuard(header);
 
 		if (needDataCollect)
 		{
