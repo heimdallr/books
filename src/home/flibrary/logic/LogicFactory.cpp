@@ -482,7 +482,9 @@ void LogicFactory::FindBook(const NavigationMode navigationMode, const QString& 
 
 	const auto navigationName = NAVIGATION_NAMES[static_cast<size_t>(navigationMode)];
 
-	settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(collection.id, QString("%1/").arg(Loc::NAVIGATION), navigationName), navigationId);
+	if (!navigationId.isEmpty())
+		settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(collection.id, QString("%1/").arg(Loc::NAVIGATION), navigationName), navigationId);
+
 	navigationController->SetMode(navigationName);
 }
 
