@@ -573,6 +573,7 @@ private: // ITreeViewController::::IObserver
 	{
 		return {};
 	}
+
 	void OnRestoreCurrentIdRequested() override
 	{
 	}
@@ -827,6 +828,31 @@ private:
 
 	void ConnectActionsNavigation()
 	{
+		auto* group = new QActionGroup(&m_self);
+
+		const auto createAction = [this, group](const NavigationMode navigationMode, const char* name) {
+			if (!m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(name), true))
+				return;
+
+			auto* action = m_ui.menuNavigation->addAction(Loc::Tr(Loc::NAVIGATION, name));
+			group->addAction(action);
+			action->setObjectName(QString("%1_isActive").arg(name));
+			action->setCheckable(true);
+			connect(action, &QAction::toggled, [this, navigationMode](const bool isChecked) {
+				if (isChecked)
+					ILogicFactory::Lock(m_logicFactory)->FindBook(navigationMode);
+			});
+		};
+
+#define NAVIGATION_MODE_ITEM(NAME) createAction(NavigationMode::NAME, #NAME);
+		NAVIGATION_MODE_ITEMS_X_MACRO
+#undef NAVIGATION_MODE_ITEM
+
+		m_ui.menuNavigation->addSeparator();
+
+		m_ui.menuNavigation->addAction(m_ui.actionNavigationUndo);
+		m_ui.menuNavigation->addAction(m_ui.actionNavigationRedo);
+
 		m_navigationUndoRedo->RegisterObserver(this);
 		connect(m_ui.actionNavigationUndo, &QAction::triggered, [this] {
 			m_navigationUndoRedo->Undo();
@@ -1512,7 +1538,7 @@ private:
 	{
 		const auto createAction = [this](const char* name) {
 			auto* action = m_ui.menuNavigationEnabled->addAction(Loc::Tr(Loc::NAVIGATION, name));
-			action->setObjectName(name);
+			action->setObjectName(QString("%1_isVisible").arg(name));
 			action->setCheckable(true);
 			action->setChecked(true);
 			ConnectSettings(action, QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(name));

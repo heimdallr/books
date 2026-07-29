@@ -529,8 +529,6 @@
     <property name="title">
      <string>Navigation</string>
     </property>
-    <addaction name="actionNavigationUndo"/>
-    <addaction name="actionNavigationRedo"/>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuCollection"/>
