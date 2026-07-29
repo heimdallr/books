@@ -784,6 +784,7 @@ private:
 		{
 			m_booksHeaderView->ResetFilteredIndex();
 			model->setData({}, !!(m_navigationItemFlags & (IDataItem::Flags::Filtered | IDataItem::Flags::BooksFiltered)), Role::NavigationItemFiltered);
+			m_ui.treeView->model()->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 
@@ -1198,7 +1199,7 @@ private:
 				auto& columnInfo  = columnInfoList[logicalIndex];
 				columnInfo.index  = m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(columnName), std::numeric_limits<int>::max());
 				columnInfo.width  = m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(columnName), header->minimumSectionSize());
-				columnInfo.hidden = m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), true);
+				columnInfo.hidden = m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), false);
 			}
 
 			m_booksHeaderView->Load(*m_settings);
@@ -1304,9 +1305,8 @@ private:
 							})
 		                  | std::views::transform([&](const int n) {
 								const auto logicalIndex = header->logicalIndex(n);
-								auto       name         = model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderTitle).toString();
-								index.emplace_back(name, logicalIndex);
-								return std::make_pair(std::move(name), !header->isSectionHidden(logicalIndex));
+								index.emplace_back(model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString(), logicalIndex);
+								return std::make_pair(model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderTitle).toString(), !header->isSectionHidden(logicalIndex));
 							})
 		                  | std::ranges::to<std::vector>();
 
@@ -1321,7 +1321,10 @@ private:
 			if (checked)
 				header->resizeSection(0, header->sectionSize(0) - header->sectionSize(logicalIndex));
 
-			m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), !checked);
+			{
+				SettingsGroup guard(*m_settings, GetColumnSettingsKey());
+				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), !checked);
+			}
 
 			OnHeaderSectionsVisibleChanged();
 
