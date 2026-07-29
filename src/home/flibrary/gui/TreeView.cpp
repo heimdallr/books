@@ -1104,12 +1104,10 @@ private:
 		const auto  saveHeaderLayout = [&] {
 			for (int i = 0, sz = header->count(); i < sz; ++i)
 			{
-				const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
-				const bool sectionHidden = header->isSectionHidden(i);
-				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), sectionHidden);
-				if (sectionHidden)
+				if (header->isSectionHidden(i))
 					continue;
 
+				const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
 				m_settings->Set(QString(COLUMN_WIDTH_LOCAL_KEY).arg(name), header->sectionSize(i));
 				m_settings->Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(name), header->visualIndex(i));
 			}
@@ -1282,7 +1280,7 @@ private:
 		auto*       header = m_ui.treeView->header();
 		const auto* model  = header->model();
 
-		std::vector<int> index;
+		std::vector<std::pair<QString, int>> index;
 
 		const auto values = std::views::iota(m_controller->GetViewMode() == ViewMode::Tree ? 1 : 0, header->count()) | std::views::filter([&](const int n) {
 								const auto logicalIndex = header->logicalIndex(n);
@@ -1292,13 +1290,13 @@ private:
 		                  | std::views::transform([&](const int n) {
 								const auto logicalIndex = header->logicalIndex(n);
 								auto       name         = model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderTitle).toString();
-								index.emplace_back(logicalIndex);
+								index.emplace_back(name, logicalIndex);
 								return std::make_pair(std::move(name), !header->isSectionHidden(logicalIndex));
 							})
 		                  | std::ranges::to<std::vector>();
 
 		auto* menu = m_uiFactory->CreateCheckableMenu(values, [this, header, index = std::move(index)](const int row, const bool checked) {
-			const auto           logicalIndex = index[static_cast<size_t>(row)];
+			const auto& [name, logicalIndex] = index[static_cast<size_t>(row)];
 			const QSignalBlocker signalBlocker(header);
 			if (!checked)
 				header->resizeSection(0, header->sectionSize(0) + header->sectionSize(logicalIndex));
@@ -1308,7 +1306,8 @@ private:
 			if (checked)
 				header->resizeSection(0, header->sectionSize(0) - header->sectionSize(logicalIndex));
 
-			SaveHeaderLayout(true);
+			m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), !checked);
+
 			OnHeaderSectionsVisibleChanged();
 
 			m_ui.treeView->viewport()->update();
