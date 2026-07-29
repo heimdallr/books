@@ -15,6 +15,7 @@
 #include "interface/logic/IJokeRequesterFactory.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/INavigationUndoRedo.h"
 #include "interface/logic/IRecentOpenBookController.h"
 #include "interface/ui/IAlphabetPanel.h"
 #include "interface/ui/ILineOption.h"
@@ -66,6 +67,7 @@ public:
 		std::shared_ptr<IHotkeyManager>                 hotkeyManager,
 		std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
 		std::shared_ptr<Util::ScrollBarController>      scrollBarController,
+		std::shared_ptr<INavigationUndoRedo>            navigationUndoRedo,
 		QWidget*                                        parent = nullptr
 	);
 	~MainWindow() override;
