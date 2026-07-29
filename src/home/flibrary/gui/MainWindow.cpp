@@ -573,6 +573,10 @@ private: // ITreeViewController::::IObserver
 	{
 		return {};
 	}
+	void OnRestoreCurrentIdRequested() override
+	{
+	}
+
 private: // INavigationUndoRedo::IObserver
 	void OnStateChanged() override
 	{

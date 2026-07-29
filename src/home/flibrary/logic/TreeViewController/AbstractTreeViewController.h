@@ -28,6 +28,7 @@ private: // ITreeViewController
 	[[nodiscard]] const char* TrContext() const noexcept override;
 	[[nodiscard]] int         GetModeIndex() const override;
 	void                      SetMode(const QString& mode) override;
+	void                      RestoreCurrentId() override;
 
 	void OnDoubleClicked(const QModelIndex&) const override
 	{

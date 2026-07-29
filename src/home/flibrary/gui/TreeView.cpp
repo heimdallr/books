@@ -609,6 +609,12 @@ private: // ITreeViewController::IObserver
 		return m_ui.treeView->currentIndex();
 	}
 
+	void OnRestoreCurrentIdRequested() override
+	{
+		m_currentId = m_settings->Get(GetRecentIdKey(), m_currentId);
+		Find(m_currentId, Role::Id);
+	}
+
 private: // ITreeViewDelegate::IObserver
 	void OnButtonClicked(const QModelIndex&) override
 	{
