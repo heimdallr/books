@@ -225,3 +225,7 @@ QModelIndex ModelProvider::GetCurrentIndex() const noexcept
 {
 	return {};
 }
+
+void ModelProvider::OnRestoreCurrentIdRequested()
+{
+}

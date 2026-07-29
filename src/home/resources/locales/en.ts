@@ -4724,6 +4724,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Redo</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Remove collection</source>
         <translation></translation>
     </message>
@@ -4765,6 +4769,10 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;Title</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Undo</source>
         <translation></translation>
     </message>
     <message>

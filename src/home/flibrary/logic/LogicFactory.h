@@ -46,7 +46,7 @@ private: // ILogicFactory
 	[[nodiscard]] Util::ExtractedBooks                      GetExtractedBooks(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList) const override;
 	[[nodiscard]] Util::ExtractedBook                       GetCurrentExtractedBook() const override;
 
-	void FindBook(const QString& navigationMode, const QString& navigationId, long long bookId) const override;
+	void FindBook(NavigationMode navigationMode, const QString& navigationId, long long bookId) const override;
 
 public: // special
 	[[nodiscard]] std::shared_ptr<IProgressController> GetProgressController() const override;

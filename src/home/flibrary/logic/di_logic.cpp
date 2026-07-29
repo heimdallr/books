@@ -38,6 +38,7 @@
 #include "shared/HotkeyManager.h"
 #include "shared/ImageViewerController.h"
 #include "shared/LibRateProvider.h"
+#include "shared/NavigationUndoRedo.h"
 #include "shared/OpdsController.h"
 #include "shared/ProgressController.h"
 #include "shared/ReaderController.h"
@@ -93,6 +94,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<HotkeyManager>().as<IHotkeyManager>().singleInstance();
 	builder.registerType<LogController>().as<ILogController>().singleInstance();
 	builder.registerType<NavigationQueryExecutor>().as<INavigationQueryExecutor>().singleInstance();
+	builder.registerType<NavigationUndoRedo>().as<INavigationUndoRedo>().singleInstance();
 	builder.registerType<ProgressController>().as<IMainProgressController>().singleInstance();
 	builder.registerType<ReaderController>().as<IReaderController>().singleInstance();
 	builder.registerType<SearchController>().as<IBookSearchController>().singleInstance();

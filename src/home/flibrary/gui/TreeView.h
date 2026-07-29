@@ -9,6 +9,7 @@
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IFilterProvider.h"
 #include "interface/logic/IHotkeyManager.h"
+#include "interface/logic/INavigationUndoRedo.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "settings/ISettings.h"
@@ -36,6 +37,7 @@ public:
 		std::shared_ptr<IHotkeyManager>             hotkeyManager,
 		std::shared_ptr<Util::ItemViewToolTipper>   itemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController>  scrollBarController,
+		std::shared_ptr<INavigationUndoRedo>        navigationUndoRedo,
 		QWidget*                                    parent = nullptr
 	);
 	~TreeView() override;

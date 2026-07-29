@@ -431,7 +431,7 @@
       <addaction name="menuColorScheme"/>
       <addaction name="separator"/>
      </widget>
-     <widget class="QMenu" name="menuNavigation">
+     <widget class="QMenu" name="menuNavigationEnabled">
       <property name="title">
        <string>Navigation</string>
       </property>
@@ -445,7 +445,7 @@
      <addaction name="actionShowStatusBar"/>
      <addaction name="actionShowSearchBookString"/>
      <addaction name="actionShowAuthorAnnotation"/>
-     <addaction name="menuNavigation"/>
+     <addaction name="menuNavigationEnabled"/>
      <addaction name="actionShowAnnotation"/>
      <addaction name="menuAnnotation"/>
      <addaction name="menuFont"/>
@@ -525,8 +525,16 @@
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
    </widget>
+   <widget class="QMenu" name="menuNavigation">
+    <property name="title">
+     <string>Navigation</string>
+    </property>
+    <addaction name="actionNavigationUndo"/>
+    <addaction name="actionNavigationRedo"/>
+   </widget>
    <addaction name="menuFile"/>
    <addaction name="menuCollection"/>
+   <addaction name="menuNavigation"/>
    <addaction name="menuSettings"/>
    <addaction name="menuHelp"/>
   </widget>
@@ -1240,6 +1248,22 @@
    </property>
    <property name="text">
     <string>View images</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionNavigationUndo">
+   <property name="text">
+    <string>&amp;Undo</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionNavigationRedo">
+   <property name="text">
+    <string>&amp;Redo</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

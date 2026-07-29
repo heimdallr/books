@@ -23,12 +23,6 @@ inline constexpr auto ON_BOOK_LINK_KEY             = "Preferences/Interaction/Bo
 inline constexpr auto ON_BOOK_DBL_CLICK_KEY        = "Preferences/Interaction/Book/OnDoubleClick";
 inline constexpr auto ON_BOOK_RECENT_TRIGGERED_KEY = "Preferences/Interaction/Book/OnRecentSelect";
 
-inline constexpr const char* NAVIGATION_TITLES[] = {
-#define NAVIGATION_MODE_ITEM(NAME) #NAME,
-	NAVIGATION_MODE_ITEMS_X_MACRO
-#undef NAVIGATION_MODE_ITEM
-};
-
 inline constexpr const char* NAVIGATION_ID_QUERY[] = {
 	"select AuthorID from Author_List where BookID = ? order by OrdNum limit 1",
 	"select SeriesID from Series_List where BookID = ? order by OrdNum limit 1",
@@ -45,7 +39,7 @@ inline constexpr const char* NAVIGATION_ID_QUERY[] = {
 	"select 42",
 };
 
-static_assert(std::size(NAVIGATION_TITLES) == std::size(NAVIGATION_ID_QUERY));
+static_assert(std::size(NAVIGATION_ID_QUERY) == static_cast<size_t>(NavigationMode::Last));
 
 #define INTERACT_ITEMS_X_MACRO  \
 	INTERACT_ITEM(Read)         \
@@ -219,7 +213,7 @@ private:
 		if (query->Eof())
 			return;
 
-		ILogicFactory::Lock(logicFactory)->FindBook(NAVIGATION_TITLES[navigationIndex], query->Get<QString>(0), bookId);
+		ILogicFactory::Lock(logicFactory)->FindBook(navigationMode, query->Get<QString>(0), bookId);
 	}
 };
 

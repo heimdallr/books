@@ -29,6 +29,7 @@
 #include "interface/localization.h"
 #include "interface/logic/IBookSearchController.h"
 #include "interface/logic/IInpxGenerator.h"
+#include "interface/logic/INavigationUndoRedo.h"
 #include "interface/logic/IOpdsController.h"
 #include "interface/logic/IScriptController.h"
 #include "interface/logic/IUpdateChecker.h"
@@ -253,6 +254,7 @@ class MainWindow::Impl final
 	, ILineOption::IObserver
 	, IAlphabetPanel::IObserver
 	, ITreeViewController::IObserver
+	, INavigationUndoRedo::IObserver
 	, virtual plog::IAppender
 {
 	NON_COPY_MOVABLE(Impl)
@@ -282,7 +284,8 @@ public:
 		std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
 		std::shared_ptr<IHotkeyManager>                 hotkeyManager,
 		std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
-		std::shared_ptr<Util::ScrollBarController>      scrollBarController
+		std::shared_ptr<Util::ScrollBarController>      scrollBarController,
+		std::shared_ptr<INavigationUndoRedo>            navigationUndoRedo
 	)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
@@ -307,6 +310,7 @@ public:
 		, m_hotkeyManager { std::move(hotkeyManager) }
 		, m_recentOpenBookController { std::move(recentOpenBookController) }
 		, m_scrollBarController { std::move(scrollBarController) }
+		, m_navigationUndoRedo { std::move(navigationUndoRedo) }
 		, m_navigationViewController { ILogicFactory::Lock(m_logicFactory)->GetTreeViewController(ItemType::Navigation) }
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
 		, m_navigationWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Navigation) }
@@ -337,6 +341,7 @@ public:
 		m_navigationViewController->UnregisterObserver(this);
 		m_collectionController->UnregisterObserver(this);
 		m_alphabetPanel->UnregisterObserver(this);
+		m_navigationUndoRedo->UnregisterObserver(this);
 	}
 
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry) const
@@ -567,6 +572,21 @@ private: // ITreeViewController::::IObserver
 	QModelIndex GetCurrentIndex() const noexcept override
 	{
 		return {};
+	}
+	void OnRestoreCurrentIdRequested() override
+	{
+	}
+
+private: // INavigationUndoRedo::IObserver
+	void OnStateChanged() override
+	{
+		m_ui.actionNavigationUndo->setEnabled(m_navigationUndoRedo->IsUndoAvailable());
+		m_ui.actionNavigationRedo->setEnabled(m_navigationUndoRedo->IsRedoAvailable());
+	}
+
+	void OnApply(const NavigationMode navigationMode, const QString& navigationId, const long long bookId) override
+	{
+		ILogicFactory::Lock(m_logicFactory)->FindBook(navigationMode, navigationId, bookId);
 	}
 
 private:
@@ -803,6 +823,18 @@ private:
 		}
 
 		ConnectSettings(m_ui.actionAllowDestructiveOperations, {}, this, &Impl::AllowDestructiveOperation);
+	}
+
+	void ConnectActionsNavigation()
+	{
+		m_navigationUndoRedo->RegisterObserver(this);
+		connect(m_ui.actionNavigationUndo, &QAction::triggered, [this] {
+			m_navigationUndoRedo->Undo();
+		});
+		connect(m_ui.actionNavigationRedo, &QAction::triggered, [this] {
+			m_navigationUndoRedo->Redo();
+		});
+		OnStateChanged();
 	}
 
 	void ConnectActionsSettingsAnnotationJokes()
@@ -1146,6 +1178,7 @@ private:
 		PLOGV << "ConnectActions";
 		ConnectActionsFile();
 		ConnectActionsCollection();
+		ConnectActionsNavigation();
 		ConnectActionsSettings();
 		ConnectActionsHelp();
 
@@ -1478,7 +1511,7 @@ private:
 	void CreateViewNavigationMenu()
 	{
 		const auto createAction = [this](const char* name) {
-			auto* action = m_ui.menuNavigation->addAction(Loc::Tr(Loc::NAVIGATION, name));
+			auto* action = m_ui.menuNavigationEnabled->addAction(Loc::Tr(Loc::NAVIGATION, name));
 			action->setObjectName(name);
 			action->setCheckable(true);
 			action->setChecked(true);
@@ -1676,6 +1709,7 @@ private:
 	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
 	PropagateConstPtr<IRecentOpenBookController, std::shared_ptr> m_recentOpenBookController;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
+	PropagateConstPtr<INavigationUndoRedo, std::shared_ptr>       m_navigationUndoRedo;
 
 	PropagateConstPtr<ITreeViewController, std::shared_ptr> m_navigationViewController;
 
@@ -1735,6 +1769,7 @@ MainWindow::MainWindow(
 	std::shared_ptr<IHotkeyManager>                 hotkeyManager,
 	std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
 	std::shared_ptr<Util::ScrollBarController>      scrollBarController,
+	std::shared_ptr<INavigationUndoRedo>            navigationUndoRedo,
 	QWidget*                                        parent
 )
 	: QMainWindow(parent)
@@ -1762,7 +1797,8 @@ MainWindow::MainWindow(
 		  std::move(alphabetPanel),
 		  std::move(hotkeyManager),
 		  std::move(recentOpenBookController),
-		  std::move(scrollBarController)
+		  std::move(scrollBarController),
+		  std::move(navigationUndoRedo)
 	  )
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
