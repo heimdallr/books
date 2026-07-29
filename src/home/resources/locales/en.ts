@@ -5793,10 +5793,6 @@ Try again?</source>
         <source>Books view mode</source>
         <translation></translation>
     </message>
-    <message>
-        <source>Navigation</source>
-        <translation></translation>
-    </message>
 </context>
 <context>
     <name>UpdateChecker</name>
