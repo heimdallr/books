@@ -454,7 +454,8 @@ public:
 		std::shared_ptr<IFilterProvider>           filterProvider,
 		std::shared_ptr<IHotkeyManager>            hotkeyManager,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
-		std::shared_ptr<Util::ScrollBarController> scrollBarController
+		std::shared_ptr<Util::ScrollBarController> scrollBarController,
+		std::shared_ptr<INavigationUndoRedo>       navigationUndoRedo
 	)
 		: m_self { self }
 		, m_controller { uiFactory->GetTreeViewController() }
@@ -465,6 +466,7 @@ public:
 		, m_hotkeyManager { std::move(hotkeyManager) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
+		, m_navigationUndoRedo { std::move(navigationUndoRedo) }
 		, m_delegate { std::shared_ptr<ITreeViewDelegate>() }
 		, m_hiddenColumns { databaseUser.GetSetting(IDatabaseUser::Key::DisabledBookFields).toString().split(LIST_SEPARATOR, Qt::SkipEmptyParts) }
 	{
@@ -728,13 +730,20 @@ private:
 			auto currentId = index.data(Role::Id).toString();
 			m_controller->SetCurrentId(index.data(Role::Type).value<ItemType>(), currentId);
 			if (prev.isValid())
-				m_settings->Set(GetRecentIdKey(), m_currentId = std::move(currentId));
+				m_settings->Set(GetRecentIdKey(), m_currentId = currentId);
 
 			if (IsNavigation())
 			{
+				m_navigationUndoRedo->SetCurrentNavigation(static_cast<NavigationMode>(m_controller->GetModeIndex()), currentId);
 				emit m_self.CurrentNavigationItemChanged(index);
 				if (m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Search))
 					emit m_self.SearchNavigationItemSelected(m_currentId.toLongLong(), index.data().toString());
+			}
+			else
+			{
+				bool ok = false;
+				if (const auto bookId = currentId.toInt(&ok); ok)
+					m_navigationUndoRedo->SetCurrentBook(bookId);
 			}
 		});
 
@@ -1423,6 +1432,7 @@ private:
 	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
 	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
+	PropagateConstPtr<INavigationUndoRedo, std::shared_ptr>       m_navigationUndoRedo;
 	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr>         m_delegate;
 	Ui::TreeView                                                  m_ui {};
 	ValueApplier                                                  m_valueApplier { nullptr };
@@ -1454,6 +1464,7 @@ TreeView::TreeView(
 	std::shared_ptr<IHotkeyManager>             hotkeyManager,
 	std::shared_ptr<Util::ItemViewToolTipper>   itemViewToolTipper,
 	std::shared_ptr<Util::ScrollBarController>  scrollBarController,
+	std::shared_ptr<INavigationUndoRedo>        navigationUndoRedo,
 	QWidget*                                    parent
 )
 	: QWidget(parent)
@@ -1466,7 +1477,8 @@ TreeView::TreeView(
 		  std::move(filterProvider),
 		  std::move(hotkeyManager),
 		  std::move(itemViewToolTipper),
-		  std::move(scrollBarController)
+		  std::move(scrollBarController),
+		  std::move(navigationUndoRedo)
 	  )
 {
 	PLOGV << "TreeView created";
