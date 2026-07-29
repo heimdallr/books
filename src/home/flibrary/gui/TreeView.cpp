@@ -1059,9 +1059,8 @@ private:
 		}
 		m_ui.cbMode->setCurrentIndex(-1);
 
-		QTimer::singleShot(0, [this] {
-			m_hotkeyManager->Add(*m_ui.cbMode, Tr(IsNavigation() ? NAVIGATION : BOOK_VIEW_MODE));
-		});
+		if (!IsNavigation())
+			m_hotkeyManager->Add(*m_ui.cbMode, Tr(BOOK_VIEW_MODE));
 
 		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), IsNavigation());
 
