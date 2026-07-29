@@ -21,6 +21,14 @@ namespace HomeCompa::Flibrary::DatabaseScheme
 namespace
 {
 
+constexpr auto CREATE_BOOKS_VIEW = R"(
+CREATE VIEW Books_View (
+	  BookID,   LibID,   Title,   UpdateDate,   LibRate,   Lang,   Year,   FolderID,                        FileName,   BookSize,   UpdateID,                                        IsDeleted,    UserRate,   SourceLib,   SearchTitle,               BaseFileName,   Ext,                 UserUpdateTime ) AS SELECT 
+	b.BookID, b.LibID, b.Title, b.UpdateDate, b.LibRate, b.Lang, b.Year, b.FolderID, b.FileName || b.Ext AS FileName, b.BookSize, b.UpdateID, coalesce(bu.IsDeleted, b.IsDeleted) AS IsDeleted, bu.UserRate, b.SourceLib, b.SearchTitle, b.FileName AS BaseFileName, b.Ext, bu.CreatedAt AS UserUpdateTime
+FROM Books b
+LEFT JOIN Books_User bu ON bu.BookID = b.BookID
+)";
+
 bool FieldExists(DB::ITransaction& transaction, const QString& table, const QString& column)
 {
 	std::set<std::string> booksUserFields;
@@ -68,8 +76,10 @@ bool RecordsExists(DB::ITransaction& transaction, const std::string_view tableNa
 void AddUserTables(DB::ITransaction& transaction)
 {
 	PLOGI << "Add tables";
-	static constexpr const char* commands[] { "CREATE INDEX IF NOT EXISTS IX_ExportListUser_ExportType_CreatedAt ON Export_List_User (ExportType, CreatedAt DESC)",
+	static constexpr const char* commands[] { "DROP VIEW IF EXISTS Books_View",
+		                                      "CREATE INDEX IF NOT EXISTS IX_ExportListUser_ExportType_CreatedAt ON Export_List_User (ExportType, CreatedAt DESC)",
 		                                      "CREATE INDEX IF NOT EXISTS IX_Books_User_UserRate ON Books_User (UserRate)",
+		                                      CREATE_BOOKS_VIEW,
 		                                      "ANALYZE" };
 
 	AddUserTableField(transaction, "Genres", "GenreTitle", "VARCHAR (50)");
