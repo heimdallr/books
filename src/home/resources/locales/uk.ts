@@ -4737,6 +4737,10 @@ Try again?</source>
         <translation>&amp;Недавнi книги</translation>
     </message>
     <message>
+        <source>&amp;Redo</source>
+        <translation>&amp;Повторити</translation>
+    </message>
+    <message>
         <source>&amp;Remove collection</source>
         <translation>&amp;Видалити колекцію</translation>
     </message>
@@ -4779,6 +4783,10 @@ Try again?</source>
     <message>
         <source>&amp;Title</source>
         <translation>На&amp;зва</translation>
+    </message>
+    <message>
+        <source>&amp;Undo</source>
+        <translation>&amp;Скасувати</translation>
     </message>
     <message>
         <source>&amp;User data</source>
