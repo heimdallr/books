@@ -586,6 +586,7 @@ private: // INavigationUndoRedo::IObserver
 
 	void OnApply(const NavigationMode navigationMode, const QString& navigationId, const long long bookId) override
 	{
+		ILogicFactory::Lock(m_logicFactory)->FindBook(navigationMode, navigationId, bookId);
 	}
 
 private:
