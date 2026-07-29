@@ -17,6 +17,7 @@
 
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/SignalBlocker.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -106,6 +107,7 @@ constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedCon
 constexpr auto SHOW_ALL_SETTINGS_KEY              = "Preferences/ShowAllSettingsMenuItem";
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
+constexpr auto NAVIGATION_ACTION_ID_PROPERTY      = "navigationMode";
 
 #define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO  \
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)       \
@@ -550,10 +552,14 @@ private: // IAlphabetPanel::IObserver
 		hasVisible();
 	}
 
-private: // ITreeViewController::::IObserver
+private: // ITreeViewController::IObserver
 	void OnModeChanged(const int index) override
 	{
-		m_ui.leftWidget->setVisible(!IsOneOf(static_cast<NavigationMode>(index), NavigationMode::AlreadyRead, NavigationMode::AllBooks));
+		const auto navigationMode = static_cast<NavigationMode>(index);
+		m_ui.leftWidget->setVisible(!IsOneOf(navigationMode, NavigationMode::AlreadyRead, NavigationMode::AllBooks));
+
+		for (auto* action : m_ui.menuNavigation->actions())
+			SignalBlocker(action)->setChecked(action->property(NAVIGATION_ACTION_ID_PROPERTY).value<NavigationMode>() == navigationMode);
 	}
 
 	void OnModelChanged(QAbstractItemModel* /*model*/) override
@@ -638,6 +644,7 @@ private:
 
 		m_self.addAction(m_ui.actionShowQueryWindow);
 
+		SetupActionsNavigation();
 		OnModeChanged(m_navigationViewController->GetModeIndex());
 		m_navigationViewController->RegisterObserver(this);
 
@@ -826,18 +833,16 @@ private:
 		ConnectSettings(m_ui.actionAllowDestructiveOperations, {}, this, &Impl::AllowDestructiveOperation);
 	}
 
-	void ConnectActionsNavigation()
+	void SetupActionsNavigation()
 	{
-		auto* group = new QActionGroup(&m_self);
-
-		const auto createAction = [this, group](const NavigationMode navigationMode, const char* name) {
+		const auto createAction = [this](const NavigationMode navigationMode, const char* name) {
 			if (!m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(name), true))
 				return;
 
 			auto* action = m_ui.menuNavigation->addAction(Loc::Tr(Loc::NAVIGATION, name));
-			group->addAction(action);
 			action->setObjectName(QString("%1_isActive").arg(name));
 			action->setCheckable(true);
+			action->setProperty(NAVIGATION_ACTION_ID_PROPERTY, QVariant::fromValue(navigationMode));
 			connect(action, &QAction::toggled, [this, navigationMode](const bool isChecked) {
 				if (isChecked)
 					ILogicFactory::Lock(m_logicFactory)->FindBook(navigationMode);
@@ -1204,7 +1209,6 @@ private:
 		PLOGV << "ConnectActions";
 		ConnectActionsFile();
 		ConnectActionsCollection();
-		ConnectActionsNavigation();
 		ConnectActionsSettings();
 		ConnectActionsHelp();
 
