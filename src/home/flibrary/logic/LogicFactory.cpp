@@ -37,6 +37,12 @@ using namespace Flibrary;
 namespace
 {
 
+inline constexpr const char* NAVIGATION_NAMES[] = {
+#define NAVIGATION_MODE_ITEM(NAME) #NAME,
+	NAVIGATION_MODE_ITEMS_X_MACRO
+#undef NAVIGATION_MODE_ITEM
+};
+
 class QTemporaryDirWrapper final : virtual public ILogicFactory::ITemporaryDir
 {
 private: // ILogicFactory::ITemporaryDir
@@ -457,7 +463,7 @@ Util::ExtractedBook LogicFactory::GetCurrentExtractedBook() const
 	return books.empty() ? Util::ExtractedBook {} : std::move(books.front());
 }
 
-void LogicFactory::FindBook(const QString& navigationMode, const QString& navigationId, const long long bookId) const
+void LogicFactory::FindBook(const NavigationMode navigationMode, const QString& navigationId, const long long bookId) const
 {
 	const auto  settings   = m_impl->container.resolve<ISettings>();
 	const auto& collection = m_impl->container.resolve<ICollectionProvider>()->GetActiveCollection();
@@ -465,8 +471,19 @@ void LogicFactory::FindBook(const QString& navigationMode, const QString& naviga
 	if (bookId > 0)
 		settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(collection.id, Loc::Books, ""), bookId);
 
-	settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(collection.id, QString("%1/").arg(Loc::NAVIGATION), navigationMode), navigationId);
-	GetTreeViewController(ItemType::Navigation)->SetMode(navigationMode);
+	const auto navigationController = GetTreeViewController(ItemType::Navigation);
+
+	if (navigationController->GetModeIndex() == static_cast<int>(navigationMode) && navigationController->GetNavigationId() == navigationId)
+	{
+		const auto booksController = GetTreeViewController(ItemType::Books);
+		booksController->RestoreCurrentId();
+		return;
+	}
+
+	const auto navigationName = NAVIGATION_NAMES[static_cast<size_t>(navigationMode)];
+
+	settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(collection.id, QString("%1/").arg(Loc::NAVIGATION), navigationName), navigationId);
+	navigationController->SetMode(navigationName);
 }
 
 std::shared_ptr<IProgressController> LogicFactory::GetProgressController() const

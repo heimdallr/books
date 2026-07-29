@@ -44,6 +44,12 @@ constexpr auto IMAGE_BACKGROUND_COLOR_DEFAULT = "white";
 
 constexpr std::pair<const char*, bool> NO_NAVIGATION { nullptr, false };
 
+constexpr std::pair<const char*, NavigationMode> NAVIGATION_NAMES[] = {
+#define NAVIGATION_MODE_ITEM(NAME) { #NAME, NavigationMode::NAME },
+	NAVIGATION_MODE_ITEMS_X_MACRO
+#undef NAVIGATION_MODE_ITEM
+};
+
 constexpr std::pair<const char*, std::pair<const char*, bool>> TYPE_TO_NAVIGATION[] {
 	{	  Loc::AUTHORS,      { Loc::Authors, true } },
     {       Loc::SERIES,       { Loc::Series, true } },
@@ -657,7 +663,8 @@ private:
 			return;
 		}
 
-		ILogicFactory::Lock(m_logicFactory)->FindBook(url.front(), url.back());
+		if (const auto navigationMode = FindSecond(NAVIGATION_NAMES, url.front().toStdString().data(), NavigationMode::Unknown, PszComparer {}); navigationMode != NavigationMode::Unknown)
+			ILogicFactory::Lock(m_logicFactory)->FindBook(navigationMode, url.back());
 	}
 
 	void OnCoverEnter() const
