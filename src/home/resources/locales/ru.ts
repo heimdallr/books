@@ -4945,6 +4945,10 @@ Try again?</source>
         <translation>Моя папка для экспорта</translation>
     </message>
     <message>
+        <source>Navi&amp;gation</source>
+        <translation>Нави&amp;гация</translation>
+    </message>
+    <message>
         <source>Navigation</source>
         <translation>Навигация</translation>
     </message>

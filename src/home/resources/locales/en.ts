@@ -4932,6 +4932,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Navi&amp;gation</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Navigation</source>
         <translation></translation>
     </message>
