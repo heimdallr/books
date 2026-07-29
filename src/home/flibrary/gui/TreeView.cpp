@@ -61,7 +61,6 @@ constexpr auto SORT_INDEX_KEY                     = "Index";
 constexpr auto SORT_ORDER_KEY                     = "Order";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTableColumnSettings";
 constexpr auto HASH_CONTEXT_MENU_ENABLED          = "Preferences/Books/ContextMenu/HashEnabled";
-constexpr auto WATCH_COLUMNS_VISIBILITY           = "Preferences/Books/WatchForChangeColumnVisibility";
 constexpr auto LAST                               = "Last";
 
 constexpr auto CB_MODE_ID_ROLE = Qt::UserRole + 1;
@@ -1092,7 +1091,7 @@ private:
 		});
 	}
 
-	void SaveHeaderLayout(const bool headerContextMenuClicked = false)
+	void SaveHeaderLayout()
 	{
 		if (m_recentMode.isEmpty())
 			return;
@@ -1102,14 +1101,12 @@ private:
 
 		const auto* header           = m_ui.treeView->header();
 		const auto* model            = header->model();
-		const auto  saveHeaderLayout = [&](const bool needWatchForChangeColumnVisibility) {
+		const auto  saveHeaderLayout = [&] {
 			for (int i = 0, sz = header->count(); i < sz; ++i)
 			{
 				const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
 				const bool sectionHidden = header->isSectionHidden(i);
-				if (m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), sectionHidden) && needWatchForChangeColumnVisibility)
-					m_uiFactory->ShowError("SaveHeaderLayout. Gotcha!");
-
+				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), sectionHidden);
 				if (sectionHidden)
 					continue;
 
@@ -1123,11 +1120,11 @@ private:
 		if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
 		{
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
-			saveHeaderLayout(m_watchForChangeColumnVisibility && !headerContextMenuClicked);
+			saveHeaderLayout();
 		}
 		{
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
-			saveHeaderLayout(false);
+			saveHeaderLayout();
 		}
 
 		m_ui.treeView->model()->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
@@ -1201,9 +1198,6 @@ private:
 		}
 		if (needDataCollect)
 		{
-			if (m_watchForChangeColumnVisibility)
-				m_uiFactory->ShowError("RestoreHeaderLayout. Gotcha!");
-
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
 			collectData();
 		}
@@ -1446,7 +1440,6 @@ private:
 	IDataItem::Flags                                              m_navigationItemFlags { IDataItem::Flags::None };
 	const ArchiveSorter                                           m_archiveSorter;
 	const QStringList                                             m_hiddenColumns;
-	const bool                                                    m_watchForChangeColumnVisibility { m_settings->Get(WATCH_COLUMNS_VISIBILITY, false) };
 	std::unique_ptr<QTimer>                                       m_countChangedTimer { Util::CreateUiTimer([this] {
 		if (m_ui.treeView->model())
 			m_ui.lblCount->setText(m_ui.treeView->model()->data({}, Role::Count).toString());
