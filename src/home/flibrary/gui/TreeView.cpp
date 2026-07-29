@@ -49,7 +49,6 @@ namespace
 {
 
 constexpr auto CONTEXT        = "TreeView";
-constexpr auto NAVIGATION     = QT_TRANSLATE_NOOP("TreeView", "Navigation");
 constexpr auto BOOK_VIEW_MODE = QT_TRANSLATE_NOOP("TreeView", "Books view mode");
 
 constexpr auto VALUE_MODE_KEY                     = "ui/%1/ValueMode";
