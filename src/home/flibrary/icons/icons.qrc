@@ -23,5 +23,7 @@
         <file alias="blank.svg">icons/blank.svg</file>
         <file alias="load.svg">icons/load.svg</file>
         <file alias="save.svg">icons/save.svg</file>
+        <file alias="undo.svg">icons/undo.svg</file>
+        <file alias="redo.svg">icons/redo.svg</file>
 	</qresource>
 </RCC>
