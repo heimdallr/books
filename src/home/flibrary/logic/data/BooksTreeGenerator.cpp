@@ -28,6 +28,7 @@
 #include "util/SortString.h"
 
 #include "Constant.h"
+#include "QtTypes.h"
 #include "log.h"
 #include "zip.h"
 
@@ -133,6 +134,8 @@ class BooksTreeGenerator::Impl final : virtual IBookSelector
 		UniqueIdList<long long> authors;
 		UniqueIdList<QString>   genres;
 	};
+
+	using SelectAdditional = std::function<void(const DB::IQuery&, const SelectedBookItem&)>;
 
 public:
 	mutable IDataItem::Ptr rootCached;
@@ -332,7 +335,15 @@ public:
 private: // IBookSelector
 	void SelectBooks(const Collection&, DB::IDatabase& db, const QueryDescription& description) override
 	{
-		CreateSelectedBookItems(db, description.queryClause);
+		const auto additionalDefault = [](const DB::IQuery&, const auto&) {
+		};
+		const std::pair<NavigationMode, SelectAdditional> additionals[] {
+			{ NavigationMode::AlreadyRead,
+             [](const DB::IQuery& query, const SelectedBookItem& item) {
+				  item.book->SetData(First(QString(query.Get<const char*>(BookQueryFields::Last)), 10), BookItem::Column::UpdateDate);
+			  } }
+		};
+		CreateSelectedBookItems(db, description.queryClause, FindSecond(additionals, navigationMode, additionalDefault));
 	}
 
 	void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription& description) override
@@ -437,12 +448,7 @@ private:
 		return result;
 	}
 
-	void CreateSelectedBookItems(
-		DB::IDatabase&                                                         db,
-		const QueryClause&                                                     queryClause,
-		const std::function<void(const DB::IQuery&, const SelectedBookItem&)>& additional = [](const DB::IQuery&, const auto&) {
-		}
-	)
+	void CreateSelectedBookItems(DB::IDatabase& db, const QueryClause& queryClause, const SelectAdditional& additional)
 	{
 		const auto with = queryClause.with(m_settings, navigationId).toStdString();
 
