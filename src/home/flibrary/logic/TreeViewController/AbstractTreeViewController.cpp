@@ -61,6 +61,11 @@ void AbstractTreeViewController::SetMode(const QString& mode)
 	OnModeChanged(mode);
 }
 
+void AbstractTreeViewController::RestoreCurrentId()
+{
+	m_impl->observer->OnRestoreCurrentIdRequested();
+}
+
 QAbstractItemModel* AbstractTreeViewController::GetModel() const noexcept
 {
 	return m_impl->observer ? m_impl->observer->GetModel() : nullptr;

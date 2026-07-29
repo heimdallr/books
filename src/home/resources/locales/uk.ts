@@ -316,6 +316,10 @@
         <source>&amp;Save image as...</source>
         <translation>&amp;Зберегти зображення як...</translation>
     </message>
+    <message>
+        <source>Set background color</source>
+        <translation>Змінити колір фону</translation>
+    </message>
 </context>
 <context>
     <name>AuthorReview</name>
@@ -960,6 +964,10 @@ Restart now?</source>
     <message>
         <source>Distributed under license %1</source>
         <translation>Розповсюджується за ліцензією %1</translation>
+    </message>
+    <message>
+        <source>Specify the background color of the image</source>
+        <translation>Вкажіть колір фону зображення</translation>
     </message>
     <message>
         <source>The program version has been copied to the clipboard</source>
@@ -2769,10 +2777,6 @@ Try again?</source>
     <message>
         <source>Set background color</source>
         <translation>Змінити колір фону</translation>
-    </message>
-    <message>
-        <source>Specify the background color of the image</source>
-        <translation>Вкажіть колір фону зображення</translation>
     </message>
 </context>
 <context>
@@ -4733,6 +4737,10 @@ Try again?</source>
         <translation>&amp;Недавнi книги</translation>
     </message>
     <message>
+        <source>&amp;Redo</source>
+        <translation>&amp;Повторити</translation>
+    </message>
+    <message>
         <source>&amp;Remove collection</source>
         <translation>&amp;Видалити колекцію</translation>
     </message>
@@ -4775,6 +4783,10 @@ Try again?</source>
     <message>
         <source>&amp;Title</source>
         <translation>На&amp;зва</translation>
+    </message>
+    <message>
+        <source>&amp;Undo</source>
+        <translation>&amp;Скасувати</translation>
     </message>
     <message>
         <source>&amp;User data</source>
@@ -5796,10 +5808,6 @@ Try again?</source>
     <message>
         <source>Books view mode</source>
         <translation>Режим перегляду книг</translation>
-    </message>
-    <message>
-        <source>Navigation</source>
-        <translation>Навігація</translation>
     </message>
 </context>
 <context>

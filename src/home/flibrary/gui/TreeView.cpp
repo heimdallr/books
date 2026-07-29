@@ -49,7 +49,6 @@ namespace
 {
 
 constexpr auto CONTEXT        = "TreeView";
-constexpr auto NAVIGATION     = QT_TRANSLATE_NOOP("TreeView", "Navigation");
 constexpr auto BOOK_VIEW_MODE = QT_TRANSLATE_NOOP("TreeView", "Books view mode");
 
 constexpr auto VALUE_MODE_KEY                     = "ui/%1/ValueMode";
@@ -61,7 +60,6 @@ constexpr auto SORT_INDEX_KEY                     = "Index";
 constexpr auto SORT_ORDER_KEY                     = "Order";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTableColumnSettings";
 constexpr auto HASH_CONTEXT_MENU_ENABLED          = "Preferences/Books/ContextMenu/HashEnabled";
-constexpr auto WATCH_COLUMNS_VISIBILITY           = "Preferences/Books/WatchForChangeColumnVisibility";
 constexpr auto LAST                               = "Last";
 
 constexpr auto CB_MODE_ID_ROLE = Qt::UserRole + 1;
@@ -455,7 +453,8 @@ public:
 		std::shared_ptr<IFilterProvider>           filterProvider,
 		std::shared_ptr<IHotkeyManager>            hotkeyManager,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
-		std::shared_ptr<Util::ScrollBarController> scrollBarController
+		std::shared_ptr<Util::ScrollBarController> scrollBarController,
+		std::shared_ptr<INavigationUndoRedo>       navigationUndoRedo
 	)
 		: m_self { self }
 		, m_controller { uiFactory->GetTreeViewController() }
@@ -466,6 +465,7 @@ public:
 		, m_hotkeyManager { std::move(hotkeyManager) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
+		, m_navigationUndoRedo { std::move(navigationUndoRedo) }
 		, m_delegate { std::shared_ptr<ITreeViewDelegate>() }
 		, m_hiddenColumns { databaseUser.GetSetting(IDatabaseUser::Key::DisabledBookFields).toString().split(LIST_SEPARATOR, Qt::SkipEmptyParts) }
 	{
@@ -608,6 +608,12 @@ private: // ITreeViewController::IObserver
 		return m_ui.treeView->currentIndex();
 	}
 
+	void OnRestoreCurrentIdRequested() override
+	{
+		m_currentId = m_settings->Get(GetRecentIdKey(), m_currentId);
+		Find(m_currentId, Role::Id);
+	}
+
 private: // ITreeViewDelegate::IObserver
 	void OnButtonClicked(const QModelIndex&) override
 	{
@@ -729,13 +735,20 @@ private:
 			auto currentId = index.data(Role::Id).toString();
 			m_controller->SetCurrentId(index.data(Role::Type).value<ItemType>(), currentId);
 			if (prev.isValid())
-				m_settings->Set(GetRecentIdKey(), m_currentId = std::move(currentId));
+				m_settings->Set(GetRecentIdKey(), m_currentId = currentId);
 
 			if (IsNavigation())
 			{
+				m_navigationUndoRedo->SetCurrentNavigation(static_cast<NavigationMode>(m_controller->GetModeIndex()), currentId);
 				emit m_self.CurrentNavigationItemChanged(index);
 				if (m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Search))
 					emit m_self.SearchNavigationItemSelected(m_currentId.toLongLong(), index.data().toString());
+			}
+			else
+			{
+				bool ok = false;
+				if (const auto bookId = currentId.toInt(&ok); ok)
+					m_navigationUndoRedo->SetCurrentBook(bookId);
 			}
 		});
 
@@ -770,6 +783,7 @@ private:
 		{
 			m_booksHeaderView->ResetFilteredIndex();
 			model->setData({}, !!(m_navigationItemFlags & (IDataItem::Flags::Filtered | IDataItem::Flags::BooksFiltered)), Role::NavigationItemFiltered);
+			m_ui.treeView->model()->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 
@@ -1044,9 +1058,8 @@ private:
 		}
 		m_ui.cbMode->setCurrentIndex(-1);
 
-		QTimer::singleShot(0, [this] {
-			m_hotkeyManager->Add(*m_ui.cbMode, Tr(IsNavigation() ? NAVIGATION : BOOK_VIEW_MODE));
-		});
+		if (!IsNavigation())
+			m_hotkeyManager->Add(*m_ui.cbMode, Tr(BOOK_VIEW_MODE));
 
 		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), IsNavigation());
 
@@ -1092,7 +1105,7 @@ private:
 		});
 	}
 
-	void SaveHeaderLayout(const bool headerContextMenuClicked = false)
+	void SaveHeaderLayout()
 	{
 		if (m_recentMode.isEmpty())
 			return;
@@ -1102,17 +1115,13 @@ private:
 
 		const auto* header           = m_ui.treeView->header();
 		const auto* model            = header->model();
-		const auto  saveHeaderLayout = [&](const bool needWatchForChangeColumnVisibility) {
+		const auto  saveHeaderLayout = [&] {
 			for (int i = 0, sz = header->count(); i < sz; ++i)
 			{
-				const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
-				const bool sectionHidden = header->isSectionHidden(i);
-				if (m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), sectionHidden) && needWatchForChangeColumnVisibility)
-					m_uiFactory->ShowError("SaveHeaderLayout. Gotcha!");
-
-				if (sectionHidden)
+				if (header->isSectionHidden(i))
 					continue;
 
+				const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
 				m_settings->Set(QString(COLUMN_WIDTH_LOCAL_KEY).arg(name), header->sectionSize(i));
 				m_settings->Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(name), header->visualIndex(i));
 			}
@@ -1123,11 +1132,11 @@ private:
 		if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
 		{
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
-			saveHeaderLayout(m_watchForChangeColumnVisibility && !headerContextMenuClicked);
+			saveHeaderLayout();
 		}
 		{
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
-			saveHeaderLayout(false);
+			saveHeaderLayout();
 		}
 
 		m_ui.treeView->model()->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
@@ -1188,7 +1197,7 @@ private:
 				auto& columnInfo  = columnInfoList[logicalIndex];
 				columnInfo.index  = m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(columnName), std::numeric_limits<int>::max());
 				columnInfo.width  = m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(columnName), header->minimumSectionSize());
-				columnInfo.hidden = m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), true);
+				columnInfo.hidden = m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), false);
 			}
 
 			m_booksHeaderView->Load(*m_settings);
@@ -1201,9 +1210,6 @@ private:
 		}
 		if (needDataCollect)
 		{
-			if (m_watchForChangeColumnVisibility)
-				m_uiFactory->ShowError("RestoreHeaderLayout. Gotcha!");
-
 			SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
 			collectData();
 		}
@@ -1288,7 +1294,7 @@ private:
 		auto*       header = m_ui.treeView->header();
 		const auto* model  = header->model();
 
-		std::vector<int> index;
+		std::vector<std::pair<QString, int>> index;
 
 		const auto values = std::views::iota(m_controller->GetViewMode() == ViewMode::Tree ? 1 : 0, header->count()) | std::views::filter([&](const int n) {
 								const auto logicalIndex = header->logicalIndex(n);
@@ -1297,14 +1303,13 @@ private:
 							})
 		                  | std::views::transform([&](const int n) {
 								const auto logicalIndex = header->logicalIndex(n);
-								auto       name         = model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderTitle).toString();
-								index.emplace_back(logicalIndex);
-								return std::make_pair(std::move(name), !header->isSectionHidden(logicalIndex));
+								index.emplace_back(model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString(), logicalIndex);
+								return std::make_pair(model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderTitle).toString(), !header->isSectionHidden(logicalIndex));
 							})
 		                  | std::ranges::to<std::vector>();
 
 		auto* menu = m_uiFactory->CreateCheckableMenu(values, [this, header, index = std::move(index)](const int row, const bool checked) {
-			const auto           logicalIndex = index[static_cast<size_t>(row)];
+			const auto& [name, logicalIndex] = index[static_cast<size_t>(row)];
 			const QSignalBlocker signalBlocker(header);
 			if (!checked)
 				header->resizeSection(0, header->sectionSize(0) + header->sectionSize(logicalIndex));
@@ -1314,7 +1319,11 @@ private:
 			if (checked)
 				header->resizeSection(0, header->sectionSize(0) - header->sectionSize(logicalIndex));
 
-			SaveHeaderLayout(true);
+			{
+				SettingsGroup guard(*m_settings, GetColumnSettingsKey());
+				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), !checked);
+			}
+
 			OnHeaderSectionsVisibleChanged();
 
 			m_ui.treeView->viewport()->update();
@@ -1430,6 +1439,7 @@ private:
 	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
 	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
+	PropagateConstPtr<INavigationUndoRedo, std::shared_ptr>       m_navigationUndoRedo;
 	PropagateConstPtr<ITreeViewDelegate, std::shared_ptr>         m_delegate;
 	Ui::TreeView                                                  m_ui {};
 	ValueApplier                                                  m_valueApplier { nullptr };
@@ -1446,7 +1456,6 @@ private:
 	IDataItem::Flags                                              m_navigationItemFlags { IDataItem::Flags::None };
 	const ArchiveSorter                                           m_archiveSorter;
 	const QStringList                                             m_hiddenColumns;
-	const bool                                                    m_watchForChangeColumnVisibility { m_settings->Get(WATCH_COLUMNS_VISIBILITY, false) };
 	std::unique_ptr<QTimer>                                       m_countChangedTimer { Util::CreateUiTimer([this] {
 		if (m_ui.treeView->model())
 			m_ui.lblCount->setText(m_ui.treeView->model()->data({}, Role::Count).toString());
@@ -1462,6 +1471,7 @@ TreeView::TreeView(
 	std::shared_ptr<IHotkeyManager>             hotkeyManager,
 	std::shared_ptr<Util::ItemViewToolTipper>   itemViewToolTipper,
 	std::shared_ptr<Util::ScrollBarController>  scrollBarController,
+	std::shared_ptr<INavigationUndoRedo>        navigationUndoRedo,
 	QWidget*                                    parent
 )
 	: QWidget(parent)
@@ -1474,7 +1484,8 @@ TreeView::TreeView(
 		  std::move(filterProvider),
 		  std::move(hotkeyManager),
 		  std::move(itemViewToolTipper),
-		  std::move(scrollBarController)
+		  std::move(scrollBarController),
+		  std::move(navigationUndoRedo)
 	  )
 {
 	PLOGV << "TreeView created";

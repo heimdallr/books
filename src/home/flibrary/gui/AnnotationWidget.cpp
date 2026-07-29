@@ -38,9 +38,17 @@ using namespace HomeCompa;
 namespace
 {
 
-constexpr auto SHOW_JOKE_ERRORS = "Preferences/AnnotationJokes/ShowErrors";
+constexpr auto SHOW_JOKE_ERRORS               = "Preferences/AnnotationJokes/ShowErrors";
+constexpr auto IMAGE_BACKGROUND_COLOR         = "ui/Annotation/ImageBackgroundColor";
+constexpr auto IMAGE_BACKGROUND_COLOR_DEFAULT = "white";
 
 constexpr std::pair<const char*, bool> NO_NAVIGATION { nullptr, false };
+
+constexpr std::pair<const char*, NavigationMode> NAVIGATION_NAMES[] = {
+#define NAVIGATION_MODE_ITEM(NAME) { #NAME, NavigationMode::NAME },
+	NAVIGATION_MODE_ITEMS_X_MACRO
+#undef NAVIGATION_MODE_ITEM
+};
 
 constexpr std::pair<const char*, std::pair<const char*, bool>> TYPE_TO_NAVIGATION[] {
 	{	  Loc::AUTHORS,      { Loc::Authors, true } },
@@ -217,17 +225,9 @@ public:
 		m_scrollBarControllerContent->SetScrollArea(m_ui.content);
 
 		m_ui.info->installEventFilter(m_scrollBarControllerAnnotation.get()); // @todo
-		m_scrollBarControllerAnnotation->SetScrollArea(m_ui.scrollArea);
-
-		const auto setCustomPalette = [](QWidget& widget) {
-			auto palette = widget.palette();
-			palette.setColor(QPalette::ColorRole::Window, palette.color(QPalette::ColorRole::Base));
-			widget.setPalette(palette);
-		};
+		m_scrollBarControllerAnnotation->SetScrollArea(m_ui.infoArea);
 
 		m_ui.coverArea->setVisible(false);
-		setCustomPalette(*m_ui.coverArea);
-		setCustomPalette(*m_ui.scrollArea->viewport());
 
 		m_progressTimer.setSingleShot(true);
 		m_progressTimer.setInterval(std::chrono::milliseconds(300));
@@ -236,7 +236,13 @@ public:
 
 		m_annotationController->RegisterObserver(this);
 
-		m_ui.cover->setStyleSheet("background-color: white;");
+		const QString styleSheet = [&] {
+			if (const auto colorName = m_settings->Get(IMAGE_BACKGROUND_COLOR, QString { IMAGE_BACKGROUND_COLOR_DEFAULT }); QColor::IS_VALID_COLOR_NAME(colorName))
+				return QString(Constant::Settings::BACKGROUND_COLOR_TEMPLATE).arg(colorName);
+			return QString(Constant::Settings::BACKGROUND_COLOR_TEMPLATE).arg(IMAGE_BACKGROUND_COLOR_DEFAULT);
+		}();
+
+		m_ui.cover->setStyleSheet(styleSheet);
 
 		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&](const QString& link) {
 			OnLinkActivated(link);
@@ -281,6 +287,8 @@ public:
 			menu.addAction(m_ui.actionCopyImage);
 			menu.addAction(m_ui.actionSaveImageAs);
 			menu.addAction(m_ui.actionSaveAllImages);
+			if (Util::HasAlpha(m_ui.cover->pixmap(Qt::ReturnByValue).toImage()).pixelFormat().channelCount() > 3)
+				menu.addAction(m_ui.actionSetBackgroundColor);
 			menu.setFont(m_self.font());
 			menu.exec(m_ui.cover->mapToGlobal(pos));
 		});
@@ -400,6 +408,9 @@ public:
 		});
 		connect(m_ui.actionImageHome, &QAction::triggered, [this, onCoverClicked] {
 			onCoverClicked(QPoint(m_ui.cover->width() / 2, 1));
+		});
+		connect(m_ui.actionSetBackgroundColor, &QAction::triggered, [this] {
+			m_uiFactory->SetBackgroundStyleSheet(*m_ui.cover, IMAGE_BACKGROUND_COLOR);
 		});
 	}
 
@@ -553,7 +564,10 @@ private:
 			else
 				imgWidth = pixmap.width() * imgHeight / pixmap.height();
 
-			m_ui.cover->setPixmap(pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+			pixmap = pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+			m_ui.cover->setPixmap(pixmap);
+			imgWidth  = pixmap.width();
+			imgHeight = pixmap.height();
 		}
 		else
 		{
@@ -570,8 +584,8 @@ private:
 		if (m_covers.size() > 1)
 			m_coverButtonsEnabled = true;
 
-		m_ui.coverArea->setMinimumWidth(imgWidth);
-		m_ui.coverArea->setMaximumWidth(imgWidth);
+		m_ui.coverArea->setFixedWidth(imgWidth);
+		m_ui.cover->setFixedSize(imgWidth, imgHeight);
 
 		const QFontMetrics metrics(m_self.font());
 		const auto         height = 3 * metrics.lineSpacing() / 2;
@@ -649,7 +663,8 @@ private:
 			return;
 		}
 
-		ILogicFactory::Lock(m_logicFactory)->FindBook(url.front(), url.back());
+		if (const auto navigationMode = FindSecond(NAVIGATION_NAMES, url.front().toStdString().data(), NavigationMode::Unknown, PszComparer {}); navigationMode != NavigationMode::Unknown)
+			ILogicFactory::Lock(m_logicFactory)->FindBook(navigationMode, url.back());
 	}
 
 	void OnCoverEnter() const

@@ -316,6 +316,10 @@
         <source>&amp;Save image as...</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Set background color</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>AuthorReview</name>
@@ -948,6 +952,10 @@ Restart now?</source>
     </message>
     <message>
         <source>Distributed under license %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Specify the background color of the image</source>
         <translation></translation>
     </message>
     <message>
@@ -2755,10 +2763,6 @@ Try again?</source>
     </message>
     <message>
         <source>Set background color</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Specify the background color of the image</source>
         <translation></translation>
     </message>
 </context>
@@ -4720,6 +4724,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Redo</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Remove collection</source>
         <translation></translation>
     </message>
@@ -4761,6 +4769,10 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;Title</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Undo</source>
         <translation></translation>
     </message>
     <message>
@@ -5779,10 +5791,6 @@ Try again?</source>
     <name>TreeView</name>
     <message>
         <source>Books view mode</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Navigation</source>
         <translation></translation>
     </message>
 </context>

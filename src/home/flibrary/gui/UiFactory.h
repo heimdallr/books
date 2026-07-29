@@ -62,8 +62,8 @@ private: // IUiFactory
 	void                        ShowInfo(const QString& text) const override;
 	void                        ShowError(const QString& text) const override;
 	QString                     GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, QLineEdit::EchoMode mode) const override;
-	std::optional<QFont>        GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options) const override;
-	std::optional<QColor>       GetColor(const QString& title, const QColor& color, QColorDialog::ColorDialogOptions options) const override;
+	std::optional<QFont>        GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options = {}) const override;
+	std::optional<QColor>       GetColor(const QString& title, const QColor& color, const QColorDialog::ColorDialogOptions& options = {}) const override;
 
 	QStringList GetOpenFileNames(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const override;
 	QString     GetOpenFileName(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const override;
@@ -71,6 +71,7 @@ private: // IUiFactory
 	QString     GetExistingDirectory(const QString& key, const QString& title, const QString& dir, const QFileDialog::Options& options) const override;
 	void        ExecuteContextMenu(QLineEdit* lineEdit) const override;
 	void        UpdateRecentOpenBookControllerMenu(QMenu& menu) const override;
+	void        SetBackgroundStyleSheet(QWidget& widget, const QString& key) const override;
 
 	IDataItem::Ptr AddMenuBarToHotkeys(const ISettings& settings, const QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*)>& functor) const override;
 	IDataItem::Ptr AddComboBoxToHotkeys(const ISettings& settings, QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*)>& functor) const override;

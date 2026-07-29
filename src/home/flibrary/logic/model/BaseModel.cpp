@@ -145,7 +145,9 @@ bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const i
 	switch (role)
 	{
 		case Role::CheckableColumn:
-			m_checkableColumn = value.toInt();
+			if (!value.isValid() || ((m_checkableColumn = value.toInt()), m_checkableColumn < 0))
+				m_checkableColumn.reset();
+
 			return true;
 
 		case Role::Check:

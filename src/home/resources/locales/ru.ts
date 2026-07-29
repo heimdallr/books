@@ -316,6 +316,10 @@
         <source>&amp;Save image as...</source>
         <translation>&amp;Сохранить изображение как...</translation>
     </message>
+    <message>
+        <source>Set background color</source>
+        <translation>Сменить цвет фона</translation>
+    </message>
 </context>
 <context>
     <name>AuthorReview</name>
@@ -960,6 +964,10 @@ Restart now?</source>
     <message>
         <source>Distributed under license %1</source>
         <translation>Распространяется по лицензии %1</translation>
+    </message>
+    <message>
+        <source>Specify the background color of the image</source>
+        <translation>Укажите цвет фона изображения</translation>
     </message>
     <message>
         <source>The program version has been copied to the clipboard</source>
@@ -2769,10 +2777,6 @@ Try again?</source>
     <message>
         <source>Set background color</source>
         <translation>Сменить цвет фона</translation>
-    </message>
-    <message>
-        <source>Specify the background color of the image</source>
-        <translation>Укажите цвет фона изображения</translation>
     </message>
 </context>
 <context>
@@ -4733,6 +4737,10 @@ Try again?</source>
         <translation>&amp;Недавние книги</translation>
     </message>
     <message>
+        <source>&amp;Redo</source>
+        <translation>&amp;Повторить</translation>
+    </message>
+    <message>
         <source>&amp;Remove collection</source>
         <translation>&amp;Удалить коллекцию</translation>
     </message>
@@ -4775,6 +4783,10 @@ Try again?</source>
     <message>
         <source>&amp;Title</source>
         <translation>На&amp;звание</translation>
+    </message>
+    <message>
+        <source>&amp;Undo</source>
+        <translation>&amp;Отменить</translation>
     </message>
     <message>
         <source>&amp;User data</source>
@@ -5796,10 +5808,6 @@ Try again?</source>
     <message>
         <source>Books view mode</source>
         <translation>Режим просмотра книг</translation>
-    </message>
-    <message>
-        <source>Navigation</source>
-        <translation>Навигация</translation>
     </message>
 </context>
 <context>

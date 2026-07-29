@@ -48,6 +48,7 @@ private: // ITreeViewController::IObserver
 	void                OnContextMenuTriggered(const QString& id, const IDataItem::Ptr& item) override;
 	QAbstractItemModel* GetModel() const noexcept override;
 	QModelIndex         GetCurrentIndex() const noexcept override;
+	void                OnRestoreCurrentIdRequested() override;
 
 private:
 	struct Impl;

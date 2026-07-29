@@ -51,6 +51,7 @@ public:
 		virtual void                OnContextMenuTriggered(const QString& id, const IDataItem::Ptr& item) = 0;
 		virtual QAbstractItemModel* GetModel() const noexcept                                             = 0;
 		virtual QModelIndex         GetCurrentIndex() const noexcept                                      = 0;
+		virtual void                OnRestoreCurrentIdRequested()                                         = 0;
 	};
 
 public:
@@ -58,6 +59,7 @@ public:
 	[[nodiscard]] virtual const char*                              TrContext() const noexcept                                                                                           = 0;
 	[[nodiscard]] virtual std::vector<std::pair<const char*, int>> GetModeNames() const                                                                                                 = 0;
 	virtual void                                                   SetMode(const QString& mode)                                                                                         = 0;
+	virtual void                                                   RestoreCurrentId()                                                                                                   = 0;
 	virtual void                                                   SetCurrentId(ItemType type, QString id, bool force = false)                                                          = 0;
 	[[nodiscard]] virtual int                                      GetModeIndex() const                                                                                                 = 0;
 	[[nodiscard]] virtual ItemType                                 GetItemType() const noexcept                                                                                         = 0;
