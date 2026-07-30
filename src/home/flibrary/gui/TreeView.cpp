@@ -50,6 +50,7 @@ namespace
 
 constexpr auto CONTEXT        = "TreeView";
 constexpr auto BOOK_VIEW_MODE = QT_TRANSLATE_NOOP("TreeView", "Books view mode");
+constexpr auto BOOK           = QT_TRANSLATE_NOOP("HotkeyManager", "Book");
 
 constexpr auto VALUE_MODE_KEY                     = "ui/%1/ValueMode";
 constexpr auto COLUMN_WIDTH_LOCAL_KEY             = "%1/Width";
@@ -439,7 +440,7 @@ class TreeView::Impl final
 	, IFilterProvider::IObserver
 	, ModeLineEdit::IValueApplier
 	, HeaderView::IObserver
-	, IHotkeyManager::IBookMenuProvider
+	, IHotkeyManager::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -477,6 +478,8 @@ public:
 		m_filterProvider->UnregisterObserver(this);
 		m_controller->UnregisterObserver(this);
 		m_delegate->UnregisterObserver(this);
+		if (!IsNavigation())
+			m_hotkeyManager->UnregisterObserver(this);
 	}
 
 	void SetNavigationModeName(QString navigationModeName)
@@ -686,8 +689,18 @@ private: // HeaderView::IObserver
 		return *m_ui.treeView;
 	}
 
-private: // IHotkeyManager::IBookMenuProvider
-	void RequestBookMenu(RequestMenuCallback callback) override
+private: // IHotkeyManager::IObserver
+	const char* GetKey() const noexcept override
+	{
+		return BOOK;
+	}
+
+	QObject* GetParentObject() noexcept override
+	{
+		return m_ui.treeView;
+	}
+
+	void RequestMenuItems(RequestMenuCallback callback) override
 	{
 		m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [callback = std::move(callback)](const QString& id, const IDataItem::Ptr& item) {
 			callback(id, item);
@@ -984,9 +997,6 @@ private:
 			connect(m_booksHeaderView, &QHeaderView::sectionMoved, &m_self, [this] {
 				SaveHeaderLayout();
 			});
-			QTimer::singleShot(0, [this] {
-				m_hotkeyManager->SetBookMenuProvider(this);
-			});
 		}
 
 		auto& treeViewHeader = *m_ui.treeView->header();
@@ -1059,7 +1069,10 @@ private:
 		m_ui.cbMode->setCurrentIndex(-1);
 
 		if (!IsNavigation())
-			m_hotkeyManager->Add(*m_ui.cbMode, Tr(BOOK_VIEW_MODE));
+			QTimer::singleShot(0, [this] {
+				m_hotkeyManager->Add(*m_ui.cbMode, Tr(BOOK_VIEW_MODE));
+				m_hotkeyManager->RegisterObserver(this);
+			});
 
 		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), IsNavigation());
 
