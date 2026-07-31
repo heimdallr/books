@@ -6,8 +6,6 @@
 
 #include "interface/logic/IDataItem.h"
 
-#include "export/logic.h"
-
 namespace HomeCompa::Flibrary
 {
 
@@ -336,6 +334,6 @@ private: // DataItem
 	[[nodiscard]] Ptr      Clone() const override;
 };
 
-LOGIC_EXPORT QString GetAuthorFull(const IDataItem& author);
+QString GetAuthorFull(const IDataItem& author);
 
 } // namespace HomeCompa::Flibrary
