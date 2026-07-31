@@ -300,8 +300,12 @@ private:
 			menu.addAction(Tr(RESET), [this] {
 				m_model->setData(m_ui.view->currentIndex(), {});
 			});
+
 		if (m_ui.view->currentIndex().parent().isValid())
 		{
+			if (!menu.actions().isEmpty())
+				menu.addSeparator();
+
 			menu.addAction(Tr(SET_ICON), [this] {
 				if (const auto path = m_uiFactory->GetOpenFileName(ICONS, Tr(SELECT_ICON), Tr(SELECT_ICON_FILTER)); !path.isEmpty())
 				{
@@ -318,6 +322,10 @@ private:
 					m_model->setData(m_ui.view->currentIndex(), {}, Model::ModelRole::Icon);
 				});
 		}
+
+		if (!menu.actions().isEmpty() && !menu.actions().back()->isSeparator())
+			menu.addSeparator();
+
 		Util::FillTreeContextMenu(*m_ui.view, menu).exec(QCursor::pos());
 	}
 

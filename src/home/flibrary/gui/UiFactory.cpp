@@ -104,6 +104,8 @@ constexpr auto MAX_MENU_ITEM_DEFAULT             = 16;
 constexpr auto MENU_ITEM_TITLE_FORMAT_DEFAULT    = "%author% \t %title%";
 constexpr auto MENU_ITEM_DATETIME_FORMAT_DEFAULT = "yyyy-MM-dd hh:mm:ss";
 
+constexpr auto INDEX = "index";
+
 QString GetPersonalBuildString()
 {
 	// ReSharper disable once CppCompileTimeConstantCanBeReplacedWithBooleanConstant
@@ -131,6 +133,33 @@ QWidget* CreateStackedPage(Hypodermic::Container& container, const QObject* sign
 	);
 	return pagePtr;
 }
+
+class ComboBoxHotkeyPropertyEventFilter final : public QObject
+{
+public:
+	explicit ComboBoxHotkeyPropertyEventFilter(QComboBox* parent)
+		: QObject(parent)
+		, m_comboBox { parent }
+	{
+	}
+
+private: // QObject
+	bool eventFilter(QObject* watched, QEvent* event) override
+	{
+		if (event->type() == QEvent::DynamicPropertyChange)
+		{
+			QDynamicPropertyChangeEvent* propEvent    = static_cast<QDynamicPropertyChangeEvent*>(event);
+			QByteArray                   propertyName = propEvent->propertyName();
+			if (propertyName.toStdString() == Constant::Settings::ICON)
+				m_comboBox->setItemData(watched->property(INDEX).toInt(), watched->property(Constant::Settings::ICON), Qt::DecorationRole);
+		}
+
+		return QObject::eventFilter(watched, event);
+	}
+
+private:
+	QComboBox* m_comboBox;
+};
 
 } // namespace
 
@@ -488,7 +517,22 @@ void AddIcon(const ISettings& settings, const IDataItem& actionItem, QAction& ac
 	if (pixmap.loadFromData(iconData.toByteArray()))
 		return action.setIcon(QIcon(pixmap));
 
-	action.setIcon(QIcon{});
+	action.setIcon(QIcon {});
+}
+
+QIcon AddIcon(const ISettings& settings, const IDataItem& actionItem, QComboBox& comboBox, const int index)
+{
+	const auto iconData = settings.Get(GetName(Constant::Settings::ICONS_ROOT, actionItem.GetData(SettingsItem::Column::Key)));
+	if (!iconData.isValid())
+		return {};
+
+	QIcon   icon;
+	QPixmap pixmap;
+	if (pixmap.loadFromData(iconData.toByteArray()))
+		return comboBox.setItemData(index, icon = QIcon(pixmap), Qt::DecorationRole), icon;
+
+	comboBox.setItemData(index, QIcon {}, Qt::DecorationRole);
+	return icon;
 }
 
 IDataItem::Ptr AddChild(const IDataItemFactory& dataItemFactory, IDataItem& parent, const QObject& obj, QString objTitle)
@@ -585,6 +629,8 @@ IDataItem::Ptr UiFactory::AddComboBoxToHotkeys(QComboBox& comboBox, const QStrin
 	comboBoxItem->SetData(comboBox.objectName(), SettingsItem::Column::Key);
 	comboBoxItem->SetData(title, SettingsItem::Column::Title);
 
+	auto eventFilter = new ComboBoxHotkeyPropertyEventFilter(&comboBox);
+
 	for (int i = 0, sz = comboBox.count(); i < sz; ++i)
 	{
 		auto& child = comboBoxItem->AppendChild(dataItemFactory->CreateSettingsItem());
@@ -600,6 +646,11 @@ IDataItem::Ptr UiFactory::AddComboBoxToHotkeys(QComboBox& comboBox, const QStrin
 		if (const auto shortCut = settings->Get(GetName(Constant::Settings::HOTKEYS_ROOT, child->GetData(SettingsItem::Column::Key))); shortCut.isValid())
 			shortcut->setKey(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
 		child->SetData(shortcut->key().toString(), SettingsItem::Column::Value);
+
+		auto icon = AddIcon(*settings, *child, comboBox, i);
+		shortcut->setProperty(Constant::Settings::ICON, icon);
+		shortcut->setProperty(INDEX, i);
+		shortcut->installEventFilter(eventFilter);
 	}
 
 	return comboBoxItem;

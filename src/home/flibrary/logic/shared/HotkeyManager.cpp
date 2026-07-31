@@ -100,10 +100,29 @@ class HotkeyManager::Impl final
 		void SetIcon(const QString& path = {})
 		{
 			if (path.isEmpty())
+			{
 				if (action)
-					action->setIcon(QIcon {});
+					action->setIcon({});
+				if (shortcut)
+					shortcut->setProperty(Constant::Settings::ICON, {});
+				return;
+			}
+
 			if (action)
 				action->setIcon(QIcon(path));
+			if (shortcut)
+				shortcut->setProperty(Constant::Settings::ICON, QIcon(path));
+		}
+
+		QIcon GetIcon() const
+		{
+			if (action)
+				return action->icon();
+
+			if (shortcut)
+				return shortcut->property(Constant::Settings::ICON).value<QIcon>();
+
+			return {};
 		}
 	};
 
@@ -136,8 +155,8 @@ public:
 
 	QIcon GetIcon(const QString& key) const
 	{
-		if (const auto it = m_actions.find(key); it != m_actions.end() && it->second.action)
-			return it->second.action->icon();
+		if (const auto it = m_actions.find(key); it != m_actions.end())
+			return it->second.GetIcon();
 		return {};
 	}
 
