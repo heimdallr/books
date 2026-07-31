@@ -73,8 +73,9 @@ private: // IUiFactory
 	void        UpdateRecentOpenBookControllerMenu(QMenu& menu) const override;
 	void        SetBackgroundStyleSheet(QWidget& widget, const QString& key) const override;
 
-	IDataItem::Ptr AddMenuBarToHotkeys(const ISettings& settings, const QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*)>& functor) const override;
-	IDataItem::Ptr AddComboBoxToHotkeys(const ISettings& settings, QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*)>& functor) const override;
+	IDataItem::Ptr AddWidgetToHotkeys(QWidget& widget, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*, QObject*)>& functor) const override;
+	IDataItem::Ptr AddMenuBarToHotkeys(QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*, QObject*)>& functor) const override;
+	IDataItem::Ptr AddComboBoxToHotkeys(QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*, QObject*)>& functor) const override;
 
 private: // special
 	std::filesystem::path                GetNewCollectionInpxFolder() const noexcept override;

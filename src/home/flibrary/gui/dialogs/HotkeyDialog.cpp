@@ -7,9 +7,12 @@
 #include <QLineEdit>
 #include <QMenu>
 #include <QStyledItemDelegate>
+#include <QTimer>
+#include <QToolTip>
 
 #include "fnd/IsOneOf.h"
 
+#include "interface/constants/ModelRole.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 
@@ -23,8 +26,9 @@ using namespace HomeCompa;
 namespace
 {
 
-constexpr auto CONTEXT = "HotkeyDialog";
-constexpr auto RESET   = QT_TRANSLATE_NOOP("HotkeyDialog", "Reset");
+constexpr auto CONTEXT      = "HotkeyDialog";
+constexpr auto RESET        = QT_TRANSLATE_NOOP("HotkeyDialog", "Reset");
+constexpr auto ALREADY_USED = QT_TRANSLATE_NOOP("HotkeyDialog", "%1 already in use:\n%2");
 
 TR_DEF
 
@@ -32,6 +36,15 @@ constexpr auto FIELD_WIDTH_KEY = "ui/View/HotkeyDialog/columnWidths";
 
 class Model final : public QIdentityProxyModel
 {
+public:
+	struct ModelRole
+	{
+		enum
+		{
+			AlreadyAssigned = Role::Last,
+		};
+	};
+
 public:
 	static std::unique_ptr<QAbstractItemModel> Create(const IModelProvider& modelProvider, IHotkeyManager& hotkeyManager)
 	{
@@ -54,11 +67,21 @@ private: // QAbstractItemModel
 
 	QVariant data(const QModelIndex& index, const int role) const override
 	{
-		if (!index.isValid() || !IsOneOf(role, Qt::DisplayRole, Qt::ToolTipRole) || index.column() != 0)
-			return QIdentityProxyModel::data(index, role);
+		if (index.isValid())
+		{
+			if (index.column() == 0 && IsOneOf(role, Qt::DisplayRole, Qt::ToolTipRole))
+			{
+				const auto sourceIndex = mapToSource(index);
+				return m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
+			}
+		}
+		else
+		{
+			if (role == ModelRole::AlreadyAssigned)
+				return m_alreadyAssigned;
+		}
 
-		const auto sourceIndex = mapToSource(index);
-		return m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
+		return QIdentityProxyModel::data(index, role);
 	}
 
 	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
@@ -75,7 +98,9 @@ private: // QAbstractItemModel
 			return true;
 		}
 
-		m_hotkeyManager.Set(GetKey(index), shortCut);
+		if (auto alreadyAssigned = m_hotkeyManager.Set(GetKey(index), shortCut); !alreadyAssigned.isEmpty())
+			return (m_alreadyAssigned = std::move(alreadyAssigned)), false;
+
 		emit dataChanged(index, index);
 		return true;
 	}
@@ -96,6 +121,8 @@ private:
 	IHotkeyManager& m_hotkeyManager;
 
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_source;
+
+	QString m_alreadyAssigned;
 };
 
 class HotkeyDelegate final : public QStyledItemDelegate
@@ -123,8 +150,14 @@ private: // QStyledItemDelegate
 
 	void setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override
 	{
-		auto* lineEdit = qobject_cast<QLineEdit*>(editor);
-		model->setData(index, lineEdit->text());
+		auto text = qobject_cast<QLineEdit*>(editor)->text();
+		if (model->setData(index, text))
+			return;
+
+		QTimer::singleShot(0, [model, font = editor->font(), text = std::move(text)] {
+			QToolTip::setFont(font);
+			QToolTip::showText(QCursor::pos(), Tr(ALREADY_USED).arg(text, model->data({}, Model::ModelRole::AlreadyAssigned).toString()));
+		});
 	}
 
 private: // QObject

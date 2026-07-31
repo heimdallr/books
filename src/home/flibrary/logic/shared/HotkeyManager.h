@@ -22,11 +22,14 @@ private: // IHotkeyManager
 	IDataItem::Ptr GetRootDataItem() override;
 	bool           HasHotkey(const QString& key) const noexcept override;
 
-	void Add(const QMenuBar& menuBar, const QString& title) override;
-	void Add(QComboBox& comboBox, const QString& title) override;
-	void Set(const QString& key, const QString& shortCut) override;
-	bool Reset(const QString& key) override;
-	void SetBookMenuProvider(IBookMenuProvider* bookMenuProvider) override;
+	void    Add(QWidget& widget, const QString& title) override;
+	void    Add(QMenuBar& menuBar, const QString& title) override;
+	void    Add(QComboBox& comboBox, const QString& title) override;
+	QString Set(const QString& key, const QString& shortCut) override;
+	bool    Reset(const QString& key) override;
+
+	void RegisterObserver(IObserver* observer) override;
+	void UnregisterObserver(IObserver* observer) override;
 
 private:
 	class Impl;

@@ -57,10 +57,9 @@ public:
 	virtual void                                                      UpdateRecentOpenBookControllerMenu(QMenu& menu) const              = 0;
 	virtual void                                                      SetBackgroundStyleSheet(QWidget& widget, const QString& key) const = 0;
 
-	[[nodiscard]] virtual IDataItem::Ptr
-	AddMenuBarToHotkeys(const ISettings& settings, const QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*)>& functor) const = 0;
-	[[nodiscard]] virtual IDataItem::Ptr
-	AddComboBoxToHotkeys(const ISettings& settings, QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*)>& functor) const = 0;
+	[[nodiscard]] virtual IDataItem::Ptr AddWidgetToHotkeys(QWidget& widget, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*, QObject*)>& functor) const         = 0;
+	[[nodiscard]] virtual IDataItem::Ptr AddMenuBarToHotkeys(QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*, QObject*)>& functor) const      = 0;
+	[[nodiscard]] virtual IDataItem::Ptr AddComboBoxToHotkeys(QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*, QObject*)>& functor) const = 0;
 
 	[[nodiscard]] virtual QWidget* CreateFastFilterWidget(const QAbstractItemModel& model, int column, std::function<void(bool, QVariantList)> callback) const = 0;
 	[[nodiscard]] virtual QWidget* CreateChangeSizeWidget(int current, int minimum, int maximum, IChangeSizeWidgetObserver* observer) const                    = 0;

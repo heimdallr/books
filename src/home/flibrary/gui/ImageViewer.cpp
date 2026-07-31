@@ -4,11 +4,15 @@
 
 #include <QMenu>
 #include <QStyledItemDelegate>
+#include <QTimer>
 #include <QWidgetAction>
 
 #include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
+#include "interface/logic/IHotkeyManager.h"
+
+#include "logic/data/DataItem.h"
 
 #include "gutil/util.h"
 #include "util/ImageUtil.h"
@@ -26,6 +30,7 @@ namespace
 
 constexpr auto CONTEXT       = "ImageViewer";
 constexpr auto SELECT_FOLDER = QT_TRANSLATE_NOOP("ImageViewer", "Select images folder");
+constexpr auto IMAGE_VIEWER  = QT_TRANSLATE_NOOP("ImageViewer", "Image Viewer");
 
 constexpr auto ICON_SIZE              = "ui/ImageViewer/IconSize";
 constexpr auto IMAGE_BACKGROUND_COLOR = "ui/ImageViewer/ImageBackgroundColor";
@@ -76,6 +81,7 @@ public:
 		std::shared_ptr<const IUiFactory>          uiFactory,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IImageViewerController>    imageViewerController,
+		std::shared_ptr<IHotkeyManager>            hotkeyManager,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController,
 		std::shared_ptr<ProgressBar>               progressBar
@@ -86,6 +92,7 @@ public:
 		, m_uiFactory { std::move(uiFactory) }
 		, m_settings { std::move(settings) }
 		, m_imageViewerController { std::move(imageViewerController) }
+		, m_hotkeyManager { std::move(hotkeyManager) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
 		, m_progressBar { std::move(progressBar) }
@@ -105,6 +112,7 @@ public:
 		m_ui.imageScrollArea->installEventFilter(this);
 		m_ui.filter->installEventFilter(this);
 		m_ui.filter->addAction(m_ui.actionFilter, QLineEdit::LeadingPosition);
+		m_hotkeyManager->Add(self, Tr(IMAGE_VIEWER));
 
 		m_itemViewToolTipper->SetShowForceColumns({ 0 });
 		m_itemViewToolTipper->SetScrollArea(m_ui.images);
@@ -272,6 +280,7 @@ private:
 
 	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
 	PropagateConstPtr<IImageViewerController, std::shared_ptr>    m_imageViewerController;
+	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
 	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
 	PropagateConstPtr<ProgressBar, std::shared_ptr>               m_progressBar;
@@ -284,13 +293,23 @@ ImageViewer::ImageViewer(
 	std::shared_ptr<const IUiFactory>          uiFactory,
 	std::shared_ptr<ISettings>                 settings,
 	std::shared_ptr<IImageViewerController>    imageViewerController,
+	std::shared_ptr<IHotkeyManager>            hotkeyManager,
 	std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
 	std::shared_ptr<Util::ScrollBarController> scrollBarController,
 	std::shared_ptr<ProgressBar>               progressBar,
 	QWidget*                                   parent
 )
 	: StackedPage(*uiFactory, uiFactory->GetParentWidget(parent))
-	, m_impl(*this, std::move(uiFactory), std::move(settings), std::move(imageViewerController), std::move(itemViewToolTipper), std::move(scrollBarController), std::move(progressBar))
+	, m_impl(
+		  *this,
+		  std::move(uiFactory),
+		  std::move(settings),
+		  std::move(imageViewerController),
+		  std::move(hotkeyManager),
+		  std::move(itemViewToolTipper),
+		  std::move(scrollBarController),
+		  std::move(progressBar)
+	  )
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SIGNAL(ValueGeometryChanged(const QRect&)));
 }
