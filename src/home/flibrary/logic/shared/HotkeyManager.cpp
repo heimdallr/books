@@ -54,7 +54,7 @@ QString SetShortCutImpl<QShortcut>(QShortcut* obj, const QKeySequence& value)
 
 } // namespace
 
-class HotkeyManager::Impl
+class HotkeyManager::Impl final
 	: public QObject
 	, public Observable<IObserver>
 {
@@ -81,7 +81,7 @@ class HotkeyManager::Impl
 
 				assert(observer);
 				shortcut = new QShortcut(keySequence, observer->GetParentObject());
-				QObject::connect(shortcut, &QShortcut::activated, [o = observer, key = item->GetData(SettingsItem::Column::Key)] {
+				connect(shortcut, &QShortcut::activated, [o = observer, key = item->GetData(SettingsItem::Column::Key)] {
 					o->OnHotkeyActivated(key);
 				});
 			}
@@ -173,13 +173,14 @@ public:
 			for (const auto& k : m_settings->GetKeys())
 				if (const auto shortCut = m_settings->Get(k); shortCut.isValid())
 				{
-					auto child = SettingsItem::Create();
-					child->SetData(GetName(key, k), SettingsItem::Column::Key);
+					auto child   = SettingsItem::Create();
+					auto itemKey = GetName(key, k);
+					child->SetData(itemKey, SettingsItem::Column::Key);
 					auto&& [actionKey, shortCutItem] = *m_actions
 					                                        .try_emplace(
-																child->GetData(SettingsItem::Column::Key),
+																std::move(itemKey),
 																Item {
-																	.item     = child,
+																	.item     = std::move(child),
 																	.observer = observer,
 																}
 															)
