@@ -31,6 +31,7 @@
 #include "QtTypes.h"
 #include "log.h"
 #include "zip.h"
+#include "util/StrUtil.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -443,7 +444,7 @@ private:
 		for (const auto& value : values | std::views::filter([this](const auto& item) {
 									 return !IsFiltered(*item);
 								 }))
-			AppendTitle(result, value->GetData(0), ", ");
+			Util::AppendTitle(result, value->GetData(0), ", ");
 
 		return result;
 	}
@@ -676,7 +677,7 @@ join Keywords k on k.KeywordID = l.KeywordID
 		for (const auto& author : authors)
 		{
 			const auto authorStr = GetAuthorFull(*author);
-			AppendTitle(authorsStr, authorStr, ", ");
+			Util::AppendTitle(authorsStr, authorStr, ", ");
 		}
 
 		auto authorsNode = NavigationItem::Create();

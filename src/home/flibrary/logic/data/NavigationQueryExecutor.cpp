@@ -27,6 +27,7 @@
 #include "BooksTreeGenerator.h"
 #include "QtTypes.h"
 #include "log.h"
+#include "util/StrUtil.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -102,8 +103,8 @@ using Cache = std::unordered_map<NavigationMode, IDataItem::Ptr>;
 QString CreateAuthorTitle(const DB::IQuery& query)
 {
 	QString title = query.Get<const char*>(2);
-	AppendTitle(title, query.Get<const char*>(1));
-	AppendTitle(title, query.Get<const char*>(3));
+	Util::AppendTitle(title, query.Get<const char*>(1));
+	Util::AppendTitle(title, query.Get<const char*>(3));
 
 	if (title.isEmpty())
 		title = Loc::Tr(Loc::Ctx::ERROR_CTX, Loc::AUTHOR_NOT_SPECIFIED);

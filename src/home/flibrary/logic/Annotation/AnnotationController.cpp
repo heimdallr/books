@@ -31,6 +31,7 @@
 #include "ArchiveParser.h"
 #include "Constant.h"
 #include "log.h"
+#include "util/StrUtil.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
@@ -98,8 +99,8 @@ QString GetTitle(const IDataItem& item)
 QString GetTitleAuthor(const IDataItem& item)
 {
 	auto result = item.GetData(AuthorItem::Column::LastName);
-	AppendTitle(result, item.GetData(AuthorItem::Column::FirstName));
-	AppendTitle(result, item.GetData(AuthorItem::Column::MiddleName));
+	Util::AppendTitle(result, item.GetData(AuthorItem::Column::FirstName));
+	Util::AppendTitle(result, item.GetData(AuthorItem::Column::MiddleName));
 	return result;
 }
 
@@ -133,10 +134,10 @@ QString Urls(const IAnnotationController::IStrategy& strategy, const char* type,
 QString GetPublishInfo(const IAnnotationController::IDataProvider& dataProvider)
 {
 	QString result = dataProvider.GetPublisher();
-	AppendTitle(result, dataProvider.GetPublishCity(), ", ");
-	AppendTitle(result, dataProvider.GetPublishYear(), ", ");
+	Util::AppendTitle(result, dataProvider.GetPublishCity(), ", ");
+	Util::AppendTitle(result, dataProvider.GetPublishYear(), ", ");
 	const auto isbn = dataProvider.GetPublishIsbn().isEmpty() ? QString {} : QString("ISBN %1").arg(dataProvider.GetPublishIsbn());
-	AppendTitle(result, isbn, ". ");
+	Util::AppendTitle(result, isbn, ". ");
 	return result;
 }
 
