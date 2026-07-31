@@ -37,11 +37,11 @@ public:
 	[[nodiscard]] virtual IDataItem::Ptr GetRootDataItem()                            = 0;
 	[[nodiscard]] virtual bool           HasHotkey(const QString& key) const noexcept = 0;
 
-	virtual void Add(QWidget& widget, const QString& title)       = 0;
-	virtual void Add(QMenuBar& menuBar, const QString& title)     = 0;
-	virtual void Add(QComboBox& comboBox, const QString& title)   = 0;
-	virtual void Set(const QString& key, const QString& shortCut) = 0;
-	virtual bool Reset(const QString& key)                        = 0;
+	virtual void    Add(QWidget& widget, const QString& title)       = 0;
+	virtual void    Add(QMenuBar& menuBar, const QString& title)     = 0;
+	virtual void    Add(QComboBox& comboBox, const QString& title)   = 0;
+	virtual QString Set(const QString& key, const QString& shortCut) = 0;
+	virtual bool    Reset(const QString& key)                        = 0;
 
 	virtual void RegisterObserver(IObserver* observer)   = 0;
 	virtual void UnregisterObserver(IObserver* observer) = 0;

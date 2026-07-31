@@ -90,6 +90,13 @@ class HotkeyManager::Impl final
 		}
 	};
 
+	struct ObjToActions
+	{
+		QString              key;
+		bool                 enabled { true };
+		std::vector<QString> actionKeys;
+	};
+
 public:
 	explicit Impl(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<ISettings> settings)
 		: m_parentWidgetProvider { std::move(parentWidgetProvider) }
@@ -143,13 +150,52 @@ public:
 		m_root->AppendChild(std::move(item));
 	}
 
-	void Set(const QString& key, const QString& shortCut)
+	QString Set(const QString& key, const QString& shortCut)
 	{
 		const auto it = m_actions.find(key);
 		assert(it != m_actions.end());
 
-		auto value = it->second.SetShortCut(shortCut);
+		const auto disabled = m_objToActions | std::views::filter([](const auto& item) {
+								  return !item.second.enabled;
+							  })
+		                    | std::views::transform([](const auto& item) {
+								  return item.second.key;
+							  })
+		                    | std::ranges::to<std::unordered_set>();
+
+		const auto findCollision = [&](const IDataItem& parent, const auto& r) -> IDataItem::Ptr {
+			for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
+			{
+				auto child = parent.GetChild(i);
+				const auto childKey = child->GetData(SettingsItem::Column::Key);
+				if (disabled.contains(childKey))
+					continue;
+				
+				if (child->GetData(SettingsItem::Column::Value) == shortCut && childKey != key)
+					return child;
+
+				if (auto result = r(*child, r))
+					return result;
+			}
+			return {};
+		};
+
+		if (const auto found = findCollision(*m_root, findCollision))
+		{
+			QStringList names;
+			auto*       item = found.get();
+			while (item)
+			{
+				if (auto title = item->GetData(SettingsItem::Column::Title); !title.isEmpty())
+					names.push_front(std::move(title));
+				item = item->GetParent();
+			}
+			return names.join(" / ");
+		}
+
+		const auto value = it->second.SetShortCut(shortCut);
 		m_settings->Set(GetName(Constant::Settings::HOTKEYS_ROOT, it->second.item->GetData(SettingsItem::Column::Key)), value);
+		return {};
 	}
 
 	bool Reset(const QString& key)
@@ -166,8 +212,8 @@ public:
 
 	void AddObserver(IObserver* observer)
 	{
-		auto& actionsKeys = Add(observer->GetParentObject());
-		actionsKeys.first = observer->GetKey();
+		auto& objToActions = Add(observer->GetParentObject());
+		objToActions.key = observer->GetKey();
 
 		const auto enumerate = [&](const QString& key, const auto& r) -> void {
 			for (const auto& k : m_settings->GetKeys())
@@ -185,7 +231,7 @@ public:
 																}
 															)
 					                                        .first;
-					actionsKeys.second.emplace_back(actionKey);
+					objToActions.actionKeys.emplace_back(actionKey);
 					shortCutItem.SetShortCut(shortCut.toString());
 				}
 
@@ -234,7 +280,9 @@ private:
 		if (it == m_objToActions.end())
 			return;
 
-		for (const auto& key : it->second.second)
+		it->second.enabled = enabled;
+
+		for (const auto& key : it->second.actionKeys)
 			if (const auto itAction = m_actions.find(key); itAction != m_actions.end())
 				if (auto* shortcut = itAction->second.shortcut)
 					shortcut->setEnabled(enabled);
@@ -243,14 +291,14 @@ private:
 	QString& Add(const IDataItem::Ptr& actionItem, Item item, QObject* parent)
 	{
 		auto  key              = actionItem->GetData(SettingsItem::Column::Key);
-		auto& actionsKeys      = Add(parent);
+		auto& objToActions     = Add(parent);
 		const auto [it, added] = m_actions.try_emplace(std::move(key), std::move(item));
 		assert(added);
-		actionsKeys.second.emplace_back(it->first);
-		return actionsKeys.first;
+		objToActions.actionKeys.emplace_back(it->first);
+		return objToActions.key;
 	}
 
-	std::pair<QString, std::vector<QString>>& Add(QObject* parent)
+	ObjToActions& Add(QObject* parent)
 	{
 		auto [it, inserted] = m_objToActions.try_emplace(parent);
 		if (inserted)
@@ -270,12 +318,12 @@ private:
 
 		parent->removeEventFilter(this);
 
-		if (const auto menu = m_root->FindChild([&key = it->second.first](const auto& item) {
+		if (const auto menu = m_root->FindChild([&key = it->second.key](const auto& item) {
 				return item.GetData(SettingsItem::Column::Key) == key;
 			}))
 			m_root->RemoveChild(menu->GetRow());
 
-		for (const auto& key : it->second.second)
+		for (const auto& key : it->second.actionKeys)
 			m_actions.erase(key);
 		m_objToActions.erase(it);
 	}
@@ -351,7 +399,7 @@ private:
 
 	std::map<QString, Item> m_actions;
 
-	std::unordered_map<const QObject*, std::pair<QString, std::vector<QString>>> m_objToActions;
+	std::unordered_map<const QObject*, ObjToActions> m_objToActions;
 };
 
 HotkeyManager::HotkeyManager(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<ISettings> settings)
@@ -386,9 +434,9 @@ void HotkeyManager::Add(QComboBox& comboBox, const QString& title)
 	m_impl->Add(comboBox, title);
 }
 
-void HotkeyManager::Set(const QString& key, const QString& shortCut)
+QString HotkeyManager::Set(const QString& key, const QString& shortCut)
 {
-	m_impl->Set(key, shortCut);
+	return m_impl->Set(key, shortCut);
 }
 
 bool HotkeyManager::Reset(const QString& key)
