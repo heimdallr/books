@@ -50,6 +50,7 @@ namespace
 
 constexpr auto CONTEXT        = "TreeView";
 constexpr auto BOOK_VIEW_MODE = QT_TRANSLATE_NOOP("TreeView", "Books view mode");
+constexpr auto BOOK           = QT_TRANSLATE_NOOP("HotkeyManager", "Book");
 
 constexpr auto VALUE_MODE_KEY                     = "ui/%1/ValueMode";
 constexpr auto COLUMN_WIDTH_LOCAL_KEY             = "%1/Width";
@@ -439,7 +440,7 @@ class TreeView::Impl final
 	, IFilterProvider::IObserver
 	, ModeLineEdit::IValueApplier
 	, HeaderView::IObserver
-	, IHotkeyManager::IBookMenuProvider
+	, IHotkeyManager::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -448,6 +449,7 @@ public:
 		TreeView&                                  self,
 		const IDatabaseUser&                       databaseUser,
 		std::shared_ptr<const ICollectionProvider> collectionProvider,
+		std::shared_ptr<const IDataItemFactory>    dataItemFactory,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IUiFactory>                uiFactory,
 		std::shared_ptr<IFilterProvider>           filterProvider,
@@ -459,6 +461,7 @@ public:
 		: m_self { self }
 		, m_controller { uiFactory->GetTreeViewController() }
 		, m_collectionProvider { std::move(collectionProvider) }
+		, m_dataItemFactory { std::move(dataItemFactory) }
 		, m_settings { std::move(settings) }
 		, m_uiFactory { std::move(uiFactory) }
 		, m_filterProvider { std::move(filterProvider) }
@@ -477,6 +480,8 @@ public:
 		m_filterProvider->UnregisterObserver(this);
 		m_controller->UnregisterObserver(this);
 		m_delegate->UnregisterObserver(this);
+		if (!IsNavigation())
+			m_hotkeyManager->UnregisterObserver(this);
 	}
 
 	void SetNavigationModeName(QString navigationModeName)
@@ -686,8 +691,18 @@ private: // HeaderView::IObserver
 		return *m_ui.treeView;
 	}
 
-private: // IHotkeyManager::IBookMenuProvider
-	void RequestBookMenu(RequestMenuCallback callback) override
+private: // IHotkeyManager::IObserver
+	const char* GetKey() const noexcept override
+	{
+		return BOOK;
+	}
+
+	QWidget* GetParentWidget() noexcept override
+	{
+		return m_ui.treeView;
+	}
+
+	void RequestMenuItems(RequestMenuCallback callback) override
 	{
 		m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [callback = std::move(callback)](const QString& id, const IDataItem::Ptr& item) {
 			callback(id, item);
@@ -984,9 +999,6 @@ private:
 			connect(m_booksHeaderView, &QHeaderView::sectionMoved, &m_self, [this] {
 				SaveHeaderLayout();
 			});
-			QTimer::singleShot(0, [this] {
-				m_hotkeyManager->SetBookMenuProvider(this);
-			});
 		}
 
 		auto& treeViewHeader = *m_ui.treeView->header();
@@ -1059,7 +1071,10 @@ private:
 		m_ui.cbMode->setCurrentIndex(-1);
 
 		if (!IsNavigation())
-			m_hotkeyManager->Add(*m_ui.cbMode, Tr(BOOK_VIEW_MODE));
+			QTimer::singleShot(0, [this] {
+				m_hotkeyManager->Add(*m_ui.cbMode, Tr(BOOK_VIEW_MODE));
+				m_hotkeyManager->RegisterObserver(this);
+			});
 
 		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), IsNavigation());
 
@@ -1319,8 +1334,13 @@ private:
 			if (checked)
 				header->resizeSection(0, header->sectionSize(0) - header->sectionSize(logicalIndex));
 
+			if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
 			{
 				SettingsGroup guard(*m_settings, GetColumnSettingsKey());
+				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), !checked);
+			}
+			{
+				SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
 				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), !checked);
 			}
 
@@ -1334,7 +1354,7 @@ private:
 
 	std::shared_ptr<QMenu> GetFilterContextMenu(const int logicalIndex)
 	{
-		const auto column = BookItem::Remap(logicalIndex);
+		const auto column = m_dataItemFactory->BookItemRemapColumn(logicalIndex);
 
 		auto& model     = *m_ui.treeView->model();
 		auto  valuesAll = model.data({}, Role::AuthorsAll + column).toStringList();
@@ -1433,6 +1453,7 @@ private:
 	TreeView&                                                     m_self;
 	PropagateConstPtr<ITreeViewController, std::shared_ptr>       m_controller;
 	std::shared_ptr<const ICollectionProvider>                    m_collectionProvider;
+	std::shared_ptr<const IDataItemFactory>                       m_dataItemFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>                m_uiFactory;
 	PropagateConstPtr<IFilterProvider, std::shared_ptr>           m_filterProvider;
@@ -1465,6 +1486,7 @@ private:
 TreeView::TreeView(
 	const std::shared_ptr<const IDatabaseUser>& databaseUser,
 	std::shared_ptr<const ICollectionProvider>  collectionProvider,
+	std::shared_ptr<const IDataItemFactory>     dataItemFactory,
 	std::shared_ptr<ISettings>                  settings,
 	std::shared_ptr<IUiFactory>                 uiFactory,
 	std::shared_ptr<IFilterProvider>            filterProvider,
@@ -1479,6 +1501,7 @@ TreeView::TreeView(
 		  *this,
 		  *databaseUser,
 		  std::move(collectionProvider),
+		  std::move(dataItemFactory),
 		  std::move(settings),
 		  std::move(uiFactory),
 		  std::move(filterProvider),

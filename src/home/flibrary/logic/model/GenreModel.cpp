@@ -7,7 +7,7 @@
 
 #include "database/interface/IDatabase.h"
 
-#include "data/Genre.h"
+#include "genre/Genre.h"
 
 #include "QtTypes.h"
 

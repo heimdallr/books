@@ -13,6 +13,7 @@
 #include "Collection/CollectionProvider.h"
 #include "Collection/CollectionUpdateChecker.h"
 #include "Hypodermic/Hypodermic.h"
+#include "data/DataItemFactory.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
 #include "data/NavigationQueryExecutor.h"
@@ -64,6 +65,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<CommandLine>().as<ICommandLine>();
 	builder.registerType<DatabaseChecker>().as<IDatabaseChecker>();
 	builder.registerType<DatabaseMigrator>().as<IDatabaseMigrator>();
+	builder.registerType<DataItemFactory>().as<IDataItemFactory>();
 	builder.registerType<FilteredProxyModel>().as<AbstractFilteredProxyModel>();
 	builder.registerType<GenreModel>().as<IGenreModel>();
 	builder.registerType<ImageViewerController>().as<IImageViewerController>();

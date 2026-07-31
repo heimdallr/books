@@ -2717,6 +2717,11 @@ Try again?</source>
 <context>
     <name>HotkeyDialog</name>
     <message>
+        <source>%1 already in use:
+%2</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Hotkey settings</source>
         <translation></translation>
     </message>
@@ -2751,6 +2756,10 @@ Try again?</source>
     </message>
     <message>
         <source>Filter</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Image Viewer</source>
         <translation></translation>
     </message>
     <message>
@@ -4929,6 +4938,10 @@ Try again?</source>
     </message>
     <message>
         <source>My export folder</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Navi&amp;gation</source>
         <translation></translation>
     </message>
     <message>

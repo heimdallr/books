@@ -5,6 +5,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IDataItemFactory.h"
 #include "interface/logic/IModelProvider.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
@@ -21,12 +22,13 @@ class SettingsDialog final : public QDialog
 
 public:
 	SettingsDialog(
-		const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
-		const std::shared_ptr<IModelProvider>&        modelProvider,
-		std::shared_ptr<ISettings>                    settings,
-		std::shared_ptr<Util::ItemViewToolTipper>     itemViewToolTipper,
-		std::shared_ptr<Util::ScrollBarController>    scrollBarController,
-		QWidget*                                      parent = nullptr
+		const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
+		const std::shared_ptr<const IModelProvider>&        modelProvider,
+		const std::shared_ptr<const IDataItemFactory>&      dataItemFactory,
+		std::shared_ptr<ISettings>                          settings,
+		std::shared_ptr<Util::ItemViewToolTipper>           itemViewToolTipper,
+		std::shared_ptr<Util::ScrollBarController>          scrollBarController,
+		QWidget*                                            parent = nullptr
 	);
 	~SettingsDialog() override;
 

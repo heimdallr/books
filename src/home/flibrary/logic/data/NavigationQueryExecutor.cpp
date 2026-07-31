@@ -18,10 +18,11 @@
 #include "interface/localization.h"
 #include "interface/logic/ICollectionProvider.h"
 
-#include "data/Genre.h"
 #include "database/DatabaseUtil.h"
+#include "genre/Genre.h"
 #include "settings/ISettings.h"
 #include "util/SortString.h"
+#include "util/StrUtil.h"
 #include "util/language.h"
 
 #include "BooksTreeGenerator.h"
@@ -102,8 +103,8 @@ using Cache = std::unordered_map<NavigationMode, IDataItem::Ptr>;
 QString CreateAuthorTitle(const DB::IQuery& query)
 {
 	QString title = query.Get<const char*>(2);
-	AppendTitle(title, query.Get<const char*>(1));
-	AppendTitle(title, query.Get<const char*>(3));
+	Util::AppendTitle(title, query.Get<const char*>(1));
+	Util::AppendTitle(title, query.Get<const char*>(3));
 
 	if (title.isEmpty())
 		title = Loc::Tr(Loc::Ctx::ERROR_CTX, Loc::AUTHOR_NOT_SPECIFIED);

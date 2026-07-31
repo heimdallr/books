@@ -363,6 +363,11 @@
     <addaction name="actionAllowDestructiveOperations"/>
     <addaction name="actionShowCollectionCleaner"/>
    </widget>
+   <widget class="QMenu" name="menuNavigation">
+    <property name="title">
+     <string>Navi&amp;gation</string>
+    </property>
+   </widget>
    <widget class="QMenu" name="menuSettings">
     <property name="title">
      <string>&amp;Settings</string>
@@ -524,11 +529,6 @@
     <addaction name="actionEnableCheckForUpdateOnStart"/>
     <addaction name="separator"/>
     <addaction name="actionAbout"/>
-   </widget>
-   <widget class="QMenu" name="menuNavigation">
-    <property name="title">
-     <string>Navigation</string>
-    </property>
    </widget>
    <addaction name="menuFile"/>
    <addaction name="menuCollection"/>
@@ -1252,6 +1252,10 @@
    </property>
   </action>
   <action name="actionNavigationUndo">
+   <property name="icon">
+    <iconset resource="../icons/light/resources/light.qrc">
+     <normaloff>:/icons/undo.svg</normaloff>:/icons/undo.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Undo</string>
    </property>
@@ -1260,6 +1264,10 @@
    </property>
   </action>
   <action name="actionNavigationRedo">
+   <property name="icon">
+    <iconset resource="../icons/light/resources/light.qrc">
+     <normaloff>:/icons/redo.svg</normaloff>:/icons/redo.svg</iconset>
+   </property>
    <property name="text">
     <string>&amp;Redo</string>
    </property>

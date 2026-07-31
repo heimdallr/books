@@ -5,6 +5,8 @@
 #include "interface/constants/Enums.h"
 #include "interface/localization.h"
 
+#include "util/StrUtil.h"
+
 #include "QtTypes.h"
 
 using namespace HomeCompa::Flibrary;
@@ -286,7 +288,7 @@ void AuthorItem::Reduce()
 		if (str.isEmpty())
 			return;
 
-		AppendTitle(name, First(str, 1) + ".");
+		Util::AppendTitle(name, First(str, 1) + ".");
 	};
 
 	append(first);
@@ -436,23 +438,11 @@ IDataItem::Ptr MenuItem::Clone() const
 namespace HomeCompa::Flibrary
 {
 
-void AppendTitle(QString& title, const QString& str, const QString& delimiter)
-{
-	if (title.isEmpty())
-	{
-		title = str;
-		return;
-	}
-
-	if (!str.isEmpty())
-		title.append(delimiter).append(str);
-}
-
 QString GetAuthorFull(const IDataItem& author)
 {
 	auto result = author.GetData(AuthorItem::Column::LastName);
-	AppendTitle(result, author.GetData(AuthorItem::Column::FirstName));
-	AppendTitle(result, author.GetData(AuthorItem::Column::MiddleName));
+	Util::AppendTitle(result, author.GetData(AuthorItem::Column::FirstName));
+	Util::AppendTitle(result, author.GetData(AuthorItem::Column::MiddleName));
 	return result;
 }
 

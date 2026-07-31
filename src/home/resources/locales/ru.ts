@@ -2730,6 +2730,12 @@ Try again?</source>
 <context>
     <name>HotkeyDialog</name>
     <message>
+        <source>%1 already in use:
+%2</source>
+        <translation>%1 уже используется:
+%2</translation>
+    </message>
+    <message>
         <source>Hotkey settings</source>
         <translation>Настройка горячих клавиш</translation>
     </message>
@@ -2765,6 +2771,10 @@ Try again?</source>
     <message>
         <source>Filter</source>
         <translation>Фильтр</translation>
+    </message>
+    <message>
+        <source>Image Viewer</source>
+        <translation>Просмотр изображений</translation>
     </message>
     <message>
         <source>Save...</source>
@@ -4943,6 +4953,10 @@ Try again?</source>
     <message>
         <source>My export folder</source>
         <translation>Моя папка для экспорта</translation>
+    </message>
+    <message>
+        <source>Navi&amp;gation</source>
+        <translation>Нави&amp;гация</translation>
     </message>
     <message>
         <source>Navigation</source>

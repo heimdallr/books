@@ -7,7 +7,7 @@
 
 #include "interface/logic/IDataItem.h"
 
-#include "export/logic.h"
+#include "export/genre.h"
 
 namespace HomeCompa
 {
@@ -37,8 +37,8 @@ struct Update
 	bool                removed { false };
 	IDataItem::Flags    flags { IDataItem::Flags::None };
 
-	LOGIC_EXPORT static Update  Load(DB::IDatabase& db, const std::unordered_set<long long>& neededUpdates = {});
-	LOGIC_EXPORT static Update* Find(Update* root, long long code);
+	GENRE_EXPORT static Update  Load(DB::IDatabase& db, const std::unordered_set<long long>& neededUpdates = {});
+	GENRE_EXPORT static Update* Find(Update* root, long long code);
 
 	static const Update* Find(const Update* root, const long long code)
 	{
@@ -59,9 +59,9 @@ struct Genre
 	bool               removed { false };
 	IDataItem::Flags   flags { IDataItem::Flags::None };
 
-	LOGIC_EXPORT static Genre  Load(DB::IDatabase& db, const std::unordered_set<QString>& neededGenres = {});
-	LOGIC_EXPORT static Genre* Find(Genre* root, const QString& code);
-	LOGIC_EXPORT static void   SetSortMode(const ISettings& settings);
+	GENRE_EXPORT static Genre  Load(DB::IDatabase& db, const std::unordered_set<QString>& neededGenres = {});
+	GENRE_EXPORT static Genre* Find(Genre* root, const QString& code);
+	GENRE_EXPORT static void   SetSortMode(const ISettings& settings);
 
 	static const Genre* Find(const Genre* root, const QString& code)
 	{

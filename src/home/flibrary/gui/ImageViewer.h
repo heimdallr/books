@@ -5,6 +5,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IHotkeyManager.h"
 #include "interface/logic/IImageViewerController.h"
 #include "interface/ui/IUiFactory.h"
 
@@ -30,6 +31,7 @@ public:
 		std::shared_ptr<const IUiFactory>          uiFactory,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IImageViewerController>    imageViewerController,
+		std::shared_ptr<IHotkeyManager>            hotkeyManager,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController,
 		std::shared_ptr<ProgressBar>               progressBar,
