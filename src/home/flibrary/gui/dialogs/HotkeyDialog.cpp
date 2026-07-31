@@ -69,10 +69,21 @@ private: // QAbstractItemModel
 	{
 		if (index.isValid())
 		{
-			if (index.column() == 0 && IsOneOf(role, Qt::DisplayRole, Qt::ToolTipRole))
+			if (index.column() == 0)
 			{
 				const auto sourceIndex = mapToSource(index);
-				return m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
+				switch (role)
+				{
+					case Qt::DisplayRole:
+					case Qt::ToolTipRole:
+						return m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
+
+					case Qt::DecorationRole:
+						return m_hotkeyManager.GetIcon(m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data().toString());
+
+					default:
+						break;
+				}
 			}
 		}
 		else

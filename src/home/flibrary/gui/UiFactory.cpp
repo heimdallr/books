@@ -490,7 +490,10 @@ IDataItem::Ptr AddChild(const ISettings& settings, const IDataItemFactory& dataI
 {
 	if (action.objectName().isEmpty())
 	{
-		PLOGW << action.text() << ": objectName is empty";
+		if (const auto text = action.text(); !text.isEmpty())
+		{
+			PLOGW << action.text() << ": objectName is empty";
+		}
 		return {};
 	}
 

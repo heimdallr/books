@@ -119,6 +119,13 @@ public:
 		return it != m_actions.end();
 	}
 
+	QIcon GetIcon(const QString& key) const
+	{
+		if (const auto it = m_actions.find(key); it != m_actions.end() && it->second.action)
+			return it->second.action->icon();
+		return {};
+	}
+
 	void Add(QWidget& widget, const QString& title)
 	{
 		QString* itemKey = nullptr;
@@ -419,6 +426,11 @@ IDataItem::Ptr HotkeyManager::GetRootDataItem()
 bool HotkeyManager::HasHotkey(const QString& key) const noexcept
 {
 	return m_impl->HasHotkey(key);
+}
+
+QIcon HotkeyManager::GetIcon(const QString& key) const
+{
+	return m_impl->GetIcon(key);
 }
 
 void HotkeyManager::Add(QWidget& widget, const QString& title)
