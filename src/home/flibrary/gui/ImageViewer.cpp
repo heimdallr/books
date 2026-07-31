@@ -12,9 +12,8 @@
 #include "interface/localization.h"
 #include "interface/logic/IHotkeyManager.h"
 
-#include "logic/data/DataItem.h"
-
 #include "gutil/util.h"
+#include "logic/data/DataItem.h"
 #include "util/ImageUtil.h"
 #include "util/ObjectsConnector.h"
 #include "utilgui/GeometryRestorable.h"

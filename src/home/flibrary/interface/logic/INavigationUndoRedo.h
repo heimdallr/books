@@ -15,7 +15,7 @@ public:
 	class IObserver : public Observer
 	{
 	public:
-		virtual void OnStateChanged() = 0;
+		virtual void OnStateChanged()                                                                      = 0;
 		virtual void OnApply(NavigationMode navigationMode, const QString& navigationId, long long bookId) = 0;
 	};
 
@@ -29,10 +29,10 @@ public:
 	virtual bool IsRedoAvailable() const noexcept = 0;
 
 	virtual void SetCurrentNavigation(NavigationMode navigationMode, QString navigationId) = 0;
-	virtual void SetCurrentBook(long long bookId) = 0;
+	virtual void SetCurrentBook(long long bookId)                                          = 0;
 
-	virtual void RegisterObserver(IObserver* observer) = 0;
+	virtual void RegisterObserver(IObserver* observer)   = 0;
 	virtual void UnregisterObserver(IObserver* observer) = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

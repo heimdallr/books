@@ -26,12 +26,12 @@
 
 #include "database/DatabaseUtil.h"
 #include "util/SortString.h"
+#include "util/StrUtil.h"
 
 #include "Constant.h"
 #include "QtTypes.h"
 #include "log.h"
 #include "zip.h"
-#include "util/StrUtil.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

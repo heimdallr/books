@@ -6,6 +6,7 @@
 #include <QString>
 
 #include "interface/logic/IDataItem.h"
+
 #include "export/genre.h"
 
 namespace HomeCompa

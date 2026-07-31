@@ -26,12 +26,12 @@
 #include "data/DataItem.h"
 #include "database/DatabaseUtil.h"
 #include "settings/UiTimer.h"
+#include "util/StrUtil.h"
 #include "util/language.h"
 
 #include "ArchiveParser.h"
 #include "Constant.h"
 #include "log.h"
-#include "util/StrUtil.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;
