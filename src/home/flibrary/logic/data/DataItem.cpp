@@ -5,8 +5,9 @@
 #include "interface/constants/Enums.h"
 #include "interface/localization.h"
 
-#include "QtTypes.h"
 #include "util/StrUtil.h"
+
+#include "QtTypes.h"
 
 using namespace HomeCompa::Flibrary;
 

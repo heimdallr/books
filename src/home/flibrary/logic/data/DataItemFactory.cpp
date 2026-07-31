@@ -4,10 +4,10 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace 
+namespace
 {
 
-template<typename T>
+template <typename T>
 IDataItem::Ptr CreateImpl(IDataItem* parent)
 {
 	return T::Create(parent);
