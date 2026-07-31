@@ -2,8 +2,6 @@
 
 #include <vector>
 
-#include <QString>
-
 #include "fnd/NonCopyMovable.h"
 
 #include "interface/logic/IDataItem.h"
@@ -89,7 +87,7 @@ private: // DataItem
 	[[nodiscard]] Ptr      Clone() const override;
 };
 
-class LOGIC_EXPORT SettingsItem final : public DataItem
+class SettingsItem final : public DataItem
 {
 	DEFAULT_COPY_MOVABLE(SettingsItem)
 
@@ -224,7 +222,7 @@ private: // DataItem
 	[[nodiscard]] Ptr      Clone() const override;
 };
 
-class LOGIC_EXPORT BookItem final : public DataItem
+class BookItem final : public DataItem
 {
 #define BOOKS_COLUMN_ITEMS_X_MACRO \
 	BOOKS_COLUMN_ITEM(Author)      \
@@ -328,7 +326,7 @@ public:
 		};
 	};
 
-	LOGIC_EXPORT static Ptr Create(IDataItem* parent = nullptr);
+	static Ptr Create(IDataItem* parent = nullptr);
 	explicit MenuItem(IDataItem* parent);
 	~MenuItem() override = default;
 

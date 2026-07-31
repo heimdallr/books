@@ -449,6 +449,7 @@ public:
 		TreeView&                                  self,
 		const IDatabaseUser&                       databaseUser,
 		std::shared_ptr<const ICollectionProvider> collectionProvider,
+		std::shared_ptr<const IDataItemFactory>    dataItemFactory,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IUiFactory>                uiFactory,
 		std::shared_ptr<IFilterProvider>           filterProvider,
@@ -460,6 +461,7 @@ public:
 		: m_self { self }
 		, m_controller { uiFactory->GetTreeViewController() }
 		, m_collectionProvider { std::move(collectionProvider) }
+		, m_dataItemFactory { std::move(dataItemFactory) }
 		, m_settings { std::move(settings) }
 		, m_uiFactory { std::move(uiFactory) }
 		, m_filterProvider { std::move(filterProvider) }
@@ -1347,7 +1349,7 @@ private:
 
 	std::shared_ptr<QMenu> GetFilterContextMenu(const int logicalIndex)
 	{
-		const auto column = BookItem::Remap(logicalIndex);
+		const auto column = m_dataItemFactory->BookItemRemapColumn(logicalIndex);
 
 		auto& model     = *m_ui.treeView->model();
 		auto  valuesAll = model.data({}, Role::AuthorsAll + column).toStringList();
@@ -1446,6 +1448,7 @@ private:
 	TreeView&                                                     m_self;
 	PropagateConstPtr<ITreeViewController, std::shared_ptr>       m_controller;
 	std::shared_ptr<const ICollectionProvider>                    m_collectionProvider;
+	std::shared_ptr<const IDataItemFactory>                       m_dataItemFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>                m_uiFactory;
 	PropagateConstPtr<IFilterProvider, std::shared_ptr>           m_filterProvider;
@@ -1478,6 +1481,7 @@ private:
 TreeView::TreeView(
 	const std::shared_ptr<const IDatabaseUser>& databaseUser,
 	std::shared_ptr<const ICollectionProvider>  collectionProvider,
+	std::shared_ptr<const IDataItemFactory>     dataItemFactory,
 	std::shared_ptr<ISettings>                  settings,
 	std::shared_ptr<IUiFactory>                 uiFactory,
 	std::shared_ptr<IFilterProvider>            filterProvider,
@@ -1492,6 +1496,7 @@ TreeView::TreeView(
 		  *this,
 		  *databaseUser,
 		  std::move(collectionProvider),
+		  std::move(dataItemFactory),
 		  std::move(settings),
 		  std::move(uiFactory),
 		  std::move(filterProvider),
