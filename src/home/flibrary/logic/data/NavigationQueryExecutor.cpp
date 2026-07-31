@@ -18,16 +18,16 @@
 #include "interface/localization.h"
 #include "interface/logic/ICollectionProvider.h"
 
-#include "data/Genre.h"
 #include "database/DatabaseUtil.h"
+#include "genre/Genre.h"
 #include "settings/ISettings.h"
 #include "util/SortString.h"
+#include "util/StrUtil.h"
 #include "util/language.h"
 
 #include "BooksTreeGenerator.h"
 #include "QtTypes.h"
 #include "log.h"
-#include "util/StrUtil.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

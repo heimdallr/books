@@ -19,10 +19,10 @@
 #include "interface/logic/IOpdsController.h"
 
 #include "Hypodermic/Hypodermic.h"
+#include "genre/Genre.h"
 #include "inpx/InpxConstant.h"
 #include "logging/init.h"
 #include "logic/Collection/CollectionImpl.h"
-#include "logic/data/Genre.h"
 #include "platform/NativeEventFilter.h"
 #include "settings/ISettings.h"
 #include "util/SortString.h"

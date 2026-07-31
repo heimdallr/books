@@ -12,7 +12,6 @@ AddTarget(gui	shared_lib
 		flint
 		gutil
 		logging
-		logic
 		platform
 		settings
 		util

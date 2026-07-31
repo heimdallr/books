@@ -16,8 +16,8 @@
 #include "interface/INoSqlRequester.h"
 #include "interface/constants/SettingsConstant.h"
 
+#include "genre/Genre.h"
 #include "logic/data/DataItem.h"
-#include "logic/data/Genre.h"
 #include "util/AnnotationControllerObserver.h"
 #include "util/Fb2InpxParser.h"
 #include "util/FunctorExecutionForwarder.h"

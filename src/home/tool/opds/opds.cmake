@@ -15,6 +15,7 @@ AddTarget(opds	app
 	LINK_TARGETS
 		flint
 		fnd
+		genre
 		logging
 		logic
 		platform
