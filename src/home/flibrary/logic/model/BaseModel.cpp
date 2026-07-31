@@ -11,7 +11,6 @@
 #include "interface/logic/IModelProvider.h"
 
 #include "data/DataItem.h"
-#include "data/Genre.h"
 
 using namespace HomeCompa;
 using namespace Flibrary;

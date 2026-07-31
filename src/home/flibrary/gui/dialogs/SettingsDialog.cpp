@@ -29,16 +29,16 @@ constexpr auto FIELD_WIDTH_KEY = "ui/View/SettingsDialog/columnWidths";
 
 TR_DEF
 
-IDataItem::Ptr CreateModelData(const ISettings& settings)
+IDataItem::Ptr CreateModelData(const ISettings& settings, const IDataItemFactory& dataItemFactory)
 {
-	auto root = SettingsItem::Create();
+	auto root = dataItemFactory.CreateSettingsItem();
 	root->SetData(Tr(KEY), SettingsItem::Column::Key);
 	root->SetData(Tr(VALUE), SettingsItem::Column::Value);
 
 	const auto enumerate = [&](IDataItem& parent, const auto& r) -> void {
 		for (const auto& group : settings.GetGroups())
 		{
-			auto child = SettingsItem::Create();
+			auto child = dataItemFactory.CreateSettingsItem();
 			child->SetData(group, SettingsItem::Column::Key);
 			SettingsGroup settingsGroup(settings, group);
 			r(*child, r);
@@ -47,7 +47,7 @@ IDataItem::Ptr CreateModelData(const ISettings& settings)
 
 		for (const auto& key : settings.GetKeys())
 		{
-			auto child = SettingsItem::Create();
+			auto child = dataItemFactory.CreateSettingsItem();
 			child->SetData(key, SettingsItem::Column::Key);
 			child->SetData(settings.Get(key).toString(), SettingsItem::Column::Value);
 			parent.AppendChild(std::move(child));
@@ -70,9 +70,9 @@ QString GetKey(QModelIndex index)
 class Model final : public QIdentityProxyModel
 {
 public:
-	static std::unique_ptr<QAbstractItemModel> Create(const IModelProvider& modelProvider, const ISettings& settings)
+	static std::unique_ptr<QAbstractItemModel> Create(const IModelProvider& modelProvider, const ISettings& settings, const IDataItemFactory& dataItemFactory)
 	{
-		return std::make_unique<Model>(modelProvider.CreateTreeModel(CreateModelData(settings)));
+		return std::make_unique<Model>(modelProvider.CreateTreeModel(CreateModelData(settings, dataItemFactory)));
 	}
 
 	explicit Model(std::shared_ptr<QAbstractItemModel> source, QObject* parent = nullptr)
@@ -104,6 +104,7 @@ public:
 	Impl(
 		QDialog&                                   self,
 		const IModelProvider&                      modelProvider,
+		const IDataItemFactory&                    dataItemFactory,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController
@@ -112,7 +113,7 @@ public:
 		, GeometryRestorableObserver(self)
 		, m_self { self }
 		, m_settings { std::move(settings) }
-		, m_model { Model::Create(modelProvider, *m_settings) }
+		, m_model { Model::Create(modelProvider, *m_settings, dataItemFactory) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
 	{
@@ -183,15 +184,16 @@ private:
 };
 
 SettingsDialog::SettingsDialog(
-	const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
-	const std::shared_ptr<IModelProvider>&        modelProvider,
-	std::shared_ptr<ISettings>                    settings,
-	std::shared_ptr<Util::ItemViewToolTipper>     itemViewToolTipper,
-	std::shared_ptr<Util::ScrollBarController>    scrollBarController,
-	QWidget*                                      parent
+	const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
+	const std::shared_ptr<const IModelProvider>&        modelProvider,
+	const std::shared_ptr<const IDataItemFactory>&      dataItemFactory,
+	std::shared_ptr<ISettings>                          settings,
+	std::shared_ptr<Util::ItemViewToolTipper>           itemViewToolTipper,
+	std::shared_ptr<Util::ScrollBarController>          scrollBarController,
+	QWidget*                                            parent
 )
 	: QDialog(parentWidgetProvider->GetWidget(parent))
-	, m_impl(*this, *modelProvider, std::move(settings), std::move(itemViewToolTipper), std::move(scrollBarController))
+	, m_impl(*this, *modelProvider, *dataItemFactory, std::move(settings), std::move(itemViewToolTipper), std::move(scrollBarController))
 {
 }
 

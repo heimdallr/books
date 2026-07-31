@@ -1,5 +1,7 @@
 #include "HotkeyManager.h"
 
+#include <ranges>
+
 #include <QAction>
 #include <QEvent>
 #include <QEventLoop>
@@ -80,7 +82,7 @@ class HotkeyManager::Impl final
 					return value;
 
 				assert(observer);
-				shortcut = new QShortcut(keySequence, observer->GetParentObject());
+				shortcut = new QShortcut(keySequence, observer->GetParentWidget());
 				connect(shortcut, &QShortcut::activated, [o = observer, key = item->GetData(SettingsItem::Column::Key)] {
 					o->OnHotkeyActivated(key);
 				});
@@ -166,11 +168,11 @@ public:
 		const auto findCollision = [&](const IDataItem& parent, const auto& r) -> IDataItem::Ptr {
 			for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
 			{
-				auto child = parent.GetChild(i);
+				auto       child    = parent.GetChild(i);
 				const auto childKey = child->GetData(SettingsItem::Column::Key);
 				if (disabled.contains(childKey))
 					continue;
-				
+
 				if (child->GetData(SettingsItem::Column::Value) == shortCut && childKey != key)
 					return child;
 
@@ -212,8 +214,8 @@ public:
 
 	void AddObserver(IObserver* observer)
 	{
-		auto& objToActions = Add(observer->GetParentObject());
-		objToActions.key = observer->GetKey();
+		auto& objToActions = Add(observer->GetParentWidget());
+		objToActions.key   = observer->GetKey();
 
 		const auto enumerate = [&](const QString& key, const auto& r) -> void {
 			for (const auto& k : m_settings->GetKeys())
@@ -250,7 +252,7 @@ public:
 
 	void RemoveObserver(IObserver* observer)
 	{
-		Remove(observer->GetParentObject());
+		Remove(observer->GetParentWidget());
 		Unregister(observer);
 	}
 
@@ -378,7 +380,7 @@ private:
 				dstChild->SetData(RemoveAmp(std::move(title)), SettingsItem::Column::Title);
 
 				if (!srcChild->GetData(MenuItem::Column::Id).isEmpty())
-					Add(dstChild, Item { .item = dstChild, .observer = observer }, observer->GetParentObject());
+					Add(dstChild, Item { .item = dstChild, .observer = observer }, observer->GetParentWidget());
 
 				r(*srcChild, *dstChild, r);
 			}

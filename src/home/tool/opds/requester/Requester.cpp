@@ -24,8 +24,8 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseController.h"
 
+#include "genre/Genre.h"
 #include "logic/data/DataItem.h"
-#include "logic/data/Genre.h"
 #include "util/AnnotationControllerObserver.h"
 #include "util/BookView.h"
 #include "util/Fb2InpxParser.h"

@@ -2,13 +2,9 @@
 
 #include <vector>
 
-#include <QString>
-
 #include "fnd/NonCopyMovable.h"
 
 #include "interface/logic/IDataItem.h"
-
-#include "export/logic.h"
 
 namespace HomeCompa::Flibrary
 {
@@ -89,7 +85,7 @@ private: // DataItem
 	[[nodiscard]] Ptr      Clone() const override;
 };
 
-class LOGIC_EXPORT SettingsItem final : public DataItem
+class SettingsItem final : public DataItem
 {
 	DEFAULT_COPY_MOVABLE(SettingsItem)
 
@@ -224,7 +220,7 @@ private: // DataItem
 	[[nodiscard]] Ptr      Clone() const override;
 };
 
-class LOGIC_EXPORT BookItem final : public DataItem
+class BookItem final : public DataItem
 {
 #define BOOKS_COLUMN_ITEMS_X_MACRO \
 	BOOKS_COLUMN_ITEM(Author)      \
@@ -328,7 +324,7 @@ public:
 		};
 	};
 
-	LOGIC_EXPORT static Ptr Create(IDataItem* parent = nullptr);
+	static Ptr Create(IDataItem* parent = nullptr);
 	explicit MenuItem(IDataItem* parent);
 	~MenuItem() override = default;
 
@@ -338,7 +334,6 @@ private: // DataItem
 	[[nodiscard]] Ptr      Clone() const override;
 };
 
-LOGIC_EXPORT void    AppendTitle(QString& title, const QString& str, const QString& delimiter = " ");
-LOGIC_EXPORT QString GetAuthorFull(const IDataItem& author);
+QString GetAuthorFull(const IDataItem& author);
 
 } // namespace HomeCompa::Flibrary

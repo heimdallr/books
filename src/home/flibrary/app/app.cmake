@@ -11,6 +11,7 @@ AddTarget(${PROJECT_NAME}	app
 	LINK_TARGETS
 		flidjvu
 		flint
+		genre
 		gui
 		gutil
 		logging

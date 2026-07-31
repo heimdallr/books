@@ -13,6 +13,7 @@ AddTarget(logic	shared_lib
 		flidjvu
 		flint
 		flipdf
+		genre
 		inpx
 		joke
 		logging

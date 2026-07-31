@@ -6,6 +6,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ICollectionProvider.h"
+#include "interface/logic/IDataItemFactory.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IFilterProvider.h"
 #include "interface/logic/IHotkeyManager.h"
@@ -31,6 +32,7 @@ public:
 	TreeView(
 		const std::shared_ptr<const IDatabaseUser>& databaseUser,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
+		std::shared_ptr<const IDataItemFactory>     dataItemFactory,
 		std::shared_ptr<ISettings>                  settings,
 		std::shared_ptr<IUiFactory>                 uiFactory,
 		std::shared_ptr<IFilterProvider>            filterProvider,

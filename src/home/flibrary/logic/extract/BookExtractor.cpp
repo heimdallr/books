@@ -11,6 +11,7 @@
 #include "data/DataItem.h"
 #include "platform/DyLib.h"
 #include "util/FunctorExecutionForwarder.h"
+#include "util/StrUtil.h"
 #include "util/translit.h"
 
 using namespace HomeCompa;
@@ -88,8 +89,8 @@ order by al.OrdNum, sl.OrdNum limit 1
 		};
 
 		result.author = result.authorFull.lastName;
-		AppendTitle(result.author, result.authorFull.firstName);
-		AppendTitle(result.author, result.authorFull.middleName);
+		Util::AppendTitle(result.author, result.authorFull.firstName);
+		Util::AppendTitle(result.author, result.authorFull.middleName);
 
 		return result;
 	}

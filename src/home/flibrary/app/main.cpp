@@ -27,8 +27,8 @@
 
 #include "Hypodermic/Hypodermic.h"
 #include "djvu/djvu.h"
+#include "genre/Genre.h"
 #include "logging/init.h"
-#include "logic/data/Genre.h"
 #include "logic/model/LogModel.h"
 #include "platform/PlatformUtil.h"
 #include "settings/ISettings.h"
