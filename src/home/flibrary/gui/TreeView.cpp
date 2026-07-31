@@ -1334,8 +1334,13 @@ private:
 			if (checked)
 				header->resizeSection(0, header->sectionSize(0) - header->sectionSize(logicalIndex));
 
+			if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
 			{
 				SettingsGroup guard(*m_settings, GetColumnSettingsKey());
+				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), !checked);
+			}
+			{
+				SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
 				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), !checked);
 			}
 
