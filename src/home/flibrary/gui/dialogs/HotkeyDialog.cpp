@@ -26,12 +26,17 @@ using namespace HomeCompa;
 namespace
 {
 
-constexpr auto CONTEXT      = "HotkeyDialog";
-constexpr auto RESET        = QT_TRANSLATE_NOOP("HotkeyDialog", "Reset");
-constexpr auto ALREADY_USED = QT_TRANSLATE_NOOP("HotkeyDialog", "%1 already in use:\n%2");
+constexpr auto CONTEXT            = "HotkeyDialog";
+constexpr auto RESET              = QT_TRANSLATE_NOOP("HotkeyDialog", "Remove hotkey");
+constexpr auto SET_ICON           = QT_TRANSLATE_NOOP("HotkeyDialog", "Set icon");
+constexpr auto REMOVE_ICON        = QT_TRANSLATE_NOOP("HotkeyDialog", "Remove icon");
+constexpr auto ALREADY_USED       = QT_TRANSLATE_NOOP("HotkeyDialog", "%1 already in use:\n%2");
+constexpr auto SELECT_ICON        = QT_TRANSLATE_NOOP("HotkeyDialog", "Select image file");
+constexpr auto SELECT_ICON_FILTER = QT_TRANSLATE_NOOP("HotkeyDialog", "Images (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)");
 
 TR_DEF
 
+constexpr auto ICONS           = "HotkeyDialogIcons";
 constexpr auto FIELD_WIDTH_KEY = "ui/View/HotkeyDialog/columnWidths";
 
 class Model final : public QIdentityProxyModel
@@ -41,20 +46,23 @@ public:
 	{
 		enum
 		{
-			AlreadyAssigned = Role::Last,
+			Key = Role::Last,
+			AlreadyAssigned,
+			Icon,
+			Last
 		};
 	};
 
 public:
-	static std::unique_ptr<QAbstractItemModel> Create(const IModelProvider& modelProvider, IHotkeyManager& hotkeyManager)
+	static std::unique_ptr<QAbstractItemModel> Create(const IModelProvider& modelProvider, std::shared_ptr<IHotkeyManager> hotkeyManager)
 	{
-		return std::make_unique<Model>(hotkeyManager, modelProvider.CreateTreeModel(hotkeyManager.GetRootDataItem()));
+		return std::make_unique<Model>(modelProvider, std::move(hotkeyManager));
 	}
 
-	Model(IHotkeyManager& hotkeyManager, std::shared_ptr<QAbstractItemModel> source, QObject* parent = nullptr)
+	Model(const IModelProvider& modelProvider, std::shared_ptr<IHotkeyManager> hotkeyManager, QObject* parent = nullptr)
 		: QIdentityProxyModel(parent)
-		, m_hotkeyManager { hotkeyManager }
-		, m_source { std::move(source) }
+		, m_hotkeyManager { std::move(hotkeyManager) }
+		, m_source { modelProvider.CreateTreeModel(m_hotkeyManager->GetRootDataItem()) }
 	{
 		QIdentityProxyModel::setSourceModel(m_source.get());
 	}
@@ -79,7 +87,10 @@ private: // QAbstractItemModel
 						return m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
 
 					case Qt::DecorationRole:
-						return m_hotkeyManager.GetIcon(m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data().toString());
+						return m_hotkeyManager->GetIcon(m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data().toString());
+
+					case ModelRole::Key:
+						return m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data();
 
 					default:
 						break;
@@ -97,31 +108,53 @@ private: // QAbstractItemModel
 
 	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
 	{
-		if (!index.isValid() || role != Qt::EditRole)
+		if (!index.isValid())
 			return false;
 
-		const auto shortCut = value.toString();
-		if (shortCut.isEmpty())
+		QVector<int> roles;
+
+		switch (role)
 		{
-			m_hotkeyManager.Reset(GetKey(index));
-			for (int row = 0, sz = rowCount(index); row < sz; ++row)
-				m_hotkeyManager.Reset(GetKey(this->index(row, 0, index)));
-			return true;
+			case Qt::EditRole:
+				if (SetShortCut(index, value))
+					roles.emplace_back(Qt::DisplayRole);
+				break;
+
+			case ModelRole::Icon:
+				roles.emplace_back(Qt::DecorationRole);
+				break;
+
+			default:
+				break;
 		}
 
-		if (auto alreadyAssigned = m_hotkeyManager.Set(GetKey(index), shortCut); !alreadyAssigned.isEmpty())
-			return (m_alreadyAssigned = std::move(alreadyAssigned)), false;
+		if (!roles.empty())
+			emit dataChanged(index, index, roles);
 
-		emit dataChanged(index, index);
-		return true;
+		return !roles.empty();
 	}
 
 	Qt::ItemFlags flags(const QModelIndex& index) const override
 	{
-		return QIdentityProxyModel::flags(index) | (index.column() == 1 && !!m_hotkeyManager.HasHotkey(GetKey(index)) ? Qt::ItemIsEditable : Qt::NoItemFlags);
+		return QIdentityProxyModel::flags(index) | (index.column() == 1 && index.data(Role::ChildCount).toInt() == 0 ? Qt::ItemIsEditable : Qt::NoItemFlags);
 	}
 
 private:
+	bool SetShortCut(const QModelIndex& index, const QVariant& value)
+	{
+		const auto shortCut = value.toString();
+		if (shortCut.isEmpty())
+		{
+			m_hotkeyManager->Reset(GetKey(index));
+			return true;
+		}
+
+		if (auto alreadyAssigned = m_hotkeyManager->Set(GetKey(index), shortCut); !alreadyAssigned.isEmpty())
+			return (m_alreadyAssigned = std::move(alreadyAssigned)), false;
+
+		return true;
+	}
+
 	QString GetKey(const QModelIndex& index) const
 	{
 		const auto sourceIndex = mapToSource(index);
@@ -129,8 +162,7 @@ private:
 	}
 
 private:
-	IHotkeyManager& m_hotkeyManager;
-
+	PropagateConstPtr<IHotkeyManager, std::shared_ptr>     m_hotkeyManager;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_source;
 
 	QString m_alreadyAssigned;
@@ -212,6 +244,7 @@ public:
 	Impl(
 		QDialog&                                   self,
 		const IModelProvider&                      modelProvider,
+		std::shared_ptr<const Util::IUiFactory>    uiFactory,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IHotkeyManager>            hotkeyManager,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
@@ -220,9 +253,10 @@ public:
 		: GeometryRestorable(*this, settings, CONTEXT)
 		, GeometryRestorableObserver(self)
 		, m_self { self }
+		, m_uiFactory { std::move(uiFactory) }
 		, m_settings { std::move(settings) }
 		, m_hotkeyManager { std::move(hotkeyManager) }
-		, m_model { Model::Create(modelProvider, *m_hotkeyManager) }
+		, m_model { Model::Create(modelProvider, m_hotkeyManager) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
 	{
@@ -261,15 +295,36 @@ private:
 	{
 		QMenu menu;
 		menu.setFont(m_self.font());
-		menu.addAction(Tr(RESET), [this] {
-			m_model->setData(m_ui.view->currentIndex(), {});
-		});
+
+		if (m_ui.view->currentIndex().data(Role::ChildCount).toInt() == 0)
+			menu.addAction(Tr(RESET), [this] {
+				m_model->setData(m_ui.view->currentIndex(), {});
+			});
+		if (m_ui.view->currentIndex().parent().isValid())
+		{
+			menu.addAction(Tr(SET_ICON), [this] {
+				if (const auto path = m_uiFactory->GetOpenFileName(ICONS, Tr(SELECT_ICON), Tr(SELECT_ICON_FILTER)); !path.isEmpty())
+				{
+					if (const auto result = m_hotkeyManager->SetIcon(m_ui.view->currentIndex().data(Model::ModelRole::Key).toString(), path); !result)
+						m_uiFactory->ShowError(result.error());
+					else
+						m_model->setData(m_ui.view->currentIndex(), {}, Model::ModelRole::Icon);
+				}
+			});
+
+			if (!m_model->data(m_ui.view->currentIndex(), Qt::DecorationRole).value<QIcon>().isNull())
+				menu.addAction(Tr(REMOVE_ICON), [this] {
+					(void)m_hotkeyManager->SetIcon(m_ui.view->currentIndex().data(Model::ModelRole::Key).toString());
+					m_model->setData(m_ui.view->currentIndex(), {}, Model::ModelRole::Icon);
+				});
+		}
 		Util::FillTreeContextMenu(*m_ui.view, menu).exec(QCursor::pos());
 	}
 
 private:
 	QDialog& m_self;
 
+	std::shared_ptr<const Util::IUiFactory>                       m_uiFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
 	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
 	PropagateConstPtr<QAbstractItemModel>                         m_model;
@@ -282,6 +337,7 @@ private:
 HotkeyDialog::HotkeyDialog(
 	const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
 	const std::shared_ptr<IModelProvider>&        modelProvider,
+	std::shared_ptr<const Util::IUiFactory>       uiFactory,
 	std::shared_ptr<ISettings>                    settings,
 	std::shared_ptr<IHotkeyManager>               hotkeyManager,
 	std::shared_ptr<Util::ItemViewToolTipper>     itemViewToolTipper,
@@ -289,7 +345,7 @@ HotkeyDialog::HotkeyDialog(
 	QWidget*                                      parent
 )
 	: QDialog(parentWidgetProvider->GetWidget(parent))
-	, m_impl(*this, *modelProvider, std::move(settings), std::move(hotkeyManager), std::move(itemViewToolTipper), std::move(scrollBarController))
+	, m_impl(*this, *modelProvider, std::move(uiFactory), std::move(settings), std::move(hotkeyManager), std::move(itemViewToolTipper), std::move(scrollBarController))
 {
 }
 

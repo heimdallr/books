@@ -478,6 +478,19 @@ QString RemoveAmp(QString str)
 	return str.remove('&');
 }
 
+void AddIcon(const ISettings& settings, const IDataItem& actionItem, QAction& action)
+{
+	const auto iconData = settings.Get(GetName(Constant::Settings::ICONS_ROOT, actionItem.GetData(SettingsItem::Column::Key)));
+	if (!iconData.isValid())
+		return;
+
+	QPixmap pixmap;
+	if (pixmap.loadFromData(iconData.toByteArray()))
+		return action.setIcon(QIcon(pixmap));
+
+	action.setIcon(QIcon{});
+}
+
 IDataItem::Ptr AddChild(const IDataItemFactory& dataItemFactory, IDataItem& parent, const QObject& obj, QString objTitle)
 {
 	auto child = dataItemFactory.CreateSettingsItem();
@@ -502,6 +515,8 @@ IDataItem::Ptr AddChild(const ISettings& settings, const IDataItemFactory& dataI
 	if (const auto shortCut = settings.Get(GetName(Constant::Settings::HOTKEYS_ROOT, actionItem->GetData(SettingsItem::Column::Key))); shortCut.isValid())
 		action.setShortcut(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
 	actionItem->SetData(action.shortcut().toString(), SettingsItem::Column::Value);
+
+	AddIcon(settings, *actionItem, action);
 
 	return actionItem;
 }
@@ -541,6 +556,8 @@ IDataItem::Ptr UiFactory::AddMenuBarToHotkeys(QMenuBar& menuBar, const QString& 
 
 			menuActions.emplace(menu->menuAction());
 			auto child = AddChild(*dataItemFactory, parent, *menu, menu->title());
+			AddIcon(*settings, *child, *menu->menuAction());
+			functor(child, menu->menuAction(), &menuBar);
 
 			std::unordered_set<const QAction*> actions;
 			r(menu->findChildren<QMenu*>(QString {}, Qt::FindDirectChildrenOnly), *child, actions, r);

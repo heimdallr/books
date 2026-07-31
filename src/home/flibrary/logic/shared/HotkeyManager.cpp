@@ -23,7 +23,8 @@ using namespace HomeCompa;
 namespace
 {
 
-constexpr auto CONTEXT = "HotkeyManager";
+constexpr auto CONTEXT     = "HotkeyManager";
+constexpr auto CANNOT_OPEN = QT_TRANSLATE_NOOP("HotkeyManager", "Cannot open '%1'");
 
 TR_DEF
 
@@ -90,6 +91,20 @@ class HotkeyManager::Impl final
 
 			return SetShortCutImpl(shortcut, keySequence);
 		}
+
+		bool HasHotkey() const
+		{
+			return !(!shortcut && (!action || action->shortcut().isEmpty()));
+		}
+
+		void SetIcon(const QString& path = {})
+		{
+			if (path.isEmpty())
+				if (action)
+					action->setIcon(QIcon {});
+			if (action)
+				action->setIcon(QIcon(path));
+		}
 	};
 
 	struct ObjToActions
@@ -116,7 +131,7 @@ public:
 	bool HasHotkey(const QString& key) const noexcept
 	{
 		const auto it = m_actions.find(key);
-		return it != m_actions.end();
+		return it != m_actions.end() && it->second.HasHotkey();
 	}
 
 	QIcon GetIcon(const QString& key) const
@@ -207,16 +222,35 @@ public:
 		return {};
 	}
 
-	bool Reset(const QString& key)
+	void Reset(const QString& key)
 	{
 		const auto it = m_actions.find(key);
-		if (it == m_actions.end())
-			return false;
+		assert(it != m_actions.end());
 
 		it->second.SetShortCut();
 		m_settings->Remove(GetName(Constant::Settings::HOTKEYS_ROOT, it->second.item->GetData(SettingsItem::Column::Key)));
+	}
 
-		return true;
+	std::expected<void, QString> SetIcon(const QString& key, const QString& path)
+	{
+		const auto it = m_actions.find(key);
+		assert(it != m_actions.end());
+
+		if (path.isEmpty())
+		{
+			m_settings->Set(GetName(Constant::Settings::ICONS_ROOT, it->second.item->GetData(SettingsItem::Column::Key)), QString {});
+			it->second.SetIcon();
+			return {};
+		}
+
+		QFile file(path);
+		if (!file.open(QIODevice::ReadOnly))
+			return std::unexpected(Tr(CANNOT_OPEN).arg(path));
+
+		m_settings->Set(GetName(Constant::Settings::ICONS_ROOT, it->second.item->GetData(SettingsItem::Column::Key)), file.readAll());
+		it->second.SetIcon(path);
+
+		return {};
 	}
 
 	void AddObserver(IObserver* observer)
@@ -251,8 +285,10 @@ public:
 			}
 		};
 
-		const SettingsGroup settingsGroup(*m_settings, GetName(Constant::Settings::HOTKEYS_ROOT, observer->GetKey()));
-		enumerate(observer->GetKey(), enumerate);
+		{
+			const SettingsGroup settingsGroup(*m_settings, GetName(Constant::Settings::HOTKEYS_ROOT, observer->GetKey()));
+			enumerate(observer->GetKey(), enumerate);
+		}
 
 		Register(observer);
 	}
@@ -453,9 +489,14 @@ QString HotkeyManager::Set(const QString& key, const QString& shortCut)
 	return m_impl->Set(key, shortCut);
 }
 
-bool HotkeyManager::Reset(const QString& key)
+void HotkeyManager::Reset(const QString& key)
 {
-	return m_impl->Reset(key);
+	m_impl->Reset(key);
+}
+
+std::expected<void, QString> HotkeyManager::SetIcon(const QString& key, const QString& path)
+{
+	return m_impl->SetIcon(key, path);
 }
 
 void HotkeyManager::RegisterObserver(IObserver* observer)
