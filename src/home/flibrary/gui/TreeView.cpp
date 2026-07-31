@@ -697,7 +697,7 @@ private: // IHotkeyManager::IObserver
 		return BOOK;
 	}
 
-	QObject* GetParentObject() noexcept override
+	QWidget* GetParentWidget() noexcept override
 	{
 		return m_ui.treeView;
 	}

@@ -1,7 +1,5 @@
 #pragma once
 
-#include <QString>
-
 #include "fnd/observer.h"
 
 #include "IDataItem.h"
@@ -9,7 +7,6 @@
 class QAction;
 class QComboBox;
 class QMenuBar;
-class QObject;
 class QWidget;
 
 namespace HomeCompa::Flibrary
@@ -25,7 +22,7 @@ public:
 
 	public:
 		virtual const char* GetKey() const noexcept                        = 0;
-		virtual QObject*    GetParentObject() noexcept                     = 0;
+		virtual QWidget*    GetParentWidget() noexcept                     = 0;
 		virtual void        RequestMenuItems(RequestMenuCallback callback) = 0;
 		virtual void        OnHotkeyActivated(const QString& key)          = 0;
 	};
