@@ -533,7 +533,7 @@ std::optional<QIcon> AddIcon(const ISettings& settings, const IDataItem& actionI
 {
 	auto icon = CreateIcon(settings.Get(GetName(Constant::Settings::ICONS_ROOT, actionItem.GetData(SettingsItem::Column::Key))));
 	if (icon)
-		comboBox.setItemData(index, QVariant::fromValue(icon), Qt::DecorationRole);
+		comboBox.setItemData(index, QVariant::fromValue(*icon), Qt::DecorationRole);
 	return icon;
 }
 
