@@ -508,30 +508,32 @@ QString RemoveAmp(QString str)
 	return str.remove('&');
 }
 
-QIcon CreateIcon(const QVariant& iconData)
+std::optional<QIcon> CreateIcon(const QVariant& iconData)
 {
 	if (!iconData.isValid())
-		return {};
+		return std::nullopt;
 
 	const auto bytes = iconData.toByteArray();
 	if (bytes.isEmpty())
-		return {};
+		return QIcon{};
 
 	if (const auto pixmap = Util::Decode(bytes); !pixmap.isNull())
 		return QIcon { pixmap };
 
-	return {};
+	return std::nullopt;
 }
 
 void AddIcon(const ISettings& settings, const IDataItem& actionItem, QAction& action)
 {
-	action.setIcon(CreateIcon(settings.Get(GetName(Constant::Settings::ICONS_ROOT, actionItem.GetData(SettingsItem::Column::Key)))));
+	if (const auto icon = CreateIcon(settings.Get(GetName(Constant::Settings::ICONS_ROOT, actionItem.GetData(SettingsItem::Column::Key)))))
+		action.setIcon(*icon);
 }
 
-QIcon AddIcon(const ISettings& settings, const IDataItem& actionItem, QComboBox& comboBox, const int index)
+std::optional<QIcon> AddIcon(const ISettings& settings, const IDataItem& actionItem, QComboBox& comboBox, const int index)
 {
 	auto icon = CreateIcon(settings.Get(GetName(Constant::Settings::ICONS_ROOT, actionItem.GetData(SettingsItem::Column::Key))));
-	comboBox.setItemData(index, QVariant::fromValue(icon), Qt::DecorationRole);
+	if (icon)
+		comboBox.setItemData(index, QVariant::fromValue(icon), Qt::DecorationRole);
 	return icon;
 }
 
@@ -647,8 +649,8 @@ IDataItem::Ptr UiFactory::AddComboBoxToHotkeys(QComboBox& comboBox, const QStrin
 			shortcut->setKey(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
 		child->SetData(shortcut->key().toString(), SettingsItem::Column::Value);
 
-		auto icon = AddIcon(*settings, *child, comboBox, i);
-		shortcut->setProperty(Constant::Settings::ICON, icon);
+		if (const auto icon = AddIcon(*settings, *child, comboBox, i))
+			shortcut->setProperty(Constant::Settings::ICON, *icon);
 		shortcut->setProperty(INDEX, i);
 		shortcut->installEventFilter(eventFilter);
 	}
