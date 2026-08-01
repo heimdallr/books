@@ -2740,8 +2740,24 @@ Try again?</source>
         <translation>Налаштування гарячих клавіш</translation>
     </message>
     <message>
-        <source>Reset</source>
-        <translation>Скинути</translation>
+        <source>Image files (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)</source>
+        <translation>Файли зображень (*.ico *.png *.bmp *.jpg *.jpeg);;Усі файли (*.*)</translation>
+    </message>
+    <message>
+        <source>Remove hotkey</source>
+        <translation>Видалити комбінацію клавіш</translation>
+    </message>
+    <message>
+        <source>Remove icon</source>
+        <translation>Видалити піктограму</translation>
+    </message>
+    <message>
+        <source>Select image file</source>
+        <translation>Виберіть файл зображення</translation>
+    </message>
+    <message>
+        <source>Set icon</source>
+        <translation>Встановити піктограму</translation>
     </message>
 </context>
 <context>
@@ -2749,6 +2765,18 @@ Try again?</source>
     <message>
         <source>Book</source>
         <translation>Книга</translation>
+    </message>
+    <message>
+        <source>Cannot open &apos;%1&apos;</source>
+        <translation>Не вдається відкрити %1</translation>
+    </message>
+    <message>
+        <source>File %1 is empty</source>
+        <translation>Файл %1 порожній</translation>
+    </message>
+    <message>
+        <source>Image %1 probably corrupted</source>
+        <translation>Зображення %1, ймовірно, пошкоджене</translation>
     </message>
 </context>
 <context>

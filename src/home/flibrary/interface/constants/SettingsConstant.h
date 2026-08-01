@@ -18,6 +18,8 @@ constexpr auto PERMANENT_LANG_FILTER_KEY         = "ui/permanentLanguageFilter";
 constexpr auto PERMANENT_LANG_FILTER_ENABLED_KEY = "ui/permanentLanguageFilterEnabled";
 constexpr auto SHOW_REMOVED_BOOKS_KEY            = "ui/View/RemovedBooks";
 constexpr auto HOTKEYS_ROOT                      = "ui/Hotkeys";
+constexpr auto ICONS_ROOT                        = "ui/Icons";
+constexpr auto ICON                              = "icon";
 
 constexpr auto OPDS_HOST_KEY          = "opds/host";
 constexpr auto OPDS_PORT_KEY          = "opds/port";

@@ -692,7 +692,7 @@ private: // HeaderView::IObserver
 	}
 
 private: // IHotkeyManager::IObserver
-	const char* GetKey() const noexcept override
+	const char* GetHotkeyRootKey() const noexcept override
 	{
 		return BOOK;
 	}
@@ -912,7 +912,7 @@ private:
 	{
 		const auto                                      font = menu.font();
 		const QFontMetrics                              metrics(font);
-		std::stack<std::pair<const IDataItem*, QMenu*>> stack { { { &item, &menu } } };
+		std::stack<std::tuple<const IDataItem*, QMenu*, QStringList>> stack { { { &item, &menu, { GetHotkeyRootKey() } } } };
 
 		const auto getBool = [](const IDataItem& menuItem, const int column, const bool defaultValue) {
 			const auto& str = menuItem.GetData(column);
@@ -921,7 +921,7 @@ private:
 
 		while (!stack.empty())
 		{
-			auto [parent, subMenu] = stack.top();
+			auto [parent, subMenu, iconKeyList] = std::move(stack.top());
 			stack.pop();
 
 			auto maxWidth = subMenu->minimumWidth();
@@ -932,16 +932,23 @@ private:
 				const auto enabled   = getBool(*child, MenuItem::Column::Enabled, true);
 				const auto title     = child->GetData().toStdString();
 				const auto titleText = Loc::Tr(m_controller->TrContext(), title.data());
+
+				auto       childIconKeyList = iconKeyList;
+				childIconKeyList << child->GetData(MenuItem::Column::Key);
+				auto icon = m_hotkeyManager->GetIcon(childIconKeyList.join('/'));
+
 				auto       statusTip = titleText;
 				statusTip.replace("&", "");
 				maxWidth = std::max(maxWidth, metrics.boundingRect(statusTip).width() + 3 * (metrics.ascent() + metrics.descent()));
 
 				if (child->GetChildCount() != 0)
 				{
-					auto* subSubMenu = stack.emplace(child.get(), subMenu->addMenu(titleText)).second;
+					auto* subSubMenu = std::get<1>(stack.emplace(child.get(), subMenu->addMenu(titleText), std::move(childIconKeyList)));
 					subSubMenu->setFont(font);
 					subSubMenu->setEnabled(enabled);
 					subSubMenu->setStatusTip(statusTip);
+					if (icon.isValid())
+						subSubMenu->menuAction()->setIcon(icon.value<QIcon>());
 					continue;
 				}
 
@@ -962,6 +969,8 @@ private:
 				action->setCheckable(checkable);
 				if (checkable)
 					action->setChecked(checked);
+				if (icon.isValid())
+					action->setIcon(icon.value<QIcon>());
 			}
 
 			subMenu->setMinimumWidth(maxWidth);
@@ -1072,7 +1081,7 @@ private:
 
 		if (!IsNavigation())
 			QTimer::singleShot(0, [this] {
-				m_hotkeyManager->Add(*m_ui.cbMode, Tr(BOOK_VIEW_MODE));
+				m_hotkeyManager->Add(m_controller->TrContext(), *m_ui.cbMode, Tr(BOOK_VIEW_MODE));
 				m_hotkeyManager->RegisterObserver(this);
 			});
 

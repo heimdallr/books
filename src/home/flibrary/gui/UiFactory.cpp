@@ -36,6 +36,7 @@
 #include "filters/FastFilterWidget.h"
 #include "filters/RangeFilterWidget.h"
 #include "logic/data/DataItem.h"
+#include "util/ImageUtil.h"
 #include "utilgui/CheckableMenu.h"
 #include "utilgui/GeometryRestorable.h"
 #include "version/AppVersion.h"
@@ -104,6 +105,8 @@ constexpr auto MAX_MENU_ITEM_DEFAULT             = 16;
 constexpr auto MENU_ITEM_TITLE_FORMAT_DEFAULT    = "%author% \t %title%";
 constexpr auto MENU_ITEM_DATETIME_FORMAT_DEFAULT = "yyyy-MM-dd hh:mm:ss";
 
+constexpr auto INDEX = "index";
+
 QString GetPersonalBuildString()
 {
 	// ReSharper disable once CppCompileTimeConstantCanBeReplacedWithBooleanConstant
@@ -131,6 +134,33 @@ QWidget* CreateStackedPage(Hypodermic::Container& container, const QObject* sign
 	);
 	return pagePtr;
 }
+
+class ComboBoxHotkeyPropertyEventFilter final : public QObject
+{
+public:
+	explicit ComboBoxHotkeyPropertyEventFilter(QComboBox* parent)
+		: QObject(parent)
+		, m_comboBox { parent }
+	{
+	}
+
+private: // QObject
+	bool eventFilter(QObject* watched, QEvent* event) override
+	{
+		if (event->type() == QEvent::DynamicPropertyChange)
+		{
+			QDynamicPropertyChangeEvent* propEvent    = static_cast<QDynamicPropertyChangeEvent*>(event);
+			QByteArray                   propertyName = propEvent->propertyName();
+			if (propertyName.toStdString() == Constant::Settings::ICON)
+				m_comboBox->setItemData(watched->property(INDEX).toInt(), watched->property(Constant::Settings::ICON), Qt::DecorationRole);
+		}
+
+		return QObject::eventFilter(watched, event);
+	}
+
+private:
+	QComboBox* m_comboBox;
+};
 
 } // namespace
 
@@ -478,6 +508,35 @@ QString RemoveAmp(QString str)
 	return str.remove('&');
 }
 
+std::optional<QIcon> CreateIcon(const QVariant& iconData)
+{
+	if (!iconData.isValid())
+		return std::nullopt;
+
+	const auto bytes = iconData.toByteArray();
+	if (bytes.isEmpty())
+		return QIcon {};
+
+	if (const auto pixmap = Util::Decode(bytes); !pixmap.isNull())
+		return QIcon { pixmap };
+
+	return std::nullopt;
+}
+
+void AddIcon(const ISettings& settings, const IDataItem& actionItem, QAction& action)
+{
+	if (const auto icon = CreateIcon(settings.Get(GetName(Constant::Settings::ICONS_ROOT, actionItem.GetData(SettingsItem::Column::Key)))))
+		action.setIcon(*icon);
+}
+
+std::optional<QIcon> AddIcon(const ISettings& settings, const IDataItem& actionItem, QComboBox& comboBox, const int index)
+{
+	auto icon = CreateIcon(settings.Get(GetName(Constant::Settings::ICONS_ROOT, actionItem.GetData(SettingsItem::Column::Key))));
+	if (icon)
+		comboBox.setItemData(index, QVariant::fromValue(*icon), Qt::DecorationRole);
+	return icon;
+}
+
 IDataItem::Ptr AddChild(const IDataItemFactory& dataItemFactory, IDataItem& parent, const QObject& obj, QString objTitle)
 {
 	auto child = dataItemFactory.CreateSettingsItem();
@@ -503,34 +562,37 @@ IDataItem::Ptr AddChild(const ISettings& settings, const IDataItemFactory& dataI
 		action.setShortcut(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
 	actionItem->SetData(action.shortcut().toString(), SettingsItem::Column::Value);
 
+	AddIcon(settings, *actionItem, action);
+
 	return actionItem;
 }
 
 } // namespace
 
-IDataItem::Ptr UiFactory::AddWidgetToHotkeys(QWidget& widget, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*, QObject*)>& functor) const
+std::pair<IDataItem::Ptr, QObject*> UiFactory::AddWidgetToHotkeys(const QString& rootKey, QWidget& widget, const QString& title, const std::function<void(IDataItem::Ptr, QAction*, QObject*)>& functor) const
 {
 	const auto settings        = m_impl->container.resolve<ISettings>();
 	const auto dataItemFactory = m_impl->container.resolve<IDataItemFactory>();
 
 	auto result = dataItemFactory->CreateSettingsItem();
-	result->SetData(widget.objectName(), SettingsItem::Column::Key);
+	result->SetData(GetName(rootKey, widget.objectName()), SettingsItem::Column::Key);
 	result->SetData(title, SettingsItem::Column::Title);
 
 	for (auto* action : widget.actions())
-		if (const auto actionItem = AddChild(*settings, *dataItemFactory, *result, *action, action->text()))
-			functor(actionItem, action, &widget);
+		if (auto actionItem = AddChild(*settings, *dataItemFactory, *result, *action, action->text()))
+			functor(std::move(actionItem), action, &widget);
 
-	return result;
+	return std::make_pair(std::move(result), &widget);
 }
 
-IDataItem::Ptr UiFactory::AddMenuBarToHotkeys(QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*, QObject*)>& functor) const
+std::pair<IDataItem::Ptr, QObject*>
+UiFactory::AddMenuBarToHotkeys(const QString& rootKey, QMenuBar& menuBar, const QString& title, const std::function<void(IDataItem::Ptr, QAction*, QObject*)>& functor) const
 {
 	const auto settings        = m_impl->container.resolve<ISettings>();
 	const auto dataItemFactory = m_impl->container.resolve<IDataItemFactory>();
 
 	auto menuBarItem = dataItemFactory->CreateSettingsItem();
-	menuBarItem->SetData(menuBar.objectName(), SettingsItem::Column::Key);
+	menuBarItem->SetData(GetName(rootKey, menuBar.objectName()), SettingsItem::Column::Key);
 	menuBarItem->SetData(title, SettingsItem::Column::Title);
 
 	const auto enumerate = [&](const QList<QMenu*>& menuList, IDataItem& parent, std::unordered_set<const QAction*>& menuActions, const auto& r) -> void {
@@ -541,6 +603,8 @@ IDataItem::Ptr UiFactory::AddMenuBarToHotkeys(QMenuBar& menuBar, const QString& 
 
 			menuActions.emplace(menu->menuAction());
 			auto child = AddChild(*dataItemFactory, parent, *menu, menu->title());
+			AddIcon(*settings, *child, *menu->menuAction());
+			functor(child, menu->menuAction(), &menuBar);
 
 			std::unordered_set<const QAction*> actions;
 			r(menu->findChildren<QMenu*>(QString {}, Qt::FindDirectChildrenOnly), *child, actions, r);
@@ -548,29 +612,32 @@ IDataItem::Ptr UiFactory::AddMenuBarToHotkeys(QMenuBar& menuBar, const QString& 
 			for (auto* action : menu->actions() | std::views::filter([&](const QAction* item) {
 									return !(item->isSeparator() || actions.contains(item));
 								}))
-				if (const auto actionItem = AddChild(*settings, *dataItemFactory, *child, *action, action->text()))
-					functor(actionItem, action, &menuBar);
+				if (auto actionItem = AddChild(*settings, *dataItemFactory, *child, *action, action->text()))
+					functor(std::move(actionItem), action, &menuBar);
 		}
 	};
 
 	std::unordered_set<const QAction*> actions;
 	enumerate(menuBar.findChildren<QMenu*>(QString {}, Qt::FindDirectChildrenOnly), *menuBarItem, actions, enumerate);
 
-	return menuBarItem;
+	return std::make_pair(std::move(menuBarItem), &menuBar);
 }
 
-IDataItem::Ptr UiFactory::AddComboBoxToHotkeys(QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*, QObject*)>& functor) const
+std::pair<IDataItem::Ptr, QObject*>
+UiFactory::AddComboBoxToHotkeys(const QString& rootKey, QComboBox& comboBox, const QString& title, const std::function<void(IDataItem::Ptr, QShortcut*, QObject*)>& functor) const
 {
 	const auto settings        = m_impl->container.resolve<ISettings>();
 	const auto dataItemFactory = m_impl->container.resolve<IDataItemFactory>();
 
 	auto comboBoxItem = dataItemFactory->CreateSettingsItem();
-	comboBoxItem->SetData(comboBox.objectName(), SettingsItem::Column::Key);
+	comboBoxItem->SetData(GetName(rootKey, comboBox.objectName()), SettingsItem::Column::Key);
 	comboBoxItem->SetData(title, SettingsItem::Column::Title);
+
+	auto eventFilter = new ComboBoxHotkeyPropertyEventFilter(&comboBox);
 
 	for (int i = 0, sz = comboBox.count(); i < sz; ++i)
 	{
-		auto& child = comboBoxItem->AppendChild(dataItemFactory->CreateSettingsItem());
+		auto child = comboBoxItem->AppendChild(dataItemFactory->CreateSettingsItem());
 		child->SetData(GetName(comboBoxItem->GetData(SettingsItem::Column::Key), comboBox.itemData(i).toString()), SettingsItem::Column::Key);
 		child->SetData(comboBox.itemText(i), SettingsItem::Column::Title);
 
@@ -579,13 +646,20 @@ IDataItem::Ptr UiFactory::AddComboBoxToHotkeys(QComboBox& comboBox, const QStrin
 		connect(shortcut, &QShortcut::activated, [comboBox = &comboBox, i] {
 			comboBox->setCurrentIndex(i);
 		});
-		functor(child, shortcut, &comboBox);
+
 		if (const auto shortCut = settings->Get(GetName(Constant::Settings::HOTKEYS_ROOT, child->GetData(SettingsItem::Column::Key))); shortCut.isValid())
 			shortcut->setKey(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
 		child->SetData(shortcut->key().toString(), SettingsItem::Column::Value);
+
+		if (const auto icon = AddIcon(*settings, *child, comboBox, i))
+			shortcut->setProperty(Constant::Settings::ICON, *icon);
+		shortcut->setProperty(INDEX, i);
+		shortcut->installEventFilter(eventFilter);
+
+		functor(std::move(child), shortcut, &comboBox);
 	}
 
-	return comboBoxItem;
+	return std::make_pair(std::move(comboBoxItem), &comboBox);
 }
 
 void UiFactory::UpdateRecentOpenBookControllerMenu(QMenu& menu) const

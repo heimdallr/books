@@ -2740,8 +2740,24 @@ Try again?</source>
         <translation>Настройка горячих клавиш</translation>
     </message>
     <message>
-        <source>Reset</source>
-        <translation>Сброс</translation>
+        <source>Image files (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)</source>
+        <translation>Файлы изображений (*.ico *.png *.bmp *.jpg *.jpeg);;Все файлы (*.*)</translation>
+    </message>
+    <message>
+        <source>Remove hotkey</source>
+        <translation>Удалить сочетание клавиш</translation>
+    </message>
+    <message>
+        <source>Remove icon</source>
+        <translation>Удалить пиктограмму</translation>
+    </message>
+    <message>
+        <source>Select image file</source>
+        <translation>Выберите файл изображения</translation>
+    </message>
+    <message>
+        <source>Set icon</source>
+        <translation>Установить пиктограмму</translation>
     </message>
 </context>
 <context>
@@ -2749,6 +2765,18 @@ Try again?</source>
     <message>
         <source>Book</source>
         <translation>Книга</translation>
+    </message>
+    <message>
+        <source>Cannot open &apos;%1&apos;</source>
+        <translation>Не удается открыть %1</translation>
+    </message>
+    <message>
+        <source>File %1 is empty</source>
+        <translation>Файл %1 пуст</translation>
+    </message>
+    <message>
+        <source>Image %1 probably corrupted</source>
+        <translation>Изображение %1, вероятно, повреждено</translation>
     </message>
 </context>
 <context>

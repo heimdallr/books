@@ -111,7 +111,7 @@ public:
 		m_ui.imageScrollArea->installEventFilter(this);
 		m_ui.filter->installEventFilter(this);
 		m_ui.filter->addAction(m_ui.actionFilter, QLineEdit::LeadingPosition);
-		m_hotkeyManager->Add(self, Tr(IMAGE_VIEWER));
+		m_hotkeyManager->Add(CONTEXT, self, Tr(IMAGE_VIEWER));
 
 		m_itemViewToolTipper->SetShowForceColumns({ 0 });
 		m_itemViewToolTipper->SetScrollArea(m_ui.images);

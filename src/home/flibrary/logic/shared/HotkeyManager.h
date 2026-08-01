@@ -21,13 +21,15 @@ public:
 private: // IHotkeyManager
 	IDataItem::Ptr GetRootDataItem() override;
 	bool           HasHotkey(const QString& key) const noexcept override;
-	QIcon GetIcon(const QString& key) const override;
+	QVariant       GetIcon(const QString& key) const override;
 
-	void    Add(QWidget& widget, const QString& title) override;
-	void    Add(QMenuBar& menuBar, const QString& title) override;
-	void    Add(QComboBox& comboBox, const QString& title) override;
+	void    Add(const QString& rootKey, QWidget& widget, const QString& title) override;
+	void    Add(const QString& rootKey, QMenuBar& menuBar, const QString& title) override;
+	void    Add(const QString& rootKey, QComboBox& comboBox, const QString& title) override;
 	QString Set(const QString& key, const QString& shortCut) override;
-	bool    Reset(const QString& key) override;
+	void    Reset(const QString& key) override;
+
+	std::expected<void, QString> SetIcon(const QString& key, const QString& path) override;
 
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;
