@@ -117,11 +117,11 @@ private: // QAbstractItemModel
 		{
 			case Qt::EditRole:
 				if (SetShortCut(index, value))
-					roles.emplace_back(Qt::DisplayRole);
+					roles.push_back(Qt::DisplayRole);
 				break;
 
 			case ModelRole::Icon:
-				roles.emplace_back(Qt::DecorationRole);
+				roles.push_back(Qt::DecorationRole);
 				break;
 
 			default:
