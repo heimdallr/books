@@ -201,24 +201,25 @@ private: // IUiFactory
 	{
 	}
 
-	Flibrary::IDataItem::Ptr AddWidgetToHotkeys(QWidget& /*widget*/, const QString& /*title*/, const std::function<void(const Flibrary::IDataItem::Ptr&, QAction*, QObject*)>& /*functor*/) const override
+	std::pair<Flibrary::IDataItem::Ptr, QObject*>
+	AddWidgetToHotkeys(QWidget& /*widget*/, const QString& /*title*/, const std::function<void(Flibrary::IDataItem::Ptr, QAction*, QObject*)>& /*functor*/) const override
 	{
 		return {};
 	}
 
-	Flibrary::IDataItem::Ptr AddMenuBarToHotkeys(
+	std::pair<Flibrary::IDataItem::Ptr, QObject*> AddMenuBarToHotkeys(
 		QMenuBar& /*menuBar*/,
 		const QString& /*title*/,
-		const std::function<void(const Flibrary::IDataItem::Ptr&, QAction*, QObject*)>& /*functor*/
+		const std::function<void(Flibrary::IDataItem::Ptr, QAction*, QObject*)>& /*functor*/
 	) const override
 	{
 		return {};
 	}
 
-	Flibrary::IDataItem::Ptr AddComboBoxToHotkeys(
+	std::pair<Flibrary::IDataItem::Ptr, QObject*> AddComboBoxToHotkeys(
 		QComboBox& /*comboBox*/,
 		const QString& /*title*/,
-		const std::function<void(const Flibrary::IDataItem::Ptr&, QShortcut*, QObject*)>& /*functor*/
+		const std::function<void(Flibrary::IDataItem::Ptr, QShortcut*, QObject*)>& /*functor*/
 	) const override
 	{
 		return {};

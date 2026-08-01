@@ -187,37 +187,37 @@ public:
 		return {};
 	}
 
+	template <typename W, typename R>
+	using UiFactoryToHotkeys = std::pair<IDataItem::Ptr, QObject*> (IUiFactory::*)(W&, const QString&, const std::function<void(IDataItem::Ptr, R*, QObject*)>&) const;
+
+	template <typename W, typename R>
+	void Add(W& widget, const QString& title, const UiFactoryToHotkeys<W, R> uiFactoryToHotkeys, const std::function<void(IDataItem::Ptr, R*, QObject*)>& f)
+	{
+		auto [item, obj] = std::invoke(uiFactoryToHotkeys, std::cref(*m_uiFactory), std::ref(widget), std::cref(title), std::cref(f));
+		if (const auto it = m_objToActions.find(obj); it != m_objToActions.end())
+			it->second.key = item->GetData(SettingsItem::Column::Key);
+		m_root->AppendChild(std::move(item));
+	}
+
 	void Add(QWidget& widget, const QString& title)
 	{
-		QString* itemKey = nullptr;
-		auto     item    = m_uiFactory->AddWidgetToHotkeys(widget, title, [&](const IDataItem::Ptr& actionItem, QAction* action, QObject* parent) {
-			itemKey = &Add(actionItem, Item { .item = actionItem, .action = action }, parent);
+		Add<QWidget, QAction>(widget, title, &IUiFactory::AddWidgetToHotkeys, [&](IDataItem::Ptr actionItem, QAction* action, QObject* parent) {
+			Add(Item { .item = std::move(actionItem), .action = action }, parent);
 		});
-		assert(itemKey);
-		*itemKey = item->GetData(SettingsItem::Column::Key);
-		m_root->AppendChild(std::move(item));
 	}
 
 	void Add(QMenuBar& menuBar, const QString& title)
 	{
-		QString* itemKey = nullptr;
-		auto     item    = m_uiFactory->AddMenuBarToHotkeys(menuBar, title, [&](const IDataItem::Ptr& actionItem, QAction* action, QObject* parent) {
-			itemKey = &Add(actionItem, Item { .item = actionItem, .action = action }, parent);
+		Add<QMenuBar, QAction>(menuBar, title, &IUiFactory::AddMenuBarToHotkeys, [&](IDataItem::Ptr actionItem, QAction* action, QObject* parent) {
+			Add(Item { .item = std::move(actionItem), .action = action }, parent);
 		});
-		assert(itemKey);
-		*itemKey = item->GetData(SettingsItem::Column::Key);
-		m_root->AppendChild(std::move(item));
 	}
 
 	void Add(QComboBox& comboBox, const QString& title)
 	{
-		QString* itemKey = nullptr;
-		auto     item    = m_uiFactory->AddComboBoxToHotkeys(comboBox, title, [&](const IDataItem::Ptr& actionItem, QShortcut* shortcut, QObject* parent) {
-			itemKey = &Add(actionItem, Item { .item = actionItem, .shortcut = shortcut }, parent);
+		Add<QComboBox, QShortcut>(comboBox, title, &IUiFactory::AddComboBoxToHotkeys, [&](IDataItem::Ptr actionItem, QShortcut* shortcut, QObject* parent) {
+			Add(Item { .item = std::move(actionItem), .shortcut = shortcut }, parent);
 		});
-		assert(itemKey);
-		*itemKey = item->GetData(SettingsItem::Column::Key);
-		m_root->AppendChild(std::move(item));
 	}
 
 	QString Set(const QString& key, const QString& shortCut)
@@ -402,14 +402,13 @@ private:
 					itAction->second.shortcut->setEnabled(enabled);
 	}
 
-	QString& Add(const IDataItem::Ptr& actionItem, Item item, QObject* parent)
+	void Add(Item item, QObject* parent)
 	{
-		auto  key              = actionItem->GetData(SettingsItem::Column::Key);
+		auto  key              = item.item->GetData(SettingsItem::Column::Key);
 		auto& objToActions     = Add(parent);
 		const auto [it, added] = m_actions.try_emplace(std::move(key), std::move(item));
 		assert(added);
 		objToActions.actionKeys.emplace_back(it->first);
-		return objToActions.key;
 	}
 
 	ObjToActions& Add(QObject* parent)
@@ -492,7 +491,7 @@ private:
 				dstChild->SetData(RemoveAmp(std::move(title)), SettingsItem::Column::Title);
 
 				if (!srcChild->GetData(MenuItem::Column::Id).isEmpty())
-					Add(dstChild, Item { .item = dstChild, .observer = observer }, observer->GetParentWidget());
+					Add(Item { .item = dstChild, .observer = observer }, observer->GetParentWidget());
 
 				r(*srcChild, *dstChild, r);
 			}
