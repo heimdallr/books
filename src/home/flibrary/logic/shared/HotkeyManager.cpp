@@ -13,6 +13,7 @@
 #include "interface/localization.h"
 
 #include "data/DataItem.h"
+#include "util/ImageUtil.h"
 
 #include "BookInteractor.h"
 #include "log.h"
@@ -67,6 +68,7 @@ class HotkeyManager::Impl final
 		propagate_const<QAction*>   action { nullptr };
 		propagate_const<QShortcut*> shortcut { nullptr };
 		propagate_const<IObserver*> observer { nullptr };
+		mutable QVariant            iconVar;
 
 		QString SetShortCut(const QString& value = {})
 		{
@@ -99,19 +101,7 @@ class HotkeyManager::Impl final
 
 		void SetIcon(const QString& path = {})
 		{
-			if (path.isEmpty())
-			{
-				if (action)
-					action->setIcon({});
-				if (shortcut)
-					shortcut->setProperty(Constant::Settings::ICON, {});
-				return;
-			}
-
-			if (action)
-				action->setIcon(QIcon(path));
-			if (shortcut)
-				shortcut->setProperty(Constant::Settings::ICON, QIcon(path));
+			path.isEmpty() ? RemoveIconImpl() : SetIconImpl(path);
 		}
 
 		QVariant GetIcon() const
@@ -124,7 +114,42 @@ class HotkeyManager::Impl final
 				if (const auto icon = shortcut->property(Constant::Settings::ICON); icon.isValid())
 					return icon.value<QIcon>();
 
+			if (!iconVar.isValid())
+				return {};
+
+			if (iconVar.canConvert<QIcon>())
+				return iconVar.value<QIcon>();
+
+			if (const auto path = iconVar.toString(); !path.isEmpty() && QFile::exists(path))
+			{
+				iconVar = QVariant::fromValue(QIcon(path));
+				return iconVar;
+			}
+
 			return {};
+		}
+
+	private:
+		void RemoveIconImpl()
+		{
+			if (action)
+				return action->setIcon({});
+
+			if (shortcut)
+				return (void)shortcut->setProperty(Constant::Settings::ICON, {});
+
+			iconVar.clear();
+		}
+
+		void SetIconImpl(const QString& path)
+		{
+			if (action)
+				return action->setIcon(QIcon(path));
+
+			if (shortcut)
+				return (void)shortcut->setProperty(Constant::Settings::ICON, QIcon(path));
+
+			iconVar = path;
 		}
 	};
 
@@ -279,35 +304,63 @@ public:
 		auto& objToActions = Add(observer->GetParentWidget());
 		objToActions.key   = observer->GetKey();
 
-		const auto enumerate = [&](const QString& key, const auto& r) -> void {
+		std::unordered_set<QString> uniqueKeys;
+
+		const auto enumerate = [&](const QString& key, const auto& r, const auto& f) -> void {
 			for (const auto& k : m_settings->GetKeys())
-				if (const auto shortCut = m_settings->Get(k); shortCut.isValid())
+			{
+				if (const auto value = m_settings->Get(k); value.isValid())
 				{
-					auto child   = SettingsItem::Create();
 					auto itemKey = GetName(key, k);
-					child->SetData(itemKey, SettingsItem::Column::Key);
-					auto&& [actionKey, shortCutItem] = *m_actions
-					                                        .try_emplace(
-																std::move(itemKey),
-																Item {
-																	.item     = std::move(child),
-																	.observer = observer,
-																}
-															)
-					                                        .first;
-					objToActions.actionKeys.emplace_back(actionKey);
-					shortCutItem.SetShortCut(shortCut.toString());
+					auto it      = m_actions.find(itemKey);
+					if (it == m_actions.end())
+					{
+						auto child = SettingsItem::Create();
+						child->SetData(itemKey, SettingsItem::Column::Key);
+						it = m_actions
+						         .try_emplace(
+									 itemKey,
+									 Item {
+										 .item     = std::move(child),
+										 .observer = observer,
+									 }
+								 )
+						         .first;
+					}
+
+					if (uniqueKeys.emplace(itemKey).second)
+						objToActions.actionKeys.emplace_back(std::move(itemKey));
+
+					f(it->second, value);
 				}
+			}
 
 			for (const auto& group : m_settings->GetGroups())
 			{
 				const SettingsGroup settingsSubGroup(*m_settings, group);
-				r(GetName(key, group), r);
+				r(GetName(key, group), r, f);
 			}
 		};
 
-		const SettingsGroup settingsGroup(*m_settings, GetName(Constant::Settings::HOTKEYS_ROOT, observer->GetKey()));
-		enumerate(observer->GetKey(), enumerate);
+		{
+			const SettingsGroup settingsGroup(*m_settings, GetName(Constant::Settings::HOTKEYS_ROOT, observer->GetKey()));
+			enumerate(observer->GetKey(), enumerate, [](Item& item, const QVariant& value) {
+				item.SetShortCut(value.toString());
+			});
+		}
+		{
+			const SettingsGroup settingsGroup(*m_settings, GetName(Constant::Settings::ICONS_ROOT, observer->GetKey()));
+			enumerate(observer->GetKey(), enumerate, [](const Item& item, const QVariant& value) {
+				const auto bytes = value.toByteArray();
+				if (bytes.isEmpty())
+					return item.iconVar.clear();
+
+				if (const auto pixmap = Util::Decode(bytes); !pixmap.isNull())
+					return (void)(item.iconVar = QIcon(pixmap));
+
+				item.iconVar.clear();
+			});
+		}
 	}
 
 	void RemoveObserver(IObserver* observer)
@@ -345,8 +398,8 @@ private:
 
 		for (const auto& key : it->second.actionKeys)
 			if (const auto itAction = m_actions.find(key); itAction != m_actions.end())
-				if (auto* shortcut = itAction->second.shortcut)
-					shortcut->setEnabled(enabled);
+				if (itAction->second.shortcut)
+					itAction->second.shortcut->setEnabled(enabled);
 	}
 
 	QString& Add(const IDataItem::Ptr& actionItem, Item item, QObject* parent)
