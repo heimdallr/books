@@ -23,7 +23,7 @@ public:
 		using RequestMenuCallback = std::function<void(const QString& id, const IDataItem::Ptr& item)>;
 
 	public:
-		virtual const char* GetKey() const noexcept                        = 0;
+		virtual const char* GetHotkeyRootKey() const noexcept              = 0;
 		virtual QWidget*    GetParentWidget() noexcept                     = 0;
 		virtual void        RequestMenuItems(RequestMenuCallback callback) = 0;
 		virtual void        OnHotkeyActivated(const QString& key)          = 0;

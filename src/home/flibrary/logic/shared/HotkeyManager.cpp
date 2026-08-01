@@ -26,6 +26,8 @@ namespace
 
 constexpr auto CONTEXT     = "HotkeyManager";
 constexpr auto CANNOT_OPEN = QT_TRANSLATE_NOOP("HotkeyManager", "Cannot open '%1'");
+constexpr auto FILE_EMPTY  = QT_TRANSLATE_NOOP("HotkeyManager", "File %1 is empty");
+constexpr auto BAD_IMAGE   = QT_TRANSLATE_NOOP("HotkeyManager", "Image %1 probably corrupted");
 
 TR_DEF
 
@@ -99,9 +101,15 @@ class HotkeyManager::Impl final
 			return !(!shortcut && (!action || action->shortcut().isEmpty()));
 		}
 
-		void SetIcon(const QString& path = {})
+		void SetIcon(const QVariant& value = {})
 		{
-			path.isEmpty() ? RemoveIconImpl() : SetIconImpl(path);
+			if (action)
+				return action->setIcon(value.value<QIcon>());
+
+			if (shortcut)
+				return (void)shortcut->setProperty(Constant::Settings::ICON, value);
+
+			iconVar = value;
 		}
 
 		QVariant GetIcon() const
@@ -114,42 +122,10 @@ class HotkeyManager::Impl final
 				if (const auto icon = shortcut->property(Constant::Settings::ICON); icon.isValid())
 					return icon.value<QIcon>();
 
-			if (!iconVar.isValid())
-				return {};
-
-			if (iconVar.canConvert<QIcon>())
+			if (iconVar.isValid() && iconVar.canConvert<QIcon>())
 				return iconVar.value<QIcon>();
 
-			if (const auto path = iconVar.toString(); !path.isEmpty() && QFile::exists(path))
-			{
-				iconVar = QVariant::fromValue(QIcon(path));
-				return iconVar;
-			}
-
 			return {};
-		}
-
-	private:
-		void RemoveIconImpl()
-		{
-			if (action)
-				return action->setIcon({});
-
-			if (shortcut)
-				return (void)shortcut->setProperty(Constant::Settings::ICON, {});
-
-			iconVar.clear();
-		}
-
-		void SetIconImpl(const QString& path)
-		{
-			if (action)
-				return action->setIcon(QIcon(path));
-
-			if (shortcut)
-				return (void)shortcut->setProperty(Constant::Settings::ICON, QIcon(path));
-
-			iconVar = path;
 		}
 	};
 
@@ -293,16 +269,24 @@ public:
 		if (!file.open(QIODevice::ReadOnly))
 			return std::unexpected(Tr(CANNOT_OPEN).arg(path));
 
-		m_settings->Set(GetName(Constant::Settings::ICONS_ROOT, it->second.item->GetData(SettingsItem::Column::Key)), file.readAll());
-		it->second.SetIcon(path);
+		const auto bytes = file.readAll();
+		if (bytes.isEmpty())
+			return std::unexpected(Tr(FILE_EMPTY).arg(path));
 
-		return {};
+		if (const auto pixmap = Util::Decode(bytes); !pixmap.isNull())
+		{
+			m_settings->Set(GetName(Constant::Settings::ICONS_ROOT, it->second.item->GetData(SettingsItem::Column::Key)), bytes);
+			it->second.SetIcon(QVariant::fromValue(QIcon(pixmap)));
+			return {};
+		}
+
+		return std::unexpected(Tr(BAD_IMAGE).arg(path));
 	}
 
 	void AddObserver(IObserver* observer)
 	{
 		auto& objToActions = Add(observer->GetParentWidget());
-		objToActions.key   = observer->GetKey();
+		objToActions.key   = observer->GetHotkeyRootKey();
 
 		std::unordered_set<QString> uniqueKeys;
 
@@ -343,14 +327,14 @@ public:
 		};
 
 		{
-			const SettingsGroup settingsGroup(*m_settings, GetName(Constant::Settings::HOTKEYS_ROOT, observer->GetKey()));
-			enumerate(observer->GetKey(), enumerate, [](Item& item, const QVariant& value) {
+			const SettingsGroup settingsGroup(*m_settings, GetName(Constant::Settings::HOTKEYS_ROOT, observer->GetHotkeyRootKey()));
+			enumerate(observer->GetHotkeyRootKey(), enumerate, [](Item& item, const QVariant& value) {
 				item.SetShortCut(value.toString());
 			});
 		}
 		{
-			const SettingsGroup settingsGroup(*m_settings, GetName(Constant::Settings::ICONS_ROOT, observer->GetKey()));
-			enumerate(observer->GetKey(), enumerate, [](const Item& item, const QVariant& value) {
+			const SettingsGroup settingsGroup(*m_settings, GetName(Constant::Settings::ICONS_ROOT, observer->GetHotkeyRootKey()));
+			enumerate(observer->GetHotkeyRootKey(), enumerate, [](const Item& item, const QVariant& value) {
 				const auto bytes = value.toByteArray();
 				if (bytes.isEmpty())
 					return item.iconVar.clear();
@@ -444,7 +428,7 @@ private:
 	void UpdateObserverMenu()
 	{
 		Perform([this](const IObserver* observer) {
-			if (const auto bookMenu = m_root->FindChild([key = observer->GetKey()](const auto& item) {
+			if (const auto bookMenu = m_root->FindChild([key = observer->GetHotkeyRootKey()](const auto& item) {
 					return item.GetData(SettingsItem::Column::Key) == key;
 				}))
 				m_root->RemoveChild(bookMenu->GetRow());
@@ -498,8 +482,8 @@ private:
 		};
 
 		const auto& bookItem = m_root->AppendChild(SettingsItem::Create());
-		bookItem->SetData(observer->GetKey(), SettingsItem::Column::Key);
-		bookItem->SetData(Tr(observer->GetKey()), SettingsItem::Column::Title);
+		bookItem->SetData(observer->GetHotkeyRootKey(), SettingsItem::Column::Key);
+		bookItem->SetData(Tr(observer->GetHotkeyRootKey()), SettingsItem::Column::Title);
 		enumerate(*item, *bookItem, enumerate);
 	}
 
