@@ -39,20 +39,20 @@ QString RemoveAmp(QString str)
 }
 
 template <typename T>
-QString SetShortCutImpl(T* obj, const QKeySequence& value) = delete;
+QString SetShortCutImpl(T& obj, const QKeySequence& value) = delete;
 
 template <>
-QString SetShortCutImpl<QAction>(QAction* obj, const QKeySequence& value)
+QString SetShortCutImpl<QAction>(QAction& obj, const QKeySequence& value)
 {
-	obj->setShortcut(value);
-	return obj->shortcut().toString(QKeySequence::PortableText);
+	obj.setShortcut(value);
+	return obj.shortcut().toString(QKeySequence::PortableText);
 }
 
 template <>
-QString SetShortCutImpl<QShortcut>(QShortcut* obj, const QKeySequence& value)
+QString SetShortCutImpl<QShortcut>(QShortcut& obj, const QKeySequence& value)
 {
-	obj->setKey(value);
-	return obj->key().toString(QKeySequence::PortableText);
+	obj.setKey(value);
+	return obj.key().toString(QKeySequence::PortableText);
 }
 
 } // namespace
@@ -63,10 +63,10 @@ class HotkeyManager::Impl final
 {
 	struct Item
 	{
-		IDataItem::Ptr item;
-		QAction*       action { nullptr };
-		QShortcut*     shortcut { nullptr };
-		IObserver*     observer { nullptr };
+		IDataItem::Ptr              item;
+		propagate_const<QAction*>   action { nullptr };
+		propagate_const<QShortcut*> shortcut { nullptr };
+		propagate_const<IObserver*> observer { nullptr };
 
 		QString SetShortCut(const QString& value = {})
 		{
@@ -75,7 +75,7 @@ class HotkeyManager::Impl final
 			const auto keySequence = value.isEmpty() ? QKeySequence {} : QKeySequence(value, QKeySequence::PortableText);
 
 			if (action)
-				return SetShortCutImpl(action, keySequence);
+				return SetShortCutImpl(*action, keySequence);
 
 			if (!shortcut)
 			{
@@ -84,12 +84,12 @@ class HotkeyManager::Impl final
 
 				assert(observer);
 				shortcut = new QShortcut(keySequence, observer->GetParentWidget());
-				connect(shortcut, &QShortcut::activated, [o = observer, key = item->GetData(SettingsItem::Column::Key)] {
+				connect(shortcut.get(), &QShortcut::activated, [o = observer.get(), key = item->GetData(SettingsItem::Column::Key)] {
 					o->OnHotkeyActivated(key);
 				});
 			}
 
-			return SetShortCutImpl(shortcut, keySequence);
+			return SetShortCutImpl(*shortcut, keySequence);
 		}
 
 		bool HasHotkey() const

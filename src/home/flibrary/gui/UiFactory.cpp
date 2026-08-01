@@ -36,6 +36,7 @@
 #include "filters/FastFilterWidget.h"
 #include "filters/RangeFilterWidget.h"
 #include "logic/data/DataItem.h"
+#include "util/ImageUtil.h"
 #include "utilgui/CheckableMenu.h"
 #include "utilgui/GeometryRestorable.h"
 #include "version/AppVersion.h"
@@ -507,31 +508,30 @@ QString RemoveAmp(QString str)
 	return str.remove('&');
 }
 
+QIcon CreateIcon(const QVariant& iconData)
+{
+	if (!iconData.isValid())
+		return {};
+
+	const auto bytes = iconData.toByteArray();
+	if (bytes.isEmpty())
+		return {};
+
+	if (const auto pixmap = Util::Decode(bytes); !pixmap.isNull())
+		return QIcon { pixmap };
+
+	return {};
+}
+
 void AddIcon(const ISettings& settings, const IDataItem& actionItem, QAction& action)
 {
-	const auto iconData = settings.Get(GetName(Constant::Settings::ICONS_ROOT, actionItem.GetData(SettingsItem::Column::Key)));
-	if (!iconData.isValid())
-		return;
-
-	QPixmap pixmap;
-	if (pixmap.loadFromData(iconData.toByteArray()))
-		return action.setIcon(QIcon(pixmap));
-
-	action.setIcon(QIcon {});
+	action.setIcon(CreateIcon(settings.Get(GetName(Constant::Settings::ICONS_ROOT, actionItem.GetData(SettingsItem::Column::Key)))));
 }
 
 QIcon AddIcon(const ISettings& settings, const IDataItem& actionItem, QComboBox& comboBox, const int index)
 {
-	const auto iconData = settings.Get(GetName(Constant::Settings::ICONS_ROOT, actionItem.GetData(SettingsItem::Column::Key)));
-	if (!iconData.isValid())
-		return {};
-
-	QIcon   icon;
-	QPixmap pixmap;
-	if (pixmap.loadFromData(iconData.toByteArray()))
-		return comboBox.setItemData(index, icon = QIcon(pixmap), Qt::DecorationRole), icon;
-
-	comboBox.setItemData(index, QIcon {}, Qt::DecorationRole);
+	auto icon = CreateIcon(settings.Get(GetName(Constant::Settings::ICONS_ROOT, actionItem.GetData(SettingsItem::Column::Key))));
+	comboBox.setItemData(index, QVariant::fromValue(icon), Qt::DecorationRole);
 	return icon;
 }
 
