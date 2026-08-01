@@ -284,7 +284,7 @@ public:
 		std::shared_ptr<QStyledItemDelegate>            logItemDelegate,
 		std::shared_ptr<ILineOption>                    lineOption,
 		std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
-		std::shared_ptr<IHotkeyManager>                 hotkeyManager,
+		std::shared_ptr<IMenuCustomizer>                menuCustomizer,
 		std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
 		std::shared_ptr<Util::ScrollBarController>      scrollBarController,
 		std::shared_ptr<INavigationUndoRedo>            navigationUndoRedo
@@ -309,7 +309,7 @@ public:
 		, m_logItemDelegate { std::move(logItemDelegate) }
 		, m_lineOption { std::move(lineOption) }
 		, m_alphabetPanel { std::move(alphabetPanel) }
-		, m_hotkeyManager { std::move(hotkeyManager) }
+		, m_menuCustomizer { std::move(menuCustomizer) }
 		, m_recentOpenBookController { std::move(recentOpenBookController) }
 		, m_scrollBarController { std::move(scrollBarController) }
 		, m_navigationUndoRedo { std::move(navigationUndoRedo) }
@@ -1163,7 +1163,7 @@ private:
 		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] {
 			m_uiFactory->CreateScriptDialog()->exec();
 		});
-		connect(m_ui.actionShowHotkeyDialog, &QAction::triggered, &m_self, [&] {
+		connect(m_ui.actionShowMenuCustomizationDialog, &QAction::triggered, &m_self, [&] {
 			m_uiFactory->CreateHotkeyDialog()->exec();
 		});
 
@@ -1558,7 +1558,7 @@ private:
 
 	void SetupHotkeys()
 	{
-		m_hotkeyManager->Add(MAIN_WINDOW, *m_ui.menuBar, Tr(MAIN_MENU));
+		m_menuCustomizer->Add(MAIN_WINDOW, *m_ui.menuBar, Tr(MAIN_MENU));
 	}
 
 	void CheckForUpdates(const bool force) const
@@ -1736,7 +1736,7 @@ private:
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr>       m_logItemDelegate;
 	PropagateConstPtr<ILineOption, std::shared_ptr>               m_lineOption;
 	PropagateConstPtr<IAlphabetPanel, std::shared_ptr>            m_alphabetPanel;
-	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
+	PropagateConstPtr<IMenuCustomizer, std::shared_ptr>           m_menuCustomizer;
 	PropagateConstPtr<IRecentOpenBookController, std::shared_ptr> m_recentOpenBookController;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
 	PropagateConstPtr<INavigationUndoRedo, std::shared_ptr>       m_navigationUndoRedo;
@@ -1796,7 +1796,7 @@ MainWindow::MainWindow(
 	std::shared_ptr<LogItemDelegate>                logItemDelegate,
 	std::shared_ptr<ILineOption>                    lineOption,
 	std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
-	std::shared_ptr<IHotkeyManager>                 hotkeyManager,
+	std::shared_ptr<IMenuCustomizer>                menuCustomizer,
 	std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
 	std::shared_ptr<Util::ScrollBarController>      scrollBarController,
 	std::shared_ptr<INavigationUndoRedo>            navigationUndoRedo,
@@ -1825,7 +1825,7 @@ MainWindow::MainWindow(
 		  std::move(logItemDelegate),
 		  std::move(lineOption),
 		  std::move(alphabetPanel),
-		  std::move(hotkeyManager),
+		  std::move(menuCustomizer),
 		  std::move(recentOpenBookController),
 		  std::move(scrollBarController),
 		  std::move(navigationUndoRedo)

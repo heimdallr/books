@@ -1,4 +1,4 @@
-#include "HotkeyManager.h"
+#include "MenuCustomizer.h"
 
 #include <ranges>
 
@@ -60,7 +60,7 @@ QString SetShortCutImpl<QShortcut>(QShortcut& obj, const QKeySequence& value)
 
 } // namespace
 
-class HotkeyManager::Impl final
+class MenuCustomizer::Impl final
 	: public QObject
 	, public Observable<IObserver>
 {
@@ -499,65 +499,65 @@ private:
 	std::unordered_map<const QObject*, ObjToActions> m_objToActions;
 };
 
-HotkeyManager::HotkeyManager(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<ISettings> settings)
+MenuCustomizer::MenuCustomizer(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<ISettings> settings)
 	: m_impl(std::move(parentWidgetProvider), std::move(uiFactory), std::move(settings))
 {
 }
 
-HotkeyManager::~HotkeyManager() = default;
+MenuCustomizer::~MenuCustomizer() = default;
 
-IDataItem::Ptr HotkeyManager::GetRootDataItem()
+IDataItem::Ptr MenuCustomizer::GetRootDataItem()
 {
 	return m_impl->GetRootDataItem();
 }
 
-bool HotkeyManager::HasHotkey(const QString& key) const noexcept
+bool MenuCustomizer::HasHotkey(const QString& key) const noexcept
 {
 	return m_impl->HasHotkey(key);
 }
 
-QVariant HotkeyManager::GetIcon(const QString& key) const
+QVariant MenuCustomizer::GetIcon(const QString& key) const
 {
 	return m_impl->GetIcon(key);
 }
 
-void HotkeyManager::Add(const QString& rootKey, QWidget& widget, const QString& title)
+void MenuCustomizer::Add(const QString& rootKey, QWidget& widget, const QString& title)
 {
 	m_impl->Add(rootKey, widget, title);
 }
 
-void HotkeyManager::Add(const QString& rootKey, QMenuBar& menuBar, const QString& title)
+void MenuCustomizer::Add(const QString& rootKey, QMenuBar& menuBar, const QString& title)
 {
 	m_impl->Add(rootKey, menuBar, title);
 }
 
-void HotkeyManager::Add(const QString& rootKey, QComboBox& comboBox, const QString& title)
+void MenuCustomizer::Add(const QString& rootKey, QComboBox& comboBox, const QString& title)
 {
 	m_impl->Add(rootKey, comboBox, title);
 }
 
-QString HotkeyManager::Set(const QString& key, const QString& shortCut)
+QString MenuCustomizer::Set(const QString& key, const QString& shortCut)
 {
 	return m_impl->Set(key, shortCut);
 }
 
-void HotkeyManager::Reset(const QString& key)
+void MenuCustomizer::Reset(const QString& key)
 {
 	m_impl->Reset(key);
 }
 
-std::expected<void, QString> HotkeyManager::SetIcon(const QString& key, const QString& path)
+std::expected<void, QString> MenuCustomizer::SetIcon(const QString& key, const QString& path)
 {
 	return m_impl->SetIcon(key, path);
 }
 
-void HotkeyManager::RegisterObserver(IObserver* observer)
+void MenuCustomizer::RegisterObserver(IObserver* observer)
 {
 	m_impl->AddObserver(observer);
 	m_impl->Register(observer);
 }
 
-void HotkeyManager::UnregisterObserver(IObserver* observer)
+void MenuCustomizer::UnregisterObserver(IObserver* observer)
 {
 	m_impl->RemoveObserver(observer);
 	m_impl->Unregister(observer);

@@ -925,6 +925,13 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>CustomizeMenuDialog</name>
+    <message>
+        <source>Menu Customization</source>
+        <translation>Настройка меню</translation>
+    </message>
+</context>
+<context>
     <name>DateIntervalFilterWidget</name>
     <message>
         <source>Load range</source>
@@ -2736,8 +2743,8 @@ Try again?</source>
 %2</translation>
     </message>
     <message>
-        <source>Hotkey settings</source>
-        <translation>Настройка горячих клавиш</translation>
+        <source>Icon for %1</source>
+        <translation>Пиктограмма для &quot;%1&quot;</translation>
     </message>
     <message>
         <source>Image files (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)</source>
@@ -2763,8 +2770,8 @@ Try again?</source>
 <context>
     <name>HotkeyManager</name>
     <message>
-        <source>Book</source>
-        <translation>Книга</translation>
+        <source>Book context menu</source>
+        <translation>Контекстное меню книги</translation>
     </message>
     <message>
         <source>Cannot open &apos;%1&apos;</source>
@@ -4767,6 +4774,10 @@ Try again?</source>
         <translation>&amp;Журнал</translation>
     </message>
     <message>
+        <source>&amp;Menu...</source>
+        <translation>&amp;Меню...</translation>
+    </message>
+    <message>
         <source>&amp;Metadata</source>
         <translation>&amp;Метаданные</translation>
     </message>
@@ -4953,10 +4964,6 @@ Try again?</source>
     <message>
         <source>Go to the simple &amp;web interface</source>
         <translation>Перейти к у&amp;прощенному веб-интерфейсу</translation>
-    </message>
-    <message>
-        <source>Hot&amp;keys...</source>
-        <translation>Горячие &amp;клавиши...</translation>
     </message>
     <message>
         <source>Http server management</source>

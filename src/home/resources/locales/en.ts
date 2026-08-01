@@ -914,6 +914,13 @@ Restart now?</source>
     </message>
 </context>
 <context>
+    <name>CustomizeMenuDialog</name>
+    <message>
+        <source>Menu Customization</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>DateIntervalFilterWidget</name>
     <message>
         <source>Load range</source>
@@ -2722,8 +2729,8 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Hotkey settings</source>
-        <translation></translation>
+        <source>Icon for %1</source>
+        <translation>Icon for &quot;%1&quot;</translation>
     </message>
     <message>
         <source>Image files (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)</source>
@@ -2749,7 +2756,7 @@ Try again?</source>
 <context>
     <name>HotkeyManager</name>
     <message>
-        <source>Book</source>
+        <source>Book context menu</source>
         <translation></translation>
     </message>
     <message>
@@ -4753,6 +4760,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Menu...</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Metadata</source>
         <translation></translation>
     </message>
@@ -4939,10 +4950,6 @@ Try again?</source>
     <message>
         <source>Go to the simple &amp;web interface</source>
         <translation>Go to the &amp;simplified web interface</translation>
-    </message>
-    <message>
-        <source>Hot&amp;keys...</source>
-        <translation></translation>
     </message>
     <message>
         <source>Http server management</source>

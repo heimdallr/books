@@ -1,6 +1,6 @@
-#include "ui_HotkeyDialog.h"
+#include "ui_CustomizeMenuDialog.h"
 
-#include "HotkeyDialog.h"
+#include "CustomizeMenuDialog.h"
 
 #include <QIdentityProxyModel>
 #include <QKeyEvent>
@@ -33,6 +33,7 @@ constexpr auto REMOVE_ICON        = QT_TRANSLATE_NOOP("HotkeyDialog", "Remove ic
 constexpr auto ALREADY_USED       = QT_TRANSLATE_NOOP("HotkeyDialog", "%1 already in use:\n%2");
 constexpr auto SELECT_ICON        = QT_TRANSLATE_NOOP("HotkeyDialog", "Select image file");
 constexpr auto SELECT_ICON_FILTER = QT_TRANSLATE_NOOP("HotkeyDialog", "Image files (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)");
+constexpr auto ITEM_ICON          = QT_TRANSLATE_NOOP("HotkeyDialog", "Icon for %1");
 
 TR_DEF
 
@@ -54,15 +55,15 @@ public:
 	};
 
 public:
-	static std::unique_ptr<QAbstractItemModel> Create(const IModelProvider& modelProvider, std::shared_ptr<IHotkeyManager> hotkeyManager)
+	static std::unique_ptr<QAbstractItemModel> Create(const IModelProvider& modelProvider, std::shared_ptr<IMenuCustomizer> menuCustomizer)
 	{
-		return std::make_unique<Model>(modelProvider, std::move(hotkeyManager));
+		return std::make_unique<Model>(modelProvider, std::move(menuCustomizer));
 	}
 
-	Model(const IModelProvider& modelProvider, std::shared_ptr<IHotkeyManager> hotkeyManager, QObject* parent = nullptr)
+	Model(const IModelProvider& modelProvider, std::shared_ptr<IMenuCustomizer> menuCustomizer, QObject* parent = nullptr)
 		: QIdentityProxyModel(parent)
-		, m_hotkeyManager { std::move(hotkeyManager) }
-		, m_source { modelProvider.CreateTreeModel(m_hotkeyManager->GetRootDataItem()) }
+		, m_menuCustomizer { std::move(menuCustomizer) }
+		, m_source { modelProvider.CreateTreeModel(m_menuCustomizer->GetRootDataItem()) }
 	{
 		QIdentityProxyModel::setSourceModel(m_source.get());
 	}
@@ -70,31 +71,39 @@ public:
 private: // QAbstractItemModel
 	[[nodiscard]] int columnCount(const QModelIndex&) const override
 	{
-		return 2;
+		return 3;
 	}
 
 	QVariant data(const QModelIndex& index, const int role) const override
 	{
 		if (index.isValid())
 		{
+			const auto sourceIndex = mapToSource(index);
+			if (role == ModelRole::Key)
+			{
+				return m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data();
+			}
 			if (index.column() == 0)
 			{
-				const auto sourceIndex = mapToSource(index);
+				if (IsOneOf(role, Qt::DisplayRole, Qt::ToolTipRole))
+					return m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
+			}
+			else if (index.column() == 2)
+			{
 				switch (role)
 				{
-					case Qt::DisplayRole:
-					case Qt::ToolTipRole:
-						return m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
-
 					case Qt::DecorationRole:
-						return m_hotkeyManager->GetIcon(m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data().toString());
+						return m_menuCustomizer->GetIcon(m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data().toString());
 
-					case ModelRole::Key:
-						return m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data();
+					case Qt::ToolTipRole:
+						if (m_menuCustomizer->GetIcon(m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data().toString()).isValid())
+							return Tr(ITEM_ICON).arg(m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data().toString());
+						break;
 
 					default:
 						break;
 				}
+				return {};
 			}
 		}
 		else
@@ -145,11 +154,11 @@ private:
 		const auto shortCut = value.toString();
 		if (shortCut.isEmpty())
 		{
-			m_hotkeyManager->Reset(GetKey(index));
+			m_menuCustomizer->Reset(GetKey(index));
 			return true;
 		}
 
-		if (auto alreadyAssigned = m_hotkeyManager->Set(GetKey(index), shortCut); !alreadyAssigned.isEmpty())
+		if (auto alreadyAssigned = m_menuCustomizer->Set(GetKey(index), shortCut); !alreadyAssigned.isEmpty())
 			return (m_alreadyAssigned = std::move(alreadyAssigned)), false;
 
 		return true;
@@ -162,7 +171,7 @@ private:
 	}
 
 private:
-	PropagateConstPtr<IHotkeyManager, std::shared_ptr>     m_hotkeyManager;
+	PropagateConstPtr<IMenuCustomizer, std::shared_ptr>    m_menuCustomizer;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_source;
 
 	QString m_alreadyAssigned;
@@ -234,7 +243,7 @@ private:
 
 } // namespace
 
-class HotkeyDialog::Impl final
+class CustomizeMenuDialog::Impl final
 	: Util::GeometryRestorable
 	, Util::GeometryRestorableObserver
 {
@@ -246,7 +255,7 @@ public:
 		const IModelProvider&                      modelProvider,
 		std::shared_ptr<const Util::IUiFactory>    uiFactory,
 		std::shared_ptr<ISettings>                 settings,
-		std::shared_ptr<IHotkeyManager>            hotkeyManager,
+		std::shared_ptr<IMenuCustomizer>           menuCustomizer,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController
 	)
@@ -255,13 +264,14 @@ public:
 		, m_self { self }
 		, m_uiFactory { std::move(uiFactory) }
 		, m_settings { std::move(settings) }
-		, m_hotkeyManager { std::move(hotkeyManager) }
-		, m_model { Model::Create(modelProvider, m_hotkeyManager) }
+		, m_menuCustomizer { std::move(menuCustomizer) }
+		, m_model { Model::Create(modelProvider, m_menuCustomizer) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
 	{
 		m_ui.setupUi(&m_self);
 
+		m_itemViewToolTipper->SetShowForceColumns({ 2 });
 		m_itemViewToolTipper->SetScrollArea(m_ui.view);
 		m_scrollBarController->SetScrollArea(m_ui.view);
 
@@ -269,9 +279,11 @@ public:
 		m_ui.view->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 		auto& header = *m_ui.view->header();
 		header.setDefaultAlignment(Qt::AlignCenter);
+		header.setSectionResizeMode(2, QHeaderView::ResizeToContents);
 		header.setSectionResizeMode(1, QHeaderView::ResizeToContents);
 		header.setSectionResizeMode(0, QHeaderView::Stretch);
 		m_ui.view->setItemDelegateForColumn(1, new HotkeyDelegate(&m_self));
+
 		m_ui.view->setCurrentIndex({});
 		for (int i = 0, sz = m_model->rowCount(); i < sz; ++i)
 			m_ui.view->expand(m_model->index(i, 0));
@@ -298,7 +310,7 @@ private:
 
 		const auto key = m_ui.view->currentIndex().data(Model::ModelRole::Key).toString();
 
-		if (m_hotkeyManager->HasHotkey(key))
+		if (m_menuCustomizer->HasHotkey(key))
 			menu.addAction(Tr(RESET), [this] {
 				m_model->setData(m_ui.view->currentIndex(), {});
 			});
@@ -311,7 +323,7 @@ private:
 			menu.addAction(Tr(SET_ICON), [&] {
 				if (const auto path = m_uiFactory->GetOpenFileName(ICONS, Tr(SELECT_ICON), Tr(SELECT_ICON_FILTER)); !path.isEmpty())
 				{
-					if (const auto result = m_hotkeyManager->SetIcon(key, path); !result)
+					if (const auto result = m_menuCustomizer->SetIcon(key, path); !result)
 						m_uiFactory->ShowError(result.error());
 					else
 						m_model->setData(m_ui.view->currentIndex(), {}, Model::ModelRole::Icon);
@@ -320,7 +332,7 @@ private:
 
 			if (m_model->data(m_ui.view->currentIndex(), Qt::DecorationRole).isValid())
 				menu.addAction(Tr(REMOVE_ICON), [&] {
-					(void)m_hotkeyManager->SetIcon(key);
+					(void)m_menuCustomizer->SetIcon(key);
 					m_model->setData(m_ui.view->currentIndex(), {}, Model::ModelRole::Icon);
 				});
 		}
@@ -336,27 +348,27 @@ private:
 
 	std::shared_ptr<const Util::IUiFactory>                       m_uiFactory;
 	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
-	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
+	PropagateConstPtr<IMenuCustomizer, std::shared_ptr>           m_menuCustomizer;
 	PropagateConstPtr<QAbstractItemModel>                         m_model;
 	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
 
-	Ui::HotkeyDialog m_ui;
+	Ui::CustomizeMenuDialog m_ui;
 };
 
-HotkeyDialog::HotkeyDialog(
+CustomizeMenuDialog::CustomizeMenuDialog(
 	const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
 	const std::shared_ptr<IModelProvider>&        modelProvider,
 	std::shared_ptr<const Util::IUiFactory>       uiFactory,
 	std::shared_ptr<ISettings>                    settings,
-	std::shared_ptr<IHotkeyManager>               hotkeyManager,
+	std::shared_ptr<IMenuCustomizer>              menuCustomizer,
 	std::shared_ptr<Util::ItemViewToolTipper>     itemViewToolTipper,
 	std::shared_ptr<Util::ScrollBarController>    scrollBarController,
 	QWidget*                                      parent
 )
 	: QDialog(parentWidgetProvider->GetWidget(parent))
-	, m_impl(*this, *modelProvider, std::move(uiFactory), std::move(settings), std::move(hotkeyManager), std::move(itemViewToolTipper), std::move(scrollBarController))
+	, m_impl(*this, *modelProvider, std::move(uiFactory), std::move(settings), std::move(menuCustomizer), std::move(itemViewToolTipper), std::move(scrollBarController))
 {
 }
 
-HotkeyDialog::~HotkeyDialog() = default;
+CustomizeMenuDialog::~CustomizeMenuDialog() = default;

@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>HotkeyDialog</class>
- <widget class="QDialog" name="HotkeyDialog">
+ <class>CustomizeMenuDialog</class>
+ <widget class="QDialog" name="CustomizeMenuDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -11,7 +11,7 @@
    </rect>
   </property>
   <property name="windowTitle">
-   <string>Hotkey settings</string>
+   <string>Menu Customization</string>
   </property>
   <layout class="QVBoxLayout">
    <property name="leftMargin">
@@ -39,6 +39,9 @@
      </property>
      <attribute name="headerVisible">
       <bool>false</bool>
+     </attribute>
+     <attribute name="headerMinimumSectionSize">
+      <number>1</number>
      </attribute>
      <attribute name="headerStretchLastSection">
       <bool>false</bool>
@@ -89,7 +92,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>clicked(QAbstractButton*)</signal>
-   <receiver>HotkeyDialog</receiver>
+   <receiver>CustomizeMenuDialog</receiver>
    <slot>close()</slot>
    <hints>
     <hint type="sourcelabel">

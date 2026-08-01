@@ -1,6 +1,6 @@
 #pragma once
 
-#include "interface/logic/IHotkeyManager.h"
+#include "interface/logic/IMenuCustomizer.h"
 #include "interface/ui/IUiFactory.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
@@ -10,15 +10,15 @@
 namespace HomeCompa::Flibrary
 {
 
-class HotkeyManager final : virtual public IHotkeyManager
+class MenuCustomizer final : virtual public IMenuCustomizer
 {
-	NON_COPY_MOVABLE(HotkeyManager)
+	NON_COPY_MOVABLE(MenuCustomizer)
 
 public:
-	HotkeyManager(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<ISettings> settings);
-	~HotkeyManager() override;
+	MenuCustomizer(std::shared_ptr<const IParentWidgetProvider> parentWidgetProvider, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<ISettings> settings);
+	~MenuCustomizer() override;
 
-private: // IHotkeyManager
+private: // IMenuCustomizer
 	IDataItem::Ptr GetRootDataItem() override;
 	bool           HasHotkey(const QString& key) const noexcept override;
 	QVariant       GetIcon(const QString& key) const override;

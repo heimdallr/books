@@ -27,8 +27,8 @@
 #include "delegate/TreeViewDelegate/TreeViewDelegateNavigation.h"
 #include "dialogs/AddCollectionDialog.h"
 #include "dialogs/ChangeSizeDialog.h"
+#include "dialogs/CustomizeMenuDialog.h"
 #include "dialogs/FilterSettingsDialog.h"
-#include "dialogs/HotkeyDialog.h"
 #include "dialogs/OpdsDialog.h"
 #include "dialogs/SettingsDialog.h"
 #include "dialogs/script/ScriptDialog.h"
@@ -249,7 +249,7 @@ std::shared_ptr<QDialog> UiFactory::CreateOpdsDialog() const
 
 std::shared_ptr<QDialog> UiFactory::CreateHotkeyDialog() const
 {
-	return m_impl->container.resolve<HotkeyDialog>();
+	return m_impl->container.resolve<CustomizeMenuDialog>();
 }
 
 std::shared_ptr<QDialog> UiFactory::CreateFilterSettingsDialog() const

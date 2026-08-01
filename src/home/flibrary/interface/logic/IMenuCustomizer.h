@@ -14,7 +14,7 @@ class QWidget;
 namespace HomeCompa::Flibrary
 {
 
-class IHotkeyManager // NOLINT(cppcoreguidelines-special-member-functions)
+class IMenuCustomizer // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	class IObserver : public Observer
@@ -30,7 +30,7 @@ public:
 	};
 
 public:
-	virtual ~IHotkeyManager() = default;
+	virtual ~IMenuCustomizer() = default;
 
 public:
 	[[nodiscard]] virtual IDataItem::Ptr GetRootDataItem()                            = 0;

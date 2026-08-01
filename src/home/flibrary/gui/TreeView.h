@@ -9,7 +9,7 @@
 #include "interface/logic/IDataItemFactory.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IFilterProvider.h"
-#include "interface/logic/IHotkeyManager.h"
+#include "interface/logic/IMenuCustomizer.h"
 #include "interface/logic/INavigationUndoRedo.h"
 #include "interface/ui/IUiFactory.h"
 
@@ -36,7 +36,7 @@ public:
 		std::shared_ptr<ISettings>                  settings,
 		std::shared_ptr<IUiFactory>                 uiFactory,
 		std::shared_ptr<IFilterProvider>            filterProvider,
-		std::shared_ptr<IHotkeyManager>             hotkeyManager,
+		std::shared_ptr<IMenuCustomizer>            menuCustomizer,
 		std::shared_ptr<Util::ItemViewToolTipper>   itemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController>  scrollBarController,
 		std::shared_ptr<INavigationUndoRedo>        navigationUndoRedo,
