@@ -32,7 +32,7 @@ constexpr auto SET_ICON           = QT_TRANSLATE_NOOP("HotkeyDialog", "Set icon"
 constexpr auto REMOVE_ICON        = QT_TRANSLATE_NOOP("HotkeyDialog", "Remove icon");
 constexpr auto ALREADY_USED       = QT_TRANSLATE_NOOP("HotkeyDialog", "%1 already in use:\n%2");
 constexpr auto SELECT_ICON        = QT_TRANSLATE_NOOP("HotkeyDialog", "Select image file");
-constexpr auto SELECT_ICON_FILTER = QT_TRANSLATE_NOOP("HotkeyDialog", "Images (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)");
+constexpr auto SELECT_ICON_FILTER = QT_TRANSLATE_NOOP("HotkeyDialog", "Image files (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)");
 
 TR_DEF
 

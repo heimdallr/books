@@ -2726,7 +2726,23 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Reset</source>
+        <source>Image files (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Remove hotkey</source>
+        <translation>Delete shortcut</translation>
+    </message>
+    <message>
+        <source>Remove icon</source>
+        <translation>Delete icon</translation>
+    </message>
+    <message>
+        <source>Select image file</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Set icon</source>
         <translation></translation>
     </message>
 </context>
@@ -2734,6 +2750,18 @@ Try again?</source>
     <name>HotkeyManager</name>
     <message>
         <source>Book</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot open &apos;%1&apos;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>File %1 is empty</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Image %1 probably corrupted</source>
         <translation></translation>
     </message>
 </context>
