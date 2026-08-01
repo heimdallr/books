@@ -1558,7 +1558,7 @@ private:
 
 	void SetupHotkeys()
 	{
-		m_hotkeyManager->Add(*m_ui.menuBar, Tr(MAIN_MENU));
+		m_hotkeyManager->Add(MAIN_WINDOW, *m_ui.menuBar, Tr(MAIN_MENU));
 	}
 
 	void CheckForUpdates(const bool force) const

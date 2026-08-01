@@ -1072,7 +1072,7 @@ private:
 
 		if (!IsNavigation())
 			QTimer::singleShot(0, [this] {
-				m_hotkeyManager->Add(*m_ui.cbMode, Tr(BOOK_VIEW_MODE));
+				m_hotkeyManager->Add(m_controller->TrContext(), *m_ui.cbMode, Tr(BOOK_VIEW_MODE));
 				m_hotkeyManager->RegisterObserver(this);
 			});
 

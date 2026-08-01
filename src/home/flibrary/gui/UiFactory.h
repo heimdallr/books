@@ -73,9 +73,12 @@ private: // IUiFactory
 	void        UpdateRecentOpenBookControllerMenu(QMenu& menu) const override;
 	void        SetBackgroundStyleSheet(QWidget& widget, const QString& key) const override;
 
-	std::pair<IDataItem::Ptr, QObject*> AddWidgetToHotkeys(QWidget& widget, const QString& title, const std::function<void(IDataItem::Ptr, QAction*, QObject*)>& functor) const override;
-	std::pair<IDataItem::Ptr, QObject*> AddMenuBarToHotkeys(QMenuBar& menuBar, const QString& title, const std::function<void(IDataItem::Ptr, QAction*, QObject*)>& functor) const override;
-	std::pair<IDataItem::Ptr, QObject*> AddComboBoxToHotkeys(QComboBox& comboBox, const QString& title, const std::function<void(IDataItem::Ptr, QShortcut*, QObject*)>& functor) const override;
+	std::pair<IDataItem::Ptr, QObject*>
+	AddWidgetToHotkeys(const QString& rootKey, QWidget& widget, const QString& title, const std::function<void(IDataItem::Ptr, QAction*, QObject*)>& functor) const override;
+	std::pair<IDataItem::Ptr, QObject*>
+	AddMenuBarToHotkeys(const QString& rootKey, QMenuBar& menuBar, const QString& title, const std::function<void(IDataItem::Ptr, QAction*, QObject*)>& functor) const override;
+	std::pair<IDataItem::Ptr, QObject*>
+	AddComboBoxToHotkeys(const QString& rootKey, QComboBox& comboBox, const QString& title, const std::function<void(IDataItem::Ptr, QShortcut*, QObject*)>& functor) const override;
 
 private: // special
 	std::filesystem::path                GetNewCollectionInpxFolder() const noexcept override;

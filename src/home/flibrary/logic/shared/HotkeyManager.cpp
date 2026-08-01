@@ -188,34 +188,34 @@ public:
 	}
 
 	template <typename W, typename R>
-	using UiFactoryToHotkeys = std::pair<IDataItem::Ptr, QObject*> (IUiFactory::*)(W&, const QString&, const std::function<void(IDataItem::Ptr, R*, QObject*)>&) const;
+	using UiFactoryToHotkeys = std::pair<IDataItem::Ptr, QObject*> (IUiFactory::*)(const QString&, W&, const QString&, const std::function<void(IDataItem::Ptr, R*, QObject*)>&) const;
 
 	template <typename W, typename R>
-	void Add(W& widget, const QString& title, const UiFactoryToHotkeys<W, R> uiFactoryToHotkeys, const std::function<void(IDataItem::Ptr, R*, QObject*)>& f)
+	void Add(const QString& rootKey, W& widget, const QString& title, const UiFactoryToHotkeys<W, R> uiFactoryToHotkeys, const std::function<void(IDataItem::Ptr, R*, QObject*)>& f)
 	{
-		auto [item, obj] = std::invoke(uiFactoryToHotkeys, std::cref(*m_uiFactory), std::ref(widget), std::cref(title), std::cref(f));
+		auto [item, obj] = std::invoke(uiFactoryToHotkeys, std::cref(*m_uiFactory), std::cref(rootKey), std::ref(widget), std::cref(title), std::cref(f));
 		if (const auto it = m_objToActions.find(obj); it != m_objToActions.end())
 			it->second.key = item->GetData(SettingsItem::Column::Key);
 		m_root->AppendChild(std::move(item));
 	}
 
-	void Add(QWidget& widget, const QString& title)
+	void Add(const QString& rootKey, QWidget& widget, const QString& title)
 	{
-		Add<QWidget, QAction>(widget, title, &IUiFactory::AddWidgetToHotkeys, [&](IDataItem::Ptr actionItem, QAction* action, QObject* parent) {
+		Add<QWidget, QAction>(rootKey, widget, title, &IUiFactory::AddWidgetToHotkeys, [&](IDataItem::Ptr actionItem, QAction* action, QObject* parent) {
 			Add(Item { .item = std::move(actionItem), .action = action }, parent);
 		});
 	}
 
-	void Add(QMenuBar& menuBar, const QString& title)
+	void Add(const QString& rootKey, QMenuBar& menuBar, const QString& title)
 	{
-		Add<QMenuBar, QAction>(menuBar, title, &IUiFactory::AddMenuBarToHotkeys, [&](IDataItem::Ptr actionItem, QAction* action, QObject* parent) {
+		Add<QMenuBar, QAction>(rootKey, menuBar, title, &IUiFactory::AddMenuBarToHotkeys, [&](IDataItem::Ptr actionItem, QAction* action, QObject* parent) {
 			Add(Item { .item = std::move(actionItem), .action = action }, parent);
 		});
 	}
 
-	void Add(QComboBox& comboBox, const QString& title)
+	void Add(const QString& rootKey, QComboBox& comboBox, const QString& title)
 	{
-		Add<QComboBox, QShortcut>(comboBox, title, &IUiFactory::AddComboBoxToHotkeys, [&](IDataItem::Ptr actionItem, QShortcut* shortcut, QObject* parent) {
+		Add<QComboBox, QShortcut>(rootKey, comboBox, title, &IUiFactory::AddComboBoxToHotkeys, [&](IDataItem::Ptr actionItem, QShortcut* shortcut, QObject* parent) {
 			Add(Item { .item = std::move(actionItem), .shortcut = shortcut }, parent);
 		});
 	}
@@ -537,19 +537,19 @@ QVariant HotkeyManager::GetIcon(const QString& key) const
 	return m_impl->GetIcon(key);
 }
 
-void HotkeyManager::Add(QWidget& widget, const QString& title)
+void HotkeyManager::Add(const QString& rootKey, QWidget& widget, const QString& title)
 {
-	m_impl->Add(widget, title);
+	m_impl->Add(rootKey, widget, title);
 }
 
-void HotkeyManager::Add(QMenuBar& menuBar, const QString& title)
+void HotkeyManager::Add(const QString& rootKey, QMenuBar& menuBar, const QString& title)
 {
-	m_impl->Add(menuBar, title);
+	m_impl->Add(rootKey, menuBar, title);
 }
 
-void HotkeyManager::Add(QComboBox& comboBox, const QString& title)
+void HotkeyManager::Add(const QString& rootKey, QComboBox& comboBox, const QString& title)
 {
-	m_impl->Add(comboBox, title);
+	m_impl->Add(rootKey, comboBox, title);
 }
 
 QString HotkeyManager::Set(const QString& key, const QString& shortCut)

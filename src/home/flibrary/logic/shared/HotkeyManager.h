@@ -23,9 +23,9 @@ private: // IHotkeyManager
 	bool           HasHotkey(const QString& key) const noexcept override;
 	QVariant       GetIcon(const QString& key) const override;
 
-	void    Add(QWidget& widget, const QString& title) override;
-	void    Add(QMenuBar& menuBar, const QString& title) override;
-	void    Add(QComboBox& comboBox, const QString& title) override;
+	void    Add(const QString& rootKey, QWidget& widget, const QString& title) override;
+	void    Add(const QString& rootKey, QMenuBar& menuBar, const QString& title) override;
+	void    Add(const QString& rootKey, QComboBox& comboBox, const QString& title) override;
 	QString Set(const QString& key, const QString& shortCut) override;
 	void    Reset(const QString& key) override;
 
