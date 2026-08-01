@@ -114,13 +114,15 @@ class HotkeyManager::Impl final
 				shortcut->setProperty(Constant::Settings::ICON, QIcon(path));
 		}
 
-		QIcon GetIcon() const
+		QVariant GetIcon() const
 		{
 			if (action)
-				return action->icon();
+				if (auto icon = action->icon(); !icon.isNull())
+					return icon;
 
 			if (shortcut)
-				return shortcut->property(Constant::Settings::ICON).value<QIcon>();
+				if (const auto icon = shortcut->property(Constant::Settings::ICON); icon.isValid())
+					return icon.value<QIcon>();
 
 			return {};
 		}
@@ -153,7 +155,7 @@ public:
 		return it != m_actions.end() && it->second.HasHotkey();
 	}
 
-	QIcon GetIcon(const QString& key) const
+	QVariant GetIcon(const QString& key) const
 	{
 		if (const auto it = m_actions.find(key); it != m_actions.end())
 			return it->second.GetIcon();
@@ -304,18 +306,13 @@ public:
 			}
 		};
 
-		{
-			const SettingsGroup settingsGroup(*m_settings, GetName(Constant::Settings::HOTKEYS_ROOT, observer->GetKey()));
-			enumerate(observer->GetKey(), enumerate);
-		}
-
-		Register(observer);
+		const SettingsGroup settingsGroup(*m_settings, GetName(Constant::Settings::HOTKEYS_ROOT, observer->GetKey()));
+		enumerate(observer->GetKey(), enumerate);
 	}
 
 	void RemoveObserver(IObserver* observer)
 	{
 		Remove(observer->GetParentWidget());
-		Unregister(observer);
 	}
 
 private: // QObject
@@ -483,7 +480,7 @@ bool HotkeyManager::HasHotkey(const QString& key) const noexcept
 	return m_impl->HasHotkey(key);
 }
 
-QIcon HotkeyManager::GetIcon(const QString& key) const
+QVariant HotkeyManager::GetIcon(const QString& key) const
 {
 	return m_impl->GetIcon(key);
 }
@@ -521,9 +518,11 @@ std::expected<void, QString> HotkeyManager::SetIcon(const QString& key, const QS
 void HotkeyManager::RegisterObserver(IObserver* observer)
 {
 	m_impl->AddObserver(observer);
+	m_impl->Register(observer);
 }
 
 void HotkeyManager::UnregisterObserver(IObserver* observer)
 {
 	m_impl->RemoveObserver(observer);
+	m_impl->Unregister(observer);
 }

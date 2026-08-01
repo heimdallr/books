@@ -21,7 +21,7 @@ public:
 private: // IHotkeyManager
 	IDataItem::Ptr GetRootDataItem() override;
 	bool           HasHotkey(const QString& key) const noexcept override;
-	QIcon          GetIcon(const QString& key) const override;
+	QVariant       GetIcon(const QString& key) const override;
 
 	void    Add(QWidget& widget, const QString& title) override;
 	void    Add(QMenuBar& menuBar, const QString& title) override;

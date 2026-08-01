@@ -296,7 +296,9 @@ private:
 		QMenu menu;
 		menu.setFont(m_self.font());
 
-		if (m_ui.view->currentIndex().data(Role::ChildCount).toInt() == 0)
+		const auto key = m_ui.view->currentIndex().data(Model::ModelRole::Key).toString();
+
+		if (m_hotkeyManager->HasHotkey(key))
 			menu.addAction(Tr(RESET), [this] {
 				m_model->setData(m_ui.view->currentIndex(), {});
 			});
@@ -306,19 +308,19 @@ private:
 			if (!menu.actions().isEmpty())
 				menu.addSeparator();
 
-			menu.addAction(Tr(SET_ICON), [this] {
+			menu.addAction(Tr(SET_ICON), [&] {
 				if (const auto path = m_uiFactory->GetOpenFileName(ICONS, Tr(SELECT_ICON), Tr(SELECT_ICON_FILTER)); !path.isEmpty())
 				{
-					if (const auto result = m_hotkeyManager->SetIcon(m_ui.view->currentIndex().data(Model::ModelRole::Key).toString(), path); !result)
+					if (const auto result = m_hotkeyManager->SetIcon(key, path); !result)
 						m_uiFactory->ShowError(result.error());
 					else
 						m_model->setData(m_ui.view->currentIndex(), {}, Model::ModelRole::Icon);
 				}
 			});
 
-			if (!m_model->data(m_ui.view->currentIndex(), Qt::DecorationRole).value<QIcon>().isNull())
-				menu.addAction(Tr(REMOVE_ICON), [this] {
-					(void)m_hotkeyManager->SetIcon(m_ui.view->currentIndex().data(Model::ModelRole::Key).toString());
+			if (m_model->data(m_ui.view->currentIndex(), Qt::DecorationRole).isValid())
+				menu.addAction(Tr(REMOVE_ICON), [&] {
+					(void)m_hotkeyManager->SetIcon(key);
 					m_model->setData(m_ui.view->currentIndex(), {}, Model::ModelRole::Icon);
 				});
 		}
