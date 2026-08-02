@@ -107,8 +107,9 @@ private: // QAbstractItemModel
 			{
 				const auto sourceIndex = mapToSource(index);
 				m_menuCustomizer->Hide(m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data().toString(), value.value<Qt::CheckState>() == Qt::Checked);
-				roles.push_back(Qt::DisplayRole);
 				roles.push_back(Qt::CheckStateRole);
+				const auto titleIndex = this->index(index.row(), Column::Title, index.parent());
+				emit       dataChanged(titleIndex, titleIndex, { Qt::ForegroundRole, Qt::FontRole });
 				break;
 			}
 
@@ -151,8 +152,29 @@ private:
 		switch (index.column())
 		{
 			case Column::Title:
-				if (IsOneOf(role, Qt::DisplayRole, Qt::ToolTipRole))
-					return m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
+				switch (role)
+				{
+					case Qt::DisplayRole:
+					case Qt::ToolTipRole:
+						return m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
+
+					case Qt::ForegroundRole:
+						if (m_menuCustomizer->IsHidden(key).toBool())
+							return QColor(Qt::gray);
+						break;
+
+					case Qt::FontRole:
+						if (m_menuCustomizer->IsHidden(key).toBool())
+						{
+							auto font = QIdentityProxyModel::data(index, Qt::FontRole).value<QFont>();
+							font.setItalic(true);
+							return QVariant::fromValue(font);
+						}
+						break;
+
+					default:
+						break;
+				}
 				break;
 
 			case Column::Hotkey:
