@@ -34,7 +34,7 @@ constexpr auto ALREADY_USED       = QT_TRANSLATE_NOOP("HotkeyDialog", "%1 alread
 constexpr auto SELECT_ICON        = QT_TRANSLATE_NOOP("HotkeyDialog", "Select image file");
 constexpr auto SELECT_ICON_FILTER = QT_TRANSLATE_NOOP("HotkeyDialog", "Image files (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)");
 constexpr auto ITEM_ICON          = QT_TRANSLATE_NOOP("HotkeyDialog", "Icon for %1");
-constexpr auto SET_ICON_TOOLTIP   = QT_TRANSLATE_NOOP("HotkeyDialog", "Double-click to set the icon for \"%1\"");
+constexpr auto SET_HOTKEY_TOOLTIP = QT_TRANSLATE_NOOP("HotkeyDialog", "Double-click to set the hotkey for \"%1\"");
 constexpr auto HIDE_TOOLTIP       = QT_TRANSLATE_NOOP("HotkeyDialog", "Check to hide \"%1\"");
 
 TR_DEF
@@ -179,7 +179,7 @@ private:
 
 			case Column::Hotkey:
 				if (role == Qt::ToolTipRole && !!(m_menuCustomizer->GetAbilities(key) & IMenuCustomizer::ItemAbility::Hotkey))
-					return Tr(SET_ICON_TOOLTIP).arg(m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data().toString());
+					return Tr(SET_HOTKEY_TOOLTIP).arg(m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data().toString());
 				break;
 
 			case Column::Icon:

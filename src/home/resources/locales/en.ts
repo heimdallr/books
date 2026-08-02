@@ -2729,6 +2729,14 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Check to hide &quot;%1&quot;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Double-click to set the hotkey for &quot;%1&quot;</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Icon for %1</source>
         <translation>Icon for &quot;%1&quot;</translation>
     </message>
