@@ -2743,6 +2743,14 @@ Try again?</source>
 %2</translation>
     </message>
     <message>
+        <source>Check to hide &quot;%1&quot;</source>
+        <translation>Установите флажок, чтобы скрыть &quot;%1&quot;</translation>
+    </message>
+    <message>
+        <source>Double-click to set the hotkey for &quot;%1&quot;</source>
+        <translation>Двойной клик, чтобы назначить горячую клавишу для &quot;%1&quot;</translation>
+    </message>
+    <message>
         <source>Icon for %1</source>
         <translation>Пиктограмма для &quot;%1&quot;</translation>
     </message>

@@ -60,7 +60,6 @@ constexpr auto SORT_KEY                           = "Sort";
 constexpr auto SORT_INDEX_KEY                     = "Index";
 constexpr auto SORT_ORDER_KEY                     = "Order";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTableColumnSettings";
-constexpr auto HASH_CONTEXT_MENU_ENABLED          = "Preferences/Books/ContextMenu/HashEnabled";
 constexpr auto LAST                               = "Last";
 
 constexpr auto CB_MODE_ID_ROLE = Qt::UserRole + 1;
@@ -692,7 +691,7 @@ private: // HeaderView::IObserver
 	}
 
 private: // IMenuCustomizer::IObserver
-	const char* GetHotkeyRootKey() const noexcept override
+	const char* GetRootKey() const noexcept override
 	{
 		return BOOK_CONTEXT_MENU;
 	}
@@ -854,7 +853,6 @@ private:
 			| addOption(m_showRemoved, ITreeViewController::RequestContextMenuOptions::ShowRemoved)
 			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
 			| addOption(m_filterProvider->IsFilterEnabled(), ITreeViewController::RequestContextMenuOptions::UniFilterEnabled)
-			| addOption(m_settings->Get(HASH_CONTEXT_MENU_ENABLED, false), ITreeViewController::RequestContextMenuOptions::HashEnabled)
 			| addOption(hashCompareEnabled(), ITreeViewController::RequestContextMenuOptions::HashCompareEnabled)
 			| addOption(
 				currentIndex.isValid() && currentIndex.data(Role::Type).value<ItemType>() == ItemType::Books
@@ -912,7 +910,7 @@ private:
 	{
 		const auto                                                    font = menu.font();
 		const QFontMetrics                                            metrics(font);
-		std::stack<std::tuple<const IDataItem*, QMenu*, QStringList>> stack { { { &item, &menu, { GetHotkeyRootKey() } } } };
+		std::stack<std::tuple<const IDataItem*, QMenu*, QStringList>> stack { { { &item, &menu, { GetRootKey() } } } };
 
 		const auto getBool = [](const IDataItem& menuItem, const int column, const bool defaultValue) {
 			const auto& str = menuItem.GetData(column);
@@ -935,7 +933,12 @@ private:
 
 				auto childIconKeyList = iconKeyList;
 				childIconKeyList << child->GetData(MenuItem::Column::Key);
-				auto icon = m_menuCustomizer->GetIcon(childIconKeyList.join('/'));
+				const auto menuCustomizerKey = childIconKeyList.join('/');
+
+				if (const auto var = m_menuCustomizer->IsHidden(menuCustomizerKey); var.isValid() && var.toBool())
+					continue;
+
+				auto icon = m_menuCustomizer->GetIcon(menuCustomizerKey);
 
 				auto statusTip = titleText;
 				statusTip.replace("&", "");

@@ -37,8 +37,7 @@ public:
 		IsArchive                  = 1 <<  7,
 		ShowRemoved                = 1 <<  8,
 		UniFilterEnabled           = 1 <<  9,
-		HashEnabled                = 1 << 10,
-		HashCompareEnabled         = 1 << 11,
+		HashCompareEnabled         = 1 << 10,
 		// clang-format on
 	};
 

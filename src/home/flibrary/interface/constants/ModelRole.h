@@ -36,6 +36,7 @@ struct Role
 #undef BOOKS_COLUMN_ITEM
 					Count,
 		ChildCount,
+		ColumnCount,
 		CheckableColumn,
 		TextFilter,
 		ShowRemovedFilter,

@@ -34,6 +34,9 @@ public:
 	~CustomizeMenuDialog() override;
 
 private:
+	void showEvent(QShowEvent* event) override;
+
+private:
 	class Impl;
 	PropagateConstPtr<Impl> m_impl;
 };

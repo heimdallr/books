@@ -104,7 +104,6 @@ constexpr auto SHOW_REVIEWS_KEY                   = "ui/View/ShowReadersReviews"
 constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
 constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
-constexpr auto SHOW_ALL_SETTINGS_KEY              = "Preferences/ShowAllSettingsMenuItem";
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 constexpr auto NAVIGATION_ACTION_ID_PROPERTY      = "navigationMode";
@@ -1167,11 +1166,9 @@ private:
 			m_uiFactory->CreateHotkeyDialog()->exec();
 		});
 
-		m_ui.actionAllSettings->setVisible(m_settings->Get(SHOW_ALL_SETTINGS_KEY, false));
-		if (m_ui.actionAllSettings->isVisible())
-			connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
-				m_uiFactory->CreateSettingsDialog()->exec();
-			});
+		connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
+			m_uiFactory->CreateSettingsDialog()->exec();
+		});
 	}
 
 	void ConnectActionsHelpView()

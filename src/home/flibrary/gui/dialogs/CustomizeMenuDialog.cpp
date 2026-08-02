@@ -34,11 +34,24 @@ constexpr auto ALREADY_USED       = QT_TRANSLATE_NOOP("HotkeyDialog", "%1 alread
 constexpr auto SELECT_ICON        = QT_TRANSLATE_NOOP("HotkeyDialog", "Select image file");
 constexpr auto SELECT_ICON_FILTER = QT_TRANSLATE_NOOP("HotkeyDialog", "Image files (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)");
 constexpr auto ITEM_ICON          = QT_TRANSLATE_NOOP("HotkeyDialog", "Icon for %1");
+constexpr auto SET_HOTKEY_TOOLTIP = QT_TRANSLATE_NOOP("HotkeyDialog", "Double-click to set the hotkey for \"%1\"");
+constexpr auto HIDE_TOOLTIP       = QT_TRANSLATE_NOOP("HotkeyDialog", "Check to hide \"%1\"");
 
 TR_DEF
 
-constexpr auto ICONS           = "HotkeyDialogIcons";
-constexpr auto FIELD_WIDTH_KEY = "ui/View/HotkeyDialog/columnWidths";
+constexpr auto ICONS = "HotkeyDialogIcons";
+
+struct Column
+{
+	enum
+	{
+		Title,
+		Hotkey,
+		Icon,
+		Hidden,
+		Last
+	};
+};
 
 class Model final : public QIdentityProxyModel
 {
@@ -50,7 +63,7 @@ public:
 			Key = Role::Last,
 			AlreadyAssigned,
 			Icon,
-			Last
+			Last [[maybe_unused]]
 		};
 	};
 
@@ -65,54 +78,15 @@ public:
 		, m_menuCustomizer { std::move(menuCustomizer) }
 		, m_source { modelProvider.CreateTreeModel(m_menuCustomizer->GetRootDataItem()) }
 	{
+		m_menuCustomizer->UpdateItems();
+		m_source->setData({}, Column::Last, Role::ColumnCount);
 		QIdentityProxyModel::setSourceModel(m_source.get());
 	}
 
 private: // QAbstractItemModel
-	[[nodiscard]] int columnCount(const QModelIndex&) const override
-	{
-		return 3;
-	}
-
 	QVariant data(const QModelIndex& index, const int role) const override
 	{
-		if (index.isValid())
-		{
-			const auto sourceIndex = mapToSource(index);
-			if (role == ModelRole::Key)
-			{
-				return m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data();
-			}
-			if (index.column() == 0)
-			{
-				if (IsOneOf(role, Qt::DisplayRole, Qt::ToolTipRole))
-					return m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
-			}
-			else if (index.column() == 2)
-			{
-				switch (role)
-				{
-					case Qt::DecorationRole:
-						return m_menuCustomizer->GetIcon(m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data().toString());
-
-					case Qt::ToolTipRole:
-						if (m_menuCustomizer->GetIcon(m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data().toString()).isValid())
-							return Tr(ITEM_ICON).arg(m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data().toString());
-						break;
-
-					default:
-						break;
-				}
-				return {};
-			}
-		}
-		else
-		{
-			if (role == ModelRole::AlreadyAssigned)
-				return m_alreadyAssigned;
-		}
-
-		return QIdentityProxyModel::data(index, role);
+		return index.isValid() ? GetData(index, role) : GetData(role);
 	}
 
 	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
@@ -128,6 +102,16 @@ private: // QAbstractItemModel
 				if (SetShortCut(index, value))
 					roles.push_back(Qt::DisplayRole);
 				break;
+
+			case Qt::CheckStateRole:
+			{
+				const auto sourceIndex = mapToSource(index);
+				m_menuCustomizer->Hide(m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data().toString(), value.value<Qt::CheckState>() == Qt::Checked);
+				roles.push_back(Qt::CheckStateRole);
+				const auto titleIndex = this->index(index.row(), Column::Title, index.parent());
+				emit       dataChanged(titleIndex, titleIndex, { Qt::ForegroundRole, Qt::FontRole });
+				break;
+			}
 
 			case ModelRole::Icon:
 				roles.push_back(Qt::DecorationRole);
@@ -145,20 +129,130 @@ private: // QAbstractItemModel
 
 	Qt::ItemFlags flags(const QModelIndex& index) const override
 	{
-		return QIdentityProxyModel::flags(index) | (index.column() == 1 && index.data(Role::ChildCount).toInt() == 0 ? Qt::ItemIsEditable : Qt::NoItemFlags);
+		return QIdentityProxyModel::flags(index) | GetItemFlags(index);
 	}
 
 private:
+	QVariant GetData(const int role) const
+	{
+		if (role == ModelRole::AlreadyAssigned)
+			return m_alreadyAssigned;
+
+		return {};
+	}
+
+	QVariant GetData(const QModelIndex& index, const int role) const
+	{
+		const auto sourceIndex = mapToSource(index);
+		const auto key         = m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data().toString();
+		if (role == ModelRole::Key)
+		{
+			return key;
+		}
+		switch (index.column())
+		{
+			case Column::Title:
+				switch (role)
+				{
+					case Qt::DisplayRole:
+					case Qt::ToolTipRole:
+						return m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
+
+					case Qt::ForegroundRole:
+						if (m_menuCustomizer->IsHidden(key).toBool())
+							return QColor(Qt::gray);
+						break;
+
+					case Qt::FontRole:
+						if (m_menuCustomizer->IsHidden(key).toBool())
+						{
+							auto font = QIdentityProxyModel::data(index, Qt::FontRole).value<QFont>();
+							font.setItalic(true);
+							return QVariant::fromValue(font);
+						}
+						break;
+
+					default:
+						break;
+				}
+				break;
+
+			case Column::Hotkey:
+				if (role == Qt::ToolTipRole && !!(m_menuCustomizer->GetAbilities(key) & IMenuCustomizer::ItemAbility::Hotkey))
+					return Tr(SET_HOTKEY_TOOLTIP).arg(m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data().toString());
+				break;
+
+			case Column::Icon:
+				switch (role)
+				{
+					case Qt::DecorationRole:
+						return m_menuCustomizer->GetIcon(key);
+
+					case Qt::ToolTipRole:
+						if (m_menuCustomizer->GetIcon(key).isValid())
+							return Tr(ITEM_ICON).arg(m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data().toString());
+						break;
+
+					default:
+						break;
+				}
+				return {};
+
+			case Column::Hidden:
+				switch (role)
+				{
+					case Qt::ToolTipRole:
+						if (!!(m_menuCustomizer->GetAbilities(key) & IMenuCustomizer::ItemAbility::Hide))
+							return Tr(HIDE_TOOLTIP).arg(m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data().toString());
+						break;
+
+					case Qt::CheckStateRole:
+						if (!(m_menuCustomizer->GetAbilities(key) & IMenuCustomizer::ItemAbility::Hide))
+							return {};
+						if (const auto hidden = m_menuCustomizer->IsHidden(key); hidden.isValid())
+							return hidden.toBool() ? Qt::Checked : Qt::Unchecked;
+						return Qt::Unchecked;
+
+					default:
+						break;
+				}
+				return {};
+
+			default:
+				assert(false && "unexpected column");
+		}
+
+		return QIdentityProxyModel::data(index, role);
+	}
+
+	Qt::ItemFlags GetItemFlags(const QModelIndex& index) const
+	{
+		Qt::ItemFlags flags = Qt::NoItemFlags;
+		if (IsOneOf(Column::Title, Column::Icon))
+			return flags;
+
+		const auto key       = index.data(ModelRole::Key).toString();
+		const auto abilities = m_menuCustomizer->GetAbilities(key);
+
+		if (index.column() == Column::Hotkey && !!(abilities & IMenuCustomizer::ItemAbility::Hotkey))
+			flags |= Qt::ItemIsEditable;
+
+		if (index.column() == Column::Hidden && !!(abilities & IMenuCustomizer::ItemAbility::Hide))
+			flags |= Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
+
+		return flags;
+	}
+
 	bool SetShortCut(const QModelIndex& index, const QVariant& value)
 	{
 		const auto shortCut = value.toString();
 		if (shortCut.isEmpty())
 		{
-			m_menuCustomizer->Reset(GetKey(index));
+			m_menuCustomizer->SetHotkey(GetKey(index));
 			return true;
 		}
 
-		if (auto alreadyAssigned = m_menuCustomizer->Set(GetKey(index), shortCut); !alreadyAssigned.isEmpty())
+		if (auto alreadyAssigned = m_menuCustomizer->SetHotkey(GetKey(index), shortCut); !alreadyAssigned.isEmpty())
 			return (m_alreadyAssigned = std::move(alreadyAssigned)), false;
 
 		return true;
@@ -177,7 +271,31 @@ private:
 	QString m_alreadyAssigned;
 };
 
+/*
+class IconCenterDelegate final : public QStyledItemDelegate
+{
+public:
+	explicit IconCenterDelegate(QObject* parent = nullptr)
+		: QStyledItemDelegate(parent)
+	{
+	}
+
+private: // QStyledItemDelegate
+	void initStyleOption(QStyleOptionViewItem* option, const QModelIndex& index) const override
+	{
+		QStyledItemDelegate::initStyleOption(option, index);
+		option->decorationAlignment = Qt::AlignCenter;
+		option->decorationSize      = option->rect.size();
+	}
+
+	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
+	{
+		QStyledItemDelegate::paint(painter, option, index);
+	}
+};
+*/
 class HotkeyDelegate final : public QStyledItemDelegate
+
 {
 public:
 	explicit HotkeyDelegate(QObject* parent = nullptr)
@@ -271,18 +389,22 @@ public:
 	{
 		m_ui.setupUi(&m_self);
 
-		m_itemViewToolTipper->SetShowForceColumns({ 2 });
+		m_itemViewToolTipper->SetShowForceColumns({ Column::Hotkey, Column::Icon, Column::Hidden });
 		m_itemViewToolTipper->SetScrollArea(m_ui.view);
 		m_scrollBarController->SetScrollArea(m_ui.view);
 
 		m_ui.view->setModel(m_model.get());
 		m_ui.view->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
+
 		auto& header = *m_ui.view->header();
 		header.setDefaultAlignment(Qt::AlignCenter);
-		header.setSectionResizeMode(2, QHeaderView::ResizeToContents);
-		header.setSectionResizeMode(1, QHeaderView::ResizeToContents);
-		header.setSectionResizeMode(0, QHeaderView::Stretch);
-		m_ui.view->setItemDelegateForColumn(1, new HotkeyDelegate(&m_self));
+		header.setSectionResizeMode(Column::Title, QHeaderView::Stretch);
+		header.setSectionResizeMode(Column::Hotkey, QHeaderView::ResizeToContents);
+		header.setSectionResizeMode(Column::Icon, QHeaderView::Fixed);
+		header.setSectionResizeMode(Column::Hidden, QHeaderView::Fixed);
+
+		m_ui.view->setItemDelegateForColumn(Column::Hotkey, new HotkeyDelegate(&m_self));
+		//		m_ui.view->setItemDelegateForColumn(Column::Icon, new IconCenterDelegate(&m_self));
 
 		m_ui.view->setCurrentIndex({});
 		for (int i = 0, sz = m_model->rowCount(); i < sz; ++i)
@@ -293,13 +415,20 @@ public:
 		});
 
 		LoadGeometry();
-		Util::LoadHeaderSectionWidth(*m_ui.view->header(), *m_settings, FIELD_WIDTH_KEY);
 	}
 
 	~Impl() override
 	{
-		Util::SaveHeaderSectionWidth(*m_ui.view->header(), *m_settings, FIELD_WIDTH_KEY);
 		SaveGeometry();
+	}
+
+	void OnShowEvent(QShowEvent*)
+	{
+		const auto cellHeight = m_ui.view->visualRect(m_model->index(0, 0)).height();
+		auto&      header     = *m_ui.view->header();
+		for (int i = 0, sz = header.count(); i < sz; ++i)
+			if (header.sectionResizeMode(i) == QHeaderView::Fixed)
+				header.resizeSection(i, cellHeight);
 	}
 
 private:
@@ -308,9 +437,10 @@ private:
 		QMenu menu;
 		menu.setFont(m_self.font());
 
-		const auto key = m_ui.view->currentIndex().data(Model::ModelRole::Key).toString();
+		const auto key       = m_ui.view->currentIndex().data(Model::ModelRole::Key).toString();
+		const auto abilities = m_menuCustomizer->GetAbilities(key);
 
-		if (m_menuCustomizer->HasHotkey(key))
+		if (!m_menuCustomizer->GetHotkey(key).isEmpty())
 			menu.addAction(Tr(RESET), [this] {
 				m_model->setData(m_ui.view->currentIndex(), {});
 			});
@@ -320,17 +450,18 @@ private:
 			if (!menu.actions().isEmpty())
 				menu.addSeparator();
 
-			menu.addAction(Tr(SET_ICON), [&] {
-				if (const auto path = m_uiFactory->GetOpenFileName(ICONS, Tr(SELECT_ICON), Tr(SELECT_ICON_FILTER)); !path.isEmpty())
-				{
-					if (const auto result = m_menuCustomizer->SetIcon(key, path); !result)
-						m_uiFactory->ShowError(result.error());
-					else
-						m_model->setData(m_ui.view->currentIndex(), {}, Model::ModelRole::Icon);
-				}
-			});
+			if (!!(abilities & IMenuCustomizer::ItemAbility::Icon))
+				menu.addAction(Tr(SET_ICON), [&] {
+					if (const auto path = m_uiFactory->GetOpenFileName(ICONS, Tr(SELECT_ICON), Tr(SELECT_ICON_FILTER)); !path.isEmpty())
+					{
+						if (const auto result = m_menuCustomizer->SetIcon(key, path); !result)
+							m_uiFactory->ShowError(result.error());
+						else
+							m_model->setData(m_ui.view->currentIndex(), {}, Model::ModelRole::Icon);
+					}
+				});
 
-			if (m_model->data(m_ui.view->currentIndex(), Qt::DecorationRole).isValid())
+			if (m_menuCustomizer->GetIcon(key).canConvert<QIcon>())
 				menu.addAction(Tr(REMOVE_ICON), [&] {
 					(void)m_menuCustomizer->SetIcon(key);
 					m_model->setData(m_ui.view->currentIndex(), {}, Model::ModelRole::Icon);
@@ -372,3 +503,8 @@ CustomizeMenuDialog::CustomizeMenuDialog(
 }
 
 CustomizeMenuDialog::~CustomizeMenuDialog() = default;
+
+void CustomizeMenuDialog::showEvent(QShowEvent* event)
+{
+	m_impl->OnShowEvent(event);
+}

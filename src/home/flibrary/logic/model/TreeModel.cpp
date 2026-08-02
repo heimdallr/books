@@ -57,7 +57,7 @@ int TreeModel::rowCount(const QModelIndex& parent) const
 
 int TreeModel::columnCount(const QModelIndex& /*parent*/) const
 {
-	return m_data->GetColumnCount();
+	return m_columnCount < 0 ? m_data->GetColumnCount() : m_columnCount;
 }
 
 QVariant TreeModel::data(const QModelIndex& index, const int role) const
