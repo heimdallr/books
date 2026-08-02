@@ -20,9 +20,10 @@ public:
 	enum class ItemAbility
 	{
 		None   = 0,
-		Hotkey = 1 << 0,
-		Hide   = 1 << 1,
-		All    = Hotkey | Hide
+		Icon   = 1 << 0,
+		Hotkey = 1 << 1,
+		Hide   = 1 << 2,
+		All    = Icon | Hotkey | Hide
 	};
 
 	class IObserver : public Observer

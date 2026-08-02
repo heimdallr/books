@@ -498,9 +498,9 @@ QStackedWidget* UiFactory::GetStackedWidget() const noexcept
 namespace
 {
 
-QString GetName(const QString& parent, const QString& child)
+QString GetName(const QString& parent, const QString& child, const QString& key = {})
 {
-	return QString("%1/%2").arg(parent, child);
+	return QString("%1/%2%3").arg(parent, child, key.isEmpty() ? QString {} : QString("/%1").arg(key));
 }
 
 QString RemoveAmp(QString str)
@@ -525,13 +525,13 @@ std::optional<QIcon> CreateIcon(const QVariant& iconData)
 
 void AddIcon(const ISettings& settings, const IDataItem& actionItem, QAction& action)
 {
-	if (const auto icon = CreateIcon(settings.Get(GetName(Constant::Settings::ICONS_ROOT, actionItem.GetData(SettingsItem::Column::Key)))))
+	if (const auto icon = CreateIcon(settings.Get(GetName(Constant::Settings::MENU_CUSTOM_ROOT, actionItem.GetData(SettingsItem::Column::Key), Constant::Settings::ICON))))
 		action.setIcon(*icon);
 }
 
 std::optional<QIcon> AddIcon(const ISettings& settings, const IDataItem& actionItem, QComboBox& comboBox, const int index)
 {
-	auto icon = CreateIcon(settings.Get(GetName(Constant::Settings::ICONS_ROOT, actionItem.GetData(SettingsItem::Column::Key))));
+	auto icon = CreateIcon(settings.Get(GetName(Constant::Settings::MENU_CUSTOM_ROOT, actionItem.GetData(SettingsItem::Column::Key), Constant::Settings::ICON)));
 	if (icon)
 		comboBox.setItemData(index, QVariant::fromValue(*icon), Qt::DecorationRole);
 	return icon;
@@ -558,7 +558,7 @@ IDataItem::Ptr AddChild(const ISettings& settings, const IDataItemFactory& dataI
 
 	auto actionItem = AddChild(dataItemFactory, parent, action, std::move(objTitle));
 
-	if (const auto shortCut = settings.Get(GetName(Constant::Settings::HOTKEYS_ROOT, actionItem->GetData(SettingsItem::Column::Key))); shortCut.isValid())
+	if (const auto shortCut = settings.Get(GetName(Constant::Settings::MENU_CUSTOM_ROOT, actionItem->GetData(SettingsItem::Column::Key), Constant::Settings::HOTKEY)); shortCut.isValid())
 		action.setShortcut(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
 	actionItem->SetData(action.shortcut().toString(), SettingsItem::Column::Value);
 
@@ -656,7 +656,7 @@ std::pair<IDataItem::Ptr, QObject*> UiFactory::AddComboBoxToMenuCustomizer(
 			comboBox->setCurrentIndex(i);
 		});
 
-		if (const auto shortCut = settings->Get(GetName(Constant::Settings::HOTKEYS_ROOT, child->GetData(SettingsItem::Column::Key))); shortCut.isValid())
+		if (const auto shortCut = settings->Get(GetName(Constant::Settings::MENU_CUSTOM_ROOT, child->GetData(SettingsItem::Column::Key), Constant::Settings::HOTKEY)); shortCut.isValid())
 			shortcut->setKey(QKeySequence(shortCut.toString(), QKeySequence::PortableText));
 		child->SetData(shortcut->key().toString(), SettingsItem::Column::Value);
 
