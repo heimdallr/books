@@ -226,6 +226,10 @@ include_directories("${EXT_ROOT}/Hypodermic")
 include("src/ext/sqlite.cmake")
 include("src/home/home.cmake")
 
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+	return()
+endif()
+
 include("src/home/script/cmake/pack.cmake")
 install(FILES "${CMAKE_SOURCE_DIR}/LICENSE_en.txt" DESTINATION . RENAME LICENSE.txt)
 

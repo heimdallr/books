@@ -639,7 +639,7 @@ private:
 			m_logController->SetSeverity(severity.toInt());
 
 		if (m_collectionController->ActiveCollectionExists())
-			m_self.setWindowTitle(QString("%1 - %2").arg(getProductName(), m_collectionController->GetActiveCollection().name));
+			m_self.setWindowTitle(QString("%1 - [ %2 ]").arg(getProductName(), m_collectionController->GetActiveCollection().name));
 
 		m_self.addAction(m_ui.actionShowQueryWindow);
 
