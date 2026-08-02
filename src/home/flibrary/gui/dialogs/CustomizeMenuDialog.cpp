@@ -338,9 +338,10 @@ private:
 		QMenu menu;
 		menu.setFont(m_self.font());
 
-		const auto key = m_ui.view->currentIndex().data(Model::ModelRole::Key).toString();
+		const auto key       = m_ui.view->currentIndex().data(Model::ModelRole::Key).toString();
+		const auto abilities = m_menuCustomizer->GetAbilities(key);
 
-		if (m_menuCustomizer->HasHotkey(key))
+		if (!m_menuCustomizer->GetHotkey(key).isEmpty())
 			menu.addAction(Tr(RESET), [this] {
 				m_model->setData(m_ui.view->currentIndex(), {});
 			});
@@ -350,17 +351,18 @@ private:
 			if (!menu.actions().isEmpty())
 				menu.addSeparator();
 
-			menu.addAction(Tr(SET_ICON), [&] {
-				if (const auto path = m_uiFactory->GetOpenFileName(ICONS, Tr(SELECT_ICON), Tr(SELECT_ICON_FILTER)); !path.isEmpty())
-				{
-					if (const auto result = m_menuCustomizer->SetIcon(key, path); !result)
-						m_uiFactory->ShowError(result.error());
-					else
-						m_model->setData(m_ui.view->currentIndex(), {}, Model::ModelRole::Icon);
-				}
-			});
+			if (!!(abilities & IMenuCustomizer::ItemAbility::Icon))
+				menu.addAction(Tr(SET_ICON), [&] {
+					if (const auto path = m_uiFactory->GetOpenFileName(ICONS, Tr(SELECT_ICON), Tr(SELECT_ICON_FILTER)); !path.isEmpty())
+					{
+						if (const auto result = m_menuCustomizer->SetIcon(key, path); !result)
+							m_uiFactory->ShowError(result.error());
+						else
+							m_model->setData(m_ui.view->currentIndex(), {}, Model::ModelRole::Icon);
+					}
+				});
 
-			if (m_model->data(m_ui.view->currentIndex(), Qt::DecorationRole).isValid())
+			if (m_menuCustomizer->GetIcon(key).canConvert<QIcon>())
 				menu.addAction(Tr(REMOVE_ICON), [&] {
 					(void)m_menuCustomizer->SetIcon(key);
 					m_model->setData(m_ui.view->currentIndex(), {}, Model::ModelRole::Icon);

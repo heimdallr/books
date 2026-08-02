@@ -97,9 +97,15 @@ class MenuCustomizer::Impl final
 			return SetShortCutImpl(*shortcut, keySequence);
 		}
 
-		bool HasHotkey() const
+		QString GetHotkey() const
 		{
-			return !(!shortcut && (!action || action->shortcut().isEmpty()));
+			if (shortcut)
+				return shortcut->key().toString();
+
+			if (action)
+				return action->shortcut().toString();
+
+			return {};
 		}
 
 		void SetIcon(const QVariant& value = {})
@@ -178,10 +184,11 @@ public:
 		return ItemAbility::All;
 	}
 
-	bool HasHotkey(const QString& key) const
+	QString GetHotkey(const QString& key) const
 	{
-		const auto it = m_actions.find(key);
-		return it != m_actions.end() && it->second.HasHotkey();
+		if (const auto it = m_actions.find(key); it != m_actions.end())
+			return it->second.GetHotkey();
+		return {};
 	}
 
 	QVariant GetIcon(const QString& key) const
@@ -324,7 +331,7 @@ public:
 	void AddObserver(IObserver* observer)
 	{
 		auto& objToActions = Add(observer->GetParentWidget());
-		objToActions.key   = observer->GetHotkeyRootKey();
+		objToActions.key   = observer->GetRootKey();
 
 		std::unordered_set<QString> uniqueKeys;
 
@@ -354,8 +361,8 @@ public:
 				r(itemKey, group, r);
 			}
 		};
-		const SettingsGroup settingsSubGroup(*m_settings, GetName(Constant::Settings::MENU_CUSTOM_ROOT, observer->GetHotkeyRootKey()));
-		enumerate({}, observer->GetHotkeyRootKey(), enumerate);
+		const SettingsGroup settingsSubGroup(*m_settings, GetName(Constant::Settings::MENU_CUSTOM_ROOT, observer->GetRootKey()));
+		enumerate({}, observer->GetRootKey(), enumerate);
 	}
 
 	void RemoveObserver(IObserver* observer)
@@ -439,7 +446,7 @@ private:
 	void UpdateObserverMenu()
 	{
 		Perform([this](const IObserver* observer) {
-			if (const auto bookMenu = m_root->FindChild([key = observer->GetHotkeyRootKey()](const auto& item) {
+			if (const auto bookMenu = m_root->FindChild([key = observer->GetRootKey()](const auto& item) {
 					return item.GetData(SettingsItem::Column::Key) == key;
 				}))
 				m_root->RemoveChild(bookMenu->GetRow());
@@ -493,8 +500,8 @@ private:
 		};
 
 		const auto& bookItem = m_root->AppendChild(SettingsItem::Create());
-		bookItem->SetData(observer->GetHotkeyRootKey(), SettingsItem::Column::Key);
-		bookItem->SetData(Tr(observer->GetHotkeyRootKey()), SettingsItem::Column::Title);
+		bookItem->SetData(observer->GetRootKey(), SettingsItem::Column::Key);
+		bookItem->SetData(Tr(observer->GetRootKey()), SettingsItem::Column::Title);
 		enumerate(*item, *bookItem, enumerate);
 	}
 
@@ -527,9 +534,9 @@ IMenuCustomizer::ItemAbility MenuCustomizer::GetAbilities(const QString& key) co
 	return m_impl->GetAbilities(key);
 }
 
-bool MenuCustomizer::HasHotkey(const QString& key) const
+QString MenuCustomizer::GetHotkey(const QString& key) const
 {
-	return m_impl->HasHotkey(key);
+	return m_impl->GetHotkey(key);
 }
 
 QVariant MenuCustomizer::GetIcon(const QString& key) const

@@ -32,7 +32,7 @@ public:
 		using RequestMenuCallback = std::function<void(const QString& id, const IDataItem::Ptr& item)>;
 
 	public:
-		virtual const char* GetHotkeyRootKey() const noexcept              = 0;
+		virtual const char* GetRootKey() const noexcept                    = 0;
 		virtual QWidget*    GetParentWidget() noexcept                     = 0;
 		virtual void        RequestMenuItems(RequestMenuCallback callback) = 0;
 		virtual void        OnHotkeyActivated(const QString& key)          = 0;
@@ -44,7 +44,7 @@ public:
 public:
 	[[nodiscard]] virtual IDataItem::Ptr GetRootDataItem()                      = 0;
 	[[nodiscard]] virtual ItemAbility    GetAbilities(const QString& key) const = 0;
-	[[nodiscard]] virtual bool           HasHotkey(const QString& key) const    = 0;
+	[[nodiscard]] virtual QString        GetHotkey(const QString& key) const    = 0;
 	[[nodiscard]] virtual QVariant       GetIcon(const QString& key) const      = 0;
 
 	virtual void    Add(const QString& rootKey, QWidget& widget, const QString& title)     = 0;

@@ -692,7 +692,7 @@ private: // HeaderView::IObserver
 	}
 
 private: // IMenuCustomizer::IObserver
-	const char* GetHotkeyRootKey() const noexcept override
+	const char* GetRootKey() const noexcept override
 	{
 		return BOOK_CONTEXT_MENU;
 	}
@@ -912,7 +912,7 @@ private:
 	{
 		const auto                                                    font = menu.font();
 		const QFontMetrics                                            metrics(font);
-		std::stack<std::tuple<const IDataItem*, QMenu*, QStringList>> stack { { { &item, &menu, { GetHotkeyRootKey() } } } };
+		std::stack<std::tuple<const IDataItem*, QMenu*, QStringList>> stack { { { &item, &menu, { GetRootKey() } } } };
 
 		const auto getBool = [](const IDataItem& menuItem, const int column, const bool defaultValue) {
 			const auto& str = menuItem.GetData(column);
