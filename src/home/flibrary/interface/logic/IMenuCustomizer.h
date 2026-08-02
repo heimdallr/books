@@ -17,6 +17,14 @@ namespace HomeCompa::Flibrary
 class IMenuCustomizer // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
+	enum class ItemAbility
+	{
+		None   = 0,
+		Hotkey = 1 << 0,
+		Hide   = 1 << 1,
+		All    = Hotkey | Hide
+	};
+
 	class IObserver : public Observer
 	{
 	public:
@@ -33,9 +41,10 @@ public:
 	virtual ~IMenuCustomizer() = default;
 
 public:
-	[[nodiscard]] virtual IDataItem::Ptr GetRootDataItem()                            = 0;
-	[[nodiscard]] virtual bool           HasHotkey(const QString& key) const noexcept = 0;
-	[[nodiscard]] virtual QVariant       GetIcon(const QString& key) const            = 0;
+	[[nodiscard]] virtual IDataItem::Ptr GetRootDataItem()                      = 0;
+	[[nodiscard]] virtual ItemAbility    GetAbilities(const QString& key) const = 0;
+	[[nodiscard]] virtual bool           HasHotkey(const QString& key) const    = 0;
+	[[nodiscard]] virtual QVariant       GetIcon(const QString& key) const      = 0;
 
 	virtual void    Add(const QString& rootKey, QWidget& widget, const QString& title)     = 0;
 	virtual void    Add(const QString& rootKey, QMenuBar& menuBar, const QString& title)   = 0;
@@ -50,3 +59,5 @@ public:
 };
 
 } // namespace HomeCompa::Flibrary
+
+ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::IMenuCustomizer::ItemAbility);

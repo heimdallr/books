@@ -569,7 +569,8 @@ IDataItem::Ptr AddChild(const ISettings& settings, const IDataItemFactory& dataI
 
 } // namespace
 
-std::pair<IDataItem::Ptr, QObject*> UiFactory::AddWidgetToHotkeys(const QString& rootKey, QWidget& widget, const QString& title, const std::function<void(IDataItem::Ptr, QAction*, QObject*)>& functor) const
+std::pair<IDataItem::Ptr, QObject*>
+UiFactory::AddWidgetToMenuCustomizer(const QString& rootKey, QWidget& widget, const QString& title, const std::function<void(IDataItem::Ptr, IMenuCustomizer::ItemAbility, QObject*, QAction*)>& functor) const
 {
 	const auto settings        = m_impl->container.resolve<ISettings>();
 	const auto dataItemFactory = m_impl->container.resolve<IDataItemFactory>();
@@ -580,13 +581,17 @@ std::pair<IDataItem::Ptr, QObject*> UiFactory::AddWidgetToHotkeys(const QString&
 
 	for (auto* action : widget.actions())
 		if (auto actionItem = AddChild(*settings, *dataItemFactory, *result, *action, action->text()))
-			functor(std::move(actionItem), action, &widget);
+			functor(std::move(actionItem), IMenuCustomizer::ItemAbility::All, &widget, action);
 
 	return std::make_pair(std::move(result), &widget);
 }
 
-std::pair<IDataItem::Ptr, QObject*>
-UiFactory::AddMenuBarToHotkeys(const QString& rootKey, QMenuBar& menuBar, const QString& title, const std::function<void(IDataItem::Ptr, QAction*, QObject*)>& functor) const
+std::pair<IDataItem::Ptr, QObject*> UiFactory::AddMenuBarToMenuCustomizer(
+	const QString&                                                                               rootKey,
+	QMenuBar&                                                                                    menuBar,
+	const QString&                                                                               title,
+	const std::function<void(IDataItem::Ptr, IMenuCustomizer::ItemAbility, QObject*, QAction*)>& functor
+) const
 {
 	const auto settings        = m_impl->container.resolve<ISettings>();
 	const auto dataItemFactory = m_impl->container.resolve<IDataItemFactory>();
@@ -604,7 +609,7 @@ UiFactory::AddMenuBarToHotkeys(const QString& rootKey, QMenuBar& menuBar, const 
 			menuActions.emplace(menu->menuAction());
 			auto child = AddChild(*dataItemFactory, parent, *menu, menu->title());
 			AddIcon(*settings, *child, *menu->menuAction());
-			functor(child, menu->menuAction(), &menuBar);
+			functor(child, ~IMenuCustomizer::ItemAbility::Hotkey, &menuBar, menu->menuAction());
 
 			std::unordered_set<const QAction*> actions;
 			r(menu->findChildren<QMenu*>(QString {}, Qt::FindDirectChildrenOnly), *child, actions, r);
@@ -613,7 +618,7 @@ UiFactory::AddMenuBarToHotkeys(const QString& rootKey, QMenuBar& menuBar, const 
 									return !(item->isSeparator() || actions.contains(item));
 								}))
 				if (auto actionItem = AddChild(*settings, *dataItemFactory, *child, *action, action->text()))
-					functor(std::move(actionItem), action, &menuBar);
+					functor(std::move(actionItem), IMenuCustomizer::ItemAbility::All, &menuBar, action);
 		}
 	};
 
@@ -623,8 +628,12 @@ UiFactory::AddMenuBarToHotkeys(const QString& rootKey, QMenuBar& menuBar, const 
 	return std::make_pair(std::move(menuBarItem), &menuBar);
 }
 
-std::pair<IDataItem::Ptr, QObject*>
-UiFactory::AddComboBoxToHotkeys(const QString& rootKey, QComboBox& comboBox, const QString& title, const std::function<void(IDataItem::Ptr, QShortcut*, QObject*)>& functor) const
+std::pair<IDataItem::Ptr, QObject*> UiFactory::AddComboBoxToMenuCustomizer(
+	const QString&                                                                                 rootKey,
+	QComboBox&                                                                                     comboBox,
+	const QString&                                                                                 title,
+	const std::function<void(IDataItem::Ptr, IMenuCustomizer::ItemAbility, QObject*, QShortcut*)>& functor
+) const
 {
 	const auto settings        = m_impl->container.resolve<ISettings>();
 	const auto dataItemFactory = m_impl->container.resolve<IDataItemFactory>();
@@ -656,7 +665,7 @@ UiFactory::AddComboBoxToHotkeys(const QString& rootKey, QComboBox& comboBox, con
 		shortcut->setProperty(INDEX, i);
 		shortcut->installEventFilter(eventFilter);
 
-		functor(std::move(child), shortcut, &comboBox);
+		functor(std::move(child), ~IMenuCustomizer::ItemAbility::Hide, &comboBox, shortcut);
 	}
 
 	return std::make_pair(std::move(comboBoxItem), &comboBox);

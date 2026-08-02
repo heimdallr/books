@@ -20,7 +20,8 @@ public:
 
 private: // IMenuCustomizer
 	IDataItem::Ptr GetRootDataItem() override;
-	bool           HasHotkey(const QString& key) const noexcept override;
+	ItemAbility    GetAbilities(const QString& key) const override;
+	bool           HasHotkey(const QString& key) const override;
 	QVariant       GetIcon(const QString& key) const override;
 
 	void    Add(const QString& rootKey, QWidget& widget, const QString& title) override;

@@ -4,6 +4,7 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/logic/IDataItem.h"
+#include "interface/logic/IMenuCustomizer.h"
 
 #include "gutil/interface/IUiFactory.h"
 
@@ -57,12 +58,13 @@ public:
 	virtual void                                                      UpdateRecentOpenBookControllerMenu(QMenu& menu) const              = 0;
 	virtual void                                                      SetBackgroundStyleSheet(QWidget& widget, const QString& key) const = 0;
 
+	template <typename R>
+	using MenuCustomizeFunctor = std::function<void(IDataItem::Ptr, IMenuCustomizer::ItemAbility, QObject*, R*)>;
+	[[nodiscard]] virtual std::pair<IDataItem::Ptr, QObject*> AddWidgetToMenuCustomizer(const QString& rootKey, QWidget& widget, const QString& title, const MenuCustomizeFunctor<QAction>& functor) const = 0;
 	[[nodiscard]] virtual std::pair<IDataItem::Ptr, QObject*>
-	AddWidgetToHotkeys(const QString& rootKey, QWidget& widget, const QString& title, const std::function<void(IDataItem::Ptr, QAction*, QObject*)>& functor) const = 0;
+	AddMenuBarToMenuCustomizer(const QString& rootKey, QMenuBar& menuBar, const QString& title, const MenuCustomizeFunctor<QAction>& functor) const = 0;
 	[[nodiscard]] virtual std::pair<IDataItem::Ptr, QObject*>
-	AddMenuBarToHotkeys(const QString& rootKey, QMenuBar& menuBar, const QString& title, const std::function<void(IDataItem::Ptr, QAction*, QObject*)>& functor) const = 0;
-	[[nodiscard]] virtual std::pair<IDataItem::Ptr, QObject*>
-	AddComboBoxToHotkeys(const QString& rootKey, QComboBox& comboBox, const QString& title, const std::function<void(IDataItem::Ptr, QShortcut*, QObject*)>& functor) const = 0;
+	AddComboBoxToMenuCustomizer(const QString& rootKey, QComboBox& comboBox, const QString& title, const MenuCustomizeFunctor<QShortcut>& functor) const = 0;
 
 	[[nodiscard]] virtual QWidget* CreateFastFilterWidget(const QAbstractItemModel& model, int column, std::function<void(bool, QVariantList)> callback) const = 0;
 	[[nodiscard]] virtual QWidget* CreateChangeSizeWidget(int current, int minimum, int maximum, IChangeSizeWidgetObserver* observer) const                    = 0;

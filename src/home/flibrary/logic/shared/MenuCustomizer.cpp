@@ -70,6 +70,7 @@ class MenuCustomizer::Impl final
 		propagate_const<QAction*>   action { nullptr };
 		propagate_const<QShortcut*> shortcut { nullptr };
 		propagate_const<IObserver*> observer { nullptr };
+		ItemAbility                 abilities { ItemAbility::All };
 		mutable QVariant            iconVar;
 
 		QString SetShortCut(const QString& value = {})
@@ -150,7 +151,14 @@ public:
 		return m_root;
 	}
 
-	bool HasHotkey(const QString& key) const noexcept
+	ItemAbility GetAbilities(const QString& key) const
+	{
+		if (const auto it = m_actions.find(key); it != m_actions.end())
+			return it->second.abilities;
+		return ItemAbility::All;
+	}
+
+	bool HasHotkey(const QString& key) const
 	{
 		const auto it = m_actions.find(key);
 		return it != m_actions.end() && it->second.HasHotkey();
@@ -163,36 +171,46 @@ public:
 		return {};
 	}
 
-	template <typename W, typename R>
-	using UiFactoryToHotkeys = std::pair<IDataItem::Ptr, QObject*> (IUiFactory::*)(const QString&, W&, const QString&, const std::function<void(IDataItem::Ptr, R*, QObject*)>&) const;
+	template <typename R>
+	using UpdateItemFunctor = std::function<void(Item&, R*)>;
 
 	template <typename W, typename R>
-	void Add(const QString& rootKey, W& widget, const QString& title, const UiFactoryToHotkeys<W, R> uiFactoryToHotkeys, const std::function<void(IDataItem::Ptr, R*, QObject*)>& f)
+	using UiFactoryToHotkeys = std::pair<IDataItem::Ptr, QObject*> (IUiFactory::*)(const QString&, W&, const QString&, const IUiFactory::MenuCustomizeFunctor<R>&) const;
+
+	template <typename W, typename R>
+	void Add(const QString& rootKey, W& widget, const QString& title, const UiFactoryToHotkeys<W, R> uiFactoryToHotkeys, const UpdateItemFunctor<R>& f)
 	{
-		auto [item, obj] = std::invoke(uiFactoryToHotkeys, std::cref(*m_uiFactory), std::cref(rootKey), std::ref(widget), std::cref(title), std::cref(f));
+		const auto toMenuCustomizeFunctor = [&](IDataItem::Ptr actionItem, const ItemAbility abilities, QObject* parent, R* r) {
+			Item item { .item = std::move(actionItem), .abilities = abilities };
+			f(item, r);
+			Add(std::move(item), parent);
+		};
+
+		auto [item, obj] = std::invoke(uiFactoryToHotkeys, std::cref(*m_uiFactory), std::cref(rootKey), std::ref(widget), std::cref(title), std::cref(toMenuCustomizeFunctor));
 		if (const auto it = m_objToActions.find(obj); it != m_objToActions.end())
 			it->second.key = item->GetData(SettingsItem::Column::Key);
+
 		m_root->AppendChild(std::move(item));
 	}
 
 	void Add(const QString& rootKey, QWidget& widget, const QString& title)
 	{
-		Add<QWidget, QAction>(rootKey, widget, title, &IUiFactory::AddWidgetToHotkeys, [&](IDataItem::Ptr actionItem, QAction* action, QObject* parent) {
-			Add(Item { .item = std::move(actionItem), .action = action }, parent);
+		Add<QWidget, QAction>(rootKey, widget, title, &IUiFactory::AddWidgetToMenuCustomizer, [](Item& item, QAction* action) {
+			item.action = action;
 		});
 	}
 
 	void Add(const QString& rootKey, QMenuBar& menuBar, const QString& title)
 	{
-		Add<QMenuBar, QAction>(rootKey, menuBar, title, &IUiFactory::AddMenuBarToHotkeys, [&](IDataItem::Ptr actionItem, QAction* action, QObject* parent) {
-			Add(Item { .item = std::move(actionItem), .action = action }, parent);
+		Add<QMenuBar, QAction>(rootKey, menuBar, title, &IUiFactory::AddMenuBarToMenuCustomizer, [](Item& item, QAction* action) {
+			item.action = action;
 		});
 	}
 
 	void Add(const QString& rootKey, QComboBox& comboBox, const QString& title)
 	{
-		Add<QComboBox, QShortcut>(rootKey, comboBox, title, &IUiFactory::AddComboBoxToHotkeys, [&](IDataItem::Ptr actionItem, QShortcut* shortcut, QObject* parent) {
-			Add(Item { .item = std::move(actionItem), .shortcut = shortcut }, parent);
+		Add<QComboBox, QShortcut>(rootKey, comboBox, title, &IUiFactory::AddComboBoxToMenuCustomizer, [](Item& item, QShortcut* shortcut) {
+			item.shortcut = shortcut;
 		});
 	}
 
@@ -511,7 +529,12 @@ IDataItem::Ptr MenuCustomizer::GetRootDataItem()
 	return m_impl->GetRootDataItem();
 }
 
-bool MenuCustomizer::HasHotkey(const QString& key) const noexcept
+IMenuCustomizer::ItemAbility MenuCustomizer::GetAbilities(const QString& key) const
+{
+	return m_impl->GetAbilities(key);
+}
+
+bool MenuCustomizer::HasHotkey(const QString& key) const
 {
 	return m_impl->HasHotkey(key);
 }
