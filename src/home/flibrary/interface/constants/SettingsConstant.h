@@ -17,9 +17,6 @@ constexpr auto EXPORT_REPLACE_METADATA_KEY = "ui/Export/ReplaceMetadata";
 constexpr auto PERMANENT_LANG_FILTER_KEY         = "ui/permanentLanguageFilter";
 constexpr auto PERMANENT_LANG_FILTER_ENABLED_KEY = "ui/permanentLanguageFilterEnabled";
 constexpr auto SHOW_REMOVED_BOOKS_KEY            = "ui/View/RemovedBooks";
-constexpr auto MENU_CUSTOM_ROOT                  = "ui/MenuCustomization";
-constexpr auto HOTKEY                            = "hotkey";
-constexpr auto ICON                              = "icon";
 
 constexpr auto OPDS_HOST_KEY          = "opds/host";
 constexpr auto OPDS_PORT_KEY          = "opds/port";
@@ -54,5 +51,7 @@ constexpr auto SEARCH_WITH_SERIES     = "SearchBy/Series";
 constexpr auto SEARCH_WITH_ANNOTATION = "SearchBy/Annotation";
 
 constexpr auto BACKGROUND_COLOR_TEMPLATE = "background-color: %1;";
+
+constexpr auto ICON = "icon";
 
 } // namespace HomeCompa::Flibrary::Constant::Settings

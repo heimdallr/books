@@ -155,6 +155,9 @@ bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const i
 		case Role::Uncheck:
 			return Check(value, Qt::Unchecked);
 
+		case Role::ColumnCount:
+			return Util::Set(m_columnCount, value.toInt());
+
 		default:
 			break;
 	}

@@ -29,6 +29,10 @@ constexpr auto CANNOT_OPEN = QT_TRANSLATE_NOOP("HotkeyManager", "Cannot open '%1
 constexpr auto FILE_EMPTY  = QT_TRANSLATE_NOOP("HotkeyManager", "File %1 is empty");
 constexpr auto BAD_IMAGE   = QT_TRANSLATE_NOOP("HotkeyManager", "Image %1 probably corrupted");
 
+constexpr auto MENU_CUSTOM_ROOT = "ui/MenuCustomization";
+constexpr auto HOTKEY           = "hotkey";
+constexpr auto HIDDEN           = "hidden";
+
 TR_DEF
 
 QString GetName(const QString& parent, const QString& child, const QString& key = {})
@@ -71,7 +75,38 @@ class MenuCustomizer::Impl final
 		propagate_const<QShortcut*> shortcut { nullptr };
 		propagate_const<IObserver*> observer { nullptr };
 		ItemAbility                 abilities { ItemAbility::All };
-		mutable QVariant            iconVar;
+		QVariant                    iconVar;
+		QVariant                    hidden { false };
+
+		QString GetHotkey() const
+		{
+			if (shortcut)
+				return shortcut->key().toString();
+
+			if (action)
+				return action->shortcut().toString();
+
+			return {};
+		}
+
+		QVariant GetIcon() const
+		{
+			if (!(abilities & ItemAbility::Icon))
+				return {};
+
+			if (action)
+				if (auto icon = action->icon(); !icon.isNull())
+					return icon;
+
+			if (shortcut)
+				if (const auto icon = shortcut->property(Constant::Settings::ICON); icon.isValid())
+					return icon.value<QIcon>();
+
+			if (iconVar.isValid() && iconVar.canConvert<QIcon>())
+				return iconVar.value<QIcon>();
+
+			return {};
+		}
 
 		QString SetShortCut(const QString& value = {})
 		{
@@ -97,17 +132,6 @@ class MenuCustomizer::Impl final
 			return SetShortCutImpl(*shortcut, keySequence);
 		}
 
-		QString GetHotkey() const
-		{
-			if (shortcut)
-				return shortcut->key().toString();
-
-			if (action)
-				return action->shortcut().toString();
-
-			return {};
-		}
-
 		void SetIcon(const QVariant& value = {})
 		{
 			if (action)
@@ -119,28 +143,20 @@ class MenuCustomizer::Impl final
 			iconVar = value;
 		}
 
-		QVariant GetIcon() const
+		void Hide(const bool value)
 		{
-			if (!(abilities & ItemAbility::Icon))
-				return {};
-
+			hidden = value;
 			if (action)
-				if (auto icon = action->icon(); !icon.isNull())
-					return icon;
-
-			if (shortcut)
-				if (const auto icon = shortcut->property(Constant::Settings::ICON); icon.isValid())
-					return icon.value<QIcon>();
-
-			if (iconVar.isValid() && iconVar.canConvert<QIcon>())
-				return iconVar.value<QIcon>();
-
-			return {};
+				action->setVisible(!value);
 		}
 
 		void Setup(const ISettings& settings)
 		{
-			SetShortCut(settings.Get(Constant::Settings::HOTKEY, QString {}));
+			if (const auto var = settings.Get(HOTKEY); var.isValid())
+				SetShortCut(var.toString());
+
+			if (const auto var = settings.Get(HIDDEN); var.isValid())
+				Hide(var.toBool());
 
 			if (const auto var = settings.Get(Constant::Settings::ICON); var.isValid())
 			{
@@ -171,9 +187,8 @@ public:
 	{
 	}
 
-	IDataItem::Ptr GetRootDataItem()
+	IDataItem::Ptr GetRootDataItem() const noexcept
 	{
-		UpdateObserverMenu();
 		return m_root;
 	}
 
@@ -196,6 +211,18 @@ public:
 		if (const auto it = m_actions.find(key); it != m_actions.end())
 			return it->second.GetIcon();
 		return {};
+	}
+
+	QVariant IsHidden(const QString& key) const
+	{
+		if (const auto it = m_actions.find(key); it != m_actions.end())
+			return it->second.hidden;
+		return {};
+	}
+
+	void UpdateItems()
+	{
+		UpdateObserverMenu();
 	}
 
 	template <typename R>
@@ -285,27 +312,39 @@ public:
 		}
 
 		const auto value = it->second.SetShortCut(shortCut);
-		m_settings->Set(GetName(Constant::Settings::MENU_CUSTOM_ROOT, it->second.item->GetData(SettingsItem::Column::Key), Constant::Settings::HOTKEY), value);
+		m_settings->Set(GetName(MENU_CUSTOM_ROOT, it->second.item->GetData(SettingsItem::Column::Key), HOTKEY), value);
 		return {};
 	}
 
 	void ResetHotkey(const QString& key)
 	{
 		const auto it = m_actions.find(key);
-		assert(it != m_actions.end());
+		if (it == m_actions.end())
+			return;
 
 		it->second.SetShortCut();
-		m_settings->Remove(GetName(Constant::Settings::MENU_CUSTOM_ROOT, it->second.item->GetData(SettingsItem::Column::Key), Constant::Settings::HOTKEY));
+		m_settings->Remove(GetName(MENU_CUSTOM_ROOT, it->second.item->GetData(SettingsItem::Column::Key), HOTKEY));
+	}
+
+	void Hide(const QString& key, const bool hidden)
+	{
+		const auto it = m_actions.find(key);
+		if (it == m_actions.end())
+			return;
+
+		it->second.Hide(hidden);
+		m_settings->Set(GetName(MENU_CUSTOM_ROOT, it->second.item->GetData(SettingsItem::Column::Key), HIDDEN), hidden);
 	}
 
 	std::expected<void, QString> SetIcon(const QString& key, const QString& path)
 	{
 		const auto it = m_actions.find(key);
-		assert(it != m_actions.end());
+		if (it == m_actions.end())
+			return {};
 
 		if (path.isEmpty())
 		{
-			m_settings->Set(GetName(Constant::Settings::MENU_CUSTOM_ROOT, it->second.item->GetData(SettingsItem::Column::Key), Constant::Settings::ICON), QString {});
+			m_settings->Set(GetName(MENU_CUSTOM_ROOT, it->second.item->GetData(SettingsItem::Column::Key), Constant::Settings::ICON), QString {});
 			it->second.SetIcon();
 			return {};
 		}
@@ -320,7 +359,7 @@ public:
 
 		if (const auto pixmap = Util::Decode(bytes); !pixmap.isNull())
 		{
-			m_settings->Set(GetName(Constant::Settings::MENU_CUSTOM_ROOT, it->second.item->GetData(SettingsItem::Column::Key), Constant::Settings::ICON), bytes);
+			m_settings->Set(GetName(MENU_CUSTOM_ROOT, it->second.item->GetData(SettingsItem::Column::Key), Constant::Settings::ICON), bytes);
 			it->second.SetIcon(QVariant::fromValue(QIcon(pixmap)));
 			return {};
 		}
@@ -346,8 +385,9 @@ public:
 				         .try_emplace(
 							 itemKey,
 							 Item {
-								 .item     = std::move(child),
-								 .observer = observer,
+								 .item      = std::move(child),
+								 .observer  = observer,
+								 .abilities = parentKey.isEmpty() ? ItemAbility::None : ItemAbility::All,
 							 }
 						 )
 				         .first;
@@ -361,7 +401,7 @@ public:
 				r(itemKey, group, r);
 			}
 		};
-		const SettingsGroup settingsSubGroup(*m_settings, GetName(Constant::Settings::MENU_CUSTOM_ROOT, observer->GetRootKey()));
+		const SettingsGroup settingsSubGroup(*m_settings, GetName(MENU_CUSTOM_ROOT, observer->GetRootKey()));
 		enumerate({}, observer->GetRootKey(), enumerate);
 	}
 
@@ -406,11 +446,16 @@ private:
 
 	void Add(Item item, QObject* parent)
 	{
-		auto  key              = item.item->GetData(SettingsItem::Column::Key);
-		auto& objToActions     = Add(parent);
+		auto key = item.item->GetData(SettingsItem::Column::Key);
+		{
+			const SettingsGroup settingsSubGroup(*m_settings, GetName(MENU_CUSTOM_ROOT, key));
+			item.Setup(*m_settings);
+		}
 		const auto [it, added] = m_actions.try_emplace(std::move(key), std::move(item));
 		assert(added);
-		objToActions.actionKeys.emplace_back(it->first);
+
+		auto& actionKeys = Add(parent).actionKeys;
+		actionKeys.emplace_back(it->first);
 	}
 
 	ObjToActions& Add(QObject* parent)
@@ -488,21 +533,22 @@ private:
 					continue;
 				}
 
-				auto& dstChild = dst.AppendChild(SettingsItem::Create());
+				auto dstChild = dst.AppendChild(SettingsItem::Create());
 				dstChild->SetData(std::move(key), SettingsItem::Column::Key);
 				dstChild->SetData(RemoveAmp(std::move(title)), SettingsItem::Column::Title);
 
+				auto& dstChildRef = *dstChild;
 				if (!srcChild->GetData(MenuItem::Column::Id).isEmpty())
-					Add(Item { .item = dstChild, .observer = observer }, observer->GetParentWidget());
+					Add(Item { .item = std::move(dstChild), .observer = observer }, observer->GetParentWidget());
 
-				r(*srcChild, *dstChild, r);
+				r(*srcChild, dstChildRef, r);
 			}
 		};
 
-		const auto& bookItem = m_root->AppendChild(SettingsItem::Create());
-		bookItem->SetData(observer->GetRootKey(), SettingsItem::Column::Key);
-		bookItem->SetData(Tr(observer->GetRootKey()), SettingsItem::Column::Title);
-		enumerate(*item, *bookItem, enumerate);
+		auto& rootObserverItem = m_root->AppendChild(SettingsItem::Create());
+		rootObserverItem->SetData(observer->GetRootKey(), SettingsItem::Column::Key);
+		rootObserverItem->SetData(Tr(observer->GetRootKey()), SettingsItem::Column::Title);
+		enumerate(*item, *rootObserverItem, enumerate);
 	}
 
 private:
@@ -524,7 +570,7 @@ MenuCustomizer::MenuCustomizer(std::shared_ptr<const IParentWidgetProvider> pare
 
 MenuCustomizer::~MenuCustomizer() = default;
 
-IDataItem::Ptr MenuCustomizer::GetRootDataItem()
+IDataItem::Ptr MenuCustomizer::GetRootDataItem() const noexcept
 {
 	return m_impl->GetRootDataItem();
 }
@@ -544,6 +590,16 @@ QVariant MenuCustomizer::GetIcon(const QString& key) const
 	return m_impl->GetIcon(key);
 }
 
+QVariant MenuCustomizer::IsHidden(const QString& key) const
+{
+	return m_impl->IsHidden(key);
+}
+
+void MenuCustomizer::UpdateItems()
+{
+	m_impl->UpdateItems();
+}
+
 void MenuCustomizer::Add(const QString& rootKey, QWidget& widget, const QString& title)
 {
 	m_impl->Add(rootKey, widget, title);
@@ -559,14 +615,14 @@ void MenuCustomizer::Add(const QString& rootKey, QComboBox& comboBox, const QStr
 	m_impl->Add(rootKey, comboBox, title);
 }
 
-QString MenuCustomizer::Set(const QString& key, const QString& shortCut)
+QString MenuCustomizer::SetHotkey(const QString& key, const QString& shortCut)
 {
-	return m_impl->SetHotkey(key, shortCut);
+	return shortCut.isEmpty() ? (m_impl->ResetHotkey(key), QString {}) : m_impl->SetHotkey(key, shortCut);
 }
 
-void MenuCustomizer::Reset(const QString& key)
+void MenuCustomizer::Hide(const QString& key, const bool hidden)
 {
-	m_impl->ResetHotkey(key);
+	m_impl->Hide(key, hidden);
 }
 
 std::expected<void, QString> MenuCustomizer::SetIcon(const QString& key, const QString& path)

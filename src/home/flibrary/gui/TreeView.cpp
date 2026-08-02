@@ -935,7 +935,12 @@ private:
 
 				auto childIconKeyList = iconKeyList;
 				childIconKeyList << child->GetData(MenuItem::Column::Key);
-				auto icon = m_menuCustomizer->GetIcon(childIconKeyList.join('/'));
+				const auto menuCustomizerKey = childIconKeyList.join('/');
+
+				if (const auto var = m_menuCustomizer->IsHidden(menuCustomizerKey); var.isValid() && var.toBool())
+					continue;
+
+				auto icon = m_menuCustomizer->GetIcon(menuCustomizerKey);
 
 				auto statusTip = titleText;
 				statusTip.replace("&", "");
