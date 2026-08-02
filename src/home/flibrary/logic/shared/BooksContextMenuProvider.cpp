@@ -194,9 +194,6 @@ void CreateChangeLangMenu(const IDataItem::Ptr& root, const QString& currentLoca
 
 void CreateHashMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options)
 {
-	if (!(options & ITreeViewController::RequestContextMenuOptions::HashEnabled))
-		return;
-
 	auto submenu = AddMenuItem(root, HASH_SUBMENU, Tr(HASH_SUBMENU));
 	AddMenuItem(submenu, HASH_CALCULATE, Tr(HASH_CALCULATE), BooksMenuAction::HashCalculate);
 	AddMenuItem(submenu, HASH_COMPARE, Tr(HASH_COMPARE), BooksMenuAction::HashCompare)

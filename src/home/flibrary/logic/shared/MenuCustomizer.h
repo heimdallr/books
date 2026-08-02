@@ -31,7 +31,7 @@ private: // IMenuCustomizer
 	void    Add(const QString& rootKey, QMenuBar& menuBar, const QString& title) override;
 	void    Add(const QString& rootKey, QComboBox& comboBox, const QString& title) override;
 	QString SetHotkey(const QString& key, const QString& shortCut) override;
-	void Hide(const QString& key, bool hidden) override;
+	void    Hide(const QString& key, bool hidden) override;
 
 	std::expected<void, QString> SetIcon(const QString& key, const QString& path) override;
 

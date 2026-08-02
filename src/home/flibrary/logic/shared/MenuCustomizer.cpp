@@ -7,6 +7,7 @@
 #include <QEventLoop>
 #include <QShortcut>
 
+#include "fnd/IsOneOf.h"
 #include "fnd/observable.h"
 
 #include "interface/constants/SettingsConstant.h"
@@ -157,6 +158,8 @@ class MenuCustomizer::Impl final
 
 			if (const auto var = settings.Get(HIDDEN); var.isValid())
 				Hide(var.toBool());
+			else
+				Hide(IsOneOf(item->GetData(SettingsItem::Column::Key), "Book context menu/Hash", "MainWindow/menuBar/menuSettings/actionAllSettings"));
 
 			if (const auto var = settings.Get(Constant::Settings::ICON); var.isValid())
 			{
