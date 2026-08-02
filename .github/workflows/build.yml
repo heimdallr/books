@@ -225,7 +225,7 @@ jobs:
           path: build/artifacts/linux-x86_64
           compression-level: 0
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 2
 
   windows:
     name: Windows ${{ matrix.ver }} x86_64
@@ -433,7 +433,7 @@ jobs:
           path: build/artifacts/windows-${{ matrix.ver }}-x86_64
           compression-level: 0
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 2
 
   macos:
     name: macOS ${{ matrix.arch }}
@@ -555,4 +555,4 @@ jobs:
           path: build/artifacts/macos-${{ matrix.arch }}
           compression-level: 0
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 2
