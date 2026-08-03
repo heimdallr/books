@@ -804,10 +804,10 @@ private:
 				if (flag || !roles.contains(Qt::CheckStateRole) || m_ui.treeView->model()->rowCount(topLeft) > 0)
 					return;
 
-				const ValueGuard              guard(flag, true);
-				const auto                    checkState = topLeft.data(Qt::CheckStateRole);
-				std::unordered_set<long long> ids { { topLeft.data(Role::Id).toLongLong() } };
-				QModelIndexList               indices;
+				const ValueGuard   guard(flag, true);
+				const auto         checkState = topLeft.data(Qt::CheckStateRole);
+				std::unordered_set ids { topLeft.data(Role::Id).toLongLong() };
+				QModelIndexList    indices;
 
 				const auto enumerate = [&](const QModelIndex& index, const auto& r) -> void {
 					const auto rows = m_ui.treeView->model()->rowCount(index);
@@ -826,9 +826,7 @@ private:
 				for (const auto& index : selection.indexes() | std::views::filter([&](const QModelIndex& item) {
 											 return item.column() == topLeft.column() && item != topLeft;
 										 }))
-				{
 					enumerate(index, enumerate);
-				}
 
 				for (const auto index : indices)
 					m_ui.treeView->model()->setData(index, checkState, Qt::CheckStateRole);
