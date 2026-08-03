@@ -5,10 +5,9 @@ namespace HomeCompa::Flibrary::Constant::Settings
 
 constexpr auto LOCALE_KEY = "ui/locale";
 
-constexpr auto VIEW_MODE_KEY_TEMPLATE       = "ui/%1/Mode";
-constexpr auto VIEW_NAVIGATION_KEY_TEMPLATE = "ui/View/Navigation/%1";
-constexpr auto RECENT_NAVIGATION_ID_KEY     = "Collections/%1/%2%3/LastId";
-constexpr auto FAST_FILTER_KEY_TEMPLATE     = "ui/FastFilter/%1";
+constexpr auto VIEW_MODE_KEY_TEMPLATE   = "ui/%1/Mode";
+constexpr auto RECENT_NAVIGATION_ID_KEY = "Collections/%1/%2%3/LastId";
+constexpr auto FAST_FILTER_KEY_TEMPLATE = "ui/FastFilter/%1";
 
 constexpr auto EXPORT_DIALOG_KEY           = "Export";
 constexpr auto EXPORT_TEMPLATE_KEY         = "ui/Export/OutputTemplate";
@@ -53,5 +52,7 @@ constexpr auto SEARCH_WITH_ANNOTATION = "SearchBy/Annotation";
 constexpr auto BACKGROUND_COLOR_TEMPLATE = "background-color: %1;";
 
 constexpr auto ICON = "icon";
+
+constexpr auto NAVIGATION_HIDDEN_KEY_TEMPLATE = "MainWindow/menuBar/menuNavigation/%1_isActive";
 
 } // namespace HomeCompa::Flibrary::Constant::Settings

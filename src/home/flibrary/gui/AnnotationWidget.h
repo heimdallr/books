@@ -31,6 +31,7 @@ public:
 		const std::shared_ptr<const ILogicFactory>&   logicFactory,
 		const std::shared_ptr<ICollectionController>& collectionController,
 		std::shared_ptr<const IBookInteractor>        bookInteractor,
+		std::shared_ptr<const IMenuCustomizer>        menuCustomizer,
 		std::shared_ptr<ISettings>                    settings,
 		std::shared_ptr<IAnnotationController>        annotationController,
 		std::shared_ptr<IUiFactory>                   uiFactory,

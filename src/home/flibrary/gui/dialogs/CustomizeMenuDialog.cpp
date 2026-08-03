@@ -429,9 +429,27 @@ public:
 		for (int i = 0, sz = header.count(); i < sz; ++i)
 			if (header.sectionResizeMode(i) == QHeaderView::Fixed)
 				header.resizeSection(i, cellHeight);
+
+		m_hiddenNavigation = GetHiddenNavigation();
+	}
+
+	void OnHideEvent(QHideEvent*) const
+	{
+		m_self.done(GetHiddenNavigation() != m_hiddenNavigation ? IMenuCustomizer::Result::NeedReboot : IMenuCustomizer::Result::Ok);
 	}
 
 private:
+	std::unordered_set<NavigationMode> GetHiddenNavigation() const
+	{
+		return NAVIGATION_NAMES | std::views::filter([this](const auto& item) {
+				   return m_menuCustomizer->IsHidden(QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(item.first)).toBool();
+			   })
+		     | std::views::transform([](const auto& item) {
+				   return item.second;
+			   })
+		     | std::ranges::to<std::unordered_set>();
+	}
+
 	void CreateContextMenu()
 	{
 		QMenu menu;
@@ -484,6 +502,8 @@ private:
 	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
 
+	std::unordered_set<NavigationMode> m_hiddenNavigation;
+
 	Ui::CustomizeMenuDialog m_ui;
 };
 
@@ -507,4 +527,9 @@ CustomizeMenuDialog::~CustomizeMenuDialog() = default;
 void CustomizeMenuDialog::showEvent(QShowEvent* event)
 {
 	m_impl->OnShowEvent(event);
+}
+
+void CustomizeMenuDialog::hideEvent(QHideEvent* event)
+{
+	m_impl->OnHideEvent(event);
 }

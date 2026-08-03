@@ -273,6 +273,7 @@ struct TreeViewControllerNavigation::Impl final
 	mutable std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
 	std::weak_ptr<const ILogicFactory>                                          logicFactory;
 	std::shared_ptr<const ICollectionProvider>                                  collectionProvider;
+	std::shared_ptr<const IMenuCustomizer>                                      menuCustomizer;
 	PropagateConstPtr<INavigationInfoProvider, std::shared_ptr>                 dataProvider;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>                              uiFactory;
 	PropagateConstPtr<IDatabaseController, std::shared_ptr>                     databaseController;
@@ -286,6 +287,7 @@ struct TreeViewControllerNavigation::Impl final
 		TreeViewControllerNavigation&                self,
 		const std::shared_ptr<const ILogicFactory>&  logicFactory,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
+		std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
 		std::shared_ptr<INavigationInfoProvider>     dataProvider,
 		std::shared_ptr<IUiFactory>                  uiFactory,
 		std::shared_ptr<IDatabaseController>         databaseController,
@@ -295,6 +297,7 @@ struct TreeViewControllerNavigation::Impl final
 		: self { self }
 		, logicFactory { logicFactory }
 		, collectionProvider { std::move(collectionProvider) }
+		, menuCustomizer { std::move(menuCustomizer) }
 		, dataProvider { std::move(dataProvider) }
 		, uiFactory { std::move(uiFactory) }
 		, databaseController { std::move(databaseController) }
@@ -720,7 +723,7 @@ private:
 		std::vector<std::pair<const char*, int>> result;
 		std::ranges::transform(
 			MODE_DESCRIPTORS | std::views::filter([&, &navigatorFilter = static_cast<const INavigationFilter&>(*this)](const auto& item) {
-				return self.m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(item.first), true)
+				return !menuCustomizer->IsHidden(QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(item.first)).toBool()
 			        && std::invoke(item.second.filterInvoker, std::cref(navigatorFilter), std::cref(item.second));
 			}),
 			std::back_inserter(result),
@@ -822,6 +825,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 	const std::shared_ptr<IModelProvider>&       modelProvider,
 	const std::shared_ptr<const ILogicFactory>&  logicFactory,
 	std::shared_ptr<const ICollectionProvider>   collectionProvider,
+	std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
 	std::shared_ptr<INavigationInfoProvider>     dataProvider,
 	std::shared_ptr<IUiFactory>                  uiFactory,
 	std::shared_ptr<IDatabaseController>         databaseController,
@@ -833,6 +837,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 		  *this,
 		  logicFactory,
 		  std::move(collectionProvider),
+		  std::move(menuCustomizer),
 		  std::move(dataProvider),
 		  std::move(uiFactory),
 		  std::move(databaseController),

@@ -171,8 +171,6 @@ int main(int argc, char* argv[])
 				singleInstanceController.reset();
 
 			Genre::SetSortMode(*settings);
-			if (!settings->HasKey(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks)))
-				settings->Set(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(Loc::AllBooks), false);
 
 			IScriptController::SetSeqNumberWidth(settings->Get(SEQ_NUMBER_WIDTH_KEY, 1));
 

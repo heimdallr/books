@@ -37,12 +37,6 @@ using namespace Flibrary;
 namespace
 {
 
-inline constexpr const char* NAVIGATION_NAMES[] = {
-#define NAVIGATION_MODE_ITEM(NAME) #NAME,
-	NAVIGATION_MODE_ITEMS_X_MACRO
-#undef NAVIGATION_MODE_ITEM
-};
-
 class QTemporaryDirWrapper final : virtual public ILogicFactory::ITemporaryDir
 {
 private: // ILogicFactory::ITemporaryDir
@@ -480,7 +474,7 @@ void LogicFactory::FindBook(const NavigationMode navigationMode, const QString& 
 		return;
 	}
 
-	const auto navigationName = NAVIGATION_NAMES[static_cast<size_t>(navigationMode)];
+	const auto* navigationName = NAVIGATION_NAMES[static_cast<size_t>(navigationMode)].first;
 
 	if (!navigationId.isEmpty())
 		settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(collection.id, QString("%1/").arg(Loc::NAVIGATION), navigationName), navigationId);

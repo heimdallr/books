@@ -63,6 +63,17 @@ QString SetShortCutImpl<QShortcut>(QShortcut& obj, const QKeySequence& value)
 	return obj.key().toString(QKeySequence::PortableText);
 }
 
+bool IsHiddenByDefault(const QString& key)
+{
+	return IsOneOf(
+		key,
+		QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::AllBooks)].first),
+		QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::AlreadyRead)].first),
+		"Book context menu/Hash",
+		"MainWindow/menuBar/menuSettings/actionAllSettings"
+	);
+}
+
 } // namespace
 
 class MenuCustomizer::Impl final
@@ -159,7 +170,7 @@ class MenuCustomizer::Impl final
 			if (const auto var = settings.Get(HIDDEN); var.isValid())
 				Hide(var.toBool());
 			else
-				Hide(IsOneOf(item->GetData(SettingsItem::Column::Key), "Book context menu/Hash", "MainWindow/menuBar/menuSettings/actionAllSettings"));
+				Hide(IsHiddenByDefault(item->GetData(SettingsItem::Column::Key)));
 
 			if (const auto var = settings.Get(Constant::Settings::ICON); var.isValid())
 			{
@@ -220,6 +231,16 @@ public:
 	{
 		if (const auto it = m_actions.find(key); it != m_actions.end())
 			return it->second.hidden;
+
+		if (!m_actions.empty())
+			return {};
+
+		if (const auto var = m_settings->Get(GetName(MENU_CUSTOM_ROOT, key, HIDDEN)); var.isValid())
+			return var.toBool();
+
+		if (IsHiddenByDefault(key))
+			return true;
+
 		return {};
 	}
 
@@ -401,7 +422,7 @@ public:
 			for (const auto& group : m_settings->GetGroups())
 			{
 				const SettingsGroup settingsSubGroup(*m_settings, group);
-				r(itemKey, group, r);
+				r(itemKey, group, r); // NOLINT(readability-suspicious-call-argument)
 			}
 		};
 		const SettingsGroup settingsSubGroup(*m_settings, GetName(MENU_CUSTOM_ROOT, observer->GetRootKey()));
@@ -416,7 +437,7 @@ public:
 private: // QObject
 	bool eventFilter(QObject* watched, QEvent* event) override
 	{
-		switch (event->type())
+		switch (event->type()) // NOLINT(clang-diagnostic-switch-enum)
 		{
 			case QEvent::Hide:
 				EnabledChanged(watched, false);

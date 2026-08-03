@@ -29,6 +29,12 @@ enum class NavigationMode
 		Last
 };
 
+inline constexpr std::pair<const char*, NavigationMode> NAVIGATION_NAMES[] = {
+#define NAVIGATION_MODE_ITEM(NAME) { #NAME, NavigationMode::NAME },
+	NAVIGATION_MODE_ITEMS_X_MACRO
+#undef NAVIGATION_MODE_ITEM
+};
+
 #define BOOKS_VIEW_MODE_ITEMS_X_MACRO \
 	BOOKS_VIEW_MODE_ITEM(List) \
 	BOOKS_VIEW_MODE_ITEM(Tree)

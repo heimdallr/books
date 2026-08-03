@@ -26,6 +26,7 @@ public:
 		const std::shared_ptr<IModelProvider>&       modelProvider,
 		const std::shared_ptr<const ILogicFactory>&  logicFactory,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
+		std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
 		std::shared_ptr<INavigationInfoProvider>     dataProvider,
 		std::shared_ptr<IUiFactory>                  uiFactory,
 		std::shared_ptr<IDatabaseController>         databaseController,

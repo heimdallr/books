@@ -321,7 +321,6 @@ public:
 		CreateStylesMenu();
 		CreateLogMenu();
 		CreateCollectionsMenu();
-		CreateViewNavigationMenu();
 		SetupHotkeys();
 		LoadGeometry();
 		StartDelayed([this, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable {
@@ -835,9 +834,6 @@ private:
 	void SetupActionsNavigation()
 	{
 		const auto createAction = [this](const NavigationMode navigationMode, const char* name) {
-			if (!m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(name), true))
-				return;
-
 			auto* action = m_ui.menuNavigation->addAction(Loc::Tr(Loc::NAVIGATION, name));
 			action->setObjectName(QString("%1_isActive").arg(name));
 			action->setCheckable(true);
@@ -1163,7 +1159,8 @@ private:
 			m_uiFactory->CreateScriptDialog()->exec();
 		});
 		connect(m_ui.actionShowMenuCustomizationDialog, &QAction::triggered, &m_self, [&] {
-			m_uiFactory->CreateHotkeyDialog()->exec();
+			if (m_uiFactory->CreateHotkeyDialog()->exec() == IMenuCustomizer::Result::NeedReboot)
+				RebootDialog();
 		});
 
 		connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
@@ -1533,24 +1530,6 @@ private:
 
 		if (m_ui.menuSelectCollection->actions().count() < 2)
 			m_ui.menuCollection->removeAction(m_ui.menuSelectCollection->menuAction());
-	}
-
-	void CreateViewNavigationMenu()
-	{
-		const auto createAction = [this](const char* name) {
-			auto* action = m_ui.menuNavigationEnabled->addAction(Loc::Tr(Loc::NAVIGATION, name));
-			action->setObjectName(QString("%1_isVisible").arg(name));
-			action->setCheckable(true);
-			action->setChecked(true);
-			ConnectSettings(action, QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(name));
-			connect(action, &QAction::toggled, [this] {
-				RebootDialog();
-			});
-		};
-
-#define NAVIGATION_MODE_ITEM(NAME) createAction(#NAME);
-		NAVIGATION_MODE_ITEMS_X_MACRO
-#undef NAVIGATION_MODE_ITEM
 	}
 
 	void SetupHotkeys()

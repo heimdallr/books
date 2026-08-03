@@ -26,6 +26,15 @@ public:
 		All    = Icon | Hotkey | Hide
 	};
 
+	struct Result
+	{
+		enum
+		{
+			Ok = 1,
+			NeedReboot,
+		};
+	};
+
 	class IObserver : public Observer
 	{
 	public:
