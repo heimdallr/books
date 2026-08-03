@@ -54,6 +54,7 @@ namespace
 
 constexpr auto INVALID_INDEX = std::numeric_limits<size_t>::max();
 
+const QString EMPTY_STRING;
 const QString UNKNOWN_ROOT        = "unknown_root";
 const QString AUTHOR_UNKNOWN_STR  = QString(Global::AUTHOR_UNKNOWN) + Inpx::LIST_SEPARATOR;
 const QString GENRE_NOT_SPECIFIED = QString(UNORDERED_GENRE) + Inpx::LIST_SEPARATOR;
@@ -824,18 +825,38 @@ size_t StoreRange(DB::IDatabase& db, const QString& process, const std::string_v
 	return TRY(process, impl);
 }
 
+std::pair<QStringView, QStringView> SplitAuthorLastName(QStringView str)
+{
+	const auto begin = str.indexOf('[');
+	if (begin < 1)
+		return std::make_pair(str, EMPTY_STRING);
+
+	const auto end = str.lastIndexOf(']');
+	if (end < 0 || end < begin)
+		return std::make_pair(str, EMPTY_STRING);
+
+	auto lastNameEnd = begin - 1;
+	while (lastNameEnd >= 0 && str[lastNameEnd] == ' ')
+		--lastNameEnd;
+
+	QStringView lastName(str.begin(), std::next(str.begin(), lastNameEnd + 1));
+	QStringView nickName(std::next(str.begin(), begin + 1), std::next(str.begin(), end));
+
+	return std::make_pair(lastName, nickName);
+}
+
 size_t Store(DB::IDatabase& db, Data& data)
 {
 	size_t result  = 0;
 	result        += StoreRange(
 		db,
 		"Authors",
-		"INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, SearchName) VALUES(?, ?, ?, ?, ?)",
+		"INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, NickName, SearchName) VALUES(?, ?, ?, ?, ?, ?)",
 		data.authors,
 		[](DB::ICommand& cmd, const Dictionary::value_type& item) {
 			const auto& [title, id] = item;
-			auto       it           = std::cbegin(title);
-			const auto last         = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
+			auto it                 = std::cbegin(title);
+			const auto [last, nick] = SplitAuthorLastName(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
 			const auto first        = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
 			const auto middle       = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
 			const auto lastUp       = last.toString().toUpper();
@@ -844,7 +865,8 @@ size_t Store(DB::IDatabase& db, Data& data)
 			cmd.Bind(1, last);
 			cmd.Bind(2, first);
 			cmd.Bind(3, middle);
-			cmd.Bind(4, lastUp);
+			nick.isEmpty() ? cmd.Bind(4) : cmd.Bind(4, nick);
+			cmd.Bind(5, lastUp);
 
 			return cmd.Execute();
 		},
