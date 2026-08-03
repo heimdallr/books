@@ -552,7 +552,7 @@ private:
 
 				auto key = GetName(dst.GetData(SettingsItem::Column::Key), srcChild->GetData(MenuItem::Column::Key));
 
-				auto& dstChildRef = [&]() ->IDataItem& {
+				auto& dstChildRef = [&]() -> IDataItem& {
 					if (const auto it = m_actions.find(key); it != m_actions.end())
 					{
 						it->second.item->SetData(RemoveAmp(std::move(title)), SettingsItem::Column::Title);
