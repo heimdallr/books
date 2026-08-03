@@ -4988,10 +4988,6 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Navigation</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Open FLibrary</source>
         <translation></translation>
     </message>

@@ -2,6 +2,8 @@
 
 #include "CustomizeMenuDialog.h"
 
+#include <ranges>
+
 #include <QIdentityProxyModel>
 #include <QKeyEvent>
 #include <QLineEdit>

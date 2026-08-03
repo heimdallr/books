@@ -5002,10 +5002,6 @@ Try again?</source>
         <translation>Нави&amp;гация</translation>
     </message>
     <message>
-        <source>Navigation</source>
-        <translation>Навигация</translation>
-    </message>
-    <message>
         <source>Open FLibrary</source>
         <translation>Открыть FLibrary</translation>
     </message>
