@@ -708,13 +708,18 @@ private:
 		                     | std::ranges::to<std::set<QString>>();
 		auto       extractor = logicFactory->CreateBooksExtractor();
 		const auto parameter = item->GetData(MenuItem::Column::Parameter);
-		((*extractor)
-		 .*f)(dir, parameter, std::move(books), [extractor, model, item = std::move(item), ids = std::move(ids), tempDir = std::move(tempDir), callback = std::move(callback)](const bool hasError) mutable {
-			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
-			callback(item);
-			model->setData({}, QVariant::fromValue(ids), Role::Uncheck);
-			extractor.reset();
-		});
+		((*extractor).*f)(
+			dir,
+			parameter,
+			std::move(books),
+			[extractor, model, item = std::move(item), ids = std::move(ids), tempDir = std::move(tempDir), callback = std::move(callback), settings = m_settings](const bool hasError) mutable {
+				item->SetData(QString::number(hasError), MenuItem::Column::HasError);
+				callback(item);
+				if (!settings->Get(Constant::Settings::PREFER_KEEP_CHECK, false))
+					model->setData({}, QVariant::fromValue(ids), Role::Uncheck);
+				extractor.reset();
+			}
+		);
 	}
 
 	void GroupAction(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback, const GroupActionFunction f) const
