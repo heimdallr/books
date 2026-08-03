@@ -823,6 +823,9 @@ private:
 
 	ITreeViewController::RequestContextMenuOptions GetContextMenuOptions() const
 	{
+		if (!m_ui.treeView->model())
+			return ITreeViewController::RequestContextMenuOptions::None;
+
 		static constexpr auto hasCollapsedExpanded = ITreeViewController::RequestContextMenuOptions::HasExpanded | ITreeViewController::RequestContextMenuOptions::HasCollapsed;
 
 		const auto& model = *m_ui.treeView->model();
