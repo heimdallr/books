@@ -28,16 +28,17 @@ using namespace HomeCompa;
 namespace
 {
 
-constexpr auto CONTEXT            = "HotkeyDialog";
-constexpr auto RESET              = QT_TRANSLATE_NOOP("HotkeyDialog", "Remove hotkey");
-constexpr auto SET_ICON           = QT_TRANSLATE_NOOP("HotkeyDialog", "Set icon");
-constexpr auto REMOVE_ICON        = QT_TRANSLATE_NOOP("HotkeyDialog", "Remove icon");
-constexpr auto ALREADY_USED       = QT_TRANSLATE_NOOP("HotkeyDialog", "%1 already in use:\n%2");
-constexpr auto SELECT_ICON        = QT_TRANSLATE_NOOP("HotkeyDialog", "Select image file");
-constexpr auto SELECT_ICON_FILTER = QT_TRANSLATE_NOOP("HotkeyDialog", "Image files (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)");
-constexpr auto ITEM_ICON          = QT_TRANSLATE_NOOP("HotkeyDialog", "Icon for %1");
-constexpr auto SET_HOTKEY_TOOLTIP = QT_TRANSLATE_NOOP("HotkeyDialog", "Double-click to set the hotkey for \"%1\"");
-constexpr auto HIDE_TOOLTIP       = QT_TRANSLATE_NOOP("HotkeyDialog", "Check to hide \"%1\"");
+constexpr auto CONTEXT              = "HotkeyDialog";
+constexpr auto REMOVE_HOTKEY        = QT_TRANSLATE_NOOP("HotkeyDialog", "Remove hotkey");
+constexpr auto REMOVE_ICON          = QT_TRANSLATE_NOOP("HotkeyDialog", "Remove icon");
+constexpr auto SELECT_ICON          = QT_TRANSLATE_NOOP("HotkeyDialog", "Select image file");
+constexpr auto SELECT_ICON_FILTER   = QT_TRANSLATE_NOOP("HotkeyDialog", "Image files (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)");
+constexpr auto SET_ICON             = QT_TRANSLATE_NOOP("HotkeyDialog", "Set icon");
+constexpr auto SET_HOTKEY           = QT_TRANSLATE_NOOP("HotkeyDialog", "Set hotkey");
+constexpr auto TOOLTIP_ALREADY_USED = QT_TRANSLATE_NOOP("HotkeyDialog", "%1 already in use:\n%2");
+constexpr auto TOOLTIP_HIDE         = QT_TRANSLATE_NOOP("HotkeyDialog", "Check to hide \"%1\"");
+constexpr auto TOOLTIP_ITEM_ICON    = QT_TRANSLATE_NOOP("HotkeyDialog", "Icon for %1");
+constexpr auto TOOLTIP_SET_HOTKEY   = QT_TRANSLATE_NOOP("HotkeyDialog", "Double-click to set the hotkey for \"%1\"");
 
 TR_DEF
 
@@ -181,7 +182,7 @@ private:
 
 			case Column::Hotkey:
 				if (role == Qt::ToolTipRole && !!(m_menuCustomizer->GetAbilities(key) & IMenuCustomizer::ItemAbility::Hotkey))
-					return Tr(SET_HOTKEY_TOOLTIP).arg(m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data().toString());
+					return Tr(TOOLTIP_SET_HOTKEY).arg(m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data().toString());
 				break;
 
 			case Column::Icon:
@@ -192,7 +193,7 @@ private:
 
 					case Qt::ToolTipRole:
 						if (m_menuCustomizer->GetIcon(key).isValid())
-							return Tr(ITEM_ICON).arg(m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data().toString());
+							return Tr(TOOLTIP_ITEM_ICON).arg(m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data().toString());
 						break;
 
 					default:
@@ -205,7 +206,7 @@ private:
 				{
 					case Qt::ToolTipRole:
 						if (!!(m_menuCustomizer->GetAbilities(key) & IMenuCustomizer::ItemAbility::Hide))
-							return Tr(HIDE_TOOLTIP).arg(m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data().toString());
+							return Tr(TOOLTIP_HIDE).arg(m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data().toString());
 						break;
 
 					case Qt::CheckStateRole:
@@ -328,7 +329,7 @@ private: // QStyledItemDelegate
 
 		QTimer::singleShot(0, [model, font = editor->font(), text = std::move(text)] {
 			QToolTip::setFont(font);
-			QToolTip::showText(QCursor::pos(), Tr(ALREADY_USED).arg(text, model->data({}, Model::ModelRole::AlreadyAssigned).toString()));
+			QToolTip::showText(QCursor::pos(), Tr(TOOLTIP_ALREADY_USED).arg(text, model->data({}, Model::ModelRole::AlreadyAssigned).toString()));
 		});
 	}
 
@@ -460,10 +461,19 @@ private:
 		const auto key       = m_ui.view->currentIndex().data(Model::ModelRole::Key).toString();
 		const auto abilities = m_menuCustomizer->GetAbilities(key);
 
-		if (!m_menuCustomizer->GetHotkey(key).isEmpty())
-			menu.addAction(Tr(RESET), [this] {
-				m_model->setData(m_ui.view->currentIndex(), {});
+		if (!!(abilities & IMenuCustomizer::ItemAbility::Hotkey))
+		{
+			menu.addAction(Tr(SET_HOTKEY), [this] {
+				auto index = m_ui.view->currentIndex();
+				index      = m_model->index(index.row(), Column::Hotkey, index.parent());
+				m_ui.view->edit(index);
 			});
+
+			if (!m_menuCustomizer->GetHotkey(key).isEmpty())
+				menu.addAction(Tr(REMOVE_HOTKEY), [this] {
+					m_model->setData(m_ui.view->currentIndex(), {});
+				});
+		}
 
 		if (m_ui.view->currentIndex().parent().isValid())
 		{

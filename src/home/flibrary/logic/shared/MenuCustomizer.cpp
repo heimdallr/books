@@ -169,8 +169,8 @@ class MenuCustomizer::Impl final
 
 			if (const auto var = settings.Get(HIDDEN); var.isValid())
 				Hide(var.toBool());
-			else
-				Hide(IsHiddenByDefault(item->GetData(SettingsItem::Column::Key)));
+			else if (IsHiddenByDefault(item->GetData(SettingsItem::Column::Key)))
+				Hide(true);
 
 			if (const auto var = settings.Get(Constant::Settings::ICON); var.isValid())
 			{
@@ -545,25 +545,31 @@ private:
 			for (size_t i = 0, sz = src.GetChildCount(); i < sz; ++i)
 			{
 				const auto srcChild = src.GetChild(i);
+				const auto id       = srcChild->GetData(MenuItem::Column::Id).toInt();
 				auto       title    = srcChild->GetData(MenuItem::Column::Title);
-				if (title.isEmpty())
+				if (id == 0 || title.isEmpty())
 					continue;
 
 				auto key = GetName(dst.GetData(SettingsItem::Column::Key), srcChild->GetData(MenuItem::Column::Key));
-				if (const auto it = m_actions.find(key); it != m_actions.end())
-				{
-					it->second.item->SetData(RemoveAmp(std::move(title)), SettingsItem::Column::Title);
-					dst.AppendChild(it->second.item);
-					continue;
-				}
 
-				auto dstChild = dst.AppendChild(SettingsItem::Create());
-				dstChild->SetData(std::move(key), SettingsItem::Column::Key);
-				dstChild->SetData(RemoveAmp(std::move(title)), SettingsItem::Column::Title);
+				auto& dstChildRef = [&]() ->IDataItem& {
+					if (const auto it = m_actions.find(key); it != m_actions.end())
+					{
+						it->second.item->SetData(RemoveAmp(std::move(title)), SettingsItem::Column::Title);
+						if (id == -1)
+							it->second.abilities = ~ItemAbility::Hotkey;
+						return *dst.AppendChild(it->second.item);
+					}
 
-				auto& dstChildRef = *dstChild;
-				if (!srcChild->GetData(MenuItem::Column::Id).isEmpty())
-					Add(Item { .item = std::move(dstChild), .observer = observer }, observer->GetParentWidget());
+					auto dstChild = dst.AppendChild(SettingsItem::Create());
+					dstChild->SetData(std::move(key), SettingsItem::Column::Key);
+					dstChild->SetData(RemoveAmp(std::move(title)), SettingsItem::Column::Title);
+
+					auto& ref = *dstChild;
+					Item  childItem { .item = std::move(dstChild), .observer = observer, .abilities = id == -1 ? ~ItemAbility::Hotkey : ItemAbility::All };
+					Add(std::move(childItem), observer->GetParentWidget());
+					return ref;
+				}();
 
 				r(*srcChild, dstChildRef, r);
 			}

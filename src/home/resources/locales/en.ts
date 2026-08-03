@@ -2757,6 +2757,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Set hotkey</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Set icon</source>
         <translation></translation>
     </message>

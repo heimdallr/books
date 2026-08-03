@@ -2771,6 +2771,10 @@ Try again?</source>
         <translation>Выберите файл изображения</translation>
     </message>
     <message>
+        <source>Set hotkey</source>
+        <translation>Назначить сочетание клавиш</translation>
+    </message>
+    <message>
         <source>Set icon</source>
         <translation>Установить пиктограмму</translation>
     </message>

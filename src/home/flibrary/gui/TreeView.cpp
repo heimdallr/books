@@ -729,7 +729,7 @@ private: // IMenuCustomizer::IObserver
 				return nullptr;
 			};
 
-			if (auto child = find("Book", *item, find))
+			if (auto child = find(GetRootKey(), *item, find))
 				OnContextMenuTriggered(std::move(child));
 		});
 	}
@@ -932,7 +932,7 @@ private:
 				auto       child     = parent->GetChild(i);
 				const auto enabled   = getBool(*child, MenuItem::Column::Enabled, true);
 				const auto title     = child->GetData().toStdString();
-				const auto titleText = Loc::Tr(m_controller->TrContext(), title.data());
+				auto       titleText = Loc::Tr(m_controller->TrContext(), title.data());
 
 				auto childIconKeyList = iconKeyList;
 				childIconKeyList << child->GetData(MenuItem::Column::Key);
@@ -966,6 +966,9 @@ private:
 
 				const auto checkable = getBool(*child, MenuItem::Column::Checkable, false);
 				const auto checked   = getBool(*child, MenuItem::Column::Checked, false);
+
+				if (const auto hotkey = m_menuCustomizer->GetHotkey(menuCustomizerKey); !hotkey.isEmpty())
+					titleText.append('\t').append(hotkey);
 
 				auto* action = subMenu->addAction(titleText, [this, child = std::move(child)]() mutable {
 					OnContextMenuTriggered(std::move(child));
