@@ -9,6 +9,7 @@
 #include "database/interface/IQuery.h"
 
 #include "interface/constants/Enums.h"
+#include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IDataProvider.h"
 
 #include "settings/UiTimer.h"
@@ -33,6 +34,16 @@ constexpr std::pair<ViewMode, BooksViewModeDescription> BOOKS_GENERATORS[] {
 	{ ViewMode::List, { &IBooksRootGenerator::GetList, &QueryDescription::GetListMapping } },
 	{ ViewMode::Tree, { &IBooksRootGenerator::GetTree, &QueryDescription::GetTreeMapping } },
 };
+
+template <typename F>
+void EnumerateBooks(IDataItem& parent, const F& functor)
+{
+	for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
+		if (const auto child = parent.GetChild(i); child->GetType() == ItemType::Books)
+			functor(*child);
+		else
+			EnumerateBooks(*child, functor);
+}
 
 }
 
@@ -144,6 +155,16 @@ private:
 		if (booksGeneratorReady && m_booksGenerator->GetBooksViewMode() == m_booksViewMode)
 			return SendBooksCallback(m_navigationId, m_booksGenerator->GetCached(), (description.*columnMapper)());
 
+		if (m_lastNavigationMode == m_navigationMode && m_lastNavigationId == m_navigationId && m_settings->Get(Constant::Settings::PREFER_KEEP_CHECK, false))
+		{
+			m_checkedCache.clear();
+			if (m_rootCache)
+				EnumerateBooks(*m_rootCache, [this](const IDataItem& item) {
+					if (item.GetCheckState() == Qt::Checked)
+						m_checkedCache.insert(item.GetId());
+				});
+		}
+
 		m_databaseUser->Execute(
 			{ "Get books",
 		      [this,
@@ -177,7 +198,21 @@ private:
 					  [this, navigationMode, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator), authorName = std::move(authorName), &description, &columnMapper](
 						  size_t
 					  ) mutable {
-						  m_booksGenerator = std::move(generator);
+						  m_booksGenerator     = std::move(generator);
+						  m_rootCache          = root;
+						  m_lastNavigationMode = navigationMode;
+						  m_lastNavigationId   = navigationId;
+
+						  if (!m_checkedCache.empty())
+						  {
+							  assert(m_rootCache);
+							  EnumerateBooks(*m_rootCache, [this](IDataItem& item) {
+								  if (m_checkedCache.contains(item.GetId()))
+									  item.SetCheckState(Qt::Checked);
+							  });
+							  m_checkedCache.clear();
+						  }
+
 						  SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());
 						  Perform(&IBookInfoProvider::IObserver::OnBooksSelected, navigationMode, static_cast<IBooksRootGenerator&>(*m_booksGenerator).GetRoot());
 						  if (!authorName.isEmpty())
@@ -204,11 +239,13 @@ private:
 	}
 
 private:
-	NavigationMode m_navigationMode { NavigationMode::Unknown };
+	NavigationMode m_navigationMode { NavigationMode::Unknown }, m_lastNavigationMode { NavigationMode::Unknown };
 	ViewMode       m_booksViewMode { ViewMode::Unknown };
-	QString        m_navigationId;
+	QString        m_navigationId, m_lastNavigationId;
 	Callback       m_navigationRequestCallback;
 	Callback       m_booksRequestCallback;
+
+	std::unordered_set<QString> m_checkedCache;
 
 	mutable bool                                m_requestNavigationForce { false };
 	mutable std::shared_ptr<BooksTreeGenerator> m_booksGenerator;
@@ -225,6 +262,8 @@ private:
 	std::unique_ptr<QTimer> m_booksTimer { Util::CreateUiTimer([&] {
 		RequestBooksImpl();
 	}) };
+
+	IDataItem::Ptr m_rootCache;
 };
 
 DataProvider::DataProvider(
