@@ -519,7 +519,7 @@ join Series s on s.SeriesID = l.SeriesID
 
 		{
 			static constexpr auto queryText = R"({}
-select a.AuthorID, a.LastName, a.FirstName, a.MiddleName, a.IsDeleted, a.Flags, l.BookID, l.OrdNum
+select a.AuthorID, a.LastName, a.FirstName, a.MiddleName, a.NickName, a.IsDeleted, a.Flags, l.BookID, l.OrdNum
 {}
 join Author_List l on l.BookID = b.BookID
 join Authors a on a.AuthorID = l.AuthorID
@@ -535,10 +535,10 @@ join Authors a on a.AuthorID = l.AuthorID
 				if (!item)
 					item = DatabaseUtil::CreateFullAuthorItem(*query);
 
-				const auto bookId = query->Get<long long>(6);
+				const auto bookId = query->Get<long long>(7);
 				auto&      book   = m_books[bookId];
 				assert(book.book);
-				Add(book.authors, static_cast<long long&&>(id), query->Get<int>(7));
+				Add(book.authors, static_cast<long long&&>(id), query->Get<int>(8));
 				m_authorsFlagAccumulator(flags, bookId, item->GetFlags());
 			}
 			if (filterProvider.IsFilterEnabled())

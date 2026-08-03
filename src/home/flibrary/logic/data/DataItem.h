@@ -151,6 +151,7 @@ public:
 			LastName,
 			FirstName,
 			MiddleName,
+			NickName,
 			Last
 		};
 	};

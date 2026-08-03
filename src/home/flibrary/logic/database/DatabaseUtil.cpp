@@ -98,7 +98,7 @@ IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query)
 IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery& query)
 {
 	auto item = AuthorItem::Create();
-	UpdateItem(*item, query, { 1, 1, 2, 3 }, 4, 5);
+	UpdateItem(*item, query, { 1, 1, 2, 3, 4 }, 5, 6);
 	return item;
 }
 
