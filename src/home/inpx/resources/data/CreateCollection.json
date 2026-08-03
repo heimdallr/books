@@ -21,6 +21,7 @@
 		"	LastName   VARCHAR(128),",
 		"	FirstName  VARCHAR(128),",
 		"	MiddleName VARCHAR(128),",
+		"	NickName   VARCHAR(128),",
 		"	SearchName VARCHAR(128),",
 		"	Flags	   INTEGER NOT NULL DEFAULT(0),",
 		"	IsDeleted  INTEGER NOT NULL DEFAULT(0)",

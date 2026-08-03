@@ -88,9 +88,10 @@ void AddUserTables(DB::ITransaction& transaction)
 		transaction.CreateCommand(command)->Execute();
 }
 
-void AddTableFields(DB::ITransaction& /*transaction*/)
+void AddTableFields(DB::ITransaction& transaction)
 {
 	PLOGI << "Add columns";
+	AddUserTableField(transaction, "Authors", "NickName", "VARCHAR(128)");
 }
 
 } // namespace
