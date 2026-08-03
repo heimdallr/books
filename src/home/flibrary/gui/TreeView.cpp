@@ -17,6 +17,7 @@
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/ValueGuard.h"
 #include "fnd/algorithm.h"
 #include "fnd/linear.h"
 
@@ -797,7 +798,43 @@ private:
 		{
 			m_booksHeaderView->ResetFilteredIndex();
 			model->setData({}, !!(m_navigationItemFlags & (IDataItem::Flags::Filtered | IDataItem::Flags::BooksFiltered)), Role::NavigationItemFiltered);
-			m_ui.treeView->model()->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
+			model->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
+
+			connect(model, &QAbstractItemModel::dataChanged, [this, flag = false](const QModelIndex& topLeft, const QModelIndex&, const QVector<int>& roles) mutable {
+				if (flag || !roles.contains(Qt::CheckStateRole) || m_ui.treeView->model()->rowCount(topLeft) > 0)
+					return;
+
+				const ValueGuard   guard(flag, true);
+				const auto         checkState = topLeft.data(Qt::CheckStateRole);
+				std::unordered_set ids { topLeft.data(Role::Id).toLongLong() };
+				QModelIndexList    indices;
+
+				const auto enumerate = [&](const QModelIndex& index, const auto& r) -> void {
+					const auto rows = m_ui.treeView->model()->rowCount(index);
+					if (rows == 0)
+					{
+						if (index.data(Qt::CheckStateRole) != checkState && ids.insert(index.data(Role::Id).toLongLong()).second)
+							indices.push_back(index);
+						return;
+					}
+
+					for (int row = 0; row < rows; ++row)
+						r(m_ui.treeView->model()->index(row, 0, index), r);
+				};
+
+				auto selection = m_ui.treeView->selectionModel()->selection();
+				for (const auto& index : selection.indexes() | std::views::filter([&](const QModelIndex& item) {
+											 return item.column() == topLeft.column() && item != topLeft;
+										 }))
+					enumerate(index, enumerate);
+
+				for (const auto index : indices)
+					m_ui.treeView->model()->setData(index, checkState, Qt::CheckStateRole);
+
+				QTimer::singleShot(0, [this, selection = std::move(selection)] {
+					m_ui.treeView->selectionModel()->select(selection, QItemSelectionModel::Select);
+				});
+			});
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 
