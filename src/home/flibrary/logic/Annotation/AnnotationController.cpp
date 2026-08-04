@@ -341,6 +341,11 @@ public:
 	}
 
 public:
+	void SetNavigationMode(const NavigationMode navigationMode) noexcept
+	{
+		m_navigationMode = navigationMode;
+	}
+
 	void SetCurrentBookId(QString bookId, const bool extractNow)
 	{
 		if (auto parser = m_archiveParser.lock())
@@ -639,15 +644,17 @@ private:
 					  return query->Eof() ? QString {} : QString { query->Get<const char*>(0) };
 				  }();
 
-				  const auto tr = db->CreateTransaction();
-				  tr->CreateCommand(std::format("INSERT OR REPLACE INTO {} (BookID, CreateAt) VALUES ({}, datetime('now', 'localtime'))", m_historyTableName, book->GetId().toStdString()))->Execute();
-				  if (m_historyWriteCounter && ++m_historyWriteCounter > 10)
+				  if (m_navigationMode != NavigationMode::History)
 				  {
-					  m_historyWriteCounter = 0;
-					  tr->CreateCommand("analyze")->Execute();
+					  const auto tr = db->CreateTransaction();
+					  tr->CreateCommand(std::format("INSERT OR REPLACE INTO {} (BookID, CreatedAt) VALUES ({}, datetime('now', 'localtime'))", m_historyTableName, book->GetId().toStdString()))->Execute();
+					  if (m_historyWriteCounter && ++m_historyWriteCounter > 10)
+					  {
+						  m_historyWriteCounter = 0;
+						  tr->CreateCommand("analyze")->Execute();
+					  }
+					  tr->Commit();
 				  }
-				  tr->Commit();
-
 
 				  return [this,
 			              book             = std::move(book),
@@ -771,6 +778,8 @@ private:
 	}
 
 private:
+	NavigationMode m_navigationMode { NavigationMode::Unknown };
+
 	std::weak_ptr<const ILogicFactory>           m_logicFactory;
 	std::shared_ptr<const ISettings>             m_settings;
 	std::shared_ptr<const ICollectionProvider>   m_collectionProvider;
@@ -835,6 +844,11 @@ AnnotationController::AnnotationController(
 AnnotationController::~AnnotationController()
 {
 	PLOGV << "AnnotationController destroyed";
+}
+
+void AnnotationController::SetNavigationMode(const NavigationMode navigationMode) noexcept
+{
+	m_impl->SetNavigationMode(navigationMode);
 }
 
 void AnnotationController::SetCurrentBookId(QString bookId, const bool extractNow)

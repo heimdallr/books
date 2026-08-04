@@ -3,6 +3,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
+#include "interface/logic/IAnnotationController.h"
 #include "interface/logic/IAuthorAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDataProvider.h"
@@ -30,6 +31,7 @@ public:
 		std::shared_ptr<INavigationInfoProvider>     dataProvider,
 		std::shared_ptr<IUiFactory>                  uiFactory,
 		std::shared_ptr<IDatabaseController>         databaseController,
+		std::shared_ptr<IAnnotationController>       annotationController,
 		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
 		std::shared_ptr<IFilterController>           filterController
 	);

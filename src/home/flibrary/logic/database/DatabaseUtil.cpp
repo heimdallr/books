@@ -165,15 +165,24 @@ bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& i
 
 void CreateHistoryTable(DB::IDatabase& db, const ISettings& settings)
 {
-	const auto keepHistory = settings.Get(KEEP_HISTORY, false);
-	const auto tableName   = GetHistoryTableName(settings);
-	const auto tr          = db.CreateTransaction();
-	tr->CreateCommand(
-		  std::format("CREATE TABLE IF NOT EXISTS {} (BookID INTEGER PRIMARY KEY{} NOT NULL, CreateAt DATETIME NOT NULL)", tableName, keepHistory ? " REFERENCES Books(BookID) ON DELETE CASCADE" : "")
-	)
-		->Execute();
-	tr->CreateCommand("CREATE INDEX IF NOT EXISTS IX_History_BookID ON History (BookID )")->Execute();
-	tr->Commit();
+	try
+	{
+		const auto keepHistory = settings.Get(KEEP_HISTORY, false);
+		const auto tableName   = GetHistoryTableName(settings);
+		const auto tr          = db.CreateTransaction();
+		if (!keepHistory)
+			tr->CreateCommand("DROP TABLE IF EXISTS History")->Execute();
+		tr->CreateCommand(
+			  std::format("CREATE TABLE IF NOT EXISTS {} (BookID INTEGER PRIMARY KEY{} NOT NULL, CreatedAt DATETIME NOT NULL)", tableName, keepHistory ? " REFERENCES Books(BookID) ON DELETE CASCADE" : "")
+		)
+			->Execute();
+		tr->CreateCommand(std::format("CREATE INDEX IF NOT EXISTS {}IX_History_BookID ON History (BookID)", keepHistory ? "" : "tmp."))->Execute();
+		tr->Commit();
+	}
+	catch (const std::exception& ex)
+	{
+		PLOGE << ex.what();
+	}
 }
 
 std::string GetHistoryTableName(const ISettings& settings)

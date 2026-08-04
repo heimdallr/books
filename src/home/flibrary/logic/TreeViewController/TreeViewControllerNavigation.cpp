@@ -278,6 +278,7 @@ struct TreeViewControllerNavigation::Impl final
 	PropagateConstPtr<INavigationInfoProvider, std::shared_ptr>                 dataProvider;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>                              uiFactory;
 	PropagateConstPtr<IDatabaseController, std::shared_ptr>                     databaseController;
+	PropagateConstPtr<IAnnotationController, std::shared_ptr>                   annotationController;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr>             authorAnnotationController;
 	std::shared_ptr<IFilterController>                                          filterController;
 	const std::vector<std::pair<const char*, int>>                              modes { GetModes() };
@@ -292,6 +293,7 @@ struct TreeViewControllerNavigation::Impl final
 		std::shared_ptr<INavigationInfoProvider>     dataProvider,
 		std::shared_ptr<IUiFactory>                  uiFactory,
 		std::shared_ptr<IDatabaseController>         databaseController,
+		std::shared_ptr<IAnnotationController>       annotationController,
 		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
 		std::shared_ptr<IFilterController>           filterController
 	)
@@ -302,6 +304,7 @@ struct TreeViewControllerNavigation::Impl final
 		, dataProvider { std::move(dataProvider) }
 		, uiFactory { std::move(uiFactory) }
 		, databaseController { std::move(databaseController) }
+		, annotationController { std::move(annotationController) }
 		, authorAnnotationController { std::move(authorAnnotationController) }
 		, filterController { std::move(filterController) }
 	{
@@ -664,10 +667,12 @@ private: // IContextMenuProvider
 	{
 		return {};
 	}
+
 	IDataItem::Ptr CreateHistoryContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, RequestContextMenuOptions /*options*/) override
 	{
 		return {};
 	}
+
 	IDataItem::Ptr CreateAllBooksContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, RequestContextMenuOptions /*options*/) override
 	{
 		return {};
@@ -820,7 +825,7 @@ private:
 		CreateGroupMenu(result, id, db);
 		return result;
 	}
-	
+
 	NON_COPY_MOVABLE(Impl)
 };
 
@@ -833,6 +838,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 	std::shared_ptr<INavigationInfoProvider>     dataProvider,
 	std::shared_ptr<IUiFactory>                  uiFactory,
 	std::shared_ptr<IDatabaseController>         databaseController,
+	std::shared_ptr<IAnnotationController>       annotationController,
 	std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
 	std::shared_ptr<IFilterController>           filterController
 )
@@ -845,6 +851,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 		  std::move(dataProvider),
 		  std::move(uiFactory),
 		  std::move(databaseController),
+		  std::move(annotationController),
 		  std::move(authorAnnotationController),
 		  std::move(filterController)
 	  )
@@ -905,9 +912,11 @@ void TreeViewControllerNavigation::OnModeChanged(const QString& modeSrc)
 		}))
 		mode = m_impl->modes.front().first;
 
-	m_impl->mode = GetModeIndex(mode);
-	m_impl->dataProvider->SetNavigationMode(static_cast<NavigationMode>(m_impl->mode));
-	m_impl->authorAnnotationController->SetNavigationMode(static_cast<NavigationMode>(m_impl->mode));
+	m_impl->mode              = GetModeIndex(mode);
+	const auto navigationMode = static_cast<NavigationMode>(m_impl->mode);
+	m_impl->dataProvider->SetNavigationMode(navigationMode);
+	m_impl->annotationController->SetNavigationMode(navigationMode);
+	m_impl->authorAnnotationController->SetNavigationMode(navigationMode);
 	Perform(&IObserver::OnModeChanged, m_impl->mode);
 
 	if (m_impl->models[m_impl->mode])
