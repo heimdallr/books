@@ -1598,7 +1598,7 @@ private:
 		};
 
 		SetNextId(*m_db);
-		data.authors               = ReadDictionary<Dictionary>("authors", *m_db, "select AuthorID, LastName||','||FirstName||','||MiddleName from Authors", dictionaryInserter);
+		data.authors               = ReadDictionary<Dictionary>("authors", *m_db, "select AuthorID, LastName||coalesce( '['||NickName||']', '')||','||FirstName||','||MiddleName from Authors", dictionaryInserter);
 		data.series                = ReadDictionary<Dictionary>("series", *m_db, "select SeriesID, SeriesTitle from Series", dictionaryInserter);
 		data.keywords              = ReadDictionary<Dictionary>("keywords", *m_db, "select KeywordID, KeywordTitle from Keywords", dictionaryInserter);
 		data.bookFolders           = ReadDictionary<Dictionary>("folders", *m_db, "select FolderID, FolderTitle from Folders", dictionaryInserter);
