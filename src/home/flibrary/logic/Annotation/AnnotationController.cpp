@@ -16,6 +16,7 @@
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
+#include "database/interface/ITransaction.h"
 
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/ProductConstant.h"
@@ -638,6 +639,16 @@ private:
 					  return query->Eof() ? QString {} : QString { query->Get<const char*>(0) };
 				  }();
 
+				  const auto tr = db->CreateTransaction();
+				  tr->CreateCommand(std::format("INSERT OR REPLACE INTO {} (BookID, CreateAt) VALUES ({}, datetime('now', 'localtime'))", m_historyTableName, book->GetId().toStdString()))->Execute();
+				  if (m_historyWriteCounter && ++m_historyWriteCounter > 10)
+				  {
+					  m_historyWriteCounter = 0;
+					  tr->CreateCommand("analyze")->Execute();
+				  }
+				  tr->Commit();
+
+
 				  return [this,
 			              book             = std::move(book),
 			              series           = std::move(series),
@@ -803,6 +814,9 @@ private:
 
 	std::random_device m_rd;
 	std::mt19937       m_mt { m_rd() };
+
+	const std::string m_historyTableName { DatabaseUtil::GetHistoryTableName(*m_settings) };
+	size_t            m_historyWriteCounter { 1 };
 };
 
 AnnotationController::AnnotationController(
