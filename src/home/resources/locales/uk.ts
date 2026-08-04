@@ -5290,6 +5290,10 @@ Try again?</source>
         <translation>Приховати</translation>
     </message>
     <message>
+        <source>History</source>
+        <translation>Історія</translation>
+    </message>
+    <message>
         <source>Keywords</source>
         <translation>Ключові слова</translation>
     </message>

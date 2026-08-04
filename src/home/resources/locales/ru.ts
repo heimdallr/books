@@ -5290,6 +5290,10 @@ Try again?</source>
         <translation>Скрыть</translation>
     </message>
     <message>
+        <source>History</source>
+        <translation>История</translation>
+    </message>
+    <message>
         <source>Keywords</source>
         <translation>Ключевые слова</translation>
     </message>

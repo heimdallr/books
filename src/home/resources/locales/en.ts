@@ -5276,6 +5276,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>History</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Keywords</source>
         <translation></translation>
     </message>
