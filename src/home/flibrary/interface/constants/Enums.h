@@ -18,6 +18,7 @@ namespace HomeCompa::Flibrary
 	NAVIGATION_MODE_ITEM(Search)      \
 	NAVIGATION_MODE_ITEM(Reviews)     \
 	NAVIGATION_MODE_ITEM(AlreadyRead) \
+	NAVIGATION_MODE_ITEM(History)     \
 	NAVIGATION_MODE_ITEM(AllBooks)
 
 enum class NavigationMode

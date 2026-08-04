@@ -254,6 +254,7 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
      NavigationMode::AlreadyRead,
      &INavigationFilter::IsRecordExists,
      "select exists (select 42 from Books_User b where b.UserRate is not null and b.BookID > (select min(b.BookID) from Books_User b where b.UserRate is not null))" }   },
+	{	  Loc::History,																	{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::History } },
 	{     Loc::AllBooks,																   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
 };
 
@@ -663,7 +664,10 @@ private: // IContextMenuProvider
 	{
 		return {};
 	}
-
+	IDataItem::Ptr CreateHistoryContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, RequestContextMenuOptions /*options*/) override
+	{
+		return {};
+	}
 	IDataItem::Ptr CreateAllBooksContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, RequestContextMenuOptions /*options*/) override
 	{
 		return {};
@@ -816,7 +820,7 @@ private:
 		CreateGroupMenu(result, id, db);
 		return result;
 	}
-
+	
 	NON_COPY_MOVABLE(Impl)
 };
 

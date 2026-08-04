@@ -44,7 +44,7 @@ constexpr auto IMAGE_BACKGROUND_COLOR_DEFAULT = "white";
 
 constexpr std::pair<const char*, bool> NO_NAVIGATION { nullptr, false };
 
-constexpr std::pair<const char*, std::pair<const char*, bool>> TYPE_TO_NAVIGATION[] {
+constexpr std::pair<const char*, std::pair<const char*, bool /*go to url from annotation*/>> TYPE_TO_NAVIGATION[] {
 	{	  Loc::AUTHORS,      { Loc::Authors, true } },
     {       Loc::SERIES,       { Loc::Series, true } },
     {       Loc::GENRES,       { Loc::Genres, true } },
@@ -57,7 +57,8 @@ constexpr std::pair<const char*, std::pair<const char*, bool>> TYPE_TO_NAVIGATIO
     {          "Search",      { Loc::Search, false } },
     {         "Reviews",     { Loc::Reviews, false } },
     {  Loc::AlreadyRead, { Loc::AlreadyRead, false } },
-	{		"AllBooks",    { Loc::AllBooks, false } },
+	{	  Loc::History,     { Loc::History, false } },
+    {        "AllBooks",    { Loc::AllBooks, false } },
 };
 static_assert(std::size(TYPE_TO_NAVIGATION) == static_cast<size_t>(NavigationMode::Last));
 

@@ -77,6 +77,7 @@ constexpr auto Groups       = QT_TRANSLATE_NOOP("Navigation", "Groups");
 constexpr auto Search       = QT_TRANSLATE_NOOP("Navigation", "Search");
 constexpr auto Reviews      = QT_TRANSLATE_NOOP("Navigation", "Reviews");
 constexpr auto AllBooks     = QT_TRANSLATE_NOOP("Navigation", "AllBooks");
+constexpr auto History      = QT_TRANSLATE_NOOP("Navigation", "History");
 constexpr auto AlreadyRead  = QT_TRANSLATE_NOOP("Navigation", "AlreadyRead");
 
 constexpr auto Books      = QT_TRANSLATE_NOOP("Navigation", "Books");

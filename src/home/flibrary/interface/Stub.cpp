@@ -487,6 +487,7 @@ constexpr IFilterProvider::FilteredNavigation FILTERED_NAVIGATION_DESCRIPTION[] 
 		{ NavigationMode::Search     , Loc::Search      , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::Reviews    , Loc::Reviews     , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::AlreadyRead, Loc::AlreadyRead , &IModelProvider::CreateFilterListModel },
+		{ NavigationMode::History    , Loc::History     , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::AllBooks   , Loc::AllBooks    , &IModelProvider::CreateFilterListModel },
 	// clang-format on
 };

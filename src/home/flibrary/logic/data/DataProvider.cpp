@@ -7,11 +7,13 @@
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
+#include "database/interface/ITransaction.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IDataProvider.h"
 
+#include "database/DatabaseUtil.h"
 #include "settings/UiTimer.h"
 
 #include "BooksTreeGenerator.h"
@@ -65,6 +67,8 @@ public:
 		, m_navigationQueryExecutor { std::move(navigationQueryExecutor) }
 		, m_authorAnnotationController { std::move(authorAnnotationController) }
 	{
+		if (m_collectionProvider->ActiveCollectionExists())
+			DatabaseUtil::CreateHistoryTable(*m_databaseUser->Database(), *m_settings);
 	}
 
 	void SetNavigationMode(const NavigationMode navigationMode)
