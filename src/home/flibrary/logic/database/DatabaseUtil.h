@@ -4,6 +4,13 @@
 
 #include "interface/logic/IDataItem.h"
 
+namespace HomeCompa
+{
+
+class ISettings;
+
+}
+
 namespace HomeCompa::DB
 {
 
@@ -39,5 +46,8 @@ IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery& query);
 IDataItem::Ptr CreateBookItem(const DB::IQuery& query);
 
 bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& ids, bool remove = true, const std::shared_ptr<IProgressController>& progressController = {});
+
+void        CreateHistoryTable(DB::IDatabase& db, const ISettings& settings);
+std::string GetHistoryTableName(const ISettings& settings);
 
 }

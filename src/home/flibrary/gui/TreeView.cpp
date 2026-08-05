@@ -895,6 +895,10 @@ private:
 			| addOption(m_filterProvider->IsFilterEnabled(), ITreeViewController::RequestContextMenuOptions::UniFilterEnabled)
 			| addOption(hashCompareEnabled(), ITreeViewController::RequestContextMenuOptions::HashCompareEnabled)
 			| addOption(
+				m_navigationModeName == NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::History)].first && m_ui.treeView->model()->rowCount() > 0,
+				ITreeViewController::RequestContextMenuOptions::NavigationModeIsHistory
+			)
+			| addOption(
 				currentIndex.isValid() && currentIndex.data(Role::Type).value<ItemType>() == ItemType::Books
 					&& Zip::IsArchive(Platform::RemoveIllegalPathCharacters(currentIndex.data(Role::FileName).toString())),
 				ITreeViewController::RequestContextMenuOptions::IsArchive

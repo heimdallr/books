@@ -30,6 +30,7 @@ public:
 	~AnnotationController() override;
 
 private: // IAnnotationController
+	void    SetNavigationMode(NavigationMode navigationMode) noexcept override;
 	void    SetCurrentBookId(QString bookId, bool extractNow) override;
 	QString CreateAnnotation(const IDataProvider& dataProvider, const IStrategy& strategy) const override;
 	void    ShowJokes(IJokeRequesterFactory::Implementation impl, bool value) override;

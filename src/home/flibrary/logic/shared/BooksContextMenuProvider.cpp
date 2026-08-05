@@ -62,6 +62,7 @@ constexpr auto WITHOUT_RATE             = QT_TRANSLATE_NOOP("BookContextMenu", "
 constexpr auto HASH_SUBMENU             = QT_TRANSLATE_NOOP("BookContextMenu", "Hash");
 constexpr auto HASH_CALCULATE           = QT_TRANSLATE_NOOP("BookContextMenu", "Calculate");
 constexpr auto HASH_COMPARE             = QT_TRANSLATE_NOOP("BookContextMenu", "Compare");
+constexpr auto CLEAR_HISTORY            = QT_TRANSLATE_NOOP("BookContextMenu", "Clear browsing history");
 
 constexpr auto CANNOT_SET_USER_RATE = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set rate");
 constexpr auto CANNOT_SET_LANGUAGE  = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set language of books");
@@ -272,6 +273,9 @@ public:
 				  CreateTreeMenu(result, options);
 				  CreateChangeLangMenu(result, currentLocale);
 				  CreateHashMenu(result, options);
+
+				  if (!!(options & ITreeViewController::RequestContextMenuOptions::NavigationModeIsHistory))
+					  AddMenuItem(result, CLEAR_HISTORY, Tr(CLEAR_HISTORY), BooksMenuAction::ClearHistory);
 
 				  if (type == ItemType::Books)
 				  {
@@ -622,6 +626,22 @@ private: // IContextMenuHandler
 				  };
 			  } }
 		);
+	}
+
+	void ClearHistory(QAbstractItemModel*, const QModelIndex&, const QList<QModelIndex>&, IDataItem::Ptr item, Callback callback) const override
+	{
+		m_databaseUser->Execute({ "Change book language", [this, item = std::move(item), callback = std::move(callback)]() mutable {
+									 const auto lang = item->GetData(MenuItem::Column::Parameter).toStdString();
+
+									 const auto db = m_databaseUser->Database();
+									 const auto tr = db->CreateTransaction();
+									 tr->CreateCommand(std::format("delete from {}", DatabaseUtil::GetHistoryTableName(*m_settings)))->Execute();
+									 tr->Commit();
+									 return [this, item = std::move(item), callback = std::move(callback)](size_t) {
+										 callback(item);
+										 m_dataProvider->RequestBooks(true);
+									 };
+								 } });
 	}
 
 private:

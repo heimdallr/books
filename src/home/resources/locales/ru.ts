@@ -503,7 +503,11 @@
     </message>
     <message>
         <source>Change language</source>
-        <translation>Изменить язык</translation>
+        <translation>Изменить &amp;язык</translation>
+    </message>
+    <message>
+        <source>Clear browsing history</source>
+        <translation>Очистить &amp;историю просмотра</translation>
     </message>
     <message>
         <source>Compare</source>
@@ -523,7 +527,7 @@
     </message>
     <message>
         <source>Hash</source>
-        <translation>Хэш</translation>
+        <translation>&amp;Хэш</translation>
     </message>
     <message>
         <source>No rating</source>
@@ -5288,6 +5292,10 @@ Try again?</source>
     <message>
         <source>Hide</source>
         <translation>Скрыть</translation>
+    </message>
+    <message>
+        <source>History</source>
+        <translation>История</translation>
     </message>
     <message>
         <source>Keywords</source>

@@ -156,6 +156,7 @@ public:
 	virtual ~IAnnotationController() = default;
 
 public:
+	virtual void    SetNavigationMode(NavigationMode navigationMode) noexcept                            = 0;
 	virtual void    SetCurrentBookId(QString bookId, bool extractNow = false)                            = 0;
 	virtual QString CreateAnnotation(const IDataProvider& dataProvider, const IStrategy& strategy) const = 0;
 	virtual void    ShowJokes(IJokeRequesterFactory::Implementation impl, bool value)                    = 0;

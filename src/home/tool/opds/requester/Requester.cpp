@@ -450,6 +450,7 @@ constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
 	{ Loc::Search },
 	{ Loc::Reviews },
 	{ Loc::AlreadyRead },
+	{ Loc::History },
 	{ Loc::AllBooks },
 };
 // clang-format on

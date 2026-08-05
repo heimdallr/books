@@ -341,8 +341,12 @@ private: // IBookSelector
 		const std::pair<NavigationMode, SelectAdditional> additionals[] {
 			{ NavigationMode::AlreadyRead,
              [](const DB::IQuery& query, const SelectedBookItem& item) {
-				  item.book->SetData(First(QString(query.Get<const char*>(BookQueryFields::Last)), 10), BookItem::Column::UpdateDate);
-			  } }
+ item.book->SetData(First(QString(query.Get<const char*>(BookQueryFields::Last)), 10), BookItem::Column::UpdateDate);
+ } },
+			{     NavigationMode::History,
+             [](const DB::IQuery& query, const SelectedBookItem& item) {
+ item.book->SetData(QString(query.Get<const char*>(BookQueryFields::Last)), BookItem::Column::UpdateDate);
+ } },
 		};
 		CreateSelectedBookItems(db, description.queryClause, FindSecond(additionals, navigationMode, additionalDefault));
 	}
@@ -449,6 +453,14 @@ private:
 		return result;
 	}
 
+	std::string PrepareBookQuery(const std::string_view str) const
+	{
+		if (navigationMode != NavigationMode::History)
+			return std::string(str);
+
+		return QString::fromStdString(std::string(str)).arg(DatabaseUtil::GetHistoryTableName(m_settings)).toStdString();
+	}
+
 	void CreateSelectedBookItems(DB::IDatabase& db, const QueryClause& queryClause, const SelectAdditional& additional)
 	{
 		const auto with = queryClause.with(m_settings, navigationId).toStdString();
@@ -458,7 +470,7 @@ private:
 			if (!booksWhere.isEmpty() && booksWhere.contains('%'))
 				booksWhere = booksWhere.arg(navigationId);
 
-			const auto query = db.CreateQuery(std::format(DatabaseUtil::BOOKS_QUERY, with, queryClause.additionalFields, queryClause.booksFrom, booksWhere.toStdString()));
+			const auto query = db.CreateQuery(PrepareBookQuery(std::format(DatabaseUtil::BOOKS_QUERY, with, queryClause.additionalFields, queryClause.booksFrom, booksWhere.toStdString())));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto& book = m_books[query->Get<long long>(BookQueryFields::BookId)];
@@ -495,7 +507,7 @@ join Series s on s.SeriesID = l.SeriesID
 )";
 
 			BookToFlag flags;
-			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+			const auto query = db.CreateQuery(PrepareBookQuery(std::format(queryText, with, queryClause.navigationFrom, where)));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				const auto id   = query->Get<long long>(0);
@@ -527,7 +539,7 @@ join Authors a on a.AuthorID = l.AuthorID
 )";
 
 			BookToFlag flags;
-			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+			const auto query = db.CreateQuery(PrepareBookQuery(std::format(queryText, with, queryClause.navigationFrom, where)));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				auto  id   = query->Get<long long>(0);
@@ -555,7 +567,7 @@ join Genres g on g.GenreCode = l.GenreCode
 )";
 
 			BookToFlag flags;
-			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+			const auto query = db.CreateQuery(PrepareBookQuery(std::format(queryText, with, queryClause.navigationFrom, where)));
 			for (query->Execute(); !query->Eof(); query->Next())
 			{
 				QString id   = query->Get<const char*>(0);
@@ -583,7 +595,7 @@ join Keywords k on k.KeywordID = l.KeywordID
 )";
 
 			BookToFlag flags;
-			const auto query = db.CreateQuery(std::format(queryText, with, queryClause.navigationFrom, where));
+			const auto query = db.CreateQuery(PrepareBookQuery(std::format(queryText, with, queryClause.navigationFrom, where)));
 			for (query->Execute(); !query->Eof(); query->Next())
 				m_keywordsFlagAccumulator(flags, query->Get<long long>(1), static_cast<IDataItem::Flags>(query->Get<int>(0)));
 			if (filterProvider.IsFilterEnabled())
