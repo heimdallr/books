@@ -458,7 +458,7 @@ private:
 		if (navigationMode != NavigationMode::History)
 			return std::string(str);
 
-		return QString::fromStdString(std::string(str)).arg(DatabaseUtil::GetHistoryTableName(m_settings)).toStdString();
+		return QString::fromStdString(std::string(str)).arg(QString::fromStdString(DatabaseUtil::GetHistoryTableName(m_settings))).toStdString();
 	}
 
 	void CreateSelectedBookItems(DB::IDatabase& db, const QueryClause& queryClause, const SelectAdditional& additional)
