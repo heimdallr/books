@@ -503,7 +503,11 @@
     </message>
     <message>
         <source>Change language</source>
-        <translation></translation>
+        <translation>Change &amp;language</translation>
+    </message>
+    <message>
+        <source>Clear browsing history</source>
+        <translation>Clear &amp;browsing history</translation>
     </message>
     <message>
         <source>Compare</source>
@@ -523,7 +527,7 @@
     </message>
     <message>
         <source>Hash</source>
-        <translation></translation>
+        <translation>&amp;Hash</translation>
     </message>
     <message>
         <source>No rating</source>
