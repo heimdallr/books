@@ -341,8 +341,12 @@ private: // IBookSelector
 		const std::pair<NavigationMode, SelectAdditional> additionals[] {
 			{ NavigationMode::AlreadyRead,
              [](const DB::IQuery& query, const SelectedBookItem& item) {
-				  item.book->SetData(First(QString(query.Get<const char*>(BookQueryFields::Last)), 10), BookItem::Column::UpdateDate);
-			  } }
+ item.book->SetData(First(QString(query.Get<const char*>(BookQueryFields::Last)), 10), BookItem::Column::UpdateDate);
+ } },
+			{     NavigationMode::History,
+             [](const DB::IQuery& query, const SelectedBookItem& item) {
+ item.book->SetData(QString(query.Get<const char*>(BookQueryFields::Last)), BookItem::Column::UpdateDate);
+ } },
 		};
 		CreateSelectedBookItems(db, description.queryClause, FindSecond(additionals, navigationMode, additionalDefault));
 	}
