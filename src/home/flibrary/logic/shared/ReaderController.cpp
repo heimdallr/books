@@ -4,6 +4,7 @@
 
 #include <QDesktopServices>
 #include <QFileInfo>
+#include <QGuiApplication>
 #include <QProcess>
 #include <QTemporaryDir>
 
@@ -96,7 +97,7 @@ struct ReaderController::Impl
 	{
 	}
 
-	void Read(std::shared_ptr<ILogicFactory::ITemporaryDir> temporaryDir, QString fileName, const QString& error) const
+	void Read(std::shared_ptr<ILogicFactory::ITemporaryDir> temporaryDir, QString fileName, const bool removeCurrentReader, const QString& error) const
 	{
 		if (fileName.isEmpty())
 		{
@@ -112,7 +113,10 @@ struct ReaderController::Impl
 		if (ext.isEmpty())
 			return uiFactory->ShowError(Tr(UNSUPPORTED));
 
-		auto key    = QString(READER_KEY).arg(ext);
+		auto key = QString(READER_KEY).arg(ext);
+		if (removeCurrentReader)
+			settings->Remove(key);
+
 		auto reader = settings->Get(key).toString();
 
 		const auto getReader = [&] {
@@ -282,8 +286,10 @@ void ReaderController::Read(long long id) const
 {
 	std::shared_ptr executor = ILogicFactory::Lock(m_impl->logicFactory)->GetExecutor();
 
+	const auto removeCurrentReader = (QGuiApplication::keyboardModifiers() & (Qt::ShiftModifier | Qt::AltModifier | Qt::ControlModifier));
+
 	const auto& executorRef = *executor;
-	executorRef({ "Get archive and file names", [this, id, executor = std::move(executor)]() mutable {
+	executorRef({ "Get archive and file names", [this, id, executor = std::move(executor), removeCurrentReader]() mutable {
 					 const auto db = m_impl->databaseUser->Database();
 					 {
 						 const auto transaction = db->CreateTransaction();
@@ -311,8 +317,8 @@ void ReaderController::Read(long long id) const
 						 return logicFactory->CreateTemporaryDir(true);
 					 }();
 					 auto error = m_impl->Extract(*temporaryDir, archive, fileName);
-					 return [this, executor = std::move(executor), fileName = std::move(fileName), temporaryDir = std::move(temporaryDir), error = std::move(error)](size_t) mutable {
-						 m_impl->Read(std::move(temporaryDir), std::move(fileName), error);
+					 return [this, executor = std::move(executor), fileName = std::move(fileName), temporaryDir = std::move(temporaryDir), removeCurrentReader, error = std::move(error)](size_t) mutable {
+						 m_impl->Read(std::move(temporaryDir), std::move(fileName), removeCurrentReader, error);
 						 executor.reset();
 					 };
 				 } });
