@@ -13,6 +13,10 @@ set(COPYRIGHT "(c) 2026 heimdallr")
 set(PRODUCT_DESCRIPTION "another e-book cataloger")
 set(PRODUCT_ICON "${CMAKE_CURRENT_LIST_DIR}/src/home/resources/icons/main.ico")
 
+if ("${PLATFORM}" STREQUAL "")
+	set(PLATFORM x86_64)
+endif()
+
 if ("${QT_MAJOR_VERSION}" STREQUAL "")
 	set(QT_MAJOR_VERSION 6)
 endif()

@@ -65,7 +65,7 @@ set(CPACK_PACKAGE_ICON "${CMAKE_SOURCE_DIR}/src/home/flibrary/app/resources/icon
 set(CPACK_MONOLITHIC_INSTALL TRUE)
 set(CPACK_PACKAGE_EXECUTABLES "FLibrary;FLibrary")
 set(CPACK_PACKAGE_INSTALL_DIRECTORY "FLibrary")
-set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CMAKE_PROJECT_VERSION}-setup-${OS_NAME}")
+set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CMAKE_PROJECT_VERSION}-setup-${OS_NAME}-${PLATFORM}")
 file(WRITE "${CMAKE_BINARY_DIR}/bin/installer_mode" ${CPACK_GENERATOR})
 install(FILES "${CMAKE_BINARY_DIR}/bin/installer_mode" DESTINATION .)
 
@@ -84,7 +84,7 @@ else()
 	if (${index} EQUAL -1)
 		message(FATAL_ERROR "Unsupported cpack generator: ${CPACK_GENERATOR}")
 	endif()
-	set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CMAKE_PROJECT_VERSION}-portable-${OS_NAME}")
+	set(CPACK_PACKAGE_FILE_NAME "${CPACK_PACKAGE_NAME}-${CMAKE_PROJECT_VERSION}-portable-${OS_NAME}-${PLATFORM}")
 	__Pack_Archive()
 endif()
 
