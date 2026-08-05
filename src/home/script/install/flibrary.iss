@@ -42,6 +42,8 @@ UsePreviousSetupType=no
 UsePreviousTasks=no
 UsePreviousUserInfo=no
 DirExistsWarning=no
+ArchitecturesAllowed=x64
+MinVersion={#MyMinVersion}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl";           LicenseFile: {#RootDir}LICENSE_en.txt
