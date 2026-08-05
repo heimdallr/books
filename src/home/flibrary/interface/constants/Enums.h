@@ -104,7 +104,8 @@ struct GroupsMenuAction
 	MENU_ACTION_ITEM(SendAsScript)          \
 	MENU_ACTION_ITEM(ChangeLanguage)        \
 	MENU_ACTION_ITEM(HashCalculate)         \
-	MENU_ACTION_ITEM(HashCompare)
+	MENU_ACTION_ITEM(HashCompare)           \
+	MENU_ACTION_ITEM(ClearHistory)
 
 struct BooksMenuAction
 {
