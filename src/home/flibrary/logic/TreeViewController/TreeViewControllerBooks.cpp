@@ -17,6 +17,7 @@
 
 #include "log.h"
 
+using namespace HomeCompa;
 using namespace HomeCompa::Flibrary;
 
 namespace
@@ -136,14 +137,18 @@ TreeViewControllerBooks::TreeViewControllerBooks(
 		const auto invoker = MODE_NAMES[static_cast<int>(m_impl->viewMode)].second.modelCreator;
 		auto       model   = std::invoke(invoker, IModelProvider::Lock(m_modelProvider), std::move(data));
 		m_impl->model.reset(std::move(model));
-		Perform(&IObserver::OnModelChanged, m_impl->model.get());
+		Perform(&ITreeViewController::IObserver::OnModelChanged, m_impl->model.get());
 	});
+
+	m_impl->dataProvider->RegisterObserver(this);
 
 	PLOGV << "TreeViewControllerBooks created";
 }
 
 TreeViewControllerBooks::~TreeViewControllerBooks()
 {
+	m_impl->dataProvider->UnregisterObserver(this);
+
 	PLOGV << "TreeViewControllerBooks destroyed";
 }
 
@@ -170,7 +175,7 @@ void TreeViewControllerBooks::OnModeChanged(const QString& mode)
 {
 	m_impl->viewMode = GetViewModeImpl(mode.toStdString()).viewMode;
 	m_impl->dataProvider->SetBooksViewMode(m_impl->viewMode);
-	Perform(&IObserver::OnModeChanged, static_cast<int>(m_impl->viewMode));
+	Perform(&ITreeViewController::IObserver::OnModeChanged, static_cast<int>(m_impl->viewMode));
 }
 
 int TreeViewControllerBooks::GetModeIndex(const QString& mode) const
@@ -207,7 +212,7 @@ void TreeViewControllerBooks::OnContextMenuTriggered(QAbstractItemModel* model, 
 {
 	auto menuProvider = ILogicFactory::Lock(m_impl->logicFactory)->CreateBooksContextMenuProvider();
 	menuProvider->OnContextMenuTriggered(model, index, indexList, std::move(item), [&, menuProvider, id = index.data(Role::Id).toString()](const IDataItem::Ptr& itemResult) mutable {
-		Perform(&IObserver::OnContextMenuTriggered, std::cref(id), std::cref(itemResult));
+		Perform(&ITreeViewController::IObserver::OnContextMenuTriggered, std::cref(id), std::cref(itemResult));
 		menuProvider.reset();
 	});
 }
@@ -219,4 +224,14 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex& index) const
 
 	const auto id = index.data(Role::Id).toLongLong();
 	m_impl->bookInteractor->OnDoubleClicked(id);
+}
+
+void TreeViewControllerBooks::OnNavigationModeChanged()
+{
+	m_modeController->SetKey(QString(VIEW_MODE_WITH_NAVIGATION_KEY_TEMPLATE).arg(m_context, NAVIGATION_NAMES[static_cast<size_t>(m_impl->dataProvider->GetNavigationMode())].first));
+	OnModeChanged(m_modeController->GetMode());
+}
+
+void TreeViewControllerBooks::OnBooksSelected(NavigationMode, IDataItem::Ptr)
+{
 }
