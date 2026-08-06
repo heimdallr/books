@@ -20,6 +20,16 @@ class AbstractTreeViewController
 {
 	NON_COPY_MOVABLE(AbstractTreeViewController)
 
+public:
+	class IModeController // NOLINT(cppcoreguidelines-special-member-functions)
+	{
+	public:
+		virtual ~IModeController()                    = default;
+		virtual QString GetMode() const               = 0;
+		virtual void    SetMode(const QString& value) = 0;
+		virtual void    SetKey(QString value)         = 0;
+	};
+
 protected:
 	explicit AbstractTreeViewController(const char* context, std::shared_ptr<ISettings> settings, const std::shared_ptr<IModelProvider>& modelProvider);
 	~AbstractTreeViewController() override;
@@ -59,6 +69,7 @@ protected:
 protected:
 	const char* const                             m_context;
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
+	PropagateConstPtr<IModeController>            m_modeController;
 	std::weak_ptr<IModelProvider>                 m_modelProvider;
 
 private:

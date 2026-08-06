@@ -24,6 +24,9 @@ namespace
 
 constexpr auto CONTEXT = "Books";
 
+constexpr auto VIEW_MODE_WITH_NAVIGATION_KEY_TEMPLATE   = "ui/%1/Mode_%2";
+constexpr auto PREFER_SEPARATED_VIEW_MODE_BY_NAVIGATION = "Preferences/Books/SeparatedViewModeByNavigation";
+
 using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr) const;
 
 struct ModeDescriptor
@@ -44,7 +47,47 @@ auto GetViewModeImpl(const std::string& strMode)
 	return FindSecond(MODE_NAMES, strMode.data(), MODE_NAMES[0].second, PszComparer {});
 }
 
-}
+class ModeController final : public AbstractTreeViewController::IModeController
+{
+public:
+	ModeController(const ISettings& settings, PropagateConstPtr<IModeController> source)
+		: m_source { std::move(source) }
+		, m_setKey { settings.Get(PREFER_SEPARATED_VIEW_MODE_BY_NAVIGATION, false) ? &ModeController::SetKeyWrapper : &ModeController::SetKeyStub }
+	{
+	}
+
+private: // IModeController
+	QString GetMode() const override
+	{
+		return m_source->GetMode();
+	}
+
+	void SetMode(const QString& value) override
+	{
+		m_source->SetMode(value);
+	}
+
+	void SetKey(QString value) override
+	{
+		std::invoke(m_setKey, this, std::move(value));
+	}
+
+private:
+	void SetKeyWrapper(QString value)
+	{
+		m_source->SetKey(std::move(value));
+	}
+
+	void SetKeyStub(QString /*value*/)
+	{
+	}
+
+private:
+	PropagateConstPtr<IModeController> m_source;
+	void (ModeController::*m_setKey)(QString);
+};
+
+} // namespace
 
 struct TreeViewControllerBooks::Impl
 {
@@ -84,6 +127,8 @@ TreeViewControllerBooks::TreeViewControllerBooks(
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
 	, m_impl(logicFactory, std::move(annotationController), std::move(databaseUser), std::move(dataProvider), std::move(bookInteractor))
 {
+	m_modeController.reset(std::make_unique<ModeController>(*m_settings, std::move(m_modeController)));
+
 	Setup();
 
 	m_impl->dataProvider->SetBookRequestCallback([&](IDataItem::Ptr data) {
