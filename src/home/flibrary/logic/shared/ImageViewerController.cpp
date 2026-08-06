@@ -106,6 +106,10 @@ public:
 	}
 
 private: // IBookInfoProvider::IObserver
+	void OnNavigationModeChanged() override
+	{
+	}
+
 	void OnBooksSelected(const NavigationMode /*navigationMode*/, IDataItem::Ptr root) override
 	{
 		m_imageModel->setData({}, QVariant::fromValue(std::move(root)), ImageModelRole::BooksRoot);

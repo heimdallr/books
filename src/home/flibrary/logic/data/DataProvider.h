@@ -41,6 +41,7 @@ private: // IDataProvider
 	void           SetNavigationRequestCallback(Callback callback) override;
 	void           RequestNavigation(bool force) const override;
 	void           RequestBooks(bool force) const override;
+	NavigationMode GetNavigationMode() const noexcept override;
 	const QString& GetNavigationID() const noexcept override;
 
 private: // IBookInfoProvider
