@@ -289,8 +289,7 @@ jobs:
             Write-Host "Installing Qt from $mirror"
             & aqt install-qt windows desktop ${{ matrix.qt_version }} `
               ${{ matrix.qt_build }} -O $env:QT_ROOT `
-              --base $mirror --timeout 30 `
-              ${{ matrix.qt_aditional }}
+              ${{ matrix.qt_additional }} --base $mirror --timeout 30
             if ($LASTEXITCODE -eq 0) {
               $installed = $true
               break
