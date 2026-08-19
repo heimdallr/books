@@ -320,7 +320,7 @@ QByteArray Pack(const QString& dstFolder, const QString& uid, const QString& boo
 	const auto zipFiles   = Zip::CreateZipFileController();
 	const auto fileFolder = uid + ".zip";
 
-	for (auto&& [book, n] : std::views::zip(bookInfoLists, std::views::iota(1)))
+	for (auto&& [book, n] : std::views::zip(bookInfoLists, std::views::iota(0)))
 	{
 		if (progress.IsStopped())
 			break;
@@ -473,7 +473,7 @@ public:
 							   const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
 							   assert(currentZip);
 							   if (const auto n = currentZip->GetFileIndex(fileName); n != Zip::INVALID_INDEX) //-V614
-								   data.try_emplace(n, Write(book, fileName, n + 1, book.book->GetRawData(BookItem::Column::Folder), book.book->GetRawData(BookItem::Column::Size)));
+								   data.try_emplace(n, Write(book, fileName, n, book.book->GetRawData(BookItem::Column::Folder), book.book->GetRawData(BookItem::Column::Size)));
 
 							   m_progressItem->Increment(1);
 						   }
@@ -699,7 +699,7 @@ private:
 			}
 			assert(inputZip);
 			if (const auto index = inputZip->GetFileIndex(QString("%1%2").arg(query->Get<const char*>(9), query->Get<const char*>(10))); index != Zip::INVALID_INDEX) //-V614
-				data.try_emplace(index, Write(*query, series, genres, bookGenres, authors, bookAuthors, keywords, bookKeywords, index + 1));
+				data.try_emplace(index, Write(*query, series, genres, bookGenres, authors, bookAuthors, keywords, bookKeywords, index));
 
 			m_progressItem->Increment(1);
 		}
