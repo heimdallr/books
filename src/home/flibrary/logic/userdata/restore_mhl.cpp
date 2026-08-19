@@ -1,5 +1,7 @@
 #include <zlib.h>
 
+#include <array>
+
 #include <QFile>
 
 #include "fnd/NonCopyMovable.h"
