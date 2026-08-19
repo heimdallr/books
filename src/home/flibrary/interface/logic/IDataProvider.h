@@ -40,7 +40,7 @@ public:
 	class IObserver : public Observer
 	{
 	public:
-		virtual void OnNavigationModeChanged() = 0;
+		virtual void OnNavigationModeChanged()                                           = 0;
 		virtual void OnBooksSelected(NavigationMode navigationMode, IDataItem::Ptr root) = 0;
 	};
 
