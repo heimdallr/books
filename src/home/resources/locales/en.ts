@@ -5936,7 +5936,11 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Flibrary export files (*%1)</source>
+        <source>FLibrary user data files (*%1);;All files (*.*)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>FLibrary user data files (*%1);;MyHomeLib user data files (*.mhlud2);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>
