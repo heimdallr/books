@@ -5953,8 +5953,12 @@ Try again?</source>
         <translation>Помилка запису в %1</translation>
     </message>
     <message>
-        <source>Flibrary export files (*%1)</source>
-        <translation>Файли експорту FLibrary (*%1)</translation>
+        <source>FLibrary user data files (*%1);;All files (*.*)</source>
+        <translation>Файли експорту FLibrary (*%1);;Усі файли (*.*)</translation>
+    </message>
+    <message>
+        <source>FLibrary user data files (*%1);;MyHomeLib user data files (*.mhlud2);;All files (*.*)</source>
+        <translation>Файли експорту FLibrary (*%1);Файли експорту MyHomeLib (*.mhlud2);;Усі файли (*.*)</translation>
     </message>
     <message>
         <source>Invalid root node name, must be %1</source>
