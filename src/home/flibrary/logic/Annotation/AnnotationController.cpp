@@ -12,6 +12,7 @@
 
 #include "fnd/EnumBitmask.h"
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 #include "fnd/observable.h"
 
 #include "database/interface/IDatabase.h"
@@ -644,7 +645,7 @@ private:
 					  return query->Eof() ? QString {} : QString { query->Get<const char*>(0) };
 				  }();
 
-				  if (m_navigationMode != NavigationMode::History)
+				  if (!IsOneOf(m_navigationMode, NavigationMode::Unknown, NavigationMode::History))
 				  {
 					  const auto tr = db->CreateTransaction();
 					  tr->CreateCommand(std::format("INSERT OR REPLACE INTO {} (BookID, CreatedAt) VALUES ({}, datetime('now', 'localtime'))", m_historyTableName, book->GetId().toStdString()))->Execute();
