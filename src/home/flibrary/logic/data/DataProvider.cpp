@@ -74,6 +74,7 @@ public:
 	void SetNavigationMode(const NavigationMode navigationMode)
 	{
 		m_navigationMode = navigationMode;
+		Perform(&IObserver::OnNavigationModeChanged);
 	}
 
 	void SetNavigationId(QString id, const bool force)
@@ -115,6 +116,11 @@ public:
 			m_booksGenerator.reset();
 
 		m_booksTimer->start();
+	}
+
+	NavigationMode GetNavigationMode() const noexcept
+	{
+		return m_navigationMode;
 	}
 
 	const QString& GetNavigationID() const noexcept
@@ -321,6 +327,11 @@ void DataProvider::RequestNavigation(const bool force) const
 void DataProvider::RequestBooks(const bool force) const
 {
 	m_impl->RequestBooks(force);
+}
+
+NavigationMode DataProvider::GetNavigationMode() const noexcept
+{
+	return m_impl->GetNavigationMode();
 }
 
 const QString& DataProvider::GetNavigationID() const noexcept

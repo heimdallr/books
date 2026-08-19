@@ -19,6 +19,7 @@ public:
 public:
 	virtual ~IDataProvider()                                      = default;
 	virtual void           RequestBooks(bool force = false) const = 0;
+	virtual NavigationMode GetNavigationMode() const              = 0;
 	virtual const QString& GetNavigationID() const noexcept       = 0;
 };
 
@@ -39,6 +40,7 @@ public:
 	class IObserver : public Observer
 	{
 	public:
+		virtual void OnNavigationModeChanged() = 0;
 		virtual void OnBooksSelected(NavigationMode navigationMode, IDataItem::Ptr root) = 0;
 	};
 
