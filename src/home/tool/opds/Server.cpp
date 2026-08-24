@@ -212,9 +212,56 @@ auto Authenticate()
 	});
 }
 
+class FilteredTcpServer final : public QTcpServer
+{
+public:
+	explicit FilteredTcpServer(QObject* parent = nullptr)
+		: QTcpServer(parent)
+	{
+	}
+
+	void Ban(QString address)
+	{
+		PLOGI << address << " added to ban list";
+		QTimer::singleShot(std::chrono::minutes(1), [this, address] {
+			m_banned.erase(address);
+		});
+		if (const auto it = m_sockets.find(address); it != m_sockets.end())
+			it->second->abort();
+
+		m_banned.emplace(std::move(address));
+	}
+
+private: // QTcpServer
+	void incomingConnection(const qintptr socketDescriptor) override
+	{
+		auto* socket = new QTcpSocket(this);
+		socket->setSocketDescriptor(socketDescriptor);
+
+		auto address = socket->peerAddress().toString();
+		if (m_banned.contains(address))
+		{
+			socket->deleteLater();
+			PLOGI << address << " rejected";
+			return;
+		}
+
+		PLOGI << address << " connected";
+		addPendingConnection(socket);
+		connect(socket, &QTcpSocket::disconnected, [this, address] {
+			m_sockets.erase(address);
+		});
+		m_sockets.emplace(std::move(address), socket);
+	}
+
+private:
+	std::unordered_map<QString, QTcpSocket*> m_sockets;
+	std::unordered_set<QString>              m_banned;
+};
+
 } // namespace
 
-class Server::Impl
+class Server::Impl : public QObject
 {
 	using AuthorizationAllowFunctor = std::function<QHttpServerResponse(const IRequester::Parameters&, const QString&)>;
 
@@ -244,10 +291,10 @@ public:
 		if (!m_localServer.listen(Flibrary::Constant::OPDS_SERVER_NAME))
 			throw std::runtime_error(std::format("Cannot listen pipe {}", Flibrary::Constant::OPDS_SERVER_NAME));
 
-		QObject::connect(&m_localServer, &QLocalServer::newConnection, [this] {
+		connect(&m_localServer, &QLocalServer::newConnection, [this] {
 			auto* socket = m_localServer.nextPendingConnection();
-			QObject::connect(socket, &QLocalSocket::disconnected, socket, &QObject::deleteLater);
-			QObject::connect(socket, &QIODevice::readyRead, [socket] {
+			connect(socket, &QLocalSocket::disconnected, socket, &QObject::deleteLater);
+			connect(socket, &QIODevice::readyRead, [socket] {
 				const auto data = socket->readAll();
 #ifndef NDEBUG
 				PLOGD << data << " received";
@@ -279,13 +326,11 @@ private:
 
 	void InitHttp(const QHostAddress& host, const uint16_t port)
 	{
-		auto tcpServer = std::make_unique<QTcpServer>();
-		if (!tcpServer->listen(host, port) || !m_server.bind(tcpServer.get()))
+		m_tcpServer = new FilteredTcpServer(this);
+		if (!m_tcpServer->listen(host, port) || !m_server.bind(m_tcpServer.get()))
 			throw std::runtime_error(std::format("Cannot listen port {}", port));
 
-		PLOGD << "Listening " << tcpServer->serverAddress().toString() << ":" << port;
-
-		(void)tcpServer.release();
+		PLOGD << "Listening " << m_tcpServer->serverAddress().toString() << ":" << port;
 
 		m_server.addAfterRequestHandler(&m_server, [](const QHttpServerRequest& request, QHttpServerResponse& resp) {
 			const auto log = QString("%1 requests %2%3").arg(request.remoteAddress().toString(), request.url().path(), request.query().isEmpty() ? "" : QString("?%1").arg(request.query().toString()));
@@ -297,7 +342,13 @@ private:
 			ReplaceOrAppendHeader(resp, QHttpHeaders::WellKnownHeader::KeepAlive, "timeout=5");
 		});
 
+		m_server.setMissingHandler(this, &Impl::MissingHandler);
 		Route(host, port);
+	}
+
+	void MissingHandler(const QHttpServerRequest& request, QHttpServerResponder&)
+	{
+		m_tcpServer->Ban(request.remoteAddress().toString());
 	}
 
 	void Route(const QHostAddress& host, const uint16_t port)
@@ -454,6 +505,7 @@ private:
 
 private:
 	QLocalServer                                         m_localServer;
+	propagate_const<FilteredTcpServer*>                  m_tcpServer { nullptr };
 	QHttpServer                                          m_server;
 	std::shared_ptr<const ISettings>                     m_settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> m_collectionProvider;
