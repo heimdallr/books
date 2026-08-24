@@ -557,7 +557,11 @@ private: // ITreeViewController::IObserver
 		m_ui.leftWidget->setVisible(!IsOneOf(navigationMode, NavigationMode::AlreadyRead, NavigationMode::History, NavigationMode::AllBooks));
 
 		for (auto* action : m_ui.menuNavigation->actions())
-			SignalBlocker(action)->setChecked(action->property(NAVIGATION_ACTION_ID_PROPERTY).value<NavigationMode>() == navigationMode);
+		{
+			const auto isCurrentMode = action->property(NAVIGATION_ACTION_ID_PROPERTY).value<NavigationMode>() == navigationMode;
+			SignalBlocker(action)->setChecked(isCurrentMode);
+			action->setEnabled(!isCurrentMode);
+		}
 	}
 
 	void OnModelChanged(QAbstractItemModel* /*model*/) override
