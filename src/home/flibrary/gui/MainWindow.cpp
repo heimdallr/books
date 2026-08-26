@@ -219,7 +219,7 @@ public:
 private: // QObject
 	bool eventFilter(QObject* watched, QEvent* event) override
 	{
-		switch (event->type())
+		switch (event->type()) // NOLINT(clang-diagnostic-switch-enum)
 		{
 			case QEvent::Show:
 				m_callback(true);
