@@ -2747,6 +2747,10 @@ Try again?</source>
 %2</translation>
     </message>
     <message>
+        <source>Check to add &quot;%1&quot; to the toolbar</source>
+        <translation>Установите флажок, чтобы добавить &quot;%1&quot; на панель инструментов</translation>
+    </message>
+    <message>
         <source>Check to hide &quot;%1&quot;</source>
         <translation>Установите флажок, чтобы скрыть &quot;%1&quot;</translation>
     </message>
@@ -2759,8 +2763,8 @@ Try again?</source>
         <translation>Пиктограмма для &quot;%1&quot;</translation>
     </message>
     <message>
-        <source>Image files (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)</source>
-        <translation>Файлы изображений (*.ico *.png *.bmp *.jpg *.jpeg);;Все файлы (*.*)</translation>
+        <source>Image files (*.ico *.png *.bmp *.jpg *.jpeg *.svg);;All files (*.*)</source>
+        <translation>Файлы изображений (*.ico *.png *.bmp *.jpg *.jpeg *.svg);;Все файлы (*.*)</translation>
     </message>
     <message>
         <source>Remove hotkey</source>
@@ -4834,16 +4838,16 @@ Try again?</source>
         <translation>&amp;Настройки</translation>
     </message>
     <message>
+        <source>&amp;Status line</source>
+        <translation>Строка &amp;статуса</translation>
+    </message>
+    <message>
         <source>&amp;System</source>
         <translation>Системна&amp;я</translation>
     </message>
     <message>
         <source>&amp;Test colors</source>
         <translation>&amp;Цвета сообщений</translation>
-    </message>
-    <message>
-        <source>&amp;Theme</source>
-        <translation>&amp;Тема</translation>
     </message>
     <message>
         <source>&amp;Title</source>
@@ -4866,8 +4870,8 @@ Try again?</source>
         <translation>А&amp;ннотация</translation>
     </message>
     <message>
-        <source>About the author</source>
-        <translation>Об авторе</translation>
+        <source>About the a&amp;uthor</source>
+        <translation>Об а&amp;вторе</translation>
     </message>
     <message>
         <source>Add &amp;new collection...</source>
@@ -4878,12 +4882,12 @@ Try again?</source>
         <translation>Добавить темы...</translation>
     </message>
     <message>
-        <source>Allow destructive operations</source>
-        <translation>Разрешить деструктивные операции</translation>
+        <source>Al&amp;phabets</source>
+        <translation>Ал&amp;фавиты</translation>
     </message>
     <message>
-        <source>Alphabets</source>
-        <translation>Алфавиты</translation>
+        <source>Allow destructive operations</source>
+        <translation>Разрешить деструктивные операции</translation>
     </message>
     <message>
         <source>Are you really sure?</source>
@@ -5038,10 +5042,6 @@ Try again?</source>
         <translation>Перезаписывать &amp;метаданные</translation>
     </message>
     <message>
-        <source>S&amp;tatus line</source>
-        <translation>Строка &amp;статуса</translation>
-    </message>
-    <message>
         <source>Search &amp;bar by title</source>
         <translation>Панель поиска по &amp;названию</translation>
     </message>
@@ -5090,6 +5090,10 @@ Try again?</source>
         <translation>Показать &amp;статистику...</translation>
     </message>
     <message>
+        <source>Show &amp;toolbar</source>
+        <translation>&amp;Панель инструментов</translation>
+    </message>
+    <message>
         <source>Show collection s&amp;tatistics</source>
         <translation>Показать с&amp;татистику коллекции</translation>
     </message>
@@ -5108,6 +5112,10 @@ Try again?</source>
     <message>
         <source>The right decision!</source>
         <translation>Правильное решение!</translation>
+    </message>
+    <message>
+        <source>The&amp;me</source>
+        <translation>&amp;Тема</translation>
     </message>
     <message>
         <source>To search for books by %1, enter the name or title here and press Enter</source>
