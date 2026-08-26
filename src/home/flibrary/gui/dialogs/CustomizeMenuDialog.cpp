@@ -53,9 +53,9 @@ struct Column
 	{
 		Title,
 		Hotkey,
-		Icon,
 		Hidden,
 		OnToolbar,
+		Icon,
 		Last
 	};
 };
@@ -179,6 +179,9 @@ private:
 					case Qt::DisplayRole:
 					case Qt::ToolTipRole:
 						return m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data(role);
+
+					case Qt::DecorationRole:
+						return m_menuCustomizer->GetIcon(key);
 
 					case Qt::ForegroundRole:
 						if (m_menuCustomizer->IsHidden(key).toBool())
