@@ -201,8 +201,7 @@ private: // IUiFactory
 	{
 	}
 
-	std::pair<Flibrary::IDataItem::Ptr, QObject*>
-	AddWidgetToMenuCustomizer(const QString& /*rootKey*/, QWidget& /*widget*/, const QString& /*title*/, const MenuCustomizeFunctor<QAction>& /*functor*/) const override
+	std::pair<Flibrary::IDataItem::Ptr, QObject*> AddWidgetToMenuCustomizer(const QString& /*rootKey*/, QWidget& /*widget*/, const QString& /*title*/, const MenuCustomizeFunctor& /*functor*/) const override
 	{
 		return {};
 	}
@@ -211,7 +210,7 @@ private: // IUiFactory
 		const QString& /*rootKey*/,
 		QMenuBar& /*menuBar*/,
 		const QString& /*title*/,
-		const MenuCustomizeFunctor<QAction>& /*functor*/
+		const MenuCustomizeFunctor& /*functor*/
 	) const override
 	{
 		return {};
@@ -221,8 +220,13 @@ private: // IUiFactory
 		const QString& /*rootKey*/,
 		QComboBox& /*comboBox*/,
 		const QString& /*title*/,
-		const MenuCustomizeFunctor<QShortcut>& /*functor*/
+		const MenuCustomizeFunctor& /*functor*/
 	) const override
+	{
+		return {};
+	}
+
+	Flibrary::IMenuCustomizer::IItem::Ptr CreateMenuCustomizerItem(Flibrary::IDataItem::Ptr, Flibrary::IMenuCustomizer::IObserver&) const override
 	{
 		return {};
 	}

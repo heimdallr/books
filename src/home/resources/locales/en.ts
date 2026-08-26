@@ -2733,6 +2733,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Check to add &quot;%1&quot; to the toolbar</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Check to hide &quot;%1&quot;</source>
         <translation></translation>
     </message>
@@ -2745,7 +2749,7 @@ Try again?</source>
         <translation>Icon for &quot;%1&quot;</translation>
     </message>
     <message>
-        <source>Image files (*.ico *.png *.bmp *.jpg *.jpeg);;All files (*.*)</source>
+        <source>Image files (*.ico *.png *.bmp *.jpg *.jpeg *.svg);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>
@@ -4820,15 +4824,15 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Status line</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;System</source>
         <translation></translation>
     </message>
     <message>
         <source>&amp;Test colors</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>&amp;Theme</source>
         <translation></translation>
     </message>
     <message>
@@ -4852,7 +4856,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>About the author</source>
+        <source>About the a&amp;uthor</source>
         <translation></translation>
     </message>
     <message>
@@ -4864,11 +4868,11 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Allow destructive operations</source>
+        <source>Al&amp;phabets</source>
         <translation></translation>
     </message>
     <message>
-        <source>Alphabets</source>
+        <source>Allow destructive operations</source>
         <translation></translation>
     </message>
     <message>
@@ -5024,10 +5028,6 @@ Try again?</source>
         <translation>Overwrite &amp;metadata</translation>
     </message>
     <message>
-        <source>S&amp;tatus line</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Search &amp;bar by title</source>
         <translation></translation>
     </message>
@@ -5076,6 +5076,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Show &amp;toolbar</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Show collection s&amp;tatistics</source>
         <translation></translation>
     </message>
@@ -5093,6 +5097,10 @@ Try again?</source>
     </message>
     <message>
         <source>The right decision!</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>The&amp;me</source>
         <translation></translation>
     </message>
     <message>

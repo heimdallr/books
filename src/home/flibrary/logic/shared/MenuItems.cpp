@@ -48,9 +48,9 @@ left join Groups_List_User_View gw on gw.GroupID = g.GroupID and gw.BookID = :id
 
 	const auto parent = AddMenuItem(root, GROUPS, Tr(GROUPS));
 
-	const auto add    = AddMenuItem(parent, GROUPS_ADD_TO, Tr(GROUPS_ADD_TO), GroupsMenuAction::AddToGroup);
-	const auto remove = AddMenuItem(parent, GROUPS_REMOVE_FROM, Tr(GROUPS_REMOVE_FROM), GroupsMenuAction::RemoveFromGroup);
-	const auto move   = AddMenuItem(parent, GROUPS_MOVE_TO, Tr(GROUPS_MOVE_TO), GroupsMenuAction::MoveToGroup);
+	const auto add    = AddMenuItem(parent, GROUPS_ADD_TO, Tr(GROUPS_ADD_TO));
+	const auto remove = AddMenuItem(parent, GROUPS_REMOVE_FROM, Tr(GROUPS_REMOVE_FROM));
+	const auto move   = AddMenuItem(parent, GROUPS_MOVE_TO, Tr(GROUPS_MOVE_TO));
 
 	const auto createMenuItem = [&](const DB::IQuery& query) -> void {
 		auto title         = query.Get<QString>(1);

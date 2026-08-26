@@ -24,6 +24,7 @@ private: // IMenuCustomizer
 	QString        GetHotkey(const QString& key) const override;
 	QVariant       GetIcon(const QString& key) const override;
 	QVariant       IsHidden(const QString& key) const override;
+	QVariant       AddedToToolbar(const QString& key) const override;
 
 	void UpdateItems() override;
 
@@ -32,8 +33,11 @@ private: // IMenuCustomizer
 	void    Add(const QString& rootKey, QComboBox& comboBox, const QString& title) override;
 	QString SetHotkey(const QString& key, const QString& shortCut) override;
 	void    Hide(const QString& key, bool hidden) override;
+	void    AddToToolbar(const QString& key, bool add) override;
 
 	std::expected<void, QString> SetIcon(const QString& key, const QString& path) override;
+
+	void SetToolbarController(IToolbarController* toolbarController) noexcept override;
 
 	void RegisterObserver(IObserver* observer) override;
 	void UnregisterObserver(IObserver* observer) override;
