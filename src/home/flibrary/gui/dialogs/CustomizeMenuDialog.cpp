@@ -276,11 +276,6 @@ private:
 		const auto key       = index.data(ModelRole::Key).toString();
 		const auto abilities = m_menuCustomizer->GetAbilities(key);
 
-		if (index.column() == Column::OnToolbar)
-		{
-			PLOGI << "1";
-		}
-
 		if (index.column() == Column::Hotkey && !!(abilities & IMenuCustomizer::ItemAbility::Hotkey))
 			flags |= Qt::ItemIsEditable;
 
