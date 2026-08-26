@@ -106,6 +106,7 @@ constexpr auto SHOW_TOOLBAR_KEY                   = "ui/View/ShowToolBar";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
 constexpr auto TOOLBAR_ORDER_KEY                  = "ui/MenuCustomization/ToolbarOrder";
 constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
+constexpr auto TOOLBAR_WITH_MAIN_MENU             = "Preferences/ToolbarWithMainMenu";
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 constexpr auto NAVIGATION_ACTION_ID_PROPERTY      = "navigationMode";
@@ -793,6 +794,8 @@ private:
 		));
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 		m_ui.toolWidgetLayout->insertWidget(0, m_self.menuBar());
+		if (m_settings->Get(TOOLBAR_WITH_MAIN_MENU, false))
+			m_ui.toolWidgetLayout->insertWidget(1, m_ui.toolBar);
 		m_self.setMenuWidget(m_ui.toolWidget);
 	}
 
