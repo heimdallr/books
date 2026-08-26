@@ -266,6 +266,10 @@ private: // IMenuCustomizer::IToolbarController
 		if (!m_actions.try_emplace(key, action).second)
 			return;
 
+		QObject::connect(action, &QObject::destroyed, [this, key] {
+			m_actions.erase(key);
+		});
+
 		m_showAction.setEnabled(true);
 		if (m_keys.isEmpty())
 			m_toolbar.setVisible(true);

@@ -674,6 +674,11 @@ private: // IMenuCustomizer::IItem
 		MenuCustomizerItemBase::SetIcon(settings, value, bytes);
 	}
 
+	void SetEnabled(const bool enabled) override
+	{
+		m_action.setEnabled(enabled);
+	}
+
 private:
 	QAction& m_action;
 };
@@ -729,6 +734,13 @@ protected: // IMenuCustomizer::IItem
 		QObject::connect(m_action, &QAction::triggered, [this] {
 			emit m_shortcut->activated();
 		});
+	}
+
+	void SetEnabled(const bool enabled) override
+	{
+		m_shortcut->setEnabled(enabled);
+		if (m_action)
+			m_action->setEnabled(enabled);
 	}
 
 protected:
