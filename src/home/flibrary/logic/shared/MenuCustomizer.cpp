@@ -374,10 +374,18 @@ private:
 	void UpdateObserverMenu()
 	{
 		Perform([this](const IObserver* observer) {
-			if (const auto bookMenu = m_root->FindChild([key = observer->GetRootKey()](const auto& item) {
+			const auto cleanUp = [](IDataItem& parent, const auto& r) -> void {
+				for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
+					r(*parent.GetChild(i), r);
+				parent.RemoveAllChildren();
+			};
+			if (const auto observerMenu = m_root->FindChild([key = observer->GetRootKey()](const auto& item) {
 					return item.GetData(SettingsItem::Column::Key) == key;
 				}))
-				m_root->RemoveChild(bookMenu->GetRow());
+			{
+				cleanUp(*observerMenu, cleanUp);
+				m_root->RemoveChild(observerMenu->GetRow());
+			}
 		});
 
 		auto count = GetObserverCount();
