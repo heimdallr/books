@@ -795,7 +795,7 @@ private:
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 		m_ui.toolWidgetLayout->insertWidget(0, m_self.menuBar());
 		if (m_settings->Get(TOOLBAR_WITH_MAIN_MENU, false))
-			m_ui.toolWidgetLayout->insertWidget(1, m_ui.toolBar);
+			m_ui.toolWidgetFillerLeftLayout->insertWidget(1, m_ui.toolBar);
 		m_self.setMenuWidget(m_ui.toolWidget);
 	}
 
@@ -1179,6 +1179,7 @@ private:
 		connect(m_ui.toolBar, &QToolBar::visibilityChanged, [this](const bool isVisible) {
 			SignalBlocker(m_ui.actionShowToolbar)->setChecked(isVisible);
 			m_settings->Set(SHOW_TOOLBAR_KEY, isVisible);
+			OnBooksSearchFilterValueGeometryChangedImpl(50);
 		});
 
 		m_ui.actionShowAuthorAnnotation->setVisible(
@@ -1408,7 +1409,8 @@ private:
 			const auto globalRight = Util::GetGlobalGeometry(m_self).right();
 			m_ui.toolWidgetFillerRight->setFixedWidth(std::max(globalRight - m_lastGeometry.right(), 0));
 			const auto toolWidgetLeft = Util::GetGlobalGeometry(*m_ui.toolWidgetFillerLeft).left();
-			m_ui.toolWidgetFillerLeft->setFixedWidth(std::max(m_lastGeometry.left() - toolWidgetLeft, 0));
+			const auto minWidth       = m_ui.toolBar->isVisible() && m_ui.toolWidgetFillerLeftLayout->count() > 2 ? m_ui.toolBar->height() * static_cast<int>(m_ui.toolBar->actions().count()) + 4 : 0;
+			m_ui.toolWidgetFillerLeft->setFixedWidth(std::max(m_lastGeometry.left() - toolWidgetLeft, minWidth));
 			m_ui.toolWidgetLayout->invalidate();
 		});
 	}
