@@ -249,11 +249,14 @@ std::set<QString> GetQssList()
 	return list;
 }
 
-class ToolbarController final : public IMenuCustomizer::IToolbarController
+class ToolbarController final
+	: public QObject
+	, public IMenuCustomizer::IToolbarController
 {
 public:
-	ToolbarController(ISettings& settings, QToolBar& toolbar, QAction& showAction)
-		: m_settings { settings }
+	ToolbarController(ISettings& settings, QToolBar& toolbar, QAction& showAction, QObject* parent)
+		: QObject(parent)
+		, m_settings { settings }
 		, m_toolbar { toolbar }
 		, m_showAction { showAction }
 		, m_keys { m_settings.Get(TOOLBAR_ORDER_KEY).toStringList() }
@@ -266,7 +269,7 @@ private: // IMenuCustomizer::IToolbarController
 		if (!m_actions.try_emplace(key, action).second)
 			return;
 
-		QObject::connect(action, &QObject::destroyed, [this, key] {
+		connect(action, &QObject::destroyed, this, [this, key] {
 			m_actions.erase(key);
 		});
 
@@ -684,9 +687,8 @@ private:
 		PLOGV << "Setup";
 		m_ui.setupUi(&m_self);
 
-		auto toolbarController = std::make_unique<ToolbarController>(*m_settings, *m_ui.toolBar, *m_ui.actionShowToolbar);
-		m_menuCustomizer->SetToolbarController(toolbarController.get());
-		m_toolbarController = std::move(toolbarController);
+		auto* toolbarController = new ToolbarController(*m_settings, *m_ui.toolBar, *m_ui.actionShowToolbar, &m_self);
+		m_menuCustomizer->SetToolbarController(toolbarController);
 
 		const auto getProductName = [] {
 			return QString("%1 %2 %3").arg(PRODUCT_ID, PRODUCT_VERSION, Util::GetInstallerDescription().name);
@@ -1818,8 +1820,6 @@ private:
 
 	std::shared_ptr<QMainWindow> m_queryWindow;
 	std::shared_ptr<QWidget>     m_additionalWidget;
-
-	std::unique_ptr<const IMenuCustomizer::IToolbarController> m_toolbarController;
 
 	Util::FunctorExecutionForwarder m_forwarder;
 	const Log::LogAppender          m_logAppender { this };
