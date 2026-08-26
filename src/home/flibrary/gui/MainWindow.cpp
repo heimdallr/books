@@ -104,10 +104,12 @@ constexpr auto SHOW_REVIEWS_KEY                   = "ui/View/ShowReadersReviews"
 constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
 constexpr auto SHOW_TOOLBAR_KEY                   = "ui/View/ShowToolBar";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
+constexpr auto TOOLBAR_ORDER_KEY                  = "ui/MenuCustomization/ToolbarOrder";
 constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 constexpr auto NAVIGATION_ACTION_ID_PROPERTY      = "navigationMode";
+constexpr auto INDEX                              = "index";
 
 #define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO  \
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)       \
@@ -250,15 +252,45 @@ std::set<QString> GetQssList()
 class ToolbarController final : public IMenuCustomizer::IToolbarController
 {
 public:
-	explicit ToolbarController(QToolBar& toolbar)
-		: m_toolbar { toolbar }
+	ToolbarController(ISettings& settings, QToolBar& toolbar, QAction& showAction)
+		: m_settings { settings }
+		, m_toolbar { toolbar }
+		, m_showAction { showAction }
+		, m_keys { m_settings.Get(TOOLBAR_ORDER_KEY).toStringList() }
 	{
 	}
 
 private: // IMenuCustomizer::IToolbarController
 	void AddAction(const QString& key, QAction* action) override
 	{
-		if (m_actions.emplace(key, action).second)
+		if (!m_actions.try_emplace(key, action).second)
+			return;
+
+		m_showAction.setEnabled(true);
+		if (m_keys.isEmpty())
+			m_toolbar.setVisible(true);
+
+		const auto index = m_keys.indexOf(key);
+		if (index < 0)
+		{
+			action->setProperty(INDEX, m_keys.size());
+			m_settings.Set(TOOLBAR_ORDER_KEY, m_keys << key);
+			return m_toolbar.addAction(action);
+		}
+
+		action->setProperty(INDEX, index);
+		const auto actions = m_toolbar.actions();
+		if (const auto it = std::ranges::upper_bound(
+				actions,
+				index,
+				{},
+				[](const QAction* item) {
+					return item->property(INDEX).toInt();
+				}
+			);
+		    it != actions.end())
+			m_toolbar.insertAction(*it, action);
+		else
 			m_toolbar.addAction(action);
 	}
 
@@ -266,13 +298,28 @@ private: // IMenuCustomizer::IToolbarController
 	{
 		const auto it = m_actions.find(key);
 		assert(it != m_actions.end());
+
 		m_toolbar.removeAction(it->second);
 		m_actions.erase(it);
+
+		[[maybe_unused]] const auto ok = m_keys.removeOne(key);
+		assert(ok);
+
+		m_settings.Set(TOOLBAR_ORDER_KEY, m_keys);
+
+		if (m_keys.isEmpty())
+		{
+			m_showAction.setEnabled(false);
+			m_toolbar.setVisible(false);
+		}
 	}
 
 private:
+	ISettings&                            m_settings;
 	QToolBar&                             m_toolbar;
+	QAction&                              m_showAction;
 	std::unordered_map<QString, QAction*> m_actions;
+	QStringList                           m_keys;
 };
 
 } // namespace
@@ -632,6 +679,10 @@ private:
 	{
 		PLOGV << "Setup";
 		m_ui.setupUi(&m_self);
+
+		auto toolbarController = std::make_unique<ToolbarController>(*m_settings, *m_ui.toolBar, *m_ui.actionShowToolbar);
+		m_menuCustomizer->SetToolbarController(toolbarController.get());
+		m_toolbarController = std::move(toolbarController);
 
 		const auto getProductName = [] {
 			return QString("%1 %2 %3").arg(PRODUCT_ID, PRODUCT_VERSION, Util::GetInstallerDescription().name);
@@ -1574,10 +1625,6 @@ private:
 	void SetupHotkeys()
 	{
 		m_menuCustomizer->Add(MAIN_WINDOW, *m_ui.menuBar, Tr(MAIN_MENU));
-
-		auto toolbarController = std::make_unique<ToolbarController>(*m_ui.toolBar);
-		m_menuCustomizer->SetToolbarController(toolbarController.get());
-		m_toolbarController = std::move(toolbarController);
 	}
 
 	void CheckForUpdates(const bool force) const
