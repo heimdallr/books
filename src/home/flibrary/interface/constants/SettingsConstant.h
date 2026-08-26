@@ -52,8 +52,6 @@ constexpr auto SEARCH_WITH_ANNOTATION = "SearchBy/Annotation";
 
 constexpr auto BACKGROUND_COLOR_TEMPLATE = "background-color: %1;";
 
-constexpr auto ICON = "icon";
-
 constexpr auto NAVIGATION_HIDDEN_KEY_TEMPLATE = "MainWindow/menuBar/menuNavigation/%1_isActive";
 
 } // namespace HomeCompa::Flibrary::Constant::Settings

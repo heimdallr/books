@@ -22,6 +22,8 @@
 #include "logic/data/DataItem.h"
 #include "utilgui/GeometryRestorable.h"
 
+#include "log.h"
+
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
@@ -38,6 +40,7 @@ constexpr auto SET_HOTKEY           = QT_TRANSLATE_NOOP("HotkeyDialog", "Set hot
 constexpr auto TOOLTIP_ALREADY_USED = QT_TRANSLATE_NOOP("HotkeyDialog", "%1 already in use:\n%2");
 constexpr auto TOOLTIP_HIDE         = QT_TRANSLATE_NOOP("HotkeyDialog", "Check to hide \"%1\"");
 constexpr auto TOOLTIP_ITEM_ICON    = QT_TRANSLATE_NOOP("HotkeyDialog", "Icon for %1");
+constexpr auto TOOLTIP_ON_TOOLBAR   = QT_TRANSLATE_NOOP("HotkeyDialog", "Check to add \"%1\" to the toolbar");
 constexpr auto TOOLTIP_SET_HOTKEY   = QT_TRANSLATE_NOOP("HotkeyDialog", "Double-click to set the hotkey for \"%1\"");
 
 TR_DEF
@@ -52,6 +55,7 @@ struct Column
 		Hotkey,
 		Icon,
 		Hidden,
+		OnToolbar,
 		Last
 	};
 };
@@ -109,10 +113,25 @@ private: // QAbstractItemModel
 			case Qt::CheckStateRole:
 			{
 				const auto sourceIndex = mapToSource(index);
-				m_menuCustomizer->Hide(m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data().toString(), value.value<Qt::CheckState>() == Qt::Checked);
 				roles.push_back(Qt::CheckStateRole);
-				const auto titleIndex = this->index(index.row(), Column::Title, index.parent());
-				emit       dataChanged(titleIndex, titleIndex, { Qt::ForegroundRole, Qt::FontRole });
+
+				switch (index.column())
+				{
+					case Column::Hidden:
+					{
+						m_menuCustomizer->Hide(m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data().toString(), value.value<Qt::CheckState>() == Qt::Checked);
+						const auto titleIndex = this->index(index.row(), Column::Title, index.parent());
+						emit       dataChanged(titleIndex, titleIndex, { Qt::ForegroundRole, Qt::FontRole });
+						break;
+					}
+
+					case Column::OnToolbar:
+						m_menuCustomizer->AddToToolbar(m_source->index(sourceIndex.row(), SettingsItem::Column::Key, sourceIndex.parent()).data().toString(), value.value<Qt::CheckState>() == Qt::Checked);
+						break;
+
+					default:
+						break;
+				}
 				break;
 			}
 
@@ -221,6 +240,26 @@ private:
 				}
 				return {};
 
+			case Column::OnToolbar:
+				switch (role)
+				{
+					case Qt::ToolTipRole:
+						if (!!(m_menuCustomizer->GetAbilities(key) & IMenuCustomizer::ItemAbility::Hotkey) && m_menuCustomizer->GetIcon(key).isValid())
+							return Tr(TOOLTIP_ON_TOOLBAR).arg(m_source->index(sourceIndex.row(), SettingsItem::Column::Title, sourceIndex.parent()).data().toString());
+						break;
+
+					case Qt::CheckStateRole:
+						if (!(m_menuCustomizer->GetAbilities(key) & IMenuCustomizer::ItemAbility::Hotkey) || !m_menuCustomizer->GetIcon(key).isValid())
+							return {};
+						if (const auto hidden = m_menuCustomizer->AddedToToolbar(key); hidden.isValid())
+							return hidden.toBool() ? Qt::Checked : Qt::Unchecked;
+						return Qt::Unchecked;
+
+					default:
+						break;
+				}
+				return {};
+
 			default:
 				assert(false && "unexpected column");
 		}
@@ -237,10 +276,18 @@ private:
 		const auto key       = index.data(ModelRole::Key).toString();
 		const auto abilities = m_menuCustomizer->GetAbilities(key);
 
+		if (index.column() == Column::OnToolbar)
+		{
+			PLOGI << "1";
+		}
+
 		if (index.column() == Column::Hotkey && !!(abilities & IMenuCustomizer::ItemAbility::Hotkey))
 			flags |= Qt::ItemIsEditable;
 
 		if (index.column() == Column::Hidden && !!(abilities & IMenuCustomizer::ItemAbility::Hide))
+			flags |= Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
+
+		if (index.column() == Column::OnToolbar && !!(abilities & IMenuCustomizer::ItemAbility::Hotkey))
 			flags |= Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
 
 		return flags;
@@ -392,7 +439,7 @@ public:
 	{
 		m_ui.setupUi(&m_self);
 
-		m_itemViewToolTipper->SetShowForceColumns({ Column::Hotkey, Column::Icon, Column::Hidden });
+		m_itemViewToolTipper->SetShowForceColumns({ Column::Hotkey, Column::Icon, Column::Hidden, Column::OnToolbar });
 		m_itemViewToolTipper->SetScrollArea(m_ui.view);
 		m_scrollBarController->SetScrollArea(m_ui.view);
 
@@ -405,6 +452,7 @@ public:
 		header.setSectionResizeMode(Column::Hotkey, QHeaderView::ResizeToContents);
 		header.setSectionResizeMode(Column::Icon, QHeaderView::Fixed);
 		header.setSectionResizeMode(Column::Hidden, QHeaderView::Fixed);
+		header.setSectionResizeMode(Column::OnToolbar, QHeaderView::Fixed);
 
 		m_ui.view->setItemDelegateForColumn(Column::Hotkey, new HotkeyDelegate(&m_self));
 		//		m_ui.view->setItemDelegateForColumn(Column::Icon, new IconCenterDelegate(&m_self));

@@ -102,6 +102,7 @@ constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "Preferences/AnnotationJokes
 constexpr auto SHOW_STATUS_BAR_KEY                = "ui/View/Status";
 constexpr auto SHOW_REVIEWS_KEY                   = "ui/View/ShowReadersReviews";
 constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
+constexpr auto SHOW_TOOLBAR_KEY                   = "ui/View/ShowToolBar";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
 constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
 constexpr auto QSS                                = "qss";
@@ -245,6 +246,34 @@ std::set<QString> GetQssList()
 		list.emplace(it.next());
 	return list;
 }
+
+class ToolbarController final : public IMenuCustomizer::IToolbarController
+{
+public:
+	explicit ToolbarController(QToolBar& toolbar)
+		: m_toolbar { toolbar }
+	{
+	}
+
+private: // IMenuCustomizer::IToolbarController
+	void AddAction(const QString& key, QAction* action) override
+	{
+		if (m_actions.emplace(key, action).second)
+			m_toolbar.addAction(action);
+	}
+
+	void RemoveAction(const QString& key) override
+	{
+		const auto it = m_actions.find(key);
+		assert(it != m_actions.end());
+		m_toolbar.removeAction(it->second);
+		m_actions.erase(it);
+	}
+
+private:
+	QToolBar&                             m_toolbar;
+	std::unordered_map<QString, QAction*> m_actions;
+};
 
 } // namespace
 
@@ -1060,10 +1089,16 @@ private:
 	{
 		PLOGV << "ConnectActionsSettingsView";
 		ConnectSettings(m_ui.actionShowRemoved, Constant::Settings::SHOW_REMOVED_BOOKS_KEY, this, &Impl::ShowRemovedBooks);
+		ConnectSettings(m_ui.actionShowToolbar, SHOW_TOOLBAR_KEY, qobject_cast<QWidget*>(m_ui.toolBar), &QWidget::setVisible);
 		ConnectSettings(m_ui.actionShowStatusBar, SHOW_STATUS_BAR_KEY, qobject_cast<QWidget*>(m_ui.statusBar), &QWidget::setVisible);
 		ConnectSettings(m_ui.actionShowSearchBookString, SHOW_SEARCH_BOOK_KEY, qobject_cast<QWidget*>(m_ui.lineEditBookTitleToSearch), &QWidget::setVisible);
 		ConnectSettings(m_ui.actionShowAuthorAnnotation, SHOW_AUTHOR_ANNOTATION_KEY, m_authorAnnotationWidget.get(), &AuthorAnnotationWidget::Show);
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
+
+		connect(m_ui.toolBar, &QToolBar::visibilityChanged, [this](const bool isVisible) {
+			SignalBlocker(m_ui.actionShowToolbar)->setChecked(isVisible);
+			m_settings->Set(SHOW_TOOLBAR_KEY, isVisible);
+		});
 
 		m_ui.actionShowAuthorAnnotation->setVisible(
 			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::AUTHORS_FOLDER).exists()
@@ -1539,6 +1574,10 @@ private:
 	void SetupHotkeys()
 	{
 		m_menuCustomizer->Add(MAIN_WINDOW, *m_ui.menuBar, Tr(MAIN_MENU));
+
+		auto toolbarController = std::make_unique<ToolbarController>(*m_ui.toolBar);
+		m_menuCustomizer->SetToolbarController(toolbarController.get());
+		m_toolbarController = std::move(toolbarController);
 	}
 
 	void CheckForUpdates(const bool force) const
@@ -1728,6 +1767,8 @@ private:
 
 	std::shared_ptr<QMainWindow> m_queryWindow;
 	std::shared_ptr<QWidget>     m_additionalWidget;
+
+	std::unique_ptr<const IMenuCustomizer::IToolbarController> m_toolbarController;
 
 	Util::FunctorExecutionForwarder m_forwarder;
 	const Log::LogAppender          m_logAppender { this };
