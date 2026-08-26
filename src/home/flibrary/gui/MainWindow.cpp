@@ -261,6 +261,7 @@ public:
 		, m_showAction { showAction }
 		, m_keys { m_settings.Get(TOOLBAR_ORDER_KEY).toStringList() }
 	{
+		m_toolbar.toggleViewAction()->setVisible(false);
 	}
 
 private: // IMenuCustomizer::IToolbarController
