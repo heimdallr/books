@@ -254,11 +254,21 @@ class ToolbarController final
 	, public IMenuCustomizer::IToolbarController
 {
 public:
-	ToolbarController(ISettings& settings, QToolBar& toolbar, QAction& showAction, QObject* parent)
+	class IObserver // NOLINT(cppcoreguidelines-special-member-functions)
+	{
+	public:
+		virtual ~IObserver()                  = default;
+		virtual void OnActionAdded()          = 0;
+		virtual void OnActionRemoved()        = 0;
+		virtual void SetEnabled(bool enabled) = 0;
+	};
+
+public:
+	ToolbarController(ISettings& settings, QToolBar& toolbar, IObserver& observer, QObject* parent)
 		: QObject(parent)
 		, m_settings { settings }
 		, m_toolbar { toolbar }
-		, m_showAction { showAction }
+		, m_observer { observer }
 		, m_keys { m_settings.Get(TOOLBAR_ORDER_KEY).toStringList() }
 	{
 		m_toolbar.toggleViewAction()->setVisible(false);
@@ -270,11 +280,16 @@ private: // IMenuCustomizer::IToolbarController
 		if (!m_actions.try_emplace(key, action).second)
 			return;
 
+		const ScopedCall addedGuard([this] {
+			m_toolbar.update();
+			m_observer.OnActionAdded();
+		});
+
 		connect(action, &QObject::destroyed, this, [this, key] {
 			m_actions.erase(key);
 		});
 
-		m_showAction.setEnabled(true);
+		m_observer.SetEnabled(true);
 		if (m_keys.isEmpty())
 			m_toolbar.setVisible(true);
 
@@ -308,6 +323,8 @@ private: // IMenuCustomizer::IToolbarController
 		assert(it != m_actions.end());
 
 		m_toolbar.removeAction(it->second);
+		m_toolbar.update();
+		m_observer.OnActionRemoved();
 		m_actions.erase(it);
 
 		[[maybe_unused]] const auto ok = m_keys.removeOne(key);
@@ -317,7 +334,7 @@ private: // IMenuCustomizer::IToolbarController
 
 		if (m_keys.isEmpty())
 		{
-			m_showAction.setEnabled(false);
+			m_observer.SetEnabled(false);
 			m_toolbar.setVisible(false);
 		}
 	}
@@ -325,7 +342,7 @@ private: // IMenuCustomizer::IToolbarController
 private:
 	ISettings&                            m_settings;
 	QToolBar&                             m_toolbar;
-	QAction&                              m_showAction;
+	IObserver&                            m_observer;
 	std::unordered_map<QString, QAction*> m_actions;
 	QStringList                           m_keys;
 };
@@ -340,6 +357,7 @@ class MainWindow::Impl final
 	, IAlphabetPanel::IObserver
 	, ITreeViewController::IObserver
 	, INavigationUndoRedo::IObserver
+	, ToolbarController::IObserver
 	, virtual plog::IAppender
 {
 	NON_COPY_MOVABLE(Impl)
@@ -428,18 +446,10 @@ public:
 		m_navigationUndoRedo->UnregisterObserver(this);
 	}
 
-	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry) const
+	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry)
 	{
-		const auto rect           = Util::GetGlobalGeometry(*m_ui.lineEditBookTitleToSearch);
-		const auto spacerNewWidth = m_searchBooksByTitleLeft->geometry().width() + geometry.x() - rect.x();
-
-		m_searchBooksByTitleLeft->changeSize(std::max(spacerNewWidth, 0), geometry.height(), QSizePolicy::Fixed, QSizePolicy::Expanding);
-		const auto lineEditBookTitleToSearchNewWidth = geometry.size().width() + std::min(spacerNewWidth, 0);
-		if (lineEditBookTitleToSearchNewWidth < 0)
-			return;
-
-		m_ui.lineEditBookTitleToSearch->setFixedWidth(lineEditBookTitleToSearchNewWidth);
-		m_searchBooksByTitleLayout->invalidate();
+		m_lastGeometry = geometry;
+		OnBooksSearchFilterValueGeometryChangedImpl();
 	}
 
 	void OnSearchNavigationItemSelected(long long /*id*/, const QString& text) const
@@ -682,13 +692,29 @@ private: // INavigationUndoRedo::IObserver
 		ILogicFactory::Lock(m_logicFactory)->FindBook(navigationMode, navigationId, bookId);
 	}
 
+private: // ToolbarController::IObserver
+	void OnActionAdded() override
+	{
+		OnBooksSearchFilterValueGeometryChangedImpl(50);
+	}
+
+	void OnActionRemoved() override
+	{
+		OnBooksSearchFilterValueGeometryChangedImpl(50);
+	}
+
+	void SetEnabled(const bool enabled) override
+	{
+		m_ui.actionShowToolbar->setEnabled(enabled);
+	}
+
 private:
 	void Setup()
 	{
 		PLOGV << "Setup";
 		m_ui.setupUi(&m_self);
 
-		auto* toolbarController = new ToolbarController(*m_settings, *m_ui.toolBar, *m_ui.actionShowToolbar, &m_self);
+		auto* toolbarController = new ToolbarController(*m_settings, *m_ui.toolBar, *this, &m_self);
 		m_menuCustomizer->SetToolbarController(toolbarController);
 
 		const auto getProductName = [] {
@@ -755,7 +781,7 @@ private:
 		SetupTrayMenu();
 	}
 
-	void ReplaceMenuBar()
+	void ReplaceMenuBar() const
 	{
 		PLOGV << "ReplaceMenuBar";
 		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(
@@ -765,15 +791,9 @@ private:
 				 SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 		));
-		auto* menuBar              = new QWidget(&m_self);
-		m_searchBooksByTitleLayout = new QHBoxLayout(menuBar);
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-		m_searchBooksByTitleLayout->addWidget(m_self.menuBar());
-		m_searchBooksByTitleLayout->addItem((m_searchBooksByTitleLeft = new QSpacerItem(72, 20, QSizePolicy::Fixed)));
-		m_searchBooksByTitleLayout->addWidget(m_ui.lineEditBookTitleToSearch);
-		m_searchBooksByTitleLayout->addItem(new QSpacerItem(72, 20, QSizePolicy::Expanding));
-		m_searchBooksByTitleLayout->setContentsMargins(0, 0, 0, 0);
-		m_self.setMenuWidget(menuBar);
+		m_ui.toolWidgetLayout->insertWidget(0, m_self.menuBar());
+		m_self.setMenuWidget(m_ui.toolWidget);
 	}
 
 	void SetupTrayMenu()
@@ -1258,6 +1278,8 @@ private:
 		connect(m_ui.actionShowMenuCustomizationDialog, &QAction::triggered, &m_self, [&] {
 			if (m_uiFactory->CreateHotkeyDialog()->exec() == IMenuCustomizer::Result::NeedReboot)
 				RebootDialog();
+			else
+				OnBooksSearchFilterValueGeometryChangedImpl();
 		});
 
 		connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
@@ -1375,6 +1397,17 @@ private:
 		auto applier = m_styleApplierFactory->CreateStyleApplier(static_cast<IStyleApplier::Type>(action.property(IStyleApplier::ACTION_PROPERTY_THEME_TYPE).toInt()));
 		applier->Apply(action.property(IStyleApplier::ACTION_PROPERTY_THEME_NAME).toString(), action.property(IStyleApplier::ACTION_PROPERTY_THEME_FILE).toString());
 		RebootDialog();
+	}
+
+	void OnBooksSearchFilterValueGeometryChangedImpl(const int timeout = 0) const
+	{
+		QTimer::singleShot(timeout, [this] {
+			const auto globalRight = Util::GetGlobalGeometry(m_self).right();
+			m_ui.toolWidgetFillerRight->setFixedWidth(std::max(globalRight - m_lastGeometry.right(), 0));
+			const auto toolWidgetLeft = Util::GetGlobalGeometry(*m_ui.toolWidgetFillerLeft).left();
+			m_ui.toolWidgetFillerLeft->setFixedWidth(std::max(m_lastGeometry.left() - toolWidgetLeft, 0));
+			m_ui.toolWidgetLayout->invalidate();
+		});
 	}
 
 	void RebootDialog() const
@@ -1826,8 +1859,6 @@ private:
 	const Log::LogAppender          m_logAppender { this };
 
 	QMetaObject::Connection m_settingsLineEditExecuteContextMenuConnection;
-	QSpacerItem*            m_searchBooksByTitleLeft;
-	QLayout*                m_searchBooksByTitleLayout;
 	QObject*                m_annotationWidgetEventFilter;
 
 	bool m_checkForUpdateOnStartEnabled { true };
@@ -1844,6 +1875,8 @@ private:
 
 	bool m_isMaximized { false };
 	bool m_isFullScreen { false };
+
+	QRect m_lastGeometry;
 
 	std::optional<Collection> m_collectionToRecreate;
 };

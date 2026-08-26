@@ -768,8 +768,8 @@ public:
 private: // IMenuCustomizer::IItem
 	void SetIcon(ISettings& settings, const QVariant& value, const QByteArray& bytes) override
 	{
-		m_comboBox.setItemData(m_index, m_icon, Qt::DecorationRole);
 		MenuCustomizerItemShortCut::SetIcon(settings, value, bytes);
+		m_comboBox.setItemData(m_index, m_icon, Qt::DecorationRole);
 	}
 
 private:
