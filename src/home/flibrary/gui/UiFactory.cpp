@@ -573,7 +573,7 @@ protected: // IMenuCustomizer::IItem
 
 	QAction* GetToolbarAction() const override
 	{
-		return nullptr;
+		return m_addedToToolbar.isValid() && m_addedToToolbar.toBool() ? m_toolbarAction : nullptr;
 	}
 
 	QVariant GetIcon() const override
@@ -619,10 +619,23 @@ protected: // IMenuCustomizer::IItem
 	}
 
 protected:
+	void AddToToolbarImpl(ISettings& settings, const bool add, std::function<void()> f)
+	{
+		MenuCustomizerItemBase::AddToToolbar(settings, add);
+		if (!add)
+			return;
+
+		m_toolbarAction = new QAction(GetIcon().value<QIcon>(), m_item->GetData(SettingsItem::Column::Title));
+		m_toolbarAction->setToolTip(m_toolbarAction->text());
+		QObject::connect(m_toolbarAction, &QAction::triggered, std::move(f));
+	}
+
+protected:
 	IDataItem::Ptr               m_item;
 	IMenuCustomizer::ItemAbility m_abilities { IMenuCustomizer::ItemAbility::All };
 	QVariant                     m_hidden { false };
 	QVariant                     m_addedToToolbar { false };
+	QAction*                     m_toolbarAction { nullptr };
 };
 
 std::unique_ptr<ISettings> MenuCustomizerItemBase::s_settingsStub { SettingsFactory::CreateStub() };
@@ -658,11 +671,6 @@ private: // IMenuCustomizer::IItem
 		return icon.isNull() ? QVariant {} : QVariant::fromValue(std::move(icon));
 	}
 
-	QAction* GetToolbarAction() const override
-	{
-		return m_addedToToolbar.isValid() && m_addedToToolbar.toBool() ? &m_action : nullptr;
-	}
-
 	QString GetHotkey() const override
 	{
 		return m_action.shortcut().toString();
@@ -672,6 +680,13 @@ private: // IMenuCustomizer::IItem
 	{
 		m_action.setIcon(value.value<QIcon>());
 		MenuCustomizerItemBase::SetIcon(settings, value, bytes);
+	}
+
+	void AddToToolbar(ISettings& settings, const bool add) override
+	{
+		AddToToolbarImpl(settings, add, [this] {
+			m_action.trigger();
+		});
 	}
 
 	void SetEnabled(const bool enabled) override
@@ -707,11 +722,6 @@ protected: // IMenuCustomizer::IItem
 		return m_icon;
 	}
 
-	QAction* GetToolbarAction() const override
-	{
-		return m_addedToToolbar.isValid() && m_addedToToolbar.toBool() ? m_action : nullptr;
-	}
-
 	QString GetHotkey() const override
 	{
 		return m_shortcut->key().toString();
@@ -725,13 +735,7 @@ protected: // IMenuCustomizer::IItem
 
 	void AddToToolbar(ISettings& settings, const bool add) override
 	{
-		MenuCustomizerItemBase::AddToToolbar(settings, add);
-		if (!add)
-			return;
-
-		m_action = new QAction(GetIcon().value<QIcon>(), m_item->GetData(SettingsItem::Column::Title));
-		m_action->setToolTip(m_action->text());
-		QObject::connect(m_action, &QAction::triggered, [this] {
+		AddToToolbarImpl(settings, add, [this] {
 			emit m_shortcut->activated();
 		});
 	}
@@ -739,14 +743,13 @@ protected: // IMenuCustomizer::IItem
 	void SetEnabled(const bool enabled) override
 	{
 		m_shortcut->setEnabled(enabled);
-		if (m_action)
-			m_action->setEnabled(enabled);
+		if (m_toolbarAction)
+			m_toolbarAction->setEnabled(enabled);
 	}
 
 protected:
 	QShortcut* m_shortcut;
 	QVariant   m_icon;
-	QAction*   m_action { nullptr };
 };
 
 class MenuCustomizerItemComboBox final : public MenuCustomizerItemShortCut
