@@ -80,6 +80,7 @@ constexpr const char* COMPONENTS[]                  = {
 	"<tr><td><a href='https://xerces.apache.org/xerces-c/'>Xerces-C++ XML Parser</a> &copy; 2024 The Apache Xerces&trade; Project <a href='https://www.apache.org/licenses/LICENSE-2.0.html'>Apache License v2</a></td></tr>",
 	"<tr><td><a href='https://www.boost.org/'>boost</a> &copy; boost C++ libraries <a href='https://www.boost.org/LICENSE_1_0.txt'>Boost Software License v1.0</a></td></tr>",
 	"<tr><td><a href='https://www.7-zip.org/'>7z</a> &copy; 1999-2023 Igor Pavlov <a href='https://www.7-zip.org/license.txt'>GNU LGPL, BSD 3-clause License</a></td></tr>",
+	"<tr><td><a href='https://zlib.net/'>zlib</a> &copy; 1995-2026 zlib software <a href='http://gailly.net/'>Jean-loup Gailly</a> and <a href='http://en.wikipedia.org/wiki/Mark_Adler'>Mark Adler</a> <a href='https://zlib.net/zlib_license.html'>zlib license</a></td></tr>",
 	"<tr><td><a href='https://github.com/libjxl/libjxl'>libjxl</a> &copy; the JPEG XL Project Authors <a href='https://opensource.org/license/bsd-3-clause'>BSD 3-clause License</a></td></tr>",
 	"<tr><td><a href='https://djvu.sourceforge.net/'>DjVu Libre</a> &copy; <a href='http://www.lizardtech.com/'>LizardTech Inc.</a> <a href='https://www.gnu.org/licenses/old-licenses/gpl-2.0.txt'>GPL-2.0 License</a></td></tr>",
 	"<tr><td><a href='https://poppler.freedesktop.org/'>Poppler</a> &copy; <a href='https://www.freedesktop.org/wiki/'>freedesktop.org</a> <a href='https://www.gnu.org/licenses/gpl-3.0.txt'>GPL-3.0 License</a></td></tr>",
