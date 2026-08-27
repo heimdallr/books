@@ -8,6 +8,7 @@
 #include <QKeyEvent>
 #include <QLineEdit>
 #include <QMenu>
+#include <QPainter>
 #include <QStyledItemDelegate>
 #include <QTimer>
 #include <QToolTip>
@@ -319,29 +320,6 @@ private:
 	QString m_alreadyAssigned;
 };
 
-/*
-class IconCenterDelegate final : public QStyledItemDelegate
-{
-public:
-	explicit IconCenterDelegate(QObject* parent = nullptr)
-		: QStyledItemDelegate(parent)
-	{
-	}
-
-private: // QStyledItemDelegate
-	void initStyleOption(QStyleOptionViewItem* option, const QModelIndex& index) const override
-	{
-		QStyledItemDelegate::initStyleOption(option, index);
-		option->decorationAlignment = Qt::AlignCenter;
-		option->decorationSize      = option->rect.size();
-	}
-
-	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
-	{
-		QStyledItemDelegate::paint(painter, option, index);
-	}
-};
-*/
 class HotkeyDelegate final : public QStyledItemDelegate
 
 {
@@ -453,7 +431,6 @@ public:
 		header.setSectionResizeMode(Column::OnToolbar, QHeaderView::Fixed);
 
 		m_ui.view->setItemDelegateForColumn(Column::Hotkey, new HotkeyDelegate(&m_self));
-		//		m_ui.view->setItemDelegateForColumn(Column::Icon, new IconCenterDelegate(&m_self));
 
 		m_ui.view->setCurrentIndex({});
 		for (int i = 0, sz = m_model->rowCount(); i < sz; ++i)
