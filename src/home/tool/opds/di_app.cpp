@@ -231,6 +231,11 @@ private: // IUiFactory
 		return {};
 	}
 
+	Flibrary::IMenuCustomizer::IItem::Ptr CreateMenuCustomizerItem(QString /*key*/) const override
+	{
+		return {};
+	}
+
 public: // special
 	std::filesystem::path GetNewCollectionInpxFolder() const noexcept override
 	{

@@ -97,6 +97,9 @@ public:
 		if (!m_actions.empty())
 			return {};
 
+		if (const auto var = m_uiFactory->CreateMenuCustomizerItem(key)->Hidden(); var.isValid())
+			return var;
+
 		if (IsHiddenByDefault(key))
 			return true;
 

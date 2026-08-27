@@ -567,8 +567,6 @@ protected: // IMenuCustomizer::IItem
 
 	void SetHotkey(ISettings&, const QString&) override
 	{
-		assert(false);
-		throw std::runtime_error("not implemented");
 	}
 
 	QAction* GetToolbarAction() const override
@@ -872,6 +870,21 @@ std::pair<IDataItem::Ptr, QObject*> UiFactory::AddComboBoxToMenuCustomizer(const
 IMenuCustomizer::IItem::Ptr UiFactory::CreateMenuCustomizerItem(IDataItem::Ptr item, IMenuCustomizer::IObserver& observer) const
 {
 	return std::make_unique<MenuCustomizerItemObserver>(std::move(item), IMenuCustomizer::ItemAbility::All, observer);
+}
+
+IMenuCustomizer::IItem::Ptr UiFactory::CreateMenuCustomizerItem(QString key) const
+{
+	const auto dataItemFactory = m_impl->container.resolve<IDataItemFactory>();
+	const auto settings        = m_impl->container.resolve<ISettings>();
+
+	auto item   = dataItemFactory->CreateSettingsItem();
+	item->SetData(std::move(key), SettingsItem::Column::Key);
+	auto result = std::unique_ptr<IMenuCustomizer::IItem> { std::make_unique<MenuCustomizerItemBase>(std::move(item), IMenuCustomizer::ItemAbility::None) };
+
+	const SettingsGroup settingsSubGroup(*settings, GetName(MENU_CUSTOM_ROOT, result->GetItem()->GetData(SettingsItem::Column::Key)));
+	result->Setup(*settings);
+
+	return result;
 }
 
 void UiFactory::UpdateRecentOpenBookControllerMenu(QMenu& menu) const

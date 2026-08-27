@@ -77,6 +77,7 @@ private: // IUiFactory
 	std::pair<IDataItem::Ptr, QObject*> AddMenuBarToMenuCustomizer(const QString& rootKey, QMenuBar& menuBar, const QString& title, const MenuCustomizeFunctor& functor) const override;
 	std::pair<IDataItem::Ptr, QObject*> AddComboBoxToMenuCustomizer(const QString& rootKey, QComboBox& comboBox, const QString& title, const MenuCustomizeFunctor& functor) const override;
 	IMenuCustomizer::IItem::Ptr         CreateMenuCustomizerItem(IDataItem::Ptr, IMenuCustomizer::IObserver& observer) const override;
+	IMenuCustomizer::IItem::Ptr         CreateMenuCustomizerItem(QString key) const override;
 
 private: // special
 	std::filesystem::path                GetNewCollectionInpxFolder() const noexcept override;
