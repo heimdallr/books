@@ -702,8 +702,10 @@ private: // IMenuCustomizer::IItem
 			return;
 
 		assert(m_toolbarAction);
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 		m_toolbarAction->setEnabled(m_action.isEnabled());
 		QObject::connect(&m_action, &QAction::enabledChanged, m_toolbarAction, &QAction::setEnabled);
+#endif
 	}
 
 	void SetEnabled(const bool enabled) override
