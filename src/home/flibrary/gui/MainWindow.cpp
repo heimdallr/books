@@ -1641,9 +1641,6 @@ private:
 
 		const auto& activeCollection = m_collectionController->GetActiveCollection();
 
-		auto* group = new QActionGroup(&m_self);
-		group->setExclusive(true);
-
 		for (const auto& collection : m_collectionController->GetCollections())
 		{
 			const auto active = collection->id == activeCollection.id;
@@ -1656,7 +1653,6 @@ private:
 			action->setCheckable(true);
 			action->setChecked(active);
 			action->setEnabled(!active);
-			group->addAction(action);
 		}
 
 		const auto enabled = !m_ui.menuSelectCollection->isEmpty();

@@ -710,11 +710,27 @@ private: // IMenuCustomizer::IItem
 
 	void SetEnabled(const bool enabled) override
 	{
-		m_action.setEnabled(enabled);
+		if (enabled)
+		{
+			if (m_canEnable)
+			{
+				m_action.setEnabled(enabled);
+				m_canEnable = false;
+			}
+		}
+		else
+		{
+			if (m_action.isEnabled())
+			{
+				m_action.setEnabled(enabled);
+				m_canEnable = true;
+			}
+		}
 	}
 
 private:
 	QAction& m_action;
+	bool     m_canEnable { false };
 };
 
 class MenuCustomizerItemShortCut
