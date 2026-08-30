@@ -2249,9 +2249,23 @@ where b.FileName = ? and b.Ext = ?)");
 		const auto& line = m_rawData.emplace_back(QString::fromUtf8(byteArray));
 		auto        buf  = ParseBook(line, m_bookBufMapping, folder);
 
-		auto&      fileList = GetFileList(rootFolder, buf.FOLDER);
-		const auto it       = fileList.find(buf.fileName);
-		const auto found    = it != fileList.end();
+		auto& fileList = GetFileList(rootFolder, buf.FOLDER);
+		auto  it       = fileList.find(buf.fileName);
+		if (it == fileList.end())
+		{
+			auto fileName = buf.fileName;
+			for (const auto& [to, from] : PATH_FIX)
+				fileName.replace(QString { from }, QString { to });
+
+			if (auto newIt = fileList.find(fileName); newIt != fileList.end())
+			{
+				buf.fileName        = std::move(fileName);
+				it                  = newIt;
+				const auto dotIndex = buf.fileName.lastIndexOf('.');
+				buf.FILE            = QStringView { buf.fileName.begin(), std::next(buf.fileName.begin(), dotIndex) };
+			}
+		}
+		const auto found = it != fileList.end();
 
 		if (!found && !!(m_mode & CreateCollectionMode::SkipLostBooks))
 		{
