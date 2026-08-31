@@ -4,6 +4,7 @@
 
 #include "interface/constants/Enums.h"
 #include "interface/logic/IDataItem.h"
+#include "interface/logic/IMenuCustomizer.h"
 
 #include "gutil/interface/IUiFactory.h"
 
@@ -57,9 +58,12 @@ public:
 	virtual void                                                      UpdateRecentOpenBookControllerMenu(QMenu& menu) const              = 0;
 	virtual void                                                      SetBackgroundStyleSheet(QWidget& widget, const QString& key) const = 0;
 
-	[[nodiscard]] virtual IDataItem::Ptr AddWidgetToHotkeys(QWidget& widget, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*, QObject*)>& functor) const         = 0;
-	[[nodiscard]] virtual IDataItem::Ptr AddMenuBarToHotkeys(QMenuBar& menuBar, const QString& title, const std::function<void(const IDataItem::Ptr&, QAction*, QObject*)>& functor) const      = 0;
-	[[nodiscard]] virtual IDataItem::Ptr AddComboBoxToHotkeys(QComboBox& comboBox, const QString& title, const std::function<void(const IDataItem::Ptr&, QShortcut*, QObject*)>& functor) const = 0;
+	using MenuCustomizeFunctor = std::function<void(IMenuCustomizer::IItem::Ptr, QObject*)>;
+	[[nodiscard]] virtual std::pair<IDataItem::Ptr, QObject*> AddWidgetToMenuCustomizer(const QString& rootKey, QWidget& widget, const QString& title, const MenuCustomizeFunctor& functor) const       = 0;
+	[[nodiscard]] virtual std::pair<IDataItem::Ptr, QObject*> AddMenuBarToMenuCustomizer(const QString& rootKey, QMenuBar& menuBar, const QString& title, const MenuCustomizeFunctor& functor) const    = 0;
+	[[nodiscard]] virtual std::pair<IDataItem::Ptr, QObject*> AddComboBoxToMenuCustomizer(const QString& rootKey, QComboBox& comboBox, const QString& title, const MenuCustomizeFunctor& functor) const = 0;
+	[[nodiscard]] virtual IMenuCustomizer::IItem::Ptr         CreateMenuCustomizerItem(IDataItem::Ptr, IMenuCustomizer::IObserver& observer) const                                                      = 0;
+	[[nodiscard]] virtual IMenuCustomizer::IItem::Ptr         CreateMenuCustomizerItem(QString key) const                                                                                               = 0;
 
 	[[nodiscard]] virtual QWidget* CreateFastFilterWidget(const QAbstractItemModel& model, int column, std::function<void(bool, QVariantList)> callback) const = 0;
 	[[nodiscard]] virtual QWidget* CreateChangeSizeWidget(int current, int minimum, int maximum, IChangeSizeWidgetObserver* observer) const                    = 0;

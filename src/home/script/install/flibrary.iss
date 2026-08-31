@@ -27,8 +27,8 @@ ChangesAssociations=yes
 DefaultGroupName={#MyAppName}
 AllowNoIcons=yes
 PrivilegesRequiredOverridesAllowed=dialog
-OutputDir={#RootDir}{#MyBuildFolder}\installer
-OutputBaseFilename={#MyAppName}-{#MyAppVersion}-setup-{#MyOS}
+OutputDir={#RootDir}build\installer
+OutputBaseFilename={#MyAppName}-{#MyAppVersion}-setup-{#MyOS}-{#MyPlatform}
 SetupIconFile={#RootDir}src\home\resources\icons\main.ico
 Compression=lzma
 SolidCompression=yes
@@ -42,6 +42,8 @@ UsePreviousSetupType=no
 UsePreviousTasks=no
 UsePreviousUserInfo=no
 DirExistsWarning=no
+ArchitecturesAllowed=x64
+MinVersion={#MyMinVersion}
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl";           LicenseFile: {#RootDir}LICENSE_en.txt
@@ -52,11 +54,11 @@ Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"; LicenseFile
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "{#RootDir}{#MyBuildFolder}\Release\bin\*.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}{#MyBuildFolder}\Release\bin\*.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#RootDir}{#MyBuildFolder}\Release\bin\*.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#RootDir}{#MyBuildFolder}\Release\bin\*.qm" ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#RootDir}{#MyBuildFolder}\Release\bin\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion; AfterInstall: RegisterLanguage
+Source: "{#MyBuildFolder}\*.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#MyBuildFolder}\*.json"; DestDir: "{app}"; Flags: ignoreversion
+Source: "{#MyBuildFolder}\*.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#MyBuildFolder}\*.qm" ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#MyBuildFolder}\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion; AfterInstall: RegisterLanguage
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]

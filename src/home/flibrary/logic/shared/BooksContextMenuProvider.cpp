@@ -62,6 +62,7 @@ constexpr auto WITHOUT_RATE             = QT_TRANSLATE_NOOP("BookContextMenu", "
 constexpr auto HASH_SUBMENU             = QT_TRANSLATE_NOOP("BookContextMenu", "Hash");
 constexpr auto HASH_CALCULATE           = QT_TRANSLATE_NOOP("BookContextMenu", "Calculate");
 constexpr auto HASH_COMPARE             = QT_TRANSLATE_NOOP("BookContextMenu", "Compare");
+constexpr auto CLEAR_HISTORY            = QT_TRANSLATE_NOOP("BookContextMenu", "Clear browsing history");
 
 constexpr auto CANNOT_SET_USER_RATE = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set rate");
 constexpr auto CANNOT_SET_LANGUAGE  = QT_TRANSLATE_NOOP("BookContextMenu", "Cannot set language of books");
@@ -194,9 +195,6 @@ void CreateChangeLangMenu(const IDataItem::Ptr& root, const QString& currentLoca
 
 void CreateHashMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options)
 {
-	if (!(options & ITreeViewController::RequestContextMenuOptions::HashEnabled))
-		return;
-
 	auto submenu = AddMenuItem(root, HASH_SUBMENU, Tr(HASH_SUBMENU));
 	AddMenuItem(submenu, HASH_CALCULATE, Tr(HASH_CALCULATE), BooksMenuAction::HashCalculate);
 	AddMenuItem(submenu, HASH_COMPARE, Tr(HASH_COMPARE), BooksMenuAction::HashCompare)
@@ -275,6 +273,9 @@ public:
 				  CreateTreeMenu(result, options);
 				  CreateChangeLangMenu(result, currentLocale);
 				  CreateHashMenu(result, options);
+
+				  if (!!(options & ITreeViewController::RequestContextMenuOptions::NavigationModeIsHistory))
+					  AddMenuItem(result, CLEAR_HISTORY, Tr(CLEAR_HISTORY), BooksMenuAction::ClearHistory);
 
 				  if (type == ItemType::Books)
 				  {
@@ -627,6 +628,22 @@ private: // IContextMenuHandler
 		);
 	}
 
+	void ClearHistory(QAbstractItemModel*, const QModelIndex&, const QList<QModelIndex>&, IDataItem::Ptr item, Callback callback) const override
+	{
+		m_databaseUser->Execute({ "Change book language", [this, item = std::move(item), callback = std::move(callback)]() mutable {
+									 const auto lang = item->GetData(MenuItem::Column::Parameter).toStdString();
+
+									 const auto db = m_databaseUser->Database();
+									 const auto tr = db->CreateTransaction();
+									 tr->CreateCommand(std::format("delete from {}", DatabaseUtil::GetHistoryTableName(*m_settings)))->Execute();
+									 tr->Commit();
+									 return [this, item = std::move(item), callback = std::move(callback)](size_t) {
+										 callback(item);
+										 m_dataProvider->RequestBooks(true);
+									 };
+								 } });
+	}
+
 private:
 	void SendAsInpxImpl(
 		QAbstractItemModel*       model,
@@ -711,13 +728,18 @@ private:
 		                     | std::ranges::to<std::set<QString>>();
 		auto       extractor = logicFactory->CreateBooksExtractor();
 		const auto parameter = item->GetData(MenuItem::Column::Parameter);
-		((*extractor)
-		 .*f)(dir, parameter, std::move(books), [extractor, model, item = std::move(item), ids = std::move(ids), tempDir = std::move(tempDir), callback = std::move(callback)](const bool hasError) mutable {
-			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
-			callback(item);
-			model->setData({}, QVariant::fromValue(ids), Role::Uncheck);
-			extractor.reset();
-		});
+		((*extractor).*f)(
+			dir,
+			parameter,
+			std::move(books),
+			[extractor, model, item = std::move(item), ids = std::move(ids), tempDir = std::move(tempDir), callback = std::move(callback), settings = m_settings](const bool hasError) mutable {
+				item->SetData(QString::number(hasError), MenuItem::Column::HasError);
+				callback(item);
+				if (!settings->Get(Constant::Settings::PREFER_KEEP_CHECK, false))
+					model->setData({}, QVariant::fromValue(ids), Role::Uncheck);
+				extractor.reset();
+			}
+		);
 	}
 
 	void GroupAction(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback, const GroupActionFunction f) const

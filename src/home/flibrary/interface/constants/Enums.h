@@ -18,6 +18,7 @@ namespace HomeCompa::Flibrary
 	NAVIGATION_MODE_ITEM(Search)      \
 	NAVIGATION_MODE_ITEM(Reviews)     \
 	NAVIGATION_MODE_ITEM(AlreadyRead) \
+	NAVIGATION_MODE_ITEM(History)     \
 	NAVIGATION_MODE_ITEM(AllBooks)
 
 enum class NavigationMode
@@ -27,6 +28,12 @@ enum class NavigationMode
 	NAVIGATION_MODE_ITEMS_X_MACRO
 #undef NAVIGATION_MODE_ITEM
 		Last
+};
+
+inline constexpr std::pair<const char*, NavigationMode> NAVIGATION_NAMES[] = {
+#define NAVIGATION_MODE_ITEM(NAME) { #NAME, NavigationMode::NAME },
+	NAVIGATION_MODE_ITEMS_X_MACRO
+#undef NAVIGATION_MODE_ITEM
 };
 
 #define BOOKS_VIEW_MODE_ITEMS_X_MACRO \
@@ -97,7 +104,8 @@ struct GroupsMenuAction
 	MENU_ACTION_ITEM(SendAsScript)          \
 	MENU_ACTION_ITEM(ChangeLanguage)        \
 	MENU_ACTION_ITEM(HashCalculate)         \
-	MENU_ACTION_ITEM(HashCompare)
+	MENU_ACTION_ITEM(HashCompare)           \
+	MENU_ACTION_ITEM(ClearHistory)
 
 struct BooksMenuAction
 {

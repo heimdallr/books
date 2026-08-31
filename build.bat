@@ -6,7 +6,8 @@ call init.bat
 
 del /s /q %BUILD_DIR%\bin\*
 del /s /q %BUILD_DIR%\FLibrary\*
-del /s /q %~dp0%BUILD_FOLDER%\installer\*
+del /s /q %BUILD_DIR%\*.msi
+del /s /q %~dp0build\installer\*
 
 call %~dp0configure.bat %*
 if %errorlevel% NEQ 0 goto Error
@@ -28,23 +29,25 @@ rem echo testing
 rem ctest --test-dir %BUILD_DIR% -C Release
 rem if %errorlevel% NEQ 0 goto Error
 
-mkdir %~dp0%BUILD_FOLDER%\installer
+mkdir %~dp0build\installer
 
 echo installer creating
 cd %BUILD_DIR%
 cpack -G WIX -C Release
 if %errorlevel% NEQ 0 goto Error
 cd %originalDir%
-move  %~dp0%BUILD_FOLDER%\%BUILD_TYPE%\*.msi %~dp0%BUILD_FOLDER%\installer\
+move  %BUILD_DIR%\*.msi %~dp0build\installer\
 
-ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% /DMyAppUid=%PRODUCT_GUID% /DMyOS=%OS% /DMyBuildFolder=%BUILD_FOLDER% %~dp0src\home\script\install\flibrary.iss
+set MIN_WIN_WERSION=10.0.17763
+if [%OS%]==[Win7] set MIN_WIN_WERSION=6.1
+ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% /DMyAppUid=%PRODUCT_GUID% /DMyBuildFolder=%BUILD_DIR%\bin /DMyOS=%OS% /DMyPlatform=%PLATFORM% /DMyMinVersion=%MIN_WIN_WERSION% %~dp0src\home\script\install\flibrary.iss
 if %errorlevel% NEQ 0 goto Error
 
 echo portable creating
 echo portable > %BUILD_DIR%/FLibrary/installer_mode
 
 copy /Y %~dp0src\home\script\install\ProtonStart.sh %BUILD_DIR%\FLibrary\ProtonStart.sh
-%SEVEN_ZIP_PATH%7z a %~dp0%BUILD_FOLDER%\installer\FLibrary-%PRODUCT_VERSION%-portable-%OS%.7z %BUILD_DIR%\FLibrary
+%SEVEN_ZIP_PATH%7z a %~dp0build\installer\FLibrary-%PRODUCT_VERSION%-portable-%OS%-%PLATFORM%.7z %BUILD_DIR%\FLibrary
 
 goto End
 

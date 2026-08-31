@@ -54,6 +54,7 @@ namespace
 
 constexpr auto INVALID_INDEX = std::numeric_limits<size_t>::max();
 
+const QString EMPTY_STRING;
 const QString UNKNOWN_ROOT        = "unknown_root";
 const QString AUTHOR_UNKNOWN_STR  = QString(Global::AUTHOR_UNKNOWN) + Inpx::LIST_SEPARATOR;
 const QString GENRE_NOT_SPECIFIED = QString(UNORDERED_GENRE) + Inpx::LIST_SEPARATOR;
@@ -824,18 +825,38 @@ size_t StoreRange(DB::IDatabase& db, const QString& process, const std::string_v
 	return TRY(process, impl);
 }
 
+std::pair<QStringView, QStringView> SplitAuthorLastName(QStringView str)
+{
+	const auto begin = str.indexOf('[');
+	if (begin < 1)
+		return std::make_pair(str, EMPTY_STRING);
+
+	const auto end = str.lastIndexOf(']');
+	if (end < 0 || end < begin)
+		return std::make_pair(str, EMPTY_STRING);
+
+	auto lastNameEnd = begin - 1;
+	while (lastNameEnd >= 0 && str[lastNameEnd] == ' ')
+		--lastNameEnd;
+
+	QStringView lastName(str.begin(), std::next(str.begin(), lastNameEnd + 1));
+	QStringView nickName(std::next(str.begin(), begin + 1), std::next(str.begin(), end));
+
+	return std::make_pair(lastName, nickName);
+}
+
 size_t Store(DB::IDatabase& db, Data& data)
 {
 	size_t result  = 0;
 	result        += StoreRange(
 		db,
 		"Authors",
-		"INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, SearchName) VALUES(?, ?, ?, ?, ?)",
+		"INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, NickName, SearchName) VALUES(?, ?, ?, ?, ?, ?)",
 		data.authors,
 		[](DB::ICommand& cmd, const Dictionary::value_type& item) {
 			const auto& [title, id] = item;
-			auto       it           = std::cbegin(title);
-			const auto last         = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
+			auto it                 = std::cbegin(title);
+			const auto [last, nick] = SplitAuthorLastName(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
 			const auto first        = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
 			const auto middle       = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
 			const auto lastUp       = last.toString().toUpper();
@@ -844,7 +865,8 @@ size_t Store(DB::IDatabase& db, Data& data)
 			cmd.Bind(1, last);
 			cmd.Bind(2, first);
 			cmd.Bind(3, middle);
-			cmd.Bind(4, lastUp);
+			nick.isEmpty() ? cmd.Bind(4) : cmd.Bind(4, nick);
+			cmd.Bind(5, lastUp);
 
 			return cmd.Execute();
 		},
@@ -1576,10 +1598,10 @@ private:
 		};
 
 		SetNextId(*m_db);
-		data.authors               = ReadDictionary<Dictionary>("authors", *m_db, "select AuthorID, LastName||','||FirstName||','||MiddleName from Authors", dictionaryInserter);
-		data.series                = ReadDictionary<Dictionary>("series", *m_db, "select SeriesID, SeriesTitle from Series", dictionaryInserter);
-		data.keywords              = ReadDictionary<Dictionary>("keywords", *m_db, "select KeywordID, KeywordTitle from Keywords", dictionaryInserter);
-		data.bookFolders           = ReadDictionary<Dictionary>("folders", *m_db, "select FolderID, FolderTitle from Folders", dictionaryInserter);
+		data.authors     = ReadDictionary<Dictionary>("authors", *m_db, "select AuthorID, LastName||coalesce( '['||NickName||']', '')||','||FirstName||','||MiddleName from Authors", dictionaryInserter);
+		data.series      = ReadDictionary<Dictionary>("series", *m_db, "select SeriesID, SeriesTitle from Series", dictionaryInserter);
+		data.keywords    = ReadDictionary<Dictionary>("keywords", *m_db, "select KeywordID, KeywordTitle from Keywords", dictionaryInserter);
+		data.bookFolders = ReadDictionary<Dictionary>("folders", *m_db, "select FolderID, FolderTitle from Folders", dictionaryInserter);
 		auto [genres, genresIndex] = ReadGenres(*m_db, genresFileName);
 		data.genres                = std::move(genres);
 		data.updates               = ReadUpdates(*m_db);
@@ -2227,9 +2249,23 @@ where b.FileName = ? and b.Ext = ?)");
 		const auto& line = m_rawData.emplace_back(QString::fromUtf8(byteArray));
 		auto        buf  = ParseBook(line, m_bookBufMapping, folder);
 
-		auto&      fileList = GetFileList(rootFolder, buf.FOLDER);
-		const auto it       = fileList.find(buf.fileName);
-		const auto found    = it != fileList.end();
+		auto& fileList = GetFileList(rootFolder, buf.FOLDER);
+		auto  it       = fileList.find(buf.fileName);
+		if (it == fileList.end())
+		{
+			auto fileName = buf.fileName;
+			for (const auto& [to, from] : PATH_FIX)
+				fileName.replace(QString { from }, QString { to });
+
+			if (auto newIt = fileList.find(fileName); newIt != fileList.end())
+			{
+				buf.fileName        = std::move(fileName);
+				it                  = newIt;
+				const auto dotIndex = buf.fileName.lastIndexOf('.');
+				buf.FILE            = QStringView { buf.fileName.begin(), std::next(buf.fileName.begin(), dotIndex) };
+			}
+		}
+		const auto found = it != fileList.end();
 
 		if (!found && !!(m_mode & CreateCollectionMode::SkipLostBooks))
 		{

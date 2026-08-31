@@ -4,6 +4,7 @@
 #include <QUuid>
 
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
 
 #include "database/interface/IDatabase.h"
@@ -12,11 +13,13 @@
 #include "constants/Localization.h"
 #include "constants/ModelRole.h"
 #include "constants/ProductConstant.h"
+#include "constants/SettingsConstant.h"
 #include "logic/IAnnotationController.h"
 #include "logic/ICollectionProvider.h"
 #include "logic/IDatabaseUser.h"
 #include "logic/IFilterProvider.h"
 #include "logic/ILogicFactory.h"
+#include "logic/IMenuCustomizer.h"
 #include "logic/IScriptController.h"
 #include "platform/FileUtil.h"
 #include "ui/IStyleApplier.h"
@@ -487,6 +490,7 @@ constexpr IFilterProvider::FilteredNavigation FILTERED_NAVIGATION_DESCRIPTION[] 
 		{ NavigationMode::Search     , Loc::Search      , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::Reviews    , Loc::Reviews     , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::AlreadyRead, Loc::AlreadyRead , &IModelProvider::CreateFilterListModel },
+		{ NavigationMode::History    , Loc::History     , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::AllBooks   , Loc::AllBooks    , &IModelProvider::CreateFilterListModel },
 	// clang-format on
 };
@@ -503,6 +507,17 @@ const IFilterProvider::FilteredNavigation& IFilterProvider::GetFilteredNavigatio
 	const auto index = static_cast<size_t>(navigationMode);
 	assert(index < std::size(FILTERED_NAVIGATION_DESCRIPTION));
 	return FILTERED_NAVIGATION_DESCRIPTION[index];
+}
+
+bool IMenuCustomizer::IsHiddenByDefault(const QString& key)
+{
+	return IsOneOf(
+		key,
+		QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::AllBooks)].first),
+		QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::AlreadyRead)].first),
+		"Book context menu/Hash",
+		"MainWindow/menuBar/menuSettings/actionAllSettings"
+	);
 }
 
 } // namespace HomeCompa::Flibrary

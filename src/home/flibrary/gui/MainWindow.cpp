@@ -102,12 +102,15 @@ constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "Preferences/AnnotationJokes
 constexpr auto SHOW_STATUS_BAR_KEY                = "ui/View/Status";
 constexpr auto SHOW_REVIEWS_KEY                   = "ui/View/ShowReadersReviews";
 constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
+constexpr auto SHOW_TOOLBAR_KEY                   = "ui/View/ShowToolBar";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
+constexpr auto TOOLBAR_ORDER_KEY                  = "ui/MenuCustomization/ToolbarOrder";
 constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
-constexpr auto SHOW_ALL_SETTINGS_KEY              = "Preferences/ShowAllSettingsMenuItem";
+constexpr auto TOOLBAR_WITH_MAIN_MENU             = "Preferences/ToolbarWithMainMenu";
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 constexpr auto NAVIGATION_ACTION_ID_PROPERTY      = "navigationMode";
+constexpr auto INDEX                              = "index";
 
 #define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO  \
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)       \
@@ -217,7 +220,7 @@ public:
 private: // QObject
 	bool eventFilter(QObject* watched, QEvent* event) override
 	{
-		switch (event->type())
+		switch (event->type()) // NOLINT(clang-diagnostic-switch-enum)
 		{
 			case QEvent::Show:
 				m_callback(true);
@@ -247,6 +250,104 @@ std::set<QString> GetQssList()
 	return list;
 }
 
+class ToolbarController final
+	: public QObject
+	, public IMenuCustomizer::IToolbarController
+{
+public:
+	class IObserver // NOLINT(cppcoreguidelines-special-member-functions)
+	{
+	public:
+		virtual ~IObserver()                  = default;
+		virtual void OnActionAdded()          = 0;
+		virtual void OnActionRemoved()        = 0;
+		virtual void SetEnabled(bool enabled) = 0;
+	};
+
+public:
+	ToolbarController(ISettings& settings, QToolBar& toolbar, IObserver& observer, QObject* parent)
+		: QObject(parent)
+		, m_settings { settings }
+		, m_toolbar { toolbar }
+		, m_observer { observer }
+		, m_keys { m_settings.Get(TOOLBAR_ORDER_KEY).toStringList() }
+	{
+		m_toolbar.toggleViewAction()->setVisible(false);
+	}
+
+private: // IMenuCustomizer::IToolbarController
+	void AddAction(const QString& key, QAction* action) override
+	{
+		if (!m_actions.try_emplace(key, action).second)
+			return;
+
+		const ScopedCall addedGuard([this] {
+			m_toolbar.update();
+			m_observer.OnActionAdded();
+		});
+
+		connect(action, &QObject::destroyed, this, [this, key] {
+			m_actions.erase(key);
+		});
+
+		m_observer.SetEnabled(true);
+		if (m_keys.isEmpty())
+			m_toolbar.setVisible(true);
+
+		const auto index = m_keys.indexOf(key);
+		if (index < 0)
+		{
+			action->setProperty(INDEX, m_keys.size());
+			m_settings.Set(TOOLBAR_ORDER_KEY, m_keys << key);
+			return m_toolbar.addAction(action);
+		}
+
+		action->setProperty(INDEX, index);
+		const auto actions = m_toolbar.actions();
+		if (const auto it = std::ranges::upper_bound(
+				actions,
+				index,
+				{},
+				[](const QAction* item) {
+					return item->property(INDEX).toInt();
+				}
+			);
+		    it != actions.end())
+			m_toolbar.insertAction(*it, action);
+		else
+			m_toolbar.addAction(action);
+	}
+
+	void RemoveAction(const QString& key) override
+	{
+		const auto it = m_actions.find(key);
+		assert(it != m_actions.end());
+
+		m_toolbar.removeAction(it->second);
+		m_toolbar.update();
+		m_observer.OnActionRemoved();
+		m_actions.erase(it);
+
+		[[maybe_unused]] const auto ok = m_keys.removeOne(key);
+		assert(ok);
+
+		m_settings.Set(TOOLBAR_ORDER_KEY, m_keys);
+
+		if (m_keys.isEmpty())
+		{
+			m_observer.SetEnabled(false);
+			m_toolbar.setVisible(false);
+		}
+	}
+
+private:
+	ISettings&                            m_settings;
+	QToolBar&                             m_toolbar;
+	IObserver&                            m_observer;
+	std::unordered_map<QString, QAction*> m_actions;
+	QStringList                           m_keys;
+};
+
 } // namespace
 
 class MainWindow::Impl final
@@ -257,6 +358,7 @@ class MainWindow::Impl final
 	, IAlphabetPanel::IObserver
 	, ITreeViewController::IObserver
 	, INavigationUndoRedo::IObserver
+	, ToolbarController::IObserver
 	, virtual plog::IAppender
 {
 	NON_COPY_MOVABLE(Impl)
@@ -284,7 +386,7 @@ public:
 		std::shared_ptr<QStyledItemDelegate>            logItemDelegate,
 		std::shared_ptr<ILineOption>                    lineOption,
 		std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
-		std::shared_ptr<IHotkeyManager>                 hotkeyManager,
+		std::shared_ptr<IMenuCustomizer>                menuCustomizer,
 		std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
 		std::shared_ptr<Util::ScrollBarController>      scrollBarController,
 		std::shared_ptr<INavigationUndoRedo>            navigationUndoRedo
@@ -309,7 +411,7 @@ public:
 		, m_logItemDelegate { std::move(logItemDelegate) }
 		, m_lineOption { std::move(lineOption) }
 		, m_alphabetPanel { std::move(alphabetPanel) }
-		, m_hotkeyManager { std::move(hotkeyManager) }
+		, m_menuCustomizer { std::move(menuCustomizer) }
 		, m_recentOpenBookController { std::move(recentOpenBookController) }
 		, m_scrollBarController { std::move(scrollBarController) }
 		, m_navigationUndoRedo { std::move(navigationUndoRedo) }
@@ -322,7 +424,6 @@ public:
 		CreateStylesMenu();
 		CreateLogMenu();
 		CreateCollectionsMenu();
-		CreateViewNavigationMenu();
 		SetupHotkeys();
 		LoadGeometry();
 		StartDelayed([this, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable {
@@ -346,18 +447,10 @@ public:
 		m_navigationUndoRedo->UnregisterObserver(this);
 	}
 
-	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry) const
+	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry)
 	{
-		const auto rect           = Util::GetGlobalGeometry(*m_ui.lineEditBookTitleToSearch);
-		const auto spacerNewWidth = m_searchBooksByTitleLeft->geometry().width() + geometry.x() - rect.x();
-
-		m_searchBooksByTitleLeft->changeSize(std::max(spacerNewWidth, 0), geometry.height(), QSizePolicy::Fixed, QSizePolicy::Expanding);
-		const auto lineEditBookTitleToSearchNewWidth = geometry.size().width() + std::min(spacerNewWidth, 0);
-		if (lineEditBookTitleToSearchNewWidth < 0)
-			return;
-
-		m_ui.lineEditBookTitleToSearch->setFixedWidth(lineEditBookTitleToSearchNewWidth);
-		m_searchBooksByTitleLayout->invalidate();
+		m_lastGeometry = geometry;
+		OnBooksSearchFilterValueGeometryChangedImpl();
 	}
 
 	void OnSearchNavigationItemSelected(long long /*id*/, const QString& text) const
@@ -556,10 +649,14 @@ private: // ITreeViewController::IObserver
 	void OnModeChanged(const int index) override
 	{
 		const auto navigationMode = static_cast<NavigationMode>(index);
-		m_ui.leftWidget->setVisible(!IsOneOf(navigationMode, NavigationMode::AlreadyRead, NavigationMode::AllBooks));
+		m_ui.leftWidget->setVisible(!IsOneOf(navigationMode, NavigationMode::AlreadyRead, NavigationMode::History, NavigationMode::AllBooks));
 
 		for (auto* action : m_ui.menuNavigation->actions())
-			SignalBlocker(action)->setChecked(action->property(NAVIGATION_ACTION_ID_PROPERTY).value<NavigationMode>() == navigationMode);
+		{
+			const auto isCurrentMode = action->property(NAVIGATION_ACTION_ID_PROPERTY).value<NavigationMode>() == navigationMode;
+			SignalBlocker(action)->setChecked(isCurrentMode);
+			action->setEnabled(!isCurrentMode);
+		}
 	}
 
 	void OnModelChanged(QAbstractItemModel* /*model*/) override
@@ -596,11 +693,30 @@ private: // INavigationUndoRedo::IObserver
 		ILogicFactory::Lock(m_logicFactory)->FindBook(navigationMode, navigationId, bookId);
 	}
 
+private: // ToolbarController::IObserver
+	void OnActionAdded() override
+	{
+		OnBooksSearchFilterValueGeometryChangedImpl(50);
+	}
+
+	void OnActionRemoved() override
+	{
+		OnBooksSearchFilterValueGeometryChangedImpl(50);
+	}
+
+	void SetEnabled(const bool enabled) override
+	{
+		m_ui.actionShowToolbar->setEnabled(enabled);
+	}
+
 private:
 	void Setup()
 	{
 		PLOGV << "Setup";
 		m_ui.setupUi(&m_self);
+
+		auto* toolbarController = new ToolbarController(*m_settings, *m_ui.toolBar, *this, &m_self);
+		m_menuCustomizer->SetToolbarController(toolbarController);
 
 		const auto getProductName = [] {
 			return QString("%1 %2 %3").arg(PRODUCT_ID, PRODUCT_VERSION, Util::GetInstallerDescription().name);
@@ -640,7 +756,7 @@ private:
 			m_logController->SetSeverity(severity.toInt());
 
 		if (m_collectionController->ActiveCollectionExists())
-			m_self.setWindowTitle(QString("%1 - %2").arg(getProductName(), m_collectionController->GetActiveCollection().name));
+			m_self.setWindowTitle(QString("%1 - [ %2 ]").arg(getProductName(), m_collectionController->GetActiveCollection().name));
 
 		m_self.addAction(m_ui.actionShowQueryWindow);
 
@@ -666,7 +782,7 @@ private:
 		SetupTrayMenu();
 	}
 
-	void ReplaceMenuBar()
+	void ReplaceMenuBar() const
 	{
 		PLOGV << "ReplaceMenuBar";
 		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(
@@ -676,15 +792,11 @@ private:
 				 SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 		));
-		auto* menuBar              = new QWidget(&m_self);
-		m_searchBooksByTitleLayout = new QHBoxLayout(menuBar);
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
-		m_searchBooksByTitleLayout->addWidget(m_self.menuBar());
-		m_searchBooksByTitleLayout->addItem((m_searchBooksByTitleLeft = new QSpacerItem(72, 20, QSizePolicy::Fixed)));
-		m_searchBooksByTitleLayout->addWidget(m_ui.lineEditBookTitleToSearch);
-		m_searchBooksByTitleLayout->addItem(new QSpacerItem(72, 20, QSizePolicy::Expanding));
-		m_searchBooksByTitleLayout->setContentsMargins(0, 0, 0, 0);
-		m_self.setMenuWidget(menuBar);
+		m_ui.toolWidgetLayout->insertWidget(0, m_self.menuBar());
+		if (m_settings->Get(TOOLBAR_WITH_MAIN_MENU, false))
+			m_ui.toolWidgetFillerLeftLayout->insertWidget(1, m_ui.toolBar);
+		m_self.setMenuWidget(m_ui.toolWidget);
 	}
 
 	void SetupTrayMenu()
@@ -836,9 +948,6 @@ private:
 	void SetupActionsNavigation()
 	{
 		const auto createAction = [this](const NavigationMode navigationMode, const char* name) {
-			if (!m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(name), true))
-				return;
-
 			auto* action = m_ui.menuNavigation->addAction(Loc::Tr(Loc::NAVIGATION, name));
 			action->setObjectName(QString("%1_isActive").arg(name));
 			action->setCheckable(true);
@@ -1061,10 +1170,17 @@ private:
 	{
 		PLOGV << "ConnectActionsSettingsView";
 		ConnectSettings(m_ui.actionShowRemoved, Constant::Settings::SHOW_REMOVED_BOOKS_KEY, this, &Impl::ShowRemovedBooks);
+		ConnectSettings(m_ui.actionShowToolbar, SHOW_TOOLBAR_KEY, qobject_cast<QWidget*>(m_ui.toolBar), &QWidget::setVisible);
 		ConnectSettings(m_ui.actionShowStatusBar, SHOW_STATUS_BAR_KEY, qobject_cast<QWidget*>(m_ui.statusBar), &QWidget::setVisible);
 		ConnectSettings(m_ui.actionShowSearchBookString, SHOW_SEARCH_BOOK_KEY, qobject_cast<QWidget*>(m_ui.lineEditBookTitleToSearch), &QWidget::setVisible);
 		ConnectSettings(m_ui.actionShowAuthorAnnotation, SHOW_AUTHOR_ANNOTATION_KEY, m_authorAnnotationWidget.get(), &AuthorAnnotationWidget::Show);
 		ConnectShowHide(m_ui.annotationWidget, &QWidget::setVisible, m_ui.actionShowAnnotation, m_ui.actionHideAnnotation, SHOW_ANNOTATION_KEY);
+
+		connect(m_ui.toolBar, &QToolBar::visibilityChanged, [this](const bool isVisible) {
+			SignalBlocker(m_ui.actionShowToolbar)->setChecked(isVisible);
+			m_settings->Set(SHOW_TOOLBAR_KEY, isVisible);
+			OnBooksSearchFilterValueGeometryChangedImpl(50);
+		});
 
 		m_ui.actionShowAuthorAnnotation->setVisible(
 			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::AUTHORS_FOLDER).exists()
@@ -1163,15 +1279,16 @@ private:
 		connect(m_ui.actionScripts, &QAction::triggered, &m_self, [&] {
 			m_uiFactory->CreateScriptDialog()->exec();
 		});
-		connect(m_ui.actionShowHotkeyDialog, &QAction::triggered, &m_self, [&] {
-			m_uiFactory->CreateHotkeyDialog()->exec();
+		connect(m_ui.actionShowMenuCustomizationDialog, &QAction::triggered, &m_self, [&] {
+			if (m_uiFactory->CreateHotkeyDialog()->exec() == IMenuCustomizer::Result::NeedReboot)
+				RebootDialog();
+			else
+				OnBooksSearchFilterValueGeometryChangedImpl();
 		});
 
-		m_ui.actionAllSettings->setVisible(m_settings->Get(SHOW_ALL_SETTINGS_KEY, false));
-		if (m_ui.actionAllSettings->isVisible())
-			connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
-				m_uiFactory->CreateSettingsDialog()->exec();
-			});
+		connect(m_ui.actionAllSettings, &QAction::triggered, &m_self, [&] {
+			m_uiFactory->CreateSettingsDialog()->exec();
+		});
 	}
 
 	void ConnectActionsHelpView()
@@ -1284,6 +1401,18 @@ private:
 		auto applier = m_styleApplierFactory->CreateStyleApplier(static_cast<IStyleApplier::Type>(action.property(IStyleApplier::ACTION_PROPERTY_THEME_TYPE).toInt()));
 		applier->Apply(action.property(IStyleApplier::ACTION_PROPERTY_THEME_NAME).toString(), action.property(IStyleApplier::ACTION_PROPERTY_THEME_FILE).toString());
 		RebootDialog();
+	}
+
+	void OnBooksSearchFilterValueGeometryChangedImpl(const int timeout = 0) const
+	{
+		QTimer::singleShot(timeout, [this] {
+			const auto globalRight = Util::GetGlobalGeometry(m_self).right();
+			m_ui.toolWidgetFillerRight->setFixedWidth(std::max(globalRight - m_lastGeometry.right(), 0));
+			const auto toolWidgetLeft = Util::GetGlobalGeometry(*m_ui.toolWidgetFillerLeft).left();
+			const auto minWidth       = m_ui.toolBar->isVisible() && m_ui.toolWidgetFillerLeftLayout->count() > 2 ? m_ui.toolBar->height() * static_cast<int>(m_ui.toolBar->actions().count()) + 4 : 0;
+			m_ui.toolWidgetFillerLeft->setFixedWidth(std::max(m_lastGeometry.left() - toolWidgetLeft, minWidth));
+			m_ui.toolWidgetLayout->invalidate();
+		});
 	}
 
 	void RebootDialog() const
@@ -1512,9 +1641,6 @@ private:
 
 		const auto& activeCollection = m_collectionController->GetActiveCollection();
 
-		auto* group = new QActionGroup(&m_self);
-		group->setExclusive(true);
-
 		for (const auto& collection : m_collectionController->GetCollections())
 		{
 			const auto active = collection->id == activeCollection.id;
@@ -1527,7 +1653,6 @@ private:
 			action->setCheckable(true);
 			action->setChecked(active);
 			action->setEnabled(!active);
-			group->addAction(action);
 		}
 
 		const auto enabled = !m_ui.menuSelectCollection->isEmpty();
@@ -1538,27 +1663,9 @@ private:
 			m_ui.menuCollection->removeAction(m_ui.menuSelectCollection->menuAction());
 	}
 
-	void CreateViewNavigationMenu()
-	{
-		const auto createAction = [this](const char* name) {
-			auto* action = m_ui.menuNavigationEnabled->addAction(Loc::Tr(Loc::NAVIGATION, name));
-			action->setObjectName(QString("%1_isVisible").arg(name));
-			action->setCheckable(true);
-			action->setChecked(true);
-			ConnectSettings(action, QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(name));
-			connect(action, &QAction::toggled, [this] {
-				RebootDialog();
-			});
-		};
-
-#define NAVIGATION_MODE_ITEM(NAME) createAction(#NAME);
-		NAVIGATION_MODE_ITEMS_X_MACRO
-#undef NAVIGATION_MODE_ITEM
-	}
-
 	void SetupHotkeys()
 	{
-		m_hotkeyManager->Add(*m_ui.menuBar, Tr(MAIN_MENU));
+		m_menuCustomizer->Add(MAIN_WINDOW, *m_ui.menuBar, Tr(MAIN_MENU));
 	}
 
 	void CheckForUpdates(const bool force) const
@@ -1736,7 +1843,7 @@ private:
 	PropagateConstPtr<QStyledItemDelegate, std::shared_ptr>       m_logItemDelegate;
 	PropagateConstPtr<ILineOption, std::shared_ptr>               m_lineOption;
 	PropagateConstPtr<IAlphabetPanel, std::shared_ptr>            m_alphabetPanel;
-	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
+	PropagateConstPtr<IMenuCustomizer, std::shared_ptr>           m_menuCustomizer;
 	PropagateConstPtr<IRecentOpenBookController, std::shared_ptr> m_recentOpenBookController;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
 	PropagateConstPtr<INavigationUndoRedo, std::shared_ptr>       m_navigationUndoRedo;
@@ -1753,8 +1860,6 @@ private:
 	const Log::LogAppender          m_logAppender { this };
 
 	QMetaObject::Connection m_settingsLineEditExecuteContextMenuConnection;
-	QSpacerItem*            m_searchBooksByTitleLeft;
-	QLayout*                m_searchBooksByTitleLayout;
 	QObject*                m_annotationWidgetEventFilter;
 
 	bool m_checkForUpdateOnStartEnabled { true };
@@ -1771,6 +1876,8 @@ private:
 
 	bool m_isMaximized { false };
 	bool m_isFullScreen { false };
+
+	QRect m_lastGeometry;
 
 	std::optional<Collection> m_collectionToRecreate;
 };
@@ -1796,7 +1903,7 @@ MainWindow::MainWindow(
 	std::shared_ptr<LogItemDelegate>                logItemDelegate,
 	std::shared_ptr<ILineOption>                    lineOption,
 	std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
-	std::shared_ptr<IHotkeyManager>                 hotkeyManager,
+	std::shared_ptr<IMenuCustomizer>                menuCustomizer,
 	std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
 	std::shared_ptr<Util::ScrollBarController>      scrollBarController,
 	std::shared_ptr<INavigationUndoRedo>            navigationUndoRedo,
@@ -1825,7 +1932,7 @@ MainWindow::MainWindow(
 		  std::move(logItemDelegate),
 		  std::move(lineOption),
 		  std::move(alphabetPanel),
-		  std::move(hotkeyManager),
+		  std::move(menuCustomizer),
 		  std::move(recentOpenBookController),
 		  std::move(scrollBarController),
 		  std::move(navigationUndoRedo)

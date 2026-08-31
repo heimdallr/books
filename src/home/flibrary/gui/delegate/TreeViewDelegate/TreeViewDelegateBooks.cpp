@@ -292,6 +292,7 @@ private:
 			if (m_readMarkPosition)
 				rect.setLeft(*m_readMarkPosition);
 			painter->drawLine(rect.topLeft(), rect.bottomLeft());
+			o.features &= ~QStyleOptionViewItem::Alternate;
 		}
 
 		ValueGuard  valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));

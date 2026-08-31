@@ -5,6 +5,7 @@ AddTarget(logic	shared_lib
 	LINK_LIBRARIES
 		Boost::headers
 		plog::plog
+		ZLIB::ZLIB
 		Qt${QT_MAJOR_VERSION}::Gui
 		Qt${QT_MAJOR_VERSION}::Network
 		[ QT5 Qt${QT_MAJOR_VERSION}::Widgets ]

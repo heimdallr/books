@@ -17,6 +17,7 @@
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/ValueGuard.h"
 #include "fnd/algorithm.h"
 #include "fnd/linear.h"
 
@@ -48,9 +49,9 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto CONTEXT        = "TreeView";
-constexpr auto BOOK_VIEW_MODE = QT_TRANSLATE_NOOP("TreeView", "Books view mode");
-constexpr auto BOOK           = QT_TRANSLATE_NOOP("HotkeyManager", "Book");
+constexpr auto CONTEXT           = "TreeView";
+constexpr auto BOOK_VIEW_MODE    = QT_TRANSLATE_NOOP("TreeView", "Books view mode");
+constexpr auto BOOK_CONTEXT_MENU = QT_TRANSLATE_NOOP("HotkeyManager", "Book context menu");
 
 constexpr auto VALUE_MODE_KEY                     = "ui/%1/ValueMode";
 constexpr auto COLUMN_WIDTH_LOCAL_KEY             = "%1/Width";
@@ -60,7 +61,6 @@ constexpr auto SORT_KEY                           = "Sort";
 constexpr auto SORT_INDEX_KEY                     = "Index";
 constexpr auto SORT_ORDER_KEY                     = "Order";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTableColumnSettings";
-constexpr auto HASH_CONTEXT_MENU_ENABLED          = "Preferences/Books/ContextMenu/HashEnabled";
 constexpr auto LAST                               = "Last";
 
 constexpr auto CB_MODE_ID_ROLE = Qt::UserRole + 1;
@@ -440,7 +440,7 @@ class TreeView::Impl final
 	, IFilterProvider::IObserver
 	, ModeLineEdit::IValueApplier
 	, HeaderView::IObserver
-	, IHotkeyManager::IObserver
+	, IMenuCustomizer::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -453,7 +453,7 @@ public:
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IUiFactory>                uiFactory,
 		std::shared_ptr<IFilterProvider>           filterProvider,
-		std::shared_ptr<IHotkeyManager>            hotkeyManager,
+		std::shared_ptr<IMenuCustomizer>           menuCustomizer,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController,
 		std::shared_ptr<INavigationUndoRedo>       navigationUndoRedo
@@ -465,7 +465,7 @@ public:
 		, m_settings { std::move(settings) }
 		, m_uiFactory { std::move(uiFactory) }
 		, m_filterProvider { std::move(filterProvider) }
-		, m_hotkeyManager { std::move(hotkeyManager) }
+		, m_menuCustomizer { std::move(menuCustomizer) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
 		, m_navigationUndoRedo { std::move(navigationUndoRedo) }
@@ -481,7 +481,7 @@ public:
 		m_controller->UnregisterObserver(this);
 		m_delegate->UnregisterObserver(this);
 		if (!IsNavigation())
-			m_hotkeyManager->UnregisterObserver(this);
+			m_menuCustomizer->UnregisterObserver(this);
 	}
 
 	void SetNavigationModeName(QString navigationModeName)
@@ -691,10 +691,10 @@ private: // HeaderView::IObserver
 		return *m_ui.treeView;
 	}
 
-private: // IHotkeyManager::IObserver
-	const char* GetKey() const noexcept override
+private: // IMenuCustomizer::IObserver
+	const char* GetRootKey() const noexcept override
 	{
-		return BOOK;
+		return BOOK_CONTEXT_MENU;
 	}
 
 	QWidget* GetParentWidget() noexcept override
@@ -730,7 +730,7 @@ private: // IHotkeyManager::IObserver
 				return nullptr;
 			};
 
-			if (auto child = find("Book", *item, find))
+			if (auto child = find(GetRootKey(), *item, find))
 				OnContextMenuTriggered(std::move(child));
 		});
 	}
@@ -798,7 +798,43 @@ private:
 		{
 			m_booksHeaderView->ResetFilteredIndex();
 			model->setData({}, !!(m_navigationItemFlags & (IDataItem::Flags::Filtered | IDataItem::Flags::BooksFiltered)), Role::NavigationItemFiltered);
-			m_ui.treeView->model()->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
+			model->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
+
+			connect(model, &QAbstractItemModel::dataChanged, [this, flag = false](const QModelIndex& topLeft, const QModelIndex&, const QVector<int>& roles) mutable {
+				if (flag || !roles.contains(Qt::CheckStateRole) || m_ui.treeView->model()->rowCount(topLeft) > 0)
+					return;
+
+				const ValueGuard   guard(flag, true);
+				const auto         checkState = topLeft.data(Qt::CheckStateRole);
+				std::unordered_set ids { topLeft.data(Role::Id).toLongLong() };
+				QModelIndexList    indices;
+
+				const auto enumerate = [&](const QModelIndex& index, const auto& r) -> void {
+					const auto rows = m_ui.treeView->model()->rowCount(index);
+					if (rows == 0)
+					{
+						if (index.data(Qt::CheckStateRole) != checkState && ids.insert(index.data(Role::Id).toLongLong()).second)
+							indices.push_back(index);
+						return;
+					}
+
+					for (int row = 0; row < rows; ++row)
+						r(m_ui.treeView->model()->index(row, 0, index), r);
+				};
+
+				auto selection = m_ui.treeView->selectionModel()->selection();
+				for (const auto& index : selection.indexes() | std::views::filter([&](const QModelIndex& item) {
+											 return item.column() == topLeft.column() && item != topLeft;
+										 }))
+					enumerate(index, enumerate);
+
+				for (const auto index : indices)
+					m_ui.treeView->model()->setData(index, checkState, Qt::CheckStateRole);
+
+				QTimer::singleShot(0, [this, selection = std::move(selection)] {
+					m_ui.treeView->selectionModel()->select(selection, QItemSelectionModel::Select);
+				});
+			});
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
 
@@ -824,6 +860,9 @@ private:
 
 	ITreeViewController::RequestContextMenuOptions GetContextMenuOptions() const
 	{
+		if (!m_ui.treeView->model())
+			return ITreeViewController::RequestContextMenuOptions::None;
+
 		static constexpr auto hasCollapsedExpanded = ITreeViewController::RequestContextMenuOptions::HasExpanded | ITreeViewController::RequestContextMenuOptions::HasCollapsed;
 
 		const auto& model = *m_ui.treeView->model();
@@ -854,8 +893,11 @@ private:
 			| addOption(m_showRemoved, ITreeViewController::RequestContextMenuOptions::ShowRemoved)
 			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
 			| addOption(m_filterProvider->IsFilterEnabled(), ITreeViewController::RequestContextMenuOptions::UniFilterEnabled)
-			| addOption(m_settings->Get(HASH_CONTEXT_MENU_ENABLED, false), ITreeViewController::RequestContextMenuOptions::HashEnabled)
 			| addOption(hashCompareEnabled(), ITreeViewController::RequestContextMenuOptions::HashCompareEnabled)
+			| addOption(
+				m_navigationModeName == NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::History)].first && m_ui.treeView->model()->rowCount() > 0,
+				ITreeViewController::RequestContextMenuOptions::NavigationModeIsHistory
+			)
 			| addOption(
 				currentIndex.isValid() && currentIndex.data(Role::Type).value<ItemType>() == ItemType::Books
 					&& Zip::IsArchive(Platform::RemoveIllegalPathCharacters(currentIndex.data(Role::FileName).toString())),
@@ -910,9 +952,9 @@ private:
 
 	void GenerateMenu(QMenu& menu, const IDataItem& item)
 	{
-		const auto                                      font = menu.font();
-		const QFontMetrics                              metrics(font);
-		std::stack<std::pair<const IDataItem*, QMenu*>> stack { { { &item, &menu } } };
+		const auto                                                    font = menu.font();
+		const QFontMetrics                                            metrics(font);
+		std::stack<std::tuple<const IDataItem*, QMenu*, QStringList>> stack { { { &item, &menu, { GetRootKey() } } } };
 
 		const auto getBool = [](const IDataItem& menuItem, const int column, const bool defaultValue) {
 			const auto& str = menuItem.GetData(column);
@@ -921,7 +963,7 @@ private:
 
 		while (!stack.empty())
 		{
-			auto [parent, subMenu] = stack.top();
+			auto [parent, subMenu, iconKeyList] = std::move(stack.top());
 			stack.pop();
 
 			auto maxWidth = subMenu->minimumWidth();
@@ -931,17 +973,29 @@ private:
 				auto       child     = parent->GetChild(i);
 				const auto enabled   = getBool(*child, MenuItem::Column::Enabled, true);
 				const auto title     = child->GetData().toStdString();
-				const auto titleText = Loc::Tr(m_controller->TrContext(), title.data());
-				auto       statusTip = titleText;
+				auto       titleText = Loc::Tr(m_controller->TrContext(), title.data());
+
+				auto childIconKeyList = iconKeyList;
+				childIconKeyList << child->GetData(MenuItem::Column::Key);
+				const auto menuCustomizerKey = childIconKeyList.join('/');
+
+				if (const auto var = m_menuCustomizer->IsHidden(menuCustomizerKey); var.isValid() && var.toBool())
+					continue;
+
+				auto icon = m_menuCustomizer->GetIcon(menuCustomizerKey);
+
+				auto statusTip = titleText;
 				statusTip.replace("&", "");
 				maxWidth = std::max(maxWidth, metrics.boundingRect(statusTip).width() + 3 * (metrics.ascent() + metrics.descent()));
 
 				if (child->GetChildCount() != 0)
 				{
-					auto* subSubMenu = stack.emplace(child.get(), subMenu->addMenu(titleText)).second;
+					auto* subSubMenu = std::get<1>(stack.emplace(child.get(), subMenu->addMenu(titleText), std::move(childIconKeyList)));
 					subSubMenu->setFont(font);
 					subSubMenu->setEnabled(enabled);
 					subSubMenu->setStatusTip(statusTip);
+					if (icon.isValid())
+						subSubMenu->menuAction()->setIcon(icon.value<QIcon>());
 					continue;
 				}
 
@@ -954,6 +1008,9 @@ private:
 				const auto checkable = getBool(*child, MenuItem::Column::Checkable, false);
 				const auto checked   = getBool(*child, MenuItem::Column::Checked, false);
 
+				if (const auto hotkey = m_menuCustomizer->GetHotkey(menuCustomizerKey); !hotkey.isEmpty())
+					titleText.append('\t').append(hotkey);
+
 				auto* action = subMenu->addAction(titleText, [this, child = std::move(child)]() mutable {
 					OnContextMenuTriggered(std::move(child));
 				});
@@ -962,6 +1019,8 @@ private:
 				action->setCheckable(checkable);
 				if (checkable)
 					action->setChecked(checked);
+				if (icon.isValid())
+					action->setIcon(icon.value<QIcon>());
 			}
 
 			subMenu->setMinimumWidth(maxWidth);
@@ -1072,8 +1131,8 @@ private:
 
 		if (!IsNavigation())
 			QTimer::singleShot(0, [this] {
-				m_hotkeyManager->Add(*m_ui.cbMode, Tr(BOOK_VIEW_MODE));
-				m_hotkeyManager->RegisterObserver(this);
+				m_menuCustomizer->Add(m_controller->TrContext(), *m_ui.cbMode, Tr(BOOK_VIEW_MODE));
+				m_menuCustomizer->RegisterObserver(this);
 			});
 
 		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), IsNavigation());
@@ -1457,7 +1516,7 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>                m_uiFactory;
 	PropagateConstPtr<IFilterProvider, std::shared_ptr>           m_filterProvider;
-	PropagateConstPtr<IHotkeyManager, std::shared_ptr>            m_hotkeyManager;
+	PropagateConstPtr<IMenuCustomizer, std::shared_ptr>           m_menuCustomizer;
 	PropagateConstPtr<Util::ItemViewToolTipper, std::shared_ptr>  m_itemViewToolTipper;
 	PropagateConstPtr<Util::ScrollBarController, std::shared_ptr> m_scrollBarController;
 	PropagateConstPtr<INavigationUndoRedo, std::shared_ptr>       m_navigationUndoRedo;
@@ -1490,7 +1549,7 @@ TreeView::TreeView(
 	std::shared_ptr<ISettings>                  settings,
 	std::shared_ptr<IUiFactory>                 uiFactory,
 	std::shared_ptr<IFilterProvider>            filterProvider,
-	std::shared_ptr<IHotkeyManager>             hotkeyManager,
+	std::shared_ptr<IMenuCustomizer>            menuCustomizer,
 	std::shared_ptr<Util::ItemViewToolTipper>   itemViewToolTipper,
 	std::shared_ptr<Util::ScrollBarController>  scrollBarController,
 	std::shared_ptr<INavigationUndoRedo>        navigationUndoRedo,
@@ -1505,7 +1564,7 @@ TreeView::TreeView(
 		  std::move(settings),
 		  std::move(uiFactory),
 		  std::move(filterProvider),
-		  std::move(hotkeyManager),
+		  std::move(menuCustomizer),
 		  std::move(itemViewToolTipper),
 		  std::move(scrollBarController),
 		  std::move(navigationUndoRedo)

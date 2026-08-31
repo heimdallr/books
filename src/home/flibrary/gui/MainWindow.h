@@ -11,10 +11,10 @@
 #include "interface/logic/ICommandLine.h"
 #include "interface/logic/IDatabaseChecker.h"
 #include "interface/logic/IDatabaseUser.h"
-#include "interface/logic/IHotkeyManager.h"
 #include "interface/logic/IJokeRequesterFactory.h"
 #include "interface/logic/ILogController.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/logic/IMenuCustomizer.h"
 #include "interface/logic/INavigationUndoRedo.h"
 #include "interface/logic/IRecentOpenBookController.h"
 #include "interface/ui/IAlphabetPanel.h"
@@ -64,7 +64,7 @@ public:
 		std::shared_ptr<LogItemDelegate>                logItemDelegate,
 		std::shared_ptr<ILineOption>                    lineOption,
 		std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
-		std::shared_ptr<IHotkeyManager>                 hotkeyManager,
+		std::shared_ptr<IMenuCustomizer>                menuCustomizer,
 		std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
 		std::shared_ptr<Util::ScrollBarController>      scrollBarController,
 		std::shared_ptr<INavigationUndoRedo>            navigationUndoRedo,

@@ -16,7 +16,9 @@ class QString;
 namespace HomeCompa::Flibrary
 {
 
-class TreeViewControllerBooks final : public AbstractTreeViewController
+class TreeViewControllerBooks final
+	: public AbstractTreeViewController
+	, IDataProvider::IObserver
 {
 	NON_COPY_MOVABLE(TreeViewControllerBooks)
 
@@ -46,6 +48,10 @@ private: // AbstractTreeViewController
 	void                   RequestContextMenu(const QModelIndex& index, RequestContextMenuOptions options, RequestContextMenuCallback callback) override;
 	void                   OnContextMenuTriggered(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item) override;
 	void                   OnDoubleClicked(const QModelIndex& index) const override;
+
+private: // IDataProvider::IObserver
+	void OnNavigationModeChanged() override;
+	void OnBooksSelected(NavigationMode navigationMode, IDataItem::Ptr root) override;
 
 private:
 	struct Impl;

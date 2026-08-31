@@ -503,7 +503,11 @@
     </message>
     <message>
         <source>Change language</source>
-        <translation></translation>
+        <translation>Change &amp;language</translation>
+    </message>
+    <message>
+        <source>Clear browsing history</source>
+        <translation>Clear &amp;browsing history</translation>
     </message>
     <message>
         <source>Compare</source>
@@ -523,7 +527,7 @@
     </message>
     <message>
         <source>Hash</source>
-        <translation></translation>
+        <translation>&amp;Hash</translation>
     </message>
     <message>
         <source>No rating</source>
@@ -910,6 +914,13 @@ Restart now?</source>
     </message>
     <message>
         <source>&amp;Uncheck all</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>CustomizeMenuDialog</name>
+    <message>
+        <source>Menu Customization</source>
         <translation></translation>
     </message>
 </context>
@@ -2722,18 +2733,62 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Hotkey settings</source>
+        <source>Check to add &quot;%1&quot; to the toolbar</source>
         <translation></translation>
     </message>
     <message>
-        <source>Reset</source>
+        <source>Check to hide &quot;%1&quot;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Double-click to set the hotkey for &quot;%1&quot;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Icon for %1</source>
+        <translation>Icon for &quot;%1&quot;</translation>
+    </message>
+    <message>
+        <source>Image files (*.ico *.png *.bmp *.jpg *.jpeg *.svg);;All files (*.*)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Remove hotkey</source>
+        <translation>Delete shortcut</translation>
+    </message>
+    <message>
+        <source>Remove icon</source>
+        <translation>Delete icon</translation>
+    </message>
+    <message>
+        <source>Select image file</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Set hotkey</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Set icon</source>
         <translation></translation>
     </message>
 </context>
 <context>
     <name>HotkeyManager</name>
     <message>
-        <source>Book</source>
+        <source>Book context menu</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot open &apos;%1&apos;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>File %1 is empty</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Image %1 probably corrupted</source>
         <translation></translation>
     </message>
 </context>
@@ -4725,6 +4780,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Menu...</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Metadata</source>
         <translation></translation>
     </message>
@@ -4765,15 +4824,15 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Status line</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;System</source>
         <translation></translation>
     </message>
     <message>
         <source>&amp;Test colors</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>&amp;Theme</source>
         <translation></translation>
     </message>
     <message>
@@ -4797,7 +4856,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>About the author</source>
+        <source>About the a&amp;uthor</source>
         <translation></translation>
     </message>
     <message>
@@ -4809,11 +4868,11 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Allow destructive operations</source>
+        <source>Al&amp;phabets</source>
         <translation></translation>
     </message>
     <message>
-        <source>Alphabets</source>
+        <source>Allow destructive operations</source>
         <translation></translation>
     </message>
     <message>
@@ -4913,10 +4972,6 @@ Try again?</source>
         <translation>Go to the &amp;simplified web interface</translation>
     </message>
     <message>
-        <source>Hot&amp;keys...</source>
-        <translation></translation>
-    </message>
-    <message>
         <source>Http server management</source>
         <translation></translation>
     </message>
@@ -4942,10 +4997,6 @@ Try again?</source>
     </message>
     <message>
         <source>Navi&amp;gation</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Navigation</source>
         <translation></translation>
     </message>
     <message>
@@ -4975,10 +5026,6 @@ Try again?</source>
     <message>
         <source>Rewrite &amp;metadata</source>
         <translation>Overwrite &amp;metadata</translation>
-    </message>
-    <message>
-        <source>S&amp;tatus line</source>
-        <translation></translation>
     </message>
     <message>
         <source>Search &amp;bar by title</source>
@@ -5029,6 +5076,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Show &amp;toolbar</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Show collection s&amp;tatistics</source>
         <translation></translation>
     </message>
@@ -5046,6 +5097,10 @@ Try again?</source>
     </message>
     <message>
         <source>The right decision!</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>The&amp;me</source>
         <translation></translation>
     </message>
     <message>
@@ -5230,6 +5285,10 @@ Try again?</source>
     </message>
     <message>
         <source>Hide</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>History</source>
         <translation></translation>
     </message>
     <message>
@@ -5885,7 +5944,11 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>Flibrary export files (*%1)</source>
+        <source>FLibrary user data files (*%1);;All files (*.*)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>FLibrary user data files (*%1);;MyHomeLib user data files (*.mhlud2);;All files (*.*)</source>
         <translation></translation>
     </message>
     <message>

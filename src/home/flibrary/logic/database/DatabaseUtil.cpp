@@ -13,6 +13,7 @@
 
 #include "data/DataItem.h"
 #include "inpx/InpxConstant.h"
+#include "settings/ISettings.h"
 #include "util/GenresLocalization.h"
 #include "util/language.h"
 
@@ -23,6 +24,8 @@ namespace HomeCompa::Flibrary::DatabaseUtil
 
 namespace
 {
+
+constexpr auto KEEP_HISTORY = "Preferences/Books/KeepHistory";
 
 constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[] {
 	{  BookQueryFields::BookTitle,      BookItem::Column::Title },
@@ -98,7 +101,7 @@ IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query)
 IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery& query)
 {
 	auto item = AuthorItem::Create();
-	UpdateItem(*item, query, { 1, 1, 2, 3 }, 4, 5);
+	UpdateItem(*item, query, { 1, 1, 2, 3, 4 }, 5, 6);
 	return item;
 }
 
@@ -158,6 +161,33 @@ bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& i
 	}
 
 	return transaction->Commit() && ok;
+}
+
+void CreateHistoryTable(DB::IDatabase& db, const ISettings& settings)
+{
+	try
+	{
+		const auto keepHistory = settings.Get(KEEP_HISTORY, false);
+		const auto tableName   = GetHistoryTableName(settings);
+		const auto tr          = db.CreateTransaction();
+		if (!keepHistory)
+			tr->CreateCommand("DROP TABLE IF EXISTS History")->Execute();
+		tr->CreateCommand(
+			  std::format("CREATE TABLE IF NOT EXISTS {} (BookID INTEGER PRIMARY KEY{} NOT NULL, CreatedAt DATETIME NOT NULL)", tableName, keepHistory ? " REFERENCES Books(BookID) ON DELETE CASCADE" : "")
+		)
+			->Execute();
+		tr->CreateCommand(std::format("CREATE INDEX IF NOT EXISTS {}IX_History_BookID ON History (BookID)", keepHistory ? "" : "tmp."))->Execute();
+		tr->Commit();
+	}
+	catch (const std::exception& ex)
+	{
+		PLOGE << ex.what();
+	}
+}
+
+std::string GetHistoryTableName(const ISettings& settings)
+{
+	return settings.Get(KEEP_HISTORY, false) ? "History" : "tmp.History";
 }
 
 } // namespace HomeCompa::Flibrary::DatabaseUtil

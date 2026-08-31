@@ -5,7 +5,7 @@ set SOLUTION_PATH=%~dp0%1
 goto find
 
 :read
-set SOLUTION_PATH=%~dp0build\Debug
+set SOLUTION_PATH=%~dp0build\Qt6-x86_64\Debug
 
 :find
 FOR %%F IN (%SOLUTION_PATH%\*.sln) DO (

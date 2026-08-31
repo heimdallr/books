@@ -10,7 +10,6 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
-#include "interface/localization.h"
 
 #include "inpx/InpxConstant.h"
 #include "util/IExecutor.h"
@@ -60,11 +59,6 @@ RESTORE_ITEMS_X_MACRO
 
 namespace
 {
-
-constexpr auto CONTEXT          = "UserData";
-constexpr auto CANNOT_READ_FROM = QT_TRANSLATE_NOOP("UserData", "Cannot read from %1");
-
-TR_DEF
 
 constexpr auto FLIBRARY_BACKUP                       = "FlibraryBackup";
 constexpr auto FLIBRARY_BACKUP_VERSION               = "FlibraryBackup/FlibraryBackupVersion";

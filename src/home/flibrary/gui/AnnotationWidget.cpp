@@ -44,13 +44,7 @@ constexpr auto IMAGE_BACKGROUND_COLOR_DEFAULT = "white";
 
 constexpr std::pair<const char*, bool> NO_NAVIGATION { nullptr, false };
 
-constexpr std::pair<const char*, NavigationMode> NAVIGATION_NAMES[] = {
-#define NAVIGATION_MODE_ITEM(NAME) { #NAME, NavigationMode::NAME },
-	NAVIGATION_MODE_ITEMS_X_MACRO
-#undef NAVIGATION_MODE_ITEM
-};
-
-constexpr std::pair<const char*, std::pair<const char*, bool>> TYPE_TO_NAVIGATION[] {
+constexpr std::pair<const char*, std::pair<const char*, bool /*go to url from annotation*/>> TYPE_TO_NAVIGATION[] {
 	{	  Loc::AUTHORS,      { Loc::Authors, true } },
     {       Loc::SERIES,       { Loc::Series, true } },
     {       Loc::GENRES,       { Loc::Genres, true } },
@@ -63,7 +57,8 @@ constexpr std::pair<const char*, std::pair<const char*, bool>> TYPE_TO_NAVIGATIO
     {          "Search",      { Loc::Search, false } },
     {         "Reviews",     { Loc::Reviews, false } },
     {  Loc::AlreadyRead, { Loc::AlreadyRead, false } },
-	{		"AllBooks",    { Loc::AllBooks, false } },
+	{	  Loc::History,     { Loc::History, false } },
+    {        "AllBooks",    { Loc::AllBooks, false } },
 };
 static_assert(std::size(TYPE_TO_NAVIGATION) == static_cast<size_t>(NavigationMode::Last));
 
@@ -197,6 +192,7 @@ public:
 		const std::shared_ptr<const ILogicFactory>&   logicFactory,
 		const std::shared_ptr<ICollectionController>& collectionController,
 		std::shared_ptr<const IBookInteractor>        bookInteractor,
+		std::shared_ptr<const IMenuCustomizer>        menuCustomizer,
 		std::shared_ptr<ISettings>                    settings,
 		std::shared_ptr<IAnnotationController>        annotationController,
 		std::shared_ptr<IUiFactory>                   uiFactory,
@@ -207,6 +203,7 @@ public:
 	)
 		: m_self { self }
 		, m_bookInteractor { std::move(bookInteractor) }
+		, m_menuCustomizer { std::move(menuCustomizer) }
 		, m_settings { std::move(settings) }
 		, m_annotationController { std::move(annotationController) }
 		, m_modelProvider { modelProvider }
@@ -525,8 +522,9 @@ private: // IAnnotationController::IUrlGenerator
 			return {};
 
 		const auto& navigation = FindSecond(TYPE_TO_NAVIGATION, type, NO_NAVIGATION, PszComparer {});
-		return textMode || (navigation.first && !m_settings->Get(QString(Constant::Settings::VIEW_NAVIGATION_KEY_TEMPLATE).arg(navigation.first), true)) ? QString("%1").arg(str)
-		                                                                                                                                                 : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
+		return textMode || (navigation.first && m_menuCustomizer->IsHidden(QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(navigation.first)).toBool())
+		         ? QString("%1").arg(str)
+		         : QString("<a href=%1//%2>%3</a>").arg(type, id, str);
 	}
 
 	QString GenerateLibRateStars(const int rate) const override
@@ -695,6 +693,7 @@ private:
 private:
 	AnnotationWidget&                                             m_self;
 	std::shared_ptr<const IBookInteractor>                        m_bookInteractor;
+	std::shared_ptr<const IMenuCustomizer>                        m_menuCustomizer;
 	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr>     m_annotationController;
 	std::weak_ptr<const IModelProvider>                           m_modelProvider;
@@ -731,6 +730,7 @@ AnnotationWidget::AnnotationWidget(
 	const std::shared_ptr<const ILogicFactory>&   logicFactory,
 	const std::shared_ptr<ICollectionController>& collectionController,
 	std::shared_ptr<const IBookInteractor>        bookInteractor,
+	std::shared_ptr<const IMenuCustomizer>        menuCustomizer,
 	std::shared_ptr<ISettings>                    settings,
 	std::shared_ptr<IAnnotationController>        annotationController,
 	std::shared_ptr<IUiFactory>                   uiFactory,
@@ -747,6 +747,7 @@ AnnotationWidget::AnnotationWidget(
 		  logicFactory,
 		  collectionController,
 		  std::move(bookInteractor),
+		  std::move(menuCustomizer),
 		  std::move(settings),
 		  std::move(annotationController),
 		  std::move(uiFactory),

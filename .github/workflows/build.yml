@@ -225,7 +225,7 @@ jobs:
           path: build/artifacts/linux-x86_64
           compression-level: 0
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 2
 
   windows:
     name: Windows ${{ matrix.ver }} x86_64
@@ -289,8 +289,7 @@ jobs:
             Write-Host "Installing Qt from $mirror"
             & aqt install-qt windows desktop ${{ matrix.qt_version }} `
               ${{ matrix.qt_build }} -O $env:QT_ROOT `
-              --base $mirror --timeout 30 `
-              ${{ matrix.qt_aditional }}
+              ${{ matrix.qt_additional }} --base $mirror --timeout 30
             if ($LASTEXITCODE -eq 0) {
               $installed = $true
               break
@@ -433,7 +432,7 @@ jobs:
           path: build/artifacts/windows-${{ matrix.ver }}-x86_64
           compression-level: 0
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 2
 
   macos:
     name: macOS ${{ matrix.arch }}
@@ -555,4 +554,4 @@ jobs:
           path: build/artifacts/macos-${{ matrix.arch }}
           compression-level: 0
           if-no-files-found: error
-          retention-days: 14
+          retention-days: 2

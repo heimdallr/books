@@ -5,10 +5,9 @@ namespace HomeCompa::Flibrary::Constant::Settings
 
 constexpr auto LOCALE_KEY = "ui/locale";
 
-constexpr auto VIEW_MODE_KEY_TEMPLATE       = "ui/%1/Mode";
-constexpr auto VIEW_NAVIGATION_KEY_TEMPLATE = "ui/View/Navigation/%1";
-constexpr auto RECENT_NAVIGATION_ID_KEY     = "Collections/%1/%2%3/LastId";
-constexpr auto FAST_FILTER_KEY_TEMPLATE     = "ui/FastFilter/%1";
+constexpr auto VIEW_MODE_KEY_TEMPLATE   = "ui/%1/Mode";
+constexpr auto RECENT_NAVIGATION_ID_KEY = "Collections/%1/%2%3/LastId";
+constexpr auto FAST_FILTER_KEY_TEMPLATE = "ui/FastFilter/%1";
 
 constexpr auto EXPORT_DIALOG_KEY           = "Export";
 constexpr auto EXPORT_TEMPLATE_KEY         = "ui/Export/OutputTemplate";
@@ -17,7 +16,6 @@ constexpr auto EXPORT_REPLACE_METADATA_KEY = "ui/Export/ReplaceMetadata";
 constexpr auto PERMANENT_LANG_FILTER_KEY         = "ui/permanentLanguageFilter";
 constexpr auto PERMANENT_LANG_FILTER_ENABLED_KEY = "ui/permanentLanguageFilterEnabled";
 constexpr auto SHOW_REMOVED_BOOKS_KEY            = "ui/View/RemovedBooks";
-constexpr auto HOTKEYS_ROOT                      = "ui/Hotkeys";
 
 constexpr auto OPDS_HOST_KEY          = "opds/host";
 constexpr auto OPDS_PORT_KEY          = "opds/port";
@@ -45,6 +43,7 @@ constexpr auto PREFER_RELATIVE_PATHS             = "Preferences/RelativePaths";
 constexpr auto PREFER_HIDE_TO_TRAY_KEY           = "Preferences/HideToTray";
 constexpr auto PREFER_MINIMIZE_TO_TRAY_KEY       = "Preferences/MinimizeToTray";
 constexpr auto PREFER_ALTERNATING_ROW_COLORS     = "Preferences/AlternatingRowColors";
+constexpr auto PREFER_KEEP_CHECK                 = "Preferences/Books/KeepCheck";
 
 constexpr auto SEARCH_WITH_TITLE      = "SearchBy/Title";
 constexpr auto SEARCH_WITH_AUTHOR     = "SearchBy/Author";
@@ -52,5 +51,7 @@ constexpr auto SEARCH_WITH_SERIES     = "SearchBy/Series";
 constexpr auto SEARCH_WITH_ANNOTATION = "SearchBy/Annotation";
 
 constexpr auto BACKGROUND_COLOR_TEMPLATE = "background-color: %1;";
+
+constexpr auto NAVIGATION_HIDDEN_KEY_TEMPLATE = "MainWindow/menuBar/menuNavigation/%1_isActive";
 
 } // namespace HomeCompa::Flibrary::Constant::Settings

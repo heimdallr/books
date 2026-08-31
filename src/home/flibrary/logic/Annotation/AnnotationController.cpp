@@ -12,10 +12,12 @@
 
 #include "fnd/EnumBitmask.h"
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 #include "fnd/observable.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
+#include "database/interface/ITransaction.h"
 
 #include "interface/constants/ExportStat.h"
 #include "interface/constants/ProductConstant.h"
@@ -58,7 +60,7 @@ using Extractor = IDataItem::Ptr (*)(const DB::IQuery& query);
 
 constexpr auto SERIES_QUERY = "select s.SeriesID, s.SeriesTitle, sl.SeqNumber from Series s join Series_List sl on sl.SeriesID = s.SeriesID and sl.BookID = :id where s.Flags & {} = 0 order by sl.OrdNum";
 constexpr auto AUTHORS_QUERY =
-	"select a.AuthorID, a.LastName, a.FirstName, a.MiddleName from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = :id where a.Flags & {} = 0 order by al.OrdNum";
+	"select a.AuthorID, a.LastName, a.FirstName, a.MiddleName, a.NickName from Authors a join Author_List al on al.AuthorID = a.AuthorID and al.BookID = :id where a.Flags & {} = 0 order by al.OrdNum";
 constexpr auto GENRES_QUERY   = "select g.GenreCode, g.GenreAlias from Genres g join Genre_List gl on gl.GenreCode = g.GenreCode and gl.BookID = :id  where g.Flags & {} = 0 order by gl.OrdNum";
 constexpr auto GROUPS_QUERY   = "select g.GroupID, g.Title from Groups_User g join Groups_List_User_View gl on gl.GroupID = g.GroupID and gl.BookID = :id";
 constexpr auto KEYWORDS_QUERY = "select k.KeywordID, k.KeywordTitle from Keywords k join Keyword_List kl on kl.KeywordID = k.KeywordID and kl.BookID = :id where k.Flags & {} = 0 order by kl.OrdNum";
@@ -101,6 +103,8 @@ QString GetTitleAuthor(const IDataItem& item)
 	auto result = item.GetData(AuthorItem::Column::LastName);
 	Util::AppendTitle(result, item.GetData(AuthorItem::Column::FirstName));
 	Util::AppendTitle(result, item.GetData(AuthorItem::Column::MiddleName));
+	if (const auto nickName = item.GetData(AuthorItem::Column::NickName); !nickName.isEmpty())
+		result.append(QString(" [%1]").arg(nickName));
 	return result;
 }
 
@@ -338,6 +342,11 @@ public:
 	}
 
 public:
+	void SetNavigationMode(const NavigationMode navigationMode) noexcept
+	{
+		m_navigationMode = navigationMode;
+	}
+
 	void SetCurrentBookId(QString bookId, const bool extractNow)
 	{
 		if (auto parser = m_archiveParser.lock())
@@ -636,6 +645,18 @@ private:
 					  return query->Eof() ? QString {} : QString { query->Get<const char*>(0) };
 				  }();
 
+				  if (!IsOneOf(m_navigationMode, NavigationMode::Unknown, NavigationMode::History))
+				  {
+					  const auto tr = db->CreateTransaction();
+					  tr->CreateCommand(std::format("INSERT OR REPLACE INTO {} (BookID, CreatedAt) VALUES ({}, datetime('now', 'localtime'))", m_historyTableName, book->GetId().toStdString()))->Execute();
+					  if (m_historyWriteCounter && ++m_historyWriteCounter > 10)
+					  {
+						  m_historyWriteCounter = 0;
+						  tr->CreateCommand("analyze")->Execute();
+					  }
+					  tr->Commit();
+				  }
+
 				  return [this,
 			              book             = std::move(book),
 			              series           = std::move(series),
@@ -758,6 +779,8 @@ private:
 	}
 
 private:
+	NavigationMode m_navigationMode { NavigationMode::Unknown };
+
 	std::weak_ptr<const ILogicFactory>           m_logicFactory;
 	std::shared_ptr<const ISettings>             m_settings;
 	std::shared_ptr<const ICollectionProvider>   m_collectionProvider;
@@ -801,6 +824,9 @@ private:
 
 	std::random_device m_rd;
 	std::mt19937       m_mt { m_rd() };
+
+	const std::string m_historyTableName { DatabaseUtil::GetHistoryTableName(*m_settings) };
+	size_t            m_historyWriteCounter { 1 };
 };
 
 AnnotationController::AnnotationController(
@@ -819,6 +845,11 @@ AnnotationController::AnnotationController(
 AnnotationController::~AnnotationController()
 {
 	PLOGV << "AnnotationController destroyed";
+}
+
+void AnnotationController::SetNavigationMode(const NavigationMode navigationMode) noexcept
+{
+	m_impl->SetNavigationMode(navigationMode);
 }
 
 void AnnotationController::SetCurrentBookId(QString bookId, const bool extractNow)

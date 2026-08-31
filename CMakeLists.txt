@@ -13,6 +13,10 @@ set(COPYRIGHT "(c) 2026 heimdallr")
 set(PRODUCT_DESCRIPTION "another e-book cataloger")
 set(PRODUCT_ICON "${CMAKE_CURRENT_LIST_DIR}/src/home/resources/icons/main.ico")
 
+if ("${PLATFORM}" STREQUAL "")
+	set(PLATFORM x86_64)
+endif()
+
 if ("${QT_MAJOR_VERSION}" STREQUAL "")
 	set(QT_MAJOR_VERSION 6)
 endif()
@@ -30,7 +34,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(MAJOR_PRODUCT_VERSION 2)
 set(MINOR_PRODUCT_VERSION 7)
-set(PATCH_PRODUCT_VERSION 0)
+set(PATCH_PRODUCT_VERSION 1)
 file(READ ${CMAKE_CURRENT_LIST_DIR}/src/home/flibrary/version/build.h BUILD_PRODUCT_VERSION)
 string(REGEX MATCH "[0-9]+" BUILD_PRODUCT_VERSION ${BUILD_PRODUCT_VERSION})
 
@@ -225,6 +229,10 @@ include_directories("${EXT_ROOT}/Hypodermic")
 
 include("src/ext/sqlite.cmake")
 include("src/home/home.cmake")
+
+if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+	return()
+endif()
 
 include("src/home/script/cmake/pack.cmake")
 install(FILES "${CMAKE_SOURCE_DIR}/LICENSE_en.txt" DESTINATION . RENAME LICENSE.txt)

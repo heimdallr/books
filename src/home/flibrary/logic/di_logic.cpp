@@ -36,9 +36,9 @@
 #include "shared/BookInteractor.h"
 #include "shared/CommandLine.h"
 #include "shared/FilterController.h"
-#include "shared/HotkeyManager.h"
 #include "shared/ImageViewerController.h"
 #include "shared/LibRateProvider.h"
+#include "shared/MenuCustomizer.h"
 #include "shared/NavigationUndoRedo.h"
 #include "shared/OpdsController.h"
 #include "shared/ProgressController.h"
@@ -93,7 +93,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<DataProvider>().as<IDataProvider>().singleInstance();
 	builder.registerType<DataProvider>().as<IFilterDataProvider>().singleInstance();
 	builder.registerType<FilterController>().as<IFilterController>().singleInstance();
-	builder.registerType<HotkeyManager>().as<IHotkeyManager>().singleInstance();
+	builder.registerType<MenuCustomizer>().as<IMenuCustomizer>().singleInstance();
 	builder.registerType<LogController>().as<ILogController>().singleInstance();
 	builder.registerType<NavigationQueryExecutor>().as<INavigationQueryExecutor>().singleInstance();
 	builder.registerType<NavigationUndoRedo>().as<INavigationUndoRedo>().singleInstance();

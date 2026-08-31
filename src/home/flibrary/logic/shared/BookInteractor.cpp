@@ -37,6 +37,7 @@ inline constexpr const char* NAVIGATION_ID_QUERY[] = {
 	nullptr,
 	"select 42",
 	"select 42",
+	"select 42",
 };
 
 static_assert(std::size(NAVIGATION_ID_QUERY) == static_cast<size_t>(NavigationMode::Last));

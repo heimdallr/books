@@ -261,7 +261,8 @@ where g.GroupID = ?
 
 	QJsonObject getSearchAuthorBooks(const Parameters& parameters) const
 	{
-		static constexpr auto queryText = "select %1, %2, s.SeriesTitle from Books_View_Opds b %3 left join Series_List sl on sl.BookID = b.BookID left join Series s on s.SeriesID = sl.SeriesID";
+		static constexpr auto queryText =
+			"select %1, %2, s.SeriesTitle, sl.SeqNumber from Books_View_Opds b %3 left join Series_List sl on sl.BookID = b.BookID left join Series s on s.SeriesID = sl.SeriesID";
 		static constexpr std::tuple<const char*, const char*> list[] {
 			{ SELECTED_GROUP_ID, "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = %1" },
 			{  SELECTED_ITEM_ID,          "join Author_List al on al.BookID = b.BookID and al.AuthorID = %1" },
@@ -272,7 +273,7 @@ where g.GroupID = ?
 
 	QJsonObject getSearchSeriesBooks(const Parameters& parameters) const
 	{
-		static constexpr auto                                 queryText = "select %1, %2, %3 from Books_View_Opds b %4";
+		static constexpr auto                                 queryText = "select %1, %2, %3, sl.SeqNumber from Books_View_Opds b %4";
 		static constexpr std::tuple<const char*, const char*> list[] {
 			{ SELECTED_GROUP_ID, "join Groups_List_User_View gl on gl.BookID = b.BookID and gl.GroupID = %1" },
 			{  SELECTED_ITEM_ID,          "join Series_List sl on sl.BookID = b.BookID and sl.SeriesID = %1" },

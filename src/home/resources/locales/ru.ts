@@ -503,7 +503,11 @@
     </message>
     <message>
         <source>Change language</source>
-        <translation>Изменить язык</translation>
+        <translation>Изменить &amp;язык</translation>
+    </message>
+    <message>
+        <source>Clear browsing history</source>
+        <translation>Очистить &amp;историю просмотра</translation>
     </message>
     <message>
         <source>Compare</source>
@@ -523,7 +527,7 @@
     </message>
     <message>
         <source>Hash</source>
-        <translation>Хэш</translation>
+        <translation>&amp;Хэш</translation>
     </message>
     <message>
         <source>No rating</source>
@@ -922,6 +926,13 @@ Restart now?</source>
     <message>
         <source>&amp;Uncheck all</source>
         <translation>Сн&amp;ять отметки</translation>
+    </message>
+</context>
+<context>
+    <name>CustomizeMenuDialog</name>
+    <message>
+        <source>Menu Customization</source>
+        <translation>Настройка меню</translation>
     </message>
 </context>
 <context>
@@ -2736,19 +2747,63 @@ Try again?</source>
 %2</translation>
     </message>
     <message>
-        <source>Hotkey settings</source>
-        <translation>Настройка горячих клавиш</translation>
+        <source>Check to add &quot;%1&quot; to the toolbar</source>
+        <translation>Установите флажок, чтобы добавить &quot;%1&quot; на панель инструментов</translation>
     </message>
     <message>
-        <source>Reset</source>
-        <translation>Сброс</translation>
+        <source>Check to hide &quot;%1&quot;</source>
+        <translation>Установите флажок, чтобы скрыть &quot;%1&quot;</translation>
+    </message>
+    <message>
+        <source>Double-click to set the hotkey for &quot;%1&quot;</source>
+        <translation>Двойной клик, чтобы назначить горячую клавишу для &quot;%1&quot;</translation>
+    </message>
+    <message>
+        <source>Icon for %1</source>
+        <translation>Пиктограмма для &quot;%1&quot;</translation>
+    </message>
+    <message>
+        <source>Image files (*.ico *.png *.bmp *.jpg *.jpeg *.svg);;All files (*.*)</source>
+        <translation>Файлы изображений (*.ico *.png *.bmp *.jpg *.jpeg *.svg);;Все файлы (*.*)</translation>
+    </message>
+    <message>
+        <source>Remove hotkey</source>
+        <translation>Удалить сочетание клавиш</translation>
+    </message>
+    <message>
+        <source>Remove icon</source>
+        <translation>Удалить пиктограмму</translation>
+    </message>
+    <message>
+        <source>Select image file</source>
+        <translation>Выберите файл изображения</translation>
+    </message>
+    <message>
+        <source>Set hotkey</source>
+        <translation>Назначить сочетание клавиш</translation>
+    </message>
+    <message>
+        <source>Set icon</source>
+        <translation>Установить пиктограмму</translation>
     </message>
 </context>
 <context>
     <name>HotkeyManager</name>
     <message>
-        <source>Book</source>
-        <translation>Книга</translation>
+        <source>Book context menu</source>
+        <translation>Контекстное меню книги</translation>
+    </message>
+    <message>
+        <source>Cannot open &apos;%1&apos;</source>
+        <translation>Не удается открыть %1</translation>
+    </message>
+    <message>
+        <source>File %1 is empty</source>
+        <translation>Файл %1 пуст</translation>
+    </message>
+    <message>
+        <source>Image %1 probably corrupted</source>
+        <translation>Изображение %1, вероятно, повреждено</translation>
     </message>
 </context>
 <context>
@@ -4739,6 +4794,10 @@ Try again?</source>
         <translation>&amp;Журнал</translation>
     </message>
     <message>
+        <source>&amp;Menu...</source>
+        <translation>&amp;Меню...</translation>
+    </message>
+    <message>
         <source>&amp;Metadata</source>
         <translation>&amp;Метаданные</translation>
     </message>
@@ -4779,16 +4838,16 @@ Try again?</source>
         <translation>&amp;Настройки</translation>
     </message>
     <message>
+        <source>&amp;Status line</source>
+        <translation>Строка &amp;статуса</translation>
+    </message>
+    <message>
         <source>&amp;System</source>
         <translation>Системна&amp;я</translation>
     </message>
     <message>
         <source>&amp;Test colors</source>
         <translation>&amp;Цвета сообщений</translation>
-    </message>
-    <message>
-        <source>&amp;Theme</source>
-        <translation>&amp;Тема</translation>
     </message>
     <message>
         <source>&amp;Title</source>
@@ -4811,8 +4870,8 @@ Try again?</source>
         <translation>А&amp;ннотация</translation>
     </message>
     <message>
-        <source>About the author</source>
-        <translation>Об авторе</translation>
+        <source>About the a&amp;uthor</source>
+        <translation>Об а&amp;вторе</translation>
     </message>
     <message>
         <source>Add &amp;new collection...</source>
@@ -4823,12 +4882,12 @@ Try again?</source>
         <translation>Добавить темы...</translation>
     </message>
     <message>
-        <source>Allow destructive operations</source>
-        <translation>Разрешить деструктивные операции</translation>
+        <source>Al&amp;phabets</source>
+        <translation>Ал&amp;фавиты</translation>
     </message>
     <message>
-        <source>Alphabets</source>
-        <translation>Алфавиты</translation>
+        <source>Allow destructive operations</source>
+        <translation>Разрешить деструктивные операции</translation>
     </message>
     <message>
         <source>Are you really sure?</source>
@@ -4927,10 +4986,6 @@ Try again?</source>
         <translation>Перейти к у&amp;прощенному веб-интерфейсу</translation>
     </message>
     <message>
-        <source>Hot&amp;keys...</source>
-        <translation>Горячие &amp;клавиши...</translation>
-    </message>
-    <message>
         <source>Http server management</source>
         <translation>Управление HTTP-сервером</translation>
     </message>
@@ -4959,10 +5014,6 @@ Try again?</source>
         <translation>Нави&amp;гация</translation>
     </message>
     <message>
-        <source>Navigation</source>
-        <translation>Навигация</translation>
-    </message>
-    <message>
         <source>Open FLibrary</source>
         <translation>Открыть FLibrary</translation>
     </message>
@@ -4989,10 +5040,6 @@ Try again?</source>
     <message>
         <source>Rewrite &amp;metadata</source>
         <translation>Перезаписывать &amp;метаданные</translation>
-    </message>
-    <message>
-        <source>S&amp;tatus line</source>
-        <translation>Строка &amp;статуса</translation>
     </message>
     <message>
         <source>Search &amp;bar by title</source>
@@ -5043,6 +5090,10 @@ Try again?</source>
         <translation>Показать &amp;статистику...</translation>
     </message>
     <message>
+        <source>Show &amp;toolbar</source>
+        <translation>&amp;Панель инструментов</translation>
+    </message>
+    <message>
         <source>Show collection s&amp;tatistics</source>
         <translation>Показать с&amp;татистику коллекции</translation>
     </message>
@@ -5061,6 +5112,10 @@ Try again?</source>
     <message>
         <source>The right decision!</source>
         <translation>Правильное решение!</translation>
+    </message>
+    <message>
+        <source>The&amp;me</source>
+        <translation>&amp;Тема</translation>
     </message>
     <message>
         <source>To search for books by %1, enter the name or title here and press Enter</source>
@@ -5245,6 +5300,10 @@ Try again?</source>
     <message>
         <source>Hide</source>
         <translation>Скрыть</translation>
+    </message>
+    <message>
+        <source>History</source>
+        <translation>История</translation>
     </message>
     <message>
         <source>Keywords</source>
@@ -5902,8 +5961,12 @@ Try again?</source>
         <translation>Ошибка записи в %1</translation>
     </message>
     <message>
-        <source>Flibrary export files (*%1)</source>
-        <translation>Файлы экспорта FLibrary (*%1)</translation>
+        <source>FLibrary user data files (*%1);;All files (*.*)</source>
+        <translation>Файлы экспорта FLibrary (*%1);;Все файлы (*.*)</translation>
+    </message>
+    <message>
+        <source>FLibrary user data files (*%1);;MyHomeLib user data files (*.mhlud2);;All files (*.*)</source>
+        <translation>Файлы экспорта FLibrary (*%1);;Файлы экспорта MyHomeLib (*.mhlud2);;Все файлы (*.*)</translation>
     </message>
     <message>
         <source>Invalid root node name, must be %1</source>
