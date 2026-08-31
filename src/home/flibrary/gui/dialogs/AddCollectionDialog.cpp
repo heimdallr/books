@@ -120,7 +120,6 @@ public:
 
 		connect(m_ui.editName, &QLineEdit::textChanged, &m_self, [&](const QString& text) {
 			UpdateDatabasePath(text);
-			(void)CheckData();
 		});
 		connect(m_ui.editDatabase, &RelativePathLineEdit::Edited, &m_self, [this] {
 			m_userDefinedDatabasePath = true;
@@ -265,6 +264,9 @@ private: // GeometryRestorableObserver
 private:
 	void UpdateDatabasePath(QString text) const
 	{
+		const ScopedCall checkDataGuard([this] {
+			(void)CheckData();
+		});
 		if (m_userDefinedDatabasePath || text.isEmpty())
 			return;
 
@@ -277,12 +279,14 @@ private:
 		m_createMode = !db.isEmpty() && !QFile::exists(db);
 		m_ui.btnAdd->setText(Tr(m_createMode ? CREATE_NEW_COLLECTION : ADD_COLLECTION));
 		m_ui.options->setEnabled(m_createMode);
+		(void)CheckData();
 	}
 
 	void OnArchiveFolderPathChanged(const QString& path) const
 	{
 		if (m_ui.checkBoxAdditional->isChecked() && m_ui.editAdditional->GetText().isEmpty() && QDir(path + DEFAULT_ADDITIONAL_FOLDER).exists())
 			m_ui.editAdditional->SetText(path + DEFAULT_ADDITIONAL_FOLDER);
+		(void)CheckData();
 	}
 
 	bool CheckData() const
