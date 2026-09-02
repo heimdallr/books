@@ -248,7 +248,7 @@ private: // QTcpServer
 
 		PLOGI << address << " connected";
 		addPendingConnection(socket);
-		connect(socket, &QTcpSocket::disconnected, [this, address] {
+		connect(socket, &QTcpSocket::disconnected, this, [this, address] {
 			m_sockets.erase(address);
 		});
 		m_sockets.emplace(std::move(address), socket);
