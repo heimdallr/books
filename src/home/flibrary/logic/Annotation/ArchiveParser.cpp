@@ -222,6 +222,7 @@ private: // IParser
 		    it != m_covers.end())
 			m_data.covers.emplace_back(std::move(it->first), std::move(it->second));
 
+		PLOGD << "get images";
 		ExtractBookImages(rootFolder, book, *m_settings, m_covers, m_data.covers);
 
 		return m_data;
@@ -764,6 +765,7 @@ private:
 		if (fileName.isEmpty())
 			return {};
 
+		PLOGD << "unzip";
 		const auto stream = zip->Read(fileName);
 
 		auto [sibZip, subStream, images] = [&]() -> std::tuple<std::unique_ptr<const Zip>, std::unique_ptr<Stream>, std::vector<std::pair<QString, QByteArray>>> {
@@ -829,6 +831,7 @@ private:
 
 		const auto parserCreator = FindSecond(parsers, fileType, &StubParser::Create);
 		const auto parser        = std::invoke(parserCreator, std::ref(subStream ? subStream->GetStream() : stream->GetStream()), m_logicFactory->CreateSettingsStub());
+		PLOGD << "parse";
 		auto       result        = parser->Parse(collection.GetFolder(), book, std::move(parseProgressItem));
 		if (result.covers.empty())
 			std::ranges::transform(images | std::views::as_rvalue, std::back_inserter(result.covers), [](auto&& item) {
