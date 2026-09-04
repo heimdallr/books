@@ -81,8 +81,6 @@ constexpr auto CANNOT_WRITE                  = QT_TRANSLATE_NOOP("Dialog", "Cann
 constexpr auto CANNOT_READ                   = QT_TRANSLATE_NOOP("Dialog", "Cannot read from '%1'");
 constexpr auto MENU_SETTINGS_SAVED_OK        = QT_TRANSLATE_NOOP("Dialog", "The menu settings have been successfully saved");
 constexpr auto MENU_SETTINGS_SAVED_FAILED    = QT_TRANSLATE_NOOP("Dialog", "An error occurred while saving the menu settings");
-constexpr auto MENU_SETTINGS_LOADED_OK       = QT_TRANSLATE_NOOP("Dialog", "The menu settings have been successfully loaded");
-constexpr auto MENU_SETTINGS_LOAD_FAILED     = QT_TRANSLATE_NOOP("Dialog", "An error occurred while loading the menu settings");
 
 constexpr const char* COMPONENTS[] = {
 	"<hr><table style='font-size:50%'>",

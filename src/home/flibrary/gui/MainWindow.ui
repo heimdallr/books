@@ -470,16 +470,16 @@
       <string>&amp;Recent books</string>
      </property>
     </widget>
-    <widget class="QMenu" name="menuMenu_settings">
+    <widget class="QMenu" name="menuMenuSettings">
      <property name="title">
-      <string>Menu settings</string>
+      <string>&amp;Menu settings</string>
      </property>
      <addaction name="actionCustomizationMenuExport"/>
      <addaction name="actionCustomizationMenuImport"/>
     </widget>
     <addaction name="menuRecentBooks"/>
     <addaction name="menuUserData"/>
-    <addaction name="menuMenu_settings"/>
+    <addaction name="menuMenuSettings"/>
     <addaction name="menuSettingsFile"/>
     <addaction name="actionExit"/>
    </widget>

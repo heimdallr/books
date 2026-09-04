@@ -954,7 +954,19 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <source>An error occurred while saving the menu settings</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Another e-library book cataloger</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot read from &apos;%1&apos;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot write to &apos;%1&apos;</source>
         <translation></translation>
     </message>
     <message>
@@ -966,7 +978,19 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Menu settings files (*.flimnu);;All files (*.*)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Select menu settings file</source>
+        <translation>Select a menu settings file</translation>
+    </message>
+    <message>
         <source>Specify the background color of the image</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>The menu settings have been successfully saved</source>
         <translation></translation>
     </message>
     <message>
@@ -4704,6 +4728,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;All settings</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;All settings...</source>
         <translation></translation>
     </message>
@@ -4777,6 +4805,10 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;Log</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Menu settings</source>
         <translation></translation>
     </message>
     <message>
