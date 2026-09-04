@@ -460,7 +460,7 @@
     </widget>
     <widget class="QMenu" name="menuSettingsFile">
      <property name="title">
-      <string>&amp;Settings</string>
+      <string>&amp;All settings</string>
      </property>
      <addaction name="actionExportSettings"/>
      <addaction name="actionImportSettings"/>
@@ -470,8 +470,16 @@
       <string>&amp;Recent books</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menuMenuSettings">
+     <property name="title">
+      <string>&amp;Menu settings</string>
+     </property>
+     <addaction name="actionCustomizationMenuExport"/>
+     <addaction name="actionCustomizationMenuImport"/>
+    </widget>
     <addaction name="menuRecentBooks"/>
     <addaction name="menuUserData"/>
+    <addaction name="menuMenuSettings"/>
     <addaction name="menuSettingsFile"/>
     <addaction name="actionExit"/>
    </widget>
@@ -1421,6 +1429,22 @@
    </property>
    <property name="text">
     <string>Show &amp;toolbar</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionCustomizationMenuExport">
+   <property name="text">
+    <string>&amp;Save...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionCustomizationMenuImport">
+   <property name="text">
+    <string>&amp;Load...</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

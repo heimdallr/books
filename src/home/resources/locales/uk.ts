@@ -965,8 +965,20 @@ Restart now?</source>
         <translation>Про FLibrary</translation>
     </message>
     <message>
+        <source>An error occurred while saving the menu settings</source>
+        <translation>Під час збереження налаштувань меню сталася помилка</translation>
+    </message>
+    <message>
         <source>Another e-library book cataloger</source>
         <translation>Ще один каталогізатор електронної бібліотеки</translation>
+    </message>
+    <message>
+        <source>Cannot read from &apos;%1&apos;</source>
+        <translation>Помилка під час зчитування з &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot write to &apos;%1&apos;</source>
+        <translation>Помилка запису в %1</translation>
     </message>
     <message>
         <source>Cleanup recent books list</source>
@@ -977,8 +989,20 @@ Restart now?</source>
         <translation>Розповсюджується за ліцензією %1</translation>
     </message>
     <message>
+        <source>Menu settings files (*.flimnu);;All files (*.*)</source>
+        <translation>Файли налаштувань меню (*.flimnu);;Усі файли (*.*)</translation>
+    </message>
+    <message>
+        <source>Select menu settings file</source>
+        <translation>Виберіть файл налаштувань меню</translation>
+    </message>
+    <message>
         <source>Specify the background color of the image</source>
         <translation>Вкажіть колір фону зображення</translation>
+    </message>
+    <message>
+        <source>The menu settings have been successfully saved</source>
+        <translation>Налаштування меню успішно збережено</translation>
     </message>
     <message>
         <source>The program version has been copied to the clipboard</source>
@@ -4718,6 +4742,10 @@ Try again?</source>
         <translation>Додати новий &amp;алфавіт...</translation>
     </message>
     <message>
+        <source>&amp;All settings</source>
+        <translation>&amp;Усі налаштування</translation>
+    </message>
+    <message>
         <source>&amp;All settings...</source>
         <translation>&amp;Усі налаштування...</translation>
     </message>
@@ -4792,6 +4820,10 @@ Try again?</source>
     <message>
         <source>&amp;Log</source>
         <translation>&amp;Журнал</translation>
+    </message>
+    <message>
+        <source>&amp;Menu settings</source>
+        <translation>Налаштування &amp;меню</translation>
     </message>
     <message>
         <source>&amp;Menu...</source>
