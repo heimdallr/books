@@ -887,7 +887,8 @@ private:
 			m_uiFactory->SaveMenuCustomizerSettings();
 		});
 		connect(m_ui.actionCustomizationMenuImport, &QAction::triggered, &m_self, [this] {
-			m_uiFactory->LoadMenuCustomizerSettings();
+			if (m_uiFactory->LoadMenuCustomizerSettings())
+				RebootDialog();
 		});
 		connect(m_ui.actionExit, &QAction::triggered, &m_self, [] {
 			QCoreApplication::exit();

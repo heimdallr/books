@@ -78,8 +78,11 @@ constexpr auto SELECT_IMAGE_BACKGROUND_COLOR = QT_TRANSLATE_NOOP("Dialog", "Spec
 constexpr auto SELECT_MENU_SETTINGS_FILE     = QT_TRANSLATE_NOOP("Dialog", "Select menu settings file");
 constexpr auto MENU_SETTINGS_FILE_FILTER     = QT_TRANSLATE_NOOP("Dialog", "Menu settings files (*.flimnu);;All files (*.*)");
 constexpr auto CANNOT_WRITE                  = QT_TRANSLATE_NOOP("Dialog", "Cannot write to '%1'");
+constexpr auto CANNOT_READ                   = QT_TRANSLATE_NOOP("Dialog", "Cannot read from '%1'");
 constexpr auto MENU_SETTINGS_SAVED_OK        = QT_TRANSLATE_NOOP("Dialog", "The menu settings have been successfully saved");
 constexpr auto MENU_SETTINGS_SAVED_FAILED    = QT_TRANSLATE_NOOP("Dialog", "An error occurred while saving the menu settings");
+constexpr auto MENU_SETTINGS_LOADED_OK       = QT_TRANSLATE_NOOP("Dialog", "The menu settings have been successfully loaded");
+constexpr auto MENU_SETTINGS_LOAD_FAILED     = QT_TRANSLATE_NOOP("Dialog", "An error occurred while loading the menu settings");
 
 constexpr const char* COMPONENTS[] = {
 	"<hr><table style='font-size:50%'>",
@@ -1119,6 +1122,43 @@ QJsonValue ToJsonValue(const QVariant& var)
 	return FindSecond(impl, GetType(var))(var);
 }
 
+template <QJsonValue::Type>
+QVariant FromJsonValueImpl(QJsonValueConstRef jsonValue) = delete;
+
+template <>
+QVariant FromJsonValueImpl<QJsonValue::Type::Bool>(const QJsonValueConstRef jsonValue)
+{
+	return jsonValue.toBool();
+}
+
+template <>
+QVariant FromJsonValueImpl<QJsonValue::Type::String>(const QJsonValueConstRef jsonValue)
+{
+	auto value = jsonValue.toString();
+	return value.startsWith(BASE64_PREFIX) ? QVariant::fromValue(QByteArray::fromBase64(QStringView { std::next(value.cbegin(), 7 /*std::size(BASE64_PREFIX)*/), value.cend() }.toUtf8())) : value;
+}
+
+template <>
+QVariant FromJsonValueImpl<QJsonValue::Type::Array>(const QJsonValueConstRef jsonValue)
+{
+	return jsonValue.toArray() | std::views::transform([](const auto item) {
+			   return item.toString();
+		   })
+	     | std::ranges::to<QStringList>();
+}
+
+QVariant FromJsonValue(const QJsonValueConstRef jsonValue)
+{
+	static constexpr std::pair<QJsonValue::Type, QVariant (*)(QJsonValueConstRef)> impl[] {
+#define ITEM(NAME) {QJsonValue::Type::NAME, &FromJsonValueImpl<QJsonValue::Type::NAME>}
+		ITEM(Bool),
+		ITEM(String),
+		ITEM(Array),
+#undef ITEM
+	};
+	return FindSecond(impl, jsonValue.type())(jsonValue);
+}
+
 void UiFactory::SaveMenuCustomizerSettings() const
 {
 	const auto path = static_cast<const Util::IUiFactory&>(*this).GetSaveFileName(MENU_SETTINGS_FILE_DIALOG_KEY, Tr(SELECT_MENU_SETTINGS_FILE), Tr(MENU_SETTINGS_FILE_FILTER));
@@ -1165,5 +1205,31 @@ void UiFactory::SaveMenuCustomizerSettings() const
 
 bool UiFactory::LoadMenuCustomizerSettings() const
 {
-	return false;
+	const auto path = static_cast<const Util::IUiFactory&>(*this).GetOpenFileName(MENU_SETTINGS_FILE_DIALOG_KEY, Tr(SELECT_MENU_SETTINGS_FILE), Tr(MENU_SETTINGS_FILE_FILTER));
+	if (path.isEmpty())
+		return false;
+
+	QFile file(path);
+	if (!file.open(QIODevice::ReadOnly))
+		return ShowError(Tr(CANNOT_READ).arg(path)), false;
+
+	QJsonParseError parseError;
+	auto            doc = QJsonDocument::fromJson(file.readAll(), &parseError);
+	if (parseError.error != QJsonParseError::NoError)
+		return ShowError(parseError.errorString()), false;
+
+	const auto settings = m_impl->container.resolve<ISettings>();
+	settings->Remove(MENU_CUSTOM_ROOT);
+	const SettingsGroup group(*settings, Constant::UI);
+
+	for (const auto node : doc.array())
+	{
+		const auto obj    = node.toObject();
+		const auto id     = obj[ID].toString();
+		const auto values = obj[VALUES].toObject();
+		for (auto it = values.constBegin(), end = values.constEnd(); it != end; ++it)
+			settings->Set(GetName(id, it.key()), FromJsonValue(it.value()));
+	}
+
+	return true;
 }
