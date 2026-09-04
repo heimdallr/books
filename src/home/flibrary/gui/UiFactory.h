@@ -79,6 +79,9 @@ private: // IUiFactory
 	IMenuCustomizer::IItem::Ptr         CreateMenuCustomizerItem(IDataItem::Ptr, IMenuCustomizer::IObserver& observer) const override;
 	IMenuCustomizer::IItem::Ptr         CreateMenuCustomizerItem(QString key) const override;
 
+	void SaveMenuCustomizerSettings() const override;
+	bool LoadMenuCustomizerSettings() const override;
+
 private: // special
 	std::filesystem::path                GetNewCollectionInpxFolder() const noexcept override;
 	std::shared_ptr<ITreeViewController> GetTreeViewController() const noexcept override;

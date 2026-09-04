@@ -1047,3 +1047,12 @@ void UiFactory::SetBackgroundStyleSheet(QWidget& widget, const QString& key) con
 	settings->Set(key, colorName);
 	widget.setStyleSheet(QString(Constant::Settings::BACKGROUND_COLOR_TEMPLATE).arg(colorName));
 }
+
+void UiFactory::SaveMenuCustomizerSettings() const
+{
+}
+
+bool UiFactory::LoadMenuCustomizerSettings() const
+{
+	return false;
+}
