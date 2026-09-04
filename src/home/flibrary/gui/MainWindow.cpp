@@ -59,31 +59,32 @@ using namespace Flibrary;
 namespace
 {
 
-constexpr auto        MAIN_WINDOW                          = "MainWindow";
-constexpr auto        CONTEXT                              = MAIN_WINDOW;
-constexpr auto        EXIT                                 = QT_TRANSLATE_NOOP("MainWindow", "Exit");
-constexpr auto        OPEN                                 = QT_TRANSLATE_NOOP("MainWindow", "Open FLibrary");
-constexpr auto        FONT_DIALOG_TITLE                    = QT_TRANSLATE_NOOP("MainWindow", "Select font");
-constexpr auto        CONFIRM_RESTORE_DEFAULT_SETTINGS     = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
-constexpr auto        CONFIRM_REMOVE_ALL_THEMES            = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to delete all themes?");
-constexpr auto        DATABASE_BROKEN                      = QT_TRANSLATE_NOOP("MainWindow", "Database file \"%1\" is probably corrupted");
-constexpr auto        DENY_DESTRUCTIVE_OPERATIONS_MESSAGE  = QT_TRANSLATE_NOOP("MainWindow", "The right decision!");
-constexpr auto        ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
-constexpr auto        SELECT_QSS_FILE                      = QT_TRANSLATE_NOOP("MainWindow", "Select stylesheet files");
-constexpr auto        SELECT_SETTINGS_FILE                 = QT_TRANSLATE_NOOP("MainWindow", "Select settings file");
-constexpr auto        QSS_FILE_FILTER                      = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
-constexpr auto        SETTINGS_FILE_FILTER                 = QT_TRANSLATE_NOOP("MainWindow", "Settings files (*.ini);;All files (*.*)");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER             = QT_TRANSLATE_NOOP("MainWindow", "To search for books by %1, enter the name or title here and press Enter");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_AUTHOR      = QT_TRANSLATE_NOOP("MainWindow", "author");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_SERIES      = QT_TRANSLATE_NOOP("MainWindow", "series");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_TITLE       = QT_TRANSLATE_NOOP("MainWindow", "title");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_OR          = QT_TRANSLATE_NOOP("MainWindow", " or %1");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_ANNOTATION  = QT_TRANSLATE_NOOP("MainWindow", "annotation");
-constexpr auto        ENABLE_ALL                           = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
-constexpr auto        DISABLE_ALL                          = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
-constexpr auto        STOP_HTTP                            = QT_TRANSLATE_NOOP("MainWindow", "The HTTP server is still running. Would you like to stop it?");
-constexpr auto        MY_FOLDER                            = QT_TRANSLATE_NOOP("MainWindow", "My export folder");
-constexpr auto        MAIN_MENU                            = QT_TRANSLATE_NOOP("MainWindow", "Main menu");
+constexpr auto MAIN_WINDOW                          = "MainWindow";
+constexpr auto CONTEXT                              = MAIN_WINDOW;
+constexpr auto EXIT                                 = QT_TRANSLATE_NOOP("MainWindow", "Exit");
+constexpr auto OPEN                                 = QT_TRANSLATE_NOOP("MainWindow", "Open FLibrary");
+constexpr auto FONT_DIALOG_TITLE                    = QT_TRANSLATE_NOOP("MainWindow", "Select font");
+constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS     = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
+constexpr auto CONFIRM_REMOVE_ALL_THEMES            = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to delete all themes?");
+constexpr auto DATABASE_BROKEN                      = QT_TRANSLATE_NOOP("MainWindow", "Database file \"%1\" is probably corrupted");
+constexpr auto DENY_DESTRUCTIVE_OPERATIONS_MESSAGE  = QT_TRANSLATE_NOOP("MainWindow", "The right decision!");
+constexpr auto ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
+constexpr auto SELECT_QSS_FILE                      = QT_TRANSLATE_NOOP("MainWindow", "Select stylesheet files");
+constexpr auto SELECT_SETTINGS_FILE                 = QT_TRANSLATE_NOOP("MainWindow", "Select settings file");
+constexpr auto QSS_FILE_FILTER                      = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
+constexpr auto SETTINGS_FILE_FILTER                 = QT_TRANSLATE_NOOP("MainWindow", "Settings files (*.ini);;All files (*.*)");
+constexpr auto SEARCH_BOOKS_PLACEHOLDER             = QT_TRANSLATE_NOOP("MainWindow", "To search for books by %1, enter the name or title here and press Enter");
+constexpr auto SEARCH_BOOKS_PLACEHOLDER_AUTHOR      = QT_TRANSLATE_NOOP("MainWindow", "author");
+constexpr auto SEARCH_BOOKS_PLACEHOLDER_SERIES      = QT_TRANSLATE_NOOP("MainWindow", "series");
+constexpr auto SEARCH_BOOKS_PLACEHOLDER_TITLE       = QT_TRANSLATE_NOOP("MainWindow", "title");
+constexpr auto SEARCH_BOOKS_PLACEHOLDER_OR          = QT_TRANSLATE_NOOP("MainWindow", " or %1");
+constexpr auto SEARCH_BOOKS_PLACEHOLDER_ANNOTATION  = QT_TRANSLATE_NOOP("MainWindow", "annotation");
+constexpr auto ENABLE_ALL                           = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
+constexpr auto DISABLE_ALL                          = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
+constexpr auto STOP_HTTP                            = QT_TRANSLATE_NOOP("MainWindow", "The HTTP server is still running. Would you like to stop it?");
+constexpr auto MY_FOLDER                            = QT_TRANSLATE_NOOP("MainWindow", "My export folder");
+constexpr auto MAIN_MENU                            = QT_TRANSLATE_NOOP("MainWindow", "Main menu");
+
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
 	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
@@ -881,6 +882,12 @@ private:
 		});
 		connect(m_ui.actionImportSettings, &QAction::triggered, &m_self, [this] {
 			ImportSettings();
+		});
+		connect(m_ui.actionCustomizationMenuExport, &QAction::triggered, &m_self, [this] {
+			m_uiFactory->SaveMenuCustomizerSettings();
+		});
+		connect(m_ui.actionCustomizationMenuImport, &QAction::triggered, &m_self, [this] {
+			m_uiFactory->LoadMenuCustomizerSettings();
 		});
 		connect(m_ui.actionExit, &QAction::triggered, &m_self, [] {
 			QCoreApplication::exit();
