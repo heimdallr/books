@@ -1121,23 +1121,23 @@ QJsonValue ToJsonValue(const QVariant& var)
 }
 
 template <QJsonValue::Type>
-QVariant FromJsonValueImpl(QJsonValueConstRef jsonValue) = delete;
+QVariant FromJsonValueImpl(Q_JSON_VALUE_CONST_REF jsonValue) = delete;
 
 template <>
-QVariant FromJsonValueImpl<QJsonValue::Type::Bool>(const QJsonValueConstRef jsonValue)
+QVariant FromJsonValueImpl<QJsonValue::Type::Bool>(QT_CONST Q_JSON_VALUE_CONST_REF jsonValue)
 {
 	return jsonValue.toBool();
 }
 
 template <>
-QVariant FromJsonValueImpl<QJsonValue::Type::String>(const QJsonValueConstRef jsonValue)
+QVariant FromJsonValueImpl<QJsonValue::Type::String>(QT_CONST Q_JSON_VALUE_CONST_REF jsonValue)
 {
 	auto value = jsonValue.toString();
 	return value.startsWith(BASE64_PREFIX) ? QVariant::fromValue(QByteArray::fromBase64(QStringView { std::next(value.cbegin(), 7 /*std::size(BASE64_PREFIX)*/), value.cend() }.toUtf8())) : value;
 }
 
 template <>
-QVariant FromJsonValueImpl<QJsonValue::Type::Array>(const QJsonValueConstRef jsonValue)
+QVariant FromJsonValueImpl<QJsonValue::Type::Array>(QT_CONST Q_JSON_VALUE_CONST_REF jsonValue)
 {
 	return jsonValue.toArray() | std::views::transform([](const auto item) {
 			   return item.toString();
@@ -1145,9 +1145,9 @@ QVariant FromJsonValueImpl<QJsonValue::Type::Array>(const QJsonValueConstRef jso
 	     | std::ranges::to<QStringList>();
 }
 
-QVariant FromJsonValue(const QJsonValueConstRef jsonValue)
+QVariant FromJsonValue(QT_CONST Q_JSON_VALUE_CONST_REF jsonValue)
 {
-	static constexpr std::pair<QJsonValue::Type, QVariant (*)(QJsonValueConstRef)> impl[] {
+	static constexpr std::pair<QJsonValue::Type, QVariant (*)(Q_JSON_VALUE_CONST_REF)> impl[] {
 #define ITEM(NAME) {QJsonValue::Type::NAME, &FromJsonValueImpl<QJsonValue::Type::NAME>}
 		ITEM(Bool),
 		ITEM(String),
