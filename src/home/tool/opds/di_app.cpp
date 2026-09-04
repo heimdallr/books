@@ -236,6 +236,15 @@ private: // IUiFactory
 		return {};
 	}
 
+	void SaveMenuCustomizerSettings() const override
+	{
+	}
+
+	bool LoadMenuCustomizerSettings() const override
+	{
+		return false;
+	}
+
 public: // special
 	std::filesystem::path GetNewCollectionInpxFolder() const noexcept override
 	{
