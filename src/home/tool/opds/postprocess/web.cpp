@@ -195,7 +195,7 @@ protected:
 		return Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnCharacters(const QString& path, const QString& value) override
+	bool OnCharacters(const QString& path, const QStringView value) override
 	{
 		using ParseCharacterFunction = bool (ParserOpds::*)(const QString&);
 		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;
@@ -206,7 +206,7 @@ protected:
 			{ ENTRY_CONTENT, &ParserOpds::ParseEntryContent },
 		};
 
-		return Parse(*this, PARSERS, path, value);
+		return Parse(*this, PARSERS, path, value.toString());
 	}
 
 	bool ParseEntryContent(const QString& value)
@@ -453,7 +453,7 @@ private: // SaxParser
 		return Parse(*this, PARSERS, path);
 	}
 
-	bool OnCharacters(const QString& path, const QString& value) override
+	bool OnCharacters(const QString& path, const QStringView value) override
 	{
 		const auto result = ParserOpds::OnCharacters(path, value);
 		if (m_processed)
@@ -467,7 +467,7 @@ private: // SaxParser
 			{   AUTHOR_LINK,   &ParserBookInfo::ParseAuthorLink },
 		};
 
-		return Parse(*this, PARSERS, path, value);
+		return Parse(*this, PARSERS, path, value.toString());
 	}
 
 private:
@@ -721,7 +721,7 @@ private: // SaxParser
 		return Parse(*this, PARSERS, path);
 	}
 
-	bool OnCharacters(const QString& pathSrc, const QString& value) override
+	bool OnCharacters(const QString& pathSrc, const QStringView value) override
 	{
 		const auto path              = ReduceSections(pathSrc);
 		using ParseCharacterFunction = bool (ParserFb2::*)(const QString&);
@@ -745,8 +745,9 @@ private: // SaxParser
 			{					   BINARY,             &ParserFb2::ParseBinary },
 		};
 
-		const auto result = Parse(*this, PARSERS, path, value);
-		return m_processed || !m_body ? result : ProcessUnparsedCharacters(path, value);
+		const auto valueStr = value.toString();
+		const auto result = Parse(*this, PARSERS, path, valueStr);
+		return m_processed || !m_body ? result : ProcessUnparsedCharacters(path, valueStr);
 	}
 
 private: // AbstractParser

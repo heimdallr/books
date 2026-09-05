@@ -310,7 +310,7 @@ private: // Util::SaxParser
 		return result;
 	}
 
-	bool OnCharacters(const QString& path, const QString& value) override
+	bool OnCharacters(const QString& path, const QStringView value) override
 	{
 		using ParseCharacterFunction = bool (Fb2Parser::*)(const QString&);
 		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;
@@ -349,7 +349,7 @@ private: // Util::SaxParser
 			if (!value.isEmpty())
 				m_currentDescriptionItem->SetData(QString("%1: %2").arg(m_currentDescriptionItem->GetData(), value));
 
-		return SaxParser::Parse(*this, PARSERS, path, value);
+		return SaxParser::Parse(*this, PARSERS, path, value.toString());
 	}
 
 	bool OnWarning(const size_t line, const size_t column, const QString& text) override

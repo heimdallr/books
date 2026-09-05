@@ -391,9 +391,9 @@ private: // SaxParser
 		return true;
 	}
 
-	bool OnCharacters(const QString&, const QString& value) override
+	bool OnCharacters(const QString&, const QStringView value) override
 	{
-		m_annotation << value;
+		m_annotation << value.toString();
 		return true;
 	}
 

@@ -138,7 +138,7 @@ private: // Util::SaxParser
 		return true;
 	}
 
-	bool OnCharacters(const QString& /*path*/, const QString& /*value*/) override
+	bool OnCharacters(const QString& /*path*/, const QStringView /*value*/) override
 	{
 		return true;
 	}
