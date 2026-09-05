@@ -111,7 +111,7 @@ public:
 	}
 
 private: // Util::SaxParser
-	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
 		using ParseElementFunction = bool (XmlParser::*)(const QString&, const Util::XmlAttributes&);
 		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
@@ -126,9 +126,9 @@ private: // Util::SaxParser
 			{      FLIBRARY_BACKUP_USER_DATA_FILTER, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
 		};
 
-		const auto result = Parse(*this, PARSERS, path, name, attributes);
+		const auto result = Parse(*this, PARSERS, path, name.toString(), attributes);
 		if (!IsLastItemProcessed())
-			m_restorers.back()->AddElement(name, attributes);
+			m_restorers.back()->AddElement(name.toString(), attributes);
 
 		return result;
 	}

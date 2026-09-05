@@ -137,7 +137,7 @@ public:
 	}
 
 private: // Util::SaxParser
-	bool OnStartElement(const QString& /*name*/, const QString& path, const Util::XmlAttributes& attributes) override
+	bool OnStartElement(QStringView /*name*/, const QString& path, const Util::XmlAttributes& attributes) override
 	{
 		if (path == "UserData/Extras/Book")
 			return m_extras.emplace_back(attributes.GetAttribute("libid"), attributes.GetAttribute("rate").toInt()), true;

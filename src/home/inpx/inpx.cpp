@@ -356,7 +356,7 @@ public:
 	}
 
 private: // SaxParser
-	bool OnStartElement(const QString& name, const QString&, const XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QString&, const XmlAttributes& attributes) override
 	{
 		if (name == FOLDER)
 		{

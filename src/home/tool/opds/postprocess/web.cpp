@@ -184,7 +184,7 @@ protected:
 	}
 
 protected:
-	bool OnStartElement(const QString& /*name*/, const QString& path, const XmlAttributes& attributes) override
+	bool OnStartElement(QStringView /*name*/, const QString& path, const XmlAttributes& attributes) override
 	{
 		using ParseElementFunction = bool (ParserOpds::*)(const XmlAttributes&);
 		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
@@ -285,7 +285,7 @@ public:
 	}
 
 private: // SaxParser
-	bool OnStartElement(const QString& name, const QString& path, const XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QString& path, const XmlAttributes& attributes) override
 	{
 		const auto result = ParserOpds::OnStartElement(name, path, attributes);
 		if (m_processed)
@@ -427,7 +427,7 @@ public:
 	}
 
 private: // SaxParser
-	bool OnStartElement(const QString& name, const QString& path, const XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QString& path, const XmlAttributes& attributes) override
 	{
 		const auto result = ParserOpds::OnStartElement(name, path, attributes);
 		if (m_processed)
@@ -653,7 +653,7 @@ public:
 	}
 
 private: // SaxParser
-	bool OnStartElement(const QString& name, const QString& pathSrc, const XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QString& pathSrc, const XmlAttributes& attributes) override
 	{
 		if (name == P && m_body)
 			return (m_stream << "<p>"), true;

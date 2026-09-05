@@ -228,17 +228,17 @@ private: // IParser
 	}
 
 private: // Util::SaxParser
-	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QString& path, const Util::XmlAttributes& attributes) override
 	{
 		if (name.compare(A_KEY, Qt::CaseInsensitive) == 0)
 			m_href = attributes.GetAttribute(m_hrefLink);
 
 		if (m_annotationMode)
 		{
-			const auto it = std::ranges::find(ANNOTATION_REPLACE_TAGS, name, [](const auto& item) {
-				return item.first;
+			const auto it = std::ranges::find_if(ANNOTATION_REPLACE_TAGS, [&](const auto& item) {
+				return name == item.first;
 			});
-			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name : it->second; !replacedName.isEmpty())
+			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name.toString() : it->second; !replacedName.isEmpty())
 			{
 				const ScopedCall nodeGuard(
 					[&] {
@@ -258,7 +258,7 @@ private: // Util::SaxParser
 		if (path.startsWith(DESCRIPTION_NODE, Qt::CaseInsensitive))
 		{
 			m_currentDescriptionItem = m_currentDescriptionItem->AppendChild(NavigationItem::Create()).get();
-			m_currentDescriptionItem->SetData(name);
+			m_currentDescriptionItem->SetData(name.toString());
 			for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
 				m_currentDescriptionItem->AppendChild(NavigationItem::Create())->SetData(QString("%1: %2").arg(attributes.GetName(i), attributes.GetValue(i)));
 		}
