@@ -142,21 +142,21 @@ protected:
 		if (!m_session.isEmpty())
 			home += QString("?session=%1").arg(m_session);
 		// clang-format off
-		m_writer->WriteStartElement("html")
-			.WriteStartElement("head")
-				.WriteStartElement("style").WriteCharacters(QString("p {\n\t\t\t\tmax-width: %1px;\n\t\t\t} td {\n\t\t\t\tmax-width: %1px;\n\t\t\t} .leftimg {\n\t\t\t\tfloat:left; margin: 7px 7px 7px 0;\n\t\t\t} %2").arg(MAX_WIDTH).arg(GetStyle())).WriteEndElement()
-				.WriteStartElement("title").WriteCharacters(PRODUCT_ID).WriteEndElement()
+		m_writer->WriteStartElement(u"html")
+			.WriteStartElement(u"head")
+				.WriteStartElement(u"style").WriteCharacters(QString("p {\n\t\t\t\tmax-width: %1px;\n\t\t\t} td {\n\t\t\t\tmax-width: %1px;\n\t\t\t} .leftimg {\n\t\t\t\tfloat:left; margin: 7px 7px 7px 0;\n\t\t\t} %2").arg(MAX_WIDTH).arg(GetStyle())).WriteEndElement()
+				.WriteStartElement(u"title").WriteCharacters(QString(PRODUCT_ID)).WriteEndElement()
 			.WriteEndElement()
-			.WriteStartElement("body")
-				.WriteStartElement("form").WriteAttribute("action", "/web/search").WriteAttribute("method", "GET")
-					.WriteStartElement("p")
-						.WriteStartElement("input").WriteAttribute("type", "text").WriteAttribute("id", "q").WriteAttribute("name", "q").WriteAttribute("placeholder", Tr(SEARCH)).WriteAttribute("size", "64").WriteEndElement()
+			.WriteStartElement(u"body")
+				.WriteStartElement(u"form").WriteAttribute(u"action", u"/web/search").WriteAttribute(u"method", u"GET")
+					.WriteStartElement(u"p")
+						.WriteStartElement(u"input").WriteAttribute(u"type", u"text").WriteAttribute(u"id", u"q").WriteAttribute(u"name", u"q").WriteAttribute(u"placeholder", Tr(SEARCH)).WriteAttribute(u"size", u"64").WriteEndElement()
 					.WriteEndElement()
 				.WriteEndElement()
-				.WriteStartElement("a").WriteAttribute("href", home).WriteCharacters(Tr(HOME).arg(QChar{0x2302})).WriteEndElement();
+				.WriteStartElement(u"a").WriteAttribute(u"href", home).WriteCharacters(Tr(HOME).arg(QChar{0x2302})).WriteEndElement();
 		// clang-format on
 		WriteHead();
-		m_writer->Guard("hr");
+		m_writer->Guard(u"hr");
 	}
 
 private:
@@ -250,7 +250,7 @@ private:
 protected: // AbstractParser
 	void WriteHead() override
 	{
-		m_writer->Guard("h1")->WriteCharacters(m_feedTitle);
+		m_writer->Guard(u"h1")->WriteCharacters(m_feedTitle);
 	}
 
 protected:
@@ -318,12 +318,12 @@ private:
 		AbstractParser::WriteHttpHead();
 		WriteAuthorInfo();
 
-		m_tableGuard = std::make_unique<XmlWriter::XmlNodeGuard>(*m_writer, "table");
+		m_tableGuard = std::make_unique<XmlWriter::XmlNodeGuard>(*m_writer, u"table");
 	}
 
 	bool OnStartElementEntryLink(const XmlAttributes& attributes)
 	{
-		m_link = attributes.GetAttribute(L"href").toString();
+		m_link = attributes.GetAttribute(u"href").toString();
 		return true;
 	}
 
@@ -336,9 +336,9 @@ private:
 
 	bool OnEndElementEntry()
 	{
-		auto tr = m_writer->Guard("tr");
-		m_writer->Guard("td")->WriteStartElement("a").WriteAttribute("href", m_link).WriteCharacters(m_title).WriteEndElement();
-		m_writer->Guard("td")->WriteCharacters(m_content);
+		auto tr = m_writer->Guard(u"tr");
+		m_writer->Guard(u"td")->WriteStartElement(u"a").WriteAttribute(u"href", m_link).WriteCharacters(m_title).WriteEndElement();
+		m_writer->Guard(u"td")->WriteCharacters(m_content);
 
 		m_link.clear();
 		m_title.clear();
@@ -353,15 +353,15 @@ private:
 		if (info.isEmpty())
 			return;
 
-		const auto                               table = m_writer->Guard("table");
-		const auto                               tr    = m_writer->Guard("tr");
-		const auto                               td    = m_writer->Guard("td");
-		const auto                               p     = m_writer->Guard("p");
+		const auto                               table = m_writer->Guard(u"table");
+		const auto                               tr    = m_writer->Guard(u"tr");
+		const auto                               td    = m_writer->Guard(u"td");
+		const auto                               p     = m_writer->Guard(u"p");
 		std::unique_ptr<XmlWriter::XmlNodeGuard> imgGuard;
 		if (!images.empty())
 		{
-			imgGuard = std::make_unique<XmlWriter::XmlNodeGuard>(*m_writer, "img");
-			m_writer->WriteAttribute("src", QString("data:image/jpeg;base64, %1").arg(images.front().toBase64())).WriteAttribute("class", "leftimg").WriteAttribute("width", "180");
+			imgGuard = std::make_unique<XmlWriter::XmlNodeGuard>(*m_writer, u"img");
+			m_writer->WriteAttribute(u"src", QString("data:image/jpeg;base64, %1").arg(images.front().toBase64())).WriteAttribute(u"class", u"leftimg").WriteAttribute(u"width", u"180");
 		}
 		if (const auto cutIndex = info.indexOf(QRegularExpression(R"(\s)"), 720); cutIndex < 0)
 		{
@@ -375,9 +375,9 @@ private:
 			m_output->write(infoBegin.toUtf8());
 			if (info.size() > infoBegin.size())
 			{
-				const auto details = m_writer->Guard("details");
-				m_writer->Guard("summary")->WriteCharacters(Tr(MORE));
-				const auto pp = m_writer->Guard("p");
+				const auto details = m_writer->Guard(u"details");
+				m_writer->Guard(u"summary")->WriteCharacters(Tr(MORE));
+				const auto pp = m_writer->Guard(u"p");
 				m_writer->CloseTag();
 				m_output->write(info.mid(infoBegin.size()).toUtf8());
 			}
@@ -473,16 +473,16 @@ private: // SaxParser
 private:
 	bool OnStartElementEntryLink(const XmlAttributes& attributes)
 	{
-		const auto rel  = attributes.GetAttribute(L"rel");
-		auto       href = attributes.GetAttribute(L"href");
+		const auto rel  = attributes.GetAttribute(u"rel");
+		auto       href = attributes.GetAttribute(u"href");
 
 		if (rel == "http://opds-spec.org/image")
 			return m_coverLink = href.toString(), true;
 
 		if (rel == "http://opds-spec.org/acquisition")
 		{
-			if (const auto type = attributes.GetAttribute(L"type"); type.startsWith(L"application/"))
-				(type.endsWith(L"+zip") ? m_downloadLinkZip : m_downloadLinkFb2) = href.toString();
+			if (const auto type = attributes.GetAttribute(u"type"); type.startsWith(u"application/"))
+				(type.endsWith(u"+zip") ? m_downloadLinkZip : m_downloadLinkFb2) = href.toString();
 			return true;
 		}
 
@@ -495,22 +495,22 @@ private:
 		{
 			const auto contents = m_content.split(REVIEWS_DELIMITER);
 			{
-				auto table = m_writer->Guard("table"), tr = m_writer->Guard("tr");
+				auto table = m_writer->Guard(u"table"), tr = m_writer->Guard(u"tr");
 				if (!m_coverLink.isEmpty())
 				{
-					auto td = m_writer->Guard("td");
-					td->WriteAttribute("style", "vertical-align: top;").Guard("img")->WriteAttribute("src", m_coverLink).WriteAttribute("width", "360");
+					auto td = m_writer->Guard(u"td");
+					td->WriteAttribute(u"style", u"vertical-align: top;").Guard(u"img")->WriteAttribute(u"src", m_coverLink).WriteAttribute(u"width", u"360");
 				}
 
-				auto ts = m_writer->Guard("td");
-				m_writer->WriteAttribute("style", "vertical-align: bottom; padding-left: 7px;").CloseTag();
+				auto ts = m_writer->Guard(u"td");
+				m_writer->WriteAttribute(u"style", u"vertical-align: bottom; padding-left: 7px;").CloseTag();
 
 				m_output->write(contents.front().toUtf8());
 				if (QFileInfo(m_callback.GetFileName(m_feedId)).suffix().toLower() == "fb2")
-					m_writer->Guard("a")->WriteAttribute("href", m_readTemplate.arg(m_feedId)).WriteCharacters(Tr(READ)).WriteStartElement("br").WriteEndElement().WriteStartElement("br").WriteEndElement();
+					m_writer->Guard(u"a")->WriteAttribute(u"href", m_readTemplate.arg(m_feedId)).WriteCharacters(Tr(READ)).WriteStartElement(u"br").WriteEndElement().WriteStartElement(u"br").WriteEndElement();
 
 				{
-					auto       linkTable  = m_writer->Guard("table");
+					auto       linkTable  = m_writer->Guard(u"table");
 					const auto createLink = [&](const QString& url, const QFileInfo& fileInfo, const bool isZip, const QString& profile) {
 						if (url.isEmpty())
 							return;
@@ -519,12 +519,12 @@ private:
 						auto       href     = QString("%1").arg(url);
 						if (!profile.isEmpty())
 							href.append(QString("?%1=%2").arg(INoSqlRequester::CONVERTER_PROFILE, profile));
-						m_writer->Guard("td");
-						m_writer->Guard("a")->WriteAttribute("href", href).WriteAttribute("download", fileName).WriteCharacters(fileName);
+						m_writer->Guard(u"td");
+						m_writer->Guard(u"a")->WriteAttribute(u"href", href).WriteAttribute(u"download", fileName).WriteCharacters(fileName);
 					};
 
 					const auto createLinks = [&](const QFileInfo& fileInfo, const QString& profile) {
-						m_writer->Guard("tr");
+						m_writer->Guard(u"tr");
 						createLink(m_downloadLinkFb2, fileInfo, false, profile);
 						createLink(m_downloadLinkZip, fileInfo, true, profile);
 					};
@@ -565,14 +565,14 @@ private: // AbstractParser
 	void WriteHead() override
 	{
 		{
-			auto h2 = m_writer->Guard("h2");
+			auto h2 = m_writer->Guard(u"h2");
 			for (int n = 0; const auto& [name, link] : m_authors | std::views::filter([](const auto& item) {
 														   return !item.first.isEmpty() && !item.second.isEmpty();
 													   }))
 			{
 				if (++n != 1)
 					m_output->write(", ");
-				m_writer->Guard("a")->WriteAttribute("href", link).WriteCharacters(name);
+				m_writer->Guard(u"a")->WriteAttribute(u"href", link).WriteCharacters(name);
 			}
 		}
 		ParserOpds::WriteHead();
@@ -662,7 +662,7 @@ private: // SaxParser
 			return (m_stream << "<br/>"), true;
 
 		if (name == A)
-			return (m_link = std::make_unique<Link>(attributes.GetAttribute(QString("%1:href").arg(m_linkNs)).toString(), attributes.GetAttribute(L"type").toString())), true;
+			return (m_link = std::make_unique<Link>(attributes.GetAttribute(QString("%1:href").arg(m_linkNs)).toString(), attributes.GetAttribute(u"type").toString())), true;
 
 		if (name == POEM)
 			return (m_poem = true), true;
@@ -783,7 +783,7 @@ private:
 	bool OnStartElementBody(const XmlAttributes& attributes)
 	{
 		m_body     = true;
-		m_bodyName = attributes.GetAttribute(L"name").toString();
+		m_bodyName = attributes.GetAttribute(u"name").toString();
 		if (!m_bodyName.isEmpty())
 			return true;
 
@@ -793,13 +793,13 @@ private:
 
 	bool OnStartElementSection(const XmlAttributes& attributes)
 	{
-		m_sectionId = attributes.GetAttribute(L"id").toString();
+		m_sectionId = attributes.GetAttribute(u"id").toString();
 		return true;
 	}
 
 	bool OnStartElementBinary(const XmlAttributes& attributes)
 	{
-		m_binary.emplace_back(attributes.GetAttribute(L"id").toString(), attributes.GetAttribute(L"content-type").toString());
+		m_binary.emplace_back(attributes.GetAttribute(u"id").toString(), attributes.GetAttribute(u"content-type").toString());
 		return true;
 	}
 
@@ -928,8 +928,8 @@ private:
 private: // AbstractParser
 	void WriteHead() override
 	{
-		m_writer->Guard("h2")->WriteCharacters(m_authors.join(", "));
-		m_writer->Guard("h1")->WriteCharacters(m_bookTitle);
+		m_writer->Guard(u"h2")->WriteCharacters(m_authors.join(", "));
+		m_writer->Guard(u"h1")->WriteCharacters(m_bookTitle);
 	}
 
 	QString GetStyle() const override

@@ -29,8 +29,8 @@ struct Book
 	QString fileName;
 
 	explicit Book(const Util::XmlAttributes& attributes)
-		: folder(attributes.GetAttribute(Constant::UserData::Books::Folder))
-		, fileName(attributes.GetAttribute(Constant::UserData::Books::FileName))
+		: folder { attributes.GetAttribute(Constant::UserData::Books::Folder).toString() }
+		, fileName { attributes.GetAttribute(Constant::UserData::Books::FileName).toString() }
 	{
 	}
 };

@@ -60,14 +60,14 @@ RESTORE_ITEMS_X_MACRO
 namespace
 {
 
-constexpr auto FLIBRARY_BACKUP                       = "FlibraryBackup";
-constexpr auto FLIBRARY_BACKUP_VERSION               = "FlibraryBackup/FlibraryBackupVersion";
-constexpr auto FLIBRARY_BACKUP_USER_DATA             = "FlibraryBackup/FlibraryUserData";
-constexpr auto FLIBRARY_BACKUP_USER_DATA_BOOKS       = "FlibraryBackup/FlibraryUserData/Books";
-constexpr auto FLIBRARY_BACKUP_USER_DATA_GROUPS      = "FlibraryBackup/FlibraryUserData/Groups";
-constexpr auto FLIBRARY_BACKUP_USER_DATA_SEARCHES    = "FlibraryBackup/FlibraryUserData/Searches";
-constexpr auto FLIBRARY_BACKUP_USER_DATA_EXPORT_STAT = "FlibraryBackup/FlibraryUserData/ExportStat";
-constexpr auto FLIBRARY_BACKUP_USER_DATA_FILTER      = "FlibraryBackup/FlibraryUserData/Filter";
+constexpr auto FLIBRARY_BACKUP                       = u"FlibraryBackup";
+constexpr auto FLIBRARY_BACKUP_VERSION               = u"FlibraryBackup/FlibraryBackupVersion";
+constexpr auto FLIBRARY_BACKUP_USER_DATA             = u"FlibraryBackup/FlibraryUserData";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_BOOKS       = u"FlibraryBackup/FlibraryUserData/Books";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_GROUPS      = u"FlibraryBackup/FlibraryUserData/Groups";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_SEARCHES    = u"FlibraryBackup/FlibraryUserData/Searches";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_EXPORT_STAT = u"FlibraryBackup/FlibraryUserData/ExportStat";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_FILTER      = u"FlibraryBackup/FlibraryUserData/Filter";
 
 class XmlParser final : public Util::SaxParser
 {
@@ -114,7 +114,7 @@ private: // Util::SaxParser
 	bool OnStartElement(const QStringView name, const QStringView path, const Util::XmlAttributes& attributes) override
 	{
 		using ParseElementFunction = bool (XmlParser::*)(const QString&, const Util::XmlAttributes&);
-		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char16_t*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{					   FLIBRARY_BACKUP,             &XmlParser::OnStartElementFlibraryBackup },
 			{			   FLIBRARY_BACKUP_VERSION,      &XmlParser::OnStartElementFlibraryBackupVersion },

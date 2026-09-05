@@ -42,7 +42,7 @@ public:
 	{
 		m_values.reserve(std::size(r));
 		std::ranges::transform(r, std::back_inserter(m_values), [&, n = 0](const auto& value) mutable {
-			return std::pair(QString::fromStdWString(value), query.Get<const char*>(n++));
+			return std::pair(QString::fromStdU16String(value), query.Get<const char*>(n++));
 		});
 	}
 
@@ -88,7 +88,7 @@ void BackupUserDataBooks(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 								 "join Books b on b.BookID = u.BookID "
 								 "join Folders f on f.FolderID = b.FolderID ";
 
-	static constexpr const wchar_t* fields[] = {
+	static constexpr const char16_t* fields[] = {
 		Constant::UserData::Books::Folder,   Constant::UserData::Books::FileName, Constant::UserData::Books::IsDeleted,
 		Constant::UserData::Books::UserRate, Constant::UserData::Books::Lang,     Constant::UserData::Books::CreatedAt,
 	};
@@ -129,8 +129,8 @@ void BackupUserDataGroups(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 						Constant::UserData::Groups::GroupNode,
 						XmlAttributes(
 							{
-								{                      QString::fromStdWString(Constant::TITLE),   currentTitle },
-								{ QString::fromStdWString(Constant::UserData::Books::CreatedAt), groupCreatedAt },
+								{                      QString::fromStdU16String(Constant::TITLE),   currentTitle },
+								{ QString::fromStdU16String(Constant::UserData::Books::CreatedAt), groupCreatedAt },
                     }
 						)
 					);
@@ -169,7 +169,7 @@ void BackupUserDataSearches(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 {
 	static constexpr auto text = "select s.Title, s.CreatedAt from Searches_User s ";
 
-	static constexpr const wchar_t* fields[] = {
+	static constexpr const char16_t* fields[] = {
 		Constant::TITLE,
 		Constant::UserData::Books::CreatedAt,
 	};
@@ -186,7 +186,7 @@ void BackupUserDataExportStat(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 								 "join Books b on b.BookID = u.BookID "
 								 "join Folders f on f.FolderID = b.FolderID ";
 
-	static constexpr const wchar_t* fields[] = {
+	static constexpr const char16_t* fields[] = {
 		Constant::UserData::Books::Folder,
 		Constant::UserData::Books::FileName,
 		Constant::UserData::ExportStat::ExportType,
@@ -209,7 +209,7 @@ void BackupUserDataFilter(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 		if (query->Eof())
 			return;
 
-		const auto navigationTitleGuard = xmlWriter.Guard(description.navigationTitle);
+		const auto navigationTitleGuard = xmlWriter.Guard(QString(description.navigationTitle));
 		for (; !query->Eof(); query->Next())
 			navigationTitleGuard->WriteStartElement(Constant::ITEM)
 				.WriteAttribute(Constant::UserData::Filter::Title, QString(query->Get<const char*>(0)))
@@ -245,7 +245,7 @@ void Backup(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName
 				  Util::XmlWriter xmlWriter(out);
 				  ScopedCall      rootElement(
 					  [&] {
-						  xmlWriter.WriteStartElement(Constant::FlibraryBackup, XmlAttributes {});
+						  xmlWriter.WriteStartElement(Constant::FlibraryBackup);
 					  },
 					  [&] {
 						  xmlWriter.WriteEndElement();
@@ -257,7 +257,7 @@ void Backup(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName
 							  Constant::FlibraryBackupVersion,
 							  XmlAttributes(
 								  {
-									  { QString::fromStdWString(Constant::VALUE), QString::number(Constant::FlibraryBackupVersionNumber) },
+									  { QString::fromStdU16String(Constant::VALUE), QString::number(Constant::FlibraryBackupVersionNumber) },
                           }
 							  )
 						  );
@@ -268,7 +268,7 @@ void Backup(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName
 				  );
 				  ScopedCall userData(
 					  [&] {
-						  xmlWriter.WriteStartElement(Constant::FlibraryUserData, XmlAttributes {});
+						  xmlWriter.WriteStartElement(Constant::FlibraryUserData);
 					  },
 					  [&] {
 						  xmlWriter.WriteEndElement();
@@ -278,7 +278,7 @@ void Backup(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName
 				  {
 					  ScopedCall item(
 						  [&] {
-							  xmlWriter.WriteStartElement(name, XmlAttributes {});
+							  xmlWriter.WriteStartElement(QString(name));
 						  },
 						  [&] {
 							  xmlWriter.WriteEndElement();

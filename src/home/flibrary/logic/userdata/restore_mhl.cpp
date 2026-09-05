@@ -139,14 +139,14 @@ public:
 private: // Util::SaxParser
 	bool OnStartElement(QStringView /*name*/, const QStringView path, const Util::XmlAttributes& attributes) override
 	{
-		if (path == "UserData/Extras/Book")
-			return m_extras.emplace_back(attributes.GetAttribute(L"libid").toString(), attributes.GetAttribute(L"rate").toInt()), true;
+		if (path == u"UserData/Extras/Book")
+			return m_extras.emplace_back(attributes.GetAttribute(u"libid").toString(), attributes.GetAttribute(u"rate").toInt()), true;
 
-		if (path == "UserData/Groups/Group")
-			return m_groups.emplace_back(attributes.GetAttribute(L"name").toString()), true;
+		if (path == u"UserData/Groups/Group")
+			return m_groups.emplace_back(attributes.GetAttribute(u"name").toString()), true;
 
-		if (path == "UserData/Groups/Group/Book")
-			return assert(!m_groups.empty()), m_groups.back().libIds.emplace(attributes.GetAttribute(L"libid")), true;
+		if (path == u"UserData/Groups/Group/Book")
+			return assert(!m_groups.empty()), m_groups.back().libIds.emplace(attributes.GetAttribute(u"libid").toString()), true;
 
 		return true;
 	}

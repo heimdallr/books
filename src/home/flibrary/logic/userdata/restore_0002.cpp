@@ -25,8 +25,8 @@ struct Book
 	QString fileName;
 
 	explicit Book(const Util::XmlAttributes& attributes)
-		: folder(attributes.GetAttribute(Constant::UserData::Books::Folder))
-		, fileName(attributes.GetAttribute(Constant::UserData::Books::FileName))
+		: folder { attributes.GetAttribute(Constant::UserData::Books::Folder).toString() }
+		, fileName { attributes.GetAttribute(Constant::UserData::Books::FileName).toString() }
 	{
 	}
 };
@@ -40,8 +40,8 @@ class BooksRestorer final : virtual public IRestorer
 
 		explicit Item(const Util::XmlAttributes& attributes)
 			: Book(attributes)
-			, isDeleted(attributes.GetAttribute(Constant::UserData::Books::IsDeleted))
-			, userRate(attributes.GetAttribute(Constant::UserData::Books::UserRate))
+			, isDeleted { attributes.GetAttribute(Constant::UserData::Books::IsDeleted).toString() }
+			, userRate { attributes.GetAttribute(Constant::UserData::Books::UserRate).toString() }
 		{
 		}
 	};

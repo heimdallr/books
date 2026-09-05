@@ -40,51 +40,51 @@ constexpr auto DESCRIPTION = QT_TRANSLATE_NOOP("Annotation", "Description");
 constexpr auto FILE_EMPTY  = QT_TRANSLATE_NOOP("Annotation", "File is empty");
 TR_DEF
 
-constexpr auto ID_KEY                 = L"id";
-constexpr auto A_KEY                  = "a";
-constexpr auto P_KEY                  = "p";
-constexpr auto EMPHASIS               = "emphasis";
-constexpr auto DESCRIPTION_NODE       = L"FictionBook/description/";
-constexpr auto TRANSLATOR             = "FictionBook/description/title-info/translator";
-constexpr auto TRANSLATOR_FIRST_NAME  = "FictionBook/description/title-info/translator/first-name";
-constexpr auto TRANSLATOR_MIDDLE_NAME = "FictionBook/description/title-info/translator/middle-name";
-constexpr auto TRANSLATOR_LAST_NAME   = "FictionBook/description/title-info/translator/last-name";
-constexpr auto TRANSLATOR_NICKNAME    = "FictionBook/description/title-info/translator/nickname";
-constexpr auto ANNOTATION             = "FictionBook/description/title-info/annotation";
-constexpr auto KEYWORDS               = "FictionBook/description/title-info/keywords";
-constexpr auto LANG                   = "FictionBook/description/title-info/lang";
-constexpr auto LANG_SRC               = "FictionBook/description/title-info/src-lang";
-constexpr auto BINARY                 = "FictionBook/binary";
-constexpr auto COVERPAGE_IMAGE        = "FictionBook/description/title-info/coverpage/image";
-constexpr auto SECTION                = "section";
-constexpr auto SECTION_TITLE          = "section/title";
-constexpr auto SECTION_TITLE_P        = "section/title/p";
-constexpr auto SECTION_TITLE_P_STRONG = "section/title/p/strong";
-constexpr auto EPIGRAPH               = "FictionBook/body/epigraph";
-constexpr auto EPIGRAPH_P             = "FictionBook/body/epigraph/p";
-constexpr auto EPIGRAPH_AUTHOR        = "FictionBook/body/epigraph/text-author";
-constexpr auto PUBLISH_INFO_PUBLISHER = "FictionBook/description/publish-info/publisher";
-constexpr auto PUBLISH_INFO_CITY      = "FictionBook/description/publish-info/city";
-constexpr auto PUBLISH_INFO_YEAR      = "FictionBook/description/publish-info/year";
-constexpr auto PUBLISH_INFO_ISBN      = "FictionBook/description/publish-info/isbn";
-constexpr auto BODY                   = L"FictionBook/body/";
-constexpr auto FICTION_BOOK           = "FictionBook";
+constexpr auto ID_KEY                 = u"id";
+constexpr auto A_KEY                  = u"a";
+constexpr auto P_KEY                  = u"p";
+constexpr auto EMPHASIS               = u"emphasis";
+constexpr auto DESCRIPTION_NODE       = u"FictionBook/description/";
+constexpr auto TRANSLATOR             = u"FictionBook/description/title-info/translator";
+constexpr auto TRANSLATOR_FIRST_NAME  = u"FictionBook/description/title-info/translator/first-name";
+constexpr auto TRANSLATOR_MIDDLE_NAME = u"FictionBook/description/title-info/translator/middle-name";
+constexpr auto TRANSLATOR_LAST_NAME   = u"FictionBook/description/title-info/translator/last-name";
+constexpr auto TRANSLATOR_NICKNAME    = u"FictionBook/description/title-info/translator/nickname";
+constexpr auto ANNOTATION             = u"FictionBook/description/title-info/annotation";
+constexpr auto KEYWORDS               = u"FictionBook/description/title-info/keywords";
+constexpr auto LANG                   = u"FictionBook/description/title-info/lang";
+constexpr auto LANG_SRC               = u"FictionBook/description/title-info/src-lang";
+constexpr auto BINARY                 = u"FictionBook/binary";
+constexpr auto COVERPAGE_IMAGE        = u"FictionBook/description/title-info/coverpage/image";
+constexpr auto SECTION                = u"section";
+constexpr auto SECTION_TITLE          = u"section/title";
+constexpr auto SECTION_TITLE_P        = u"section/title/p";
+constexpr auto SECTION_TITLE_P_STRONG = u"section/title/p/strong";
+constexpr auto EPIGRAPH               = u"FictionBook/body/epigraph";
+constexpr auto EPIGRAPH_P             = u"FictionBook/body/epigraph/p";
+constexpr auto EPIGRAPH_AUTHOR        = u"FictionBook/body/epigraph/text-author";
+constexpr auto PUBLISH_INFO_PUBLISHER = u"FictionBook/description/publish-info/publisher";
+constexpr auto PUBLISH_INFO_CITY      = u"FictionBook/description/publish-info/city";
+constexpr auto PUBLISH_INFO_YEAR      = u"FictionBook/description/publish-info/year";
+constexpr auto PUBLISH_INFO_ISBN      = u"FictionBook/description/publish-info/isbn";
+constexpr auto BODY                   = u"FictionBook/body/";
+constexpr auto FICTION_BOOK           = u"FictionBook";
 
-constexpr std::pair<const char*, const char*> ANNOTATION_REPLACE_TAGS[] {
-	{ EMPHASIS, "em" },
-	{  "style",   "" }
+constexpr std::pair<const char16_t*, const char16_t*> ANNOTATION_REPLACE_TAGS[] {
+	{ EMPHASIS, u"em" },
+	{  u"style",   u"" }
 };
 
-constexpr std::pair<const char*, const char*> ANNOTATION_REPLACE_ATTRIBUTE_NAME[] {
-	{ "l:href", "href" },
+constexpr std::pair<const char16_t*, const char16_t*> ANNOTATION_REPLACE_ATTRIBUTE_NAME[] {
+	{ u"l:href", u"href" },
 };
 
-QString AnnotationReplaceAttributeName(const QStringView name)
+QStringView AnnotationReplaceAttributeName(const QStringView name)
 {
 	const auto it = std::ranges::find_if(ANNOTATION_REPLACE_ATTRIBUTE_NAME, [&](const auto& item) {
 		return name == item.first;
 	});
-	return it == std::end(ANNOTATION_REPLACE_ATTRIBUTE_NAME) ? name.toString() : it->second;
+	return it == std::end(ANNOTATION_REPLACE_ATTRIBUTE_NAME) ? name : it->second;
 }
 
 void ExtractBookImages(
@@ -238,7 +238,7 @@ private: // Util::SaxParser
 			const auto it = std::ranges::find_if(ANNOTATION_REPLACE_TAGS, [&](const auto& item) {
 				return name == item.first;
 			});
-			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name.toString() : it->second; !replacedName.isEmpty())
+			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name : it->second; !replacedName.isEmpty())
 			{
 				const ScopedCall nodeGuard(
 					[&] {
@@ -264,7 +264,7 @@ private: // Util::SaxParser
 		}
 
 		using ParseElementFunction = bool (Fb2Parser::*)(const Util::XmlAttributes&);
-		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char16_t*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{    FICTION_BOOK,    &Fb2Parser::OnStartElementFictionBook },
             { COVERPAGE_IMAGE, &Fb2Parser::OnStartElementCoverpageImage },
@@ -287,7 +287,7 @@ private: // Util::SaxParser
 		}
 
 		using ParseElementFunction = bool (Fb2Parser::*)();
-		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char16_t*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{    SECTION,    &Fb2Parser::OnEndElementSection },
 			{ ANNOTATION, &Fb2Parser::OnEndElementAnnotation },
@@ -300,7 +300,7 @@ private: // Util::SaxParser
 			const auto it = std::ranges::find_if(ANNOTATION_REPLACE_TAGS, [&](const auto& item) {
 				return name == item.first;
 			});
-			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name.toString() : it->second; !replacedName.isEmpty())
+			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name : it->second; !replacedName.isEmpty())
 				m_data.annotation.append(QString("</%1>").arg(replacedName));
 		}
 
@@ -313,7 +313,7 @@ private: // Util::SaxParser
 	bool OnCharacters(const QStringView path, const QStringView value) override
 	{
 		using ParseCharacterFunction = bool (Fb2Parser::*)(const QString&);
-		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;
+		using ParseCharacterItem     = std::pair<const char16_t*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
 			{             ANNOTATION,           &Fb2Parser::ParseAnnotation },
 			{			   KEYWORDS,             &Fb2Parser::ParseKeywords },
@@ -378,8 +378,8 @@ private:
 	bool OnStartElementFictionBook(const Util::XmlAttributes& attributes)
 	{
 		for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
-			if (const auto attributeName = attributes.GetName(i); attributeName.startsWith(L"xmlns:"))
-				return (m_hrefLink = Last(attributeName, attributeName.length() - 6) + ":href"), true;
+			if (const auto attributeName = attributes.GetName(i); attributeName.startsWith(u"xmlns:"))
+				return (m_hrefLink = Last(attributeName, attributeName.length() - 6).toString() + ":href"), true;
 
 		return true;
 	}
@@ -397,7 +397,7 @@ private:
 
 	bool OnStartElementBinary(const Util::XmlAttributes& attributes)
 	{
-		m_covers.emplace_back(attributes.GetAttribute(ID_KEY), QByteArray {});
+		m_covers.emplace_back(attributes.GetAttribute(ID_KEY).toString(), QByteArray {});
 		return true;
 	}
 
