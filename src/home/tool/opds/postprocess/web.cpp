@@ -300,7 +300,7 @@ private: // SaxParser
 		return Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(const QString& /*name*/, const QString& path) override
+	bool OnEndElement(QStringView /*name*/, const QString& path) override
 	{
 		using ParseElementFunction = bool (ParserNavigation::*)();
 		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
@@ -442,7 +442,7 @@ private: // SaxParser
 		return Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(const QString& /*name*/, const QString& path) override
+	bool OnEndElement(QStringView /*name*/, const QString& path) override
 	{
 		using ParseElementFunction = bool (ParserBookInfo::*)();
 		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
@@ -691,7 +691,7 @@ private: // SaxParser
 		return Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(const QString& name, const QString& pathSrc) override
+	bool OnEndElement(const QStringView name, const QString& pathSrc) override
 	{
 		if (name == P && m_body)
 			return (m_stream << "</p>"), true;

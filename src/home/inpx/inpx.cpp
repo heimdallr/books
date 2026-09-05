@@ -371,7 +371,7 @@ private: // SaxParser
 		return true;
 	}
 
-	bool OnEndElement(const QString& name, const QString&) override
+	bool OnEndElement(const QStringView name, const QString&) override
 	{
 		if (name != FILE)
 			return true;

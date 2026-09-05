@@ -133,12 +133,12 @@ private: // Util::SaxParser
 		return result;
 	}
 
-	bool OnEndElement(const QString& /*name*/, const QString& /*path*/) override
+	bool OnEndElement(QStringView /*name*/, const QString& /*path*/) override
 	{
 		return true;
 	}
 
-	bool OnCharacters(const QString& /*path*/, const QStringView /*value*/) override
+	bool OnCharacters(const QString& /*path*/, QStringView /*value*/) override
 	{
 		return true;
 	}

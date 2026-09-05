@@ -277,7 +277,7 @@ private: // Util::SaxParser
 		return SaxParser::Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(const QString& name, const QString& path) override
+	bool OnEndElement(const QStringView name, const QString& path) override
 	{
 		const auto percents = std::lround(100 * m_ioDevice.pos() / m_total);
 		if (m_percents < percents)
@@ -297,10 +297,10 @@ private: // Util::SaxParser
 
 		if (m_annotationMode)
 		{
-			const auto it = std::ranges::find(ANNOTATION_REPLACE_TAGS, name, [](const auto& item) {
-				return item.first;
+			const auto it = std::ranges::find_if(ANNOTATION_REPLACE_TAGS, [&](const auto& item) {
+				return name == item.first;
 			});
-			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name : it->second; !replacedName.isEmpty())
+			if (const auto replacedName = it == std::end(ANNOTATION_REPLACE_TAGS) ? name.toString() : it->second; !replacedName.isEmpty())
 				m_data.annotation.append(QString("</%1>").arg(replacedName));
 		}
 
