@@ -356,7 +356,7 @@ public:
 	}
 
 private: // SaxParser
-	bool OnStartElement(const QStringView name, const QString&, const XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QStringView, const XmlAttributes& attributes) override
 	{
 		if (name == FOLDER)
 		{
@@ -371,7 +371,7 @@ private: // SaxParser
 		return true;
 	}
 
-	bool OnEndElement(const QStringView name, const QString&) override
+	bool OnEndElement(const QStringView name, QStringView) override
 	{
 		if (name != FILE)
 			return true;
@@ -391,7 +391,7 @@ private: // SaxParser
 		return true;
 	}
 
-	bool OnCharacters(const QString&, const QStringView value) override
+	bool OnCharacters(QStringView, const QStringView value) override
 	{
 		m_annotation << value.toString();
 		return true;

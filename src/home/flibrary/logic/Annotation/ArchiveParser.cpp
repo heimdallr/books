@@ -44,7 +44,7 @@ constexpr auto ID_KEY                 = "id";
 constexpr auto A_KEY                  = "a";
 constexpr auto P_KEY                  = "p";
 constexpr auto EMPHASIS               = "emphasis";
-constexpr auto DESCRIPTION_NODE       = "FictionBook/description/";
+constexpr auto DESCRIPTION_NODE       = L"FictionBook/description/";
 constexpr auto TRANSLATOR             = "FictionBook/description/title-info/translator";
 constexpr auto TRANSLATOR_FIRST_NAME  = "FictionBook/description/title-info/translator/first-name";
 constexpr auto TRANSLATOR_MIDDLE_NAME = "FictionBook/description/title-info/translator/middle-name";
@@ -67,7 +67,7 @@ constexpr auto PUBLISH_INFO_PUBLISHER = "FictionBook/description/publish-info/pu
 constexpr auto PUBLISH_INFO_CITY      = "FictionBook/description/publish-info/city";
 constexpr auto PUBLISH_INFO_YEAR      = "FictionBook/description/publish-info/year";
 constexpr auto PUBLISH_INFO_ISBN      = "FictionBook/description/publish-info/isbn";
-constexpr auto BODY                   = "FictionBook/body/";
+constexpr auto BODY                   = L"FictionBook/body/";
 constexpr auto FICTION_BOOK           = "FictionBook";
 
 constexpr std::pair<const char*, const char*> ANNOTATION_REPLACE_TAGS[] {
@@ -228,7 +228,7 @@ private: // IParser
 	}
 
 private: // Util::SaxParser
-	bool OnStartElement(const QStringView name, const QString& path, const Util::XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QStringView path, const Util::XmlAttributes& attributes) override
 	{
 		if (name.compare(A_KEY, Qt::CaseInsensitive) == 0)
 			m_href = attributes.GetAttribute(m_hrefLink);
@@ -277,7 +277,7 @@ private: // Util::SaxParser
 		return SaxParser::Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(const QStringView name, const QString& path) override
+	bool OnEndElement(const QStringView name, const QStringView path) override
 	{
 		const auto percents = std::lround(100 * m_ioDevice.pos() / m_total);
 		if (m_percents < percents)
@@ -310,7 +310,7 @@ private: // Util::SaxParser
 		return result;
 	}
 
-	bool OnCharacters(const QString& path, const QStringView value) override
+	bool OnCharacters(const QStringView path, const QStringView value) override
 	{
 		using ParseCharacterFunction = bool (Fb2Parser::*)(const QString&);
 		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;

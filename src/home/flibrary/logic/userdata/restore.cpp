@@ -111,7 +111,7 @@ public:
 	}
 
 private: // Util::SaxParser
-	bool OnStartElement(const QStringView name, const QString& path, const Util::XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QStringView path, const Util::XmlAttributes& attributes) override
 	{
 		using ParseElementFunction = bool (XmlParser::*)(const QString&, const Util::XmlAttributes&);
 		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
@@ -133,12 +133,12 @@ private: // Util::SaxParser
 		return result;
 	}
 
-	bool OnEndElement(QStringView /*name*/, const QString& /*path*/) override
+	bool OnEndElement(QStringView /*name*/, QStringView /*path*/) override
 	{
 		return true;
 	}
 
-	bool OnCharacters(const QString& /*path*/, QStringView /*value*/) override
+	bool OnCharacters(QStringView /*path*/, QStringView /*value*/) override
 	{
 		return true;
 	}

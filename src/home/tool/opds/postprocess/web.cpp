@@ -184,7 +184,7 @@ protected:
 	}
 
 protected:
-	bool OnStartElement(QStringView /*name*/, const QString& path, const XmlAttributes& attributes) override
+	bool OnStartElement(QStringView /*name*/, const QStringView path, const XmlAttributes& attributes) override
 	{
 		using ParseElementFunction = bool (ParserOpds::*)(const XmlAttributes&);
 		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
@@ -195,7 +195,7 @@ protected:
 		return Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnCharacters(const QString& path, const QStringView value) override
+	bool OnCharacters(const QStringView path, const QStringView value) override
 	{
 		using ParseCharacterFunction = bool (ParserOpds::*)(const QString&);
 		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;
@@ -285,7 +285,7 @@ public:
 	}
 
 private: // SaxParser
-	bool OnStartElement(const QStringView name, const QString& path, const XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QStringView path, const XmlAttributes& attributes) override
 	{
 		const auto result = ParserOpds::OnStartElement(name, path, attributes);
 		if (m_processed)
@@ -300,7 +300,7 @@ private: // SaxParser
 		return Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(QStringView /*name*/, const QString& path) override
+	bool OnEndElement(QStringView /*name*/, const QStringView path) override
 	{
 		using ParseElementFunction = bool (ParserNavigation::*)();
 		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
@@ -427,7 +427,7 @@ public:
 	}
 
 private: // SaxParser
-	bool OnStartElement(const QStringView name, const QString& path, const XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QStringView path, const XmlAttributes& attributes) override
 	{
 		const auto result = ParserOpds::OnStartElement(name, path, attributes);
 		if (m_processed)
@@ -442,7 +442,7 @@ private: // SaxParser
 		return Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(QStringView /*name*/, const QString& path) override
+	bool OnEndElement(QStringView /*name*/, const QStringView path) override
 	{
 		using ParseElementFunction = bool (ParserBookInfo::*)();
 		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
@@ -453,7 +453,7 @@ private: // SaxParser
 		return Parse(*this, PARSERS, path);
 	}
 
-	bool OnCharacters(const QString& path, const QStringView value) override
+	bool OnCharacters(const QStringView path, const QStringView value) override
 	{
 		const auto result = ParserOpds::OnCharacters(path, value);
 		if (m_processed)
@@ -653,7 +653,7 @@ public:
 	}
 
 private: // SaxParser
-	bool OnStartElement(const QStringView name, const QString& pathSrc, const XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QStringView pathSrc, const XmlAttributes& attributes) override
 	{
 		if (name == P && m_body)
 			return (m_stream << "<p>"), true;
@@ -676,7 +676,7 @@ private: // SaxParser
 		if (name == V && m_poem)
 			return (m_stream << R"(<div class="poem">)"), true;
 
-		const auto path = ReduceSections(pathSrc);
+		const auto path = ReduceSections(pathSrc.toString());
 
 		using ParseElementFunction = bool (ParserFb2::*)(const XmlAttributes&);
 		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
@@ -691,7 +691,7 @@ private: // SaxParser
 		return Parse(*this, PARSERS, path, attributes);
 	}
 
-	bool OnEndElement(const QStringView name, const QString& pathSrc) override
+	bool OnEndElement(const QStringView name, const QStringView pathSrc) override
 	{
 		if (name == P && m_body)
 			return (m_stream << "</p>"), true;
@@ -708,7 +708,7 @@ private: // SaxParser
 		if (name == V && m_poem)
 			return (m_stream << "</div>\n"), true;
 
-		const auto path            = ReduceSections(pathSrc);
+		const auto path            = ReduceSections(pathSrc.toString());
 		using ParseElementFunction = bool (ParserFb2::*)();
 		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
@@ -721,9 +721,9 @@ private: // SaxParser
 		return Parse(*this, PARSERS, path);
 	}
 
-	bool OnCharacters(const QString& pathSrc, const QStringView value) override
+	bool OnCharacters(const QStringView pathSrc, const QStringView value) override
 	{
-		const auto path              = ReduceSections(pathSrc);
+		const auto path              = ReduceSections(pathSrc.toString());
 		using ParseCharacterFunction = bool (ParserFb2::*)(const QString&);
 		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
