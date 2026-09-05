@@ -289,6 +289,17 @@ private: // IExportHelper
 	void CheckPath(std::filesystem::path& path) override
 	{
 		std::lock_guard lock(m_usedPathGuard);
+
+		std::ranges::transform(
+			std::filesystem::directory_iterator(path.parent_path()) | std::views::filter([](const auto& item) {
+				return item.is_regular_file();
+			}),
+			std::inserter(m_usedPath, m_usedPath.end()),
+			[](const auto& item) {
+				return Platform::PathToString(item).toLower();
+			}
+		);
+
 		if (m_usedPath.emplace(Platform::PathToString(path).toLower()).second)
 			return;
 
