@@ -84,8 +84,9 @@ constexpr auto USER_RATE_QUERY = "select coalesce(bu.UserRate, -1) from Books b 
 
 struct SendSettings
 {
-	bool tempFolder { false };
-	bool createFillTemplateConverterParameter { false };
+	bool    tempFolder { false };
+	bool    createFillTemplateConverterParameter { false };
+	QString dstPathSuffix;
 };
 
 class IContextMenuHandler // NOLINT(cppcoreguidelines-special-member-functions)
@@ -457,7 +458,7 @@ private: // IContextMenuHandler
 
 	void SendAsArchive(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsArchives);
+		SendAsImpl(model, index, indexList, std::move(item), std::move(callback), &BooksExtractor::ExtractAsArchives, { .dstPathSuffix = ".zip" });
 	}
 
 	void SendAsIs(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
@@ -719,7 +720,7 @@ private:
 		for (auto& book : books)
 			fillTemplateConverter->Fill(*db, outputFileNameTemplate, book, tempDir ? tempDir->filePath("") : dir);
 
-		if (CheckUniqueFileNames(books))
+		if (CheckUniqueFileNames(books, sendSettings.dstPathSuffix))
 			return callback(item);
 
 		auto       ids       = books | std::views::transform([](const auto book) {
@@ -780,12 +781,13 @@ private:
 								 } });
 	}
 
-	bool CheckUniqueFileNames(Util::ExtractedBooks& books) const
+	bool CheckUniqueFileNames(Util::ExtractedBooks& books, const QString& dstPathSuffix) const
 	{
 		const auto whatTodo = [&] {
 			std::unordered_set<QString> uniqueNames;
 			if (std::ranges::any_of(books, [&](const auto& book) {
-					return QFile::exists(book.dstFileName) || !uniqueNames.emplace(book.dstFileName).second;
+					auto checkPath = book.dstFileName + dstPathSuffix;
+					return QFile::exists(checkPath) || !uniqueNames.emplace(checkPath).second;
 				}))
 				return m_uiFactory->ShowCustomDialog(
 					QMessageBox::Question,
@@ -800,38 +802,39 @@ private:
 					QMessageBox::AcceptRole
 				);
 
-			return QMessageBox::AcceptRole;
+			return QMessageBox::NoRole;
 		}();
 
-		if (whatTodo == QMessageBox::RejectRole)
-			return true;
-
-		if (whatTodo == QMessageBox::NoRole)
-			return false;
-
-		std::unordered_map<QString, size_t> unique;
-		for (const auto& [book, index] : std::views::zip(books, std::views::iota(0)))
+		switch (whatTodo)
 		{
-			if (QFile::exists(book.dstFileName))
-			{
-				if (whatTodo == QMessageBox::DestructiveRole)
-					QFile::remove(book.dstFileName);
-				else
-					continue;
-			}
-
-			auto [it, inserted] = unique.try_emplace(book.dstFileName, index);
-			if (inserted)
-				continue;
-
-			if (whatTodo == QMessageBox::DestructiveRole)
-				it->second = index;
+			case QMessageBox::RejectRole:
+				return true;
+			case QMessageBox::NoRole:
+				return false;
+			default:
+				break;
 		}
 
-		const auto indices = unique | std::views::values | std::ranges::to<std::unordered_set<size_t>>();
-		std::erase_if(books, [&, index = 0ULL](const auto&) mutable {
-			return !indices.contains(index++);
-		});
+		const auto filesExist = books | std::views::transform([](const auto& item) {
+			return item.dstFileName;
+		}) | std::views::filter([&](const auto& item) {
+			return QFile::exists(item + dstPathSuffix);
+		}) | std::ranges::to<std::unordered_set>();
+
+		switch (whatTodo)
+		{
+			case QMessageBox::DestructiveRole:
+				for (const auto& file : filesExist)
+					QFile::remove(file + dstPathSuffix);
+				return false;
+			case QMessageBox::AcceptRole:
+				std::erase_if(books, [&](const auto& item) {
+					return filesExist.contains(item.dstFileName);
+				});
+				return books.empty();
+			default:
+				break;
+		}
 
 		return false;
 	}
