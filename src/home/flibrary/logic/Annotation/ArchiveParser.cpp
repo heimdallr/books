@@ -40,7 +40,7 @@ constexpr auto DESCRIPTION = QT_TRANSLATE_NOOP("Annotation", "Description");
 constexpr auto FILE_EMPTY  = QT_TRANSLATE_NOOP("Annotation", "File is empty");
 TR_DEF
 
-constexpr auto ID_KEY                 = "id";
+constexpr auto ID_KEY                 = L"id";
 constexpr auto A_KEY                  = "a";
 constexpr auto P_KEY                  = "p";
 constexpr auto EMPHASIS               = "emphasis";
@@ -79,12 +79,12 @@ constexpr std::pair<const char*, const char*> ANNOTATION_REPLACE_ATTRIBUTE_NAME[
 	{ "l:href", "href" },
 };
 
-QString AnnotationReplaceAttributeName(const QString& name)
+QString AnnotationReplaceAttributeName(const QStringView name)
 {
-	const auto it = std::ranges::find(ANNOTATION_REPLACE_ATTRIBUTE_NAME, name, [](const auto& item) {
-		return item.first;
+	const auto it = std::ranges::find_if(ANNOTATION_REPLACE_ATTRIBUTE_NAME, [&](const auto& item) {
+		return name == item.first;
 	});
-	return it == std::end(ANNOTATION_REPLACE_ATTRIBUTE_NAME) ? name : it->second;
+	return it == std::end(ANNOTATION_REPLACE_ATTRIBUTE_NAME) ? name.toString() : it->second;
 }
 
 void ExtractBookImages(
@@ -231,7 +231,7 @@ private: // Util::SaxParser
 	bool OnStartElement(const QStringView name, const QStringView path, const Util::XmlAttributes& attributes) override
 	{
 		if (name.compare(A_KEY, Qt::CaseInsensitive) == 0)
-			m_href = attributes.GetAttribute(m_hrefLink);
+			m_href = attributes.GetAttribute(m_hrefLink).toString();
 
 		if (m_annotationMode)
 		{
@@ -378,7 +378,7 @@ private:
 	bool OnStartElementFictionBook(const Util::XmlAttributes& attributes)
 	{
 		for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
-			if (const auto attributeName = attributes.GetName(i); attributeName.startsWith("xmlns:"))
+			if (const auto attributeName = attributes.GetName(i); attributeName.startsWith(L"xmlns:"))
 				return (m_hrefLink = Last(attributeName, attributeName.length() - 6) + ":href"), true;
 
 		return true;
@@ -386,11 +386,11 @@ private:
 
 	bool OnStartElementCoverpageImage(const Util::XmlAttributes& attributes)
 	{
-		m_coverpage   = attributes.GetAttribute(m_hrefLink);
+		m_coverpage   = attributes.GetAttribute(m_hrefLink).toString();
 		const auto it = std::ranges::find_if(m_coverpage, [](const auto ch) {
 			return ch != '#';
 		});
-		m_coverpage   = Last(m_coverpage, std::distance(it, m_coverpage.end()));
+		m_coverpage   = Last(m_coverpage, std::distance(it, m_coverpage.end())).toString();
 
 		return true;
 	}

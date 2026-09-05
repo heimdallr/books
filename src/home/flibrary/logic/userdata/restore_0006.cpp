@@ -63,7 +63,7 @@ class BooksRestorer final : virtual public IRestorer
 
 		explicit Item(const Util::XmlAttributes& attributes)
 			: Book(attributes)
-#define ADDITIONAL_BOOK_FIELD(NAME) , NAME(attributes.GetAttribute(Constant::UserData::Books::NAME))
+#define ADDITIONAL_BOOK_FIELD(NAME) , NAME(attributes.GetAttribute(QString(Constant::UserData::Books::NAME)))
 				  ADDITIONAL_BOOK_FIELDS_X_MACRO
 #undef ADDITIONAL_BOOK_FIELD
 		{

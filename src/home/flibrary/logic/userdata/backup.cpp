@@ -42,7 +42,7 @@ public:
 	{
 		m_values.reserve(std::size(r));
 		std::ranges::transform(r, std::back_inserter(m_values), [&, n = 0](const auto& value) mutable {
-			return std::pair(value, query.Get<const char*>(n++));
+			return std::pair(QString::fromStdWString(value), query.Get<const char*>(n++));
 		});
 	}
 
@@ -54,9 +54,9 @@ public:
 	}
 
 private: // Util::XmlAttributes
-	QString GetAttribute(const QString& key) const override
+	QStringView GetAttribute(const QStringView key) const override
 	{
-		return FindSecond(m_values, key, s_empty);
+		return FindSecond(m_values, key.toString(), s_empty);
 	}
 
 	size_t GetCount() const override
@@ -64,13 +64,13 @@ private: // Util::XmlAttributes
 		return std::size(m_values);
 	}
 
-	QString GetName(const size_t index) const override
+	QStringView GetName(const size_t index) const override
 	{
 		assert(index < GetCount());
 		return m_values[index].first;
 	}
 
-	QString GetValue(const size_t index) const override
+	QStringView GetValue(const size_t index) const override
 	{
 		assert(index < GetCount());
 		return m_values[index].second;
@@ -88,7 +88,7 @@ void BackupUserDataBooks(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 								 "join Books b on b.BookID = u.BookID "
 								 "join Folders f on f.FolderID = b.FolderID ";
 
-	static constexpr const char* fields[] = {
+	static constexpr const wchar_t* fields[] = {
 		Constant::UserData::Books::Folder,   Constant::UserData::Books::FileName, Constant::UserData::Books::IsDeleted,
 		Constant::UserData::Books::UserRate, Constant::UserData::Books::Lang,     Constant::UserData::Books::CreatedAt,
 	};
@@ -129,8 +129,8 @@ void BackupUserDataGroups(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 						Constant::UserData::Groups::GroupNode,
 						XmlAttributes(
 							{
-								{                      Constant::TITLE,   currentTitle },
-								{ Constant::UserData::Books::CreatedAt, groupCreatedAt },
+								{                      QString::fromStdWString(Constant::TITLE),   currentTitle },
+								{ QString::fromStdWString(Constant::UserData::Books::CreatedAt), groupCreatedAt },
                     }
 						)
 					);
@@ -143,24 +143,24 @@ void BackupUserDataGroups(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 
 		if (const auto* fileName = query->Get<const char*>(3))
 			xmlWriter.WriteStartElement(Constant::ITEM)
-				.WriteAttribute(Constant::UserData::Books::CreatedAt, query->Get<const char*>(2))
-				.WriteAttribute(Constant::UserData::Books::FileName, fileName)
-				.WriteAttribute(Constant::UserData::Books::Folder, query->Get<const char*>(4))
+				.WriteAttribute(Constant::UserData::Books::CreatedAt, QString(query->Get<const char*>(2)))
+				.WriteAttribute(Constant::UserData::Books::FileName, QString(fileName))
+				.WriteAttribute(Constant::UserData::Books::Folder, QString(query->Get<const char*>(4)))
 				.WriteEndElement();
 		else if (const auto* authorName = query->Get<const char*>(5))
 			xmlWriter.WriteStartElement(Constant::UserData::Groups::Author)
-				.WriteAttribute(Constant::UserData::Books::CreatedAt, query->Get<const char*>(2))
-				.WriteAttribute(Constant::TITLE, authorName)
+				.WriteAttribute(Constant::UserData::Books::CreatedAt, QString(query->Get<const char*>(2)))
+				.WriteAttribute(Constant::TITLE, QString(authorName))
 				.WriteEndElement();
 		else if (const auto* seriesTitle = query->Get<const char*>(6))
 			xmlWriter.WriteStartElement(Constant::UserData::Groups::Series)
-				.WriteAttribute(Constant::UserData::Books::CreatedAt, query->Get<const char*>(2))
-				.WriteAttribute(Constant::TITLE, seriesTitle)
+				.WriteAttribute(Constant::UserData::Books::CreatedAt, QString(query->Get<const char*>(2)))
+				.WriteAttribute(Constant::TITLE, QString(seriesTitle))
 				.WriteEndElement();
 		else if (const auto* keywordTitle = query->Get<const char*>(7))
 			xmlWriter.WriteStartElement(Constant::UserData::Groups::Keyword)
-				.WriteAttribute(Constant::UserData::Books::CreatedAt, query->Get<const char*>(2))
-				.WriteAttribute(Constant::TITLE, keywordTitle)
+				.WriteAttribute(Constant::UserData::Books::CreatedAt, QString(query->Get<const char*>(2)))
+				.WriteAttribute(Constant::TITLE, QString(keywordTitle))
 				.WriteEndElement();
 	}
 }
@@ -169,7 +169,7 @@ void BackupUserDataSearches(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 {
 	static constexpr auto text = "select s.Title, s.CreatedAt from Searches_User s ";
 
-	static constexpr const char* fields[] = {
+	static constexpr const wchar_t* fields[] = {
 		Constant::TITLE,
 		Constant::UserData::Books::CreatedAt,
 	};
@@ -186,7 +186,7 @@ void BackupUserDataExportStat(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 								 "join Books b on b.BookID = u.BookID "
 								 "join Folders f on f.FolderID = b.FolderID ";
 
-	static constexpr const char* fields[] = {
+	static constexpr const wchar_t* fields[] = {
 		Constant::UserData::Books::Folder,
 		Constant::UserData::Books::FileName,
 		Constant::UserData::ExportStat::ExportType,
@@ -212,8 +212,8 @@ void BackupUserDataFilter(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 		const auto navigationTitleGuard = xmlWriter.Guard(description.navigationTitle);
 		for (; !query->Eof(); query->Next())
 			navigationTitleGuard->WriteStartElement(Constant::ITEM)
-				.WriteAttribute(Constant::UserData::Filter::Title, query->Get<const char*>(0))
-				.WriteAttribute(Constant::UserData::Filter::Flag, query->Get<const char*>(1))
+				.WriteAttribute(Constant::UserData::Filter::Title, QString(query->Get<const char*>(0)))
+				.WriteAttribute(Constant::UserData::Filter::Flag, QString(query->Get<const char*>(1)))
 				.WriteEndElement();
 	});
 }
@@ -257,7 +257,7 @@ void Backup(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName
 							  Constant::FlibraryBackupVersion,
 							  XmlAttributes(
 								  {
-									  { Constant::VALUE, QString::number(Constant::FlibraryBackupVersionNumber) },
+									  { QString::fromStdWString(Constant::VALUE), QString::number(Constant::FlibraryBackupVersionNumber) },
                           }
 							  )
 						  );

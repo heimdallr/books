@@ -4,6 +4,6 @@ namespace HomeCompa::Flibrary::Constant::UserData::ExportStat
 {
 
 constexpr auto RootNode   = "ExportStat";
-constexpr auto ExportType = "ExportType";
+constexpr auto ExportType = L"ExportType";
 
 }

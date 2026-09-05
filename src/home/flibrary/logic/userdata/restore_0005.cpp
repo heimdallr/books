@@ -42,8 +42,8 @@ private: // IRestorer
 	{
 		assert(name == Constant::ITEM);
 		auto& item     = m_items.emplace_back();
-		item.title     = attributes.GetAttribute(Constant::TITLE);
-		item.createdAt = attributes.GetAttribute(Constant::UserData::Books::CreatedAt);
+		item.title     = attributes.GetAttribute(Constant::TITLE).toString();
+		item.createdAt = attributes.GetAttribute(Constant::UserData::Books::CreatedAt).toString();
 	}
 
 	void Restore(DB::IDatabase& db) const override

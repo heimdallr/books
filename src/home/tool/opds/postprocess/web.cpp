@@ -323,7 +323,7 @@ private:
 
 	bool OnStartElementEntryLink(const XmlAttributes& attributes)
 	{
-		m_link = attributes.GetAttribute("href");
+		m_link = attributes.GetAttribute(L"href").toString();
 		return true;
 	}
 
@@ -473,16 +473,16 @@ private: // SaxParser
 private:
 	bool OnStartElementEntryLink(const XmlAttributes& attributes)
 	{
-		const auto rel  = attributes.GetAttribute("rel");
-		auto       href = attributes.GetAttribute("href");
+		const auto rel  = attributes.GetAttribute(L"rel");
+		auto       href = attributes.GetAttribute(L"href");
 
 		if (rel == "http://opds-spec.org/image")
-			return m_coverLink = std::move(href), true;
+			return m_coverLink = href.toString(), true;
 
 		if (rel == "http://opds-spec.org/acquisition")
 		{
-			if (const auto type = attributes.GetAttribute("type"); type.startsWith("application/"))
-				(type.endsWith("+zip") ? m_downloadLinkZip : m_downloadLinkFb2) = std::move(href);
+			if (const auto type = attributes.GetAttribute(L"type"); type.startsWith(L"application/"))
+				(type.endsWith(L"+zip") ? m_downloadLinkZip : m_downloadLinkFb2) = href.toString();
 			return true;
 		}
 
@@ -662,7 +662,7 @@ private: // SaxParser
 			return (m_stream << "<br/>"), true;
 
 		if (name == A)
-			return (m_link = std::make_unique<Link>(attributes.GetAttribute(QString("%1:href").arg(m_linkNs)), attributes.GetAttribute("type"))), true;
+			return (m_link = std::make_unique<Link>(attributes.GetAttribute(QString("%1:href").arg(m_linkNs)).toString(), attributes.GetAttribute(L"type").toString())), true;
 
 		if (name == POEM)
 			return (m_poem = true), true;
@@ -767,7 +767,7 @@ private:
 		for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
 			if (attributes.GetValue(i) == "http://www.w3.org/1999/xlink")
 			{
-				m_linkNs = attributes.GetName(i).mid(6);
+				m_linkNs = attributes.GetName(i).mid(6).toString();
 				break;
 			}
 		return true;
@@ -783,7 +783,7 @@ private:
 	bool OnStartElementBody(const XmlAttributes& attributes)
 	{
 		m_body     = true;
-		m_bodyName = attributes.GetAttribute("name");
+		m_bodyName = attributes.GetAttribute(L"name").toString();
 		if (!m_bodyName.isEmpty())
 			return true;
 
@@ -793,13 +793,13 @@ private:
 
 	bool OnStartElementSection(const XmlAttributes& attributes)
 	{
-		m_sectionId = attributes.GetAttribute("id");
+		m_sectionId = attributes.GetAttribute(L"id").toString();
 		return true;
 	}
 
 	bool OnStartElementBinary(const XmlAttributes& attributes)
 	{
-		m_binary.emplace_back(attributes.GetAttribute("id"), attributes.GetAttribute("content-type"));
+		m_binary.emplace_back(attributes.GetAttribute(L"id").toString(), attributes.GetAttribute(L"content-type").toString());
 		return true;
 	}
 

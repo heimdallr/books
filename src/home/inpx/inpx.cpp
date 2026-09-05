@@ -360,12 +360,12 @@ private: // SaxParser
 	{
 		if (name == FOLDER)
 		{
-			m_folder = attributes.GetAttribute("name");
+			m_folder = attributes.GetAttribute(L"name").toString();
 			PLOGD << "load annotations " << m_folder;
 		}
 		else if (name == FILE)
 		{
-			m_file = attributes.GetAttribute("name");
+			m_file = attributes.GetAttribute(L"name").toString();
 		}
 
 		return true;
@@ -569,7 +569,7 @@ std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& key
 						}
 					);
 			        it != keyword.begin())
-					keyword = Last(keyword, std::distance(it, keyword.end()));
+					keyword = Last(keyword, std::distance(it, keyword.end())).toString();
 				keyword = keyword.simplified();
 				if (!keyword.isEmpty())
 					keyword[0] = keyword[0].toUpper();

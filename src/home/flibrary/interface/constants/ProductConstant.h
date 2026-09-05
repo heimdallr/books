@@ -8,8 +8,8 @@ namespace HomeCompa::Flibrary::Constant
 constexpr auto UI = "ui";
 
 constexpr auto ITEM  = "Item";
-constexpr auto TITLE = "Title";
-constexpr auto VALUE = "Value";
+constexpr auto TITLE = L"Title";
+constexpr auto VALUE = L"Value";
 
 constexpr auto FlibraryBackup = "FlibraryBackup";
 

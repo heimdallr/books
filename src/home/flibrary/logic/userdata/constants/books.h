@@ -4,11 +4,11 @@ namespace HomeCompa::Flibrary::Constant::UserData::Books
 {
 
 constexpr auto RootNode  = "Books";
-constexpr auto Folder    = "Folder";
-constexpr auto FileName  = "FileName";
-constexpr auto IsDeleted = "IsDeleted";
-constexpr auto UserRate  = "UserRate";
-constexpr auto Lang      = "Lang";
-constexpr auto CreatedAt = "CreatedAt";
+constexpr auto Folder    = L"Folder";
+constexpr auto FileName  = L"FileName";
+constexpr auto IsDeleted = L"IsDeleted";
+constexpr auto UserRate  = L"UserRate";
+constexpr auto Lang      = L"Lang";
+constexpr auto CreatedAt = L"CreatedAt";
 
 }

@@ -149,7 +149,7 @@ private: // IRestorer
 private:
 	void AddGroup(const Util::XmlAttributes& attributes)
 	{
-		m_items.emplace_back(attributes.GetAttribute(Constant::TITLE), Books {});
+		m_items.emplace_back(attributes.GetAttribute(Constant::TITLE).toString(), Books {});
 	}
 
 	void AddItem(const Util::XmlAttributes& attributes)
@@ -168,7 +168,7 @@ private: // IRestorer
 	void AddElement([[maybe_unused]] const QString& name, const Util::XmlAttributes& attributes) override
 	{
 		assert(name == Constant::ITEM);
-		m_items << attributes.GetAttribute(Constant::TITLE);
+		m_items << attributes.GetAttribute(Constant::TITLE).toString();
 	}
 
 	void Restore(DB::IDatabase& db) const override
