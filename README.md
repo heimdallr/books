@@ -9,7 +9,7 @@
 [![macOS](https://img.shields.io/badge/-macOS-000000.svg?logo=apple&logoColor=white)](https://www.apple.com/macos/)
 [![Cross-platform builds](https://github.com/heimdallr/books/actions/workflows/build.yml/badge.svg)](https://github.com/heimdallr/books/actions/workflows/build.yml)
 
-# FLibrary - каталогизатор электронной библитотеки
+# FLibrary - каталогизатор электронной библиотеки
 
 <details>
 <summary>Скриншоты</summary>
