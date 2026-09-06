@@ -1,6 +1,7 @@
 #include "BooksExtractor.h"
 
 #include <filesystem>
+#include <ranges>
 
 #include <QBuffer>
 #include <QTemporaryDir>
