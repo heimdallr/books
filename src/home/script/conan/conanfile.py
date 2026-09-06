@@ -11,6 +11,9 @@ def configure_boost(recipe):
 def configure_xercesc(recipe):
     recipe.options["xerces-c"].char_type = 'char16_t'
     recipe.options["xerces-c"].shared = False
+    recipe.options["xerces-c"].network = False
+    if recipe.settings.os == "Linux":
+        recipe.options["xerces-c"].transcoder = "icu"
 
 def configure_icu(recipe):
     recipe.options["icu"].shared = True
@@ -42,7 +45,6 @@ class FLibrary(ConanFile):
         self.requires("boost/1.89.0")
         self.requires("plog/1.1.10")
         self.requires("xerces-c/3.3.0")
-        self.requires("icu/78.2")
         self.requires("libjxl/0.12.0")
         self.requires("cimg/3.3.2")
         self.requires("sqlite3/3.53.4")
@@ -50,6 +52,10 @@ class FLibrary(ConanFile):
         self.requires("poppler/25.11.0")
         self.requires("libxml2/2.15.3")
         self.requires("zlib/1.3.2")
+        if self.settings.os == "Linux":
+            self.requires("icu/74.2")
+        else:
+            self.requires("icu/78.2")
 
     def configure(self):
         configure_boost(self)
