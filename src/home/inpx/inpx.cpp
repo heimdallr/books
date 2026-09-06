@@ -315,38 +315,9 @@ class AnnotationsParser final : public SaxParser
 {
 	static constexpr auto FOLDER = u"folder";
 	static constexpr auto FILE   = u"file";
+	static constexpr auto P      = u"p";
 
 public:
-	static QString Prepare(QStringList annotation)
-	{
-		QStringList list;
-		for (auto&& str : annotation)
-		{
-			str = str.toLower();
-			std::ranges::transform(str, std::begin(str), [&](const QChar& ch) {
-				const auto category = ch.category();
-				if (IsOneOf(category, QChar::Separator_Space, QChar::Separator_Line, QChar::Separator_Paragraph, QChar::Other_Control)
-				    || (category >= QChar::Punctuation_Connector && category <= QChar::Punctuation_Other))
-					return QChar { 0x20 };
-
-				return ch;
-			});
-			RemoveIf(str, [](const QChar ch) {
-				return ch != ' ' && !IsOneOf(ch.category(), QChar::Number_DecimalDigit, QChar::Letter_Lowercase);
-			});
-
-			for (auto&& word : str.split(' ', Qt::SkipEmptyParts))
-				if (word.length() > 2)
-					list << std::move(word);
-		}
-
-		auto result = list.join(' ');
-		if (result.size() > 10240)
-			result.resize(10240);
-
-		return result;
-	}
-
 public:
 	AnnotationsParser(QIODevice& stream, DB::ICommand& command, const std::unordered_map<QString, long long>& books)
 		: SaxParser(stream)
@@ -367,33 +338,40 @@ private: // SaxParser
 		{
 			m_file = attributes.GetAttribute(u"name").toString();
 		}
+		else if (name == P)
+		{
+			m_annotation.append(u"<p>");
+		}
 
 		return true;
 	}
 
 	bool OnEndElement(const QStringView name, QStringView) override
 	{
+		if (name == P)
+			return m_annotation.append(u"</p>"), true;
+
 		if (name != FILE)
 			return true;
 
-		const auto annotation = Prepare(std::move(m_annotation));
-		const auto it         = m_books.find(QString("%1/%2").arg(m_folder, m_file));
+		const auto it = m_books.find(QString("%1/%2").arg(m_folder, m_file));
 		if (it == m_books.end())
 			return true;
 
 		m_command.Bind(0, it->second);
-		m_command.Bind(1, annotation);
+		m_command.Bind(1, m_annotation);
 
 		m_command.Execute();
 
-		m_annotation = QStringList {};
+		m_annotation.clear();
 
 		return true;
 	}
 
 	bool OnCharacters(QStringView, const QStringView value) override
 	{
-		m_annotation << value.toString();
+		if (const auto trimmed = value.toString().trimmed(); !trimmed.isEmpty())
+			m_annotation.append(trimmed);
 		return true;
 	}
 
@@ -401,9 +379,9 @@ private:
 	DB::ICommand&                                 m_command;
 	const std::unordered_map<QString, long long>& m_books;
 
-	QString     m_folder;
-	QString     m_file;
-	QStringList m_annotation;
+	QString m_folder;
+	QString m_file;
+	QString m_annotation;
 };
 
 QStringView QNextRaw(QString::const_iterator& beg, const QString::const_iterator end, const char separator)
@@ -2293,7 +2271,7 @@ where b.FileName = ? and b.Ext = ?)");
 			return INVALID_INDEX;
 
 		auto buf        = ParseBook(line, m_bookBufMapping, folder);
-		auto annotation = !!(m_mode & CreateCollectionMode::LoadAnnotations) ? AnnotationsParser::Prepare(std::move(parseResult.annotation)) : QString {};
+		auto annotation = !!(m_mode & CreateCollectionMode::LoadAnnotations) ? std::move(parseResult.annotation) : QString {};
 
 		std::lock_guard lock(m_dataGuard);
 		const auto      index = AddBook(buf);
