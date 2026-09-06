@@ -36,8 +36,8 @@ class GroupsRestorer final : virtual public IRestorer
 		QString createdAt;
 
 		explicit Item(const Util::XmlAttributes& attributes)
-			: title { attributes.GetAttribute(Constant::TITLE) }
-			, createdAt { attributes.GetAttribute(Constant::UserData::Books::CreatedAt) }
+			: title { attributes.GetAttribute(Constant::TITLE).toString() }
+			, createdAt { attributes.GetAttribute(Constant::UserData::Books::CreatedAt).toString() }
 		{
 		}
 
@@ -59,9 +59,9 @@ class GroupsRestorer final : virtual public IRestorer
 		QString createdAt;
 
 		explicit Book(const Util::XmlAttributes& attributes)
-			: file { attributes.GetAttribute(Constant::UserData::Books::FileName) }
-			, folder { attributes.GetAttribute(Constant::UserData::Books::Folder) }
-			, createdAt { attributes.GetAttribute(Constant::UserData::Books::CreatedAt) }
+			: file { attributes.GetAttribute(Constant::UserData::Books::FileName).toString() }
+			, folder { attributes.GetAttribute(Constant::UserData::Books::Folder).toString() }
+			, createdAt { attributes.GetAttribute(Constant::UserData::Books::CreatedAt).toString() }
 		{
 		}
 

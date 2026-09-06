@@ -30,7 +30,7 @@ private: // IRestorer
 			return (void)(m_dataValues = &m_data[name]);
 
 		assert(m_dataValues);
-		m_dataValues->emplace_back(attributes.GetAttribute(Title), attributes.GetAttribute(Flag).toInt());
+		m_dataValues->emplace_back(attributes.GetAttribute(Title).toString(), attributes.GetAttribute(Flag).toInt());
 	}
 
 	void Restore(DB::IDatabase& db) const override

@@ -313,8 +313,8 @@ private:
 
 class AnnotationsParser final : public SaxParser
 {
-	static constexpr auto FOLDER = "folder";
-	static constexpr auto FILE   = "file";
+	static constexpr auto FOLDER = u"folder";
+	static constexpr auto FILE   = u"file";
 
 public:
 	static QString Prepare(QStringList annotation)
@@ -356,22 +356,22 @@ public:
 	}
 
 private: // SaxParser
-	bool OnStartElement(const QString& name, const QString&, const XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QStringView, const XmlAttributes& attributes) override
 	{
 		if (name == FOLDER)
 		{
-			m_folder = attributes.GetAttribute("name");
+			m_folder = attributes.GetAttribute(u"name").toString();
 			PLOGD << "load annotations " << m_folder;
 		}
 		else if (name == FILE)
 		{
-			m_file = attributes.GetAttribute("name");
+			m_file = attributes.GetAttribute(u"name").toString();
 		}
 
 		return true;
 	}
 
-	bool OnEndElement(const QString& name, const QString&) override
+	bool OnEndElement(const QStringView name, QStringView) override
 	{
 		if (name != FILE)
 			return true;
@@ -391,9 +391,9 @@ private: // SaxParser
 		return true;
 	}
 
-	bool OnCharacters(const QString&, const QString& value) override
+	bool OnCharacters(QStringView, const QStringView value) override
 	{
-		m_annotation << value;
+		m_annotation << value.toString();
 		return true;
 	}
 
@@ -569,7 +569,7 @@ std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& key
 						}
 					);
 			        it != keyword.begin())
-					keyword = Last(keyword, std::distance(it, keyword.end()));
+					keyword = Last(keyword, std::distance(it, keyword.end())).toString();
 				keyword = keyword.simplified();
 				if (!keyword.isEmpty())
 					keyword[0] = keyword[0].toUpper();
