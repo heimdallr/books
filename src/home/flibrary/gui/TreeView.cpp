@@ -801,7 +801,8 @@ private:
 			model->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
 
 			connect(model, &QAbstractItemModel::dataChanged, [this, flag = false](const QModelIndex& topLeft, const QModelIndex&, const QVector<int>& roles) mutable {
-				if (flag || !roles.contains(Qt::CheckStateRole) || m_ui.treeView->model()->rowCount(topLeft) > 0)
+				auto selection = m_ui.treeView->selectionModel()->selection();
+				if (flag || !roles.contains(Qt::CheckStateRole) || m_ui.treeView->model()->rowCount(topLeft) > 0 || !selection.contains(topLeft))
 					return;
 
 				const ValueGuard   guard(flag, true);
@@ -822,7 +823,6 @@ private:
 						r(m_ui.treeView->model()->index(row, 0, index), r);
 				};
 
-				auto selection = m_ui.treeView->selectionModel()->selection();
 				for (const auto& index : selection.indexes() | std::views::filter([&](const QModelIndex& item) {
 											 return item.column() == topLeft.column() && item != topLeft;
 										 }))
