@@ -490,16 +490,10 @@ public:
 		m_restoreBooksLayoutPending = true;
 	}
 
-	void ShowRemoved(const bool showRemoved)
+	void ShowRemoved(const bool value)
 	{
-		m_showRemoved = showRemoved;
-		auto* model   = m_ui.treeView->model();
-		if (!model)
-			return;
+		ChangeShowMode(m_showRemoved, value, Role::ShowRemovedFilter);
 
-		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
-		OnCountChanged();
-		Find(m_currentId, Role::Id);
 	}
 
 	QAbstractItemView* GetView() const
@@ -1482,6 +1476,18 @@ private:
 	void OnCountChanged() const
 	{
 		m_countChangedTimer->start();
+	}
+
+	void ChangeShowMode(bool& flag, const bool value, const int role) const
+	{
+		flag        = value;
+		auto* model = m_ui.treeView->model();
+		if (!model)
+			return;
+
+		model->setData({}, value, role);
+		OnCountChanged();
+		Find(m_currentId, Role::Id);
 	}
 
 	QString GetColumnSettingsKey(const char* value = nullptr, const QString& navigationModeName = {}) const
