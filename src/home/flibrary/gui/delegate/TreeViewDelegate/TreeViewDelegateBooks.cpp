@@ -256,6 +256,8 @@ private: // QStyledItemDelegate
 		width -= o.rect.x();
 
 		o.rect.setWidth(width);
+		RenderReadMark(*painter, o, index);
+
 		QStyledItemDelegate::paint(painter, o, index);
 	}
 
