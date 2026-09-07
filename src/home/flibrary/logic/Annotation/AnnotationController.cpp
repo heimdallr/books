@@ -424,7 +424,7 @@ private: // IDataProvider
 
 	[[nodiscard]] const QString& GetAnnotation() const noexcept override
 	{
-		return m_archiveData.annotation;
+		return m_annotation.isEmpty() ? m_archiveData.annotation : m_annotation;
 	}
 
 	[[nodiscard]] const QString& GetEpigraph() const noexcept override
@@ -638,12 +638,15 @@ private:
 					  std::ranges::move(exportStatisticsBuffer, std::back_inserter(exportStatistics));
 				  }
 
-				  QString sourceLib = [&] {
-					  const auto query = db->CreateQuery("select b.SourceLib from Books b where b.BookID = ?");
+				  const auto singleQuery = [&](const std::string_view queryText) -> QString {
+					  const auto query = db->CreateQuery(queryText);
 					  query->Bind(0, bookId);
 					  query->Execute();
 					  return query->Eof() ? QString {} : QString { query->Get<const char*>(0) };
-				  }();
+				  };
+
+				  auto sourceLib  = singleQuery("select b.SourceLib from Books b where b.BookID = ?");
+				  auto annotation = singleQuery("select Text from Annotations where BookID = ?");
 
 				  if (!IsOneOf(m_navigationMode, NavigationMode::Unknown, NavigationMode::History))
 				  {
@@ -668,6 +671,7 @@ private:
 			              folder           = std::move(folder),
 			              update           = std::move(update),
 			              sourceLib        = std::move(sourceLib),
+			              annotation       = std::move(annotation),
 			              reviews          = CollectReviews(*db, bookId)](size_t) mutable {
 					  if (book->GetId() != m_currentBookId)
 						  return;
@@ -682,6 +686,7 @@ private:
 					  m_folder            = std::move(folder);
 					  m_update            = std::move(update);
 					  m_sourceLib         = std::move(sourceLib);
+					  m_annotation        = std::move(annotation);
 					  m_reviews           = std::move(reviews);
 					  m_ready            |= Ready::Database;
 
@@ -813,6 +818,7 @@ private:
 	IDataItem::Ptr m_folder;
 	IDataItem::Ptr m_update;
 	QString        m_sourceLib;
+	QString        m_annotation;
 
 	ExportStatistics m_exportStatistics;
 	Reviews          m_reviews;
