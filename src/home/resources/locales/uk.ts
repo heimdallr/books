@@ -4750,6 +4750,10 @@ Try again?</source>
         <translation>&amp;Усі налаштування...</translation>
     </message>
     <message>
+        <source>&amp;Already read</source>
+        <translation>&amp;Прочитані</translation>
+    </message>
+    <message>
         <source>&amp;Annotation</source>
         <translation>&amp;Анотація</translation>
     </message>
@@ -4846,12 +4850,12 @@ Try again?</source>
         <translation>&amp;Видалити колекцію</translation>
     </message>
     <message>
-        <source>&amp;Removed books</source>
-        <translation>Ви&amp;далені книги</translation>
+        <source>&amp;Removed</source>
+        <translation>&amp;Видалені</translation>
     </message>
     <message>
         <source>&amp;Restore default values</source>
-        <translation>&amp;Відновити початкові значення</translation>
+        <translation>В&amp;ідновити початкові значення</translation>
     </message>
     <message>
         <source>&amp;Save...</source>
@@ -4884,6 +4888,10 @@ Try again?</source>
     <message>
         <source>&amp;Title</source>
         <translation>На&amp;зва</translation>
+    </message>
+    <message>
+        <source>&amp;Toolbar</source>
+        <translation>Панель &amp;інструментів</translation>
     </message>
     <message>
         <source>&amp;Undo</source>
@@ -4932,6 +4940,10 @@ Try again?</source>
     <message>
         <source>Are you sure you want to return to default settings?</source>
         <translation>Ви впевнені, що хочете повернутися до базових налаштувань?</translation>
+    </message>
+    <message>
+        <source>B&amp;ooks</source>
+        <translation>&amp;Книги</translation>
     </message>
     <message>
         <source>Book &amp;export template</source>
@@ -5074,12 +5086,12 @@ Try again?</source>
         <translation>Перезаписувати &amp;метадані</translation>
     </message>
     <message>
-        <source>Search &amp;bar by title</source>
-        <translation>Панель пошуку за &amp;назвою</translation>
+        <source>Search &amp;bar</source>
+        <translation>Панель &amp;пошуку</translation>
     </message>
     <message>
         <source>Search &amp;by</source>
-        <translation>Пошук &amp;за</translation>
+        <translation>&amp;Пошук за</translation>
     </message>
     <message>
         <source>Search book by title</source>
@@ -5120,10 +5132,6 @@ Try again?</source>
     <message>
         <source>Show &amp;statistics..</source>
         <translation>Показати &amp;статистику...</translation>
-    </message>
-    <message>
-        <source>Show &amp;toolbar</source>
-        <translation>&amp;Панель інструментів</translation>
     </message>
     <message>
         <source>Show collection s&amp;tatistics</source>
