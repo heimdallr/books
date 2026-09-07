@@ -33,6 +33,7 @@ using namespace Flibrary;
 namespace
 {
 
+constexpr auto ESCALATE_UP        = "Preferences/ReadMark/escalateUpward";
 constexpr auto READ_MARK_COLOR    = "Preferences/ReadMark/color%1";
 constexpr auto READ_MARK_WIDTH    = "Preferences/ReadMark/width%1";
 constexpr auto READ_MARK_POSITION = "Preferences/ReadMark/position%1";
@@ -256,7 +257,9 @@ private: // QStyledItemDelegate
 		width -= o.rect.x();
 
 		o.rect.setWidth(width);
-		RenderReadMark(*painter, o, index);
+
+		if (m_escalateUp)
+			RenderReadMark(*painter, o, index);
 
 		QStyledItemDelegate::paint(painter, o, index);
 	}
@@ -321,6 +324,7 @@ private:
 	std::optional<QColor> m_readMarkColor;
 	std::optional<int>    m_readMarkWidth;
 	std::optional<int>    m_readMarkPosition;
+	const bool            m_escalateUp { m_settings->Get(ESCALATE_UP, false) };
 
 	std::array<Qt::Alignment, BookItem::Column::Last> m_alignments {};
 };
