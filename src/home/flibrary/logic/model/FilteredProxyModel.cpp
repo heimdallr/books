@@ -40,6 +40,23 @@ Qt::CheckState GetCheckState(const QIdentityProxyModel& model, const QModelIndex
 	return result ? *result : Qt::Unchecked;
 }
 
+QVariant GetUserRate(const QIdentityProxyModel& model, const QModelIndex& parent)
+{
+	assert(parent.isValid());
+
+	if (parent.data(Role::Type).value<ItemType>() == ItemType::Books)
+		return model.QIdentityProxyModel::data(parent, Role::UserRate);
+
+	for (int i = 0, sz = model.rowCount(parent); i < sz; ++i)
+	{
+		const auto index = model.index(i, 0, parent);
+		if (GetUserRate(model, index).toString().isEmpty())
+			return {};
+	}
+
+	return QString { "0" };
+}
+
 } // namespace
 
 AbstractFilteredProxyModel::AbstractFilteredProxyModel(QObject* parent)
@@ -60,11 +77,18 @@ QVariant FilteredProxyModel::data(const QModelIndex& index, const int role) cons
 {
 	if (index.isValid())
 	{
-		if (role == Qt::CheckStateRole)
+		switch (role)
 		{
-			if (const auto value = index.data(Role::CheckableColumn); value.isValid())
-				return index.column() == value.toInt() ? GetCheckState(*this, index) : QVariant {};
-			return {};
+			case Qt::CheckStateRole:
+				if (const auto value = index.data(Role::CheckableColumn); value.isValid())
+					return index.column() == value.toInt() ? GetCheckState(*this, index) : QVariant {};
+				return {};
+
+			case Role::UserRate:
+				return GetUserRate(*this, index);
+
+			default:
+				break;
 		}
 
 		return QIdentityProxyModel::data(index, role);

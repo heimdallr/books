@@ -33,6 +33,7 @@ using namespace Flibrary;
 namespace
 {
 
+constexpr auto ESCALATE_UP        = "Preferences/ReadMark/escalateUpward";
 constexpr auto READ_MARK_COLOR    = "Preferences/ReadMark/color%1";
 constexpr auto READ_MARK_WIDTH    = "Preferences/ReadMark/width%1";
 constexpr auto READ_MARK_POSITION = "Preferences/ReadMark/position%1";
@@ -88,7 +89,7 @@ class IBookRenderer // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IBookRenderer()                                                                        = default;
-	virtual void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const = 0;
+	virtual void Render(QPainter& painter, QStyleOptionViewItem& o, const QModelIndex& index) const = 0;
 };
 
 class BookRendererDefault : virtual public IBookRenderer
@@ -100,9 +101,9 @@ public:
 	}
 
 protected: // IBookRenderer
-	void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
+	void Render(QPainter& painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
 	{
-		m_impl.QStyledItemDelegate::paint(painter, o, index);
+		m_impl.QStyledItemDelegate::paint(&painter, o, index);
 	}
 
 private:
@@ -121,7 +122,7 @@ public:
 	}
 
 private: // IRateRenderer
-	void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
+	void Render(QPainter& painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
 	{
 		o.displayAlignment = m_alignment;
 		o.text             = [&]() -> QString {
@@ -133,7 +134,7 @@ private: // IRateRenderer
 
 			return rate == 0 ? m_zeroSymbol : rate < 0 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
 		}();
-		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, painter, nullptr);
+		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, &painter, nullptr);
 	}
 
 private:
@@ -154,7 +155,7 @@ public:
 	}
 
 private: // IRateRenderer
-	void Render(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
+	void Render(QPainter& painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
 	{
 		o.displayAlignment = m_alignment;
 		BookRendererDefault::Render(painter, o, index);
@@ -244,7 +245,7 @@ private: // QStyledItemDelegate
 	{
 		auto o = option;
 		if (index.data(Role::Type).value<ItemType>() == ItemType::Books)
-			return RenderBooks(painter, o, index);
+			return RenderBooks(*painter, o, index);
 
 		if (index.column() != 0)
 			return;
@@ -256,6 +257,10 @@ private: // QStyledItemDelegate
 		width -= o.rect.x();
 
 		o.rect.setWidth(width);
+
+		if (m_escalateUp)
+			RenderReadMark(*painter, o, index);
+
 		QStyledItemDelegate::paint(painter, o, index);
 	}
 
@@ -265,11 +270,20 @@ private: // QStyledItemDelegate
 	}
 
 private:
-	void RenderBooks(QPainter* painter, QStyleOptionViewItem& o, const QModelIndex& index) const
+	void RenderBooks(QPainter& painter, QStyleOptionViewItem& o, const QModelIndex& index) const
 	{
 		const auto column  = index.data(Role::Remap).toInt();
 		o.displayAlignment = m_alignments[static_cast<size_t>(column)];
 
+		RenderReadMark(painter, o, index);
+
+		ValueGuard  valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
+		const auto* renderer = FindSecond(m_rateRenderers, column, m_defaultRenderer.get());
+		renderer->Render(painter, o, index);
+	}
+
+	void RenderReadMark(QPainter& painter, QStyleOptionViewItem& o, const QModelIndex& index) const
+	{
 		const auto markColor = m_readMarkColor ? *m_readMarkColor : o.palette.color(QPalette::ColorRole::Text);
 
 		if (index.data(Role::IsRemoved).toBool())
@@ -278,26 +292,22 @@ private:
 		if (m_readMarkWidth && m_view.header()->visualIndex(index.column()) == 0 && !index.data(Role::UserRate).toString().isEmpty())
 		{
 			const ScopedCall painterGuard(
-				[=] {
-					painter->save();
+				[&] {
+					painter.save();
 				},
-				[=] {
-					painter->restore();
+				[&] {
+					painter.restore();
 				}
 			);
 			QPen pen(markColor, *m_readMarkWidth);
 			pen.setCapStyle(Qt::FlatCap);
-			painter->setPen(pen);
+			painter.setPen(pen);
 			auto rect = o.rect;
 			if (m_readMarkPosition)
-				rect.setLeft(*m_readMarkPosition);
-			painter->drawLine(rect.topLeft(), rect.bottomLeft());
+				rect.setLeft(*m_readMarkPosition + *m_readMarkWidth / 2);
+			painter.drawLine(rect.topLeft(), rect.bottomLeft());
 			o.features &= ~QStyleOptionViewItem::Alternate;
 		}
-
-		ValueGuard  valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
-		const auto* renderer = FindSecond(m_rateRenderers, column, m_defaultRenderer.get());
-		renderer->Render(painter, o, index);
 	}
 
 private:
@@ -314,6 +324,7 @@ private:
 	std::optional<QColor> m_readMarkColor;
 	std::optional<int>    m_readMarkWidth;
 	std::optional<int>    m_readMarkPosition;
+	const bool            m_escalateUp { m_settings->Get(ESCALATE_UP, false) };
 
 	std::array<Qt::Alignment, BookItem::Column::Last> m_alignments {};
 };
