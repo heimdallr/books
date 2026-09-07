@@ -1588,6 +1588,10 @@ void TreeView::ShowRemoved(const bool showRemoved)
 	m_impl->ShowRemoved(showRemoved);
 }
 
+void TreeView::ShowAlreadyRead(const bool showAlreadyRead)
+{
+}
+
 QAbstractItemView* TreeView::GetView() const
 {
 	return m_impl->GetView();

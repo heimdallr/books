@@ -586,12 +586,19 @@
        <string>Al&amp;phabets</string>
       </property>
      </widget>
-     <addaction name="actionShowRemoved"/>
+     <widget class="QMenu" name="menuBooks">
+      <property name="title">
+       <string>B&amp;ooks</string>
+      </property>
+      <addaction name="actionShowRemoved"/>
+      <addaction name="actionShowAlreadyReadBooks"/>
+     </widget>
      <addaction name="actionShowToolbar"/>
      <addaction name="actionShowStatusBar"/>
      <addaction name="actionShowSearchBookString"/>
      <addaction name="actionShowAuthorAnnotation"/>
      <addaction name="actionShowAnnotation"/>
+     <addaction name="menuBooks"/>
      <addaction name="menuAnnotation"/>
      <addaction name="menuFont"/>
      <addaction name="menuAlphabets"/>
@@ -822,7 +829,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Removed books</string>
+    <string>&amp;Removed</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -1070,7 +1077,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Search &amp;bar by title</string>
+    <string>Search &amp;bar</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -1428,7 +1435,7 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Show &amp;toolbar</string>
+    <string>&amp;Toolbar</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -1445,6 +1452,20 @@
   <action name="actionCustomizationMenuImport">
    <property name="text">
     <string>&amp;Load...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowAlreadyReadBooks">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Already read</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
