@@ -835,7 +835,7 @@ private:
 			});
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
-		model->setData({}, m_showAlreadyRead, Role::ShowAlreadyReadFilter);
+		model->setData({}, m_showAlreadyRead || m_navigationModeName == NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::AlreadyRead)].first, Role::ShowAlreadyReadFilter);
 
 		m_delegate->OnModelChanged(*model);
 
