@@ -490,16 +490,14 @@ public:
 		m_restoreBooksLayoutPending = true;
 	}
 
-	void ShowRemoved(const bool showRemoved)
+	void ShowRemoved(const bool value)
 	{
-		m_showRemoved = showRemoved;
-		auto* model   = m_ui.treeView->model();
-		if (!model)
-			return;
+		ChangeShowMode(m_showRemoved, value, Role::ShowRemovedFilter);
+	}
 
-		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
-		OnCountChanged();
-		Find(m_currentId, Role::Id);
+	void ShowAlreadyRead(const bool value)
+	{
+		ChangeShowMode(m_showAlreadyRead, value, Role::ShowAlreadyReadFilter);
 	}
 
 	QAbstractItemView* GetView() const
@@ -837,6 +835,7 @@ private:
 			});
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
+		model->setData({}, m_showAlreadyRead || m_navigationModeName == NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::AlreadyRead)].first, Role::ShowAlreadyReadFilter);
 
 		m_delegate->OnModelChanged(*model);
 
@@ -1484,6 +1483,18 @@ private:
 		m_countChangedTimer->start();
 	}
 
+	void ChangeShowMode(bool& flag, const bool value, const int role) const
+	{
+		flag        = value;
+		auto* model = m_ui.treeView->model();
+		if (!model)
+			return;
+
+		model->setData({}, value, role);
+		OnCountChanged();
+		Find(m_currentId, Role::Id);
+	}
+
 	QString GetColumnSettingsKey(const char* value = nullptr, const QString& navigationModeName = {}) const
 	{
 		return QString("ui/%1/%2/Columns/%3%4")
@@ -1527,7 +1538,7 @@ private:
 	QString                                                       m_navigationModeName;
 	QString                                                       m_recentMode;
 	QString                                                       m_currentId;
-	bool                                                          m_showRemoved { false };
+	bool                                                          m_showRemoved { false }, m_showAlreadyRead { true };
 	bool                                                          m_restoreBooksLayoutPending { false };
 	QString                                                       m_lastRestoredLayoutKey;
 	ITreeViewController::RemoveItems                              m_removeItems;
@@ -1586,6 +1597,11 @@ void TreeView::SetNavigationModeName(QString navigationModeName)
 void TreeView::ShowRemoved(const bool showRemoved)
 {
 	m_impl->ShowRemoved(showRemoved);
+}
+
+void TreeView::ShowAlreadyRead(const bool showAlreadyRead)
+{
+	m_impl->ShowAlreadyRead(showAlreadyRead);
 }
 
 QAbstractItemView* TreeView::GetView() const

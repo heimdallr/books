@@ -4736,6 +4736,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Already read</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Annotation</source>
         <translation></translation>
     </message>
@@ -4832,7 +4836,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>&amp;Removed books</source>
+        <source>&amp;Removed</source>
         <translation></translation>
     </message>
     <message>
@@ -4869,6 +4873,10 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;Title</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Toolbar</source>
         <translation></translation>
     </message>
     <message>
@@ -4917,6 +4925,10 @@ Try again?</source>
     </message>
     <message>
         <source>Are you sure you want to return to default settings?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>B&amp;ooks</source>
         <translation></translation>
     </message>
     <message>
@@ -5060,7 +5072,7 @@ Try again?</source>
         <translation>Overwrite &amp;metadata</translation>
     </message>
     <message>
-        <source>Search &amp;bar by title</source>
+        <source>Search &amp;bar</source>
         <translation></translation>
     </message>
     <message>
@@ -5105,10 +5117,6 @@ Try again?</source>
     </message>
     <message>
         <source>Show &amp;statistics..</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Show &amp;toolbar</source>
         <translation></translation>
     </message>
     <message>

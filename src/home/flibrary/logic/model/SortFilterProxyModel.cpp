@@ -102,7 +102,7 @@ struct SortFilterProxyModel::Impl final : IModelSorter
 	QString                                                        filter;
 	std::vector<FastFilterItems>                                   fastFilter;
 	std::vector<bool (*)(const FastFilterItems&, const QVariant&)> fastFilterFunctor;
-	bool                                                           showRemoved { true };
+	bool                                                           showRemoved { true }, showAlreadyRead { true };
 	bool                                                           navigationFiltered { false };
 	bool                                                           uniFilterEnabled { false };
 	QVector<int>                                                   visibleColumns;
@@ -228,6 +228,9 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 		case Role::ShowRemovedFilter:
 			return setFilter(m_impl->showRemoved, value.toBool());
 
+		case Role::ShowAlreadyReadFilter:
+			return setFilter(m_impl->showAlreadyRead, value.toBool());
+
 		case Role::NavigationItemFiltered:
 			return setFilter(m_impl->navigationFiltered, value.toBool());
 
@@ -276,8 +279,8 @@ bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelInd
 {
 	const auto itemIndex = m_impl->sourceModel->index(sourceRow, 0, sourceParent);
 	assert(itemIndex.isValid());
-	return itemIndex.data(Role::ChildCount).toInt() == 0 && FilterAcceptsRemoved(itemIndex) && FilterAcceptsFlags(itemIndex) && FilterAcceptsFast(itemIndex) && FilterAcceptsText(itemIndex)
-	    && FilterAcceptsRate(itemIndex);
+	return itemIndex.data(Role::ChildCount).toInt() == 0 && FilterAcceptsRemoved(itemIndex) && FilterAcceptsAlreadyRead(itemIndex) && FilterAcceptsFlags(itemIndex) && FilterAcceptsFast(itemIndex)
+	    && FilterAcceptsText(itemIndex) && FilterAcceptsRate(itemIndex);
 }
 
 bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const
@@ -334,6 +337,11 @@ bool SortFilterProxyModel::FilterAcceptsText(const QModelIndex& index) const
 bool SortFilterProxyModel::FilterAcceptsRemoved(const QModelIndex& index) const
 {
 	return m_impl->showRemoved || !index.data(Role::IsRemoved).toBool();
+}
+
+bool SortFilterProxyModel::FilterAcceptsAlreadyRead(const QModelIndex& index) const
+{
+	return m_impl->showAlreadyRead || index.data(Role::UserRate).toString().isEmpty();
 }
 
 bool SortFilterProxyModel::FilterAcceptsFlags(const QModelIndex& index) const

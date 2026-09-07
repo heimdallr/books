@@ -37,6 +37,7 @@ private:
 	bool lessThanImpl(const QModelIndex& sourceLeft, const QModelIndex& sourceRight, int emptyStringWeight = std::numeric_limits<int>::max()) const;
 	bool FilterAcceptsText(const QModelIndex& index) const;
 	bool FilterAcceptsRemoved(const QModelIndex& index) const;
+	bool FilterAcceptsAlreadyRead(const QModelIndex& index) const;
 	bool FilterAcceptsFlags(const QModelIndex& index) const;
 	bool FilterAcceptsFast(const QModelIndex& index) const;
 	bool FilterAcceptsRate(const QModelIndex& index) const;

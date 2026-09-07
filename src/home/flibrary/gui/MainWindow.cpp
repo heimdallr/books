@@ -93,16 +93,17 @@ constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 TR_DEF
 
 constexpr auto LOG_SEVERITY_KEY                   = "ui/LogSeverity";
-constexpr auto SHOW_AUTHOR_ANNOTATION_KEY         = "ui/View/AuthorAnnotation";
-constexpr auto SHOW_ANNOTATION_KEY                = "ui/View/Annotation";
+constexpr auto SHOW_ALREADY_READ_KEY              = "ui/View/ShowAlreadyReadBooks";
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY        = "ui/View/AnnotationContent";
-constexpr auto SHOW_ANNOTATION_METADATA_KEY       = "ui/View/AnnotationMetadata";
-constexpr auto SHOW_ANNOTATION_COVER_KEY          = "ui/View/AnnotationCover";
 constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY  = "ui/View/AnnotationCoverButtons";
+constexpr auto SHOW_ANNOTATION_COVER_KEY          = "ui/View/AnnotationCover";
 constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "Preferences/AnnotationJokes/%1";
-constexpr auto SHOW_STATUS_BAR_KEY                = "ui/View/Status";
+constexpr auto SHOW_ANNOTATION_KEY                = "ui/View/Annotation";
+constexpr auto SHOW_ANNOTATION_METADATA_KEY       = "ui/View/AnnotationMetadata";
+constexpr auto SHOW_AUTHOR_ANNOTATION_KEY         = "ui/View/AuthorAnnotation";
 constexpr auto SHOW_REVIEWS_KEY                   = "ui/View/ShowReadersReviews";
 constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
+constexpr auto SHOW_STATUS_BAR_KEY                = "ui/View/Status";
 constexpr auto SHOW_TOOLBAR_KEY                   = "ui/View/ShowToolBar";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
 constexpr auto TOOLBAR_ORDER_KEY                  = "ui/MenuCustomization/ToolbarOrder";
@@ -861,6 +862,11 @@ private:
 		m_booksWidget->ShowRemoved(value);
 	}
 
+	void ShowAlreadyRead(const bool value)
+	{
+		m_booksWidget->ShowAlreadyRead(value);
+	}
+
 	void ConnectActionsFile()
 	{
 		PLOGV << "ConnectActionsFile";
@@ -1178,6 +1184,7 @@ private:
 	{
 		PLOGV << "ConnectActionsSettingsView";
 		ConnectSettings(m_ui.actionShowRemoved, Constant::Settings::SHOW_REMOVED_BOOKS_KEY, this, &Impl::ShowRemovedBooks);
+		ConnectSettings(m_ui.actionShowAlreadyReadBooks, SHOW_ALREADY_READ_KEY, this, &Impl::ShowAlreadyRead);
 		ConnectSettings(m_ui.actionShowToolbar, SHOW_TOOLBAR_KEY, qobject_cast<QWidget*>(m_ui.toolBar), &QWidget::setVisible);
 		ConnectSettings(m_ui.actionShowStatusBar, SHOW_STATUS_BAR_KEY, qobject_cast<QWidget*>(m_ui.statusBar), &QWidget::setVisible);
 		ConnectSettings(m_ui.actionShowSearchBookString, SHOW_SEARCH_BOOK_KEY, qobject_cast<QWidget*>(m_ui.lineEditBookTitleToSearch), &QWidget::setVisible);

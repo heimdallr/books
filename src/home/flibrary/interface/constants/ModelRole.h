@@ -40,6 +40,7 @@ struct Role
 		CheckableColumn,
 		TextFilter,
 		ShowRemovedFilter,
+		ShowAlreadyReadFilter,
 		NavigationItemFiltered,
 		UniFilterEnabled,
 		UniFilterChanged,
