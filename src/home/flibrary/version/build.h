@@ -1,1 +1,1 @@
-constexpr int BUILD_NUMBER = 21496;
+constexpr int BUILD_NUMBER = 21522;
