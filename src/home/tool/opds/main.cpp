@@ -1,6 +1,5 @@
 ﻿#include <QCommandLineParser>
 #include <QCoreApplication>
-#include <QGuiApplication>
 #include <QStandardPaths>
 #include <QTimer>
 #include <QTranslator>
@@ -163,26 +162,26 @@ void SetCollection(const QCommandLineParser& parser, Hypodermic::Container& cont
 
 int run(int argc, char* argv[])
 {
-	QGuiApplication app(argc, argv);
+	QCoreApplication app(argc, argv);
 	QCoreApplication::setApplicationName(APP_ID);
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
 	Util::XMLPlatformInitializer xmlPlatformInitializer;
 
-	QCommandLineParser parser;
-	parser.setApplicationDescription(QString("%1 recodes images").arg(APP_ID));
-	parser.addHelpOption();
-	parser.addVersionOption();
-	parser.addOptions(
-		{
-			{ NAME, "Collection name", NAME },
-			{ DB_PATH, "Database path", DB_PATH },
-			{ ARCHIVE_FOLDER, "Archives folder", ARCHIVE_FOLDER },
-			{ ADDITIONAL_FOLDER, "Additional data folder (optional)", ADDITIONAL_FOLDER },
-			{ INPX_PATH, "Index inpx file (optional)", INPX_PATH },
-			{ Constant::OPDS_SERVER_COMMAND_STOP, "Stop server" },
-    }
-	);
-	parser.process(app);
+//	QCommandLineParser parser;
+//	parser.setApplicationDescription(QString("%1 recodes images").arg(APP_ID));
+//	parser.addHelpOption();
+//	parser.addVersionOption();
+//	parser.addOptions(
+//		{
+//			{ NAME, "Collection name", NAME },
+//			{ DB_PATH, "Database path", DB_PATH },
+//			{ ARCHIVE_FOLDER, "Archives folder", ARCHIVE_FOLDER },
+//			{ ADDITIONAL_FOLDER, "Additional data folder (optional)", ADDITIONAL_FOLDER },
+//			{ INPX_PATH, "Index inpx file (optional)", INPX_PATH },
+//			{ Constant::OPDS_SERVER_COMMAND_STOP, "Stop server" },
+//    }
+//	);
+//	parser.process(app);
 
 	NativeEventFilterObserver   nativeEventFilterObserver;
 	Platform::NativeEventFilter nativeEventFilter(app);
@@ -203,10 +202,10 @@ int run(int argc, char* argv[])
 			DiInit(builder, container);
 		}
 
-		if (CheckForStop(parser, *container))
-			return 0;
-
-		SetCollection(parser, *container);
+//		if (CheckForStop(parser, *container))
+//			return 0;
+//
+//		SetCollection(parser, *container);
 
 		auto settings = container->resolve<ISettings>();
 		Genre::SetSortMode(*settings);

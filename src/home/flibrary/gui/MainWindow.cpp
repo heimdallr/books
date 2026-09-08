@@ -39,10 +39,10 @@
 
 #include "gutil/util.h"
 #include "logging/LogAppender.h"
-#include "settings/Font.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ObjectsConnector.h"
 #include "util/app.h"
+#include "utilgui/Font.h"
 #include "utilgui/GeometryRestorable.h"
 
 #include "Constant.h"

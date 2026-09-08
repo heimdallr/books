@@ -414,7 +414,7 @@ QString UiFactory::GetText(const QString& title, const QString& label, const QSt
 	return m_impl->container.resolve<Util::IUiFactory>()->GetText(title, label, text, comboBoxItems, mode);
 }
 
-std::optional<QFont> UiFactory::GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options) const
+std::shared_ptr<QFont> UiFactory::GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options) const
 {
 	return m_impl->container.resolve<Util::IUiFactory>()->GetFont(title, font, options);
 }

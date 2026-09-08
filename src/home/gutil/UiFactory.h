@@ -41,7 +41,7 @@ private:
 	void                        ShowInfo(const QString& text) const override;
 	void                        ShowError(const QString& text) const override;
 	QString                     GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, QLineEdit::EchoMode mode) const override;
-	std::optional<QFont>        GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options = {}) const override;
+	std::shared_ptr<QFont>      GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options = {}) const override;
 	std::optional<QColor>       GetColor(const QString& title, const QColor& color, const QColorDialog::ColorDialogOptions& options = {}) const override;
 
 	QStringList GetOpenFileNames(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const override;
