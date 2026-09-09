@@ -162,6 +162,10 @@ void SetCollection(const QCommandLineParser& parser, Hypodermic::Container& cont
 
 int run(int argc, char* argv[])
 {
+#ifdef Q_OS_LINUX
+	qputenv("QT_QPA_PLATFORM", "minimal");
+#endif
+
 	QCoreApplication app(argc, argv);
 	QCoreApplication::setApplicationName(APP_ID);
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
