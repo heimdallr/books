@@ -163,7 +163,7 @@ void SetCollection(const QCommandLineParser& parser, Hypodermic::Container& cont
 int run(int argc, char* argv[])
 {
 #ifdef Q_OS_LINUX
-	qputenv("QT_QPA_PLATFORM", "minimal");
+	qputenv("QT_QPA_PLATFORM", "offscreen");
 #endif
 
 	QCoreApplication app(argc, argv);

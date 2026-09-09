@@ -6,7 +6,7 @@
 
 class QAbstractItemModel;
 class QModelIndex;
-class QPixmap;
+class QImage;
 class QString;
 
 namespace HomeCompa::Flibrary
@@ -18,7 +18,7 @@ public:
 	class IObserver : public Observer
 	{
 	public:
-		virtual void OnImageReceived(QPixmap pixmap) = 0;
+		virtual void OnImageReceived(QImage pixmap) = 0;
 		virtual void OnCountChanges(int count)       = 0;
 	};
 

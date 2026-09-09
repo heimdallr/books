@@ -240,8 +240,8 @@ public:
 		if (bytes.isEmpty())
 			return std::unexpected(Tr(FILE_EMPTY).arg(path));
 
-		if (const auto pixmap = Util::Decode(bytes); !pixmap.isNull())
-			return it->second->SetIcon(*m_settings, QVariant::fromValue(QIcon(pixmap)), bytes), std::expected<void, QString> {};
+		if (const auto image = Util::Decode(bytes); !image.isNull())
+			return it->second->SetIcon(*m_settings, QVariant::fromValue(QIcon(QPixmap::fromImage(image))), bytes), std::expected<void, QString> {};
 
 		return std::unexpected(Tr(BAD_IMAGE).arg(path));
 	}

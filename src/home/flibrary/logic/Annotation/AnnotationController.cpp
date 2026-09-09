@@ -7,7 +7,6 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QPixmap>
 #include <QTimer>
 
 #include "fnd/EnumBitmask.h"

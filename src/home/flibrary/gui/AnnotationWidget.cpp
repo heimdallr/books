@@ -333,8 +333,8 @@ public:
 
 		connect(m_ui.actionCopyImage, &QAction::triggered, &m_self, [this] {
 			assert(!m_covers.empty());
-			const auto pixmap = Util::Decode(m_covers[m_currentCoverIndex].bytes);
-			QGuiApplication::clipboard()->setImage(pixmap.toImage());
+			const auto image = Util::Decode(m_covers[m_currentCoverIndex].bytes);
+			QGuiApplication::clipboard()->setImage(image);
 		});
 
 		connect(m_ui.actionSaveImageAs, &QAction::triggered, &m_self, [this] {
@@ -555,24 +555,24 @@ private:
 		auto imgHeight = m_ui.mainWidget->height();
 		auto imgWidth  = m_ui.mainWidget->width() / 3;
 
-		if (auto pixmap = Util::Decode(m_covers[m_currentCoverIndex].bytes); !pixmap.isNull())
+		if (auto image = Util::Decode(m_covers[m_currentCoverIndex].bytes); !image.isNull())
 		{
-			if (imgHeight * pixmap.width() > pixmap.height() * imgWidth)
-				imgHeight = pixmap.height() * imgWidth / pixmap.width();
+			if (imgHeight * image.width() > image.height() * imgWidth)
+				imgHeight = image.height() * imgWidth / image.width();
 			else
-				imgWidth = pixmap.width() * imgHeight / pixmap.height();
+				imgWidth = image.width() * imgHeight / image.height();
 
-			pixmap = pixmap.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-			m_ui.cover->setPixmap(pixmap);
-			imgWidth  = pixmap.width();
-			imgHeight = pixmap.height();
+			image = image.scaled(imgWidth, imgHeight, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+			m_ui.cover->setPixmap(QPixmap::fromImage(image));
+			imgWidth  = image.width();
+			imgHeight = image.height();
 		}
 		else
 		{
 			QSvgRenderer renderer(QString(":/icons/unsupported-image.svg"));
 			const auto   defaultSize = renderer.defaultSize();
 			imgWidth                 = imgHeight * defaultSize.width() / defaultSize.height();
-			pixmap                   = QPixmap(imgWidth, imgHeight);
+			QPixmap pixmap(imgWidth, imgHeight);
 			pixmap.fill(Qt::transparent);
 			QPainter painter(&pixmap);
 			renderer.render(&painter);

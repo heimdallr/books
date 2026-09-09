@@ -630,8 +630,8 @@ protected: // IMenuCustomizer::IItem
 			const auto bytes = var.toByteArray();
 			if (bytes.isEmpty())
 				SetIcon(*s_settingsStub, {}, {});
-			else if (const auto pixmap = Util::Decode(bytes); !pixmap.isNull())
-				SetIcon(*s_settingsStub, QVariant::fromValue(QIcon(pixmap)), {});
+			else if (const auto image = Util::Decode(bytes); !image.isNull())
+				SetIcon(*s_settingsStub, QVariant::fromValue(QIcon(QPixmap::fromImage(image))), {});
 			else
 				SetIcon(*s_settingsStub, {}, {});
 		}

@@ -1,7 +1,7 @@
 #include "ImageModel.h"
 
 #include <QFileInfo>
-#include <QPixmap>
+#include <QImage>
 #include <QSortFilterProxyModel>
 #include <QTimer>
 
@@ -41,8 +41,8 @@ struct Item
 	IDataItem::Ptr book;
 	bool           isCover { false };
 	int            ordNum { -1 };
-	QPixmap        pixmap;
-	QPixmap        fullPixmap;
+	QImage         image;
+	QImage         fullImage;
 };
 
 using Items = std::vector<Item>;
@@ -163,9 +163,9 @@ public:
 	public:
 		virtual ~IObserver() = default;
 
-		virtual void OnDecodeThumbnailFinished(int row, QPixmap pixmap) = 0;
-		virtual void OnDecodeViewFinished(int row, QPixmap pixmap)      = 0;
-		virtual void OnDecodeSaveFinished(int row, QPixmap pixmap)      = 0;
+		virtual void OnDecodeThumbnailFinished(int row, QImage pixmap) = 0;
+		virtual void OnDecodeViewFinished(int row, QImage pixmap)      = 0;
+		virtual void OnDecodeSaveFinished(int row, QImage pixmap)      = 0;
 	};
 
 	Decoder(const int imageSize, IObserver& observer)
@@ -190,15 +190,15 @@ public:
 	}
 
 private:
-	void Enqueue(const int row, QByteArray bytes, const bool needScale, void (IObserver::*invoker)(int, QPixmap))
+	void Enqueue(const int row, QByteArray bytes, const bool needScale, void (IObserver::*invoker)(int, QImage))
 	{
 		m_threadPool.enqueue(
 			[this, row, needScale, invoker, bytes = std::move(bytes)](size_t&, const std::stop_token&) {
-				auto pixmap = Util::Decode(bytes);
-				if (needScale && std::max(pixmap.width(), pixmap.height()) > m_imageSize)
-					pixmap = pixmap.scaled(m_imageSize, m_imageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+				auto image = Util::Decode(bytes);
+				if (needScale && std::max(image.width(), image.height()) > m_imageSize)
+					image = image.scaled(m_imageSize, m_imageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation);
 
-				std::invoke(invoker, std::ref(m_observer), row, std::move(pixmap));
+				std::invoke(invoker, std::ref(m_observer), row, std::move(image));
 			},
 			!needScale
 		);
@@ -281,19 +281,19 @@ private: // Extractor::IObserver
 	}
 
 private: // Decoder::IObserver
-	void OnDecodeThumbnailFinished(const int row, QPixmap pixmap) override
+	void OnDecodeThumbnailFinished(const int row, QImage image) override
 	{
-		m_forwarder.Forward([this, row, pixmap = std::move(pixmap)]() mutable {
+		m_forwarder.Forward([this, row, pixmap = std::move(image)]() mutable {
 			auto& item       = m_items[static_cast<size_t>(row)];
-			item.pixmap      = std::move(pixmap);
+			item.image      = std::move(pixmap);
 			const auto index = this->index(row, 0);
 			emit       dataChanged(index, index, { Qt::DecorationRole });
 		});
 	}
 
-	void OnDecodeViewFinished(const int row, QPixmap pixmap) override
+	void OnDecodeViewFinished(const int row, QImage image) override
 	{
-		m_forwarder.Forward([this, row, pixmap = std::move(pixmap)]() mutable {
+		m_forwarder.Forward([this, row, pixmap = std::move(image)]() mutable {
 			m_imageRequested         = std::move(pixmap);
 			m_imageRequestedFileName = m_items[static_cast<size_t>(row)].fileName;
 			const auto index         = this->index(row, 0);
@@ -301,14 +301,14 @@ private: // Decoder::IObserver
 		});
 	}
 
-	void OnDecodeSaveFinished(int row, QPixmap pixmap) override
+	void OnDecodeSaveFinished(int row, QImage image) override
 	{
 		if (m_saveRunning)
-			m_forwarder.Forward([this, row, pixmap = std::move(pixmap)]() mutable {
-				m_items[static_cast<size_t>(row)].fullPixmap = std::move(pixmap);
+			m_forwarder.Forward([this, row, pixmap = std::move(image)]() mutable {
+				m_items[static_cast<size_t>(row)].fullImage = std::move(pixmap);
 				const auto index                             = this->index(row, 0);
 				emit       dataChanged(index, index, { ImageModelRole::Save });
-				m_items[static_cast<size_t>(row)].fullPixmap = {};
+				m_items[static_cast<size_t>(row)].fullImage = {};
 			});
 	}
 
@@ -325,7 +325,7 @@ private:
 		switch (role)
 		{
 			case Qt::DecorationRole:
-				return item.pixmap.isNull() ? m_imagePlaceholderScaled : item.pixmap;
+				return item.image.isNull() ? m_imagePlaceholderScaled : item.image;
 
 			case Qt::ToolTipRole:
 				return QString("%1. %2\n%3")
@@ -344,13 +344,13 @@ private:
 				return item.fileName;
 
 			case ImageModelRole::Ready:
-				return !item.pixmap.isNull();
+				return !item.image.isNull();
 
 			case ImageModelRole::Image:
 				return item.fileName == m_imageRequestedFileName ? m_imageRequested : QVariant {};
 
 			case ImageModelRole::Save:
-				return item.fullPixmap;
+				return item.fullImage;
 
 			default:
 				break;
@@ -369,7 +369,7 @@ private:
 				return Util::Set(m_imageSize, value.toInt(), [&] {
 					m_decoder.reset();
 					for (auto& item : m_items)
-						item.pixmap = {};
+						item.image = {};
 
 					m_decoder                = std::make_unique<Decoder>(m_imageSize, *this);
 					m_imagePlaceholderScaled = m_imagePlaceholder.scaled(value.toInt(), value.toInt(), Qt::KeepAspectRatio, Qt::SmoothTransformation);
@@ -461,7 +461,7 @@ private:
 	void Prepare(const int row)
 	{
 		auto& item  = m_items[static_cast<size_t>(row)];
-		item.pixmap = m_imagePlaceholderScaled;
+		item.image = m_imagePlaceholderScaled;
 		m_extractors[static_cast<size_t>(item.zipId)]->ExtractImage(row, item.fileName);
 	}
 
@@ -480,7 +480,7 @@ private:
 	std::vector<std::unique_ptr<Extractor>> m_extractors;
 
 	Items   m_items;
-	QPixmap m_imagePlaceholder, m_imagePlaceholderScaled, m_imageRequested;
+	QImage  m_imagePlaceholder, m_imagePlaceholderScaled, m_imageRequested;
 	QString m_imageRequestedFileName;
 
 	std::atomic_bool m_saveRunning { false };
