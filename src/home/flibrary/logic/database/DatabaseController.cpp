@@ -33,6 +33,8 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& col
 	auto       db               = Create(DB::Factory::Impl::Sqlite, connectionString);
 
 	db->CreateQuery("PRAGMA foreign_keys = ON;")->Execute();
+	db->CreateQuery("PRAGMA synchronous = NORMAL;")->Execute();
+	db->CreateQuery("PRAGMA cache_size = -10000;")->Execute();
 
 	{
 		const auto query = db->CreateQuery("select sqlite_version();");

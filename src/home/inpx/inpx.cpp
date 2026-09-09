@@ -1496,6 +1496,7 @@ private:
 		const auto  connectionString = QString("path=%1").arg(dbFileName).toStdString();
 
 		m_db = Create(DB::Factory::Impl::Sqlite, connectionString);
+		m_db->CreateQuery("PRAGMA synchronous = OFF;")->Execute();
 
 		ExecuteScript(*m_db, "create database", m_ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
 		WriteDatabaseVersion(*m_db, m_ini(SET_DATABASE_VERSION_STATEMENT));
@@ -1528,6 +1529,8 @@ private:
 		TRY("analyze", [&] {
 			return Analyze(*m_db);
 		});
+
+		m_db->CreateQuery("PRAGMA journal_mode = WAL;")->Execute();
 
 		ok = true;
 	}
