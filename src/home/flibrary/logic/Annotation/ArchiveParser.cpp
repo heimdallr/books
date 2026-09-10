@@ -72,7 +72,7 @@ constexpr auto FICTION_BOOK           = u"FictionBook";
 
 constexpr std::pair<const char16_t*, const char16_t*> ANNOTATION_REPLACE_TAGS[] {
 	{ EMPHASIS, u"em" },
-	{  u"style",   u"" }
+	{ u"style",   u"" }
 };
 
 constexpr std::pair<const char16_t*, const char16_t*> ANNOTATION_REPLACE_ATTRIBUTE_NAME[] {
@@ -583,13 +583,15 @@ public:
 private: // IParser
 	ArchiveParser::Data Parse(const QString& rootFolder, const IDataItem& book, std::unique_ptr<IProgressController::IProgressItem>) override
 	{
-		auto                parsed = m_parser(m_ioDevice, Util::CommonParser::Mode::Images);
+		auto                parsed = m_parser(m_ioDevice, Util::CommonParser::Mode::Images | Util::CommonParser::Mode::TextsStatistics);
 		ArchiveParser::Data result { .annotation = std::move(parsed.annotation),
 			                         .language   = std::move(parsed.language),
 			                         .covers     = parsed.images | std::views::as_rvalue | std::views::transform([](auto&& item) {
 												   return IAnnotationController::IDataProvider::Cover { .name = std::move(item.id), .bytes = std::move(item.body) };
 											   })
-			                                 | std::ranges::to<std::vector>() };
+			                                 | std::ranges::to<std::vector>(),
+			                         .textSize  = parsed.textSize,
+			                         .wordCount = parsed.wordCount };
 		std::vector<std::pair<QString, QByteArray>> _;
 		ExtractBookImages(rootFolder, book, *m_settings, _, result.covers);
 
