@@ -37,15 +37,15 @@ constexpr auto SEARCH  = QT_TRANSLATE_NOOP("opds", "Search");
 constexpr auto MORE    = QT_TRANSLATE_NOOP("opds", "more");
 TR_DEF
 
-constexpr auto FEED          = "feed";
-constexpr auto FEED_ID       = "feed/id";
-constexpr auto FEED_TITLE    = "feed/title";
-constexpr auto ENTRY         = "feed/entry";
-constexpr auto ENTRY_TITLE   = "feed/entry/title";
-constexpr auto ENTRY_LINK    = "feed/entry/link";
-constexpr auto ENTRY_CONTENT = "feed/entry/content";
-constexpr auto AUTHOR_NAME   = "feed/entry/author/name";
-constexpr auto AUTHOR_LINK   = "feed/entry/author/uri";
+constexpr auto FEED          = u"feed";
+constexpr auto FEED_ID       = u"feed/id";
+constexpr auto FEED_TITLE    = u"feed/title";
+constexpr auto ENTRY         = u"feed/entry";
+constexpr auto ENTRY_TITLE   = u"feed/entry/title";
+constexpr auto ENTRY_LINK    = u"feed/entry/link";
+constexpr auto ENTRY_CONTENT = u"feed/entry/content";
+constexpr auto AUTHOR_NAME   = u"feed/entry/author/name";
+constexpr auto AUTHOR_LINK   = u"feed/entry/author/uri";
 
 constexpr auto MAX_WIDTH = 720;
 
@@ -187,7 +187,7 @@ protected:
 	bool OnStartElement(QStringView /*name*/, const QStringView path, const XmlAttributes& attributes) override
 	{
 		using ParseElementFunction = bool (ParserOpds::*)(const XmlAttributes&);
-		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char16_t*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{ ENTRY, &ParserOpds::OnStartElementFeedEntry },
 		};
@@ -198,7 +198,7 @@ protected:
 	bool OnCharacters(const QStringView path, const QStringView value) override
 	{
 		using ParseCharacterFunction = bool (ParserOpds::*)(const QString&);
-		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;
+		using ParseCharacterItem     = std::pair<const char16_t*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
 			{       FEED_ID,       &ParserOpds::ParseFeedId },
 			{    FEED_TITLE,    &ParserOpds::ParseFeedTitle },
@@ -292,7 +292,7 @@ private: // SaxParser
 			return result;
 
 		using ParseElementFunction = bool (ParserNavigation::*)(const XmlAttributes&);
-		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char16_t*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{ ENTRY_LINK, &ParserNavigation::OnStartElementEntryLink },
 		};
@@ -303,7 +303,7 @@ private: // SaxParser
 	bool OnEndElement(QStringView /*name*/, const QStringView path) override
 	{
 		using ParseElementFunction = bool (ParserNavigation::*)();
-		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char16_t*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{  FEED,  &ParserNavigation::OnEndElementFeed },
 			{ ENTRY, &ParserNavigation::OnEndElementEntry },
@@ -434,7 +434,7 @@ private: // SaxParser
 			return result;
 
 		using ParseElementFunction = bool (ParserBookInfo::*)(const XmlAttributes&);
-		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char16_t*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{ ENTRY_LINK, &ParserBookInfo::OnStartElementEntryLink },
 		};
@@ -445,7 +445,7 @@ private: // SaxParser
 	bool OnEndElement(QStringView /*name*/, const QStringView path) override
 	{
 		using ParseElementFunction = bool (ParserBookInfo::*)();
-		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char16_t*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{ FEED, &ParserBookInfo::OnEndElementFeed },
 		};
@@ -460,7 +460,7 @@ private: // SaxParser
 			return result;
 
 		using ParseCharacterFunction = bool (ParserBookInfo::*)(const QString&);
-		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;
+		using ParseCharacterItem     = std::pair<const char16_t*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
 			{ ENTRY_CONTENT, &ParserBookInfo::ParseEntryContent },
 			{   AUTHOR_NAME,   &ParserBookInfo::ParseAuthorName },
@@ -606,26 +606,26 @@ class ParserFb2 final : public AbstractParser
 		QString body;
 	};
 
-	static constexpr auto FICTION_BOOK                 = "FictionBook";
-	static constexpr auto AUTHOR                       = "FictionBook/description/title-info/author";
-	static constexpr auto AUTHOR_FIRST_NAME            = "FictionBook/description/title-info/author/first-name";
-	static constexpr auto AUTHOR_LAST_NAME             = "FictionBook/description/title-info/author/last-name";
-	static constexpr auto AUTHOR_MIDDLE_NAME           = "FictionBook/description/title-info/author/middle-name";
-	static constexpr auto BOOK_TITLE                   = "FictionBook/description/title-info/book-title";
-	static constexpr auto BODY                         = "FictionBook/body";
-	static constexpr auto BODY_TITLE                   = "FictionBook/body/title";
-	static constexpr auto BODY_TITLE_P                 = "FictionBook/body/title/p";
-	static constexpr auto BODY_TITLE_P_STRONG          = "FictionBook/body/title/p/strong";
-	static constexpr auto EPIGRAPH                     = "FictionBook/body/epigraph";
-	static constexpr auto EPIGRAPH_P                   = "FictionBook/body/epigraph/p";
-	static constexpr auto EPIGRAPH_TEXT_AUTHOR         = "FictionBook/body/epigraph/text-author";
-	static constexpr auto SECTION                      = "FictionBook/body/section";
-	static constexpr auto SECTION_TITLE                = "FictionBook/body/section/title";
-	static constexpr auto SECTION_TITLE_P              = "FictionBook/body/section/title/p";
-	static constexpr auto SECTION_EPIGRAPH             = "FictionBook/body/section/epigraph";
-	static constexpr auto SECTION_EPIGRAPH_P           = "FictionBook/body/section/epigraph/p";
-	static constexpr auto SECTION_EPIGRAPH_TEXT_AUTHOR = "FictionBook/body/section/epigraph/text-author";
-	static constexpr auto BINARY                       = "FictionBook/binary";
+	static constexpr auto FICTION_BOOK                 = u"FictionBook";
+	static constexpr auto AUTHOR                       = u"FictionBook/description/title-info/author";
+	static constexpr auto AUTHOR_FIRST_NAME            = u"FictionBook/description/title-info/author/first-name";
+	static constexpr auto AUTHOR_LAST_NAME             = u"FictionBook/description/title-info/author/last-name";
+	static constexpr auto AUTHOR_MIDDLE_NAME           = u"FictionBook/description/title-info/author/middle-name";
+	static constexpr auto BOOK_TITLE                   = u"FictionBook/description/title-info/book-title";
+	static constexpr auto BODY                         = u"FictionBook/body";
+	static constexpr auto BODY_TITLE                   = u"FictionBook/body/title";
+	static constexpr auto BODY_TITLE_P                 = u"FictionBook/body/title/p";
+	static constexpr auto BODY_TITLE_P_STRONG          = u"FictionBook/body/title/p/strong";
+	static constexpr auto EPIGRAPH                     = u"FictionBook/body/epigraph";
+	static constexpr auto EPIGRAPH_P                   = u"FictionBook/body/epigraph/p";
+	static constexpr auto EPIGRAPH_TEXT_AUTHOR         = u"FictionBook/body/epigraph/text-author";
+	static constexpr auto SECTION                      = u"FictionBook/body/section";
+	static constexpr auto SECTION_TITLE                = u"FictionBook/body/section/title";
+	static constexpr auto SECTION_TITLE_P              = u"FictionBook/body/section/title/p";
+	static constexpr auto SECTION_EPIGRAPH             = u"FictionBook/body/section/epigraph";
+	static constexpr auto SECTION_EPIGRAPH_P           = u"FictionBook/body/section/epigraph/p";
+	static constexpr auto SECTION_EPIGRAPH_TEXT_AUTHOR = u"FictionBook/body/section/epigraph/text-author";
+	static constexpr auto BINARY                       = u"FictionBook/binary";
 
 	static constexpr auto EMPTY_LINE = "empty-line";
 	static constexpr auto A          = "a";
@@ -679,7 +679,7 @@ private: // SaxParser
 		const auto path = ReduceSections(pathSrc.toString());
 
 		using ParseElementFunction = bool (ParserFb2::*)(const XmlAttributes&);
-		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char16_t*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{ FICTION_BOOK, &ParserFb2::OnStartElementFictionBook },
             {       AUTHOR,      &ParserFb2::OnStartElementAuthor },
@@ -710,7 +710,7 @@ private: // SaxParser
 
 		const auto path            = ReduceSections(pathSrc.toString());
 		using ParseElementFunction = bool (ParserFb2::*)();
-		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char16_t*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{  FICTION_BOOK,  &ParserFb2::OnEndElementFictionBook },
 			{        AUTHOR,       &ParserFb2::OnEndElementAuthor },
@@ -725,7 +725,7 @@ private: // SaxParser
 	{
 		const auto path              = ReduceSections(pathSrc.toString());
 		using ParseCharacterFunction = bool (ParserFb2::*)(const QString&);
-		using ParseCharacterItem     = std::pair<const char*, ParseCharacterFunction>;
+		using ParseCharacterItem     = std::pair<const char16_t*, ParseCharacterFunction>;
 		static constexpr ParseCharacterItem PARSERS[] {
 			{            AUTHOR_FIRST_NAME,    &ParserFb2::ParseAuthorFirstName },
 			{           AUTHOR_MIDDLE_NAME,   &ParserFb2::ParseAuthorMiddleName },
