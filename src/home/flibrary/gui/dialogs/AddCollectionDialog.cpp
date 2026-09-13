@@ -11,6 +11,7 @@
 
 #include "platform/DyLib.h"
 #include "platform/StrUtil.h"
+#include "util/app.h"
 #include "util/files.h"
 #include "util/translit.h"
 #include "utilgui/GeometryRestorable.h"
@@ -56,6 +57,8 @@ constexpr auto EMPTY_ARCHIVES_FOLDER              = QT_TRANSLATE_NOOP("Error", "
 constexpr auto INPX_NOT_FOUND                     = QT_TRANSLATE_NOOP("Error", "Index file (*.inpx) not found");
 constexpr auto CANNOT_CREATE_FOLDER               = QT_TRANSLATE_NOOP("Error", "Cannot create database folder %1");
 
+TR_DEF
+
 QString Error(const char* str)
 {
 	if (!str)
@@ -64,7 +67,18 @@ QString Error(const char* str)
 	return Loc::Tr(Loc::Ctx::ERROR_CTX, str);
 }
 
-TR_DEF
+QVariant GetDefaultDatabasePath()
+{
+	const auto& installer = Util::GetInstallerDescription();
+	if (!installer.portable)
+		return QString("%1/%2.db").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation), PRODUCT_ID);
+
+	static constexpr auto folder = "database";
+	QDir                  dir(QCoreApplication::applicationDirPath() + "/" + folder);
+	if (!dir.exists())
+		dir.mkpath(".");
+	return QString("%1/%2.db").arg(folder, PRODUCT_ID);
+}
 
 } // namespace
 
@@ -102,7 +116,7 @@ public:
 		connect(m_ui.btnAdd, &QAbstractButton::clicked, &m_self, [&] {
 			if (m_createMode)
 			{
-				const auto db  = GetDatabaseFileName();
+				const auto db  = Util::ToAbsolutePath(GetDatabaseFileName());
 				const auto dir = QFileInfo(db).dir();
 				if (!dir.exists() && !dir.mkpath("."))
 				{
@@ -150,7 +164,7 @@ public:
 		});
 
 		m_ui.editName->setText(m_settings->Get(QString(RECENT_TEMPLATE).arg(NAME), QString("FLibrary")));
-		m_ui.editDatabase->Setup(&m_self, m_settings.get(), m_uiFactory.get(), m_ui.btnDatabase, QString("%1/%2.db").arg(QStandardPaths::writableLocation(QStandardPaths::AppLocalDataLocation), PRODUCT_ID));
+		m_ui.editDatabase->Setup(&m_self, m_settings.get(), m_uiFactory.get(), m_ui.btnDatabase, &GetDefaultDatabasePath);
 		m_ui.editInpx->Setup(&m_self, m_settings.get(), m_uiFactory.get(), m_ui.btnInpx);
 		m_ui.editArchive->Setup(&m_self, m_settings.get(), m_uiFactory.get(), m_ui.btnArchive);
 		m_ui.editAdditional->Setup(&m_self, m_settings.get(), m_uiFactory.get(), m_ui.btnAdditional);

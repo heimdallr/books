@@ -52,8 +52,12 @@ public:
 
 public:
 	void    Setup(const QDialog* dialog, ISettings* settings, const Util::IUiFactory* uiFactory, const QAbstractButton* btn, const QString& defaultValue = {});
+	void    Setup(const QDialog* dialog, ISettings* settings, const Util::IUiFactory* uiFactory, const QAbstractButton* btn, const std::function<QVariant()>& defaultValueGetter);
 	QString GetText() const;
 	void    SetText(const QString& value);
+
+private:
+	void SetupImpl(const QDialog* dialog, const QAbstractButton* btn);
 
 private:
 	PropagateConstPtr<Ui::RelativePathLineEdit> m_ui;

@@ -59,7 +59,19 @@ void RelativePathLineEdit::Setup(const QDialog* dialog, ISettings* settings, con
 	m_settings  = settings;
 	m_uiFactory = uiFactory;
 	m_ui->edit->setText(m_settings->Get(QString(RECENT_VALUE).arg(objectName()), defaultValue));
+	SetupImpl(dialog, btn);
+}
 
+void RelativePathLineEdit::Setup(const QDialog* dialog, ISettings* settings, const Util::IUiFactory* uiFactory, const QAbstractButton* btn, const std::function<QVariant()>& defaultValueGetter)
+{
+	m_settings  = settings;
+	m_uiFactory = uiFactory;
+	m_ui->edit->setText(m_settings->Get(QString(RECENT_VALUE).arg(objectName()), defaultValueGetter).toString());
+	SetupImpl(dialog, btn);
+}
+
+void RelativePathLineEdit::SetupImpl(const QDialog* dialog, const QAbstractButton* btn)
+{
 	connect(dialog, &QDialog::accepted, this, [this] {
 		m_settings->Set(QString(RECENT_VALUE).arg(objectName()), m_ui->edit->text());
 	});
