@@ -3,8 +3,7 @@
 class QComboBox;
 class QLineEdit;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IComboBoxTextDialog // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -17,4 +16,4 @@ public:
 	virtual QLineEdit& GetLineEdit() = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

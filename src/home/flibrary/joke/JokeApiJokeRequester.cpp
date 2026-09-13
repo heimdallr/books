@@ -10,8 +10,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT  = "JokeRequester";
 constexpr auto CATEGORY = QT_TRANSLATE_NOOP("JokeRequester", "Category");

@@ -26,8 +26,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr int MAX_OVERWRITE_CONFIRM_COUNT = 10;
 
@@ -82,13 +81,11 @@ class CollectionController::Impl final : public Observable<ICollectionsObserver>
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(
-		std::weak_ptr<const ILogicFactory>   logicFactory,
+	Impl(std::weak_ptr<const ILogicFactory>  logicFactory,
 		std::shared_ptr<ICollectionProvider> collectionProvider,
 		std::shared_ptr<ISettings>           settings,
 		std::shared_ptr<IUiFactory>          uiFactory,
-		const std::shared_ptr<ITaskQueue>&   taskQueue
-	)
+		const std::shared_ptr<ITaskQueue>&   taskQueue)
 		: m_logicFactory { std::move(logicFactory) }
 		, m_collectionProvider { std::move(collectionProvider) }
 		, m_settings { std::move(settings) }
@@ -146,15 +143,13 @@ public:
 
 	void CreateCollection(const Collection& collection)
 	{
-		CreateNew(
-			collection.name,
+		CreateNew(collection.name,
 			collection.GetDatabase(),
 			collection.GetFolder(),
 			collection.GetAdditionalFolder(),
 			collection.GetInpx(),
 			"7z",
-			static_cast<Inpx::CreateCollectionMode>(collection.createCollectionMode)
-		);
+			static_cast<Inpx::CreateCollectionMode>(collection.createCollectionMode));
 	}
 
 	void RescanCollectionFolder()
@@ -216,8 +211,7 @@ public:
 
 	bool OnInpxUpdateChecked(const Collection& updatedCollection)
 	{
-		switch (m_uiFactory->ShowCustomDialog(
-			QMessageBox::Question,
+		switch (m_uiFactory->ShowCustomDialog(QMessageBox::Question,
 			"",
 			Tr(COLLECTION_UPDATED),
 			{
@@ -225,9 +219,8 @@ public:
 				{    QMessageBox::ButtonRole::NoRole,  Tr(NO_WORD) },
 				{ QMessageBox::ButtonRole::ResetRole,  Tr(DISCARD) },
 				{ QMessageBox::ButtonRole::ApplyRole, Tr(RECREATE) },
-        },
-			QMessageBox::ButtonRole::YesRole
-		))
+		},
+			QMessageBox::ButtonRole::YesRole))
 		{
 			case QMessageBox::NoRole:
 			case QMessageBox::RejectRole:
@@ -361,14 +354,14 @@ private:
 
 		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement());
 		auto callback = [this,
-		                 parser = std::move(parser),
-		                 name,
-		                 db               = std::move(dbOrigin),
-		                 folder           = std::move(folderOrigin),
-		                 additionalFolder = std::move(additionalFolderOrigin),
-		                 inpx             = std::move(inpxOrigin),
-		                 mode,
-		                 tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
+							parser = std::move(parser),
+							name,
+							db               = std::move(dbOrigin),
+							folder           = std::move(folderOrigin),
+							additionalFolder = std::move(additionalFolderOrigin),
+							inpx             = std::move(inpxOrigin),
+							mode,
+							tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
 			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
 				parser.reset();
 			});
@@ -422,16 +415,16 @@ private:
 			m_uiFactory->ShowWarning(Tr(BAD_ARCHIVES_DETECTED).arg(updateResult.badFolders.join('\n')));
 
 		updateResult.folders == 0 ? m_uiFactory->ShowInfo(Tr(NO_UPDATES_FOUND))
-								  : m_uiFactory->ShowInfo(Tr(COLLECTION_UPDATE_RESULT)
-		                                                      .arg(name)
-		                                                      .arg(Tr(action))
-		                                                      .arg(updateResult.folders)
-		                                                      .arg(updateResult.authors)
-		                                                      .arg(updateResult.series)
-		                                                      .arg(updateResult.books)
-		                                                      .arg(updateResult.keywords)
-		                                                      .arg(updateResult.genres ? Tr(COLLECTION_UPDATE_RESULT_GENRES).arg(updateResult.genres) : "")
-		                                                      .arg(updateResult.oldDataUpdateFound ? Tr(COLLECTION_NEED_RECREATE) : ""));
+		                          : m_uiFactory->ShowInfo(Tr(COLLECTION_UPDATE_RESULT)
+											.arg(name)
+											.arg(Tr(action))
+											.arg(updateResult.folders)
+											.arg(updateResult.authors)
+											.arg(updateResult.series)
+											.arg(updateResult.books)
+											.arg(updateResult.keywords)
+											.arg(updateResult.genres ? Tr(COLLECTION_UPDATE_RESULT_GENRES).arg(updateResult.genres) : "")
+											.arg(updateResult.oldDataUpdateFound ? Tr(COLLECTION_NEED_RECREATE) : ""));
 	}
 
 private:
@@ -443,13 +436,11 @@ private:
 	int                                                     m_overwriteConfirmCount { 0 };
 };
 
-CollectionController::CollectionController(
-	const std::shared_ptr<const ILogicFactory>& logicFactory,
-	std::shared_ptr<ICollectionProvider>        collectionProvider,
-	std::shared_ptr<ISettings>                  settings,
-	std::shared_ptr<IUiFactory>                 uiFactory,
-	const std::shared_ptr<ITaskQueue>&          taskQueue
-)
+CollectionController::CollectionController(const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<ICollectionProvider>                                               collectionProvider,
+	std::shared_ptr<ISettings>                                                         settings,
+	std::shared_ptr<IUiFactory>                                                        uiFactory,
+	const std::shared_ptr<ITaskQueue>&                                                 taskQueue)
 	: m_impl(logicFactory, std::move(collectionProvider), std::move(settings), std::move(uiFactory), taskQueue)
 {
 	PLOGV << "CollectionController created";

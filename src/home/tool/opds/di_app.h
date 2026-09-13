@@ -2,16 +2,14 @@
 
 #include <memory>
 
-namespace Hypodermic
-{
+namespace Hypodermic {
 
 class Container;
 class ContainerBuilder;
 
-}
+} // namespace Hypodermic
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
 void DiInit(Hypodermic::ContainerBuilder& builder, std::shared_ptr<Hypodermic::Container>& container);
 

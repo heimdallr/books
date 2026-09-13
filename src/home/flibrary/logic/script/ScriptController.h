@@ -7,15 +7,13 @@
 
 #include "settings/ISettings.h"
 
-namespace Hypodermic
-{
+namespace Hypodermic {
 
 class Container;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ScriptController final : virtual public IScriptController
 {

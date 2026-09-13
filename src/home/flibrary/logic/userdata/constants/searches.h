@@ -1,10 +1,9 @@
 #pragma once
 
-namespace HomeCompa::Flibrary::Constant::UserData::Searches
-{
+namespace HomeCompa::Flibrary::Constant::UserData::Searches {
 
 constexpr auto RootNode = "Searches";
 
 constexpr auto CreateNewSearchCommandText = "insert into Searches_User(Title, CreatedAt) values(?, ?)";
 
-}
+} // namespace HomeCompa::Flibrary::Constant::UserData::Searches

@@ -2,8 +2,7 @@
 
 class QWidget;
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class IParentWidgetProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -15,4 +14,4 @@ public:
 	virtual QWidget* GetWidget(QWidget* parentWidget = nullptr) const = 0;
 };
 
-}
+} // namespace HomeCompa

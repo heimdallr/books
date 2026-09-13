@@ -18,8 +18,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 QVariantList ParserDefault(QVariant&& var)
 {
@@ -29,9 +28,8 @@ QVariantList ParserDefault(QVariant&& var)
 QVariantList ParserGenre(QVariant&& var)
 {
 	return var.toString().split(", ") | std::views::transform([](const auto& item) {
-			   return QVariant::fromValue(item);
-		   })
-	     | std::ranges::to<QVariantList>();
+		return QVariant::fromValue(item);
+	}) | std::ranges::to<QVariantList>();
 }
 
 QVariantList ParserFormat(QVariant&& var)
@@ -40,7 +38,7 @@ QVariantList ParserFormat(QVariant&& var)
 }
 
 constexpr std::pair<int, QVariantList (*)(QVariant&&)> PARSERS[] {
-#define ITEM(NAME) {Role::NAME, &Parser##NAME}
+#define ITEM(NAME) { Role::NAME, &Parser##NAME }
 	ITEM(Genre),
 	ITEM(Format),
 #undef ITEM
@@ -183,11 +181,15 @@ QVariant SortFilterProxyModel::data(const QModelIndex& index, const int role) co
 			case Role::TextFilter:
 				return m_impl->filter;
 
-#define BOOKS_COLUMN_ITEM(NAME) case Role::NAME##Filter: return QVariant::fromValue(&m_impl->fastFilter[BookItem::Column::NAME]);
+#define BOOKS_COLUMN_ITEM(NAME)                                                                                                                                                                                \
+	case Role::NAME##Filter:                                                                                                                                                                                   \
+		return QVariant::fromValue(&m_impl->fastFilter[BookItem::Column::NAME]);
 				BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 
-#define BOOKS_COLUMN_ITEM(NAME) case Role::NAME##sAll: return CollectAllValues(*sourceModel(), Role::NAME);
+#define BOOKS_COLUMN_ITEM(NAME)                                                                                                                                                                                \
+	case Role::NAME##sAll:                                                                                                                                                                                     \
+		return CollectAllValues(*sourceModel(), Role::NAME);
 				BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 
@@ -213,8 +215,7 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 			},
 			[this] {
 				END_FILTER_CHANGE;
-			}
-		);
+			});
 	};
 
 	switch (role)
@@ -249,7 +250,9 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 		case Role::UniFilterMaximumRate:
 			return setFilter(m_impl->maximumRate, value.isValid() ? std::optional { value.toInt() } : std::nullopt);
 
-#define BOOKS_COLUMN_ITEM(NAME) case Role::NAME##Filter: return setFilter(m_impl->fastFilter[BookItem::Column::NAME], std::move(*value.value<FastFilterItems*>()));
+#define BOOKS_COLUMN_ITEM(NAME)                                                                                                                                                                                \
+	case Role::NAME##Filter:                                                                                                                                                                                   \
+		return setFilter(m_impl->fastFilter[BookItem::Column::NAME], std::move(*value.value<FastFilterItems *>()));
 			BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 
@@ -355,15 +358,13 @@ bool SortFilterProxyModel::FilterAcceptsFlags(const QModelIndex& index) const
 
 bool SortFilterProxyModel::FilterAcceptsFast(const QModelIndex& index) const
 {
-	return std::ranges::all_of(
-		std::views::zip(m_impl->fastFilter, std::views::iota(0)) | std::views::filter([](const auto& item) {
-			return !std::get<0>(item).empty();
-		}),
+	return std::ranges::all_of(std::views::zip(m_impl->fastFilter, std::views::iota(0)) | std::views::filter([](const auto& item) {
+		return !std::get<0>(item).empty();
+	}),
 		[&](const auto& item) {
 			const auto value = index.data(Role::Author + std::get<1>(item));
 			return m_impl->fastFilterFunctor[std::get<1>(item)](std::get<0>(item), value);
-		}
-	);
+		});
 }
 
 bool SortFilterProxyModel::FilterAcceptsRate(const QModelIndex& index) const

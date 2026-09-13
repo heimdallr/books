@@ -32,8 +32,7 @@
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 struct ModelRole
 {
@@ -135,42 +134,43 @@ private:
 	const QChar m_symbol, m_zeroSymbol;
 };
 
-namespace TranslatorBase
-{
+namespace TranslatorBase {
 
 static std::unique_ptr<const Translator> Create(const ISettings&)
 {
 	return std::make_unique<Translator>();
 }
 
-}
+} // namespace TranslatorBase
 
-namespace TranslatorLibRate
-{
+namespace TranslatorLibRate {
 
 std::unique_ptr<const Translator> Create(const ISettings& settings)
 {
 	return std::make_unique<TranslatorRate>(settings, Constant::Settings::PREFER_LIB_RATE_STAR_SYMBOL_KEY, 0);
 }
 
-}
+} // namespace TranslatorLibRate
 
-namespace TranslatorUserRate
-{
+namespace TranslatorUserRate {
 
 std::unique_ptr<const Translator> Create(const ISettings& settings)
 {
 	return std::make_unique<TranslatorRate>(settings, Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY, settings.Get(Constant::Settings::PREFER_USER_RATE_ZERO_SYMBOL_KEY, 0));
 }
 
-}
+} // namespace TranslatorUserRate
 
 using TranslatorSeqNumber = TranslatorNumber;
 using TranslatorYear      = TranslatorNumber;
 
 constexpr std::pair<int, std::unique_ptr<const Translator> (*)(const ISettings&)> TRANSLATORS[] {
-#define ITEM(NAME) {BookItem::Column::NAME, &Translator##NAME::Create}
-	ITEM(Lang), ITEM(SeqNumber), ITEM(Year), ITEM(LibRate), ITEM(UserRate),
+#define ITEM(NAME) { BookItem::Column::NAME, &Translator##NAME::Create }
+	ITEM(Lang),
+	ITEM(SeqNumber),
+	ITEM(Year),
+	ITEM(LibRate),
+	ITEM(UserRate),
 #undef ITEM
 };
 
@@ -246,22 +246,18 @@ private:
 
 			case ModelRole::SelectedItems:
 				return m_items | std::views::filter([](const auto& item) {
-						   return item.checked;
-					   })
-				     | std::views::transform([](const auto& item) {
-						   return item.id;
-					   })
-				     | std::ranges::to<QVariantList>();
+					return item.checked;
+				}) | std::views::transform([](const auto& item) {
+					return item.id;
+				}) | std::ranges::to<QVariantList>();
 
 			case ModelRole::AllSelected:
 			{
 				const auto firstChecked = m_items.front().checked;
-				return std::ranges::all_of(
-						   m_items | std::views::drop(1),
+				return std::ranges::all_of(m_items | std::views::drop(1),
 						   [firstChecked](const auto& item) {
 							   return item.checked == firstChecked;
-						   }
-					   )
+						   })
 				         ? (firstChecked ? Qt::Checked : Qt::Unchecked)
 				         : Qt::PartiallyChecked;
 			}
@@ -299,15 +295,9 @@ private:
 			case Qt::CheckStateRole:
 			{
 				const auto checked = value.value<Qt::CheckState>();
-				const auto f       = checked == Qt::Checked ? std::function<void(Item&)>([](Item& item) {
-						item.checked = true;
-					})
-					                                            : checked == Qt::Unchecked
-					                       ? [](Item& item) {
-										   item.checked = false;
-											 } : [](Item& item) {
-										   item.checked = !item.checked;
-											 };
+				const auto f = checked == Qt::Checked     ? std::function<void(Item &)>([](Item &item) { item.checked = true; })
+			               : checked == Qt::Unchecked ? [](Item &item) { item.checked = false; }
+			                                          : [](Item &item) { item.checked = !item.checked; };
 
 				for (auto& item : m_items)
 					f(item);
@@ -361,16 +351,14 @@ private:
 class FastFilterWidget::Impl final : public QObject
 {
 public:
-	Impl(
-		QWidget*                                   self,
+	Impl(QWidget*                                  self,
 		const QAbstractItemModel&                  model,
 		const int                                  column,
 		Callback                                   callback,
 		const IParentWidgetProvider&               parentWidgetProvider,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<Util::ItemViewToolTipper>  toolTipper,
-		std::shared_ptr<Util::ScrollBarController> scrollBarController
-	)
+		std::shared_ptr<Util::ScrollBarController> scrollBarController)
 		: m_column { column }
 		, m_callback { std::move(callback) }
 		, m_settings { std::move(settings) }
@@ -479,9 +467,8 @@ private:
 			return true;
 
 		const auto values = doc.array() | std::views::transform([](const auto& item) {
-								return item.toVariant();
-							})
-		                  | std::ranges::to<QVariantList>();
+			return item.toVariant();
+		}) | std::ranges::to<QVariantList>();
 
 		return m_model->setData({}, values, ModelRole::SelectedItems);
 	}
@@ -499,16 +486,14 @@ private:
 	Ui::FastFilterWidget m_ui {};
 };
 
-FastFilterWidget::FastFilterWidget(
-	const QAbstractItemModel&                  model,
-	const int                                  column,
-	Callback                                   callback,
-	const IParentWidgetProvider&               parentWidgetProvider,
-	std::shared_ptr<ISettings>                 settings,
-	std::shared_ptr<Util::ItemViewToolTipper>  toolTipper,
-	std::shared_ptr<Util::ScrollBarController> scrollBarController,
-	QWidget*                                   parent
-)
+FastFilterWidget::FastFilterWidget(const QAbstractItemModel& model,
+	const int                                                column,
+	Callback                                                 callback,
+	const IParentWidgetProvider&                             parentWidgetProvider,
+	std::shared_ptr<ISettings>                               settings,
+	std::shared_ptr<Util::ItemViewToolTipper>                toolTipper,
+	std::shared_ptr<Util::ScrollBarController>               scrollBarController,
+	QWidget*                                                 parent)
 	: QWidget(parent)
 	, m_impl(this, model, column, std::move(callback), parentWidgetProvider, std::move(settings), std::move(toolTipper), std::move(scrollBarController))
 {

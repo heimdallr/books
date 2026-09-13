@@ -19,8 +19,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 using Role = IModel::Role;
 
@@ -69,16 +68,15 @@ void SetModelData(QAbstractItemModel& model, const int role, const QVariant& val
 } // namespace
 
 class CollectionCleaner::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
-	, ICollectionCleaner::IAnalyzeObserver
-	, ISettingsObserver
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
+    , ICollectionCleaner::IAnalyzeObserver
+    , ISettingsObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(
-		CollectionCleaner&                         self,
+	Impl(CollectionCleaner&                        self,
 		const ICollectionProvider&                 collectionProvider,
 		std::shared_ptr<const IUiFactory>          uiFactory,
 		std::shared_ptr<const IReaderController>   readerController,
@@ -88,8 +86,7 @@ public:
 		std::shared_ptr<IGenreModel>               genreModel,
 		std::shared_ptr<ILanguageModel>            languageModel,
 		std::shared_ptr<Util::ScrollBarController> scrollBarControllerGenre,
-		std::shared_ptr<Util::ScrollBarController> scrollBarControllerLanguage
-	)
+		std::shared_ptr<Util::ScrollBarController> scrollBarControllerLanguage)
 		: GeometryRestorable(*this, settings, CONTEXT)
 		, GeometryRestorableObserver(self)
 		, m_self { self }
@@ -207,8 +204,7 @@ private: // ICollectionCleaner::IAnalyzeObserver
 			},
 			[this] {
 				m_self.StateChanged(State::Finished);
-			}
-		);
+			});
 
 		QEventLoop eventLoop;
 
@@ -365,12 +361,10 @@ private:
 
 	void Load()
 	{
-		switch (FindFirst(
-			CLEAN_GENRE_MODE,
+		switch (FindFirst(CLEAN_GENRE_MODE,
 			m_settings->Get(DELETE_BY_GENRE_MODE_KEY, FindSecond(CLEAN_GENRE_MODE, GetCleanGenreMode())).toStdString().data(),
 			ICollectionCleaner::CleanGenreMode::None,
-			PszComparer {}
-		))
+			PszComparer {}))
 		{
 			case ICollectionCleaner::CleanGenreMode::Full:
 				m_ui.genresMatchFull->setChecked(true);
@@ -446,22 +440,19 @@ private:
 	bool                                                          m_analyzeCanceled { false };
 };
 
-CollectionCleaner::CollectionCleaner(
-	const std::shared_ptr<const ICollectionProvider>& collectionProvider,
-	std::shared_ptr<const IUiFactory>                 uiFactory,
-	std::shared_ptr<const IReaderController>          readerController,
-	std::shared_ptr<const ICollectionCleaner>         collectionCleaner,
-	std::shared_ptr<const IBookInfoProvider>          dataProvider,
-	std::shared_ptr<ISettings>                        settings,
-	std::shared_ptr<IGenreModel>                      genreModel,
-	std::shared_ptr<ILanguageModel>                   languageModel,
-	std::shared_ptr<Util::ScrollBarController>        scrollBarControllerGenre,
-	std::shared_ptr<Util::ScrollBarController>        scrollBarControllerLanguage,
-	QWidget*                                          parent
-)
+CollectionCleaner::CollectionCleaner(const std::shared_ptr<const ICollectionProvider>& collectionProvider,
+	std::shared_ptr<const IUiFactory>                                                  uiFactory,
+	std::shared_ptr<const IReaderController>                                           readerController,
+	std::shared_ptr<const ICollectionCleaner>                                          collectionCleaner,
+	std::shared_ptr<const IBookInfoProvider>                                           dataProvider,
+	std::shared_ptr<ISettings>                                                         settings,
+	std::shared_ptr<IGenreModel>                                                       genreModel,
+	std::shared_ptr<ILanguageModel>                                                    languageModel,
+	std::shared_ptr<Util::ScrollBarController>                                         scrollBarControllerGenre,
+	std::shared_ptr<Util::ScrollBarController>                                         scrollBarControllerLanguage,
+	QWidget*                                                                           parent)
 	: StackedPage(*uiFactory, uiFactory->GetParentWidget(parent))
-	, m_impl(
-		  *this,
+	, m_impl(*this,
 		  *collectionProvider,
 		  std::move(uiFactory),
 		  std::move(readerController),
@@ -471,8 +462,7 @@ CollectionCleaner::CollectionCleaner(
 		  std::move(genreModel),
 		  std::move(languageModel),
 		  std::move(scrollBarControllerGenre),
-		  std::move(scrollBarControllerLanguage)
-	  )
+		  std::move(scrollBarControllerLanguage))
 {
 }
 

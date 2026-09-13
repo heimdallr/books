@@ -16,8 +16,7 @@ using namespace HomeCompa::Flibrary::UserData;
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 class FilterRestorer final : virtual public IRestorer
 {
@@ -63,12 +62,11 @@ private:
 
 } // namespace
 
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 std::unique_ptr<IRestorer> CreateFilterRestorer8()
 {
 	return std::make_unique<FilterRestorer>();
 }
 
-}
+} // namespace HomeCompa::Flibrary::UserData

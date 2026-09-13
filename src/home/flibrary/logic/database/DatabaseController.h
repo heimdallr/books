@@ -5,8 +5,7 @@
 
 #include "interface/logic/IDatabaseController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class DatabaseController final : virtual public IDatabaseController
 {
@@ -29,4 +28,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

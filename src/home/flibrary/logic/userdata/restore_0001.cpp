@@ -17,11 +17,7 @@
 
 #include "restore.h"
 
-namespace HomeCompa::Flibrary::UserData
-{
-
-namespace
-{
+namespace HomeCompa::Flibrary::UserData { namespace {
 
 struct Book
 {
@@ -190,12 +186,9 @@ private:
 	QStringList m_items;
 };
 
-} // namespace
+}} // namespace HomeCompa::Flibrary::UserData
 
-} // namespace HomeCompa::Flibrary::UserData
-
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 std::unique_ptr<IRestorer> CreateBooksRestorer1()
 {
@@ -212,4 +205,4 @@ std::unique_ptr<IRestorer> CreateSearchesRestorer1()
 	return std::make_unique<SearchesRestorer>();
 }
 
-}
+} // namespace HomeCompa::Flibrary::UserData

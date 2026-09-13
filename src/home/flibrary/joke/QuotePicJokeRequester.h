@@ -2,8 +2,7 @@
 
 #include "shared/BaseJokeRequester.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IJokeRequesterFactory;
 
@@ -16,4 +15,4 @@ private:
 	bool Process(const QByteArray& data, std::weak_ptr<IClient> client) override;
 };
 
-}
+} // namespace HomeCompa::Flibrary

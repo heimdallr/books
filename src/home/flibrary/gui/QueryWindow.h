@@ -10,8 +10,7 @@
 #include "gutil/Dialog.h"
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class QueryWindow : public QMainWindow
 {
@@ -27,4 +26,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

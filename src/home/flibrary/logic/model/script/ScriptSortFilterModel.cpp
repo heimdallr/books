@@ -8,8 +8,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 using Role = IScriptController::RoleBase;
 
@@ -27,7 +26,7 @@ bool MoveRow(QSortFilterProxyModel& model, const QModelIndex& index, const int o
 	return result;
 }
 
-}
+} // namespace
 
 ScriptSortFilterModel::ScriptSortFilterModel(const std::shared_ptr<const IModelProvider>& modelProvider, QObject* parent)
 	: QSortFilterProxyModel(parent)

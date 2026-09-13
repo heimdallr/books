@@ -9,8 +9,7 @@ class QModelIndex;
 class QImage;
 class QString;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IImageViewerController // NOLINT(cppcoreguidelines-special-member-functions)
 {

@@ -36,8 +36,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 using IdsSet           = std::unordered_set<long long>;
 using BookToFlag       = std::unordered_map<long long, IDataItem::Flags>;
@@ -54,7 +53,7 @@ void FlagsOr(BookToFlag& flags, const long long bookId, const IDataItem::Flags f
 }
 
 constexpr std::pair<const char*, FlagsAccumulator> FLAG_ACCUMULATORS[] {
-#define ITEM(NAME) {#NAME, &Flags##NAME}
+#define ITEM(NAME) { #NAME, &Flags##NAME }
 	ITEM(Or),
 	ITEM(And),
 #undef ITEM
@@ -73,11 +72,9 @@ constexpr const char* BOOKS_COLUMN_NAMES[] {
 
 auto ToAuthorItemComparable(const IDataItem::Ptr& author)
 {
-	return std::make_tuple(
-		Util::QStringWrapper { author->GetData(AuthorItem::Column::LastName) },
+	return std::make_tuple(Util::QStringWrapper { author->GetData(AuthorItem::Column::LastName) },
 		Util::QStringWrapper { author->GetData(AuthorItem::Column::FirstName) },
-		Util::QStringWrapper { author->GetData(AuthorItem::Column::MiddleName) }
-	);
+		Util::QStringWrapper { author->GetData(AuthorItem::Column::MiddleName) });
 }
 
 struct AuthorComparator
@@ -145,15 +142,13 @@ public:
 	const IFilterProvider& filterProvider;
 	ViewMode               viewMode { ViewMode::Unknown };
 
-	Impl(
-		const ISettings&        settings,
+	Impl(const ISettings&       settings,
 		const Collection&       activeCollection,
 		DB::IDatabase&          db,
 		const NavigationMode    navigationMode,
 		QString                 navigationId,
 		const QueryDescription& description,
-		const IFilterProvider&  filterProvider
-	)
+		const IFilterProvider&  filterProvider)
 		: navigationMode { navigationMode }
 		, navigationId { std::move(navigationId) }
 		, filterProvider { filterProvider }
@@ -340,11 +335,11 @@ private: // IBookSelector
 		};
 		const std::pair<NavigationMode, SelectAdditional> additionals[] {
 			{ NavigationMode::AlreadyRead,
-             [](const DB::IQuery& query, const SelectedBookItem& item) {
+			 [](const DB::IQuery& query, const SelectedBookItem& item) {
  item.book->SetData(First(QString(query.Get<const char*>(BookQueryFields::Last)), 10), BookItem::Column::UpdateDate);
  } },
 			{     NavigationMode::History,
-             [](const DB::IQuery& query, const SelectedBookItem& item) {
+			 [](const DB::IQuery& query, const SelectedBookItem& item) {
  item.book->SetData(QString(query.Get<const char*>(BookQueryFields::Last)), BookItem::Column::UpdateDate);
  } },
 		};
@@ -420,9 +415,9 @@ private: // IBookSelector
 		});
 
 		const auto orphans = m_reviews | std::views::filter([](const auto& item) {
-								 return item.second->GetChildCount() == 0;
-							 })
-		                   | std::views::keys | std::ranges::to<std::vector<long long>>();
+			return item.second->GetChildCount() == 0;
+		}) | std::views::keys
+		                   | std::ranges::to<std::vector<long long>>();
 		for (const auto id : orphans)
 			m_reviews.erase(id);
 	}
@@ -446,8 +441,8 @@ private:
 
 		QString result;
 		for (const auto& value : values | std::views::filter([this](const auto& item) {
-									 return !IsFiltered(*item);
-								 }))
+				 return !IsFiltered(*item);
+			 }))
 			Util::AppendTitle(result, value->GetData(0), ", ");
 
 		return result;
@@ -711,15 +706,13 @@ private:
 	FlagsAccumulator m_keywordsFlagAccumulator { std::cbegin(FLAG_ACCUMULATORS)->second };
 };
 
-BooksTreeGenerator::BooksTreeGenerator(
-	const ISettings&        settings,
-	const Collection&       activeCollection,
-	DB::IDatabase&          db,
-	const NavigationMode    navigationMode,
-	QString                 navigationId,
-	const QueryDescription& description,
-	const IFilterProvider&  filterProvider
-)
+BooksTreeGenerator::BooksTreeGenerator(const ISettings& settings,
+	const Collection&                                   activeCollection,
+	DB::IDatabase&                                      db,
+	const NavigationMode                                navigationMode,
+	QString                                             navigationId,
+	const QueryDescription&                             description,
+	const IFilterProvider&                              filterProvider)
 	: m_impl(settings, activeCollection, db, navigationMode, std::move(navigationId), description, filterProvider)
 {
 	PLOGV << "BooksTreeGenerator created";

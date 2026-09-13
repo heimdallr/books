@@ -16,8 +16,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 inline constexpr auto ON_BOOK_LINK_KEY             = "Preferences/Interaction/Book/OnLink";
 inline constexpr auto ON_BOOK_DBL_CLICK_KEY        = "Preferences/Interaction/Book/OnDoubleClick";
@@ -42,10 +41,10 @@ inline constexpr const char* NAVIGATION_ID_QUERY[] = {
 
 static_assert(std::size(NAVIGATION_ID_QUERY) == static_cast<size_t>(NavigationMode::Last));
 
-#define INTERACT_ITEMS_X_MACRO  \
-	INTERACT_ITEM(Read)         \
-	INTERACT_ITEM(ExtractAsIs)  \
-	INTERACT_ITEM(ExtractAsZip) \
+#define INTERACT_ITEMS_X_MACRO                                                                                                                                                                                 \
+	INTERACT_ITEM(Read)                                                                                                                                                                                        \
+	INTERACT_ITEM(ExtractAsIs)                                                                                                                                                                                 \
+	INTERACT_ITEM(ExtractAsZip)                                                                                                                                                                                \
 	INTERACT_ITEM(Script)
 
 class IBookInteractorImpl // NOLINT(cppcoreguidelines-special-member-functions)
@@ -54,10 +53,10 @@ public:
 	virtual ~IBookInteractorImpl() = default;
 
 public:
-#define INTERACT_ITEM(NAME) virtual void NAME(long long, const QStringList&) const = 0;
+#define INTERACT_ITEM(NAME) virtual void NAME(long long, const QStringList &) const = 0;
 	INTERACT_ITEMS_X_MACRO
 #undef INTERACT_ITEM
-#define NAVIGATION_MODE_ITEM(NAME) virtual void FindWith##NAME(long long, const QStringList&) const = 0;
+#define NAVIGATION_MODE_ITEM(NAME) virtual void FindWith##NAME(long long, const QStringList &) const = 0;
 	NAVIGATION_MODE_ITEMS_X_MACRO
 #undef NAVIGATION_MODE_ITEM
 };
@@ -66,7 +65,7 @@ constexpr std::pair<const char*, void (IBookInteractorImpl::*)(long long, const 
 #define INTERACT_ITEM(NAME) { #NAME, &IBookInteractorImpl::NAME },
 	INTERACT_ITEMS_X_MACRO
 #undef INTERACT_ITEM
-#define NAVIGATION_MODE_ITEM(NAME) {"FindWith"#NAME, &IBookInteractorImpl::FindWith##NAME},
+#define NAVIGATION_MODE_ITEM(NAME) { "FindWith" #NAME, &IBookInteractorImpl::FindWith##NAME },
 		NAVIGATION_MODE_ITEMS_X_MACRO
 #undef NAVIGATION_MODE_ITEM
 };
@@ -94,16 +93,14 @@ struct BookInteractor::Impl final : IBookInteractorImpl
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 	std::shared_ptr<IScriptControllerProvider> scriptControllerProvider;
 
-	Impl(
-		const std::shared_ptr<const ILogicFactory>& logicFactory,
-		std::shared_ptr<const IUiFactory>           uiFactory,
-		std::shared_ptr<const ISettings>            settings,
-		std::shared_ptr<const IBookExtractor>       bookExtractor,
-		std::shared_ptr<const IReaderController>    readerController,
-		std::shared_ptr<const IDatabaseUser>        databaseUser,
-		std::shared_ptr<const ICollectionProvider>  collectionProvider,
-		std::shared_ptr<IScriptControllerProvider>  scriptControllerProvider
-	)
+	Impl(const std::shared_ptr<const ILogicFactory>& logicFactory,
+		std::shared_ptr<const IUiFactory>            uiFactory,
+		std::shared_ptr<const ISettings>             settings,
+		std::shared_ptr<const IBookExtractor>        bookExtractor,
+		std::shared_ptr<const IReaderController>     readerController,
+		std::shared_ptr<const IDatabaseUser>         databaseUser,
+		std::shared_ptr<const ICollectionProvider>   collectionProvider,
+		std::shared_ptr<IScriptControllerProvider>   scriptControllerProvider)
 		: logicFactory { logicFactory }
 		, uiFactory { std::move(uiFactory) }
 		, settings { std::move(settings) }
@@ -145,16 +142,13 @@ private: // IBookInteractorImpl
 		assert(!parameters.isEmpty());
 		const auto  scriptController = scriptControllerProvider->GetScriptController();
 		const auto& scripts          = scriptController->GetScripts();
-		if (const auto it = std::ranges::find(
-				scripts,
+		if (const auto it = std::ranges::find(scripts,
 				parameters.front(),
 				[](const auto& item) {
 					return item.name;
-				}
-			);
-		    it != scripts.end())
-			return ExtractImpl(
-				&BooksExtractor::ExtractAsScript,
+				});
+			it != scripts.end())
+			return ExtractImpl(&BooksExtractor::ExtractAsScript,
 				bookId,
 				{
 					.parameter   = it->uid,
@@ -162,13 +156,13 @@ private: // IBookInteractorImpl
 					.dstFolderRequired                    = false,
 					.createFillTemplateConverterParameter = true,
 					.tempFolder                           = true,
-				}
-			);
+				});
 
 		PLOGW << "Script " << parameters.front() << " not found";
 	}
 
-#define NAVIGATION_MODE_ITEM(NAME) void FindWith##NAME(const long long bookId, const QStringList&) const override{ FindWithImpl(NavigationMode::NAME, bookId); }
+#define NAVIGATION_MODE_ITEM(NAME)                                                                                                                                                                             \
+	void FindWith##NAME(const long long bookId, const QStringList &) const override { FindWithImpl(NavigationMode::NAME, bookId); }
 	NAVIGATION_MODE_ITEMS_X_MACRO
 #undef NAVIGATION_MODE_ITEM
 
@@ -218,24 +212,22 @@ private:
 	}
 };
 
-BookInteractor::BookInteractor(
-	const std::shared_ptr<const ILogicFactory>& logicFactory,
-	std::shared_ptr<const IUiFactory>           uiFactory,
-	std::shared_ptr<const ISettings>            settings,
-	std::shared_ptr<const IBookExtractor>       bookExtractor,
-	std::shared_ptr<const IReaderController>    readerController,
-	std::shared_ptr<const IDatabaseUser>        databaseUser,
-	std::shared_ptr<const ICollectionProvider>  collectionProvider,
-	std::shared_ptr<IScriptControllerProvider>  scriptControllerProvider
-)
+BookInteractor::BookInteractor(const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const IUiFactory>                                      uiFactory,
+	std::shared_ptr<const ISettings>                                       settings,
+	std::shared_ptr<const IBookExtractor>                                  bookExtractor,
+	std::shared_ptr<const IReaderController>                               readerController,
+	std::shared_ptr<const IDatabaseUser>                                   databaseUser,
+	std::shared_ptr<const ICollectionProvider>                             collectionProvider,
+	std::shared_ptr<IScriptControllerProvider>                             scriptControllerProvider)
 	: m_impl { logicFactory,
-	           std::move(uiFactory),
-	           std::move(settings),
-	           std::move(bookExtractor),
-	           std::move(readerController),
-	           std::move(databaseUser),
-	           std::move(collectionProvider),
-	           std::move(scriptControllerProvider) }
+		std::move(uiFactory),
+		std::move(settings),
+		std::move(bookExtractor),
+		std::move(readerController),
+		std::move(databaseUser),
+		std::move(collectionProvider),
+		std::move(scriptControllerProvider) }
 {
 }
 

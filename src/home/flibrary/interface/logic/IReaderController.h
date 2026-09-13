@@ -2,8 +2,7 @@
 
 class QString;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IReaderController // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -13,4 +12,4 @@ public:
 	virtual void ReadRandomBook(QString lang) const = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

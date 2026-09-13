@@ -56,8 +56,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto MAIN_WINDOW                          = "MainWindow";
 constexpr auto CONTEXT                              = MAIN_WINDOW;
@@ -114,10 +113,10 @@ constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 constexpr auto NAVIGATION_ACTION_ID_PROPERTY      = "navigationMode";
 constexpr auto INDEX                              = "index";
 
-#define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO  \
-	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)       \
-	SEARCH_BOOKS_PLACEHOLDER_ITEM(SERIES)       \
-	SEARCH_BOOKS_PLACEHOLDER_ITEM(TITLE)        \
+#define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO                                                                                                                                                                 \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)                                                                                                                                                                      \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(SERIES)                                                                                                                                                                      \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(TITLE)                                                                                                                                                                       \
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(ANNOTATION)
 
 template <typename T>
@@ -152,22 +151,21 @@ QString GetStyleName(const QString& key)
 class LineEditPlaceholderTextController final : public QObject
 {
 public:
-	LineEditPlaceholderTextController(
-		MainWindow& mainWindow,
+	LineEditPlaceholderTextController(MainWindow& mainWindow,
 		QLineEdit& lineEdit
-#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , QAction& action##NAME
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , QAction &action##NAME
 			SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
-	)
+		)
 		: QObject(&lineEdit)
 		, m_mainWindow { mainWindow }
 		, m_lineEdit { lineEdit }
-#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , m_action##NAME { action##NAME }
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , m_action##NAME{ action##NAME }
 		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 	{
 		m_lineEdit.setPlaceholderText(GetPlaceholderText());
-#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) QObject::connect(&m_action##NAME, &QAction::toggled, [this]{m_lineEdit.setPlaceholderText(GetPlaceholderText());});
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) QObject::connect(&m_action##NAME, &QAction::toggled, [this] { m_lineEdit.setPlaceholderText(GetPlaceholderText()); });
 		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 	}
@@ -187,7 +185,9 @@ private: // QObject
 	QString GetPlaceholderText() const
 	{
 		QStringList list;
-#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) if (m_action##NAME.isVisible() && m_action##NAME.isChecked()) list << Tr(SEARCH_BOOKS_PLACEHOLDER_##NAME);
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME)                                                                                                                                                                    \
+	if (m_action##NAME.isVisible() && m_action##NAME.isChecked())                                                                                                                                              \
+		list << Tr(SEARCH_BOOKS_PLACEHOLDER_##NAME);
 		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 
@@ -205,7 +205,7 @@ private: // QObject
 private:
 	MainWindow& m_mainWindow;
 	QLineEdit&  m_lineEdit;
-#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) QAction& m_action##NAME;
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) QAction &m_action##NAME;
 	SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 };
@@ -253,8 +253,8 @@ std::set<QString> GetQssList()
 }
 
 class ToolbarController final
-	: public QObject
-	, public IMenuCustomizer::IToolbarController
+    : public QObject
+    , public IMenuCustomizer::IToolbarController
 {
 public:
 	class IObserver // NOLINT(cppcoreguidelines-special-member-functions)
@@ -306,15 +306,13 @@ private: // IMenuCustomizer::IToolbarController
 
 		action->setProperty(INDEX, index);
 		const auto actions = m_toolbar.actions();
-		if (const auto it = std::ranges::upper_bound(
-				actions,
+		if (const auto it = std::ranges::upper_bound(actions,
 				index,
 				{},
 				[](const QAction* item) {
 					return item->property(INDEX).toInt();
-				}
-			);
-		    it != actions.end())
+				});
+			it != actions.end())
 			m_toolbar.insertAction(*it, action);
 		else
 			m_toolbar.addAction(action);
@@ -353,21 +351,20 @@ private:
 } // namespace
 
 class MainWindow::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
-	, ICollectionsObserver
-	, ILineOption::IObserver
-	, IAlphabetPanel::IObserver
-	, ITreeViewController::IObserver
-	, INavigationUndoRedo::IObserver
-	, ToolbarController::IObserver
-	, virtual plog::IAppender
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
+    , ICollectionsObserver
+    , ILineOption::IObserver
+    , IAlphabetPanel::IObserver
+    , ITreeViewController::IObserver
+    , INavigationUndoRedo::IObserver
+    , ToolbarController::IObserver
+    , virtual plog::IAppender
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(
-		MainWindow&                                     self,
+	Impl(MainWindow&                                    self,
 		const std::shared_ptr<const ILogicFactory>&     logicFactory,
 		std::shared_ptr<const IStyleApplierFactory>     styleApplierFactory,
 		std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
@@ -391,8 +388,7 @@ public:
 		std::shared_ptr<IMenuCustomizer>                menuCustomizer,
 		std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
 		std::shared_ptr<Util::ScrollBarController>      scrollBarController,
-		std::shared_ptr<INavigationUndoRedo>            navigationUndoRedo
-	)
+		std::shared_ptr<INavigationUndoRedo>            navigationUndoRedo)
 		: GeometryRestorable(*this, settings, MAIN_WINDOW)
 		, GeometryRestorableObserver(self)
 		, m_self { self }
@@ -508,14 +504,12 @@ public:
 		m_settings->Set(IStyleApplier::THEME_FILES_KEY, list);
 
 		auto actions = m_ui.menuTheme->actions();
-		if (const auto it = std::ranges::find(
-				actions,
+		if (const auto it = std::ranges::find(actions,
 				m_lastStyleFileHovered,
 				[](const QAction* action) {
 					return action->property(IStyleApplier::ACTION_PROPERTY_THEME_FILE).toString();
-				}
-			);
-		    it != actions.end())
+				});
+			it != actions.end())
 		{
 			m_ui.menuTheme->removeAction(*it);
 			if (auto* menu = (*it)->menu())
@@ -770,14 +764,12 @@ private:
 
 		QTimer::singleShot(0, [this] {
 			const auto widgets = m_self.findChildren<QWidget*>();
-			if (const auto it = std::ranges::find(
-					widgets,
+			if (const auto it = std::ranges::find(widgets,
 					m_settings->Get(START_FOCUSED_CONTROL, QString("SearchBooksByNames")),
 					[](const QWidget* widget) {
 						return widget->accessibleName();
-					}
-				);
-			    it != widgets.cend())
+					});
+				it != widgets.cend())
 				(*it)->setFocus(Qt::FocusReason::OtherFocusReason);
 		});
 
@@ -787,13 +779,12 @@ private:
 	void ReplaceMenuBar() const
 	{
 		PLOGV << "ReplaceMenuBar";
-		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(
-			m_self,
+		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(m_self,
 			*m_ui.lineEditBookTitleToSearch
 #define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , *m_ui.actionSearchBy##NAME
-				 SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
+				SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
-		));
+			));
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 		m_ui.toolWidgetLayout->insertWidget(0, m_self.menuBar());
 		if (m_settings->Get(TOOLBAR_WITH_MAIN_MENU, false))
@@ -1074,14 +1065,12 @@ private:
 			[this](const bool isVisible) {
 				m_ui.menuAnnotation->menuAction()->setVisible(isVisible);
 			},
-			m_ui.menuAnnotation
-		);
+			m_ui.menuAnnotation);
 		m_ui.annotationWidget->installEventFilter(m_annotationWidgetEventFilter);
 		m_ui.menuAnnotation->menuAction()->setVisible(m_settings->Get(SHOW_ANNOTATION_KEY, true));
 
 		m_ui.actionShowReadersReviews->setVisible(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER).exists()
-		);
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER).exists());
 
 		ConnectActionsSettingsAnnotationJokes();
 	}
@@ -1198,8 +1187,7 @@ private:
 		});
 
 		m_ui.actionShowAuthorAnnotation->setVisible(
-			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::AUTHORS_FOLDER).exists()
-		);
+			m_collectionController->ActiveCollectionExists() && QDir(m_collectionController->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::AUTHORS_FOLDER).exists());
 
 		auto restoreDefaultSettings = [this] {
 			if (m_uiFactory->ShowQuestion(Tr(CONFIRM_RESTORE_DEFAULT_SETTINGS), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
@@ -1741,7 +1729,7 @@ private:
 		auto  inpxGenerator    = ILogicFactory::Lock(m_logicFactory)->CreateInpxGenerator();
 		auto& inpxGeneratorRef = *inpxGenerator;
 		if (auto inpxFileName = m_uiFactory->GetSaveFileName(Constant::Settings::EXPORT_DIALOG_KEY, Loc::Tr(Loc::EXPORT, Loc::SELECT_INPX_FILE), Loc::Tr(Loc::EXPORT, Loc::SELECT_INPX_FILE_FILTER));
-		    !inpxFileName.isEmpty())
+			!inpxFileName.isEmpty())
 			inpxGeneratorRef.GenerateInpx(std::move(inpxFileName), [inpxGenerator = std::move(inpxGenerator)](bool) mutable {
 				inpxGenerator.reset();
 			});
@@ -1897,36 +1885,33 @@ private:
 	std::optional<Collection> m_collectionToRecreate;
 };
 
-MainWindow::MainWindow(
-	const std::shared_ptr<const ILogicFactory>&     logicFactory,
-	std::shared_ptr<const IStyleApplierFactory>     styleApplierFactory,
-	std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
-	std::shared_ptr<const IUiFactory>               uiFactory,
-	std::shared_ptr<const IDatabaseUser>            databaseUser,
-	std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
-	std::shared_ptr<const IDatabaseChecker>         databaseChecker,
-	std::shared_ptr<const ICommandLine>             commandLine,
-	std::shared_ptr<ISettings>                      settings,
-	std::shared_ptr<ICollectionController>          collectionController,
-	std::shared_ptr<IParentWidgetProvider>          parentWidgetProvider,
-	std::shared_ptr<IAnnotationController>          annotationController,
-	std::shared_ptr<AnnotationWidget>               annotationWidget,
-	std::shared_ptr<AuthorAnnotationWidget>         authorAnnotationWidget,
-	std::shared_ptr<LocaleController>               localeController,
-	std::shared_ptr<ILogController>                 logController,
-	std::shared_ptr<ProgressBar>                    progressBar,
-	std::shared_ptr<LogItemDelegate>                logItemDelegate,
-	std::shared_ptr<ILineOption>                    lineOption,
-	std::shared_ptr<IAlphabetPanel>                 alphabetPanel,
-	std::shared_ptr<IMenuCustomizer>                menuCustomizer,
-	std::shared_ptr<IRecentOpenBookController>      recentOpenBookController,
-	std::shared_ptr<Util::ScrollBarController>      scrollBarController,
-	std::shared_ptr<INavigationUndoRedo>            navigationUndoRedo,
-	QWidget*                                        parent
-)
+MainWindow::MainWindow(const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const IStyleApplierFactory>                    styleApplierFactory,
+	std::shared_ptr<const IJokeRequesterFactory>                   jokeRequesterFactory,
+	std::shared_ptr<const IUiFactory>                              uiFactory,
+	std::shared_ptr<const IDatabaseUser>                           databaseUser,
+	std::shared_ptr<const ICollectionUpdateChecker>                collectionUpdateChecker,
+	std::shared_ptr<const IDatabaseChecker>                        databaseChecker,
+	std::shared_ptr<const ICommandLine>                            commandLine,
+	std::shared_ptr<ISettings>                                     settings,
+	std::shared_ptr<ICollectionController>                         collectionController,
+	std::shared_ptr<IParentWidgetProvider>                         parentWidgetProvider,
+	std::shared_ptr<IAnnotationController>                         annotationController,
+	std::shared_ptr<AnnotationWidget>                              annotationWidget,
+	std::shared_ptr<AuthorAnnotationWidget>                        authorAnnotationWidget,
+	std::shared_ptr<LocaleController>                              localeController,
+	std::shared_ptr<ILogController>                                logController,
+	std::shared_ptr<ProgressBar>                                   progressBar,
+	std::shared_ptr<LogItemDelegate>                               logItemDelegate,
+	std::shared_ptr<ILineOption>                                   lineOption,
+	std::shared_ptr<IAlphabetPanel>                                alphabetPanel,
+	std::shared_ptr<IMenuCustomizer>                               menuCustomizer,
+	std::shared_ptr<IRecentOpenBookController>                     recentOpenBookController,
+	std::shared_ptr<Util::ScrollBarController>                     scrollBarController,
+	std::shared_ptr<INavigationUndoRedo>                           navigationUndoRedo,
+	QWidget*                                                       parent)
 	: QMainWindow(parent)
-	, m_impl(
-		  *this,
+	, m_impl(*this,
 		  logicFactory,
 		  std::move(styleApplierFactory),
 		  std::move(jokeRequesterFactory),
@@ -1950,8 +1935,7 @@ MainWindow::MainWindow(
 		  std::move(menuCustomizer),
 		  std::move(recentOpenBookController),
 		  std::move(scrollBarController),
-		  std::move(navigationUndoRedo)
-	  )
+		  std::move(navigationUndoRedo))
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)), true);

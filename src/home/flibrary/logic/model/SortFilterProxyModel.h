@@ -7,8 +7,7 @@
 
 #include "interface/logic/IModelProvider.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class AbstractSortFilterProxyModel : public QSortFilterProxyModel
 {

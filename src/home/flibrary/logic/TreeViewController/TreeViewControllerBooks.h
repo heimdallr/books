@@ -13,25 +13,22 @@
 
 class QString;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class TreeViewControllerBooks final
-	: public AbstractTreeViewController
-	, IDataProvider::IObserver
+    : public AbstractTreeViewController
+    , IDataProvider::IObserver
 {
 	NON_COPY_MOVABLE(TreeViewControllerBooks)
 
 public:
-	TreeViewControllerBooks(
-		std::shared_ptr<ISettings>                  settings,
-		const std::shared_ptr<IModelProvider>&      modelProvider,
-		const std::shared_ptr<const ILogicFactory>& logicFactory,
-		std::shared_ptr<IBookInfoProvider>          dataProvider,
-		std::shared_ptr<const IBookInteractor>      bookInteractor,
-		std::shared_ptr<IAnnotationController>      annotationController,
-		std::shared_ptr<IDatabaseUser>              databaseUser
-	);
+	TreeViewControllerBooks(std::shared_ptr<ISettings> settings,
+		const std::shared_ptr<IModelProvider>&         modelProvider,
+		const std::shared_ptr<const ILogicFactory>&    logicFactory,
+		std::shared_ptr<IBookInfoProvider>             dataProvider,
+		std::shared_ptr<const IBookInteractor>         bookInteractor,
+		std::shared_ptr<IAnnotationController>         annotationController,
+		std::shared_ptr<IDatabaseUser>                 databaseUser);
 	~TreeViewControllerBooks() override;
 
 private: // ITreeViewController

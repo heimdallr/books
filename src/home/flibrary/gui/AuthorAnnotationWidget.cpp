@@ -15,8 +15,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 void UpdateGallerySize(QTableView& view)
 {
@@ -54,18 +53,16 @@ struct GalleryHeightHandler final : QObject
 } // namespace
 
 class AuthorAnnotationWidget::Impl final
-	: IAuthorAnnotationController::IObserver
-	, QAbstractTableModel
+    : IAuthorAnnotationController::IObserver
+    , QAbstractTableModel
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(
-		QFrame*                                      self,
+	Impl(QFrame*                                     self,
 		std::shared_ptr<IAuthorAnnotationController> annotationController,
 		std::shared_ptr<Util::ScrollBarController>   scrollBarControllerText,
-		std::shared_ptr<Util::ScrollBarController>   scrollBarControllerImages
-	)
+		std::shared_ptr<Util::ScrollBarController>   scrollBarControllerImages)
 		: m_self { self }
 		, m_annotationController { std::move(annotationController) }
 		, m_scrollBarControllerText { std::move(scrollBarControllerText) }
@@ -129,8 +126,7 @@ private: // IAuthorAnnotationController::IObserver
 				endResetModel();
 				UpdateGallerySize(*m_ui.gallery);
 				m_ui.gallery->setVisible(!m_images.empty());
-			}
-		);
+			});
 		m_images.clear();
 		std::ranges::transform(images, std::back_inserter(m_images), [](const auto& item) {
 			QPixmap pixmap;
@@ -192,12 +188,10 @@ private:
 	Ui::AuthorAnnotationWidget                                      m_ui {};
 };
 
-AuthorAnnotationWidget::AuthorAnnotationWidget(
-	std::shared_ptr<IAuthorAnnotationController> annotationController,
-	std::shared_ptr<Util::ScrollBarController>   scrollBarControllerText,
-	std::shared_ptr<Util::ScrollBarController>   scrollBarControllerImages,
-	QWidget*                                     parent
-)
+AuthorAnnotationWidget::AuthorAnnotationWidget(std::shared_ptr<IAuthorAnnotationController> annotationController,
+	std::shared_ptr<Util::ScrollBarController>                                              scrollBarControllerText,
+	std::shared_ptr<Util::ScrollBarController>                                              scrollBarControllerImages,
+	QWidget*                                                                                parent)
 	: QFrame(parent)
 	, m_impl(this, std::move(annotationController), std::move(scrollBarControllerText), std::move(scrollBarControllerImages))
 {

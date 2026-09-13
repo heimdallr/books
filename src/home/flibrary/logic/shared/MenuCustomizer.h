@@ -7,8 +7,7 @@
 
 #include "BooksContextMenuProvider.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class MenuCustomizer final : virtual public IMenuCustomizer
 {

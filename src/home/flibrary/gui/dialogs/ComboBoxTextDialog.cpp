@@ -9,8 +9,8 @@
 using namespace HomeCompa::Flibrary;
 
 struct ComboBoxTextDialog::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
 {
 	Ui::ComboBoxTextDialog ui {};
 

@@ -8,8 +8,7 @@
 
 #include "BooksContextMenuProvider.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ImageViewerController final : public IImageViewerController
 {

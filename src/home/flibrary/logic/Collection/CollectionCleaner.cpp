@@ -20,8 +20,7 @@ using namespace HomeCompa::Util::Remove;
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 struct AnalyzedBook
 {
@@ -58,18 +57,17 @@ bool RemoveBooksImpl(const Books& books, DB::ITransaction& transaction, std::uni
 {
 	PLOGI << "Removing database books records started";
 
-	return std::accumulate(
-		books.cbegin(),
+	return std::accumulate(books.cbegin(),
 		books.cend(),
 		true,
 		[&,
-	     progressItem = std::move(progressItem),
-	     command      = transaction.CreateCommand("delete from Books where BookID = ?"),
-	     total        = books.size(),
-	     currentPct   = 0,
-	     lastPct      = 0,
-	     lastPctLog   = 0,
-	     n            = size_t { 0 }](const bool init, const auto& book) mutable {
+			progressItem = std::move(progressItem),
+			command      = transaction.CreateCommand("delete from Books where BookID = ?"),
+			total        = books.size(),
+			currentPct   = 0,
+			lastPct      = 0,
+			lastPctLog   = 0,
+			n            = size_t { 0 }](const bool init, const auto& book) mutable {
 			++n;
 			currentPct = static_cast<int>(100U * n / total);
 			progressItem->Increment(currentPct - lastPct);
@@ -83,8 +81,7 @@ bool RemoveBooksImpl(const Books& books, DB::ITransaction& transaction, std::uni
 
 			command->Bind(0, book.id);
 			return command->Execute() && init;
-		}
-	);
+		});
 }
 
 bool CleanupNavigationItems(DB::ITransaction& transaction)
@@ -92,25 +89,25 @@ bool CleanupNavigationItems(DB::ITransaction& transaction)
 	PLOGI << "Removing database book references records started";
 	constexpr std::pair<const char*, const char*> commands[] {
 		{         "Series_List",               "delete from Series_List where not exists (select 42 from Books where Books.BookID = Series_List.BookID)" },
-		{			  "Series",         "delete from Series where not exists (select 42 from Series_List where Series_List.SeriesID = Series.SeriesID)" },
-		{		  "Genre_List",                 "delete from Genre_List where not exists (select 42 from Books where Books.BookID = Genre_List.BookID)" },
+		{              "Series",         "delete from Series where not exists (select 42 from Series_List where Series_List.SeriesID = Series.SeriesID)" },
+		{          "Genre_List",                 "delete from Genre_List where not exists (select 42 from Books where Books.BookID = Genre_List.BookID)" },
 		{         "Author_List",               "delete from Author_List where not exists (select 42 from Books where Books.BookID = Author_List.BookID)" },
-		{			 "Authors",       "delete from Authors where not exists (select 42 from Author_List where Author_List.AuthorID = Authors.AuthorID)" },
+		{             "Authors",       "delete from Authors where not exists (select 42 from Author_List where Author_List.AuthorID = Authors.AuthorID)" },
 		{        "Keyword_List",             "delete from Keyword_List where not exists (select 42 from Books where Books.BookID = Keyword_List.BookID)" },
-		{			"Keywords", "delete from Keywords where not exists (select 42 from Keyword_List where Keyword_List.KeywordID = Keywords.KeywordID)" },
-		{			 "Reviews",					   "delete from Reviews where not exists (select 42 from Books where Books.BookID = Reviews.BookID)" },
-		{    "Groups_List_User",																				  R"(delete from Groups_List_User where
+		{            "Keywords", "delete from Keywords where not exists (select 42 from Keyword_List where Keyword_List.KeywordID = Keywords.KeywordID)" },
+		{             "Reviews",                       "delete from Reviews where not exists (select 42 from Books where Books.BookID = Reviews.BookID)" },
+		{    "Groups_List_User",                                                                                  R"(delete from Groups_List_User where
 not exists (select 42 from Books b where b.BookID = Groups_List_User.ObjectID) and 
 not exists (select 42 from Authors a where a.AuthorID = Groups_List_User.ObjectID) and 
 not exists (select 42 from Series s where s.SeriesID = Groups_List_User.ObjectID) and 
 not exists (select 42 from Keywords k where k.KeywordID = Groups_List_User.ObjectID))" },
 		{       "Update months", "delete from Updates where ParentID != 0 and not exists (select 42 from Books where Updates.UpdateID = Books.UpdateID)" },
 		{        "Update years",  "delete from Updates where ParentID = 0 and not exists (select 42 from Updates u where u.ParentID = Updates.UpdateID)" },
-		{        "Books_Search",															  "insert into Books_Search(Books_Search) values('rebuild')" },
-		{      "Authors_Search",														  "insert into Authors_Search(Authors_Search) values('rebuild')" },
-		{       "Series_Search",															"insert into Series_Search(Series_Search) values('rebuild')" },
-		{ "Compilations_Search",												"insert into Compilations_Search(Compilations_Search) values('rebuild')" },
-		{  "Annotations_Search",												  "insert into Annotations_Search(Annotations_Search) values('rebuild')" },
+		{        "Books_Search",                                                              "insert into Books_Search(Books_Search) values('rebuild')" },
+		{      "Authors_Search",                                                          "insert into Authors_Search(Authors_Search) values('rebuild')" },
+		{       "Series_Search",                                                            "insert into Series_Search(Series_Search) values('rebuild')" },
+		{ "Compilations_Search",                                                "insert into Compilations_Search(Compilations_Search) values('rebuild')" },
+		{  "Annotations_Search",                                                  "insert into Annotations_Search(Annotations_Search) values('rebuild')" },
 	};
 	return std::accumulate(std::cbegin(commands), std::cend(commands), true, [&](const bool init, const auto& command) {
 		PLOGD << "removing from " << command.first;
@@ -121,12 +118,12 @@ not exists (select 42 from Keywords k where k.KeywordID = Groups_List_User.Objec
 AnalyzedBooks GetAnalyzedBooks(DB::IDatabase& db, const ILibRateProvider& libRateProvider, const ICollectionCleaner::IAnalyzeObserver& observer, const bool hasGenres, const std::atomic_bool& analyzeCanceled)
 {
 	const auto query = db.CreateQuery(QString(SELECT_ANALYZED_BOOKS_QUERY)
-	                                      .arg(hasGenres ? GENRE_FIELD : EMPTY_FIELD)
-	                                      .arg(hasGenres ? GENRE_JOIN : "")
-	                                      .arg(observer.NeedDeleteDuplicates() ? AUTHOR_FIELD : EMPTY_FIELD)
-	                                      .arg(observer.NeedDeleteDuplicates() ? AUTHOR_JOIN : "")
-	                                      .arg(observer.IsPermanently() ? "" : WHERE_NOT_DELETED)
-	                                      .toStdString());
+			.arg(hasGenres ? GENRE_FIELD : EMPTY_FIELD)
+			.arg(hasGenres ? GENRE_JOIN : "")
+			.arg(observer.NeedDeleteDuplicates() ? AUTHOR_FIELD : EMPTY_FIELD)
+			.arg(observer.NeedDeleteDuplicates() ? AUTHOR_JOIN : "")
+			.arg(observer.IsPermanently() ? "" : WHERE_NOT_DELETED)
+			.toStdString());
 
 	AnalyzedBooks analyzedBooks;
 	for (query->Execute(); !query->Eof(); query->Next())
@@ -161,8 +158,8 @@ void RemoveDuplicates(const AnalyzedBooks& analysedBooks, std::unordered_set<lon
 			duplicates[book.title].emplace(QString(book.date).append("/").append(book.file), id);
 
 	for (auto& dup : duplicates | std::views::values | std::views::filter([](const auto& item) {
-						 return item.size() > 1;
-					 }))
+			 return item.size() > 1;
+		 }))
 	{
 		while (!dup.empty())
 		{
@@ -204,23 +201,19 @@ where c.Covered = 1)");
 
 		parts.emplace_back(query->Get<long long>(2), query->Get<int>(3));
 	}
-	std::ranges::copy(
-		compilation | std::views::values | std::views::filter([&](const auto& item) {
-			if (!analyzedBooks.contains(item.first))
-				return false;
+	std::ranges::copy(compilation | std::views::values | std::views::filter([&](const auto& item) {
+		if (!analyzedBooks.contains(item.first))
+			return false;
 
-			std::unordered_set<int> before, after;
-			std::ranges::copy(item.second | std::views::values, std::inserter(before, before.end()));
-			std::ranges::copy(
-				item.second | std::views::filter([&](const auto& pair) {
-					return !toDelete.contains(pair.first);
-				}) | std::views::values,
-				std::inserter(after, after.end())
-			);
-			return before.size() == after.size();
-		}) | std::views::keys,
-		std::inserter(toDelete, toDelete.end())
-	);
+		std::unordered_set<int> before, after;
+		std::ranges::copy(item.second | std::views::values, std::inserter(before, before.end()));
+		std::ranges::copy(item.second | std::views::filter([&](const auto& pair) {
+			return !toDelete.contains(pair.first);
+		}) | std::views::values,
+			std::inserter(after, after.end()));
+		return before.size() == after.size();
+	}) | std::views::keys,
+		std::inserter(toDelete, toDelete.end()));
 }
 
 void RemoveBooksDuplicatedByCompilations(DB::IDatabase& db, const AnalyzedBooks& analyzedBooks, std::unordered_set<long long>& toDelete)
@@ -364,8 +357,7 @@ struct CollectionCleanerLogic::Impl
 				 };
 
 				 return result;
-			 } }
-		);
+			 } });
 	}
 
 	void AnalyzeCancel()
@@ -414,18 +406,15 @@ struct CollectionCleanerLogic::Impl
 				 return [callback = std::move(callback), ok](size_t) {
 					 callback(ok);
 				 };
-			 } }
-		);
+			 } });
 	}
 };
 
-CollectionCleanerLogic::CollectionCleanerLogic(
-	const std::shared_ptr<const ILogicFactory>& logicFactory,
-	std::shared_ptr<const IDatabaseUser>        databaseUser,
-	std::shared_ptr<const ICollectionProvider>  collectionProvider,
-	std::shared_ptr<const ILibRateProvider>     libRateProvider,
-	std::shared_ptr<IMainProgressController>    progressController
-)
+CollectionCleanerLogic::CollectionCleanerLogic(const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const IDatabaseUser>                                                   databaseUser,
+	std::shared_ptr<const ICollectionProvider>                                             collectionProvider,
+	std::shared_ptr<const ILibRateProvider>                                                libRateProvider,
+	std::shared_ptr<IMainProgressController>                                               progressController)
 	: m_impl { std::make_unique<Impl>(logicFactory, std::move(databaseUser), std::move(collectionProvider), std::move(libRateProvider), std::move(progressController)) }
 {
 }

@@ -25,8 +25,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto RECENT_TEMPLATE                  = "ui/AddCollectionDialog/%1";
 constexpr auto NAME                             = "Name";
@@ -83,8 +82,8 @@ QVariant GetDefaultDatabasePath()
 } // namespace
 
 class AddCollectionDialog::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -437,12 +436,10 @@ private:
 	Ui::AddCollectionDialog                                   m_ui {};
 };
 
-AddCollectionDialog::AddCollectionDialog(
-	const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
-	std::shared_ptr<ISettings>                    settings,
-	std::shared_ptr<ICollectionController>        collectionController,
-	std::shared_ptr<const IUiFactory>             uiFactory
-)
+AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
+	std::shared_ptr<ISettings>                                                         settings,
+	std::shared_ptr<ICollectionController>                                             collectionController,
+	std::shared_ptr<const IUiFactory>                                                  uiFactory)
 	: QDialog(parentWidgetProvider->GetWidget())
 	, m_impl(*this, std::move(settings), std::move(collectionController), std::move(uiFactory))
 {

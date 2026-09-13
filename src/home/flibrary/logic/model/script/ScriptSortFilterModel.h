@@ -7,8 +7,7 @@
 
 #include "interface/logic/IModelProvider.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ISourceModelObserver // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -18,8 +17,8 @@ public:
 };
 
 class ScriptSortFilterModel final
-	: public QSortFilterProxyModel
-	, virtual ISourceModelObserver
+    : public QSortFilterProxyModel
+    , virtual ISourceModelObserver
 {
 	NON_COPY_MOVABLE(ScriptSortFilterModel)
 

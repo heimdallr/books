@@ -5,8 +5,7 @@
 
 #include "BaseJokeRequester.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class SimplePicsJokeRequester : public BaseJokeRequester
 {
@@ -27,4 +26,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

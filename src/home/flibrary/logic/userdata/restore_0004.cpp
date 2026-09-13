@@ -14,11 +14,9 @@
 
 #include "restore.h"
 
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
-namespace
-{
+namespace {
 
 struct Book
 {

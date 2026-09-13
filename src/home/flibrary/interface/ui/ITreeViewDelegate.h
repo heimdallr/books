@@ -6,8 +6,7 @@ class QAbstractItemModel;
 class QAbstractItemDelegate;
 class QModelIndex;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ITreeViewDelegate // NOLINT(cppcoreguidelines-special-member-functions)
 {

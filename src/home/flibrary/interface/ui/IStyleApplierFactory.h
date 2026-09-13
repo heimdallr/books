@@ -6,8 +6,7 @@
 
 class QAction;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IStyleApplierFactory // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -18,4 +17,4 @@ public:
 	virtual void                           CheckAction(const std::vector<QAction*>& actions) const = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

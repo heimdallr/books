@@ -64,8 +64,7 @@ private:
 	void Check()
 	{
 		PLOGD << "Check started";
-		std::ranges::any_of(
-			m_hash,
+		std::ranges::any_of(m_hash,
 			[](auto& item) {
 				QCryptographicHash hash(QCryptographicHash::Md5);
 				QFile              file(item.first);
@@ -95,8 +94,7 @@ private:
 				}
 
 				return false;
-			}
-		)
+			})
 			? m_timer.start()
 			: Update();
 	}

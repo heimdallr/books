@@ -2,8 +2,7 @@
 
 #include "BaseJokeRequester.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class SimpleSetupPunchlineJokeRequester : public BaseJokeRequester
 {
@@ -17,4 +16,4 @@ private:
 	const QString m_setupField, m_punchlineField;
 };
 
-}
+} // namespace HomeCompa::Flibrary

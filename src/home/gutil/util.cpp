@@ -10,8 +10,7 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Util
-{
+namespace HomeCompa::Util {
 
 QRect GetGlobalGeometry(const QWidget& widget)
 {
@@ -47,18 +46,16 @@ QMenu& FillTreeContextMenu(QTreeView& view, QMenu& menu)
 		return false;
 	};
 
-	menu.addAction(
-			Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL),
+	menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_COLLAPSE_ALL),
 			[&] {
 				view.collapseAll();
-			}
-	)->setEnabled(has(true));
-	menu.addAction(
-			Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_EXPAND_ALL),
+			})
+		->setEnabled(has(true));
+	menu.addAction(Loc::Tr(Loc::CONTEXT_MENU, Loc::TREE_EXPAND_ALL),
 			[&] {
 				view.expandAll();
-			}
-	)->setEnabled(has(false));
+			})
+		->setEnabled(has(false));
 
 	return menu;
 }

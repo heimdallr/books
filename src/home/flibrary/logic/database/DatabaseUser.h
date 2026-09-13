@@ -9,8 +9,7 @@
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class DatabaseUser : virtual public IDatabaseUser
 {

@@ -11,25 +11,22 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
 class ReactAppRequester final : virtual public IReactAppRequester
 {
 	NON_COPY_MOVABLE(ReactAppRequester)
 
 public:
-	ReactAppRequester(
-		std::shared_ptr<const ISettings>                     settings,
+	ReactAppRequester(std::shared_ptr<const ISettings>       settings,
 		std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 		std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
 		std::shared_ptr<const ICoverCache>                   coverCache,
-		std::shared_ptr<Flibrary::IAnnotationController>     annotationController
-	);
+		std::shared_ptr<Flibrary::IAnnotationController>     annotationController);
 	~ReactAppRequester() override;
 
 private: // IReactAppRequester
-#define OPDS_GET_BOOKS_API_ITEM(NAME) QByteArray NAME(const Parameters& parameters) const override;
+#define OPDS_GET_BOOKS_API_ITEM(NAME) QByteArray NAME(const Parameters &parameters) const override;
 	OPDS_GET_BOOKS_API_ITEMS_X_MACRO
 #undef OPDS_GET_BOOKS_API_ITEM
 
@@ -38,4 +35,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Opds

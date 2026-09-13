@@ -6,8 +6,7 @@
 #include "ParentWidgetProvider.h"
 #include "UiFactory.h"
 
-namespace HomeCompa::Util
-{
+namespace HomeCompa::Util {
 
 void DiGUtil(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermic::Container>& container)
 {
@@ -27,4 +26,4 @@ void DiGUtil(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 		.singleInstance();
 }
 
-}
+} // namespace HomeCompa::Util

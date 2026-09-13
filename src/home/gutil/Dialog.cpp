@@ -16,8 +16,7 @@
 using namespace HomeCompa;
 using namespace Util;
 
-namespace
-{
+namespace {
 
 constexpr auto INPUT_DIALOG_GEOMETRY_KEY = "ui/InputDialog/Geometry";
 
@@ -62,18 +61,14 @@ QMessageBox::StandardButton Dialog::Show(const QMessageBox::Icon icon, const QSt
 	return static_cast<QMessageBox::StandardButton>(msgBox.exec());
 }
 
-#define STANDARD_DIALOG_ITEM(NAME)                                                                                         \
-	NAME##Dialog::NAME##Dialog(std::shared_ptr<IParentWidgetProvider> parentProvider, std::shared_ptr<ISettings> settings) \
-		: Dialog(std::move(parentProvider), std::move(settings))                                                           \
-	{                                                                                                                      \
-	}
+#define STANDARD_DIALOG_ITEM(NAME)                                                                                                                                                                             \
+	NAME##Dialog::NAME##Dialog(std::shared_ptr<IParentWidgetProvider> parentProvider, std::shared_ptr<ISettings> settings) : Dialog(std::move(parentProvider), std::move(settings)) {}
 STANDARD_DIALOG_ITEMS_X_MACRO
 #undef STANDARD_DIALOG_ITEM
 
-#define NO_GET_TEXT(NAME)                                                                                                                                                                \
-	QString NAME##Dialog::GetText(const QString& /*title*/, const QString& /*label*/, const QString& /*text*/, const QStringList& /*comboBoxItems*/, QLineEdit::EchoMode /*mode*/) const \
-	{                                                                                                                                                                                    \
-		throw std::runtime_error("not implemented");                                                                                                                                     \
+#define NO_GET_TEXT(NAME)                                                                                                                                                                                      \
+	QString NAME##Dialog::GetText(const QString & /*title*/, const QString & /*label*/, const QString & /*text*/, const QStringList & /*comboBoxItems*/, QLineEdit::EchoMode /*mode*/) const {                 \
+		throw std::runtime_error("not implemented");                                                                                                                                                           \
 	}
 NO_GET_TEXT(Error)
 NO_GET_TEXT(Info)
@@ -81,11 +76,8 @@ NO_GET_TEXT(Question)
 NO_GET_TEXT(Warning)
 #undef NO_GET_TEXT
 
-#define NO_SHOW(NAME)                                                        \
-	QMessageBox::StandardButton NAME##Dialog::Show(DialogInitializer&) const \
-	{                                                                        \
-		throw std::runtime_error("not implemented");                         \
-	}
+#define NO_SHOW(NAME)                                                                                                                                                                                          \
+	QMessageBox::StandardButton NAME##Dialog::Show(DialogInitializer &) const { throw std::runtime_error("not implemented"); }
 NO_SHOW(InputText)
 #undef NO_SHOW
 

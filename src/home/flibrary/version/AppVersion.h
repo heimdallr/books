@@ -4,8 +4,7 @@ class QString;
 
 #include "export/ver.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 VER_EXPORT QString GetApplicationVersion();
 

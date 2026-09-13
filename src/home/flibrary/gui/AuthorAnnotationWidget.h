@@ -9,8 +9,7 @@
 
 #include "utilgui/ScrollBarController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class AuthorAnnotationWidget : public QFrame
 {
@@ -18,12 +17,10 @@ class AuthorAnnotationWidget : public QFrame
 	NON_COPY_MOVABLE(AuthorAnnotationWidget)
 
 public:
-	AuthorAnnotationWidget(
-		std::shared_ptr<IAuthorAnnotationController> annotationController,
-		std::shared_ptr<Util::ScrollBarController>   scrollBarControllerText,
-		std::shared_ptr<Util::ScrollBarController>   scrollBarControllerImages,
-		QWidget*                                     parent = nullptr
-	);
+	AuthorAnnotationWidget(std::shared_ptr<IAuthorAnnotationController> annotationController,
+		std::shared_ptr<Util::ScrollBarController>                      scrollBarControllerText,
+		std::shared_ptr<Util::ScrollBarController>                      scrollBarControllerImages,
+		QWidget*                                                        parent = nullptr);
 	~AuthorAnnotationWidget() override;
 
 public:
@@ -37,4 +34,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

@@ -9,8 +9,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 Qt::CheckState GetCheckState(const QIdentityProxyModel& model, const QModelIndex& parent)
 {

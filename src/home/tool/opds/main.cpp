@@ -37,8 +37,7 @@ using namespace HomeCompa;
 using namespace HomeCompa::Flibrary;
 using namespace Opds;
 
-namespace
-{
+namespace {
 
 constexpr auto APP_ID = "opds";
 constexpr auto NAME   = "name";
@@ -127,14 +126,12 @@ void SetCollection(const QCommandLineParser& parser, Hypodermic::Container& cont
 	}
 
 	const auto& collections = collectionController->GetCollections();
-	if (const auto it = std::ranges::find(
-			collections,
+	if (const auto it = std::ranges::find(collections,
 			name,
 			[](const auto& collection) {
 				return collection->name;
-			}
-		);
-	    it != collections.end())
+			});
+		it != collections.end())
 	{
 		if (collectionController->ActiveCollectionExists() && (*it)->id == collectionController->GetActiveCollectionId())
 			return;
@@ -175,16 +172,14 @@ int run(int argc, char* argv[])
 	parser.setApplicationDescription(QString("%1 recodes images").arg(APP_ID));
 	parser.addHelpOption();
 	parser.addVersionOption();
-	parser.addOptions(
-		{
-			{ NAME, "Collection name", NAME },
-			{ DB_PATH, "Database path", DB_PATH },
-			{ ARCHIVE_FOLDER, "Archives folder", ARCHIVE_FOLDER },
-			{ ADDITIONAL_FOLDER, "Additional data folder (optional)", ADDITIONAL_FOLDER },
-			{ INPX_PATH, "Index inpx file (optional)", INPX_PATH },
-			{ Constant::OPDS_SERVER_COMMAND_STOP, "Stop server" },
-    }
-	);
+	parser.addOptions({
+		{ NAME, "Collection name", NAME },
+		{ DB_PATH, "Database path", DB_PATH },
+		{ ARCHIVE_FOLDER, "Archives folder", ARCHIVE_FOLDER },
+		{ ADDITIONAL_FOLDER, "Additional data folder (optional)", ADDITIONAL_FOLDER },
+		{ INPX_PATH, "Index inpx file (optional)", INPX_PATH },
+		{ Constant::OPDS_SERVER_COMMAND_STOP, "Stop server" },
+	});
 	parser.process(app);
 
 	NativeEventFilterObserver   nativeEventFilterObserver;
@@ -195,8 +190,7 @@ int run(int argc, char* argv[])
 		},
 		[&] {
 			nativeEventFilter.Unregister(&nativeEventFilterObserver);
-		}
-	);
+		});
 
 	while (true)
 	{

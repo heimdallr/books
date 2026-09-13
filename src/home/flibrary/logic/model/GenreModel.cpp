@@ -14,8 +14,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 using Role = IGenreModel::Role;
 
@@ -164,15 +163,13 @@ private: // QAbstractItemModel
 					[](const auto&) {
 						return true;
 					},
-					value.isValid() ? value.value<std::unordered_set<QString>>() : std::unordered_set<QString> {}
-				);
+					value.isValid() ? value.value<std::unordered_set<QString>>() : std::unordered_set<QString> {});
 			case Role::UncheckAll:
 				return SetChecks(
 					[](const auto&) {
 						return false;
 					},
-					value.isValid() ? value.value<std::unordered_set<QString>>() : std::unordered_set<QString> {}
-				);
+					value.isValid() ? value.value<std::unordered_set<QString>>() : std::unordered_set<QString> {});
 			case Role::RevertChecks:
 				return SetChecks([](const auto& item) {
 					return !item.checked;
@@ -225,8 +222,7 @@ private:
 											 },
 											 [this] {
 												 endResetModel();
-											 }
-										 );
+											 });
 										 m_root = std::move(root);
 										 std::unordered_set checked(std::make_move_iterator(m_checked.begin()), std::make_move_iterator(m_checked.end()));
 										 Enumerate<Genre&>(m_root, [&](Genre& parent, Genre& item) {
@@ -296,8 +292,7 @@ private: // QAbstractItemModel
 					},
 					[this] {
 						END_FILTER_CHANGE;
-					}
-				);
+					});
 
 			default:
 				break;
@@ -313,12 +308,10 @@ private: // QSortFilterProxyModel
 			return true;
 
 		const auto sourceIndex = sourceModel()->index(sourceRow, 0, sourceParent);
-		return sourceModel()->rowCount(sourceIndex) ? std::ranges::any_of(
-														  sourceIndex.data(IGenreModel::Role::ChildrenCodes).toStringList(),
+		return sourceModel()->rowCount(sourceIndex) ? std::ranges::any_of(sourceIndex.data(IGenreModel::Role::ChildrenCodes).toStringList(),
 														  [this](const QString& code) {
 															  return m_visibleGenres.contains(code);
-														  }
-													  )
+														  })
 		                                            : m_visibleGenres.contains(sourceIndex.data(IGenreModel::Role::Code).toString());
 	}
 

@@ -2,8 +2,7 @@
 
 #include "shared/SimpleJokeRequester.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IJokeRequesterFactory;
 
@@ -13,4 +12,4 @@ public:
 	explicit CatFactJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory);
 };
 
-}
+} // namespace HomeCompa::Flibrary

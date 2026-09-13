@@ -30,8 +30,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto ESCALATE_UP        = "Preferences/ReadMark/escalateUpward";
 constexpr auto READ_MARK_COLOR    = "Preferences/ReadMark/color%1";
@@ -80,9 +79,9 @@ QString SizeDelegate(const QVariant& value)
 }
 
 constexpr std::pair<int, TreeViewDelegateBooks::TextDelegate> DELEGATES[] {
-	{	  BookItem::Column::Size,   &SizeDelegate },
+	{      BookItem::Column::Size,   &SizeDelegate },
 	{ BookItem::Column::SeqNumber, &NumberDelegate },
-	{	  BookItem::Column::Year, &NumberDelegate },
+	{      BookItem::Column::Year, &NumberDelegate },
 };
 
 class IBookRenderer // NOLINT(cppcoreguidelines-special-member-functions)
@@ -202,8 +201,8 @@ std::optional<int> GetReadMarkPosition(const ISettings& settings, const QString&
 } // namespace
 
 class TreeViewDelegateBooks::Impl final
-	: public QStyledItemDelegate
-	, public Observable<ITreeViewDelegate::IObserver>
+    : public QStyledItemDelegate
+    , public Observable<ITreeViewDelegate::IObserver>
 {
 public:
 	Impl(const IUiFactory& uiFactory, std::shared_ptr<const ISettings> settings)
@@ -297,8 +296,7 @@ private:
 				},
 				[&] {
 					painter.restore();
-				}
-			);
+				});
 			QPen pen(markColor, *m_readMarkWidth);
 			pen.setCapStyle(Qt::FlatCap);
 			painter.setPen(pen);

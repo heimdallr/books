@@ -6,14 +6,13 @@
 
 class QStackedWidget;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IUiFactory;
 
 class StackedPage
-	: public QWidget
-	, public std::enable_shared_from_this<StackedPage>
+    : public QWidget
+    , public std::enable_shared_from_this<StackedPage>
 {
 	Q_OBJECT
 	NON_COPY_MOVABLE(StackedPage)

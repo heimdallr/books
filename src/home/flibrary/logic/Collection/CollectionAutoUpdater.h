@@ -7,8 +7,7 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/ICollectionUpdateChecker.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class CollectionAutoUpdater final : virtual public ICollectionAutoUpdater
 {
@@ -27,4 +26,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

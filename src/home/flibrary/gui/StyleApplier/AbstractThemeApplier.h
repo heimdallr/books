@@ -2,8 +2,7 @@
 
 #include "AbstractStyleApplier.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class AbstractThemeApplier : public AbstractStyleApplier
 {
@@ -18,4 +17,4 @@ protected:
 	static QString ReadStyleSheet(const QString& fileName);
 };
 
-}
+} // namespace HomeCompa::Flibrary

@@ -2,8 +2,7 @@
 
 class QMenu;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IRecentOpenBookController // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -12,4 +11,4 @@ public:
 	virtual void SetMenu(QMenu* menu)    = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

@@ -2,15 +2,13 @@
 
 #include "fnd/observer.h"
 
-namespace HomeCompa::DB
-{
+namespace HomeCompa::DB {
 
 class IDatabase;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IDatabaseController // NOLINT(cppcoreguidelines-special-member-functions)
 {

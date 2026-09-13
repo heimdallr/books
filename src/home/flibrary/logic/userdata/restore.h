@@ -4,23 +4,20 @@ class QString;
 
 #include "constants/UserData.h"
 
-namespace HomeCompa::DB
-{
+namespace HomeCompa::DB {
 
 class IDatabase;
 
 }
 
-namespace HomeCompa::Util
-{
+namespace HomeCompa::Util {
 
 class IExecutor;
 class XmlAttributes;
 
-}
+} // namespace HomeCompa::Util
 
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 class IRestorer // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -30,4 +27,4 @@ public:
 	virtual void Restore(DB::IDatabase& db) const                                       = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary::UserData

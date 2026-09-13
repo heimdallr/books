@@ -11,13 +11,12 @@
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 constexpr auto RECENT_RELATIVE = "ui/AddCollectionDialog/%1Relative";
 constexpr auto RECENT_VALUE    = "ui/AddCollectionDialog/%1Value";
 
-}
+} // namespace
 
 RelativePathLineEdit::RelativePathLineEdit(QWidget* parent)
 	: QLineEdit(parent)

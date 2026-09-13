@@ -18,8 +18,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto MIN_KEY = "min";
 constexpr auto MAX_KEY = "max";
@@ -34,7 +33,7 @@ std::pair<int, int> CreateFullRange(const QAbstractItemModel& model, const int c
 	return std::make_pair(minVar.toInt() / 1024, (maxVar.toInt() + 1023) / 1024);
 }
 
-}
+} // namespace
 
 class RangeFilterWidget::Impl final : public QObject
 {
@@ -136,12 +135,10 @@ private:
 
 	QByteArray Serialize() const
 	{
-		return QJsonDocument(
-				   QJsonObject {
-					   { MIN_KEY,  m_ui.slider->low() },
-					   { MAX_KEY, m_ui.slider->high() },
-        }
-		)
+		return QJsonDocument(QJsonObject {
+								 { MIN_KEY,  m_ui.slider->low() },
+								 { MAX_KEY, m_ui.slider->high() },
+		})
 		    .toJson(QJsonDocument::Compact);
 	}
 
@@ -195,14 +192,12 @@ private:
 	Ui::RangeFilterWidget m_ui {};
 };
 
-RangeFilterWidget::RangeFilterWidget(
-	const QAbstractItemModel&    model,
-	const int                    column,
-	Callback                     callback,
-	const IParentWidgetProvider& parentWidgetProvider,
-	std::shared_ptr<ISettings>   settings,
-	QWidget*                     parent
-)
+RangeFilterWidget::RangeFilterWidget(const QAbstractItemModel& model,
+	const int                                                  column,
+	Callback                                                   callback,
+	const IParentWidgetProvider&                               parentWidgetProvider,
+	std::shared_ptr<ISettings>                                 settings,
+	QWidget*                                                   parent)
 	: QWidget(parent)
 	, m_impl(this, model, column, std::move(callback), parentWidgetProvider, std::move(settings))
 {

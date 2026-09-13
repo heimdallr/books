@@ -2,8 +2,7 @@
 
 #include "interface/logic/IScriptController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class CommandExecutor final : public IScriptController::ICommandExecutor
 {
@@ -14,4 +13,4 @@ public:
 	bool ExecuteEmbeddedCommand(const IScriptController::Command& command) const override;
 };
 
-}
+} // namespace HomeCompa::Flibrary

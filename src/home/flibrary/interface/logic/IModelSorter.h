@@ -2,8 +2,7 @@
 
 #include <qmetatype.h>
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IModelSorter // NOLINT(cppcoreguidelines-special-member-functions)
 {

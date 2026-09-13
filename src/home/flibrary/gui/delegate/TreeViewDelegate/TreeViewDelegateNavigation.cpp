@@ -20,8 +20,8 @@ using namespace HomeCompa;
 using namespace Flibrary;
 
 class TreeViewDelegateNavigation::Impl final
-	: public QStyledItemDelegate
-	, public Observable<ITreeViewDelegate::IObserver>
+    : public QStyledItemDelegate
+    , public Observable<ITreeViewDelegate::IObserver>
 {
 public:
 	explicit Impl(const IUiFactory& uiFactory)

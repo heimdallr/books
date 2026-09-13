@@ -7,29 +7,25 @@
 
 class QAbstractButton;
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 
 }
 
-namespace HomeCompa::Util
-{
+namespace HomeCompa::Util {
 
 class IUiFactory;
 
 }
 
-namespace Ui
-{
+namespace Ui {
 
 class RelativePathLineEdit;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class RelativePathLineEdit : public QLineEdit
 {

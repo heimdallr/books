@@ -24,11 +24,9 @@
 
 #include "log.h"
 
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
-namespace
-{
+namespace {
 
 constexpr auto CANNOT_WRITE = QT_TRANSLATE_NOOP("UserData", "Cannot write to '%1'");
 
@@ -89,8 +87,12 @@ void BackupUserDataBooks(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 								 "join Folders f on f.FolderID = b.FolderID ";
 
 	static constexpr const char16_t* fields[] = {
-		Constant::UserData::Books::Folder,   Constant::UserData::Books::FileName, Constant::UserData::Books::IsDeleted,
-		Constant::UserData::Books::UserRate, Constant::UserData::Books::Lang,     Constant::UserData::Books::CreatedAt,
+		Constant::UserData::Books::Folder,
+		Constant::UserData::Books::FileName,
+		Constant::UserData::Books::IsDeleted,
+		Constant::UserData::Books::UserRate,
+		Constant::UserData::Books::Lang,
+		Constant::UserData::Books::CreatedAt,
 	};
 
 	const auto query = db.CreateQuery(text);
@@ -125,20 +127,16 @@ void BackupUserDataGroups(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 			group.reset();
 			std::make_unique<ScopedCall>(
 				[&] {
-					xmlWriter.WriteStartElement(
-						Constant::UserData::Groups::GroupNode,
-						XmlAttributes(
-							{
-								{                      QString::fromStdU16String(Constant::TITLE),   currentTitle },
-								{ QString::fromStdU16String(Constant::UserData::Books::CreatedAt), groupCreatedAt },
-                    }
-						)
-					);
+					xmlWriter.WriteStartElement(Constant::UserData::Groups::GroupNode,
+						XmlAttributes({
+							{                      QString::fromStdU16String(Constant::TITLE),   currentTitle },
+							{ QString::fromStdU16String(Constant::UserData::Books::CreatedAt), groupCreatedAt },
+					}));
 				},
 				[&] {
 					xmlWriter.WriteEndElement();
-				}
-			).swap(group);
+				})
+				.swap(group);
 		}
 
 		if (const auto* fileName = query->Get<const char*>(3))
@@ -220,7 +218,11 @@ void BackupUserDataFilter(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 
 constexpr std::pair<const char*, BackupFunction> BACKUPERS[] {
 #define ITEM(NAME) { Constant::UserData::NAME::RootNode, &BackupUserData##NAME }
-	ITEM(Books), ITEM(Groups), ITEM(Searches), ITEM(ExportStat), ITEM(Filter),
+	ITEM(Books),
+	ITEM(Groups),
+	ITEM(Searches),
+	ITEM(ExportStat),
+	ITEM(Filter),
 #undef ITEM
 };
 
@@ -249,31 +251,24 @@ void Backup(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName
 					  },
 					  [&] {
 						  xmlWriter.WriteEndElement();
-					  }
-				  );
+					  });
 				  ScopedCall(
 					  [&] {
-						  xmlWriter.WriteStartElement(
-							  Constant::FlibraryBackupVersion,
-							  XmlAttributes(
-								  {
-									  { QString::fromStdU16String(Constant::VALUE), QString::number(Constant::FlibraryBackupVersionNumber) },
-                          }
-							  )
-						  );
+						  xmlWriter.WriteStartElement(Constant::FlibraryBackupVersion,
+							  XmlAttributes({
+								  { QString::fromStdU16String(Constant::VALUE), QString::number(Constant::FlibraryBackupVersionNumber) },
+						  }));
 					  },
 					  [&] {
 						  xmlWriter.WriteEndElement();
-					  }
-				  );
+					  });
 				  ScopedCall userData(
 					  [&] {
 						  xmlWriter.WriteStartElement(Constant::FlibraryUserData);
 					  },
 					  [&] {
 						  xmlWriter.WriteEndElement();
-					  }
-				  );
+					  });
 				  for (const auto& [name, functor] : BACKUPERS)
 				  {
 					  ScopedCall item(
@@ -282,8 +277,7 @@ void Backup(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName
 						  },
 						  [&] {
 							  xmlWriter.WriteEndElement();
-						  }
-					  );
+						  });
 					  functor(db, xmlWriter);
 				  }
 

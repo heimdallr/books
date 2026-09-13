@@ -7,8 +7,7 @@
 
 #include "QtTypes.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ClickableLabel final : public QLabel
 {

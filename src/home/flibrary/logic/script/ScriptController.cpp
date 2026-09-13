@@ -13,8 +13,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto SCRIPTS                    = "Scripts";
 constexpr auto SCRIPT_KEY_TEMPLATE        = "%1/%2";
@@ -210,10 +209,11 @@ bool ScriptController::InsertCommand(const QString& uid, const int row, const in
 	std::generate_n(std::back_inserter(commands), count, [&, n = it == std::ranges::end(filtered) ? 0 : it->number]() mutable {
 		return Command {
 			{ QUuid::createUuid().toString(QUuid::WithoutBraces), ++n, Mode::Updated },
-            uid, {},
-            {},
-            {},
-            Command::Type::LaunchConsoleApp
+			uid,
+			{},
+			{},
+			{},
+			Command::Type::LaunchConsoleApp
 		};
 	});
 	m_impl->commands.insert(std::next(m_impl->commands.begin(), row), std::make_move_iterator(commands.begin()), std::make_move_iterator(commands.end()));

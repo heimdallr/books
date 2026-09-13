@@ -9,8 +9,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 struct Item
 {
@@ -21,7 +20,7 @@ struct Item
 
 using Stack = std::vector<Item>;
 
-}
+} // namespace
 
 class NavigationUndoRedo::Impl final : public Observable<IObserver>
 {

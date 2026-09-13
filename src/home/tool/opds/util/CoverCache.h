@@ -6,8 +6,7 @@
 
 #include "interface/ICoverCache.h"
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
 class CoverCache final : virtual public ICoverCache
 {
@@ -26,4 +25,4 @@ private:
 	std::unique_ptr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Opds

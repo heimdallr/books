@@ -2,8 +2,7 @@
 
 #include <QString>
 
-namespace HomeCompa::Flibrary::Constant
-{
+namespace HomeCompa::Flibrary::Constant {
 
 constexpr auto UI = "ui";
 

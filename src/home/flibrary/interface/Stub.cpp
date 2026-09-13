@@ -29,11 +29,9 @@
 #include "localization.h"
 #include "log.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
-namespace
-{
+namespace {
 
 int SEQ_NUMBER_WIDTH = 1;
 
@@ -50,9 +48,8 @@ struct MacroTreeItem
 	{
 		if (value.isEmpty())
 			return (children | std::views::transform([&](const auto& item) {
-						return item->Get(macroMap, level + 1);
-					})
-			        | std::ranges::to<QStringList>())
+				return item->Get(macroMap, level + 1);
+			}) | std::ranges::to<QStringList>())
 			    .join("");
 
 		qsizetype shift = 0;
@@ -126,12 +123,9 @@ void SetMacroImpl(QString& str, const std::unordered_map<IScriptController::Macr
 		PLOGW << "bracket balance violation";
 	}
 
-	str = tree.Get(
-		macroValues | std::views::transform([](const auto& item) {
-			return std::make_pair(QString { IScriptController::GetMacro(item.first) }, item.second);
-		})
-		| std::ranges::to<std::unordered_map>()
-	);
+	str = tree.Get(macroValues | std::views::transform([](const auto& item) {
+		return std::make_pair(QString { IScriptController::GetMacro(item.first) }, item.second);
+	}) | std::ranges::to<std::unordered_map>());
 }
 
 QString ApplyMacroSourceFile(DB::IDatabase&, const Util::ExtractedBook&, const QFileInfo&, const QStringList&)
@@ -355,8 +349,8 @@ void ILogicFactory::FillScriptTemplate(DB::IDatabase& db, QString& scriptTemplat
 	const auto      authorNameSplitted = Platform::RemoveIllegalPathCharacters(book.author).split(' ', Qt::SkipEmptyParts);
 	const QFileInfo fileInfo(book.file);
 	SetMacroImpl(scriptTemplate, MACRO_APPLIERS | std::views::transform([&](const auto& item) {
-									 return std::make_pair(item.first, std::invoke(item.second, std::ref(db), std::cref(book), std::cref(fileInfo), std::cref(authorNameSplitted)));
-								 }) | std::ranges::to<std::unordered_map>());
+		return std::make_pair(item.first, std::invoke(item.second, std::ref(db), std::cref(book), std::cref(fileInfo), std::cref(authorNameSplitted)));
+	}) | std::ranges::to<std::unordered_map>());
 }
 
 QString IDatabaseUser::GetDatabaseVersionStatement()
@@ -364,8 +358,7 @@ QString IDatabaseUser::GetDatabaseVersionStatement()
 	return QString("insert or replace into Settings(SettingID, SettingValue) values(%1, %2)").arg(static_cast<int>(Key::DatabaseVersion)).arg(Constant::FlibraryDatabaseVersionNumber);
 }
 
-namespace
-{
+namespace {
 
 constexpr std::pair<IStyleApplier::Type, const char*> TYPES[] {
 #define STYLE_APPLIER_TYPE_ITEM(NAME) { IStyleApplier::Type::NAME, #NAME },
@@ -377,7 +370,7 @@ constexpr std::pair<IStyleApplier::Type, const char*> TYPES[] {
 STYLE_APPLIER_TYPE_ITEMS_X_MACRO
 #undef STYLE_APPLIER_TYPE_ITEM
 
-}
+} // namespace
 
 IStyleApplier::Type IStyleApplier::TypeFromString(const char* name)
 {
@@ -389,8 +382,7 @@ QString IStyleApplier::TypeToString(const Type type)
 	return TYPES[static_cast<size_t>(type)].second;
 }
 
-namespace
-{
+namespace {
 
 constexpr auto ANNOTATION_CONTEXT = "Annotation";
 
@@ -416,8 +408,7 @@ QString IAnnotationController::IStrategy::AddTableRowImpl(const QStringList& val
 		},
 		[&] {
 			str.append("</tr>");
-		}
-	);
+		});
 	for (const auto& value : values)
 	{
 		ScopedCall td(
@@ -426,8 +417,7 @@ QString IAnnotationController::IStrategy::AddTableRowImpl(const QStringList& val
 			},
 			[&] {
 				str.append("</td>");
-			}
-		);
+			});
 		str.append(value);
 	}
 	return str;
@@ -438,8 +428,7 @@ QString IAnnotationController::IStrategy::TableRowsToStringImpl(const QStringLis
 	return values.isEmpty() ? QString {} : QString("<table>%1</table>\n").arg(values.join("\n"));
 }
 
-namespace
-{
+namespace {
 
 constexpr auto AUTHORS     = "Authors";
 constexpr auto AUTHOR_ID   = "AuthorID";
@@ -511,13 +500,11 @@ const IFilterProvider::FilteredNavigation& IFilterProvider::GetFilteredNavigatio
 
 bool IMenuCustomizer::IsHiddenByDefault(const QString& key)
 {
-	return IsOneOf(
-		key,
+	return IsOneOf(key,
 		QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::AllBooks)].first),
 		QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::AlreadyRead)].first),
 		"Book context menu/Hash",
-		"MainWindow/menuBar/menuSettings/actionAllSettings"
-	);
+		"MainWindow/menuBar/menuSettings/actionAllSettings");
 }
 
 } // namespace HomeCompa::Flibrary

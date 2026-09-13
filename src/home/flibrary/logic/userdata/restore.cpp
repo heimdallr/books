@@ -18,8 +18,7 @@
 
 #include "log.h"
 
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 enum class Check
 {
@@ -36,29 +35,27 @@ enum class Check
 
 ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::UserData::Check);
 
-#define RESTORE_ITEMS_X_MACRO   \
-	RESTORE_ITEM(Books, 1)      \
-	RESTORE_ITEM(Books, 2)      \
-	RESTORE_ITEM(Books, 3)      \
-	RESTORE_ITEM(Books, 6)      \
-	RESTORE_ITEM(Groups, 1)     \
-	RESTORE_ITEM(Groups, 3)     \
-	RESTORE_ITEM(Groups, 7)     \
-	RESTORE_ITEM(Searches, 1)   \
-	RESTORE_ITEM(Searches, 3)   \
-	RESTORE_ITEM(Searches, 5)   \
-	RESTORE_ITEM(ExportStat, 4) \
+#define RESTORE_ITEMS_X_MACRO                                                                                                                                                                                  \
+	RESTORE_ITEM(Books, 1)                                                                                                                                                                                     \
+	RESTORE_ITEM(Books, 2)                                                                                                                                                                                     \
+	RESTORE_ITEM(Books, 3)                                                                                                                                                                                     \
+	RESTORE_ITEM(Books, 6)                                                                                                                                                                                     \
+	RESTORE_ITEM(Groups, 1)                                                                                                                                                                                    \
+	RESTORE_ITEM(Groups, 3)                                                                                                                                                                                    \
+	RESTORE_ITEM(Groups, 7)                                                                                                                                                                                    \
+	RESTORE_ITEM(Searches, 1)                                                                                                                                                                                  \
+	RESTORE_ITEM(Searches, 3)                                                                                                                                                                                  \
+	RESTORE_ITEM(Searches, 5)                                                                                                                                                                                  \
+	RESTORE_ITEM(ExportStat, 4)                                                                                                                                                                                \
 	RESTORE_ITEM(Filter, 8)
 
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 #define RESTORE_ITEM(NAME, VERSION) std::unique_ptr<IRestorer> Create##NAME##Restorer##VERSION();
 RESTORE_ITEMS_X_MACRO
 #undef RESTORE_ITEM
 
-namespace
-{
+namespace {
 
 constexpr auto FLIBRARY_BACKUP                       = u"FlibraryBackup";
 constexpr auto FLIBRARY_BACKUP_VERSION               = u"FlibraryBackup/FlibraryBackupVersion";
@@ -116,8 +113,8 @@ private: // Util::SaxParser
 		using ParseElementFunction = bool (XmlParser::*)(const QString&, const Util::XmlAttributes&);
 		using ParseElementItem     = std::pair<const char16_t*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
-			{					   FLIBRARY_BACKUP,             &XmlParser::OnStartElementFlibraryBackup },
-			{			   FLIBRARY_BACKUP_VERSION,      &XmlParser::OnStartElementFlibraryBackupVersion },
+			{                       FLIBRARY_BACKUP,             &XmlParser::OnStartElementFlibraryBackup },
+			{               FLIBRARY_BACKUP_VERSION,      &XmlParser::OnStartElementFlibraryBackupVersion },
 			{             FLIBRARY_BACKUP_USER_DATA,     &XmlParser::OnStartElementFlibraryBackupUserData },
 			{       FLIBRARY_BACKUP_USER_DATA_BOOKS, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
 			{      FLIBRARY_BACKUP_USER_DATA_GROUPS, &XmlParser::OnStartElementFlibraryBackupUserDataItem },

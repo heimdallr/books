@@ -9,8 +9,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT            = "UserData";
 constexpr auto SELECT_EXPORT_FILE = QT_TRANSLATE_NOOP("UserData", "Specify a file to export user data");
@@ -22,15 +21,14 @@ constexpr auto EXPORT_SUCCESS     = QT_TRANSLATE_NOOP("UserData", "User data suc
 constexpr auto DIALOG_KEY         = "Backup";
 TR_DEF
 
-}
+} // namespace
 
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 void Restore(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName, Callback callback);
 void ImportFromMyHomeLib(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName, Callback callback);
 
-}
+} // namespace HomeCompa::Flibrary::UserData
 
 UserDataController::UserDataController(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<IUiFactory> uiFactory)
 	: m_databaseUser(std::move(databaseUser))

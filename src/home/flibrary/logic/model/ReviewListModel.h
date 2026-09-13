@@ -6,8 +6,7 @@
 
 #include "ListModel.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ReviewListModel : public ListModel
 {

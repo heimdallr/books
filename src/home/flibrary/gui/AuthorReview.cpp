@@ -11,20 +11,18 @@
 using namespace HomeCompa::Flibrary;
 
 class AuthorReview::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(
-		StackedPage&                               self,
+	Impl(StackedPage&                              self,
 		const IUiFactory&                          uiFactory,
 		const IModelProvider&                      modelProvider,
 		std::shared_ptr<const IBookInteractor>     bookInteractor,
 		std::shared_ptr<ISettings>                 settings,
-		std::shared_ptr<Util::ScrollBarController> scrollBarController
-	)
+		std::shared_ptr<Util::ScrollBarController> scrollBarController)
 		: GeometryRestorable(*this, std::move(settings), "AuthorReview")
 		, GeometryRestorableObserver(self)
 		, m_model { modelProvider.CreateAuthorReviewModel() }
@@ -58,14 +56,12 @@ private:
 	Ui::AuthorReview                                              m_ui;
 };
 
-AuthorReview::AuthorReview(
-	const std::shared_ptr<const IUiFactory>&     uiFactory,
-	const std::shared_ptr<const IModelProvider>& modelProvider,
-	std::shared_ptr<const IBookInteractor>       bookInteractor,
-	std::shared_ptr<ISettings>                   settings,
-	std::shared_ptr<Util::ScrollBarController>   scrollBarController,
-	QWidget*                                     parent
-)
+AuthorReview::AuthorReview(const std::shared_ptr<const IUiFactory>& uiFactory,
+	const std::shared_ptr<const IModelProvider>&                    modelProvider,
+	std::shared_ptr<const IBookInteractor>                          bookInteractor,
+	std::shared_ptr<ISettings>                                      settings,
+	std::shared_ptr<Util::ScrollBarController>                      scrollBarController,
+	QWidget*                                                        parent)
 	: StackedPage(*uiFactory, parent)
 	, m_impl(*this, *uiFactory, *modelProvider, std::move(bookInteractor), std::move(settings), std::move(scrollBarController))
 {

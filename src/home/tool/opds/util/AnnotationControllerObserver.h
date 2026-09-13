@@ -3,8 +3,7 @@
 
 #include "interface/logic/IAnnotationController.h"
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
 class AnnotationControllerObserver : public Flibrary::IAnnotationController::IObserver
 {

@@ -14,8 +14,7 @@
 
 class QString;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 enum class NavigationMode;
 
@@ -63,11 +62,10 @@ public:
 	static constexpr auto GetDescriptions()
 	{
 		return std::views::iota(size_t { 0 }, static_cast<size_t>(NavigationMode::Last)) | std::views::transform([](const auto index) {
-				   return GetFilteredNavigationDescription(static_cast<NavigationMode>(index));
-			   })
-		     | std::views::filter([](const auto& description) {
-				   return !!description.table;
-			   });
+			return GetFilteredNavigationDescription(static_cast<NavigationMode>(index));
+		}) | std::views::filter([](const auto& description) {
+			return !!description.table;
+		});
 	}
 
 public:

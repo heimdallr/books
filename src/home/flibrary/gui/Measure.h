@@ -2,8 +2,7 @@
 
 #include <QObject>
 
-namespace HomeCompa::Flibrary::Measure
-{
+namespace HomeCompa::Flibrary::Measure {
 
 QString GetSize(qulonglong size);
 

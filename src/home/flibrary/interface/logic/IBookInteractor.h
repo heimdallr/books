@@ -1,7 +1,6 @@
 #pragma once
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IBookInteractor // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -14,4 +13,4 @@ public:
 	virtual void OnRecentBookMenuTriggered(long long bookId) const = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

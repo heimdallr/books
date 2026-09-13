@@ -11,8 +11,7 @@
 
 class QMenu;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IBooksModelControllerObserver;
 
@@ -36,4 +35,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

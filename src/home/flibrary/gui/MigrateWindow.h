@@ -11,12 +11,11 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class MigrateWindow final
-	: public QListView
-	, virtual public IMigrateWindow
+    : public QListView
+    , virtual public IMigrateWindow
 {
 	Q_OBJECT
 	NON_COPY_MOVABLE(MigrateWindow)
@@ -33,4 +32,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

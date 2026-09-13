@@ -1,7 +1,6 @@
 #pragma once
 
-namespace HomeCompa::Flibrary::Constant::Settings
-{
+namespace HomeCompa::Flibrary::Constant::Settings {
 
 constexpr auto LOCALE_KEY = "ui/locale";
 

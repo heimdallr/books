@@ -37,8 +37,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT           = "Annotation";
 constexpr auto KEYWORDS_FB2      = QT_TRANSLATE_NOOP("Annotation", "Keywords: %1");
@@ -287,11 +286,11 @@ void SortReviews(IAnnotationController::IDataProvider::Reviews& reviews)
 }
 
 constexpr std::pair<const char*, void (*)(IAnnotationController::IDataProvider::Reviews&)> REVIEW_SORTERS[] {
-	{		 "Time",    &SortReviews<std::less<QDateTime>, TimeProj<IAnnotationController::IDataProvider::Review>> },
+	{         "Time",    &SortReviews<std::less<QDateTime>, TimeProj<IAnnotationController::IDataProvider::Review>> },
 	{     "TimeDesc", &SortReviews<std::greater<QDateTime>, TimeProj<IAnnotationController::IDataProvider::Review>> },
 	{     "Reviewer",      &SortReviews<std::less<QString>, NameProj<IAnnotationController::IDataProvider::Review>> },
 	{ "ReviewerDesc",   &SortReviews<std::greater<QString>, NameProj<IAnnotationController::IDataProvider::Review>> },
-	{		 "Text",      &SortReviews<std::less<QString>, TextProj<IAnnotationController::IDataProvider::Review>> },
+	{         "Text",      &SortReviews<std::less<QString>, TextProj<IAnnotationController::IDataProvider::Review>> },
 	{     "TextDesc",   &SortReviews<std::greater<QString>, TextProj<IAnnotationController::IDataProvider::Review>> },
 };
 constexpr auto REVIEW_SORTER_DEFAULT = REVIEW_SORTERS[0].second;
@@ -301,23 +300,21 @@ constexpr auto REVIEW_SORTER_DEFAULT = REVIEW_SORTERS[0].second;
 ENABLE_BITMASK_OPERATORS(Ready);
 
 class AnnotationController::Impl final
-	: public Observable<IObserver>
-	, public IDataProvider
-	, IProgressController::IObserver
-	, IJokeRequester::IClient
-	, IFilterProvider::IObserver
+    : public Observable<IObserver>
+    , public IDataProvider
+    , IProgressController::IObserver
+    , IJokeRequester::IClient
+    , IFilterProvider::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(
-		const std::shared_ptr<const ILogicFactory>&  logicFactory,
+	Impl(const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const ISettings>             settings,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
 		std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
 		std::shared_ptr<const IDatabaseUser>         databaseUser,
-		std::shared_ptr<IFilterProvider>             filterProvider
-	)
+		std::shared_ptr<IFilterProvider>             filterProvider)
 		: m_logicFactory { logicFactory }
 		, m_settings { std::move(settings) }
 		, m_collectionProvider { std::move(collectionProvider) }
@@ -568,16 +565,14 @@ private:
 		if (!db || m_currentBookId.isEmpty())
 			return;
 
-		m_databaseUser->Execute(
-			{ "Get database book info",
-		      [&, db = std::move(db), id = m_currentBookId.toLongLong()] {
-				  return [this, book = CreateBook(*db, id)](size_t) mutable {
-					  if (book->GetId() == m_currentBookId)
-						  ExtractInfo(std::move(book));
-				  };
-			  } },
-			3
-		);
+		m_databaseUser->Execute({ "Get database book info",
+									[&, db = std::move(db), id = m_currentBookId.toLongLong()] {
+										return [this, book = CreateBook(*db, id)](size_t) mutable {
+											if (book->GetId() == m_currentBookId)
+												ExtractInfo(std::move(book));
+										};
+									} },
+			3);
 	}
 
 	void ExtractInfo(IDataItem::Ptr book)
@@ -616,85 +611,84 @@ private:
 	{
 		m_databaseUser->Execute(
 			{ "Get database book additional info",
-		      [this, book = std::move(book)]() mutable {
-				  const auto db       = m_databaseUser->Database();
-				  const auto bookId   = book->GetId().toLongLong();
-				  auto       series   = CreateDictionary(*db, std::format(SERIES_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSeriesItem);
-				  auto       authors  = CreateDictionary(*db, std::format(AUTHORS_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateFullAuthorItem);
-				  auto       genres   = CreateDictionary(*db, std::format(GENRES_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSimpleListItem);
-				  auto       groups   = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
-				  auto       keywords = CreateDictionary(*db, std::format(KEYWORDS_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSimpleListItem);
-				  auto       folder   = CreateDictionary(*db, FOLDER_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
-				  auto       update   = CreateDictionary(*db, UPDATE_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
+				[this, book = std::move(book)]() mutable {
+					const auto db       = m_databaseUser->Database();
+					const auto bookId   = book->GetId().toLongLong();
+					auto       series   = CreateDictionary(*db, std::format(SERIES_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSeriesItem);
+					auto       authors  = CreateDictionary(*db, std::format(AUTHORS_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateFullAuthorItem);
+					auto       genres   = CreateDictionary(*db, std::format(GENRES_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSimpleListItem);
+					auto       groups   = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
+					auto       keywords = CreateDictionary(*db, std::format(KEYWORDS_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSimpleListItem);
+					auto       folder   = CreateDictionary(*db, FOLDER_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
+					auto       update   = CreateDictionary(*db, UPDATE_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
 
-				  ExportStatistics exportStatistics;
-				  {
-					  std::unordered_map<ExportStat::Type, std::vector<QDateTime>> exportStatisticsBuffer;
+					ExportStatistics exportStatistics;
+					{
+						std::unordered_map<ExportStat::Type, std::vector<QDateTime>> exportStatisticsBuffer;
 
-					  const auto query = db->CreateQuery("select ExportType, CreatedAt from Export_List_User where BookID = ?");
-					  for (query->Bind(0, bookId), query->Execute(); !query->Eof(); query->Next())
-						  exportStatisticsBuffer[static_cast<ExportStat::Type>(query->Get<int>(0))].emplace_back(QDateTime::fromString(query->Get<const char*>(1), Qt::ISODate));
-					  std::ranges::move(exportStatisticsBuffer, std::back_inserter(exportStatistics));
-				  }
+						const auto query = db->CreateQuery("select ExportType, CreatedAt from Export_List_User where BookID = ?");
+						for (query->Bind(0, bookId), query->Execute(); !query->Eof(); query->Next())
+							exportStatisticsBuffer[static_cast<ExportStat::Type>(query->Get<int>(0))].emplace_back(QDateTime::fromString(query->Get<const char*>(1), Qt::ISODate));
+						std::ranges::move(exportStatisticsBuffer, std::back_inserter(exportStatistics));
+					}
 
-				  const auto singleQuery = [&](const std::string_view queryText) -> QString {
-					  const auto query = db->CreateQuery(queryText);
-					  query->Bind(0, bookId);
-					  query->Execute();
-					  return query->Eof() ? QString {} : QString { query->Get<const char*>(0) };
-				  };
+					const auto singleQuery = [&](const std::string_view queryText) -> QString {
+						const auto query = db->CreateQuery(queryText);
+						query->Bind(0, bookId);
+						query->Execute();
+						return query->Eof() ? QString {} : QString { query->Get<const char*>(0) };
+					};
 
-				  auto sourceLib  = singleQuery("select b.SourceLib from Books b where b.BookID = ?");
-				  auto annotation = singleQuery("select Text from Annotations where BookID = ?");
+					auto sourceLib  = singleQuery("select b.SourceLib from Books b where b.BookID = ?");
+					auto annotation = singleQuery("select Text from Annotations where BookID = ?");
 
-				  if (!IsOneOf(m_navigationMode, NavigationMode::Unknown, NavigationMode::History))
-				  {
-					  const auto tr = db->CreateTransaction();
-					  tr->CreateCommand(std::format("INSERT OR REPLACE INTO {} (BookID, CreatedAt) VALUES ({}, datetime('now', 'localtime'))", m_historyTableName, book->GetId().toStdString()))->Execute();
-					  if (m_historyWriteCounter && ++m_historyWriteCounter > 10)
-					  {
-						  m_historyWriteCounter = 0;
-						  tr->CreateCommand("analyze")->Execute();
-					  }
-					  tr->Commit();
-				  }
+					if (!IsOneOf(m_navigationMode, NavigationMode::Unknown, NavigationMode::History))
+					{
+						const auto tr = db->CreateTransaction();
+						tr->CreateCommand(std::format("INSERT OR REPLACE INTO {} (BookID, CreatedAt) VALUES ({}, datetime('now', 'localtime'))", m_historyTableName, book->GetId().toStdString()))->Execute();
+						if (m_historyWriteCounter && ++m_historyWriteCounter > 10)
+						{
+							m_historyWriteCounter = 0;
+							tr->CreateCommand("analyze")->Execute();
+						}
+						tr->Commit();
+					}
 
-				  return [this,
-			              book             = std::move(book),
-			              series           = std::move(series),
-			              authors          = std::move(authors),
-			              genres           = std::move(genres),
-			              groups           = std::move(groups),
-			              keywords         = std::move(keywords),
-			              exportStatistics = std::move(exportStatistics),
-			              folder           = std::move(folder),
-			              update           = std::move(update),
-			              sourceLib        = std::move(sourceLib),
-			              annotation       = std::move(annotation),
-			              reviews          = CollectReviews(*db, bookId)](size_t) mutable {
-					  if (book->GetId() != m_currentBookId)
-						  return;
+					return [this,
+							   book             = std::move(book),
+							   series           = std::move(series),
+							   authors          = std::move(authors),
+							   genres           = std::move(genres),
+							   groups           = std::move(groups),
+							   keywords         = std::move(keywords),
+							   exportStatistics = std::move(exportStatistics),
+							   folder           = std::move(folder),
+							   update           = std::move(update),
+							   sourceLib        = std::move(sourceLib),
+							   annotation       = std::move(annotation),
+							   reviews          = CollectReviews(*db, bookId)](size_t) mutable {
+						if (book->GetId() != m_currentBookId)
+							return;
 
-					  m_book              = std::move(book);
-					  m_series            = std::move(series);
-					  m_authors           = std::move(authors);
-					  m_genres            = std::move(genres);
-					  m_groups            = std::move(groups);
-					  m_keywords          = std::move(keywords);
-					  m_exportStatistics  = std::move(exportStatistics);
-					  m_folder            = std::move(folder);
-					  m_update            = std::move(update);
-					  m_sourceLib         = std::move(sourceLib);
-					  m_annotation        = std::move(annotation);
-					  m_reviews           = std::move(reviews);
-					  m_ready            |= Ready::Database;
+						m_book              = std::move(book);
+						m_series            = std::move(series);
+						m_authors           = std::move(authors);
+						m_genres            = std::move(genres);
+						m_groups            = std::move(groups);
+						m_keywords          = std::move(keywords);
+						m_exportStatistics  = std::move(exportStatistics);
+						m_folder            = std::move(folder);
+						m_update            = std::move(update);
+						m_sourceLib         = std::move(sourceLib);
+						m_annotation        = std::move(annotation);
+						m_reviews           = std::move(reviews);
+						m_ready            |= Ready::Database;
 
-					  if (m_ready == Ready::All)
-						  Perform(&IAnnotationController::IObserver::OnAnnotationChanged, std::cref(*this));
-				  };
-			  } },
-			3
-		);
+						if (m_ready == Ready::All)
+							Perform(&IAnnotationController::IObserver::OnAnnotationChanged, std::cref(*this));
+					};
+				} },
+			3);
 	}
 
 	Reviews CollectReviews(DB::IDatabase& db, const long long bookId) const
@@ -834,14 +828,12 @@ private:
 	size_t            m_historyWriteCounter { 1 };
 };
 
-AnnotationController::AnnotationController(
-	const std::shared_ptr<const ILogicFactory>&  logicFactory,
-	std::shared_ptr<const ISettings>             settings,
-	std::shared_ptr<const ICollectionProvider>   collectionProvider,
-	std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
-	std::shared_ptr<const IDatabaseUser>         databaseUser,
-	std::shared_ptr<IFilterProvider>             filterProvider
-)
+AnnotationController::AnnotationController(const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const ISettings>                                                   settings,
+	std::shared_ptr<const ICollectionProvider>                                         collectionProvider,
+	std::shared_ptr<const IJokeRequesterFactory>                                       jokeRequesterFactory,
+	std::shared_ptr<const IDatabaseUser>                                               databaseUser,
+	std::shared_ptr<IFilterProvider>                                                   filterProvider)
 	: m_impl(logicFactory, std::move(settings), std::move(collectionProvider), std::move(jokeRequesterFactory), std::move(databaseUser), std::move(filterProvider))
 {
 	PLOGV << "AnnotationController created";
@@ -894,10 +886,8 @@ QString AnnotationController::CreateAnnotation(const IDataProvider& dataProvider
 	{
 		auto info = Table(strategy).Add(FILENAME, book.GetRawData(BookItem::Column::FileName)).Add(SOURCE_LIBRARY, dataProvider.GetSourceLibrary());
 		if (dataProvider.GetTextSize() > 0)
-			info.Add(
-				BOOK_SIZE,
-				Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000ULL, -2))).arg(Round(dataProvider.GetWordCount(), -3))
-			);
+			info.Add(BOOK_SIZE,
+				Tr(TEXT_SIZE).arg(dataProvider.GetTextSize()).arg(QChar(0x2248)).arg(std::max(1ULL, Round(dataProvider.GetTextSize() / 2000ULL, -2))).arg(Round(dataProvider.GetWordCount(), -3)));
 		info.Add(Loc::RATE, strategy.GenerateLibRateStars(book.GetRawData(BookItem::Column::LibRate).toInt()));
 		info.Add(Loc::USER_RATE, strategy.GenerateUserRateStars(book.GetRawData(BookItem::Column::UserRate).toInt()));
 

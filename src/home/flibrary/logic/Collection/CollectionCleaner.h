@@ -10,20 +10,17 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class CollectionCleanerLogic final : public ICollectionCleaner
 {
 	NON_COPY_MOVABLE(CollectionCleanerLogic)
 public:
-	CollectionCleanerLogic(
-		const std::shared_ptr<const ILogicFactory>& logicFactory,
-		std::shared_ptr<const IDatabaseUser>        databaseUser,
-		std::shared_ptr<const ICollectionProvider>  collectionProvider,
-		std::shared_ptr<const ILibRateProvider>     libRateProvider,
-		std::shared_ptr<IMainProgressController>    progressController
-	);
+	CollectionCleanerLogic(const std::shared_ptr<const ILogicFactory>& logicFactory,
+		std::shared_ptr<const IDatabaseUser>                           databaseUser,
+		std::shared_ptr<const ICollectionProvider>                     collectionProvider,
+		std::shared_ptr<const ILibRateProvider>                        libRateProvider,
+		std::shared_ptr<IMainProgressController>                       progressController);
 	~CollectionCleanerLogic() override;
 
 private: // ICollectionCleaner
@@ -38,4 +35,4 @@ private:
 	std::unique_ptr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

@@ -6,15 +6,13 @@
 
 #include "interface/logic/ILogicFactory.h"
 
-namespace Hypodermic
-{
+namespace Hypodermic {
 
 class Container;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class LogicFactory final : virtual public ILogicFactory
 {

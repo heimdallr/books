@@ -6,15 +6,13 @@
 
 #include "interface/logic/ICollectionProvider.h"
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 struct CollectionImpl : Collection
 {
@@ -31,4 +29,4 @@ struct CollectionImpl : Collection
 	static void Remove(ISettings& settings, const QString& uid);
 };
 
-}
+} // namespace HomeCompa::Flibrary

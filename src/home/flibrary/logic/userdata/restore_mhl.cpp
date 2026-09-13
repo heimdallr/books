@@ -20,11 +20,9 @@
 
 #include "log.h"
 
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
-namespace
-{
+namespace {
 
 class ZDecompressionStream final : public QIODevice
 {
@@ -168,12 +166,8 @@ private:
 				command->Bind(1, rate);
 				command->Execute();
 			}
-			tr->CreateCommand(
-				  std::format(
-					  "insert into Books_User(BookID, UserRate, CreatedAt) select b.BookID, t.UserRate, datetime('now', 'localtime') from Books b join {} t on t.LibID = b.LibID",
-					  tmpBooksUser->GetTableName()
-				  )
-			)
+			tr->CreateCommand(std::format("insert into Books_User(BookID, UserRate, CreatedAt) select b.BookID, t.UserRate, datetime('now', 'localtime') from Books b join {} t on t.LibID = b.LibID",
+								  tmpBooksUser->GetTableName()))
 				->Execute();
 		}
 		{
@@ -199,12 +193,8 @@ private:
 					command->Bind(1, group.id);
 					command->Execute();
 				}
-			tr->CreateCommand(
-				  std::format(
-					  "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) select t.GroupID, b.BookID, datetime('now', 'localtime') from Books b join {} t on t.LibID = b.LibID",
-					  tmpGroupsListUser->GetTableName()
-				  )
-			)
+			tr->CreateCommand(std::format("insert into Groups_List_User(GroupID, ObjectID, CreatedAt) select t.GroupID, b.BookID, datetime('now', 'localtime') from Books b join {} t on t.LibID = b.LibID",
+								  tmpGroupsListUser->GetTableName()))
 				->Execute();
 		}
 		tr->Commit();

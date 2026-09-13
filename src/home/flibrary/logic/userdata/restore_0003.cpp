@@ -17,11 +17,7 @@
 
 #include "restore.h"
 
-namespace HomeCompa::Flibrary::UserData
-{
-
-namespace
-{
+namespace HomeCompa::Flibrary::UserData { namespace {
 
 struct Book
 {
@@ -39,16 +35,15 @@ struct Book
 
 using Books = std::vector<Book>;
 
-#define ADDITIONAL_BOOK_FIELDS_X_MACRO \
-	ADDITIONAL_BOOK_FIELD(IsDeleted)   \
-	ADDITIONAL_BOOK_FIELD(UserRate)    \
+#define ADDITIONAL_BOOK_FIELDS_X_MACRO                                                                                                                                                                         \
+	ADDITIONAL_BOOK_FIELD(IsDeleted)                                                                                                                                                                           \
+	ADDITIONAL_BOOK_FIELD(UserRate)                                                                                                                                                                            \
 	ADDITIONAL_BOOK_FIELD(CreatedAt)
 
 struct FieldNo
 {
 	enum
 	{
-
 #define ADDITIONAL_BOOK_FIELD(NAME) NAME,
 		ADDITIONAL_BOOK_FIELDS_X_MACRO
 #undef ADDITIONAL_BOOK_FIELD
@@ -254,12 +249,9 @@ private:
 	std::vector<Created> m_items;
 };
 
-} // namespace
+}} // namespace HomeCompa::Flibrary::UserData
 
-} // namespace HomeCompa::Flibrary::UserData
-
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 std::unique_ptr<IRestorer> CreateBooksRestorer3()
 {
@@ -276,4 +268,4 @@ std::unique_ptr<IRestorer> CreateSearchesRestorer3()
 	return std::make_unique<SearchesRestorer>();
 }
 
-}
+} // namespace HomeCompa::Flibrary::UserData

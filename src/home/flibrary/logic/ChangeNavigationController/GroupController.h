@@ -12,8 +12,7 @@
 
 class QString;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class GroupController
 {

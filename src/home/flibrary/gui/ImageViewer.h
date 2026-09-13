@@ -15,8 +15,7 @@
 #include "ProgressBar.h"
 #include "StackedPage.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ImageViewer final : public StackedPage
 {
@@ -27,16 +26,14 @@ signals:
 	void ValueGeometryChanged(const QRect& geometry) const;
 
 public:
-	ImageViewer(
-		std::shared_ptr<const IUiFactory>          uiFactory,
+	ImageViewer(std::shared_ptr<const IUiFactory>  uiFactory,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IImageViewerController>    imageViewerController,
 		std::shared_ptr<IMenuCustomizer>           menuCustomizer,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController,
 		std::shared_ptr<ProgressBar>               progressBar,
-		QWidget*                                   parent = nullptr
-	);
+		QWidget*                                   parent = nullptr);
 	~ImageViewer() override;
 
 private:
@@ -44,4 +41,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

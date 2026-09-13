@@ -13,8 +13,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT               = "SearchController";
 constexpr auto INPUT_NEW_SEARCH      = QT_TRANSLATE_NOOP("SearchController", "Search books");
@@ -66,12 +65,10 @@ struct SearchController::Impl
 	std::shared_ptr<const IUiFactory>                            uiFactory;
 	const QString                                                currentCollectionId;
 
-	explicit Impl(
-		const ICollectionController&              collectionController,
+	explicit Impl(const ICollectionController&    collectionController,
 		std::shared_ptr<const IDatabaseUser>      databaseUser,
 		std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
-		std::shared_ptr<const IUiFactory>         uiFactory
-	)
+		std::shared_ptr<const IUiFactory>         uiFactory)
 		: databaseUser { std::move(databaseUser) }
 		, navigationQueryExecutor { std::move(navigationQueryExecutor) }
 		, uiFactory { std::move(uiFactory) }
@@ -166,12 +163,10 @@ struct SearchController::Impl
 	}
 };
 
-SearchController::SearchController(
-	const std::shared_ptr<const ICollectionController>& collectionController,
-	std::shared_ptr<IDatabaseUser>                      databaseUser,
-	std::shared_ptr<INavigationQueryExecutor>           navigationQueryExecutor,
-	std::shared_ptr<IUiFactory>                         uiFactory
-)
+SearchController::SearchController(const std::shared_ptr<const ICollectionController>& collectionController,
+	std::shared_ptr<IDatabaseUser>                                                     databaseUser,
+	std::shared_ptr<INavigationQueryExecutor>                                          navigationQueryExecutor,
+	std::shared_ptr<IUiFactory>                                                        uiFactory)
 	: m_impl(*collectionController, std::move(databaseUser), std::move(navigationQueryExecutor), std::move(uiFactory))
 {
 	PLOGV << "SearchController created";

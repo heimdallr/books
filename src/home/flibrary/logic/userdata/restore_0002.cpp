@@ -13,11 +13,7 @@
 
 #include "restore.h"
 
-namespace HomeCompa::Flibrary::UserData
-{
-
-namespace
-{
+namespace HomeCompa::Flibrary::UserData { namespace {
 
 struct Book
 {
@@ -93,16 +89,13 @@ private:
 	Items m_items;
 };
 
-} // namespace
+}} // namespace HomeCompa::Flibrary::UserData
 
-} // namespace HomeCompa::Flibrary::UserData
-
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 std::unique_ptr<IRestorer> CreateBooksRestorer2()
 {
 	return std::make_unique<BooksRestorer>();
 }
 
-}
+} // namespace HomeCompa::Flibrary::UserData

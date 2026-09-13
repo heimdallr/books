@@ -24,8 +24,7 @@
 using namespace HomeCompa;
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT       = "ImageViewer";
 constexpr auto SELECT_FOLDER = QT_TRANSLATE_NOOP("ImageViewer", "Select images folder");
@@ -66,25 +65,23 @@ private:
 } // namespace
 
 class ImageViewer::Impl final
-	: public QObject
-	, Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
-	, IImageViewerController::IObserver
-	, IUiFactory::IChangeSizeWidgetObserver
+    : public QObject
+    , Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
+    , IImageViewerController::IObserver
+    , IUiFactory::IChangeSizeWidgetObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(
-		ImageViewer&                               self,
+	Impl(ImageViewer&                              self,
 		std::shared_ptr<const IUiFactory>          uiFactory,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IImageViewerController>    imageViewerController,
 		std::shared_ptr<IMenuCustomizer>           menuCustomizer,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController,
-		std::shared_ptr<ProgressBar>               progressBar
-	)
+		std::shared_ptr<ProgressBar>               progressBar)
 		: GeometryRestorable(*this, settings, CONTEXT)
 		, GeometryRestorableObserver(self)
 		, m_self { self }
@@ -288,27 +285,23 @@ private:
 	QImage m_currentImage;
 };
 
-ImageViewer::ImageViewer(
-	std::shared_ptr<const IUiFactory>          uiFactory,
-	std::shared_ptr<ISettings>                 settings,
-	std::shared_ptr<IImageViewerController>    imageViewerController,
-	std::shared_ptr<IMenuCustomizer>           menuCustomizer,
-	std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
-	std::shared_ptr<Util::ScrollBarController> scrollBarController,
-	std::shared_ptr<ProgressBar>               progressBar,
-	QWidget*                                   parent
-)
+ImageViewer::ImageViewer(std::shared_ptr<const IUiFactory> uiFactory,
+	std::shared_ptr<ISettings>                             settings,
+	std::shared_ptr<IImageViewerController>                imageViewerController,
+	std::shared_ptr<IMenuCustomizer>                       menuCustomizer,
+	std::shared_ptr<Util::ItemViewToolTipper>              itemViewToolTipper,
+	std::shared_ptr<Util::ScrollBarController>             scrollBarController,
+	std::shared_ptr<ProgressBar>                           progressBar,
+	QWidget*                                               parent)
 	: StackedPage(*uiFactory, uiFactory->GetParentWidget(parent))
-	, m_impl(
-		  *this,
+	, m_impl(*this,
 		  std::move(uiFactory),
 		  std::move(settings),
 		  std::move(imageViewerController),
 		  std::move(menuCustomizer),
 		  std::move(itemViewToolTipper),
 		  std::move(scrollBarController),
-		  std::move(progressBar)
-	  )
+		  std::move(progressBar))
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SIGNAL(ValueGeometryChanged(const QRect&)));
 }

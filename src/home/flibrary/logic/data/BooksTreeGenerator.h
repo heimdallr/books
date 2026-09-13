@@ -7,23 +7,20 @@
 
 #include "DataItem.h"
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 
 }
 
-namespace HomeCompa::DB
-{
+namespace HomeCompa::DB {
 
 class IQuery;
 class IDatabase;
 
-}
+} // namespace HomeCompa::DB
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IFilterProvider;
 struct Collection;
@@ -122,22 +119,20 @@ struct QueryDescription
 };
 
 class BooksTreeGenerator final
-	: public IBooksRootGenerator
-	, IBooksListCreator
-	, IBooksTreeCreator
+    : public IBooksRootGenerator
+    , IBooksListCreator
+    , IBooksTreeCreator
 {
 	NON_COPY_MOVABLE(BooksTreeGenerator)
 
 public:
-	BooksTreeGenerator(
-		const ISettings&        settings,
-		const Collection&       activeCollection,
-		DB::IDatabase&          db,
-		NavigationMode          navigationMode,
-		QString                 navigationId,
-		const QueryDescription& description,
-		const IFilterProvider&  filterProvider
-	);
+	BooksTreeGenerator(const ISettings& settings,
+		const Collection&               activeCollection,
+		DB::IDatabase&                  db,
+		NavigationMode                  navigationMode,
+		QString                         navigationId,
+		const QueryDescription&         description,
+		const IFilterProvider&          filterProvider);
 	~BooksTreeGenerator() override;
 
 public:

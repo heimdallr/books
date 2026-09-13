@@ -10,8 +10,7 @@
 
 class QApplication;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IStyleApplier // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -38,10 +37,10 @@ public:
 	static constexpr auto ACTION_PROPERTY_THEME_FILE = "file";
 
 public:
-#define STYLE_APPLIER_TYPE_ITEMS_X_MACRO \
-	STYLE_APPLIER_TYPE_ITEM(ColorScheme) \
-	STYLE_APPLIER_TYPE_ITEM(PluginStyle) \
-	STYLE_APPLIER_TYPE_ITEM(QssStyle)    \
+#define STYLE_APPLIER_TYPE_ITEMS_X_MACRO                                                                                                                                                                       \
+	STYLE_APPLIER_TYPE_ITEM(ColorScheme)                                                                                                                                                                       \
+	STYLE_APPLIER_TYPE_ITEM(PluginStyle)                                                                                                                                                                       \
+	STYLE_APPLIER_TYPE_ITEM(QssStyle)                                                                                                                                                                          \
 	STYLE_APPLIER_TYPE_ITEM(DllStyle)
 
 	enum class Type

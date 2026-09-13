@@ -17,8 +17,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 class IApplicationCursorController // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -81,19 +80,17 @@ struct DatabaseUser::Impl
 
 	std::unique_ptr<Util::IExecutor> CreateExecutor(const ILogicFactory& logicFactory) const
 	{
-		return logicFactory.GetExecutor(
-			{ 1,
-		      [] {
-			  },
-		      [] {
-				  APPLICATION_CURSOR_CONTROLLER->Set(true);
-			  },
-		      [] {
-				  APPLICATION_CURSOR_CONTROLLER->Set(false);
-			  },
-		      [] {
-			  } }
-		);
+		return logicFactory.GetExecutor({ 1,
+			[] {
+			},
+			[] {
+				APPLICATION_CURSOR_CONTROLLER->Set(true);
+			},
+			[] {
+				APPLICATION_CURSOR_CONTROLLER->Set(false);
+			},
+			[] {
+			} });
 	}
 };
 

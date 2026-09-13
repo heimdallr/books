@@ -12,15 +12,13 @@
 
 class QLineEdit;
 
-namespace HomeCompa::DB
-{
+namespace HomeCompa::DB {
 
 class IDatabase;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IScriptController // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -59,30 +57,30 @@ public:
 		Removed,
 	};
 
-#define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO           \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(SourceFile)            \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(UserDestinationFolder) \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Title)                 \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileName)              \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileExt)               \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(BaseFileName)          \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Author)                \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorLastFM)          \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorLastName)        \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorFirstName)       \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorMiddleName)      \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorF)               \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorM)               \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Series)                \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(SeqNumber)             \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileSize)              \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Genre)                 \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(GenreTree)             \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Keyword)               \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AllKeywords)           \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Language)              \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Id)                    \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(LibId)                 \
+#define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO                                                                                                                                                         \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(SourceFile)                                                                                                                                                          \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(UserDestinationFolder)                                                                                                                                               \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Title)                                                                                                                                                               \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileName)                                                                                                                                                            \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileExt)                                                                                                                                                             \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(BaseFileName)                                                                                                                                                        \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Author)                                                                                                                                                              \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorLastFM)                                                                                                                                                        \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorLastName)                                                                                                                                                      \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorFirstName)                                                                                                                                                     \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorMiddleName)                                                                                                                                                    \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorF)                                                                                                                                                             \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorM)                                                                                                                                                             \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Series)                                                                                                                                                              \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(SeqNumber)                                                                                                                                                           \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileSize)                                                                                                                                                            \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Genre)                                                                                                                                                               \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(GenreTree)                                                                                                                                                           \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Keyword)                                                                                                                                                             \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AllKeywords)                                                                                                                                                         \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Language)                                                                                                                                                            \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Id)                                                                                                                                                                  \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(LibId)                                                                                                                                                               \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Uid)
 
 	enum class Macro
@@ -93,8 +91,8 @@ public:
 			Last
 	};
 
-#define SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEMS_X_MACRO \
-	SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM(Download)    \
+#define SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEMS_X_MACRO                                                                                                                                                       \
+	SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM(Download)                                                                                                                                                          \
 	SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM(OpenLink)
 
 	enum class EmbeddedCommand
@@ -178,36 +176,36 @@ public:
 	static constexpr std::pair<Command::Type, CommandDescription> s_commandTypes[] {
 		{ Command::Type::LaunchConsoleApp, { QT_TRANSLATE_NOOP("ScriptController", "LaunchApp"), &ICommandExecutor::ExecuteLaunchConsoleApp } },
 		{     Command::Type::LaunchGuiApp,  { QT_TRANSLATE_NOOP("ScriptController", "LaunchGuiApp"), &ICommandExecutor::ExecuteLaunchGuiApp } },
-		{		   Command::Type::System,              { QT_TRANSLATE_NOOP("ScriptController", "System"), &ICommandExecutor::ExecuteSystem } },
+		{           Command::Type::System,              { QT_TRANSLATE_NOOP("ScriptController", "System"), &ICommandExecutor::ExecuteSystem } },
 		{         Command::Type::Embedded,   { QT_TRANSLATE_NOOP("ScriptController", "Embedded"), &ICommandExecutor::ExecuteEmbeddedCommand } },
 	};
 	static_assert(std::size(s_commandTypes) == static_cast<size_t>(Command::Type::Last));
 
 	static constexpr std::pair<Macro, const char*> s_commandMacros[] {
-		{			Macro::SourceFile, QT_TRANSLATE_NOOP("ScriptController",             "%source_file%") },
+		{            Macro::SourceFile, QT_TRANSLATE_NOOP("ScriptController",             "%source_file%") },
 		{ Macro::UserDestinationFolder, QT_TRANSLATE_NOOP("ScriptController", "%user_destination_folder%") },
-		{				 Macro::Title, QT_TRANSLATE_NOOP("ScriptController",                   "%title%") },
-		{			  Macro::FileName, QT_TRANSLATE_NOOP("ScriptController",               "%file_name%") },
-		{			   Macro::FileExt, QT_TRANSLATE_NOOP("ScriptController",                "%file_ext%") },
-		{		  Macro::BaseFileName, QT_TRANSLATE_NOOP("ScriptController",          "%base_file_name%") },
-		{				Macro::Author, QT_TRANSLATE_NOOP("ScriptController",                  "%author%") },
-		{		  Macro::AuthorLastFM, QT_TRANSLATE_NOOP("ScriptController",          "%author_last_fm%") },
+		{                 Macro::Title, QT_TRANSLATE_NOOP("ScriptController",                   "%title%") },
+		{              Macro::FileName, QT_TRANSLATE_NOOP("ScriptController",               "%file_name%") },
+		{               Macro::FileExt, QT_TRANSLATE_NOOP("ScriptController",                "%file_ext%") },
+		{          Macro::BaseFileName, QT_TRANSLATE_NOOP("ScriptController",          "%base_file_name%") },
+		{                Macro::Author, QT_TRANSLATE_NOOP("ScriptController",                  "%author%") },
+		{          Macro::AuthorLastFM, QT_TRANSLATE_NOOP("ScriptController",          "%author_last_fm%") },
 		{        Macro::AuthorLastName, QT_TRANSLATE_NOOP("ScriptController",        "%author_last_name%") },
 		{       Macro::AuthorFirstName, QT_TRANSLATE_NOOP("ScriptController",       "%author_first_name%") },
 		{      Macro::AuthorMiddleName, QT_TRANSLATE_NOOP("ScriptController",      "%author_middle_name%") },
-		{			   Macro::AuthorF, QT_TRANSLATE_NOOP("ScriptController",                "%author_f%") },
-		{			   Macro::AuthorM, QT_TRANSLATE_NOOP("ScriptController",                "%author_m%") },
-		{				Macro::Series, QT_TRANSLATE_NOOP("ScriptController",                  "%series%") },
-		{			 Macro::SeqNumber, QT_TRANSLATE_NOOP("ScriptController",              "%seq_number%") },
-		{			  Macro::FileSize, QT_TRANSLATE_NOOP("ScriptController",               "%file_size%") },
-		{				 Macro::Genre, QT_TRANSLATE_NOOP("ScriptController",                   "%genre%") },
-		{			 Macro::GenreTree, QT_TRANSLATE_NOOP("ScriptController",              "%genre_tree%") },
-		{			   Macro::Keyword, QT_TRANSLATE_NOOP("ScriptController",                 "%keyword%") },
-		{		   Macro::AllKeywords, QT_TRANSLATE_NOOP("ScriptController",            "%all_keywords%") },
-		{			  Macro::Language, QT_TRANSLATE_NOOP("ScriptController",                "%language%") },
-		{					Macro::Id, QT_TRANSLATE_NOOP("ScriptController",                   "%db_id%") },
-		{				 Macro::LibId, QT_TRANSLATE_NOOP("ScriptController",                  "%lib_id%") },
-		{				   Macro::Uid, QT_TRANSLATE_NOOP("ScriptController",                     "%uid%") },
+		{               Macro::AuthorF, QT_TRANSLATE_NOOP("ScriptController",                "%author_f%") },
+		{               Macro::AuthorM, QT_TRANSLATE_NOOP("ScriptController",                "%author_m%") },
+		{                Macro::Series, QT_TRANSLATE_NOOP("ScriptController",                  "%series%") },
+		{             Macro::SeqNumber, QT_TRANSLATE_NOOP("ScriptController",              "%seq_number%") },
+		{              Macro::FileSize, QT_TRANSLATE_NOOP("ScriptController",               "%file_size%") },
+		{                 Macro::Genre, QT_TRANSLATE_NOOP("ScriptController",                   "%genre%") },
+		{             Macro::GenreTree, QT_TRANSLATE_NOOP("ScriptController",              "%genre_tree%") },
+		{               Macro::Keyword, QT_TRANSLATE_NOOP("ScriptController",                 "%keyword%") },
+		{           Macro::AllKeywords, QT_TRANSLATE_NOOP("ScriptController",            "%all_keywords%") },
+		{              Macro::Language, QT_TRANSLATE_NOOP("ScriptController",                "%language%") },
+		{                    Macro::Id, QT_TRANSLATE_NOOP("ScriptController",                   "%db_id%") },
+		{                 Macro::LibId, QT_TRANSLATE_NOOP("ScriptController",                  "%lib_id%") },
+		{                   Macro::Uid, QT_TRANSLATE_NOOP("ScriptController",                     "%uid%") },
 	};
 	static_assert(std::size(s_commandMacros) == static_cast<size_t>(Macro::Last));
 #define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(NAME) static_assert(s_commandMacros[static_cast<size_t>(Macro::NAME)].first == Macro::NAME);

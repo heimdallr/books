@@ -2,8 +2,7 @@
 
 #include <functional>
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ICollectionUpdateChecker // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -15,4 +14,4 @@ public:
 	virtual void CheckForUpdate(Callback callback) const = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

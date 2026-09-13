@@ -44,17 +44,15 @@ public:
 			return;
 
 		assert(m_executor);
-		(*m_executor)(
-			{ "Extract author's annotation",
-		      [this, id, name = std::move(name)]() mutable {
-				  auto annotation = GetAnnotation(name);
-				  return [this, id, annotation = std::move(annotation)](size_t) {
-					  if (id == m_authorId)
-						  Perform(&IObserver::OnAuthorChanged, std::cref(annotation.first), std::cref(annotation.second));
-				  };
-			  } },
-			1000
-		);
+		(*m_executor)({ "Extract author's annotation",
+						  [this, id, name = std::move(name)]() mutable {
+							  auto annotation = GetAnnotation(name);
+							  return [this, id, annotation = std::move(annotation)](size_t) {
+								  if (id == m_authorId)
+									  Perform(&IObserver::OnAuthorChanged, std::cref(annotation.first), std::cref(annotation.second));
+							  };
+						  } },
+			1000);
 	}
 
 	bool CheckAuthor(const QString& name) const
@@ -104,36 +102,34 @@ private:
 			return;
 
 		m_executor = logicFactory.GetExecutor();
-		(*m_executor)(
-			{ "Create author's annotations map",
-		      [this] {
-				  std::unordered_map<QString, int> authorToArchive;
-				  for (const auto& file : m_authorsDir.entryList(QDir::Files))
-				  {
-					  const auto path = m_authorsDir.filePath(file);
-					  const auto zip  = TRY(QString("open %1").arg(path), [&] {
-						  return std::make_unique<Zip>(path);
-					  });
-					  if (!zip)
-					  {
-						  PLOGW << "Cannot open " << path;
-						  continue;
-					  }
+		(*m_executor)({ "Create author's annotations map",
+						  [this] {
+							  std::unordered_map<QString, int> authorToArchive;
+							  for (const auto& file : m_authorsDir.entryList(QDir::Files))
+							  {
+								  const auto path = m_authorsDir.filePath(file);
+								  const auto zip  = TRY(QString("open %1").arg(path), [&] {
+									  return std::make_unique<Zip>(path);
+								  });
+								  if (!zip)
+								  {
+									  PLOGW << "Cannot open " << path;
+									  continue;
+								  }
 
-					  std::ranges::transform(zip->GetFileNameList(), std::inserter(authorToArchive, authorToArchive.end()), [&](const auto& item) {
-						  return std::make_pair(item, QFileInfo(file).baseName().toInt());
-					  });
-				  }
-				  return [this, authorToArchive = std::move(authorToArchive)](size_t) mutable {
-					  if (authorToArchive.empty())
-						  return m_executor.reset();
+								  std::ranges::transform(zip->GetFileNameList(), std::inserter(authorToArchive, authorToArchive.end()), [&](const auto& item) {
+									  return std::make_pair(item, QFileInfo(file).baseName().toInt());
+								  });
+							  }
+							  return [this, authorToArchive = std::move(authorToArchive)](size_t) mutable {
+								  if (authorToArchive.empty())
+									  return m_executor.reset();
 
-					  m_authorToArchive = std::move(authorToArchive);
-					  Perform(&IObserver::OnReadyChanged);
-				  };
-			  } },
-			1000
-		);
+								  m_authorToArchive = std::move(authorToArchive);
+								  Perform(&IObserver::OnReadyChanged);
+							  };
+						  } },
+			1000);
 	}
 
 	std::pair<QString, std::vector<QByteArray>> GetAnnotation(const QString& name) const
@@ -160,15 +156,13 @@ private:
 
 		std::vector<QByteArray> result;
 		Zip                     zip(imagesFileName);
-		std::ranges::transform(
-			zip.GetFileNameList() | std::views::filter([&](const auto& item) {
-				return item.startsWith(name);
-			}),
+		std::ranges::transform(zip.GetFileNameList() | std::views::filter([&](const auto& item) {
+			return item.startsWith(name);
+		}),
 			std::back_inserter(result),
 			[&](const auto& item) {
 				return zip.Read(item)->GetStream().readAll();
-			}
-		);
+			});
 		return result;
 	}
 

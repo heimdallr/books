@@ -12,9 +12,9 @@
 using namespace HomeCompa::Flibrary;
 
 struct MigrateWindow::Impl
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
-	, IDatabaseMigrator::IObserver
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
+    , IDatabaseMigrator::IObserver
 {
 	PropagateConstPtr<IDatabaseMigrator, std::shared_ptr> migrator;
 

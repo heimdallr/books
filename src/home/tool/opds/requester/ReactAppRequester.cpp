@@ -27,8 +27,7 @@
 
 using namespace HomeCompa::Opds;
 
-namespace
-{
+namespace {
 
 constexpr auto SEARCH            = "search";
 constexpr auto SELECTED_ITEM_ID  = "selectedItemID";
@@ -83,13 +82,11 @@ struct ReactAppRequester::Impl
 	std::shared_ptr<const ICoverCache>                   coverCache;
 	std::shared_ptr<Flibrary::IAnnotationController>     annotationController;
 
-	Impl(
-		std::shared_ptr<const ISettings>                     settings,
+	Impl(std::shared_ptr<const ISettings>                    settings,
 		std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 		std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
 		std::shared_ptr<const ICoverCache>                   coverCache,
-		std::shared_ptr<Flibrary::IAnnotationController>     annotationController
-	)
+		std::shared_ptr<Flibrary::IAnnotationController>     annotationController)
 		: settings { std::move(settings) }
 		, collectionProvider { std::move(collectionProvider) }
 		, databaseController { std::move(databaseController) }
@@ -116,15 +113,13 @@ struct ReactAppRequester::Impl
 			const auto process = [&](const Flibrary::Genre& genre, const auto& f) -> void {
 				for (const auto& child : genre.children)
 				{
-					array.append(
-						QJsonObject {
-							{  "GenreCode",                child.code },
-							{ "ParentCode",                genre.code },
-							{    "FB2Code",             child.fb2Code },
-							{ "GenreAlias",                child.name },
-							{  "IsDeleted", child.removed ? "1" : "0" },
-                    }
-					);
+					array.append(QJsonObject {
+						{  "GenreCode",                child.code },
+						{ "ParentCode",                genre.code },
+						{    "FB2Code",             child.fb2Code },
+						{ "GenreAlias",                child.name },
+						{  "IsDeleted", child.removed ? "1" : "0" },
+					});
 					f(child, f);
 				}
 			};
@@ -304,21 +299,17 @@ where g.GroupID = ?
 				{
 					const auto& authorItem = dataProvider.GetAuthors().GetChild(i);
 
-					authors.append(
-						QJsonObject {
-							{   "AuthorID",											  authorItem->GetId() },
-							{  "FirstName",  authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName) },
-							{   "LastName",   authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName) },
-							{ "MiddleName", authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName) },
-                    }
-					);
+					authors.append(QJsonObject {
+						{   "AuthorID",                                              authorItem->GetId() },
+						{  "FirstName",  authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName) },
+						{   "LastName",   authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName) },
+						{ "MiddleName", authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName) },
+					});
 
 					values << QString("%1 %2 %3")
-								  .arg(
-									  authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName),
+								  .arg(authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName),
 									  authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName),
-									  authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName)
-								  )
+									  authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName))
 								  .split(' ', Qt::SkipEmptyParts)
 								  .join(' ');
 				}
@@ -338,7 +329,7 @@ where g.GroupID = ?
 			{
 				const auto  item = bookSeries.GetChild(i);
 				QJsonObject obj {
-					{    "SeriesID",										 item->GetId() },
+					{    "SeriesID",                                         item->GetId() },
 					{ "SeriesTitle", item->GetRawData(Flibrary::SeriesItem::Column::Title) },
 				};
 				if (const auto seqNum = Util::Fb2InpxParser::GetSeqNumber(item->GetRawData(Flibrary::SeriesItem::Column::SeqNum)); !seqNum.isEmpty())
@@ -347,17 +338,17 @@ where g.GroupID = ?
 			}
 
 			QJsonObject bookForm {
-				{       "BookID",																			  book.GetId() },
-				{     "BookSize",										 book.GetRawData(Flibrary::BookItem::Column::Size) },
+				{       "BookID",                                                                              book.GetId() },
+				{     "BookSize",                                         book.GetRawData(Flibrary::BookItem::Column::Size) },
 				{     "FileName",               QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).baseName() },
 				{          "Ext",           "." + QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).suffix() },
-				{         "Lang",										 book.GetRawData(Flibrary::BookItem::Column::Lang) },
-				{      "LibRate",									  book.GetRawData(Flibrary::BookItem::Column::LibRate) },
+				{         "Lang",                                         book.GetRawData(Flibrary::BookItem::Column::Lang) },
+				{      "LibRate",                                      book.GetRawData(Flibrary::BookItem::Column::LibRate) },
 				{    "SeqNumber", Util::Fb2InpxParser::GetSeqNumber(book.GetRawData(Flibrary::BookItem::Column::SeqNumber)) },
-				{  "SeriesTitle",									   book.GetRawData(Flibrary::BookItem::Column::Series) },
-				{        "Title",										book.GetRawData(Flibrary::BookItem::Column::Title) },
-				{ "AuthorsNames",																			   authorsList },
-				{       "Genres",																				genresList },
+				{  "SeriesTitle",                                       book.GetRawData(Flibrary::BookItem::Column::Series) },
+				{        "Title",                                        book.GetRawData(Flibrary::BookItem::Column::Title) },
+				{ "AuthorsNames",                                                                               authorsList },
+				{       "Genres",                                                                                genresList },
 			};
 
 			result.insert("annotation", dataProvider.GetAnnotation());
@@ -426,15 +417,13 @@ private:
 		QJsonArray array;
 
 		QStringList joins;
-		std::ranges::transform(
-			list | std::views::filter([&](const auto& item) {
-				return parameters.contains(std::get<0>(item));
-			}),
+		std::ranges::transform(list | std::views::filter([&](const auto& item) {
+			return parameters.contains(std::get<0>(item));
+		}),
 			std::back_inserter(joins),
 			[&](const auto& item) {
 				return QString(std::get<1>(item)).arg(parameters.at(std::get<0>(item)));
-			}
-		);
+			});
 
 		const auto db    = databaseController->GetDatabase(true);
 		auto       query = db->CreateQuery(queryText.arg(joins.join('\n')).toStdString());
@@ -450,8 +439,7 @@ private:
 	Util::FunctorExecutionForwarder m_forwarder;
 };
 
-namespace
-{
+namespace {
 
 template <typename Obj, typename NavigationGetter, typename... ARGS>
 QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ARGS&... args)
@@ -485,23 +473,18 @@ QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ARGS&... args)
 
 } // namespace
 
-ReactAppRequester::ReactAppRequester(
-	std::shared_ptr<const ISettings>                     settings,
-	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-	std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
-	std::shared_ptr<const ICoverCache>                   coverCache,
-	std::shared_ptr<Flibrary::IAnnotationController>     annotationController
-)
+ReactAppRequester::ReactAppRequester(std::shared_ptr<const ISettings> settings,
+	std::shared_ptr<const Flibrary::ICollectionProvider>              collectionProvider,
+	std::shared_ptr<const Flibrary::IDatabaseController>              databaseController,
+	std::shared_ptr<const ICoverCache>                                coverCache,
+	std::shared_ptr<Flibrary::IAnnotationController>                  annotationController)
 	: m_impl(std::move(settings), std::move(collectionProvider), std::move(databaseController), std::move(coverCache), std::move(annotationController))
 {
 }
 
 ReactAppRequester::~ReactAppRequester() = default;
 
-#define OPDS_GET_BOOKS_API_ITEM(NAME)                                      \
-	QByteArray ReactAppRequester::NAME(const Parameters& parameters) const \
-	{                                                                      \
-		return GetImpl(*m_impl, &Impl::NAME, parameters);                  \
-	}
+#define OPDS_GET_BOOKS_API_ITEM(NAME)                                                                                                                                                                          \
+	QByteArray ReactAppRequester::NAME(const Parameters &parameters) const { return GetImpl(*m_impl, &Impl::NAME, parameters); }
 OPDS_GET_BOOKS_API_ITEMS_X_MACRO
 #undef OPDS_GET_BOOKS_API_ITEM

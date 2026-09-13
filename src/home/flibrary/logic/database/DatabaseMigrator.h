@@ -7,8 +7,7 @@
 #include "interface/logic/IDatabaseMigrator.h"
 #include "interface/logic/IDatabaseUser.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class DatabaseMigrator final : virtual public IDatabaseMigrator
 {
@@ -29,4 +28,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

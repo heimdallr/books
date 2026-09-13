@@ -21,9 +21,9 @@ using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
 class ImageViewerController::Impl final
-	: public QObject
-	, public IBookInfoProvider::IObserver
-	, public Observable<IObserver>
+    : public QObject
+    , public IBookInfoProvider::IObserver
+    , public Observable<IObserver>
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -93,9 +93,8 @@ public:
 	void Save(const QString& folder, const QList<QModelIndex>& indices)
 	{
 		auto rows = indices | std::views::transform([](const auto& item) {
-						return item.row();
-					})
-		          | std::ranges::to<std::unordered_set>();
+			return item.row();
+		}) | std::ranges::to<std::unordered_set>();
 		{
 			std::lock_guard lock(m_saveProgressItemsGuard);
 			m_saveProgressItems.emplace_back(m_progressController->Add(indices.size()), QDir(folder), std::move(rows));
@@ -154,44 +153,41 @@ private:
 
 	void SaveImage(const QModelIndex& index)
 	{
-		m_threadPool.enqueue([this,
-		                      pixmap   = m_imageModel->data(index, ImageModelRole::Save).value<QPixmap>(),
-		                      fileName = m_imageModel->data(index, ImageModelRole::FileName).toString(),
-		                      row      = index.row()](size_t&, const std::stop_token&) mutable {
-			fileName.replace('/', '_');
-			auto       image  = Util::HasAlpha(pixmap.toImage());
-			const auto format = image.pixelFormat().channelCount() > 3 ? Util::PNG : Util::JPEG;
+		m_threadPool.enqueue(
+			[this, pixmap = m_imageModel->data(index, ImageModelRole::Save).value<QPixmap>(), fileName = m_imageModel->data(index, ImageModelRole::FileName).toString(), row = index.row()](size_t&,
+				const std::stop_token&) mutable {
+				fileName.replace('/', '_');
+				auto       image  = Util::HasAlpha(pixmap.toImage());
+				const auto format = image.pixelFormat().channelCount() > 3 ? Util::PNG : Util::JPEG;
 
-			const auto fileNames = [&] {
-				std::lock_guard lock(m_saveProgressItemsGuard);
-				return m_saveProgressItems | std::views::filter([row](const SaveProgressItem& item) {
-						   return item.rows.contains(row);
-					   })
-				     | std::views::transform([&](const SaveProgressItem& item) {
-						   return item.saveDir.filePath(fileName + "." + format);
-					   })
-				     | std::ranges::to<std::vector>();
-			}();
+				const auto fileNames = [&] {
+					std::lock_guard lock(m_saveProgressItemsGuard);
+					return m_saveProgressItems | std::views::filter([row](const SaveProgressItem& item) {
+						return item.rows.contains(row);
+					}) | std::views::transform([&](const SaveProgressItem& item) {
+						return item.saveDir.filePath(fileName + "." + format);
+					}) | std::ranges::to<std::vector>();
+				}();
 
-			for (const auto& file : fileNames)
-				image.save(file);
+				for (const auto& file : fileNames)
+					image.save(file);
 
-			m_forwarder.Forward([this, row] {
-				std::lock_guard lock(m_saveProgressItemsGuard);
-				for (auto& progress : m_saveProgressItems)
-				{
-					if (progress.progressItem->IsStopped())
-						m_imageModel->setData({}, {}, ImageModelRole::SaveStop);
+				m_forwarder.Forward([this, row] {
+					std::lock_guard lock(m_saveProgressItemsGuard);
+					for (auto& progress : m_saveProgressItems)
+					{
+						if (progress.progressItem->IsStopped())
+							m_imageModel->setData({}, {}, ImageModelRole::SaveStop);
 
-					if (progress.rows.erase(row))
-						progress.progressItem->Increment(1);
-				}
+						if (progress.rows.erase(row))
+							progress.progressItem->Increment(1);
+					}
 
-				std::erase_if(m_saveProgressItems, [](const auto& item) {
-					return item.rows.empty() || item.progressItem->IsStopped();
+					std::erase_if(m_saveProgressItems, [](const auto& item) {
+						return item.rows.empty() || item.progressItem->IsStopped();
+					});
 				});
 			});
-		});
 	}
 
 private:
@@ -222,11 +218,9 @@ private:
 	std::list<SaveProgressItem> m_saveProgressItems;
 };
 
-ImageViewerController::ImageViewerController(
-	std::shared_ptr<const IModelProvider>    modelProvider,
-	std::shared_ptr<IBookInfoProvider>       bookInfoProvider,
-	std::shared_ptr<IMainProgressController> progressController
-)
+ImageViewerController::ImageViewerController(std::shared_ptr<const IModelProvider> modelProvider,
+	std::shared_ptr<IBookInfoProvider>                                             bookInfoProvider,
+	std::shared_ptr<IMainProgressController>                                       progressController)
 	: m_impl { std::move(modelProvider), std::move(bookInfoProvider), std::move(progressController) }
 {
 }

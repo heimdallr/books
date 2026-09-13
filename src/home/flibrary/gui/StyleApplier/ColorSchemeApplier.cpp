@@ -14,8 +14,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 std::unique_ptr<Platform::DyLib> ColorSchemeApplierSet([[maybe_unused]] const ISettings& settings)
 {
@@ -25,7 +24,7 @@ std::unique_ptr<Platform::DyLib> ColorSchemeApplierSet([[maybe_unused]] const IS
 	constexpr auto                           iconsLight = "icolight";
 	constexpr auto                           iconsDark  = "icodark";
 	constexpr std::pair<const char*, Scheme> schemes[] {
-		{ "System",								unknown },
+		{ "System",                                unknown },
 		{  "Light", { Qt::ColorScheme::Light, iconsLight } },
 		{   "Dark",   { Qt::ColorScheme::Dark, iconsDark } },
 	};
@@ -67,7 +66,7 @@ ColorSchemeApplier::ColorSchemeApplier(std::shared_ptr<ISettings> settings)
 	PLOGV << "ColorSchemeApplier created";
 }
 
-ColorSchemeApplier ::~ColorSchemeApplier()
+ColorSchemeApplier::~ColorSchemeApplier()
 {
 	PLOGV << "ColorSchemeApplier destroyed";
 }

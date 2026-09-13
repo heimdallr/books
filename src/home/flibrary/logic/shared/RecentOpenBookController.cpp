@@ -9,8 +9,7 @@
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 constexpr auto TABLE_NAME = "Export_List_User";
 

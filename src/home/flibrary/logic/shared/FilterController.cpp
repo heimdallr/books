@@ -17,8 +17,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto FILTER_ENABLED_KEY                = "ui/View/UniFilter/enabled";
 constexpr auto FILTER_RATING_HIDE_UNRATED_KEY    = "ui/View/UniFilter/Rating/HideUnrated";
@@ -34,7 +33,7 @@ constexpr auto SET_FILTER_QUERY   = "update {} set Flags = ? where {} = ?";
 constexpr auto ACCUMULATION_MODE_KEY     = "ui/View/UniFilter/accumulationMode%1";
 constexpr auto DEFAULT_ACCUMULATION_MODE = "Or";
 
-}
+} // namespace
 
 struct FilterController::Impl final : Observable<IObserver>
 {
@@ -283,15 +282,13 @@ void FilterController::HideFiltered(NavigationMode navigationMode, QPointer<QAbs
 									   }
 
 									   std::unordered_set<QString> ids;
-									   std::ranges::transform(
-										   values | std::views::filter([](const auto& item) {
-											   return item.second.first.empty();
-										   }),
+									   std::ranges::transform(values | std::views::filter([](const auto& item) {
+										   return item.second.first.empty();
+									   }),
 										   std::inserter(ids, ids.end()),
 										   [](const auto& item) {
 											   return item.first;
-										   }
-									   );
+										   });
 									   return [model = std::move(model), callback = std::move(callback), ids = std::move(ids)](size_t) mutable {
 										   if (model.isNull())
 											   return;

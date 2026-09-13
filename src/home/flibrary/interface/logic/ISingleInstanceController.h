@@ -2,8 +2,7 @@
 
 #include "fnd/observer.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ISingleInstanceController // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -23,4 +22,4 @@ public:
 	virtual void UnregisterObserver(IObserver* observer) = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

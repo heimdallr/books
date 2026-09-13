@@ -12,22 +12,19 @@
 
 class QString;
 
-namespace HomeCompa::DB
-{
+namespace HomeCompa::DB {
 
 class IDatabase;
 
 }
 
-namespace HomeCompa::Util
-{
+namespace HomeCompa::Util {
 
 class IExecutor;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class UserDataController : virtual public IUserDataController
 {

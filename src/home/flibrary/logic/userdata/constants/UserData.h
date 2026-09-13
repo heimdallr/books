@@ -6,8 +6,7 @@
 
 class QString;
 
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 using Callback = std::function<void(const QString&)>;
 
@@ -16,4 +15,4 @@ inline constexpr auto CANNOT_READ_FROM = QT_TRANSLATE_NOOP("UserData", "Cannot r
 
 TR_DEF
 
-}
+} // namespace HomeCompa::Flibrary::UserData

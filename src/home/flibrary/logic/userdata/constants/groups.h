@@ -1,7 +1,6 @@
 #pragma once
 
-namespace HomeCompa::Flibrary::Constant::UserData::Groups
-{
+namespace HomeCompa::Flibrary::Constant::UserData::Groups {
 
 constexpr auto RootNode  = "Groups";
 constexpr auto GroupNode = u"Group";
@@ -14,4 +13,4 @@ constexpr auto Keyword = u"Keyword";
 constexpr auto CreateNewGroupCommandText = "insert into Groups_User(Title, CreatedAt) values(?, ?)";
 constexpr auto AddBookToGroupCommandText = "insert into Groups_List_User(ObjectID, GroupID, CreatedAt) values(?, ?, ?)";
 
-}
+} // namespace HomeCompa::Flibrary::Constant::UserData::Groups

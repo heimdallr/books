@@ -5,15 +5,13 @@
 
 #include "interface/IUiFactory.h"
 
-namespace Hypodermic
-{
+namespace Hypodermic {
 
 class Container;
 
 }
 
-namespace HomeCompa::Util
-{
+namespace HomeCompa::Util {
 
 class UiFactory final : public IUiFactory
 {
@@ -28,14 +26,12 @@ private:
 	QWidget* GetParentWidget(QWidget* defaultWidget) const noexcept override;
 	int      GetParentWidgetFontSize() const noexcept override;
 
-	QMessageBox::ButtonRole ShowCustomDialog(
-		QMessageBox::Icon                                               icon,
+	QMessageBox::ButtonRole     ShowCustomDialog(QMessageBox::Icon          icon,
 		const QString&                                                  title,
 		const QString&                                                  text,
 		const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
 		QMessageBox::ButtonRole                                         defaultButton,
-		const QString&                                                  detailedText
-	) const override;
+		const QString&                                                  detailedText) const override;
 	QMessageBox::StandardButton ShowQuestion(DialogInitializer& initializer) const override;
 	QMessageBox::StandardButton ShowWarning(DialogInitializer& initializer) const override;
 	void                        ShowInfo(const QString& text) const override;

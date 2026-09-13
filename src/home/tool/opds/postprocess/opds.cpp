@@ -8,13 +8,11 @@
 
 #include "root.h"
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 class AnnotationControllerStrategy final : public IAnnotationController::IStrategy
 {

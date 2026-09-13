@@ -8,8 +8,7 @@
 #include "interface/logic/IDataItem.h"
 #include "interface/logic/IModelProvider.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class AbstractFilteredProxyModel : public QIdentityProxyModel
 {

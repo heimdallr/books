@@ -11,20 +11,17 @@
 
 class QString;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class SearchController final : virtual public IBookSearchController
 {
 	NON_COPY_MOVABLE(SearchController)
 
 public:
-	SearchController(
-		const std::shared_ptr<const ICollectionController>& collectionController,
-		std::shared_ptr<IDatabaseUser>                      databaseUser,
-		std::shared_ptr<INavigationQueryExecutor>           navigationQueryExecutor,
-		std::shared_ptr<IUiFactory>                         uiFactory
-	);
+	SearchController(const std::shared_ptr<const ICollectionController>& collectionController,
+		std::shared_ptr<IDatabaseUser>                                   databaseUser,
+		std::shared_ptr<INavigationQueryExecutor>                        navigationQueryExecutor,
+		std::shared_ptr<IUiFactory>                                      uiFactory);
 	~SearchController() override;
 
 private: // IBookSearchController

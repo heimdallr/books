@@ -10,8 +10,7 @@
 
 #include "QtTypes.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 constexpr auto        CONTEXT = "FilterModel";
 constexpr const char* HEADERS[] {
@@ -139,8 +138,7 @@ private:
 			},
 			[&] {
 				this->endResetModel();
-			}
-		);
+			});
 		for (auto& item : changed)
 		{
 			item->SetFlags(item->GetFlags() | IDataItem::Flags::Filtered);

@@ -28,8 +28,7 @@
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT              = "HotkeyDialog";
 constexpr auto REMOVE_HOTKEY        = QT_TRANSLATE_NOOP("HotkeyDialog", "Remove hotkey");
@@ -388,21 +387,19 @@ private:
 } // namespace
 
 class CustomizeMenuDialog::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(
-		QDialog&                                   self,
+	Impl(QDialog&                                  self,
 		const IModelProvider&                      modelProvider,
 		std::shared_ptr<const Util::IUiFactory>    uiFactory,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IMenuCustomizer>           menuCustomizer,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
-		std::shared_ptr<Util::ScrollBarController> scrollBarController
-	)
+		std::shared_ptr<Util::ScrollBarController> scrollBarController)
 		: GeometryRestorable(*this, settings, CONTEXT)
 		, GeometryRestorableObserver(self)
 		, m_self { self }
@@ -468,12 +465,10 @@ private:
 	std::unordered_set<NavigationMode> GetHiddenNavigation() const
 	{
 		return NAVIGATION_NAMES | std::views::filter([this](const auto& item) {
-				   return m_menuCustomizer->IsHidden(QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(item.first)).toBool();
-			   })
-		     | std::views::transform([](const auto& item) {
-				   return item.second;
-			   })
-		     | std::ranges::to<std::unordered_set>();
+			return m_menuCustomizer->IsHidden(QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(item.first)).toBool();
+		}) | std::views::transform([](const auto& item) {
+			return item.second;
+		}) | std::ranges::to<std::unordered_set>();
 	}
 
 	void CreateContextMenu()
@@ -542,16 +537,14 @@ private:
 	Ui::CustomizeMenuDialog m_ui;
 };
 
-CustomizeMenuDialog::CustomizeMenuDialog(
-	const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
-	const std::shared_ptr<IModelProvider>&        modelProvider,
-	std::shared_ptr<const Util::IUiFactory>       uiFactory,
-	std::shared_ptr<ISettings>                    settings,
-	std::shared_ptr<IMenuCustomizer>              menuCustomizer,
-	std::shared_ptr<Util::ItemViewToolTipper>     itemViewToolTipper,
-	std::shared_ptr<Util::ScrollBarController>    scrollBarController,
-	QWidget*                                      parent
-)
+CustomizeMenuDialog::CustomizeMenuDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
+	const std::shared_ptr<IModelProvider>&                                             modelProvider,
+	std::shared_ptr<const Util::IUiFactory>                                            uiFactory,
+	std::shared_ptr<ISettings>                                                         settings,
+	std::shared_ptr<IMenuCustomizer>                                                   menuCustomizer,
+	std::shared_ptr<Util::ItemViewToolTipper>                                          itemViewToolTipper,
+	std::shared_ptr<Util::ScrollBarController>                                         scrollBarController,
+	QWidget*                                                                           parent)
 	: QDialog(parentWidgetProvider->GetWidget(parent))
 	, m_impl(*this, *modelProvider, std::move(uiFactory), std::move(settings), std::move(menuCustomizer), std::move(itemViewToolTipper), std::move(scrollBarController))
 {

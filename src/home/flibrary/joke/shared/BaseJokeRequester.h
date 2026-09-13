@@ -10,8 +10,7 @@
 
 #include "network/network/headers.h"
 
-namespace HomeCompa::Network
-{
+namespace HomeCompa::Network {
 
 class Downloader;
 
@@ -19,8 +18,7 @@ class Downloader;
 
 class QJsonValue;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class BaseJokeRequester : virtual public IJokeRequester
 {

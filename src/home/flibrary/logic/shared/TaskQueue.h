@@ -5,8 +5,7 @@
 
 #include "interface/logic/ITaskQueue.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class TaskQueue : virtual public ITaskQueue
 {
@@ -25,4 +24,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

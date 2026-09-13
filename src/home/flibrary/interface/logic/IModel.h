@@ -4,8 +4,7 @@
 
 class QAbstractItemModel;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IModel // NOLINT(cppcoreguidelines-special-member-functions)
 {

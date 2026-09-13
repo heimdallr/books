@@ -7,8 +7,7 @@
 #include "interface/logic/IDataItem.h"
 #include "interface/logic/IFilterProvider.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IFilterController : public IFilterProvider
 {

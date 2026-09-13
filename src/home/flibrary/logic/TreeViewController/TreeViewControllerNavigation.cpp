@@ -27,8 +27,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT           = "Navigation";
 constexpr auto REMOVE            = QT_TRANSLATE_NOOP("Navigation", "Remove");
@@ -58,24 +57,24 @@ std::unordered_set<T> GetSelected(const QModelIndex& index, const QList<QModelIn
 	return ids;
 }
 
-#define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_X_MACRO           \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Authors, Authors)      \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Genres, Genres)        \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Groups_User, Groups)   \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Keywords, Keywords)    \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Searches_User, Search) \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Series, Series)        \
+#define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_X_MACRO                                                                                                                                                      \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Authors, Authors)                                                                                                                                                 \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Genres, Genres)                                                                                                                                                   \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Groups_User, Groups)                                                                                                                                              \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Keywords, Keywords)                                                                                                                                               \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Searches_User, Search)                                                                                                                                            \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Series, Series)                                                                                                                                                   \
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Updates, Updates)
 
-#define SUBSCRIBED_TABLES_ITEMS_X_MACRO      \
-	SUBSCRIBED_TABLES_ITEM(Authors)          \
-	SUBSCRIBED_TABLES_ITEM(Books)            \
-	SUBSCRIBED_TABLES_ITEM(Genres)           \
-	SUBSCRIBED_TABLES_ITEM(Groups_List_User) \
-	SUBSCRIBED_TABLES_ITEM(Groups_User)      \
-	SUBSCRIBED_TABLES_ITEM(Keywords)         \
-	SUBSCRIBED_TABLES_ITEM(Searches_User)    \
-	SUBSCRIBED_TABLES_ITEM(Series)           \
+#define SUBSCRIBED_TABLES_ITEMS_X_MACRO                                                                                                                                                                        \
+	SUBSCRIBED_TABLES_ITEM(Authors)                                                                                                                                                                            \
+	SUBSCRIBED_TABLES_ITEM(Books)                                                                                                                                                                              \
+	SUBSCRIBED_TABLES_ITEM(Genres)                                                                                                                                                                             \
+	SUBSCRIBED_TABLES_ITEM(Groups_List_User)                                                                                                                                                                   \
+	SUBSCRIBED_TABLES_ITEM(Groups_User)                                                                                                                                                                        \
+	SUBSCRIBED_TABLES_ITEM(Keywords)                                                                                                                                                                           \
+	SUBSCRIBED_TABLES_ITEM(Searches_User)                                                                                                                                                                      \
+	SUBSCRIBED_TABLES_ITEM(Series)                                                                                                                                                                             \
 	SUBSCRIBED_TABLES_ITEM(Updates)
 
 class ITableSubscriptionHandler // NOLINT(cppcoreguidelines-special-member-functions)
@@ -106,7 +105,7 @@ class IContextMenuHandler // NOLINT(cppcoreguidelines-special-member-functions)
 public:
 	virtual ~IContextMenuHandler()                                                                                                                              = default;
 	virtual void OnContextMenuTriggeredStub(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const = 0;
-#define MENU_ACTION_ITEM(NAME) virtual void On##NAME##Triggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const = 0;
+#define MENU_ACTION_ITEM(NAME) virtual void On##NAME##Triggered(const QList<QModelIndex> &indexList, const QModelIndex &index, const IDataItem::Ptr &item, Callback callback) const = 0;
 	GROUPS_MENU_ACTION_ITEMS_X_MACRO
 	NAVIGATION_MENU_ACTION_ITEMS_X_MACRO
 #undef MENU_ACTION_ITEM
@@ -138,7 +137,7 @@ class IContextMenuProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IContextMenuProvider() = default;
-#define NAVIGATION_MODE_ITEM(NAME) virtual IDataItem::Ptr Create##NAME##ContextMenu(DB::IDatabase& db, const QString& id, ITreeViewController::RequestContextMenuOptions options) = 0;
+#define NAVIGATION_MODE_ITEM(NAME) virtual IDataItem::Ptr Create##NAME##ContextMenu(DB::IDatabase &db, const QString &id, ITreeViewController::RequestContextMenuOptions options) = 0;
 	NAVIGATION_MODE_ITEMS_X_MACRO
 #undef NAVIGATION_MODE_ITEM
 };
@@ -166,96 +165,96 @@ struct ModeDescriptor
 };
 
 constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
-	{	  Loc::Authors,
-     {
-     ViewMode::List,
-     &IModelProvider::CreateAuthorsListModel,
-     NavigationMode::Authors,
-     &INavigationFilter::IsRecordExists,
-     "select exists (select 42 from Authors where AuthorId > (select min(AuthorId) from Authors))",
-     }																																								   },
-	{	   Loc::Series,
-     {
-     ViewMode::List,
-     &IModelProvider::CreateListModel,
-     NavigationMode::Series,
-     &INavigationFilter::IsRecordExists,
-     "select exists (select 42 from Series where SeriesId > (select min(SeriesId) from Series))",
-     }																																								   },
-	{	   Loc::Genres,
-     {
-     ViewMode::Tree,
-     &IModelProvider::CreateTreeModel,
-     NavigationMode::Genres,
-     &INavigationFilter::IsRecordExists,
-     "select exists (select 42 from Genres g join Genre_List l on l.GenreCode = g.GenreCode where g.rowid > (select min(g.rowid) from Genres g join Genre_List l on l.GenreCode = g.GenreCode))",
-     }																																								   },
+	{      Loc::Authors,
+	 {
+	 ViewMode::List,
+	 &IModelProvider::CreateAuthorsListModel,
+	 NavigationMode::Authors,
+	 &INavigationFilter::IsRecordExists,
+	 "select exists (select 42 from Authors where AuthorId > (select min(AuthorId) from Authors))",
+	 }                                                                                                                                                                       },
+	{       Loc::Series,
+	 {
+	 ViewMode::List,
+	 &IModelProvider::CreateListModel,
+	 NavigationMode::Series,
+	 &INavigationFilter::IsRecordExists,
+	 "select exists (select 42 from Series where SeriesId > (select min(SeriesId) from Series))",
+	 }                                                                                                                                                                       },
+	{       Loc::Genres,
+	 {
+	 ViewMode::Tree,
+	 &IModelProvider::CreateTreeModel,
+	 NavigationMode::Genres,
+	 &INavigationFilter::IsRecordExists,
+	 "select exists (select 42 from Genres g join Genre_List l on l.GenreCode = g.GenreCode where g.rowid > (select min(g.rowid) from Genres g join Genre_List l on l.GenreCode = g.GenreCode))",
+	 }                                                                                                                                                                       },
 	{ Loc::PublishYears,
-     {
-     ViewMode::List,
-     &IModelProvider::CreateListModel,
-     NavigationMode::PublishYear,
-     &INavigationFilter::IsRecordExists,
-     "select exists (select 42 from Books where Year IS NOT NULL)",
-     }																																								   },
+	 {
+	 ViewMode::List,
+	 &IModelProvider::CreateListModel,
+	 NavigationMode::PublishYear,
+	 &INavigationFilter::IsRecordExists,
+	 "select exists (select 42 from Books where Year IS NOT NULL)",
+	 }                                                                                                                                                                       },
 	{     Loc::Keywords,
-     {
-     ViewMode::List,
-     &IModelProvider::CreateListModel,
-     NavigationMode::Keywords,
-     &INavigationFilter::IsRecordExists,
-     "select exists (select 42 from Keywords where KeywordId > (select min(KeywordId) from Keywords))",
-     }																																								   },
-	{	  Loc::Updates,
-     {
-     ViewMode::Tree,
-     &IModelProvider::CreateTreeModel,
-     NavigationMode::Updates,
-     &INavigationFilter::IsRecordExists,
-     "select exists (select 42 from Updates u join Books b on b.UpdateID = u.UpdateID where u.UpdateID > (select min(u.UpdateID) from Updates u join Books b on b.UpdateID = u.UpdateID))",
-     }																																								   },
+	 {
+	 ViewMode::List,
+	 &IModelProvider::CreateListModel,
+	 NavigationMode::Keywords,
+	 &INavigationFilter::IsRecordExists,
+	 "select exists (select 42 from Keywords where KeywordId > (select min(KeywordId) from Keywords))",
+	 }                                                                                                                                                                       },
+	{      Loc::Updates,
+	 {
+	 ViewMode::Tree,
+	 &IModelProvider::CreateTreeModel,
+	 NavigationMode::Updates,
+	 &INavigationFilter::IsRecordExists,
+	 "select exists (select 42 from Updates u join Books b on b.UpdateID = u.UpdateID where u.UpdateID > (select min(u.UpdateID) from Updates u join Books b on b.UpdateID = u.UpdateID))",
+	 }                                                                                                                                                                       },
 	{     Loc::Archives,
-     { ViewMode::List,
-     &IModelProvider::CreateListModel,
-     NavigationMode::Archives,
-     &INavigationFilter::IsRecordExists,
-     "select exists (select 42 from Folders where FolderId > (select min(FolderId) from Folders))" }                                                                     },
+	 { ViewMode::List,
+	 &IModelProvider::CreateListModel,
+	 NavigationMode::Archives,
+	 &INavigationFilter::IsRecordExists,
+	 "select exists (select 42 from Folders where FolderId > (select min(FolderId) from Folders))" }                                                                         },
 
 	{    Loc::Languages,
-     {
-     ViewMode::List,
-     &IModelProvider::CreateListModel,
-     NavigationMode::Languages,
-     &INavigationFilter::IsRecordExists,
-     "select exists (select 42 from Books where Lang > (select min(Lang) from Books))",
-     }																																								   },
-	{	   Loc::Groups,
-     { ViewMode::List,
-     &IModelProvider::CreateListModel,
-     NavigationMode::Groups,
-     &INavigationFilter::Stub,
-     nullptr,
-     &IContextMenuHandler::OnCreateNewGroupTriggered,
-     &IContextMenuHandler::OnRemoveGroupTriggered }																													  },
+	 {
+	 ViewMode::List,
+	 &IModelProvider::CreateListModel,
+	 NavigationMode::Languages,
+	 &INavigationFilter::IsRecordExists,
+	 "select exists (select 42 from Books where Lang > (select min(Lang) from Books))",
+	 }                                                                                                                                                                       },
+	{       Loc::Groups,
+	 { ViewMode::List,
+	 &IModelProvider::CreateListModel,
+	 NavigationMode::Groups,
+	 &INavigationFilter::Stub,
+	 nullptr,
+	 &IContextMenuHandler::OnCreateNewGroupTriggered,
+	 &IContextMenuHandler::OnRemoveGroupTriggered }                                                                                                                          },
 
-	{	   Loc::Search,
-     { ViewMode::List,
-     &IModelProvider::CreateSearchListModel,
-     NavigationMode::Search,
-     &INavigationFilter::Stub,
-     nullptr,
-     &IContextMenuHandler::OnCreateNewSearchTriggered,
-     &IContextMenuHandler::OnRemoveSearchTriggered }																													 },
+	{       Loc::Search,
+	 { ViewMode::List,
+	 &IModelProvider::CreateSearchListModel,
+	 NavigationMode::Search,
+	 &INavigationFilter::Stub,
+	 nullptr,
+	 &IContextMenuHandler::OnCreateNewSearchTriggered,
+	 &IContextMenuHandler::OnRemoveSearchTriggered }                                                                                                                         },
 
-	{	  Loc::Reviews,					 { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Reviews, &INavigationFilter::IsFolderExists, "reviews" } },
+	{      Loc::Reviews,                         { ViewMode::Tree, &IModelProvider::CreateTreeModel, NavigationMode::Reviews, &INavigationFilter::IsFolderExists, "reviews" } },
 	{  Loc::AlreadyRead,
-     { ViewMode::List,
-     &IModelProvider::CreateListModel,
-     NavigationMode::AlreadyRead,
-     &INavigationFilter::IsRecordExists,
-     "select exists (select 42 from Books_User b where b.UserRate is not null and b.BookID > (select min(b.BookID) from Books_User b where b.UserRate is not null))" }   },
-	{	  Loc::History,																	{ ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::History } },
-	{     Loc::AllBooks,																   { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
+	 { ViewMode::List,
+	 &IModelProvider::CreateListModel,
+	 NavigationMode::AlreadyRead,
+	 &INavigationFilter::IsRecordExists,
+	 "select exists (select 42 from Books_User b where b.UserRate is not null and b.BookID > (select min(b.BookID) from Books_User b where b.UserRate is not null))" }       },
+	{      Loc::History,                                                                        { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::History } },
+	{     Loc::AllBooks,                                                                       { ViewMode::List, &IModelProvider::CreateListModel, NavigationMode::AllBooks } },
 };
 
 static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode::Last));
@@ -263,12 +262,12 @@ static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode:
 } // namespace
 
 struct TreeViewControllerNavigation::Impl final
-	: virtual IContextMenuHandler
-	, virtual private IDatabaseController::IObserver
-	, virtual private DB::IDatabaseObserver
-	, virtual private ITableSubscriptionHandler
-	, virtual private INavigationFilter
-	, virtual private IContextMenuProvider
+    : virtual IContextMenuHandler
+    , virtual private IDatabaseController::IObserver
+    , virtual private DB::IDatabaseObserver
+    , virtual private ITableSubscriptionHandler
+    , virtual private INavigationFilter
+    , virtual private IContextMenuProvider
 {
 	TreeViewControllerNavigation&                                               self;
 	mutable std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
@@ -285,8 +284,7 @@ struct TreeViewControllerNavigation::Impl final
 	Util::FunctorExecutionForwarder                                             forwarder;
 	int                                                                         mode { -1 };
 
-	Impl(
-		TreeViewControllerNavigation&                self,
+	Impl(TreeViewControllerNavigation&               self,
 		const std::shared_ptr<const ILogicFactory>&  logicFactory,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
 		std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
@@ -295,8 +293,7 @@ struct TreeViewControllerNavigation::Impl final
 		std::shared_ptr<IDatabaseController>         databaseController,
 		std::shared_ptr<IAnnotationController>       annotationController,
 		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
-		std::shared_ptr<IFilterController>           filterController
-	)
+		std::shared_ptr<IFilterController>           filterController)
 		: self { self }
 		, logicFactory { logicFactory }
 		, collectionProvider { std::move(collectionProvider) }
@@ -498,11 +495,8 @@ private: // ITableSubscriptionHandler
 		self.RequestBooks(true);
 	}
 
-#define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(NAME, TYPE) \
-	void On_##NAME##_Changed() override                      \
-	{                                                        \
-		OnTableChanged(NavigationMode::TYPE);                \
-	}
+#define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(NAME, TYPE)                                                                                                                                                   \
+	void On_##NAME##_Changed() override { OnTableChanged(NavigationMode::TYPE); }
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_X_MACRO
 #undef SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM
 
@@ -730,16 +724,14 @@ private:
 	std::vector<std::pair<const char*, int>> GetModes() const
 	{
 		std::vector<std::pair<const char*, int>> result;
-		std::ranges::transform(
-			MODE_DESCRIPTORS | std::views::filter([&, &navigatorFilter = static_cast<const INavigationFilter&>(*this)](const auto& item) {
-				return !menuCustomizer->IsHidden(QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(item.first)).toBool()
-			        && std::invoke(item.second.filterInvoker, std::cref(navigatorFilter), std::cref(item.second));
-			}),
+		std::ranges::transform(MODE_DESCRIPTORS | std::views::filter([&, &navigatorFilter = static_cast<const INavigationFilter&>(*this)](const auto& item) {
+			return !menuCustomizer->IsHidden(QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(item.first)).toBool()
+			    && std::invoke(item.second.filterInvoker, std::cref(navigatorFilter), std::cref(item.second));
+		}),
 			std::back_inserter(result),
 			[](const auto& item) {
 				return std::make_pair(item.first, static_cast<int>(item.second.navigationMode));
-			}
-		);
+			});
 		return result;
 	}
 
@@ -758,16 +750,14 @@ private:
 	{
 		auto        controller    = ILogicFactory::Lock(logicFactory)->CreateGroupController();
 		const auto& controllerRef = *controller;
-		ExecuteGroupAction(
-			controllerRef,
+		ExecuteGroupAction(controllerRef,
 			invoker,
 			index.data(Role::Id).toLongLong(),
 			{ item->GetData(MenuItem::Column::Parameter).toLongLong() },
 			[callback = std::move(callback), controller = std::move(controller)](auto) mutable {
 				callback();
 				controller.reset();
-			}
-		);
+			});
 	}
 
 	void OnTableChanged(const NavigationMode tableMode) const
@@ -829,22 +819,19 @@ private:
 	NON_COPY_MOVABLE(Impl)
 };
 
-TreeViewControllerNavigation::TreeViewControllerNavigation(
-	std::shared_ptr<ISettings>                   settings,
-	const std::shared_ptr<IModelProvider>&       modelProvider,
-	const std::shared_ptr<const ILogicFactory>&  logicFactory,
-	std::shared_ptr<const ICollectionProvider>   collectionProvider,
-	std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
-	std::shared_ptr<INavigationInfoProvider>     dataProvider,
-	std::shared_ptr<IUiFactory>                  uiFactory,
-	std::shared_ptr<IDatabaseController>         databaseController,
-	std::shared_ptr<IAnnotationController>       annotationController,
-	std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
-	std::shared_ptr<IFilterController>           filterController
-)
+TreeViewControllerNavigation::TreeViewControllerNavigation(std::shared_ptr<ISettings> settings,
+	const std::shared_ptr<IModelProvider>&                                            modelProvider,
+	const std::shared_ptr<const ILogicFactory>&                                       logicFactory,
+	std::shared_ptr<const ICollectionProvider>                                        collectionProvider,
+	std::shared_ptr<const IMenuCustomizer>                                            menuCustomizer,
+	std::shared_ptr<INavigationInfoProvider>                                          dataProvider,
+	std::shared_ptr<IUiFactory>                                                       uiFactory,
+	std::shared_ptr<IDatabaseController>                                              databaseController,
+	std::shared_ptr<IAnnotationController>                                            annotationController,
+	std::shared_ptr<IAuthorAnnotationController>                                      authorAnnotationController,
+	std::shared_ptr<IFilterController>                                                filterController)
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
-	, m_impl(
-		  *this,
+	, m_impl(*this,
 		  logicFactory,
 		  std::move(collectionProvider),
 		  std::move(menuCustomizer),
@@ -853,8 +840,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 		  std::move(databaseController),
 		  std::move(annotationController),
 		  std::move(authorAnnotationController),
-		  std::move(filterController)
-	  )
+		  std::move(filterController))
 {
 	AbstractTreeViewController::RegisterObserver(modelProvider.get());
 	Setup();

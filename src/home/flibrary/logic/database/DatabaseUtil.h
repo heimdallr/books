@@ -4,31 +4,27 @@
 
 #include "interface/logic/IDataItem.h"
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 
 }
 
-namespace HomeCompa::DB
-{
+namespace HomeCompa::DB {
 
 class IDatabase;
 class IQuery;
 
-}
+} // namespace HomeCompa::DB
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IProgressController;
 struct QueryInfo;
 
-}
+} // namespace HomeCompa::Flibrary
 
-namespace HomeCompa::Flibrary::DatabaseUtil
-{
+namespace HomeCompa::Flibrary::DatabaseUtil {
 
 constexpr auto BOOKS_QUERY = R"({}
 select b.BookID, b.Title, b.UpdateDate, nullif(b.LibRate, 0), b.Lang, b.Ext, b.Year, f.FolderTitle, b.FileName, b.BookSize, b.UserRate, b.LibID, b.IsDeleted, l.Flags{}
@@ -50,4 +46,4 @@ bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& i
 void        CreateHistoryTable(DB::IDatabase& db, const ISettings& settings);
 std::string GetHistoryTableName(const ISettings& settings);
 
-}
+} // namespace HomeCompa::Flibrary::DatabaseUtil

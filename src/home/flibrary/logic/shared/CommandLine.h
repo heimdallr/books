@@ -5,8 +5,7 @@
 
 #include "interface/logic/ICommandLine.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class CommandLine final : virtual public ICommandLine
 {
@@ -24,4 +23,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

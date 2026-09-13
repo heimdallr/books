@@ -4,8 +4,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 template <typename T>
 IDataItem::Ptr CreateImpl(IDataItem* parent)
@@ -20,9 +19,10 @@ IDataItem::Ptr CreateImpl<DataItem>(IDataItem*)
 	return {};
 }
 
-}
+} // namespace
 
-#define DATA_ITEM(NAME) IDataItem::Ptr DataItemFactory::Create##NAME(IDataItem* parent) const { return CreateImpl<NAME>(parent); }
+#define DATA_ITEM(NAME)                                                                                                                                                                                        \
+	IDataItem::Ptr DataItemFactory::Create##NAME(IDataItem *parent) const { return CreateImpl<NAME>(parent); }
 DATA_ITEMS_X_MACRO
 #undef DATA_ITEM
 

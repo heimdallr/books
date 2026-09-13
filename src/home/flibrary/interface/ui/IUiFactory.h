@@ -18,15 +18,13 @@ class QMenuBar;
 class QShortcut;
 class QTreeView;
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IUiFactory : virtual public Util::IUiFactory // NOLINT(cppcoreguidelines-special-member-functions)
 {

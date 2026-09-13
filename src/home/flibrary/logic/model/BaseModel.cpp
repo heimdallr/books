@@ -105,8 +105,8 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 		case Role::Remap:
 			return item->RemapColumn(index.column());
 
-#define BOOKS_COLUMN_ITEM(NAME) \
-	case Role::NAME:            \
+#define BOOKS_COLUMN_ITEM(NAME)                                                                                                                                                                                \
+	case Role::NAME:                                                                                                                                                                                           \
 		return GetValue(*item, BookItem::Column::NAME);
 			BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
@@ -180,8 +180,7 @@ bool BaseModel::removeRows(const int row, const int count, const QModelIndex& pa
 		},
 		[this]() {
 			endRemoveRows();
-		}
-	);
+		});
 	parentItem->RemoveChild(uRow, uCount);
 	return true;
 }

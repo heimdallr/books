@@ -4,8 +4,7 @@
 
 #include "AbstractThemeApplier.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class PluginStyleApplier final : public AbstractThemeApplier
 {
@@ -20,4 +19,4 @@ private:
 	std::unique_ptr<Platform::DyLib> Set(QApplication& app) const override;
 };
 
-}
+} // namespace HomeCompa::Flibrary

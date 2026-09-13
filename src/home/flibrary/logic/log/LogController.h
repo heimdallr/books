@@ -7,8 +7,7 @@
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class LogController final : virtual public ILogController
 {

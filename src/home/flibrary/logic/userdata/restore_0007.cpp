@@ -14,11 +14,7 @@
 
 #include "restore.h"
 
-namespace HomeCompa::Flibrary::UserData
-{
-
-namespace
-{
+namespace HomeCompa::Flibrary::UserData { namespace {
 
 void BindImpl(DB::ICommand& command, const size_t index, const QString& value)
 {
@@ -104,7 +100,11 @@ private: // IRestorer
 		using Functor = void (GroupsRestorer::*)(const Util::XmlAttributes&);
 		constexpr std::pair<const char*, Functor> collectors[] {
 #define ITEM(NAME) { #NAME, &GroupsRestorer::Add##NAME }
-			ITEM(Group), ITEM(Item), ITEM(Author), ITEM(Series), ITEM(Keyword),
+			ITEM(Group),
+			ITEM(Item),
+			ITEM(Author),
+			ITEM(Series),
+			ITEM(Keyword),
 #undef ITEM
 		};
 
@@ -198,16 +198,13 @@ private:
 	Groups m_groups;
 };
 
-} // namespace
+}} // namespace HomeCompa::Flibrary::UserData
 
-} // namespace HomeCompa::Flibrary::UserData
-
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 std::unique_ptr<IRestorer> CreateGroupsRestorer7()
 {
 	return std::make_unique<GroupsRestorer>();
 }
 
-}
+} // namespace HomeCompa::Flibrary::UserData

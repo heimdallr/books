@@ -6,8 +6,7 @@
 
 #include "TreeModel.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ReviewTreeModel final : public TreeModel
 {

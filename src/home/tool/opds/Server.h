@@ -9,28 +9,24 @@
 #include "interface/IServer.h"
 #include "interface/logic/ICollectionProvider.h"
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 
 }
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
 class Server : virtual public IServer
 {
 	NON_COPY_MOVABLE(Server)
 
 public:
-	Server(
-		std::shared_ptr<const ISettings>                     settings,
+	Server(std::shared_ptr<const ISettings>                  settings,
 		std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 		std::shared_ptr<const IRequester>                    requester,
 		std::shared_ptr<const IReactAppRequester>            reactAppRequester,
-		std::shared_ptr<const INoSqlRequester>               noSqlRequester
-	);
+		std::shared_ptr<const INoSqlRequester>               noSqlRequester);
 	~Server() override;
 
 private:
@@ -38,4 +34,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Opds

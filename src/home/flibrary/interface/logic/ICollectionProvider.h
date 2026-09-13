@@ -15,8 +15,7 @@
 
 class QTemporaryDir;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IDatabaseUser;
 

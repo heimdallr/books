@@ -14,27 +14,24 @@
 
 #include "AbstractTreeViewController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class TreeViewControllerNavigation final : public AbstractTreeViewController
 {
 	NON_COPY_MOVABLE(TreeViewControllerNavigation)
 
 public:
-	TreeViewControllerNavigation(
-		std::shared_ptr<ISettings>                   settings,
-		const std::shared_ptr<IModelProvider>&       modelProvider,
-		const std::shared_ptr<const ILogicFactory>&  logicFactory,
-		std::shared_ptr<const ICollectionProvider>   collectionProvider,
-		std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
-		std::shared_ptr<INavigationInfoProvider>     dataProvider,
-		std::shared_ptr<IUiFactory>                  uiFactory,
-		std::shared_ptr<IDatabaseController>         databaseController,
-		std::shared_ptr<IAnnotationController>       annotationController,
-		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
-		std::shared_ptr<IFilterController>           filterController
-	);
+	TreeViewControllerNavigation(std::shared_ptr<ISettings> settings,
+		const std::shared_ptr<IModelProvider>&              modelProvider,
+		const std::shared_ptr<const ILogicFactory>&         logicFactory,
+		std::shared_ptr<const ICollectionProvider>          collectionProvider,
+		std::shared_ptr<const IMenuCustomizer>              menuCustomizer,
+		std::shared_ptr<INavigationInfoProvider>            dataProvider,
+		std::shared_ptr<IUiFactory>                         uiFactory,
+		std::shared_ptr<IDatabaseController>                databaseController,
+		std::shared_ptr<IAnnotationController>              annotationController,
+		std::shared_ptr<IAuthorAnnotationController>        authorAnnotationController,
+		std::shared_ptr<IFilterController>                  filterController);
 	~TreeViewControllerNavigation() override;
 
 public:

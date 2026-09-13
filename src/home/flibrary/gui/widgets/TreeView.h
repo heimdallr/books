@@ -2,8 +2,7 @@
 
 #include <QTreeView>
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class CustomTreeView final : public QTreeView
 {
@@ -14,4 +13,4 @@ public:
 	void UpdateSectionSize();
 };
 
-}
+} // namespace HomeCompa::Flibrary

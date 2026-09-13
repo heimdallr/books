@@ -11,15 +11,13 @@
 
 #include "export/flint.h"
 
-namespace HomeCompa::Flibrary::ExportStat
-{
+namespace HomeCompa::Flibrary::ExportStat {
 
 enum class Type;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 enum class NavigationMode;
 

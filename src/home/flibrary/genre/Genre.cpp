@@ -17,8 +17,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto GENRES_SORT_MODE_KEY = "Preferences/GenresSortMode";
 
@@ -107,7 +106,12 @@ template <typename T>
 using Sorter = void (*)(T&);
 constexpr std::pair<const char*, Sorter<Genre>> SORTERS[] {
 #define ITEM(NAME) { #NAME, &NAME<Genre> } // NOLINT(bugprone-macro-parentheses)
-	ITEM(SortByCode), ITEM(SortByName), ITEM(SortByChildCount), ITEM(SortByCodeDesc), ITEM(SortByNameDesc), ITEM(SortByChildCountDesc),
+	ITEM(SortByCode),
+	ITEM(SortByName),
+	ITEM(SortByChildCount),
+	ITEM(SortByCodeDesc),
+	ITEM(SortByNameDesc),
+	ITEM(SortByChildCountDesc),
 #undef ITEM
 };
 
@@ -134,10 +138,10 @@ void Select<Genre>(DB::IQuery& query, const std::unordered_set<Genre::CodeType>&
 	translated.replace(',', QChar { 0x2E34 });
 	AllTreeItem<Genre> item {
 		Genre { .fb2Code = fb2Code,
-               .code    = query.Get<const char*>(0),
-               .name    = std::move(translated),
-               .removed = static_cast<bool>(query.Get<int>(6)),
-               .flags   = static_cast<IDataItem::Flags>(query.Get<int>(7)) },
+			   .code        = query.Get<const char*>(0),
+			   .name        = std::move(translated),
+			   .removed     = static_cast<bool>(query.Get<int>(6)),
+			   .flags       = static_cast<IDataItem::Flags>(query.Get<int>(7)) },
 		query.Get<const char*>(2)
 	};
 	if (query.Get<int>(5) && (neededItems.empty() || neededItems.contains(std::get<0>(item).code)))
@@ -178,12 +182,10 @@ T LoadImpl(DB::IDatabase& db, const std::unordered_set<typename T::CodeType>& ne
 		}
 		buffer.clear();
 
-		std::ranges::move(
-			allItems | std::views::values | std::views::filter([](const auto& item) {
-				return !std::get<0>(item).children.empty();
-			}),
-			std::back_inserter(buffer)
-		);
+		std::ranges::move(allItems | std::views::values | std::views::filter([](const auto& item) {
+			return !std::get<0>(item).children.empty();
+		}),
+			std::back_inserter(buffer));
 		for (const auto& [treeItem, _] : buffer)
 			allItems.erase(treeItem.code);
 	}
@@ -220,23 +222,19 @@ T* FindImpl(T* root, const typename T::CodeType& code)
 
 Genre Genre::Load(DB::IDatabase& db, const std::unordered_set<QString>& neededGenres)
 {
-	return LoadImpl<Genre>(
-		db,
+	return LoadImpl<Genre>(db,
 		neededGenres,
 		"select g.GenreCode, g.FB2Code, g.ParentCode, g.GenreAlias, coalesce(g.GenreTitle, ''), exists (select 42 from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount, IsDeleted, Flags from Genres "
 		"g",
-		SORTER
-	);
+		SORTER);
 }
 
 Update Update::Load(DB::IDatabase& db, const std::unordered_set<long long>& neededUpdates)
 {
-	auto root = LoadImpl<Update>(
-		db,
+	auto root = LoadImpl<Update>(db,
 		neededUpdates,
 		"select u.UpdateId, u.UpdateTitle, u.ParentId, exists (select 42 from Books b where b.UpdateID = u.UpdateID) BookCount, u.IsDeleted, 0 Flags from Updates u",
-		&SortByNameIntegral<Update>
-	);
+		&SortByNameIntegral<Update>);
 
 	const auto tr = [](Update& treeItem, const auto& f) -> void {
 		for (auto& child : treeItem.children)

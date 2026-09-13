@@ -11,12 +11,11 @@
 
 class QString;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class AbstractTreeViewController
-	: public ITreeViewController
-	, public Observable<ITreeViewController::IObserver>
+    : public ITreeViewController
+    , public Observable<ITreeViewController::IObserver>
 {
 	NON_COPY_MOVABLE(AbstractTreeViewController)
 

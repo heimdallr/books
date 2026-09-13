@@ -36,8 +36,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT                  = "BookContextMenu";
 constexpr auto READ_BOOK                = QT_TRANSLATE_NOOP("BookContextMenu", "&Read");
@@ -92,14 +91,14 @@ struct SendSettings
 class IContextMenuHandler // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	using Function =
-		void (IContextMenuHandler::*)(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const;
+	using Function = void (
+		IContextMenuHandler::*)(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const;
 
 public:
 	virtual ~IContextMenuHandler() = default;
 
-#define MENU_ACTION_ITEM(NAME) \
-	virtual void NAME(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const = 0;
+#define MENU_ACTION_ITEM(NAME)                                                                                                                                                                                 \
+	virtual void NAME(QAbstractItemModel *model, const QModelIndex &index, const QList<QModelIndex> &indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const = 0;
 	GROUPS_MENU_ACTION_ITEMS_X_MACRO
 	BOOKS_MENU_ACTION_ITEMS_X_MACRO
 #undef MENU_ACTION_ITEM
@@ -174,14 +173,12 @@ void CreateChangeLangMenu(const IDataItem::Ptr& root, const QString& currentLoca
 	std::ranges::transform(LANGUAGES, std::back_inserter(languages), [](const Language& item) {
 		return std::make_tuple(item.key, Loc::Tr(LANGUAGES_CONTEXT, item.title), item.priority);
 	});
-	if (auto it = std::ranges::find(
-			languages,
+	if (auto it = std::ranges::find(languages,
 			currentLocale,
 			[](const auto& item) {
 				return std::get<0>(item);
-			}
-		);
-	    it != languages.end())
+			});
+		it != languages.end())
 	{
 		auto& item        = *it;
 		std::get<2>(item) = std::numeric_limits<int>::min();
@@ -213,17 +210,15 @@ void CreateTreeMenu(const IDataItem::Ptr& root, const ITreeViewController::Reque
 class BooksContextMenuProvider::Impl final : public IContextMenuHandler
 {
 public:
-	explicit Impl(
-		const std::shared_ptr<const ILogicFactory>& logicFactory,
-		std::shared_ptr<const ISettings>            settings,
-		std::shared_ptr<const ICollectionProvider>  collectionProvider,
-		std::shared_ptr<const IReaderController>    readerController,
-		std::shared_ptr<const IDatabaseUser>        databaseUser,
-		std::shared_ptr<const IBookInfoProvider>    dataProvider,
-		std::shared_ptr<const IUiFactory>           uiFactory,
-		std::shared_ptr<IScriptController>          scriptController,
-		std::shared_ptr<IProgressController>        progressController
-	)
+	explicit Impl(const std::shared_ptr<const ILogicFactory>& logicFactory,
+		std::shared_ptr<const ISettings>                      settings,
+		std::shared_ptr<const ICollectionProvider>            collectionProvider,
+		std::shared_ptr<const IReaderController>              readerController,
+		std::shared_ptr<const IDatabaseUser>                  databaseUser,
+		std::shared_ptr<const IBookInfoProvider>              dataProvider,
+		std::shared_ptr<const IUiFactory>                     uiFactory,
+		std::shared_ptr<IScriptController>                    scriptController,
+		std::shared_ptr<IProgressController>                  progressController)
 		: m_logicFactory { logicFactory }
 		, m_settings { std::move(settings) }
 		, m_collectionProvider { std::move(collectionProvider) }
@@ -245,54 +240,52 @@ public:
 		});
 		auto currentLocale = Loc::GetLocale(*m_settings);
 
-		m_databaseUser->Execute(
-			{ "Create context menu",
-		      [id      = index.data(Role::Id).toString(),
-		       type    = index.data(Role::Type).value<ItemType>(),
-		       removed = index.data(Role::IsRemoved).toBool(),
-		       options,
-		       starSymbol    = m_starSymbol,
-		       callback      = std::move(callback),
-		       db            = m_databaseUser->Database(),
-		       scripts       = std::move(scripts),
-		       currentLocale = std::move(currentLocale)]() mutable {
-				  auto result = MenuItem::Create();
+		m_databaseUser->Execute({ "Create context menu",
+			[id         = index.data(Role::Id).toString(),
+				type    = index.data(Role::Type).value<ItemType>(),
+				removed = index.data(Role::IsRemoved).toBool(),
+				options,
+				starSymbol    = m_starSymbol,
+				callback      = std::move(callback),
+				db            = m_databaseUser->Database(),
+				scripts       = std::move(scripts),
+				currentLocale = std::move(currentLocale)]() mutable {
+				auto result = MenuItem::Create();
 
-				  if (type == ItemType::Books)
-					  AddMenuItem(result, READ_BOOK, Tr(READ_BOOK), BooksMenuAction::ReadBook);
+				if (type == ItemType::Books)
+					AddMenuItem(result, READ_BOOK, Tr(READ_BOOK), BooksMenuAction::ReadBook);
 
-				  CreateSendMenu(result, options, scripts);
-				  AddMenuItem(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+				CreateSendMenu(result, options, scripts);
+				AddMenuItem(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
 
-				  if (type == ItemType::Books)
-				  {
-					  CreateGroupMenu(result, id, *db);
-					  CreateMyRateMenu(result, id, *db, starSymbol);
-				  }
+				if (type == ItemType::Books)
+				{
+					CreateGroupMenu(result, id, *db);
+					CreateMyRateMenu(result, id, *db, starSymbol);
+				}
 
-				  CreateCheckMenu(result);
-				  CreateTreeMenu(result, options);
-				  CreateChangeLangMenu(result, currentLocale);
-				  CreateHashMenu(result, options);
+				CreateCheckMenu(result);
+				CreateTreeMenu(result, options);
+				CreateChangeLangMenu(result, currentLocale);
+				CreateHashMenu(result, options);
 
-				  if (!!(options & ITreeViewController::RequestContextMenuOptions::NavigationModeIsHistory))
-					  AddMenuItem(result, CLEAR_HISTORY, Tr(CLEAR_HISTORY), BooksMenuAction::ClearHistory);
+				if (!!(options & ITreeViewController::RequestContextMenuOptions::NavigationModeIsHistory))
+					AddMenuItem(result, CLEAR_HISTORY, Tr(CLEAR_HISTORY), BooksMenuAction::ClearHistory);
 
-				  if (type == ItemType::Books)
-				  {
-					  AddMenuItem(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-					  AddMenuItem(result, REMOVE_BOOK, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? BooksMenuAction::UndoRemoveBook : BooksMenuAction::RemoveBook);
-					  auto removeItem = AddMenuItem(result, REMOVE_BOOK_FROM_ARCHIVE, Tr(REMOVE_BOOK_FROM_ARCHIVE), BooksMenuAction::RemoveBookFromArchive);
-					  if (!(options & ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations))
-						  removeItem->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
-				  }
+				if (type == ItemType::Books)
+				{
+					AddMenuItem(result)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+					AddMenuItem(result, REMOVE_BOOK, Tr(removed ? REMOVE_BOOK_UNDO : REMOVE_BOOK), removed ? BooksMenuAction::UndoRemoveBook : BooksMenuAction::RemoveBook);
+					auto removeItem = AddMenuItem(result, REMOVE_BOOK_FROM_ARCHIVE, Tr(REMOVE_BOOK_FROM_ARCHIVE), BooksMenuAction::RemoveBookFromArchive);
+					if (!(options & ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations))
+						removeItem->SetData(QVariant(false).toString(), MenuItem::Column::Enabled);
+				}
 
-				  return [callback = std::move(callback), result = std::move(result)](size_t) {
-					  if (result->GetChildCount() > 0)
-						  callback(result);
-				  };
-			  } }
-		);
+				return [callback = std::move(callback), result = std::move(result)](size_t) {
+					if (result->GetChildCount() > 0)
+						callback(result);
+				};
+			} });
 	}
 
 private: // IContextMenuHandler
@@ -487,8 +480,7 @@ private: // IContextMenuHandler
 		const auto hasUserDestinationFolder = std::ranges::any_of(commands, [](const auto& command) {
 			return IScriptController::HasMacro(command.args, IScriptController::Macro::UserDestinationFolder);
 		});
-		Send(
-			model,
+		Send(model,
 			index,
 			indexList,
 			std::move(item),
@@ -496,8 +488,7 @@ private: // IContextMenuHandler
 			&BooksExtractor::ExtractAsScript,
 			QString("%1/%2").arg(IScriptController::GetMacro(IScriptController::Macro::UserDestinationFolder)).arg(IScriptController::GetMacro(IScriptController::Macro::FileName)),
 			hasUserDestinationFolder,
-			{ .tempFolder = true, .createFillTemplateConverterParameter = true }
-		);
+			{ .tempFolder = true, .createFillTemplateConverterParameter = true });
 	}
 
 	void ChangeLanguage(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
@@ -547,36 +538,34 @@ private: // IContextMenuHandler
 		std::shared_ptr executor     = logicFactory->GetExecutor();
 
 		const auto& executorRef = *executor;
-		executorRef(
-			{ "calculate book hashes",
-		      [item         = std::move(item),
-		       callback     = std::move(callback),
-		       executor     = std::move(executor),
-		       folder       = m_collectionProvider->GetActiveCollection().GetFolder(),
-		       selectedBook = std::make_pair(index.data(Role::Folder).toString(), index.data(Role::FileName)),
-		       books        = std::move(books),
-		       progressItem = std::move(progressItem)]() mutable {
-				  Util::BookHashItem toClipboard;
-				  for (const auto& book : books)
-				  {
-					  auto hash = Util::GetHash(folder + "/" + book.front(), book.back());
-					  PLOGI << hash;
-					  if (hash.folder == selectedBook.first && hash.file == selectedBook.second)
-						  toClipboard = std::move(hash);
+		executorRef({ "calculate book hashes",
+			[item            = std::move(item),
+				callback     = std::move(callback),
+				executor     = std::move(executor),
+				folder       = m_collectionProvider->GetActiveCollection().GetFolder(),
+				selectedBook = std::make_pair(index.data(Role::Folder).toString(), index.data(Role::FileName)),
+				books        = std::move(books),
+				progressItem = std::move(progressItem)]() mutable {
+				Util::BookHashItem toClipboard;
+				for (const auto& book : books)
+				{
+					auto hash = Util::GetHash(folder + "/" + book.front(), book.back());
+					PLOGI << hash;
+					if (hash.folder == selectedBook.first && hash.file == selectedBook.second)
+						toClipboard = std::move(hash);
 
-					  progressItem->Increment(1);
-					  if (progressItem->IsStopped())
-						  break;
-				  }
-				  auto serialized = Serialize(toClipboard);
-				  return [item = std::move(item), callback = std::move(callback), executor = std::move(executor), serialized = std::move(serialized)](size_t) {
-					  auto* data = new QMimeData;
-					  data->setData(Constant::BOOK_HASH_MIME_DATA_TYPE, serialized);
-					  QGuiApplication::clipboard()->setMimeData(data);
-					  callback(item);
-				  };
-			  } }
-		);
+					progressItem->Increment(1);
+					if (progressItem->IsStopped())
+						break;
+				}
+				auto serialized = Serialize(toClipboard);
+				return [item = std::move(item), callback = std::move(callback), executor = std::move(executor), serialized = std::move(serialized)](size_t) {
+					auto* data = new QMimeData;
+					data->setData(Constant::BOOK_HASH_MIME_DATA_TYPE, serialized);
+					QGuiApplication::clipboard()->setMimeData(data);
+					callback(item);
+				};
+			} });
 	}
 
 	void HashCompare(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
@@ -588,45 +577,43 @@ private: // IContextMenuHandler
 		std::shared_ptr executor = logicFactory->GetExecutor();
 
 		const auto& executorRef = *executor;
-		executorRef(
-			{ "compare book hashes",
-		      [item         = std::move(item),
-		       callback     = std::move(callback),
-		       executor     = std::move(executor),
-		       folder       = m_collectionProvider->GetActiveCollection().GetFolder(),
-		       selectedBook = std::make_pair(index.data(Role::Folder).toString(), index.data(Role::FileName)),
-		       books        = std::move(books)]() mutable {
-				  auto lhs = books.size() > 1 ? Util::GetHash(folder + "/" + books.front().front(), books.front().back()) : [] {
+		executorRef({ "compare book hashes",
+			[item            = std::move(item),
+				callback     = std::move(callback),
+				executor     = std::move(executor),
+				folder       = m_collectionProvider->GetActiveCollection().GetFolder(),
+				selectedBook = std::make_pair(index.data(Role::Folder).toString(), index.data(Role::FileName)),
+				books        = std::move(books)]() mutable {
+				auto lhs = books.size() > 1 ? Util::GetHash(folder + "/" + books.front().front(), books.front().back()) : [] {
 					  const auto data = QGuiApplication::clipboard()->mimeData();
 					  assert(data && data->hasFormat(Constant::BOOK_HASH_MIME_DATA_TYPE));
 					  const auto bytes = data->data(Constant::BOOK_HASH_MIME_DATA_TYPE);
 					  return Util::Deserialize(bytes);
 				  }(), rhs = Util::GetHash(folder + "/" + books.back().front(), books.back().back());
 
-				  const auto updateItem = [](Util::BookHashItem& bookHashItem) {
-					  if (bookHashItem.cover.hash.isEmpty())
-						  return;
+				const auto updateItem = [](Util::BookHashItem& bookHashItem) {
+					if (bookHashItem.cover.hash.isEmpty())
+						return;
 
-					  bookHashItem.cover.file = Global::COVER;
-					  decltype(lhs.images) images;
-					  images.reserve(bookHashItem.images.size() + 1);
-					  images.emplace_back(std::move(bookHashItem.cover));
-					  std::ranges::move(std::move(bookHashItem.images), std::back_inserter(images));
-					  bookHashItem.images = std::move(images);
-					  bookHashItem.cover  = {};
-				  };
+					bookHashItem.cover.file = Global::COVER;
+					decltype(lhs.images) images;
+					images.reserve(bookHashItem.images.size() + 1);
+					images.emplace_back(std::move(bookHashItem.cover));
+					std::ranges::move(std::move(bookHashItem.images), std::back_inserter(images));
+					bookHashItem.images = std::move(images);
+					bookHashItem.cover  = {};
+				};
 
-				  updateItem(lhs);
-				  updateItem(rhs);
+				updateItem(lhs);
+				updateItem(rhs);
 
-				  auto result = Compare(lhs, rhs).join('\n');
+				auto result = Compare(lhs, rhs).join('\n');
 
-				  return [item = std::move(item), callback = std::move(callback), executor = std::move(executor), result = std::move(result)](size_t) {
-					  PLOGI << result;
-					  callback(item);
-				  };
-			  } }
-		);
+				return [item = std::move(item), callback = std::move(callback), executor = std::move(executor), result = std::move(result)](size_t) {
+					PLOGI << result;
+					callback(item);
+				};
+			} });
 	}
 
 	void ClearHistory(QAbstractItemModel*, const QModelIndex&, const QList<QModelIndex>&, IDataItem::Ptr item, Callback callback) const override
@@ -646,14 +633,12 @@ private: // IContextMenuHandler
 	}
 
 private:
-	void SendAsInpxImpl(
-		QAbstractItemModel*       model,
-		const QModelIndex&        index,
-		const QList<QModelIndex>& indexList,
-		IDataItem::Ptr            item,
-		Callback                  callback,
-		void (IInpxGenerator::*extractorMethod)(QString, const std::vector<QString>&, const IBookInfoProvider&, IInpxGenerator::Callback)
-	) const
+	void SendAsInpxImpl(QAbstractItemModel* model,
+		const QModelIndex&                  index,
+		const QList<QModelIndex>&           indexList,
+		IDataItem::Ptr                      item,
+		Callback                            callback,
+		void (IInpxGenerator::*extractorMethod)(QString, const std::vector<QString>&, const IBookInfoProvider&, IInpxGenerator::Callback)) const
 	{
 		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id });
 		if (idList.empty())
@@ -675,23 +660,20 @@ private:
 		});
 	}
 
-	void SendAsImpl(
-		QAbstractItemModel*           model,
-		const QModelIndex&            index,
-		const QList<QModelIndex>&     indexList,
-		IDataItem::Ptr                item,
-		Callback                      callback,
-		const BooksExtractor::Extract f,
-		const SendSettings&           sendSettings = {}
-	) const
+	void SendAsImpl(QAbstractItemModel* model,
+		const QModelIndex&              index,
+		const QList<QModelIndex>&       indexList,
+		IDataItem::Ptr                  item,
+		Callback                        callback,
+		const BooksExtractor::Extract   f,
+		const SendSettings&             sendSettings = {}) const
 	{
 		auto       outputFileNameTemplate = m_settings->Get(Constant::Settings::EXPORT_TEMPLATE_KEY, IScriptController::GetDefaultOutputFileNameTemplate());
 		const bool dstFolderRequired      = IScriptController::HasMacro(outputFileNameTemplate, IScriptController::Macro::UserDestinationFolder);
 		Send(model, index, indexList, std::move(item), std::move(callback), f, outputFileNameTemplate, dstFolderRequired, sendSettings);
 	}
 
-	void Send(
-		QAbstractItemModel*           model,
+	void Send(QAbstractItemModel*     model,
 		const QModelIndex&            index,
 		const QList<QModelIndex>&     indexList,
 		IDataItem::Ptr                item,
@@ -699,8 +681,7 @@ private:
 		const BooksExtractor::Extract f,
 		const QString&                outputFileNameTemplate,
 		const bool                    dstFolderRequired,
-		const SendSettings&           sendSettings
-	) const
+		const SendSettings&           sendSettings) const
 	{
 		auto dir = dstFolderRequired ? m_uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, Loc::SELECT_SEND_TO_FOLDER) : QString();
 		if (dstFolderRequired && dir.isEmpty())
@@ -724,13 +705,11 @@ private:
 			return callback(item);
 
 		auto       ids       = books | std::views::transform([](const auto book) {
-					   return QString::number(book.id);
-							   })
-		                     | std::ranges::to<std::set<QString>>();
+			return QString::number(book.id);
+		}) | std::ranges::to<std::set<QString>>();
 		auto       extractor = logicFactory->CreateBooksExtractor();
 		const auto parameter = item->GetData(MenuItem::Column::Parameter);
-		((*extractor).*f)(
-			dir,
+		((*extractor).*f)(dir,
 			parameter,
 			std::move(books),
 			[extractor, model, item = std::move(item), ids = std::move(ids), tempDir = std::move(tempDir), callback = std::move(callback), settings = m_settings](const bool hasError) mutable {
@@ -739,8 +718,7 @@ private:
 				if (!settings->Get(Constant::Settings::PREFER_KEEP_CHECK, false))
 					model->setData({}, QVariant::fromValue(ids), Role::Uncheck);
 				extractor.reset();
-			}
-		);
+			});
 	}
 
 	void GroupAction(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback, const GroupActionFunction f) const
@@ -789,8 +767,7 @@ private:
 					auto checkPath = book.dstFileName + dstPathSuffix;
 					return QFile::exists(checkPath) || !uniqueNames.emplace(checkPath).second;
 				}))
-				return m_uiFactory->ShowCustomDialog(
-					QMessageBox::Question,
+				return m_uiFactory->ShowCustomDialog(QMessageBox::Question,
 					Loc::Tr(Loc::Ctx::COMMON, Loc::WARNING),
 					Tr(SAME_NAMED_FILES),
 					{
@@ -798,9 +775,8 @@ private:
 						{ QMessageBox::DestructiveRole, Tr(SAME_NAMED_FILES_OVERWRITE) },
 						{          QMessageBox::NoRole,    Tr(SAME_NAMED_FILES_RENAME) },
 						{      QMessageBox::RejectRole,    Tr(SAME_NAMED_FILES_CANCEL) },
-                },
-					QMessageBox::AcceptRole
-				);
+				},
+					QMessageBox::AcceptRole);
 
 			return QMessageBox::NoRole;
 		}();
@@ -816,12 +792,10 @@ private:
 		}
 
 		const auto filesExist = books | std::views::transform([](const auto& item) {
-									return item.dstFileName;
-								})
-		                      | std::views::filter([&](const auto& item) {
-									return QFile::exists(item + dstPathSuffix);
-								})
-		                      | std::ranges::to<std::unordered_set>();
+			return item.dstFileName;
+		}) | std::views::filter([&](const auto& item) {
+			return QFile::exists(item + dstPathSuffix);
+		}) | std::ranges::to<std::unordered_set>();
 
 		switch (whatTodo)
 		{
@@ -866,19 +840,16 @@ void BooksContextMenuProvider::AddTreeMenuItems(const IDataItem::Ptr& parent, co
 		->SetData(QVariant(!!(options & ITreeViewController::RequestContextMenuOptions::HasCollapsed)).toString(), MenuItem::Column::Enabled);
 }
 
-BooksContextMenuProvider::BooksContextMenuProvider(
-	const std::shared_ptr<const ILogicFactory>& logicFactory,
-	std::shared_ptr<const ISettings>            settings,
-	std::shared_ptr<const ICollectionProvider>  collectionProvider,
-	std::shared_ptr<const IReaderController>    readerController,
-	std::shared_ptr<const IDatabaseUser>        databaseUser,
-	std::shared_ptr<const IBookInfoProvider>    dataProvider,
-	std::shared_ptr<const IUiFactory>           uiFactory,
-	std::shared_ptr<IScriptController>          scriptController,
-	std::shared_ptr<IMainProgressController>    progressController
-)
-	: m_impl(
-		  logicFactory,
+BooksContextMenuProvider::BooksContextMenuProvider(const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const ISettings>                                                           settings,
+	std::shared_ptr<const ICollectionProvider>                                                 collectionProvider,
+	std::shared_ptr<const IReaderController>                                                   readerController,
+	std::shared_ptr<const IDatabaseUser>                                                       databaseUser,
+	std::shared_ptr<const IBookInfoProvider>                                                   dataProvider,
+	std::shared_ptr<const IUiFactory>                                                          uiFactory,
+	std::shared_ptr<IScriptController>                                                         scriptController,
+	std::shared_ptr<IMainProgressController>                                                   progressController)
+	: m_impl(logicFactory,
 		  std::move(settings),
 		  std::move(collectionProvider),
 		  std::move(readerController),
@@ -886,8 +857,7 @@ BooksContextMenuProvider::BooksContextMenuProvider(
 		  std::move(dataProvider),
 		  std::move(uiFactory),
 		  std::move(scriptController),
-		  std::move(progressController)
-	  )
+		  std::move(progressController))
 {
 	PLOGV << "BooksContextMenuProvider created";
 }

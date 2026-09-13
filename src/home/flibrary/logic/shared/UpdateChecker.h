@@ -11,20 +11,17 @@
 #include "gutil/interface/IUiFactory.h"
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class UpdateChecker final : virtual public IUpdateChecker
 {
 	NON_COPY_MOVABLE(UpdateChecker)
 
 public:
-	UpdateChecker(
-		const std::shared_ptr<const ILogicFactory>& logicFactory,
-		std::shared_ptr<const Util::IUiFactory>     uiFactory,
-		std::shared_ptr<ISettings>                  settings,
-		std::shared_ptr<IMainProgressController>    progressController
-	);
+	UpdateChecker(const std::shared_ptr<const ILogicFactory>& logicFactory,
+		std::shared_ptr<const Util::IUiFactory>               uiFactory,
+		std::shared_ptr<ISettings>                            settings,
+		std::shared_ptr<IMainProgressController>              progressController);
 	~UpdateChecker() override;
 
 private: // IUpdateChecker
@@ -35,4 +32,4 @@ private:
 	std::shared_ptr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

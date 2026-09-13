@@ -17,8 +17,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& collectionProvider, const bool readOnly)
 {
@@ -63,8 +62,8 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& col
 } // namespace
 
 class DatabaseController::Impl final
-	: ICollectionsObserver
-	, public Observable<IObserver>
+    : ICollectionsObserver
+    , public Observable<IObserver>
 {
 	NON_COPY_MOVABLE(Impl)
 

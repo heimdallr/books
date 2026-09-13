@@ -25,8 +25,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT = "ImageModel";
 constexpr auto COVER   = QT_TRANSLATE_NOOP("ImageModel", "Cover");
@@ -104,12 +103,10 @@ public:
 				return;
 
 			std::ranges::sort(items, {}, [](const Item& item) {
-				return std::tuple<const QString&, const QString, const QString, int>(
-					item.book->GetRawData(BookItem::Column::AuthorFull),
+				return std::tuple<const QString&, const QString, const QString, int>(item.book->GetRawData(BookItem::Column::AuthorFull),
 					item.book->GetRawData(BookItem::Column::Title),
 					item.book->GetId(),
-					item.ordNum
-				);
+					item.ordNum);
 			});
 
 			m_observer.OnItemsCreated(std::move(items));
@@ -200,8 +197,7 @@ private:
 
 				std::invoke(invoker, std::ref(m_observer), row, std::move(image));
 			},
-			!needScale
-		);
+			!needScale);
 	}
 
 private:
@@ -211,9 +207,9 @@ private:
 };
 
 class Model final
-	: public QAbstractListModel
-	, public Extractor::IObserver
-	, public Decoder::IObserver
+    : public QAbstractListModel
+    , public Extractor::IObserver
+    , public Decoder::IObserver
 {
 public:
 	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)
@@ -258,8 +254,7 @@ private: // Extractor::IObserver
 				},
 				[this] {
 					endInsertRows();
-				}
-			);
+				});
 			std::ranges::move(items, std::back_inserter(m_items));
 		});
 	}
@@ -329,11 +324,9 @@ private:
 
 			case Qt::ToolTipRole:
 				return QString("%1. %2\n%3")
-				    .arg(
-						item.book->GetRawData(BookItem::Column::AuthorFull),
+				    .arg(item.book->GetRawData(BookItem::Column::AuthorFull),
 						item.book->GetRawData(BookItem::Column::Title),
-						item.isCover ? Tr(COVER) : Tr(IMAGE).arg(item.fileName.split('/', Qt::SkipEmptyParts).back())
-					);
+						item.isCover ? Tr(COVER) : Tr(IMAGE).arg(item.fileName.split('/', Qt::SkipEmptyParts).back()));
 			case ImageModelRole::Author:
 				return item.book->GetRawData(BookItem::Column::AuthorFull);
 
@@ -424,8 +417,7 @@ private:
 			},
 			[this] {
 				endResetModel();
-			}
-		);
+			});
 
 		m_items.clear();
 
@@ -516,8 +508,7 @@ private: // QAbstractItemModel
 					},
 					[this] {
 						END_FILTER_CHANGE;
-					}
-				);
+					});
 
 			default:
 				break;

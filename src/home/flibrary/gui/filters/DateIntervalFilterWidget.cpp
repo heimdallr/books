@@ -16,8 +16,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto MIN_KEY     = "min";
 constexpr auto MAX_KEY     = "max";
@@ -33,7 +32,7 @@ std::pair<QDate, QDate> CreateFullRange(const QAbstractItemModel& model, const i
 	return std::make_pair(minVar.toDate(), maxVar.toDate());
 }
 
-}
+} // namespace
 
 class DateIntervalFilterWidget::Impl final : public QObject
 {
@@ -118,12 +117,10 @@ private:
 
 	QByteArray Serialize() const
 	{
-		return QJsonDocument(
-				   QJsonObject {
-					   { MIN_KEY, m_ui.from->selectedDate().toString(DATE_FORMAT) },
-					   { MAX_KEY,   m_ui.to->selectedDate().toString(DATE_FORMAT) },
-        }
-		)
+		return QJsonDocument(QJsonObject {
+								 { MIN_KEY, m_ui.from->selectedDate().toString(DATE_FORMAT) },
+								 { MAX_KEY,   m_ui.to->selectedDate().toString(DATE_FORMAT) },
+		})
 		    .toJson(QJsonDocument::Compact);
 	}
 
@@ -186,14 +183,12 @@ private:
 	Ui::DateIntervalFilterWidget m_ui {};
 };
 
-DateIntervalFilterWidget::DateIntervalFilterWidget(
-	const QAbstractItemModel&    model,
-	int                          column,
-	Callback                     callback,
-	const IParentWidgetProvider& parentWidgetProvider,
-	std::shared_ptr<ISettings>   settings,
-	QWidget*                     parent
-)
+DateIntervalFilterWidget::DateIntervalFilterWidget(const QAbstractItemModel& model,
+	int                                                                      column,
+	Callback                                                                 callback,
+	const IParentWidgetProvider&                                             parentWidgetProvider,
+	std::shared_ptr<ISettings>                                               settings,
+	QWidget*                                                                 parent)
 	: QWidget(parent)
 	, m_impl { this, model, column, std::move(callback), parentWidgetProvider, std::move(settings) }
 {

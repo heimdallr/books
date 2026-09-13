@@ -16,8 +16,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 class ProgressItem final : public IProgressController::IProgressItem
 {
@@ -69,9 +68,9 @@ private:
 } // namespace
 
 struct ProgressController::Impl final
-	: Observable<IObserver>
-	, ProgressItem::IObserver
-	, std::enable_shared_from_this<Impl>
+    : Observable<IObserver>
+    , ProgressItem::IObserver
+    , std::enable_shared_from_this<Impl>
 {
 	std::atomic_bool                 stopped { false };
 	int64_t                          globalMaximum { 0 };

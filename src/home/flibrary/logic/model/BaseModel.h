@@ -9,8 +9,7 @@
 
 #include "interface/logic/IDataItem.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ILibRateProvider;
 

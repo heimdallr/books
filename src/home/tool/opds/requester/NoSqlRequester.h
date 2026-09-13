@@ -11,22 +11,19 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
 class NoSqlRequester final : virtual public INoSqlRequester
 {
 	NON_COPY_MOVABLE(NoSqlRequester)
 
 public:
-	NoSqlRequester(
-		const std::shared_ptr<const Flibrary::ILogicFactory>& logicFactory,
-		std::shared_ptr<ISettings>                            settings,
-		std::shared_ptr<const Flibrary::ICollectionProvider>  collectionProvider,
-		std::shared_ptr<const Flibrary::IBookExtractor>       bookExtractor,
-		std::shared_ptr<const ICoverCache>                    coverCache,
-		std::shared_ptr<Flibrary::IAnnotationController>      annotationController
-	);
+	NoSqlRequester(const std::shared_ptr<const Flibrary::ILogicFactory>& logicFactory,
+		std::shared_ptr<ISettings>                                       settings,
+		std::shared_ptr<const Flibrary::ICollectionProvider>             collectionProvider,
+		std::shared_ptr<const Flibrary::IBookExtractor>                  bookExtractor,
+		std::shared_ptr<const ICoverCache>                               coverCache,
+		std::shared_ptr<Flibrary::IAnnotationController>                 annotationController);
 	~NoSqlRequester() override;
 
 private:
@@ -40,4 +37,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Opds

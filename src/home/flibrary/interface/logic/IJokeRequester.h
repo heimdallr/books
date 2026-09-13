@@ -3,8 +3,7 @@
 class QString;
 class QByteArray;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IJokeRequester // NOLINT(cppcoreguidelines-special-member-functions)
 {

@@ -6,14 +6,13 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT = "JokeRequester";
 constexpr auto PREFIX  = QT_TRANSLATE_NOOP("JokeRequester", "Interesting fact about cats");
 TR_DEF
 
-}
+} // namespace
 
 CatFactJokeRequester::CatFactJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory)
 	: SimpleJokeRequester(jokeRequesterFactory->GetDownloader(), "https://catfact.ninja/fact", "fact", Tr(PREFIX))

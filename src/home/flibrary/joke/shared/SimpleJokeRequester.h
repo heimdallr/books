@@ -4,8 +4,7 @@
 
 #include "BaseJokeRequester.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class SimpleJokeRequester : public BaseJokeRequester
 {
@@ -23,4 +22,4 @@ private:
 	const QString m_prefix;
 };
 
-}
+} // namespace HomeCompa::Flibrary

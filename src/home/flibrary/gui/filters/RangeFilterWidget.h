@@ -7,16 +7,14 @@
 
 class QAbstractItemModel;
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class IParentWidgetProvider;
 class ISettings;
 
-}
+} // namespace HomeCompa
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class RangeFilterWidget final : public QWidget
 {
@@ -35,4 +33,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

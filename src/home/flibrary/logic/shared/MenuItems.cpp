@@ -10,11 +10,9 @@
 
 #include "data/DataItem.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT                = "BookContextMenu";
 constexpr auto GROUPS                 = QT_TRANSLATE_NOOP("BookContextMenu", "&Groups");
@@ -26,7 +24,7 @@ constexpr auto GROUPS_REMOVE_FROM_ALL = QT_TRANSLATE_NOOP("BookContextMenu", "&A
 
 TR_DEF
 
-}
+} // namespace
 
 IDataItem::Ptr AddMenuItem(const IDataItem::Ptr& dst, QString key, QString title, const int id)
 {

@@ -2,8 +2,7 @@
 
 #include "fnd/observer.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IAlphabetPanel // NOLINT(cppcoreguidelines-special-member-functions)
 {

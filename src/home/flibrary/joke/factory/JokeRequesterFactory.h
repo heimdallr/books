@@ -6,15 +6,13 @@
 
 #include "export/joke.h"
 
-namespace Hypodermic
-{
+namespace Hypodermic {
 
 class Container;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class JokeRequesterFactory final : public IJokeRequesterFactory
 {

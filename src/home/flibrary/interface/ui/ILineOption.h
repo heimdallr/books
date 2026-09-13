@@ -5,8 +5,7 @@
 class QLineEdit;
 class QString;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ILineOption // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -27,4 +26,4 @@ public:
 	virtual void Unregister(IObserver* observer) = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

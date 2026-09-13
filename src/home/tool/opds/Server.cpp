@@ -27,8 +27,7 @@
 using namespace HomeCompa;
 using namespace Opds;
 
-namespace
-{
+namespace {
 
 constexpr auto ARG        = "<arg>";
 constexpr auto FAVICON    = "/favicon.ico";
@@ -102,14 +101,14 @@ constexpr const char* ROOTS[] { opds, web };
 
 constexpr const char* CONTENT_TYPES[][std::size(ROOTS)] {
 	{ "application/atom+xml; charset=utf-8", "text/html; charset=utf-8" },
-	{							   nullptr, "text/html; charset=utf-8" },
+	{                               nullptr, "text/html; charset=utf-8" },
 };
 
 void SetContentType(QHttpServerResponse& response, const QString& root, const MessageType type)
 {
 	const auto  rootIndex   = std::distance(std::begin(ROOTS), std::ranges::find_if(ROOTS, [root = root.toStdString()](const char* item) {
-											 return root == item;
-											}));
+		return root == item;
+	}));
 	const auto* contentType = CONTENT_TYPES[static_cast<size_t>(type)][rootIndex];
 	assert(contentType);
 	ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);
@@ -129,8 +128,7 @@ QHttpServerResponse EncodeContent(const QByteArray& src, const QString& acceptEn
 			},
 			[&] {
 				stream.close();
-			}
-		);
+			});
 		Zip zip(stream, Zip::Format::GZip);
 		zip.SetProperty(Zip::PropertyId::CompressionMethod, QVariant::fromValue(Zip::CompressionMethod::Deflate));
 		zip.SetProperty(Zip::PropertyId::CompressionLevel, QVariant::fromValue(Zip::CompressionLevel::Fast));
@@ -150,8 +148,7 @@ std::optional<QHttpServerResponse> FromFile(
 	const QString&                               contentType,
 	const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) {
 		return data;
-	}
-)
+	})
 {
 	QFile file(fileName);
 	if (!file.exists())
@@ -171,13 +168,12 @@ std::optional<QHttpServerResponse> FromWebsite(
 	const QString&                               acceptEncoding,
 	const std::function<QByteArray(QByteArray)>& dataUpdater = [](QByteArray data) {
 		return data;
-	}
-)
+	})
 {
 	static constexpr std::pair<const char*, const char*> types[] {
 		{ "html", "text/html; charset=utf-8" },
 		{   "js",          "text/javascript" },
-		{  "css",				 "text/css" },
+		{  "css",                 "text/css" },
 	};
 	const auto* contentType = FindSecond(types, QFileInfo(fileName).suffix().toStdString().data(), PszComparer {});
 	if (auto result = FromFile(QString("%1/website/%2").arg(QCoreApplication::applicationDirPath(), fileName), acceptEncoding, contentType, dataUpdater))
@@ -266,13 +262,11 @@ class Server::Impl : public QObject
 	using AuthorizationAllowFunctor = std::function<QHttpServerResponse(const IRequester::Parameters&, const QString&)>;
 
 public:
-	Impl(
-		std::shared_ptr<const ISettings>                     settings,
+	Impl(std::shared_ptr<const ISettings>                    settings,
 		std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 		std::shared_ptr<const IRequester>                    requester,
 		std::shared_ptr<const IReactAppRequester>            reactAppRequester,
-		std::shared_ptr<const INoSqlRequester>               noSqlRequester
-	)
+		std::shared_ptr<const INoSqlRequester>               noSqlRequester)
 		: m_settings { std::move(settings) }
 		, m_collectionProvider { std::move(collectionProvider) }
 		, m_requester { std::move(requester) }
@@ -514,13 +508,11 @@ private:
 	std::shared_ptr<const INoSqlRequester>               m_noSqlRequester;
 };
 
-Server::Server(
-	std::shared_ptr<const ISettings>                     settings,
+Server::Server(std::shared_ptr<const ISettings>          settings,
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
 	std::shared_ptr<const IRequester>                    requester,
 	std::shared_ptr<const IReactAppRequester>            reactAppRequester,
-	std::shared_ptr<const INoSqlRequester>               noSqlRequester
-)
+	std::shared_ptr<const INoSqlRequester>               noSqlRequester)
 	: m_impl(std::move(settings), std::move(collectionProvider), std::move(requester), std::move(reactAppRequester), std::move(noSqlRequester))
 {
 	PLOGV << "Server created";

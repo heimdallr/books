@@ -2,8 +2,7 @@
 
 #include <QStyledItemDelegate>
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class LineEditDelegate : public QStyledItemDelegate
 {
@@ -16,4 +15,4 @@ protected: // QStyledItemDelegate
 	void     setModelData(QWidget* editor, QAbstractItemModel* model, const QModelIndex& index) const override;
 };
 
-}
+} // namespace HomeCompa::Flibrary

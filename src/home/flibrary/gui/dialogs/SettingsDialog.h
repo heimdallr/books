@@ -13,23 +13,20 @@
 #include "utilgui/ItemViewToolTipper.h"
 #include "utilgui/ScrollBarController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class SettingsDialog final : public QDialog
 {
 	NON_COPY_MOVABLE(SettingsDialog)
 
 public:
-	SettingsDialog(
-		const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
-		const std::shared_ptr<const IModelProvider>&        modelProvider,
-		const std::shared_ptr<const IDataItemFactory>&      dataItemFactory,
-		std::shared_ptr<ISettings>                          settings,
-		std::shared_ptr<Util::ItemViewToolTipper>           itemViewToolTipper,
-		std::shared_ptr<Util::ScrollBarController>          scrollBarController,
-		QWidget*                                            parent = nullptr
-	);
+	SettingsDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
+		const std::shared_ptr<const IModelProvider>&                   modelProvider,
+		const std::shared_ptr<const IDataItemFactory>&                 dataItemFactory,
+		std::shared_ptr<ISettings>                                     settings,
+		std::shared_ptr<Util::ItemViewToolTipper>                      itemViewToolTipper,
+		std::shared_ptr<Util::ScrollBarController>                     scrollBarController,
+		QWidget*                                                       parent = nullptr);
 	~SettingsDialog() override;
 
 private:
@@ -37,4 +34,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

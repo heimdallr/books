@@ -5,18 +5,16 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 class IParentWidgetProvider;
 
-}
+} // namespace HomeCompa
 
 class QAbstractItemModel;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class DateIntervalFilterWidget final : public QWidget
 {
@@ -35,4 +33,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

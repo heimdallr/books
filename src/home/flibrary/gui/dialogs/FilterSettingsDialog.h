@@ -14,24 +14,21 @@
 #include "utilgui/ItemViewToolTipper.h"
 #include "utilgui/ScrollBarController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class FilterSettingsDialog final : public QDialog
 {
 	NON_COPY_MOVABLE(FilterSettingsDialog)
 
 public:
-	FilterSettingsDialog(
-		const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
-		std::shared_ptr<const IModelProvider>               modelProvider,
-		std::shared_ptr<ISettings>                          settings,
-		std::shared_ptr<IFilterController>                  filterController,
-		std::shared_ptr<IFilterDataProvider>                dataProvider,
-		std::shared_ptr<Util::ItemViewToolTipper>           itemViewToolTipper,
-		std::shared_ptr<Util::ScrollBarController>          scrollBarController,
-		QWidget*                                            parent = nullptr
-	);
+	FilterSettingsDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
+		std::shared_ptr<const IModelProvider>                                modelProvider,
+		std::shared_ptr<ISettings>                                           settings,
+		std::shared_ptr<IFilterController>                                   filterController,
+		std::shared_ptr<IFilterDataProvider>                                 dataProvider,
+		std::shared_ptr<Util::ItemViewToolTipper>                            itemViewToolTipper,
+		std::shared_ptr<Util::ScrollBarController>                           scrollBarController,
+		QWidget*                                                             parent = nullptr);
 	~FilterSettingsDialog() override;
 
 private:
@@ -39,4 +36,4 @@ private:
 	PropagateConstPtr<Impl, std::shared_ptr> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

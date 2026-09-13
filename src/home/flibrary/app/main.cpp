@@ -45,8 +45,7 @@
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 constexpr auto SEQ_NUMBER_WIDTH_KEY     = "Preferences/Export/seqNumberWidth";
 constexpr auto KEYBOARD_LAYOUT_KEY      = "ui/recentKeyboardLayout";

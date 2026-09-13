@@ -2,21 +2,19 @@
 
 #include "interface/localization.h"
 
-namespace HomeCompa::Flibrary::Measure
-{
+namespace HomeCompa::Flibrary::Measure {
 
-namespace
-{
+namespace {
 
 constexpr auto                               CONTEXT = "Measure";
 constexpr std::pair<qulonglong, const char*> g_sizes[] {
 	{ 1024 * 1024 * 1024, QT_TRANSLATE_NOOP("Measure", "%1 Gb") },
-	{		1024 * 1024, QT_TRANSLATE_NOOP("Measure", "%1 Mb") },
-	{			   1024, QT_TRANSLATE_NOOP("Measure", "%1 Kb") },
-	{				  1, QT_TRANSLATE_NOOP("Measure",  "%1 b") },
+	{        1024 * 1024, QT_TRANSLATE_NOOP("Measure", "%1 Mb") },
+	{               1024, QT_TRANSLATE_NOOP("Measure", "%1 Kb") },
+	{                  1, QT_TRANSLATE_NOOP("Measure",  "%1 b") },
 };
 
-}
+} // namespace
 
 QString GetSize(const qulonglong size)
 {
@@ -28,4 +26,4 @@ QString GetSize(const qulonglong size)
 	return Loc::Tr(CONTEXT, it->second).arg(static_cast<double>(size) / static_cast<double>(it->first), 0, 'f', 1);
 }
 
-}
+} // namespace HomeCompa::Flibrary::Measure

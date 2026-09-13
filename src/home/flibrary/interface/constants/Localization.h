@@ -1,7 +1,6 @@
 #pragma once
 
-namespace HomeCompa::Loc::Ctx
-{
+namespace HomeCompa::Loc::Ctx {
 
 constexpr auto COMMON    = "Common";
 constexpr auto ERROR_CTX = "Error";
@@ -9,10 +8,9 @@ constexpr auto LANG      = "Language";
 constexpr auto BOOK      = "Book";
 constexpr auto LOGGING   = "Logging";
 
-}
+} // namespace HomeCompa::Loc::Ctx
 
-namespace HomeCompa::Loc
-{
+namespace HomeCompa::Loc {
 
 constexpr auto MONTHS_CONTEXT = "Month";
 #if 0

@@ -1,13 +1,12 @@
 #pragma once
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
 constexpr auto ROOT    = "root";
 constexpr auto SESSION = "session";
 
-#define OPDS_REQUEST_ROOT_ITEMS_X_MACRO \
-	OPDS_REQUEST_ROOT_ITEM(opds)        \
+#define OPDS_REQUEST_ROOT_ITEMS_X_MACRO                                                                                                                                                                        \
+	OPDS_REQUEST_ROOT_ITEM(opds)                                                                                                                                                                               \
 	OPDS_REQUEST_ROOT_ITEM(web)
 
 enum class ContentType
@@ -29,4 +28,4 @@ public:
 	virtual std::pair<QString, std::vector<QByteArray>> GetAuthorInfo(const QString& name) const                          = 0;
 };
 
-}
+} // namespace HomeCompa::Opds

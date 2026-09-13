@@ -17,8 +17,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 using Role = ILanguageModel::Role;
 
@@ -82,15 +81,13 @@ private: // QAbstractItemModel
 		{
 			assert(role == Role::SelectedList);
 			QStringList result;
-			std::ranges::transform(
-				m_items | std::views::filter([](const Item& item) {
-					return item.checked;
-				}),
+			std::ranges::transform(m_items | std::views::filter([](const Item& item) {
+				return item.checked;
+			}),
 				std::back_inserter(result),
 				[](const Item& item) {
 					return item.language;
-				}
-			);
+				});
 			return result;
 		}
 
@@ -190,8 +187,7 @@ private:
 			},
 			[this] {
 				endResetModel();
-			}
-		);
+			});
 		if (!items.empty())
 			m_items = std::move(items);
 

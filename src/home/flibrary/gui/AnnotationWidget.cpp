@@ -35,8 +35,7 @@
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 constexpr auto SHOW_JOKE_ERRORS               = "Preferences/AnnotationJokes/ShowErrors";
 constexpr auto IMAGE_BACKGROUND_COLOR         = "ui/Annotation/ImageBackgroundColor";
@@ -45,20 +44,20 @@ constexpr auto IMAGE_BACKGROUND_COLOR_DEFAULT = "white";
 constexpr std::pair<const char*, bool> NO_NAVIGATION { nullptr, false };
 
 constexpr std::pair<const char*, std::pair<const char*, bool /*go to url from annotation*/>> TYPE_TO_NAVIGATION[] {
-	{	  Loc::AUTHORS,      { Loc::Authors, true } },
-    {       Loc::SERIES,       { Loc::Series, true } },
-    {       Loc::GENRES,       { Loc::Genres, true } },
-    { Loc::PUBLISH_YEAR, { Loc::PublishYears, true } },
+	{      Loc::AUTHORS,      { Loc::Authors, true } },
+	{       Loc::SERIES,       { Loc::Series, true } },
+	{       Loc::GENRES,       { Loc::Genres, true } },
+	{ Loc::PUBLISH_YEAR, { Loc::PublishYears, true } },
 	{     Loc::KEYWORDS,     { Loc::Keywords, true } },
-    {      Loc::UPDATES,      { Loc::Updates, true } },
-    {      Loc::ARCHIVE,     { Loc::Archives, true } },
-    {     Loc::LANGUAGE,    { Loc::Languages, true } },
-	{	   Loc::GROUPS,       { Loc::Groups, true } },
-    {          "Search",      { Loc::Search, false } },
-    {         "Reviews",     { Loc::Reviews, false } },
-    {  Loc::AlreadyRead, { Loc::AlreadyRead, false } },
-	{	  Loc::History,     { Loc::History, false } },
-    {        "AllBooks",    { Loc::AllBooks, false } },
+	{      Loc::UPDATES,      { Loc::Updates, true } },
+	{      Loc::ARCHIVE,     { Loc::Archives, true } },
+	{     Loc::LANGUAGE,    { Loc::Languages, true } },
+	{       Loc::GROUPS,       { Loc::Groups, true } },
+	{          "Search",      { Loc::Search, false } },
+	{         "Reviews",     { Loc::Reviews, false } },
+	{  Loc::AlreadyRead, { Loc::AlreadyRead, false } },
+	{      Loc::History,     { Loc::History, false } },
+	{        "AllBooks",    { Loc::AllBooks, false } },
 };
 static_assert(std::size(TYPE_TO_NAVIGATION) == static_cast<size_t>(NavigationMode::Last));
 
@@ -126,8 +125,8 @@ struct CoverButtonType
 };
 
 constexpr auto CONTENT_MODE_KEY = "ui/View/AnnotationContentMode";
-#define CONTENT_MODE_ITEMS_X_MACRO \
-	CONTENT_MODE_ITEM(Content, 0)  \
+#define CONTENT_MODE_ITEMS_X_MACRO                                                                                                                                                                             \
+	CONTENT_MODE_ITEM(Content, 0)                                                                                                                                                                              \
 	CONTENT_MODE_ITEM(Metadata, 1)
 
 enum class ContentMode
@@ -138,16 +137,12 @@ enum class ContentMode
 #undef CONTENT_MODE_ITEM
 		All = None
 #define CONTENT_MODE_ITEM(NAME, _) | NAME
-			CONTENT_MODE_ITEMS_X_MACRO
+		CONTENT_MODE_ITEMS_X_MACRO
 #undef CONTENT_MODE_ITEM
 };
 
 constexpr std::pair<const char*, std::pair<ContentMode, const char*>> CONTENT_MODES[] {
-#define CONTENT_MODE_ITEM(NAME, _)         \
-	{                                      \
-		#NAME,                             \
-		{ ContentMode::NAME, SHOW_##NAME } \
-},
+#define CONTENT_MODE_ITEM(NAME, _) { #NAME, { ContentMode::NAME, SHOW_##NAME } },
 	CONTENT_MODE_ITEMS_X_MACRO
 #undef CONTENT_MODE_ITEM
 };
@@ -179,15 +174,14 @@ private:
 ENABLE_BITMASK_OPERATORS(ContentMode);
 
 class AnnotationWidget::Impl final
-	: QObject
-	, IAnnotationController::IObserver
-	, IAnnotationController::IStrategy
+    : QObject
+    , IAnnotationController::IObserver
+    , IAnnotationController::IStrategy
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(
-		AnnotationWidget&                             self,
+	Impl(AnnotationWidget&                            self,
 		const std::shared_ptr<const IModelProvider>&  modelProvider,
 		const std::shared_ptr<const ILogicFactory>&   logicFactory,
 		const std::shared_ptr<ICollectionController>& collectionController,
@@ -199,8 +193,7 @@ public:
 		std::shared_ptr<IMainProgressController>      progressController,
 		std::shared_ptr<Util::ItemViewToolTipper>     itemViewToolTipperContent,
 		std::shared_ptr<Util::ScrollBarController>    scrollBarControllerContent,
-		std::shared_ptr<Util::ScrollBarController>    scrollBarControllerAnnotation
-	)
+		std::shared_ptr<Util::ScrollBarController>    scrollBarControllerAnnotation)
 		: m_self { self }
 		, m_bookInteractor { std::move(bookInteractor) }
 		, m_menuCustomizer { std::move(menuCustomizer) }
@@ -295,8 +288,8 @@ public:
 			menu.setFont(m_self.font());
 
 			for (const auto& [name, description] : CONTENT_MODES | std::views::filter([this](const auto& item) {
-													   return item.second.first != m_currentContentMode && !!(m_allowedContentMode & item.second.first) && m_content.contains(item.second.first);
-												   }))
+					 return item.second.first != m_currentContentMode && !!(m_allowedContentMode & item.second.first) && m_content.contains(item.second.first);
+				 }))
 			{
 				const auto& [mode, title] = description;
 				auto* action              = menu.addAction(Tr(title));
@@ -589,24 +582,18 @@ private:
 		const auto         height = 3 * metrics.lineSpacing() / 2;
 		const QSize        size { height, height };
 		const auto         top = imgHeight - height - height / 8;
-		m_coverButtons[CoverButtonType::Previous]->setGeometry(
-			QRect {
-				QPoint { height / 8, top },
-				size
-        }
-		);
-		m_coverButtons[CoverButtonType::Next]->setGeometry(
-			QRect {
-				QPoint { imgWidth - height - height / 8, top },
-				size
-        }
-		);
-		m_coverButtons[CoverButtonType::Home]->setGeometry(
-			QRect {
-				QPoint { (imgWidth - height) / 2, top },
-				size
-        }
-		);
+		m_coverButtons[CoverButtonType::Previous]->setGeometry(QRect {
+			QPoint { height / 8, top },
+			size
+        });
+		m_coverButtons[CoverButtonType::Next]->setGeometry(QRect {
+			QPoint { imgWidth - height - height / 8, top },
+			size
+        });
+		m_coverButtons[CoverButtonType::Home]->setGeometry(QRect {
+			QPoint { (imgWidth - height) / 2, top },
+			size
+        });
 
 		m_coverLabel->move(height / 8, height / 16);
 	}
@@ -622,13 +609,11 @@ private:
 				if (const auto it = m_content.find(m_selectedContentMode); it != m_content.end())
 					return *it;
 
-			if (const auto it = std::ranges::find_if(
-					m_content,
+			if (const auto it = std::ranges::find_if(m_content,
 					[this](const auto& item) {
 						return !!(m_allowedContentMode & item.first);
-					}
-				);
-			    it != m_content.end())
+					});
+				it != m_content.end())
 				return *it;
 
 			return std::make_pair(ContentMode::None, IDataItem::Ptr {});
@@ -725,24 +710,21 @@ private:
 	const int                     m_userRateStarSymbol { m_settings->Get(Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) };
 };
 
-AnnotationWidget::AnnotationWidget(
-	const std::shared_ptr<const IModelProvider>&  modelProvider,
-	const std::shared_ptr<const ILogicFactory>&   logicFactory,
-	const std::shared_ptr<ICollectionController>& collectionController,
-	std::shared_ptr<const IBookInteractor>        bookInteractor,
-	std::shared_ptr<const IMenuCustomizer>        menuCustomizer,
-	std::shared_ptr<ISettings>                    settings,
-	std::shared_ptr<IAnnotationController>        annotationController,
-	std::shared_ptr<IUiFactory>                   uiFactory,
-	std::shared_ptr<IMainProgressController>      progressController,
-	std::shared_ptr<Util::ItemViewToolTipper>     itemViewToolTipperContent,
-	std::shared_ptr<Util::ScrollBarController>    scrollBarControllerContent,
-	std::shared_ptr<Util::ScrollBarController>    scrollBarControllerAnnotation,
-	QWidget*                                      parent
-)
+AnnotationWidget::AnnotationWidget(const std::shared_ptr<const IModelProvider>& modelProvider,
+	const std::shared_ptr<const ILogicFactory>&                                 logicFactory,
+	const std::shared_ptr<ICollectionController>&                               collectionController,
+	std::shared_ptr<const IBookInteractor>                                      bookInteractor,
+	std::shared_ptr<const IMenuCustomizer>                                      menuCustomizer,
+	std::shared_ptr<ISettings>                                                  settings,
+	std::shared_ptr<IAnnotationController>                                      annotationController,
+	std::shared_ptr<IUiFactory>                                                 uiFactory,
+	std::shared_ptr<IMainProgressController>                                    progressController,
+	std::shared_ptr<Util::ItemViewToolTipper>                                   itemViewToolTipperContent,
+	std::shared_ptr<Util::ScrollBarController>                                  scrollBarControllerContent,
+	std::shared_ptr<Util::ScrollBarController>                                  scrollBarControllerAnnotation,
+	QWidget*                                                                    parent)
 	: QWidget(parent)
-	, m_impl(
-		  *this,
+	, m_impl(*this,
 		  modelProvider,
 		  logicFactory,
 		  collectionController,
@@ -754,8 +736,7 @@ AnnotationWidget::AnnotationWidget(
 		  std::move(progressController),
 		  std::move(itemViewToolTipperContent),
 		  std::move(scrollBarControllerContent),
-		  std::move(scrollBarControllerAnnotation)
-	  )
+		  std::move(scrollBarControllerAnnotation))
 {
 	PLOGV << "AnnotationWidget created";
 }

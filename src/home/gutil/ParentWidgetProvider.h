@@ -4,8 +4,7 @@
 
 #include "interface/IParentWidgetProvider.h"
 
-namespace HomeCompa::Util
-{
+namespace HomeCompa::Util {
 
 class ParentWidgetProvider final : public IParentWidgetProvider
 {
@@ -17,4 +16,4 @@ private:
 	QPointer<QWidget> m_widget;
 };
 
-}
+} // namespace HomeCompa::Util

@@ -6,8 +6,7 @@
 
 #include "BaseModel.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class AbstractTreeModel : public BaseModel
 {

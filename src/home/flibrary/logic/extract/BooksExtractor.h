@@ -14,8 +14,7 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class BooksExtractor
 {
@@ -26,15 +25,13 @@ public:
 	using Extract  = void (BooksExtractor::*)(QString, const QString&, Util::ExtractedBooks&&, Callback);
 
 public:
-	BooksExtractor(
-		std::shared_ptr<const ISettings>            settings,
+	BooksExtractor(std::shared_ptr<const ISettings> settings,
 		std::shared_ptr<ICollectionController>      collectionController,
 		std::shared_ptr<IMainProgressController>    progressController,
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const IScriptController>    scriptController,
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
-		std::shared_ptr<const IDatabaseUser>        databaseUser
-	);
+		std::shared_ptr<const IDatabaseUser>        databaseUser);
 	~BooksExtractor();
 
 public:
