@@ -507,7 +507,13 @@ private:
 
 				m_output->write(contents.front().toUtf8());
 				if (QFileInfo(m_callback.GetFileName(m_feedId)).suffix().toLower() == "fb2")
-					m_writer->Guard(u"a")->WriteAttribute(u"href", m_readTemplate.arg(m_feedId)).WriteCharacters(Tr(READ)).WriteStartElement(u"br").WriteEndElement().WriteStartElement(u"br").WriteEndElement();
+					m_writer->Guard(u"a")
+						->WriteAttribute(u"href", m_readTemplate.arg(m_feedId))
+						.WriteCharacters(Tr(READ))
+						.WriteStartElement(u"br")
+						.WriteEndElement()
+						.WriteStartElement(u"br")
+						.WriteEndElement();
 
 				{
 					auto       linkTable  = m_writer->Guard(u"table");
@@ -746,7 +752,7 @@ private: // SaxParser
 		};
 
 		const auto valueStr = value.toString();
-		const auto result = Parse(*this, PARSERS, path, valueStr);
+		const auto result   = Parse(*this, PARSERS, path, valueStr);
 		return m_processed || !m_body ? result : ProcessUnparsedCharacters(path, valueStr);
 	}
 

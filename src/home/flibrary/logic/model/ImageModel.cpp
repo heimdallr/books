@@ -285,7 +285,7 @@ private: // Decoder::IObserver
 	{
 		m_forwarder.Forward([this, row, pixmap = std::move(image)]() mutable {
 			auto& item       = m_items[static_cast<size_t>(row)];
-			item.image      = std::move(pixmap);
+			item.image       = std::move(pixmap);
 			const auto index = this->index(row, 0);
 			emit       dataChanged(index, index, { Qt::DecorationRole });
 		});
@@ -306,7 +306,7 @@ private: // Decoder::IObserver
 		if (m_saveRunning)
 			m_forwarder.Forward([this, row, pixmap = std::move(image)]() mutable {
 				m_items[static_cast<size_t>(row)].fullImage = std::move(pixmap);
-				const auto index                             = this->index(row, 0);
+				const auto index                            = this->index(row, 0);
 				emit       dataChanged(index, index, { ImageModelRole::Save });
 				m_items[static_cast<size_t>(row)].fullImage = {};
 			});
@@ -460,7 +460,7 @@ private:
 
 	void Prepare(const int row)
 	{
-		auto& item  = m_items[static_cast<size_t>(row)];
+		auto& item = m_items[static_cast<size_t>(row)];
 		item.image = m_imagePlaceholderScaled;
 		m_extractors[static_cast<size_t>(item.zipId)]->ExtractImage(row, item.fileName);
 	}

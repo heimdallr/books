@@ -19,7 +19,7 @@ public:
 	{
 	public:
 		virtual void OnImageReceived(QImage pixmap) = 0;
-		virtual void OnCountChanges(int count)       = 0;
+		virtual void OnCountChanges(int count)      = 0;
 	};
 
 public:

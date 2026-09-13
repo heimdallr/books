@@ -816,10 +816,12 @@ private:
 		}
 
 		const auto filesExist = books | std::views::transform([](const auto& item) {
-			return item.dstFileName;
-		}) | std::views::filter([&](const auto& item) {
-			return QFile::exists(item + dstPathSuffix);
-		}) | std::ranges::to<std::unordered_set>();
+									return item.dstFileName;
+								})
+		                      | std::views::filter([&](const auto& item) {
+									return QFile::exists(item + dstPathSuffix);
+								})
+		                      | std::ranges::to<std::unordered_set>();
 
 		switch (whatTodo)
 		{

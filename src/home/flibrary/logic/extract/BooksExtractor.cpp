@@ -113,7 +113,7 @@ std::pair<bool, std::filesystem::path> Write(
 	if (const auto dstDir = dstFileInfo.absolutePath(); !(QDir().exists(dstDir) || QDir().mkpath(dstDir)))
 		return result;
 
-	result.second     = Platform::StringToPath(QDir::toNativeSeparators(book.dstFileName));
+	result.second = Platform::StringToPath(QDir::toNativeSeparators(book.dstFileName));
 
 	const auto suffix = mode == WriteMode::Archive ? ".zip" : "";
 	exportHelper.CheckPath(result.second, suffix);
