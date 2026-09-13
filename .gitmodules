@@ -19,3 +19,6 @@
 [submodule "src/ext/libmobi"]
 	path = src/ext/libmobi
 	url = ../libmobi.git
+[submodule "src/ext/7-zip"]
+	path = src/ext/7-zip
+	url = ../7-Zip.git
