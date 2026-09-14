@@ -2,7 +2,7 @@ from conan import ConanFile
 from conan.errors import ConanInvalidConfiguration
 from conan.tools.apple import is_apple_os
 from conan.tools.cmake import CMake, CMakeToolchain, cmake_layout
-from conan.tools.files import get, load, save, copy
+from conan.tools.files import get, load, save, copy, patch
 import os
 
 required_conan_version = ">=1.53.0"
@@ -115,6 +115,15 @@ class Sqlite3Conan(ConanFile):
 
     def source(self):
         get(self, **self.conan_data["sources"][self.version], strip_root=True)
+
+        project_root = os.path.abspath(os.path.join(self.recipe_folder, ".."))
+        patch_path = os.path.join(project_root, "s", "patch.diff")
+        source_folder = os.path.join(project_root, "s", "src")
+        if os.path.exists(patch_path):
+            self.output.info(f"Apply patch to {source_folder} from {patch_path}")
+            patch(self, patch_file=patch_path, base_path=source_folder)
+        else:
+            self.output.error(f"Patch not found: {patch_path}")
 
     def generate(self):
         tc = CMakeToolchain(self)
