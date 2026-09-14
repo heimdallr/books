@@ -75,3 +75,10 @@ class FLibrary(ConanFile):
         tc = CMakeToolchain(self)
         tc.user_presets_path = False
         tc.generate()
+
+    def init(self):
+        local_sqlite_recipe = os.path.join(self.recipe_folder, "recipe", "sqlite3")
+        if os.path.exists(local_sqlite_recipe):
+            self.run(f"conan export {local_sqlite_recipe} --version=3.53.4")
+        else:
+            self.output.warning("Cannot find local sqlite3 recipe")
