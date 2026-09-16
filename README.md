@@ -28,8 +28,8 @@ git clone https://github.com/heimdallr/books.git --recursive
 [Инструкция](https://docs.conan.io/2/installation.html)  
 
 #### Устанавливаем модули, которых нет в conan
-* Qt6 (6.10.0 минимум, но лучше 6.11) [^4] [^5]  
-* 7zip  
+* Qt6 (6.10.0 минимум, но лучше 6.11) [^1] [^2]  
+* 7zip [^3]  
 
 <br/>
 
@@ -185,5 +185,6 @@ codesign --sign -
 * `skipping x86_64: Qt with x86_64 slice was not found` - установите Intel Homebrew в `/usr/local` и поставьте `x86_64` Qt/p7zip, либо укажите `QT_PREFIX_X86_64` и `P7ZIP_DIR_X86_64`.
 * `Finder layout was skipped` - на headless/CI окружениях Finder может не сохранить фон и позиции иконок. Это warning: DMG все равно содержит `FLibrary.app` и `Applications` symlink.
 
-[^4]: Ну ладно, Qt 6.11 уже есть в conan'е. Но всё равно лучше собрать самостоятельно, с патчами src/home/script/conan/patch/qt. И слинковать с icu из conan.
-[^5]: Если есть необходимость запуска на Windows7, можно и с Qt5. Я собирал с 5.15.16
+[^1]: Ну ладно, Qt 6.11 уже есть в conan'е. Но всё равно лучше собрать самостоятельно, с патчами src/home/script/conan/patch/qt. И слинковать с icu из conan.
+[^2]: Если есть необходимость запуска на Windows7, можно и с Qt5. Я собирал с 5.15.16
+[^3]: 7zip в конане тоже есть, но shared library только под Windows
