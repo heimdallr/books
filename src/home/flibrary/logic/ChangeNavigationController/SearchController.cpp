@@ -68,17 +68,12 @@ TR_DEF
 
 struct SearchController::Impl
 {
-	std::shared_ptr<const IDatabaseUser>                         databaseUser;
-	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> navigationQueryExecutor;
-	std::shared_ptr<const IUiFactory>                            uiFactory;
-	const QString                                                currentCollectionId;
+	std::shared_ptr<const IDatabaseUser> databaseUser;
+	std::shared_ptr<const IUiFactory>    uiFactory;
+	const QString                        currentCollectionId;
 
-	explicit Impl(const ICollectionController&    collectionController,
-		std::shared_ptr<const IDatabaseUser>      databaseUser,
-		std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
-		std::shared_ptr<const IUiFactory>         uiFactory)
+	explicit Impl(const ICollectionController& collectionController, std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const IUiFactory> uiFactory)
 		: databaseUser { std::move(databaseUser) }
-		, navigationQueryExecutor { std::move(navigationQueryExecutor) }
 		, uiFactory { std::move(uiFactory) }
 		, currentCollectionId { collectionController.GetActiveCollectionId() }
 	{
@@ -86,16 +81,16 @@ struct SearchController::Impl
 
 	void GetAllSearches(std::function<void(const Names&)> callback) const
 	{
-		navigationQueryExecutor->RequestNavigation(NavigationMode::Search, [callback = std::move(callback)](NavigationMode, const IDataItem::Ptr& root) {
-			Names names;
-			for (size_t i = 0, sz = root->GetChildCount(); i < sz; ++i)
-			{
-				const auto  childPtr = root->GetChild(i);
-				const auto& child    = *childPtr;
-				names.try_emplace(child.GetData().toUpper(), child.GetId().toLongLong());
-			}
-			callback(names);
-		});
+		auto db = databaseUser->Database();
+		databaseUser->Execute({ "Get all searches", [db = std::move(db), callback = std::move(callback)]() mutable {
+								   Names      names;
+								   const auto query = db->CreateQuery("select SearchID, Title from Searches_User");
+								   for (query->Execute(); !query->Eof(); query->Next())
+									   names.try_emplace(query->Get<QString>(1).toUpper(), query->Get<long long>(0));
+								   return [names = std::move(names), callback = std::move(callback)](size_t) {
+									   callback(names);
+								   };
+							   } });
 	}
 
 	void CreateNewSearch(const Names& names, Callback callback)
@@ -171,11 +166,8 @@ struct SearchController::Impl
 	}
 };
 
-SearchController::SearchController(const std::shared_ptr<const ICollectionController>& collectionController,
-	std::shared_ptr<IDatabaseUser>                                                     databaseUser,
-	std::shared_ptr<INavigationQueryExecutor>                                          navigationQueryExecutor,
-	std::shared_ptr<IUiFactory>                                                        uiFactory)
-	: m_impl(*collectionController, std::move(databaseUser), std::move(navigationQueryExecutor), std::move(uiFactory))
+SearchController::SearchController(const std::shared_ptr<const ICollectionController>& collectionController, std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<IUiFactory> uiFactory)
+	: m_impl(*collectionController, std::move(databaseUser), std::move(uiFactory))
 {
 	PLOGV << "SearchController created";
 }
