@@ -9,6 +9,7 @@
 #include <QDir>
 
 #include "fnd/FindPair.h"
+#include "fnd/StrUtil.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -81,17 +82,30 @@ constexpr auto SEARCH_WITH_ANNOTATION = R"(
          join Search s on Annotations_Search match s.Title
 )";
 
-QString GetSearchWith(const ISettings& settings, const QString& id)
+QString GetSearchWith(DB::IDatabase& db, const ISettings& settings, const QString& id)
 {
 	QStringList result;
-#define ITEM(NAME, DEFAULT)                                                                                                                                                                                    \
-	if (settings.Get(Constant::Settings::NAME, DEFAULT))                                                                                                                                                       \
-	result << NAME
+#define ITEM(NAME, DEFAULT) if (settings.Get(Constant::Settings::NAME, DEFAULT)) result << NAME
 	ITEM(SEARCH_WITH_TITLE, true);
 	ITEM(SEARCH_WITH_AUTHOR, true);
 	ITEM(SEARCH_WITH_SERIES, true);
 	ITEM(SEARCH_WITH_ANNOTATION, false);
 #undef ITEM
+
+	if (settings.Get(Constant::Settings::SEARCH_WITH_FILENAME, false))
+	{
+		if (const auto query = db.CreateQuery(std::format("select Origin from Searches_User where SearchID = {}", id)); query->Execute(), !query->Eof())
+		{
+			if (!query->IsNull(0))
+			{
+				const QFileInfo fileInfo(query->Get<const char*>(0));
+				auto            searchWithFileNameQueryText = QString("\n\tselect BookID\n\t\tfrom Books\n\t\twhere FileName = '%1'").arg(fileInfo.completeBaseName());
+				if (const auto suffix = fileInfo.suffix(); !suffix.isEmpty())
+					searchWithFileNameQueryText.append(QString(" and lower(Ext) = '.%1'").arg(suffix.toLower()));
+				result << std::move(searchWithFileNameQueryText);
+			}
+		}
+	}
 
 	if (result.isEmpty())
 		result << "select -1";

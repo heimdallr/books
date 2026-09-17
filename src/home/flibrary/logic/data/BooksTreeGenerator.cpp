@@ -458,7 +458,7 @@ private:
 
 	void CreateSelectedBookItems(DB::IDatabase& db, const QueryClause& queryClause, const SelectAdditional& additional)
 	{
-		const auto with = queryClause.with(m_settings, navigationId).toStdString();
+		const auto with = queryClause.with(db, m_settings, navigationId).toStdString();
 
 		{
 			QString booksWhere = queryClause.booksWhere;

@@ -48,6 +48,7 @@ constexpr auto SEARCH_WITH_TITLE      = "SearchBy/Title";
 constexpr auto SEARCH_WITH_AUTHOR     = "SearchBy/Author";
 constexpr auto SEARCH_WITH_SERIES     = "SearchBy/Series";
 constexpr auto SEARCH_WITH_ANNOTATION = "SearchBy/Annotation";
+constexpr auto SEARCH_WITH_FILENAME   = "SearchBy/FileName";
 
 constexpr auto BACKGROUND_COLOR_TEMPLATE = "background-color: %1;";
 
