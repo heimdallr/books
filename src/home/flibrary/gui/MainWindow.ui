@@ -647,7 +647,7 @@
     </widget>
     <widget class="QMenu" name="menuSearch">
      <property name="title">
-      <string>Search &amp;by</string>
+      <string>Sear&amp;ch</string>
      </property>
      <addaction name="actionSearchByTITLE"/>
      <addaction name="actionSearchByAUTHOR"/>
@@ -1477,7 +1477,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;File name</string>
+    <string>&amp;File</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
