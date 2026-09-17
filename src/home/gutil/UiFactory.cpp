@@ -86,12 +86,14 @@ int UiFactory::GetParentWidgetFontSize() const noexcept
 	return GetParentWidget(nullptr)->font().pointSize();
 }
 
-QMessageBox::ButtonRole UiFactory::ShowCustomDialog(const QMessageBox::Icon icon,
-	const QString&                                                          title,
-	const QString&                                                          text,
-	const std::vector<std::pair<QMessageBox::ButtonRole, QString>>&         buttons,
-	const QMessageBox::ButtonRole                                           defaultButton,
-	const QString&                                                          detailedText) const
+QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
+	const QMessageBox::Icon                                         icon,
+	const QString&                                                  title,
+	const QString&                                                  text,
+	const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
+	const QMessageBox::ButtonRole                                   defaultButton,
+	const QString&                                                  detailedText
+) const
 {
 	auto* parentWidget = m_impl->container.resolve<IParentWidgetProvider>()->GetWidget();
 	m_impl->container.resolve<ISettings>();

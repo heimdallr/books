@@ -28,17 +28,19 @@ class TreeView final : public QWidget
 	NON_COPY_MOVABLE(TreeView)
 
 public:
-	TreeView(const std::shared_ptr<const IDatabaseUser>& databaseUser,
-		std::shared_ptr<const ICollectionProvider>       collectionProvider,
-		std::shared_ptr<const IDataItemFactory>          dataItemFactory,
-		std::shared_ptr<ISettings>                       settings,
-		std::shared_ptr<IUiFactory>                      uiFactory,
-		std::shared_ptr<IFilterProvider>                 filterProvider,
-		std::shared_ptr<IMenuCustomizer>                 menuCustomizer,
-		std::shared_ptr<Util::ItemViewToolTipper>        itemViewToolTipper,
-		std::shared_ptr<Util::ScrollBarController>       scrollBarController,
-		std::shared_ptr<INavigationUndoRedo>             navigationUndoRedo,
-		QWidget*                                         parent = nullptr);
+	TreeView(
+		const std::shared_ptr<const IDatabaseUser>& databaseUser,
+		std::shared_ptr<const ICollectionProvider>  collectionProvider,
+		std::shared_ptr<const IDataItemFactory>     dataItemFactory,
+		std::shared_ptr<ISettings>                  settings,
+		std::shared_ptr<IUiFactory>                 uiFactory,
+		std::shared_ptr<IFilterProvider>            filterProvider,
+		std::shared_ptr<IMenuCustomizer>            menuCustomizer,
+		std::shared_ptr<Util::ItemViewToolTipper>   itemViewToolTipper,
+		std::shared_ptr<Util::ScrollBarController>  scrollBarController,
+		std::shared_ptr<INavigationUndoRedo>        navigationUndoRedo,
+		QWidget*                                    parent = nullptr
+	);
 	~TreeView() override;
 
 signals:

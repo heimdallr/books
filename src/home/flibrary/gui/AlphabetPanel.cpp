@@ -136,10 +136,12 @@ public:
 			std::ranges::transform(m_toolBars, std::inserter(unique, unique.end()), [](const auto* item) {
 				return item->property(ID_KEY).toString();
 			});
-			std::ranges::copy(m_settings->GetGroups() | std::views::filter([&](const auto& item) {
-				return !unique.contains(item);
-			}),
-				std::back_inserter(ids));
+			std::ranges::copy(
+				m_settings->GetGroups() | std::views::filter([&](const auto& item) {
+					return !unique.contains(item);
+				}),
+				std::back_inserter(ids)
+			);
 			return ids;
 		}();
 
@@ -229,13 +231,15 @@ public:
 		});
 
 		std::map<std::pair<int, QString>, const char*> languages;
-		std::ranges::transform(LANGUAGES | std::views::filter([&](const Language& language) {
-			return !keysFilter.contains(language.key);
-		}),
+		std::ranges::transform(
+			LANGUAGES | std::views::filter([&](const Language& language) {
+				return !keysFilter.contains(language.key);
+			}),
 			std::inserter(languages, languages.end()),
 			[](const Language& language) {
 				return std::make_pair(std::make_pair(language.priority, Loc::Tr(LANGUAGES_CONTEXT, language.title)), language.key);
-			});
+			}
+		);
 
 		items.reserve(static_cast<int>(languages.size()));
 

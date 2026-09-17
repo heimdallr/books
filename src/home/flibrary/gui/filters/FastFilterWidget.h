@@ -30,14 +30,16 @@ private:
 	using Callback = std::function<void(bool, QVariantList)>;
 
 public:
-	FastFilterWidget(const QAbstractItemModel&     model,
+	FastFilterWidget(
+		const QAbstractItemModel&                  model,
 		int                                        column,
 		Callback                                   callback,
 		const IParentWidgetProvider&               parentWidgetProvider,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<Util::ItemViewToolTipper>  toolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController,
-		QWidget*                                   parent = nullptr);
+		QWidget*                                   parent = nullptr
+	);
 	~FastFilterWidget() override;
 
 private:

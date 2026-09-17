@@ -17,10 +17,12 @@ class AuthorAnnotationWidget : public QFrame
 	NON_COPY_MOVABLE(AuthorAnnotationWidget)
 
 public:
-	AuthorAnnotationWidget(std::shared_ptr<IAuthorAnnotationController> annotationController,
-		std::shared_ptr<Util::ScrollBarController>                      scrollBarControllerText,
-		std::shared_ptr<Util::ScrollBarController>                      scrollBarControllerImages,
-		QWidget*                                                        parent = nullptr);
+	AuthorAnnotationWidget(
+		std::shared_ptr<IAuthorAnnotationController> annotationController,
+		std::shared_ptr<Util::ScrollBarController>   scrollBarControllerText,
+		std::shared_ptr<Util::ScrollBarController>   scrollBarControllerImages,
+		QWidget*                                     parent = nullptr
+	);
 	~AuthorAnnotationWidget() override;
 
 public:

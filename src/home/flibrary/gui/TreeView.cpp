@@ -109,8 +109,10 @@ public:
 		SettingsGroup                                         guard(settings, SORT_KEY);
 		std::ranges::transform(settings.GetGroups(), std::inserter(buffer, buffer.end()), [&](const QString& columnName) {
 			const auto key = QString("%1/%2").arg(columnName, "%1");
-			return std::make_pair(settings.Get(key.arg(SORT_INDEX_KEY), std::numeric_limits<int>::max()),
-				std::make_pair(columnName, static_cast<Qt::SortOrder>(settings.Get(key.arg(SORT_ORDER_KEY), Qt::SortOrder::AscendingOrder))));
+			return std::make_pair(
+				settings.Get(key.arg(SORT_INDEX_KEY), std::numeric_limits<int>::max()),
+				std::make_pair(columnName, static_cast<Qt::SortOrder>(settings.Get(key.arg(SORT_ORDER_KEY), Qt::SortOrder::AscendingOrder)))
+			);
 		});
 
 		const auto nameToIndex = GetNameToIndexMapping();
@@ -173,7 +175,8 @@ private: // QHeaderView
 				},
 				[=] {
 					painter->restore();
-				});
+				}
+			);
 			QHeaderView::paintSection(painter, rect, logicalIndex);
 		}
 		if (!model())
@@ -187,7 +190,8 @@ private: // QHeaderView
 			},
 			[=] {
 				painter->restore();
-			});
+			}
+		);
 
 		PaintSortIndicator(painter, rect, logicalIndex);
 		PaintFilterIndicator(painter, rect, logicalIndex);
@@ -215,12 +219,14 @@ private:
 
 		const auto size     = rect.height() / 4.0;
 		const auto height   = std::sqrt(2.0) * size / 2;
-		auto       triangle = QPolygonF({
-			QPointF {      0.0, height },
-			QPointF {     size, height },
-			QPointF { size / 2,      0 },
-			QPointF {      0.0, height }
-        });
+		auto       triangle = QPolygonF(
+			{
+				QPointF {      0.0, height },
+				QPointF {     size, height },
+				QPointF { size / 2,      0 },
+				QPointF {      0.0, height }
+        }
+		);
 
 		assert(it->second < m_sort.size());
 		if (m_sort[it->second].second == Qt::DescendingOrder)
@@ -239,16 +245,18 @@ private:
 
 		const auto size     = rect.height() / 4.0;
 		const auto height   = std::sqrt(2.0) * size / 2;
-		auto       triangle = QPolygonF({
-			QPointF {                 0.0,      height },
-			QPointF {                size,      height },
-			QPointF { size / 2 + size / 8,  height / 4 },
-			QPointF { size / 2 + size / 8, -height / 4 },
-			QPointF { size / 2 - size / 8, -height / 2 },
-			QPointF { size / 2 - size / 8,  height / 4 },
-			QPointF {                 0.0,      height }
-        });
-		triangle            = QTransform(1, 0, 0, -1, 0, height).map(triangle);
+		auto       triangle = QPolygonF(
+			{
+				QPointF {                 0.0,      height },
+				QPointF {                size,      height },
+				QPointF { size / 2 + size / 8,  height / 4 },
+				QPointF { size / 2 + size / 8, -height / 4 },
+				QPointF { size / 2 - size / 8, -height / 2 },
+				QPointF { size / 2 - size / 8,  height / 4 },
+				QPointF {                 0.0,      height }
+        }
+		);
+		triangle = QTransform(1, 0, 0, -1, 0, height).map(triangle);
 		painter->drawPolygon(triangle.translated(rect.right() - 9 * size / 8, rect.height() - 7 * height / 4));
 	}
 
@@ -294,12 +302,14 @@ private:
 				return (void)(sort.second = Qt::SortOrder::DescendingOrder);
 
 			m_sort.erase(std::next(m_sort.begin(), static_cast<ptrdiff_t>(it->second)));
-			std::ranges::for_each(m_columns | std::views::values | std::views::filter([n = it->second](const auto item) {
-				return item > n;
-			}),
+			std::ranges::for_each(
+				m_columns | std::views::values | std::views::filter([n = it->second](const auto item) {
+					return item > n;
+				}),
 				[](auto& item) {
 					--item;
-				});
+				}
+			);
 			m_columns.erase(it);
 		};
 
@@ -377,11 +387,13 @@ private: // QObject
 		m_timer.start();
 
 		const auto actions = menu->actions();
-		if (const auto it = std::ranges::find_if(actions,
+		if (const auto it = std::ranges::find_if(
+				actions,
 				[this](const QAction* action) {
 					return action->text().startsWith(m_text, Qt::CaseInsensitive);
-				});
-			it != actions.end())
+				}
+			);
+		    it != actions.end())
 			menu->setActiveAction(*it);
 
 		return false;
@@ -432,7 +444,8 @@ class TreeView::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(TreeView&                                 self,
+	Impl(
+		TreeView&                                  self,
 		const IDatabaseUser&                       databaseUser,
 		std::shared_ptr<const ICollectionProvider> collectionProvider,
 		std::shared_ptr<const IDataItemFactory>    dataItemFactory,
@@ -442,7 +455,8 @@ public:
 		std::shared_ptr<IMenuCustomizer>           menuCustomizer,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController> scrollBarController,
-		std::shared_ptr<INavigationUndoRedo>       navigationUndoRedo)
+		std::shared_ptr<INavigationUndoRedo>       navigationUndoRedo
+	)
 		: m_self { self }
 		, m_controller { uiFactory->GetTreeViewController() }
 		, m_collectionProvider { std::move(collectionProvider) }
@@ -764,20 +778,18 @@ private:
 			}
 
 			static constexpr NavigationMode extendedSelectionModes[] {
-				NavigationMode::Authors,
-				NavigationMode::Series,
-				NavigationMode::Genres,
-				NavigationMode::Keywords,
-				NavigationMode::Languages,
-				NavigationMode::Groups,
-				NavigationMode::Search,
+				NavigationMode::Authors, NavigationMode::Series, NavigationMode::Genres, NavigationMode::Keywords, NavigationMode::Languages, NavigationMode::Groups, NavigationMode::Search,
 			};
-			m_ui.treeView->setSelectionMode(std::ranges::any_of(extendedSelectionModes,
-												[navigationMode](const auto item) {
-													return item == navigationMode;
-												})
-												? QAbstractItemView::SelectionMode::ExtendedSelection
-												: QAbstractItemView::SelectionMode::SingleSelection);
+			m_ui.treeView->setSelectionMode(
+				std::ranges::any_of(
+					extendedSelectionModes,
+					[navigationMode](const auto item) {
+						return item == navigationMode;
+					}
+				)
+					? QAbstractItemView::SelectionMode::ExtendedSelection
+					: QAbstractItemView::SelectionMode::SingleSelection
+			);
 		}
 		else
 		{
@@ -809,8 +821,8 @@ private:
 				};
 
 				for (const auto& index : selection.indexes() | std::views::filter([&](const QModelIndex& item) {
-						 return item.column() == topLeft.column() && item != topLeft;
-					 }))
+											 return item.column() == topLeft.column() && item != topLeft;
+										 }))
 					enumerate(index, enumerate);
 
 				for (const auto index : indices)
@@ -859,8 +871,9 @@ private:
 
 		const auto hashCompareEnabled = [this] {
 			const auto selected = m_ui.treeView->selectionModel()->selectedIndexes() | std::views::filter([](const auto& item) {
-				return item.column() == 0;
-			}) | std::ranges::to<QModelIndexList>();
+									  return item.column() == 0;
+								  })
+			                    | std::ranges::to<QModelIndexList>();
 			if (selected.isEmpty() || selected.front().data(Role::Type).value<ItemType>() != ItemType::Books)
 				return false;
 
@@ -879,11 +892,15 @@ private:
 		    | addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
 		    | addOption(m_filterProvider->IsFilterEnabled(), ITreeViewController::RequestContextMenuOptions::UniFilterEnabled)
 		    | addOption(hashCompareEnabled(), ITreeViewController::RequestContextMenuOptions::HashCompareEnabled)
-		    | addOption(m_navigationModeName == NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::History)].first && m_ui.treeView->model()->rowCount() > 0,
-				ITreeViewController::RequestContextMenuOptions::NavigationModeIsHistory)
-		    | addOption(currentIndex.isValid() && currentIndex.data(Role::Type).value<ItemType>() == ItemType::Books
-		                    && Zip::IsArchive(Platform::RemoveIllegalPathCharacters(currentIndex.data(Role::FileName).toString())),
-				ITreeViewController::RequestContextMenuOptions::IsArchive);
+		    | addOption(
+				m_navigationModeName == NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::History)].first && m_ui.treeView->model()->rowCount() > 0,
+				ITreeViewController::RequestContextMenuOptions::NavigationModeIsHistory
+			)
+		    | addOption(
+				currentIndex.isValid() && currentIndex.data(Role::Type).value<ItemType>() == ItemType::Books
+		            && Zip::IsArchive(Platform::RemoveIllegalPathCharacters(currentIndex.data(Role::FileName).toString())),
+				ITreeViewController::RequestContextMenuOptions::IsArchive
+			);
 
 		if (!!(options & ITreeViewController::RequestContextMenuOptions::IsTree))
 		{
@@ -1292,13 +1309,15 @@ private:
 			columnInfoList.front().index = -1;
 
 		std::map<int, int> visibleColumns;
-		std::ranges::transform(std::views::zip(columnInfoList, std::views::iota(0)) | std::views::filter([](const auto& item) {
-			return !std::get<0>(item).hidden;
-		}),
+		std::ranges::transform(
+			std::views::zip(columnInfoList, std::views::iota(0)) | std::views::filter([](const auto& item) {
+				return !std::get<0>(item).hidden;
+			}),
 			std::inserter(visibleColumns, visibleColumns.end()),
 			[](const auto& item) {
 				return std::make_pair(std::get<0>(item).index, std::get<1>(item));
-			});
+			}
+		);
 
 		for (auto&& [logicalIndex, visualIndex] : std::views::zip(visibleColumns | std::views::values, std::views::iota(0)))
 			header->moveSection(header->visualIndex(logicalIndex), visualIndex);
@@ -1350,14 +1369,16 @@ private:
 		std::vector<std::pair<QString, int>> index;
 
 		const auto values = std::views::iota(m_controller->GetViewMode() == ViewMode::Tree ? 1 : 0, header->count()) | std::views::filter([&](const int n) {
-			const auto logicalIndex = header->logicalIndex(n);
-			const auto name         = model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
-			return !m_hiddenColumns.contains(name, Qt::CaseInsensitive);
-		}) | std::views::transform([&](const int n) {
-			const auto logicalIndex = header->logicalIndex(n);
-			index.emplace_back(model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString(), logicalIndex);
-			return std::make_pair(model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderTitle).toString(), !header->isSectionHidden(logicalIndex));
-		}) | std::ranges::to<std::vector>();
+								const auto logicalIndex = header->logicalIndex(n);
+								const auto name         = model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString();
+								return !m_hiddenColumns.contains(name, Qt::CaseInsensitive);
+							})
+		                  | std::views::transform([&](const int n) {
+								const auto logicalIndex = header->logicalIndex(n);
+								index.emplace_back(model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderName).toString(), logicalIndex);
+								return std::make_pair(model->headerData(logicalIndex, Qt::Horizontal, Role::HeaderTitle).toString(), !header->isSectionHidden(logicalIndex));
+							})
+		                  | std::ranges::to<std::vector>();
 
 		auto* menu = m_uiFactory->CreateCheckableMenu(values, [this, header, index = std::move(index)](const int row, const bool checked) {
 			const auto& [name, logicalIndex] = index[static_cast<size_t>(row)];
@@ -1433,7 +1454,7 @@ private:
 		};
 		const auto& model = *m_ui.treeView->model();
 		if (const auto matched = model.match(model.index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive);
-			!matched.isEmpty())
+		    !matched.isEmpty())
 			setCurrentIndex(matched.front());
 		else if (role == Role::Id)
 			setCurrentIndex(model.index(0, 0));
@@ -1531,19 +1552,22 @@ private:
 	}) };
 };
 
-TreeView::TreeView(const std::shared_ptr<const IDatabaseUser>& databaseUser,
-	std::shared_ptr<const ICollectionProvider>                 collectionProvider,
-	std::shared_ptr<const IDataItemFactory>                    dataItemFactory,
-	std::shared_ptr<ISettings>                                 settings,
-	std::shared_ptr<IUiFactory>                                uiFactory,
-	std::shared_ptr<IFilterProvider>                           filterProvider,
-	std::shared_ptr<IMenuCustomizer>                           menuCustomizer,
-	std::shared_ptr<Util::ItemViewToolTipper>                  itemViewToolTipper,
-	std::shared_ptr<Util::ScrollBarController>                 scrollBarController,
-	std::shared_ptr<INavigationUndoRedo>                       navigationUndoRedo,
-	QWidget*                                                   parent)
+TreeView::TreeView(
+	const std::shared_ptr<const IDatabaseUser>& databaseUser,
+	std::shared_ptr<const ICollectionProvider>  collectionProvider,
+	std::shared_ptr<const IDataItemFactory>     dataItemFactory,
+	std::shared_ptr<ISettings>                  settings,
+	std::shared_ptr<IUiFactory>                 uiFactory,
+	std::shared_ptr<IFilterProvider>            filterProvider,
+	std::shared_ptr<IMenuCustomizer>            menuCustomizer,
+	std::shared_ptr<Util::ItemViewToolTipper>   itemViewToolTipper,
+	std::shared_ptr<Util::ScrollBarController>  scrollBarController,
+	std::shared_ptr<INavigationUndoRedo>        navigationUndoRedo,
+	QWidget*                                    parent
+)
 	: QWidget(parent)
-	, m_impl(*this,
+	, m_impl(
+		  *this,
 		  *databaseUser,
 		  std::move(collectionProvider),
 		  std::move(dataItemFactory),
@@ -1553,7 +1577,8 @@ TreeView::TreeView(const std::shared_ptr<const IDatabaseUser>& databaseUser,
 		  std::move(menuCustomizer),
 		  std::move(itemViewToolTipper),
 		  std::move(scrollBarController),
-		  std::move(navigationUndoRedo))
+		  std::move(navigationUndoRedo)
+	  )
 {
 	PLOGV << "TreeView created";
 }

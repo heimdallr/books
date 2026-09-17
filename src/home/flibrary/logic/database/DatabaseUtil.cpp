@@ -27,16 +27,16 @@ constexpr auto KEEP_HISTORY = "Preferences/Books/KeepHistory";
 
 constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[] {
 	{  BookQueryFields::BookTitle,      BookItem::Column::Title },
-	{ BookQueryFields::UpdateDate, BookItem::Column::UpdateDate },
-	{    BookQueryFields::LibRate,    BookItem::Column::LibRate },
+    { BookQueryFields::UpdateDate, BookItem::Column::UpdateDate },
+    {    BookQueryFields::LibRate,    BookItem::Column::LibRate },
 	{       BookQueryFields::Lang,       BookItem::Column::Lang },
-	{     BookQueryFields::Format,     BookItem::Column::Format },
-	{       BookQueryFields::Year,       BookItem::Column::Year },
+    {     BookQueryFields::Format,     BookItem::Column::Format },
+    {       BookQueryFields::Year,       BookItem::Column::Year },
 	{     BookQueryFields::Folder,     BookItem::Column::Folder },
-	{   BookQueryFields::FileName,   BookItem::Column::FileName },
-	{       BookQueryFields::Size,       BookItem::Column::Size },
+    {   BookQueryFields::FileName,   BookItem::Column::FileName },
+    {       BookQueryFields::Size,       BookItem::Column::Size },
 	{   BookQueryFields::UserRate,   BookItem::Column::UserRate },
-	{      BookQueryFields::LibID,      BookItem::Column::LibID },
+    {      BookQueryFields::LibID,      BookItem::Column::LibID },
 };
 
 void UpdateItem(IDataItem& item, const DB::IQuery& query, const std::initializer_list<const size_t>& index, const size_t removedIndex, const size_t flagsIndex)
@@ -151,9 +151,9 @@ bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& i
 		PLOGV << "set IsDeleted for " << table;
 		ok = transaction
 		         ->CreateCommand(QString("%1%2")
-						 .arg(QString(IS_DELETED_UPDATE_STATEMENT_TOTAL).arg(table, join, where, additional))
-						 .arg(QString(IS_DELETED_UPDATE_STATEMENT_BY_BOOKS).arg(tempTable->GetName().data(), QString(byBooks).arg(where)))
-						 .toStdString())
+		                             .arg(QString(IS_DELETED_UPDATE_STATEMENT_TOTAL).arg(table, join, where, additional))
+		                             .arg(QString(IS_DELETED_UPDATE_STATEMENT_BY_BOOKS).arg(tempTable->GetName().data(), QString(byBooks).arg(where)))
+		                             .toStdString())
 		         ->Execute()
 		  && ok;
 	}
@@ -171,7 +171,8 @@ void CreateHistoryTable(DB::IDatabase& db, const ISettings& settings)
 		if (!keepHistory)
 			tr->CreateCommand("DROP TABLE IF EXISTS History")->Execute();
 		tr->CreateCommand(
-			  std::format("CREATE TABLE IF NOT EXISTS {} (BookID INTEGER PRIMARY KEY{} NOT NULL, CreatedAt DATETIME NOT NULL)", tableName, keepHistory ? " REFERENCES Books(BookID) ON DELETE CASCADE" : ""))
+			  std::format("CREATE TABLE IF NOT EXISTS {} (BookID INTEGER PRIMARY KEY{} NOT NULL, CreatedAt DATETIME NOT NULL)", tableName, keepHistory ? " REFERENCES Books(BookID) ON DELETE CASCADE" : "")
+		)
 			->Execute();
 		tr->CreateCommand(std::format("CREATE INDEX IF NOT EXISTS {}IX_History_BookID ON History (BookID)", keepHistory ? "" : "tmp."))->Execute();
 		tr->Commit();

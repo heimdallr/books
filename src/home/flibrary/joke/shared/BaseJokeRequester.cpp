@@ -44,7 +44,8 @@ void BaseJokeRequester::Request(std::weak_ptr<IClient> client)
 			OnResponse(idMessage, code, message);
 		},
 		{},
-		m_impl->headers);
+		m_impl->headers
+	);
 	m_impl->requests.try_emplace(id, std::move(item));
 }
 

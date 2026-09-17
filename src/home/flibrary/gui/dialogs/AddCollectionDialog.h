@@ -21,10 +21,12 @@ class AddCollectionDialog final
 	NON_COPY_MOVABLE(AddCollectionDialog)
 
 public:
-	AddCollectionDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
-		std::shared_ptr<ISettings>                                    settings,
-		std::shared_ptr<ICollectionController>                        collectionController,
-		std::shared_ptr<const IUiFactory>                             uiFactory);
+	AddCollectionDialog(
+		const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
+		std::shared_ptr<ISettings>                    settings,
+		std::shared_ptr<ICollectionController>        collectionController,
+		std::shared_ptr<const IUiFactory>             uiFactory
+	);
 	~AddCollectionDialog() override;
 
 private: // IAddCollectionDialog

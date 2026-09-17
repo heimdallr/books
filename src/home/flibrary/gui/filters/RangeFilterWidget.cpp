@@ -135,10 +135,12 @@ private:
 
 	QByteArray Serialize() const
 	{
-		return QJsonDocument(QJsonObject {
-								 { MIN_KEY,  m_ui.slider->low() },
-								 { MAX_KEY, m_ui.slider->high() },
-		})
+		return QJsonDocument(
+				   QJsonObject {
+					   { MIN_KEY,  m_ui.slider->low() },
+					   { MAX_KEY, m_ui.slider->high() },
+		}
+		)
 		    .toJson(QJsonDocument::Compact);
 	}
 
@@ -192,12 +194,14 @@ private:
 	Ui::RangeFilterWidget m_ui {};
 };
 
-RangeFilterWidget::RangeFilterWidget(const QAbstractItemModel& model,
-	const int                                                  column,
-	Callback                                                   callback,
-	const IParentWidgetProvider&                               parentWidgetProvider,
-	std::shared_ptr<ISettings>                                 settings,
-	QWidget*                                                   parent)
+RangeFilterWidget::RangeFilterWidget(
+	const QAbstractItemModel&    model,
+	const int                    column,
+	Callback                     callback,
+	const IParentWidgetProvider& parentWidgetProvider,
+	std::shared_ptr<ISettings>   settings,
+	QWidget*                     parent
+)
 	: QWidget(parent)
 	, m_impl(this, model, column, std::move(callback), parentWidgetProvider, std::move(settings))
 {

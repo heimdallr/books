@@ -48,8 +48,9 @@ struct MacroTreeItem
 	{
 		if (value.isEmpty())
 			return (children | std::views::transform([&](const auto& item) {
-				return item->Get(macroMap, level + 1);
-			}) | std::ranges::to<QStringList>())
+						return item->Get(macroMap, level + 1);
+					})
+			        | std::ranges::to<QStringList>())
 			    .join("");
 
 		qsizetype shift = 0;
@@ -123,9 +124,12 @@ void SetMacroImpl(QString& str, const std::unordered_map<IScriptController::Macr
 		PLOGW << "bracket balance violation";
 	}
 
-	str = tree.Get(macroValues | std::views::transform([](const auto& item) {
-		return std::make_pair(QString { IScriptController::GetMacro(item.first) }, item.second);
-	}) | std::ranges::to<std::unordered_map>());
+	str = tree.Get(
+		macroValues | std::views::transform([](const auto& item) {
+			return std::make_pair(QString { IScriptController::GetMacro(item.first) }, item.second);
+		})
+	    | std::ranges::to<std::unordered_map>()
+	);
 }
 
 QString ApplyMacroSourceFile(DB::IDatabase&, const Util::ExtractedBook&, const QFileInfo&, const QStringList&)
@@ -349,8 +353,8 @@ void ILogicFactory::FillScriptTemplate(DB::IDatabase& db, QString& scriptTemplat
 	const auto      authorNameSplitted = Platform::RemoveIllegalPathCharacters(book.author).split(' ', Qt::SkipEmptyParts);
 	const QFileInfo fileInfo(book.file);
 	SetMacroImpl(scriptTemplate, MACRO_APPLIERS | std::views::transform([&](const auto& item) {
-		return std::make_pair(item.first, std::invoke(item.second, std::ref(db), std::cref(book), std::cref(fileInfo), std::cref(authorNameSplitted)));
-	}) | std::ranges::to<std::unordered_map>());
+									 return std::make_pair(item.first, std::invoke(item.second, std::ref(db), std::cref(book), std::cref(fileInfo), std::cref(authorNameSplitted)));
+								 }) | std::ranges::to<std::unordered_map>());
 }
 
 QString IDatabaseUser::GetDatabaseVersionStatement()
@@ -408,7 +412,8 @@ QString IAnnotationController::IStrategy::AddTableRowImpl(const QStringList& val
 		},
 		[&] {
 			str.append("</tr>");
-		});
+		}
+	);
 	for (const auto& value : values)
 	{
 		ScopedCall td(
@@ -417,7 +422,8 @@ QString IAnnotationController::IStrategy::AddTableRowImpl(const QStringList& val
 			},
 			[&] {
 				str.append("</td>");
-			});
+			}
+		);
 		str.append(value);
 	}
 	return str;
@@ -500,11 +506,13 @@ const IFilterProvider::FilteredNavigation& IFilterProvider::GetFilteredNavigatio
 
 bool IMenuCustomizer::IsHiddenByDefault(const QString& key)
 {
-	return IsOneOf(key,
+	return IsOneOf(
+		key,
 		QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::AllBooks)].first),
 		QString(Constant::Settings::NAVIGATION_HIDDEN_KEY_TEMPLATE).arg(NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::AlreadyRead)].first),
 		"Book context menu/Hash",
-		"MainWindow/menuBar/menuSettings/actionAllSettings");
+		"MainWindow/menuBar/menuSettings/actionAllSettings"
+	);
 }
 
 } // namespace HomeCompa::Flibrary

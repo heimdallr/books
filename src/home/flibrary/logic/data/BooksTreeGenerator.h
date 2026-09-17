@@ -126,13 +126,15 @@ class BooksTreeGenerator final
 	NON_COPY_MOVABLE(BooksTreeGenerator)
 
 public:
-	BooksTreeGenerator(const ISettings& settings,
-		const Collection&               activeCollection,
-		DB::IDatabase&                  db,
-		NavigationMode                  navigationMode,
-		QString                         navigationId,
-		const QueryDescription&         description,
-		const IFilterProvider&          filterProvider);
+	BooksTreeGenerator(
+		const ISettings&        settings,
+		const Collection&       activeCollection,
+		DB::IDatabase&          db,
+		NavigationMode          navigationMode,
+		QString                 navigationId,
+		const QueryDescription& description,
+		const IFilterProvider&  filterProvider
+	);
 	~BooksTreeGenerator() override;
 
 public:

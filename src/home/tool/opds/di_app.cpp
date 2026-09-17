@@ -68,7 +68,8 @@ class UiFactory final : public Flibrary::IUiFactory
 		return {};
 	}
 
-	QMessageBox::ButtonRole ShowCustomDialog(QMessageBox::Icon /*icon*/,
+	QMessageBox::ButtonRole ShowCustomDialog(
+		QMessageBox::Icon /*icon*/,
 		const QString& /*title*/,
 		const QString& /*text*/,
 		const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& /*buttons*/,
@@ -203,13 +204,21 @@ private: // IUiFactory
 		return {};
 	}
 
-	std::pair<Flibrary::IDataItem::Ptr, QObject*> AddMenuBarToMenuCustomizer(const QString& /*rootKey*/, QMenuBar& /*menuBar*/, const QString& /*title*/, const MenuCustomizeFunctor& /*functor*/
+	std::pair<Flibrary::IDataItem::Ptr, QObject*> AddMenuBarToMenuCustomizer(
+		const QString& /*rootKey*/,
+		QMenuBar& /*menuBar*/,
+		const QString& /*title*/,
+		const MenuCustomizeFunctor& /*functor*/
 	) const override
 	{
 		return {};
 	}
 
-	std::pair<Flibrary::IDataItem::Ptr, QObject*> AddComboBoxToMenuCustomizer(const QString& /*rootKey*/, QComboBox& /*comboBox*/, const QString& /*title*/, const MenuCustomizeFunctor& /*functor*/
+	std::pair<Flibrary::IDataItem::Ptr, QObject*> AddComboBoxToMenuCustomizer(
+		const QString& /*rootKey*/,
+		QComboBox& /*comboBox*/,
+		const QString& /*title*/,
+		const MenuCustomizeFunctor& /*functor*/
 	) const override
 	{
 		return {};

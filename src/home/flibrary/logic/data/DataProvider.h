@@ -24,12 +24,14 @@ class DataProvider final
 	NON_COPY_MOVABLE(DataProvider)
 
 public:
-	DataProvider(std::shared_ptr<const ISettings>    settings,
+	DataProvider(
+		std::shared_ptr<const ISettings>             settings,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
 		std::shared_ptr<const IDatabaseUser>         databaseUser,
 		std::shared_ptr<const IFilterProvider>       filterProvider,
 		std::shared_ptr<INavigationQueryExecutor>    navigationQueryExecutor,
-		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController);
+		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController
+	);
 	~DataProvider() override;
 
 private: // IDataProvider

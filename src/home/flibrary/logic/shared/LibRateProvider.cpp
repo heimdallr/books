@@ -62,16 +62,18 @@ std::unordered_map<long long, double> ReadRates(const ISettings& settings, const
 	}
 
 	std::unordered_map<QString, double> additionalRates;
-	std::ranges::transform(doc.array() | std::views::transform([](const auto& item) {
-		auto obj = item.toObject();
-		return std::make_tuple(QString("%1#%2").arg(obj[Inpx::FOLDER].toString(), obj[Inpx::FILE].toString()), obj[Inpx::SUM].toDouble(0.0), obj[Inpx::COUNT].toInt(0));
-	}) | std::views::filter([](const auto& item) {
-		return std::get<1>(item) > 0.0 && std::get<2>(item) > 0;
-	}),
+	std::ranges::transform(
+		doc.array() | std::views::transform([](const auto& item) {
+			auto obj = item.toObject();
+			return std::make_tuple(QString("%1#%2").arg(obj[Inpx::FOLDER].toString(), obj[Inpx::FILE].toString()), obj[Inpx::SUM].toDouble(0.0), obj[Inpx::COUNT].toInt(0));
+		}) | std::views::filter([](const auto& item) {
+			return std::get<1>(item) > 0.0 && std::get<2>(item) > 0;
+		}),
 		std::inserter(additionalRates, additionalRates.end()),
 		[](const auto& item) {
 			return std::make_pair(std::get<0>(item), std::get<1>(item) / std::get<2>(item));
-		});
+		}
+	);
 
 	const auto                            db    = databaseUser.Database();
 	const auto                            query = db->CreateQuery("select b.BookID, f.FolderTitle||'#'||b.FileName from Books_View b join Folders f on f.FolderID = b.FolderID");
@@ -143,9 +145,11 @@ struct LibRateProviderDouble::Impl
 	}
 };
 
-LibRateProviderDouble::LibRateProviderDouble(const std::shared_ptr<const ISettings>& settings,
-	const std::shared_ptr<const ICollectionProvider>&                                collectionProvider,
-	const std::shared_ptr<const IDatabaseUser>&                                      databaseUser)
+LibRateProviderDouble::LibRateProviderDouble(
+	const std::shared_ptr<const ISettings>&           settings,
+	const std::shared_ptr<const ICollectionProvider>& collectionProvider,
+	const std::shared_ptr<const IDatabaseUser>&       databaseUser
+)
 	: m_impl(*settings, *collectionProvider, *databaseUser)
 {
 }

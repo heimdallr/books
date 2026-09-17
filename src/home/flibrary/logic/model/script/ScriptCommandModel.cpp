@@ -143,7 +143,8 @@ private: // QAbstractItemModel
 			},
 			[&] {
 				endInsertRows();
-			});
+			}
+		);
 		return m_scriptController->InsertCommand(m_uid, row, count);
 	}
 

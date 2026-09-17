@@ -13,7 +13,7 @@
   AccessModifierOffset: -4
 
   AlignArrayOfStructures: Right
-  AlignAfterOpenBracket: DontAlign
+  AlignAfterOpenBracket: BlockIndent
   AlignConsecutiveMacros: None
   AlignEscapedNewlines: Left
   AlignOperands: AlignAfterOperator

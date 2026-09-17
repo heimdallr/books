@@ -81,11 +81,13 @@ struct ReaderController::Impl
 	mutable std::random_device rd {};
 	mutable std::mt19937       mt { rd() };
 
-	Impl(const std::shared_ptr<const ILogicFactory>& logicFactory,
-		std::shared_ptr<ISettings>                   settings,
-		std::shared_ptr<ICollectionController>       collectionController,
-		std::shared_ptr<IUiFactory>                  uiFactory,
-		std::shared_ptr<IDatabaseUser>               databaseUser)
+	Impl(
+		const std::shared_ptr<const ILogicFactory>& logicFactory,
+		std::shared_ptr<ISettings>                  settings,
+		std::shared_ptr<ICollectionController>      collectionController,
+		std::shared_ptr<IUiFactory>                 uiFactory,
+		std::shared_ptr<IDatabaseUser>              databaseUser
+	)
 		: logicFactory { logicFactory }
 		, settings { std::move(settings) }
 		, collectionController { std::move(collectionController) }
@@ -262,11 +264,13 @@ struct ReaderController::Impl
 	}
 };
 
-ReaderController::ReaderController(const std::shared_ptr<const ILogicFactory>& logicFactory,
-	std::shared_ptr<ISettings>                                                 settings,
-	std::shared_ptr<ICollectionController>                                     collectionController,
-	std::shared_ptr<IUiFactory>                                                uiFactory,
-	std::shared_ptr<IDatabaseUser>                                             databaseUser)
+ReaderController::ReaderController(
+	const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<ISettings>                  settings,
+	std::shared_ptr<ICollectionController>      collectionController,
+	std::shared_ptr<IUiFactory>                 uiFactory,
+	std::shared_ptr<IDatabaseUser>              databaseUser
+)
 	: m_impl(logicFactory, std::move(settings), std::move(collectionController), std::move(uiFactory), std::move(databaseUser))
 {
 	PLOGV << "ReaderController created";

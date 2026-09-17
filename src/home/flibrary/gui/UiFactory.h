@@ -46,13 +46,15 @@ private: // IUiFactory
 	QWidget*                              CreateImageViewer(QStackedWidget* stackedWidget) const override;
 	void                                  CreateAuthorReview(long long id) const override;
 
-	void                        ShowAbout() const override;
-	QMessageBox::ButtonRole     ShowCustomDialog(QMessageBox::Icon          icon,
+	void                    ShowAbout() const override;
+	QMessageBox::ButtonRole ShowCustomDialog(
+		QMessageBox::Icon                                               icon,
 		const QString&                                                  title,
 		const QString&                                                  text,
 		const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
 		QMessageBox::ButtonRole                                         defaultButton,
-		const QString&                                                  detailedText) const override;
+		const QString&                                                  detailedText
+	) const override;
 	QMessageBox::StandardButton ShowQuestion(Util::DialogInitializer& initializer) const override;
 	QMessageBox::StandardButton ShowWarning(Util::DialogInitializer& initializer) const override;
 	void                        ShowInfo(const QString& text) const override;

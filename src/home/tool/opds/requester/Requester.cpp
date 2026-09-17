@@ -373,17 +373,21 @@ Node& WriteEntry(Node::Children& children, const QString& root, const QString& p
 	if (isCatalog)
 	{
 		const auto href = GetHref(root, path, parameters);
-		entry.children.emplace_back("link",
+		entry.children.emplace_back(
+			"link",
 			QString {
 		},
-			Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+			Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
+		);
 	}
 	if (!content.isEmpty())
-		entry.children.emplace_back(CONTENT,
+		entry.children.emplace_back(
+			CONTENT,
 			std::move(content),
 			Node::Attributes {
 				{ "type", "text/html" }
-        });
+        }
+		);
 
 	return entry;
 }
@@ -402,14 +406,16 @@ public:
 };
 
 using GetNavigation = Node (INavigationProvider::*)(const QString& root, const IRequester::Parameters& parameters, const NavigationDescription& d) const;
-using WriteEntries  = void (*)(Node::Children& children,
-	const QString&                            root,
-	IRequester::Parameters                    parameters,
-	const NavigationDescription&              d,
-	DB::IDatabase&                            db,
-	const IQueryTextFilter&                   queryTextFilter,
-	QString                                   join,
-	std::map<QString, QString>&&              ones);
+using WriteEntries  = void (*)(
+	Node::Children&              children,
+	const QString&               root,
+	IRequester::Parameters       parameters,
+	const NavigationDescription& d,
+	DB::IDatabase&               db,
+	const IQueryTextFilter&      queryTextFilter,
+	QString                      join,
+	std::map<QString, QString>&& ones
+);
 
 struct NavigationDescription
 {
@@ -448,19 +454,9 @@ constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
 // clang-format on
 static_assert(std::size(NAVIGATION_DESCRIPTION) == static_cast<size_t>(Flibrary::NavigationMode::Last));
 
-constexpr NavigationDescription BOOK_DESCRIPTION { BOOKS,
-	BOOK_COUNT,
-	nullptr,
-	BOOK_JOIN_SELECT,
-	nullptr,
-	nullptr,
-	BOOK_COUNT_STARTS_WITH,
-	BOOK_STARTS_WITH,
-	BOOK_SELECT_SINGLE,
-	BOOK_SELECT_EQUAL,
-	BOOK_CONTENT,
-	nullptr,
-	&WriteBookEntries };
+constexpr NavigationDescription BOOK_DESCRIPTION {
+	BOOKS, BOOK_COUNT, nullptr, BOOK_JOIN_SELECT, nullptr, nullptr, BOOK_COUNT_STARTS_WITH, BOOK_STARTS_WITH, BOOK_SELECT_SINGLE, BOOK_SELECT_EQUAL, BOOK_CONTENT, nullptr, &WriteBookEntries
+};
 
 QString GetSeriesTitle(const QString& title, QString seqNum)
 {
@@ -478,14 +474,16 @@ QString CreateSelf(const QString& root, const QString& path, const IRequester::P
 	return QString("%1%2%3").arg(root, path.isEmpty() ? QString {} : QString("/%1").arg(path), list.isEmpty() ? QString {} : "?" + list.join('&'));
 }
 
-void WriteBookEntries(Node::Children& children,
-	const QString&                    root,
-	IRequester::Parameters            parameters,
-	const NavigationDescription&      d,
-	DB::IDatabase&                    db,
-	const IQueryTextFilter&           queryTextFilter,
+void WriteBookEntries(
+	Node::Children&              children,
+	const QString&               root,
+	IRequester::Parameters       parameters,
+	const NavigationDescription& d,
+	DB::IDatabase&               db,
+	const IQueryTextFilter&      queryTextFilter,
 	QString,
-	std::map<QString, QString>&& ones)
+	std::map<QString, QString>&& ones
+)
 {
 	const auto needAuthor = !parameters.contains(Loc::Authors);
 	for (auto&& [navigationId, title] : ones)
@@ -505,10 +503,12 @@ void WriteBookEntries(Node::Children& children,
 
 		auto href = CreateSelf(root, BOOK, parameters);
 
-		entry.children.emplace_back("link",
+		entry.children.emplace_back(
+			"link",
 			QString {
 		},
-			Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=acquisition" } });
+			Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=acquisition" } }
+		);
 
 		entry.author = std::move(author);
 		entry.series = std::move(series);
@@ -516,14 +516,16 @@ void WriteBookEntries(Node::Children& children,
 	}
 }
 
-void WriteNavigationEntries(Node::Children& children,
-	const QString&                          root,
-	IRequester::Parameters                  parameters,
-	const NavigationDescription&            d,
-	DB::IDatabase&                          db,
-	const IQueryTextFilter&                 queryTextFilter,
-	QString                                 join,
-	std::map<QString, QString>&&            ones)
+void WriteNavigationEntries(
+	Node::Children&              children,
+	const QString&               root,
+	IRequester::Parameters       parameters,
+	const NavigationDescription& d,
+	DB::IDatabase&               db,
+	const IQueryTextFilter&      queryTextFilter,
+	QString                      join,
+	std::map<QString, QString>&& ones
+)
 {
 	if (join.isEmpty())
 		join = QString("join Books_View_Opds b on b.BookID = l.BookID\n%1").arg(d.joinSelect);
@@ -554,22 +556,30 @@ std::pair<QString, char> PrepareForLike(QString arg)
 Node GetHead(QString id, QString title, QString root, QString self)
 {
 	auto standardNodes = GetStandardNodes(std::move(id), std::move(title));
-	standardNodes.emplace_back("link",
+	standardNodes.emplace_back(
+		"link",
 		QString {
 	},
-		Node::Attributes { { "href", root }, { "rel", "start" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
-	standardNodes.emplace_back("link",
+		Node::Attributes { { "href", root }, { "rel", "start" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
+	);
+	standardNodes.emplace_back(
+		"link",
 		QString {
 	},
-		Node::Attributes { { "href", std::move(self) }, { "rel", "self" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
-	standardNodes.emplace_back("link",
+		Node::Attributes { { "href", std::move(self) }, { "rel", "self" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
+	);
+	standardNodes.emplace_back(
+		"link",
 		QString {
 	},
-		Node::Attributes { { "href", QString("%1/opensearch").arg(root) }, { "rel", "search" }, { "type", "application/opensearchdescription+xml" } });
-	standardNodes.emplace_back("link",
+		Node::Attributes { { "href", QString("%1/opensearch").arg(root) }, { "rel", "search" }, { "type", "application/opensearchdescription+xml" } }
+	);
+	standardNodes.emplace_back(
+		"link",
 		QString {
 	},
-		Node::Attributes { { "href", QString("%1/search?q={searchTerms}").arg(root) }, { "rel", "search" }, { "type", "application/atom+xml" } });
+		Node::Attributes { { "href", QString("%1/search?q={searchTerms}").arg(root) }, { "rel", "search" }, { "type", "application/atom+xml" } }
+	);
 	return Node {
 		"feed",
 		{},
@@ -588,13 +598,15 @@ QString GetJoin(const IRequester::Parameters& parameters)
 		return {};
 
 	QStringList list;
-	std::ranges::transform(NAVIGATION_DESCRIPTION | std::views::filter([&](const auto& item) {
-		return item.joinParameters && parameters.contains(item.type);
-	}),
+	std::ranges::transform(
+		NAVIGATION_DESCRIPTION | std::views::filter([&](const auto& item) {
+			return item.joinParameters && parameters.contains(item.type);
+		}),
 		std::back_inserter(list),
 		[&](const auto& item) {
 			return QString(item.joinParameters).arg(parameters.at(item.type));
-		});
+		}
+	);
 	if (list.isEmpty())
 		return {};
 
@@ -612,9 +624,10 @@ struct TitleHelper
 QString GetTitle(DB::IDatabase& db, const IQueryTextFilter& queryTextFilter, const IRequester::Parameters& parameters, TitleHelper helper)
 {
 	QStringList list;
-	std::ranges::transform(NAVIGATION_DESCRIPTION | std::views::filter([&](const auto& item) {
-		return item.select && parameters.contains(item.type);
-	}),
+	std::ranges::transform(
+		NAVIGATION_DESCRIPTION | std::views::filter([&](const auto& item) {
+			return item.select && parameters.contains(item.type);
+		}),
 		std::back_inserter(list),
 		[&](const auto& item) {
 			const auto query = db.CreateQuery(queryTextFilter.FilterQueryText(item.select));
@@ -625,7 +638,8 @@ QString GetTitle(DB::IDatabase& db, const IQueryTextFilter& queryTextFilter, con
 			if (query->ColumnCount() > 1)
 				result.append(' ').append(query->template Get<const char*>(1));
 			return result;
-		});
+		}
+	);
 	if (!helper.additionalTitle.isEmpty())
 		list.emplaceBack(std::move(helper.additionalTitle));
 
@@ -702,11 +716,13 @@ std::pair<QString, QString> ParseSearchString(const IRequester::Parameters& para
 	const auto searchTerms = parameters.at("q");
 
 	auto terms = searchTerms.toLower().split(QRegularExpression(R"(\s+|\+)"), Qt::SkipEmptyParts);
-	if (const auto [from, to] = std::ranges::remove_if(terms,
+	if (const auto [from, to] = std::ranges::remove_if(
+			terms,
 			[](const auto& item) {
 				return item.length() < 3;
-			});
-		from != to)
+			}
+		);
+	    from != to)
 		terms.erase(from, to);
 	auto termsGui = terms.join(' ');
 
@@ -732,10 +748,12 @@ Node SeparatedSearch(const QString& root, const IRequester::Parameters& paramete
 		p[SEPARATED] = category;
 
 		const QUrl url(CreateSelf(root, SEARCH, p));
-		entry.children.emplace_back("link",
+		entry.children.emplace_back(
+			"link",
 			QString {
 		},
-			Node::Attributes { { "href", url.toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+			Node::Attributes { { "href", url.toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
+		);
 	};
 
 	addEntry(Loc::Authors);
@@ -776,7 +794,8 @@ private: // IPostProcessCallback
 	}
 
 public:
-	Impl(std::shared_ptr<const ISettings>                            settings,
+	Impl(
+		std::shared_ptr<const ISettings>                             settings,
 		std::shared_ptr<const Flibrary::ICollectionProvider>         collectionProvider,
 		std::shared_ptr<const Flibrary::IDatabaseController>         databaseController,
 		std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
@@ -784,7 +803,8 @@ public:
 		std::shared_ptr<const Flibrary::IBookExtractor>              bookExtractor,
 		std::shared_ptr<const ICoverCache>                           coverCache,
 		std::shared_ptr<const INoSqlRequester>                       noSqlRequester,
-		std::shared_ptr<Flibrary::IAnnotationController>             annotationController)
+		std::shared_ptr<Flibrary::IAnnotationController>             annotationController
+	)
 		: m_settings { std::move(settings) }
 		, m_collectionProvider { std::move(collectionProvider) }
 		, m_databaseController { std::move(databaseController) }
@@ -819,14 +839,16 @@ public:
 		const auto join = GetJoin(parameters);
 
 		QStringList dbStatQueryTextItems;
-		std::ranges::transform(navigationTypes | std::views::filter([&](const auto& item) {
-			return NAVIGATION_DESCRIPTION[static_cast<size_t>(item.first)].count && !parameters.contains(item.second);
-		}),
+		std::ranges::transform(
+			navigationTypes | std::views::filter([&](const auto& item) {
+				return NAVIGATION_DESCRIPTION[static_cast<size_t>(item.first)].count && !parameters.contains(item.second);
+			}),
 			std::back_inserter(dbStatQueryTextItems),
 			[&](const auto& item) {
 				const auto& d = NAVIGATION_DESCRIPTION[static_cast<size_t>(item.first)];
 				return QString(d.count).arg(join).arg(d.type);
-			});
+			}
+		);
 
 		{
 			if (!parameters.empty())
@@ -910,45 +932,59 @@ public:
 			{
 				const auto& authorItem = dataProvider.GetAuthors().GetChild(i);
 				auto&       author     = entry.children.emplace_back("author");
-				author.children.emplace_back("name",
+				author.children.emplace_back(
+					"name",
 					QString("%1 %2 %3")
-						.arg(authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName),
+						.arg(
+							authorItem->GetRawData(Flibrary::AuthorItem::Column::LastName),
 							authorItem->GetRawData(Flibrary::AuthorItem::Column::FirstName),
-							authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName)));
+							authorItem->GetRawData(Flibrary::AuthorItem::Column::MiddleName)
+						)
+				);
 				author.children.emplace_back("uri", QString("%1/%2/%3").arg(root, Loc::Authors, authorItem->GetId()));
 			}
 			for (size_t i = 0, sz = dataProvider.GetGenres().GetChildCount(); i < sz; ++i)
 			{
 				const auto& genreItem = dataProvider.GetGenres().GetChild(i);
 				const auto& title     = genreItem->GetRawData(Flibrary::NavigationItem::Column::Title);
-				entry.children.emplace_back("category",
+				entry.children.emplace_back(
+					"category",
 					QString {
 				},
-					Node::Attributes { { "term", title }, { "label", title } });
+					Node::Attributes { { "term", title }, { "label", title } }
+				);
 			}
 			const auto format = QFileInfo(book.GetRawData(Flibrary::BookItem::Column::FileName)).suffix();
 			entry.children.emplace_back("dc:language", book.GetRawData(Flibrary::BookItem::Column::Lang));
 			entry.children.emplace_back("dc:format", format);
-			entry.children.emplace_back("link",
+			entry.children.emplace_back(
+				"link",
 				QString {
 			},
-				Node::Attributes { { "href", QString("/Images/fb2/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/acquisition" }, { "type", QString("application/%1").arg(format) } });
-			entry.children.emplace_back("link",
+				Node::Attributes { { "href", QString("/Images/fb2/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/acquisition" }, { "type", QString("application/%1").arg(format) } }
+			);
+			entry.children.emplace_back(
+				"link",
 				QString {
 			},
-				Node::Attributes { { "href", QString("/Images/zip/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/acquisition" }, { "type", QString("application/%1+zip").arg(format) } });
+				Node::Attributes { { "href", QString("/Images/zip/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/acquisition" }, { "type", QString("application/%1+zip").arg(format) } }
+			);
 
 			if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
 			{
-				entry.children.emplace_back("link",
+				entry.children.emplace_back(
+					"link",
 					QString {
 				},
-					Node::Attributes { { "href", QString("/Images/covers/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/image" }, { "type", "image/jpeg" } });
+					Node::Attributes { { "href", QString("/Images/covers/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/image" }, { "type", "image/jpeg" } }
+				);
 
-				entry.children.emplace_back("link",
+				entry.children.emplace_back(
+					"link",
 					QString {
 				},
-					Node::Attributes { { "href", QString("/Images/covers/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/image/thumbnail" }, { "type", "image/jpeg" } });
+					Node::Attributes { { "href", QString("/Images/covers/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/image/thumbnail" }, { "type", "image/jpeg" } }
+				);
 
 				m_coverCache->Set(book.GetId(), std::move(Util::Recode(covers.front().bytes).first));
 			}
@@ -1037,10 +1073,12 @@ public:
 				const QUrl url(CreateSelf(root, SEARCH, p));
 				auto&      entry = *head.children.emplace(std::next(head.children.begin(), pos), ENTRY, QString {}, Node::Attributes {}, GetStandardNodes(QString::number(nextPageIndex), title));
 				entry.title      = std::move(title);
-				entry.children.emplace_back("link",
+				entry.children.emplace_back(
+					"link",
 					QString {
 				},
-					Node::Attributes { { "href", url.toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } });
+					Node::Attributes { { "href", url.toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
+				);
 			};
 
 			if (startResultIndex > 0)
@@ -1093,7 +1131,8 @@ public:
 				},
 				[&] {
 					buffer.close();
-				});
+				}
+			);
 			const auto      node = std::invoke(getter, *this, std::cref(root), std::cref(parameters), std::cref(args)...);
 			Util::XmlWriter writer(buffer);
 			writer << node;
@@ -1253,11 +1292,13 @@ private:
 		{
 			const auto [startsWithLike, escape] = PrepareForLike(startsWithGlobal);
 			const auto queryText                = QString(d.selectSingle).arg(escape).arg(join);
-			selectOne(queryText,
+			selectOne(
+				queryText,
 				{
 					{      ":starts", startsWithGlobal },
 					{ ":starts_like",   startsWithLike },
-			});
+			}
+			);
 		}
 		else
 		{
@@ -1306,10 +1347,12 @@ private:
 		for (const auto& s : equal)
 		{
 			const auto queryText = QString(d.selectEqual).arg(join);
-			selectOne(queryText,
+			selectOne(
+				queryText,
 				{
 					{ ":starts", s },
-			});
+			}
+			);
 		}
 
 		Parameters typedParameters = parameters;
@@ -1345,7 +1388,8 @@ namespace {
 
 } // namespace
 
-Requester::Requester(std::shared_ptr<const ISettings>            settings,
+Requester::Requester(
+	std::shared_ptr<const ISettings>                             settings,
 	std::shared_ptr<const Flibrary::ICollectionProvider>         collectionProvider,
 	std::shared_ptr<const Flibrary::IDatabaseController>         databaseController,
 	std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
@@ -1353,8 +1397,10 @@ Requester::Requester(std::shared_ptr<const ISettings>            settings,
 	std::shared_ptr<const Flibrary::IBookExtractor>              bookExtractor,
 	std::shared_ptr<const ICoverCache>                           coverCache,
 	std::shared_ptr<const INoSqlRequester>                       noSqlRequester,
-	std::shared_ptr<Flibrary::IAnnotationController>             annotationController)
-	: m_impl(std::move(settings),
+	std::shared_ptr<Flibrary::IAnnotationController>             annotationController
+)
+	: m_impl(
+		  std::move(settings),
 		  std::move(collectionProvider),
 		  std::move(databaseController),
 		  std::move(authorAnnotationController),
@@ -1362,7 +1408,8 @@ Requester::Requester(std::shared_ptr<const ISettings>            settings,
 		  std::move(bookExtractor),
 		  std::move(coverCache),
 		  std::move(noSqlRequester),
-		  std::move(annotationController))
+		  std::move(annotationController)
+	  )
 {
 	PLOGV << "Requester created";
 }

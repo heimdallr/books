@@ -282,13 +282,15 @@ void FilterController::HideFiltered(NavigationMode navigationMode, QPointer<QAbs
 									   }
 
 									   std::unordered_set<QString> ids;
-									   std::ranges::transform(values | std::views::filter([](const auto& item) {
-										   return item.second.first.empty();
-									   }),
+									   std::ranges::transform(
+										   values | std::views::filter([](const auto& item) {
+											   return item.second.first.empty();
+										   }),
 										   std::inserter(ids, ids.end()),
 										   [](const auto& item) {
 											   return item.first;
-										   });
+										   }
+									   );
 									   return [model = std::move(model), callback = std::move(callback), ids = std::move(ids)](size_t) mutable {
 										   if (model.isNull())
 											   return;

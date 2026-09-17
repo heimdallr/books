@@ -16,10 +16,12 @@ class InpxGenerator : public IInpxGenerator
 	NON_COPY_MOVABLE(InpxGenerator)
 
 public:
-	InpxGenerator(const std::shared_ptr<const ILogicFactory>& logicFactory,
-		std::shared_ptr<const ICollectionProvider>            collectionProvider,
-		std::shared_ptr<const IDatabaseUser>                  databaseUser,
-		std::shared_ptr<IMainProgressController>              progressController);
+	InpxGenerator(
+		const std::shared_ptr<const ILogicFactory>& logicFactory,
+		std::shared_ptr<const ICollectionProvider>  collectionProvider,
+		std::shared_ptr<const IDatabaseUser>        databaseUser,
+		std::shared_ptr<IMainProgressController>    progressController
+	);
 	~InpxGenerator() override;
 
 public:

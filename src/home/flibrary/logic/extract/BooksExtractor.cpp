@@ -96,14 +96,16 @@ enum class WriteMode
 	Unpack,
 };
 
-std::pair<bool, std::filesystem::path> Write(const ISettings& settings,
-	QIODevice&                                                input,
-	const QString&                                            folder,
-	const Util::ExtractedBook&                                book,
-	IProgressController::IProgressItem&                       progress,
-	std::shared_ptr<Zip::ProgressCallback>                    zipProgressCallback,
-	IExportHelper&                                            exportHelper,
-	const WriteMode                                           mode)
+std::pair<bool, std::filesystem::path> Write(
+	const ISettings&                       settings,
+	QIODevice&                             input,
+	const QString&                         folder,
+	const Util::ExtractedBook&             book,
+	IProgressController::IProgressItem&    progress,
+	std::shared_ptr<Zip::ProgressCallback> zipProgressCallback,
+	IExportHelper&                         exportHelper,
+	const WriteMode                        mode
+)
 {
 	auto            result = std::make_pair(false, std::filesystem::path {});
 	const QFileInfo dstFileInfo(book.dstFileName);
@@ -139,13 +141,15 @@ std::pair<bool, std::filesystem::path> Write(const ISettings& settings,
 	return result;
 }
 
-std::filesystem::path Process(const ISettings& settings,
-	const std::filesystem::path&               archiveFolder,
-	const Util::ExtractedBook&                 book,
-	IProgressController::IProgressItem&        progress,
-	std::shared_ptr<Zip::ProgressCallback>     zipProgressCallback,
-	IExportHelper&                             exportHelper,
-	const WriteMode                            mode)
+std::filesystem::path Process(
+	const ISettings&                       settings,
+	const std::filesystem::path&           archiveFolder,
+	const Util::ExtractedBook&             book,
+	IProgressController::IProgressItem&    progress,
+	std::shared_ptr<Zip::ProgressCallback> zipProgressCallback,
+	IExportHelper&                         exportHelper,
+	const WriteMode                        mode
+)
 {
 	if (progress.IsStopped())
 		return {};
@@ -163,7 +167,8 @@ std::filesystem::path Process(const ISettings& settings,
 	return ok ? path : std::filesystem::path {};
 }
 
-void Process(const ISettings&           settings,
+void Process(
+	const ISettings&                    settings,
 	const std::filesystem::path&        archiveFolder,
 	const QString&                      dstFolder,
 	DB::IDatabase&                      db,
@@ -171,7 +176,8 @@ void Process(const ISettings&           settings,
 	IProgressController::IProgressItem& progress,
 	IExportHelper&                      exportHelper,
 	const IScriptController&            scriptController,
-	IScriptController::Commands         commands)
+	IScriptController::Commands         commands
+)
 {
 	const auto needFile   = std::ranges::any_of(commands, [](const auto& command) {
 		return IScriptController::HasMacro(command.args, IScriptController::Macro::SourceFile);
@@ -205,13 +211,15 @@ class BooksExtractor::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(std::shared_ptr<const ISettings>           settings,
+	Impl(
+		std::shared_ptr<const ISettings>            settings,
 		std::shared_ptr<ICollectionController>      collectionController,
 		std::shared_ptr<IProgressController>        progressController,
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const IScriptController>    scriptController,
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
-		std::shared_ptr<const IDatabaseUser>        databaseUser)
+		std::shared_ptr<const IDatabaseUser>        databaseUser
+	)
 		: m_settings { std::move(settings) }
 		, m_collectionController { std::move(collectionController) }
 		, m_progressController { std::move(progressController) }
@@ -290,13 +298,15 @@ private: // IExportHelper
 			return Platform::PathToString(src).toLower();
 		};
 
-		std::ranges::transform(std::filesystem::directory_iterator(path.parent_path()) | std::views::filter([](const auto& item) {
-			return item.is_regular_file();
-		}),
+		std::ranges::transform(
+			std::filesystem::directory_iterator(path.parent_path()) | std::views::filter([](const auto& item) {
+				return item.is_regular_file();
+			}),
 			std::inserter(m_usedPath, m_usedPath.end()),
 			[&](const auto& item) {
 				return Platform::PathToString(item.path()).toLower();
-			});
+			}
+		);
 
 		if (m_usedPath.emplace(addSuffix(path)).second)
 			return;
@@ -384,13 +394,15 @@ private:
 	bool                                                      m_needReplaceMetadata;
 };
 
-BooksExtractor::BooksExtractor(std::shared_ptr<const ISettings> settings,
-	std::shared_ptr<ICollectionController>                      collectionController,
-	std::shared_ptr<IMainProgressController>                    progressController,
-	const std::shared_ptr<const ILogicFactory>&                 logicFactory,
-	std::shared_ptr<const IScriptController>                    scriptController,
-	std::shared_ptr<const IBookExtractor>                       bookExtractor,
-	std::shared_ptr<const IDatabaseUser>                        databaseUser)
+BooksExtractor::BooksExtractor(
+	std::shared_ptr<const ISettings>            settings,
+	std::shared_ptr<ICollectionController>      collectionController,
+	std::shared_ptr<IMainProgressController>    progressController,
+	const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const IScriptController>    scriptController,
+	std::shared_ptr<const IBookExtractor>       bookExtractor,
+	std::shared_ptr<const IDatabaseUser>        databaseUser
+)
 	: m_impl(std::move(settings), std::move(collectionController), std::move(progressController), logicFactory, std::move(scriptController), std::move(bookExtractor), std::move(databaseUser))
 {
 	PLOGV << "BooksExtractor created";
@@ -404,54 +416,63 @@ BooksExtractor::~BooksExtractor()
 void BooksExtractor::ExtractAsArchives(QString folder, const QString& /*parameter*/, Util::ExtractedBooks&& books, Callback callback)
 {
 	auto zipProgressCallback = m_impl->GetZipProgressCallback();
-	m_impl->Extract(std::move(folder),
+	m_impl->Extract(
+		std::move(folder),
 		std::move(books),
 		std::move(callback),
 		ExportStat::Type::Archive,
-		[this, zipProgressCallback = std::move(zipProgressCallback)](const std::filesystem::path& archiveFolder,
-			const QString& /*dstFolder*/,
-			const Util::ExtractedBook&          book,
-			IProgressController::IProgressItem& progress,
-			IExportHelper&                      exportHelper) mutable {
+		[this,
+		 zipProgressCallback = std::move(
+			 zipProgressCallback
+		 )](const std::filesystem::path& archiveFolder, const QString& /*dstFolder*/, const Util::ExtractedBook& book, IProgressController::IProgressItem& progress, IExportHelper& exportHelper) mutable {
 			Process(m_impl->GetSettings(), archiveFolder, book, progress, std::move(zipProgressCallback), exportHelper, WriteMode::Archive);
-		});
+		}
+	);
 }
 
 void BooksExtractor::ExtractAsIs(QString folder, const QString& /*parameter*/, Util::ExtractedBooks&& books, Callback callback)
 {
-	m_impl->Extract(std::move(folder),
+	m_impl->Extract(
+		std::move(folder),
 		std::move(books),
 		std::move(callback),
 		ExportStat::Type::AsIs,
 		[this](const std::filesystem::path& archiveFolder, const QString& /*dstFolder*/, const Util::ExtractedBook& book, IProgressController::IProgressItem& progress, IExportHelper& exportHelper) {
 			Process(m_impl->GetSettings(), archiveFolder, book, progress, {}, exportHelper, WriteMode::AsIs);
-		});
+		}
+	);
 }
 
 void BooksExtractor::ExtractUnpack(QString folder, const QString& /*parameter*/, Util::ExtractedBooks&& books, Callback callback)
 {
-	m_impl->Extract(std::move(folder),
+	m_impl->Extract(
+		std::move(folder),
 		std::move(books),
 		std::move(callback),
 		ExportStat::Type::Unpack,
 		[this](const std::filesystem::path& archiveFolder, const QString& /*dstFolder*/, const Util::ExtractedBook& book, IProgressController::IProgressItem& progress, IExportHelper& exportHelper) {
 			Process(m_impl->GetSettings(), archiveFolder, book, progress, {}, exportHelper, WriteMode::Unpack);
-		});
+		}
+	);
 }
 
 void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, Util::ExtractedBooks&& books, Callback callback)
 {
 	auto scriptController = m_impl->GetScriptController();
 	auto commands         = scriptController->GetCommands(parameter);
-	m_impl->Extract(std::move(folder),
+	m_impl->Extract(
+		std::move(folder),
 		std::move(books),
 		std::move(callback),
 		ExportStat::Type::Script,
-		[this, scriptController = std::move(scriptController), commands = std::move(commands), db = m_impl->GetDatabase()](const std::filesystem::path& archiveFolder,
-			const QString&                                                                                                                              dstFolder,
-			const Util::ExtractedBook&                                                                                                                  book,
-			IProgressController::IProgressItem&                                                                                                         progress,
-			IExportHelper&                                                                                                                              exportHelper) {
+		[this, scriptController = std::move(scriptController), commands = std::move(commands), db = m_impl->GetDatabase()](
+			const std::filesystem::path&        archiveFolder,
+			const QString&                      dstFolder,
+			const Util::ExtractedBook&          book,
+			IProgressController::IProgressItem& progress,
+			IExportHelper&                      exportHelper
+		) {
 			Process(m_impl->GetSettings(), archiveFolder, dstFolder, *db, book, progress, exportHelper, *scriptController, commands);
-		});
+		}
+	);
 }

@@ -54,11 +54,11 @@ constexpr auto REVIEWS_DELIMITER = "###reviews###";
 
 constexpr std::pair<const char*, const char*> CUSTOM_URL_SCHEMA[] {
 	{  Loc::AUTHORS,  Loc::Authors },
-	{   Loc::SERIES,   Loc::Series },
-	{   Loc::GENRES,   Loc::Genres },
-	{ Loc::KEYWORDS, Loc::Keywords },
-	{  Loc::ARCHIVE, Loc::Archives },
-	{   Loc::GROUPS,   Loc::Groups },
+    {   Loc::SERIES,   Loc::Series },
+    {   Loc::GENRES,   Loc::Genres },
+    { Loc::KEYWORDS, Loc::Keywords },
+    {  Loc::ARCHIVE, Loc::Archives },
+    {   Loc::GROUPS,   Loc::Groups },
 };
 
 QString ReduceSections(QString path)
@@ -416,8 +416,9 @@ public:
 		, m_converters { [&] {
 			const SettingsGroup group(settings, INoSqlRequester::CONVERTERS_ROOT);
 			return settings.GetGroups() | std::views::transform([&](const QString& item) {
-				return settings.Get(QString("%1/%2").arg(item, INoSqlRequester::CONVERTER_TITLE)).toString();
-			}) | std::ranges::to<QStringList>();
+					   return settings.Get(QString("%1/%2").arg(item, INoSqlRequester::CONVERTER_TITLE)).toString();
+				   })
+		         | std::ranges::to<QStringList>();
 		}() }
 	{
 		m_converters.push_front(QString {});
@@ -570,8 +571,8 @@ private: // AbstractParser
 		{
 			auto h2 = m_writer->Guard(u"h2");
 			for (int n = 0; const auto& [name, link] : m_authors | std::views::filter([](const auto& item) {
-					 return !item.first.isEmpty() && !item.second.isEmpty();
-				 }))
+														   return !item.first.isEmpty() && !item.second.isEmpty();
+													   }))
 			{
 				if (++n != 1)
 					m_output->write(", ");
@@ -685,10 +686,10 @@ private: // SaxParser
 		using ParseElementItem     = std::pair<const char16_t*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{ FICTION_BOOK, &ParserFb2::OnStartElementFictionBook },
-			{       AUTHOR,      &ParserFb2::OnStartElementAuthor },
-			{         BODY,        &ParserFb2::OnStartElementBody },
+            {       AUTHOR,      &ParserFb2::OnStartElementAuthor },
+            {         BODY,        &ParserFb2::OnStartElementBody },
 			{      SECTION,     &ParserFb2::OnStartElementSection },
-			{       BINARY,      &ParserFb2::OnStartElementBinary },
+            {       BINARY,      &ParserFb2::OnStartElementBinary },
 		};
 
 		return Parse(*this, PARSERS, path, attributes);
@@ -874,16 +875,20 @@ private:
 
 	bool ParseEpigraph(const QString& value)
 	{
-		m_stream << QString(R"(<p class="epigraph">%1</p>)"
-							"\n")
+		m_stream << QString(
+						R"(<p class="epigraph">%1</p>)"
+						"\n"
+		)
 						.arg(value);
 		return true;
 	}
 
 	bool ParseEpigraphTextAuthor(const QString& value)
 	{
-		m_stream << QString(R"(<p class="epigraph_text_author">%1</p>)"
-							"\n")
+		m_stream << QString(
+						R"(<p class="epigraph_text_author">%1</p>)"
+						"\n"
+		)
 						.arg(value);
 		return true;
 	}
@@ -913,7 +918,8 @@ private:
 															  },
 															  [&] {
 																  m_stream << "</sup>";
-															  })
+															  }
+														  )
 			                                            : std::unique_ptr<ScopedCall> {};
 			m_stream << QString(R"(<a href="%1">%2</a>)").arg(m_link->href, value);
 			return true;

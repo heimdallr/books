@@ -86,11 +86,13 @@ QStringView AnnotationReplaceAttributeName(const QStringView name)
 	return it == std::end(ANNOTATION_REPLACE_ATTRIBUTE_NAME) ? name : it->second;
 }
 
-void ExtractBookImages(const QString&             rootFolder,
+void ExtractBookImages(
+	const QString&                                rootFolder,
 	const IDataItem&                              book,
 	const ISettings&                              settings,
 	std::vector<std::pair<QString, QByteArray>>&  srcCovers,
-	IAnnotationController::IDataProvider::Covers& dstCovers)
+	IAnnotationController::IDataProvider::Covers& dstCovers
+)
 {
 	std::multimap<int, QByteArray> covers;
 
@@ -109,13 +111,15 @@ void ExtractBookImages(const QString&             rootFolder,
 		return IAnnotationController::IDataProvider::Cover { QString::number(item.first), std::move(item.second) };
 	});
 
-	std::ranges::transform(std::move(srcCovers) | std::views::filter([](const auto& item) {
-		return !item.second.isNull();
-	}),
+	std::ranges::transform(
+		std::move(srcCovers) | std::views::filter([](const auto& item) {
+			return !item.second.isNull();
+		}),
 		std::back_inserter(dstCovers),
 		[](auto&& item) {
 			return IAnnotationController::IDataProvider::Cover { std::move(item.first), std::move(item.second) };
-		});
+		}
+	);
 }
 
 #define IMAGE_EXTRACTOR_FILE_TYPE_ITEMS_X_MACRO                                                                                                                                                                \
@@ -208,11 +212,13 @@ private: // IParser
 		m_progressItem = std::move(progressItem);
 
 		SaxParser::Parse();
-		if (const auto it = std::ranges::find_if(m_covers,
+		if (const auto it = std::ranges::find_if(
+				m_covers,
 				[&](const auto& item) {
 					return item.first == m_coverpage;
-				});
-			it != m_covers.end())
+				}
+			);
+		    it != m_covers.end())
 			m_data.covers.emplace_back(std::move(it->first), std::move(it->second));
 
 		ExtractBookImages(rootFolder, book, *m_settings, m_covers, m_data.covers);
@@ -239,7 +245,8 @@ private: // Util::SaxParser
 					},
 					[&] {
 						m_data.annotation.append(QString(">"));
-					});
+					}
+				);
 				for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
 					m_data.annotation.append(QString(R"( %1="%2")").arg(AnnotationReplaceAttributeName(attributes.GetName(i)), attributes.GetValue(i)));
 			}
@@ -259,11 +266,11 @@ private: // Util::SaxParser
 		using ParseElementItem     = std::pair<const char16_t*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
 			{    FICTION_BOOK,    &Fb2Parser::OnStartElementFictionBook },
-			{ COVERPAGE_IMAGE, &Fb2Parser::OnStartElementCoverpageImage },
-			{          BINARY,         &Fb2Parser::OnStartElementBinary },
+            { COVERPAGE_IMAGE, &Fb2Parser::OnStartElementCoverpageImage },
+            {          BINARY,         &Fb2Parser::OnStartElementBinary },
 			{         SECTION,        &Fb2Parser::OnStartElementSection },
-			{      TRANSLATOR,     &Fb2Parser::OnStartElementTranslator },
-			{      ANNOTATION,     &Fb2Parser::OnStartElementAnnotation },
+            {      TRANSLATOR,     &Fb2Parser::OnStartElementTranslator },
+            {      ANNOTATION,     &Fb2Parser::OnStartElementAnnotation },
 		};
 
 		return SaxParser::Parse(*this, PARSERS, path, attributes);
@@ -577,12 +584,13 @@ private: // IParser
 	{
 		auto                parsed = m_parser(m_ioDevice, Util::CommonParser::Mode::Images | Util::CommonParser::Mode::TextsStatistics);
 		ArchiveParser::Data result { .annotation = std::move(parsed.annotation),
-			.language                            = std::move(parsed.language),
-			.covers                              = parsed.images | std::views::as_rvalue | std::views::transform([](auto&& item) {
-				return IAnnotationController::IDataProvider::Cover { .name = std::move(item.id), .bytes = std::move(item.body) };
-			}) | std::ranges::to<std::vector>(),
-			.textSize  = parsed.textSize,
-			.wordCount = parsed.wordCount };
+		                             .language   = std::move(parsed.language),
+		                             .covers     = parsed.images | std::views::as_rvalue | std::views::transform([](auto&& item) {
+												   return IAnnotationController::IDataProvider::Cover { .name = std::move(item.id), .bytes = std::move(item.body) };
+											   })
+			                                 | std::ranges::to<std::vector>(),
+		                             .textSize  = parsed.textSize,
+		                             .wordCount = parsed.wordCount };
 		std::vector<std::pair<QString, QByteArray>> _;
 		ExtractBookImages(rootFolder, book, *m_settings, _, result.covers);
 
@@ -694,16 +702,16 @@ private:
 	using FileTypePair = std::pair<FileType, bool /*parser exists*/>;
 	static constexpr std::pair<const char*, FileTypePair> TYPES[] {
 		{  "fb2",  { FileType::Fb2, true } },
-		{ "epub", { FileType::Epub, true } },
-		{ "mobi", { FileType::Mobi, true } },
-		{ "azw3", { FileType::Mobi, true } },
+        { "epub", { FileType::Epub, true } },
+        { "mobi", { FileType::Mobi, true } },
+        { "azw3", { FileType::Mobi, true } },
 		{ "djvu", { FileType::DjVu, true } },
-		{  "djv", { FileType::DjVu, true } },
-		{  "pdf",  { FileType::Pdf, true } },
-		{  "fbd",  { FileType::Fb2, true } },
+        {  "djv", { FileType::DjVu, true } },
+        {  "pdf",  { FileType::Pdf, true } },
+        {  "fbd",  { FileType::Fb2, true } },
 		{  "zip", { FileType::Zip, false } },
-		{   "7z", { FileType::Zip, false } },
-		{  "rar", { FileType::Zip, false } },
+        {   "7z", { FileType::Zip, false } },
+        {  "rar", { FileType::Zip, false } },
 	};
 
 	static FileTypePair GetFileType(const QString& ext)
@@ -741,13 +749,15 @@ private:
 				return std::make_pair(std::move(file), FileType::Img);
 
 			auto zipFileList = zip->GetFileNameList();
-			if (const auto it = std::ranges::find_if(zipFileList,
+			if (const auto it = std::ranges::find_if(
+					zipFileList,
 					[&file, completeBaseName = fileInfo.completeBaseName()](const QString& item) {
 						const QFileInfo itemFileInfo(item);
 						return itemFileInfo.suffix().toLower() == "fbd"
 				            && (file.compare(itemFileInfo.completeBaseName(), Qt::CaseInsensitive) == 0 || completeBaseName.compare(itemFileInfo.completeBaseName(), Qt::CaseInsensitive) == 0);
-					});
-				it != zipFileList.end())
+					}
+				);
+			    it != zipFileList.end())
 				return std::make_pair(std::move(*it), FileType::Fb2);
 
 			return {};
@@ -782,14 +792,16 @@ private:
 			}
 
 			for (const auto& [ext, type] : TYPES | std::views::filter([](const auto& item) {
-					 return item.second.second;
-				 }))
+											   return item.second.second;
+										   }))
 			{
-				if (const auto it = std::ranges::find_if(zipFileList,
+				if (const auto it = std::ranges::find_if(
+						zipFileList,
 						[=](const QString& item) {
 							return QFileInfo(item).suffix().toLower() == ext;
-						});
-					it != zipFileList.end())
+						}
+					);
+				    it != zipFileList.end())
 				{
 					fileType          = type.first;
 					auto subSubStream = subZipPtr->Read(*it);
@@ -798,10 +810,11 @@ private:
 			}
 
 			auto imageBodies = zipFileList | std::views::as_rvalue | std::views::filter(&Util::IsImage) | std::views::transform([&](auto&& id) {
-				auto result   = std::make_pair(std::forward<QString>(id), QByteArray {});
-				result.second = subZipPtr->Read(result.first)->GetStream().readAll();
-				return result;
-			}) | std::ranges::to<std::vector>();
+								   auto result   = std::make_pair(std::forward<QString>(id), QByteArray {});
+								   result.second = subZipPtr->Read(result.first)->GetStream().readAll();
+								   return result;
+							   })
+			                 | std::ranges::to<std::vector>();
 
 			return std::make_tuple(std::unique_ptr<const Zip> {}, std::unique_ptr<Stream> {}, std::move(imageBodies));
 		}();

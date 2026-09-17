@@ -137,7 +137,8 @@ class ScriptDialog::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(ScriptDialog&                             self,
+	Impl(
+		ScriptDialog&                              self,
 		const IModelProvider&                      modelProvider,
 		std::shared_ptr<const IUiFactory>          uiFactory,
 		std::shared_ptr<ISettings>                 settings,
@@ -146,7 +147,8 @@ public:
 		std::shared_ptr<Util::ItemViewToolTipper>  scriptItemViewToolTipper,
 		std::shared_ptr<Util::ItemViewToolTipper>  commandItemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController> scriptScrollBarController,
-		std::shared_ptr<Util::ScrollBarController> commandScrollBarController)
+		std::shared_ptr<Util::ScrollBarController> commandScrollBarController
+	)
 		: GeometryRestorable(*this, settings, "ScriptDialog")
 		, GeometryRestorableObserver(self)
 		, m_self { self }
@@ -433,18 +435,21 @@ private:
 	Ui::ScriptDialog                                              m_ui {};
 };
 
-ScriptDialog::ScriptDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
-	const std::shared_ptr<const IModelProvider>&                         modelProvider,
-	std::shared_ptr<const IUiFactory>                                    uiFactory,
-	std::shared_ptr<ISettings>                                           settings,
-	std::shared_ptr<ScriptComboBoxDelegate>                              scriptTypeDelegate,
-	std::shared_ptr<ScriptNameDelegate>                                  scriptNameLineEditDelegate,
-	std::shared_ptr<Util::ItemViewToolTipper>                            scriptItemViewToolTipper,
-	std::shared_ptr<Util::ItemViewToolTipper>                            commandItemViewToolTipper,
-	std::shared_ptr<Util::ScrollBarController>                           scriptScrollBarController,
-	std::shared_ptr<Util::ScrollBarController>                           commandScrollBarController)
+ScriptDialog::ScriptDialog(
+	const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
+	const std::shared_ptr<const IModelProvider>&  modelProvider,
+	std::shared_ptr<const IUiFactory>             uiFactory,
+	std::shared_ptr<ISettings>                    settings,
+	std::shared_ptr<ScriptComboBoxDelegate>       scriptTypeDelegate,
+	std::shared_ptr<ScriptNameDelegate>           scriptNameLineEditDelegate,
+	std::shared_ptr<Util::ItemViewToolTipper>     scriptItemViewToolTipper,
+	std::shared_ptr<Util::ItemViewToolTipper>     commandItemViewToolTipper,
+	std::shared_ptr<Util::ScrollBarController>    scriptScrollBarController,
+	std::shared_ptr<Util::ScrollBarController>    commandScrollBarController
+)
 	: QDialog(parentWidgetProvider->GetWidget())
-	, m_impl(*this,
+	, m_impl(
+		  *this,
 		  *modelProvider,
 		  std::move(uiFactory),
 		  std::move(settings),
@@ -453,7 +458,8 @@ ScriptDialog::ScriptDialog(const std::shared_ptr<IParentWidgetProvider>& parentW
 		  std::move(scriptItemViewToolTipper),
 		  std::move(commandItemViewToolTipper),
 		  std::move(scriptScrollBarController),
-		  std::move(commandScrollBarController))
+		  std::move(commandScrollBarController)
+	  )
 {
 	PLOGV << "ScriptDialog created";
 }

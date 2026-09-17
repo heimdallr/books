@@ -138,7 +138,8 @@ private:
 			},
 			[&] {
 				this->endResetModel();
-			});
+			}
+		);
 		for (auto& item : changed)
 		{
 			item->SetFlags(item->GetFlags() | IDataItem::Flags::Filtered);

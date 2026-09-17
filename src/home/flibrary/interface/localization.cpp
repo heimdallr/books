@@ -26,10 +26,12 @@ std::vector<const char*> GetLocales()
 	const QDir dir = QCoreApplication::applicationDirPath() + "/locales";
 
 	std::vector<const char*> result;
-	std::ranges::copy(LOCALES | std::views::filter([&](const auto* item) {
-		return !dir.entryList(QStringList() << QString("*_%1.qm").arg(item), QDir::Files).isEmpty();
-	}),
-		std::back_inserter(result));
+	std::ranges::copy(
+		LOCALES | std::views::filter([&](const auto* item) {
+			return !dir.entryList(QStringList() << QString("*_%1.qm").arg(item), QDir::Files).isEmpty();
+		}),
+		std::back_inserter(result)
+	);
 	return result;
 }
 
@@ -38,11 +40,13 @@ QString GetLocale(const ISettings& settings)
 	if (auto locale = settings.Get(Flibrary::Constant::Settings::LOCALE_KEY).toString(); !locale.isEmpty())
 		return locale;
 
-	if (const auto it = std::ranges::find_if(LOCALES,
+	if (const auto it = std::ranges::find_if(
+			LOCALES,
 			[sysLocale = QLocale::system().name()](const char* item) {
 				return sysLocale.startsWith(item);
-			});
-		it != std::cend(LOCALES))
+			}
+		);
+	    it != std::cend(LOCALES))
 		return *it;
 
 	assert(!std::empty(Loc::LOCALES));

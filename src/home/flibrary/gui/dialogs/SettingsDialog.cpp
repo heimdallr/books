@@ -100,12 +100,14 @@ class SettingsDialog::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(QDialog&                                  self,
+	Impl(
+		QDialog&                                   self,
 		const IModelProvider&                      modelProvider,
 		const IDataItemFactory&                    dataItemFactory,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
-		std::shared_ptr<Util::ScrollBarController> scrollBarController)
+		std::shared_ptr<Util::ScrollBarController> scrollBarController
+	)
 		: GeometryRestorable(*this, settings, CONTEXT)
 		, GeometryRestorableObserver(self)
 		, m_self { self }
@@ -147,8 +149,9 @@ private:
 		QMenu menu;
 		connect(menu.addAction(Tr(REMOVE)), &QAction::triggered, &m_self, [this] {
 			const auto indices = m_ui.view->selectionModel()->selectedIndexes() | std::views::filter([](const auto& item) {
-				return item.column() == 0;
-			}) | std::ranges::to<std::vector<QPersistentModelIndex>>();
+									 return item.column() == 0;
+								 })
+			                   | std::ranges::to<std::vector<QPersistentModelIndex>>();
 			for (const auto& index : indices)
 			{
 				if (!index.isValid())
@@ -179,13 +182,15 @@ private:
 	QStringList m_keysToRemove;
 };
 
-SettingsDialog::SettingsDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
-	const std::shared_ptr<const IModelProvider>&                                   modelProvider,
-	const std::shared_ptr<const IDataItemFactory>&                                 dataItemFactory,
-	std::shared_ptr<ISettings>                                                     settings,
-	std::shared_ptr<Util::ItemViewToolTipper>                                      itemViewToolTipper,
-	std::shared_ptr<Util::ScrollBarController>                                     scrollBarController,
-	QWidget*                                                                       parent)
+SettingsDialog::SettingsDialog(
+	const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
+	const std::shared_ptr<const IModelProvider>&        modelProvider,
+	const std::shared_ptr<const IDataItemFactory>&      dataItemFactory,
+	std::shared_ptr<ISettings>                          settings,
+	std::shared_ptr<Util::ItemViewToolTipper>           itemViewToolTipper,
+	std::shared_ptr<Util::ScrollBarController>          scrollBarController,
+	QWidget*                                            parent
+)
 	: QDialog(parentWidgetProvider->GetWidget(parent))
 	, m_impl(*this, *modelProvider, *dataItemFactory, std::move(settings), std::move(itemViewToolTipper), std::move(scrollBarController))
 {

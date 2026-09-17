@@ -95,10 +95,12 @@ del "%3" >> "%4"
 class UpdateChecker::Impl final : virtual public IClient
 {
 public:
-	Impl(const std::shared_ptr<const ILogicFactory>& logicFactory,
-		std::shared_ptr<const Util::IUiFactory>      uiFactory,
-		std::shared_ptr<ISettings>                   settings,
-		std::shared_ptr<IProgressController>         progressController)
+	Impl(
+		const std::shared_ptr<const ILogicFactory>& logicFactory,
+		std::shared_ptr<const Util::IUiFactory>     uiFactory,
+		std::shared_ptr<ISettings>                  settings,
+		std::shared_ptr<IProgressController>        progressController
+	)
 		: m_logicFactory { logicFactory }
 		, m_uiFactory { std::move(uiFactory) }
 		, m_settings { std::move(settings) }
@@ -158,8 +160,9 @@ private:
 		const auto logVersion = [](const QString& title, const std::vector<int>& version) {
 			PLOGD << title << ": "
 			      << (version | std::views::transform([](const auto item) {
-						 return QString::number(item);
-					 }) | std::ranges::to<QStringList>())
+						  return QString::number(item);
+					  })
+			          | std::ranges::to<QStringList>())
 			             .join('.');
 		};
 
@@ -319,15 +322,16 @@ private:
 			        && (silent || installer.type == Util::InstallerType::wix
 			            || (installer.type == Util::InstallerType::exe && m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes));
 
-				QTimer::singleShot(0,
-					[uiFactory           = m_uiFactory,
-						downloadFolder   = std::move(downloadFolder),
-						downloadFileName = std::move(downloadFileName),
-						downloader       = std::move(downloader),
-						callback         = std::move(m_callback),
-						installer,
-						startInstaller,
-						silent]() mutable {
+				QTimer::singleShot(
+					0,
+					[uiFactory        = m_uiFactory,
+					 downloadFolder   = std::move(downloadFolder),
+					 downloadFileName = std::move(downloadFileName),
+					 downloader       = std::move(downloader),
+					 callback         = std::move(m_callback),
+					 installer,
+					 startInstaller,
+					 silent]() mutable {
 						downloader.reset();
 						callback();
 						if (startInstaller
@@ -337,11 +341,14 @@ private:
 							return QCoreApplication::exit();
 
 						QDesktopServices::openUrl(QUrl::fromLocalFile(downloadFolder));
-					});
+					}
+				);
 			},
-			[this, progressItem = std::shared_ptr<IProgressController::IProgressItem> {}, bytesReceivedLast = int64_t { 0 }](const int64_t bytesReceived,
-				const int64_t                                                                                                              bytesTotal,
-				bool&                                                                                                                      stopped) mutable //-V788
+			[this, progressItem = std::shared_ptr<IProgressController::IProgressItem> {}, bytesReceivedLast = int64_t { 0 }](
+				const int64_t bytesReceived,
+				const int64_t bytesTotal,
+				bool&         stopped
+			) mutable //-V788
 			{
 				if (!progressItem)
 					progressItem = m_progressController->Add(bytesTotal);
@@ -352,7 +359,8 @@ private:
 					progressItem.reset();
 				else
 					stopped = progressItem->IsStopped();
-			});
+			}
+		);
 	}
 
 private:
@@ -365,10 +373,12 @@ private:
 	QStringList                                             m_nameSplitted;
 };
 
-UpdateChecker::UpdateChecker(const std::shared_ptr<const ILogicFactory>& logicFactory,
-	std::shared_ptr<const Util::IUiFactory>                              uiFactory,
-	std::shared_ptr<ISettings>                                           settings,
-	std::shared_ptr<IMainProgressController>                             progressController)
+UpdateChecker::UpdateChecker(
+	const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const Util::IUiFactory>     uiFactory,
+	std::shared_ptr<ISettings>                  settings,
+	std::shared_ptr<IMainProgressController>    progressController
+)
 	: m_impl(std::make_shared<Impl>(logicFactory, std::move(uiFactory), std::move(settings), std::move(progressController)))
 {
 	PLOGV << "UpdateChecker created";

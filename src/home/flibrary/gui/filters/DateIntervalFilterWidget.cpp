@@ -117,10 +117,12 @@ private:
 
 	QByteArray Serialize() const
 	{
-		return QJsonDocument(QJsonObject {
-								 { MIN_KEY, m_ui.from->selectedDate().toString(DATE_FORMAT) },
-								 { MAX_KEY,   m_ui.to->selectedDate().toString(DATE_FORMAT) },
-		})
+		return QJsonDocument(
+				   QJsonObject {
+					   { MIN_KEY, m_ui.from->selectedDate().toString(DATE_FORMAT) },
+					   { MAX_KEY,   m_ui.to->selectedDate().toString(DATE_FORMAT) },
+		}
+		)
 		    .toJson(QJsonDocument::Compact);
 	}
 
@@ -183,12 +185,14 @@ private:
 	Ui::DateIntervalFilterWidget m_ui {};
 };
 
-DateIntervalFilterWidget::DateIntervalFilterWidget(const QAbstractItemModel& model,
-	int                                                                      column,
-	Callback                                                                 callback,
-	const IParentWidgetProvider&                                             parentWidgetProvider,
-	std::shared_ptr<ISettings>                                               settings,
-	QWidget*                                                                 parent)
+DateIntervalFilterWidget::DateIntervalFilterWidget(
+	const QAbstractItemModel&    model,
+	int                          column,
+	Callback                     callback,
+	const IParentWidgetProvider& parentWidgetProvider,
+	std::shared_ptr<ISettings>   settings,
+	QWidget*                     parent
+)
 	: QWidget(parent)
 	, m_impl { this, model, column, std::move(callback), parentWidgetProvider, std::move(settings) }
 {

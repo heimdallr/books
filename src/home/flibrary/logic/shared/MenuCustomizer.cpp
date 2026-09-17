@@ -156,10 +156,12 @@ public:
 		assert(it != m_actions.end());
 
 		const auto disabled = m_objToActions | std::views::filter([](const auto& item) {
-			return !item.second.enabled;
-		}) | std::views::transform([](const auto& item) {
-			return item.second.key;
-		}) | std::ranges::to<std::unordered_set>();
+								  return !item.second.enabled;
+							  })
+		                    | std::views::transform([](const auto& item) {
+								  return item.second.key;
+							  })
+		                    | std::ranges::to<std::unordered_set>();
 
 		const auto findCollision = [&](const IDataItem& parent, const auto& r) -> IDataItem::Ptr {
 			for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)

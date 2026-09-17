@@ -66,36 +66,38 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 		return callback(false, Collection {});
 
 	auto db = m_impl->databaseUser->Database();
-	m_impl->databaseUser->Execute({ "Check for collection index updated",
-									  [&, db = std::move(db), callback = std::move(callback)]() mutable {
-										  std::function<void(size_t)> result;
+	m_impl->databaseUser->Execute(
+		{ "Check for collection index updated",
+		  [&, db = std::move(db), callback = std::move(callback)]() mutable {
+			  std::function<void(size_t)> result;
 
-										  const auto& collection       = m_impl->collectionProvider->GetActiveCollection();
-										  const auto  collectionFolder = collection.GetFolder();
-										  const auto  explicitInpx     = collection.GetInpx();
+			  const auto& collection       = m_impl->collectionProvider->GetActiveCollection();
+			  const auto  collectionFolder = collection.GetFolder();
+			  const auto  explicitInpx     = collection.GetInpx();
 
-										  std::set<QString> inpxFiles;
-										  if (!explicitInpx.isEmpty())
-											  inpxFiles.insert(explicitInpx);
-										  else
-											  inpxFiles = m_impl->collectionProvider->GetInpxFiles(collectionFolder);
+			  std::set<QString> inpxFiles;
+			  if (!explicitInpx.isEmpty())
+				  inpxFiles.insert(explicitInpx);
+			  else
+				  inpxFiles = m_impl->collectionProvider->GetInpxFiles(collectionFolder);
 
-										  Collection updatedCollection = collection;
-										  if (updatedCollection.discardedUpdate = GetFileHash(inpxFiles); updatedCollection.discardedUpdate == collection.discardedUpdate)
-										  {
-											  result = [updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) {
-												  callback(false, updatedCollection);
-											  };
-											  return result;
-										  }
+			  Collection updatedCollection = collection;
+			  if (updatedCollection.discardedUpdate = GetFileHash(inpxFiles); updatedCollection.discardedUpdate == collection.discardedUpdate)
+			  {
+				  result = [updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) {
+					  callback(false, updatedCollection);
+				  };
+				  return result;
+			  }
 
-										  auto [_, ini]          = Inpx::Parser::GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), explicitInpx, false);
-										  const auto checkResult = Inpx::Parser::CheckForUpdate(std::move(ini), *db);
-										  result                 = [checkResult, updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) mutable {
-											  callback(checkResult, updatedCollection);
-										  };
+			  auto [_, ini]          = Inpx::Parser::GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), explicitInpx, false);
+			  const auto checkResult = Inpx::Parser::CheckForUpdate(std::move(ini), *db);
+			  result                 = [checkResult, updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) mutable {
+				  callback(checkResult, updatedCollection);
+			  };
 
-										  return result;
-									  } },
-		100);
+			  return result;
+		  } },
+		100
+	);
 }

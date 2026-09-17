@@ -99,11 +99,13 @@ struct TreeViewControllerBooks::Impl
 	PropagateConstPtr<IBookInfoProvider, std::shared_ptr>     dataProvider;
 	std::shared_ptr<const IBookInteractor>                    bookInteractor;
 
-	Impl(std::weak_ptr<const ILogicFactory>    logicFactory,
+	Impl(
+		std::weak_ptr<const ILogicFactory>     logicFactory,
 		std::shared_ptr<IAnnotationController> annotationController,
 		std::shared_ptr<const IDatabaseUser>   databaseUser,
 		std::shared_ptr<IBookInfoProvider>     dataProvider,
-		std::shared_ptr<const IBookInteractor> bookInteractor)
+		std::shared_ptr<const IBookInteractor> bookInteractor
+	)
 		: logicFactory { std::move(logicFactory) }
 		, annotationController { std::move(annotationController) }
 		, databaseUser { std::move(databaseUser) }
@@ -113,13 +115,15 @@ struct TreeViewControllerBooks::Impl
 	}
 };
 
-TreeViewControllerBooks::TreeViewControllerBooks(std::shared_ptr<ISettings> settings,
-	const std::shared_ptr<IModelProvider>&                                  modelProvider,
-	const std::shared_ptr<const ILogicFactory>&                             logicFactory,
-	std::shared_ptr<IBookInfoProvider>                                      dataProvider,
-	std::shared_ptr<const IBookInteractor>                                  bookInteractor,
-	std::shared_ptr<IAnnotationController>                                  annotationController,
-	std::shared_ptr<IDatabaseUser>                                          databaseUser)
+TreeViewControllerBooks::TreeViewControllerBooks(
+	std::shared_ptr<ISettings>                  settings,
+	const std::shared_ptr<IModelProvider>&      modelProvider,
+	const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<IBookInfoProvider>          dataProvider,
+	std::shared_ptr<const IBookInteractor>      bookInteractor,
+	std::shared_ptr<IAnnotationController>      annotationController,
+	std::shared_ptr<IDatabaseUser>              databaseUser
+)
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
 	, m_impl(logicFactory, std::move(annotationController), std::move(databaseUser), std::move(dataProvider), std::move(bookInteractor))
 {

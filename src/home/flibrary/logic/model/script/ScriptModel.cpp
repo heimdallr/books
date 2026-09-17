@@ -150,7 +150,8 @@ bool ScriptModel::insertRows(const int row, const int count, const QModelIndex& 
 		},
 		[&] {
 			endInsertRows();
-		});
+		}
+	);
 	return m_scriptController->InsertScripts(row, count);
 }
 

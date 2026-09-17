@@ -93,7 +93,8 @@ private:
 					},
 					[this] {
 						END_FILTER_CHANGE;
-					});
+					}
+				);
 
 			case Role::FilterDataChanged:
 				return BEGIN_FILTER_CHANGE, END_FILTER_CHANGE, true;
@@ -140,13 +141,15 @@ class FilterSettingsDialog::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(QDialog&                                  self,
+	Impl(
+		QDialog&                                   self,
 		std::shared_ptr<const IModelProvider>      modelProvider,
 		std::shared_ptr<ISettings>                 settings,
 		std::shared_ptr<IFilterController>         filterController,
 		std::shared_ptr<IFilterDataProvider>       dataProvider,
 		std::shared_ptr<Util::ItemViewToolTipper>  itemViewToolTipper,
-		std::shared_ptr<Util::ScrollBarController> scrollBarController)
+		std::shared_ptr<Util::ScrollBarController> scrollBarController
+	)
 		: GeometryRestorable(*this, settings, "FilterSettingsDialog")
 		, GeometryRestorableObserver(self)
 		, m_self { self }
@@ -398,7 +401,7 @@ private:
 			m_ui.view->setCurrentIndex(index);
 		};
 		if (const auto matched = m_model->match(m_model->index(0, 0), role, value, 1, (role == Role::Id ? Qt::MatchFlag::MatchExactly : Qt::MatchFlag::MatchStartsWith) | Qt::MatchFlag::MatchRecursive);
-			!matched.isEmpty())
+		    !matched.isEmpty())
 			setCurrentIndex(matched.front());
 		else if (role == Role::Id)
 			setCurrentIndex(m_model->index(0, 0));
@@ -440,11 +443,13 @@ private:
 			});
 		});
 		if (m_sectionClicked == 1)
-			if (auto* action = menu.addAction(Tr(HIDE_NAVIGATION_WITH_ALL_BOOKS_FILTERED),
+			if (auto* action = menu.addAction(
+					Tr(HIDE_NAVIGATION_WITH_ALL_BOOKS_FILTERED),
 					[this] {
 						m_model->setData({}, QVariant::fromValue<ICallback*>(this), Role::HideFiltered);
-					});
-				m_hideFilteredStarted)
+					}
+				);
+			    m_hideFilteredStarted)
 				action->setEnabled(false);
 
 		menu.exec(QCursor::pos());
@@ -484,9 +489,11 @@ private:
 
 	void Apply()
 	{
-		m_filterController->SetRating(m_ui.hideRatedLower->isChecked() ? std::optional { m_ui.minimumRating->value() } : std::nullopt,
+		m_filterController->SetRating(
+			m_ui.hideRatedLower->isChecked() ? std::optional { m_ui.minimumRating->value() } : std::nullopt,
 			m_ui.hideRatedHigher->isChecked() ? std::optional { m_ui.maximumRating->value() } : std::nullopt,
-			m_ui.hideUnrated->isChecked());
+			m_ui.hideUnrated->isChecked()
+		);
 		for (const auto& [navigationMode, key] : m_changedAccumulations)
 			m_filterController->SetFlagsAccumulationMode(navigationMode, key);
 		m_filterController->SetFilterEnabled(m_ui.checkBoxFilterEnabled->isChecked());
@@ -532,14 +539,16 @@ private:
 	Ui::FilterSettingsDialog m_ui {};
 };
 
-FilterSettingsDialog::FilterSettingsDialog(const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
-	std::shared_ptr<const IModelProvider>                                                      modelProvider,
-	std::shared_ptr<ISettings>                                                                 settings,
-	std::shared_ptr<IFilterController>                                                         filterController,
-	std::shared_ptr<IFilterDataProvider>                                                       dataProvider,
-	std::shared_ptr<Util::ItemViewToolTipper>                                                  itemViewToolTipper,
-	std::shared_ptr<Util::ScrollBarController>                                                 scrollBarController,
-	QWidget*                                                                                   parent)
+FilterSettingsDialog::FilterSettingsDialog(
+	const std::shared_ptr<const IParentWidgetProvider>& parentWidgetProvider,
+	std::shared_ptr<const IModelProvider>               modelProvider,
+	std::shared_ptr<ISettings>                          settings,
+	std::shared_ptr<IFilterController>                  filterController,
+	std::shared_ptr<IFilterDataProvider>                dataProvider,
+	std::shared_ptr<Util::ItemViewToolTipper>           itemViewToolTipper,
+	std::shared_ptr<Util::ScrollBarController>          scrollBarController,
+	QWidget*                                            parent
+)
 	: QDialog(parentWidgetProvider->GetWidget(parent))
 	, m_impl(*this, std::move(modelProvider), std::move(settings), std::move(filterController), std::move(dataProvider), std::move(itemViewToolTipper), std::move(scrollBarController))
 {

@@ -100,11 +100,7 @@ private: // IRestorer
 		using Functor = void (GroupsRestorer::*)(const Util::XmlAttributes&);
 		constexpr std::pair<const char*, Functor> collectors[] {
 #define ITEM(NAME) { #NAME, &GroupsRestorer::Add##NAME }
-			ITEM(Group),
-			ITEM(Item),
-			ITEM(Author),
-			ITEM(Series),
-			ITEM(Keyword),
+			ITEM(Group), ITEM(Item), ITEM(Author), ITEM(Series), ITEM(Keyword),
 #undef ITEM
 		};
 

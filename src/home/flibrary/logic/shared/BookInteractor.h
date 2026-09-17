@@ -16,14 +16,16 @@ class BookInteractor final : public IBookInteractor
 	NON_COPY_MOVABLE(BookInteractor)
 
 public:
-	BookInteractor(const std::shared_ptr<const ILogicFactory>& logicFactory,
-		std::shared_ptr<const IUiFactory>                      uiFactory,
-		std::shared_ptr<const ISettings>                       settings,
-		std::shared_ptr<const IBookExtractor>                  bookExtractor,
-		std::shared_ptr<const IReaderController>               readerController,
-		std::shared_ptr<const IDatabaseUser>                   databaseUser,
-		std::shared_ptr<const ICollectionProvider>             collectionProvider,
-		std::shared_ptr<IScriptControllerProvider>             scriptControllerProvider);
+	BookInteractor(
+		const std::shared_ptr<const ILogicFactory>& logicFactory,
+		std::shared_ptr<const IUiFactory>           uiFactory,
+		std::shared_ptr<const ISettings>            settings,
+		std::shared_ptr<const IBookExtractor>       bookExtractor,
+		std::shared_ptr<const IReaderController>    readerController,
+		std::shared_ptr<const IDatabaseUser>        databaseUser,
+		std::shared_ptr<const ICollectionProvider>  collectionProvider,
+		std::shared_ptr<IScriptControllerProvider>  scriptControllerProvider
+	);
 	~BookInteractor() override;
 
 private:

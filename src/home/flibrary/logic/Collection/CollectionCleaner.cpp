@@ -57,17 +57,18 @@ bool RemoveBooksImpl(const Books& books, DB::ITransaction& transaction, std::uni
 {
 	PLOGI << "Removing database books records started";
 
-	return std::accumulate(books.cbegin(),
+	return std::accumulate(
+		books.cbegin(),
 		books.cend(),
 		true,
 		[&,
-			progressItem = std::move(progressItem),
-			command      = transaction.CreateCommand("delete from Books where BookID = ?"),
-			total        = books.size(),
-			currentPct   = 0,
-			lastPct      = 0,
-			lastPctLog   = 0,
-			n            = size_t { 0 }](const bool init, const auto& book) mutable {
+		 progressItem = std::move(progressItem),
+		 command      = transaction.CreateCommand("delete from Books where BookID = ?"),
+		 total        = books.size(),
+		 currentPct   = 0,
+		 lastPct      = 0,
+		 lastPctLog   = 0,
+		 n            = size_t { 0 }](const bool init, const auto& book) mutable {
 			++n;
 			currentPct = static_cast<int>(100U * n / total);
 			progressItem->Increment(currentPct - lastPct);
@@ -81,7 +82,8 @@ bool RemoveBooksImpl(const Books& books, DB::ITransaction& transaction, std::uni
 
 			command->Bind(0, book.id);
 			return command->Execute() && init;
-		});
+		}
+	);
 }
 
 bool CleanupNavigationItems(DB::ITransaction& transaction)
@@ -118,12 +120,12 @@ not exists (select 42 from Keywords k where k.KeywordID = Groups_List_User.Objec
 AnalyzedBooks GetAnalyzedBooks(DB::IDatabase& db, const ILibRateProvider& libRateProvider, const ICollectionCleaner::IAnalyzeObserver& observer, const bool hasGenres, const std::atomic_bool& analyzeCanceled)
 {
 	const auto query = db.CreateQuery(QString(SELECT_ANALYZED_BOOKS_QUERY)
-			.arg(hasGenres ? GENRE_FIELD : EMPTY_FIELD)
-			.arg(hasGenres ? GENRE_JOIN : "")
-			.arg(observer.NeedDeleteDuplicates() ? AUTHOR_FIELD : EMPTY_FIELD)
-			.arg(observer.NeedDeleteDuplicates() ? AUTHOR_JOIN : "")
-			.arg(observer.IsPermanently() ? "" : WHERE_NOT_DELETED)
-			.toStdString());
+	                                      .arg(hasGenres ? GENRE_FIELD : EMPTY_FIELD)
+	                                      .arg(hasGenres ? GENRE_JOIN : "")
+	                                      .arg(observer.NeedDeleteDuplicates() ? AUTHOR_FIELD : EMPTY_FIELD)
+	                                      .arg(observer.NeedDeleteDuplicates() ? AUTHOR_JOIN : "")
+	                                      .arg(observer.IsPermanently() ? "" : WHERE_NOT_DELETED)
+	                                      .toStdString());
 
 	AnalyzedBooks analyzedBooks;
 	for (query->Execute(); !query->Eof(); query->Next())
@@ -158,8 +160,8 @@ void RemoveDuplicates(const AnalyzedBooks& analysedBooks, std::unordered_set<lon
 			duplicates[book.title].emplace(QString(book.date).append("/").append(book.file), id);
 
 	for (auto& dup : duplicates | std::views::values | std::views::filter([](const auto& item) {
-			 return item.size() > 1;
-		 }))
+						 return item.size() > 1;
+					 }))
 	{
 		while (!dup.empty())
 		{
@@ -201,19 +203,23 @@ where c.Covered = 1)");
 
 		parts.emplace_back(query->Get<long long>(2), query->Get<int>(3));
 	}
-	std::ranges::copy(compilation | std::views::values | std::views::filter([&](const auto& item) {
-		if (!analyzedBooks.contains(item.first))
-			return false;
+	std::ranges::copy(
+		compilation | std::views::values | std::views::filter([&](const auto& item) {
+			if (!analyzedBooks.contains(item.first))
+				return false;
 
-		std::unordered_set<int> before, after;
-		std::ranges::copy(item.second | std::views::values, std::inserter(before, before.end()));
-		std::ranges::copy(item.second | std::views::filter([&](const auto& pair) {
-			return !toDelete.contains(pair.first);
-		}) | std::views::values,
-			std::inserter(after, after.end()));
-		return before.size() == after.size();
-	}) | std::views::keys,
-		std::inserter(toDelete, toDelete.end()));
+			std::unordered_set<int> before, after;
+			std::ranges::copy(item.second | std::views::values, std::inserter(before, before.end()));
+			std::ranges::copy(
+				item.second | std::views::filter([&](const auto& pair) {
+					return !toDelete.contains(pair.first);
+				}) | std::views::values,
+				std::inserter(after, after.end())
+			);
+			return before.size() == after.size();
+		}) | std::views::keys,
+		std::inserter(toDelete, toDelete.end())
+	);
 }
 
 void RemoveBooksDuplicatedByCompilations(DB::IDatabase& db, const AnalyzedBooks& analyzedBooks, std::unordered_set<long long>& toDelete)
@@ -357,7 +363,8 @@ struct CollectionCleanerLogic::Impl
 				 };
 
 				 return result;
-			 } });
+			 } }
+		);
 	}
 
 	void AnalyzeCancel()
@@ -406,15 +413,18 @@ struct CollectionCleanerLogic::Impl
 				 return [callback = std::move(callback), ok](size_t) {
 					 callback(ok);
 				 };
-			 } });
+			 } }
+		);
 	}
 };
 
-CollectionCleanerLogic::CollectionCleanerLogic(const std::shared_ptr<const ILogicFactory>& logicFactory,
-	std::shared_ptr<const IDatabaseUser>                                                   databaseUser,
-	std::shared_ptr<const ICollectionProvider>                                             collectionProvider,
-	std::shared_ptr<const ILibRateProvider>                                                libRateProvider,
-	std::shared_ptr<IMainProgressController>                                               progressController)
+CollectionCleanerLogic::CollectionCleanerLogic(
+	const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const IDatabaseUser>        databaseUser,
+	std::shared_ptr<const ICollectionProvider>  collectionProvider,
+	std::shared_ptr<const ILibRateProvider>     libRateProvider,
+	std::shared_ptr<IMainProgressController>    progressController
+)
 	: m_impl { std::make_unique<Impl>(logicFactory, std::move(databaseUser), std::move(collectionProvider), std::move(libRateProvider), std::move(progressController)) }
 {
 }

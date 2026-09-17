@@ -19,12 +19,14 @@ class AuthorReview final : public StackedPage
 	NON_COPY_MOVABLE(AuthorReview)
 
 public:
-	AuthorReview(const std::shared_ptr<const IUiFactory>& uiFactory,
-		const std::shared_ptr<const IModelProvider>&      modelProvider,
-		std::shared_ptr<const IBookInteractor>            bookInteractor,
-		std::shared_ptr<ISettings>                        settings,
-		std::shared_ptr<Util::ScrollBarController>        scrollBarController,
-		QWidget*                                          parent = nullptr);
+	AuthorReview(
+		const std::shared_ptr<const IUiFactory>&     uiFactory,
+		const std::shared_ptr<const IModelProvider>& modelProvider,
+		std::shared_ptr<const IBookInteractor>       bookInteractor,
+		std::shared_ptr<ISettings>                   settings,
+		std::shared_ptr<Util::ScrollBarController>   scrollBarController,
+		QWidget*                                     parent = nullptr
+	);
 	~AuthorReview() override;
 
 private:

@@ -42,9 +42,11 @@ class Model final : public QAbstractListModel
 public:
 	static std::unique_ptr<QAbstractItemModel> Create(const ISettings& settings, const ICollectionProvider& collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)
 	{
-		return std::make_unique<Model>(settings.Get(Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false),
+		return std::make_unique<Model>(
+			settings.Get(Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false),
 			collectionProvider.ActiveCollectionExists() ? collectionProvider.GetActiveCollection().GetAdditionalFolder() : QString {},
-			std::move(databaseUser));
+			std::move(databaseUser)
+		);
 	}
 
 	Model(const bool showRemoved, const QString& folder, std::shared_ptr<const IDatabaseUser> databaseUser)
@@ -100,7 +102,8 @@ private:
 											 },
 											 [this] {
 												 endResetModel();
-											 });
+											 }
+										 );
 										 m_items = std::move(items);
 									 };
 								 } });
@@ -175,10 +178,10 @@ select r.Folder, b.BookID, f.FolderTitle||'#'||b.FileName, b.Title
 			const auto reviewObject = reviewValue.toObject();
 			auto       name         = reviewObject[Inpx::NAME].toString();
 			return Item { bookId,
-				reviewObject[Inpx::TIME].toString(),
-				name.isEmpty() ? Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS) : std::move(name),
-				title,
-				reviewObject[Inpx::TEXT].toString().replace("<br/>", "\n").append('\n') };
+			              reviewObject[Inpx::TIME].toString(),
+			              name.isEmpty() ? Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS) : std::move(name),
+			              title,
+			              reviewObject[Inpx::TEXT].toString().replace("<br/>", "\n").append('\n') };
 		};
 
 		assert(doc.isArray());
@@ -194,10 +197,12 @@ private:
 
 } // namespace
 
-AuthorReviewModel::AuthorReviewModel(const std::shared_ptr<const ISettings>& settings,
-	const std::shared_ptr<const ICollectionProvider>&                        collectionProvider,
-	std::shared_ptr<const IDatabaseUser>                                     databaseUser,
-	QObject*                                                                 parent)
+AuthorReviewModel::AuthorReviewModel(
+	const std::shared_ptr<const ISettings>&           settings,
+	const std::shared_ptr<const ICollectionProvider>& collectionProvider,
+	std::shared_ptr<const IDatabaseUser>              databaseUser,
+	QObject*                                          parent
+)
 	: QSortFilterProxyModel(parent)
 	, m_source { Model::Create(*settings, *collectionProvider, std::move(databaseUser)) }
 {

@@ -238,7 +238,8 @@ private: // QAbstractListModel
 				},
 				[this] {
 					END_FILTER_CHANGE;
-				});
+				}
+			);
 		}
 
 		return QSortFilterProxyModel::setData(index, value, role);

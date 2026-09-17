@@ -72,9 +72,11 @@ constexpr const char* BOOKS_COLUMN_NAMES[] {
 
 auto ToAuthorItemComparable(const IDataItem::Ptr& author)
 {
-	return std::make_tuple(Util::QStringWrapper { author->GetData(AuthorItem::Column::LastName) },
+	return std::make_tuple(
+		Util::QStringWrapper { author->GetData(AuthorItem::Column::LastName) },
 		Util::QStringWrapper { author->GetData(AuthorItem::Column::FirstName) },
-		Util::QStringWrapper { author->GetData(AuthorItem::Column::MiddleName) });
+		Util::QStringWrapper { author->GetData(AuthorItem::Column::MiddleName) }
+	);
 }
 
 struct AuthorComparator
@@ -142,13 +144,15 @@ public:
 	const IFilterProvider& filterProvider;
 	ViewMode               viewMode { ViewMode::Unknown };
 
-	Impl(const ISettings&       settings,
+	Impl(
+		const ISettings&        settings,
 		const Collection&       activeCollection,
 		DB::IDatabase&          db,
 		const NavigationMode    navigationMode,
 		QString                 navigationId,
 		const QueryDescription& description,
-		const IFilterProvider&  filterProvider)
+		const IFilterProvider&  filterProvider
+	)
 		: navigationMode { navigationMode }
 		, navigationId { std::move(navigationId) }
 		, filterProvider { filterProvider }
@@ -415,9 +419,9 @@ private: // IBookSelector
 		});
 
 		const auto orphans = m_reviews | std::views::filter([](const auto& item) {
-			return item.second->GetChildCount() == 0;
-		}) | std::views::keys
-		                   | std::ranges::to<std::vector<long long>>();
+								 return item.second->GetChildCount() == 0;
+							 })
+		                   | std::views::keys | std::ranges::to<std::vector<long long>>();
 		for (const auto id : orphans)
 			m_reviews.erase(id);
 	}
@@ -441,8 +445,8 @@ private:
 
 		QString result;
 		for (const auto& value : values | std::views::filter([this](const auto& item) {
-				 return !IsFiltered(*item);
-			 }))
+									 return !IsFiltered(*item);
+								 }))
 			Util::AppendTitle(result, value->GetData(0), ", ");
 
 		return result;
@@ -706,13 +710,15 @@ private:
 	FlagsAccumulator m_keywordsFlagAccumulator { std::cbegin(FLAG_ACCUMULATORS)->second };
 };
 
-BooksTreeGenerator::BooksTreeGenerator(const ISettings& settings,
-	const Collection&                                   activeCollection,
-	DB::IDatabase&                                      db,
-	const NavigationMode                                navigationMode,
-	QString                                             navigationId,
-	const QueryDescription&                             description,
-	const IFilterProvider&                              filterProvider)
+BooksTreeGenerator::BooksTreeGenerator(
+	const ISettings&        settings,
+	const Collection&       activeCollection,
+	DB::IDatabase&          db,
+	const NavigationMode    navigationMode,
+	QString                 navigationId,
+	const QueryDescription& description,
+	const IFilterProvider&  filterProvider
+)
 	: m_impl(settings, activeCollection, db, navigationMode, std::move(navigationId), description, filterProvider)
 {
 	PLOGV << "BooksTreeGenerator created";

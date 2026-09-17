@@ -436,10 +436,12 @@ private:
 	Ui::AddCollectionDialog                                   m_ui {};
 };
 
-AddCollectionDialog::AddCollectionDialog(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
-	std::shared_ptr<ISettings>                                                         settings,
-	std::shared_ptr<ICollectionController>                                             collectionController,
-	std::shared_ptr<const IUiFactory>                                                  uiFactory)
+AddCollectionDialog::AddCollectionDialog(
+	const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider,
+	std::shared_ptr<ISettings>                    settings,
+	std::shared_ptr<ICollectionController>        collectionController,
+	std::shared_ptr<const IUiFactory>             uiFactory
+)
 	: QDialog(parentWidgetProvider->GetWidget())
 	, m_impl(*this, std::move(settings), std::move(collectionController), std::move(uiFactory))
 {

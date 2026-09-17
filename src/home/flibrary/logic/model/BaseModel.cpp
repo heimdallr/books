@@ -180,7 +180,8 @@ bool BaseModel::removeRows(const int row, const int count, const QModelIndex& pa
 		},
 		[this]() {
 			endRemoveRows();
-		});
+		}
+	);
 	parentItem->RemoveChild(uRow, uCount);
 	return true;
 }

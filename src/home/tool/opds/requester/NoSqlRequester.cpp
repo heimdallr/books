@@ -43,7 +43,8 @@ QByteArray Decompress(const QString& path, const QString& archive, const QString
 			},
 			[&] {
 				buffer.close();
-			});
+			}
+		);
 		buffer.write(Util::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName, settings));
 	}
 	return data;
@@ -60,7 +61,8 @@ QByteArray Compress(const QByteArray& data, QString fileName)
 			},
 			[&] {
 				buffer.close();
-			});
+			}
+		);
 		buffer.open(QIODevice::WriteOnly);
 		Zip  zip(buffer, Zip::Format::Zip);
 		auto zipFiles = Zip::CreateZipFileController();
@@ -119,11 +121,13 @@ struct NoSqlRequester::Impl
 		{
 			restoreImages = true;
 			settingsCopy  = Flibrary::ILogicFactory::Lock(logicFactory)
-			                    ->CreateSettingsDecorator(std::move(settingsCopy),
+			                    ->CreateSettingsDecorator(
+									std::move(settingsCopy),
 									{
 										{  Export::REMOVE_COVER_KEY, true },
 										{ Export::REMOVE_IMAGES_KEY, true }
-            });
+            }
+								);
 		}
 
 		auto data = Decompress(collectionProvider->GetActiveCollection().GetFolder(), book.folder, book.file, restoreImages, *settingsCopy);
@@ -187,12 +191,14 @@ private:
 	}
 };
 
-NoSqlRequester::NoSqlRequester(const std::shared_ptr<const Flibrary::ILogicFactory>& logicFactory,
-	std::shared_ptr<ISettings>                                                       settings,
-	std::shared_ptr<const Flibrary::ICollectionProvider>                             collectionProvider,
-	std::shared_ptr<const Flibrary::IBookExtractor>                                  bookExtractor,
-	std::shared_ptr<const ICoverCache>                                               coverCache,
-	std::shared_ptr<Flibrary::IAnnotationController>                                 annotationController)
+NoSqlRequester::NoSqlRequester(
+	const std::shared_ptr<const Flibrary::ILogicFactory>& logicFactory,
+	std::shared_ptr<ISettings>                            settings,
+	std::shared_ptr<const Flibrary::ICollectionProvider>  collectionProvider,
+	std::shared_ptr<const Flibrary::IBookExtractor>       bookExtractor,
+	std::shared_ptr<const ICoverCache>                    coverCache,
+	std::shared_ptr<Flibrary::IAnnotationController>      annotationController
+)
 	: m_impl { logicFactory, std::move(settings), std::move(collectionProvider), std::move(bookExtractor), std::move(coverCache), std::move(annotationController) }
 {
 }

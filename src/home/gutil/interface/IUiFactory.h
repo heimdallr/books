@@ -22,14 +22,16 @@ public:
 	[[nodiscard]] virtual QWidget* GetParentWidget(QWidget* defaultWidget = nullptr) const noexcept = 0;
 	[[nodiscard]] virtual int      GetParentWidgetFontSize() const noexcept                         = 0;
 
-	[[nodiscard]] virtual QMessageBox::ButtonRole     ShowCustomDialog(QMessageBox::Icon icon,
-		const QString&                                                               title,
-		const QString&                                                               text,
-		const std::vector<std::pair<QMessageBox::ButtonRole, QString>>&              buttons,
-		QMessageBox::ButtonRole                                                      defaultButton = QMessageBox::NoRole,
-		const QString&                                                               detailedText  = {}) const = 0;
-	[[nodiscard]] virtual QMessageBox::StandardButton ShowQuestion(DialogInitializer& initializer) const       = 0;
-	virtual QMessageBox::StandardButton               ShowWarning(DialogInitializer& initializer) const        = 0;
+	[[nodiscard]] virtual QMessageBox::ButtonRole ShowCustomDialog(
+		QMessageBox::Icon                                               icon,
+		const QString&                                                  title,
+		const QString&                                                  text,
+		const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
+		QMessageBox::ButtonRole                                         defaultButton = QMessageBox::NoRole,
+		const QString&                                                  detailedText  = {}
+	) const                                                                                              = 0;
+	[[nodiscard]] virtual QMessageBox::StandardButton ShowQuestion(DialogInitializer& initializer) const = 0;
+	virtual QMessageBox::StandardButton               ShowWarning(DialogInitializer& initializer) const  = 0;
 
 	virtual void                  ShowInfo(const QString& text) const                                                                                                                                      = 0;
 	virtual void                  ShowError(const QString& text) const                                                                                                                                     = 0;

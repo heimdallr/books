@@ -93,14 +93,16 @@ struct BookInteractor::Impl final : IBookInteractorImpl
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 	std::shared_ptr<IScriptControllerProvider> scriptControllerProvider;
 
-	Impl(const std::shared_ptr<const ILogicFactory>& logicFactory,
-		std::shared_ptr<const IUiFactory>            uiFactory,
-		std::shared_ptr<const ISettings>             settings,
-		std::shared_ptr<const IBookExtractor>        bookExtractor,
-		std::shared_ptr<const IReaderController>     readerController,
-		std::shared_ptr<const IDatabaseUser>         databaseUser,
-		std::shared_ptr<const ICollectionProvider>   collectionProvider,
-		std::shared_ptr<IScriptControllerProvider>   scriptControllerProvider)
+	Impl(
+		const std::shared_ptr<const ILogicFactory>& logicFactory,
+		std::shared_ptr<const IUiFactory>           uiFactory,
+		std::shared_ptr<const ISettings>            settings,
+		std::shared_ptr<const IBookExtractor>       bookExtractor,
+		std::shared_ptr<const IReaderController>    readerController,
+		std::shared_ptr<const IDatabaseUser>        databaseUser,
+		std::shared_ptr<const ICollectionProvider>  collectionProvider,
+		std::shared_ptr<IScriptControllerProvider>  scriptControllerProvider
+	)
 		: logicFactory { logicFactory }
 		, uiFactory { std::move(uiFactory) }
 		, settings { std::move(settings) }
@@ -142,13 +144,16 @@ private: // IBookInteractorImpl
 		assert(!parameters.isEmpty());
 		const auto  scriptController = scriptControllerProvider->GetScriptController();
 		const auto& scripts          = scriptController->GetScripts();
-		if (const auto it = std::ranges::find(scripts,
+		if (const auto it = std::ranges::find(
+				scripts,
 				parameters.front(),
 				[](const auto& item) {
 					return item.name;
-				});
-			it != scripts.end())
-			return ExtractImpl(&BooksExtractor::ExtractAsScript,
+				}
+			);
+		    it != scripts.end())
+			return ExtractImpl(
+				&BooksExtractor::ExtractAsScript,
 				bookId,
 				{
 					.parameter   = it->uid,
@@ -156,7 +161,8 @@ private: // IBookInteractorImpl
 					.dstFolderRequired                    = false,
 					.createFillTemplateConverterParameter = true,
 					.tempFolder                           = true,
-				});
+				}
+			);
 
 		PLOGW << "Script " << parameters.front() << " not found";
 	}
@@ -212,22 +218,24 @@ private:
 	}
 };
 
-BookInteractor::BookInteractor(const std::shared_ptr<const ILogicFactory>& logicFactory,
-	std::shared_ptr<const IUiFactory>                                      uiFactory,
-	std::shared_ptr<const ISettings>                                       settings,
-	std::shared_ptr<const IBookExtractor>                                  bookExtractor,
-	std::shared_ptr<const IReaderController>                               readerController,
-	std::shared_ptr<const IDatabaseUser>                                   databaseUser,
-	std::shared_ptr<const ICollectionProvider>                             collectionProvider,
-	std::shared_ptr<IScriptControllerProvider>                             scriptControllerProvider)
+BookInteractor::BookInteractor(
+	const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const IUiFactory>           uiFactory,
+	std::shared_ptr<const ISettings>            settings,
+	std::shared_ptr<const IBookExtractor>       bookExtractor,
+	std::shared_ptr<const IReaderController>    readerController,
+	std::shared_ptr<const IDatabaseUser>        databaseUser,
+	std::shared_ptr<const ICollectionProvider>  collectionProvider,
+	std::shared_ptr<IScriptControllerProvider>  scriptControllerProvider
+)
 	: m_impl { logicFactory,
-		std::move(uiFactory),
-		std::move(settings),
-		std::move(bookExtractor),
-		std::move(readerController),
-		std::move(databaseUser),
-		std::move(collectionProvider),
-		std::move(scriptControllerProvider) }
+	           std::move(uiFactory),
+	           std::move(settings),
+	           std::move(bookExtractor),
+	           std::move(readerController),
+	           std::move(databaseUser),
+	           std::move(collectionProvider),
+	           std::move(scriptControllerProvider) }
 {
 }
 

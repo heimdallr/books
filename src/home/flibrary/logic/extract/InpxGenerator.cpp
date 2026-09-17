@@ -175,15 +175,17 @@ left join Series_List sl on sl.BookID = b.BookID
 order by f.FolderID
 )";
 
-QString Write(const DB::IQuery& query,
-	const Series&               series,
-	const Genres&               genres,
-	const BookGenres&           bookGenres,
-	const Authors&              authors,
-	const BookAuthors&          bookAuthors,
-	const Keywords&             keywords,
-	const BookKeywords&         bookKeywords,
-	const size_t                n)
+QString Write(
+	const DB::IQuery&   query,
+	const Series&       series,
+	const Genres&       genres,
+	const BookGenres&   bookGenres,
+	const Authors&      authors,
+	const BookAuthors&  bookAuthors,
+	const Keywords&     keywords,
+	const BookKeywords& bookKeywords,
+	const size_t        n
+)
 {
 	const auto bookId = query.Get<long long>(0);
 
@@ -230,12 +232,14 @@ public:
 	virtual bool IsStopped() const  = 0;
 };
 
-void Unpack(const std::filesystem::path&        archiveFolder,
+void Unpack(
+	const std::filesystem::path&                archiveFolder,
 	const QString&                              dstFolder,
 	const BookInfoList&                         bookInfoLists,
 	const std::unordered_map<QString, QString>& idToFileName,
 	IProgress&                                  progress,
-	const ISettings&                            settings)
+	const ISettings&                            settings
+)
 {
 	if (bookInfoLists.empty())
 		return;
@@ -352,10 +356,12 @@ class InpxGenerator::Impl final : public IProgress
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(const std::shared_ptr<const ILogicFactory>& logicFactory,
-		std::shared_ptr<const ICollectionProvider>   collectionProvider,
-		std::shared_ptr<const IDatabaseUser>         databaseUser,
-		std::shared_ptr<IProgressController>         progressController)
+	Impl(
+		const std::shared_ptr<const ILogicFactory>& logicFactory,
+		std::shared_ptr<const ICollectionProvider>  collectionProvider,
+		std::shared_ptr<const IDatabaseUser>        databaseUser,
+		std::shared_ptr<IProgressController>        progressController
+	)
 		: m_logicFactory(logicFactory)
 		, m_collectionProvider(std::move(collectionProvider))
 		, m_databaseUser(std::move(databaseUser))
@@ -406,8 +412,8 @@ public:
 		}
 
 		for (auto&& [fileName, ids] : uniqueFileNames | std::views::values | std::views::filter([](const auto& item) {
-				 return item.second.size() > 1;
-			 }))
+										  return item.second.size() > 1;
+									  }))
 		{
 			for (auto&& [id, index] : std::views::zip(ids | std::views::drop(1), std::views::iota(1)))
 			{
@@ -730,10 +736,12 @@ private:
 	std::unordered_map<QString, QByteArray> m_paths;
 };
 
-InpxGenerator::InpxGenerator(const std::shared_ptr<const ILogicFactory>& logicFactory,
-	std::shared_ptr<const ICollectionProvider>                           collectionProvider,
-	std::shared_ptr<const IDatabaseUser>                                 databaseUser,
-	std::shared_ptr<IMainProgressController>                             progressController)
+InpxGenerator::InpxGenerator(
+	const std::shared_ptr<const ILogicFactory>& logicFactory,
+	std::shared_ptr<const ICollectionProvider>  collectionProvider,
+	std::shared_ptr<const IDatabaseUser>        databaseUser,
+	std::shared_ptr<IMainProgressController>    progressController
+)
 	: m_impl(logicFactory, std::move(collectionProvider), std::move(databaseUser), std::move(progressController))
 {
 	PLOGV << "InpxGenerator created";

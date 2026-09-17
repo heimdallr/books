@@ -190,15 +190,17 @@ QStringList CollectionProvider::GetCollectionStatistics(const IDatabaseUser& dat
 	}
 
 	const auto bookQuery = databaseUser.Database()->CreateQuery(QString(dbStatQueryText)
-			.arg(QT_TRANSLATE_NOOP("CollectionStatistics", "Archives:"),
-				QT_TRANSLATE_NOOP("CollectionStatistics", "Authors:"),
-				QT_TRANSLATE_NOOP("CollectionStatistics", "Series:"),
-				QT_TRANSLATE_NOOP("CollectionStatistics", "Keywords:"),
-				QT_TRANSLATE_NOOP("CollectionStatistics", "Languages:"),
-				QT_TRANSLATE_NOOP("CollectionStatistics", "Groups:"),
-				QT_TRANSLATE_NOOP("CollectionStatistics", "Books:"),
-				QT_TRANSLATE_NOOP("CollectionStatistics", "Deleted books:"))
-			.toStdString());
+	                                                                .arg(
+																		QT_TRANSLATE_NOOP("CollectionStatistics", "Archives:"),
+																		QT_TRANSLATE_NOOP("CollectionStatistics", "Authors:"),
+																		QT_TRANSLATE_NOOP("CollectionStatistics", "Series:"),
+																		QT_TRANSLATE_NOOP("CollectionStatistics", "Keywords:"),
+																		QT_TRANSLATE_NOOP("CollectionStatistics", "Languages:"),
+																		QT_TRANSLATE_NOOP("CollectionStatistics", "Groups:"),
+																		QT_TRANSLATE_NOOP("CollectionStatistics", "Books:"),
+																		QT_TRANSLATE_NOOP("CollectionStatistics", "Deleted books:")
+																	)
+	                                                                .toStdString());
 	for (bookQuery->Execute(); !bookQuery->Eof(); bookQuery->Next())
 	{
 		[[maybe_unused]] const auto* name       = bookQuery->Get<const char*>(0);

@@ -296,7 +296,8 @@ private:
 				},
 				[&] {
 					painter.restore();
-				});
+				}
+			);
 			QPen pen(markColor, *m_readMarkWidth);
 			pen.setCapStyle(Qt::FlatCap);
 			painter.setPen(pen);

@@ -55,12 +55,14 @@ ModeLineEdit::IValueApplier::ValueApplier ModeLineEdit::Setup(std::shared_ptr<IS
 	impl.settings.reset(std::move(settings));
 	impl.settingsKey = std::move(settingsKey);
 
-	if (const auto it = std::ranges::find(impl.valueModeActions,
+	if (const auto it = std::ranges::find(
+			impl.valueModeActions,
 			impl.settings->Get(impl.settingsKey, (isFindDefault ? impl.ui.actionFindMode : impl.ui.actionFilterMode)->property(TYPE).toString()),
 			[](const auto& item) {
 				return item.first->property(TYPE).toString();
-			});
-		it != impl.valueModeActions.end())
+			}
+		);
+	    it != impl.valueModeActions.end())
 	{
 		it->first->setVisible(true);
 		emit ValueApplierChanged(result = it->second);
