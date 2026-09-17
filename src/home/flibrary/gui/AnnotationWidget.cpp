@@ -29,6 +29,7 @@
 #include "util/IExecutor.h"
 #include "util/ImageRestore.h"
 #include "util/ImageUtil.h"
+#include "util/bookhash/hashbook.h"
 
 #include "log.h"
 
@@ -38,6 +39,7 @@ using namespace HomeCompa;
 namespace {
 
 constexpr auto SHOW_JOKE_ERRORS               = "Preferences/AnnotationJokes/ShowErrors";
+constexpr auto SHOW_COMPUTE_PHASH             = "Preferences/ShowComputePHash";
 constexpr auto IMAGE_BACKGROUND_COLOR         = "ui/Annotation/ImageBackgroundColor";
 constexpr auto IMAGE_BACKGROUND_COLOR_DEFAULT = "white";
 
@@ -174,7 +176,7 @@ private:
 ENABLE_BITMASK_OPERATORS(ContentMode);
 
 class AnnotationWidget::Impl final
-    : QObject
+    : public QObject
     , IAnnotationController::IObserver
     , IAnnotationController::IStrategy
 {
@@ -234,174 +236,21 @@ public:
 
 		m_ui.cover->setStyleSheet(styleSheet);
 
-		connect(m_ui.info, &QLabel::linkActivated, m_ui.info, [&](const QString& link) {
-			OnLinkActivated(link);
-		});
-		connect(m_ui.info, &QLabel::linkHovered, m_ui.info, [&](const QString& link) {
-			PLOGI_IF(!link.isEmpty()) << link;
-		});
+		connect(m_ui.info, &QLabel::linkActivated, this, &Impl::OnLinkActivated);
+		connect(m_ui.info, &QLabel::linkHovered, this, &Impl::OnLinkHovered);
+		connect(m_ui.cover, &ClickableLabel::mouseEnter, this, &Impl::OnCoverEnter);
+		connect(m_ui.cover, &ClickableLabel::mouseLeave, this, &Impl::OnCoverLeave);
+		connect(m_ui.cover, &ClickableLabel::clicked, this, &Impl::OnCoverClicked);
+		connect(m_ui.cover, &QWidget::customContextMenuRequested, this, &Impl::OnCoverContextMenuRequested);
+		connect(m_ui.content, &QWidget::customContextMenuRequested, this, &Impl::OnContentContextMenuRequested);
+		connect(m_ui.cover, &ClickableLabel::doubleClicked, this, &Impl::OnOpenImageTriggered);
+		connect(m_ui.actionOpenImage, &QAction::triggered, this, &Impl::OnOpenImageTriggered);
+		connect(m_ui.actionCopyImage, &QAction::triggered, this, &Impl::OnCopyImageTriggered);
+		connect(m_ui.actionSaveImageAs, &QAction::triggered, this, &Impl::OnSaveImageAsTriggered);
+		connect(m_ui.actionSaveAllImages, &QAction::triggered, this, &Impl::OnSaveAllImagesTriggered);
+		connect(m_ui.actionComputePerceptualHash, &QAction::triggered, this, &Impl::OnComputePerceptualHashTriggered);
 
-		const auto onCoverClicked = [this](const QPoint& pos) {
-			if (m_covers.size() < 2)
-				return;
-
-			switch (3 * pos.x() / m_ui.cover->width())
-			{
-				case 0:
-					if (m_currentCoverIndex == 0)
-						m_currentCoverIndex = m_covers.size() - 1;
-					else
-						--m_currentCoverIndex;
-					break;
-
-				case 1:
-					m_currentCoverIndex = 0;
-					m_coverButtons[CoverButtonType::Home]->setVisible(false);
-					break;
-
-				case 2:
-					if (++m_currentCoverIndex >= m_covers.size())
-						m_currentCoverIndex = 0;
-					break;
-
-				default:
-					assert(false && "wtf?");
-			}
-
-			OnResize();
-		};
-		connect(m_ui.cover, &ClickableLabel::clicked, onCoverClicked);
-		connect(m_ui.cover, &QWidget::customContextMenuRequested, &m_self, [this](const QPoint& pos) {
-			QMenu menu;
-			menu.addAction(m_ui.actionOpenImage);
-			menu.addAction(m_ui.actionCopyImage);
-			menu.addAction(m_ui.actionSaveImageAs);
-			menu.addAction(m_ui.actionSaveAllImages);
-			if (Util::HasAlpha(m_ui.cover->pixmap(Qt::ReturnByValue).toImage()).pixelFormat().channelCount() > 3)
-				menu.addAction(m_ui.actionSetBackgroundColor);
-			menu.setFont(m_self.font());
-			menu.exec(m_ui.cover->mapToGlobal(pos));
-		});
-
-		connect(m_ui.content, &QWidget::customContextMenuRequested, &m_self, [this] {
-			QMenu menu;
-			menu.setFont(m_self.font());
-
-			for (const auto& [name, description] : CONTENT_MODES | std::views::filter([this](const auto& item) {
-					 return item.second.first != m_currentContentMode && !!(m_allowedContentMode & item.second.first) && m_content.contains(item.second.first);
-				 }))
-			{
-				const auto& [mode, title] = description;
-				auto* action              = menu.addAction(Tr(title));
-				connect(action, &QAction::triggered, [this, mode, name] {
-					m_selectedContentMode = mode;
-					m_settings->Set(CONTENT_MODE_KEY, QString { name });
-					OnContentChanged();
-				});
-			}
-
-			Util::FillTreeContextMenu(*m_ui.content, menu).exec(QCursor::pos());
-		});
-
-		const auto openImage = [this] {
-			assert(!m_covers.empty());
-			const auto& [name, bytes] = m_covers[m_currentCoverIndex];
-			auto path                 = m_logicFactory.lock()->CreateTemporaryDir()->filePath(name);
-
-			if (!SaveImage(path, bytes))
-				return m_uiFactory->ShowError(Tr(CANNOT_SAVE_IMAGE).arg(path));
-			if (!QDesktopServices::openUrl(path))
-				m_uiFactory->ShowError(Tr(CANNOT_OPEN_IMAGE).arg(path));
-		};
-		connect(m_ui.cover, &ClickableLabel::doubleClicked, &m_self, openImage);
-
-		connect(m_ui.cover, &ClickableLabel::mouseEnter, &m_self, [this] {
-			OnCoverEnter();
-		});
-		connect(m_ui.cover, &ClickableLabel::mouseLeave, &m_self, [this] {
-			OnCoverLeave();
-		});
-
-		connect(m_ui.actionOpenImage, &QAction::triggered, &m_self, openImage);
-
-		connect(m_ui.actionCopyImage, &QAction::triggered, &m_self, [this] {
-			assert(!m_covers.empty());
-			const auto image = Util::Decode(m_covers[m_currentCoverIndex].bytes);
-			QGuiApplication::clipboard()->setImage(image);
-		});
-
-		connect(m_ui.actionSaveImageAs, &QAction::triggered, &m_self, [this] {
-			assert(!m_covers.empty());
-			if (auto fileName = m_uiFactory->GetSaveFileName(DIALOG_KEY, Tr(SELECT_IMAGE_FILE_NAME), IMAGE_FILE_NAME_FILTER); !fileName.isEmpty())
-				SaveImage(fileName, m_covers[m_currentCoverIndex].bytes);
-		});
-
-		connect(m_ui.actionSaveAllImages, &QAction::triggered, &m_self, [this] {
-			auto folder = m_uiFactory->GetExistingDirectory(DIALOG_KEY, Tr(SELECT_IMAGE_FOLDER));
-			if (folder.isEmpty())
-				return;
-
-			std::shared_ptr progressItem = m_progressController->Add(static_cast<int>(m_covers.size()));
-			std::shared_ptr executor     = ILogicFactory::Lock(m_logicFactory)->GetExecutor();
-
-			(*executor)({ "Save images", [this, executor, folder = std::move(folder), covers = m_covers, progressItem = std::move(progressItem)]() mutable {
-							 size_t savedCount = 0;
-							 for (const auto& [name, bytes] : covers)
-							 {
-								 auto path = QString("%1/%2").arg(folder).arg(name);
-								 if (SaveImage(path, bytes))
-									 ++savedCount;
-
-								 progressItem->Increment(1);
-								 if (progressItem->IsStopped())
-									 break;
-							 }
-
-							 return [this, executor = std::move(executor), progressItem = std::move(progressItem), savedCount, totalCount = covers.size()](size_t) mutable {
-								 if (savedCount == totalCount)
-									 m_uiFactory->ShowInfo(Tr(SAVED_ALL).arg(savedCount));
-								 else if (progressItem->IsStopped())
-									 m_uiFactory->ShowInfo(Tr(SAVED_PARTIALLY).arg(savedCount).arg(totalCount));
-								 else
-									 m_uiFactory->ShowWarning(Tr(SAVED_WITH_ERRORS).arg(totalCount - savedCount).arg(totalCount));
-
-								 progressItem.reset();
-								 executor.reset();
-							 };
-						 } });
-		});
-
-		m_coverLabel = new CoverLabel(&m_self);
-		m_coverLabel->setVisible(false);
-
-		const auto createCoverButton = [this, onCoverClicked](const QString& iconFileName, const QAction* action) {
-			auto* btn = new QToolButton(&m_self);
-			btn->setVisible(false);
-			btn->setToolTip(action->shortcut().toString());
-			btn->setIcon(QIcon(iconFileName));
-			connect(btn, &QAbstractButton::clicked, &m_self, [this, onCoverClicked] {
-				onCoverClicked(m_ui.cover->mapFromGlobal(QCursor::pos()));
-			});
-			m_coverButtons.push_back(btn);
-		};
-
-		createCoverButton(":/icons/left.svg", m_ui.actionImagePrev);
-		createCoverButton(":/icons/center.svg", m_ui.actionImageHome);
-		createCoverButton(":/icons/right.svg", m_ui.actionImageNext);
-
-		m_ui.cover->addActions({ m_ui.actionImagePrev, m_ui.actionImageNext, m_ui.actionImageHome });
-		connect(m_ui.actionImagePrev, &QAction::triggered, [onCoverClicked] {
-			onCoverClicked(QPoint(1, 1));
-		});
-		connect(m_ui.actionImageNext, &QAction::triggered, [this, onCoverClicked] {
-			onCoverClicked(QPoint(m_ui.cover->width() - 1, 1));
-		});
-		connect(m_ui.actionImageHome, &QAction::triggered, [this, onCoverClicked] {
-			onCoverClicked(QPoint(m_ui.cover->width() / 2, 1));
-		});
-		connect(m_ui.actionSetBackgroundColor, &QAction::triggered, [this] {
-			m_uiFactory->SetBackgroundStyleSheet(*m_ui.cover, IMAGE_BACKGROUND_COLOR);
-		});
+		CreateCoverButtons();
 	}
 
 	~Impl() override
@@ -630,6 +479,178 @@ private:
 			m_ui.content->expandAll();
 	}
 
+	void CreateCoverButtons()
+	{
+		m_coverLabel = new CoverLabel(&m_self);
+		m_coverLabel->setVisible(false);
+
+		const auto createCoverButton = [this](const QString& iconFileName, const QAction* action) {
+			auto* btn = new QToolButton(&m_self);
+			btn->setVisible(false);
+			btn->setToolTip(action->shortcut().toString());
+			btn->setIcon(QIcon(iconFileName));
+			connect(btn, &QAbstractButton::clicked, &m_self, [this] {
+				OnCoverClicked(m_ui.cover->mapFromGlobal(QCursor::pos()));
+			});
+			m_coverButtons.push_back(btn);
+		};
+
+		createCoverButton(":/icons/left.svg", m_ui.actionImagePrev);
+		createCoverButton(":/icons/center.svg", m_ui.actionImageHome);
+		createCoverButton(":/icons/right.svg", m_ui.actionImageNext);
+
+		m_ui.cover->addActions({ m_ui.actionImagePrev, m_ui.actionImageNext, m_ui.actionImageHome });
+		connect(m_ui.actionImagePrev, &QAction::triggered, [this] {
+			OnCoverClicked(QPoint(1, 1));
+		});
+		connect(m_ui.actionImageNext, &QAction::triggered, [this] {
+			OnCoverClicked(QPoint(m_ui.cover->width() - 1, 1));
+		});
+		connect(m_ui.actionImageHome, &QAction::triggered, [this] {
+			OnCoverClicked(QPoint(m_ui.cover->width() / 2, 1));
+		});
+		connect(m_ui.actionSetBackgroundColor, &QAction::triggered, [this] {
+			m_uiFactory->SetBackgroundStyleSheet(*m_ui.cover, IMAGE_BACKGROUND_COLOR);
+		});
+	}
+
+	void OnCoverClicked(const QPoint& pos)
+	{
+		if (m_covers.size() < 2)
+			return;
+
+		switch (3 * pos.x() / m_ui.cover->width())
+		{
+			case 0:
+				if (m_currentCoverIndex == 0)
+					m_currentCoverIndex = m_covers.size() - 1;
+				else
+					--m_currentCoverIndex;
+				break;
+
+			case 1:
+				m_currentCoverIndex = 0;
+				m_coverButtons[CoverButtonType::Home]->setVisible(false);
+				break;
+
+			case 2:
+				if (++m_currentCoverIndex >= m_covers.size())
+					m_currentCoverIndex = 0;
+				break;
+
+			default:
+				assert(false && "wtf?");
+		}
+
+		OnResize();
+	}
+
+	void OnCoverContextMenuRequested()
+	{
+		QMenu menu;
+		menu.addAction(m_ui.actionOpenImage);
+		menu.addAction(m_ui.actionCopyImage);
+		menu.addAction(m_ui.actionSaveImageAs);
+		menu.addAction(m_ui.actionSaveAllImages);
+		if (m_settings->Get(SHOW_COMPUTE_PHASH, false))
+			menu.addAction(m_ui.actionComputePerceptualHash);
+		if (Util::HasAlpha(m_ui.cover->pixmap(Qt::ReturnByValue).toImage()).pixelFormat().channelCount() > 3)
+			menu.addAction(m_ui.actionSetBackgroundColor);
+		menu.setFont(m_self.font());
+		menu.exec(QCursor::pos());
+	}
+
+	void OnContentContextMenuRequested()
+	{
+		QMenu menu;
+		menu.setFont(m_self.font());
+
+		for (const auto& [name, description] : CONTENT_MODES | std::views::filter([this](const auto& item) {
+				 return item.second.first != m_currentContentMode && !!(m_allowedContentMode & item.second.first) && m_content.contains(item.second.first);
+			 }))
+		{
+			const auto& [mode, title] = description;
+			auto* action              = menu.addAction(Tr(title));
+			connect(action, &QAction::triggered, [this, mode, name] {
+				m_selectedContentMode = mode;
+				m_settings->Set(CONTENT_MODE_KEY, QString { name });
+				OnContentChanged();
+			});
+		}
+
+		Util::FillTreeContextMenu(*m_ui.content, menu).exec(QCursor::pos());
+	}
+
+	void OnSaveAllImagesTriggered()
+	{
+		auto folder = m_uiFactory->GetExistingDirectory(DIALOG_KEY, Tr(SELECT_IMAGE_FOLDER));
+		if (folder.isEmpty())
+			return;
+
+		std::shared_ptr progressItem = m_progressController->Add(static_cast<int>(m_covers.size()));
+		std::shared_ptr executor     = ILogicFactory::Lock(m_logicFactory)->GetExecutor();
+
+		(*executor)({ "Save images", [this, executor, folder = std::move(folder), covers = m_covers, progressItem = std::move(progressItem)]() mutable {
+						 size_t savedCount = 0;
+						 for (const auto& [name, bytes] : covers)
+						 {
+							 auto path = QString("%1/%2").arg(folder).arg(name);
+							 if (SaveImage(path, bytes))
+								 ++savedCount;
+
+							 progressItem->Increment(1);
+							 if (progressItem->IsStopped())
+								 break;
+						 }
+
+						 return [this, executor = std::move(executor), progressItem = std::move(progressItem), savedCount, totalCount = covers.size()](size_t) mutable {
+							 if (savedCount == totalCount)
+								 m_uiFactory->ShowInfo(Tr(SAVED_ALL).arg(savedCount));
+							 else if (progressItem->IsStopped())
+								 m_uiFactory->ShowInfo(Tr(SAVED_PARTIALLY).arg(savedCount).arg(totalCount));
+							 else
+								 m_uiFactory->ShowWarning(Tr(SAVED_WITH_ERRORS).arg(totalCount - savedCount).arg(totalCount));
+
+							 progressItem.reset();
+							 executor.reset();
+						 };
+					 } });
+	}
+
+	void OnOpenImageTriggered()
+	{
+		assert(!m_covers.empty());
+		const auto& [name, bytes] = m_covers[m_currentCoverIndex];
+		auto path                 = m_logicFactory.lock()->CreateTemporaryDir()->filePath(name);
+
+		if (!SaveImage(path, bytes))
+			return m_uiFactory->ShowError(Tr(CANNOT_SAVE_IMAGE).arg(path));
+		if (!QDesktopServices::openUrl(path))
+			m_uiFactory->ShowError(Tr(CANNOT_OPEN_IMAGE).arg(path));
+	}
+
+	void OnCopyImageTriggered() const
+	{
+		assert(!m_covers.empty());
+		const auto image = Util::Decode(m_covers[m_currentCoverIndex].bytes);
+		QGuiApplication::clipboard()->setImage(image);
+	}
+
+	void OnSaveImageAsTriggered()
+	{
+		assert(!m_covers.empty());
+		if (auto fileName = m_uiFactory->GetSaveFileName(DIALOG_KEY, Tr(SELECT_IMAGE_FILE_NAME), IMAGE_FILE_NAME_FILTER); !fileName.isEmpty())
+			SaveImage(fileName, m_covers[m_currentCoverIndex].bytes);
+	}
+
+	void OnComputePerceptualHashTriggered() const
+	{
+		assert(!m_covers.empty());
+		Util::ImageHashItem imageHashItem { .body = m_covers[m_currentCoverIndex].bytes };
+		GetPHash(imageHashItem, true);
+		PLOGI << QString("%1: %2").arg(imageHashItem.pHash, 16, 16, QChar { '0' }).arg(imageHashItem.pHash, 64, 2, QChar { '0' });
+	}
+
 	void OnLinkActivated(const QString& link)
 	{
 		const auto url = link.split("://");
@@ -648,6 +669,11 @@ private:
 
 		if (const auto navigationMode = FindSecond(NAVIGATION_NAMES, url.front().toStdString().data(), NavigationMode::Unknown, PszComparer {}); navigationMode != NavigationMode::Unknown)
 			ILogicFactory::Lock(m_logicFactory)->FindBook(navigationMode, url.back());
+	}
+
+	void OnLinkHovered(const QString& link) const
+	{
+		PLOGI_IF(!link.isEmpty()) << link;
 	}
 
 	void OnCoverEnter() const

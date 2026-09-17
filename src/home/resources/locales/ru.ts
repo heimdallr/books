@@ -317,6 +317,10 @@
         <translation>&amp;Сохранить изображение как...</translation>
     </message>
     <message>
+        <source>Compute the perceptual &amp;hash</source>
+        <translation>Вычислить перцептуальный &amp;хэш</translation>
+    </message>
+    <message>
         <source>Set background color</source>
         <translation>Сменить цвет фона</translation>
     </message>
