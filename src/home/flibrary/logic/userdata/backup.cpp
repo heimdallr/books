@@ -165,9 +165,10 @@ void BackupUserDataGroups(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 
 void BackupUserDataSearches(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 {
-	static constexpr auto text = "select s.Title, s.CreatedAt from Searches_User s ";
+	static constexpr auto text = "select s.Origin, s.Title, s.CreatedAt from Searches_User s ";
 
 	static constexpr const char16_t* fields[] = {
+		Constant::UserData::Searches::Origin,
 		Constant::TITLE,
 		Constant::UserData::Books::CreatedAt,
 	};

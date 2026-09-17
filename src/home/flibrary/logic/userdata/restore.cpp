@@ -35,18 +35,19 @@ enum class Check
 
 ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::UserData::Check);
 
-#define RESTORE_ITEMS_X_MACRO                                                                                                                                                                                  \
-	RESTORE_ITEM(Books, 1)                                                                                                                                                                                     \
-	RESTORE_ITEM(Books, 2)                                                                                                                                                                                     \
-	RESTORE_ITEM(Books, 3)                                                                                                                                                                                     \
-	RESTORE_ITEM(Books, 6)                                                                                                                                                                                     \
-	RESTORE_ITEM(Groups, 1)                                                                                                                                                                                    \
-	RESTORE_ITEM(Groups, 3)                                                                                                                                                                                    \
-	RESTORE_ITEM(Groups, 7)                                                                                                                                                                                    \
-	RESTORE_ITEM(Searches, 1)                                                                                                                                                                                  \
-	RESTORE_ITEM(Searches, 3)                                                                                                                                                                                  \
-	RESTORE_ITEM(Searches, 5)                                                                                                                                                                                  \
-	RESTORE_ITEM(ExportStat, 4)                                                                                                                                                                                \
+#define RESTORE_ITEMS_X_MACRO   \
+	RESTORE_ITEM(Books, 1)      \
+	RESTORE_ITEM(Books, 2)      \
+	RESTORE_ITEM(Books, 3)      \
+	RESTORE_ITEM(Books, 6)      \
+	RESTORE_ITEM(Groups, 1)     \
+	RESTORE_ITEM(Groups, 3)     \
+	RESTORE_ITEM(Groups, 7)     \
+	RESTORE_ITEM(Searches, 1)   \
+	RESTORE_ITEM(Searches, 3)   \
+	RESTORE_ITEM(Searches, 5)   \
+	RESTORE_ITEM(Searches, 9)   \
+	RESTORE_ITEM(ExportStat, 4) \
 	RESTORE_ITEM(Filter, 8)
 
 namespace HomeCompa::Flibrary::UserData {
