@@ -157,6 +157,7 @@
 	[
 		"CREATE TABLE Searches_User (",
 		"	SearchID  INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,",
+		"	Origin    VARCHAR(150),",
 		"	Title     VARCHAR(150) NOT NULL UNIQUE,",
 		"	CreatedAt DATETIME",
 		")"
