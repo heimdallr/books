@@ -528,7 +528,7 @@ from PublishYears y)",
 
 	{      NavigationMode::Search,
 	 { &RequestNavigationSimpleList,
-	 { "select SearchID, Title, 0 IsDeleted, 0 Flags from Searches_User",
+	 { "select SearchID, coalesce(Origin, Title), 0 IsDeleted, 0 Flags from Searches_User",
 	 &DatabaseUtil::CreateSimpleListItem,
 	 { .booksFrom = "from Ids i join Books_View b on b.BookID = i.BookID", .navigationFrom = "from Ids b", .with = &GetSearchWith },
 	 &IBooksListCreator::CreateGeneralList,
