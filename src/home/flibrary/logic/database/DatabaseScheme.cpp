@@ -90,6 +90,7 @@ void AddTableFields(DB::ITransaction& transaction)
 {
 	PLOGI << "Add columns";
 	AddUserTableField(transaction, "Authors", "NickName", "VARCHAR(128)");
+	AddUserTableField(transaction, "Searches_User", "Origin", "VARCHAR(150)", { "CREATE INDEX IF NOT EXISTS IX_SearchUser_Origin ON Searches_User (Origin)" });
 }
 
 } // namespace
@@ -97,6 +98,7 @@ void AddTableFields(DB::ITransaction& transaction)
 void Update(DB::IDatabase& db, const ICollectionProvider& /*collectionProvider*/)
 {
 	const auto transaction = db.CreateTransaction();
+
 	AddUserTables(*transaction);
 	AddTableFields(*transaction);
 

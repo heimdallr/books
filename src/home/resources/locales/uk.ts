@@ -5090,12 +5090,12 @@ Try again?</source>
         <translation>Перезаписувати &amp;метадані</translation>
     </message>
     <message>
-        <source>Search &amp;bar</source>
-        <translation>Панель &amp;пошуку</translation>
+        <source>Sear&amp;ch</source>
+        <translation>&amp;Пошук</translation>
     </message>
     <message>
-        <source>Search &amp;by</source>
-        <translation>&amp;Пошук за</translation>
+        <source>Search &amp;bar</source>
+        <translation>Панель &amp;пошуку</translation>
     </message>
     <message>
         <source>Search book by title</source>
@@ -5184,6 +5184,10 @@ Try again?</source>
     <message>
         <source>author</source>
         <translation>автором</translation>
+    </message>
+    <message>
+        <source>file name</source>
+        <translation>назвою файлу</translation>
     </message>
     <message>
         <source>series</source>

@@ -1,5 +1,7 @@
 #include "SearchController.h"
 
+#include "fnd/IsOneOf.h"
+
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -26,14 +28,19 @@ constexpr auto SEARCH_TOO_LONG       = QT_TRANSLATE_NOOP("SearchController", "Se
 constexpr auto SEARCH_ALREADY_EXISTS = QT_TRANSLATE_NOOP("SearchController", "Search query \"%1\" already exists.\nTry again?");
 
 constexpr auto REMOVE_SEARCH_QUERY = "delete from Searches_User where SearchId = ?";
-constexpr auto INSERT_SEARCH_QUERY = "insert into Searches_User(Title, CreatedAt) values(?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
+constexpr auto INSERT_SEARCH_QUERY = "insert into Searches_User(Origin, Title, CreatedAt) values(?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
 
 constexpr auto MINIMUM_SEARCH_LENGTH = 3;
 
 using Names = std::unordered_map<QString, long long>;
 
-QString GetSearchString(const QString& str)
+QString GetSearchString(QString str)
 {
+	str = str.toLower();
+	std::ranges::transform(str, str.begin(), [](const QChar ch) {
+		return IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit) ? ch : ' ';
+	});
+
 	auto splitted = str.split(' ', Qt::SkipEmptyParts);
 	std::ranges::transform(splitted, splitted.begin(), [](const QString& item) {
 		return item + "*";
@@ -45,7 +52,8 @@ long long CreateNewSearchImpl(DB::ITransaction& transaction, const QString& name
 {
 	assert(!name.isEmpty());
 	const auto command = transaction.CreateCommand(INSERT_SEARCH_QUERY);
-	command->Bind(0, GetSearchString(name).toStdString());
+	command->Bind(0, name);
+	command->Bind(1, GetSearchString(name).toStdString());
 	if (!command->Execute())
 		return 0;
 

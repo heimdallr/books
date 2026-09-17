@@ -5076,11 +5076,11 @@ Try again?</source>
         <translation>Overwrite &amp;metadata</translation>
     </message>
     <message>
-        <source>Search &amp;bar</source>
+        <source>Sear&amp;ch</source>
         <translation></translation>
     </message>
     <message>
-        <source>Search &amp;by</source>
+        <source>Search &amp;bar</source>
         <translation></translation>
     </message>
     <message>
@@ -5169,6 +5169,10 @@ Try again?</source>
     </message>
     <message>
         <source>author</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>file name</source>
         <translation></translation>
     </message>
     <message>
