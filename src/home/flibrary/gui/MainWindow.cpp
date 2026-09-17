@@ -1592,11 +1592,7 @@ private:
 		if (!m_collectionController->ActiveCollectionExists())
 			return;
 
-		auto searchString = m_ui.lineEditBookTitleToSearch->text().toLower();
-		std::ranges::transform(searchString, searchString.begin(), [](const QChar ch) {
-			return IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit) ? ch : ' ';
-		});
-
+		const auto searchString = m_ui.lineEditBookTitleToSearch->text().toLower();
 		if (searchString.isEmpty())
 			return;
 
