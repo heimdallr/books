@@ -78,6 +78,7 @@ constexpr auto SEARCH_BOOKS_PLACEHOLDER_SERIES      = QT_TRANSLATE_NOOP("MainWin
 constexpr auto SEARCH_BOOKS_PLACEHOLDER_TITLE       = QT_TRANSLATE_NOOP("MainWindow", "title");
 constexpr auto SEARCH_BOOKS_PLACEHOLDER_OR          = QT_TRANSLATE_NOOP("MainWindow", " or %1");
 constexpr auto SEARCH_BOOKS_PLACEHOLDER_ANNOTATION  = QT_TRANSLATE_NOOP("MainWindow", "annotation");
+constexpr auto SEARCH_BOOKS_PLACEHOLDER_FILENAME    = QT_TRANSLATE_NOOP("MainWindow", "file name");
 constexpr auto ENABLE_ALL                           = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
 constexpr auto DISABLE_ALL                          = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
 constexpr auto STOP_HTTP                            = QT_TRANSLATE_NOOP("MainWindow", "The HTTP server is still running. Would you like to stop it?");
@@ -113,11 +114,12 @@ constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 constexpr auto NAVIGATION_ACTION_ID_PROPERTY      = "navigationMode";
 constexpr auto INDEX                              = "index";
 
-#define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO                                                                                                                                                                 \
-	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)                                                                                                                                                                      \
-	SEARCH_BOOKS_PLACEHOLDER_ITEM(SERIES)                                                                                                                                                                      \
-	SEARCH_BOOKS_PLACEHOLDER_ITEM(TITLE)                                                                                                                                                                       \
-	SEARCH_BOOKS_PLACEHOLDER_ITEM(ANNOTATION)
+#define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)      \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(SERIES)      \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(TITLE)       \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(ANNOTATION)  \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(FILENAME)
 
 template <typename T>
 QString ToString(const T* source) = delete;

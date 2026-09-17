@@ -653,6 +653,7 @@
      <addaction name="actionSearchByAUTHOR"/>
      <addaction name="actionSearchBySERIES"/>
      <addaction name="actionSearchByANNOTATION"/>
+     <addaction name="actionSearchByFILENAME"/>
     </widget>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
@@ -1466,6 +1467,17 @@
    </property>
    <property name="text">
     <string>&amp;Already read</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionSearchByFILENAME">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;File name</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
