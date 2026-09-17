@@ -1594,7 +1594,7 @@ private:
 		if (!m_collectionController->ActiveCollectionExists())
 			return;
 
-		const auto searchString = m_ui.lineEditBookTitleToSearch->text().toLower();
+		const auto searchString = m_ui.lineEditBookTitleToSearch->text();
 		if (searchString.isEmpty())
 			return;
 

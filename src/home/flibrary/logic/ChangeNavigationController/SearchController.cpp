@@ -36,6 +36,7 @@ using Names = std::unordered_map<QString, long long>;
 
 QString GetSearchString(QString str)
 {
+	str = str.toLower();
 	std::ranges::transform(str, str.begin(), [](const QChar ch) {
 		return IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit) ? ch : ' ';
 	});
