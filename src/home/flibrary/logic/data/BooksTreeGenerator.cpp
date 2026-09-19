@@ -43,7 +43,7 @@ inline constexpr auto JOIN_BOOKS_WITH_SAME_TITLES = "Preferences/Books/JoinBooks
 
 using IdsSet           = std::unordered_set<long long>;
 using BookToFlag       = std::unordered_map<long long, IDataItem::Flags>;
-using FlagsAccumulator = void (*)(BookToFlag& flags, const long long bookId, const IDataItem::Flags flag);
+using FlagsAccumulator = void (*)(BookToFlag& flags, long long bookId, IDataItem::Flags flag);
 
 void FlagsAnd(BookToFlag& flags, const long long bookId, const IDataItem::Flags flag)
 {
@@ -342,7 +342,7 @@ private: // IBookSelector
 	{
 		const auto additionalDefault = [](const DB::IQuery&, const auto&) {
 		};
-		const std::pair<NavigationMode, SelectAdditional> additionals[] {
+		const std::pair<NavigationMode, SelectAdditional> additions[] {
 			{ NavigationMode::AlreadyRead,
 			 [](const DB::IQuery& query, const SelectedBookItem& item) {
  item.book->SetData(First(QString(query.Get<const char*>(BookQueryFields::Last)), 10), BookItem::Column::UpdateDate);
@@ -352,7 +352,7 @@ private: // IBookSelector
  item.book->SetData(QString(query.Get<const char*>(BookQueryFields::Last)), BookItem::Column::UpdateDate);
  } },
 		};
-		CreateSelectedBookItems(db, description.queryClause, FindSecond(additionals, navigationMode, additionalDefault));
+		CreateSelectedBookItems(db, description.queryClause, FindSecond(additions, navigationMode, additionalDefault));
 	}
 
 	void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription& description) override
