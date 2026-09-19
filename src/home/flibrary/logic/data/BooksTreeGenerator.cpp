@@ -25,6 +25,7 @@
 #include "interface/logic/IFilterProvider.h"
 
 #include "database/DatabaseUtil.h"
+#include "settings/ISettings.h"
 #include "util/SortString.h"
 #include "util/StrUtil.h"
 
@@ -37,6 +38,8 @@ using namespace HomeCompa;
 using namespace Flibrary;
 
 namespace {
+
+inline constexpr auto JOIN_BOOKS_WITH_SAME_TITLES = "Preferences/Books/JoinBooksWithSameTitles";
 
 using IdsSet           = std::unordered_set<long long>;
 using BookToFlag       = std::unordered_map<long long, IDataItem::Flags>;
@@ -125,7 +128,8 @@ void Add(UniqueIdList<KeyType>& uniqueIdList, KeyType&& key, const int order)
 
 class BooksTreeGenerator::Impl final : virtual IBookSelector
 {
-	using SelectedSeries = std::multimap<int, std::pair<long long, int>>;
+	using SelectedSeries        = std::multimap<int, std::pair<long long, int>>;
+	using CreateBookItemsMethod = IDataItem::Items (Impl::*)(const IdsSet& idsSet, long long seriesId) const;
 
 	struct SelectedBookItem
 	{
@@ -157,6 +161,7 @@ public:
 		, navigationId { std::move(navigationId) }
 		, filterProvider { filterProvider }
 		, m_settings { settings }
+		, m_createBookItems { m_settings.Get(JOIN_BOOKS_WITH_SAME_TITLES, true) ? &Impl::CreateBookItemsJoinSameTitles : &Impl::CreateBookItems }
 		, m_authorsFlagAccumulator { GetFlagsAccumulator(filterProvider.GetFlagsAccumulationMode(NavigationMode::Authors)) }
 		, m_seriesFlagAccumulator { GetFlagsAccumulator(filterProvider.GetFlagsAccumulationMode(NavigationMode::Series)) }
 		, m_genresFlagAccumulator { GetFlagsAccumulator(filterProvider.GetFlagsAccumulationMode(NavigationMode::Genres)) }
@@ -246,7 +251,7 @@ public:
 		for (const auto& [authorIds, bookIds] : authorToBooks)
 		{
 			auto authorsNode = CreateAuthorsNode(authorIds);
-			authorsNode->SetChildren(CreateBookItems(bookIds, navigationId.toLongLong()));
+			authorsNode->SetChildren(std::invoke(m_createBookItems, this, bookIds, navigationId.toLongLong()));
 			rootCached->AppendChild(std::move(authorsNode));
 		}
 
@@ -301,11 +306,11 @@ public:
 				assert(it != m_series.end());
 				auto seriesNode = NavigationItem::Create();
 				seriesNode->SetData(it->second->GetData());
-				seriesNode->SetChildren(CreateBookItems(bookIds, seriesId));
+				seriesNode->SetChildren(std::invoke(m_createBookItems, this, bookIds, seriesId));
 				authorsNode->AppendChild(std::move(seriesNode));
 			}
 
-			for (auto&& book : CreateBookItems(noSeriesBookIds, -1))
+			for (auto&& book : std::invoke(m_createBookItems, this, noSeriesBookIds, -1))
 				authorsNode->AppendChild(std::move(book));
 
 			rootCached->AppendChild(std::move(authorsNode));
@@ -651,6 +656,33 @@ join Keywords k on k.KeywordID = l.KeywordID
 	{
 		const auto seriesIt = m_series.find(seriesId);
 
+		IDataItem::Items books;
+		std::ranges::transform(idsSet, std::back_inserter(books), [&](const long long id) {
+			const auto it = m_books.find(id);
+			assert(it != m_books.end());
+
+			if (IsOneOf(seriesId, -1, it->second.book->GetData(BookItem::Column::SeriesId).toLongLong()))
+				return it->second.book;
+
+			const auto bookSeriesIt = std::ranges::find(it->second.series, seriesId, [](const auto& item) {
+				return item.second.first;
+			});
+			assert(bookSeriesIt != it->second.series.end() && seriesIt != m_series.end());
+
+			auto clone = it->second.book->Clone();
+			clone->SetData(QString::number(seriesId), BookItem::Column::SeriesId);
+			clone->SetData(seriesIt->second->GetData(), BookItem::Column::Series);
+			clone->SetData(QString::number(bookSeriesIt->second.second), BookItem::Column::SeqNumber);
+
+			return clone;
+		});
+		return books;
+	}
+
+	IDataItem::Items CreateBookItemsJoinSameTitles(const IdsSet& idsSet, const long long seriesId) const
+	{
+		const auto seriesIt = m_series.find(seriesId);
+
 		std::unordered_map<QString, IDataItem::Items> bookNames;
 
 		for (const auto id : idsSet)
@@ -718,7 +750,9 @@ join Keywords k on k.KeywordID = l.KeywordID
 	}
 
 private:
-	const ISettings&                                m_settings;
+	const ISettings&            m_settings;
+	const CreateBookItemsMethod m_createBookItems;
+
 	std::unordered_map<long long, IDataItem::Ptr>   m_reviews;
 	std::unordered_map<long long, SelectedBookItem> m_books;
 	std::unordered_map<long long, IDataItem::Ptr>   m_series;
