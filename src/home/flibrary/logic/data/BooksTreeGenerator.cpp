@@ -114,6 +114,26 @@ IDataItem::Ptr CreateBooksRoot(const std::vector<const char*>& additionalColumns
 	return root;
 }
 
+IDataItem::Items GetJoinedBooks(std::unordered_map<QString, IDataItem::Items> bookNames)
+{
+	IDataItem::Items books;
+
+	for (auto&& [title, uniqueNamedBooks] : bookNames)
+	{
+		if (uniqueNamedBooks.size() == 1)
+		{
+			books.emplace_back(std::move(uniqueNamedBooks.front()));
+			continue;
+		}
+
+		auto& node = books.emplace_back(NavigationItem::Create());
+		node->SetData(title, NavigationItem::Column::Title);
+		node->SetChildren(std::move(uniqueNamedBooks));
+	}
+
+	return books;
+}
+
 template <typename KeyType>
 using UniqueIdList = std::pair<std::unordered_set<KeyType>, std::multimap<int, KeyType>>;
 
@@ -128,8 +148,9 @@ void Add(UniqueIdList<KeyType>& uniqueIdList, KeyType&& key, const int order)
 
 class BooksTreeGenerator::Impl final : virtual IBookSelector
 {
-	using SelectedSeries        = std::multimap<int, std::pair<long long, int>>;
-	using CreateBookItemsMethod = IDataItem::Items (Impl::*)(const IdsSet& idsSet, long long seriesId) const;
+	using SelectedSeries                      = std::multimap<int, std::pair<long long, int>>;
+	using CreateBookItemsMethod               = IDataItem::Items (Impl::*)(const IdsSet& idsSet, long long seriesId) const;
+	using CreateAuthorsTreeCollectBooksMethod = void (Impl::*)() const;
 
 	struct SelectedBookItem
 	{
@@ -161,7 +182,6 @@ public:
 		, navigationId { std::move(navigationId) }
 		, filterProvider { filterProvider }
 		, m_settings { settings }
-		, m_createBookItems { m_settings.Get(JOIN_BOOKS_WITH_SAME_TITLES, true) ? &Impl::CreateBookItemsJoinSameTitles : &Impl::CreateBookItems }
 		, m_authorsFlagAccumulator { GetFlagsAccumulator(filterProvider.GetFlagsAccumulationMode(NavigationMode::Authors)) }
 		, m_seriesFlagAccumulator { GetFlagsAccumulator(filterProvider.GetFlagsAccumulationMode(NavigationMode::Series)) }
 		, m_genresFlagAccumulator { GetFlagsAccumulator(filterProvider.GetFlagsAccumulationMode(NavigationMode::Genres)) }
@@ -210,33 +230,7 @@ public:
 			rootCached->AppendChild(series);
 		}
 
-		for (const auto& [book, seriesIds, authorIds, genreIds] : m_books | std::views::values)
-		{
-			if (seriesIds.empty())
-			{
-				rootCached->AppendChild(book);
-				continue;
-			}
-
-			const auto bookSeriesId = book->GetRawData(BookItem::Column::SeriesId).toLongLong();
-
-			for (const auto& [seriesId, seqNo] : seriesIds | std::views::values)
-			{
-				const auto it = m_series.find(seriesId);
-				assert(it != m_series.end());
-				if (bookSeriesId == seriesId)
-				{
-					it->second->AppendChild(book);
-					continue;
-				}
-
-				auto clone = book->Clone();
-				clone->SetData(QString::number(seriesId), BookItem::Column::SeriesId);
-				clone->SetData(it->second->GetData(), BookItem::Column::Series);
-				clone->SetData(QString::number(seqNo), BookItem::Column::SeqNumber);
-				it->second->AppendChild(std::move(clone));
-			}
-		}
+		std::invoke(m_createAuthorsTreeCollectBooks, this);
 
 		return rootCached;
 	}
@@ -702,29 +696,89 @@ join Keywords k on k.KeywordID = l.KeywordID
 			});
 			assert(bookSeriesIt != it->second.series.end() && seriesIt != m_series.end());
 
-			auto clone = it->second.book->Clone();
+			const auto& clone = bookNames[title].emplace_back(it->second.book->Clone());
 			clone->SetData(QString::number(seriesId), BookItem::Column::SeriesId);
 			clone->SetData(seriesIt->second->GetData(), BookItem::Column::Series);
 			clone->SetData(QString::number(bookSeriesIt->second.second), BookItem::Column::SeqNumber);
-			bookNames[title].emplace_back(std::move(clone));
 		}
 
-		IDataItem::Items books;
+		return GetJoinedBooks(std::move(bookNames));
+	}
 
-		for (auto&& [title, uniqueNamedBooks] : bookNames)
+	void CreateAuthorsTreeCollectBooks() const
+	{
+		for (const auto& [book, seriesIds, _1, _2] : m_books | std::views::values)
 		{
-			if (uniqueNamedBooks.size() == 1)
+			if (seriesIds.empty())
 			{
-				books.emplace_back(std::move(uniqueNamedBooks.front()));
+				rootCached->AppendChild(book);
 				continue;
 			}
 
-			auto& node = books.emplace_back(NavigationItem::Create());
-			node->SetData(title, NavigationItem::Column::Title);
-			node->SetChildren(std::move(uniqueNamedBooks));
+			const auto bookSeriesId = book->GetRawData(BookItem::Column::SeriesId).toLongLong();
+
+			for (const auto& [seriesId, seqNo] : seriesIds | std::views::values)
+			{
+				const auto it = m_series.find(seriesId);
+				assert(it != m_series.end());
+				if (bookSeriesId == seriesId)
+				{
+					it->second->AppendChild(book);
+					continue;
+				}
+
+				auto clone = book->Clone();
+				clone->SetData(QString::number(seriesId), BookItem::Column::SeriesId);
+				clone->SetData(it->second->GetData(), BookItem::Column::Series);
+				clone->SetData(QString::number(seqNo), BookItem::Column::SeqNumber);
+				it->second->AppendChild(std::move(clone));
+			}
+		}
+	}
+
+	void CreateAuthorsTreeCollectBooksSplitSameTitles() const
+	{
+		std::unordered_map<long long, std::pair<IDataItem::Ptr, std::unordered_map<QString, IDataItem::Items>>> bookNames;
+		std::unordered_map<QString, IDataItem::Items>                                                           bookNamesWoSeries;
+
+		for (const auto& [book, seriesIds, _1, _2] : m_books | std::views::values)
+		{
+			const auto& title = book->GetRawData(BookItem::Column::Title);
+			if (seriesIds.empty())
+			{
+				bookNamesWoSeries[title].emplace_back(book);
+				continue;
+			}
+
+			const auto bookSeriesId = book->GetRawData(BookItem::Column::SeriesId).toLongLong();
+
+			for (const auto& [seriesId, seqNo] : seriesIds | std::views::values)
+			{
+				const auto it = m_series.find(seriesId);
+				assert(it != m_series.end());
+
+				auto bookNamesIt = bookNames.find(seriesId);
+				if (bookNamesIt == bookNames.end())
+					bookNamesIt = bookNames.try_emplace(seriesId, std::make_pair(it->second, std::unordered_map<QString, IDataItem::Items> {})).first;
+
+				if (bookSeriesId == seriesId)
+				{
+					bookNamesIt->second.second[title].emplace_back(book);
+					continue;
+				}
+
+				const auto& clone = bookNamesIt->second.second[title].emplace_back(book->Clone());
+				clone->SetData(QString::number(seriesId), BookItem::Column::SeriesId);
+				clone->SetData(it->second->GetData(), BookItem::Column::Series);
+				clone->SetData(QString::number(seqNo), BookItem::Column::SeqNumber);
+			}
 		}
 
-		return books;
+		for (auto&& [series, items] : bookNames | std::views::values)
+			series->SetChildren(GetJoinedBooks(items));
+
+		for (auto&& item : GetJoinedBooks(bookNamesWoSeries))
+			rootCached->AppendChild(std::move(item));
 	}
 
 	IDataItem::Ptr CreateAuthorsNode(const IdsSet& idsSet) const
@@ -750,8 +804,11 @@ join Keywords k on k.KeywordID = l.KeywordID
 	}
 
 private:
-	const ISettings&            m_settings;
-	const CreateBookItemsMethod m_createBookItems;
+	const ISettings& m_settings;
+
+	const bool                                m_joinSameTitles { m_settings.Get(JOIN_BOOKS_WITH_SAME_TITLES, true) };
+	const CreateBookItemsMethod               m_createBookItems { m_joinSameTitles ? &Impl::CreateBookItemsJoinSameTitles : &Impl::CreateBookItems };
+	const CreateAuthorsTreeCollectBooksMethod m_createAuthorsTreeCollectBooks { m_joinSameTitles ? &Impl::CreateAuthorsTreeCollectBooksSplitSameTitles : &Impl::CreateAuthorsTreeCollectBooks };
 
 	std::unordered_map<long long, IDataItem::Ptr>   m_reviews;
 	std::unordered_map<long long, SelectedBookItem> m_books;
