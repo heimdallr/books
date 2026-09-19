@@ -651,13 +651,19 @@ join Keywords k on k.KeywordID = l.KeywordID
 	{
 		const auto seriesIt = m_series.find(seriesId);
 
-		IDataItem::Items books;
-		std::ranges::transform(idsSet, std::back_inserter(books), [&](const long long id) {
+		std::unordered_map<QString, IDataItem::Items> bookNames;
+
+		for (const auto id : idsSet)
+		{
 			const auto it = m_books.find(id);
 			assert(it != m_books.end());
+			const auto& title = it->second.book->GetRawData(BookItem::Column::Title);
 
-			if (IsOneOf(seriesId, -1, it->second.book->GetData(BookItem::Column::SeriesId).toLongLong()))
-				return it->second.book;
+			if (IsOneOf(seriesId, -1, it->second.book->GetRawData(BookItem::Column::SeriesId).toLongLong()))
+			{
+				bookNames[title].emplace_back(it->second.book);
+				continue;
+			}
 
 			const auto bookSeriesIt = std::ranges::find(it->second.series, seriesId, [](const auto& item) {
 				return item.second.first;
@@ -668,9 +674,24 @@ join Keywords k on k.KeywordID = l.KeywordID
 			clone->SetData(QString::number(seriesId), BookItem::Column::SeriesId);
 			clone->SetData(seriesIt->second->GetData(), BookItem::Column::Series);
 			clone->SetData(QString::number(bookSeriesIt->second.second), BookItem::Column::SeqNumber);
+			bookNames[title].emplace_back(std::move(clone));
+		}
 
-			return clone;
-		});
+		IDataItem::Items books;
+
+		for (auto&& [title, uniqueNamedBooks] : bookNames)
+		{
+			if (uniqueNamedBooks.size() == 1)
+			{
+				books.emplace_back(std::move(uniqueNamedBooks.front()));
+				continue;
+			}
+
+			auto& node = books.emplace_back(NavigationItem::Create());
+			node->SetData(title, NavigationItem::Column::Title);
+			node->SetChildren(std::move(uniqueNamedBooks));
+		}
+
 		return books;
 	}
 
