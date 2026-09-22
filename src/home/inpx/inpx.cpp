@@ -799,7 +799,7 @@ size_t StoreRange(DB::IDatabase& db, const QString& process, const std::string_v
 	return TRY(process, impl);
 }
 
-std::pair<QStringView, QStringView> SplitAuthorLastName(QStringView str)
+std::pair<QStringView, QStringView> SplitNameSuffix(QStringView str)
 {
 	const auto begin = str.indexOf('[');
 	if (begin < 1)
@@ -828,12 +828,13 @@ size_t Store(DB::IDatabase& db, Data& data)
 		"INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, NickName, SearchName) VALUES(?, ?, ?, ?, ?, ?)",
 		data.authors,
 		[](DB::ICommand& cmd, const Dictionary::value_type& item) {
-			const auto& [title, id] = item;
-			auto it                 = std::cbegin(title);
-			const auto [last, nick] = SplitAuthorLastName(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
-			const auto first        = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
-			const auto middle       = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
-			const auto lastUp       = last.toString().toUpper();
+			const auto& [title, id]         = item;
+			auto it                         = std::cbegin(title);
+			const auto [last, nickLast]     = SplitNameSuffix(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
+			const auto [first, nickFirst]   = SplitNameSuffix(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
+			const auto [middle, nickMiddle] = SplitNameSuffix(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
+			const auto lastUp               = last.toString().toUpper();
+			const auto nick                 = !nickLast.isEmpty() ? nickLast : !nickFirst.isEmpty() ? nickFirst : !nickMiddle.isEmpty() ? nickMiddle : QStringView {};
 
 			cmd.Bind(0, id);
 			cmd.Bind(1, last);
