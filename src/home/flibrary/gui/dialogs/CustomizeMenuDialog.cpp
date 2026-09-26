@@ -279,14 +279,16 @@ private:
 		const auto key       = index.data(ModelRole::Key).toString();
 		const auto abilities = m_menuCustomizer->GetAbilities(key);
 
+		flags |= Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+
 		if (index.column() == Column::Hotkey && !!(abilities & IMenuCustomizer::ItemAbility::Hotkey))
 			flags |= Qt::ItemIsEditable;
 
 		if (index.column() == Column::Hidden && !!(abilities & IMenuCustomizer::ItemAbility::Hide))
-			flags |= Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
+			flags |= Qt::ItemIsUserCheckable;
 
 		if (index.column() == Column::OnToolbar && !!(abilities & IMenuCustomizer::ItemAbility::Hotkey))
-			flags |= Qt::ItemIsEditable | Qt::ItemIsUserCheckable;
+			flags |= Qt::ItemIsUserCheckable;
 
 		return flags;
 	}
