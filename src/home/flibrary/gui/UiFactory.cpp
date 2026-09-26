@@ -529,9 +529,24 @@ IDataItem::Ptr AddChild(const IDataItemFactory& dataItemFactory, IDataItem& pare
 	return actionItem;
 }
 
+const auto setForceGetterStub = [](const QString&) {
+	return false;
+};
+
 class MenuCustomizerItemBase : public IMenuCustomizer::IItem
 {
 	static std::unique_ptr<ISettings> s_settingsStub;
+
+	template <typename SetForceGetter = decltype(setForceGetterStub)>
+	void Set(ISettings& settings, const QString& key, const bool value, const SetForceGetter& setForceGetter = setForceGetterStub) const
+	{
+		const auto id = m_item->GetData(SettingsItem::Column::Key);
+		const auto settingsKey = GetName(MENU_CUSTOM_ROOT, id, key);
+		if (value || setForceGetter(id))
+			settings.Set(settingsKey, value);
+		else
+			settings.Remove(settingsKey);
+	}
 
 public:
 	MenuCustomizerItemBase(IDataItem::Ptr item, const IMenuCustomizer::ItemAbility abilities)
@@ -569,7 +584,9 @@ protected: // IMenuCustomizer::IItem
 	void Hide(ISettings& settings, const bool value) override
 	{
 		m_hidden = value;
-		Set(settings, HIDDEN, value);
+		Set(settings, HIDDEN, value, [](const QString& id) {
+			return IMenuCustomizer::IsHiddenByDefault(id);
+		});
 	}
 
 	void AddToToolbar(ISettings& settings, const bool add) override
@@ -634,7 +651,7 @@ protected: // IMenuCustomizer::IItem
 				SetIcon(*s_settingsStub, {}, {});
 		}
 		{
-			auto var = settings.Get(TOOLBAR);
+			const auto var = settings.Get(TOOLBAR);
 			AddToToolbar(*s_settingsStub, var.isValid() && var.toBool());
 		}
 	}
@@ -655,15 +672,6 @@ protected:
 		QObject::connect(m_toolbarAction, &QAction::triggered, std::move(f));
 
 		return true;
-	}
-
-	void Set(ISettings& settings, const QString& key, const bool value) const
-	{
-		const auto id = GetName(MENU_CUSTOM_ROOT, m_item->GetData(SettingsItem::Column::Key), key);
-		if (value)
-			settings.Set(id, value);
-		else
-			settings.Remove(id);
 	}
 
 protected:
