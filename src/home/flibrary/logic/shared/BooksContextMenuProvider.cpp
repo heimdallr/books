@@ -556,9 +556,9 @@ private: // IContextMenuHandler
 			   books        = std::move(books),
 			   progressItem = std::move(progressItem)]() mutable {
 				  Util::BookHashItem toClipboard;
-				  for (const auto& book : books)
+				  for (auto&& book : books)
 				  {
-					  auto hash = Util::GetHash(folder + "/" + book.front(), book.back());
+					  auto hash = Util::GetHash(folder, std::move(book.front()), book.back());
 					  PLOGI << hash;
 					  if (hash.folder == selectedBook.first && hash.file == selectedBook.second)
 						  toClipboard = std::move(hash);
@@ -595,12 +595,12 @@ private: // IContextMenuHandler
 			   folder       = m_collectionProvider->GetActiveCollection().GetFolder(),
 			   selectedBook = std::make_pair(index.data(Role::Folder).toString(), index.data(Role::FileName)),
 			   books        = std::move(books)]() mutable {
-				  auto lhs = books.size() > 1 ? Util::GetHash(folder + "/" + books.front().front(), books.front().back()) : [] {
+				  auto lhs = books.size() > 1 ? Util::GetHash(folder, books.front().front(), books.front().back()) : [] {
 					  const auto data = QGuiApplication::clipboard()->mimeData();
 					  assert(data && data->hasFormat(Constant::BOOK_HASH_MIME_DATA_TYPE));
 					  const auto bytes = data->data(Constant::BOOK_HASH_MIME_DATA_TYPE);
 					  return Util::Deserialize(bytes);
-				  }(), rhs = Util::GetHash(folder + "/" + books.back().front(), books.back().back());
+				  }(), rhs = Util::GetHash(folder, books.back().front(), books.back().back());
 
 				  const auto updateItem = [](Util::BookHashItem& bookHashItem) {
 					  if (bookHashItem.cover.hash.isEmpty())
