@@ -64,6 +64,8 @@ struct Role
 		ModelSorter,
 		Last
 	};
+
+	inline static constexpr int FirstItemColumn = Author;
 };
 
 struct SelectedRequest
