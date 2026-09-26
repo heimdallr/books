@@ -380,6 +380,9 @@
                 "id": "short_story"
             },
             {
+                "aliases": [
+                    "novel"
+                ],
                 "description": "Роман",
                 "id": "roman"
             },
