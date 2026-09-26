@@ -13,8 +13,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT        = "SingleInstanceController";
 constexpr auto DIALOG_MESSAGE = QT_TRANSLATE_NOOP("SingleInstanceController", "The program is already running. Do you want to run another instance?");
@@ -23,9 +22,9 @@ constexpr auto MULTIPLE_INSTANCE_APP_KEY = "Preferences/MultipleInstance";
 constexpr auto SERVER_NAME               = "dd51de1b-7ef5-426b-baf0-180c20a6310e";
 constexpr auto SERVER_MESSAGE            = "show";
 
-#define MODE_ITEMS_X_MACRO \
-	MODE_ITEM(Enabled)     \
-	MODE_ITEM(Disabled)    \
+#define MODE_ITEMS_X_MACRO                                                                                                                                                                                     \
+	MODE_ITEM(Enabled)                                                                                                                                                                                         \
+	MODE_ITEM(Disabled)                                                                                                                                                                                        \
 	MODE_ITEM(Dialog)
 
 enum class Mode

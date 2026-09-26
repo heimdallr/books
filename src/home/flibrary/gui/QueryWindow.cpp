@@ -13,16 +13,15 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto EXPLAIN_QUERY_PLAN = "ui/View/ExplainQueryPlan";
 
 }
 
 class QueryWindow::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
 {
 	NON_COPY_MOVABLE(Impl)
 

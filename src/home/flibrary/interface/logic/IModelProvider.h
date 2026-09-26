@@ -8,14 +8,13 @@
 
 class QAbstractItemModel;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ILibRateProvider;
 
 class IModelProvider
-	: public ITreeViewController::IObserver
-	, public Lockable<IModelProvider>
+    : public ITreeViewController::IObserver
+    , public Lockable<IModelProvider>
 {
 public:
 	[[nodiscard]] virtual std::shared_ptr<QAbstractItemModel>     CreateListModel(IDataItem::Ptr data) const        = 0;

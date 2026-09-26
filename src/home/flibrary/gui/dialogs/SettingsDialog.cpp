@@ -2,11 +2,13 @@
 
 #include "SettingsDialog.h"
 
+#include <expected>
 #include <ranges>
 
 #include <QIdentityProxyModel>
 #include <QMenu>
 
+#include "interface/constants/ModelRole.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 
@@ -17,8 +19,7 @@
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT = "SettingsDialog";
 constexpr auto KEY     = QT_TRANSLATE_NOOP("SettingsDialog", "Key");
@@ -28,6 +29,11 @@ constexpr auto REMOVE  = QT_TRANSLATE_NOOP("SettingsDialog", "Remove");
 constexpr auto FIELD_WIDTH_KEY = "ui/View/SettingsDialog/columnWidths";
 
 TR_DEF
+
+QString GetName(const QString& parent, const QString& key)
+{
+	return QString("%1%2").arg(parent, parent.isEmpty() ? key : QString("/%1").arg(key));
+}
 
 IDataItem::Ptr CreateModelData(const ISettings& settings, const IDataItemFactory& dataItemFactory)
 {
@@ -39,6 +45,7 @@ IDataItem::Ptr CreateModelData(const ISettings& settings, const IDataItemFactory
 		for (const auto& group : settings.GetGroups())
 		{
 			auto child = dataItemFactory.CreateSettingsItem();
+			child->SetId(GetName(parent.GetId(), group));
 			child->SetData(group, SettingsItem::Column::Key);
 			SettingsGroup settingsGroup(settings, group);
 			r(*child, r);
@@ -48,6 +55,7 @@ IDataItem::Ptr CreateModelData(const ISettings& settings, const IDataItemFactory
 		for (const auto& key : settings.GetKeys())
 		{
 			auto child = dataItemFactory.CreateSettingsItem();
+			child->SetId(GetName(parent.GetId(), key));
 			child->SetData(key, SettingsItem::Column::Key);
 			child->SetData(settings.Get(key).toString(), SettingsItem::Column::Value);
 			parent.AppendChild(std::move(child));
@@ -70,14 +78,17 @@ QString GetKey(QModelIndex index)
 class Model final : public QIdentityProxyModel
 {
 public:
-	static std::unique_ptr<QAbstractItemModel> Create(const IModelProvider& modelProvider, const ISettings& settings, const IDataItemFactory& dataItemFactory)
+	static std::unique_ptr<QAbstractItemModel> Create(const IModelProvider& modelProvider, std::shared_ptr<ISettings> settings, const IDataItemFactory& dataItemFactory)
 	{
-		return std::make_unique<Model>(modelProvider.CreateTreeModel(CreateModelData(settings, dataItemFactory)));
+		auto model = modelProvider.CreateTreeModel(CreateModelData(*settings, dataItemFactory));
+		model->setData({}, 1, Role::CheckableColumn);
+		return std::make_unique<Model>(std::move(model), std::move(settings));
 	}
 
-	explicit Model(std::shared_ptr<QAbstractItemModel> source, QObject* parent = nullptr)
+	Model(std::shared_ptr<QAbstractItemModel> source, std::shared_ptr<ISettings> settings, QObject* parent = nullptr)
 		: QIdentityProxyModel(parent)
 		, m_source { std::move(source) }
+		, m_settings { std::move(settings) }
 	{
 		QIdentityProxyModel::setSourceModel(m_source.get());
 	}
@@ -88,15 +99,89 @@ private: // QAbstractItemModel
 		return 2;
 	}
 
+	QVariant data(const QModelIndex& index, const int role) const override
+	{
+		if (index.column() != SettingsItem::Column::Value)
+			return QIdentityProxyModel::data(index, role);
+
+		switch (role)
+		{
+			case Qt::DisplayRole:
+				if (const auto checked = GetChecked(index); !checked.has_value())
+					return checked.error();
+				return {};
+
+			case Qt::CheckStateRole:
+				if (const auto checked = GetChecked(index))
+					return *checked;
+				return {};
+
+			default:
+				break;
+		}
+
+		return QIdentityProxyModel::data(index, role);
+	}
+
+	bool setData(const QModelIndex& index, const QVariant& value, const int role) override
+	{
+		if (index.column() == SettingsItem::Column::Value)
+		{
+			switch (role)
+			{
+				case Qt::EditRole:
+					m_settings->Set(index.data(Role::Id).toString(), value);
+					QIdentityProxyModel::setData(index, value, Role::FirstItemColumn + SettingsItem::Column::Value);
+					emit dataChanged(index, index, { Qt::DisplayRole });
+					return true;
+
+				case Qt::CheckStateRole:
+				{
+					const auto checked = value.value<Qt::CheckState>() == Qt::Checked;
+					m_settings->Set(index.data(Role::Id).toString(), checked);
+					QIdentityProxyModel::setData(index, QString(checked ? "true" : "false"), Role::FirstItemColumn + SettingsItem::Column::Value);
+					emit dataChanged(index, index, { Qt::CheckStateRole });
+					return true;
+				}
+
+				default:
+					break;
+			}
+		}
+
+		assert(false && "unexpected column or role");
+		return false;
+	}
+
+	Qt::ItemFlags flags(const QModelIndex& index) const override
+	{
+		auto result = QIdentityProxyModel::flags(index);
+		if (index.column() == 0)
+			return result;
+
+		result |= Qt::ItemIsEnabled | Qt::ItemIsSelectable;
+		result |= GetChecked(index) ? Qt::ItemIsUserCheckable : Qt::ItemIsEditable;
+
+		return result;
+	}
+
+private:
+	std::expected<Qt::CheckState, QString> GetChecked(const QModelIndex& index) const
+	{
+		const auto value = mapToSource(index).data(Qt::DisplayRole).toString();
+		return value == "true" ? std::expected<Qt::CheckState, QString> { Qt::Checked } : value == "false" ? std::expected<Qt::CheckState, QString> { Qt::Unchecked } : std::unexpected(value);
+	}
+
 private:
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr> m_source;
+	PropagateConstPtr<ISettings, std::shared_ptr>          m_settings;
 };
 
 } // namespace
 
 class SettingsDialog::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -113,7 +198,7 @@ public:
 		, GeometryRestorableObserver(self)
 		, m_self { self }
 		, m_settings { std::move(settings) }
-		, m_model { Model::Create(modelProvider, *m_settings, dataItemFactory) }
+		, m_model { Model::Create(modelProvider, m_settings, dataItemFactory) }
 		, m_itemViewToolTipper { std::move(itemViewToolTipper) }
 		, m_scrollBarController { std::move(scrollBarController) }
 	{

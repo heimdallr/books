@@ -7,7 +7,6 @@
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
-#include <QPixmap>
 #include <QTimer>
 
 #include "fnd/EnumBitmask.h"
@@ -38,8 +37,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT           = "Annotation";
 constexpr auto KEYWORDS_FB2      = QT_TRANSLATE_NOOP("Annotation", "Keywords: %1");
@@ -288,11 +286,11 @@ void SortReviews(IAnnotationController::IDataProvider::Reviews& reviews)
 }
 
 constexpr std::pair<const char*, void (*)(IAnnotationController::IDataProvider::Reviews&)> REVIEW_SORTERS[] {
-	{		 "Time",    &SortReviews<std::less<QDateTime>, TimeProj<IAnnotationController::IDataProvider::Review>> },
+	{         "Time",    &SortReviews<std::less<QDateTime>, TimeProj<IAnnotationController::IDataProvider::Review>> },
 	{     "TimeDesc", &SortReviews<std::greater<QDateTime>, TimeProj<IAnnotationController::IDataProvider::Review>> },
 	{     "Reviewer",      &SortReviews<std::less<QString>, NameProj<IAnnotationController::IDataProvider::Review>> },
 	{ "ReviewerDesc",   &SortReviews<std::greater<QString>, NameProj<IAnnotationController::IDataProvider::Review>> },
-	{		 "Text",      &SortReviews<std::less<QString>, TextProj<IAnnotationController::IDataProvider::Review>> },
+	{         "Text",      &SortReviews<std::less<QString>, TextProj<IAnnotationController::IDataProvider::Review>> },
 	{     "TextDesc",   &SortReviews<std::greater<QString>, TextProj<IAnnotationController::IDataProvider::Review>> },
 };
 constexpr auto REVIEW_SORTER_DEFAULT = REVIEW_SORTERS[0].second;
@@ -302,11 +300,11 @@ constexpr auto REVIEW_SORTER_DEFAULT = REVIEW_SORTERS[0].second;
 ENABLE_BITMASK_OPERATORS(Ready);
 
 class AnnotationController::Impl final
-	: public Observable<IObserver>
-	, public IDataProvider
-	, IProgressController::IObserver
-	, IJokeRequester::IClient
-	, IFilterProvider::IObserver
+    : public Observable<IObserver>
+    , public IDataProvider
+    , IProgressController::IObserver
+    , IJokeRequester::IClient
+    , IFilterProvider::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -424,7 +422,7 @@ private: // IDataProvider
 
 	[[nodiscard]] const QString& GetAnnotation() const noexcept override
 	{
-		return m_archiveData.annotation;
+		return m_annotation.isEmpty() ? m_archiveData.annotation : m_annotation;
 	}
 
 	[[nodiscard]] const QString& GetEpigraph() const noexcept override
@@ -571,7 +569,7 @@ private:
 
 		m_databaseUser->Execute(
 			{ "Get database book info",
-		      [&, db = std::move(db), id = m_currentBookId.toLongLong()] {
+			  [&, db = std::move(db), id = m_currentBookId.toLongLong()] {
 				  return [this, book = CreateBook(*db, id)](size_t) mutable {
 					  if (book->GetId() == m_currentBookId)
 						  ExtractInfo(std::move(book));
@@ -617,7 +615,7 @@ private:
 	{
 		m_databaseUser->Execute(
 			{ "Get database book additional info",
-		      [this, book = std::move(book)]() mutable {
+			  [this, book = std::move(book)]() mutable {
 				  const auto db       = m_databaseUser->Database();
 				  const auto bookId   = book->GetId().toLongLong();
 				  auto       series   = CreateDictionary(*db, std::format(SERIES_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSeriesItem);
@@ -638,12 +636,15 @@ private:
 					  std::ranges::move(exportStatisticsBuffer, std::back_inserter(exportStatistics));
 				  }
 
-				  QString sourceLib = [&] {
-					  const auto query = db->CreateQuery("select b.SourceLib from Books b where b.BookID = ?");
+				  const auto singleQuery = [&](const std::string_view queryText) -> QString {
+					  const auto query = db->CreateQuery(queryText);
 					  query->Bind(0, bookId);
 					  query->Execute();
 					  return query->Eof() ? QString {} : QString { query->Get<const char*>(0) };
-				  }();
+				  };
+
+				  auto sourceLib  = singleQuery("select b.SourceLib from Books b where b.BookID = ?");
+				  auto annotation = singleQuery("select Text from Annotations where BookID = ?");
 
 				  if (!IsOneOf(m_navigationMode, NavigationMode::Unknown, NavigationMode::History))
 				  {
@@ -658,17 +659,18 @@ private:
 				  }
 
 				  return [this,
-			              book             = std::move(book),
-			              series           = std::move(series),
-			              authors          = std::move(authors),
-			              genres           = std::move(genres),
-			              groups           = std::move(groups),
-			              keywords         = std::move(keywords),
-			              exportStatistics = std::move(exportStatistics),
-			              folder           = std::move(folder),
-			              update           = std::move(update),
-			              sourceLib        = std::move(sourceLib),
-			              reviews          = CollectReviews(*db, bookId)](size_t) mutable {
+				          book             = std::move(book),
+				          series           = std::move(series),
+				          authors          = std::move(authors),
+				          genres           = std::move(genres),
+				          groups           = std::move(groups),
+				          keywords         = std::move(keywords),
+				          exportStatistics = std::move(exportStatistics),
+				          folder           = std::move(folder),
+				          update           = std::move(update),
+				          sourceLib        = std::move(sourceLib),
+				          annotation       = std::move(annotation),
+				          reviews          = CollectReviews(*db, bookId)](size_t) mutable {
 					  if (book->GetId() != m_currentBookId)
 						  return;
 
@@ -682,6 +684,7 @@ private:
 					  m_folder            = std::move(folder);
 					  m_update            = std::move(update);
 					  m_sourceLib         = std::move(sourceLib);
+					  m_annotation        = std::move(annotation);
 					  m_reviews           = std::move(reviews);
 					  m_ready            |= Ready::Database;
 
@@ -813,6 +816,7 @@ private:
 	IDataItem::Ptr m_folder;
 	IDataItem::Ptr m_update;
 	QString        m_sourceLib;
+	QString        m_annotation;
 
 	ExportStatistics m_exportStatistics;
 	Reviews          m_reviews;

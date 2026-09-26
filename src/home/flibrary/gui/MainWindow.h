@@ -32,12 +32,11 @@
 #include "LogItemDelegate.h"
 #include "ProgressBar.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class MainWindow final
-	: public QMainWindow
-	, virtual public IMainWindow
+    : public QMainWindow
+    , virtual public IMainWindow
 {
 	Q_OBJECT
 	NON_COPY_MOVABLE(MainWindow)

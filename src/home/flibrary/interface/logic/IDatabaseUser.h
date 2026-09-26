@@ -6,16 +6,14 @@
 
 #include "export/flint.h"
 
-namespace HomeCompa::DB
-{
+namespace HomeCompa::DB {
 
 class IDatabase;
 class IQuery;
 
-}
+} // namespace HomeCompa::DB
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IDatabaseUser // NOLINT(cppcoreguidelines-special-member-functions)
 {

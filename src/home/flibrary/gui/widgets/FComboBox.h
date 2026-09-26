@@ -2,8 +2,7 @@
 
 #include <QComboBox>
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class FComboBox : public QComboBox
 {

@@ -11,8 +11,7 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
 class NoSqlRequester final : virtual public INoSqlRequester
 {
@@ -40,4 +39,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Opds

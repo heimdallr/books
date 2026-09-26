@@ -5,8 +5,7 @@
 
 #include "interface/logic/INavigationUndoRedo.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class NavigationUndoRedo final : public INavigationUndoRedo
 {

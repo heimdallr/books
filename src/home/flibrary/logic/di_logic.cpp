@@ -54,8 +54,7 @@
 
 #include "config/version.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermic::Container>& container)
 {
@@ -146,8 +145,8 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 		.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) {
 			const auto settings = ctx.resolve<ISettings>();
 			return settings->Get(Constant::Settings::PREFER_LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT
-		             ? std::shared_ptr<AbstractLibRateProvider> { ctx.resolve<LibRateProviderSimple>() }
-		             : std::shared_ptr<AbstractLibRateProvider> { ctx.resolve<LibRateProviderDouble>() };
+			         ? std::shared_ptr<AbstractLibRateProvider> { ctx.resolve<LibRateProviderSimple>() }
+			         : std::shared_ptr<AbstractLibRateProvider> { ctx.resolve<LibRateProviderDouble>() };
 		})
 		.as<ILibRateProvider>()
 		.singleInstance();
@@ -162,7 +161,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder
 		.registerInstanceFactory([](Hypodermic::ComponentContext&) -> std::shared_ptr<SettingsFactory::AbstractSettings> {
 			return Util::GetInstallerDescription().type == Util::InstallerType::portable ? SettingsFactory::Create(QString("%1/%2.ini").arg(QCoreApplication::applicationDirPath()).arg(PRODUCT_ID))
-		                                                                                 : SettingsFactory::Create(COMPANY_ID, PRODUCT_ID);
+			                                                                             : SettingsFactory::Create(COMPANY_ID, PRODUCT_ID);
 		})
 		.as<ISettings>()
 		.singleInstance();

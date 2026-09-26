@@ -19,8 +19,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 using Role = IModel::Role;
 
@@ -69,10 +68,10 @@ void SetModelData(QAbstractItemModel& model, const int role, const QVariant& val
 } // namespace
 
 class CollectionCleaner::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
-	, ICollectionCleaner::IAnalyzeObserver
-	, ISettingsObserver
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
+    , ICollectionCleaner::IAnalyzeObserver
+    , ISettingsObserver
 {
 	NON_COPY_MOVABLE(Impl)
 

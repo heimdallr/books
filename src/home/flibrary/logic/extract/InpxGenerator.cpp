@@ -30,8 +30,7 @@
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 using Genres = std::unordered_map<QString, QString>;
 

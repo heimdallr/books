@@ -15,8 +15,7 @@
 #include "ProgressBar.h"
 #include "StackedPage.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ImageViewer final : public StackedPage
 {
@@ -44,4 +43,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

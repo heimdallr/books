@@ -1,15 +1,14 @@
 ﻿#pragma once
 
-namespace HomeCompa::Flibrary::ExportStat
-{
+namespace HomeCompa::Flibrary::ExportStat {
 
 constexpr auto INSERT_QUERY = "insert into Export_List_User(BookID, ExportType, CreatedAt) values(?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
 
-#define EXPORT_STAT_TYPE_ITEMS_X_MACRO \
-	EXPORT_STAT_TYPE_ITEM(Read)        \
-	EXPORT_STAT_TYPE_ITEM(AsIs)        \
-	EXPORT_STAT_TYPE_ITEM(Archive)     \
-	EXPORT_STAT_TYPE_ITEM(Script)      \
+#define EXPORT_STAT_TYPE_ITEMS_X_MACRO                                                                                                                                                                         \
+	EXPORT_STAT_TYPE_ITEM(Read)                                                                                                                                                                                \
+	EXPORT_STAT_TYPE_ITEM(AsIs)                                                                                                                                                                                \
+	EXPORT_STAT_TYPE_ITEM(Archive)                                                                                                                                                                             \
+	EXPORT_STAT_TYPE_ITEM(Script)                                                                                                                                                                              \
 	EXPORT_STAT_TYPE_ITEM(Unpack)
 
 enum class Type

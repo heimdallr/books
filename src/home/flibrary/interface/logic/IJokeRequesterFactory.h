@@ -5,27 +5,25 @@
 
 #include <QString>
 
-namespace HomeCompa::Network
-{
+namespace HomeCompa::Network {
 
 class Downloader;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
-#define JOKE_REQUESTER_IMPL_ITEMS_X_MACRO    \
-	JOKE_REQUESTER_IMPL_ITEM(ChuckNorris)    \
-	JOKE_REQUESTER_IMPL_ITEM(CatFact)        \
-	JOKE_REQUESTER_IMPL_ITEM(UselessFact)    \
-	JOKE_REQUESTER_IMPL_ITEM(Dad)            \
-	JOKE_REQUESTER_IMPL_ITEM(SetupPunchline) \
-	JOKE_REQUESTER_IMPL_ITEM(JokeApi)        \
-	JOKE_REQUESTER_IMPL_ITEM(Quote)          \
-	JOKE_REQUESTER_IMPL_ITEM(QuotePic)       \
-	JOKE_REQUESTER_IMPL_ITEM(CatPics)        \
-	JOKE_REQUESTER_IMPL_ITEM(DogPics)        \
+#define JOKE_REQUESTER_IMPL_ITEMS_X_MACRO                                                                                                                                                                      \
+	JOKE_REQUESTER_IMPL_ITEM(ChuckNorris)                                                                                                                                                                      \
+	JOKE_REQUESTER_IMPL_ITEM(CatFact)                                                                                                                                                                          \
+	JOKE_REQUESTER_IMPL_ITEM(UselessFact)                                                                                                                                                                      \
+	JOKE_REQUESTER_IMPL_ITEM(Dad)                                                                                                                                                                              \
+	JOKE_REQUESTER_IMPL_ITEM(SetupPunchline)                                                                                                                                                                   \
+	JOKE_REQUESTER_IMPL_ITEM(JokeApi)                                                                                                                                                                          \
+	JOKE_REQUESTER_IMPL_ITEM(Quote)                                                                                                                                                                            \
+	JOKE_REQUESTER_IMPL_ITEM(QuotePic)                                                                                                                                                                         \
+	JOKE_REQUESTER_IMPL_ITEM(CatPics)                                                                                                                                                                          \
+	JOKE_REQUESTER_IMPL_ITEM(DogPics)                                                                                                                                                                          \
 	JOKE_REQUESTER_IMPL_ITEM(FoxPics)
 
 class IJokeRequesterFactory // NOLINT(cppcoreguidelines-special-member-functions)

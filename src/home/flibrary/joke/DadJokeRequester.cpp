@@ -6,8 +6,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT = "JokeRequester";
 constexpr auto PREFIX  = QT_TRANSLATE_NOOP("JokeRequester", "From dad");
@@ -21,7 +20,7 @@ Network::Headers GetHeaders()
 	return headers;
 }
 
-}
+} // namespace
 
 DadJokeRequester::DadJokeRequester(const std::shared_ptr<const IJokeRequesterFactory>& jokeRequesterFactory)
 	: SimpleJokeRequester(jokeRequesterFactory->GetDownloader(), "https://icanhazdadjoke.com/", "joke", Tr(PREFIX), GetHeaders())

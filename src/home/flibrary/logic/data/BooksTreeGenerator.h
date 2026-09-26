@@ -7,23 +7,20 @@
 
 #include "DataItem.h"
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 
 }
 
-namespace HomeCompa::DB
-{
+namespace HomeCompa::DB {
 
 class IQuery;
 class IDatabase;
 
-}
+} // namespace HomeCompa::DB
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IFilterProvider;
 struct Collection;
@@ -81,9 +78,9 @@ using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query);
 
 struct QueryClause
 {
-	using WithGetter = QString (*)(const ISettings& settings, const QString& id);
+	using WithGetter = QString (*)(DB::IDatabase& db, const ISettings& settings, const QString& id);
 
-	static QString GetWithStub(const ISettings&, const QString&)
+	static QString GetWithStub(DB::IDatabase&, const ISettings&, const QString&)
 	{
 		return {};
 	}
@@ -122,9 +119,9 @@ struct QueryDescription
 };
 
 class BooksTreeGenerator final
-	: public IBooksRootGenerator
-	, IBooksListCreator
-	, IBooksTreeCreator
+    : public IBooksRootGenerator
+    , IBooksListCreator
+    , IBooksTreeCreator
 {
 	NON_COPY_MOVABLE(BooksTreeGenerator)
 

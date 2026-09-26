@@ -18,15 +18,13 @@ class QMenuBar;
 class QShortcut;
 class QTreeView;
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IUiFactory : virtual public Util::IUiFactory // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -64,6 +62,9 @@ public:
 	[[nodiscard]] virtual std::pair<IDataItem::Ptr, QObject*> AddComboBoxToMenuCustomizer(const QString& rootKey, QComboBox& comboBox, const QString& title, const MenuCustomizeFunctor& functor) const = 0;
 	[[nodiscard]] virtual IMenuCustomizer::IItem::Ptr         CreateMenuCustomizerItem(IDataItem::Ptr, IMenuCustomizer::IObserver& observer) const                                                      = 0;
 	[[nodiscard]] virtual IMenuCustomizer::IItem::Ptr         CreateMenuCustomizerItem(QString key) const                                                                                               = 0;
+
+	virtual void SaveMenuCustomizerSettings() const = 0;
+	virtual bool LoadMenuCustomizerSettings() const = 0;
 
 	[[nodiscard]] virtual QWidget* CreateFastFilterWidget(const QAbstractItemModel& model, int column, std::function<void(bool, QVariantList)> callback) const = 0;
 	[[nodiscard]] virtual QWidget* CreateChangeSizeWidget(int current, int minimum, int maximum, IChangeSizeWidgetObserver* observer) const                    = 0;

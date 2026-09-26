@@ -1,5 +1,7 @@
 #include "SearchController.h"
 
+#include "fnd/IsOneOf.h"
+
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -13,8 +15,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT               = "SearchController";
 constexpr auto INPUT_NEW_SEARCH      = QT_TRANSLATE_NOOP("SearchController", "Search books");
@@ -27,14 +28,19 @@ constexpr auto SEARCH_TOO_LONG       = QT_TRANSLATE_NOOP("SearchController", "Se
 constexpr auto SEARCH_ALREADY_EXISTS = QT_TRANSLATE_NOOP("SearchController", "Search query \"%1\" already exists.\nTry again?");
 
 constexpr auto REMOVE_SEARCH_QUERY = "delete from Searches_User where SearchId = ?";
-constexpr auto INSERT_SEARCH_QUERY = "insert into Searches_User(Title, CreatedAt) values(?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
+constexpr auto INSERT_SEARCH_QUERY = "insert into Searches_User(Origin, Title, CreatedAt) values(?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))";
 
 constexpr auto MINIMUM_SEARCH_LENGTH = 3;
 
 using Names = std::unordered_map<QString, long long>;
 
-QString GetSearchString(const QString& str)
+QString GetSearchString(QString str)
 {
+	str = str.toLower();
+	std::ranges::transform(str, str.begin(), [](const QChar ch) {
+		return IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit) ? ch : ' ';
+	});
+
 	auto splitted = str.split(' ', Qt::SkipEmptyParts);
 	std::ranges::transform(splitted, splitted.begin(), [](const QString& item) {
 		return item + "*";
@@ -46,7 +52,8 @@ long long CreateNewSearchImpl(DB::ITransaction& transaction, const QString& name
 {
 	assert(!name.isEmpty());
 	const auto command = transaction.CreateCommand(INSERT_SEARCH_QUERY);
-	command->Bind(0, GetSearchString(name).toStdString());
+	command->Bind(0, name);
+	command->Bind(1, GetSearchString(name).toStdString());
 	if (!command->Execute())
 		return 0;
 
@@ -61,19 +68,12 @@ TR_DEF
 
 struct SearchController::Impl
 {
-	std::shared_ptr<const IDatabaseUser>                         databaseUser;
-	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> navigationQueryExecutor;
-	std::shared_ptr<const IUiFactory>                            uiFactory;
-	const QString                                                currentCollectionId;
+	std::shared_ptr<const IDatabaseUser> databaseUser;
+	std::shared_ptr<const IUiFactory>    uiFactory;
+	const QString                        currentCollectionId;
 
-	explicit Impl(
-		const ICollectionController&              collectionController,
-		std::shared_ptr<const IDatabaseUser>      databaseUser,
-		std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor,
-		std::shared_ptr<const IUiFactory>         uiFactory
-	)
+	explicit Impl(const ICollectionController& collectionController, std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const IUiFactory> uiFactory)
 		: databaseUser { std::move(databaseUser) }
-		, navigationQueryExecutor { std::move(navigationQueryExecutor) }
 		, uiFactory { std::move(uiFactory) }
 		, currentCollectionId { collectionController.GetActiveCollectionId() }
 	{
@@ -81,16 +81,16 @@ struct SearchController::Impl
 
 	void GetAllSearches(std::function<void(const Names&)> callback) const
 	{
-		navigationQueryExecutor->RequestNavigation(NavigationMode::Search, [callback = std::move(callback)](NavigationMode, const IDataItem::Ptr& root) {
-			Names names;
-			for (size_t i = 0, sz = root->GetChildCount(); i < sz; ++i)
-			{
-				const auto  childPtr = root->GetChild(i);
-				const auto& child    = *childPtr;
-				names.try_emplace(child.GetData().toUpper(), child.GetId().toLongLong());
-			}
-			callback(names);
-		});
+		auto db = databaseUser->Database();
+		databaseUser->Execute({ "Get all searches", [db = std::move(db), callback = std::move(callback)]() mutable {
+								   Names      names;
+								   const auto query = db->CreateQuery("select SearchID, Title from Searches_User");
+								   for (query->Execute(); !query->Eof(); query->Next())
+									   names.try_emplace(query->Get<QString>(1).toUpper(), query->Get<long long>(0));
+								   return [names = std::move(names), callback = std::move(callback)](size_t) {
+									   callback(names);
+								   };
+							   } });
 	}
 
 	void CreateNewSearch(const Names& names, Callback callback)
@@ -166,13 +166,8 @@ struct SearchController::Impl
 	}
 };
 
-SearchController::SearchController(
-	const std::shared_ptr<const ICollectionController>& collectionController,
-	std::shared_ptr<IDatabaseUser>                      databaseUser,
-	std::shared_ptr<INavigationQueryExecutor>           navigationQueryExecutor,
-	std::shared_ptr<IUiFactory>                         uiFactory
-)
-	: m_impl(*collectionController, std::move(databaseUser), std::move(navigationQueryExecutor), std::move(uiFactory))
+SearchController::SearchController(const std::shared_ptr<const ICollectionController>& collectionController, std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<IUiFactory> uiFactory)
+	: m_impl(*collectionController, std::move(databaseUser), std::move(uiFactory))
 {
 	PLOGV << "SearchController created";
 }

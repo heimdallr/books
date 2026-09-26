@@ -13,16 +13,14 @@
 
 class QTemporaryDir;
 
-namespace HomeCompa::DB
-{
+namespace HomeCompa::DB {
 
 class IDatabase;
 class ITransaction;
 
-}
+} // namespace HomeCompa::DB
 
-namespace HomeCompa::Inpx
-{
+namespace HomeCompa::Inpx {
 
 enum class CreateCollectionMode
 {

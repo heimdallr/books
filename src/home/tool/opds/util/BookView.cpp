@@ -9,11 +9,9 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Opds::BookView
-{
+namespace HomeCompa::Opds::BookView {
 
-namespace
-{
+namespace {
 
 constexpr auto DROP_BOOKS_VIEW   = "drop view if exists Books_View_Opds";
 constexpr auto CREATE_BOOKS_VIEW = R"(

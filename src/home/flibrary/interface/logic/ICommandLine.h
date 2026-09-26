@@ -2,8 +2,7 @@
 
 #include <filesystem>
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ICommandLine // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -12,4 +11,4 @@ public:
 	[[nodiscard]] virtual const std::filesystem::path& GetInpxDir() const noexcept = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

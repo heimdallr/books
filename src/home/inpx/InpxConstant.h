@@ -59,9 +59,9 @@ static constexpr IsDeletedUpdateArguments IS_DELETED_UPDATE_ARGS[] {
 	{ "Authors", "and l.AuthorID = Authors.AuthorID", "join Author_List l on l.BookID = t.id %1", "join Author_List l on l.BookID = b.BookID", "" },
 	{ "Folders", "and b.FolderID = Folders.FolderID", "join Books b on b.BookID = t.id %1", "", "" },
 	{
-     "Genres", "and l.GenreCode = Genres.GenreCode",
-     "join Books b on b.BookID = t.id join Genre_List l on  l.BookID = b.BookID %1", "join Genre_List l on l.BookID = b.BookID",
-     "and not exists (select 42 from Genres g where g.ParentCode = Genres.GenreCode)", },
+	 "Genres", "and l.GenreCode = Genres.GenreCode",
+	 "join Books b on b.BookID = t.id join Genre_List l on  l.BookID = b.BookID %1", "join Genre_List l on l.BookID = b.BookID",
+	 "and not exists (select 42 from Genres g where g.ParentCode = Genres.GenreCode)", },
 	{ "Groups_User", "and l.GroupID = Groups_User.GroupID", "join Groups_List_User_View l on l.BookID = t.id %1", "join Groups_List_User_View l on l.BookID = b.BookID", "" },
 	{ "Keywords", "and l.KeywordID = Keywords.KeywordID", "join Keyword_List l on l.BookID = t.id %1", "join Keyword_List l on l.BookID = b.BookID", "" },
 	{ "Series", "and l.SeriesID = Series.SeriesID", "join Series_List l on l.BookID = t.id %1", "join Series_List l on l.BookID = b.BookID", "" },

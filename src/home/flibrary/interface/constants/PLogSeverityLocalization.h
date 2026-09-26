@@ -5,8 +5,7 @@
 
 #include <plog/Severity.h>
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 static_assert(plog::Severity::none == 0);
 static_assert(plog::Severity::fatal == 1);
@@ -44,4 +43,4 @@ constexpr std::pair<const char*, QColor> SEVERITIES_DARK[] {
     {  VERB, QColor(0x60, 0x60, 0x60) },
 };
 
-}
+} // namespace HomeCompa::Flibrary

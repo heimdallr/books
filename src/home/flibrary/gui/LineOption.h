@@ -10,8 +10,7 @@
 class QLineEdit;
 class QString;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class LineOption final : virtual public ILineOption
 {
@@ -33,4 +32,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

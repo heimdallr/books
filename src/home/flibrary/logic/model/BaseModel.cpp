@@ -105,8 +105,8 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 		case Role::Remap:
 			return item->RemapColumn(index.column());
 
-#define BOOKS_COLUMN_ITEM(NAME) \
-	case Role::NAME:            \
+#define BOOKS_COLUMN_ITEM(NAME)                                                                                                                                                                                \
+	case Role::NAME:                                                                                                                                                                                           \
 		return GetValue(*item, BookItem::Column::NAME);
 			BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
@@ -133,6 +133,10 @@ bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const i
 
 			case Role::Flags:
 				return item->SetFlags(value.value<IDataItem::Flags>()), true;
+
+#define BOOKS_COLUMN_ITEM(NAME) case Role::NAME: item->SetData(value.toString(), role - Role::FirstItemColumn); return true;
+				BOOKS_COLUMN_ITEMS_X_MACRO
+#undef BOOKS_COLUMN_ITEM
 
 			default:
 				break;

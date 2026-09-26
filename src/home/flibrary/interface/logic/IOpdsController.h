@@ -4,8 +4,7 @@
 
 #include "fnd/observer.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IOpdsController // NOLINT(cppcoreguidelines-special-member-functions)
 {

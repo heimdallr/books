@@ -14,8 +14,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 QString GetFileHash(const std::set<QString>& fileNames)
 {
@@ -69,7 +68,7 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 	auto db = m_impl->databaseUser->Database();
 	m_impl->databaseUser->Execute(
 		{ "Check for collection index updated",
-	      [&, db = std::move(db), callback = std::move(callback)]() mutable {
+		  [&, db = std::move(db), callback = std::move(callback)]() mutable {
 			  std::function<void(size_t)> result;
 
 			  const auto& collection       = m_impl->collectionProvider->GetActiveCollection();

@@ -12,11 +12,9 @@
 
 #include "Server.h"
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
-namespace
-{
+namespace {
 
 class UiFactory final : public Flibrary::IUiFactory
 {
@@ -25,7 +23,7 @@ class UiFactory final : public Flibrary::IUiFactory
 		return {};
 	}
 
-	std::optional<QFont> GetFont(const QString& /*title*/, const QFont& /*font*/, const QFontDialog::FontDialogOptions& /*options*/) const override
+	std::shared_ptr<QFont> GetFont(const QString& /*title*/, const QFont& /*font*/, const QFontDialog::FontDialogOptions& /*options*/) const override
 	{
 		return {};
 	}
@@ -234,6 +232,15 @@ private: // IUiFactory
 	Flibrary::IMenuCustomizer::IItem::Ptr CreateMenuCustomizerItem(QString /*key*/) const override
 	{
 		return {};
+	}
+
+	void SaveMenuCustomizerSettings() const override
+	{
+	}
+
+	bool LoadMenuCustomizerSettings() const override
+	{
+		return false;
 	}
 
 public: // special

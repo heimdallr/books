@@ -20,8 +20,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 using Role = IScriptController::RoleBase;
 
@@ -86,8 +85,8 @@ using CommandSetter = void (*)(const std::vector<QWidget*>& widgets, IScriptCont
 constexpr std::pair<IScriptController::Command::Type, std::pair<CommandGetter, CommandSetter>> COMMAND_GETTERS[] {
 	{ IScriptController::Command::Type::LaunchConsoleApp,         { &FromLineEdit, &ToLineEdit } },
 	{     IScriptController::Command::Type::LaunchGuiApp,         { &FromLineEdit, &ToLineEdit } },
-	{		   IScriptController::Command::Type::System, { &FromComboBoxText, &ToComboBoxText } },
-	{		 IScriptController::Command::Type::Embedded, { &FromComboBoxData, &ToComboBoxData } },
+	{           IScriptController::Command::Type::System, { &FromComboBoxText, &ToComboBoxText } },
+	{         IScriptController::Command::Type::Embedded, { &FromComboBoxData, &ToComboBoxData } },
 };
 static_assert(std::size(COMMAND_GETTERS) == static_cast<size_t>(IScriptController::Command::Type::Last));
 
@@ -132,8 +131,8 @@ void SetupView(const QObject& parent, ISettings& settings, QTableView& view, QAb
 } // namespace
 
 class ScriptDialog::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
 {
 	NON_COPY_MOVABLE(Impl)
 

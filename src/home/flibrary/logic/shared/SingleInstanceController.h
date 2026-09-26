@@ -8,8 +8,7 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class SingleInstanceController final : virtual public ISingleInstanceController
 {
@@ -30,4 +29,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

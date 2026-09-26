@@ -3,8 +3,7 @@
 class QString;
 class QByteArray;
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
 class ICoverCache // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -15,4 +14,4 @@ public:
 	virtual QByteArray Get(const QString& id) const           = 0;
 };
 
-}
+} // namespace HomeCompa::Opds

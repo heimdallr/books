@@ -9,8 +9,7 @@
 
 #include "utilgui/ScrollBarController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class AuthorAnnotationWidget : public QFrame
 {
@@ -37,4 +36,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

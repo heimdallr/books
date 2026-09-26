@@ -17,8 +17,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto STARTUP_KEY = "FLibrary OPDS server";
 
@@ -27,7 +26,7 @@ QString GetOpdsPath()
 	return QCoreApplication::applicationDirPath() + "/opds";
 }
 
-}
+} // namespace
 
 struct OpdsController::Impl : Observable<IObserver>
 {

@@ -4,8 +4,7 @@
 
 #include "AbstractStyleApplier.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ColorSchemeApplier final : public AbstractStyleApplier
 {
@@ -22,4 +21,4 @@ private:
 	std::unique_ptr<Platform::DyLib> Set(QApplication&) const override;
 };
 
-}
+} // namespace HomeCompa::Flibrary

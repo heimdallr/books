@@ -11,8 +11,7 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
 class ReactAppRequester final : virtual public IReactAppRequester
 {
@@ -29,7 +28,7 @@ public:
 	~ReactAppRequester() override;
 
 private: // IReactAppRequester
-#define OPDS_GET_BOOKS_API_ITEM(NAME) QByteArray NAME(const Parameters& parameters) const override;
+#define OPDS_GET_BOOKS_API_ITEM(NAME) QByteArray NAME(const Parameters &parameters) const override;
 	OPDS_GET_BOOKS_API_ITEMS_X_MACRO
 #undef OPDS_GET_BOOKS_API_ITEM
 
@@ -38,4 +37,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Opds

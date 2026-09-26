@@ -7,8 +7,7 @@
 #include "interface/logic/ICollectionUpdateChecker.h"
 #include "interface/logic/IDatabaseUser.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class CollectionUpdateChecker final : virtual public ICollectionUpdateChecker
 {
@@ -25,4 +24,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

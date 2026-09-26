@@ -17,8 +17,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto GENRES_SORT_MODE_KEY = "Preferences/GenresSortMode";
 
@@ -134,10 +133,10 @@ void Select<Genre>(DB::IQuery& query, const std::unordered_set<Genre::CodeType>&
 	translated.replace(',', QChar { 0x2E34 });
 	AllTreeItem<Genre> item {
 		Genre { .fb2Code = fb2Code,
-               .code    = query.Get<const char*>(0),
-               .name    = std::move(translated),
-               .removed = static_cast<bool>(query.Get<int>(6)),
-               .flags   = static_cast<IDataItem::Flags>(query.Get<int>(7)) },
+		       .code    = query.Get<const char*>(0),
+		       .name    = std::move(translated),
+		       .removed = static_cast<bool>(query.Get<int>(6)),
+		       .flags   = static_cast<IDataItem::Flags>(query.Get<int>(7)) },
 		query.Get<const char*>(2)
 	};
 	if (query.Get<int>(5) && (neededItems.empty() || neededItems.contains(std::get<0>(item).code)))

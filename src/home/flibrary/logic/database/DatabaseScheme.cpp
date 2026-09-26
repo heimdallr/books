@@ -15,11 +15,9 @@
 
 #include "log.h"
 
-namespace HomeCompa::Flibrary::DatabaseScheme
-{
+namespace HomeCompa::Flibrary::DatabaseScheme {
 
-namespace
-{
+namespace {
 
 constexpr auto CREATE_BOOKS_VIEW = R"(
 CREATE VIEW Books_View (
@@ -60,27 +58,27 @@ bool AddUserTableField(DB::ITransaction& transaction, const QString& table, cons
 /*
 long long GetNextID(DB::ITransaction& transaction)
 {
-	const auto query = transaction.CreateQuery(GET_MAX_ID_QUERY);
-	query->Execute();
-	assert(!query->Eof());
-	return query->Get<long long>(0);
+    const auto query = transaction.CreateQuery(GET_MAX_ID_QUERY);
+    query->Execute();
+    assert(!query->Eof());
+    return query->Get<long long>(0);
 }
 
 bool RecordsExists(DB::ITransaction& transaction, const std::string_view tableName, const std::string_view where = {})
 {
-	const auto query = transaction.CreateQuery(std::format("SELECT exists(SELECT 42 FROM {} {})", tableName, where));
-	query->Execute();
-	return query->Get<int>(0) != 0;
+    const auto query = transaction.CreateQuery(std::format("SELECT exists(SELECT 42 FROM {} {})", tableName, where));
+    query->Execute();
+    return query->Get<int>(0) != 0;
 }
 */
 void AddUserTables(DB::ITransaction& transaction)
 {
 	PLOGI << "Add tables";
 	static constexpr const char* commands[] { "DROP VIEW IF EXISTS Books_View",
-		                                      "CREATE INDEX IF NOT EXISTS IX_ExportListUser_ExportType_CreatedAt ON Export_List_User (ExportType, CreatedAt DESC)",
-		                                      "CREATE INDEX IF NOT EXISTS IX_Books_User_UserRate ON Books_User (UserRate)",
-		                                      CREATE_BOOKS_VIEW,
-		                                      "ANALYZE" };
+	                                          "CREATE INDEX IF NOT EXISTS IX_ExportListUser_ExportType_CreatedAt ON Export_List_User (ExportType, CreatedAt DESC)",
+	                                          "CREATE INDEX IF NOT EXISTS IX_Books_User_UserRate ON Books_User (UserRate)",
+	                                          CREATE_BOOKS_VIEW,
+	                                          "ANALYZE" };
 
 	AddUserTableField(transaction, "Genres", "GenreTitle", "VARCHAR (50)");
 
@@ -92,6 +90,7 @@ void AddTableFields(DB::ITransaction& transaction)
 {
 	PLOGI << "Add columns";
 	AddUserTableField(transaction, "Authors", "NickName", "VARCHAR(128)");
+	AddUserTableField(transaction, "Searches_User", "Origin", "VARCHAR(150)", { "CREATE INDEX IF NOT EXISTS IX_SearchUser_Origin ON Searches_User (Origin)" });
 }
 
 } // namespace
@@ -99,6 +98,7 @@ void AddTableFields(DB::ITransaction& transaction)
 void Update(DB::IDatabase& db, const ICollectionProvider& /*collectionProvider*/)
 {
 	const auto transaction = db.CreateTransaction();
+
 	AddUserTables(*transaction);
 	AddTableFields(*transaction);
 

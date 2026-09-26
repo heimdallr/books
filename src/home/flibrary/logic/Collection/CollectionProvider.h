@@ -8,8 +8,7 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 struct CollectionImpl;
 

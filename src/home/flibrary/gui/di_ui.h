@@ -4,16 +4,14 @@
 
 #include "export/gui.h"
 
-namespace Hypodermic
-{
+namespace Hypodermic {
 
 class Container;
 class ContainerBuilder;
 
-}
+} // namespace Hypodermic
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 GUI_EXPORT void DiUi(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermic::Container>& container);
 

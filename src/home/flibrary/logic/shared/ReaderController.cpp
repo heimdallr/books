@@ -32,8 +32,7 @@
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT                     = "ReaderController";
 constexpr auto DIALOG_TITLE                = QT_TRANSLATE_NOOP("ReaderController", "Select %1 reader");

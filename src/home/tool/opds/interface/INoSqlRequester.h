@@ -1,8 +1,7 @@
 #pragma once
 #include "IRequester.h"
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 
@@ -11,8 +10,7 @@ class ISettings;
 class QByteArray;
 class QString;
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
 class INoSqlRequester // NOLINT(cppcoreguidelines-special-member-functions)
 {

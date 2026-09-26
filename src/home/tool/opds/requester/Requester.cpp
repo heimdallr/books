@@ -38,24 +38,22 @@
 #include "log.h"
 #include "root.h"
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
-#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(const IPostProcessCallback& callback, QIODevice& stream, ContentType contentType, const IRequester::Parameters&, const ISettings&);
+#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(const IPostProcessCallback &callback, QIODevice &stream, ContentType contentType, const IRequester::Parameters &, const ISettings &);
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
-#define OPDS_REQUEST_ROOT_ITEM(NAME) std::unique_ptr<Flibrary::IAnnotationController::IStrategy> CreateAnnotationControllerStrategy_##NAME(const ISettings&);
+#define OPDS_REQUEST_ROOT_ITEM(NAME) std::unique_ptr<Flibrary::IAnnotationController::IStrategy> CreateAnnotationControllerStrategy_##NAME(const ISettings &);
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
-}
+} // namespace HomeCompa::Opds
 
 using namespace HomeCompa;
 using namespace Opds;
 
-namespace
-{
+namespace {
 
 constexpr std::pair<const char*, QByteArray (*)(const IPostProcessCallback&, QIODevice&, ContentType, const IRequester::Parameters&, const ISettings&)> POSTPROCESSORS[] {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &PostProcess_##NAME },
@@ -362,8 +360,8 @@ std::vector<Node> GetStandardNodes(QString id, QString title)
 {
 	return std::vector<Node> {
 		{ "updated", QDateTime::currentDateTime().toUTC().toString("yyyy-MM-ddThh:mm:ssZ") },
-		{      "id",														 std::move(id) },
-		{     TITLE,													  std::move(title) },
+		{      "id",                                                         std::move(id) },
+		{     TITLE,                                                      std::move(title) },
 	};
 }
 
@@ -378,7 +376,7 @@ Node& WriteEntry(Node::Children& children, const QString& root, const QString& p
 		entry.children.emplace_back(
 			"link",
 			QString {
-        },
+		},
 			Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
 		);
 	}
@@ -508,7 +506,7 @@ void WriteBookEntries(
 		entry.children.emplace_back(
 			"link",
 			QString {
-        },
+		},
 			Node::Attributes { { "href", QUrl(href).toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=acquisition" } }
 		);
 
@@ -561,34 +559,34 @@ Node GetHead(QString id, QString title, QString root, QString self)
 	standardNodes.emplace_back(
 		"link",
 		QString {
-    },
+	},
 		Node::Attributes { { "href", root }, { "rel", "start" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
 	);
 	standardNodes.emplace_back(
 		"link",
 		QString {
-    },
+	},
 		Node::Attributes { { "href", std::move(self) }, { "rel", "self" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
 	);
 	standardNodes.emplace_back(
 		"link",
 		QString {
-    },
+	},
 		Node::Attributes { { "href", QString("%1/opensearch").arg(root) }, { "rel", "search" }, { "type", "application/opensearchdescription+xml" } }
 	);
 	standardNodes.emplace_back(
 		"link",
 		QString {
-    },
+	},
 		Node::Attributes { { "href", QString("%1/search?q={searchTerms}").arg(root) }, { "rel", "search" }, { "type", "application/atom+xml" } }
 	);
 	return Node {
 		"feed",
 		{},
 		{
-          { "xmlns", "http://www.w3.org/2005/Atom" },
-          { "xmlns:dc", "http://purl.org/dc/terms/" },
-          { "xmlns:opds", "http://opds-spec.org/2010/catalog" },
+		  { "xmlns", "http://www.w3.org/2005/Atom" },
+		  { "xmlns:dc", "http://purl.org/dc/terms/" },
+		  { "xmlns:opds", "http://opds-spec.org/2010/catalog" },
 		  },
 		std::move(standardNodes)
 	};
@@ -753,7 +751,7 @@ Node SeparatedSearch(const QString& root, const IRequester::Parameters& paramete
 		entry.children.emplace_back(
 			"link",
 			QString {
-        },
+		},
 			Node::Attributes { { "href", url.toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
 		);
 	};
@@ -769,9 +767,9 @@ Node SeparatedSearch(const QString& root, const IRequester::Parameters& paramete
 } // namespace
 
 class Requester::Impl final
-	: public IPostProcessCallback
-	, INavigationProvider
-	, IQueryTextFilter
+    : public IPostProcessCallback
+    , INavigationProvider
+    , IQueryTextFilter
 {
 private: // IPostProcessCallback
 	QString GetFileName(const QString& bookId, const QString& profileTitle) const override
@@ -952,7 +950,7 @@ public:
 				entry.children.emplace_back(
 					"category",
 					QString {
-                },
+				},
 					Node::Attributes { { "term", title }, { "label", title } }
 				);
 			}
@@ -962,13 +960,13 @@ public:
 			entry.children.emplace_back(
 				"link",
 				QString {
-            },
+			},
 				Node::Attributes { { "href", QString("/Images/fb2/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/acquisition" }, { "type", QString("application/%1").arg(format) } }
 			);
 			entry.children.emplace_back(
 				"link",
 				QString {
-            },
+			},
 				Node::Attributes { { "href", QString("/Images/zip/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/acquisition" }, { "type", QString("application/%1+zip").arg(format) } }
 			);
 
@@ -977,18 +975,18 @@ public:
 				entry.children.emplace_back(
 					"link",
 					QString {
-                },
+				},
 					Node::Attributes { { "href", QString("/Images/covers/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/image" }, { "type", "image/jpeg" } }
 				);
 
 				entry.children.emplace_back(
 					"link",
 					QString {
-                },
+				},
 					Node::Attributes { { "href", QString("/Images/covers/%1").arg(book.GetId()) }, { "rel", "http://opds-spec.org/image/thumbnail" }, { "type", "image/jpeg" } }
 				);
 
-				m_coverCache->Set(book.GetId(), std::move(Util ::Recode(covers.front().bytes).first));
+				m_coverCache->Set(book.GetId(), std::move(Util::Recode(covers.front().bytes).first));
 			}
 		});
 
@@ -1078,7 +1076,7 @@ public:
 				entry.children.emplace_back(
 					"link",
 					QString {
-                },
+				},
 					Node::Attributes { { "href", url.toString(QUrl::FullyEncoded) }, { "rel", "subsection" }, { "type", "application/atom+xml;profile=opds-catalog;kind=navigation" } }
 				);
 			};
@@ -1299,7 +1297,7 @@ private:
 				{
 					{      ":starts", startsWithGlobal },
 					{ ":starts_like",   startsWithLike },
-            }
+			}
 			);
 		}
 		else
@@ -1353,7 +1351,7 @@ private:
 				queryText,
 				{
 					{ ":starts", s },
-            }
+			}
 			);
 		}
 
@@ -1386,8 +1384,7 @@ private:
 	std::shared_ptr<Flibrary::IAnnotationController>             m_annotationController;
 };
 
-namespace
-{
+namespace {
 
 } // namespace
 
@@ -1432,18 +1429,14 @@ QByteArray Requester::GetBookText(const QString& root, const Parameters& paramet
 	return m_impl->GetBookText(root, parameters);
 }
 
-#define OPDS_INVOKER_ITEM(NAME)                                                                                                                        \
-	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                                                           \
-	{                                                                                                                                                  \
-		return m_impl->GetImpl(&Impl::GetNavigation, ContentType::Navigation, std::cref(root), std::cref(parameters), Flibrary::NavigationMode::NAME); \
+#define OPDS_INVOKER_ITEM(NAME)                                                                                                                                                                                \
+	QByteArray Requester::Get##NAME(const QString &root, const Parameters &parameters) const {                                                                                                                 \
+		return m_impl->GetImpl(&Impl::GetNavigation, ContentType::Navigation, std::cref(root), std::cref(parameters), Flibrary::NavigationMode::NAME);                                                         \
 	}
 OPDS_NAVIGATION_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM
 
-#define OPDS_INVOKER_ITEM(NAME)                                                                              \
-	QByteArray Requester::Get##NAME(const QString& root, const Parameters& parameters) const                 \
-	{                                                                                                        \
-		return m_impl->GetImpl(&Impl::Get##NAME, ContentType::NAME, std::cref(root), std::cref(parameters)); \
-	}
+#define OPDS_INVOKER_ITEM(NAME)                                                                                                                                                                                \
+	QByteArray Requester::Get##NAME(const QString &root, const Parameters &parameters) const { return m_impl->GetImpl(&Impl::Get##NAME, ContentType::NAME, std::cref(root), std::cref(parameters)); }
 OPDS_ADDITIONAL_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM

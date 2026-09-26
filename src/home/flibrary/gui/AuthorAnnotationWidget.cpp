@@ -15,8 +15,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 void UpdateGallerySize(QTableView& view)
 {
@@ -54,8 +53,8 @@ struct GalleryHeightHandler final : QObject
 } // namespace
 
 class AuthorAnnotationWidget::Impl final
-	: IAuthorAnnotationController::IObserver
-	, QAbstractTableModel
+    : IAuthorAnnotationController::IObserver
+    , QAbstractTableModel
 {
 	NON_COPY_MOVABLE(Impl)
 

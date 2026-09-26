@@ -1,7 +1,6 @@
 #pragma once
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IMigrateWindow // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -11,4 +10,4 @@ public:
 	virtual void Show() = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

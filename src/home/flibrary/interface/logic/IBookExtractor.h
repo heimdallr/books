@@ -4,8 +4,7 @@
 
 class QString;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IBookExtractor // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -18,4 +17,4 @@ public:
 	virtual Util::ExtractedBook::Author GetExtractedBookAuthor(const QString& bookId) const = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

@@ -7,15 +7,13 @@
 
 #include "settings/ISettings.h"
 
-namespace Hypodermic
-{
+namespace Hypodermic {
 
 class Container;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class StyleApplierFactory : virtual public IStyleApplierFactory
 {
@@ -35,4 +33,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

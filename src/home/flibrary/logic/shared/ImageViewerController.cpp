@@ -21,9 +21,9 @@ using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
 class ImageViewerController::Impl final
-	: public QObject
-	, public IBookInfoProvider::IObserver
-	, public Observable<IObserver>
+    : public QObject
+    , public IBookInfoProvider::IObserver
+    , public Observable<IObserver>
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -75,7 +75,7 @@ public:
 	void RequestImage(const QModelIndex& index)
 	{
 		if (auto pixmap = m_imageModel->data(index, ImageModelRole::Image).value<QPixmap>(); !pixmap.isNull())
-			return Perform(&IImageViewerController::IObserver::OnImageReceived, std::move(pixmap));
+			return Perform(&IImageViewerController::IObserver::OnImageReceived, pixmap.toImage());
 
 		m_requestImage = index.row();
 		m_requestImageTimer->start();
@@ -118,7 +118,7 @@ private: // IBookInfoProvider::IObserver
 private:
 	void OnModelReset()
 	{
-		Perform(&IImageViewerController::IObserver::OnImageReceived, QPixmap {});
+		Perform(&IImageViewerController::IObserver::OnImageReceived, QImage {});
 	}
 
 	void OnModelDataChanged(const QModelIndex& topLeft, const QModelIndex& /*bottomRight*/, const QVector<int>& roles)

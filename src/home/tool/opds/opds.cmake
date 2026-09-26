@@ -9,7 +9,6 @@ AddTarget(opds	app
 		Boost::headers
 		Qt${QT_MAJOR_VERSION}::Concurrent
 		Qt${QT_MAJOR_VERSION}::Core
-		Qt${QT_MAJOR_VERSION}::Gui
 		Qt${QT_MAJOR_VERSION}::HttpServer
 		Qt${QT_MAJOR_VERSION}::Network
 	LINK_TARGETS

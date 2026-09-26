@@ -8,8 +8,7 @@
 #include "FilterModel.h"
 #include "ListModel.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class FilterListModel : public FilterModel<ListModel>
 {

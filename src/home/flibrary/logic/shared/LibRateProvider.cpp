@@ -28,8 +28,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 std::unordered_map<long long, double> ReadRates(const ISettings& settings, const ICollectionProvider& collectionProvider, const IDatabaseUser& databaseUser)
 {
@@ -68,7 +67,7 @@ std::unordered_map<long long, double> ReadRates(const ISettings& settings, const
 			auto obj = item.toObject();
 			return std::make_tuple(QString("%1#%2").arg(obj[Inpx::FOLDER].toString(), obj[Inpx::FILE].toString()), obj[Inpx::SUM].toDouble(0.0), obj[Inpx::COUNT].toInt(0));
 		}) | std::views::filter([](const auto& item) {
-			return std::get<1>(item) > 0.0 && std ::get<2>(item) > 0;
+			return std::get<1>(item) > 0.0 && std::get<2>(item) > 0;
 		}),
 		std::inserter(additionalRates, additionalRates.end()),
 		[](const auto& item) {

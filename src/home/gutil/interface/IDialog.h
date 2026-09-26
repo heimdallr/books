@@ -3,8 +3,7 @@
 #include <QtWidgets/QLineEdit>
 #include <QtWidgets/QMessageBox>
 
-namespace HomeCompa::Util
-{
+namespace HomeCompa::Util {
 
 struct DialogInitializer
 {
@@ -25,17 +24,15 @@ public:
 	[[nodiscard]] virtual QString GetText(const QString& title, const QString& label, const QString& text = {}, const QStringList& comboBoxItems = {}, QLineEdit::EchoMode mode = QLineEdit::Normal) const = 0;
 };
 
-#define STANDARD_DIALOG_ITEMS_X_MACRO \
-	STANDARD_DIALOG_ITEM(Error)       \
-	STANDARD_DIALOG_ITEM(Info)        \
-	STANDARD_DIALOG_ITEM(InputText)   \
-	STANDARD_DIALOG_ITEM(Question)    \
+#define STANDARD_DIALOG_ITEMS_X_MACRO                                                                                                                                                                          \
+	STANDARD_DIALOG_ITEM(Error)                                                                                                                                                                                \
+	STANDARD_DIALOG_ITEM(Info)                                                                                                                                                                                 \
+	STANDARD_DIALOG_ITEM(InputText)                                                                                                                                                                            \
+	STANDARD_DIALOG_ITEM(Question)                                                                                                                                                                             \
 	STANDARD_DIALOG_ITEM(Warning)
 
-#define STANDARD_DIALOG_ITEM(NAME)                 \
-	class I##NAME##Dialog : virtual public IDialog \
-	{                                              \
-	};
+#define STANDARD_DIALOG_ITEM(NAME)                                                                                                                                                                             \
+	class I##NAME##Dialog : virtual public IDialog {};
 STANDARD_DIALOG_ITEMS_X_MACRO
 #undef STANDARD_DIALOG_ITEM
 

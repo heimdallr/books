@@ -25,8 +25,7 @@
 using namespace HomeCompa::Opds;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 QByteArray Decompress(const QString& path, const QString& archive, const QString& fileName, const bool restoreImages, const ISettings& settings)
 {

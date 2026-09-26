@@ -22,8 +22,7 @@
 class QAbstractItemModel;
 class QModelIndex;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class BooksContextMenuProvider final
 {
@@ -56,4 +55,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

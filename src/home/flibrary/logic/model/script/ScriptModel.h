@@ -7,8 +7,7 @@
 
 #include "interface/logic/IScriptController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ScriptModel final : public QAbstractTableModel
 {

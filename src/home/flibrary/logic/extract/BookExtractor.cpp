@@ -17,8 +17,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto OPDS_TRANSLITERATE = "Preferences/opds/transliterate";
 
@@ -85,7 +84,12 @@ order by al.OrdNum, sl.OrdNum limit 1
 			.series    = query->Get<const char*>(3),
 			.seqNumber = query->Get<int>(4),
 			.title     = query->Get<const char*>(5),
-			.authorFull = { .firstName = query->Get<const char*>(6), .middleName = query->Get<const char*>(7), .lastName = query->Get<const char*>(8), },
+			.authorFull =
+				{
+							 .firstName  = query->Get<const char*>(6),
+							 .middleName = query->Get<const char*>(7),
+							 .lastName   = query->Get<const char*>(8),
+							 },
 		};
 
 		result.author = result.authorFull.lastName;

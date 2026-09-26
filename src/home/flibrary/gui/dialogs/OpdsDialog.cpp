@@ -16,8 +16,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto LABEL_LINK_TEMPLATE = R"(<a href="%1">%2</a>)";
 
@@ -30,12 +29,12 @@ constexpr auto OPDS                        = QT_TRANSLATE_NOOP("OpdsDialog", "OP
 constexpr auto WEB                         = QT_TRANSLATE_NOOP("OpdsDialog", "Simple web interface");
 TR_DEF
 
-}
+} // namespace
 
 struct OpdsDialog::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
-	, IOpdsController::IObserver
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
+    , IOpdsController::IObserver
 {
 	Ui::OpdsDialog                                      ui {};
 	QWidget&                                            self;
@@ -212,7 +211,7 @@ private:
 	void SetAuth()
 	{
 		ui.lineEditOpdsUser->text().isEmpty() ? settings->Remove(Constant::Settings::OPDS_AUTH)
-											  : (void)settings->Set(Constant::Settings::OPDS_AUTH, Util::GetSaltedHash(ui.lineEditOpdsUser->text(), ui.lineEditOpdsPassword->text()));
+		                                      : (void)settings->Set(Constant::Settings::OPDS_AUTH, Util::GetSaltedHash(ui.lineEditOpdsUser->text(), ui.lineEditOpdsPassword->text()));
 	}
 
 private:

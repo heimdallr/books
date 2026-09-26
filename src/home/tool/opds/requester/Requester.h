@@ -17,8 +17,7 @@
 
 class QIODevice;
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
 class Requester final : virtual public IRequester
 {
@@ -42,7 +41,7 @@ private: // IRequester
 	QByteArray Search(const QString& root, const Parameters& parameters) const override;
 	QByteArray GetBookText(const QString& root, const Parameters& parameters) const override;
 
-#define OPDS_INVOKER_ITEM(NAME) QByteArray Get##NAME(const QString& root, const Parameters& parameters) const override;
+#define OPDS_INVOKER_ITEM(NAME) QByteArray Get##NAME(const QString &root, const Parameters &parameters) const override;
 	OPDS_NAVIGATION_ITEMS_X_MACRO
 	OPDS_ADDITIONAL_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM

@@ -22,8 +22,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 struct BooksViewModeDescription
 {
@@ -46,7 +45,7 @@ void EnumerateBooks(IDataItem& parent, const F& functor)
 			EnumerateBooks(*child, functor);
 }
 
-}
+} // namespace
 
 class DataProvider::Impl final : public Observable<IBookInfoProvider::IObserver>
 {
@@ -176,15 +175,15 @@ private:
 
 		m_databaseUser->Execute(
 			{ "Get books",
-		      [this,
-		       navigationMode = m_navigationMode,
-		       navigationId   = m_navigationId,
-		       viewMode       = m_booksViewMode,
-		       generator      = std::move(m_booksGenerator),
-		       booksGeneratorReady,
-		       &description,
-		       &booksGenerator,
-		       &columnMapper]() mutable {
+			  [this,
+			   navigationMode = m_navigationMode,
+			   navigationId   = m_navigationId,
+			   viewMode       = m_booksViewMode,
+			   generator      = std::move(m_booksGenerator),
+			   booksGeneratorReady,
+			   &description,
+			   &booksGenerator,
+			   &columnMapper]() mutable {
 				  QString authorName;
 				  if (!booksGeneratorReady)
 				  {

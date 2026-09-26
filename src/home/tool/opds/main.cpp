@@ -1,6 +1,5 @@
 ﻿#include <QCommandLineParser>
 #include <QCoreApplication>
-#include <QGuiApplication>
 #include <QStandardPaths>
 #include <QTimer>
 #include <QTranslator>
@@ -38,8 +37,7 @@ using namespace HomeCompa;
 using namespace HomeCompa::Flibrary;
 using namespace Opds;
 
-namespace
-{
+namespace {
 
 constexpr auto APP_ID = "opds";
 constexpr auto NAME   = "name";
@@ -163,7 +161,11 @@ void SetCollection(const QCommandLineParser& parser, Hypodermic::Container& cont
 
 int run(int argc, char* argv[])
 {
-	QGuiApplication app(argc, argv);
+#ifdef Q_OS_LINUX
+	qputenv("QT_QPA_PLATFORM", "offscreen");
+#endif
+
+	QCoreApplication app(argc, argv);
 	QCoreApplication::setApplicationName(APP_ID);
 	QCoreApplication::setApplicationVersion(PRODUCT_VERSION);
 	Util::XMLPlatformInitializer xmlPlatformInitializer;
@@ -180,7 +182,7 @@ int run(int argc, char* argv[])
 			{ ADDITIONAL_FOLDER, "Additional data folder (optional)", ADDITIONAL_FOLDER },
 			{ INPX_PATH, "Index inpx file (optional)", INPX_PATH },
 			{ Constant::OPDS_SERVER_COMMAND_STOP, "Stop server" },
-    }
+	}
 	);
 	parser.process(app);
 

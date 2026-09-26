@@ -5,8 +5,7 @@
 
 #include "interface/logic/IOpdsController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class OpdsController final : public IOpdsController
 {

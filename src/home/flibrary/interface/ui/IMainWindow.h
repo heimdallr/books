@@ -1,8 +1,7 @@
 #pragma once
 #include "interface/logic/ISingleInstanceController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 struct Collection;
 
@@ -13,4 +12,4 @@ public:
 	virtual void Show()                                  = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

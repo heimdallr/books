@@ -16,8 +16,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto MIN_KEY     = "min";
 constexpr auto MAX_KEY     = "max";
@@ -33,7 +32,7 @@ std::pair<QDate, QDate> CreateFullRange(const QAbstractItemModel& model, const i
 	return std::make_pair(minVar.toDate(), maxVar.toDate());
 }
 
-}
+} // namespace
 
 class DateIntervalFilterWidget::Impl final : public QObject
 {
@@ -122,7 +121,7 @@ private:
 				   QJsonObject {
 					   { MIN_KEY, m_ui.from->selectedDate().toString(DATE_FORMAT) },
 					   { MAX_KEY,   m_ui.to->selectedDate().toString(DATE_FORMAT) },
-        }
+		}
 		)
 		    .toJson(QJsonDocument::Compact);
 	}

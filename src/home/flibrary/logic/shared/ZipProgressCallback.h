@@ -7,8 +7,7 @@
 
 #include "zip.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ZipProgressCallback final : public Zip::ProgressCallback
 {

@@ -10,8 +10,7 @@
 
 #include "logic/data/DataItem.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 struct Role
 {
@@ -27,7 +26,7 @@ struct Role
 		BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 
-	// global
+		// global
 #define BOOKS_COLUMN_ITEM(NAME) NAME##Filter,
 			BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
@@ -40,6 +39,7 @@ struct Role
 		CheckableColumn,
 		TextFilter,
 		ShowRemovedFilter,
+		ShowAlreadyReadFilter,
 		NavigationItemFiltered,
 		UniFilterEnabled,
 		UniFilterChanged,
@@ -64,6 +64,8 @@ struct Role
 		ModelSorter,
 		Last
 	};
+
+	inline static constexpr int FirstItemColumn = Author;
 };
 
 struct SelectedRequest

@@ -11,8 +11,7 @@
 #include "MigrateWindow.h"
 #include "UiFactory.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 void DiUi(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermic::Container>& container)
 {
@@ -37,4 +36,4 @@ void DiUi(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermi
 		.singleInstance();
 }
 
-}
+} // namespace HomeCompa::Flibrary

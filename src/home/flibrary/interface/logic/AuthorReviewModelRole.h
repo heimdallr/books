@@ -2,8 +2,7 @@
 
 #include <qnamespace.h>
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 struct AuthorReviewModelRole
 {
@@ -14,4 +13,4 @@ struct AuthorReviewModelRole
 	};
 };
 
-}
+} // namespace HomeCompa::Flibrary

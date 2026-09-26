@@ -18,8 +18,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 bool EmbeddedCommandDownload(const QString& argStr)
 {

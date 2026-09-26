@@ -8,8 +8,7 @@
 #include "FilterModel.h"
 #include "TreeModel.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class FilterTreeModel : public FilterModel<TreeModel>
 {

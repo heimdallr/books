@@ -6,8 +6,7 @@
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IModel.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class LanguageModel final : public ILanguageModel
 {
@@ -25,4 +24,4 @@ protected:
 	PropagateConstPtr<Model> m_model;
 };
 
-}
+} // namespace HomeCompa::Flibrary

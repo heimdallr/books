@@ -4,8 +4,7 @@
 #include <QSlider>
 #include <QStyle>
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class RangeSlider final : public QSlider
 {

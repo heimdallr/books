@@ -5,8 +5,7 @@
 
 #include "interface/ui/ITreeViewDelegate.h"
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 
@@ -16,8 +15,7 @@ class QAbstractScrollArea;
 class QString;
 class QVariant;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class TreeViewDelegateBooks final : public ITreeViewDelegate
 {

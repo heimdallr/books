@@ -15,15 +15,13 @@ class QComboBox;
 class QMenuBar;
 class QWidget;
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IMenuCustomizer // NOLINT(cppcoreguidelines-special-member-functions)
 {

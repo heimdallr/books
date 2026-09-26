@@ -4,15 +4,13 @@
 
 #include "IDataItem.h"
 
-namespace HomeCompa::DB
-{
+namespace HomeCompa::DB {
 
 class IDatabase;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 struct QueryDescription;
 enum class NavigationMode;
@@ -28,4 +26,4 @@ public:
 	virtual const QueryDescription& GetQueryDescription(NavigationMode navigationMode) const                                      = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

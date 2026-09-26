@@ -11,8 +11,7 @@
 #include "gutil/interface/IUiFactory.h"
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class UpdateChecker final : virtual public IUpdateChecker
 {
@@ -35,4 +34,4 @@ private:
 	std::shared_ptr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

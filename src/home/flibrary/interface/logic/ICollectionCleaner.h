@@ -4,8 +4,7 @@
 
 #include "util/BookUtil.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ICollectionCleaner // NOLINT(cppcoreguidelines-special-member-functions)
 {

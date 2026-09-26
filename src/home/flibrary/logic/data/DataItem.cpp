@@ -11,13 +11,12 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 const QString               EMPTY_STRING;
 constexpr BookItem::Mapping FULL { BookItem::ALL };
 
-}
+} // namespace
 
 DataItem::DataItem(const size_t columnCount, IDataItem* parent)
 	: m_parent(parent)
@@ -435,8 +434,7 @@ IDataItem::Ptr MenuItem::Clone() const
 	return std::make_shared<MenuItem>(*this);
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 QString GetAuthorFull(const IDataItem& author)
 {

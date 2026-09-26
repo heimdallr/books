@@ -9,15 +9,13 @@
 #include "interface/IServer.h"
 #include "interface/logic/ICollectionProvider.h"
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 
 }
 
-namespace HomeCompa::Opds
-{
+namespace HomeCompa::Opds {
 
 class Server : virtual public IServer
 {
@@ -38,4 +36,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Opds

@@ -6,8 +6,7 @@
 
 #include "interface/ui/IUiFactory.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ChangeSizeDialog final : public QWidget
 {
@@ -20,4 +19,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

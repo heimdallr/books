@@ -26,8 +26,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 class BooksSearchProxyModel final : public QIdentityProxyModel
 {

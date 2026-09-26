@@ -10,11 +10,9 @@
 
 #include "log.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
-namespace
-{
+namespace {
 
 constexpr auto NAME = "name";
 

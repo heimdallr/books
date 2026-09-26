@@ -11,8 +11,7 @@
 
 #include "data/DataItem.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ZipProgressCallback;
 

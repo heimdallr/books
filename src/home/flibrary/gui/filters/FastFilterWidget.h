@@ -5,24 +5,21 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-namespace HomeCompa::Util
-{
+namespace HomeCompa::Util {
 
 class ItemViewToolTipper;
 class ScrollBarController;
 
-}
+} // namespace HomeCompa::Util
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class IParentWidgetProvider;
 class ISettings;
 
-}
+} // namespace HomeCompa
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class FastFilterWidget final : public QWidget
 {
@@ -50,4 +47,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

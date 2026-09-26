@@ -2,8 +2,7 @@
 
 class QString;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IAddCollectionDialog // NOLINT(cppcoreguidelines-special-member-functions)
 {

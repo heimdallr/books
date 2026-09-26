@@ -6,8 +6,7 @@
 #include "interface/logic/IDatabaseChecker.h"
 #include "interface/logic/IDatabaseUser.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class DatabaseChecker final : virtual public IDatabaseChecker
 {
@@ -24,4 +23,4 @@ private:
 	std::shared_ptr<const IDatabaseUser> m_databaseUser;
 };
 
-}
+} // namespace HomeCompa::Flibrary

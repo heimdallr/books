@@ -18,8 +18,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 QVariantList ParserDefault(QVariant&& var)
 {
@@ -40,7 +39,7 @@ QVariantList ParserFormat(QVariant&& var)
 }
 
 constexpr std::pair<int, QVariantList (*)(QVariant&&)> PARSERS[] {
-#define ITEM(NAME) {Role::NAME, &Parser##NAME}
+#define ITEM(NAME) { Role::NAME, &Parser##NAME }
 	ITEM(Genre),
 	ITEM(Format),
 #undef ITEM
@@ -102,7 +101,7 @@ struct SortFilterProxyModel::Impl final : IModelSorter
 	QString                                                        filter;
 	std::vector<FastFilterItems>                                   fastFilter;
 	std::vector<bool (*)(const FastFilterItems&, const QVariant&)> fastFilterFunctor;
-	bool                                                           showRemoved { true };
+	bool                                                           showRemoved { true }, showAlreadyRead { true };
 	bool                                                           navigationFiltered { false };
 	bool                                                           uniFilterEnabled { false };
 	QVector<int>                                                   visibleColumns;
@@ -183,11 +182,15 @@ QVariant SortFilterProxyModel::data(const QModelIndex& index, const int role) co
 			case Role::TextFilter:
 				return m_impl->filter;
 
-#define BOOKS_COLUMN_ITEM(NAME) case Role::NAME##Filter: return QVariant::fromValue(&m_impl->fastFilter[BookItem::Column::NAME]);
+#define BOOKS_COLUMN_ITEM(NAME)                                                                                                                                                                                \
+	case Role::NAME##Filter:                                                                                                                                                                                   \
+		return QVariant::fromValue(&m_impl->fastFilter[BookItem::Column::NAME]);
 				BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 
-#define BOOKS_COLUMN_ITEM(NAME) case Role::NAME##sAll: return CollectAllValues(*sourceModel(), Role::NAME);
+#define BOOKS_COLUMN_ITEM(NAME)                                                                                                                                                                                \
+	case Role::NAME##sAll:                                                                                                                                                                                     \
+		return CollectAllValues(*sourceModel(), Role::NAME);
 				BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 
@@ -228,6 +231,9 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 		case Role::ShowRemovedFilter:
 			return setFilter(m_impl->showRemoved, value.toBool());
 
+		case Role::ShowAlreadyReadFilter:
+			return setFilter(m_impl->showAlreadyRead, value.toBool());
+
 		case Role::NavigationItemFiltered:
 			return setFilter(m_impl->navigationFiltered, value.toBool());
 
@@ -246,7 +252,9 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 		case Role::UniFilterMaximumRate:
 			return setFilter(m_impl->maximumRate, value.isValid() ? std::optional { value.toInt() } : std::nullopt);
 
-#define BOOKS_COLUMN_ITEM(NAME) case Role::NAME##Filter: return setFilter(m_impl->fastFilter[BookItem::Column::NAME], std::move(*value.value<FastFilterItems*>()));
+#define BOOKS_COLUMN_ITEM(NAME)                                                                                                                                                                                \
+	case Role::NAME##Filter:                                                                                                                                                                                   \
+		return setFilter(m_impl->fastFilter[BookItem::Column::NAME], std::move(*value.value<FastFilterItems *>()));
 			BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 
@@ -276,8 +284,8 @@ bool SortFilterProxyModel::filterAcceptsRow(const int sourceRow, const QModelInd
 {
 	const auto itemIndex = m_impl->sourceModel->index(sourceRow, 0, sourceParent);
 	assert(itemIndex.isValid());
-	return itemIndex.data(Role::ChildCount).toInt() == 0 && FilterAcceptsRemoved(itemIndex) && FilterAcceptsFlags(itemIndex) && FilterAcceptsFast(itemIndex) && FilterAcceptsText(itemIndex)
-	    && FilterAcceptsRate(itemIndex);
+	return itemIndex.data(Role::ChildCount).toInt() == 0 && FilterAcceptsRemoved(itemIndex) && FilterAcceptsAlreadyRead(itemIndex) && FilterAcceptsFlags(itemIndex) && FilterAcceptsFast(itemIndex)
+	    && FilterAcceptsText(itemIndex) && FilterAcceptsRate(itemIndex);
 }
 
 bool SortFilterProxyModel::lessThan(const QModelIndex& sourceLeft, const QModelIndex& sourceRight) const
@@ -334,6 +342,11 @@ bool SortFilterProxyModel::FilterAcceptsText(const QModelIndex& index) const
 bool SortFilterProxyModel::FilterAcceptsRemoved(const QModelIndex& index) const
 {
 	return m_impl->showRemoved || !index.data(Role::IsRemoved).toBool();
+}
+
+bool SortFilterProxyModel::FilterAcceptsAlreadyRead(const QModelIndex& index) const
+{
+	return m_impl->showAlreadyRead || index.data(Role::UserRate).toString().isEmpty();
 }
 
 bool SortFilterProxyModel::FilterAcceptsFlags(const QModelIndex& index) const

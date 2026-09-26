@@ -17,8 +17,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& collectionProvider, const bool readOnly)
 {
@@ -33,6 +32,8 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& col
 	auto       db               = Create(DB::Factory::Impl::Sqlite, connectionString);
 
 	db->CreateQuery("PRAGMA foreign_keys = ON;")->Execute();
+	db->CreateQuery("PRAGMA synchronous = NORMAL;")->Execute();
+	db->CreateQuery("PRAGMA cache_size = -10000;")->Execute();
 
 	{
 		const auto query = db->CreateQuery("select sqlite_version();");
@@ -61,8 +62,8 @@ std::unique_ptr<DB::IDatabase> CreateDatabaseImpl(const ICollectionProvider& col
 } // namespace
 
 class DatabaseController::Impl final
-	: ICollectionsObserver
-	, public Observable<IObserver>
+    : ICollectionsObserver
+    , public Observable<IObserver>
 {
 	NON_COPY_MOVABLE(Impl)
 

@@ -17,11 +17,7 @@
 
 #include "restore.h"
 
-namespace HomeCompa::Flibrary::UserData
-{
-
-namespace
-{
+namespace HomeCompa::Flibrary::UserData { namespace {
 
 struct Book
 {
@@ -30,25 +26,24 @@ struct Book
 	QString createdAt;
 
 	explicit Book(const Util::XmlAttributes& attributes)
-		: folder(attributes.GetAttribute(Constant::UserData::Books::Folder))
-		, fileName(attributes.GetAttribute(Constant::UserData::Books::FileName))
-		, createdAt(attributes.GetAttribute(Constant::UserData::Books::CreatedAt))
+		: folder { attributes.GetAttribute(Constant::UserData::Books::Folder).toString() }
+		, fileName { attributes.GetAttribute(Constant::UserData::Books::FileName).toString() }
+		, createdAt { attributes.GetAttribute(Constant::UserData::Books::CreatedAt).toString() }
 	{
 	}
 };
 
 using Books = std::vector<Book>;
 
-#define ADDITIONAL_BOOK_FIELDS_X_MACRO \
-	ADDITIONAL_BOOK_FIELD(IsDeleted)   \
-	ADDITIONAL_BOOK_FIELD(UserRate)    \
+#define ADDITIONAL_BOOK_FIELDS_X_MACRO                                                                                                                                                                         \
+	ADDITIONAL_BOOK_FIELD(IsDeleted)                                                                                                                                                                           \
+	ADDITIONAL_BOOK_FIELD(UserRate)                                                                                                                                                                            \
 	ADDITIONAL_BOOK_FIELD(CreatedAt)
 
 struct FieldNo
 {
 	enum
 	{
-
 #define ADDITIONAL_BOOK_FIELD(NAME) NAME,
 		ADDITIONAL_BOOK_FIELDS_X_MACRO
 #undef ADDITIONAL_BOOK_FIELD
@@ -73,7 +68,7 @@ class BooksRestorer final : virtual public IRestorer
 
 		explicit Item(const Util::XmlAttributes& attributes)
 			: Book(attributes)
-#define ADDITIONAL_BOOK_FIELD(NAME) , NAME(attributes.GetAttribute(Constant::UserData::Books::NAME))
+#define ADDITIONAL_BOOK_FIELD(NAME) , NAME(attributes.GetAttribute(Constant::UserData::Books::NAME).toString())
 				  ADDITIONAL_BOOK_FIELDS_X_MACRO
 #undef ADDITIONAL_BOOK_FIELD
 		{
@@ -209,8 +204,8 @@ private:
 	void AddGroup(const Util::XmlAttributes& attributes)
 	{
 		auto& item     = m_items.emplace_back();
-		item.title     = attributes.GetAttribute(Constant::TITLE);
-		item.createdAt = attributes.GetAttribute(Constant::UserData::Books::CreatedAt);
+		item.title     = attributes.GetAttribute(Constant::TITLE).toString();
+		item.createdAt = attributes.GetAttribute(Constant::UserData::Books::CreatedAt).toString();
 	}
 
 	void AddItem(const Util::XmlAttributes& attributes)
@@ -230,8 +225,8 @@ private: // IRestorer
 	{
 		assert(name == Constant::ITEM);
 		auto& item     = m_items.emplace_back();
-		item.title     = attributes.GetAttribute(Constant::TITLE);
-		item.createdAt = attributes.GetAttribute(Constant::UserData::Books::CreatedAt);
+		item.title     = attributes.GetAttribute(Constant::TITLE).toString();
+		item.createdAt = attributes.GetAttribute(Constant::UserData::Books::CreatedAt).toString();
 	}
 
 	void Restore(DB::IDatabase& db) const override
@@ -254,12 +249,9 @@ private:
 	std::vector<Created> m_items;
 };
 
-} // namespace
+}} // namespace HomeCompa::Flibrary::UserData
 
-} // namespace HomeCompa::Flibrary::UserData
-
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 std::unique_ptr<IRestorer> CreateBooksRestorer3()
 {
@@ -276,4 +268,4 @@ std::unique_ptr<IRestorer> CreateSearchesRestorer3()
 	return std::make_unique<SearchesRestorer>();
 }
 
-}
+} // namespace HomeCompa::Flibrary::UserData

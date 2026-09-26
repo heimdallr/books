@@ -20,8 +20,7 @@
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT     = "HotkeyManager";
 constexpr auto CANNOT_OPEN = QT_TRANSLATE_NOOP("HotkeyManager", "Cannot open '%1'");
@@ -45,8 +44,8 @@ QString RemoveAmp(QString str)
 } // namespace
 
 class MenuCustomizer::Impl final
-	: public QObject
-	, public Observable<IObserver>
+    : public QObject
+    , public Observable<IObserver>
 {
 	struct ObjToActions
 	{
@@ -240,8 +239,8 @@ public:
 		if (bytes.isEmpty())
 			return std::unexpected(Tr(FILE_EMPTY).arg(path));
 
-		if (const auto pixmap = Util::Decode(bytes); !pixmap.isNull())
-			return it->second->SetIcon(*m_settings, QVariant::fromValue(QIcon(pixmap)), bytes), std::expected<void, QString> {};
+		if (const auto image = Util::Decode(bytes); !image.isNull())
+			return it->second->SetIcon(*m_settings, QVariant::fromValue(QIcon(QPixmap::fromImage(image))), bytes), std::expected<void, QString> {};
 
 		return std::unexpected(Tr(BAD_IMAGE).arg(path));
 	}

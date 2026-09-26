@@ -13,8 +13,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT                        = "GroupController";
 constexpr auto INPUT_NEW_GROUP_NAME           = QT_TRANSLATE_NOOP("GroupController", "Input new group name");
@@ -161,7 +160,7 @@ struct GroupController::Impl
 										   });
 										   return any;
 									   }()
-									   && transaction->CreateCommand(REMOVE_FROM_GROUP_ALREADY_EXIST_BOOKS)->Execute() && transaction->Commit();
+			                           && transaction->CreateCommand(REMOVE_FROM_GROUP_ALREADY_EXIST_BOOKS)->Execute() && transaction->Commit();
 
 								   if (!ok)
 									   *errorMessage = Tr(CANNOT_ADD_BOOK_TO_GROUP);

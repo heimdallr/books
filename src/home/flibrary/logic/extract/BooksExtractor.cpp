@@ -1,6 +1,7 @@
 #include "BooksExtractor.h"
 
 #include <filesystem>
+#include <ranges>
 
 #include <QBuffer>
 #include <QTemporaryDir>
@@ -22,15 +23,14 @@
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 class IExportHelper // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	virtual ~IExportHelper()                                                                                         = default;
-	virtual void                                       CheckPath(std::filesystem::path& path)                        = 0;
-	virtual std::unique_ptr<const Util::ExtractedBook> GetMetadataReplacement(const Util::ExtractedBook& book) const = 0;
+	virtual ~IExportHelper()                                                                                             = default;
+	virtual void                                       CheckPath(std::filesystem::path& path, const std::string& suffix) = 0;
+	virtual std::unique_ptr<const Util::ExtractedBook> GetMetadataReplacement(const Util::ExtractedBook& book) const     = 0;
 };
 
 bool Write(const QByteArray& input, const std::filesystem::path& path)
@@ -114,7 +114,9 @@ std::pair<bool, std::filesystem::path> Write(
 
 	result.second = Platform::StringToPath(QDir::toNativeSeparators(book.dstFileName));
 
-	exportHelper.CheckPath(result.second);
+	const auto suffix = mode == WriteMode::Archive ? ".zip" : "";
+	exportHelper.CheckPath(result.second, suffix);
+	result.second.concat(suffix);
 
 	if (exists(result.second))
 		if (!remove(result.second))
@@ -127,7 +129,7 @@ std::pair<bool, std::filesystem::path> Write(
 			case WriteMode::AsIs:
 				return Write(bytes, result.second);
 			case WriteMode::Archive:
-				return Archive(bytes, result.second.concat(".zip"), dstFileInfo.completeBaseName() + "." + QFileInfo(book.file).suffix(), std::move(zipProgressCallback));
+				return Archive(bytes, result.second, dstFileInfo.completeBaseName() + "." + QFileInfo(book.file).suffix(), std::move(zipProgressCallback));
 			case WriteMode::Unpack:
 				return Unpack(bytes, result.second);
 			default: // NOLINT(clang-diagnostic-covered-switch-default)
@@ -203,8 +205,8 @@ using ProcessFunctor =
 } // namespace
 
 class BooksExtractor::Impl final
-	: virtual IExportHelper
-	, IProgressController::IObserver
+    : virtual IExportHelper
+    , IProgressController::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -286,10 +288,27 @@ public:
 	}
 
 private: // IExportHelper
-	void CheckPath(std::filesystem::path& path) override
+	void CheckPath(std::filesystem::path& path, const std::string& suffix) override
 	{
 		std::lock_guard lock(m_usedPathGuard);
-		if (m_usedPath.emplace(Platform::PathToString(path).toLower()).second)
+
+		const auto addSuffix = [&](std::filesystem::path src) {
+			src.concat(suffix);
+			src.make_preferred();
+			return Platform::PathToString(src).toLower();
+		};
+
+		std::ranges::transform(
+			std::filesystem::directory_iterator(path.parent_path()) | std::views::filter([](const auto& item) {
+				return item.is_regular_file();
+			}),
+			std::inserter(m_usedPath, m_usedPath.end()),
+			[&](const auto& item) {
+				return Platform::PathToString(item.path()).toLower();
+			}
+		);
+
+		if (m_usedPath.emplace(addSuffix(path)).second)
 			return;
 
 		const auto folder   = path.parent_path();
@@ -298,8 +317,7 @@ private: // IExportHelper
 		for (int i = 1;; ++i)
 		{
 			path = folder / (basePath + std::to_wstring(i).append(ext));
-			path.make_preferred();
-			if (m_usedPath.emplace(Platform::PathToString(path).toLower()).second)
+			if (m_usedPath.emplace(addSuffix(path)).second)
 				return;
 		}
 	}
@@ -404,7 +422,7 @@ void BooksExtractor::ExtractAsArchives(QString folder, const QString& /*paramete
 		std::move(callback),
 		ExportStat::Type::Archive,
 		[this,
-	     zipProgressCallback = std::move(
+		 zipProgressCallback = std::move(
 			 zipProgressCallback
 		 )](const std::filesystem::path& archiveFolder, const QString& /*dstFolder*/, const Util::ExtractedBook& book, IProgressController::IProgressItem& progress, IExportHelper& exportHelper) mutable {
 			Process(m_impl->GetSettings(), archiveFolder, book, progress, std::move(zipProgressCallback), exportHelper, WriteMode::Archive);

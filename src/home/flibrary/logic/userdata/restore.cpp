@@ -18,8 +18,7 @@
 
 #include "log.h"
 
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 enum class Check
 {
@@ -47,27 +46,26 @@ ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::UserData::Check);
 	RESTORE_ITEM(Searches, 1)   \
 	RESTORE_ITEM(Searches, 3)   \
 	RESTORE_ITEM(Searches, 5)   \
+	RESTORE_ITEM(Searches, 9)   \
 	RESTORE_ITEM(ExportStat, 4) \
 	RESTORE_ITEM(Filter, 8)
 
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 #define RESTORE_ITEM(NAME, VERSION) std::unique_ptr<IRestorer> Create##NAME##Restorer##VERSION();
 RESTORE_ITEMS_X_MACRO
 #undef RESTORE_ITEM
 
-namespace
-{
+namespace {
 
-constexpr auto FLIBRARY_BACKUP                       = "FlibraryBackup";
-constexpr auto FLIBRARY_BACKUP_VERSION               = "FlibraryBackup/FlibraryBackupVersion";
-constexpr auto FLIBRARY_BACKUP_USER_DATA             = "FlibraryBackup/FlibraryUserData";
-constexpr auto FLIBRARY_BACKUP_USER_DATA_BOOKS       = "FlibraryBackup/FlibraryUserData/Books";
-constexpr auto FLIBRARY_BACKUP_USER_DATA_GROUPS      = "FlibraryBackup/FlibraryUserData/Groups";
-constexpr auto FLIBRARY_BACKUP_USER_DATA_SEARCHES    = "FlibraryBackup/FlibraryUserData/Searches";
-constexpr auto FLIBRARY_BACKUP_USER_DATA_EXPORT_STAT = "FlibraryBackup/FlibraryUserData/ExportStat";
-constexpr auto FLIBRARY_BACKUP_USER_DATA_FILTER      = "FlibraryBackup/FlibraryUserData/Filter";
+constexpr auto FLIBRARY_BACKUP                       = u"FlibraryBackup";
+constexpr auto FLIBRARY_BACKUP_VERSION               = u"FlibraryBackup/FlibraryBackupVersion";
+constexpr auto FLIBRARY_BACKUP_USER_DATA             = u"FlibraryBackup/FlibraryUserData";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_BOOKS       = u"FlibraryBackup/FlibraryUserData/Books";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_GROUPS      = u"FlibraryBackup/FlibraryUserData/Groups";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_SEARCHES    = u"FlibraryBackup/FlibraryUserData/Searches";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_EXPORT_STAT = u"FlibraryBackup/FlibraryUserData/ExportStat";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_FILTER      = u"FlibraryBackup/FlibraryUserData/Filter";
 
 class XmlParser final : public Util::SaxParser
 {
@@ -111,13 +109,13 @@ public:
 	}
 
 private: // Util::SaxParser
-	bool OnStartElement(const QString& name, const QString& path, const Util::XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QStringView path, const Util::XmlAttributes& attributes) override
 	{
 		using ParseElementFunction = bool (XmlParser::*)(const QString&, const Util::XmlAttributes&);
-		using ParseElementItem     = std::pair<const char*, ParseElementFunction>;
+		using ParseElementItem     = std::pair<const char16_t*, ParseElementFunction>;
 		static constexpr ParseElementItem PARSERS[] {
-			{					   FLIBRARY_BACKUP,             &XmlParser::OnStartElementFlibraryBackup },
-			{			   FLIBRARY_BACKUP_VERSION,      &XmlParser::OnStartElementFlibraryBackupVersion },
+			{                       FLIBRARY_BACKUP,             &XmlParser::OnStartElementFlibraryBackup },
+			{               FLIBRARY_BACKUP_VERSION,      &XmlParser::OnStartElementFlibraryBackupVersion },
 			{             FLIBRARY_BACKUP_USER_DATA,     &XmlParser::OnStartElementFlibraryBackupUserData },
 			{       FLIBRARY_BACKUP_USER_DATA_BOOKS, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
 			{      FLIBRARY_BACKUP_USER_DATA_GROUPS, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
@@ -126,19 +124,19 @@ private: // Util::SaxParser
 			{      FLIBRARY_BACKUP_USER_DATA_FILTER, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
 		};
 
-		const auto result = Parse(*this, PARSERS, path, name, attributes);
+		const auto result = Parse(*this, PARSERS, path, name.toString(), attributes);
 		if (!IsLastItemProcessed())
-			m_restorers.back()->AddElement(name, attributes);
+			m_restorers.back()->AddElement(name.toString(), attributes);
 
 		return result;
 	}
 
-	bool OnEndElement(const QString& /*name*/, const QString& /*path*/) override
+	bool OnEndElement(QStringView /*name*/, QStringView /*path*/) override
 	{
 		return true;
 	}
 
-	bool OnCharacters(const QString& /*path*/, const QString& /*value*/) override
+	bool OnCharacters(QStringView /*path*/, QStringView /*value*/) override
 	{
 		return true;
 	}

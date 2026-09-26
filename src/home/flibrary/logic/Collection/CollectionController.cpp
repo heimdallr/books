@@ -26,8 +26,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr int MAX_OVERWRITE_CONFIRM_COUNT = 10;
 
@@ -225,7 +224,7 @@ public:
 				{    QMessageBox::ButtonRole::NoRole,  Tr(NO_WORD) },
 				{ QMessageBox::ButtonRole::ResetRole,  Tr(DISCARD) },
 				{ QMessageBox::ButtonRole::ApplyRole, Tr(RECREATE) },
-        },
+		},
 			QMessageBox::ButtonRole::YesRole
 		))
 		{
@@ -422,7 +421,7 @@ private:
 			m_uiFactory->ShowWarning(Tr(BAD_ARCHIVES_DETECTED).arg(updateResult.badFolders.join('\n')));
 
 		updateResult.folders == 0 ? m_uiFactory->ShowInfo(Tr(NO_UPDATES_FOUND))
-								  : m_uiFactory->ShowInfo(Tr(COLLECTION_UPDATE_RESULT)
+		                          : m_uiFactory->ShowInfo(Tr(COLLECTION_UPDATE_RESULT)
 		                                                      .arg(name)
 		                                                      .arg(Tr(action))
 		                                                      .arg(updateResult.folders)

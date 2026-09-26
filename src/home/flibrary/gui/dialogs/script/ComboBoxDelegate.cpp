@@ -6,8 +6,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 using Role = IScriptController::RoleBase;
 

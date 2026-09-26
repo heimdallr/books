@@ -16,8 +16,7 @@
 #include "ComboBoxDelegate.h"
 #include "ScriptNameDelegate.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ScriptDialog final : public QDialog
 {
@@ -35,7 +34,6 @@ public:
 		std::shared_ptr<Util::ItemViewToolTipper>     commandItemViewToolTipper,
 		std::shared_ptr<Util::ScrollBarController>    scriptScrollBarController,
 		std::shared_ptr<Util::ScrollBarController>    commandScrollBarController
-
 	);
 	~ScriptDialog() override;
 
@@ -44,4 +42,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

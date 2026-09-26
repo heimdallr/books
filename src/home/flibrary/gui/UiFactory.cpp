@@ -5,16 +5,21 @@
 #include <QDesktopServices>
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QJsonObject>
 #include <QMenuBar>
 #include <QShortcut>
 #include <QStackedWidget>
 #include <QToolTip>
 
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/ITransaction.h"
 
+#include "interface/constants/ProductConstant.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/ILogicFactory.h"
@@ -47,6 +52,7 @@
 #include "AuthorReview.h"
 #include "CollectionCleaner.h"
 #include "ImageViewer.h"
+#include "QtTypes.h"
 #include "QueryWindow.h"
 #include "TreeView.h"
 #include "log.h"
@@ -57,19 +63,25 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
-constexpr auto        CONTEXT                       = "Dialog";
-constexpr auto        ABOUT_TITLE                   = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
-constexpr auto        ABOUT_DESCRIPTION             = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger");
-constexpr auto        ABOUT_VERSION                 = QT_TRANSLATE_NOOP("Dialog", "Version: %1 (%2) %3");
-constexpr auto        ABOUT_LICENSE                 = QT_TRANSLATE_NOOP("Dialog", "Distributed under license %1");
-constexpr auto        PERSONAL_BUILD                = QT_TRANSLATE_NOOP("Dialog", "<p>Personal <a href='%1'>%2</a> build</p>");
-constexpr auto        VERSION_COPIED                = QT_TRANSLATE_NOOP("Dialog", "The program version has been copied to the clipboard");
-constexpr auto        CLEAR_RECENT_BOOKS            = QT_TRANSLATE_NOOP("Dialog", "Cleanup recent books list");
-constexpr auto        SELECT_IMAGE_BACKGROUND_COLOR = QT_TRANSLATE_NOOP("Dialog", "Specify the background color of the image");
-constexpr const char* COMPONENTS[]                  = {
+constexpr auto CONTEXT                       = "Dialog";
+constexpr auto ABOUT_TITLE                   = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
+constexpr auto ABOUT_DESCRIPTION             = QT_TRANSLATE_NOOP("Dialog", "Another e-library book cataloger");
+constexpr auto ABOUT_VERSION                 = QT_TRANSLATE_NOOP("Dialog", "Version: %1 (%2) %3");
+constexpr auto ABOUT_LICENSE                 = QT_TRANSLATE_NOOP("Dialog", "Distributed under license %1");
+constexpr auto PERSONAL_BUILD                = QT_TRANSLATE_NOOP("Dialog", "<p>Personal <a href='%1'>%2</a> build</p>");
+constexpr auto VERSION_COPIED                = QT_TRANSLATE_NOOP("Dialog", "The program version has been copied to the clipboard");
+constexpr auto CLEAR_RECENT_BOOKS            = QT_TRANSLATE_NOOP("Dialog", "Cleanup recent books list");
+constexpr auto SELECT_IMAGE_BACKGROUND_COLOR = QT_TRANSLATE_NOOP("Dialog", "Specify the background color of the image");
+constexpr auto SELECT_MENU_SETTINGS_FILE     = QT_TRANSLATE_NOOP("Dialog", "Select menu settings file");
+constexpr auto MENU_SETTINGS_FILE_FILTER     = QT_TRANSLATE_NOOP("Dialog", "Menu settings files (*.flimnu);;All files (*.*)");
+constexpr auto CANNOT_WRITE                  = QT_TRANSLATE_NOOP("Dialog", "Cannot write to '%1'");
+constexpr auto CANNOT_READ                   = QT_TRANSLATE_NOOP("Dialog", "Cannot read from '%1'");
+constexpr auto MENU_SETTINGS_SAVED_OK        = QT_TRANSLATE_NOOP("Dialog", "The menu settings have been successfully saved");
+constexpr auto MENU_SETTINGS_SAVED_FAILED    = QT_TRANSLATE_NOOP("Dialog", "An error occurred while saving the menu settings");
+
+constexpr const char* COMPONENTS[] = {
 	"<hr><table style='font-size:50%'>",
 	QT_TRANSLATE_NOOP("Dialog", "<tr><td style='text-align: center'>Components / Libraries</td></tr>"),
 	// ReSharper disable StringLiteralTypo
@@ -107,6 +119,7 @@ constexpr auto MENU_ITEM_DATETIME_FORMAT_KEY = "Preferences/RecentBooksMenu/Date
 constexpr auto MAX_MENU_ITEM_DEFAULT             = 16;
 constexpr auto MENU_ITEM_TITLE_FORMAT_DEFAULT    = "%author% \t %title%";
 constexpr auto MENU_ITEM_DATETIME_FORMAT_DEFAULT = "yyyy-MM-dd hh:mm:ss";
+constexpr auto MENU_SETTINGS_FILE_DIALOG_KEY     = "MenuSettings";
 
 constexpr auto MENU_CUSTOM_ROOT = "ui/MenuCustomization";
 constexpr auto HOTKEY           = "hotkey";
@@ -114,6 +127,9 @@ constexpr auto HIDDEN           = "hidden";
 constexpr auto TOOLBAR          = "toolbar";
 constexpr auto ICON             = "icon";
 constexpr auto TITLE            = "title";
+constexpr auto ID               = "id";
+constexpr auto VALUES           = "values";
+constexpr auto BASE64_PREFIX    = "base64#";
 
 QString GetPersonalBuildString()
 {
@@ -397,7 +413,7 @@ QString UiFactory::GetText(const QString& title, const QString& label, const QSt
 	return m_impl->container.resolve<Util::IUiFactory>()->GetText(title, label, text, comboBoxItems, mode);
 }
 
-std::optional<QFont> UiFactory::GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options) const
+std::shared_ptr<QFont> UiFactory::GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options) const
 {
 	return m_impl->container.resolve<Util::IUiFactory>()->GetFont(title, font, options);
 }
@@ -476,12 +492,11 @@ QStackedWidget* UiFactory::GetStackedWidget() const noexcept
 	return result;
 }
 
-namespace
-{
+namespace {
 
 QString GetName(const QString& parent, const QString& child, const QString& key = {})
 {
-	return QString("%1/%2%3").arg(parent, child, key.isEmpty() ? QString {} : QString("/%1").arg(key));
+	return QString("%1%2%3").arg(parent.isEmpty() ? QString {} : QString("%1/").arg(parent), child, key.isEmpty() ? QString {} : QString("/%1").arg(key));
 }
 
 QString RemoveAmp(QString str)
@@ -514,9 +529,24 @@ IDataItem::Ptr AddChild(const IDataItemFactory& dataItemFactory, IDataItem& pare
 	return actionItem;
 }
 
+const auto setForceGetterStub = [](const QString&) {
+	return false;
+};
+
 class MenuCustomizerItemBase : public IMenuCustomizer::IItem
 {
 	static std::unique_ptr<ISettings> s_settingsStub;
+
+	template <typename SetForceGetter = decltype(setForceGetterStub)>
+	void Set(ISettings& settings, const QString& key, const bool value, const SetForceGetter& setForceGetter = setForceGetterStub) const
+	{
+		const auto id = m_item->GetData(SettingsItem::Column::Key);
+		const auto settingsKey = GetName(MENU_CUSTOM_ROOT, id, key);
+		if (value || setForceGetter(id))
+			settings.Set(settingsKey, value);
+		else
+			settings.Remove(settingsKey);
+	}
 
 public:
 	MenuCustomizerItemBase(IDataItem::Ptr item, const IMenuCustomizer::ItemAbility abilities)
@@ -554,13 +584,15 @@ protected: // IMenuCustomizer::IItem
 	void Hide(ISettings& settings, const bool value) override
 	{
 		m_hidden = value;
-		settings.Set(GetName(MENU_CUSTOM_ROOT, m_item->GetData(SettingsItem::Column::Key), HIDDEN), value);
+		Set(settings, HIDDEN, value, [](const QString& id) {
+			return IMenuCustomizer::IsHiddenByDefault(id);
+		});
 	}
 
 	void AddToToolbar(ISettings& settings, const bool add) override
 	{
 		m_addedToToolbar = add;
-		settings.Set(GetName(MENU_CUSTOM_ROOT, m_item->GetData(SettingsItem::Column::Key), TOOLBAR), add);
+		Set(settings, TOOLBAR, add);
 		if (add)
 			settings.Set(GetName(MENU_CUSTOM_ROOT, m_item->GetData(SettingsItem::Column::Key), TITLE), m_item->GetData(SettingsItem::Column::Title));
 	}
@@ -613,13 +645,13 @@ protected: // IMenuCustomizer::IItem
 			const auto bytes = var.toByteArray();
 			if (bytes.isEmpty())
 				SetIcon(*s_settingsStub, {}, {});
-			else if (const auto pixmap = Util::Decode(bytes); !pixmap.isNull())
-				SetIcon(*s_settingsStub, QVariant::fromValue(QIcon(pixmap)), {});
+			else if (const auto image = Util::Decode(bytes); !image.isNull())
+				SetIcon(*s_settingsStub, QVariant::fromValue(QIcon(QPixmap::fromImage(image))), {});
 			else
 				SetIcon(*s_settingsStub, {}, {});
 		}
 		{
-			auto var = settings.Get(TOOLBAR);
+			const auto var = settings.Get(TOOLBAR);
 			AddToToolbar(*s_settingsStub, var.isValid() && var.toBool());
 		}
 	}
@@ -734,8 +766,8 @@ private:
 };
 
 class MenuCustomizerItemShortCut
-	: public MenuCustomizerItemBase
-	, public QObject
+    : public MenuCustomizerItemBase
+    , public QObject
 {
 protected:
 	MenuCustomizerItemShortCut(IDataItem::Ptr item, const IMenuCustomizer::ItemAbility abilities, QShortcut* shortcut)
@@ -986,7 +1018,7 @@ limit {}
 	auto queryText = std::format(QUERY, std::to_underlying(IDatabaseUser::Key::RecentBookDateTime), maxMenuItemCount);
 	databaseUser->Execute(
 		{ "Update recent books menu",
-	      [this, &menu, queryText = std::move(queryText), menuItemTitleFormat = std::move(menuItemTitleFormat), menuItemDateTimeFormat = std::move(menuItemDateTimeFormat), db = std::move(db)]() mutable {
+		  [this, &menu, queryText = std::move(queryText), menuItemTitleFormat = std::move(menuItemTitleFormat), menuItemDateTimeFormat = std::move(menuItemDateTimeFormat), db = std::move(db)]() mutable {
 			  const auto                                 query = db->CreateQuery(queryText);
 			  std::vector<std::pair<long long, QString>> data;
 			  for (query->Execute(); !query->Eof(); query->Next())
@@ -1046,4 +1078,162 @@ void UiFactory::SetBackgroundStyleSheet(QWidget& widget, const QString& key) con
 	const auto colorName = backgroundColor->name();
 	settings->Set(key, colorName);
 	widget.setStyleSheet(QString(Constant::Settings::BACKGROUND_COLOR_TEMPLATE).arg(colorName));
+}
+
+QMetaType::Type GetType(const QVariant& var)
+{
+	const auto result = static_cast<QMetaType::Type>(TypeId(var));
+	return result == QMetaType::QString && IsOneOf(var.toString(), "true", "false") ? QMetaType::Bool : result;
+}
+
+template <QMetaType::Type>
+QJsonValue ToJsonValueImpl(const QVariant& var) = delete;
+
+template <>
+QJsonValue ToJsonValueImpl<QMetaType::Bool>(const QVariant& var)
+{
+	return var.toString() == "true";
+}
+
+template <>
+QJsonValue ToJsonValueImpl<QMetaType::QString>(const QVariant& var)
+{
+	return var.toString();
+}
+
+template <>
+QJsonValue ToJsonValueImpl<QMetaType::QStringList>(const QVariant& var)
+{
+	return var.toStringList() | std::ranges::to<QJsonArray>();
+}
+
+template <>
+QJsonValue ToJsonValueImpl<QMetaType::QByteArray>(const QVariant& var)
+{
+	return QString::fromUtf8(var.toByteArray().toBase64()).prepend(BASE64_PREFIX);
+}
+
+QJsonValue ToJsonValue(const QVariant& var)
+{
+	static constexpr std::pair<QMetaType::Type, QJsonValue (*)(const QVariant&)> impl[] {
+#define ITEM(NAME) { QMetaType::NAME, &ToJsonValueImpl<QMetaType::NAME> }
+		ITEM(Bool),
+		ITEM(QString),
+		ITEM(QStringList),
+		ITEM(QByteArray),
+#undef ITEM
+	};
+	return FindSecond(impl, GetType(var))(var);
+}
+
+template <QJsonValue::Type>
+QVariant FromJsonValueImpl(Q_JSON_VALUE_CONST_REF jsonValue) = delete;
+
+template <>
+QVariant FromJsonValueImpl<QJsonValue::Type::Bool>(QT_CONST Q_JSON_VALUE_CONST_REF jsonValue)
+{
+	return jsonValue.toBool();
+}
+
+template <>
+QVariant FromJsonValueImpl<QJsonValue::Type::String>(QT_CONST Q_JSON_VALUE_CONST_REF jsonValue)
+{
+	auto value = jsonValue.toString();
+	return value.startsWith(BASE64_PREFIX) ? QVariant::fromValue(QByteArray::fromBase64(QStringView { std::next(value.cbegin(), 7 /*std::size(BASE64_PREFIX)*/), value.cend() }.toUtf8())) : value;
+}
+
+template <>
+QVariant FromJsonValueImpl<QJsonValue::Type::Array>(QT_CONST Q_JSON_VALUE_CONST_REF jsonValue)
+{
+	return jsonValue.toArray() | std::views::transform([](const auto item) {
+			   return item.toString();
+		   })
+	     | std::ranges::to<QStringList>();
+}
+
+QVariant FromJsonValue(QT_CONST Q_JSON_VALUE_CONST_REF jsonValue)
+{
+	static constexpr std::pair<QJsonValue::Type, QVariant (*)(Q_JSON_VALUE_CONST_REF)> impl[] {
+#define ITEM(NAME) { QJsonValue::Type::NAME, &FromJsonValueImpl<QJsonValue::Type::NAME> }
+		ITEM(Bool),
+		ITEM(String),
+		ITEM(Array),
+#undef ITEM
+	};
+	return FindSecond(impl, jsonValue.type())(jsonValue);
+}
+
+void UiFactory::SaveMenuCustomizerSettings() const
+{
+	const auto path = static_cast<const Util::IUiFactory&>(*this).GetSaveFileName(MENU_SETTINGS_FILE_DIALOG_KEY, Tr(SELECT_MENU_SETTINGS_FILE), Tr(MENU_SETTINGS_FILE_FILTER));
+	if (path.isEmpty())
+		return;
+
+	QFile file(path);
+	if (!file.open(QIODevice::WriteOnly))
+		return ShowError(Tr(CANNOT_WRITE).arg(path));
+
+	const auto settings = m_impl->container.resolve<ISettings>();
+
+	QJsonArray values;
+
+	const auto enumerate = [&](const QString& parentName, const QString& name, const auto& r) -> void {
+		const SettingsGroup settingsGroup(*settings, name);
+
+		QJsonObject obj;
+		for (const auto& key : settings->GetKeys())
+			obj.insert(key, ToJsonValue(settings->Get(key)));
+
+		const auto key = GetName(parentName, name);
+
+		if (!obj.isEmpty())
+		{
+			values.append(
+				QJsonObject {
+					{     ID,            key },
+					{ VALUES, std::move(obj) },
+			}
+			);
+		}
+
+		for (const auto& group : settings->GetGroups())
+			r(key, group, r);
+	};
+
+	const SettingsGroup group(*settings, Constant::UI);
+	enumerate("", "MenuCustomization", enumerate);
+
+	const auto data = QJsonDocument(values).toJson();
+	file.write(data) == data.size() ? ShowInfo(Tr(MENU_SETTINGS_SAVED_OK)) : ShowError(Tr(MENU_SETTINGS_SAVED_FAILED));
+}
+
+bool UiFactory::LoadMenuCustomizerSettings() const
+{
+	const auto path = static_cast<const Util::IUiFactory&>(*this).GetOpenFileName(MENU_SETTINGS_FILE_DIALOG_KEY, Tr(SELECT_MENU_SETTINGS_FILE), Tr(MENU_SETTINGS_FILE_FILTER));
+	if (path.isEmpty())
+		return false;
+
+	QFile file(path);
+	if (!file.open(QIODevice::ReadOnly))
+		return ShowError(Tr(CANNOT_READ).arg(path)), false;
+
+	QJsonParseError parseError;
+	auto            doc = QJsonDocument::fromJson(file.readAll(), &parseError);
+	if (parseError.error != QJsonParseError::NoError)
+		return ShowError(parseError.errorString()), false;
+
+	const auto settings = m_impl->container.resolve<ISettings>();
+	settings->Remove(MENU_CUSTOM_ROOT);
+	const SettingsGroup group(*settings, Constant::UI);
+
+	for (const auto node : doc.array())
+	{
+		const auto obj    = node.toObject();
+		const auto id     = obj[ID].toString();
+		const auto values = obj[VALUES].toObject();
+		for (auto it = values.constBegin(), end = values.constEnd(); it != end; ++it)
+			settings->Set(GetName(id, it.key()), FromJsonValue(it.value()));
+	}
+
+	return true;
 }

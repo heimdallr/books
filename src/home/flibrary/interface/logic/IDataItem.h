@@ -9,20 +9,19 @@
 
 #include "fnd/EnumBitmask.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 enum class ItemType;
 
-#define DATA_ITEMS_X_MACRO    \
-	DATA_ITEM(DataItem)       \
-	DATA_ITEM(NavigationItem) \
-	DATA_ITEM(GenreItem)      \
-	DATA_ITEM(AuthorItem)     \
-	DATA_ITEM(SeriesItem)     \
-	DATA_ITEM(ReviewItem)     \
-	DATA_ITEM(BookItem)       \
-	DATA_ITEM(MenuItem)       \
+#define DATA_ITEMS_X_MACRO                                                                                                                                                                                     \
+	DATA_ITEM(DataItem)                                                                                                                                                                                        \
+	DATA_ITEM(NavigationItem)                                                                                                                                                                                  \
+	DATA_ITEM(GenreItem)                                                                                                                                                                                       \
+	DATA_ITEM(AuthorItem)                                                                                                                                                                                      \
+	DATA_ITEM(SeriesItem)                                                                                                                                                                                      \
+	DATA_ITEM(ReviewItem)                                                                                                                                                                                      \
+	DATA_ITEM(BookItem)                                                                                                                                                                                        \
+	DATA_ITEM(MenuItem)                                                                                                                                                                                        \
 	DATA_ITEM(SettingsItem)
 
 #define DATA_ITEM(NAME) class NAME; // NOLINT(bugprone-macro-parentheses)
@@ -99,21 +98,14 @@ public:
 	}
 
 private:
-#define DATA_ITEM(NAME)                             \
-    [[nodiscard]] virtual NAME* To##NAME() noexcept \
-    {                                               \
-            return nullptr;                         \
-    } // NOLINT(bugprone-macro-parentheses)
+#define DATA_ITEM(NAME)                                                                                                                                                                                        \
+	[[nodiscard]] virtual NAME *To##NAME() noexcept { return nullptr; } // NOLINT(bugprone-macro-parentheses)
 	DATA_ITEMS_X_MACRO
 #undef DATA_ITEM
 };
 
-#define DATA_ITEM(NAME)               \
-    template <>                       \
-    inline NAME* IDataItem::To<NAME>() noexcept  \
-    {                                 \
-        return To##NAME();            \
-	} // NOLINT(bugprone-macro-parentheses)
+#define DATA_ITEM(NAME)                                                                                                                                                                                        \
+	template <> inline NAME *IDataItem::To<NAME>() noexcept { return To##NAME(); } // NOLINT(bugprone-macro-parentheses)
 DATA_ITEMS_X_MACRO
 #undef DATA_ITEM
 

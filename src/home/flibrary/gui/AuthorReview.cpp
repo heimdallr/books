@@ -11,8 +11,8 @@
 using namespace HomeCompa::Flibrary;
 
 class AuthorReview::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
 {
 	NON_COPY_MOVABLE(Impl)
 

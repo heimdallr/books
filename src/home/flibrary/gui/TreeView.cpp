@@ -46,8 +46,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT           = "TreeView";
 constexpr auto BOOK_VIEW_MODE    = QT_TRANSLATE_NOOP("TreeView", "Books view mode");
@@ -435,12 +434,12 @@ void TreeOperation(const QAbstractItemModel& model, const QModelIndex& index, co
 } // namespace
 
 class TreeView::Impl final
-	: ITreeViewController::IObserver
-	, ITreeViewDelegate::IObserver
-	, IFilterProvider::IObserver
-	, ModeLineEdit::IValueApplier
-	, HeaderView::IObserver
-	, IMenuCustomizer::IObserver
+    : ITreeViewController::IObserver
+    , ITreeViewDelegate::IObserver
+    , IFilterProvider::IObserver
+    , ModeLineEdit::IValueApplier
+    , HeaderView::IObserver
+    , IMenuCustomizer::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -490,16 +489,14 @@ public:
 		m_restoreBooksLayoutPending = true;
 	}
 
-	void ShowRemoved(const bool showRemoved)
+	void ShowRemoved(const bool value)
 	{
-		m_showRemoved = showRemoved;
-		auto* model   = m_ui.treeView->model();
-		if (!model)
-			return;
+		ChangeShowMode(m_showRemoved, value, Role::ShowRemovedFilter);
+	}
 
-		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
-		OnCountChanged();
-		Find(m_currentId, Role::Id);
+	void ShowAlreadyRead(const bool value)
+	{
+		ChangeShowMode(m_showAlreadyRead, value, Role::ShowAlreadyReadFilter);
 	}
 
 	QAbstractItemView* GetView() const
@@ -801,7 +798,8 @@ private:
 			model->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
 
 			connect(model, &QAbstractItemModel::dataChanged, [this, flag = false](const QModelIndex& topLeft, const QModelIndex&, const QVector<int>& roles) mutable {
-				if (flag || !roles.contains(Qt::CheckStateRole) || m_ui.treeView->model()->rowCount(topLeft) > 0)
+				auto selection = m_ui.treeView->selectionModel()->selection();
+				if (flag || !roles.contains(Qt::CheckStateRole) || m_ui.treeView->model()->rowCount(topLeft) > 0 || !selection.contains(topLeft))
 					return;
 
 				const ValueGuard   guard(flag, true);
@@ -822,7 +820,6 @@ private:
 						r(m_ui.treeView->model()->index(row, 0, index), r);
 				};
 
-				auto selection = m_ui.treeView->selectionModel()->selection();
 				for (const auto& index : selection.indexes() | std::views::filter([&](const QModelIndex& item) {
 											 return item.column() == topLeft.column() && item != topLeft;
 										 }))
@@ -837,6 +834,7 @@ private:
 			});
 		}
 		model->setData({}, m_showRemoved, Role::ShowRemovedFilter);
+		model->setData({}, m_showAlreadyRead || m_navigationModeName == NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::AlreadyRead)].first, Role::ShowAlreadyReadFilter);
 
 		m_delegate->OnModelChanged(*model);
 
@@ -889,18 +887,18 @@ private:
 
 		ITreeViewController::RequestContextMenuOptions options =
 			addOption(model.data({}, Role::IsTree).toBool(), ITreeViewController::RequestContextMenuOptions::IsTree)
-			| addOption(m_ui.treeView->selectionModel()->hasSelection(), ITreeViewController::RequestContextMenuOptions::HasSelection)
-			| addOption(m_showRemoved, ITreeViewController::RequestContextMenuOptions::ShowRemoved)
-			| addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
-			| addOption(m_filterProvider->IsFilterEnabled(), ITreeViewController::RequestContextMenuOptions::UniFilterEnabled)
-			| addOption(hashCompareEnabled(), ITreeViewController::RequestContextMenuOptions::HashCompareEnabled)
-			| addOption(
+		    | addOption(m_ui.treeView->selectionModel()->hasSelection(), ITreeViewController::RequestContextMenuOptions::HasSelection)
+		    | addOption(m_showRemoved, ITreeViewController::RequestContextMenuOptions::ShowRemoved)
+		    | addOption(m_collectionProvider->GetActiveCollection().destructiveOperationsAllowed, ITreeViewController::RequestContextMenuOptions::AllowDestructiveOperations)
+		    | addOption(m_filterProvider->IsFilterEnabled(), ITreeViewController::RequestContextMenuOptions::UniFilterEnabled)
+		    | addOption(hashCompareEnabled(), ITreeViewController::RequestContextMenuOptions::HashCompareEnabled)
+		    | addOption(
 				m_navigationModeName == NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::History)].first && m_ui.treeView->model()->rowCount() > 0,
 				ITreeViewController::RequestContextMenuOptions::NavigationModeIsHistory
 			)
-			| addOption(
+		    | addOption(
 				currentIndex.isValid() && currentIndex.data(Role::Type).value<ItemType>() == ItemType::Books
-					&& Zip::IsArchive(Platform::RemoveIllegalPathCharacters(currentIndex.data(Role::FileName).toString())),
+		            && Zip::IsArchive(Platform::RemoveIllegalPathCharacters(currentIndex.data(Role::FileName).toString())),
 				ITreeViewController::RequestContextMenuOptions::IsArchive
 			);
 
@@ -1484,6 +1482,18 @@ private:
 		m_countChangedTimer->start();
 	}
 
+	void ChangeShowMode(bool& flag, const bool value, const int role) const
+	{
+		flag        = value;
+		auto* model = m_ui.treeView->model();
+		if (!model)
+			return;
+
+		model->setData({}, value, role);
+		OnCountChanged();
+		Find(m_currentId, Role::Id);
+	}
+
 	QString GetColumnSettingsKey(const char* value = nullptr, const QString& navigationModeName = {}) const
 	{
 		return QString("ui/%1/%2/Columns/%3%4")
@@ -1527,7 +1537,7 @@ private:
 	QString                                                       m_navigationModeName;
 	QString                                                       m_recentMode;
 	QString                                                       m_currentId;
-	bool                                                          m_showRemoved { false };
+	bool                                                          m_showRemoved { false }, m_showAlreadyRead { true };
 	bool                                                          m_restoreBooksLayoutPending { false };
 	QString                                                       m_lastRestoredLayoutKey;
 	ITreeViewController::RemoveItems                              m_removeItems;
@@ -1586,6 +1596,11 @@ void TreeView::SetNavigationModeName(QString navigationModeName)
 void TreeView::ShowRemoved(const bool showRemoved)
 {
 	m_impl->ShowRemoved(showRemoved);
+}
+
+void TreeView::ShowAlreadyRead(const bool showAlreadyRead)
+{
+	m_impl->ShowAlreadyRead(showAlreadyRead);
 }
 
 QAbstractItemView* TreeView::GetView() const

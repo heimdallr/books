@@ -14,11 +14,7 @@
 
 #include "restore.h"
 
-namespace HomeCompa::Flibrary::UserData
-{
-
-namespace
-{
+namespace HomeCompa::Flibrary::UserData { namespace {
 
 struct Book
 {
@@ -27,24 +23,23 @@ struct Book
 	QString createdAt;
 
 	explicit Book(const Util::XmlAttributes& attributes)
-		: folder(attributes.GetAttribute(Constant::UserData::Books::Folder))
-		, fileName(attributes.GetAttribute(Constant::UserData::Books::FileName))
-		, createdAt(attributes.GetAttribute(Constant::UserData::Books::CreatedAt))
+		: folder { attributes.GetAttribute(Constant::UserData::Books::Folder).toString() }
+		, fileName { attributes.GetAttribute(Constant::UserData::Books::FileName).toString() }
+		, createdAt { attributes.GetAttribute(Constant::UserData::Books::CreatedAt).toString() }
 	{
 	}
 };
 
-#define ADDITIONAL_BOOK_FIELDS_X_MACRO \
-	ADDITIONAL_BOOK_FIELD(IsDeleted)   \
-	ADDITIONAL_BOOK_FIELD(UserRate)    \
-	ADDITIONAL_BOOK_FIELD(Lang)        \
+#define ADDITIONAL_BOOK_FIELDS_X_MACRO                                                                                                                                                                         \
+	ADDITIONAL_BOOK_FIELD(IsDeleted)                                                                                                                                                                           \
+	ADDITIONAL_BOOK_FIELD(UserRate)                                                                                                                                                                            \
+	ADDITIONAL_BOOK_FIELD(Lang)                                                                                                                                                                                \
 	ADDITIONAL_BOOK_FIELD(CreatedAt)
 
 struct FieldNo
 {
 	enum
 	{
-
 #define ADDITIONAL_BOOK_FIELD(NAME) NAME,
 		ADDITIONAL_BOOK_FIELDS_X_MACRO
 #undef ADDITIONAL_BOOK_FIELD
@@ -63,7 +58,7 @@ class BooksRestorer final : virtual public IRestorer
 
 		explicit Item(const Util::XmlAttributes& attributes)
 			: Book(attributes)
-#define ADDITIONAL_BOOK_FIELD(NAME) , NAME(attributes.GetAttribute(Constant::UserData::Books::NAME))
+#define ADDITIONAL_BOOK_FIELD(NAME) , NAME(attributes.GetAttribute(Constant::UserData::Books::NAME).toString())
 				  ADDITIONAL_BOOK_FIELDS_X_MACRO
 #undef ADDITIONAL_BOOK_FIELD
 		{
@@ -131,16 +126,13 @@ private:
 
 #undef ADDITIONAL_BOOK_FIELDS_X_MACRO
 
-} // namespace
+}} // namespace HomeCompa::Flibrary::UserData
 
-} // namespace HomeCompa::Flibrary::UserData
-
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 std::unique_ptr<IRestorer> CreateBooksRestorer6()
 {
 	return std::make_unique<BooksRestorer>();
 }
 
-}
+} // namespace HomeCompa::Flibrary::UserData

@@ -16,8 +16,7 @@ using namespace HomeCompa::Flibrary::UserData;
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 class FilterRestorer final : virtual public IRestorer
 {
@@ -30,7 +29,7 @@ private: // IRestorer
 			return (void)(m_dataValues = &m_data[name]);
 
 		assert(m_dataValues);
-		m_dataValues->emplace_back(attributes.GetAttribute(Title), attributes.GetAttribute(Flag).toInt());
+		m_dataValues->emplace_back(attributes.GetAttribute(Title).toString(), attributes.GetAttribute(Flag).toInt());
 	}
 
 	void Restore(DB::IDatabase& db) const override
@@ -63,12 +62,11 @@ private:
 
 } // namespace
 
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 std::unique_ptr<IRestorer> CreateFilterRestorer8()
 {
 	return std::make_unique<FilterRestorer>();
 }
 
-}
+} // namespace HomeCompa::Flibrary::UserData

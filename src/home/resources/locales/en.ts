@@ -317,6 +317,10 @@
         <translation></translation>
     </message>
     <message>
+        <source>Compute the perceptual &amp;hash</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Set background color</source>
         <translation></translation>
     </message>
@@ -954,7 +958,19 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <source>An error occurred while saving the menu settings</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Another e-library book cataloger</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot read from &apos;%1&apos;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot write to &apos;%1&apos;</source>
         <translation></translation>
     </message>
     <message>
@@ -966,7 +982,19 @@ Restart now?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Menu settings files (*.flimnu);;All files (*.*)</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Select menu settings file</source>
+        <translation>Select a menu settings file</translation>
+    </message>
+    <message>
         <source>Specify the background color of the image</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>The menu settings have been successfully saved</source>
         <translation></translation>
     </message>
     <message>
@@ -4704,7 +4732,15 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;All settings</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;All settings...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Already read</source>
         <translation></translation>
     </message>
     <message>
@@ -4780,6 +4816,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>&amp;Menu settings</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>&amp;Menu...</source>
         <translation></translation>
     </message>
@@ -4800,7 +4840,7 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
-        <source>&amp;Removed books</source>
+        <source>&amp;Removed</source>
         <translation></translation>
     </message>
     <message>
@@ -4837,6 +4877,10 @@ Try again?</source>
     </message>
     <message>
         <source>&amp;Title</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>&amp;Toolbar</source>
         <translation></translation>
     </message>
     <message>
@@ -4885,6 +4929,10 @@ Try again?</source>
     </message>
     <message>
         <source>Are you sure you want to return to default settings?</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>B&amp;ooks</source>
         <translation></translation>
     </message>
     <message>
@@ -5028,11 +5076,11 @@ Try again?</source>
         <translation>Overwrite &amp;metadata</translation>
     </message>
     <message>
-        <source>Search &amp;bar by title</source>
+        <source>Sear&amp;ch</source>
         <translation></translation>
     </message>
     <message>
-        <source>Search &amp;by</source>
+        <source>Search &amp;bar</source>
         <translation></translation>
     </message>
     <message>
@@ -5073,10 +5121,6 @@ Try again?</source>
     </message>
     <message>
         <source>Show &amp;statistics..</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Show &amp;toolbar</source>
         <translation></translation>
     </message>
     <message>
@@ -5125,6 +5169,10 @@ Try again?</source>
     </message>
     <message>
         <source>author</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>file name</source>
         <translation></translation>
     </message>
     <message>

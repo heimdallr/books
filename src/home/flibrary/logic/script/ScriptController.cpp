@@ -13,8 +13,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto SCRIPTS                    = "Scripts";
 constexpr auto SCRIPT_KEY_TEMPLATE        = "%1/%2";

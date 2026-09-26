@@ -24,8 +24,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT               = "AlphabetPanel";
 constexpr auto SELECT_LANGUAGE_TITLE = QT_TRANSLATE_NOOP("AlphabetPanel", "Specify the language of the new alphabet");
@@ -99,10 +98,10 @@ auto CreateLetterClickFunctor(const QChar ch, const IControlGetter* controlGette
 } // namespace
 
 class AlphabetPanel::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
-	, public Observable<IObserver>
-	, IControlGetter
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
+    , public Observable<IObserver>
+    , IControlGetter
 {
 	NON_COPY_MOVABLE(Impl)
 

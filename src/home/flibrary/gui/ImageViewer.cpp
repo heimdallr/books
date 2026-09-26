@@ -24,8 +24,7 @@
 using namespace HomeCompa;
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT       = "ImageViewer";
 constexpr auto SELECT_FOLDER = QT_TRANSLATE_NOOP("ImageViewer", "Select images folder");
@@ -66,11 +65,11 @@ private:
 } // namespace
 
 class ImageViewer::Impl final
-	: public QObject
-	, Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
-	, IImageViewerController::IObserver
-	, IUiFactory::IChangeSizeWidgetObserver
+    : public QObject
+    , Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
+    , IImageViewerController::IObserver
+    , IUiFactory::IChangeSizeWidgetObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -160,7 +159,7 @@ private: // QObject
 	}
 
 private: // IImageViewerController::IObserver
-	void OnImageReceived(QPixmap pixmap) override
+	void OnImageReceived(QImage pixmap) override
 	{
 		const QString styleSheet = [&] {
 			if (pixmap.isNull())
@@ -206,17 +205,17 @@ private:
 
 	void OnImageResized() const
 	{
-		auto       imageSize  = m_ui.imageScrollArea->size();
-		const auto pixmapSize = m_currentImage.size();
-		if (pixmapSize.width() <= imageSize.width() && pixmapSize.height() <= imageSize.height())
-			return m_ui.image->setPixmap(m_currentImage);
+		auto       areaSize  = m_ui.imageScrollArea->size();
+		const auto imageSize = m_currentImage.size();
+		if (imageSize.width() <= areaSize.width() && imageSize.height() <= areaSize.height())
+			return m_ui.image->setPixmap(QPixmap::fromImage(m_currentImage));
 
-		if (imageSize.height() * pixmapSize.width() > pixmapSize.height() * imageSize.width())
-			imageSize.rheight() = pixmapSize.height() * imageSize.width() / pixmapSize.width();
+		if (areaSize.height() * imageSize.width() > imageSize.height() * areaSize.width())
+			areaSize.rheight() = imageSize.height() * areaSize.width() / imageSize.width();
 		else
-			imageSize.rwidth() = pixmapSize.width() * imageSize.height() / pixmapSize.height();
+			areaSize.rwidth() = imageSize.width() * areaSize.height() / imageSize.height();
 
-		m_ui.image->setPixmap(m_currentImage.scaled(imageSize, Qt::KeepAspectRatio, Qt::SmoothTransformation));
+		m_ui.image->setPixmap(QPixmap::fromImage(m_currentImage.scaled(areaSize, Qt::KeepAspectRatio, Qt::SmoothTransformation)));
 	}
 
 	void OnFilterChanged(const QString& filter)
@@ -285,7 +284,7 @@ private:
 	PropagateConstPtr<ProgressBar, std::shared_ptr>               m_progressBar;
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>        m_navigationModel { std::shared_ptr<QAbstractItemModel> {} };
 
-	QPixmap m_currentImage;
+	QImage m_currentImage;
 };
 
 ImageViewer::ImageViewer(

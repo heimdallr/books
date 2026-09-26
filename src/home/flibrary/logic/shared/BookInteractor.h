@@ -9,8 +9,7 @@
 
 #include "BooksContextMenuProvider.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class BookInteractor final : public IBookInteractor
 {
@@ -39,4 +38,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

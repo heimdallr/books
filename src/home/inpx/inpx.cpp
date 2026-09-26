@@ -49,8 +49,7 @@ using namespace HomeCompa;
 using namespace Inpx;
 using namespace Util;
 
-namespace
-{
+namespace {
 
 constexpr auto INVALID_INDEX = std::numeric_limits<size_t>::max();
 
@@ -313,40 +312,11 @@ private:
 
 class AnnotationsParser final : public SaxParser
 {
-	static constexpr auto FOLDER = "folder";
-	static constexpr auto FILE   = "file";
+	static constexpr auto FOLDER = u"folder";
+	static constexpr auto FILE   = u"file";
+	static constexpr auto P      = u"p";
 
 public:
-	static QString Prepare(QStringList annotation)
-	{
-		QStringList list;
-		for (auto&& str : annotation)
-		{
-			str = str.toLower();
-			std::ranges::transform(str, std::begin(str), [&](const QChar& ch) {
-				const auto category = ch.category();
-				if (IsOneOf(category, QChar::Separator_Space, QChar::Separator_Line, QChar::Separator_Paragraph, QChar::Other_Control)
-				    || (category >= QChar::Punctuation_Connector && category <= QChar::Punctuation_Other))
-					return QChar { 0x20 };
-
-				return ch;
-			});
-			RemoveIf(str, [](const QChar ch) {
-				return ch != ' ' && !IsOneOf(ch.category(), QChar::Number_DecimalDigit, QChar::Letter_Lowercase);
-			});
-
-			for (auto&& word : str.split(' ', Qt::SkipEmptyParts))
-				if (word.length() > 2)
-					list << std::move(word);
-		}
-
-		auto result = list.join(' ');
-		if (result.size() > 10240)
-			result.resize(10240);
-
-		return result;
-	}
-
 public:
 	AnnotationsParser(QIODevice& stream, DB::ICommand& command, const std::unordered_map<QString, long long>& books)
 		: SaxParser(stream)
@@ -356,44 +326,51 @@ public:
 	}
 
 private: // SaxParser
-	bool OnStartElement(const QString& name, const QString&, const XmlAttributes& attributes) override
+	bool OnStartElement(const QStringView name, const QStringView, const XmlAttributes& attributes) override
 	{
 		if (name == FOLDER)
 		{
-			m_folder = attributes.GetAttribute("name");
+			m_folder = attributes.GetAttribute(u"name").toString();
 			PLOGD << "load annotations " << m_folder;
 		}
 		else if (name == FILE)
 		{
-			m_file = attributes.GetAttribute("name");
+			m_file = attributes.GetAttribute(u"name").toString();
+		}
+		else if (name == P)
+		{
+			m_annotation.append(u"<p>");
 		}
 
 		return true;
 	}
 
-	bool OnEndElement(const QString& name, const QString&) override
+	bool OnEndElement(const QStringView name, QStringView) override
 	{
+		if (name == P)
+			return m_annotation.append(u"</p>"), true;
+
 		if (name != FILE)
 			return true;
 
-		const auto annotation = Prepare(std::move(m_annotation));
-		const auto it         = m_books.find(QString("%1/%2").arg(m_folder, m_file));
+		const auto it = m_books.find(QString("%1/%2").arg(m_folder, m_file));
 		if (it == m_books.end())
 			return true;
 
 		m_command.Bind(0, it->second);
-		m_command.Bind(1, annotation);
+		m_command.Bind(1, m_annotation);
 
 		m_command.Execute();
 
-		m_annotation = QStringList {};
+		m_annotation.clear();
 
 		return true;
 	}
 
-	bool OnCharacters(const QString&, const QString& value) override
+	bool OnCharacters(QStringView, const QStringView value) override
 	{
-		m_annotation << value;
+		if (const auto trimmed = value.toString().trimmed(); !trimmed.isEmpty())
+			m_annotation.append(trimmed);
 		return true;
 	}
 
@@ -401,9 +378,9 @@ private:
 	DB::ICommand&                                 m_command;
 	const std::unordered_map<QString, long long>& m_books;
 
-	QString     m_folder;
-	QString     m_file;
-	QStringList m_annotation;
+	QString m_folder;
+	QString m_file;
+	QString m_annotation;
 };
 
 QStringView QNextRaw(QString::const_iterator& beg, const QString::const_iterator end, const char separator)
@@ -551,7 +528,7 @@ std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& key
 						return str.length() < 3 || str.startsWith("DocId:", Qt::CaseInsensitive);
 					}
 				);
-		        from != to)
+			    from != to)
 				list.erase(from, to);
 			assert(std::ranges::none_of(list, [](const auto& str) {
 				return str.startsWith("DocId:", Qt::CaseInsensitive);
@@ -568,8 +545,8 @@ std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& key
 							return c.isLetterOrNumber() || IsOneOf(c, '+');
 						}
 					);
-			        it != keyword.begin())
-					keyword = Last(keyword, std::distance(it, keyword.end()));
+				    it != keyword.begin())
+					keyword = Last(keyword, std::distance(it, keyword.end())).toString();
 				keyword = keyword.simplified();
 				if (!keyword.isEmpty())
 					keyword[0] = keyword[0].toUpper();
@@ -580,7 +557,7 @@ std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& key
 						return str.length() < 3;
 					}
 				);
-		        from != to)
+			    from != to)
 				keywordsList.erase(from, to);
 
 			return keywordsList;
@@ -600,11 +577,8 @@ struct BookBufFieldGetters
 
 using BookBufMapping = std::vector<BookBufFieldGetters>;
 
-#define BOOK_BUF_FIELD_ITEM(NAME)      \
-	QStringView& Get##NAME(Book& book) \
-	{                                  \
-		return book.NAME;              \
-	}
+#define BOOK_BUF_FIELD_ITEM(NAME)                                                                                                                                                                              \
+	QStringView &Get##NAME(Book &book) { return book.NAME; }
 BOOK_BUF_FIELD_ITEMS_XMACRO
 #undef BOOK_BUF_FIELD_ITEM
 
@@ -825,7 +799,7 @@ size_t StoreRange(DB::IDatabase& db, const QString& process, const std::string_v
 	return TRY(process, impl);
 }
 
-std::pair<QStringView, QStringView> SplitAuthorLastName(QStringView str)
+std::pair<QStringView, QStringView> SplitNameSuffix(QStringView str)
 {
 	const auto begin = str.indexOf('[');
 	if (begin < 1)
@@ -854,12 +828,13 @@ size_t Store(DB::IDatabase& db, Data& data)
 		"INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, NickName, SearchName) VALUES(?, ?, ?, ?, ?, ?)",
 		data.authors,
 		[](DB::ICommand& cmd, const Dictionary::value_type& item) {
-			const auto& [title, id] = item;
-			auto it                 = std::cbegin(title);
-			const auto [last, nick] = SplitAuthorLastName(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
-			const auto first        = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
-			const auto middle       = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
-			const auto lastUp       = last.toString().toUpper();
+			const auto& [title, id]         = item;
+			auto it                         = std::cbegin(title);
+			const auto [last, nickLast]     = SplitNameSuffix(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
+			const auto [first, nickFirst]   = SplitNameSuffix(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
+			const auto [middle, nickMiddle] = SplitNameSuffix(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
+			const auto lastUp               = last.toString().toUpper();
+			const auto nick                 = !nickLast.isEmpty() ? nickLast : !nickFirst.isEmpty() ? nickFirst : !nickMiddle.isEmpty() ? nickMiddle : QStringView {};
 
 			cmd.Bind(0, id);
 			cmd.Bind(1, last);
@@ -1518,6 +1493,7 @@ private:
 		const auto  connectionString = QString("path=%1").arg(dbFileName).toStdString();
 
 		m_db = Create(DB::Factory::Impl::Sqlite, connectionString);
+		m_db->CreateQuery("PRAGMA synchronous = OFF;")->Execute();
 
 		ExecuteScript(*m_db, "create database", m_ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
 		WriteDatabaseVersion(*m_db, m_ini(SET_DATABASE_VERSION_STATEMENT));
@@ -1550,6 +1526,8 @@ private:
 		TRY("analyze", [&] {
 			return Analyze(*m_db);
 		});
+
+		m_db->CreateQuery("PRAGMA journal_mode = WAL;")->Execute();
 
 		ok = true;
 	}
@@ -2293,7 +2271,7 @@ where b.FileName = ? and b.Ext = ?)");
 			return INVALID_INDEX;
 
 		auto buf        = ParseBook(line, m_bookBufMapping, folder);
-		auto annotation = !!(m_mode & CreateCollectionMode::LoadAnnotations) ? AnnotationsParser::Prepare(std::move(parseResult.annotation)) : QString {};
+		auto annotation = !!(m_mode & CreateCollectionMode::LoadAnnotations) ? std::move(parseResult.annotation) : QString {};
 
 		std::lock_guard lock(m_dataGuard);
 		const auto      index = AddBook(buf);
@@ -2545,7 +2523,7 @@ Parser::IniMapPair Parser::GetIniMap(QString db, QString folder, QString additio
 	};
 
 	result.second = IniMap {
-		{		   DB_PATH,					 std::move(db) },
+		{           DB_PATH,                     std::move(db) },
 		{       GENRES_PATH,           getFile(DEFAULT_GENRES) },
 		{  DB_CREATE_SCRIPT, getFile(DEFAULT_DB_CREATE_SCRIPT) },
 		{  DB_UPDATE_SCRIPT, getFile(DEFAULT_DB_UPDATE_SCRIPT) },

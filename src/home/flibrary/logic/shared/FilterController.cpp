@@ -17,8 +17,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto FILTER_ENABLED_KEY                = "ui/View/UniFilter/enabled";
 constexpr auto FILTER_RATING_HIDE_UNRATED_KEY    = "ui/View/UniFilter/Rating/HideUnrated";
@@ -34,7 +33,7 @@ constexpr auto SET_FILTER_QUERY   = "update {} set Flags = ? where {} = ?";
 constexpr auto ACCUMULATION_MODE_KEY     = "ui/View/UniFilter/accumulationMode%1";
 constexpr auto DEFAULT_ACCUMULATION_MODE = "Or";
 
-}
+} // namespace
 
 struct FilterController::Impl final : Observable<IObserver>
 {

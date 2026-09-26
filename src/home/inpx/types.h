@@ -7,27 +7,26 @@
 
 #include "util/StrUtil.h"
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
-//AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;YEAR;SOURCELIB;
-#define BOOK_BUF_FIELD_ITEMS_XMACRO \
-	BOOK_BUF_FIELD_ITEM(AUTHOR)     \
-	BOOK_BUF_FIELD_ITEM(GENRE)      \
-	BOOK_BUF_FIELD_ITEM(TITLE)      \
-	BOOK_BUF_FIELD_ITEM(SERIES)     \
-	BOOK_BUF_FIELD_ITEM(SERNO)      \
-	BOOK_BUF_FIELD_ITEM(FILE)       \
-	BOOK_BUF_FIELD_ITEM(SIZE)       \
-	BOOK_BUF_FIELD_ITEM(LIBID)      \
-	BOOK_BUF_FIELD_ITEM(DEL)        \
-	BOOK_BUF_FIELD_ITEM(EXT)        \
-	BOOK_BUF_FIELD_ITEM(DATE)       \
-	BOOK_BUF_FIELD_ITEM(FOLDER)     \
-	BOOK_BUF_FIELD_ITEM(LANG)       \
-	BOOK_BUF_FIELD_ITEM(LIBRATE)    \
-	BOOK_BUF_FIELD_ITEM(KEYWORDS)   \
-	BOOK_BUF_FIELD_ITEM(YEAR)       \
+// AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;LANG;RATE;KEYWORDS;YEAR;SOURCELIB;
+#define BOOK_BUF_FIELD_ITEMS_XMACRO                                                                                                                                                                            \
+	BOOK_BUF_FIELD_ITEM(AUTHOR)                                                                                                                                                                                \
+	BOOK_BUF_FIELD_ITEM(GENRE)                                                                                                                                                                                 \
+	BOOK_BUF_FIELD_ITEM(TITLE)                                                                                                                                                                                 \
+	BOOK_BUF_FIELD_ITEM(SERIES)                                                                                                                                                                                \
+	BOOK_BUF_FIELD_ITEM(SERNO)                                                                                                                                                                                 \
+	BOOK_BUF_FIELD_ITEM(FILE)                                                                                                                                                                                  \
+	BOOK_BUF_FIELD_ITEM(SIZE)                                                                                                                                                                                  \
+	BOOK_BUF_FIELD_ITEM(LIBID)                                                                                                                                                                                 \
+	BOOK_BUF_FIELD_ITEM(DEL)                                                                                                                                                                                   \
+	BOOK_BUF_FIELD_ITEM(EXT)                                                                                                                                                                                   \
+	BOOK_BUF_FIELD_ITEM(DATE)                                                                                                                                                                                  \
+	BOOK_BUF_FIELD_ITEM(FOLDER)                                                                                                                                                                                \
+	BOOK_BUF_FIELD_ITEM(LANG)                                                                                                                                                                                  \
+	BOOK_BUF_FIELD_ITEM(LIBRATE)                                                                                                                                                                               \
+	BOOK_BUF_FIELD_ITEM(KEYWORDS)                                                                                                                                                                              \
+	BOOK_BUF_FIELD_ITEM(YEAR)                                                                                                                                                                                  \
 	BOOK_BUF_FIELD_ITEM(SOURCELIB)
 
 struct Book

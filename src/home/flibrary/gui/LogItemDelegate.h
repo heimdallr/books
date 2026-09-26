@@ -4,8 +4,7 @@
 
 #include "interface/constants/PLogSeverityLocalization.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class LogItemDelegate final : public QStyledItemDelegate
 {
@@ -19,4 +18,4 @@ private:
 	QColor m_colors[std::size(SEVERITIES)];
 };
 
-}
+} // namespace HomeCompa::Flibrary

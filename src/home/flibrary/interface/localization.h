@@ -12,15 +12,13 @@
 
 class QTranslator;
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 
 }
 
-namespace HomeCompa::Loc
-{
+namespace HomeCompa::Loc {
 
 FLINT_EXPORT QString Tr(const char* context, const char* str);
 FLINT_EXPORT std::vector<const char*> GetLocales();
@@ -50,8 +48,5 @@ inline QString Warning()
 
 } // namespace HomeCompa::Loc
 
-#define TR_DEF                         \
-	inline QString Tr(const char* str) \
-	{                                  \
-		return Loc::Tr(CONTEXT, str);  \
-	}
+#define TR_DEF                                                                                                                                                                                                 \
+	inline QString Tr(const char *str) { return Loc::Tr(CONTEXT, str); }

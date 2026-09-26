@@ -9,8 +9,7 @@ class QAbstractScrollArea;
 class QString;
 class QVariant;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class TreeViewDelegateNavigation final : public ITreeViewDelegate
 {

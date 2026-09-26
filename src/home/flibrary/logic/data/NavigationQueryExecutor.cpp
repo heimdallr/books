@@ -9,6 +9,7 @@
 #include <QDir>
 
 #include "fnd/FindPair.h"
+#include "fnd/StrUtil.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -32,8 +33,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto SEARCH_WITH = R"(
 with Ids as (
@@ -82,7 +82,7 @@ constexpr auto SEARCH_WITH_ANNOTATION = R"(
          join Search s on Annotations_Search match s.Title
 )";
 
-QString GetSearchWith(const ISettings& settings, const QString& id)
+QString GetSearchWith(DB::IDatabase& db, const ISettings& settings, const QString& id)
 {
 	QStringList result;
 #define ITEM(NAME, DEFAULT) if (settings.Get(Constant::Settings::NAME, DEFAULT)) result << NAME
@@ -91,6 +91,21 @@ QString GetSearchWith(const ISettings& settings, const QString& id)
 	ITEM(SEARCH_WITH_SERIES, true);
 	ITEM(SEARCH_WITH_ANNOTATION, false);
 #undef ITEM
+
+	if (settings.Get(Constant::Settings::SEARCH_WITH_FILENAME, false))
+	{
+		if (const auto query = db.CreateQuery(std::format("select Origin from Searches_User where SearchID = {}", id)); query->Execute(), !query->Eof())
+		{
+			if (!query->IsNull(0))
+			{
+				const QFileInfo fileInfo(query->Get<const char*>(0));
+				auto            searchWithFileNameQueryText = QString("\n\tselect BookID\n\t\tfrom Books\n\t\twhere FileName = '%1'").arg(fileInfo.completeBaseName());
+				if (const auto suffix = fileInfo.suffix(); !suffix.isEmpty())
+					searchWithFileNameQueryText.append(QString(" and lower(Ext) = '.%1'").arg(suffix.toLower()));
+				result << std::move(searchWithFileNameQueryText);
+			}
+		}
+	}
 
 	if (result.isEmpty())
 		result << "select -1";
@@ -168,7 +183,7 @@ void RequestNavigationList(
 
 	databaseUser.Execute(
 		{ "Get navigation",
-	      [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), postProcess = std::move(postProcess), db = std::move(db)]() mutable {
+		  [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), postProcess = std::move(postProcess), db = std::move(db)]() mutable {
 			  std::unordered_map<QString, IDataItem::Ptr> index;
 
 			  const auto query = db->CreateQuery(queryDescription.navigationQuery);
@@ -253,7 +268,7 @@ void RequestNavigationGenres(NavigationMode navigationMode, INavigationQueryExec
 
 	databaseUser.Execute(
 		{ "Get navigation",
-	      [&cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable {
+		  [&cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable {
 			  auto                                            genre = Genre::Load(*db);
 			  auto                                            root  = NavigationItem::Create();
 			  std::queue<std::pair<const Genre*, IDataItem*>> queue;
@@ -298,7 +313,7 @@ void RequestNavigationUpdates(
 
 	databaseUser.Execute(
 		{ "Get navigation",
-	      [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable {
+		  [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable {
 			  return CreateCalendarTree(mode, std::move(callback), cache, [&queryDescription, db = std::move(db)](std::unordered_map<long long, IDataItem::Ptr>& items) {
 				  const auto query = db->CreateQuery(queryDescription.navigationQuery);
 				  for (query->Execute(); !query->Eof(); query->Next())
@@ -328,7 +343,7 @@ void RequestNavigationReviews(
 
 	databaseUser.Execute(
 		{ "Get navigation",
-	      [&cache, mode = navigationMode, folder = collectionProvider.GetActiveCollection().GetAdditionalFolder(), callback = std::move(callback)]() mutable {
+		  [&cache, mode = navigationMode, folder = collectionProvider.GetActiveCollection().GetAdditionalFolder(), callback = std::move(callback)]() mutable {
 			  return CreateCalendarTree(mode, std::move(callback), cache, [&folder](std::unordered_map<long long, IDataItem::Ptr>& items) {
 				  for (const auto& reviewInfo : QDir(folder + "/" + Inpx::REVIEWS_FOLDER).entryInfoList({ "??????.7z" }))
 				  {
@@ -359,194 +374,194 @@ using NavigationRequest =
 	void (*)(NavigationMode navigationMode, INavigationQueryExecutor::Callback callback, const IDatabaseUser& databaseUser, const QueryDescription& queryDescription, const ICollectionProvider&, Cache& cache);
 
 constexpr int MAPPING_FULL[] { BookItem::Column::Author,     BookItem::Column::Title,  BookItem::Column::Series,   BookItem::Column::SeqNumber, BookItem::Column::Size,
-	                           BookItem::Column::Genre,      BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate,   BookItem::Column::UserRate,
-	                           BookItem::Column::UpdateDate, BookItem::Column::Year,   BookItem::Column::Lang,     BookItem::Column::Format };
+                               BookItem::Column::Genre,      BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate,   BookItem::Column::UserRate,
+                               BookItem::Column::UpdateDate, BookItem::Column::Year,   BookItem::Column::Lang,     BookItem::Column::Format };
 constexpr int MAPPING_AUTHORS[] { BookItem::Column::Title,  BookItem::Column::Series,   BookItem::Column::SeqNumber, BookItem::Column::Size,     BookItem::Column::Genre,
-	                              BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate,   BookItem::Column::UserRate, BookItem::Column::UpdateDate,
-	                              BookItem::Column::Year,   BookItem::Column::Lang,     BookItem::Column::Format };
+                                  BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate,   BookItem::Column::UserRate, BookItem::Column::UpdateDate,
+                                  BookItem::Column::Year,   BookItem::Column::Lang,     BookItem::Column::Format };
 constexpr int MAPPING_SERIES[] { BookItem::Column::Author, BookItem::Column::Title,    BookItem::Column::SeqNumber, BookItem::Column::Size,     BookItem::Column::Genre,
-	                             BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate,   BookItem::Column::UserRate, BookItem::Column::UpdateDate,
-	                             BookItem::Column::Year,   BookItem::Column::Lang,     BookItem::Column::Format };
+                                 BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate,   BookItem::Column::UserRate, BookItem::Column::UpdateDate,
+                                 BookItem::Column::Year,   BookItem::Column::Lang,     BookItem::Column::Format };
 constexpr int MAPPING_GENRES[] { BookItem::Column::Author, BookItem::Column::Title,    BookItem::Column::Series,  BookItem::Column::SeqNumber, BookItem::Column::Size,
-	                             BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UserRate,  BookItem::Column::UpdateDate,
-	                             BookItem::Column::Year,   BookItem::Column::Lang,     BookItem::Column::Format };
+                                 BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate, BookItem::Column::UserRate,  BookItem::Column::UpdateDate,
+                                 BookItem::Column::Year,   BookItem::Column::Lang,     BookItem::Column::Format };
 
 constexpr int MAPPING_TREE_COMMON[] { BookItem::Column::Title,   BookItem::Column::SeqNumber, BookItem::Column::Size,       BookItem::Column::Genre, BookItem::Column::Folder, BookItem::Column::FileName,
-	                                  BookItem::Column::LibRate, BookItem::Column::UserRate,  BookItem::Column::UpdateDate, BookItem::Column::Year,  BookItem::Column::Lang,   BookItem::Column::Format };
+                                      BookItem::Column::LibRate, BookItem::Column::UserRate,  BookItem::Column::UpdateDate, BookItem::Column::Year,  BookItem::Column::Lang,   BookItem::Column::Format };
 constexpr int MAPPING_TREE_GENRES[] { BookItem::Column::Title,    BookItem::Column::SeqNumber,  BookItem::Column::Size, BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate,
-	                                  BookItem::Column::UserRate, BookItem::Column::UpdateDate, BookItem::Column::Year, BookItem::Column::Lang,   BookItem::Column::Format };
+                                      BookItem::Column::UserRate, BookItem::Column::UpdateDate, BookItem::Column::Year, BookItem::Column::Lang,   BookItem::Column::Format };
 
 constexpr std::pair<NavigationMode, std::pair<NavigationRequest, QueryDescription>> QUERIES[] {
 	{     NavigationMode::Authors,
-     { &RequestNavigationSimpleList,
-     { "select AuthorID, FirstName, LastName, MiddleName, IsDeleted, Flags from Authors",
-     &CreateAuthorItem,
-     { .booksFrom       = "from Author_List al join Books_View b on b.BookID = al.BookID",
-     .booksWhere      = "where al.AuthorID = %1",
-     .navigationFrom  = "from Author_List b",
-     .navigationWhere = "where b.AuthorID = %1" },
-     &IBooksListCreator::CreateGeneralList,
-     &IBooksTreeCreator::CreateAuthorsTree,
-     BookItem::Mapping(MAPPING_AUTHORS),
-     BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+	 { &RequestNavigationSimpleList,
+	 { "select AuthorID, FirstName, LastName, MiddleName, IsDeleted, Flags from Authors",
+	 &CreateAuthorItem,
+	 { .booksFrom       = "from Author_List al join Books_View b on b.BookID = al.BookID",
+	 .booksWhere      = "where al.AuthorID = %1",
+	 .navigationFrom  = "from Author_List b",
+	 .navigationWhere = "where b.AuthorID = %1" },
+	 &IBooksListCreator::CreateGeneralList,
+	 &IBooksTreeCreator::CreateAuthorsTree,
+	 BookItem::Mapping(MAPPING_AUTHORS),
+	 BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 
-	{	  NavigationMode::Series,
-     { &RequestNavigationSimpleList,
-     { "select SeriesID, SeriesTitle, IsDeleted, Flags from Series",
-     &DatabaseUtil::CreateSimpleListItem,
-     { .booksFrom       = "from Series_List sl join Books_View b on b.BookID = sl.BookID",
-     .booksWhere      = "where sl.SeriesID = %1",
-     .navigationFrom  = "from Series_List b",
-     .navigationWhere = "where b.SeriesID = %1" },
-     &IBooksListCreator::CreateGeneralList,
-     &IBooksTreeCreator::CreateSeriesTree,
-     BookItem::Mapping(MAPPING_SERIES),
-     BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+	{      NavigationMode::Series,
+	 { &RequestNavigationSimpleList,
+	 { "select SeriesID, SeriesTitle, IsDeleted, Flags from Series",
+	 &DatabaseUtil::CreateSimpleListItem,
+	 { .booksFrom       = "from Series_List sl join Books_View b on b.BookID = sl.BookID",
+	 .booksWhere      = "where sl.SeriesID = %1",
+	 .navigationFrom  = "from Series_List b",
+	 .navigationWhere = "where b.SeriesID = %1" },
+	 &IBooksListCreator::CreateGeneralList,
+	 &IBooksTreeCreator::CreateSeriesTree,
+	 BookItem::Mapping(MAPPING_SERIES),
+	 BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 
-	{	  NavigationMode::Genres,
-     { &RequestNavigationGenres,
-     { "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount, IsDeleted, Flags from Genres g",
-     &DatabaseUtil::CreateGenreItem,
-     { .booksFrom       = "from Genre_List gl join Books_View b on b.BookID = gl.BookID",
-     .booksWhere      = "where gl.GenreCode = '%1'",
-     .navigationFrom  = "from Genre_List b",
-     .navigationWhere = "where b.GenreCode = '%1'" },
-     &IBooksListCreator::CreateGeneralList,
-     &IBooksTreeCreator::CreateGeneralTree,
-     BookItem::Mapping(MAPPING_GENRES),
-     BookItem::Mapping(MAPPING_TREE_GENRES) } } },
+	{      NavigationMode::Genres,
+	 { &RequestNavigationGenres,
+	 { "select g.GenreCode, g.GenreAlias, g.FB2Code, g.ParentCode, (select count(42) from Genre_List gl where gl.GenreCode = g.GenreCode) BookCount, IsDeleted, Flags from Genres g",
+	 &DatabaseUtil::CreateGenreItem,
+	 { .booksFrom       = "from Genre_List gl join Books_View b on b.BookID = gl.BookID",
+	 .booksWhere      = "where gl.GenreCode = '%1'",
+	 .navigationFrom  = "from Genre_List b",
+	 .navigationWhere = "where b.GenreCode = '%1'" },
+	 &IBooksListCreator::CreateGeneralList,
+	 &IBooksTreeCreator::CreateGeneralTree,
+	 BookItem::Mapping(MAPPING_GENRES),
+	 BookItem::Mapping(MAPPING_TREE_GENRES) } } },
 
 	{ NavigationMode::PublishYear,
-     { &RequestNavigationPublishYears,
-     { R"(
+	 { &RequestNavigationPublishYears,
+	 { R"(
 with PublishYears(Year) as (select distinct Year from Books)
 select y.Year, y.Year, not exists (select 42 from Books_View b where b.Year = y.Year and b.IsDeleted = 0 ) IsDeleted, 0 Flags 
 from PublishYears y)",
-     &DatabaseUtil::CreateSimpleListItem,
-     { .booksFrom = "from Books_View b", .booksWhere = "where b.Year = %1", .navigationFrom = "from Books_View b", .navigationWhere = "where b.Year = %1" },
-     &IBooksListCreator::CreateGeneralList,
-     &IBooksTreeCreator::CreateGeneralTree,
-     BookItem::Mapping(MAPPING_FULL),
-     BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+	 &DatabaseUtil::CreateSimpleListItem,
+	 { .booksFrom = "from Books_View b", .booksWhere = "where b.Year = %1", .navigationFrom = "from Books_View b", .navigationWhere = "where b.Year = %1" },
+	 &IBooksListCreator::CreateGeneralList,
+	 &IBooksTreeCreator::CreateGeneralTree,
+	 BookItem::Mapping(MAPPING_FULL),
+	 BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 
 	{    NavigationMode::Keywords,
-     { &RequestNavigationSimpleList,
-     { "select KeywordID, KeywordTitle, IsDeleted, Flags from Keywords",
-     &DatabaseUtil::CreateSimpleListItem,
-     { .booksFrom       = "from Keyword_List kl join Books_View b on b.BookID = kl.BookID",
-     .booksWhere      = "where kl.KeywordID = %1",
-     .navigationFrom  = "from Keyword_List b",
-     .navigationWhere = "where b.KeywordID = %1" },
-     &IBooksListCreator::CreateGeneralList,
-     &IBooksTreeCreator::CreateGeneralTree,
-     BookItem::Mapping(MAPPING_FULL),
-     BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+	 { &RequestNavigationSimpleList,
+	 { "select KeywordID, KeywordTitle, IsDeleted, Flags from Keywords",
+	 &DatabaseUtil::CreateSimpleListItem,
+	 { .booksFrom       = "from Keyword_List kl join Books_View b on b.BookID = kl.BookID",
+	 .booksWhere      = "where kl.KeywordID = %1",
+	 .navigationFrom  = "from Keyword_List b",
+	 .navigationWhere = "where b.KeywordID = %1" },
+	 &IBooksListCreator::CreateGeneralList,
+	 &IBooksTreeCreator::CreateGeneralTree,
+	 BookItem::Mapping(MAPPING_FULL),
+	 BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 
-	{	  NavigationMode::Groups,
-     { &RequestNavigationSimpleList,
-     { "select GroupID, Title, IsDeleted, 0 Flags from Groups_User",
-     &DatabaseUtil::CreateSimpleListItem,
-     { .booksFrom       = "from Groups_List_User_View glu join Books_View b on b.BookID = glu.BookID",
-     .booksWhere      = "where glu.GroupID = %1",
-     .navigationFrom  = "from Groups_List_User_View b",
-     .navigationWhere = "where b.GroupID = %1" },
-     &IBooksListCreator::CreateGeneralList,
-     &IBooksTreeCreator::CreateGeneralTree,
-     BookItem::Mapping(MAPPING_FULL),
-     BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+	{      NavigationMode::Groups,
+	 { &RequestNavigationSimpleList,
+	 { "select GroupID, Title, IsDeleted, 0 Flags from Groups_User",
+	 &DatabaseUtil::CreateSimpleListItem,
+	 { .booksFrom       = "from Groups_List_User_View glu join Books_View b on b.BookID = glu.BookID",
+	 .booksWhere      = "where glu.GroupID = %1",
+	 .navigationFrom  = "from Groups_List_User_View b",
+	 .navigationWhere = "where b.GroupID = %1" },
+	 &IBooksListCreator::CreateGeneralList,
+	 &IBooksTreeCreator::CreateGeneralTree,
+	 BookItem::Mapping(MAPPING_FULL),
+	 BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 
 	{     NavigationMode::Updates,
-     { &RequestNavigationUpdates,
-     { "select UpdateID, UpdateTitle, IsDeleted, 0 Flags, ParentId from Updates order by ParentId",
-     &DatabaseUtil::CreateSimpleListItem,
-     { .booksFrom = "from Books_View b", .booksWhere = "where b.UpdateID = %1", .navigationFrom = "from Books_View b", .navigationWhere = "where b.UpdateID = %1" },
-     &IBooksListCreator::CreateGeneralList,
-     &IBooksTreeCreator::CreateGeneralTree,
-     BookItem::Mapping(MAPPING_FULL),
-     BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+	 { &RequestNavigationUpdates,
+	 { "select UpdateID, UpdateTitle, IsDeleted, 0 Flags, ParentId from Updates order by ParentId",
+	 &DatabaseUtil::CreateSimpleListItem,
+	 { .booksFrom = "from Books_View b", .booksWhere = "where b.UpdateID = %1", .navigationFrom = "from Books_View b", .navigationWhere = "where b.UpdateID = %1" },
+	 &IBooksListCreator::CreateGeneralList,
+	 &IBooksTreeCreator::CreateGeneralTree,
+	 BookItem::Mapping(MAPPING_FULL),
+	 BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 
 	{    NavigationMode::Archives,
-     { &RequestNavigationSimpleList,
-     { "select FolderID, FolderTitle, IsDeleted, 0 Flags from Folders where exists (select 42 from Books where Books.FolderID = Folders.FolderID)",
-     &DatabaseUtil::CreateSimpleListItem,
-     { .booksFrom = "from Books_View b", .booksWhere = "where b.FolderID = %1", .navigationFrom = "from Books_View b", .navigationWhere = "where b.FolderID = %1" },
-     &IBooksListCreator::CreateGeneralList,
-     &IBooksTreeCreator::CreateGeneralTree,
-     BookItem::Mapping(MAPPING_FULL),
-     BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+	 { &RequestNavigationSimpleList,
+	 { "select FolderID, FolderTitle, IsDeleted, 0 Flags from Folders where exists (select 42 from Books where Books.FolderID = Folders.FolderID)",
+	 &DatabaseUtil::CreateSimpleListItem,
+	 { .booksFrom = "from Books_View b", .booksWhere = "where b.FolderID = %1", .navigationFrom = "from Books_View b", .navigationWhere = "where b.FolderID = %1" },
+	 &IBooksListCreator::CreateGeneralList,
+	 &IBooksTreeCreator::CreateGeneralTree,
+	 BookItem::Mapping(MAPPING_FULL),
+	 BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 
 	{   NavigationMode::Languages,
-     { &RequestNavigationSimpleList,
-     { "select l.LanguageCode, not exists (select 42 from Books_View b where b.Lang = l.LanguageCode and b.IsDeleted = 0 ) IsDeleted, Flags from Languages l",
-     &DatabaseUtil::CreateLanguageItem,
-     { .booksFrom = "from Books_View b", .booksWhere = "where b.Lang = '%1'", .navigationFrom = "from Books_View b", .navigationWhere = "where b.Lang = '%1'" },
-     &IBooksListCreator::CreateGeneralList,
-     &IBooksTreeCreator::CreateGeneralTree,
-     BookItem::Mapping(MAPPING_FULL),
-     BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+	 { &RequestNavigationSimpleList,
+	 { "select l.LanguageCode, not exists (select 42 from Books_View b where b.Lang = l.LanguageCode and b.IsDeleted = 0 ) IsDeleted, Flags from Languages l",
+	 &DatabaseUtil::CreateLanguageItem,
+	 { .booksFrom = "from Books_View b", .booksWhere = "where b.Lang = '%1'", .navigationFrom = "from Books_View b", .navigationWhere = "where b.Lang = '%1'" },
+	 &IBooksListCreator::CreateGeneralList,
+	 &IBooksTreeCreator::CreateGeneralTree,
+	 BookItem::Mapping(MAPPING_FULL),
+	 BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 
-	{	  NavigationMode::Search,
-     { &RequestNavigationSimpleList,
-     { "select SearchID, Title, 0 IsDeleted, 0 Flags from Searches_User",
-     &DatabaseUtil::CreateSimpleListItem,
-     { .booksFrom = "from Ids i join Books_View b on b.BookID = i.BookID", .navigationFrom = "from Ids b", .with = &GetSearchWith },
-     &IBooksListCreator::CreateGeneralList,
-     &IBooksTreeCreator::CreateGeneralTree,
-     BookItem::Mapping(MAPPING_FULL),
-     BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+	{      NavigationMode::Search,
+	 { &RequestNavigationSimpleList,
+	 { "select SearchID, coalesce(Origin, Title), 0 IsDeleted, 0 Flags from Searches_User",
+	 &DatabaseUtil::CreateSimpleListItem,
+	 { .booksFrom = "from Ids i join Books_View b on b.BookID = i.BookID", .navigationFrom = "from Ids b", .with = &GetSearchWith },
+	 &IBooksListCreator::CreateGeneralList,
+	 &IBooksTreeCreator::CreateGeneralTree,
+	 BookItem::Mapping(MAPPING_FULL),
+	 BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 
 	{     NavigationMode::Reviews,
-     { &RequestNavigationReviews,
-     { nullptr,
-     nullptr,
-     { .booksFrom        = "from %1 t join Books_View b on b.BaseFileName = t.FileName and b.Ext = t.Ext join Folders f1 on f1.FolderID = b.FolderID and f1.FolderTitle = t.Folder",
-     .navigationFrom   = "from %1 t join Books_View b on b.BaseFileName = t.FileName and b.Ext = t.Ext join Folders f1 on f1.FolderID = b.FolderID and f1.FolderTitle = t.Folder",
-     .additionalFields = ", t.ReviewID" },
-     &IBooksListCreator::CreateReviewsList,
-     &IBooksTreeCreator::CreateReviewsTree,
-     BookItem::Mapping(MAPPING_FULL),
-     BookItem::Mapping(MAPPING_FULL),
-     &IBookSelector::SelectReviews } }         },
+	 { &RequestNavigationReviews,
+	 { nullptr,
+	 nullptr,
+	 { .booksFrom        = "from %1 t join Books_View b on b.BaseFileName = t.FileName and b.Ext = t.Ext join Folders f1 on f1.FolderID = b.FolderID and f1.FolderTitle = t.Folder",
+	 .navigationFrom   = "from %1 t join Books_View b on b.BaseFileName = t.FileName and b.Ext = t.Ext join Folders f1 on f1.FolderID = b.FolderID and f1.FolderTitle = t.Folder",
+	 .additionalFields = ", t.ReviewID" },
+	 &IBooksListCreator::CreateReviewsList,
+	 &IBooksTreeCreator::CreateReviewsTree,
+	 BookItem::Mapping(MAPPING_FULL),
+	 BookItem::Mapping(MAPPING_FULL),
+	 &IBookSelector::SelectReviews } }         },
 
 	{ NavigationMode::AlreadyRead,
-     { &RequestNavigationSimpleList,
-     { "select 'Already read books'",
-     &DatabaseUtil::CreateSimpleListItem,
-     { .booksFrom        = "from Books_View b",
-     .booksWhere       = "where b.UserRate is not null",
-     .navigationFrom   = "from Books_View b",
-     .navigationWhere  = "where b.UserRate is not null",
-     .additionalFields = ", b.UserUpdateTime" },
-     &IBooksListCreator::CreateGeneralList,
-     &IBooksTreeCreator::CreateGeneralTree,
-     BookItem::Mapping(MAPPING_FULL),
-     BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+	 { &RequestNavigationSimpleList,
+	 { "select 'Already read books'",
+	 &DatabaseUtil::CreateSimpleListItem,
+	 { .booksFrom        = "from Books_View b",
+	 .booksWhere       = "where b.UserRate is not null",
+	 .navigationFrom   = "from Books_View b",
+	 .navigationWhere  = "where b.UserRate is not null",
+	 .additionalFields = ", b.UserUpdateTime" },
+	 &IBooksListCreator::CreateGeneralList,
+	 &IBooksTreeCreator::CreateGeneralTree,
+	 BookItem::Mapping(MAPPING_FULL),
+	 BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 
 	{     NavigationMode::History,
-     { &RequestNavigationSimpleList,
-     { "select 'History'",
-     &DatabaseUtil::CreateSimpleListItem,
-     { .booksFrom = "from %1 t join Books_View b on b.BookID = t.BookID", .navigationFrom = "from %1 t join Books_View b on b.BookID = t.BookID", .additionalFields = ", t.CreatedAt" },
-     &IBooksListCreator::CreateGeneralList,
-     &IBooksTreeCreator::CreateGeneralTree,
-     BookItem::Mapping(MAPPING_FULL),
-     BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+	 { &RequestNavigationSimpleList,
+	 { "select 'History'",
+	 &DatabaseUtil::CreateSimpleListItem,
+	 { .booksFrom = "from %1 t join Books_View b on b.BookID = t.BookID", .navigationFrom = "from %1 t join Books_View b on b.BookID = t.BookID", .additionalFields = ", t.CreatedAt" },
+	 &IBooksListCreator::CreateGeneralList,
+	 &IBooksTreeCreator::CreateGeneralTree,
+	 BookItem::Mapping(MAPPING_FULL),
+	 BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 
 	{    NavigationMode::AllBooks,
-     { &RequestNavigationSimpleList,
-     { "select 'All books'",
-     &DatabaseUtil::CreateSimpleListItem,
-     { .booksFrom = "from Books_View b", .navigationFrom = "from Books_View b" },
-     &IBooksListCreator::CreateGeneralList,
-     &IBooksTreeCreator::CreateGeneralTree,
-     BookItem::Mapping(MAPPING_FULL),
-     BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+	 { &RequestNavigationSimpleList,
+	 { "select 'All books'",
+	 &DatabaseUtil::CreateSimpleListItem,
+	 { .booksFrom = "from Books_View b", .navigationFrom = "from Books_View b" },
+	 &IBooksListCreator::CreateGeneralList,
+	 &IBooksTreeCreator::CreateGeneralTree,
+	 BookItem::Mapping(MAPPING_FULL),
+	 BookItem::Mapping(MAPPING_TREE_COMMON) } } },
 };
 
 static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(QUERIES));
 
 constexpr std::pair<const char*, NavigationMode> TABLES[] {
-	{	   "Authors",  NavigationMode::Authors },
+	{       "Authors",  NavigationMode::Authors },
     {        "Series",   NavigationMode::Series },
     {        "Genres",   NavigationMode::Genres },
     {      "Keywords", NavigationMode::Keywords },

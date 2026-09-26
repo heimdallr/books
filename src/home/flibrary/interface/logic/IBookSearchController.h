@@ -5,8 +5,7 @@
 
 class QString;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IBookSearchController // NOLINT(cppcoreguidelines-special-member-functions)
 {

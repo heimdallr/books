@@ -1,7 +1,6 @@
 #pragma once
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IInpxGenerator // NOLINT(cppcoreguidelines-special-member-functions)
 {

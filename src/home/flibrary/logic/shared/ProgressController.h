@@ -5,8 +5,7 @@
 
 #include "interface/logic/IProgressController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ProgressController final : public IMainProgressController
 {

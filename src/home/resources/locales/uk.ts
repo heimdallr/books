@@ -317,6 +317,10 @@
         <translation>&amp;Зберегти зображення як...</translation>
     </message>
     <message>
+        <source>Compute the perceptual &amp;hash</source>
+        <translation>Обчислити перцептуальний &amp;хеш</translation>
+    </message>
+    <message>
         <source>Set background color</source>
         <translation>Змінити колір фону</translation>
     </message>
@@ -965,8 +969,20 @@ Restart now?</source>
         <translation>Про FLibrary</translation>
     </message>
     <message>
+        <source>An error occurred while saving the menu settings</source>
+        <translation>Під час збереження налаштувань меню сталася помилка</translation>
+    </message>
+    <message>
         <source>Another e-library book cataloger</source>
         <translation>Ще один каталогізатор електронної бібліотеки</translation>
+    </message>
+    <message>
+        <source>Cannot read from &apos;%1&apos;</source>
+        <translation>Помилка під час зчитування з &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot write to &apos;%1&apos;</source>
+        <translation>Помилка запису в %1</translation>
     </message>
     <message>
         <source>Cleanup recent books list</source>
@@ -977,8 +993,20 @@ Restart now?</source>
         <translation>Розповсюджується за ліцензією %1</translation>
     </message>
     <message>
+        <source>Menu settings files (*.flimnu);;All files (*.*)</source>
+        <translation>Файли налаштувань меню (*.flimnu);;Усі файли (*.*)</translation>
+    </message>
+    <message>
+        <source>Select menu settings file</source>
+        <translation>Виберіть файл налаштувань меню</translation>
+    </message>
+    <message>
         <source>Specify the background color of the image</source>
         <translation>Вкажіть колір фону зображення</translation>
+    </message>
+    <message>
+        <source>The menu settings have been successfully saved</source>
+        <translation>Налаштування меню успішно збережено</translation>
     </message>
     <message>
         <source>The program version has been copied to the clipboard</source>
@@ -4718,8 +4746,16 @@ Try again?</source>
         <translation>Додати новий &amp;алфавіт...</translation>
     </message>
     <message>
+        <source>&amp;All settings</source>
+        <translation>&amp;Усі налаштування</translation>
+    </message>
+    <message>
         <source>&amp;All settings...</source>
         <translation>&amp;Усі налаштування...</translation>
+    </message>
+    <message>
+        <source>&amp;Already read</source>
+        <translation>&amp;Прочитані</translation>
     </message>
     <message>
         <source>&amp;Annotation</source>
@@ -4794,6 +4830,10 @@ Try again?</source>
         <translation>&amp;Журнал</translation>
     </message>
     <message>
+        <source>&amp;Menu settings</source>
+        <translation>Налаштування &amp;меню</translation>
+    </message>
+    <message>
         <source>&amp;Menu...</source>
         <translation>&amp;Меню...</translation>
     </message>
@@ -4814,12 +4854,12 @@ Try again?</source>
         <translation>&amp;Видалити колекцію</translation>
     </message>
     <message>
-        <source>&amp;Removed books</source>
-        <translation>Ви&amp;далені книги</translation>
+        <source>&amp;Removed</source>
+        <translation>&amp;Видалені</translation>
     </message>
     <message>
         <source>&amp;Restore default values</source>
-        <translation>&amp;Відновити початкові значення</translation>
+        <translation>В&amp;ідновити початкові значення</translation>
     </message>
     <message>
         <source>&amp;Save...</source>
@@ -4852,6 +4892,10 @@ Try again?</source>
     <message>
         <source>&amp;Title</source>
         <translation>На&amp;зва</translation>
+    </message>
+    <message>
+        <source>&amp;Toolbar</source>
+        <translation>Панель &amp;інструментів</translation>
     </message>
     <message>
         <source>&amp;Undo</source>
@@ -4900,6 +4944,10 @@ Try again?</source>
     <message>
         <source>Are you sure you want to return to default settings?</source>
         <translation>Ви впевнені, що хочете повернутися до базових налаштувань?</translation>
+    </message>
+    <message>
+        <source>B&amp;ooks</source>
+        <translation>&amp;Книги</translation>
     </message>
     <message>
         <source>Book &amp;export template</source>
@@ -5042,12 +5090,12 @@ Try again?</source>
         <translation>Перезаписувати &amp;метадані</translation>
     </message>
     <message>
-        <source>Search &amp;bar by title</source>
-        <translation>Панель пошуку за &amp;назвою</translation>
+        <source>Sear&amp;ch</source>
+        <translation>&amp;Пошук</translation>
     </message>
     <message>
-        <source>Search &amp;by</source>
-        <translation>Пошук &amp;за</translation>
+        <source>Search &amp;bar</source>
+        <translation>Панель &amp;пошуку</translation>
     </message>
     <message>
         <source>Search book by title</source>
@@ -5088,10 +5136,6 @@ Try again?</source>
     <message>
         <source>Show &amp;statistics..</source>
         <translation>Показати &amp;статистику...</translation>
-    </message>
-    <message>
-        <source>Show &amp;toolbar</source>
-        <translation>&amp;Панель інструментів</translation>
     </message>
     <message>
         <source>Show collection s&amp;tatistics</source>
@@ -5140,6 +5184,10 @@ Try again?</source>
     <message>
         <source>author</source>
         <translation>автором</translation>
+    </message>
+    <message>
+        <source>file name</source>
+        <translation>назвою файлу</translation>
     </message>
     <message>
         <source>series</source>

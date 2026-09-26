@@ -7,8 +7,7 @@
 using namespace HomeCompa;
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 class ModeController final : public AbstractTreeViewController::IModeController
 {

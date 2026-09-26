@@ -14,8 +14,7 @@
 #include "utilgui/ItemViewToolTipper.h"
 #include "utilgui/ScrollBarController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class FilterSettingsDialog final : public QDialog
 {
@@ -39,4 +38,4 @@ private:
 	PropagateConstPtr<Impl, std::shared_ptr> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

@@ -2,8 +2,7 @@
 
 #include "fnd/observer.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IDatabaseMigrator // NOLINT(cppcoreguidelines-special-member-functions)
 {

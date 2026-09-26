@@ -29,8 +29,7 @@ using namespace Flibrary;
 using namespace RestAPI;
 using namespace Github;
 
-namespace
-{
+namespace {
 
 constexpr auto DISCARDED_UPDATE_KEY  = "Update/SkippedVersion";
 constexpr auto LAST_UPDATE_CHECK_KEY = "Update/LastCheck";
@@ -160,11 +159,11 @@ private:
 
 		const auto logVersion = [](const QString& title, const std::vector<int>& version) {
 			PLOGD << title << ": "
-				  << (version | std::views::transform([](const auto item) {
+			      << (version | std::views::transform([](const auto item) {
 						  return QString::number(item);
 					  })
 			          | std::ranges::to<QStringList>())
-						 .join('.');
+			             .join('.');
 		};
 
 		std::vector<int> latestVersion;
@@ -256,8 +255,7 @@ private:
 			Tr(RELEASED).arg(m_release.name, m_release.html_url).arg(m_uiFactory->GetParentWidgetFontSize() * 9 / 10),
 			buttons,
 			buttons.front().first,
-			m_release.whatsNew.join("\n")
-		))
+			m_release.whatsNew.join("\n")))
 		{
 			case QMessageBox::AcceptRole:
 				return Download(true);
@@ -321,19 +319,19 @@ private:
 
 				const auto startInstaller =
 					code == 0
-					&& (silent || installer.type == Util::InstallerType::wix
+			        && (silent || installer.type == Util::InstallerType::wix
 			            || (installer.type == Util::InstallerType::exe && m_uiFactory->ShowQuestion(Tr(START_INSTALLER), QMessageBox::Yes | QMessageBox::No, QMessageBox::Yes) == QMessageBox::Yes));
 
 				QTimer::singleShot(
 					0,
 					[uiFactory        = m_uiFactory,
-			         downloadFolder   = std::move(downloadFolder),
-			         downloadFileName = std::move(downloadFileName),
-			         downloader       = std::move(downloader),
-			         callback         = std::move(m_callback),
-			         installer,
-			         startInstaller,
-			         silent]() mutable {
+					 downloadFolder   = std::move(downloadFolder),
+					 downloadFileName = std::move(downloadFileName),
+					 downloader       = std::move(downloader),
+					 callback         = std::move(m_callback),
+					 installer,
+					 startInstaller,
+					 silent]() mutable {
 						downloader.reset();
 						callback();
 						if (startInstaller

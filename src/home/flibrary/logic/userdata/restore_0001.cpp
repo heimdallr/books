@@ -17,11 +17,7 @@
 
 #include "restore.h"
 
-namespace HomeCompa::Flibrary::UserData
-{
-
-namespace
-{
+namespace HomeCompa::Flibrary::UserData { namespace {
 
 struct Book
 {
@@ -29,8 +25,8 @@ struct Book
 	QString fileName;
 
 	explicit Book(const Util::XmlAttributes& attributes)
-		: folder(attributes.GetAttribute(Constant::UserData::Books::Folder))
-		, fileName(attributes.GetAttribute(Constant::UserData::Books::FileName))
+		: folder { attributes.GetAttribute(Constant::UserData::Books::Folder).toString() }
+		, fileName { attributes.GetAttribute(Constant::UserData::Books::FileName).toString() }
 	{
 	}
 };
@@ -149,7 +145,7 @@ private: // IRestorer
 private:
 	void AddGroup(const Util::XmlAttributes& attributes)
 	{
-		m_items.emplace_back(attributes.GetAttribute(Constant::TITLE), Books {});
+		m_items.emplace_back(attributes.GetAttribute(Constant::TITLE).toString(), Books {});
 	}
 
 	void AddItem(const Util::XmlAttributes& attributes)
@@ -168,7 +164,7 @@ private: // IRestorer
 	void AddElement([[maybe_unused]] const QString& name, const Util::XmlAttributes& attributes) override
 	{
 		assert(name == Constant::ITEM);
-		m_items << attributes.GetAttribute(Constant::TITLE);
+		m_items << attributes.GetAttribute(Constant::TITLE).toString();
 	}
 
 	void Restore(DB::IDatabase& db) const override
@@ -190,12 +186,9 @@ private:
 	QStringList m_items;
 };
 
-} // namespace
+}} // namespace HomeCompa::Flibrary::UserData
 
-} // namespace HomeCompa::Flibrary::UserData
-
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 std::unique_ptr<IRestorer> CreateBooksRestorer1()
 {
@@ -212,4 +205,4 @@ std::unique_ptr<IRestorer> CreateSearchesRestorer1()
 	return std::make_unique<SearchesRestorer>();
 }
 
-}
+} // namespace HomeCompa::Flibrary::UserData

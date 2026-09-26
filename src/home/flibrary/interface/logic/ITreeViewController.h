@@ -14,8 +14,7 @@ class QPoint;
 class QAbstractItemModel;
 class QString;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ITreeViewController // NOLINT(cppcoreguidelines-special-member-functions)
 {

@@ -7,8 +7,7 @@
 #include "interface/logic/IRecentOpenBookController.h"
 #include "interface/ui/IUiFactory.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class RecentOpenBookController final : public IRecentOpenBookController
 {

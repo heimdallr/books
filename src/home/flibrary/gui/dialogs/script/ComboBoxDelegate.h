@@ -2,8 +2,7 @@
 
 #include <QStyledItemDelegate>
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ComboBoxDelegate : public QStyledItemDelegate
 {

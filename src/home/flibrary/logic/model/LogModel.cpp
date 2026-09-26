@@ -25,11 +25,9 @@
 
 #include "QtTypes.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
-namespace
-{
+namespace {
 
 struct Item
 {
@@ -49,8 +47,8 @@ public:
 };
 
 class LogAppenderImpl final
-	: virtual public plog::IAppender
-	, public Observable<ILogAppenderObserver>
+    : virtual public plog::IAppender
+    , public Observable<ILogAppenderObserver>
 {
 private: // plog::IAppender
 	void write(const plog::Record& record) override
@@ -122,8 +120,8 @@ using Role = LogModelRole;
 LogAppenderImpl* s_logAppenderImpl { nullptr };
 
 class Model final
-	: public QAbstractListModel
-	, virtual ILogAppenderObserver
+    : public QAbstractListModel
+    , virtual ILogAppenderObserver
 {
 	NON_COPY_MOVABLE(Model)
 

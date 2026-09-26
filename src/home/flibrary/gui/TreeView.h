@@ -20,8 +20,7 @@
 class QAbstractItemView;
 class QModelIndex;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class TreeView final : public QWidget
 {
@@ -53,6 +52,7 @@ signals:
 public:
 	void               SetNavigationModeName(QString navigationModeName);
 	void               ShowRemoved(bool showRemoved);
+	void               ShowAlreadyRead(bool showAlreadyRead);
 	QAbstractItemView* GetView() const;
 	void               SetMode(int mode, const QString& id);
 

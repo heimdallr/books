@@ -25,8 +25,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT                            = "JokeRequester";
 constexpr auto CatFactJokeRequesterTitle          = QT_TRANSLATE_NOOP("JokeRequester", "CatFacts");
@@ -63,11 +62,7 @@ std::shared_ptr<IJokeRequester> CreateImpl(Hypodermic::Container& container)
 }
 
 constexpr std::pair<IJokeRequesterFactory::Implementation, std::tuple<const char*, const char*, std::shared_ptr<IJokeRequester> (*)(Hypodermic::Container&)>> IMPLEMENTATIONS[] {
-#define JOKE_REQUESTER_IMPL_ITEM(NAME)                                                                \
-	{                                                                                                 \
-		IJokeRequesterFactory::Implementation::NAME,                                                  \
-		{ NAME##JokeRequesterTitle, NAME##JokeRequesterDisclaimer, &CreateImpl<NAME##JokeRequester> } \
-},
+#define JOKE_REQUESTER_IMPL_ITEM(NAME) { IJokeRequesterFactory::Implementation::NAME, { NAME##JokeRequesterTitle, NAME##JokeRequesterDisclaimer, &CreateImpl<NAME##JokeRequester> } },
 	JOKE_REQUESTER_IMPL_ITEMS_X_MACRO
 #undef JOKE_REQUESTER_IMPL_ITEM
 };

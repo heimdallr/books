@@ -5,11 +5,9 @@
 #include "interface/constants/Enums.h"
 #include "interface/logic/IDataItem.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
-namespace IDataProviderDetails
-{
+namespace IDataProviderDetails {
 
 class IDataProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -23,7 +21,7 @@ public:
 	virtual const QString& GetNavigationID() const noexcept       = 0;
 };
 
-}
+} // namespace IDataProviderDetails
 
 class INavigationInfoProvider : virtual public IDataProviderDetails::IDataProvider
 {
@@ -55,8 +53,8 @@ public:
 };
 
 class IAbstractDataProvider
-	: public INavigationInfoProvider
-	, public IBookInfoProvider
+    : public INavigationInfoProvider
+    , public IBookInfoProvider
 {
 };
 

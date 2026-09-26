@@ -10,12 +10,11 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ComboBoxTextDialog final
-	: public QDialog
-	, virtual public IComboBoxTextDialog
+    : public QDialog
+    , virtual public IComboBoxTextDialog
 {
 	NON_COPY_MOVABLE(ComboBoxTextDialog)
 
@@ -33,4 +32,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

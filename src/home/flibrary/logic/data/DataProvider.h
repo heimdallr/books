@@ -15,12 +15,11 @@
 
 class QString;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class DataProvider final
-	: public IDataProvider
-	, public IFilterDataProvider
+    : public IDataProvider
+    , public IFilterDataProvider
 {
 	NON_COPY_MOVABLE(DataProvider)
 

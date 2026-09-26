@@ -2,8 +2,7 @@
 
 #include <functional>
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IUpdateChecker // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -15,4 +14,4 @@ public:
 	virtual void CheckForUpdate(bool force, Callback callback) = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

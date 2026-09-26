@@ -34,8 +34,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 class QTemporaryDirWrapper final : virtual public ILogicFactory::ITemporaryDir
 {
@@ -112,10 +111,10 @@ private:
 };
 
 constexpr auto EXPORT_TRANSLITERATE_MODE_KEY = "Preferences/Export/TransliterationMode";
-#define TRANSLITERATE_MODE_ITEMS_X_MACRO       \
-	TRANSLITERATE_MODE_ITEM(None)              \
-	TRANSLITERATE_MODE_ITEM(FileNameOnly)      \
-	TRANSLITERATE_MODE_ITEM(AllExceptUserPath) \
+#define TRANSLITERATE_MODE_ITEMS_X_MACRO                                                                                                                                                                       \
+	TRANSLITERATE_MODE_ITEM(None)                                                                                                                                                                              \
+	TRANSLITERATE_MODE_ITEM(FileNameOnly)                                                                                                                                                                      \
+	TRANSLITERATE_MODE_ITEM(AllExceptUserPath)                                                                                                                                                                 \
 	TRANSLITERATE_MODE_ITEM(All)
 
 class FilledTemplateConverterNone final : public IFillTemplateConverter
@@ -427,16 +426,16 @@ Util::ExtractedBooks LogicFactory::GetExtractedBooks(QAbstractItemModel* model, 
 		assert(book.size() == roles.size());
 		auto                genres = book[8].split(", ", Qt::SkipEmptyParts);
 		Util::ExtractedBook result { .id        = book[0].toLongLong(),
-			                         .folder    = std::move(book[1]),
-			                         .file      = std::move(book[2]),
-			                         .size      = book[3].toLongLong(),
-			                         .author    = std::move(book[4]),
-			                         .series    = std::move(book[5]),
-			                         .seqNumber = book[6].toInt(),
-			                         .title     = std::move(book[7]),
-			                         .genre     = genres.isEmpty() ? QString {} : std::move(genres.front()),
-			                         .libId     = book[9].toLongLong(),
-			                         .lang      = book[10] };
+		                             .folder    = std::move(book[1]),
+		                             .file      = std::move(book[2]),
+		                             .size      = book[3].toLongLong(),
+		                             .author    = std::move(book[4]),
+		                             .series    = std::move(book[5]),
+		                             .seqNumber = book[6].toInt(),
+		                             .title     = std::move(book[7]),
+		                             .genre     = genres.isEmpty() ? QString {} : std::move(genres.front()),
+		                             .libId     = book[9].toLongLong(),
+		                             .lang      = book[10] };
 
 		for (auto genre = result.genre; !genre.isEmpty(); genre = [&] {
 				 const auto it = m_impl->genreParents.find(genre);

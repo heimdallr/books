@@ -3,8 +3,7 @@
 class QString;
 class QVariant;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ILibRateProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -15,4 +14,4 @@ public:
 	virtual QVariant GetForegroundBrush(long long bookId, const QString& libRate) const = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

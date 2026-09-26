@@ -12,12 +12,11 @@
 #include "gutil/interface/IParentWidgetProvider.h"
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class AddCollectionDialog final
-	: public QDialog
-	, virtual public IAddCollectionDialog
+    : public QDialog
+    , virtual public IAddCollectionDialog
 {
 	NON_COPY_MOVABLE(AddCollectionDialog)
 

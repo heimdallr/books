@@ -14,11 +14,9 @@
 
 #include "restore.h"
 
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
-namespace
-{
+namespace {
 
 struct Book
 {
@@ -28,10 +26,10 @@ struct Book
 	QString createdAt;
 
 	explicit Book(const Util::XmlAttributes& attributes)
-		: folder(attributes.GetAttribute(Constant::UserData::Books::Folder))
-		, fileName(attributes.GetAttribute(Constant::UserData::Books::FileName))
-		, exportType(attributes.GetAttribute(Constant::UserData::ExportStat::ExportType))
-		, createdAt(attributes.GetAttribute(Constant::UserData::Books::CreatedAt))
+		: folder { attributes.GetAttribute(Constant::UserData::Books::Folder).toString() }
+		, fileName { attributes.GetAttribute(Constant::UserData::Books::FileName).toString() }
+		, exportType { attributes.GetAttribute(Constant::UserData::ExportStat::ExportType).toString() }
+		, createdAt { attributes.GetAttribute(Constant::UserData::Books::CreatedAt).toString() }
 	{
 	}
 };

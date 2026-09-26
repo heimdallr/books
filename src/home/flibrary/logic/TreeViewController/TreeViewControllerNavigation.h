@@ -14,8 +14,7 @@
 
 #include "AbstractTreeViewController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class TreeViewControllerNavigation final : public AbstractTreeViewController
 {

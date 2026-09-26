@@ -5,8 +5,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ScriptCommandModel final : public QSortFilterProxyModel
 {
@@ -26,4 +25,4 @@ private:
 	PropagateConstPtr<QAbstractItemModel> m_source;
 };
 
-}
+} // namespace HomeCompa::Flibrary

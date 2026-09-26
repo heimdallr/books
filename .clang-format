@@ -60,7 +60,7 @@
     AfterControlStatement: Always
     AfterEnum: true
     AfterFunction: true
-    AfterNamespace: true
+    AfterNamespace: false
     AfterStruct: true
     AfterUnion: true
     AfterExternBlock: true
@@ -100,6 +100,7 @@
   ObjCSpaceAfterProperty: true
   ObjCSpaceBeforeProtocolList: true
 
+  PackConstructorInitializers: Never
   PenaltyBreakBeforeFirstCallParameter: 19
   PenaltyBreakComment: 300
   PenaltyBreakFirstLessLess: 120

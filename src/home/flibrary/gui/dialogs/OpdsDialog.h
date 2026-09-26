@@ -10,8 +10,7 @@
 #include "gutil/interface/IParentWidgetProvider.h"
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class OpdsDialog : public QDialog
 {
@@ -29,4 +28,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

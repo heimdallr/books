@@ -8,8 +8,7 @@
 class QAbstractItemModel;
 class QObject;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 QAbstractItemModel* CreateLogModel(QObject* parent = nullptr);
 
@@ -26,4 +25,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

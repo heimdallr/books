@@ -4,8 +4,7 @@
 
 class QAbstractItemModel;
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ILogController // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -20,4 +19,4 @@ public:
 	virtual void                     TestColors() const               = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

@@ -1,21 +1,18 @@
 #pragma once
 
-namespace HomeCompa::DB
-{
+namespace HomeCompa::DB {
 
 class IDatabase;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ICollectionProvider;
 
 }
 
-namespace HomeCompa::Flibrary::DatabaseScheme
-{
+namespace HomeCompa::Flibrary::DatabaseScheme {
 
 void Update(DB::IDatabase& db, const ICollectionProvider& collectionProvider);
 

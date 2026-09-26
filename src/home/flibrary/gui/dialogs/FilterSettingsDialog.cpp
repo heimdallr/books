@@ -24,8 +24,7 @@
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT                                 = "FilterSettingsDialog";
 constexpr auto HIDE_NAVIGATION_WITH_ALL_BOOKS_FILTERED = QT_TRANSLATE_NOOP("FilterSettingsDialog", "Hide items whose books are all filtered");
@@ -36,9 +35,9 @@ constexpr auto RECENT_TAB_KEY        = "ui/View/UniFilter/recentTab";
 constexpr auto RECENT_VALUE_MODE_KEY = "ui/View/UniFilter/valueMode";
 constexpr auto SHOW_CHECKED_MODE_KEY = "ui/View/UniFilter/showCheckedMode%1";
 
-#define SHOW_CHECKED_MODE_ITEMS_X_MACRO \
-	SHOW_CHECKED_MODE_ITEM(All)         \
-	SHOW_CHECKED_MODE_ITEM(Checked)     \
+#define SHOW_CHECKED_MODE_ITEMS_X_MACRO                                                                                                                                                                        \
+	SHOW_CHECKED_MODE_ITEM(All)                                                                                                                                                                                \
+	SHOW_CHECKED_MODE_ITEM(Checked)                                                                                                                                                                            \
 	SHOW_CHECKED_MODE_ITEM(Uncheked)
 
 enum class ShowCheckedMode
@@ -133,11 +132,11 @@ private: // QSortFilterProxyModel
 } // namespace
 
 class FilterSettingsDialog::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
-	, ModeLineEdit::IValueApplier
-	, public IFilterController::ICallback
-	, public std::enable_shared_from_this<Impl>
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
+    , ModeLineEdit::IValueApplier
+    , public IFilterController::ICallback
+    , public std::enable_shared_from_this<Impl>
 {
 	NON_COPY_MOVABLE(Impl)
 

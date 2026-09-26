@@ -19,11 +19,9 @@
 
 #include "log.h"
 
-namespace HomeCompa::Flibrary::DatabaseUtil
-{
+namespace HomeCompa::Flibrary::DatabaseUtil {
 
-namespace
-{
+namespace {
 
 constexpr auto KEEP_HISTORY = "Preferences/Books/KeepHistory";
 
@@ -31,7 +29,7 @@ constexpr std::pair<int, int> BOOK_QUERY_TO_DATA[] {
 	{  BookQueryFields::BookTitle,      BookItem::Column::Title },
     { BookQueryFields::UpdateDate, BookItem::Column::UpdateDate },
     {    BookQueryFields::LibRate,    BookItem::Column::LibRate },
-	{	   BookQueryFields::Lang,       BookItem::Column::Lang },
+	{       BookQueryFields::Lang,       BookItem::Column::Lang },
     {     BookQueryFields::Format,     BookItem::Column::Format },
     {       BookQueryFields::Year,       BookItem::Column::Year },
 	{     BookQueryFields::Folder,     BookItem::Column::Folder },
@@ -54,7 +52,7 @@ void UpdateItem(IDataItem& item, const DB::IQuery& query, const std::initializer
 		item.SetFlags(static_cast<IDataItem::Flags>(query.Get<int>(flagsIndex)));
 }
 
-}
+} // namespace
 
 IDataItem::Ptr CreateSimpleListItem(const DB::IQuery& query)
 {

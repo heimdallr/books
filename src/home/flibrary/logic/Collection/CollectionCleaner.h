@@ -10,8 +10,7 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class CollectionCleanerLogic final : public ICollectionCleaner
 {
@@ -38,4 +37,4 @@ private:
 	std::unique_ptr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

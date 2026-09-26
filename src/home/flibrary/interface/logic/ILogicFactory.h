@@ -20,36 +20,31 @@
 class QAbstractItemModel;
 class QTemporaryDir;
 
-namespace HomeCompa
-{
+namespace HomeCompa {
 
 class ISettings;
 
 }
 
-namespace HomeCompa::DB
-{
+namespace HomeCompa::DB {
 
 class IDatabase;
 
 }
 
-namespace HomeCompa::Util
-{
+namespace HomeCompa::Util {
 
 class IExecutor;
 
 }
 
-namespace HomeCompa::DB::Factory
-{
+namespace HomeCompa::DB::Factory {
 
 enum class Impl;
 
 }
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ILogicFactory : public Lockable<ILogicFactory> // NOLINT(cppcoreguidelines-special-member-functions)
 {

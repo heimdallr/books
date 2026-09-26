@@ -4,8 +4,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 int GetMinimumWidth(const QComboBox& self)
 {
@@ -16,7 +15,7 @@ int GetMinimumWidth(const QComboBox& self)
 	return max + 3 * self.style()->pixelMetric(QStyle::PM_ScrollBarExtent);
 }
 
-}
+} // namespace
 
 FComboBox::FComboBox(QWidget* parent)
 	: QComboBox(parent)

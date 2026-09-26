@@ -2,8 +2,7 @@
 
 #include "interface/logic/ICollectionProvider.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ICollectionController : virtual public ICollectionProvider
 {
@@ -21,4 +20,4 @@ public:
 	virtual Collection::Ptr CreateCollection(QString name, QString database, QString folder, QString additionalFolder, QString inpx) = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

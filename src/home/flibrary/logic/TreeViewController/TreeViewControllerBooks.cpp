@@ -20,8 +20,7 @@
 using namespace HomeCompa;
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto CONTEXT = "Books";
 

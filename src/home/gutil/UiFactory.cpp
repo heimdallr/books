@@ -14,11 +14,9 @@
 #include "Dialog.h"
 #include "log.h"
 
-namespace HomeCompa::Util
-{
+namespace HomeCompa::Util {
 
-namespace
-{
+namespace {
 
 constexpr auto RECENT_DIR_KEY = "ui/RecentDir/%1";
 
@@ -161,10 +159,10 @@ QString UiFactory::GetText(const QString& title, const QString& label, const QSt
 	return dialog->GetText(title, label, text, comboBoxItems, mode);
 }
 
-std::optional<QFont> UiFactory::GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options) const
+std::shared_ptr<QFont> UiFactory::GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options) const
 {
 	bool ok = false;
-	return QFontDialog::getFont(&ok, font, m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(), title, options);
+	return std::make_shared<QFont>(QFontDialog::getFont(&ok, font, m_impl->container.resolve<IParentWidgetProvider>()->GetWidget(), title, options));
 }
 
 std::optional<QColor> UiFactory::GetColor(const QString& title, const QColor& color, const QColorDialog::ColorDialogOptions& options) const

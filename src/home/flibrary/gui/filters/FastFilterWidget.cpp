@@ -32,8 +32,7 @@
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
-namespace
-{
+namespace {
 
 struct ModelRole
 {
@@ -135,41 +134,38 @@ private:
 	const QChar m_symbol, m_zeroSymbol;
 };
 
-namespace TranslatorBase
-{
+namespace TranslatorBase {
 
 static std::unique_ptr<const Translator> Create(const ISettings&)
 {
 	return std::make_unique<Translator>();
 }
 
-}
+} // namespace TranslatorBase
 
-namespace TranslatorLibRate
-{
+namespace TranslatorLibRate {
 
 std::unique_ptr<const Translator> Create(const ISettings& settings)
 {
 	return std::make_unique<TranslatorRate>(settings, Constant::Settings::PREFER_LIB_RATE_STAR_SYMBOL_KEY, 0);
 }
 
-}
+} // namespace TranslatorLibRate
 
-namespace TranslatorUserRate
-{
+namespace TranslatorUserRate {
 
 std::unique_ptr<const Translator> Create(const ISettings& settings)
 {
 	return std::make_unique<TranslatorRate>(settings, Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY, settings.Get(Constant::Settings::PREFER_USER_RATE_ZERO_SYMBOL_KEY, 0));
 }
 
-}
+} // namespace TranslatorUserRate
 
 using TranslatorSeqNumber = TranslatorNumber;
 using TranslatorYear      = TranslatorNumber;
 
 constexpr std::pair<int, std::unique_ptr<const Translator> (*)(const ISettings&)> TRANSLATORS[] {
-#define ITEM(NAME) {BookItem::Column::NAME, &Translator##NAME::Create}
+#define ITEM(NAME) { BookItem::Column::NAME, &Translator##NAME::Create }
 	ITEM(Lang), ITEM(SeqNumber), ITEM(Year), ITEM(LibRate), ITEM(UserRate),
 #undef ITEM
 };
@@ -299,15 +295,9 @@ private:
 			case Qt::CheckStateRole:
 			{
 				const auto checked = value.value<Qt::CheckState>();
-				const auto f       = checked == Qt::Checked ? std::function<void(Item&)>([](Item& item) {
-						item.checked = true;
-					})
-					                                            : checked == Qt::Unchecked
-					                       ? [](Item& item) {
-										   item.checked = false;
-											 } : [](Item& item) {
-										   item.checked = !item.checked;
-											 };
+				const auto f = checked == Qt::Checked     ? std::function<void(Item &)>([](Item &item) { item.checked = true; })
+			               : checked == Qt::Unchecked ? [](Item &item) { item.checked = false; }
+			                                          : [](Item &item) { item.checked = !item.checked; };
 
 				for (auto& item : m_items)
 					f(item);

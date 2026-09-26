@@ -29,11 +29,9 @@
 #include "localization.h"
 #include "log.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
-namespace
-{
+namespace {
 
 int SEQ_NUMBER_WIDTH = 1;
 
@@ -130,7 +128,7 @@ void SetMacroImpl(QString& str, const std::unordered_map<IScriptController::Macr
 		macroValues | std::views::transform([](const auto& item) {
 			return std::make_pair(QString { IScriptController::GetMacro(item.first) }, item.second);
 		})
-		| std::ranges::to<std::unordered_map>()
+	    | std::ranges::to<std::unordered_map>()
 	);
 }
 
@@ -364,8 +362,7 @@ QString IDatabaseUser::GetDatabaseVersionStatement()
 	return QString("insert or replace into Settings(SettingID, SettingValue) values(%1, %2)").arg(static_cast<int>(Key::DatabaseVersion)).arg(Constant::FlibraryDatabaseVersionNumber);
 }
 
-namespace
-{
+namespace {
 
 constexpr std::pair<IStyleApplier::Type, const char*> TYPES[] {
 #define STYLE_APPLIER_TYPE_ITEM(NAME) { IStyleApplier::Type::NAME, #NAME },
@@ -377,7 +374,7 @@ constexpr std::pair<IStyleApplier::Type, const char*> TYPES[] {
 STYLE_APPLIER_TYPE_ITEMS_X_MACRO
 #undef STYLE_APPLIER_TYPE_ITEM
 
-}
+} // namespace
 
 IStyleApplier::Type IStyleApplier::TypeFromString(const char* name)
 {
@@ -389,8 +386,7 @@ QString IStyleApplier::TypeToString(const Type type)
 	return TYPES[static_cast<size_t>(type)].second;
 }
 
-namespace
-{
+namespace {
 
 constexpr auto ANNOTATION_CONTEXT = "Annotation";
 
@@ -438,8 +434,7 @@ QString IAnnotationController::IStrategy::TableRowsToStringImpl(const QStringLis
 	return values.isEmpty() ? QString {} : QString("<table>%1</table>\n").arg(values.join("\n"));
 }
 
-namespace
-{
+namespace {
 
 constexpr auto AUTHORS     = "Authors";
 constexpr auto AUTHOR_ID   = "AuthorID";

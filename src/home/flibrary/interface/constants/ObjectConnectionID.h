@@ -1,7 +1,6 @@
 ﻿#pragma once
 
-namespace HomeCompa::Flibrary::ObjectConnectorID
-{
+namespace HomeCompa::Flibrary::ObjectConnectorID {
 
 constexpr auto BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED = "BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED";
 constexpr auto BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED       = "BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED";
@@ -9,4 +8,4 @@ constexpr auto SEARCH_NAVIGATION_ITEM_SELECTED            = "SEARCH_NAVIGATION_I
 constexpr auto STACKED_PAGE_STATE_CHANGED                 = "STACKED_PAGE_STATE_CHANGED";
 constexpr auto CURRENT_NAVIGATION_ITEM_CHANGED            = "CURRENT_NAVIGATION_ITEM_CHANGED";
 
-}
+} // namespace HomeCompa::Flibrary::ObjectConnectorID

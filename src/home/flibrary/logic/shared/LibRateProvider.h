@@ -9,8 +9,7 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class AbstractLibRateProvider : virtual public ILibRateProvider
 {

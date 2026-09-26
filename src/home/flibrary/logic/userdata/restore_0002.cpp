@@ -13,11 +13,7 @@
 
 #include "restore.h"
 
-namespace HomeCompa::Flibrary::UserData
-{
-
-namespace
-{
+namespace HomeCompa::Flibrary::UserData { namespace {
 
 struct Book
 {
@@ -25,8 +21,8 @@ struct Book
 	QString fileName;
 
 	explicit Book(const Util::XmlAttributes& attributes)
-		: folder(attributes.GetAttribute(Constant::UserData::Books::Folder))
-		, fileName(attributes.GetAttribute(Constant::UserData::Books::FileName))
+		: folder { attributes.GetAttribute(Constant::UserData::Books::Folder).toString() }
+		, fileName { attributes.GetAttribute(Constant::UserData::Books::FileName).toString() }
 	{
 	}
 };
@@ -40,8 +36,8 @@ class BooksRestorer final : virtual public IRestorer
 
 		explicit Item(const Util::XmlAttributes& attributes)
 			: Book(attributes)
-			, isDeleted(attributes.GetAttribute(Constant::UserData::Books::IsDeleted))
-			, userRate(attributes.GetAttribute(Constant::UserData::Books::UserRate))
+			, isDeleted { attributes.GetAttribute(Constant::UserData::Books::IsDeleted).toString() }
+			, userRate { attributes.GetAttribute(Constant::UserData::Books::UserRate).toString() }
 		{
 		}
 	};
@@ -93,16 +89,13 @@ private:
 	Items m_items;
 };
 
-} // namespace
+}} // namespace HomeCompa::Flibrary::UserData
 
-} // namespace HomeCompa::Flibrary::UserData
-
-namespace HomeCompa::Flibrary::UserData
-{
+namespace HomeCompa::Flibrary::UserData {
 
 std::unique_ptr<IRestorer> CreateBooksRestorer2()
 {
 	return std::make_unique<BooksRestorer>();
 }
 
-}
+} // namespace HomeCompa::Flibrary::UserData

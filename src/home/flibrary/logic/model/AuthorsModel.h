@@ -8,8 +8,7 @@
 
 #include "ListModel.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class AuthorsModel final : public ListModel
 {

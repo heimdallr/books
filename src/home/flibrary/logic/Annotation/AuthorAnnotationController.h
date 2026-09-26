@@ -7,8 +7,7 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/ILogicFactory.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class AuthorAnnotationController final : virtual public IAuthorAnnotationController
 {

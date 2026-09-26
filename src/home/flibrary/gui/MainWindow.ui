@@ -460,7 +460,7 @@
     </widget>
     <widget class="QMenu" name="menuSettingsFile">
      <property name="title">
-      <string>&amp;Settings</string>
+      <string>&amp;All settings</string>
      </property>
      <addaction name="actionExportSettings"/>
      <addaction name="actionImportSettings"/>
@@ -470,8 +470,16 @@
       <string>&amp;Recent books</string>
      </property>
     </widget>
+    <widget class="QMenu" name="menuMenuSettings">
+     <property name="title">
+      <string>&amp;Menu settings</string>
+     </property>
+     <addaction name="actionCustomizationMenuExport"/>
+     <addaction name="actionCustomizationMenuImport"/>
+    </widget>
     <addaction name="menuRecentBooks"/>
     <addaction name="menuUserData"/>
+    <addaction name="menuMenuSettings"/>
     <addaction name="menuSettingsFile"/>
     <addaction name="actionExit"/>
    </widget>
@@ -578,12 +586,19 @@
        <string>Al&amp;phabets</string>
       </property>
      </widget>
-     <addaction name="actionShowRemoved"/>
+     <widget class="QMenu" name="menuBooks">
+      <property name="title">
+       <string>B&amp;ooks</string>
+      </property>
+      <addaction name="actionShowRemoved"/>
+      <addaction name="actionShowAlreadyReadBooks"/>
+     </widget>
      <addaction name="actionShowToolbar"/>
      <addaction name="actionShowStatusBar"/>
      <addaction name="actionShowSearchBookString"/>
      <addaction name="actionShowAuthorAnnotation"/>
      <addaction name="actionShowAnnotation"/>
+     <addaction name="menuBooks"/>
      <addaction name="menuAnnotation"/>
      <addaction name="menuFont"/>
      <addaction name="menuAlphabets"/>
@@ -632,12 +647,13 @@
     </widget>
     <widget class="QMenu" name="menuSearch">
      <property name="title">
-      <string>Search &amp;by</string>
+      <string>Sear&amp;ch</string>
      </property>
      <addaction name="actionSearchByTITLE"/>
      <addaction name="actionSearchByAUTHOR"/>
      <addaction name="actionSearchBySERIES"/>
      <addaction name="actionSearchByANNOTATION"/>
+     <addaction name="actionSearchByFILENAME"/>
     </widget>
     <addaction name="menuLanguage"/>
     <addaction name="menuView"/>
@@ -814,7 +830,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>&amp;Removed books</string>
+    <string>&amp;Removed</string>
    </property>
    <property name="shortcut">
     <string notr="true"/>
@@ -1062,7 +1078,7 @@
     <bool>true</bool>
    </property>
    <property name="text">
-    <string>Search &amp;bar by title</string>
+    <string>Search &amp;bar</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>
@@ -1420,7 +1436,48 @@
     <bool>false</bool>
    </property>
    <property name="text">
-    <string>Show &amp;toolbar</string>
+    <string>&amp;Toolbar</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionCustomizationMenuExport">
+   <property name="text">
+    <string>&amp;Save...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionCustomizationMenuImport">
+   <property name="text">
+    <string>&amp;Load...</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionShowAlreadyReadBooks">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="checked">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;Already read</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
+  <action name="actionSearchByFILENAME">
+   <property name="checkable">
+    <bool>true</bool>
+   </property>
+   <property name="text">
+    <string>&amp;File</string>
    </property>
    <property name="menuRole">
     <enum>QAction::MenuRole::NoRole</enum>

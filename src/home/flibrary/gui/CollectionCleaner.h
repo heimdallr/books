@@ -15,8 +15,7 @@
 
 #include "StackedPage.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class CollectionCleaner final : public StackedPage
 {
@@ -43,4 +42,4 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-}
+} // namespace HomeCompa::Flibrary

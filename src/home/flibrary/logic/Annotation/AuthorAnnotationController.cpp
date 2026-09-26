@@ -46,7 +46,7 @@ public:
 		assert(m_executor);
 		(*m_executor)(
 			{ "Extract author's annotation",
-		      [this, id, name = std::move(name)]() mutable {
+			  [this, id, name = std::move(name)]() mutable {
 				  auto annotation = GetAnnotation(name);
 				  return [this, id, annotation = std::move(annotation)](size_t) {
 					  if (id == m_authorId)
@@ -106,7 +106,7 @@ private:
 		m_executor = logicFactory.GetExecutor();
 		(*m_executor)(
 			{ "Create author's annotations map",
-		      [this] {
+			  [this] {
 				  std::unordered_map<QString, int> authorToArchive;
 				  for (const auto& file : m_authorsDir.entryList(QDir::Files))
 				  {

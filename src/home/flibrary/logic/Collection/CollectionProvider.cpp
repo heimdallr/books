@@ -24,8 +24,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 auto GetInpxImpl(const QString& folder)
 {
@@ -46,7 +45,7 @@ constexpr auto DATABASE   = QT_TRANSLATE_NOOP("CollectionStatistics", "Database:
 
 TR_DEF
 
-}
+} // namespace
 
 class CollectionProvider::Impl final : public Observable<ICollectionsObserver>
 {

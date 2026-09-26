@@ -6,8 +6,7 @@
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IModel.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class GenreModel final : public IGenreModel
 {
@@ -24,4 +23,4 @@ protected:
 	PropagateConstPtr<QAbstractItemModel> m_model;
 };
 
-}
+} // namespace HomeCompa::Flibrary

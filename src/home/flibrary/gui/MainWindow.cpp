@@ -39,10 +39,10 @@
 
 #include "gutil/util.h"
 #include "logging/LogAppender.h"
-#include "settings/Font.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ObjectsConnector.h"
 #include "util/app.h"
+#include "utilgui/Font.h"
 #include "utilgui/GeometryRestorable.h"
 
 #include "Constant.h"
@@ -56,34 +56,35 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
-constexpr auto        MAIN_WINDOW                          = "MainWindow";
-constexpr auto        CONTEXT                              = MAIN_WINDOW;
-constexpr auto        EXIT                                 = QT_TRANSLATE_NOOP("MainWindow", "Exit");
-constexpr auto        OPEN                                 = QT_TRANSLATE_NOOP("MainWindow", "Open FLibrary");
-constexpr auto        FONT_DIALOG_TITLE                    = QT_TRANSLATE_NOOP("MainWindow", "Select font");
-constexpr auto        CONFIRM_RESTORE_DEFAULT_SETTINGS     = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
-constexpr auto        CONFIRM_REMOVE_ALL_THEMES            = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to delete all themes?");
-constexpr auto        DATABASE_BROKEN                      = QT_TRANSLATE_NOOP("MainWindow", "Database file \"%1\" is probably corrupted");
-constexpr auto        DENY_DESTRUCTIVE_OPERATIONS_MESSAGE  = QT_TRANSLATE_NOOP("MainWindow", "The right decision!");
-constexpr auto        ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
-constexpr auto        SELECT_QSS_FILE                      = QT_TRANSLATE_NOOP("MainWindow", "Select stylesheet files");
-constexpr auto        SELECT_SETTINGS_FILE                 = QT_TRANSLATE_NOOP("MainWindow", "Select settings file");
-constexpr auto        QSS_FILE_FILTER                      = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
-constexpr auto        SETTINGS_FILE_FILTER                 = QT_TRANSLATE_NOOP("MainWindow", "Settings files (*.ini);;All files (*.*)");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER             = QT_TRANSLATE_NOOP("MainWindow", "To search for books by %1, enter the name or title here and press Enter");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_AUTHOR      = QT_TRANSLATE_NOOP("MainWindow", "author");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_SERIES      = QT_TRANSLATE_NOOP("MainWindow", "series");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_TITLE       = QT_TRANSLATE_NOOP("MainWindow", "title");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_OR          = QT_TRANSLATE_NOOP("MainWindow", " or %1");
-constexpr auto        SEARCH_BOOKS_PLACEHOLDER_ANNOTATION  = QT_TRANSLATE_NOOP("MainWindow", "annotation");
-constexpr auto        ENABLE_ALL                           = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
-constexpr auto        DISABLE_ALL                          = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
-constexpr auto        STOP_HTTP                            = QT_TRANSLATE_NOOP("MainWindow", "The HTTP server is still running. Would you like to stop it?");
-constexpr auto        MY_FOLDER                            = QT_TRANSLATE_NOOP("MainWindow", "My export folder");
-constexpr auto        MAIN_MENU                            = QT_TRANSLATE_NOOP("MainWindow", "Main menu");
+constexpr auto MAIN_WINDOW                          = "MainWindow";
+constexpr auto CONTEXT                              = MAIN_WINDOW;
+constexpr auto EXIT                                 = QT_TRANSLATE_NOOP("MainWindow", "Exit");
+constexpr auto OPEN                                 = QT_TRANSLATE_NOOP("MainWindow", "Open FLibrary");
+constexpr auto FONT_DIALOG_TITLE                    = QT_TRANSLATE_NOOP("MainWindow", "Select font");
+constexpr auto CONFIRM_RESTORE_DEFAULT_SETTINGS     = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to return to default settings?");
+constexpr auto CONFIRM_REMOVE_ALL_THEMES            = QT_TRANSLATE_NOOP("MainWindow", "Are you sure you want to delete all themes?");
+constexpr auto DATABASE_BROKEN                      = QT_TRANSLATE_NOOP("MainWindow", "Database file \"%1\" is probably corrupted");
+constexpr auto DENY_DESTRUCTIVE_OPERATIONS_MESSAGE  = QT_TRANSLATE_NOOP("MainWindow", "The right decision!");
+constexpr auto ALLOW_DESTRUCTIVE_OPERATIONS_MESSAGE = QT_TRANSLATE_NOOP("MainWindow", "Well, you only have yourself to blame!");
+constexpr auto SELECT_QSS_FILE                      = QT_TRANSLATE_NOOP("MainWindow", "Select stylesheet files");
+constexpr auto SELECT_SETTINGS_FILE                 = QT_TRANSLATE_NOOP("MainWindow", "Select settings file");
+constexpr auto QSS_FILE_FILTER                      = QT_TRANSLATE_NOOP("MainWindow", "Qt stylesheet files (*.%1 *.dll);;All files (*.*)");
+constexpr auto SETTINGS_FILE_FILTER                 = QT_TRANSLATE_NOOP("MainWindow", "Settings files (*.ini);;All files (*.*)");
+constexpr auto SEARCH_BOOKS_PLACEHOLDER             = QT_TRANSLATE_NOOP("MainWindow", "To search for books by %1, enter the name or title here and press Enter");
+constexpr auto SEARCH_BOOKS_PLACEHOLDER_AUTHOR      = QT_TRANSLATE_NOOP("MainWindow", "author");
+constexpr auto SEARCH_BOOKS_PLACEHOLDER_SERIES      = QT_TRANSLATE_NOOP("MainWindow", "series");
+constexpr auto SEARCH_BOOKS_PLACEHOLDER_TITLE       = QT_TRANSLATE_NOOP("MainWindow", "title");
+constexpr auto SEARCH_BOOKS_PLACEHOLDER_OR          = QT_TRANSLATE_NOOP("MainWindow", " or %1");
+constexpr auto SEARCH_BOOKS_PLACEHOLDER_ANNOTATION  = QT_TRANSLATE_NOOP("MainWindow", "annotation");
+constexpr auto SEARCH_BOOKS_PLACEHOLDER_FILENAME    = QT_TRANSLATE_NOOP("MainWindow", "file name");
+constexpr auto ENABLE_ALL                           = QT_TRANSLATE_NOOP("MainWindow", "Enable all");
+constexpr auto DISABLE_ALL                          = QT_TRANSLATE_NOOP("MainWindow", "Disable all");
+constexpr auto STOP_HTTP                            = QT_TRANSLATE_NOOP("MainWindow", "The HTTP server is still running. Would you like to stop it?");
+constexpr auto MY_FOLDER                            = QT_TRANSLATE_NOOP("MainWindow", "My export folder");
+constexpr auto MAIN_MENU                            = QT_TRANSLATE_NOOP("MainWindow", "Main menu");
+
 constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 	QT_TRANSLATE_NOOP("MainWindow", "By allowing destructive operations, you assume responsibility for the possible loss of books you need. Are you sure?"),
 	QT_TRANSLATE_NOOP("MainWindow", "Are you really sure?"),
@@ -92,16 +93,17 @@ constexpr const char* ALLOW_DESTRUCTIVE_OPERATIONS_CONFIRMS[] {
 TR_DEF
 
 constexpr auto LOG_SEVERITY_KEY                   = "ui/LogSeverity";
-constexpr auto SHOW_AUTHOR_ANNOTATION_KEY         = "ui/View/AuthorAnnotation";
-constexpr auto SHOW_ANNOTATION_KEY                = "ui/View/Annotation";
+constexpr auto SHOW_ALREADY_READ_KEY              = "ui/View/ShowAlreadyReadBooks";
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY        = "ui/View/AnnotationContent";
-constexpr auto SHOW_ANNOTATION_METADATA_KEY       = "ui/View/AnnotationMetadata";
-constexpr auto SHOW_ANNOTATION_COVER_KEY          = "ui/View/AnnotationCover";
 constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY  = "ui/View/AnnotationCoverButtons";
+constexpr auto SHOW_ANNOTATION_COVER_KEY          = "ui/View/AnnotationCover";
 constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "Preferences/AnnotationJokes/%1";
-constexpr auto SHOW_STATUS_BAR_KEY                = "ui/View/Status";
+constexpr auto SHOW_ANNOTATION_KEY                = "ui/View/Annotation";
+constexpr auto SHOW_ANNOTATION_METADATA_KEY       = "ui/View/AnnotationMetadata";
+constexpr auto SHOW_AUTHOR_ANNOTATION_KEY         = "ui/View/AuthorAnnotation";
 constexpr auto SHOW_REVIEWS_KEY                   = "ui/View/ShowReadersReviews";
 constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
+constexpr auto SHOW_STATUS_BAR_KEY                = "ui/View/Status";
 constexpr auto SHOW_TOOLBAR_KEY                   = "ui/View/ShowToolBar";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
 constexpr auto TOOLBAR_ORDER_KEY                  = "ui/MenuCustomization/ToolbarOrder";
@@ -112,11 +114,12 @@ constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 constexpr auto NAVIGATION_ACTION_ID_PROPERTY      = "navigationMode";
 constexpr auto INDEX                              = "index";
 
-#define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO  \
-	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)       \
-	SEARCH_BOOKS_PLACEHOLDER_ITEM(SERIES)       \
-	SEARCH_BOOKS_PLACEHOLDER_ITEM(TITLE)        \
-	SEARCH_BOOKS_PLACEHOLDER_ITEM(ANNOTATION)
+#define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)      \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(SERIES)      \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(TITLE)       \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(ANNOTATION)  \
+	SEARCH_BOOKS_PLACEHOLDER_ITEM(FILENAME)
 
 template <typename T>
 QString ToString(const T* source) = delete;
@@ -153,19 +156,19 @@ public:
 	LineEditPlaceholderTextController(
 		MainWindow& mainWindow,
 		QLineEdit& lineEdit
-#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , QAction& action##NAME
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , QAction &action##NAME
 			SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 	)
 		: QObject(&lineEdit)
 		, m_mainWindow { mainWindow }
 		, m_lineEdit { lineEdit }
-#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , m_action##NAME { action##NAME }
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) , m_action##NAME{ action##NAME }
 		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 	{
 		m_lineEdit.setPlaceholderText(GetPlaceholderText());
-#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) QObject::connect(&m_action##NAME, &QAction::toggled, [this]{m_lineEdit.setPlaceholderText(GetPlaceholderText());});
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) QObject::connect(&m_action##NAME, &QAction::toggled, [this] { m_lineEdit.setPlaceholderText(GetPlaceholderText()); });
 		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 	}
@@ -185,7 +188,9 @@ private: // QObject
 	QString GetPlaceholderText() const
 	{
 		QStringList list;
-#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) if (m_action##NAME.isVisible() && m_action##NAME.isChecked()) list << Tr(SEARCH_BOOKS_PLACEHOLDER_##NAME);
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME)                                                                                                                                                                    \
+	if (m_action##NAME.isVisible() && m_action##NAME.isChecked())                                                                                                                                              \
+		list << Tr(SEARCH_BOOKS_PLACEHOLDER_##NAME);
 		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 
@@ -203,7 +208,7 @@ private: // QObject
 private:
 	MainWindow& m_mainWindow;
 	QLineEdit&  m_lineEdit;
-#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) QAction& m_action##NAME;
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) QAction &m_action##NAME;
 	SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 };
@@ -251,8 +256,8 @@ std::set<QString> GetQssList()
 }
 
 class ToolbarController final
-	: public QObject
-	, public IMenuCustomizer::IToolbarController
+    : public QObject
+    , public IMenuCustomizer::IToolbarController
 {
 public:
 	class IObserver // NOLINT(cppcoreguidelines-special-member-functions)
@@ -351,15 +356,15 @@ private:
 } // namespace
 
 class MainWindow::Impl final
-	: Util::GeometryRestorable
-	, Util::GeometryRestorableObserver
-	, ICollectionsObserver
-	, ILineOption::IObserver
-	, IAlphabetPanel::IObserver
-	, ITreeViewController::IObserver
-	, INavigationUndoRedo::IObserver
-	, ToolbarController::IObserver
-	, virtual plog::IAppender
+    : Util::GeometryRestorable
+    , Util::GeometryRestorableObserver
+    , ICollectionsObserver
+    , ILineOption::IObserver
+    , IAlphabetPanel::IObserver
+    , ITreeViewController::IObserver
+    , INavigationUndoRedo::IObserver
+    , ToolbarController::IObserver
+    , virtual plog::IAppender
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -860,6 +865,11 @@ private:
 		m_booksWidget->ShowRemoved(value);
 	}
 
+	void ShowAlreadyRead(const bool value)
+	{
+		m_booksWidget->ShowAlreadyRead(value);
+	}
+
 	void ConnectActionsFile()
 	{
 		PLOGV << "ConnectActionsFile";
@@ -881,6 +891,13 @@ private:
 		});
 		connect(m_ui.actionImportSettings, &QAction::triggered, &m_self, [this] {
 			ImportSettings();
+		});
+		connect(m_ui.actionCustomizationMenuExport, &QAction::triggered, &m_self, [this] {
+			m_uiFactory->SaveMenuCustomizerSettings();
+		});
+		connect(m_ui.actionCustomizationMenuImport, &QAction::triggered, &m_self, [this] {
+			if (m_uiFactory->LoadMenuCustomizerSettings())
+				RebootDialog();
 		});
 		connect(m_ui.actionExit, &QAction::triggered, &m_self, [] {
 			QCoreApplication::exit();
@@ -1170,6 +1187,7 @@ private:
 	{
 		PLOGV << "ConnectActionsSettingsView";
 		ConnectSettings(m_ui.actionShowRemoved, Constant::Settings::SHOW_REMOVED_BOOKS_KEY, this, &Impl::ShowRemovedBooks);
+		ConnectSettings(m_ui.actionShowAlreadyReadBooks, SHOW_ALREADY_READ_KEY, this, &Impl::ShowAlreadyRead);
 		ConnectSettings(m_ui.actionShowToolbar, SHOW_TOOLBAR_KEY, qobject_cast<QWidget*>(m_ui.toolBar), &QWidget::setVisible);
 		ConnectSettings(m_ui.actionShowStatusBar, SHOW_STATUS_BAR_KEY, qobject_cast<QWidget*>(m_ui.statusBar), &QWidget::setVisible);
 		ConnectSettings(m_ui.actionShowSearchBookString, SHOW_SEARCH_BOOK_KEY, qobject_cast<QWidget*>(m_ui.lineEditBookTitleToSearch), &QWidget::setVisible);
@@ -1589,11 +1607,7 @@ private:
 		if (!m_collectionController->ActiveCollectionExists())
 			return;
 
-		auto searchString = m_ui.lineEditBookTitleToSearch->text().toLower();
-		std::ranges::transform(searchString, searchString.begin(), [](const QChar ch) {
-			return IsOneOf(ch.category(), QChar::Letter_Lowercase, QChar::Number_DecimalDigit) ? ch : ' ';
-		});
-
+		const auto searchString = m_ui.lineEditBookTitleToSearch->text();
 		if (searchString.isEmpty())
 			return;
 

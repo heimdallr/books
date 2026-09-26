@@ -2,8 +2,7 @@
 
 #include <functional>
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class IUserDataController // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -18,4 +17,4 @@ public:
 	virtual void Restore(QString path, Callback callback) const = 0;
 };
 
-}
+} // namespace HomeCompa::Flibrary

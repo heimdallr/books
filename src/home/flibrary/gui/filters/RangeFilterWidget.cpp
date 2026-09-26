@@ -18,8 +18,7 @@
 
 using namespace HomeCompa::Flibrary;
 
-namespace
-{
+namespace {
 
 constexpr auto MIN_KEY = "min";
 constexpr auto MAX_KEY = "max";
@@ -34,7 +33,7 @@ std::pair<int, int> CreateFullRange(const QAbstractItemModel& model, const int c
 	return std::make_pair(minVar.toInt() / 1024, (maxVar.toInt() + 1023) / 1024);
 }
 
-}
+} // namespace
 
 class RangeFilterWidget::Impl final : public QObject
 {
@@ -140,7 +139,7 @@ private:
 				   QJsonObject {
 					   { MIN_KEY,  m_ui.slider->low() },
 					   { MAX_KEY, m_ui.slider->high() },
-        }
+		}
 		)
 		    .toJson(QJsonDocument::Compact);
 	}

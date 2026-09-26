@@ -22,8 +22,7 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
-namespace
-{
+namespace {
 
 using Role = AuthorReviewModelRole;
 
@@ -179,10 +178,10 @@ select r.Folder, b.BookID, f.FolderTitle||'#'||b.FileName, b.Title
 			const auto reviewObject = reviewValue.toObject();
 			auto       name         = reviewObject[Inpx::NAME].toString();
 			return Item { bookId,
-				          reviewObject[Inpx::TIME].toString(),
-				          name.isEmpty() ? Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS) : std::move(name),
-				          title,
-				          reviewObject[Inpx::TEXT].toString().replace("<br/>", "\n").append('\n') };
+			              reviewObject[Inpx::TIME].toString(),
+			              name.isEmpty() ? Loc::Tr(Loc::Ctx::COMMON, Loc::ANONYMOUS) : std::move(name),
+			              title,
+			              reviewObject[Inpx::TEXT].toString().replace("<br/>", "\n").append('\n') };
 		};
 
 		assert(doc.isArray());

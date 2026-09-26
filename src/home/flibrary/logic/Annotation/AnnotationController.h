@@ -11,8 +11,7 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class AnnotationController final : virtual public IAnnotationController
 {

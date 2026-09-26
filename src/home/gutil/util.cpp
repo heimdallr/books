@@ -10,8 +10,7 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Util
-{
+namespace HomeCompa::Util {
 
 QRect GetGlobalGeometry(const QWidget& widget)
 {

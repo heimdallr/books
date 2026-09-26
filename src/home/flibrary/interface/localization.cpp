@@ -14,8 +14,7 @@
 
 #include "config/locales.h"
 
-namespace HomeCompa::Loc
-{
+namespace HomeCompa::Loc {
 
 QString Tr(const char* context, const char* str)
 {

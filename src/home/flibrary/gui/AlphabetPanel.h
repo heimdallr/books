@@ -10,12 +10,11 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class AlphabetPanel final
-	: public QMainWindow
-	, virtual public IAlphabetPanel
+    : public QMainWindow
+    , virtual public IAlphabetPanel
 {
 	NON_COPY_MOVABLE(AlphabetPanel)
 

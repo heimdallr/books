@@ -8,8 +8,7 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class ImageModel final : public QIdentityProxyModel
 {
@@ -23,4 +22,4 @@ protected:
 	PropagateConstPtr<QAbstractItemModel> m_model;
 };
 
-}
+} // namespace HomeCompa::Flibrary

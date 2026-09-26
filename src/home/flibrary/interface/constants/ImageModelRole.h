@@ -1,7 +1,6 @@
 #pragma once
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 struct ImageModelRole
 {

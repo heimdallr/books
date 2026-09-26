@@ -6,8 +6,7 @@
 
 #include "settings/ISettings.h"
 
-namespace HomeCompa::Flibrary
-{
+namespace HomeCompa::Flibrary {
 
 class AbstractStyleApplier : virtual public IStyleApplier
 {
@@ -18,4 +17,4 @@ protected:
 	PropagateConstPtr<ISettings, std::shared_ptr> m_settings;
 };
 
-}
+} // namespace HomeCompa::Flibrary
