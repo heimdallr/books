@@ -75,11 +75,11 @@ bool OpdsController::IsRunning() const
 	return m_impl->socket.state() == QLocalSocket::ConnectedState;
 }
 
-void OpdsController::Start()
+void OpdsController::Start(const QString& cmdLine)
 {
 	assert(!IsRunning());
 
-	if (QProcess::startDetached(GetOpdsPath(), QStringList {}))
+	if (QProcess::startDetached(GetOpdsPath(), cmdLine.split(' ', Qt::SkipEmptyParts)))
 		m_impl->timer.start();
 }
 

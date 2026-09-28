@@ -91,7 +91,7 @@ struct OpdsDialog::Impl final
 		connect(ui.btnStart, &QAbstractButton::clicked, &self, [this] {
 			this->settings->Set(Constant::Settings::OPDS_PORT_KEY, ui.spinBoxPort->value());
 			this->settings->Set(Constant::Settings::OPDS_HOST_KEY, ui.comboBoxHosts->currentData());
-			this->opdsController->Start();
+			this->opdsController->Start(ui.lineEditCmdLine->text());
 		});
 
 		if (addToStartupEnabled)

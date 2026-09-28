@@ -17,7 +17,7 @@ public:
 
 private: // IOpdsController
 	bool IsRunning() const override;
-	void Start() override;
+	void Start(const QString& cmdLine) override;
 	void Stop() override;
 	void Restart() override;
 
