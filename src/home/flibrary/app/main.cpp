@@ -129,7 +129,7 @@ int main(int argc, char* argv[])
 		const auto logOption      = Log::LoggingInitializer::AddLogFileOption(parser, defaultLogPath);
 		parser.process(app);
 
-		Log::LoggingInitializer logging(parser.isSet(logOption) ? parser.value(logOption) : defaultLogPath);
+		Log::LoggingInitializer logging(parser.value(logOption));
 		LogModelAppender        logModelAppender;
 
 		PLOGI << "App started";

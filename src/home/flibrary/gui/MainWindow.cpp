@@ -121,19 +121,15 @@ constexpr auto INDEX                              = "index";
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(ANNOTATION)  \
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(FILENAME)
 
-template <typename T>
-QString ToString(const T* source) = delete;
-
-template <>
-[[maybe_unused]] QString ToString<char>(const char* source)
+QString ToString(const plog::Record& record)
 {
-	return QString::fromStdString(source);
-}
-
-template <>
-[[maybe_unused]] QString ToString<wchar_t>(const wchar_t* source)
-{
-	return QString::fromStdWString(source);
+	return QString::
+#if PLOG_CHAR_IS_UTF8
+		fromStdString
+#else
+		fromStdWString
+#endif
+		(record.getMessage());
 }
 
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
@@ -580,7 +576,7 @@ private: // plog::IAppender
 	void write(const plog::Record& record) override
 	{
 		if (record.getSeverity() < plog::Severity::verbose && m_ui.statusBar && m_ui.statusBar->isVisible())
-			m_forwarder.Forward([&, message = ToString(record.getMessage())] {
+			m_forwarder.Forward([&, message = ToString(record)] {
 				m_ui.statusBar->showMessage(message, 2000);
 			});
 	}
