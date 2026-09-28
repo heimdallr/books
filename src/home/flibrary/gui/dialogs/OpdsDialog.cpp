@@ -166,6 +166,7 @@ private: // IOpdsController::IObserver
 		const auto isRunning = opdsController->IsRunning();
 		ui.comboBoxHosts->setEnabled(!isRunning);
 		ui.spinBoxPort->setEnabled(!isRunning);
+		ui.lineEditCmdLine->setEnabled(!isRunning);
 
 		ui.checkBoxSimpleWeb->setEnabled(!isRunning);
 		ui.checkBoxReactApp->setEnabled(!isRunning);
