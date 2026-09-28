@@ -96,7 +96,7 @@ struct OpdsDialog::Impl final
 
 		if (addToStartupEnabled)
 			connect(ui.checkBoxAddToStartup, &QAbstractButton::toggled, &self, [this](const bool checked) {
-				checked ? this->opdsController->AddToStartup() : this->opdsController->RemoveFromStartup();
+				checked ? this->opdsController->AddToStartup(ui.lineEditCmdLine->text()) : this->opdsController->RemoveFromStartup();
 			});
 
 		connect(ui.lineEditOpdsUser, &QLineEdit::editingFinished, &self, [this] {

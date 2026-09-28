@@ -120,9 +120,9 @@ bool OpdsController::InStartup() const
 	return Platform::IsAppAddedToAutostart(STARTUP_KEY);
 }
 
-void OpdsController::AddToStartup() const
+void OpdsController::AddToStartup(const QString& cmdLine) const
 {
-	Platform::AddToAutostart(STARTUP_KEY, GetOpdsPath());
+	Platform::AddToAutostart(STARTUP_KEY, GetOpdsPath(), cmdLine);
 }
 
 void OpdsController::RemoveFromStartup() const

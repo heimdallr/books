@@ -32,9 +32,9 @@ public:
 	virtual void Stop()                        = 0;
 	virtual void Restart()                     = 0;
 
-	virtual bool InStartup() const         = 0;
-	virtual void AddToStartup() const      = 0;
-	virtual void RemoveFromStartup() const = 0;
+	virtual bool InStartup() const                          = 0;
+	virtual void AddToStartup(const QString& cmdLine) const = 0;
+	virtual void RemoveFromStartup() const                  = 0;
 
 	virtual void RegisterObserver(IObserver* observer)   = 0;
 	virtual void UnregisterObserver(IObserver* observer) = 0;
