@@ -72,6 +72,7 @@ struct OpdsDialog::Impl final
 			ui.comboBoxHosts->setCurrentIndex(index);
 
 		ui.spinBoxPort->setValue(this->settings->Get(Constant::Settings::OPDS_PORT_KEY, Constant::Settings::OPDS_PORT_DEFAULT));
+		ui.lineEditCmdLine->setText(this->settings->Get(Constant::Settings::OPDS_CMD_LINE_KEY, QString {}));
 		ui.checkBoxAddToStartup->setChecked(addToStartupEnabled && this->opdsController->InStartup());
 		ui.checkBoxAuth->setChecked(!this->settings->Get(Constant::Settings::OPDS_AUTH, QString {}).isEmpty());
 
@@ -91,6 +92,7 @@ struct OpdsDialog::Impl final
 		connect(ui.btnStart, &QAbstractButton::clicked, &self, [this] {
 			this->settings->Set(Constant::Settings::OPDS_PORT_KEY, ui.spinBoxPort->value());
 			this->settings->Set(Constant::Settings::OPDS_HOST_KEY, ui.comboBoxHosts->currentData());
+			this->settings->Set(Constant::Settings::OPDS_CMD_LINE_KEY, ui.lineEditCmdLine->text());
 			this->opdsController->Start(ui.lineEditCmdLine->text());
 		});
 

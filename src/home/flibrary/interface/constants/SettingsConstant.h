@@ -18,6 +18,7 @@ constexpr auto SHOW_REMOVED_BOOKS_KEY            = "ui/View/RemovedBooks";
 
 constexpr auto OPDS_HOST_KEY          = "opds/host";
 constexpr auto OPDS_PORT_KEY          = "opds/port";
+constexpr auto OPDS_CMD_LINE_KEY      = "opds/cmdline";
 constexpr auto OPDS_HOST_DEFAULT      = "Any";
 constexpr auto OPDS_PORT_DEFAULT      = 12791;
 constexpr auto OPDS_AUTH              = "opds/Authentication";
