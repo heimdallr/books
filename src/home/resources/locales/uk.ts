@@ -5425,6 +5425,10 @@ Try again?</source>
         <translation>Закрити</translation>
     </message>
     <message>
+        <source>Command line</source>
+        <translation>Параметри запуску</translation>
+    </message>
+    <message>
         <source>Continue working</source>
         <translation>Продовжувати роботу</translation>
     </message>
