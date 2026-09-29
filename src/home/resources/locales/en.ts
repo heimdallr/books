@@ -5411,6 +5411,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Command line</source>
+        <translation>Launch Parameters</translation>
+    </message>
+    <message>
         <source>Continue working</source>
         <translation></translation>
     </message>

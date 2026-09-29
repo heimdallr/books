@@ -159,7 +159,7 @@ void SetCollection(const QCommandLineParser& parser, Hypodermic::Container& cont
 	settings->Set(Constant::Settings::PREFER_OPDS_AUTOUPDATE_COLLECTION, true);
 }
 
-int run(int argc, char* argv[])
+int run(int argc, char* argv[], std::unique_ptr<Log::LoggingInitializer>& logging)
 {
 #ifdef Q_OS_LINUX
 	qputenv("QT_QPA_PLATFORM", "offscreen");
@@ -184,7 +184,11 @@ int run(int argc, char* argv[])
 			{ Constant::OPDS_SERVER_COMMAND_STOP, "Stop server" },
 	}
 	);
+	const auto logPathKey = Log::LoggingInitializer::AddLogFileOption(parser, QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID));
 	parser.process(app);
+
+	logging = std::make_unique<Log::LoggingInitializer>(parser.value(logPathKey));
+	PLOGI << QString("%1 started").arg(APP_ID);
 
 	NativeEventFilterObserver   nativeEventFilterObserver;
 	Platform::NativeEventFilter nativeEventFilter(app);
@@ -239,12 +243,11 @@ int run(int argc, char* argv[])
 
 int main(const int argc, char* argv[])
 {
-	Log::LoggingInitializer logging(QString("%1/%2.%3.log").arg(QStandardPaths::writableLocation(QStandardPaths::TempLocation), COMPANY_ID, APP_ID));
-	PLOGI << QString("%1 started").arg(APP_ID);
+	std::unique_ptr<Log::LoggingInitializer> logging;
 
 	try
 	{
-		return run(argc, argv);
+		return run(argc, argv, logging);
 	}
 	catch (const std::exception& ex)
 	{

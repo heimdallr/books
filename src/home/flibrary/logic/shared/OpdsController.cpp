@@ -75,11 +75,11 @@ bool OpdsController::IsRunning() const
 	return m_impl->socket.state() == QLocalSocket::ConnectedState;
 }
 
-void OpdsController::Start()
+void OpdsController::Start(const QString& cmdLine)
 {
 	assert(!IsRunning());
 
-	if (QProcess::startDetached(GetOpdsPath(), QStringList {}))
+	if (QProcess::startDetached(GetOpdsPath(), cmdLine.split(' ', Qt::SkipEmptyParts)))
 		m_impl->timer.start();
 }
 
@@ -120,9 +120,9 @@ bool OpdsController::InStartup() const
 	return Platform::IsAppAddedToAutostart(STARTUP_KEY);
 }
 
-void OpdsController::AddToStartup() const
+void OpdsController::AddToStartup(const QString& cmdLine) const
 {
-	Platform::AddToAutostart(STARTUP_KEY, GetOpdsPath());
+	Platform::AddToAutostart(STARTUP_KEY, GetOpdsPath(), cmdLine);
 }
 
 void OpdsController::RemoveFromStartup() const

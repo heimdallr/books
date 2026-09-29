@@ -17,12 +17,12 @@ public:
 
 private: // IOpdsController
 	bool IsRunning() const override;
-	void Start() override;
+	void Start(const QString& cmdLine) override;
 	void Stop() override;
 	void Restart() override;
 
 	bool InStartup() const override;
-	void AddToStartup() const override;
+	void AddToStartup(const QString& cmdLine) const override;
 	void RemoveFromStartup() const override;
 
 	void RegisterObserver(IObserver* observer) override;
