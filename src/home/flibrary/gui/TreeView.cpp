@@ -797,21 +797,22 @@ private:
 			model->setData({}, !!(m_navigationItemFlags & (IDataItem::Flags::Filtered | IDataItem::Flags::BooksFiltered)), Role::NavigationItemFiltered);
 			model->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
 
-			connect(model, &QAbstractItemModel::dataChanged, [this, flag = false](const QModelIndex& topLeft, const QModelIndex&, const QVector<int>& roles) mutable {
-				auto selection = m_ui.treeView->selectionModel()->selection();
-				if (flag || !roles.contains(Qt::CheckStateRole) || m_ui.treeView->model()->rowCount(topLeft) > 0 || !selection.contains(topLeft))
+			connect(model, &QAbstractItemModel::dataChanged, [this, indices = QModelIndexList{}](const QModelIndex& topLeft, const QModelIndex&, const QVector<int>& roles) mutable {
+				if (!indices.isEmpty() || !roles.contains(Qt::CheckStateRole))
 					return;
 
-				const ValueGuard   guard(flag, true);
+				auto selection = m_ui.treeView->selectionModel()->selection();
+				if (!selection.contains(topLeft))
+					return;
+
 				const auto         checkState = topLeft.data(Qt::CheckStateRole);
-				std::unordered_set ids { topLeft.data(Role::Id).toLongLong() };
-				QModelIndexList    indices;
+				std::set ids { topLeft };
 
 				const auto enumerate = [&](const QModelIndex& index, const auto& r) -> void {
 					const auto rows = m_ui.treeView->model()->rowCount(index);
 					if (rows == 0)
 					{
-						if (index.data(Qt::CheckStateRole) != checkState && ids.insert(index.data(Role::Id).toLongLong()).second)
+						if (index.data(Qt::CheckStateRole) != checkState && ids.insert(index).second)
 							indices.push_back(index);
 						return;
 					}
@@ -828,6 +829,7 @@ private:
 				for (const auto index : indices)
 					m_ui.treeView->model()->setData(index, checkState, Qt::CheckStateRole);
 
+				indices.clear();
 				QTimer::singleShot(0, [this, selection = std::move(selection)] {
 					m_ui.treeView->selectionModel()->select(selection, QItemSelectionModel::Select);
 				});
