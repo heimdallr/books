@@ -14,7 +14,7 @@ on:
         default: true
         type: boolean
       windows:
-        description: Build the optional Windows x86_64 package
+        description: Build the Windows x86_64 package
         required: true
         default: true
         type: boolean
@@ -45,6 +45,7 @@ jobs:
     timeout-minutes: 240
     env:
       QT_ROOT: ${{ github.workspace }}/.ci/Qt
+      NODEJS: node-v26.10.0-linux-x64
     steps:
       - name: Bootstrap Ubuntu 22.04 container
         run: |
@@ -95,6 +96,24 @@ jobs:
             "aqtinstall==${AQT_VERSION}" \
             "conan==${CONAN_VERSION}"
 
+      - name: Restore NodeJS
+        id: nodejs-cache
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ${{ runner.workspace }}/.nodejs
+          key: nodejs-linux-x86_64
+
+      - name: Install NodeJS
+        if: steps.nodejs-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -L -o node.tar.xz "https://nodejs.org/dist/latest-v26.x/${{ env.NODEJS }}.tar.xz"
+          mkdir -p ${{ runner.workspace }}/.nodejs
+          tar -xJf node.tar.xz -C ${{ runner.workspace }}/.nodejs
+          cd ${{ runner.workspace }}/.nodejs/${{ env.NODEJS }}
+          NODE_BIN_PATH="${{ runner.workspace }}/.nodejs/${{ env.NODEJS }}/bin"
+          echo "$NODE_BIN_PATH" >> $GITHUB_PATH
+          PATH="$NODE_BIN_PATH:$PATH" ./bin/npm install --save npm react react-dom
+        
       - name: Restore Qt
         id: qt-cache
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
@@ -177,7 +196,8 @@ jobs:
             -DCONAN_PROFILE=gcc-14-linux-x86_64 \
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
             -D7zip_BIN_DIR="${P7ZIP_DIR}" \
-            -DCPACK_GENERATOR=TXZ
+            -DCPACK_GENERATOR=TXZ \
+            -DNPM_EXECUTABLE="${{ runner.workspace }}/.nodejs/${{ env.NODEJS }}/bin/npm"
           cmake --build build/linux --config "${BUILD_TYPE}" --parallel 2
 
       - name: Package and smoke test
@@ -198,7 +218,8 @@ jobs:
             -DCONAN_PROFILE=gcc-14-linux-x86_64 \
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
             -D7zip_BIN_DIR="${P7ZIP_DIR}" \
-            -DCPACK_GENERATOR=DEB
+            -DCPACK_GENERATOR=DEB \
+            -DNPM_EXECUTABLE="${{ runner.workspace }}/.nodejs/${{ env.NODEJS }}/bin/npm"
           cpack --config build/linux/CPackConfig.cmake \
             -G DEB -C "${BUILD_TYPE}" -B "${artifact_dir}"
 
@@ -248,6 +269,7 @@ jobs:
     timeout-minutes: 240
     env:
       QT_ROOT: ${{ github.workspace }}\.ci\Qt
+      NODEJS: node-v26.10.0-win-x64
     steps:
       - name: Check out sources and submodules
         uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
@@ -267,6 +289,21 @@ jobs:
             "aqtinstall==$env:AQT_VERSION" `
             "conan==$env:CONAN_VERSION"
 
+      - name: Restore NodeJS
+        id: nodejs-cache
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ${{ runner.workspace }}/.nodejs
+          key: nodejs-windows-x86_64
+
+      - name: Install NodeJS
+        if: steps.nodejs-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -L -o node.zip "https://nodejs.org/dist/latest-v26.x/${{ env.NODEJS }}.zip"
+          unzip node.zip -d ${{ runner.workspace }}/.nodejs
+          cd ${{ runner.workspace }}/.nodejs/${{ env.NODEJS }}
+          npm install --save npm react react-dom
+        
       - name: Restore Qt
         id: qt-cache
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
@@ -380,7 +417,8 @@ jobs:
             -DQT_MAJOR_VERSION=${{ matrix.qt_major_version }} `
             "-DQt${{ matrix.qt_major_version }}_DIR=$env:QT_PREFIX/lib/cmake/Qt${{ matrix.qt_major_version }}" `
             "-D7zip_BIN_DIR=C:/Program Files/7-Zip" `
-            -DCPACK_GENERATOR=ZIP
+            -DCPACK_GENERATOR=ZIP `
+            "-DNPM_EXECUTABLE=${{ runner.workspace }}/.nodejs/${{ env.NODEJS }}/npm.cmd"
           cmake --build build/windows `
             --config $env:BUILD_TYPE --parallel 2
 
@@ -444,9 +482,11 @@ jobs:
           - arch: arm64
             conan-profile: apple_clang_armv8_Release
             runner: macos-15
+            nodejs: node-v26.10.0-darwin-arm64
           - arch: x86_64
             conan-profile: apple_clang_x86_64_Release
             runner: macos-15-intel
+            nodejs: node-v26.10.0-darwin-x64
     runs-on: ${{ matrix.runner }}
     timeout-minutes: 300
     env:
@@ -477,6 +517,23 @@ jobs:
             "aqtinstall==${AQT_VERSION}" \
             "conan==${CONAN_VERSION}"
 
+      - name: Restore NodeJS
+        id: nodejs-cache
+        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        with:
+          path: ${{ runner.workspace }}/${{ matrix.nodejs }}
+          key: ${{ matrix.nodejs }}
+
+      - name: Install NodeJS
+        if: steps.nodejs-cache.outputs.cache-hit != 'true'
+        run: |
+          curl -L -o node.tar.xz "https://nodejs.org/dist/latest-v26.x/${{ matrix.nodejs }}.tar.xz"
+          tar -xJf node.tar.xz -C ${{ runner.workspace }}
+          cd ${{ runner.workspace }}/${{ matrix.nodejs }}
+          NODE_BIN_PATH="${{ runner.workspace }}/${{ matrix.nodejs }}/bin"
+          echo "$NODE_BIN_PATH" >> $GITHUB_PATH
+          PATH="$NODE_BIN_PATH:$PATH" ./bin/npm install --save npm react react-dom
+        
       - name: Restore Qt
         id: qt-cache
         uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
@@ -544,6 +601,7 @@ jobs:
           BUILD_DIR="${GITHUB_WORKSPACE}/build/macos-${{ matrix.arch }}" \
           P7ZIP_DIR="${P7ZIP_DIR}" \
           QT_PREFIX="${QT_PREFIX}" \
+          NPM_EXECUTABLE="${{ runner.workspace }}/${{ matrix.nodejs }}/bin/npm" \
             ./build-mac.sh
           (cd "${artifact_dir}" && shasum -a 256 FLibrary-*.dmg > SHA256SUMS)
 
