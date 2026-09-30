@@ -179,10 +179,7 @@ std::optional<QHttpServerResponse> FromWebsite(
 		{  "css",                 "text/css" },
 	};
 	const auto* contentType = FindSecond(types, QFileInfo(fileName).suffix().toStdString().data(), PszComparer {});
-	if (auto result = FromFile(QString("%1/website/%2").arg(QCoreApplication::applicationDirPath(), fileName), acceptEncoding, contentType, dataUpdater))
-		return result;
-
-	return FromFile(QString(":/website/%1").arg(fileName), acceptEncoding, contentType, dataUpdater);
+	return FromFile(QString("%1/ReactApp/%2").arg(QCoreApplication::applicationDirPath(), fileName), acceptEncoding, contentType, dataUpdater);
 }
 
 QString GetAcceptEncoding(const QHttpServerRequest& request)
@@ -417,16 +414,18 @@ private:
 	void RouteReactApp()
 	{
 		m_server.route("/", [this](const QHttpServerRequest& request) {
-			return Authorization(request, "/", [this](const IRequester::Parameters&, const QString& acceptEncoding) {
-				return *FromWebsite("index.html", acceptEncoding, [this](QByteArray data) {
+			return Authorization(request, "/", [this](const IRequester::Parameters&, const QString& acceptEncoding) -> QHttpServerResponse {
+				auto response = FromWebsite("index.html", acceptEncoding, [this](QByteArray data) {
 					return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8());
 				});
+				return response ? QHttpServerResponse { std::move(*response) } : QHttpServerResponse { QHttpServerResponse::StatusCode::NotFound };
 			});
 		});
 
 		m_server.route(QString(GET_BOOKS_API_ASSETS).arg(ARG), [](const QString& fileName, const QHttpServerRequest& request) {
-			return QtConcurrent::run([fileName, acceptEncoding = GetAcceptEncoding(request)] {
-				return *FromWebsite("assets/" + fileName, acceptEncoding);
+			return QtConcurrent::run([fileName, acceptEncoding = GetAcceptEncoding(request)]() -> QHttpServerResponse {
+				auto response = FromWebsite("assets/" + fileName, acceptEncoding);
+				return response ? QHttpServerResponse { std::move(*response) } : QHttpServerResponse { QHttpServerResponse::StatusCode::NotFound };
 			});
 		});
 
