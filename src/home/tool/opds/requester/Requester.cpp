@@ -815,8 +815,7 @@ public:
 		, m_noSqlRequester { std::move(noSqlRequester) }
 		, m_annotationController { std::move(annotationController) }
 	{
-		const auto db = m_databaseController->GetDatabase();
-		BookView::Create(*db, *m_settings, *m_filterProvider);
+		Impl::Init();
 	}
 
 	const Flibrary::ICollectionProvider& GetCollectionProvider() const
@@ -1113,6 +1112,12 @@ public:
 		parametersCopy.try_emplace(ROOT, root);
 
 		return PostProcess(ContentType::BookText, root, *this, result, parametersCopy, *m_settings);
+	}
+
+	void Init() const
+	{
+		const auto db = m_databaseController->GetDatabase();
+		BookView::Create(*db, *m_settings, *m_filterProvider);
 	}
 
 	template <typename NavigationGetter, typename... ARGS>
@@ -1417,6 +1422,11 @@ Requester::Requester(
 Requester::~Requester()
 {
 	PLOGV << "Requester destroyed";
+}
+
+void Requester::Init() const
+{
+	m_impl->Init();
 }
 
 QByteArray Requester::Search(const QString& root, const Parameters& parameters) const

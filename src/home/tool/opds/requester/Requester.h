@@ -38,6 +38,7 @@ public:
 	~Requester() override;
 
 private: // IRequester
+	void Init() const override;
 	QByteArray Search(const QString& root, const Parameters& parameters) const override;
 	QByteArray GetBookText(const QString& root, const Parameters& parameters) const override;
 
