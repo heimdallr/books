@@ -8,6 +8,12 @@
 
 #include "root.h"
 
+namespace HomeCompa::Flibrary {
+
+class ICollectionProvider;
+
+}
+
 namespace HomeCompa::Opds {
 
 using namespace Flibrary;
@@ -59,7 +65,7 @@ private: // IAnnotationController::IUrlGenerator
 
 } // namespace
 
-QByteArray PostProcess_opds(const IPostProcessCallback&, QIODevice& stream, ContentType, const IRequester::Parameters&, const ISettings&)
+QByteArray PostProcess_opds(const IPostProcessCallback&, QIODevice& stream, ContentType, const IRequester::Parameters&, const ISettings&, const ICollectionProvider&)
 {
 	auto result = stream.readAll();
 	return result;

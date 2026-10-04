@@ -39,6 +39,7 @@ constexpr auto GET_BOOKS_API_COVER             = "/Images/covers/%1";
 constexpr auto GET_BOOKS_API_BOOK_DATA         = "/Images/fb2/%1";
 constexpr auto GET_BOOKS_API_BOOK_ZIP          = "/Images/zip/%1";
 constexpr auto GET_BOOKS_API_BOOK_DATA_COMPACT = "/Images/fb2compact/%1";
+constexpr auto SET_CURRENT_COLLECTION          = "collection";
 
 const auto AUTH_REQUIRED = "Authentication required";
 
@@ -259,21 +260,21 @@ private:
 
 class Server::Impl : public QObject
 {
-	using AuthorizationAllowFunctor = std::function<QHttpServerResponse(const IRequester::Parameters&, const QString&)>;
+	using AuthorizationAllowFunctor = std::function<QHttpServerResponse(IRequester::Parameters&, const QString&)>;
 
 public:
 	Impl(
-		std::shared_ptr<const ISettings>                     settings,
-		std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-		std::shared_ptr<const IRequester>                    requester,
-		std::shared_ptr<const IReactAppRequester>            reactAppRequester,
-		std::shared_ptr<const INoSqlRequester>               noSqlRequester
+		std::shared_ptr<const ISettings>                 settings,
+		std::shared_ptr<const IRequester>                requester,
+		std::shared_ptr<const IReactAppRequester>        reactAppRequester,
+		std::shared_ptr<const INoSqlRequester>           noSqlRequester,
+		std::shared_ptr<Flibrary::ICollectionController> collectionController
 	)
 		: m_settings { std::move(settings) }
-		, m_collectionProvider { std::move(collectionProvider) }
 		, m_requester { std::move(requester) }
 		, m_reactAppRequester { std::move(reactAppRequester) }
 		, m_noSqlRequester { std::move(noSqlRequester) }
+		, m_collectionController { std::move(collectionController) }
 	{
 		const auto host = [this]() -> QHostAddress {
 			const auto address = m_settings->Get(Flibrary::Constant::Settings::OPDS_HOST_KEY, Flibrary::Constant::Settings::OPDS_HOST_DEFAULT);
@@ -397,18 +398,31 @@ private:
 			{ "read", &IRequester::GetBookText },
 		};
 
-		for (const auto& [path, invoker] : descriptions)
-		{
+		const auto route = [&]<typename Preparer>(const char* path, const Invoker invoker, Preparer&& prepare) {
 			const auto pathPattern = QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString {});
-			m_server.route(pathPattern, [this, root, invoker](const QHttpServerRequest& request) {
+			m_server.route(pathPattern, [this, root, invoker, prepare = std::forward<Preparer>(prepare)](const QHttpServerRequest& request) {
 				PLOGD << request.query().toString();
-				return Authorization(request, web, [this, root, invoker](const IRequester::Parameters& parameters, const QString& acceptEncoding) {
+				return Authorization(request, web, [this, root, invoker, prepare](IRequester::Parameters& parameters, const QString& acceptEncoding) {
+					prepare(parameters);
 					auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), std::cref(parameters)), acceptEncoding);
 					SetContentType(response, root, MessageType::Atom);
 					return response;
 				});
 			});
-		}
+		};
+
+		route(SET_CURRENT_COLLECTION, &IRequester::GetRoot, [this](IRequester::Parameters& parameters) {
+			if (const auto it = parameters.find("id"); it != parameters.end())
+			{
+				m_collectionController->SetActiveCollection(it->second);
+				m_requester->Init();
+				parameters.erase(it);
+			}
+		});
+
+		for (const auto& [path, invoker] : descriptions)
+			route(path, invoker, [](const auto&) {
+			});
 	}
 
 	void RouteReactApp()
@@ -416,7 +430,7 @@ private:
 		m_server.route("/", [this](const QHttpServerRequest& request) {
 			return Authorization(request, "/", [this](const IRequester::Parameters&, const QString& acceptEncoding) -> QHttpServerResponse {
 				auto response = FromWebsite("index.html", acceptEncoding, [this](QByteArray data) {
-					return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8());
+					return data.replace("###Collection###", m_collectionController->GetActiveCollection().name.toUtf8());
 				});
 				return response ? QHttpServerResponse { std::move(*response) } : QHttpServerResponse { QHttpServerResponse::StatusCode::NotFound };
 			});
@@ -476,7 +490,7 @@ private:
 		auto       parameters     = GetParameters<IRequester::Parameters>(request);
 
 		if (expectedAuth.isEmpty())
-			return QtConcurrent::run([allow = std::move(allow), acceptEncoding = std::move(acceptEncoding), parameters = std::move(parameters)] {
+			return QtConcurrent::run([allow = std::move(allow), acceptEncoding = std::move(acceptEncoding), parameters = std::move(parameters)]() mutable {
 				return allow(parameters, acceptEncoding);
 			});
 
@@ -502,24 +516,24 @@ private:
 	}
 
 private:
-	QLocalServer                                         m_localServer;
-	propagate_const<FilteredTcpServer*>                  m_tcpServer { nullptr };
-	QHttpServer                                          m_server;
-	std::shared_ptr<const ISettings>                     m_settings;
-	std::shared_ptr<const Flibrary::ICollectionProvider> m_collectionProvider;
-	std::shared_ptr<const IRequester>                    m_requester;
-	std::shared_ptr<const IReactAppRequester>            m_reactAppRequester;
-	std::shared_ptr<const INoSqlRequester>               m_noSqlRequester;
+	QLocalServer                                                        m_localServer;
+	propagate_const<FilteredTcpServer*>                                 m_tcpServer { nullptr };
+	QHttpServer                                                         m_server;
+	std::shared_ptr<const ISettings>                                    m_settings;
+	std::shared_ptr<const IRequester>                                   m_requester;
+	std::shared_ptr<const IReactAppRequester>                           m_reactAppRequester;
+	std::shared_ptr<const INoSqlRequester>                              m_noSqlRequester;
+	PropagateConstPtr<Flibrary::ICollectionController, std::shared_ptr> m_collectionController;
 };
 
 Server::Server(
-	std::shared_ptr<const ISettings>                     settings,
-	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-	std::shared_ptr<const IRequester>                    requester,
-	std::shared_ptr<const IReactAppRequester>            reactAppRequester,
-	std::shared_ptr<const INoSqlRequester>               noSqlRequester
+	std::shared_ptr<const ISettings>                 settings,
+	std::shared_ptr<const IRequester>                requester,
+	std::shared_ptr<const IReactAppRequester>        reactAppRequester,
+	std::shared_ptr<const INoSqlRequester>           noSqlRequester,
+	std::shared_ptr<Flibrary::ICollectionController> collectionController
 )
-	: m_impl(std::move(settings), std::move(collectionProvider), std::move(requester), std::move(reactAppRequester), std::move(noSqlRequester))
+	: m_impl(std::move(settings), std::move(requester), std::move(reactAppRequester), std::move(noSqlRequester), std::move(collectionController))
 {
 	PLOGV << "Server created";
 }

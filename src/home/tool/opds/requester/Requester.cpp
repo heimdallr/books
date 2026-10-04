@@ -40,7 +40,7 @@
 
 namespace HomeCompa::Opds {
 
-#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(const IPostProcessCallback &callback, QIODevice &stream, ContentType contentType, const IRequester::Parameters &, const ISettings &);
+#define OPDS_REQUEST_ROOT_ITEM(NAME) QByteArray PostProcess_##NAME(const IPostProcessCallback &callback, QIODevice &stream, ContentType contentType, const IRequester::Parameters &, const ISettings &, const Flibrary::ICollectionProvider&);
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
@@ -55,7 +55,7 @@ using namespace Opds;
 
 namespace {
 
-constexpr std::pair<const char*, QByteArray (*)(const IPostProcessCallback&, QIODevice&, ContentType, const IRequester::Parameters&, const ISettings&)> POSTPROCESSORS[] {
+constexpr std::pair<const char*, QByteArray (*)(const IPostProcessCallback&, QIODevice&, ContentType, const IRequester::Parameters&, const ISettings&, const Flibrary::ICollectionProvider&)> POSTPROCESSORS[] {
 #define OPDS_REQUEST_ROOT_ITEM(NAME) { "/" #NAME, &PostProcess_##NAME },
 	OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
@@ -694,7 +694,15 @@ QString GetContent<Flibrary::Update>(const Flibrary::Update&)
 	return {};
 }
 
-QByteArray PostProcess(const ContentType contentType, const QString& root, const IPostProcessCallback& callback, QByteArray& src, const IRequester::Parameters& parameters, const ISettings& settings)
+QByteArray PostProcess(
+	const ContentType                    contentType,
+	const QString&                       root,
+	const IPostProcessCallback&          callback,
+	QByteArray&                          src,
+	const IRequester::Parameters&        parameters,
+	const ISettings&                     settings,
+	const Flibrary::ICollectionProvider& collectionProvider
+)
 {
 	if (root.isEmpty())
 		return src;
@@ -702,7 +710,7 @@ QByteArray PostProcess(const ContentType contentType, const QString& root, const
 	QBuffer buffer(&src);
 	buffer.open(QIODevice::ReadOnly);
 	const auto postprocessor = FindSecond(POSTPROCESSORS, root.toStdString().data(), PszComparer {});
-	auto       result        = postprocessor(callback, buffer, contentType, parameters, settings);
+	auto       result        = postprocessor(callback, buffer, contentType, parameters, settings, collectionProvider);
 
 #ifndef NDEBUG
 	PLOGV << result;
@@ -815,8 +823,7 @@ public:
 		, m_noSqlRequester { std::move(noSqlRequester) }
 		, m_annotationController { std::move(annotationController) }
 	{
-		const auto db = m_databaseController->GetDatabase();
-		BookView::Create(*db, *m_settings, *m_filterProvider);
+		Impl::Init();
 	}
 
 	const Flibrary::ICollectionProvider& GetCollectionProvider() const
@@ -1112,7 +1119,13 @@ public:
 		auto parametersCopy = parameters;
 		parametersCopy.try_emplace(ROOT, root);
 
-		return PostProcess(ContentType::BookText, root, *this, result, parametersCopy, *m_settings);
+		return PostProcess(ContentType::BookText, root, *this, result, parametersCopy, *m_settings, *m_collectionProvider);
+	}
+
+	void Init() const
+	{
+		const auto db = m_databaseController->GetDatabase();
+		BookView::Create(*db, *m_settings, *m_filterProvider);
 	}
 
 	template <typename NavigationGetter, typename... ARGS>
@@ -1155,7 +1168,7 @@ public:
 
 		auto parametersCopy = parameters;
 		parametersCopy.try_emplace(ROOT, root);
-		return PostProcess(contentType, root, *this, bytes, parametersCopy, *m_settings);
+		return PostProcess(contentType, root, *this, bytes, parametersCopy, *m_settings, *m_collectionProvider);
 	}
 
 private: // INavigationProvider
@@ -1417,6 +1430,11 @@ Requester::Requester(
 Requester::~Requester()
 {
 	PLOGV << "Requester destroyed";
+}
+
+void Requester::Init() const
+{
+	m_impl->Init();
 }
 
 QByteArray Requester::Search(const QString& root, const Parameters& parameters) const
