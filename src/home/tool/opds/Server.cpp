@@ -39,6 +39,7 @@ constexpr auto GET_BOOKS_API_COVER             = "/Images/covers/%1";
 constexpr auto GET_BOOKS_API_BOOK_DATA         = "/Images/fb2/%1";
 constexpr auto GET_BOOKS_API_BOOK_ZIP          = "/Images/zip/%1";
 constexpr auto GET_BOOKS_API_BOOK_DATA_COMPACT = "/Images/fb2compact/%1";
+constexpr auto SET_CURRENT_COLLECTION          = "collection";
 
 const auto AUTH_REQUIRED = "Authentication required";
 
@@ -259,7 +260,7 @@ private:
 
 class Server::Impl : public QObject
 {
-	using AuthorizationAllowFunctor = std::function<QHttpServerResponse(const IRequester::Parameters&, const QString&)>;
+	using AuthorizationAllowFunctor = std::function<QHttpServerResponse(IRequester::Parameters&, const QString&)>;
 
 public:
 	Impl(
@@ -397,18 +398,31 @@ private:
 			{ "read", &IRequester::GetBookText },
 		};
 
-		for (const auto& [path, invoker] : descriptions)
-		{
+		const auto route = [&]<typename Preparer>(const char* path, const Invoker invoker, Preparer&& prepare) {
 			const auto pathPattern = QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString {});
-			m_server.route(pathPattern, [this, root, invoker](const QHttpServerRequest& request) {
+			m_server.route(pathPattern, [this, root, invoker, prepare = std::forward<Preparer>(prepare)](const QHttpServerRequest& request) {
 				PLOGD << request.query().toString();
-				return Authorization(request, web, [this, root, invoker](const IRequester::Parameters& parameters, const QString& acceptEncoding) {
+				return Authorization(request, web, [this, root, invoker, prepare](IRequester::Parameters& parameters, const QString& acceptEncoding) {
+					prepare(parameters);
 					auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), std::cref(parameters)), acceptEncoding);
 					SetContentType(response, root, MessageType::Atom);
 					return response;
 				});
 			});
-		}
+		};
+
+		route(SET_CURRENT_COLLECTION, &IRequester::GetRoot, [this](IRequester::Parameters& parameters) {
+			if (const auto it = parameters.find("id"); it != parameters.end())
+			{
+				m_collectionController->SetActiveCollection(it->second);
+				m_requester->Init();
+				parameters.erase(it);
+			}
+		});
+
+		for (const auto& [path, invoker] : descriptions)
+			route(path, invoker, [](const auto&) {
+			});
 	}
 
 	void RouteReactApp()
@@ -476,7 +490,7 @@ private:
 		auto       parameters     = GetParameters<IRequester::Parameters>(request);
 
 		if (expectedAuth.isEmpty())
-			return QtConcurrent::run([allow = std::move(allow), acceptEncoding = std::move(acceptEncoding), parameters = std::move(parameters)] {
+			return QtConcurrent::run([allow = std::move(allow), acceptEncoding = std::move(acceptEncoding), parameters = std::move(parameters)]() mutable {
 				return allow(parameters, acceptEncoding);
 			});
 
