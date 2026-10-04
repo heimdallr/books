@@ -263,17 +263,17 @@ class Server::Impl : public QObject
 
 public:
 	Impl(
-		std::shared_ptr<const ISettings>                     settings,
-		std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-		std::shared_ptr<const IRequester>                    requester,
-		std::shared_ptr<const IReactAppRequester>            reactAppRequester,
-		std::shared_ptr<const INoSqlRequester>               noSqlRequester
+		std::shared_ptr<const ISettings>                 settings,
+		std::shared_ptr<const IRequester>                requester,
+		std::shared_ptr<const IReactAppRequester>        reactAppRequester,
+		std::shared_ptr<const INoSqlRequester>           noSqlRequester,
+		std::shared_ptr<Flibrary::ICollectionController> collectionController
 	)
 		: m_settings { std::move(settings) }
-		, m_collectionProvider { std::move(collectionProvider) }
 		, m_requester { std::move(requester) }
 		, m_reactAppRequester { std::move(reactAppRequester) }
 		, m_noSqlRequester { std::move(noSqlRequester) }
+		, m_collectionController { std::move(collectionController) }
 	{
 		const auto host = [this]() -> QHostAddress {
 			const auto address = m_settings->Get(Flibrary::Constant::Settings::OPDS_HOST_KEY, Flibrary::Constant::Settings::OPDS_HOST_DEFAULT);
@@ -416,7 +416,7 @@ private:
 		m_server.route("/", [this](const QHttpServerRequest& request) {
 			return Authorization(request, "/", [this](const IRequester::Parameters&, const QString& acceptEncoding) -> QHttpServerResponse {
 				auto response = FromWebsite("index.html", acceptEncoding, [this](QByteArray data) {
-					return data.replace("###Collection###", m_collectionProvider->GetActiveCollection().name.toUtf8());
+					return data.replace("###Collection###", m_collectionController->GetActiveCollection().name.toUtf8());
 				});
 				return response ? QHttpServerResponse { std::move(*response) } : QHttpServerResponse { QHttpServerResponse::StatusCode::NotFound };
 			});
@@ -502,24 +502,24 @@ private:
 	}
 
 private:
-	QLocalServer                                         m_localServer;
-	propagate_const<FilteredTcpServer*>                  m_tcpServer { nullptr };
-	QHttpServer                                          m_server;
-	std::shared_ptr<const ISettings>                     m_settings;
-	std::shared_ptr<const Flibrary::ICollectionProvider> m_collectionProvider;
-	std::shared_ptr<const IRequester>                    m_requester;
-	std::shared_ptr<const IReactAppRequester>            m_reactAppRequester;
-	std::shared_ptr<const INoSqlRequester>               m_noSqlRequester;
+	QLocalServer                                                        m_localServer;
+	propagate_const<FilteredTcpServer*>                                 m_tcpServer { nullptr };
+	QHttpServer                                                         m_server;
+	std::shared_ptr<const ISettings>                                    m_settings;
+	std::shared_ptr<const IRequester>                                   m_requester;
+	std::shared_ptr<const IReactAppRequester>                           m_reactAppRequester;
+	std::shared_ptr<const INoSqlRequester>                              m_noSqlRequester;
+	PropagateConstPtr<Flibrary::ICollectionController, std::shared_ptr> m_collectionController;
 };
 
 Server::Server(
-	std::shared_ptr<const ISettings>                     settings,
-	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-	std::shared_ptr<const IRequester>                    requester,
-	std::shared_ptr<const IReactAppRequester>            reactAppRequester,
-	std::shared_ptr<const INoSqlRequester>               noSqlRequester
+	std::shared_ptr<const ISettings>                 settings,
+	std::shared_ptr<const IRequester>                requester,
+	std::shared_ptr<const IReactAppRequester>        reactAppRequester,
+	std::shared_ptr<const INoSqlRequester>           noSqlRequester,
+	std::shared_ptr<Flibrary::ICollectionController> collectionController
 )
-	: m_impl(std::move(settings), std::move(collectionProvider), std::move(requester), std::move(reactAppRequester), std::move(noSqlRequester))
+	: m_impl(std::move(settings), std::move(requester), std::move(reactAppRequester), std::move(noSqlRequester), std::move(collectionController))
 {
 	PLOGV << "Server created";
 }

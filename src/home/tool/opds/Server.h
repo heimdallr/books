@@ -7,7 +7,7 @@
 #include "interface/IReactAppRequester.h"
 #include "interface/IRequester.h"
 #include "interface/IServer.h"
-#include "interface/logic/ICollectionProvider.h"
+#include "interface/logic/ICollectionController.h"
 
 namespace HomeCompa {
 
@@ -23,11 +23,11 @@ class Server : virtual public IServer
 
 public:
 	Server(
-		std::shared_ptr<const ISettings>                     settings,
-		std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-		std::shared_ptr<const IRequester>                    requester,
-		std::shared_ptr<const IReactAppRequester>            reactAppRequester,
-		std::shared_ptr<const INoSqlRequester>               noSqlRequester
+		std::shared_ptr<const ISettings>                 settings,
+		std::shared_ptr<const IRequester>                requester,
+		std::shared_ptr<const IReactAppRequester>        reactAppRequester,
+		std::shared_ptr<const INoSqlRequester>           noSqlRequester,
+		std::shared_ptr<Flibrary::ICollectionController> collectionController
 	);
 	~Server() override;
 
