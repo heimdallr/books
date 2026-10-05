@@ -23,7 +23,7 @@ public:
 
 } // namespace IDataProviderDetails
 
-class INavigationInfoProvider : virtual public IDataProviderDetails::IDataProvider
+class INavigationInfoProvider : public IDataProviderDetails::IDataProvider
 {
 public:
 	virtual void SetNavigationId(QString id, bool force = false)  = 0;
@@ -32,7 +32,7 @@ public:
 	virtual void RequestNavigation(bool force = false) const      = 0;
 };
 
-class IBookInfoProvider : virtual public IDataProviderDetails::IDataProvider
+class IBookInfoProvider : public IDataProviderDetails::IDataProvider
 {
 public:
 	class IObserver : public Observer

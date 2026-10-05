@@ -11,7 +11,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class BookExtractor final : virtual public IBookExtractor
+class BookExtractor final : public IBookExtractor
 {
 	NON_COPY_MOVABLE(BookExtractor)
 

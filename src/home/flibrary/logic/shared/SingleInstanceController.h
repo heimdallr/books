@@ -10,7 +10,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class SingleInstanceController final : virtual public ISingleInstanceController
+class SingleInstanceController final : public ISingleInstanceController
 {
 	NON_COPY_MOVABLE(SingleInstanceController)
 

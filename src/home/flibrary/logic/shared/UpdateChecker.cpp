@@ -92,7 +92,7 @@ del "%3" >> "%4"
 
 } // namespace
 
-class UpdateChecker::Impl final : virtual public IClient
+class UpdateChecker::Impl final : public IClient
 {
 public:
 	Impl(

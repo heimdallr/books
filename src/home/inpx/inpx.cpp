@@ -1279,7 +1279,7 @@ private:
 
 } // namespace
 
-class Parser::Impl final : virtual public IPool
+class Parser::Impl final : public IPool
 {
 	NON_COPY_MOVABLE(Impl)
 

@@ -14,7 +14,7 @@ namespace HomeCompa::Flibrary {
 
 class ComboBoxTextDialog final
     : public QDialog
-    , virtual public IComboBoxTextDialog
+    , public IComboBoxTextDialog
 {
 	NON_COPY_MOVABLE(ComboBoxTextDialog)
 

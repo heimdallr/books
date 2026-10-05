@@ -27,7 +27,7 @@ struct Book
 	}
 };
 
-class BooksRestorer final : virtual public IRestorer
+class BooksRestorer final : public IRestorer
 {
 	struct Item : Book
 	{

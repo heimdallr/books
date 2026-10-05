@@ -20,7 +20,7 @@ class QJsonValue;
 
 namespace HomeCompa::Flibrary {
 
-class BaseJokeRequester : virtual public IJokeRequester
+class BaseJokeRequester : public IJokeRequester
 {
 	NON_COPY_MOVABLE(BaseJokeRequester)
 

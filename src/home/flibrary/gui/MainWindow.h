@@ -36,7 +36,7 @@ namespace HomeCompa::Flibrary {
 
 class MainWindow final
     : public QMainWindow
-    , virtual public IMainWindow
+    , public IMainWindow
 {
 	Q_OBJECT
 	NON_COPY_MOVABLE(MainWindow)

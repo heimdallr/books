@@ -7,7 +7,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class CommandLine final : virtual public ICommandLine
+class CommandLine final : public ICommandLine
 {
 	NON_COPY_MOVABLE(CommandLine)
 

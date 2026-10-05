@@ -19,7 +19,7 @@ class QIODevice;
 
 namespace HomeCompa::Opds {
 
-class Requester final : virtual public IRequester
+class Requester final : public IRequester
 {
 	NON_COPY_MOVABLE(Requester)
 

@@ -9,7 +9,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class CollectionAutoUpdater final : virtual public ICollectionAutoUpdater
+class CollectionAutoUpdater final : public ICollectionAutoUpdater
 {
 	NON_COPY_MOVABLE(CollectionAutoUpdater)
 

@@ -32,7 +32,7 @@ void Bind(DB::ICommand& command, const size_t index, const QString& value)
 		command.Bind(index, value.toStdString());
 }
 
-class SearchesRestorer final : virtual public IRestorer
+class SearchesRestorer final : public IRestorer
 {
 private: // IRestorer
 	void AddElement([[maybe_unused]] const QString& name, const Util::XmlAttributes& attributes) override

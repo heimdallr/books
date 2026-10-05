@@ -15,7 +15,7 @@ class Container;
 
 namespace HomeCompa::Flibrary {
 
-class StyleApplierFactory : virtual public IStyleApplierFactory
+class StyleApplierFactory : public IStyleApplierFactory
 {
 	NON_COPY_MOVABLE(StyleApplierFactory)
 

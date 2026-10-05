@@ -218,7 +218,7 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, c
 	return table;
 }
 
-class JokeRequesterClientImpl : virtual public IJokeRequester::IClient
+class JokeRequesterClientImpl : public IJokeRequester::IClient
 {
 public:
 	static std::shared_ptr<IClient> Create(IClient& impl)

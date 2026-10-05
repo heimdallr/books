@@ -4,7 +4,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class DataItemFactory final : virtual public IDataItemFactory
+class DataItemFactory final : public IDataItemFactory
 {
 private: // IDataItemFactory
 #define DATA_ITEM(NAME) IDataItem::Ptr Create##NAME(IDataItem *parent = nullptr) const override;

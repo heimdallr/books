@@ -14,7 +14,7 @@ class Container;
 
 namespace HomeCompa::Flibrary {
 
-class LogicFactory final : virtual public ILogicFactory
+class LogicFactory final : public ILogicFactory
 {
 	NON_COPY_MOVABLE(LogicFactory)
 

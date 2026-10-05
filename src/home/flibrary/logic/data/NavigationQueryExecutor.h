@@ -9,7 +9,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class NavigationQueryExecutor final : virtual public INavigationQueryExecutor
+class NavigationQueryExecutor final : public INavigationQueryExecutor
 {
 	NON_COPY_MOVABLE(NavigationQueryExecutor)
 

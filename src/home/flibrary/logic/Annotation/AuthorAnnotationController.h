@@ -9,7 +9,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class AuthorAnnotationController final : virtual public IAuthorAnnotationController
+class AuthorAnnotationController final : public IAuthorAnnotationController
 {
 	NON_COPY_MOVABLE(AuthorAnnotationController)
 

@@ -36,7 +36,7 @@ struct Book
 
 using Books = std::vector<Book>;
 
-class ExportStatRestorer final : virtual public IRestorer
+class ExportStatRestorer final : public IRestorer
 {
 private: // IRestorer
 	void AddElement([[maybe_unused]] const QString& name, const Util::XmlAttributes& attributes) override

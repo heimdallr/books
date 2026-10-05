@@ -17,7 +17,7 @@ class ISettings;
 
 namespace HomeCompa::Opds {
 
-class Server : virtual public IServer
+class Server : public IServer
 {
 	NON_COPY_MOVABLE(Server)
 

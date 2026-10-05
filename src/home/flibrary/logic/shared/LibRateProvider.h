@@ -11,7 +11,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class AbstractLibRateProvider : virtual public ILibRateProvider
+class AbstractLibRateProvider : public ILibRateProvider
 {
 };
 

@@ -18,7 +18,7 @@ using namespace HomeCompa;
 
 namespace {
 
-class FilterRestorer final : virtual public IRestorer
+class FilterRestorer final : public IRestorer
 {
 	using DataValues = std::vector<std::pair<QString, int>>;
 

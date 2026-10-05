@@ -24,7 +24,7 @@ void BindImpl(DB::ICommand& command, const size_t index, const QString& value)
 		command.Bind(index, value.toStdString());
 }
 
-class GroupsRestorer final : virtual public IRestorer
+class GroupsRestorer final : public IRestorer
 {
 	struct Item
 	{

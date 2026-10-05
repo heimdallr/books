@@ -26,7 +26,7 @@ class ISettings;
 
 namespace HomeCompa::Flibrary {
 
-class IUiFactory : virtual public Util::IUiFactory // NOLINT(cppcoreguidelines-special-member-functions)
+class IUiFactory : public Util::IUiFactory // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	class IChangeSizeWidgetObserver // NOLINT(cppcoreguidelines-special-member-functions)

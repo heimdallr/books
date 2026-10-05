@@ -12,7 +12,7 @@ class QString;
 
 namespace HomeCompa::Flibrary {
 
-class SearchController final : virtual public IBookSearchController
+class SearchController final : public IBookSearchController
 {
 	NON_COPY_MOVABLE(SearchController)
 

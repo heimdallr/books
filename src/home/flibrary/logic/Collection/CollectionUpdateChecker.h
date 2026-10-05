@@ -9,7 +9,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class CollectionUpdateChecker final : virtual public ICollectionUpdateChecker
+class CollectionUpdateChecker final : public ICollectionUpdateChecker
 {
 	NON_COPY_MOVABLE(CollectionUpdateChecker)
 public:

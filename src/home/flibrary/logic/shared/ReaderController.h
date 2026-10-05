@@ -17,7 +17,7 @@ class QString;
 
 namespace HomeCompa::Flibrary {
 
-class ReaderController : virtual public IReaderController
+class ReaderController : public IReaderController
 {
 	NON_COPY_MOVABLE(ReaderController)
 

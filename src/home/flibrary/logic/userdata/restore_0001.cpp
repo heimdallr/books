@@ -33,7 +33,7 @@ struct Book
 
 using Books = std::vector<Book>;
 
-class BooksRestorer final : virtual public IRestorer
+class BooksRestorer final : public IRestorer
 {
 	struct Item : Book
 	{
@@ -83,7 +83,7 @@ private:
 	Items m_items;
 };
 
-class GroupsRestorer final : virtual public IRestorer
+class GroupsRestorer final : public IRestorer
 {
 	struct Item
 	{
@@ -158,7 +158,7 @@ private:
 	Items m_items;
 };
 
-class SearchesRestorer final : virtual public IRestorer
+class SearchesRestorer final : public IRestorer
 {
 private: // IRestorer
 	void AddElement([[maybe_unused]] const QString& name, const Util::XmlAttributes& attributes) override

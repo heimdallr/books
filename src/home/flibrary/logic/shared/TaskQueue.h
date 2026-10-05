@@ -7,7 +7,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class TaskQueue : virtual public ITaskQueue
+class TaskQueue : public ITaskQueue
 {
 	NON_COPY_MOVABLE(TaskQueue)
 

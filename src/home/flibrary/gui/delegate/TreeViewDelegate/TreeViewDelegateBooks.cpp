@@ -91,7 +91,7 @@ public:
 	virtual void Render(QPainter& painter, QStyleOptionViewItem& o, const QModelIndex& index) const = 0;
 };
 
-class BookRendererDefault : virtual public IBookRenderer
+class BookRendererDefault : public IBookRenderer
 {
 public:
 	explicit BookRendererDefault(const QStyledItemDelegate& impl)
@@ -109,7 +109,7 @@ private:
 	const QStyledItemDelegate& m_impl;
 };
 
-class RateRendererStars final : virtual public IBookRenderer
+class RateRendererStars final : public IBookRenderer
 {
 public:
 	RateRendererStars(const int role, const ISettings& settings, const QString& columnName, const QString& starSymbolKey, QString zeroSymbol = {})
@@ -144,7 +144,7 @@ private:
 	Qt::Alignment m_alignment { Qt::AlignLeft };
 };
 
-class RateRendererNumber final : virtual public BookRendererDefault
+class RateRendererNumber final : public BookRendererDefault
 {
 public:
 	explicit RateRendererNumber(const QStyledItemDelegate& impl, const ISettings& settings)

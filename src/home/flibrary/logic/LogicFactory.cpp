@@ -36,7 +36,7 @@ using namespace Flibrary;
 
 namespace {
 
-class QTemporaryDirWrapper final : virtual public ILogicFactory::ITemporaryDir
+class QTemporaryDirWrapper final : public ILogicFactory::ITemporaryDir
 {
 private: // ILogicFactory::ITemporaryDir
 	QString filePath(const QString& fileName) const override
@@ -53,7 +53,7 @@ private:
 	QTemporaryDir m_impl;
 };
 
-class QDirWrapper final : virtual public ILogicFactory::ITemporaryDir
+class QDirWrapper final : public ILogicFactory::ITemporaryDir
 {
 public:
 	explicit QDirWrapper(const QString& path)
@@ -78,7 +78,7 @@ private:
 	QDir m_impl;
 };
 
-class SingleTemporaryDir : virtual public ILogicFactory::ITemporaryDir
+class SingleTemporaryDir : public ILogicFactory::ITemporaryDir
 {
 	NON_COPY_MOVABLE(SingleTemporaryDir)
 

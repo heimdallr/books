@@ -13,7 +13,7 @@
 
 namespace HomeCompa::Opds {
 
-class NoSqlRequester final : virtual public INoSqlRequester
+class NoSqlRequester final : public INoSqlRequester
 {
 	NON_COPY_MOVABLE(NoSqlRequester)
 
