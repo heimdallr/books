@@ -6029,6 +6029,45 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>ZipError</name>
+    <message>
+        <source>Cannon find entry point &apos;%1&apos;</source>
+        <translation>Cannot find entry point &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot  create object</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot add file &apos;%1&apos; to archive</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot create file &apos;%1&apos;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot extract file &apos;%1&apos;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot find file &apos;%1&apos;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot load %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot open archive &apos;%1&apos;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot open file &apos;%1&apos;</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
     <name>opds</name>
     <message>
         <source>%1 Home</source>

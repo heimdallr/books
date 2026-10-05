@@ -98,15 +98,17 @@ struct ReaderController::Impl
 
 	void Read(std::shared_ptr<ILogicFactory::ITemporaryDir> temporaryDir, QString fileName, const bool removeCurrentReader, const QString& error) const
 	{
+		if (!error.isEmpty())
+			return uiFactory->ShowError(error);
+
+		assert(temporaryDir);
+
 		if (fileName.isEmpty())
 		{
 			fileName = uiFactory->GetOpenFileName({}, Tr(SELECT_FILE), {}, temporaryDir->path());
 			if (fileName.isEmpty())
 				return;
 		}
-
-		if (!temporaryDir)
-			return uiFactory->ShowError(error);
 
 		auto ext = QFileInfo(fileName).suffix();
 		if (ext.isEmpty())
