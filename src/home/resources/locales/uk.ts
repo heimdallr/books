@@ -6046,6 +6046,45 @@ Try again?</source>
     </message>
 </context>
 <context>
+    <name>ZipError</name>
+    <message>
+        <source>Cannon find entry point &apos;%1&apos;</source>
+        <translation>Не вдалося знайти точку входу &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot  create object</source>
+        <translation>Неможливо створити об’єкт</translation>
+    </message>
+    <message>
+        <source>Cannot add file &apos;%1&apos; to archive</source>
+        <translation>Не вдалося додати файл &apos;%1&apos; до архіву</translation>
+    </message>
+    <message>
+        <source>Cannot create file &apos;%1&apos;</source>
+        <translation>Не вдалося створити файл &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot extract file &apos;%1&apos;</source>
+        <translation>Не вдалося розпакувати файл &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot find file &apos;%1&apos;</source>
+        <translation>Не вдалося знайти файл &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot load %1</source>
+        <translation>Не вдалося завантажити %1</translation>
+    </message>
+    <message>
+        <source>Cannot open archive &apos;%1&apos;</source>
+        <translation>Не вдалося відкрити архів &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot open file &apos;%1&apos;</source>
+        <translation>Не вдалося відкрити файл &apos;%1&apos;</translation>
+    </message>
+</context>
+<context>
     <name>opds</name>
     <message>
         <source>%1 Home</source>
