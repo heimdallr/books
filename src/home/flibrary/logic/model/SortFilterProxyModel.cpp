@@ -97,6 +97,8 @@ AbstractSortFilterProxyModel::AbstractSortFilterProxyModel(QObject* parent)
 
 struct SortFilterProxyModel::Impl final : IModelSorter
 {
+	using SortConditions = std::vector<std::pair<int, Qt::SortOrder>>;
+
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>         sourceModel;
 	QString                                                        filter;
 	std::vector<FastFilterItems>                                   fastFilter;
@@ -105,7 +107,7 @@ struct SortFilterProxyModel::Impl final : IModelSorter
 	bool                                                           navigationFiltered { false };
 	bool                                                           uniFilterEnabled { false };
 	QVector<int>                                                   visibleColumns;
-	std::vector<std::pair<int, Qt::SortOrder>>                     sort;
+	SortConditions                                                 sort;
 	const IModelSorter*                                            modelSorter { this };
 	std::optional<int>                                             minimumRate;
 	std::optional<int>                                             maximumRate;
@@ -122,6 +124,21 @@ struct SortFilterProxyModel::Impl final : IModelSorter
 		fastFilterFunctor[BookItem::Column::Format]     = &FastFilterFunctorFormat;
 		fastFilterFunctor[BookItem::Column::Size]       = &FastFilterFunctorSize;
 		fastFilterFunctor[BookItem::Column::UpdateDate] = &FastFilterFunctorUpdated;
+	}
+
+	void SetSortConditions(SortConditions sortConditions)
+	{
+		sort = std::move(sortConditions);
+		if (!sort.empty())
+			return;
+
+		const auto addColumn = [this, columnCount = m_self.columnCount()](const int column) {
+			for (int i = 0; i < columnCount; ++i)
+				if (BookItem::Remap(i) == column)
+					return (void)sort.emplace_back(i, Qt::SortOrder::AscendingOrder);
+		};
+
+		std::ranges::for_each(std::array { BookItem::Column::Author, BookItem::Column::AuthorFull, BookItem::Column::Series, BookItem::Column::SeqNumber, BookItem::Column::Title }, addColumn);
 	}
 
 private: // IModelSorter
@@ -252,15 +269,15 @@ bool SortFilterProxyModel::setData(const QModelIndex& index, const QVariant& val
 		case Role::UniFilterMaximumRate:
 			return setFilter(m_impl->maximumRate, value.isValid() ? std::optional { value.toInt() } : std::nullopt);
 
-#define BOOKS_COLUMN_ITEM(NAME)                                                                                                                                                                                \
-	case Role::NAME##Filter:                                                                                                                                                                                   \
+#define BOOKS_COLUMN_ITEM(NAME) \
+	case Role::NAME##Filter:    \
 		return setFilter(m_impl->fastFilter[BookItem::Column::NAME], std::move(*value.value<FastFilterItems *>()));
 			BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 
 		case Role::SortOrder:
-			m_impl->sort = value.value<std::vector<std::pair<int, Qt::SortOrder>>>();
-			QSortFilterProxyModel::sort(m_impl->sort.empty() ? -1 : 0);
+			m_impl->SetSortConditions(value.value<Impl::SortConditions>());
+			QSortFilterProxyModel::sort(0);
 			invalidate();
 			return true;
 
