@@ -17,6 +17,7 @@ class InpxGenerator : public IInpxGenerator
 
 public:
 	InpxGenerator(
+		const std::shared_ptr<const ISettings>&     settings,
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
 		std::shared_ptr<const IDatabaseUser>        databaseUser,

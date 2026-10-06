@@ -18,6 +18,7 @@
 
 #include "data/DataItem.h"
 #include "platform/StrUtil.h"
+#include "settings/ISettings.h"
 #include "util/Fb2InpxParser.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
@@ -31,6 +32,8 @@ using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
 
 namespace {
+
+constexpr auto EXPORT_ENCODING_KEY = "Preferences/Export/Encoding/inpx";
 
 using Genres = std::unordered_map<QString, QString>;
 
@@ -238,7 +241,8 @@ void Unpack(
 	const BookInfoList&                         bookInfoLists,
 	const std::unordered_map<QString, QString>& idToFileName,
 	IProgress&                                  progress,
-	const ISettings&                            settings
+	const ISettings&                            settings,
+	const QString&                              encoding
 )
 {
 	if (bookInfoLists.empty())
@@ -254,7 +258,7 @@ void Unpack(
 
 		auto       fileName = book.book->GetRawData(BookItem::Column::FileName);
 		const auto input    = zip.Read(fileName);
-		const auto bytes    = Util::PrepareToExport(input->GetStream(), archivePath, fileName, settings);
+		const auto bytes    = Util::PrepareToExport(input->GetStream(), archivePath, fileName, settings, encoding);
 		if (const auto it = idToFileName.find(book.book->GetId()); it != idToFileName.end())
 			fileName = it->second;
 
@@ -360,12 +364,14 @@ public:
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
 		std::shared_ptr<const IDatabaseUser>        databaseUser,
-		std::shared_ptr<IProgressController>        progressController
+		std::shared_ptr<IProgressController>        progressController,
+		QString                                     encoding
 	)
-		: m_logicFactory(logicFactory)
-		, m_collectionProvider(std::move(collectionProvider))
-		, m_databaseUser(std::move(databaseUser))
-		, m_progressController(std::move(progressController))
+		: m_logicFactory { logicFactory }
+		, m_collectionProvider { std::move(collectionProvider) }
+		, m_databaseUser { std::move(databaseUser) }
+		, m_progressController { std::move(progressController) }
+		, m_encoding { std::move(encoding) }
 		, m_archiveFolder { Platform::StringToPath(m_collectionProvider->GetActiveCollection().GetFolder()) }
 	{
 	}
@@ -523,7 +529,7 @@ private:
 		return Util::IExecutor::Task { std::move(taskName), [this, books = std::move(books)]() mutable {
 										  try
 										  {
-											  Unpack(m_archiveFolder, m_tmpFolder, books, m_idToFileName, *this, *m_settingsStub);
+											  Unpack(m_archiveFolder, m_tmpFolder, books, m_idToFileName, *this, *m_settingsStub, m_encoding);
 										  }
 										  catch (const std::exception& ex)
 										  {
@@ -714,6 +720,7 @@ private:
 	std::shared_ptr<const IDatabaseUser>                    m_databaseUser;
 	std::shared_ptr<const ISettings>                        m_settingsStub;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
+	const QString                                           m_encoding;
 
 	Callback m_callback;
 
@@ -737,12 +744,13 @@ private:
 };
 
 InpxGenerator::InpxGenerator(
+	const std::shared_ptr<const ISettings>&     settings,
 	const std::shared_ptr<const ILogicFactory>& logicFactory,
 	std::shared_ptr<const ICollectionProvider>  collectionProvider,
 	std::shared_ptr<const IDatabaseUser>        databaseUser,
 	std::shared_ptr<IMainProgressController>    progressController
 )
-	: m_impl(logicFactory, std::move(collectionProvider), std::move(databaseUser), std::move(progressController))
+	: m_impl(logicFactory, std::move(collectionProvider), std::move(databaseUser), std::move(progressController), settings->Get(EXPORT_ENCODING_KEY, QString{}))
 {
 	PLOGV << "InpxGenerator created";
 }

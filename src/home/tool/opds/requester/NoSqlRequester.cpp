@@ -27,6 +27,8 @@ using namespace HomeCompa;
 
 namespace {
 
+constexpr auto EXPORT_ENCODING_KEY = "Preferences/Export/Encoding/web";
+
 QByteArray Decompress(const QString& path, const QString& archive, const QString& fileName, const bool restoreImages, const ISettings& settings)
 {
 	const Zip  unzip(path + "/" + archive);
@@ -45,7 +47,7 @@ QByteArray Decompress(const QString& path, const QString& archive, const QString
 				buffer.close();
 			}
 		);
-		buffer.write(Util::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName, settings));
+		buffer.write(Util::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName, settings, settings.Get(EXPORT_ENCODING_KEY, QString{})));
 	}
 	return data;
 }
