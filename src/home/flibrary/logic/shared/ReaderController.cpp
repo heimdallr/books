@@ -49,6 +49,7 @@ constexpr auto DEFAULT    = "default";
 
 constexpr auto DEFAULT_FOLDER_KEY    = "Preferences/Export/readFolder";
 constexpr auto FILENAME_TEMPLATE_KEY = "Preferences/Export/readFileNameTemplate";
+constexpr auto EXPORT_ENCODING_KEY   = "Preferences/Export/Encoding/read";
 
 TR_DEF
 
@@ -210,7 +211,7 @@ struct ReaderController::Impl
 
 		const auto settingsStub = ILogicFactory::Lock(logicFactory)->CreateSettingsStub();
 
-		const auto bytes = Util::PrepareToExport(stream, archive, fileName, *settingsStub);
+		const auto bytes = Util::PrepareToExport(stream, archive, fileName, *settingsStub, settings->Get(EXPORT_ENCODING_KEY, QString {}));
 		if (QFile file(fileNameDst); file.exists() && file.open(QIODevice::ReadOnly) && file.readAll() == bytes)
 			return fileNameDst;
 
