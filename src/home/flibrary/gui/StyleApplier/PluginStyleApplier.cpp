@@ -1,11 +1,13 @@
 #include "PluginStyleApplier.h"
 
 #include <QApplication>
-#include <QPainterStateGuard>
+#include <QPainter>
 #include <QProxyStyle>
+#include <QScreen>
 #include <QStyleFactory>
 #include <QStyleOptionMenuItem>
-#include <QWindow>
+
+#include "fnd/ScopedCall.h"
 
 #include "log.h"
 
@@ -21,6 +23,19 @@ public:
 	}
 
 private: // QProxyStyle
+	QSize sizeFromContents(const ContentsType type, const QStyleOption* option, const QSize& contentsSize, const QWidget* widget) const override
+	{
+		QSize size = QProxyStyle::sizeFromContents(type, option, contentsSize, widget);
+
+		if (type == CT_MenuBarItem)
+		{
+			size.setWidth(static_cast<int>(std::lround(size.width() * m_dpiRatio)));
+			size.setHeight(static_cast<int>(std::lround(size.height() * m_dpiRatio)));
+		}
+
+		return size;
+	}
+
 	void drawControl(const ControlElement element, const QStyleOption* option, QPainter* painter, const QWidget* widget = nullptr) const override
 	{
 		if (element == CE_MenuBarItem)
@@ -37,7 +52,14 @@ private: // QProxyStyle
 				textAndBgOpt.text.clear();
 				QProxyStyle::drawControl(element, &textAndBgOpt, painter, widget);
 
-				QPainterStateGuard psg(painter);
+				const ScopedCall painterGuard(
+					[=] {
+						painter->save();
+					},
+					[=] {
+						painter->restore();
+					}
+				);
 
 				int iconSize = menuOpt->maxIconWidth;
 				if (iconSize <= 0 && widget)
@@ -46,15 +68,14 @@ private: // QProxyStyle
 					if (iconSize <= 0)
 						iconSize = 16;
 				}
+				iconSize = std::lround(iconSize * m_dpiRatio);
 
 				const auto xPosition = menuOpt->rect.left() + (menuOpt->rect.width() - iconSize) / 2;
 				const auto yPosition = menuOpt->rect.top() + (menuOpt->rect.height() - iconSize) / 2;
 
 				const QRect iconRect(xPosition, yPosition, iconSize, iconSize);
 
-				const auto dpr = widget && widget->windowHandle() ? widget->windowHandle()->devicePixelRatio() : painter && painter->device() ? painter->device()->devicePixelRatioF() : 1.0;
-
-				const auto pixmap = originalIcon.pixmap(QSize(iconSize, iconSize), dpr, QIcon::Normal);
+				const auto pixmap = originalIcon.pixmap(iconSize, iconSize);
 				painter->drawPixmap(iconRect, pixmap);
 
 				return;
@@ -63,6 +84,9 @@ private: // QProxyStyle
 
 		QProxyStyle::drawControl(element, option, painter, widget);
 	}
+
+private:
+	const qreal m_dpiRatio { QGuiApplication::primaryScreen()->devicePixelRatio() };
 };
 
 PluginStyleApplier::PluginStyleApplier(std::shared_ptr<ISettings> settings)

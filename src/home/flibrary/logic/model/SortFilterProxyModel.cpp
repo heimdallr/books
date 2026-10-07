@@ -1,5 +1,7 @@
 #include "SortFilterProxyModel.h"
 
+#include <array>
+
 #include <QDate>
 
 #include "fnd/FindPair.h"
