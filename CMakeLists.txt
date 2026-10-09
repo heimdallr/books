@@ -1,5 +1,10 @@
 cmake_minimum_required(VERSION 3.14)
 
+get_cmake_property(_variableNames VARIABLES)
+foreach(_variableName ${_variableNames})
+    message(STATUS "${_variableName} = ${${_variableName}}")
+endforeach()
+
 execute_process(COMMAND git log -1 --format=%h WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR} OUTPUT_VARIABLE GIT_HASH OUTPUT_STRIP_TRAILING_WHITESPACE)
 message(STATUS "Git commit hash: ${GIT_HASH}")
 
@@ -99,6 +104,10 @@ else()
 		-Wno-array-bounds
 		-fPIC		
 	)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+    add_link_options("LINKER:--strip-all")
 endif()
 
 set(QtModules Core Gui Widgets Xml Network Svg Concurrent)
