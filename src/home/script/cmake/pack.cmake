@@ -15,10 +15,9 @@ function(__Pack_DEB)
 	set(CPACK_DEBIAN_PACKAGE_SECTION "contrib" PARENT_SCOPE)
 	set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Heimdallr <heimdallrnsk@gmail.com>" PARENT_SCOPE)
 	set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/${PROJECT_NAME}/" PARENT_SCOPE)
-	set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON PARENT_SCOPE)
-	set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS_PRIVATE_DIRS
-		"${CMAKE_BINARY_DIR}/lib"
-		"${QT_LIBRARY_DIR}"
+	set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS OFF PARENT_SCOPE)
+	set(CPACK_DEBIAN_PACKAGE_DEPENDS 
+		"libc6 (>= 2.35), libstdc++6 (>= 11), libglib2.0-0, libdbus-1-3, libx11-6, libxcb1, libxkbcommon0, libxkbcommon-x11-0, libfontconfig1, libfreetype6, libgl1, zlib1g"
 		PARENT_SCOPE
 	)
 	set(CPACK_STRIP_FILES ON PARENT_SCOPE)
