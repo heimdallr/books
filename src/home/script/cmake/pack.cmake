@@ -11,7 +11,7 @@ endfunction()
 
 function(__Pack_DEB)
 	install(PROGRAMS "${CMAKE_SOURCE_DIR}/src/home/script/install/${PROJECT_NAME}.desktop" DESTINATION /usr/share/applications OPTIONAL)
-	install(FILES "${CMAKE_SOURCE_DIR}/src/home/resources/icons/${PROJECT_NAME}.png" DESTINATION /usr/share/icons OPTIONAL)
+	install(FILES "${CMAKE_SOURCE_DIR}/src/home/resources/icons/${PROJECT_NAME}.png" DESTINATION /usr/share/icons/hicolor/128x128/apps OPTIONAL)
 	set(CPACK_DEBIAN_PACKAGE_SECTION "contrib" PARENT_SCOPE)
 	set(CPACK_DEBIAN_PACKAGE_MAINTAINER "Heimdallr <heimdallrnsk@gmail.com>" PARENT_SCOPE)
 	set(CPACK_PACKAGING_INSTALL_PREFIX "/opt/${PROJECT_NAME}/" PARENT_SCOPE)
