@@ -25,7 +25,13 @@ function(__Pack_DEB)
 		OWNER_READ OWNER_EXECUTE OWNER_WRITE
     		GROUP_READ GROUP_EXECUTE
     		WORLD_READ WORLD_EXECUTE
+    		PARENT_SCOPE
     	)
+    	set(CPACK_DEBIAN_PACKAGE_CONTROL_EXTRA 
+    		"${CMAKE_SOURCE_DIR}/src/home/script/install/postinst"
+    		"${CMAKE_SOURCE_DIR}/src/home/script/install/postrm"
+    		PARENT_SCOPE
+	)
 endfunction()
 
 function(__Pack_Archive)
