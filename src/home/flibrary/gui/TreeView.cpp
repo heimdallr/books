@@ -797,7 +797,7 @@ private:
 			model->setData({}, !!(m_navigationItemFlags & (IDataItem::Flags::Filtered | IDataItem::Flags::BooksFiltered)), Role::NavigationItemFiltered);
 			model->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
 
-			connect(model, &QAbstractItemModel::dataChanged, [this, indices = QModelIndexList{}](const QModelIndex& topLeft, const QModelIndex&, const QVector<int>& roles) mutable {
+			connect(model, &QAbstractItemModel::dataChanged, [this, indices = QModelIndexList {}](const QModelIndex& topLeft, const QModelIndex&, const QVector<int>& roles) mutable {
 				if (!indices.isEmpty() || !roles.contains(Qt::CheckStateRole))
 					return;
 
@@ -805,8 +805,8 @@ private:
 				if (!selection.contains(topLeft))
 					return;
 
-				const auto         checkState = topLeft.data(Qt::CheckStateRole);
-				std::set ids { topLeft };
+				const auto checkState = topLeft.data(Qt::CheckStateRole);
+				std::set   ids { topLeft };
 
 				const auto enumerate = [&](const QModelIndex& index, const auto& r) -> void {
 					const auto rows = m_ui.treeView->model()->rowCount(index);
@@ -1073,6 +1073,7 @@ private:
 
 			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, &m_self, SIGNAL(SearchNavigationItemSelected(long long, const QString&)));
 			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::CURRENT_NAVIGATION_ITEM_CHANGED, &m_self, SIGNAL(CurrentNavigationItemChanged(const QModelIndex&)));
+			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::NAVIGATION_COUNTER_CHANGED, &m_self, SIGNAL(CounterChanged(int)));
 		}
 		else
 		{
@@ -1089,6 +1090,7 @@ private:
 			m_ui.value->installEventFilter(new ValueEventFilter(m_self, *m_ui.value, m_ui.value));
 
 			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, &m_self, SIGNAL(ValueGeometryChanged(const QRect&)));
+			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_COUNTER_CHANGED, &m_self, SIGNAL(CounterChanged(int)));
 			Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, &m_self, SLOT(OnBookTitleToSearchVisibleChanged()));
 			Util::ObjectsConnector::registerReceiver(ObjectConnectorID::CURRENT_NAVIGATION_ITEM_CHANGED, &m_self, SLOT(OnCurrentNavigationItemChanged(const QModelIndex&)));
 		}
@@ -1549,8 +1551,11 @@ private:
 	const ArchiveSorter                                           m_archiveSorter;
 	const QStringList                                             m_hiddenColumns;
 	std::unique_ptr<QTimer>                                       m_countChangedTimer { Util::CreateUiTimer([this] {
+		if (!m_self.isVisible())
+			return emit m_self.CounterChanged(-1);
+
 		if (m_ui.treeView->model())
-			m_ui.lblCount->setText(m_ui.treeView->model()->data({}, Role::Count).toString());
+			emit m_self.CounterChanged(m_ui.treeView->model()->data({}, Role::Count).toInt());
 	}) };
 };
 
