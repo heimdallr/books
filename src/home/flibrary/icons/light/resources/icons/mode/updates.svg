@@ -1,10 +1,7 @@
-﻿<svg xmlns="http://w3.org" viewBox="0 0 64 64" width="64" height="64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <g fill="none" stroke="#222222" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Верхняя дуга и стрелка -->
     <path d="M54 21A25 25 0 0 0 9.5 28" />
     <path d="M4 18v10h10" />
-    
-    <!-- Нижняя дуга и стрелка -->
     <path d="M10 43a25 25 0 0 0 44.5-7" />
     <path d="M60 46v-10h-10" />
   </g>

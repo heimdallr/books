@@ -1,12 +1,8 @@
-﻿<svg xmlns="http://w3.org" viewBox="0 0 64 64" width="64" height="64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <g fill="none" stroke="#ffffff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Окружность истории, закрученная назад (против часовой стрелки) -->
-    <path d="M12.5 45.5A25 25 0 1 1 57 32a24.8 24.8 0 0 1-5 15" />
-    
-    <!-- Четкий направленный наконечник стрелки, указывающий назад -->
-    <path d="M14 34.5v12h12" />
-    
-    <!-- Стрелки времени внутри -->
-    <path d="M32 18v14h-9" stroke-width="5" />
+    <path d="M20 49.5A25 25 0 1 1 57 32a24.8 24.8 0 0 1-5 15" />
+    <path d="M22.2 37.8L20 49.5L8.3 47.3" />
+    <path d="M32 32V18" stroke-width="5" />
+    <path d="M32 32h10" stroke-width="5" />
   </g>
 </svg>

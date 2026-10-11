@@ -1,11 +1,8 @@
-<svg xmlns="http://w3.org" viewBox="0 0 64 64" width="64" height="64">
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" width="64" height="64">
   <g fill="none" stroke="#222222" stroke-width="4.5" stroke-linecap="round" stroke-linejoin="round">
-    <!-- Веселая маска (на заднем плане) -->
     <path d="M4 18c0-6.5 8-12 18-12s18 5.5 18 12v7c0 9.5-8 18-18 18S4 34.5 4 25z" />
     <path d="M12 17.5c1.5-2 4.5-2 6 0M26 17.5c1.5-2 4.5-2 6 0" stroke-width="4" />
     <path d="M16 31c3 3 11 3 14 0" stroke-width="4" />
-
-    <!-- Грустная маска (на переднем плане, fill с цветом фона) -->
     <path d="M26 38c0-6.5 8-12 18-12s18 5.5 18 12v7c0 9.5-8 18-18 18S26 54.5 26 45z" fill="#ffffff" />
     <path d="M34 37.5c1.5-2 4.5-2 6 0M48 37.5c1.5-2 4.5-2 6 0" stroke-width="4" />
     <path d="M38 50c3-3 11-3 14 0" stroke-width="4" />
