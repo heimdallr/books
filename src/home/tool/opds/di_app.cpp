@@ -179,6 +179,11 @@ private: // IUiFactory
 		return nullptr;
 	}
 
+	std::shared_ptr<QIcon> CreateIcon(QByteArray) const override
+	{
+		return {};
+	}
+
 	void CreateAuthorReview(long long /*id*/) const override
 	{
 	}

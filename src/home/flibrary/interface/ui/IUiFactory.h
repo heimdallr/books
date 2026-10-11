@@ -70,6 +70,8 @@ public:
 	[[nodiscard]] virtual QWidget* CreateChangeSizeWidget(int current, int minimum, int maximum, IChangeSizeWidgetObserver* observer) const                    = 0;
 	[[nodiscard]] virtual QMenu*   CreateCheckableMenu(const std::vector<std::pair<QString, bool>>& values, std::function<void(int, bool)> callback) const     = 0;
 
+	[[nodiscard]] virtual std::shared_ptr<QIcon> CreateIcon(QByteArray data) const = 0;
+
 public: // special
 	[[nodiscard]] virtual std::filesystem::path                      GetNewCollectionInpxFolder() const noexcept = 0;
 	[[nodiscard]] virtual std::shared_ptr<class ITreeViewController> GetTreeViewController() const noexcept      = 0;

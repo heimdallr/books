@@ -5,12 +5,15 @@
 #include <QDesktopServices>
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QIconEngine>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMenuBar>
+#include <QPainter>
 #include <QShortcut>
 #include <QStackedWidget>
+#include <QSvgRenderer>
 #include <QToolTip>
 
 #include "fnd/FindPair.h"
@@ -64,6 +67,17 @@ using namespace HomeCompa;
 using namespace Flibrary;
 
 namespace {
+
+struct ColorSchemeDescription
+{
+	const char* name;
+	uint32_t    defaultBaseColor;
+};
+
+constexpr ColorSchemeDescription DARK { "Dark", 0xffffff };
+constexpr ColorSchemeDescription LIGHT { "Light", 0x222222 };
+
+constexpr auto BASE_ICON_COLOR_TEMPLATE_KEY = "Preferences/Color/BaseIconColor%1Theme";
 
 constexpr auto CONTEXT                       = "Dialog";
 constexpr auto ABOUT_TITLE                   = QT_TRANSLATE_NOOP("Dialog", "About FLibrary");
@@ -131,6 +145,13 @@ constexpr auto ID               = "id";
 constexpr auto VALUES           = "values";
 constexpr auto BASE64_PREFIX    = "base64#";
 
+bool IsDarkMode()
+{
+	QPalette palette     = QGuiApplication::palette();
+	QColor   windowColor = palette.color(QPalette::Window);
+	return windowColor.lightness() < 128;
+}
+
 QString GetPersonalBuildString()
 {
 	// ReSharper disable once CppCompileTimeConstantCanBeReplacedWithBooleanConstant
@@ -158,6 +179,57 @@ QWidget* CreateStackedPage(Hypodermic::Container& container, const QObject* sign
 	);
 	return pagePtr;
 }
+
+class SvgMemoryIconEngine final : public QIconEngine
+{
+public:
+	explicit SvgMemoryIconEngine(QByteArray svgData)
+		: m_svgData(std::move(svgData))
+	{
+		m_renderer.load(m_svgData);
+	}
+
+	SvgMemoryIconEngine(QByteArray svgData, const ISettings& settings)
+		: m_svgData(std::move(svgData))
+	{
+		FixDataForColorScheme(settings);
+		m_renderer.load(m_svgData);
+	}
+
+private: // QIconEngine
+	void paint(QPainter* painter, const QRect& rect, QIcon::Mode, QIcon::State) override
+	{
+		if (m_renderer.isValid())
+			m_renderer.render(painter, rect);
+	}
+
+	QIconEngine* clone() const override
+	{
+		return new SvgMemoryIconEngine(m_svgData);
+	}
+
+	QPixmap pixmap(const QSize& size, const QIcon::Mode mode, const QIcon::State state) override
+	{
+		QPixmap pixmap(size);
+		pixmap.fill(Qt::transparent);
+		QPainter painter(&pixmap);
+		paint(&painter, QRect(QPoint(0, 0), size), mode, state);
+		return pixmap;
+	}
+
+private:
+	void FixDataForColorScheme(const ISettings& settings)
+	{
+		const auto& colorSchemeDescription = IsDarkMode() ? DARK : LIGHT;
+		const auto  schemeBaseColor        = settings.Get(QString(BASE_ICON_COLOR_TEMPLATE_KEY).arg(colorSchemeDescription.name), colorSchemeDescription.defaultBaseColor);
+		m_svgData.replace(R"(stroke="#SCHEME_BASE_COLOR")", QString(R"(stroke="#%1")").arg(schemeBaseColor, 6, 16, QChar { '0' }).toUtf8());
+		m_svgData.replace(R"(fill="#SCHEME_BASE_COLOR")", QString(R"(fill="#%1")").arg(schemeBaseColor, 6, 16, QChar { '0' }).toUtf8());
+	}
+
+private:
+	QByteArray   m_svgData;
+	QSvgRenderer m_renderer;
+};
 
 } // namespace
 
@@ -294,6 +366,20 @@ QWidget* UiFactory::CreateChangeSizeWidget(const int current, const int minimum,
 QMenu* UiFactory::CreateCheckableMenu(const std::vector<std::pair<QString, bool>>& values, std::function<void(int, bool)> callback) const
 {
 	return Util::CreateCheckableMenu(values, std::move(callback), GetParentWidget(nullptr));
+}
+
+std::shared_ptr<QIcon> UiFactory::CreateIcon(QByteArray data) const
+{
+	if (data.isEmpty())
+		return {};
+
+	if (data.startsWith("<svg"))
+		return std::make_shared<QIcon>(new SvgMemoryIconEngine(std::move(data), *m_impl->container.resolve<ISettings>()));
+
+	if (const auto image = Util::Decode(data); !image.isNull())
+		return std::make_shared<QIcon>(QPixmap::fromImage(image));
+
+	return {};
 }
 
 QWidget* UiFactory::CreateCollectionCleaner(QStackedWidget* stackedWidget) const
@@ -540,7 +626,7 @@ class MenuCustomizerItemBase : public IMenuCustomizer::IItem
 	template <typename SetForceGetter = decltype(setForceGetterStub)>
 	void Set(ISettings& settings, const QString& key, const bool value, const SetForceGetter& setForceGetter = setForceGetterStub) const
 	{
-		const auto id = m_item->GetData(SettingsItem::Column::Key);
+		const auto id          = m_item->GetData(SettingsItem::Column::Key);
 		const auto settingsKey = GetName(MENU_CUSTOM_ROOT, id, key);
 		if (value || setForceGetter(id))
 			settings.Set(settingsKey, value);
@@ -626,7 +712,7 @@ protected: // IMenuCustomizer::IItem
 		bytes.isEmpty() ? settings.Set(key, QString {}) : settings.Set(key, bytes);
 	}
 
-	void Setup(const ISettings& settings) override
+	void Setup(const ISettings& settings, const IUiFactory& uiFactory) override
 	{
 		if (m_item->GetData(SettingsItem::Column::Title).isEmpty())
 			if (const auto var = settings.Get(TITLE); var.isValid())
@@ -641,15 +727,8 @@ protected: // IMenuCustomizer::IItem
 			Hide(*s_settingsStub, true);
 
 		if (const auto var = settings.Get(ICON); var.isValid())
-		{
-			const auto bytes = var.toByteArray();
-			if (bytes.isEmpty())
-				SetIcon(*s_settingsStub, {}, {});
-			else if (const auto image = Util::Decode(bytes); !image.isNull())
-				SetIcon(*s_settingsStub, QVariant::fromValue(QIcon(QPixmap::fromImage(image))), {});
-			else
-				SetIcon(*s_settingsStub, {}, {});
-		}
+			SetIcon(*s_settingsStub, QVariant::fromValue(*uiFactory.CreateIcon(var.toByteArray())), {});
+
 		{
 			const auto var = settings.Get(TOOLBAR);
 			AddToToolbar(*s_settingsStub, var.isValid() && var.toBool());
@@ -966,7 +1045,7 @@ IMenuCustomizer::IItem::Ptr UiFactory::CreateMenuCustomizerItem(QString key) con
 	auto result = std::unique_ptr<IMenuCustomizer::IItem> { std::make_unique<MenuCustomizerItemBase>(std::move(item), IMenuCustomizer::ItemAbility::None) };
 
 	const SettingsGroup settingsSubGroup(*settings, GetName(MENU_CUSTOM_ROOT, result->GetItem()->GetData(SettingsItem::Column::Key)));
-	result->Setup(*settings);
+	result->Setup(*settings, *this);
 
 	return result;
 }
