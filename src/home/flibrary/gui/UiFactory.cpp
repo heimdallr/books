@@ -103,7 +103,6 @@ constexpr const char* COMPONENTS[] = {
 	"<tr><td><a href='https://github.com/heimdallr/ReactApp'>FLibrary React interface</a> &copy; 2025 alloroc2 <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
 	"<tr><td><a href='https://icu.unicode.org/'>ICU</a> &copy; 2016-2025 Unicode, Inc. <a href='https://www.unicode.org/copyright.html#License'>Open Source License</a></td></tr>",
 	"<tr><td><a href='https://cimg.eu/'>CImg</a> &copy; 2004, David Tschumperlé - GREYC UMR CNRS 6072, Image team. <a href='http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.txt'>CeCILL-C</a></td></tr>",
-	"<tr><td><a href='https://uxwing.com/'>UXWing</a> &copy; 2025 UXWing <a href='https://uxwing.com/license/'>License</a></td></tr>",
 	"<tr><td>GUI icon pack &copy; 2026 <a href='https://gemini.google.com'>Google Gemini</a> <a href='https://creativecommons.org/publicdomain/zero/1.0/'>CC0 1.0</a></td></tr>",
 	// clang-format on
 	// ReSharper enable StringLiteralTypo
