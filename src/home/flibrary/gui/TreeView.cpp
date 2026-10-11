@@ -1138,6 +1138,7 @@ private:
 					a->setEnabled(a != action);
 
 				m_ui.btnMode->setIcon(action->icon());
+				m_ui.btnMode->setToolTip(action->text());
 				m_modeMenu->setDefaultAction(action);
 				auto newMode = action->property(MODE_PROPERTY_KEY_NAME).toString();
 				emit m_self.NavigationModeNameChanged(newMode);
