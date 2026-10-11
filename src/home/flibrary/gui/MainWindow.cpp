@@ -975,7 +975,7 @@ private:
 	void SetupActionsNavigation()
 	{
 		const auto createAction = [this](const NavigationMode navigationMode, const char* name) {
-			auto* action = m_ui.menuNavigation->addAction(Loc::Tr(Loc::NAVIGATION, name));
+			auto* action = m_ui.menuNavigation->addAction(QIcon(QString(":/icons/mode/%1.svg").arg(name).toLower()), Loc::Tr(Loc::NAVIGATION, name));
 			action->setObjectName(QString("%1_isActive").arg(name));
 			action->setCheckable(true);
 			action->setProperty(NAVIGATION_ACTION_ID_PROPERTY, QVariant::fromValue(navigationMode));
