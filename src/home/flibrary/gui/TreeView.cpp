@@ -1126,6 +1126,7 @@ private:
 		{
 			auto* action = m_modeMenu->addAction(QIcon(QString(":/icons/mode/%1.svg").arg(name).toLower()), Loc::Tr(m_controller->TrContext(), name));
 			action->setObjectName(name);
+			action->setCheckable(true);
 			action->setProperty(MODE_PROPERTY_KEY_ID, id);
 			action->setProperty(MODE_PROPERTY_KEY_NAME, QString { name });
 			m_ui.btnMode->addAction(action);
@@ -1135,7 +1136,10 @@ private:
 					return;
 
 				for (auto* a : m_modeMenu->actions())
+				{
+					a->setChecked(a == action);
 					a->setEnabled(a != action);
+				}
 
 				m_ui.btnMode->setIcon(action->icon());
 				m_ui.btnMode->setToolTip(action->text());
