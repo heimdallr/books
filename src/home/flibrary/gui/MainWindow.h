@@ -91,6 +91,8 @@ private slots:
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry);
 	void OnSearchNavigationItemSelected(long long id, const QString& text);
 	void OnStackedPageStateChanged(QStackedWidget* stackedWidget, std::shared_ptr<QWidget> widget, int state);
+	void OnNavigationCountChanged(int count);
+	void OnBookCountChanged(int count);
 
 private:
 	class Impl;

@@ -5934,6 +5934,10 @@ Try again?</source>
         <source>Books view mode</source>
         <translation>Режим перегляду книг</translation>
     </message>
+    <message>
+        <source>Navigation section</source>
+        <translation>Розділ навігації</translation>
+    </message>
 </context>
 <context>
     <name>UpdateChecker</name>

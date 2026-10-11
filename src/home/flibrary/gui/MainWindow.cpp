@@ -9,6 +9,7 @@
 #include <QDirIterator>
 #include <QGuiApplication>
 #include <QKeyEvent>
+#include <QLabel>
 #include <QStandardPaths>
 #include <QStyleFactory>
 #include <QSystemTrayIcon>
@@ -495,6 +496,16 @@ public:
 		}
 	}
 
+	void OnNavigationCountChanged(const int count) const
+	{
+		m_navigationCount->setText(count <= 0 ? QString {} : QString("%1: %2").arg(Loc::Tr(Loc::NAVIGATION, IFilterProvider::GetFilteredNavigationDescription(m_currentNavigationMode).navigationTitle)).arg(count));
+	}
+
+	void OnBookCountChanged(const int count) const
+	{
+		m_bookCount->setText(count <= 0 ? QString() : QString("%1: %2").arg(Loc::Tr(Loc::NAVIGATION, Loc::Books)).arg(count));
+	}
+
 	void RemoveCustomStyleFile()
 	{
 		if (m_lastStyleFileHovered.isEmpty())
@@ -649,12 +660,12 @@ private: // IAlphabetPanel::IObserver
 private: // ITreeViewController::IObserver
 	void OnModeChanged(const int index) override
 	{
-		const auto navigationMode = static_cast<NavigationMode>(index);
-		m_ui.leftWidget->setVisible(!IsOneOf(navigationMode, NavigationMode::AlreadyRead, NavigationMode::History, NavigationMode::AllBooks));
+		m_currentNavigationMode = static_cast<NavigationMode>(index);
+		m_ui.leftWidget->setVisible(!IsOneOf(m_currentNavigationMode, NavigationMode::AlreadyRead, NavigationMode::History, NavigationMode::AllBooks));
 
 		for (auto* action : m_ui.menuNavigation->actions())
 		{
-			const auto isCurrentMode = action->property(NAVIGATION_ACTION_ID_PROPERTY).value<NavigationMode>() == navigationMode;
+			const auto isCurrentMode = action->property(NAVIGATION_ACTION_ID_PROPERTY).value<NavigationMode>() == m_currentNavigationMode;
 			SignalBlocker(action)->setChecked(isCurrentMode);
 			action->setEnabled(!isCurrentMode);
 		}
@@ -766,6 +777,9 @@ private:
 		m_navigationViewController->RegisterObserver(this);
 
 		ReplaceMenuBar();
+
+		m_ui.statusBar->addPermanentWidget(m_navigationCount);
+		m_ui.statusBar->addPermanentWidget(m_bookCount);
 
 		QTimer::singleShot(0, [this] {
 			const auto widgets = m_self.findChildren<QWidget*>();
@@ -961,7 +975,7 @@ private:
 	void SetupActionsNavigation()
 	{
 		const auto createAction = [this](const NavigationMode navigationMode, const char* name) {
-			auto* action = m_ui.menuNavigation->addAction(Loc::Tr(Loc::NAVIGATION, name));
+			auto* action = m_ui.menuNavigation->addAction(QIcon(QString(":/icons/mode/%1.svg").arg(name).toLower()), Loc::Tr(Loc::NAVIGATION, name));
 			action->setObjectName(QString("%1_isActive").arg(name));
 			action->setCheckable(true);
 			action->setProperty(NAVIGATION_ACTION_ID_PROPERTY, QVariant::fromValue(navigationMode));
@@ -1420,8 +1434,6 @@ private:
 	void OnBooksSearchFilterValueGeometryChangedImpl(const int timeout = 0) const
 	{
 		QTimer::singleShot(timeout, [this] {
-			const auto globalRight = Util::GetGlobalGeometry(m_self).right();
-			m_ui.toolWidgetFillerRight->setFixedWidth(std::max(globalRight - m_lastGeometry.right(), 0));
 			const auto toolWidgetLeft = Util::GetGlobalGeometry(*m_ui.toolWidgetFillerLeft).left();
 			const auto minWidth       = m_ui.toolBar->isVisible() && m_ui.toolWidgetFillerLeftLayout->count() > 2 ? m_ui.toolBar->height() * static_cast<int>(m_ui.toolBar->actions().count()) + 4 : 0;
 			m_ui.toolWidgetFillerLeft->setFixedWidth(std::max(m_lastGeometry.left() - toolWidgetLeft, minWidth));
@@ -1872,13 +1884,17 @@ private:
 	QMetaObject::Connection m_settingsLineEditExecuteContextMenuConnection;
 	QObject*                m_annotationWidgetEventFilter;
 
-	bool m_checkForUpdateOnStartEnabled { true };
+	NavigationMode m_currentNavigationMode { NavigationMode::Unknown };
+	bool           m_checkForUpdateOnStartEnabled { true };
 
 	QActionGroup* m_stylesActionGroup { new QActionGroup(&m_self) };
 	QString       m_lastStyleFileHovered;
 
 	QAction* m_enableAllJokes { nullptr };
 	QAction* m_disableAllJokes { nullptr };
+
+	QLabel* m_navigationCount { new QLabel(&m_self) };
+	QLabel* m_bookCount { new QLabel(&m_self) };
 
 	QSystemTrayIcon* m_systemTray { nullptr };
 	bool             m_hideToTray { false };
@@ -1952,6 +1968,8 @@ MainWindow::MainWindow(
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)), true);
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, this, SLOT(OnSearchNavigationItemSelected(long long, const QString&)), true);
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::STACKED_PAGE_STATE_CHANGED, this, SLOT(OnStackedPageStateChanged(QStackedWidget*, std::shared_ptr<QWidget>, int)), true);
+	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::NAVIGATION_COUNTER_CHANGED, this, SLOT(OnNavigationCountChanged(int)));
+	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOK_COUNTER_CHANGED, this, SLOT(OnBookCountChanged(int)));
 	PLOGV << "MainWindow created";
 }
 
@@ -2013,4 +2031,14 @@ void MainWindow::OnSearchNavigationItemSelected(const long long id, const QStrin
 void MainWindow::OnStackedPageStateChanged(QStackedWidget* stackedWidget, std::shared_ptr<QWidget> widget, const int state)
 {
 	m_impl->OnStackedPageStateChanged(stackedWidget, std::move(widget), state);
+}
+
+void MainWindow::OnNavigationCountChanged(const int count)
+{
+	m_impl->OnNavigationCountChanged(count);
+}
+
+void MainWindow::OnBookCountChanged(const int count)
+{
+	m_impl->OnBookCountChanged(count);
 }

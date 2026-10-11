@@ -17,7 +17,6 @@
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
-#include "fnd/ValueGuard.h"
 #include "fnd/algorithm.h"
 #include "fnd/linear.h"
 
@@ -48,9 +47,10 @@ using namespace Flibrary;
 
 namespace {
 
-constexpr auto CONTEXT           = "TreeView";
-constexpr auto BOOK_VIEW_MODE    = QT_TRANSLATE_NOOP("TreeView", "Books view mode");
-constexpr auto BOOK_CONTEXT_MENU = QT_TRANSLATE_NOOP("HotkeyManager", "Book context menu");
+constexpr auto CONTEXT              = "TreeView";
+constexpr auto BOOK_VIEW_MODE       = QT_TRANSLATE_NOOP("TreeView", "Books view mode");
+constexpr auto NAVIGATION_VIEW_MODE = QT_TRANSLATE_NOOP("TreeView", "Navigation section");
+constexpr auto BOOK_CONTEXT_MENU    = QT_TRANSLATE_NOOP("HotkeyManager", "Book context menu");
 
 constexpr auto VALUE_MODE_KEY                     = "ui/%1/ValueMode";
 constexpr auto COLUMN_WIDTH_LOCAL_KEY             = "%1/Width";
@@ -62,7 +62,8 @@ constexpr auto SORT_ORDER_KEY                     = "Order";
 constexpr auto COMMON_BOOKS_TABLE_COLUMN_SETTINGS = "Preferences/CommonBooksTableColumnSettings";
 constexpr auto LAST                               = "Last";
 
-constexpr auto CB_MODE_ID_ROLE = Qt::UserRole + 1;
+constexpr auto MODE_PROPERTY_KEY_ID   = "modeId";
+constexpr auto MODE_PROPERTY_KEY_NAME = "modeName";
 
 TR_DEF
 
@@ -508,13 +509,8 @@ public:
 	{
 		assert(IsNavigation());
 		if (m_controller->GetModeIndex() != mode)
-		{
-			const auto modeIndex = m_ui.cbMode->findData(mode, CB_MODE_ID_ROLE);
-			if (modeIndex < 0)
+			if (!SetModeImpl(mode))
 				return;
-
-			m_ui.cbMode->setCurrentIndex(modeIndex);
-		}
 
 		m_settings->Set(GetRecentIdKey(), (m_currentId = id));
 
@@ -536,9 +532,12 @@ public:
 
 	void ResizeEvent(const QResizeEvent* event)
 	{
-		auto size = m_ui.cbMode->height();
-		m_ui.btnNew->setMinimumSize(size, size);
-		m_ui.btnNew->setMaximumSize(size, size);
+		auto size = m_ui.value->height();
+		m_ui.btnMode->setFixedSize(size, size);
+		m_ui.btnNew->setFixedSize(size, size);
+		size >>= 1;
+		m_ui.btnMode->setIconSize(QSize { size, size });
+		m_ui.btnNew->setIconSize(m_ui.btnMode->iconSize());
 
 		if (IsNavigation())
 			return;
@@ -554,9 +553,8 @@ public:
 private: // ITreeViewController::IObserver
 	void OnModeChanged(const int index) override
 	{
-		m_ui.value->setText({});
-		const auto idIndex = m_ui.cbMode->findData(index, CB_MODE_ID_ROLE);
-		m_ui.cbMode->setCurrentIndex(std::max(idIndex, 0));
+		if (!SetModeImpl(index))
+			m_modeMenu->defaultAction()->trigger();
 	}
 
 	void OnModelChanged(QAbstractItemModel* model) override
@@ -797,7 +795,7 @@ private:
 			model->setData({}, !!(m_navigationItemFlags & (IDataItem::Flags::Filtered | IDataItem::Flags::BooksFiltered)), Role::NavigationItemFiltered);
 			model->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
 
-			connect(model, &QAbstractItemModel::dataChanged, [this, indices = QModelIndexList{}](const QModelIndex& topLeft, const QModelIndex&, const QVector<int>& roles) mutable {
+			connect(model, &QAbstractItemModel::dataChanged, [this, indices = QModelIndexList {}](const QModelIndex& topLeft, const QModelIndex&, const QVector<int>& roles) mutable {
 				if (!indices.isEmpty() || !roles.contains(Qt::CheckStateRole))
 					return;
 
@@ -805,8 +803,8 @@ private:
 				if (!selection.contains(topLeft))
 					return;
 
-				const auto         checkState = topLeft.data(Qt::CheckStateRole);
-				std::set ids { topLeft };
+				const auto checkState = topLeft.data(Qt::CheckStateRole);
+				std::set   ids { topLeft };
 
 				const auto enumerate = [&](const QModelIndex& index, const auto& r) -> void {
 					const auto rows = m_ui.treeView->model()->rowCount(index);
@@ -940,7 +938,7 @@ private:
 
 	void OnContextMenuReady(const QString& id, const IDataItem::Ptr& item)
 	{
-		if (m_ui.treeView->currentIndex().data(Role::Id).toString() != id)
+		if (!item || m_ui.treeView->currentIndex().data(Role::Id).toString() != id)
 			return;
 
 		QMenu menu;
@@ -1073,6 +1071,7 @@ private:
 
 			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, &m_self, SIGNAL(SearchNavigationItemSelected(long long, const QString&)));
 			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::CURRENT_NAVIGATION_ITEM_CHANGED, &m_self, SIGNAL(CurrentNavigationItemChanged(const QModelIndex&)));
+			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::NAVIGATION_COUNTER_CHANGED, &m_self, SIGNAL(CounterChanged(int)));
 		}
 		else
 		{
@@ -1089,6 +1088,7 @@ private:
 			m_ui.value->installEventFilter(new ValueEventFilter(m_self, *m_ui.value, m_ui.value));
 
 			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, &m_self, SIGNAL(ValueGeometryChanged(const QRect&)));
+			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_COUNTER_CHANGED, &m_self, SIGNAL(CounterChanged(int)));
 			Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, &m_self, SLOT(OnBookTitleToSearchVisibleChanged()));
 			Util::ObjectsConnector::registerReceiver(ObjectConnectorID::CURRENT_NAVIGATION_ITEM_CHANGED, &m_self, SLOT(OnCurrentNavigationItemChanged(const QModelIndex&)));
 		}
@@ -1109,7 +1109,7 @@ private:
 		m_filterProvider->RegisterObserver(this);
 
 		QTimer::singleShot(0, [&] {
-			emit m_self.NavigationModeNameChanged(m_ui.cbMode->currentData().toString());
+			emit m_self.NavigationModeNameChanged(m_modeMenu->defaultAction()->property(MODE_PROPERTY_KEY_NAME).toString());
 		});
 	}
 
@@ -1124,38 +1124,56 @@ private:
 	{
 		for (const auto& [name, id] : m_controller->GetModeNames())
 		{
-			m_ui.cbMode->addItem(Loc::Tr(m_controller->TrContext(), name), QString(name));
-			m_ui.cbMode->setItemData(m_ui.cbMode->count() - 1, id, CB_MODE_ID_ROLE);
-		}
-		m_ui.cbMode->setCurrentIndex(-1);
+			auto* action = m_modeMenu->addAction(QIcon(QString(":/icons/mode/%1.svg").arg(name).toLower()), Loc::Tr(m_controller->TrContext(), name));
+			action->setObjectName(name);
+			action->setCheckable(true);
+			action->setProperty(MODE_PROPERTY_KEY_ID, id);
+			action->setProperty(MODE_PROPERTY_KEY_NAME, QString { name });
+			m_ui.btnMode->addAction(action);
 
-		if (!IsNavigation())
-			QTimer::singleShot(0, [this] {
-				m_menuCustomizer->Add(m_controller->TrContext(), *m_ui.cbMode, Tr(BOOK_VIEW_MODE));
-				m_menuCustomizer->RegisterObserver(this);
+			connect(action, &QAction::triggered, &m_self, [this, action] {
+				if (action == m_modeMenu->defaultAction())
+					return;
+
+				for (auto* a : m_modeMenu->actions())
+				{
+					a->setChecked(a == action);
+					a->setEnabled(a != action);
+				}
+
+				m_ui.btnMode->setIcon(action->icon());
+				m_ui.btnMode->setToolTip(action->text());
+				m_modeMenu->setDefaultAction(action);
+				auto newMode = action->property(MODE_PROPERTY_KEY_NAME).toString();
+				emit m_self.NavigationModeNameChanged(newMode);
+				m_recentMode = std::move(newMode);
+				m_controller->SetMode(m_recentMode);
+				m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
+				if (!IsNavigation())
+					m_booksHeaderView->setFirstSectionMovable(m_recentMode == ListViewMode);
 			});
+		}
+		m_ui.btnMode->setStyleSheet("QToolButton::menu-indicator { image: none; width: 0px; }");
+		QTimer::singleShot(0, [this] {
+			m_menuCustomizer->RegisterObserver(this);
+			m_menuCustomizer->Add(m_controller->TrContext(), *m_ui.btnMode, Tr(IsNavigation() ? NAVIGATION_VIEW_MODE : BOOK_VIEW_MODE));
+			m_ui.btnMode->setIcon(m_modeMenu->defaultAction()->icon());
+		});
 
 		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), IsNavigation());
-
-		m_recentMode = m_ui.cbMode->currentData().toString();
 	}
 
 	void Connect()
 	{
+		connect(m_ui.btnMode, &QAbstractButton::clicked, &m_self, [this] {
+			m_modeMenu->exec(m_ui.btnMode->mapToGlobal(QPoint { 0, m_ui.btnMode->height() }));
+		});
+
 		connect(m_ui.value, &ModeLineEdit::ValueApplierChanged, &m_self, [this](const ValueApplier valueApplier) {
 			m_valueApplier = valueApplier;
 			m_ui.treeView->model()->setData({}, {}, Role::TextFilter);
 			OnValueChanged();
 			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
-		});
-		connect(m_ui.cbMode, qOverload<int>(&QComboBox::currentIndexChanged), &m_self, [this](const int) {
-			auto newMode = m_ui.cbMode->currentData().toString();
-			emit m_self.NavigationModeNameChanged(newMode);
-			m_recentMode = std::move(newMode);
-			m_controller->SetMode(m_recentMode);
-			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
-			if (!IsNavigation())
-				m_booksHeaderView->setFirstSectionMovable(m_recentMode == ListViewMode);
 		});
 		connect(m_ui.value, &QLineEdit::textChanged, &m_self, [this] {
 			OnValueChanged();
@@ -1236,7 +1254,8 @@ private:
 		auto*                header = m_ui.treeView->header();
 		const QSignalBlocker resizeGuard(header);
 
-		auto lastRestoredLayoutKey = m_ui.treeView->model()->rowCount() == 0 ? QString {} : QString("%1_%2").arg(m_navigationModeName, m_ui.cbMode->currentData().toString());
+		auto lastRestoredLayoutKey =
+			m_ui.treeView->model()->rowCount() == 0 ? QString {} : QString("%1_%2").arg(m_navigationModeName, m_modeMenu->defaultAction()->property(MODE_PROPERTY_KEY_NAME).toString());
 		if (!Util::Set(m_lastRestoredLayoutKey, lastRestoredLayoutKey))
 			return m_booksHeaderView->ApplySort();
 
@@ -1479,6 +1498,19 @@ private:
 			m_ui.treeView->UpdateSectionSize();
 	}
 
+	bool SetModeImpl(const int mode) const
+	{
+		const auto actions = m_modeMenu->actions();
+		const auto it      = std::ranges::find(actions, mode, [](const QAction* action) {
+			return action->property(MODE_PROPERTY_KEY_ID).toInt();
+		});
+		if (it == std::end(actions))
+			return false;
+
+		(*it)->trigger();
+		return true;
+	}
+
 	void OnCountChanged() const
 	{
 		m_countChangedTimer->start();
@@ -1545,12 +1577,16 @@ private:
 	ITreeViewController::RemoveItems                              m_removeItems;
 	MenuEventFilter                                               m_menuEventFilter;
 	HeaderView*                                                   m_booksHeaderView;
+	QMenu*                                                        m_modeMenu { new QMenu(&m_self) };
 	IDataItem::Flags                                              m_navigationItemFlags { IDataItem::Flags::None };
 	const ArchiveSorter                                           m_archiveSorter;
 	const QStringList                                             m_hiddenColumns;
 	std::unique_ptr<QTimer>                                       m_countChangedTimer { Util::CreateUiTimer([this] {
+		if (!m_self.isVisible())
+			return emit m_self.CounterChanged(-1);
+
 		if (m_ui.treeView->model())
-			m_ui.lblCount->setText(m_ui.treeView->model()->data({}, Role::Count).toString());
+			emit m_self.CounterChanged(m_ui.treeView->model()->data({}, Role::Count).toInt());
 	}) };
 };
 

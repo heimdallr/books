@@ -391,6 +391,8 @@ private:
 		});
 
 		auto count = GetObserverCount();
+		if (count == 0)
+			return;
 
 		QEventLoop eventLoop;
 
@@ -407,7 +409,7 @@ private:
 
 	void UpdateObserverMenu(IObserver* observer, const IDataItem::Ptr& item)
 	{
-		if (item->GetChildCount() == 0)
+		if (!item || item->GetChildCount() == 0)
 			return;
 
 		const auto enumerate = [this, observer](const IDataItem& src, IDataItem& dst, const auto& r) -> void {
