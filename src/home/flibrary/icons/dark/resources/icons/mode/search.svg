@@ -1,0 +1,9 @@
+﻿<svg xmlns="http://w3.org" viewBox="0 0 64 64" width="64" height="64">
+  <g fill="none" stroke="#ffffff" stroke-width="6.5" stroke-linecap="round" stroke-linejoin="round">
+    <!-- Предельно увеличенное кольцо линзы (радиус 20.5) -->
+    <circle cx="23.5" cy="23.5" r="20.5" />
+    
+    <!-- Супер-короткая ручка-хвостик -->
+    <path d="M38.5 38.5l19 19" />
+  </g>
+</svg>
