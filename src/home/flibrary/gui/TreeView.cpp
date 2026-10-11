@@ -47,9 +47,10 @@ using namespace Flibrary;
 
 namespace {
 
-constexpr auto CONTEXT           = "TreeView";
-constexpr auto BOOK_VIEW_MODE    = QT_TRANSLATE_NOOP("TreeView", "Books view mode");
-constexpr auto BOOK_CONTEXT_MENU = QT_TRANSLATE_NOOP("HotkeyManager", "Book context menu");
+constexpr auto CONTEXT              = "TreeView";
+constexpr auto BOOK_VIEW_MODE       = QT_TRANSLATE_NOOP("TreeView", "Books view mode");
+constexpr auto NAVIGATION_VIEW_MODE = QT_TRANSLATE_NOOP("TreeView", "Navigation section");
+constexpr auto BOOK_CONTEXT_MENU    = QT_TRANSLATE_NOOP("HotkeyManager", "Book context menu");
 
 constexpr auto VALUE_MODE_KEY                     = "ui/%1/ValueMode";
 constexpr auto COLUMN_WIDTH_LOCAL_KEY             = "%1/Width";
@@ -937,7 +938,7 @@ private:
 
 	void OnContextMenuReady(const QString& id, const IDataItem::Ptr& item)
 	{
-		if (m_ui.treeView->currentIndex().data(Role::Id).toString() != id)
+		if (!item || m_ui.treeView->currentIndex().data(Role::Id).toString() != id)
 			return;
 
 		QMenu menu;
@@ -1148,14 +1149,11 @@ private:
 			});
 		}
 		m_ui.btnMode->setStyleSheet("QToolButton::menu-indicator { image: none; width: 0px; }");
-		if (!IsNavigation())
-		{
-			QTimer::singleShot(0, [this] {
-				m_menuCustomizer->Add(m_controller->TrContext(), *m_ui.btnMode, Tr(BOOK_VIEW_MODE));
-				m_menuCustomizer->RegisterObserver(this);
-				m_ui.btnMode->setIcon(m_modeMenu->defaultAction()->icon());
-			});
-		}
+		QTimer::singleShot(0, [this] {
+			m_menuCustomizer->RegisterObserver(this);
+			m_menuCustomizer->Add(m_controller->TrContext(), *m_ui.btnMode, Tr(IsNavigation() ? NAVIGATION_VIEW_MODE : BOOK_VIEW_MODE));
+			m_ui.btnMode->setIcon(m_modeMenu->defaultAction()->icon());
+		});
 
 		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), IsNavigation());
 	}
@@ -1494,7 +1492,6 @@ private:
 		if (header->count() > 1 && m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Authors))
 			m_ui.treeView->UpdateSectionSize();
 	}
-
 
 	bool SetModeImpl(const int mode) const
 	{
