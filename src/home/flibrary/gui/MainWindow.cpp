@@ -498,7 +498,9 @@ public:
 
 	void OnNavigationCountChanged(const int count) const
 	{
-		m_navigationCount->setText(count <= 0 ? QString {} : QString("%1: %2").arg(Loc::Tr(Loc::NAVIGATION, IFilterProvider::GetFilteredNavigationDescription(m_currentNavigationMode).navigationTitle)).arg(count));
+		m_navigationCount->setText(
+			count <= 0 ? QString {} : QString("%1: %2").arg(Loc::Tr(Loc::NAVIGATION, IFilterProvider::GetFilteredNavigationDescription(m_currentNavigationMode).navigationTitle)).arg(count)
+		);
 	}
 
 	void OnBookCountChanged(const int count) const

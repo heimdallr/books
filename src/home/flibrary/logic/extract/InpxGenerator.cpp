@@ -750,7 +750,7 @@ InpxGenerator::InpxGenerator(
 	std::shared_ptr<const IDatabaseUser>        databaseUser,
 	std::shared_ptr<IMainProgressController>    progressController
 )
-	: m_impl(logicFactory, std::move(collectionProvider), std::move(databaseUser), std::move(progressController), settings->Get(EXPORT_ENCODING_KEY, QString{}))
+	: m_impl(logicFactory, std::move(collectionProvider), std::move(databaseUser), std::move(progressController), settings->Get(EXPORT_ENCODING_KEY, QString {}))
 {
 	PLOGV << "InpxGenerator created";
 }

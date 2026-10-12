@@ -61,7 +61,7 @@ private: // QProxyStyle
 
 				const QRect iconRect(xPosition, yPosition, iconSize, iconSize);
 
-                const auto pixmap = originalIcon.pixmap(QSize{iconSize, iconSize});
+				const auto pixmap = originalIcon.pixmap(QSize { iconSize, iconSize });
 				painter->drawPixmap(iconRect, pixmap);
 
 				return;
