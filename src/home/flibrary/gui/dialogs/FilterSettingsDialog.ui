@@ -45,6 +45,9 @@
        </item>
        <item row="1" column="1">
         <widget class="QSpinBox" name="maximumRating">
+         <property name="buttonSymbols">
+          <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
+         </property>
          <property name="minimum">
           <number>1</number>
          </property>
@@ -65,6 +68,9 @@
        </item>
        <item row="0" column="1">
         <widget class="QSpinBox" name="minimumRating">
+         <property name="buttonSymbols">
+          <enum>QAbstractSpinBox::ButtonSymbols::NoButtons</enum>
+         </property>
          <property name="minimum">
           <number>1</number>
          </property>
