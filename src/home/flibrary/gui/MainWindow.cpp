@@ -110,6 +110,8 @@ constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnSta
 constexpr auto TOOLBAR_ORDER_KEY                  = "ui/MenuCustomization/ToolbarOrder";
 constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
 constexpr auto TOOLBAR_WITH_MAIN_MENU             = "Preferences/ToolbarWithMainMenu";
+constexpr auto STATUS_BAR_FONT_FAMILY             = "Preferences/StatusBar/Font/family";
+constexpr auto STATUS_BAR_FONT_SIZE               = "Preferences/StatusBar/Font/size";
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 constexpr auto NAVIGATION_ACTION_ID_PROPERTY      = "navigationMode";
@@ -779,11 +781,7 @@ private:
 		m_navigationViewController->RegisterObserver(this);
 
 		ReplaceMenuBar();
-
-		m_navigationCount->setFont(m_ui.statusBar->font());
-		m_bookCount->setFont(m_ui.statusBar->font());
-		m_ui.statusBar->addPermanentWidget(m_navigationCount);
-		m_ui.statusBar->addPermanentWidget(m_bookCount);
+		SetupStatusBar();
 
 		QTimer::singleShot(0, [this] {
 			const auto widgets = m_self.findChildren<QWidget*>();
@@ -816,6 +814,32 @@ private:
 		if (m_settings->Get(TOOLBAR_WITH_MAIN_MENU, false))
 			m_ui.toolWidgetFillerLeftLayout->insertWidget(1, m_ui.toolBar);
 		m_self.setMenuWidget(m_ui.toolWidget);
+	}
+
+	void SetupStatusBar()
+	{
+		auto fixedFontComponent = FontComponent::None;
+		auto statusBarFont = m_ui.statusBar->font();
+		if (const auto var = m_settings->Get(STATUS_BAR_FONT_FAMILY); var.isValid())
+		{
+			fixedFontComponent |= FontComponent::Family;
+			statusBarFont.setFamily(var.toString());
+		}
+		if (const auto var = m_settings->Get(STATUS_BAR_FONT_SIZE); var.isValid())
+			statusBarFont.setPointSize(var.toInt());
+
+		m_ui.statusBar->setFont(statusBarFont);
+		m_navigationCount->setFont(m_ui.statusBar->font());
+		m_bookCount->setFont(m_ui.statusBar->font());
+		m_ui.statusBar->addPermanentWidget(m_navigationCount);
+		m_ui.statusBar->addPermanentWidget(m_bookCount);
+
+		if (fixedFontComponent == FontComponent::None)
+			return;
+
+		SetFixedFont(m_ui.statusBar, fixedFontComponent);
+		SetFixedFont(m_navigationCount, fixedFontComponent);
+		SetFixedFont(m_bookCount, fixedFontComponent);
 	}
 
 	void SetupTrayMenu()
