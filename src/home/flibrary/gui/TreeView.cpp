@@ -1153,6 +1153,7 @@ private:
 					m_booksHeaderView->setFirstSectionMovable(m_recentMode == ListViewMode);
 			});
 		}
+		m_ui.btnMode->setMenu(m_modeMenu);
 		m_ui.btnMode->setStyleSheet("QToolButton::menu-indicator { image: none; width: 0px; }");
 		QTimer::singleShot(0, [this] {
 			m_menuCustomizer->RegisterObserver(this);
@@ -1165,10 +1166,6 @@ private:
 
 	void Connect()
 	{
-		connect(m_ui.btnMode, &QAbstractButton::clicked, &m_self, [this] {
-			m_modeMenu->exec(m_ui.btnMode->mapToGlobal(QPoint { 0, m_ui.btnMode->height() }));
-		});
-
 		connect(m_ui.value, &ModeLineEdit::ValueApplierChanged, &m_self, [this](const ValueApplier valueApplier) {
 			m_valueApplier = valueApplier;
 			m_ui.treeView->model()->setData({}, {}, Role::TextFilter);
