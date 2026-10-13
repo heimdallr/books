@@ -275,7 +275,7 @@ void AuthorItem::Reduce()
 
 		last   = std::move(first);
 		first  = std::move(middle);
-		middle = {};
+		middle = QString {};
 	}
 
 	if (last.isEmpty())
