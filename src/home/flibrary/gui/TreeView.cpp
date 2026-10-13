@@ -1175,13 +1175,14 @@ private:
 		}
 
 		m_ui.btnMode->setStyleSheet("QToolButton::menu-indicator { image: none; width: 0px; }");
+
+		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), IsNavigation());
+
 		QTimer::singleShot(0, [this] {
 			m_menuCustomizer->RegisterObserver(this);
 			m_menuCustomizer->Add(m_controller->TrContext(), *m_ui.btnMode, Tr(IsNavigation() ? NAVIGATION_VIEW_MODE : BOOK_VIEW_MODE));
 			m_ui.btnMode->setIcon(m_modeMenu->defaultAction()->icon());
 		});
-
-		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), IsNavigation());
 	}
 
 	void Connect()
