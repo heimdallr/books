@@ -47,11 +47,7 @@
       <number>4</number>
      </property>
      <item>
-      <widget class="QToolButton" name="btnMode">
-       <property name="popupMode">
-        <enum>QToolButton::ToolButtonPopupMode::InstantPopup</enum>
-       </property>
-      </widget>
+      <widget class="QToolButton" name="btnMode"/>
      </item>
      <item>
       <widget class="QToolButton" name="btnNew">

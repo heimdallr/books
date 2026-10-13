@@ -1153,7 +1153,22 @@ private:
 					m_booksHeaderView->setFirstSectionMovable(m_recentMode == ListViewMode);
 			});
 		}
-		m_ui.btnMode->setMenu(m_modeMenu);
+		if (m_modeMenu->actions().count() == 2)
+		{
+			connect(m_ui.btnMode, &QAbstractButton::clicked, &m_self, [this] {
+				const auto actions = m_modeMenu->actions();
+				const auto it      = std::ranges::find_if_not(actions, [currentAction = m_modeMenu->defaultAction()](const auto* action) {
+					return action == currentAction;
+				});
+				assert(it != actions.end());
+				(*it)->trigger();
+			});
+		}
+		else
+		{
+			m_ui.btnMode->setMenu(m_modeMenu);
+			m_ui.btnMode->setPopupMode(QToolButton::InstantPopup);
+		}
 		m_ui.btnMode->setStyleSheet("QToolButton::menu-indicator { image: none; width: 0px; }");
 		QTimer::singleShot(0, [this] {
 			m_menuCustomizer->RegisterObserver(this);
