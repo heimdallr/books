@@ -1101,7 +1101,9 @@ private:
 		m_filterTimer.setSingleShot(true);
 		m_filterTimer.setInterval(std::chrono::milliseconds(200));
 
-		FillComboBoxes();
+		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), IsNavigation());
+
+		CreateModeActions();
 		Connect();
 
 		Impl::OnModeChanged(m_controller->GetModeIndex());
@@ -1120,39 +1122,11 @@ private:
 		m_ui.btnNew->setIcon(QIcon(":/icons/plus.svg"));
 	}
 
-	void FillComboBoxes()
+	void CreateModeActions()
 	{
 		for (const auto& [name, id] : m_controller->GetModeNames())
-		{
-			auto* action = m_modeMenu->addAction(QIcon(QString(":/icons/mode/%1.svg").arg(name).toLower()), Loc::Tr(m_controller->TrContext(), name));
-			action->setObjectName(name);
-			action->setCheckable(true);
-			action->setProperty(MODE_PROPERTY_KEY_ID, id);
-			action->setProperty(MODE_PROPERTY_KEY_NAME, QString { name });
-			m_ui.btnMode->addAction(action);
+			CreateModeAction(id, name);
 
-			connect(action, &QAction::triggered, &m_self, [this, action] {
-				if (action == m_modeMenu->defaultAction())
-					return;
-
-				for (auto* a : m_modeMenu->actions())
-				{
-					a->setChecked(a == action);
-					a->setEnabled(a != action);
-				}
-
-				m_ui.btnMode->setIcon(action->icon());
-				m_ui.btnMode->setToolTip(action->text());
-				m_modeMenu->setDefaultAction(action);
-				auto newMode = action->property(MODE_PROPERTY_KEY_NAME).toString();
-				emit m_self.NavigationModeNameChanged(newMode);
-				m_recentMode = std::move(newMode);
-				m_controller->SetMode(m_recentMode);
-				m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
-				if (!IsNavigation())
-					m_booksHeaderView->setFirstSectionMovable(m_recentMode == ListViewMode);
-			});
-		}
 		if (const auto actionCount = m_modeMenu->actions().count(); actionCount < 2)
 		{
 			assert(false && "unexpected action count");
@@ -1176,12 +1150,42 @@ private:
 
 		m_ui.btnMode->setStyleSheet("QToolButton::menu-indicator { image: none; width: 0px; }");
 
-		m_valueApplier = m_ui.value->Setup(m_settings, GetValueModeKey(), IsNavigation());
-
 		QTimer::singleShot(0, [this] {
 			m_menuCustomizer->RegisterObserver(this);
 			m_menuCustomizer->Add(m_controller->TrContext(), *m_ui.btnMode, Tr(IsNavigation() ? NAVIGATION_VIEW_MODE : BOOK_VIEW_MODE));
 			m_ui.btnMode->setIcon(m_modeMenu->defaultAction()->icon());
+		});
+	}
+
+	void CreateModeAction(const int id, const char* name)
+	{
+		auto* action = m_modeMenu->addAction(QIcon(QString(":/icons/mode/%1.svg").arg(name).toLower()), Loc::Tr(m_controller->TrContext(), name));
+		action->setObjectName(name);
+		action->setCheckable(true);
+		action->setProperty(MODE_PROPERTY_KEY_ID, id);
+		action->setProperty(MODE_PROPERTY_KEY_NAME, QString { name });
+		m_ui.btnMode->addAction(action);
+
+		connect(action, &QAction::triggered, &m_self, [this, action] {
+			if (action == m_modeMenu->defaultAction())
+				return;
+
+			for (auto* a : m_modeMenu->actions())
+			{
+				a->setChecked(a == action);
+				a->setEnabled(a != action);
+			}
+
+			m_ui.btnMode->setIcon(action->icon());
+			m_ui.btnMode->setToolTip(action->text());
+			m_modeMenu->setDefaultAction(action);
+			auto newMode = action->property(MODE_PROPERTY_KEY_NAME).toString();
+			emit m_self.NavigationModeNameChanged(newMode);
+			m_recentMode = std::move(newMode);
+			m_controller->SetMode(m_recentMode);
+			m_ui.value->setFocus(Qt::FocusReason::OtherFocusReason);
+			if (!IsNavigation())
+				m_booksHeaderView->setFirstSectionMovable(m_recentMode == ListViewMode);
 		});
 	}
 
