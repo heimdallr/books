@@ -154,7 +154,7 @@ public:
 		return std::make_pair(it->first, it->second);
 	}
 
-	std::pair<QStringView, size_t> emplace(const QStringView key, const size_t value) //-V801
+	std::pair<QStringView, size_t> emplace(const QStringView key, const size_t value)
 	{
 		if (const auto it = m_data.find(key); it != m_data.end())
 			return std::make_pair(it->first, it->second);
@@ -163,12 +163,12 @@ public:
 		return std::make_pair(it->first, it->second);
 	}
 
-	bool contains(const QStringView key) const //-V801
+	bool contains(const QStringView key) const
 	{
 		return m_view.contains(key) || m_data.contains(key);
 	}
 
-	std::optional<size_t> find(const QStringView key) const //-V801
+	std::optional<size_t> find(const QStringView key) const
 	{
 		if (const auto it = m_view.find(key); it != m_view.end())
 			return it->second;
@@ -196,7 +196,7 @@ public:
 		return std::nullopt;
 	}
 
-	size_t erase(const QStringView key) //-V801
+	size_t erase(const QStringView key)
 	{
 		const auto it = m_data.find(key);
 		return static_cast<size_t>(it != m_data.end() ? (m_data.erase(it), 1) : 0) + m_view.erase(key);
@@ -268,14 +268,14 @@ bool ParseCheckerDefault(QStringView)
 	return true;
 }
 
-bool ParseCheckerAuthor(const QStringView str) //-V801
+bool ParseCheckerAuthor(const QStringView str)
 {
 	return !str.empty() && !std::ranges::all_of(str, [](const auto ch) {
 		return ch == ',';
 	});
 }
 
-std::optional<size_t> FindDefault(const Dictionary& container, const QStringView value) //-V801
+std::optional<size_t> FindDefault(const Dictionary& container, const QStringView value)
 {
 	return container.find(value);
 }
@@ -475,7 +475,7 @@ ReturnType Add(ValueType value, Dictionary& container, const GetIdFunctor& getId
 }
 
 std::vector<size_t> ParseItem(
-	const QStringView   data, //-V801
+	const QStringView   data,
 	Dictionary&         container,
 	const char          separator    = Inpx::LIST_SEPARATOR,
 	const ParseChecker& parseChecker = &ParseCheckerDefault,
@@ -496,7 +496,7 @@ std::vector<size_t> ParseItem(
 	return result;
 }
 
-std::vector<size_t> ParseItem(const QStringView data, Dictionary& container, const Splitter& splitter, const GetIdFunctor& getId = &GetIdDefault, const FindFunctor& find = &FindDefault) //-V801
+std::vector<size_t> ParseItem(const QStringView data, Dictionary& container, const Splitter& splitter, const GetIdFunctor& getId = &GetIdDefault, const FindFunctor& find = &FindDefault)
 {
 	std::unordered_set<size_t> unique;
 	std::vector<size_t>        result;
@@ -507,7 +507,7 @@ std::vector<size_t> ParseItem(const QStringView data, Dictionary& container, con
 	return result;
 }
 
-std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& keywordsLinks) //-V801
+std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& keywordsLinks)
 {
 	return ParseItem(
 		keywordsSrc,
@@ -2193,7 +2193,7 @@ where b.FileName = ? and b.Ext = ?)");
 		return n;
 	}
 
-	auto& GetFileList(const QString& rootFolder, const QStringView folder) //-V801
+	auto& GetFileList(const QString& rootFolder, const QStringView folder)
 	{
 		if (const auto it = m_foldersContent.find(folder); it != m_foldersContent.end())
 			return it->second;
@@ -2282,7 +2282,7 @@ where b.FileName = ? and b.Ext = ?)");
 		return index;
 	}
 
-	size_t ParseDate(const QStringView date, Data& data) //-V801
+	size_t ParseDate(const QStringView date, Data& data)
 	{
 		const auto createUpdate = [this](const int title, const size_t parentId) {
 			const auto [it, ok] = m_newUpdates.emplace(GetId());

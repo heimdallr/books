@@ -360,21 +360,21 @@ private:
 
 		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement());
 		auto callback = [this,
-		                 parser = std::move(parser),
-		                 name,
-		                 db               = std::move(dbOrigin),
-		                 folder           = std::move(folderOrigin),
-		                 additionalFolder = std::move(additionalFolderOrigin),
-		                 inpx             = std::move(inpxOrigin),
+		                 name                   = std::move(name),
+		                 dbOrigin               = std::move(dbOrigin),
+		                 folderOrigin           = std::move(folderOrigin),
+		                 additionalFolderOrigin = std::move(additionalFolderOrigin),
+		                 inpxOrigin             = std::move(inpxOrigin),
 		                 mode,
-		                 tmpDir = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
+		                 parser       = std::move(parser),
+		                 tmpDirUnused = std::move(tmpDir)](const Inpx::UpdateResult& updateResult) mutable {
 			const ScopedCall parserResetGuard([parser = std::move(parser)]() mutable {
 				parser.reset();
 			});
 			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
 			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_CREATED);
 			if (!updateResult.error)
-				Add(std::move(name), std::move(db), std::move(folder), std::move(additionalFolder), std::move(inpx), mode); //-V833
+				Add(std::move(name), std::move(dbOrigin), std::move(folderOrigin), std::move(additionalFolderOrigin), std::move(inpxOrigin), mode);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.CreateNewCollection(std::move(ini), mode, std::move(callback));

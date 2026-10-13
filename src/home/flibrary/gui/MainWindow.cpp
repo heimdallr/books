@@ -819,7 +819,7 @@ private:
 	void SetupStatusBar()
 	{
 		auto fixedFontComponent = FontComponent::None;
-		auto statusBarFont = m_ui.statusBar->font();
+		auto statusBarFont      = m_ui.statusBar->font();
 		if (const auto var = m_settings->Get(STATUS_BAR_FONT_FAMILY); var.isValid())
 		{
 			fixedFontComponent |= FontComponent::Family;

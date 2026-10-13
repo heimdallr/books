@@ -344,12 +344,7 @@ private:
 					}
 				);
 			},
-			[this, progressItem = std::shared_ptr<IProgressController::IProgressItem> {}, bytesReceivedLast = int64_t { 0 }](
-				const int64_t bytesReceived,
-				const int64_t bytesTotal,
-				bool&         stopped
-			) mutable //-V788
-			{
+			[this, progressItem = std::shared_ptr<IProgressController::IProgressItem> {}, bytesReceivedLast = 0LL](const int64_t bytesReceived, const int64_t bytesTotal, bool& stopped) mutable {
 				if (!progressItem)
 					progressItem = m_progressController->Add(bytesTotal);
 

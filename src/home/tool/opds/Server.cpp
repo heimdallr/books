@@ -248,7 +248,7 @@ private: // QTcpServer
 		connect(socket, &QTcpSocket::disconnected, this, [this, address] {
 			m_sockets.erase(address);
 		});
-		m_sockets.emplace(std::move(address), socket);
+		m_sockets.try_emplace(std::move(address), socket);
 	}
 
 private:

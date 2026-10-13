@@ -152,7 +152,6 @@ constexpr MenuRequester MENU_REQUESTERS[] {
 
 struct ModeDescriptor
 { //-V802
-
 	using Filter = bool (INavigationFilter::*)(const ModeDescriptor&) const;
 
 	ViewMode                   viewMode { ViewMode::Unknown };
@@ -571,12 +570,12 @@ private: // IContextMenuProvider
 		return TreeMenuRequester(db, id, options);
 	}
 
-	IDataItem::Ptr CreateKeywordsContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override //-V524
+	IDataItem::Ptr CreateKeywordsContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
 	{
-		return MenuRequesterGroupNavigation(db, id, options);
+		return CreateSeriesContextMenu(db, id, options);
 	}
 
-	IDataItem::Ptr CreateUpdatesContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override //-V524
+	IDataItem::Ptr CreateUpdatesContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
 	{
 		return TreeMenuRequester(db, id, options);
 	}
@@ -948,10 +947,11 @@ void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex& index, 
 	m_impl->RequestContextMenu(index, options, std::move(callback));
 }
 
-void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel*, const QModelIndex& index, const QList<QModelIndex>& indexList, const IDataItem::Ptr item) //-V801
+void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel*, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item)
 {
 	const auto invoker = FindSecond(MENU_HANDLERS, item->GetData(MenuItem::Column::Id).toInt(), &IContextMenuHandler::OnContextMenuTriggeredStub);
-	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index), std::cref(item), [this, id = index.data(Role::Id).toString(), item] {
+	const auto itemRef = item;
+	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index), std::cref(itemRef), [this, id = index.data(Role::Id).toString(), item = std::move(item)] {
 		Perform(&IObserver::OnContextMenuTriggered, std::cref(id), std::cref(item));
 	});
 }

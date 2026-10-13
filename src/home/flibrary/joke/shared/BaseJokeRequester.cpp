@@ -13,6 +13,42 @@
 
 using namespace HomeCompa::Flibrary;
 
+namespace {
+
+class ErrorGuard
+{
+	NON_COPY_MOVABLE(ErrorGuard)
+
+public:
+	ErrorGuard(IJokeRequester::IClient& client, QString uri, QString message) noexcept
+		: m_client { client }
+		, m_uri { std::move(uri) }
+		, m_message { std::move(message) }
+	{
+	}
+
+	~ErrorGuard()
+	{
+		if (m_message.isEmpty())
+			return;
+
+		PLOGE << m_message;
+		m_client.OnError(m_uri, m_message);
+	}
+
+	void SetMessage(QString message) noexcept
+	{
+		m_message = std::move(message);
+	}
+
+private:
+	IJokeRequester::IClient& m_client;
+	const QString            m_uri;
+	QString                  m_message;
+};
+
+} // namespace
+
 BaseJokeRequester::Item::Item(std::weak_ptr<IClient> client)
 	: client { std::move(client) }
 {
@@ -49,7 +85,7 @@ void BaseJokeRequester::Request(std::weak_ptr<IClient> client)
 	m_impl->requests.try_emplace(id, std::move(item));
 }
 
-void BaseJokeRequester::OnResponse(const size_t id, const int code, const QString& message)
+void BaseJokeRequester::OnResponse(const size_t id, const int code, QString message)
 {
 	const auto it = m_impl->requests.find(id);
 	assert(it != m_impl->requests.end());
@@ -61,14 +97,7 @@ void BaseJokeRequester::OnResponse(const size_t id, const int code, const QStrin
 	if (!client)
 		return;
 
-	auto             errorMessage = message;
-	const ScopedCall errorGuard([this, &errorMessage, client] {
-		if (errorMessage.isEmpty())
-			return;
-
-		PLOGE << errorMessage;
-		client->OnError(m_impl->uri, errorMessage);
-	});
+	ErrorGuard errorGuard(*client, m_impl->uri, std::move(message));
 
 	if (code != QNetworkReply::NetworkError::NoError)
 		return;
@@ -79,12 +108,12 @@ void BaseJokeRequester::OnResponse(const size_t id, const int code, const QStrin
 	QJsonParseError parseError;
 	const auto      doc = QJsonDocument::fromJson(it->second->data, &parseError);
 	if (parseError.error != QJsonParseError::NoError)
-		return (void)(errorMessage = parseError.errorString());
+		return errorGuard.SetMessage(parseError.errorString());
 
 	if (const auto value = doc.isObject() ? QJsonValue { doc.object() } : doc.isArray() ? QJsonValue { doc.array() } : QJsonValue {}; Process(value, client))
 		return;
 
-	errorMessage = QString::fromUtf8(it->second->data); //-V1001
+	errorGuard.SetMessage(QString::fromUtf8(it->second->data));
 }
 
 bool BaseJokeRequester::Process(const QJsonValue&, std::weak_ptr<IClient>)

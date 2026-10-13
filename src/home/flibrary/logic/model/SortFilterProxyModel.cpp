@@ -134,7 +134,8 @@ struct SortFilterProxyModel::Impl final : IModelSorter
 		if (!sort.empty())
 			return;
 
-		const auto addColumn = [this, columnCount = m_self.columnCount()](const int column) {
+		const auto columnCount = m_self.columnCount();
+		const auto addColumn   = [this, columnCount](const int column) {
 			for (int i = 0; i < columnCount; ++i)
 				if (BookItem::Remap(i) == column)
 					return (void)sort.emplace_back(i, Qt::SortOrder::AscendingOrder);

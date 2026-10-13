@@ -1300,14 +1300,19 @@ bool UiFactory::LoadMenuCustomizerSettings() const
 	if (path.isEmpty())
 		return false;
 
+	const auto showError = [this](const QString& errorText) {
+		ShowError(errorText);
+		return false;
+	};
+
 	QFile file(path);
 	if (!file.open(QIODevice::ReadOnly))
-		return ShowError(Tr(CANNOT_READ).arg(path)), false;
+		return showError(Tr(CANNOT_READ).arg(path));
 
 	QJsonParseError parseError;
-	auto            doc = QJsonDocument::fromJson(file.readAll(), &parseError);
+	const auto      doc = QJsonDocument::fromJson(file.readAll(), &parseError);
 	if (parseError.error != QJsonParseError::NoError)
-		return ShowError(parseError.errorString()), false;
+		return showError(parseError.errorString());
 
 	const auto settings = m_impl->container.resolve<ISettings>();
 	settings->Remove(MENU_CUSTOM_ROOT);

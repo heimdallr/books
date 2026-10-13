@@ -408,10 +408,10 @@ public:
 		std::unordered_map<QString, BookInfoList> ordered;
 		for (auto&& book : books)
 		{
-			auto fileName    = book.book->GetRawData(BookItem::Column::FileName); //-V821
-			auto& [key, ids] = uniqueFileNames[fileName.toLower()];
+			const auto& fileName = book.book->GetRawData(BookItem::Column::FileName);
+			auto& [key, ids]     = uniqueFileNames[fileName.toLower()];
 			if (key.isEmpty())
-				key = std::move(fileName);
+				key = fileName;
 			ids.emplace_back(book.book->GetId());
 			const auto folder = book.book->GetRawData(BookItem::Column::Folder);
 			ordered[folder].emplace_back(std::move(book));
@@ -476,8 +476,11 @@ public:
 							   }
 
 							   const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
-							   assert(currentZip);
-							   if (const auto n = currentZip->GetFileIndex(fileName); n != Zip::INVALID_INDEX) //-V614
+
+							   if (!currentZip)
+								   throw std::runtime_error("unexpected nullptr");
+
+							   if (const auto n = currentZip->GetFileIndex(fileName); n != Zip::INVALID_INDEX)
 								   data.try_emplace(n, Write(book, fileName, n, book.book->GetRawData(BookItem::Column::Folder), book.book->GetRawData(BookItem::Column::Size)));
 
 							   m_progressItem->Increment(1);
@@ -702,8 +705,9 @@ private:
 				inputZip      = std::make_unique<Zip>(Platform::PathToString(m_archiveFolder / Platform::StringToPath(currentFolder)));
 				m_progressItem->Increment(-1);
 			}
-			assert(inputZip);
-			if (const auto index = inputZip->GetFileIndex(QString("%1%2").arg(query->Get<const char*>(9), query->Get<const char*>(10))); index != Zip::INVALID_INDEX) //-V614
+			if (!inputZip)
+				throw std::runtime_error("unexpected nullptr");
+			if (const auto index = inputZip->GetFileIndex(QString("%1%2").arg(query->Get<const char*>(9), query->Get<const char*>(10))); index != Zip::INVALID_INDEX)
 				data.try_emplace(index, Write(*query, series, genres, bookGenres, authors, bookAuthors, keywords, bookKeywords, index));
 
 			m_progressItem->Increment(1);

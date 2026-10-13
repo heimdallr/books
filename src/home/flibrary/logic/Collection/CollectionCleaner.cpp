@@ -53,37 +53,29 @@ constexpr auto AUTHOR_JOIN       = "\n	join Author_List al on al.BookID = b.Book
 constexpr auto AUTHOR_FIELD      = "al.AuthorID";
 constexpr auto WHERE_NOT_DELETED = "where coalesce(bu.IsDeleted, b.IsDeleted, 0) = 0";
 
-bool RemoveBooksImpl(const Books& books, DB::ITransaction& transaction, std::unique_ptr<IProgressController::IProgressItem> progressItem)
+bool RemoveBooksImpl(const Books& books, DB::ITransaction& transaction, IProgressController::IProgressItem& progressItem)
 {
 	PLOGI << "Removing database books records started";
 
-	return std::accumulate(
-		books.cbegin(),
-		books.cend(),
-		true,
-		[&,
-		 progressItem = std::move(progressItem),
-		 command      = transaction.CreateCommand("delete from Books where BookID = ?"),
-		 total        = books.size(),
-		 currentPct   = 0,
-		 lastPct      = 0,
-		 lastPctLog   = 0,
-		 n            = size_t { 0 }](const bool init, const auto& book) mutable {
-			++n;
-			currentPct = static_cast<int>(100U * n / total);
-			progressItem->Increment(currentPct - lastPct);
-			lastPct = currentPct;
+	const auto command = transaction.CreateCommand("delete from Books where BookID = ?");
 
-			if (!(lastPct % 10) && lastPctLog != lastPct)
-			{
-				lastPctLog = lastPct;
-				PLOGV << lastPct << '%';
-			}
+	auto functor = [&, total = books.size(), currentPct = 0, lastPct = 0, lastPctLog = 0, n = 0](const bool init, const auto& book) mutable {
+		++n;
+		currentPct = 100 * n / static_cast<int>(total);
+		progressItem.Increment(currentPct - lastPct);
+		lastPct = currentPct;
 
-			command->Bind(0, book.id);
-			return command->Execute() && init;
+		if (!(lastPct % 10) && lastPctLog != lastPct)
+		{
+			lastPctLog = lastPct;
+			PLOGV << lastPct << '%';
 		}
-	);
+
+		command->Bind(0, book.id);
+		return command->Execute() && init;
+	};
+
+	return std::accumulate(books.cbegin(), books.cend(), true, std::move(functor));
 }
 
 bool CleanupNavigationItems(DB::ITransaction& transaction)
@@ -406,7 +398,7 @@ struct CollectionCleanerLogic::Impl
 				 const auto db          = databaseUser->Database();
 				 const auto transaction = db->CreateTransaction();
 
-				 auto ok = RemoveBooksImpl(books, *transaction, std::move(progressItem));
+				 auto ok = RemoveBooksImpl(books, *transaction, *progressItem);
 				 ok      = CleanupNavigationItems(*transaction) && ok;
 				 ok      = transaction->Commit() && ok;
 
