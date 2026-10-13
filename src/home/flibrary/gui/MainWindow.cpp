@@ -780,6 +780,8 @@ private:
 
 		ReplaceMenuBar();
 
+		m_navigationCount->setFont(m_ui.statusBar->font());
+		m_bookCount->setFont(m_ui.statusBar->font());
 		m_ui.statusBar->addPermanentWidget(m_navigationCount);
 		m_ui.statusBar->addPermanentWidget(m_bookCount);
 
