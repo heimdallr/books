@@ -5354,6 +5354,10 @@ Try again?</source>
         <translation>История</translation>
     </message>
     <message>
+        <source>Images</source>
+        <translation>Изображения</translation>
+    </message>
+    <message>
         <source>Keywords</source>
         <translation>Ключевые слова</translation>
     </message>

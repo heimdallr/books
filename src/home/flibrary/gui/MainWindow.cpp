@@ -117,6 +117,7 @@ constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 constexpr auto NAVIGATION_ACTION_ID_PROPERTY      = "navigationMode";
 constexpr auto INDEX                              = "index";
+constexpr auto VISIBLE                            = "needShow";
 
 #define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO \
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)      \
@@ -501,14 +502,17 @@ public:
 
 	void OnNavigationCountChanged(const int count) const
 	{
-		m_navigationCount->setText(
-			count <= 0 ? QString {} : QString("%1: %2").arg(Loc::Tr(Loc::NAVIGATION, IFilterProvider::GetFilteredNavigationDescription(m_currentNavigationMode).navigationTitle)).arg(count)
-		);
+		OnPermanentWidgetChanged(0, count, IFilterProvider::GetFilteredNavigationDescription(m_currentNavigationMode).navigationTitle);
 	}
 
 	void OnBookCountChanged(const int count) const
 	{
-		m_bookCount->setText(count <= 0 ? QString() : QString("%1: %2").arg(Loc::Tr(Loc::NAVIGATION, Loc::Books)).arg(count));
+		OnPermanentWidgetChanged(1, count, Loc::Books);
+	}
+
+	void OnImageCountChanged(const int count) const
+	{
+		OnPermanentWidgetChanged(2, count, Loc::Images);
 	}
 
 	void RemoveCustomStyleFile()
@@ -836,17 +840,18 @@ private:
 			statusBarFont.setPointSize(var.toInt());
 
 		m_ui.statusBar->setFont(statusBarFont);
-		m_navigationCount->setFont(m_ui.statusBar->font());
-		m_bookCount->setFont(m_ui.statusBar->font());
-		m_ui.statusBar->addPermanentWidget(m_navigationCount);
-		m_ui.statusBar->addPermanentWidget(m_bookCount);
+		for (auto* widget : m_permanentWidgets)
+		{
+			widget->setVisible(false);
+			widget->setProperty(VISIBLE, false);
+		}
 
 		if (fixedFontComponent == FontComponent::None)
 			return;
 
 		SetFixedFont(m_ui.statusBar, fixedFontComponent);
-		SetFixedFont(m_navigationCount, fixedFontComponent);
-		SetFixedFont(m_bookCount, fixedFontComponent);
+		for (auto* widget : m_permanentWidgets)
+			SetFixedFont(widget, fixedFontComponent);
 	}
 
 	void SetupTrayMenu()
@@ -1768,6 +1773,33 @@ private:
 		});
 	}
 
+	void OnPermanentWidgetChanged(const size_t index, const int count, const char* message) const
+	{
+		const auto visible = count > 0;
+		auto*      widget  = m_permanentWidgets[index];
+
+		widget->setText(visible ? QString("%1: %2").arg(Loc::Tr(Loc::NAVIGATION, message)).arg(count) : QString {});
+
+		if (widget->isVisible() == visible)
+			return;
+
+		for (auto* w : m_permanentWidgets)
+			if (w->property(VISIBLE).toBool())
+				m_ui.statusBar->removeWidget(w);
+
+		widget->setProperty(VISIBLE, visible);
+
+		for (auto* w : m_permanentWidgets)
+		{
+			if (w->property(VISIBLE).toBool())
+			{
+				m_ui.statusBar->addPermanentWidget(w);
+				w->setFont(m_ui.statusBar->font());
+				w->show();
+			}
+		}
+	}
+
 	void StartDelayed(std::function<void()> f)
 	{
 		PLOGV << "StartDelayed";
@@ -1928,8 +1960,7 @@ private:
 	QAction* m_enableAllJokes { nullptr };
 	QAction* m_disableAllJokes { nullptr };
 
-	QLabel* m_navigationCount { new QLabel(&m_self) };
-	QLabel* m_bookCount { new QLabel(&m_self) };
+	std::vector<QLabel*> m_permanentWidgets { new QLabel(&m_self), new QLabel(&m_self), new QLabel(&m_self) };
 
 	QSystemTrayIcon* m_systemTray { nullptr };
 	bool             m_hideToTray { false };
@@ -2005,6 +2036,7 @@ MainWindow::MainWindow(
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::STACKED_PAGE_STATE_CHANGED, this, SLOT(OnStackedPageStateChanged(QStackedWidget*, std::shared_ptr<QWidget>, int)), true);
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::NAVIGATION_COUNTER_CHANGED, this, SLOT(OnNavigationCountChanged(int)));
 	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOK_COUNTER_CHANGED, this, SLOT(OnBookCountChanged(int)));
+	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::IMAGE_COUNTER_CHANGED, this, SLOT(OnImageCountChanged(int)));
 	PLOGV << "MainWindow created";
 }
 
@@ -2076,4 +2108,9 @@ void MainWindow::OnNavigationCountChanged(const int count)
 void MainWindow::OnBookCountChanged(const int count)
 {
 	m_impl->OnBookCountChanged(count);
+}
+
+void MainWindow::OnImageCountChanged(const int count)
+{
+	m_impl->OnImageCountChanged(count);
 }

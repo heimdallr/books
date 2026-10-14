@@ -137,6 +137,7 @@ public:
 
 	~Impl() override
 	{
+		emit m_self.CounterChanged(-1);
 		m_imageViewerController->UnregisterObserver(this);
 		SaveGeometry();
 
@@ -176,7 +177,7 @@ private: // IImageViewerController::IObserver
 
 	void OnCountChanges(const int count) override
 	{
-		m_ui.count->setText(QString::number(count));
+		emit m_self.CounterChanged(count);
 	}
 
 private: // IUiFactory::IChangeSizeWidgetObserver
@@ -310,6 +311,7 @@ ImageViewer::ImageViewer(
 	  )
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SIGNAL(ValueGeometryChanged(const QRect&)));
+	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::IMAGE_COUNTER_CHANGED, this, SIGNAL(CounterChanged(int)));
 }
 
 ImageViewer::~ImageViewer() = default;

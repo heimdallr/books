@@ -93,6 +93,7 @@ private slots:
 	void OnStackedPageStateChanged(QStackedWidget* stackedWidget, std::shared_ptr<QWidget> widget, int state);
 	void OnNavigationCountChanged(int count);
 	void OnBookCountChanged(int count);
+	void OnImageCountChanged(int count);
 
 private:
 	class Impl;

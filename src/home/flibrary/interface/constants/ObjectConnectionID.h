@@ -9,5 +9,6 @@ constexpr auto STACKED_PAGE_STATE_CHANGED                 = "STACKED_PAGE_STATE_
 constexpr auto CURRENT_NAVIGATION_ITEM_CHANGED            = "CURRENT_NAVIGATION_ITEM_CHANGED";
 constexpr auto NAVIGATION_COUNTER_CHANGED                 = "NAVIGATION_COUNTER_CHANGED";
 constexpr auto BOOK_COUNTER_CHANGED                       = "BOOK_COUNTER_CHANGED";
+constexpr auto IMAGE_COUNTER_CHANGED                      = "IMAGE_COUNTER_CHANGED";
 
 } // namespace HomeCompa::Flibrary::ObjectConnectorID
