@@ -15,6 +15,7 @@
 #include <QSystemTrayIcon>
 #include <QTimer>
 #include <QToolBar>
+#include <QToolTip>
 
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
@@ -569,6 +570,12 @@ public:
 	{
 		m_isMaximized  = m_self.isMaximized();
 		m_isFullScreen = m_self.isFullScreen();
+	}
+
+private:
+	void OnFontChanged(const QFont& font) override
+	{
+		QToolTip::setFont(font);
 	}
 
 private: // ICollectionsObserver

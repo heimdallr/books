@@ -351,8 +351,7 @@ private: // QStyledItemDelegate
 		if (model->setData(index, text))
 			return;
 
-		QTimer::singleShot(0, [model, font = editor->font(), text = std::move(text)] {
-			QToolTip::setFont(font);
+		QTimer::singleShot(0, [model, text = std::move(text)] {
 			QToolTip::showText(QCursor::pos(), Tr(TOOLTIP_ALREADY_USED).arg(text, model->data({}, Model::ModelRole::AlreadyAssigned).toString()));
 		});
 	}

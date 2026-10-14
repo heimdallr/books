@@ -833,7 +833,6 @@ void UiFactory::ShowAbout() const
 				return (void)QDesktopServices::openUrl(link);
 
 			QGuiApplication::clipboard()->setText(QString("%1 (%2)").arg(GetApplicationVersion(), GIT_HASH));
-			QToolTip::setFont(msgBox.font());
 			QToolTip::showText(QCursor::pos(), Tr(VERSION_COPIED));
 		});
 	}
