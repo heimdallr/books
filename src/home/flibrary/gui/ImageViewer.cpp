@@ -180,7 +180,7 @@ private: // QObject
 
 					const auto* mouseEvent = static_cast<QMouseEvent*>(event);
 					const auto  position   = mouseEvent->pos();
-					const auto  pixmap     = m_ui.image->pixmap();
+					const auto  pixmap     = m_ui.image->pixmap(Qt::ReturnByValue);
 					m_ui.position->setText(QString("%1:%2").arg(position.x() * m_currentImage.width() / pixmap.width()).arg(position.y() * m_currentImage.height() / pixmap.height()));
 					break;
 				}
