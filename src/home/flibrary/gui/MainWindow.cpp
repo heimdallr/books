@@ -1914,6 +1914,8 @@ private:
 	Ui::MainWindow m_ui {};
 	QTimer         m_delayStarter;
 
+	std::vector<QLabel*> m_permanentWidgets { new QLabel(&m_self), new QLabel(&m_self), new QLabel(&m_self) };
+
 	std::weak_ptr<const ILogicFactory>           m_logicFactory;
 	std::shared_ptr<const IStyleApplierFactory>  m_styleApplierFactory;
 	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
@@ -1959,8 +1961,6 @@ private:
 
 	QAction* m_enableAllJokes { nullptr };
 	QAction* m_disableAllJokes { nullptr };
-
-	std::vector<QLabel*> m_permanentWidgets { new QLabel(&m_self), new QLabel(&m_self), new QLabel(&m_self) };
 
 	QSystemTrayIcon* m_systemTray { nullptr };
 	bool             m_hideToTray { false };

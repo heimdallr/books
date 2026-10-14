@@ -3,6 +3,7 @@
 #include "ImageViewer.h"
 
 #include <QMenu>
+#include <QMouseEvent>
 #include <QStyledItemDelegate>
 #include <QTimer>
 #include <QWidgetAction>
@@ -107,6 +108,7 @@ public:
 		m_ui.images->setModel(m_imageViewerController->GetImageModel());
 		m_ui.images->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 
+		m_ui.image->installEventFilter(this);
 		m_ui.imageScrollArea->installEventFilter(this);
 		m_ui.filter->installEventFilter(this);
 		m_ui.filter->addAction(m_ui.actionFilter, QLineEdit::LeadingPosition);
@@ -151,16 +153,48 @@ private: // QObject
 		{
 			if (obj == m_ui.imageScrollArea)
 				OnImageResized();
-
-			if (obj == m_ui.filter)
+			else if (obj == m_ui.filter)
 				emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.filter));
+		}
+		else if (obj == m_ui.image)
+		{
+			switch (event->type())
+			{
+				case QEvent::Type::Enter:
+					m_ui.position->setText({});
+					m_ui.position->setVisible(true);
+					m_ui.image->setMouseTracking(true);
+					break;
+				case QEvent::Type::Leave:
+					if (m_ui.image->hasMouseTracking())
+						m_ui.position->setVisible(false);
+					m_ui.image->setMouseTracking(false);
+					break;
+				case QEvent::Type::MouseButtonPress:
+					m_ui.image->setMouseTracking(!m_ui.image->hasMouseTracking());
+					[[fallthrough]];
+				case QEvent::Type::MouseMove:
+				{
+					if (m_currentImage.isNull())
+						break;
+
+					const auto* mouseEvent = static_cast<QMouseEvent*>(event);
+					const auto  position   = mouseEvent->pos();
+					const auto  pixmap     = m_ui.image->pixmap();
+					m_ui.position->setText(QString("%1:%2").arg(position.x() * m_currentImage.width() / pixmap.width()).arg(position.y() * m_currentImage.height() / pixmap.height()));
+					break;
+				}
+
+				default:
+					break;
+			}
 		}
 
 		return QObject::eventFilter(obj, event);
 	}
 
 private: // IImageViewerController::IObserver
-	void OnImageReceived(QImage pixmap) override
+	void OnImageReceived(QImage pixmap, const QString& description) override
 	{
 		const QString styleSheet = [&] {
 			if (pixmap.isNull())
@@ -170,6 +204,8 @@ private: // IImageViewerController::IObserver
 			return QString {};
 		}();
 		m_ui.image->setStyleSheet(styleSheet);
+		m_ui.description->setText(description);
+		m_ui.resolution->setText(pixmap.isNull() ? QString {} : QString("%1:%2").arg(pixmap.width()).arg(pixmap.height()));
 
 		m_currentImage = std::move(pixmap);
 		OnImageResized();

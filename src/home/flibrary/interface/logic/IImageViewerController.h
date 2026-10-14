@@ -17,7 +17,7 @@ public:
 	class IObserver : public Observer
 	{
 	public:
-		virtual void OnImageReceived(QImage pixmap) = 0;
+		virtual void OnImageReceived(QImage pixmap, const QString& description) = 0;
 		virtual void OnCountChanges(int count)      = 0;
 	};
 
