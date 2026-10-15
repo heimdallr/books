@@ -206,6 +206,7 @@ private: // IImageViewerController::IObserver
 		m_ui.image->setStyleSheet(styleSheet);
 		m_ui.description->setText(description);
 		m_ui.resolution->setText(pixmap.isNull() ? QString {} : QString("%1:%2").arg(pixmap.width()).arg(pixmap.height()));
+		m_ui.position->setText({});
 
 		m_currentImage = std::move(pixmap);
 		OnImageResized();
