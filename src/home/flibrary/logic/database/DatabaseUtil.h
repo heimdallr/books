@@ -45,5 +45,6 @@ bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& i
 
 void        CreateHistoryTable(DB::IDatabase& db, const ISettings& settings);
 std::string GetHistoryTableName(const ISettings& settings);
+std::string GetHistoryIndexName(const ISettings& settings);
 
 } // namespace HomeCompa::Flibrary::DatabaseUtil

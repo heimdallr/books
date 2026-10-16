@@ -188,4 +188,9 @@ std::string GetHistoryTableName(const ISettings& settings)
 	return settings.Get(KEEP_HISTORY, false) ? "History" : "tmp.History";
 }
 
+std::string GetHistoryIndexName(const ISettings& settings)
+{
+	return settings.Get(KEEP_HISTORY, false) ? "IX_History_BookID" : "tmp.IX_History_BookID";
+}
+
 } // namespace HomeCompa::Flibrary::DatabaseUtil

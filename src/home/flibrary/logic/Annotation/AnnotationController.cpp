@@ -653,7 +653,7 @@ private:
 					  if (m_historyWriteCounter && ++m_historyWriteCounter > 10)
 					  {
 						  m_historyWriteCounter = 0;
-						  tr->CreateCommand("analyze")->Execute();
+						  tr->CreateCommand(std::format("analyze {}", DatabaseUtil::GetHistoryIndexName(*m_settings)))->Execute();
 					  }
 					  tr->Commit();
 				  }
