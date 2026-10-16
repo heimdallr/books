@@ -6,6 +6,8 @@
 #include <QBuffer>
 #include <QTemporaryDir>
 
+#include "fnd/StrUtil.h"
+
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/ITransaction.h"
@@ -35,30 +37,25 @@ public:
 	virtual std::unique_ptr<const Util::ExtractedBook> GetMetadataReplacement(const Util::ExtractedBook& book) const     = 0;
 };
 
-bool Write(const QByteArray& input, const std::filesystem::path& path)
+void Write(const QByteArray& input, const std::filesystem::path& path)
 {
 	QFile output(Platform::PathToString(path));
-	return output.open(QIODevice::WriteOnly) && output.write(input) == input.size();
+	if (!output.open(QIODevice::WriteOnly))
+		throw std::ios_base::failure(std::format("Cannot open '{}' for write", path));
+
+	if (output.write(input) != input.size())
+		throw std::ios_base::failure(std::format("An error occurred while saving '{}'", path));
 }
 
-bool Archive(const QByteArray& input, const std::filesystem::path& path, QString fileName, std::shared_ptr<Zip::ProgressCallback> zipProgressCallback)
+void Archive(const QByteArray& input, const std::filesystem::path& path, QString fileName, std::shared_ptr<Zip::ProgressCallback> zipProgressCallback)
 {
-	try
-	{
-		Zip  zip(Platform::PathToString(path), Zip::Format::Zip, false, std::move(zipProgressCallback));
-		auto zipFiles = Zip::CreateZipFileController();
-		zipFiles->AddFile(std::move(fileName), input, QDateTime::currentDateTime());
-		zip.Write(*zipFiles);
-		return true;
-	}
-	catch (const std::exception& ex)
-	{
-		PLOGE << ex.what();
-	}
-	return false;
+	Zip  zip(Platform::PathToString(path), Zip::Format::Zip, false, std::move(zipProgressCallback));
+	auto zipFiles = Zip::CreateZipFileController();
+	zipFiles->AddFile(std::move(fileName), input, QDateTime::currentDateTime());
+	zip.Write(*zipFiles);
 }
 
-bool Unpack(QByteArray& input, const std::filesystem::path& path)
+void Unpack(QByteArray& input, const std::filesystem::path& path)
 {
 	try
 	{
@@ -72,15 +69,13 @@ bool Unpack(QByteArray& input, const std::filesystem::path& path)
 		if (!create_directories(folder, ec))
 		{
 			PLOGE << ec.message() << " (" << ec.value() << ")";
-			return false;
+			return;
 		}
 
-		return std::ranges::all_of(zip.GetFileNameList(), [&](const auto& fileName) {
+		std::ranges::for_each(zip.GetFileNameList(), [&](const auto& fileName) {
 			const auto fullPath = folder / Platform::StringToPath(fileName);
 			std::filesystem::create_directories(fullPath.parent_path());
-			QFile      output(Platform::PathToString(fullPath));
-			const auto fileSize = zip.GetFileSize(fileName);
-			return output.open(QIODevice::WriteOnly) && output.write(zip.Read(fileName)->GetStream().readAll()) == static_cast<qint64>(fileSize);
+			Write(zip.Read(fileName)->GetStream().readAll(), fullPath);
 		});
 	}
 	catch (const std::exception& ex)
@@ -88,7 +83,7 @@ bool Unpack(QByteArray& input, const std::filesystem::path& path)
 		PLOGE << ex.what();
 	}
 
-	return Write(input, path);
+	Write(input, path);
 }
 
 enum class WriteMode
@@ -98,7 +93,7 @@ enum class WriteMode
 	Unpack,
 };
 
-std::pair<bool, std::filesystem::path> Write(
+std::filesystem::path Write(
 	const ISettings&                       settings,
 	QIODevice&                             input,
 	const QString&                         folder,
@@ -110,38 +105,41 @@ std::pair<bool, std::filesystem::path> Write(
 	const WriteMode                        mode
 )
 {
-	auto            result = std::make_pair(false, std::filesystem::path {});
 	const QFileInfo dstFileInfo(book.dstFileName);
-	if (const auto dstDir = dstFileInfo.absolutePath(); !(QDir().exists(dstDir) || QDir().mkpath(dstDir)))
-		return result;
+	if (const auto dstDir = dstFileInfo.dir(); !(dstDir.exists() || dstDir.mkpath(".")))
+		throw std::ios_base::failure(std::format("Cannot create folder '{}'", dstDir.path()));
 
-	result.second = Platform::StringToPath(QDir::toNativeSeparators(book.dstFileName));
+	auto dstFilePath = Platform::StringToPath(QDir::toNativeSeparators(book.dstFileName));
 
 	const auto suffix = mode == WriteMode::Archive ? ".zip" : "";
-	exportHelper.CheckPath(result.second, suffix);
-	result.second.concat(suffix);
+	exportHelper.CheckPath(dstFilePath, suffix);
+	dstFilePath.concat(suffix);
 
-	if (exists(result.second))
-		if (!remove(result.second))
-			return assert(false), result;
+	if (exists(dstFilePath))
+		if (!remove(dstFilePath))
+			throw std::ios_base::failure(std::format("Cannot remove existing file '{}'", dstFilePath));
 
-	result.first = [&] {
+	[&] {
 		auto bytes = PrepareToExport(input, folder, book.file, settings, std::move(encoding), exportHelper.GetMetadataReplacement(book));
 		switch (mode)
 		{
 			case WriteMode::AsIs:
-				return Write(bytes, result.second);
+				return Write(bytes, dstFilePath);
 			case WriteMode::Archive:
-				return Archive(bytes, result.second, dstFileInfo.completeBaseName() + "." + QFileInfo(book.file).suffix(), std::move(zipProgressCallback));
+				return Archive(bytes, dstFilePath, dstFileInfo.completeBaseName() + "." + QFileInfo(book.file).suffix(), std::move(zipProgressCallback));
 			case WriteMode::Unpack:
-				return Unpack(bytes, result.second);
+				return Unpack(bytes, dstFilePath);
 			default: // NOLINT(clang-diagnostic-covered-switch-default)
-				return assert(false && "unexpected mode"), false;
+				return assert(false && "unexpected mode");
 		}
 	}();
+
+	if (!exists(dstFilePath))
+		throw std::ios_base::failure(std::format("Save to '{}' failed", dstFilePath));
+
 	progress.Increment(1);
 
-	return result;
+	return dstFilePath;
 }
 
 std::filesystem::path Process(
@@ -164,11 +162,7 @@ std::filesystem::path Process(
 
 	const Zip  zip(folder);
 	const auto stream = zip.Read(book.file);
-	auto [ok, path]   = Write(settings, stream->GetStream(), folder, book, progress, std::move(zipProgressCallback), std::move(encoding), exportHelper, mode);
-	if (!ok && exists(path))
-		remove(path);
-
-	return ok ? path : std::filesystem::path {};
+	return Write(settings, stream->GetStream(), folder, book, progress, std::move(zipProgressCallback), std::move(encoding), exportHelper, mode);
 }
 
 void Process(
