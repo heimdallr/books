@@ -243,7 +243,9 @@ private:
 
 	void OnImageResized() const
 	{
-		auto       areaSize  = m_ui.imageScrollArea->size();
+		auto areaSize = m_ui.imageScrollArea->size();
+		m_ui.description->setMaximumWidth(areaSize.width());
+
 		const auto imageSize = m_currentImage.size();
 		if (imageSize.width() <= areaSize.width() && imageSize.height() <= areaSize.height())
 			return m_ui.image->setPixmap(QPixmap::fromImage(m_currentImage));
