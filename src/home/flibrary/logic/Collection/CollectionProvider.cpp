@@ -1,5 +1,7 @@
 #include "CollectionProvider.h"
 
+#include <ranges>
+
 #include <QDir>
 #include <QTimer>
 
