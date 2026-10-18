@@ -858,6 +858,10 @@
         <source>Series:</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Update date:</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>CommandLine</name>

@@ -868,6 +868,10 @@
         <source>Series:</source>
         <translation>Серии:</translation>
     </message>
+    <message>
+        <source>Update date:</source>
+        <translation>Дата обновления:</translation>
+    </message>
 </context>
 <context>
     <name>CommandLine</name>
