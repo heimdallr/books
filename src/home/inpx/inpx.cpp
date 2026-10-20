@@ -357,10 +357,7 @@ private: // SaxParser
 		if (it == m_books.end())
 			return true;
 
-		m_command.Bind(0, it->second);
-		m_command.Bind(1, m_annotation);
-
-		m_command.Execute();
+		m_command.Execute(it->second, m_annotation);
 
 		m_annotation.clear();
 
@@ -836,14 +833,7 @@ size_t Store(DB::IDatabase& db, Data& data)
 			const auto lastUp               = last.toString().toUpper();
 			const auto nick                 = !nickLast.isEmpty() ? nickLast : !nickFirst.isEmpty() ? nickFirst : !nickMiddle.isEmpty() ? nickMiddle : QStringView {};
 
-			cmd.Bind(0, id);
-			cmd.Bind(1, last);
-			cmd.Bind(2, first);
-			cmd.Bind(3, middle);
-			nick.isEmpty() ? cmd.Bind(4) : cmd.Bind(4, nick);
-			cmd.Bind(5, lastUp);
-
-			return cmd.Execute();
+			return cmd.Execute(id, last, first, middle, nick.isEmpty() ? std::optional<QStringView> {} : std::optional { nick }, lastUp);
 		},
 		"INSERT INTO Authors_Search(Authors_Search) VALUES('rebuild')"
 	);
@@ -855,34 +845,23 @@ size_t Store(DB::IDatabase& db, Data& data)
 		data.series,
 		[](DB::ICommand& cmd, const Dictionary::value_type& item) {
 			const auto& [title, id] = item;
-			cmd.Bind(0, id);
-			cmd.Bind(1, title);
-			cmd.Bind(2, title.toString().toUpper());
-			return cmd.Execute();
+			return cmd.Execute(id, title, title.toString().toUpper());
 		},
 		"INSERT INTO Series_Search(Series_Search) VALUES('rebuild')"
 	);
 
 	result += StoreRange(db, "Folders", "INSERT INTO Folders (FolderID, FolderTitle) VALUES (?, ?)", data.bookFolders, [](DB::ICommand& cmd, const auto& item) {
 		const auto& [title, id] = item;
-		cmd.Bind(0, id);
-		cmd.Bind(1, title);
-		return cmd.Execute();
+		return cmd.Execute(id, title);
 	});
 
 	result += StoreRange(db, "InpxFolders", "INSERT INTO Inpx (Folder, File, Hash) VALUES (?, ?, ?)", data.inpxFolders, [](DB::ICommand& cmd, const auto& item) {
-		cmd.Bind(0, item.first.first);
-		cmd.Bind(1, item.first.second);
-		cmd.Bind(2, item.second);
-		return cmd.Execute();
+		return cmd.Execute(item.first.first, item.first.second, item.second);
 	});
 
 	result += StoreRange(db, "Keywords", "INSERT INTO Keywords (KeywordID, KeywordTitle, SearchTitle) VALUES (?, ?, ?)", data.keywords, [](DB::ICommand& cmd, const Dictionary::value_type& item) {
 		const auto& [title, id] = item;
-		cmd.Bind(0, id);
-		cmd.Bind(1, title);
-		cmd.Bind(2, title.toString().toUpper());
-		return cmd.Execute();
+		return cmd.Execute(id, title, title.toString().toUpper());
 	});
 
 	std::vector<size_t> newGenresIndex;
@@ -895,15 +874,7 @@ size_t Store(DB::IDatabase& db, Data& data)
 		"INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias, GenreTitle) VALUES(?, ?, ?, ?, ?)",
 		newGenresIndex | std::views::drop(1),
 		[&genres = data.genres](DB::ICommand& cmd, const size_t n) {
-			cmd.Bind(0, genres[n].dbCode);
-			cmd.Bind(1, genres[genres[n].parentId].dbCode);
-			cmd.Bind(2, genres[n].code);
-			cmd.Bind(3, genres[n].name);
-			if (genres[n].title.isEmpty())
-				cmd.Bind(4);
-			else
-				cmd.Bind(4, genres[n].title);
-			return cmd.Execute();
+			return cmd.Execute(genres[n].dbCode, genres[genres[n].parentId].dbCode, genres[n].code, genres[n].name, !genres[n].title.isEmpty() ? std::optional { genres[n].title } : std::nullopt);
 		}
 	);
 
@@ -919,22 +890,23 @@ size_t Store(DB::IDatabase& db, Data& data)
 		queryText,
 		data.books,
 		[](DB::ICommand& cmd, const Book& book) {
-			cmd.Bind(0, book.id);
-			cmd.Bind(1, book.LIBID);
-			cmd.Bind(2, book.TITLE);
-			cmd.Bind(3, book.DATE);
-			cmd.Bind(4, book.LIBRATE);
-			cmd.Bind(5, book.LANG);
-			book.YEAR.isEmpty() ? cmd.Bind(6) : cmd.Bind(6, book.YEAR);
-			cmd.Bind(7, book.folderId);
-			cmd.Bind(8, book.FILE);
-			cmd.Bind(9, QString(".%1").arg(book.EXT));
-			cmd.Bind(10, book.SIZE);
-			cmd.Bind(11, book.DEL);
-			cmd.Bind(12, book.updateId);
-			cmd.Bind(13, book.SOURCELIB);
-			cmd.Bind(14, book.TITLE.toString().toUpper());
-			return cmd.Execute();
+			return cmd.Execute(
+				book.id,
+				book.LIBID,
+				book.TITLE,
+				book.DATE,
+				book.LIBRATE,
+				book.LANG,
+				!book.YEAR.isEmpty() ? std::optional { book.YEAR } : std::nullopt,
+				book.folderId,
+				book.FILE,
+				QString(".%1").arg(book.EXT),
+				book.SIZE,
+				book.DEL,
+				book.updateId,
+				book.SOURCELIB,
+				book.TITLE.toString().toUpper()
+			);
 		},
 		"INSERT INTO Books_Search(Books_Search) VALUES('rebuild')"
 	);
@@ -945,17 +917,13 @@ size_t Store(DB::IDatabase& db, Data& data)
 			return item.LANG;
 		});
 		result += StoreRange(db, "Languages", "INSERT OR IGNORE INTO Languages (LanguageCode) VALUES(?)", languages, [](DB::ICommand& cmd, const QStringView& item) {
-			cmd.Bind(0, item);
-			return cmd.Execute();
+			return cmd.Execute(item);
 		});
 	}
 
 	result += StoreRange(db, "Author_List", "INSERT INTO Author_List (AuthorID, BookID, OrdNum) VALUES(?, ?, ?)", data.booksAuthors, [](DB::ICommand& cmd, const Links::value_type& item) {
 		return std::accumulate(item.second.cbegin(), item.second.cend(), true, [&, ordNum = 0](const auto init, const size_t id) mutable {
-			cmd.Bind(0, id);
-			cmd.Bind(1, item.first);
-			cmd.Bind(2, ++ordNum);
-			return cmd.Execute() && init;
+			return cmd.Execute(id, item.first, ++ordNum) && init;
 		});
 	});
 
@@ -965,20 +933,13 @@ size_t Store(DB::IDatabase& db, Data& data)
 			if (!storedSeries.insert(series.first).second)
 				return init;
 
-			cmd.Bind(0, series.first);
-			cmd.Bind(1, item.first);
-			series.second ? cmd.Bind(2, *series.second) : cmd.Bind(2);
-			cmd.Bind(3, ++ordNum);
-			return cmd.Execute() && init;
+			return cmd.Execute(series.first, item.first, series.second, ++ordNum) && init;
 		});
 	});
 
 	result += StoreRange(db, "Keyword_List", "INSERT INTO Keyword_List (KeywordID, BookID, OrdNum) VALUES(?, ?, ?)", data.booksKeywords, [](DB::ICommand& cmd, const Links::value_type& item) {
 		return std::accumulate(item.second.cbegin(), item.second.cend(), true, [&, ordNum = 0](const auto init, const size_t id) mutable {
-			cmd.Bind(0, id);
-			cmd.Bind(1, item.first);
-			cmd.Bind(2, ++ordNum);
-			return cmd.Execute() && init;
+			return cmd.Execute(id, item.first, ++ordNum) && init;
 		});
 	});
 
@@ -990,10 +951,7 @@ size_t Store(DB::IDatabase& db, Data& data)
 		StoreRange(db, "Genre_List", "INSERT INTO Genre_List (BookID, GenreCode, OrdNum) VALUES(?, ?, ?)", data.booksGenres, [genres = std::move(genres)](DB::ICommand& cmd, const Links::value_type& item) {
 			return std::accumulate(item.second.cbegin(), item.second.cend(), true, [&, ordNum = 0](const auto init, const size_t id) mutable {
 				assert(id < std::size(genres));
-				cmd.Bind(0, item.first);
-				cmd.Bind(1, genres[id]);
-				cmd.Bind(2, ++ordNum);
-				return cmd.Execute() && init;
+				return cmd.Execute(item.first, genres[id], ++ordNum) && init;
 			});
 		});
 
@@ -1014,10 +972,7 @@ size_t Store(DB::IDatabase& db, Data& data)
 	}
 
 	result += StoreRange(db, "Updates", "INSERT INTO Updates (UpdateID, UpdateTitle, ParentID) VALUES(?, ?, ?)", updates, [](DB::ICommand& cmd, const auto& item) {
-		cmd.Bind(0, std::get<0>(item));
-		cmd.Bind(1, std::get<1>(item));
-		cmd.Bind(2, std::get<2>(item));
-		return cmd.Execute();
+		return cmd.Execute(item);
 	});
 
 	if (!data.reviews.empty())
@@ -1040,16 +995,12 @@ size_t Store(DB::IDatabase& db, Data& data)
 		}
 
 		result += StoreRange(db, "Reviews", "INSERT INTO Reviews (BookID, Folder) VALUES(?, ?)", reviews, [](DB::ICommand& cmd, const auto& item) {
-			cmd.Bind(0, item.first);
-			cmd.Bind(1, item.second);
-			return cmd.Execute();
+			return cmd.Execute(item);
 		});
 	}
 
 	result += StoreRange(db, "Annotations", "INSERT INTO Annotations (BookID, Text) VALUES(?, ?)", data.annotations, [](DB::ICommand& cmd, const auto& item) {
-		cmd.Bind(0, item.first);
-		cmd.Bind(1, item.second);
-		return cmd.Execute();
+		return cmd.Execute(item);
 	});
 
 	return result;
@@ -1886,11 +1837,7 @@ where b.FileName = ? and b.Ext = ?)");
 				const QFileInfo fileInfo(file);
 				const auto      name = fileInfo.completeBaseName(), ext = "." + fileInfo.suffix();
 
-				query->Bind(0, folder);
-				query->Bind(1, name);
-				query->Bind(2, ext);
-
-				query->Execute();
+				query->Execute(folder, name, ext);
 
 				if (query->Eof())
 					return std::make_pair(0LL, QString {});
@@ -1958,25 +1905,14 @@ where b.FileName = ? and b.Ext = ?)");
 				for (const auto& token : compilation.title | std::views::drop(1))
 					title.append(" ").append(token.toStdString());
 
-				command->Bind(0, compilation.id);
-				command->Bind(1, compilation.bookId);
-				command->Bind(2, title);
-				command->Bind(3, compilation.covered ? 1 : 0);
-				command->Execute();
+				command->Execute(compilation.id, compilation.bookId, title, compilation.covered ? 1 : 0);
 			}
 		}
 		{
 			const auto command = tr->CreateCommand("insert into Compilation_List(CompilationID, BookId, Part) values(?, ?, ?)");
 			for (const auto& compilation : compilations)
-			{
 				for (const auto& book : compilation.books)
-				{
-					command->Bind(0, compilation.id);
-					command->Bind(1, book.first);
-					command->Bind(2, book.second);
-					command->Execute();
-				}
-			}
+					command->Execute(compilation.id, book.first, book.second);
 		}
 
 		tr->CreateCommand("INSERT INTO Compilations_Search(Compilations_Search) VALUES('rebuild')")->Execute();
@@ -2474,12 +2410,7 @@ void Parser::FillInpx(IniMap data, DB::ITransaction& transaction)
 
 		const auto command = transaction.CreateCommand("INSERT INTO Inpx (Folder, File, Hash) VALUES (?, ?, ?)");
 		for (const auto& [first, second] : folders)
-		{
-			command->Bind(0, first.first);
-			command->Bind(1, first.second);
-			command->Bind(2, second);
-			command->Execute();
-		}
+			command->Execute(first.first, first.second, second);
 
 		return 0;
 	};
