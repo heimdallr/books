@@ -1,6 +1,7 @@
 #include "ReaderController.h"
 
 #include <random>
+#include <ranges>
 
 #include <QDesktopServices>
 #include <QFileInfo>

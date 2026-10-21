@@ -1023,9 +1023,10 @@ public:
 			const auto db   = m_databaseController->GetDatabase(true);
 			auto       ones = [&] {
 				const auto query = db->CreateQuery(FilterQueryText(queryText), terms);
-				return *query | std::views::transform([](const auto& item) {
+				return *query | std::views::transform([](auto& item) {
 					return std::make_pair(QString { item.template Get<const char*>(0) }, QString { item.template Get<const char*>(1) });
-				}) | std::ranges::to<std::map>();
+				}) | std::views::common
+				     | std::ranges::to<std::map>();
 			}();
 			auto p = parameters;
 			p.erase("q");
