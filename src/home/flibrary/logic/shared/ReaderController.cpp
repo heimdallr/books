@@ -296,19 +296,15 @@ void ReaderController::Read(long long id) const
 					 {
 						 const auto transaction = db->CreateTransaction();
 						 const auto command     = transaction->CreateQuery(ExportStat::INSERT_QUERY);
-						 command->Bind(0, id);
-						 command->Bind(1, static_cast<int>(ExportStat::Type::Read));
-						 command->Execute();
+						 command->Execute(id, static_cast<int>(ExportStat::Type::Read));
 						 transaction->Commit();
 					 }
 
 					 auto [folderName, fileName] = [&] {
 						 const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
-						 query->Bind(0, id);
-						 query->Execute();
+						 query->Execute(id);
 						 assert(!query->Eof());
-
-						 return std::make_pair(query->Get<QString>(0), query->Get<QString>(1));
+						 return query->Get<QString, QString>();
 					 }();
 
 					 auto archive      = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection().GetFolder(), folderName);
@@ -331,12 +327,13 @@ void ReaderController::ReadRandomBook(QString lang) const
 	m_impl->databaseUser->Execute({ "Get books for language", [this, lang = std::move(lang)]() {
 									   std::function<void(size_t)> result { [](size_t) {
 									   } };
-									   const auto                  db    = m_impl->databaseUser->Database();
-									   const auto                  query = db->CreateQuery("select b.BookID from Books b join Folders f on f.FolderID = b.FolderID where b.Lang = ?");
-									   query->Bind(0, lang.toStdString());
-									   std::vector<long long> allBooks;
-									   for (query->Execute(); !query->Eof(); query->Next())
-										   allBooks.emplace_back(query->Get<long long>(0));
+
+									   const auto db    = m_impl->databaseUser->Database();
+									   const auto query = db->CreateQuery("select b.BookID from Books b join Folders f on f.FolderID = b.FolderID where b.Lang = ?", lang);
+
+									   const auto allBooks = *query | std::views::transform([](auto& item) {
+										   return item.template Get<long long>(0);
+									   }) | std::ranges::to<std::vector>();
 
 									   if (allBooks.empty())
 										   return result;

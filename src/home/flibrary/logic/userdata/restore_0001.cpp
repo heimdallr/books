@@ -69,12 +69,7 @@ private: // IRestorer
 
 		const auto command = transaction->CreateCommand(commandText);
 		for (const auto& item : m_items)
-		{
-			command->Bind(0, item.isDeleted);
-			command->Bind(1, item.folder.toStdString());
-			command->Bind(2, item.fileName.toStdString());
-			command->Execute();
-		}
+			command->Execute(item.isDeleted, item.folder, item.fileName);
 
 		transaction->Commit();
 	}
@@ -123,20 +118,14 @@ private: // IRestorer
 
 		for (const auto& [group, books] : m_items)
 		{
-			createGroupCommand->Bind(0, group.toStdString());
-			createGroupCommand->Execute();
+			createGroupCommand->Execute(group);
 
 			const auto getLastIdQuery = transaction->CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
 			getLastIdQuery->Execute();
 			const auto groupId = getLastIdQuery->Get<long long>(0);
 
 			for (const auto& [folder, fileName] : books)
-			{
-				addBookToGroupCommand->Bind(0, groupId);
-				addBookToGroupCommand->Bind(1, folder.toStdString());
-				addBookToGroupCommand->Bind(2, fileName.toStdString());
-				addBookToGroupCommand->Execute();
-			}
+				addBookToGroupCommand->Execute(groupId, folder, fileName);
 		}
 
 		transaction->Commit();
@@ -174,10 +163,7 @@ private: // IRestorer
 		transaction->CreateCommand("delete from Searches_User")->Execute();
 		const auto createSearchCommand = transaction->CreateCommand(Searches::CreateNewSearchCommandText);
 		for (const auto& item : m_items)
-		{
-			createSearchCommand->Bind(0, item.toStdString());
-			createSearchCommand->Execute();
-		}
+			createSearchCommand->Execute(item);
 
 		transaction->Commit();
 	}

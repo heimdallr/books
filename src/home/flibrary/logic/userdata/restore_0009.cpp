@@ -24,12 +24,9 @@ struct Created
 	QString createdAt;
 };
 
-void Bind(DB::ICommand& command, const size_t index, const QString& value)
+std::optional<QString> GetStringParameter(QString value)
 {
-	if (value.isEmpty())
-		command.Bind(index);
-	else
-		command.Bind(index, value.toStdString());
+	return !value.isEmpty() ? std::optional { std::move(value) } : std::nullopt;
 }
 
 class SearchesRestorer final : public IRestorer
@@ -49,15 +46,9 @@ private: // IRestorer
 		using namespace Constant::UserData;
 		const auto transaction = db.CreateTransaction();
 		transaction->CreateCommand("delete from Searches_User")->Execute();
-		const auto createSearchCommand = transaction->CreateCommand(Searches::CreateNewSearchCommandText);
-		for (const auto& [origin, title, createdAt] : m_items)
-		{
-			assert(!title.isEmpty());
-			Bind(*createSearchCommand, 0, origin);
-			createSearchCommand->Bind(1, title);
-			Bind(*createSearchCommand, 2, createdAt);
-			createSearchCommand->Execute();
-		}
+		
+		for (const auto createSearchCommand = transaction->CreateCommand(Searches::CreateNewSearchCommandText); const auto& [origin, title, createdAt] : m_items)
+			createSearchCommand->Execute(GetStringParameter(origin), title, GetStringParameter(createdAt));
 
 		transaction->Commit();
 	}

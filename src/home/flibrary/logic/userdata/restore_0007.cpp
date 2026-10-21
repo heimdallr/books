@@ -16,12 +16,9 @@
 
 namespace HomeCompa::Flibrary::UserData { namespace {
 
-void BindImpl(DB::ICommand& command, const size_t index, const QString& value)
+std::optional<QString> GetStringParameter(QString value)
 {
-	if (value.isEmpty())
-		command.Bind(index);
-	else
-		command.Bind(index, value.toStdString());
+	return !value.isEmpty() ? std::optional { std::move(value) } : std::nullopt;
 }
 
 class GroupsRestorer final : public IRestorer
@@ -39,10 +36,7 @@ class GroupsRestorer final : public IRestorer
 
 		void Write(DB::ICommand& command, const long long groupId) const
 		{
-			command.Bind(0, groupId);
-			BindImpl(command, 1, createdAt);
-			BindImpl(command, 2, title);
-			command.Execute();
+			command.Execute(groupId, GetStringParameter(createdAt), GetStringParameter(title));
 		}
 	};
 
@@ -63,11 +57,7 @@ class GroupsRestorer final : public IRestorer
 
 		void Write(DB::ICommand& command, const long long groupId) const
 		{
-			command.Bind(0, groupId);
-			BindImpl(command, 1, createdAt);
-			BindImpl(command, 2, folder);
-			BindImpl(command, 3, file);
-			command.Execute();
+			command.Execute(groupId, GetStringParameter(createdAt), GetStringParameter(folder), GetStringParameter(file));
 		}
 	};
 
@@ -85,9 +75,7 @@ class GroupsRestorer final : public IRestorer
 
 		void Write(DB::ICommand& command) const
 		{
-			BindImpl(command, 0, title);
-			BindImpl(command, 1, createdAt);
-			command.Execute();
+			command.Execute(GetStringParameter(title), GetStringParameter(createdAt));
 		}
 	};
 

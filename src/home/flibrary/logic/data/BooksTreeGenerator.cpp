@@ -385,11 +385,7 @@ private: // IBookSelector
 				{
 					assert(recordValue.isObject());
 					const auto recordObject = recordValue.toObject();
-					insertCommand->Bind(0, bookFolder);
-					insertCommand->Bind(1, bookFileName);
-					insertCommand->Bind(2, bookExt);
-					insertCommand->Bind(3, ++reviewId);
-					insertCommand->Execute();
+					insertCommand->Execute(bookFolder, bookFileName, bookExt, ++reviewId);
 
 					auto& reviewItem = m_reviews.try_emplace(reviewId, ReviewItem::Create()).first->second;
 					reviewItem->SetData(recordObject[Inpx::NAME].toString(), ReviewItem::Column::Name);

@@ -545,9 +545,7 @@ private: // IContextMenuProvider
 
 		const auto query =
 			db.CreateQuery("select exists (select 42 from Reviews r join Books_View b on b.BookID = r.BookID and b.IsDeleted != ? join Author_List a on a.BookID = r.BookID and a.AuthorID = ?)");
-		query->Bind(0, !(options & RequestContextMenuOptions::ShowRemoved) ? 1 : 2);
-		query->Bind(1, id.toLongLong());
-		query->Execute();
+		query->Execute(!(options & RequestContextMenuOptions::ShowRemoved) ? 1 : 2, id.toLongLong());
 		assert(!query->Eof());
 
 		AddMenuItem(result, REVIEWS, REVIEWS, MenuAction::AuthorReview)->SetData(QVariant(query->Get<int>(0) != 0).toString(), MenuItem::Column::Enabled);
@@ -601,8 +599,7 @@ private: // IContextMenuProvider
 		auto removeFromGroup = AddMenuItem(result, REMOVE_FROM_GROUP, REMOVE_FROM_GROUP);
 		if ([&] {
 				const auto query = db.CreateQuery("select exists (select 42 from Books b join Groups_List_User glu on glu.ObjectID = b.BookID and glu.GroupID = ?)");
-				query->Bind(0, id.toInt());
-				query->Execute();
+				query->Execute(id.toInt());
 				assert(!query->Eof());
 				return query->Get<int>(0) != 0;
 			}())
@@ -610,9 +607,7 @@ private: // IContextMenuProvider
 
 		const auto addRemoveFromGroupItems = [&](const char* queryText, QString subMenuTitle, const int removeAllCommandId) {
 			const auto query = db.CreateQuery(queryText);
-			query->Bind(0, id.toInt());
-			query->Execute();
-			if (query->Eof())
+			if (query->Execute(id.toInt()); query->Eof())
 				return;
 
 			auto subMenu = AddMenuItem(removeFromGroup, std::move(subMenuTitle));

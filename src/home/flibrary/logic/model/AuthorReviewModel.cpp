@@ -111,16 +111,16 @@ private:
 
 	Items GetReviews(const long long authorId, DB::IDatabase& db) const
 	{
-		const auto query = db.CreateQuery(R"(
+		const auto query = db.CreateQuery(
+			R"(
 select r.Folder, b.BookID, f.FolderTitle||'#'||b.FileName, b.Title 
 	from Reviews r 
 	join Books_View b on b.BookID = r.BookID and b.IsDeleted != ? 
 	join Folders f on f.FolderID = b.FolderID
 	join Author_List a on a.BookID = r.BookID and a.AuthorID = ? 
 	order by r.Folder
-)");
-		query->Bind(0, m_showRemoved ? 2 : 1);
-		query->Bind(1, authorId);
+)"
+		);
 
 		Items items;
 
@@ -145,7 +145,7 @@ select r.Folder, b.BookID, f.FolderTitle||'#'||b.FileName, b.Title
 			}
 		};
 
-		for (query->Execute(); !query->Eof(); query->Next())
+		for (query->Execute(m_showRemoved ? 2 : 1, authorId); !query->Eof(); query->Next())
 			if (getZip(), zip)
 				GetReviews(items, *query, *zip);
 

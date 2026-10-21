@@ -65,22 +65,14 @@ private: // IRestorer
 
 		const auto command = transaction->CreateCommand(commandText);
 
-		const auto bind = [&](const size_t index, const QString& value) {
+		const auto getInt = [&](const QString& value) -> std::optional<int> {
 			bool ok = false;
-			if (const auto userRate = value.toInt(&ok); ok)
-				command->Bind(index, userRate);
-			else
-				command->Bind(index);
+			const auto result = value.toInt(&ok);
+			return ok ? std::optional { result } : std::nullopt;
 		};
 
 		for (const auto& item : m_items)
-		{
-			bind(0, item.isDeleted);
-			bind(1, item.userRate);
-			command->Bind(2, item.folder.toStdString());
-			command->Bind(3, item.fileName.toStdString());
-			command->Execute();
-		}
+			command->Execute(getInt(item.isDeleted), getInt(item.userRate), item.folder, item.fileName);
 
 		transaction->Commit();
 	}

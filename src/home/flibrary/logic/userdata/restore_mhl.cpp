@@ -159,13 +159,9 @@ private:
 		{
 			tr->CreateCommand("delete from Books_User")->Execute();
 
-			const auto command = tr->CreateCommand(std::format("insert into {}(LibID, UserRate) values(?, ?)", tmpBooksUser->GetTableName()));
-			for (const auto& [id, rate] : m_extras)
-			{
-				command->Bind(0, id);
-				command->Bind(1, rate);
-				command->Execute();
-			}
+			for (const auto command = tr->CreateCommand(std::format("insert into {}(LibID, UserRate) values(?, ?)", tmpBooksUser->GetTableName())); const auto& [id, rate] : m_extras)
+				command->Execute(id, rate);
+
 			tr->CreateCommand(
 				  std::format(
 					  "insert into Books_User(BookID, UserRate, CreatedAt) select b.BookID, t.UserRate, datetime('now', 'localtime') from Books b join {} t on t.LibID = b.LibID",
@@ -181,8 +177,7 @@ private:
 				const auto createGroupCommand = tr->CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
 				for (auto& group : m_groups)
 				{
-					createGroupCommand->Bind(0, group.name);
-					createGroupCommand->Execute();
+					createGroupCommand->Execute(group.name);
 
 					const auto getLastIdQuery = tr->CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
 					getLastIdQuery->Execute();
@@ -192,11 +187,8 @@ private:
 			const auto command = tr->CreateCommand(std::format("insert into {}(LibID, GroupID) values(?, ?)", tmpGroupsListUser->GetTableName()));
 			for (const auto& group : m_groups)
 				for (const auto& libId : group.libIds)
-				{
-					command->Bind(0, libId);
-					command->Bind(1, group.id);
-					command->Execute();
-				}
+					command->Execute(libId, group.id);
+
 			tr->CreateCommand(
 				  std::format(
 					  "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) select t.GroupID, b.BookID, datetime('now', 'localtime') from Books b join {} t on t.LibID = b.LibID",

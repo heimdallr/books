@@ -209,12 +209,9 @@ private:
 
 		const auto db    = databaseUser->Database();
 		const auto query = db->CreateQuery(NAVIGATION_ID_QUERY[navigationIndex]);
-		query->Bind(0, bookId);
-		query->Execute();
-		if (query->Eof())
-			return;
-
-		ILogicFactory::Lock(logicFactory)->FindBook(navigationMode, query->Get<QString>(0), bookId);
+		query->Execute(bookId);
+		if (!query->Eof())
+			ILogicFactory::Lock(logicFactory)->FindBook(navigationMode, query->Get<QString>(0), bookId);
 	}
 };
 

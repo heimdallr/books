@@ -252,10 +252,7 @@ public:
 		const auto command     = transaction->CreateCommand(ExportStat::INSERT_QUERY);
 
 		std::for_each(std::make_move_iterator(std::begin(books)), std::make_move_iterator(std::end(books)), [&](Util::ExtractedBook&& book) {
-			command->Bind(0, book.id);
-			command->Bind(1, static_cast<int>(exportStatType));
-			command->Execute();
-
+			command->Execute(book.id, static_cast<int>(exportStatType));
 			(*m_executor)(CreateTask(std::move(book)));
 		});
 

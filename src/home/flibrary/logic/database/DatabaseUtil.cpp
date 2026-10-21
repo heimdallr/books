@@ -128,8 +128,7 @@ bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& i
 		const auto command = transaction->CreateCommand(std::format("insert into {} (id) values (?)", tempTable->GetName()));
 		for (const auto id : ids)
 		{
-			command->Bind(0, id);
-			ok = command->Execute() && ok;
+			ok = command->Execute(id) && ok;
 			progressItem->Increment(1);
 		}
 	}

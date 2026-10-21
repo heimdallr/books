@@ -491,8 +491,7 @@ void WriteBookEntries(
 		parameters[BOOKS] = navigationId;
 
 		const auto query = db.CreateQuery(queryTextFilter.FilterQueryText(d.content));
-		query->Bind(0, navigationId.toStdString());
-		query->Execute();
+		query->Execute(navigationId);
 		assert(!query->Eof());
 		QString   author  = query->Get<const char*>(0);
 		QString   series  = query->Get<const char*>(1);
@@ -533,8 +532,7 @@ void WriteNavigationEntries(
 	for (auto&& [navigationId, title] : ones)
 	{
 		const auto query = db.CreateQuery(queryTextFilter.FilterQueryText(QString(d.content).arg(join)));
-		query->Bind(0, navigationId.toStdString());
-		query->Execute();
+		query->Execute(navigationId);
 		assert(!query->Eof());
 		parameters[d.type] = navigationId;
 		WriteEntry(children, root, "", parameters, QString("%1/%2").arg(d.type, navigationId), std::move(title), Tr(BOOKS_COUNTER).arg(query->Get<long long>(0)));
@@ -631,8 +629,7 @@ QString GetTitle(DB::IDatabase& db, const IQueryTextFilter& queryTextFilter, con
 		std::back_inserter(list),
 		[&](const auto& item) {
 			const auto query = db.CreateQuery(queryTextFilter.FilterQueryText(item.select));
-			query->Bind(0, parameters.at(item.type).toStdString());
-			query->Execute();
+			query->Execute(parameters.at(item.type));
 			assert(!query->Eof());
 			auto result = item.selectTrContext ? QString(Loc::Tr(item.selectTrContext, query->template Get<const char*>(0))) : query->template Get<const char*>(0);
 			if (query->ColumnCount() > 1)
@@ -668,18 +665,6 @@ template <>
 QString ToItemCode<QString>(const QString& value)
 {
 	return value;
-}
-
-template <typename T>
-void BindImpl(DB::IQuery& query, const size_t index, const T& value)
-{
-	query.Bind(index, value);
-}
-
-template <>
-void BindImpl<QString>(DB::IQuery& query, const size_t index, const QString& value)
-{
-	query.Bind(index, value.toStdString());
 }
 
 template <typename T>
@@ -1034,15 +1019,14 @@ public:
 
 		const auto n = head.children.size();
 
-		const auto                 db = m_databaseController->GetDatabase(true);
-		std::map<QString, QString> ones;
 		{
-			const auto query = db->CreateQuery(FilterQueryText(queryText));
-			query->Bind(0, terms.toStdString());
-			for (query->Execute(); !query->Eof(); query->Next())
-				ones.try_emplace(query->Get<const char*>(0), query->Get<const char*>(1));
-		}
-		{
+			const auto db   = m_databaseController->GetDatabase(true);
+			auto       ones = [&] {
+				const auto query = db->CreateQuery(FilterQueryText(queryText), terms);
+				return *query | std::views::transform([](const auto& item) {
+					return std::make_pair(QString { item.template Get<const char*>(0) }, QString { item.template Get<const char*>(1) });
+				}) | std::ranges::to<std::map>();
+			}();
 			auto p = parameters;
 			p.erase("q");
 			p.erase(SEPARATED);
@@ -1236,8 +1220,7 @@ private: // INavigationProvider
 					return std::make_pair(QString(d.type), GetContent(childItem));
 
 				const auto query = db->CreateQuery(FilterQueryText(QString(d.content).arg(join)));
-				BindImpl(*query, 0, childItem.code);
-				query->Execute();
+				query->Execute(childItem.code);
 				assert(!query->Eof());
 				return std::make_pair(QString {}, Tr(BOOKS_COUNTER).arg(query->template Get<int>(0)));
 			}();
@@ -1284,8 +1267,8 @@ private:
 			const auto [startsWithLike, escape] = PrepareForLike(startsWithGlobal);
 			const auto queryText                = QString(d.countStartsWith).arg(escape).arg(join);
 			const auto query                    = db->CreateQuery(FilterQueryText(queryText));
-			query->Bind(":starts", startsWithGlobal.toStdString());
-			query->Bind(":starts_like", startsWithLike.toStdString());
+			query->Bind(":starts", startsWithGlobal);
+			query->Bind(":starts_like", startsWithLike);
 			query->Execute();
 			assert(!query->Eof());
 			return query->Get<long long>(0);
@@ -1294,7 +1277,7 @@ private:
 		const auto selectOne = [&](const QString& queryText, const std::vector<std::pair<QString, QString>>& params) {
 			const auto query = db->CreateQuery(FilterQueryText(queryText));
 			for (const auto& [key, value] : params)
-				query->Bind(key.toStdString(), value.toStdString());
+				query->Bind(key.toStdString(), value);
 
 			for (query->Execute(); !query->Eof(); query->Next())
 				ones.try_emplace(QString(query->Get<const char*>(0)).simplified(), query->Get<const char*>(1));

@@ -71,8 +71,7 @@ bool RemoveBooksImpl(const Books& books, DB::ITransaction& transaction, IProgres
 			PLOGV << lastPct << '%';
 		}
 
-		command->Bind(0, book.id);
-		return command->Execute() && init;
+		return command->Execute(book.id) && init;
 	};
 
 	return std::accumulate(books.cbegin(), books.cend(), true, std::move(functor));

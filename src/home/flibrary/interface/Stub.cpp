@@ -235,8 +235,7 @@ QString ApplyMacroLanguage(DB::IDatabase&, const Util::ExtractedBook& book, cons
 
 QString ApplyQuery(DB::IDatabase& db, const Util::ExtractedBook& book, const std::string_view queryText)
 {
-	const auto query = db.CreateQuery(queryText);
-	query->Bind(0, book.id);
+	const auto query = db.CreateQuery(queryText, book.id);
 	query->Execute();
 	return query->Eof() ? QString {} : Platform::RemoveIllegalPathCharacters(query->Get<const char*>(0));
 }

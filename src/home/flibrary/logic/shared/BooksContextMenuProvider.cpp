@@ -122,8 +122,7 @@ void CreateMyRateMenu(const IDataItem::Ptr& root, const QString& id, DB::IDataba
 		AddMenuItem(myRate, QString("setRate%1").arg(rate), QString(rate, QChar(starSymbol)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
 
 	const auto query = db.CreateQuery(USER_RATE_QUERY);
-	query->Bind(0, id.toInt());
-	query->Execute();
+	query->Execute(id.toInt());
 	assert(!query->Eof());
 	if (const auto currentUserRate = query->Get<int>(0); currentUserRate < 0)
 		return;
@@ -518,13 +517,11 @@ private: // IContextMenuHandler
 										 const auto command = transaction->CreateCommand(commandText);
 
 										 return std::accumulate(ids.cbegin(), ids.cend(), true, [&](const bool init, const auto id) {
-											 command->Bind(":id", id);
-											 command->Bind(":lang", lang);
-											 return command->Execute() && init;
+											 return command->Execute(lang, id) && init;
 										 });
 									 };
-									 const auto ok = execute("insert or replace into Books_User(BookID, Lang, CreatedAt) values(:id, :lang, datetime(CURRENT_TIMESTAMP, 'localtime'))")
-			                                      && execute("update Books set Lang = :lang where BookID = :id") && transaction->Commit();
+									 const auto ok = execute("insert or replace into Books_User(Lang, BookID, CreatedAt) values(?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))")
+			                                      && execute("update Books set Lang = ? where BookID = ?") && transaction->Commit();
 
 									 return [this, item = std::move(item), callback = std::move(callback), ok](size_t) {
 										 if (!ok)

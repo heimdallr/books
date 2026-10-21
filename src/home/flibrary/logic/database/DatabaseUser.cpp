@@ -142,8 +142,7 @@ QVariant DatabaseUser::GetSetting(const Key key, QVariant defaultValueSrc) const
 		if (!db)
 			return {};
 
-		const auto query = db->CreateQuery("select SettingValue from Settings where SettingID = ?");
-		query->Bind(0, static_cast<long long>(key));
+		const auto query = db->CreateQuery("select SettingValue from Settings where SettingID = ?", static_cast<long long>(key));
 		query->Execute();
 		return query->Eof() ? defaultValue : QString::fromStdString(query->Get<std::string>(0));
 	}
@@ -158,8 +157,6 @@ void DatabaseUser::SetSetting(const Key key, const QVariant& value) const
 	const auto db      = m_impl->databaseController->GetDatabase();
 	const auto tr      = db->CreateTransaction();
 	const auto command = tr->CreateCommand("insert or replace into Settings(SettingID, SettingValue) values(?, ?)");
-	command->Bind(0, static_cast<long long>(key));
-	command->Bind(1, value.toString().toStdString());
-	command->Execute();
+	command->Execute(static_cast<long long>(key), value.toString());
 	tr->Commit();
 }

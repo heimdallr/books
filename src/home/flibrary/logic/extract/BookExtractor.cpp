@@ -71,8 +71,7 @@ left join Series s on s.SeriesID = sl.SeriesID
 where b.BookID = ?
 order by al.OrdNum, sl.OrdNum limit 1
 )");
-		query->Bind(0, bookId.toLongLong());
-		query->Execute();
+		query->Execute(bookId.toLongLong());
 		if (query->Eof())
 			return {};
 
@@ -108,8 +107,7 @@ from Authors a
 join Author_List al on al.AuthorID = a.AuthorID and al.BookID = ?
 order by al.OrdNum limit 1
 )");
-		query->Bind(0, bookId.toLongLong());
-		query->Execute();
+		query->Execute(bookId.toLongLong());
 		if (query->Eof())
 			return {};
 
