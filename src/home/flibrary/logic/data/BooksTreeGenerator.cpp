@@ -355,11 +355,12 @@ private: // IBookSelector
 		if (!QFile::exists(folder))
 			return;
 
-		const auto tmpTable = db.CreateTemporaryTable({ "Folder VARCHAR (200)", "FileName VARCHAR(170)", "Ext VARCHAR(10)", "ReviewID INTEGER" });
+		const auto  tmpTable     = db.CreateTemporaryTable({ "Folder VARCHAR (200)", "FileName VARCHAR(170)", "Ext VARCHAR(10)", "ReviewID INTEGER" });
+		const auto& tmpTableName = tmpTable->GetName();
 
 		{
 			const auto tr            = db.CreateTransaction();
-			const auto insertCommand = tr->CreateCommand(QString("insert into %1(Folder, FileName, Ext, ReviewID) values(?, ?, ?, ?)").arg(tmpTable->GetName().data()).toStdString());
+			const auto insertCommand = tr->CreateCommand(std::format("insert into {}(Folder, FileName, Ext, ReviewID) values(?, ?, ?, ?)", tmpTableName));
 			Zip        zip(folder);
 			for (long long reviewId = 0; const auto& file : zip.GetFileNameList())
 			{
@@ -399,8 +400,8 @@ private: // IBookSelector
 		}
 
 		auto       queryClause     = description.queryClause;
-		const auto booksFrom       = QString(queryClause.booksFrom).arg(tmpTable->GetName().data()).toStdString();
-		const auto navigationFrom  = QString(queryClause.navigationFrom).arg(tmpTable->GetName().data()).toStdString();
+		const auto booksFrom       = QString(queryClause.booksFrom).arg(tmpTableName.data()).toStdString();
+		const auto navigationFrom  = QString(queryClause.navigationFrom).arg(tmpTableName.data()).toStdString();
 		queryClause.booksFrom      = booksFrom.data();
 		queryClause.navigationFrom = navigationFrom.data();
 
