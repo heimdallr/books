@@ -980,11 +980,10 @@ size_t Store(DB::IDatabase& db, Data& data)
 		std::vector<std::pair<size_t, QString>> reviews;
 
 		{
-			const auto query = db.CreateQuery("select b.BookID, f.FolderTitle||'#'||b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID");
-			for (query->Execute(); !query->Eof(); query->Next())
+			for (const auto query = db.CreateQuery("select b.BookID, f.FolderTitle||'#'||b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID"); const auto& rec : *query)
 			{
-				const auto bookId = query->Get<int64_t>(0);
-				const auto uid    = query->Get<QString>(1);
+				const auto bookId = rec.Get<int64_t>(0);
+				const auto uid    = rec.Get<QString>(1);
 				if (const auto it = data.reviews.find(uid); it != data.reviews.end())
 				{
 					std::ranges::transform(it->second, std::back_inserter(reviews), [&](const auto& item) {
@@ -1062,11 +1061,10 @@ template <typename T>
 T ReadDictionary(const std::string_view name, DB::IDatabase& db, const char* statement, const auto& f)
 {
 	PLOGI << "Read " << name;
-	T          data;
-	const auto query = db.CreateQuery(statement);
-	for (query->Execute(); !query->Eof(); query->Next())
+	T data;
+	for (const auto query = db.CreateQuery(statement); const auto& rec : *query)
 	{
-		const auto [key, value] = f(*query);
+		const auto [key, value] = f(rec);
 		data.emplace(key, value);
 	}
 
@@ -1080,12 +1078,11 @@ Update ReadUpdates(DB::IDatabase& db)
 	std::unordered_map<size_t, Update*> updates {
 		{ 0, &result },
 	};
-	const auto query = db.CreateQuery("select UpdateID, UpdateTitle, ParentID from Updates order by ParentId");
-	for (query->Execute(); !query->Eof(); query->Next())
+	for (const auto query = db.CreateQuery("select UpdateID, UpdateTitle, ParentID from Updates order by ParentId"); const auto& rec : *query)
 	{
-		const auto id       = query->Get<long long>(0);
-		const auto title    = query->Get<int>(1);
-		const auto parentId = query->Get<long long>(2);
+		const auto id       = rec.Get<long long>(0);
+		const auto title    = rec.Get<int>(1);
+		const auto parentId = rec.Get<long long>(2);
 
 		const auto parentIt = updates.find(parentId);
 		assert(parentIt != updates.end());
@@ -1099,12 +1096,12 @@ Update ReadUpdates(DB::IDatabase& db)
 Reviews ReadReviews(DB::IDatabase& db)
 {
 	PLOGI << "Read reviews";
-	Reviews    reviews;
-	const auto query = db.CreateQuery("select f.FolderTitle||'#'||b.FileName||b.Ext, r.Folder from Reviews r join Books b on b.BookID = r.BookID join Folders f on f.FolderID = b.FolderID");
-	for (query->Execute(); !query->Eof(); query->Next())
+	Reviews reviews;
+	for (const auto  query = db.CreateQuery("select f.FolderTitle||'#'||b.FileName||b.Ext, r.Folder from Reviews r join Books b on b.BookID = r.BookID join Folders f on f.FolderID = b.FolderID");
+	     const auto& rec : *query)
 	{
-		const char* uid    = query->Get<const char*>(0);
-		const char* folder = query->Get<const char*>(1);
+		const char* uid    = rec.Get<const char*>(0);
+		const char* folder = rec.Get<const char*>(1);
 		reviews[uid].emplace(folder);
 	}
 
@@ -1122,15 +1119,10 @@ std::pair<Genres, Dictionary> ReadGenres(DB::IDatabase& db, const QString& genre
 
 	std::map<QString, std::vector<size_t>> children;
 
-	auto       n     = std::size(genres);
-	const auto query = db.CreateQuery("select FB2Code, GenreCode, ParentCode, GenreAlias, GenreTitle from Genres");
-	for (query->Execute(); !query->Eof(); query->Next())
+	auto n = std::size(genres);
+	for (const auto query = db.CreateQuery("select FB2Code, GenreCode, ParentCode, GenreAlias, GenreTitle from Genres"); const auto& rec : *query)
 	{
-		const auto* fb2Code    = query->Get<const char*>(0);
-		const auto* genreCode  = query->Get<const char*>(1);
-		const auto* parentCode = query->Get<const char*>(2);
-		const auto* genreAlias = query->Get<const char*>(3);
-		const auto* genreTitle = query->Get<const char*>(4);
+		const auto [fb2Code, genreCode, parentCode, genreAlias, genreTitle] = rec.Get<const char*, const char*, const char*, const char*, const char*>();
 
 		Genre genre(fb2Code, "", genreAlias);
 		genre.dbCode = genreCode;
@@ -1538,13 +1530,9 @@ private:
 
 		{
 			const auto query = m_db->CreateQuery("select BookID, FolderID, FileName||Ext from Books");
-			for (query->Execute(); !query->Eof(); query->Next())
-			{
-				const auto  bookId   = query->Get<long long>(0);
-				const auto  folderId = query->Get<long long>(1);
-				const auto* value    = query->Get<const char*>(2);
-				m_uniqueFiles.try_emplace(std::make_pair(static_cast<size_t>(folderId), value), bookId);
-			}
+			std::ranges::transform(*query, std::inserter(m_uniqueFiles, m_uniqueFiles.end()), [](const auto& item) {
+				return std::make_pair(item.template Get<size_t, QString>(1, 2), item.template Get<long long>(0));
+			});
 		}
 
 		const auto inpxFolderInserter = [](const DB::IQuery& query) {
@@ -2426,8 +2414,9 @@ bool Parser::CheckForUpdate(IniMap data, DB::IDatabase& database)
 
 		InpxFolders dbFolders;
 		const auto  query = database.CreateQuery("select Folder, File, Hash from Inpx");
-		for (query->Execute(); !query->Eof(); query->Next())
-			dbFolders.try_emplace(std::make_pair(query->Get<const char*>(0), query->Get<const char*>(1)), query->Get<const char*>(2));
+		std::ranges::transform(*query, std::inserter(dbFolders, dbFolders.end()), [](const auto& item) {
+			return std::make_pair(item.template Get<QString, QString>(0, 1), item.template Get<QString>(2));
+		});
 
 		InpxFolders diff;
 		const auto  proj = [](const auto& item) {

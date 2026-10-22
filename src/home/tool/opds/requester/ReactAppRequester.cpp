@@ -146,9 +146,8 @@ SELECT gu.GroupID, gu.Title
           FROM Groups_User gu
 )";
 			QJsonArray array;
-			const auto query = db->CreateQuery(queryText);
-			for (query->Execute(); !query->Eof(); query->Next())
-				array.append(FromQuery<const char*>(*query));
+			for (const auto query = db->CreateQuery(queryText); const auto& rec : *query)
+				array.append(FromQuery<const char*>(rec));
 			result.insert("groups", array);
 		}
 
@@ -409,10 +408,9 @@ private:
 
 		std::unordered_set<long long> uniqueIds;
 
-		const auto query = CreateParameterQuery(queryText, parameter, isSearch);
-		for (query->Execute(); !query->Eof(); query->Next())
-			if (uniqueIds.emplace(query->Get<long long>(0)).second)
-				array.append(FromQuery<const char*>(*query));
+		for (const auto query = CreateParameterQuery(queryText, parameter, isSearch); const auto& rec : *query)
+			if (uniqueIds.emplace(rec.Get<long long>(0)).second)
+				array.append(FromQuery<const char*>(rec));
 
 		return QJsonObject {
 			{ resultName, array }
@@ -435,10 +433,9 @@ private:
 			}
 		);
 
-		const auto db    = databaseController->GetDatabase(true);
-		auto       query = db->CreateQuery(queryText.arg(joins.join('\n')).toStdString());
-		for (query->Execute(); !query->Eof(); query->Next())
-			array.append(FromQuery<const char*>(*query));
+		const auto db = databaseController->GetDatabase(true);
+		for (auto query = db->CreateQuery(queryText.arg(joins.join('\n')).toStdString()); const auto& rec : *query)
+			array.append(FromQuery<const char*>(rec));
 
 		return QJsonObject {
 			{ resultName, array }

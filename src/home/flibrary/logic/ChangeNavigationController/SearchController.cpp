@@ -80,10 +80,11 @@ struct SearchController::Impl
 	{
 		auto db = databaseUser->Database();
 		databaseUser->Execute({ "Get all searches", [db = std::move(db), callback = std::move(callback)]() mutable {
-								   Names      names;
 								   const auto query = db->CreateQuery("select SearchID, Title from Searches_User");
-								   for (query->Execute(); !query->Eof(); query->Next())
-									   names.try_emplace(query->Get<QString>(1).toUpper(), query->Get<long long>(0));
+								   auto       names = *query | std::views::transform([](const auto& item) {
+									   return std::make_pair(item.template Get<QString>(1).toUpper(), item.template Get<long long>(0));
+								   }) | std::views::common
+			                                        | std::ranges::to<Names>();
 								   return [names = std::move(names), callback = std::move(callback)](size_t) {
 									   callback(names);
 								   };

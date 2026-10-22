@@ -250,16 +250,17 @@ void FilterController::HideFiltered(NavigationMode navigationMode, QPointer<QAbs
 										   flags.append(std::format(" | coalesce({}.Flags, 0)", std::get<3>(item)));
 										   from.append(std::get<2>(item));
 									   });
-									   const auto query =
-										   db->CreateQuery(std::format("select {}, b.BookID, (0 {}) & {} from Books b{}", select, flags, static_cast<int>(IDataItem::Flags::BooksFiltered), from));
+
+									   auto now = std::chrono::system_clock::now();
 
 									   std::unordered_map<QString, std::pair<std::unordered_set<long long>, std::unordered_set<long long>>> values;
-									   auto                                                                                                 now = std::chrono::system_clock::now();
-									   for (query->Execute(); !query->Eof(); query->Next())
+									   for (const auto query =
+									            db->CreateQuery(std::format("select {}, b.BookID, (0 {}) & {} from Books b{}", select, flags, static_cast<int>(IDataItem::Flags::BooksFiltered), from));
+									        const auto& rec : *query)
 									   {
-										   auto& [nonFiltered, filtered] = values[query->Get<const char*>(0)];
-										   const auto bookId             = query->Get<long long>(1);
-										   if (query->Get<int>(2) == 0)
+										   auto& [nonFiltered, filtered] = values[rec.Get<const char*>(0)];
+										   const auto bookId             = rec.Get<long long>(1);
+										   if (rec.Get<int>(2) == 0)
 										   {
 											   if (!filtered.contains(bookId))
 												   nonFiltered.emplace(bookId);

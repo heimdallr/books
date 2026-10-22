@@ -36,7 +36,7 @@ class XmlAttributes final : public Util::XmlAttributes
 {
 public:
 	template <std::ranges::input_range R>
-	XmlAttributes(const R& r, DB::IQuery& query)
+	XmlAttributes(const R& r, const DB::IQuery& query)
 	{
 		m_values.reserve(std::size(r));
 		std::ranges::transform(r, std::back_inserter(m_values), [&, n = 0](const auto& value) mutable {
@@ -91,9 +91,8 @@ void BackupUserDataBooks(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 		Constant::UserData::Books::UserRate, Constant::UserData::Books::Lang,     Constant::UserData::Books::CreatedAt,
 	};
 
-	const auto query = db.CreateQuery(text);
-	for (query->Execute(), assert(query->ColumnCount() == std::size(fields)); !query->Eof(); query->Next())
-		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query)).WriteEndElement();
+	for (const auto query = db.CreateQuery(text); const auto& rec : *query)
+		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, rec)).WriteEndElement();
 }
 
 void BackupUserDataGroups(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
@@ -112,11 +111,10 @@ void BackupUserDataGroups(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 
 	std::unique_ptr<ScopedCall> group;
 	QString                     currentTitle;
-	const auto                  query = db.CreateQuery(text);
-	for (query->Execute(); !query->Eof(); query->Next())
+	for (const auto query = db.CreateQuery(text); const auto& rec : *query)
 	{
-		QString title          = query->Get<const char*>(0);
-		QString groupCreatedAt = query->Get<const char*>(1);
+		QString title          = rec.Get<const char*>(0);
+		QString groupCreatedAt = rec.Get<const char*>(1);
 		if (currentTitle != title)
 		{
 			currentTitle = std::move(title);
@@ -139,25 +137,25 @@ void BackupUserDataGroups(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 			).swap(group);
 		}
 
-		if (const auto* fileName = query->Get<const char*>(3))
+		if (const auto* fileName = rec.Get<const char*>(3))
 			xmlWriter.WriteStartElement(Constant::ITEM)
-				.WriteAttribute(Constant::UserData::Books::CreatedAt, QString(query->Get<const char*>(2)))
+				.WriteAttribute(Constant::UserData::Books::CreatedAt, QString(rec.Get<const char*>(2)))
 				.WriteAttribute(Constant::UserData::Books::FileName, QString(fileName))
-				.WriteAttribute(Constant::UserData::Books::Folder, QString(query->Get<const char*>(4)))
+				.WriteAttribute(Constant::UserData::Books::Folder, QString(rec.Get<const char*>(4)))
 				.WriteEndElement();
-		else if (const auto* authorName = query->Get<const char*>(5))
+		else if (const auto* authorName = rec.Get<const char*>(5))
 			xmlWriter.WriteStartElement(Constant::UserData::Groups::Author)
-				.WriteAttribute(Constant::UserData::Books::CreatedAt, QString(query->Get<const char*>(2)))
+				.WriteAttribute(Constant::UserData::Books::CreatedAt, QString(rec.Get<const char*>(2)))
 				.WriteAttribute(Constant::TITLE, QString(authorName))
 				.WriteEndElement();
-		else if (const auto* seriesTitle = query->Get<const char*>(6))
+		else if (const auto* seriesTitle = rec.Get<const char*>(6))
 			xmlWriter.WriteStartElement(Constant::UserData::Groups::Series)
-				.WriteAttribute(Constant::UserData::Books::CreatedAt, QString(query->Get<const char*>(2)))
+				.WriteAttribute(Constant::UserData::Books::CreatedAt, QString(rec.Get<const char*>(2)))
 				.WriteAttribute(Constant::TITLE, QString(seriesTitle))
 				.WriteEndElement();
-		else if (const auto* keywordTitle = query->Get<const char*>(7))
+		else if (const auto* keywordTitle = rec.Get<const char*>(7))
 			xmlWriter.WriteStartElement(Constant::UserData::Groups::Keyword)
-				.WriteAttribute(Constant::UserData::Books::CreatedAt, QString(query->Get<const char*>(2)))
+				.WriteAttribute(Constant::UserData::Books::CreatedAt, QString(rec.Get<const char*>(2)))
 				.WriteAttribute(Constant::TITLE, QString(keywordTitle))
 				.WriteEndElement();
 	}
@@ -173,9 +171,8 @@ void BackupUserDataSearches(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 		Constant::UserData::Books::CreatedAt,
 	};
 
-	const auto query = db.CreateQuery(text);
-	for (query->Execute(); !query->Eof(); query->Next())
-		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query)).WriteEndElement();
+	for (const auto query = db.CreateQuery(text); const auto& rec : *query)
+		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, rec)).WriteEndElement();
 }
 
 void BackupUserDataExportStat(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
@@ -192,9 +189,8 @@ void BackupUserDataExportStat(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 		Constant::UserData::Books::CreatedAt,
 	};
 
-	const auto query = db.CreateQuery(text);
-	for (query->Execute(), assert(query->ColumnCount() == std::size(fields)); !query->Eof(); query->Next())
-		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, *query)).WriteEndElement();
+	for (const auto query = db.CreateQuery(text); const auto& rec : *query)
+		xmlWriter.WriteStartElement(Constant::ITEM, XmlAttributes(fields, rec)).WriteEndElement();
 }
 
 void BackupUserDataFilter(DB::IDatabase& db, Util::XmlWriter& xmlWriter)

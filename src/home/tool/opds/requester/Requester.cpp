@@ -872,12 +872,11 @@ public:
 
 		if (!parameters.contains(Loc::Groups))
 		{
-			const auto query = db->CreateQuery(FilterQueryText(QString(GROUPS_SELECT).arg(join)));
-			for (query->Execute(); !query->Eof(); query->Next())
+			for (const auto query = db->CreateQuery(FilterQueryText(QString(GROUPS_SELECT).arg(join))); const auto& rec : *query)
 			{
 				auto       p  = parameters;
-				const auto id = QString("%1/%2").arg(Loc::Groups).arg(p[Loc::Groups] = query->Get<const char*>(0));
-				WriteEntry(head.children, root, "", p, id, query->Get<const char*>(1), Tr(BOOKS_COUNTER).arg(query->Get<int>(2)));
+				const auto id = QString("%1/%2").arg(Loc::Groups).arg(p[Loc::Groups] = rec.Get<const char*>(0));
+				WriteEntry(head.children, root, "", p, id, rec.Get<const char*>(1), Tr(BOOKS_COUNTER).arg(rec.Get<int>(2)));
 			}
 		}
 
@@ -1189,11 +1188,9 @@ private: // INavigationProvider
 
 		std::unordered_set<typename T::CodeType> itemsWithBooks;
 		if (!parameters.empty() && (parameters.size() > 1 || parameters.begin()->first != d.type))
-		{
-			const auto query = db->CreateQuery(FilterQueryText(QString(d.selectEqual).arg(join)));
-			for (query->Execute(); !query->Eof(); query->Next())
-				itemsWithBooks.emplace(query->template Get<DBCodeType>(0));
-		}
+			db->CreateQuery(FilterQueryText(QString(d.selectEqual).arg(join)))->ForEach([&](const auto& rec) {
+				itemsWithBooks.emplace(rec.template Get<DBCodeType>(0));
+			});
 
 		auto  rootItem   = T::Load(*db, itemsWithBooks);
 		auto* parentItem = &rootItem;
@@ -1280,8 +1277,9 @@ private:
 			for (const auto& [key, value] : params)
 				query->Bind(key.toStdString(), value);
 
-			for (query->Execute(); !query->Eof(); query->Next())
-				ones.try_emplace(QString(query->Get<const char*>(0)).simplified(), query->Get<const char*>(1));
+			std::ranges::transform(*query, std::inserter(ones, ones.end()), [](const auto& item) {
+				return std::make_pair(QString(item.template Get<const char*>(0)).simplified(), item.template Get<const char*>(1));
+			});
 		};
 
 		const auto maxSize = GetMaxResultSize();
@@ -1307,10 +1305,10 @@ private:
 				query->Bind(":length", startsWith.length() + 1);
 				query->Bind(":starts", startsWith.toStdString());
 				query->Bind(":starts_like", startsWithLike.toStdString());
-				for (query->Execute(); !query->Eof(); query->Next())
+				for (const auto& rec : *query)
 				{
-					QString    s     = query->template Get<const char*>(0);
-					const auto count = query->template Get<long long>(1);
+					QString    s     = rec.template Get<const char*>(0);
+					const auto count = rec.template Get<long long>(1);
 					if (s == startsWith)
 					{
 						equal.emplaceBack(std::move(s));

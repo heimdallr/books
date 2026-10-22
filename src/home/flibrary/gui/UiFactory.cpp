@@ -1105,15 +1105,15 @@ limit {}
 	databaseUser->Execute(
 		{ "Update recent books menu",
 		  [this, &menu, queryText = std::move(queryText), menuItemTitleFormat = std::move(menuItemTitleFormat), menuItemDateTimeFormat = std::move(menuItemDateTimeFormat), db = std::move(db)]() mutable {
-			  const auto                                 query = db->CreateQuery(queryText);
-			  std::vector<std::pair<long long, QString>> data;
-			  for (query->Execute(); !query->Eof(); query->Next())
-			  {
-				  const auto dateTime = QDateTime::fromString(query->Get<const char*>(3), MENU_ITEM_DATETIME_FORMAT_DEFAULT).toString(menuItemDateTimeFormat);
-				  auto       title    = menuItemTitleFormat;
-				  title.replace("%title%", query->Get<const char*>(1)).replace("%author%", query->Get<const char*>(2)).replace("%time%", dateTime);
-				  data.emplace_back(query->Get<long long>(0), std::move(title));
-			  }
+			  auto data = [&] {
+				  const auto query = db->CreateQuery(queryText);
+				  return *query | std::views::transform([&](const auto& item) {
+					  const auto dateTime = QDateTime::fromString(query->Get<const char*>(3), MENU_ITEM_DATETIME_FORMAT_DEFAULT).toString(menuItemDateTimeFormat);
+					  auto       title    = menuItemTitleFormat;
+					  title.replace("%title%", item.template Get<const char*>(1)).replace("%author%", item.template Get<const char*>(2)).replace("%time%", dateTime);
+					  return std::make_pair(item.template Get<long long>(0), std::move(title));
+				  }) | std::ranges::to<std::vector>();
+			  }();
 
 			  return [this, &menu, data = std::move(data)](size_t) mutable {
 				  menu.menuAction()->setEnabled(!data.empty());

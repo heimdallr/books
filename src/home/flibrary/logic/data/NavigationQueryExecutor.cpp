@@ -184,14 +184,13 @@ void RequestNavigationList(
 	databaseUser.Execute(
 		{ "Get navigation",
 		  [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), postProcess = std::move(postProcess), db = std::move(db)]() mutable {
-			  std::unordered_map<QString, IDataItem::Ptr> index;
-
 			  const auto query = db->CreateQuery(queryDescription.navigationQuery);
-			  for (query->Execute(); !query->Eof(); query->Next())
-			  {
-				  auto item = queryDescription.navigationExtractor(*query);
-				  index.try_emplace(item->GetId(), item);
-			  }
+			  const auto index = *query | std::views::transform([&](const auto& item) {
+				  auto dataItem = queryDescription.navigationExtractor(item);
+				  auto id       = dataItem->GetId();
+				  return std::make_pair(id, std::move(dataItem));
+			  }) | std::views::common
+		                       | std::ranges::to<std::unordered_map>();
 
 			  IDataItem::Items items;
 			  items.reserve(std::size(index));
@@ -315,12 +314,11 @@ void RequestNavigationUpdates(
 		{ "Get navigation",
 		  [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable {
 			  return CreateCalendarTree(mode, std::move(callback), cache, [&queryDescription, db = std::move(db)](std::unordered_map<long long, IDataItem::Ptr>& items) {
-				  const auto query = db->CreateQuery(queryDescription.navigationQuery);
-				  for (query->Execute(); !query->Eof(); query->Next())
+				  for (const auto query = db->CreateQuery(queryDescription.navigationQuery); const auto& rec : *query)
 				  {
-					  auto       item     = queryDescription.navigationExtractor(*query);
+					  auto       item     = queryDescription.navigationExtractor(rec);
 					  const auto id       = item->GetId().toLongLong();
-					  const auto parentIt = items.find(query->Get<long long>(4));
+					  const auto parentIt = items.find(rec.Get<long long>(4));
 					  assert(parentIt != items.end());
 					  parentIt->second->AppendChild(items.try_emplace(id, std::move(item)).first->second);
 				  }

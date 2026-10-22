@@ -163,9 +163,9 @@ T LoadImpl(DB::IDatabase& db, const std::unordered_set<typename T::CodeType>& ne
 {
 	std::unordered_map<typename T::CodeType, AllTreeItem<T>> allItems;
 	std::vector<AllTreeItem<T>>                              buffer;
-	const auto                                               query = db.CreateQuery(queryText);
-	for (query->Execute(); !query->Eof(); query->Next())
-		Select<T>(*query, neededItems, allItems, buffer);
+
+	for (const auto query = db.CreateQuery(queryText); auto& rec : *query)
+		Select<T>(rec, neededItems, allItems, buffer);
 
 	T root;
 	while (!buffer.empty())
