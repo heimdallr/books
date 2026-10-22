@@ -1515,7 +1515,7 @@ private:
 		Data data;
 
 		const auto dictionaryInserter = [](const DB::IQuery& query) {
-			return std::make_pair(query.Get<QString>(1), query.Get<size_t>(0));
+			return query.Get<QString, size_t>(1, 0);
 		};
 
 		SetNextId(*m_db);
@@ -1536,7 +1536,7 @@ private:
 		}
 
 		const auto inpxFolderInserter = [](const DB::IQuery& query) {
-			return std::make_pair(std::make_pair(query.Get<QString>(0), query.Get<QString>(1)), query.Get<QString>(2));
+			return std::make_pair(query.Get<QString, QString>(0, 1), query.Get<QString>(2));
 		};
 		data.inpxFolders = ReadDictionary<InpxFolders>("inpx", *m_db, "select Folder, File, Hash from Inpx", inpxFolderInserter);
 
