@@ -46,7 +46,7 @@ private: // IRestorer
 		using namespace Constant::UserData;
 		const auto transaction = db.CreateTransaction();
 		transaction->CreateCommand("delete from Searches_User")->Execute();
-		
+
 		for (const auto createSearchCommand = transaction->CreateCommand(Searches::CreateNewSearchCommandText); const auto& [origin, title, createdAt] : m_items)
 			createSearchCommand->Execute(GetStringParameter(origin), title, GetStringParameter(createdAt));
 

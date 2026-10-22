@@ -18,7 +18,7 @@ public:
 	{
 	public:
 		virtual void OnImageReceived(QImage pixmap, const QString& description) = 0;
-		virtual void OnCountChanges(int count)      = 0;
+		virtual void OnCountChanges(int count)                                  = 0;
 	};
 
 public:

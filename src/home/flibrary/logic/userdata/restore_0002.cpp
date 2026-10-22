@@ -66,7 +66,7 @@ private: // IRestorer
 		const auto command = transaction->CreateCommand(commandText);
 
 		const auto getInt = [&](const QString& value) -> std::optional<int> {
-			bool ok = false;
+			bool       ok     = false;
 			const auto result = value.toInt(&ok);
 			return ok ? std::optional { result } : std::nullopt;
 		};

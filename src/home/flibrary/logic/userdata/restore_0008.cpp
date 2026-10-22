@@ -44,7 +44,7 @@ private: // IRestorer
 			const auto index = static_cast<size_t>(description.navigationMode);
 			assert(!FIELD_NAMES[index].empty());
 			tr->CreateCommand(std::format("update {} set Flags = 0", description.table))->Execute();
-			
+
 			for (const auto command = tr->CreateCommand(std::format("update {} set Flags = ? where {} = ?", description.table, FIELD_NAMES[index])); const auto& [title, flags] : it->second)
 				command->Execute(flags, title);
 		});
