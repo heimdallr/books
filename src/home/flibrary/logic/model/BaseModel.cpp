@@ -70,6 +70,14 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 			}
 		}
 	}
+	else if (item->GetType() == ItemType::Navigation)
+	{
+		if (role == Role::NavigationMode)
+		{
+			const auto navigationItem = item->To<NavigationItem>();
+			return QVariant::fromValue(navigationItem ? navigationItem->GetNavigationMode() : NavigationMode::Unknown);
+		}
+	}
 
 	switch (role)
 	{

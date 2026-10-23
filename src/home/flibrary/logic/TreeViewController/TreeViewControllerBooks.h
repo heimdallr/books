@@ -8,6 +8,7 @@
 #include "interface/logic/IDataProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
+#include "interface/ui/IUiFactory.h"
 
 #include "AbstractTreeViewController.h"
 
@@ -27,6 +28,7 @@ public:
 		const std::shared_ptr<IModelProvider>&      modelProvider,
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<IBookInfoProvider>          dataProvider,
+		std::shared_ptr<const IUiFactory>           uiFactory,
 		std::shared_ptr<const IBookInteractor>      bookInteractor,
 		std::shared_ptr<IAnnotationController>      annotationController,
 		std::shared_ptr<IDatabaseUser>              databaseUser

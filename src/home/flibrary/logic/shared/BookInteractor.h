@@ -29,9 +29,9 @@ public:
 	~BookInteractor() override;
 
 private:
-	void OnLinkActivated(long long bookId) const override;
-	void OnDoubleClicked(long long bookId) const override;
-	void OnRecentBookMenuTriggered(long long bookId) const override;
+	void OnLinkActivated(long long bookId, const QString& parameters) const override;
+	void OnDoubleClicked(long long bookId, const QString& parameters) const override;
+	void OnRecentBookMenuTriggered(long long bookId, const QString& parameters) const override;
 
 private:
 	struct Impl;
