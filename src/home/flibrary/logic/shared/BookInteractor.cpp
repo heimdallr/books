@@ -260,9 +260,14 @@ private: // IBookInteractorImpl
 			{      BookItem::Column::Genre, { NavigationMode::Genres, "select g.GenreCode, g.FB2Code, g.GenreTitle from Genres g join Genre_List l on l.GenreCode = g.GenreCode and l.BookID = ?", &MatchGenre } },
 		};
 
-		const auto [id, title] = [&] {
+		if (parameters.isEmpty())
+			return Read(bookId, {}, {});
+
+		const auto [id, title] = [&]() -> std::pair<int, QStringView> {
 			const auto index = parameters.indexOf('|');
-			assert(index > 0);
+			if (index < 0)
+				return {};
+
 			return std::make_pair(QStringView(parameters.begin(), std::next(parameters.begin(), index)).toInt(), QStringView(std::next(parameters.begin(), index + 1), parameters.end()));
 		}();
 
