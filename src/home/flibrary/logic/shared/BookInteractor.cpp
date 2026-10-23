@@ -41,10 +41,10 @@ inline constexpr const char* NAVIGATION_ID_QUERY[] = {
 
 static_assert(std::size(NAVIGATION_ID_QUERY) == static_cast<size_t>(NavigationMode::Last));
 
-#define INTERACT_ITEMS_X_MACRO                                                                                                                                                                                 \
-	INTERACT_ITEM(Read)                                                                                                                                                                                        \
-	INTERACT_ITEM(ExtractAsIs)                                                                                                                                                                                 \
-	INTERACT_ITEM(ExtractAsZip)                                                                                                                                                                                \
+#define INTERACT_ITEMS_X_MACRO     \
+	INTERACT_ITEM(Read)            \
+	INTERACT_ITEM(ExtractAsIs)     \
+	INTERACT_ITEM(ExtractAsZip)    \
 	INTERACT_ITEM(Script)
 
 class IBookInteractorImpl // NOLINT(cppcoreguidelines-special-member-functions)
