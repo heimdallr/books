@@ -13,6 +13,7 @@
 
 #include "data/DataItem.h"
 #include "extract/BooksExtractor.h"
+#include "util/GenresLocalization.h"
 #include "util/StrUtil.h"
 
 #include "QtTypes.h"
@@ -128,11 +129,28 @@ QString GetAuthorReduced(const auto& tuple)
 	return name;
 }
 
+std::pair<QString, QString> MatchAlways(const QStringView, const DB::IQuery& query)
+{
+	return query.Get<QString, QString>(0, 1);
+}
+
 std::pair<QString, QString> MatchAuthor(const QStringView title, const DB::IQuery& query)
 {
 	auto author = query.Get<QString, const char*, const char*, const char*>();
 	if (auto name = GetAuthorFull(author); title.contains(name, Qt::CaseInsensitive) || title.contains(GetAuthorReduced(author), Qt::CaseInsensitive))
 		return std::make_pair(std::move(std::get<0>(author)), std::move(name));
+	return {};
+}
+
+std::pair<QString, QString> MatchGenre(const QStringView title, const DB::IQuery& query)
+{
+	auto genre = query.Get<QString, const char*, const char*>();
+	if (QString name = std::get<2>(genre); !name.isEmpty() && title.contains(name, Qt::CaseInsensitive))
+		return std::make_pair(std::move(std::get<0>(genre)), std::move(name));
+
+	if (auto name = Loc::Tr(Util::GENRE, std::get<1>(genre)); title.contains(name, Qt::CaseInsensitive))
+		return std::make_pair(std::move(std::get<0>(genre)), std::move(name));
+
 	return {};
 }
 
@@ -234,7 +252,14 @@ private: // IBookInteractorImpl
 		static constexpr std::pair<int, Description> descriptions[] {
 			{     BookItem::Column::Author,                                                                                                           { NavigationMode::Authors, authorQueryText, &MatchAuthor } },
 			{ BookItem::Column::AuthorFull,                                                                                                           { NavigationMode::Authors, authorQueryText, &MatchAuthor } },
+			{     BookItem::Column::Series,            { NavigationMode::Series, "select s.SeriesID, s.SeriesTitle from Series s join Series_List l on l.SeriesID = s.SeriesID and l.BookID = ?", &MatchAlways } },
+			{     BookItem::Column::Folder,               { NavigationMode::Archives, "select f.FolderID, f.FolderTitle from Folders f join Books b on b.FolderID = f.FolderID and b.BookID = ?", &MatchAlways } },
+			{       BookItem::Column::Lang,                                                                 { NavigationMode::Languages, "select b.Lang, b.Lang from Books b where b.BookID = ?", &MatchAlways } },
+			{       BookItem::Column::Year,                                                               { NavigationMode::PublishYear, "select b.Year, b.Year from Books b where b.BookID = ?", &MatchAlways } },
+			{ BookItem::Column::UpdateDate,                                                         { NavigationMode::Updates, "select b.UpdateID, b.UpdateDate from Books b where b.BookID = ?", &MatchAlways } },
+			{      BookItem::Column::Genre, { NavigationMode::Genres, "select g.GenreCode, g.FB2Code, g.GenreTitle from Genres g join Genre_List l on l.GenreCode = g.GenreCode and l.BookID = ?", &MatchGenre } },
 		};
+
 		const auto [id, title] = [&] {
 			const auto index = parameters.indexOf('|');
 			assert(index > 0);
