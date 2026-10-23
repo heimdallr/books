@@ -750,6 +750,19 @@ QWidget* UiFactory::CreateChangeSizeWidget(const int current, const int minimum,
 	return new ChangeSizeDialog(current, minimum, maximum, observer);
 }
 
+void UiFactory::ExecMenu(const QStringList& values, std::function<void(int)> callback) const
+{
+	auto* parent = GetParentWidget(nullptr);
+	QMenu menu(parent);
+	auto  font = parent->font();
+	menu.setFont(font);
+	for (auto&& [value, index] : std::views::zip(values, std::views::iota(0)))
+		connect(menu.addAction(value), &QAction::triggered, [index, callback] {
+			callback(index);
+		});
+	menu.exec(QCursor::pos());
+}
+
 QMenu* UiFactory::CreateCheckableMenu(const std::vector<std::pair<QString, bool>>& values, std::function<void(int, bool)> callback) const
 {
 	return Util::CreateCheckableMenu(values, std::move(callback), GetParentWidget(nullptr));
@@ -1122,7 +1135,7 @@ limit {}
 				  {
 					  const auto* action = menu.addAction(title.replace('&', "&&"));
 					  connect(action, &QAction::triggered, [this, id] {
-						  m_impl->container.resolve<IBookInteractor>()->OnRecentBookMenuTriggered(id);
+						  m_impl->container.resolve<IBookInteractor>()->OnRecentBookMenuTriggered(id, {});
 					  });
 				  }
 				  menu.addSeparator();
