@@ -9,12 +9,17 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/SettingsConstant.h"
+#include "interface/localization.h"
 
+#include "data/DataItem.h"
 #include "extract/BooksExtractor.h"
+#include "util/StrUtil.h"
 
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa::Flibrary;
+using namespace HomeCompa;
 
 namespace {
 
@@ -45,7 +50,8 @@ static_assert(std::size(NAVIGATION_ID_QUERY) == static_cast<size_t>(NavigationMo
 	INTERACT_ITEM(Read)            \
 	INTERACT_ITEM(ExtractAsIs)     \
 	INTERACT_ITEM(ExtractAsZip)    \
-	INTERACT_ITEM(Script)
+	INTERACT_ITEM(Script)          \
+	INTERACT_ITEM(NavigationLink)
 
 class IBookInteractorImpl // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -79,6 +85,56 @@ struct ExtractSettings
 	bool    createFillTemplateConverterParameter { false };
 	bool    tempFolder { false };
 };
+
+QString GetAuthorFull(const auto& tuple)
+{
+	QString result = std::get<1>(tuple);
+	Util::AppendTitle(result, std::get<2>(tuple));
+	Util::AppendTitle(result, std::get<3>(tuple));
+	return result;
+}
+
+QString GetAuthorReduced(const auto& tuple)
+{
+	QString last   = std::get<1>(tuple);
+	QString first  = std::get<2>(tuple);
+	QString middle = std::get<3>(tuple);
+
+	for (int i = 0; i < 2; ++i)
+	{
+		if (!last.isEmpty())
+			break;
+
+		last   = std::move(first);
+		first  = std::move(middle);
+		middle = QString {};
+	}
+
+	if (last.isEmpty())
+		last = Loc::Tr(Loc::Ctx::ERROR_CTX, Loc::AUTHOR_NOT_SPECIFIED);
+
+	auto name = last;
+
+	const auto append = [&](const QString& str) {
+		if (str.isEmpty())
+			return;
+
+		Util::AppendTitle(name, First(str, 1) + ".");
+	};
+
+	append(first);
+	append(middle);
+
+	return name;
+}
+
+std::pair<QString, QString> MatchAuthor(const QStringView title, const DB::IQuery& query)
+{
+	auto author = query.Get<QString, const char*, const char*, const char*>();
+	if (auto name = GetAuthorFull(author); title.contains(name, Qt::CaseInsensitive) || title.contains(GetAuthorReduced(author), Qt::CaseInsensitive))
+		return std::make_pair(std::move(std::get<0>(author)), std::move(name));
+	return {};
+}
 
 } // namespace
 
@@ -167,6 +223,49 @@ private: // IBookInteractorImpl
 		PLOGW << "Script " << parameters.front() << " not found";
 	}
 
+	void NavigationLink(const long long bookId, const QStringList&, const QString& parameters) const override
+	{
+		using Matcher     = std::pair<QString, QString> (*)(QStringView, const DB::IQuery&);
+		using Description = std::tuple<NavigationMode, const char*, Matcher>;
+
+		static constexpr Description defaultDescription = { NavigationMode::Unknown, "", nullptr };
+		static constexpr auto        authorQueryText    = "select a.AuthorID, a.LastName, a.FirstName, a.MiddleName from Authors a join Author_List l on l.AuthorID = a.AuthorID and l.BookID = ?";
+
+		static constexpr std::pair<int, Description> descriptions[] {
+			{     BookItem::Column::Author,                                                                                                           { NavigationMode::Authors, authorQueryText, &MatchAuthor } },
+			{ BookItem::Column::AuthorFull,                                                                                                           { NavigationMode::Authors, authorQueryText, &MatchAuthor } },
+		};
+		const auto [id, title] = [&] {
+			const auto index = parameters.indexOf('|');
+			assert(index > 0);
+			return std::make_pair(QStringView(parameters.begin(), std::next(parameters.begin(), index)).toInt(), QStringView(std::next(parameters.begin(), index + 1), parameters.end()));
+		}();
+
+		if (title.isEmpty())
+			return Read(bookId, {}, {});
+
+		const auto& description = FindSecond(descriptions, id, defaultDescription);
+		if (std::get<0>(description) == NavigationMode::Unknown)
+			return Read(bookId, {}, {});
+
+		const auto db    = databaseUser->Database();
+		const auto query = db->CreateQuery(std::get<1>(description), bookId);
+		const auto match = *query | std::views::transform([&](const auto& item) {
+			return std::invoke(std::get<2>(description), title, item);
+		}) | std::views::filter([](const auto& item) {
+			return !item.first.isEmpty();
+		}) | std::ranges::to<std::vector>();
+
+		if (match.empty())
+			return assert(false && "unexpected logic"), Read(bookId, {}, {});
+
+		if (match.size() == 1)
+			return ILogicFactory::Lock(logicFactory)->FindBook(std::get<0>(description), match.front().first);
+
+		uiFactory->ExecMenu(match | std::views::values | std::ranges::to<QStringList>(), [&](const int n) {
+			ILogicFactory::Lock(logicFactory)->FindBook(std::get<0>(description), match[static_cast<size_t>(n)].first);
+		});
+	}
 
 #define NAVIGATION_MODE_ITEM(NAME) void FindWith##NAME(const long long bookId, const QStringList&, const QString&) const override { FindWithImpl(NavigationMode::NAME, bookId); }
 	NAVIGATION_MODE_ITEMS_X_MACRO
