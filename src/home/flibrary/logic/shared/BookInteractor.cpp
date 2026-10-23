@@ -53,15 +53,15 @@ public:
 	virtual ~IBookInteractorImpl() = default;
 
 public:
-#define INTERACT_ITEM(NAME) virtual void NAME(long long, const QStringList &) const = 0;
+#define INTERACT_ITEM(NAME) virtual void NAME(long long, const QStringList &, const QString&) const = 0;
 	INTERACT_ITEMS_X_MACRO
 #undef INTERACT_ITEM
-#define NAVIGATION_MODE_ITEM(NAME) virtual void FindWith##NAME(long long, const QStringList &) const = 0;
+#define NAVIGATION_MODE_ITEM(NAME) virtual void FindWith##NAME(long long, const QStringList &, const QString&) const = 0;
 	NAVIGATION_MODE_ITEMS_X_MACRO
 #undef NAVIGATION_MODE_ITEM
 };
 
-constexpr std::pair<const char*, void (IBookInteractorImpl::*)(long long, const QStringList&) const> INTERACT[] {
+constexpr std::pair<const char*, void (IBookInteractorImpl::*)(long long, const QStringList&, const QString&) const> INTERACT[] {
 #define INTERACT_ITEM(NAME) { #NAME, &IBookInteractorImpl::NAME },
 	INTERACT_ITEMS_X_MACRO
 #undef INTERACT_ITEM
@@ -114,32 +114,32 @@ struct BookInteractor::Impl final : IBookInteractorImpl
 	{
 	}
 
-	void Interact(const long long bookId, const QString& key) const
+	void Interact(const long long bookId, const QString& key, const QString& parameters) const
 	{
 		auto list = settings->Get(key, QString {}).split('.');
 		assert(!list.isEmpty());
 		const auto invoker = FindSecond(INTERACT, list.front().toStdString().data(), INTERACT[0].second, PszComparer {});
 		list.pop_front();
-		std::invoke(invoker, this, bookId, list);
+		std::invoke(invoker, this, bookId, list, parameters);
 	}
 
 private: // IBookInteractorImpl
-	void Read(const long long bookId, const QStringList&) const override
+	void Read(const long long bookId, const QStringList&, const QString&) const override
 	{
 		readerController->Read(bookId);
 	}
 
-	void ExtractAsIs(const long long bookId, const QStringList&) const override
+	void ExtractAsIs(const long long bookId, const QStringList&, const QString&) const override
 	{
 		ExtractImpl(&BooksExtractor::ExtractAsIs, bookId);
 	}
 
-	void ExtractAsZip(const long long bookId, const QStringList&) const override
+	void ExtractAsZip(const long long bookId, const QStringList&, const QString&) const override
 	{
 		ExtractImpl(&BooksExtractor::ExtractAsArchives, bookId, { .ext = "zip" });
 	}
 
-	void Script(const long long bookId, const QStringList& parameters) const override
+	void Script(const long long bookId, const QStringList& parameters, const QString&) const override
 	{
 		assert(!parameters.isEmpty());
 		const auto  scriptController = scriptControllerProvider->GetScriptController();
@@ -167,8 +167,8 @@ private: // IBookInteractorImpl
 		PLOGW << "Script " << parameters.front() << " not found";
 	}
 
-#define NAVIGATION_MODE_ITEM(NAME)                                                                                                                                                                             \
-	void FindWith##NAME(const long long bookId, const QStringList &) const override { FindWithImpl(NavigationMode::NAME, bookId); }
+
+#define NAVIGATION_MODE_ITEM(NAME) void FindWith##NAME(const long long bookId, const QStringList&, const QString&) const override { FindWithImpl(NavigationMode::NAME, bookId); }
 	NAVIGATION_MODE_ITEMS_X_MACRO
 #undef NAVIGATION_MODE_ITEM
 
@@ -238,17 +238,17 @@ BookInteractor::BookInteractor(
 
 BookInteractor::~BookInteractor() = default;
 
-void BookInteractor::OnLinkActivated(const long long bookId) const
+void BookInteractor::OnLinkActivated(const long long bookId, const QString& parameters) const
 {
-	m_impl->Interact(bookId, ON_BOOK_LINK_KEY);
+	m_impl->Interact(bookId, ON_BOOK_LINK_KEY, parameters);
 }
 
-void BookInteractor::OnDoubleClicked(const long long bookId) const
+void BookInteractor::OnDoubleClicked(const long long bookId, const QString& parameters) const
 {
-	m_impl->Interact(bookId, ON_BOOK_DBL_CLICK_KEY);
+	m_impl->Interact(bookId, ON_BOOK_DBL_CLICK_KEY, parameters);
 }
 
-void BookInteractor::OnRecentBookMenuTriggered(const long long bookId) const
+void BookInteractor::OnRecentBookMenuTriggered(const long long bookId, const QString& parameters) const
 {
-	m_impl->Interact(bookId, ON_BOOK_RECENT_TRIGGERED_KEY);
+	m_impl->Interact(bookId, ON_BOOK_RECENT_TRIGGERED_KEY, parameters);
 }

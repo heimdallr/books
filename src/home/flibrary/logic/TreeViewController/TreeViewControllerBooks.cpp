@@ -221,8 +221,11 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex& index) const
 	if (index.data(Role::Type).value<ItemType>() != ItemType::Books)
 		return;
 
-	const auto id = index.data(Role::Id).toLongLong();
-	m_impl->bookInteractor->OnDoubleClicked(id);
+	const auto id     = index.data(Role::Id).toLongLong();
+	const auto column = index.data(Role::Remap).toInt();
+	const auto value  = index.data(Qt::DisplayRole).toString();
+
+	m_impl->bookInteractor->OnDoubleClicked(id, QString("%1|%2").arg(column).arg(value));
 }
 
 void TreeViewControllerBooks::OnNavigationModeChanged()
