@@ -299,8 +299,10 @@ public:
 				const auto it = m_series.find(seriesId);
 				assert(it != m_series.end());
 				auto seriesNode = NavigationItem::Create();
+				seriesNode->SetId(it->second->GetId());
 				seriesNode->SetData(it->second->GetData());
 				seriesNode->SetChildren(std::invoke(m_createBookItems, this, bookIds, seriesId));
+				seriesNode->To<NavigationItem>()->SetNavigationMode(NavigationMode::Series);
 				authorsNode->AppendChild(std::move(seriesNode));
 			}
 
@@ -507,7 +509,10 @@ join Series s on s.SeriesID = l.SeriesID
 				const auto id   = rec.Get<long long>(0);
 				auto&      item = m_series[id];
 				if (!item)
+				{
 					item = DatabaseUtil::CreateSimpleListItem(rec);
+					item->To<NavigationItem>()->SetNavigationMode(NavigationMode::Series);
+				}
 
 				const auto bookId = rec.Get<long long>(4);
 				auto&      book   = m_books[bookId];
@@ -792,7 +797,13 @@ join Keywords k on k.KeywordID = l.KeywordID
 		}
 
 		auto authorsNode = NavigationItem::Create();
+		authorsNode->SetId((idsSet | std::views::transform([](const auto item) {
+								return QString::number(item);
+							})
+		                    | std::ranges::to<QStringList>())
+		                       .join('|'));
 		authorsNode->SetData(std::move(authorsStr));
+		authorsNode->To<NavigationItem>()->SetNavigationMode(NavigationMode::Authors);
 		return authorsNode;
 	}
 

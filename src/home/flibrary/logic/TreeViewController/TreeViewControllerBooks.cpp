@@ -97,6 +97,7 @@ struct TreeViewControllerBooks::Impl
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> annotationController;
 	std::shared_ptr<const IDatabaseUser>                      databaseUser;
 	PropagateConstPtr<IBookInfoProvider, std::shared_ptr>     dataProvider;
+	std::shared_ptr<const IUiFactory>                         uiFactory;
 	std::shared_ptr<const IBookInteractor>                    bookInteractor;
 
 	Impl(
@@ -104,12 +105,14 @@ struct TreeViewControllerBooks::Impl
 		std::shared_ptr<IAnnotationController> annotationController,
 		std::shared_ptr<const IDatabaseUser>   databaseUser,
 		std::shared_ptr<IBookInfoProvider>     dataProvider,
+		std::shared_ptr<const IUiFactory>      uiFactory,
 		std::shared_ptr<const IBookInteractor> bookInteractor
 	)
 		: logicFactory { std::move(logicFactory) }
 		, annotationController { std::move(annotationController) }
 		, databaseUser { std::move(databaseUser) }
 		, dataProvider { std::move(dataProvider) }
+		, uiFactory { std::move(uiFactory) }
 		, bookInteractor { std::move(bookInteractor) }
 	{
 	}
@@ -120,12 +123,13 @@ TreeViewControllerBooks::TreeViewControllerBooks(
 	const std::shared_ptr<IModelProvider>&      modelProvider,
 	const std::shared_ptr<const ILogicFactory>& logicFactory,
 	std::shared_ptr<IBookInfoProvider>          dataProvider,
+	std::shared_ptr<const IUiFactory>           uiFactory,
 	std::shared_ptr<const IBookInteractor>      bookInteractor,
 	std::shared_ptr<IAnnotationController>      annotationController,
 	std::shared_ptr<IDatabaseUser>              databaseUser
 )
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
-	, m_impl(logicFactory, std::move(annotationController), std::move(databaseUser), std::move(dataProvider), std::move(bookInteractor))
+	, m_impl(logicFactory, std::move(annotationController), std::move(databaseUser), std::move(dataProvider), std::move(uiFactory), std::move(bookInteractor))
 {
 	m_modeController.reset(std::make_unique<ModeController>(*m_settings, std::move(m_modeController)));
 
@@ -218,6 +222,44 @@ void TreeViewControllerBooks::OnContextMenuTriggered(QAbstractItemModel* model, 
 
 void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex& index) const
 {
+	if (index.data(Role::Type).value<ItemType>() == ItemType::Navigation)
+	{
+		const auto navigationModeVar = index.data(Role::NavigationMode);
+		if (!navigationModeVar.isValid())
+			return;
+
+		const auto navigationMode = navigationModeVar.value<NavigationMode>();
+		if (navigationMode == NavigationMode::Unknown)
+			return;
+
+		const auto ids = index.data(Role::Id).toString().split('|');
+		if (ids.isEmpty())
+			return;
+
+		if (ids.size() == 1)
+			return ILogicFactory::Lock(m_impl->logicFactory)->FindBook(navigationMode, ids.front());
+
+		static constexpr std::pair<NavigationMode, const char*> descriptions[] {
+			{ NavigationMode::Authors, "select a.LastName || coalesce(' ' || nullif(a.FirstName, '') || coalesce(' ' || nullif(a.middleName, ''), ''), '') from Authors a where AuthorID in (%1)" },
+			{  NavigationMode::Series,                                                                                                    "select SeriesTitle from Series where SeriesID in (%1)" },
+		};
+
+		const auto* queryText = FindSecond(descriptions, navigationMode, nullptr);
+		if (!queryText)
+			return;
+
+		const auto db    = m_impl->databaseUser->Database();
+		const auto query = db->CreateQuery(QString(queryText).arg(ids.join(',')));
+		return m_impl->uiFactory->ExecMenu(
+			*query | std::views::transform([](const auto& item) {
+				return item.template Get<QString>(0);
+			}) | std::ranges::to<QStringList>(),
+			[&](const int n) {
+				ILogicFactory::Lock(m_impl->logicFactory)->FindBook(navigationMode, ids[n]);
+			}
+		);
+	}
+
 	if (index.data(Role::Type).value<ItemType>() != ItemType::Books)
 		return;
 

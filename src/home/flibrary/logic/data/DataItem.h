@@ -4,6 +4,7 @@
 
 #include "fnd/NonCopyMovable.h"
 
+#include "interface/constants/Enums.h"
 #include "interface/logic/IDataItem.h"
 
 namespace HomeCompa::Flibrary {
@@ -78,10 +79,17 @@ public:
 	explicit NavigationItem(IDataItem* parent);
 	~NavigationItem() override = default;
 
+public:
+	NavigationMode GetNavigationMode() const noexcept;
+	void           SetNavigationMode(NavigationMode navigationMode) noexcept;
+
 private: // DataItem
 	NavigationItem*        ToNavigationItem() noexcept override;
 	[[nodiscard]] ItemType GetType() const noexcept override;
 	[[nodiscard]] Ptr      Clone() const override;
+
+private:
+	NavigationMode m_navigationMode { NavigationMode::Unknown };
 };
 
 class SettingsItem final : public DataItem
