@@ -253,7 +253,7 @@
          </widget>
         </item>
         <item>
-         <widget class="QCheckBox" name="checkBoxMarkUnindexedAdDeleted">
+         <widget class="QCheckBox" name="checkBoxMarkUnindexedAsDeleted">
           <property name="sizePolicy">
            <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
             <horstretch>0</horstretch>
@@ -408,7 +408,7 @@
   <connection>
    <sender>checkBoxAddUnindexedBooks</sender>
    <signal>toggled(bool)</signal>
-   <receiver>checkBoxMarkUnindexedAdDeleted</receiver>
+   <receiver>checkBoxMarkUnindexedAsDeleted</receiver>
    <slot>setEnabled(bool)</slot>
    <hints>
     <hint type="sourcelabel">

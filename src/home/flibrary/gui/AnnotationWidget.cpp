@@ -326,7 +326,7 @@ private: // IAnnotationController::IObserver
 		OnContentChanged();
 	}
 
-	void OnJokeErrorOccured(const QString& api, const QString& error) override
+	void OnJokeErrorOccurred(const QString& api, const QString& error) override
 	{
 		if (m_settings->Get(SHOW_JOKE_ERRORS, false))
 			m_ui.info->setText(QString(R"(<p>%1 failed:</p><p style="color:Red;">%2</p>)").arg(api, error));

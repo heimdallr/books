@@ -66,6 +66,14 @@ QString PrepareSearchTerms(const QString& searchTerms)
 	return terms.join(' ');
 }
 
+// Ids come straight from the http request and are substituted into the query text, so anything but an integer matches nothing
+QString ToSqlId(const QString& value)
+{
+	bool       ok = false;
+	const auto id = value.toLongLong(&ok);
+	return ok ? QString::number(id) : QString("NULL");
+}
+
 QString Get(const IReactAppRequester::Parameters& parameters, const QString& key, const QString& defaultValue = {})
 {
 	const auto it = parameters.find(key);
@@ -286,12 +294,7 @@ where g.GroupID = ?
 
 		const auto bookId = Get(parameters, SELECTED_ITEM_ID);
 
-		QEventLoop                   eventLoop;
-		AnnotationControllerObserver observer([&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
-			ScopedCall eventLoopGuard([&] {
-				eventLoop.exit();
-			});
-
+		AnnotationControllerObserver::Request(*annotationController, bookId, [&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
 			const auto& book = dataProvider.GetBook();
 
 			QJsonArray authors;
@@ -372,10 +375,6 @@ where g.GroupID = ?
 				coverCache->Set(bookId, std::move(Util::Recode(covers.front().bytes).first));
 		});
 
-		annotationController->RegisterObserver(&observer);
-		annotationController->SetCurrentBookId(bookId, true);
-		eventLoop.exec();
-
 		return result;
 	}
 
@@ -429,7 +428,7 @@ private:
 			}),
 			std::back_inserter(joins),
 			[&](const auto& item) {
-				return QString(std::get<1>(item)).arg(parameters.at(std::get<0>(item)));
+				return QString(std::get<1>(item)).arg(ToSqlId(parameters.at(std::get<0>(item))));
 			}
 		);
 

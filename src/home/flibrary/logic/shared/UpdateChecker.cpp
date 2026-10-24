@@ -122,7 +122,7 @@ public:
 						 const auto checkResult = Check(force);
 
 						 return [this, executor = std::move(executor), force, checkResult](size_t) mutable {
-							 QTimer::singleShot(0, [&, force, checkResult] {
+							 QTimer::singleShot(0, &m_timerContext, [&, force, checkResult] {
 								 ShowMessage(force, checkResult);
 							 });
 							 executor.reset();
@@ -324,6 +324,7 @@ private:
 
 				QTimer::singleShot(
 					0,
+					&m_timerContext,
 					[uiFactory        = m_uiFactory,
 					 downloadFolder   = std::move(downloadFolder),
 					 downloadFileName = std::move(downloadFileName),
@@ -364,6 +365,7 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
 	Callback                                                m_callback;
+	QObject                                                 m_timerContext;
 	Release                                                 m_release;
 	QStringList                                             m_nameSplitted;
 };

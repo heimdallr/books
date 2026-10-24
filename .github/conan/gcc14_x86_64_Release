@@ -9,4 +9,8 @@ compiler.version=14
 
 [conf]
 tools.build:compiler_executables={"c": "/usr/bin/gcc-14", "cpp": "/usr/bin/g++-14"}
+# libdjvulibre.so links libjpeg statically: keep those symbols internal, or system libjpeg users in the process
+# (gdk-pixbuf, Qt's jpeg plugin) bind to them and fail with "Wrong JPEG library version"
+djvulibre/*:tools.build:sharedlinkflags=["-Wl,--exclude-libs,ALL"]
+djvulibre/*:tools.info.package_id:confs=["tools.build:sharedlinkflags"]
 

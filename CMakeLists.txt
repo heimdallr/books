@@ -110,8 +110,12 @@ else()
 	)
 endif()
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_link_options("LINKER:--strip-all")
+endif()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_link_options("LINKER:--exclude-libs,ALL")
 endif()
 
 set(QtModules Core Gui Widgets Xml Network Svg Concurrent)
