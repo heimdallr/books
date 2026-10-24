@@ -122,7 +122,7 @@ public:
 						 const auto checkResult = Check(force);
 
 						 return [this, executor = std::move(executor), force, checkResult](size_t) mutable {
-							 QTimer::singleShot(0, [&, force, checkResult] {
+							 QTimer::singleShot(0, &m_timerContext, [&, force, checkResult] {
 								 ShowMessage(force, checkResult);
 							 });
 							 executor.reset();
@@ -364,6 +364,7 @@ private:
 	PropagateConstPtr<ISettings, std::shared_ptr>           m_settings;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
 	Callback                                                m_callback;
+	QObject                                                 m_timerContext; // context for deferred calls: dropped together with this Impl
 	Release                                                 m_release;
 	QStringList                                             m_nameSplitted;
 };

@@ -3,6 +3,7 @@
 #include <QHttpServer>
 #include <QLocalServer>
 #include <QLocalSocket>
+#include <QReadWriteLock>
 #include <QTcpServer>
 #include <QtConcurrent>
 
@@ -47,15 +48,29 @@ const auto AUTH_REQUIRED = "Authentication required";
 OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 #undef OPDS_REQUEST_ROOT_ITEM
 
+// Takes the same time however much of the hash matches, so response timing tells an attacker nothing
+bool ConstantTimeEquals(const QString& lhs, const QString& rhs)
+{
+	const auto a = lhs.toUtf8();
+	const auto b = rhs.toUtf8();
+	if (a.size() != b.size())
+		return false;
+
+	unsigned char difference = 0;
+	for (qsizetype i = 0, sz = a.size(); i < sz; ++i)
+		difference |= static_cast<unsigned char>(a[i] ^ b[i]);
+	return difference == 0;
+}
+
 bool AuthCheckerStub(const QString& expected, const QByteArray& received)
 {
-	return Util::GetSaltedHash(QString::fromUtf8(received)) == expected;
+	return ConstantTimeEquals(Util::GetSaltedHash(QString::fromUtf8(received)), expected);
 }
 
 bool AuthCheckerSimple(const QString& expected, const QByteArray& received)
 {
 	const auto decoded = QString::fromUtf8(QByteArray::fromBase64(received));
-	return Util::GetSaltedHash(decoded) == expected;
+	return ConstantTimeEquals(Util::GetSaltedHash(decoded), expected);
 }
 
 bool AuthCheckerBasic(const QString& expected, const QByteArray& received)
@@ -220,11 +235,16 @@ public:
 	void Ban(QString address)
 	{
 		PLOGI << address << " added to ban list";
-		QTimer::singleShot(std::chrono::minutes(1), [this, address] {
+		QTimer::singleShot(std::chrono::minutes(1), this, [this, address] {
 			m_banned.erase(address);
 		});
-		if (const auto it = m_sockets.find(address); it != m_sockets.end())
-			it->second->abort();
+
+		// One client may hold several connections; abort() fires disconnected(), which edits m_sockets, so collect them first
+		std::vector<QTcpSocket*> sockets;
+		for (auto [it, end] = m_sockets.equal_range(address); it != end; ++it)
+			sockets.push_back(it->second);
+		for (auto* socket : sockets)
+			socket->abort();
 
 		m_banned.emplace(std::move(address));
 	}
@@ -245,15 +265,17 @@ private: // QTcpServer
 
 		PLOGI << address << " connected";
 		addPendingConnection(socket);
-		connect(socket, &QTcpSocket::disconnected, this, [this, address] {
-			m_sockets.erase(address);
+		connect(socket, &QTcpSocket::disconnected, this, [this, address, socket] {
+			for (auto [it, end] = m_sockets.equal_range(address); it != end; ++it)
+				if (it->second == socket)
+					return (void)m_sockets.erase(it);
 		});
-		m_sockets.try_emplace(std::move(address), socket);
+		m_sockets.emplace(std::move(address), socket);
 	}
 
 private:
-	std::unordered_map<QString, QTcpSocket*> m_sockets;
-	std::unordered_set<QString>              m_banned;
+	std::unordered_multimap<QString, QTcpSocket*> m_sockets; // every open connection, by client address
+	std::unordered_set<QString>                   m_banned;
 };
 
 } // namespace
@@ -261,6 +283,7 @@ private:
 class Server::Impl : public QObject
 {
 	using AuthorizationAllowFunctor = std::function<QHttpServerResponse(IRequester::Parameters&, const QString&)>;
+	using ExclusivePreparer         = std::function<void(IRequester::Parameters&)>;
 
 public:
 	Impl(
@@ -340,7 +363,7 @@ private:
 		});
 
 		m_server.setMissingHandler(this, &Impl::MissingHandler);
-		Route(host, port);
+		Route(port);
 	}
 
 	void MissingHandler(const QHttpServerRequest& request, QHttpServerResponder&)
@@ -348,7 +371,7 @@ private:
 		m_tcpServer->Ban(request.remoteAddress().toString());
 	}
 
-	void Route(const QHostAddress& host, const uint16_t port)
+	void Route(const uint16_t port)
 	{
 		m_server.route(FAVICON, [] {
 			return QtConcurrent::run([] {
@@ -367,8 +390,18 @@ private:
 		if (m_settings->Get(Flibrary::Constant::Settings::OPDS_WEB_ENABLED, true))
 			roots.emplace_back(web);
 
-		m_server.route(OPENSEARCH, [host = host.toString(), port] {
-			return QString(R"(<Url type="application/atom+xml;profile=opds-catalog" xmlns:atom="http://www.w3.org/2005/Atom" template="http://%1:%2/search?q={searchTerms}" />)").arg(host).arg(port);
+		// The search link must use the address the client reached the server by: the listening address may be 0.0.0.0
+		m_server.route(OPENSEARCH, [port](const QHttpServerRequest& request) {
+			QUrl searchUrl = request.url();
+			if (searchUrl.scheme().isEmpty())
+				searchUrl.setScheme("http");
+			if (searchUrl.port() < 0)
+				searchUrl.setPort(port);
+			searchUrl.setPath(QString("%1/search").arg(opds));
+			searchUrl.setQuery(QString {});
+			searchUrl.setFragment(QString {});
+			return QString(R"(<Url type="application/atom+xml;profile=opds-catalog" xmlns:atom="http://www.w3.org/2005/Atom" template="%1?q={searchTerms}" />)")
+			    .arg(searchUrl.toString(QUrl::RemoveUserInfo));
 		});
 
 		bool exists = !roots.empty();
@@ -398,19 +431,24 @@ private:
 			{ "read", &IRequester::GetBookText },
 		};
 
-		const auto route = [&]<typename Preparer>(const char* path, const Invoker invoker, Preparer&& prepare) {
+		const auto route = [&](const char* path, const Invoker invoker, ExclusivePreparer exclusive) {
 			const auto pathPattern = QString("%1%2").arg(root).arg(path ? QString("/%1").arg(path) : QString {});
-			m_server.route(pathPattern, [this, root, invoker, prepare = std::forward<Preparer>(prepare)](const QHttpServerRequest& request) {
+			m_server.route(pathPattern, [this, root, invoker, exclusive = std::move(exclusive)](const QHttpServerRequest& request) {
 				PLOGD << request.query().toString();
-				return Authorization(request, web, [this, root, invoker, prepare](IRequester::Parameters& parameters, const QString& acceptEncoding) {
-					prepare(parameters);
-					auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), std::cref(parameters)), acceptEncoding);
-					SetContentType(response, root, MessageType::Atom);
-					return response;
-				});
+				return Authorization(
+					request,
+					web,
+					[this, root, invoker](IRequester::Parameters& parameters, const QString& acceptEncoding) {
+						auto response = EncodeContent(std::invoke(invoker, *m_requester, std::cref(root), std::cref(parameters)), acceptEncoding);
+						SetContentType(response, root, MessageType::Atom);
+						return response;
+					},
+					exclusive
+				);
 			});
 		};
 
+		// Switching the collection replaces what every other request reads, so it runs exclusively (see RunRequest)
 		route(SET_CURRENT_COLLECTION, &IRequester::GetRoot, [this](IRequester::Parameters& parameters) {
 			if (const auto it = parameters.find("id"); it != parameters.end())
 			{
@@ -421,8 +459,7 @@ private:
 		});
 
 		for (const auto& [path, invoker] : descriptions)
-			route(path, invoker, [](const auto&) {
-			});
+			route(path, invoker, {});
 	}
 
 	void RouteReactApp()
@@ -438,6 +475,10 @@ private:
 
 		m_server.route(QString(GET_BOOKS_API_ASSETS).arg(ARG), [this](const QString& fileName, const QHttpServerRequest& request) {
 			return Authorization(request, request.url().path(), [fileName](const IRequester::Parameters&, const QString& acceptEncoding) -> QHttpServerResponse {
+				// Plain file names only: a request must never reach outside the ReactApp assets folder
+				if (fileName.isEmpty() || fileName.contains("..") || fileName.contains('/') || fileName.contains('\\'))
+					return QHttpServerResponse { QHttpServerResponse::StatusCode::NotFound };
+
 				auto response = FromWebsite("assets/" + fileName, acceptEncoding);
 				return response ? QHttpServerResponse { std::move(*response) } : QHttpServerResponse { QHttpServerResponse::StatusCode::NotFound };
 			});
@@ -483,22 +524,20 @@ private:
 		});
 	}
 
-	QFuture<QHttpServerResponse> Authorization(const QHttpServerRequest& request, QString url, AuthorizationAllowFunctor allow) const
+	QFuture<QHttpServerResponse> Authorization(const QHttpServerRequest& request, QString /*url*/, AuthorizationAllowFunctor allow, ExclusivePreparer exclusive = {}) const
 	{
 		auto       acceptEncoding = GetAcceptEncoding(request);
 		const auto expectedAuth   = m_settings->Get(Flibrary::Constant::Settings::OPDS_AUTH, QString {});
 		auto       parameters     = GetParameters<IRequester::Parameters>(request);
 
 		if (expectedAuth.isEmpty())
-			return QtConcurrent::run([allow = std::move(allow), acceptEncoding = std::move(acceptEncoding), parameters = std::move(parameters)]() mutable {
-				return allow(parameters, acceptEncoding);
-			});
+			return RunRequest(std::move(allow), std::move(parameters), std::move(acceptEncoding), std::move(exclusive));
 
 		const auto& headers       = request.headers();
 		const auto  authorization = headers.value("authorization").toByteArray();
 		if (authorization.isEmpty())
 		{
-			PLOGW << "Attempt connection without authorization";
+			PLOGW << "Attempt connection without authorization from " << request.remoteAddress().toString();
 			return Authenticate();
 		}
 
@@ -506,16 +545,40 @@ private:
 				return checker(expectedAuth, authorization);
 			}))
 		{
-			PLOGW << "Attempt connection with wrong authorization: " << authorization;
+			// The header itself is not logged: it carries the (base64-encoded) credentials
+			PLOGW << "Attempt connection with wrong authorization from " << request.remoteAddress().toString();
 			return Authenticate();
 		}
 
-		return QtConcurrent::run([url = std::move(url), allow = std::move(allow), parameters = std::move(parameters), acceptEncoding = std::move(acceptEncoding)]() mutable {
+		return RunRequest(std::move(allow), std::move(parameters), std::move(acceptEncoding), std::move(exclusive));
+	}
+
+	// Requests run on worker threads and share m_requestLock. One with an exclusive part (switching the collection) waits until no
+	// other request runs, then runs that part on the main thread, which owns the collection objects, and only then its response
+	QFuture<QHttpServerResponse> RunRequest(AuthorizationAllowFunctor allow, IRequester::Parameters parameters, QString acceptEncoding, ExclusivePreparer exclusive) const
+	{
+		return QtConcurrent::run([this, allow = std::move(allow), parameters = std::move(parameters), acceptEncoding = std::move(acceptEncoding), exclusive = std::move(exclusive)]() mutable {
+			if (!exclusive)
+			{
+				const QReadLocker lock(&m_requestLock);
+				return allow(parameters, acceptEncoding);
+			}
+
+			const QWriteLocker          lock(&m_requestLock);
+			[[maybe_unused]] const auto ok = QMetaObject::invokeMethod(
+				QCoreApplication::instance(),
+				[&] {
+					exclusive(parameters);
+				},
+				Qt::BlockingQueuedConnection
+			);
+			assert(ok);
 			return allow(parameters, acceptEncoding);
 		});
 	}
 
 private:
+	mutable QReadWriteLock                                              m_requestLock;
 	QLocalServer                                                        m_localServer;
 	propagate_const<FilteredTcpServer*>                                 m_tcpServer { nullptr };
 	QHttpServer                                                         m_server;

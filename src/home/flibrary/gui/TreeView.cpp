@@ -144,7 +144,7 @@ public:
 		auto& view = m_observer.GetView();
 
 		if (m_currentId.isEmpty())
-			return QTimer::singleShot(0, [&] {
+			return QTimer::singleShot(0, this, [&] {
 				view.setCurrentIndex(model()->index(0, 0));
 				return view.scrollToTop();
 			});
@@ -829,7 +829,7 @@ private:
 					m_ui.treeView->model()->setData(index, checkState, Qt::CheckStateRole);
 
 				indices.clear();
-				QTimer::singleShot(0, [this, selection = std::move(selection)] {
+				QTimer::singleShot(0, &m_self, [this, selection = std::move(selection)] {
 					m_ui.treeView->selectionModel()->select(selection, QItemSelectionModel::Select);
 				});
 			});
@@ -1111,7 +1111,7 @@ private:
 		m_controller->RegisterObserver(this);
 		m_filterProvider->RegisterObserver(this);
 
-		QTimer::singleShot(0, [&] {
+		QTimer::singleShot(0, &m_self, [&] {
 			emit m_self.NavigationModeNameChanged(GetCurrentModeName());
 		});
 	}
@@ -1152,7 +1152,7 @@ private:
 
 		m_ui.btnMode->setStyleSheet("QToolButton::menu-indicator { image: none; width: 0px; }");
 
-		QTimer::singleShot(0, [this] {
+		QTimer::singleShot(0, &m_self, [this] {
 			m_menuCustomizer->RegisterObserver(this);
 			m_menuCustomizer->Add(m_controller->TrContext(), *m_ui.btnMode, Tr(IsNavigation() ? NAVIGATION_VIEW_MODE : BOOK_VIEW_MODE));
 			if (const auto* action = GetCurrentModeAction())

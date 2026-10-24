@@ -625,7 +625,7 @@ private: // ILineOption::IObserver
 	void OnOptionEditingFinished(const QString& /*value*/) override
 	{
 		disconnect(m_settingsLineEditExecuteContextMenuConnection);
-		QTimer::singleShot(0, [&] {
+		QTimer::singleShot(0, &m_self, [&] {
 			m_lineOption->Unregister(this);
 		});
 	}
@@ -794,7 +794,7 @@ private:
 		ReplaceMenuBar();
 		SetupStatusBar();
 
-		QTimer::singleShot(0, [this] {
+		QTimer::singleShot(0, &m_self, [this] {
 			const auto widgets = m_self.findChildren<QWidget*>();
 			if (const auto it = std::ranges::find(
 					widgets,
@@ -1090,7 +1090,7 @@ private:
 			connect(action, &QAction::triggered, [this, action, name, disclaimer](const bool checked) {
 				if (!checked || disclaimer.isEmpty() || m_uiFactory->ShowWarning(disclaimer, QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
 					return (void)m_settings->Set(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name), checked);
-				QTimer::singleShot(0, [action] {
+				QTimer::singleShot(0, action, [action] {
 					action->setChecked(false);
 				});
 			});
@@ -1473,7 +1473,7 @@ private:
 
 	void OnBooksSearchFilterValueGeometryChangedImpl(const int timeout = 0) const
 	{
-		QTimer::singleShot(timeout, [this] {
+		QTimer::singleShot(timeout, &m_self, [this] {
 			const auto toolWidgetLeft = Util::GetGlobalGeometry(*m_ui.toolWidgetFillerLeft).left();
 			const auto minWidth       = m_ui.toolBar->isVisible() && m_ui.toolWidgetFillerLeftLayout->count() > 2 ? m_ui.toolBar->height() * static_cast<int>(m_ui.toolBar->actions().count()) + 4 : 0;
 			m_ui.toolWidgetFillerLeft->setFixedWidth(std::max(m_lastGeometry.left() - toolWidgetLeft, minWidth));

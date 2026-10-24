@@ -117,7 +117,7 @@ QString InputTextDialog::GetText(const QString& title, const QString& label, con
 	QObject::connect(&inputDialog, &QDialog::finished, &inputDialog, [&] {
 		m_settings->Set(INPUT_DIALOG_GEOMETRY_KEY, inputDialog.geometry());
 	});
-	QTimer::singleShot(0, [&] {
+	QTimer::singleShot(0, &inputDialog, [&] {
 		if (auto geometry = m_settings->Get(INPUT_DIALOG_GEOMETRY_KEY); geometry.isValid())
 			Platform::SetGeometry(inputDialog, geometry.toRect());
 	});

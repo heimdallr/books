@@ -294,12 +294,7 @@ where g.GroupID = ?
 
 		const auto bookId = Get(parameters, SELECTED_ITEM_ID);
 
-		QEventLoop                   eventLoop;
-		AnnotationControllerObserver observer([&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
-			ScopedCall eventLoopGuard([&] {
-				eventLoop.exit();
-			});
-
+		AnnotationControllerObserver::Request(*annotationController, bookId, [&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
 			const auto& book = dataProvider.GetBook();
 
 			QJsonArray authors;
@@ -379,10 +374,6 @@ where g.GroupID = ?
 			if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
 				coverCache->Set(bookId, std::move(Util::Recode(covers.front().bytes).first));
 		});
-
-		annotationController->RegisterObserver(&observer);
-		annotationController->SetCurrentBookId(bookId, true);
-		eventLoop.exec();
 
 		return result;
 	}

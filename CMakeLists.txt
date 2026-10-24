@@ -115,6 +115,13 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_BUILD_TYPE STREQUAL "Debu
     add_link_options("LINKER:--strip-all")
 endif()
 
+# Static libraries linked into our shared libraries (libpng, freetype, libjpeg, libtiff, libxml2, lcms2... from conan)
+# must not be re-exported: system libraries loaded later, such as GTK's file dialog stack, would otherwise bind to
+# these copies instead of their own versions and corrupt the heap ("munmap_chunk(): invalid pointer")
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_link_options("LINKER:--exclude-libs,ALL")
+endif()
+
 set(QtModules Core Gui Widgets Xml Network Svg Concurrent)
 if(QT6)
 	list(APPEND QtModules HttpServer WebSockets)
@@ -241,6 +248,8 @@ add_compile_definitions(HYPODERMIC_OVERRIDE_CONSTRUCTOR_ARGUMENT_COUNT=32)
 add_compile_definitions(LOCALIZED_APPLICATION)
 
 include_directories("${EXT_ROOT}/Hypodermic")
+
+enable_testing()
 
 include("src/ext/sqlite.cmake")
 include("src/home/home.cmake")

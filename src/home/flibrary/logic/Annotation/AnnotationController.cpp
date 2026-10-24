@@ -540,7 +540,7 @@ private: // IProgressController::IObserver
 private: // IJokeRequester::IClient
 	void OnError(const QString& api, const QString& error) override
 	{
-		Perform(&IAnnotationController::IObserver::OnJokeErrorOccured, std::cref(api), std::cref(error));
+		Perform(&IAnnotationController::IObserver::OnJokeErrorOccurred, std::cref(api), std::cref(error));
 	}
 
 	void OnTextReceived(const QString& value) override

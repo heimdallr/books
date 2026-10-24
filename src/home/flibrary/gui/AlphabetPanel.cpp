@@ -168,7 +168,7 @@ public:
 
 	void OnShow() const
 	{
-		QTimer::singleShot(0, [this] {
+		QTimer::singleShot(0, &m_self, [this] {
 			const auto height = std::accumulate(m_toolBars.cbegin(), m_toolBars.cend(), 0, [](const int init, const auto& toolBar) {
 				return init + (toolBar->isVisible() ? toolBar->height() : 0);
 			});
@@ -215,7 +215,7 @@ public:
 			Perform(&IAlphabetPanel::IObserver::OnToolBarChanged);
 		}
 
-		QTimer::singleShot(0, [this, toolBar, visible] {
+		QTimer::singleShot(0, toolBar, [this, toolBar, visible] {
 			toolBar->setVisible(visible);
 			OnShow();
 		});

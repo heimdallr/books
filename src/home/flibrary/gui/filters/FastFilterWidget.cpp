@@ -389,7 +389,7 @@ public:
 		connect(m_ui.buttonBox, &QDialogButtonBox::clicked, this, &Impl::OnDialogButtonClicked);
 		connect(m_ui.checkBoxAll, &QCheckBox::CHECK_STATE_CHANGED, this, [this](const CHECK_STATE checkState) {
 			if (checkState == Qt::PartiallyChecked)
-				return QTimer::singleShot(0, [this] {
+				return QTimer::singleShot(0, this, [this] {
 					m_ui.checkBoxAll->setCheckState(Qt::Checked);
 				});
 

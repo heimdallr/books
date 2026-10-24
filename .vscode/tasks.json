@@ -71,9 +71,9 @@
         },
         {
             "label": "FLibrary: tests",
-            "detail": "OPDS HTTP tests and GUI start-up tests against build/",
+            "detail": "OPDS HTTP tests, GUI start-up tests and the Qt Test GUI suite (ctest) against build/",
             "type": "shell",
-            "command": "src/home/tool/opds/test/http_test.sh build && src/home/flibrary/test/gui_startup_test.sh build",
+            "command": "src/home/tool/opds/test/http_test.sh build && src/home/flibrary/test/gui_startup_test.sh build && ctest --test-dir build --output-on-failure",
             "options": { "cwd": "${workspaceFolder}" },
             "group": "test",
             "problemMatcher": []

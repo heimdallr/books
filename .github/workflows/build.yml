@@ -210,6 +210,9 @@ jobs:
       - name: GUI start-up tests
         run: src/home/flibrary/test/gui_startup_test.sh build/linux
 
+      - name: GUI tests (Qt Test, via ctest)
+        run: ctest --test-dir build/linux --output-on-failure
+
       - name: Package and smoke test
         env:
           CC: gcc-14

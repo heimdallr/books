@@ -87,7 +87,7 @@ public:
 	public:
 		virtual void OnAnnotationRequested()                                      = 0;
 		virtual void OnAnnotationChanged(const IDataProvider& dataProvider)       = 0;
-		virtual void OnJokeErrorOccured(const QString& api, const QString& error) = 0;
+		virtual void OnJokeErrorOccurred(const QString& api, const QString& error) = 0;
 		virtual void OnJokeTextChanged(const QString& value)                      = 0;
 		virtual void OnJokeImageChanged(const QByteArray& value)                  = 0;
 		virtual void OnArchiveParserProgress(int percents)                        = 0;

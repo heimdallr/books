@@ -645,13 +645,16 @@ QString GetTitle(DB::IDatabase& db, const IQueryTextFilter& queryTextFilter, con
 		[&](const auto& item) {
 			const auto query = db.CreateQuery(queryTextFilter.FilterQueryText(item.select));
 			query->Execute(parameters.at(item.type));
-			assert(!query->Eof());
+			if (query->Eof()) // the id comes from the request and may match nothing
+				return QString {};
+
 			auto result = item.selectTrContext ? QString(Loc::Tr(item.selectTrContext, query->template Get<const char*>(0))) : query->template Get<const char*>(0);
 			if (query->ColumnCount() > 1)
 				result.append(' ').append(query->template Get<const char*>(1));
 			return result;
 		}
 	);
+	list.removeAll(QString {});
 	if (!helper.additionalTitle.isEmpty())
 		list.emplaceBack(std::move(helper.additionalTitle));
 
@@ -917,13 +920,7 @@ public:
 	{
 		Node head;
 
-		QEventLoop eventLoop;
-
-		AnnotationControllerObserver observer([&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
-			ScopedCall eventLoopGuard([&] {
-				eventLoop.exit();
-			});
-
+		AnnotationControllerObserver::Request(*m_annotationController, parameters.at(BOOKS), [&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
 			const auto  db   = m_databaseController->GetDatabase(true);
 			const auto& book = dataProvider.GetBook();
 
@@ -995,10 +992,6 @@ public:
 				m_coverCache->Set(book.GetId(), std::move(Util::Recode(covers.front().bytes).first));
 			}
 		});
-
-		m_annotationController->RegisterObserver(&observer);
-		m_annotationController->SetCurrentBookId(parameters.at(BOOKS), true);
-		eventLoop.exec();
 
 		return head;
 	}

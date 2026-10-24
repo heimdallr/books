@@ -83,7 +83,7 @@ check_status()
 	local description=$1 expected=$2 path=$3
 	shift 3
 	local actual
-	actual=$(curl -s -o "$work/response" -w '%{http_code}' "$@" "$base$path")
+	actual=$(curl -s --max-time 20 -o "$work/response" -w '%{http_code}' "$@" "$base$path")
 	report "$description" "$([ "$actual" = "$expected" ] && echo ok)" "expected $expected, got $actual for $path"
 }
 
@@ -91,7 +91,7 @@ check_status()
 check_body()
 {
 	local description=$1 path=$2 text=$3 mode=$4
-	curl -s -o "$work/response" "$base$path"
+	curl -s --max-time 20 -o "$work/response" "$base$path"
 	local found=absent
 	grep -qF "$text" "$work/response" && found=present
 	report "$description" "$([ "$found" = "$mode" ] && echo ok)" "'$text' is $found in $path, expected $mode"
@@ -152,6 +152,22 @@ check_body "injected ReactApp author books return no other books"   "/main/getBo
 
 check_status "without a password, the book download is open"        200 "/Images/fb2/3"
 
+opensearch=$(curl -s --max-time 20 "$base/opds/opensearch")
+report "OpenSearch link uses the address the client called" \
+	"$(grep -qF "template=\"$base/opds/search?q={searchTerms}\"" <<<"$opensearch" && echo ok)" "got: $opensearch"
+
+# Switching the collection while other requests run must neither crash nor deadlock the server
+collection_id=$(python3 -I -c 'import configparser, sys; c = configparser.ConfigParser(interpolation=None); c.read(sys.argv[1]); print(c["Collections"]["current"])' "$conf")
+pids=()
+for _ in $(seq 1 20); do
+	curl -s --max-time 30 -o /dev/null "$base/opds/Books?Authors=$author_id" &
+	pids+=($!)
+	curl -s --max-time 30 -o /dev/null "$base/opds/collection?id=$collection_id" &
+	pids+=($!)
+done
+wait "${pids[@]}"
+check_body "books still listed after concurrent collection switches" "/opds/Books?Authors=$author_id" "First Test Book" present
+
 stop_server
 
 #..............................................................................
@@ -168,11 +184,18 @@ for path in "/opds" "/opds/Books?Authors=$author_id" "/" "/assets/index.js" "/ma
 	check_status "no credentials: $path"    401 "$path"
 done
 check_status "wrong password: /Images/fb2/3" 401 "/Images/fb2/3" -u "$user:wrong"
+report "a failed login does not write the credentials to the log" \
+	"$(grep -qF "$(printf '%s' "$user:wrong" | base64)" "$TMPDIR/HomeCompa.opds.log" || echo ok)" "the base64 credentials are in $TMPDIR/HomeCompa.opds.log"
 
 for path in "/opds" "/opds/Books?Authors=$author_id" "/" "/main/getBooks/getConfig" "/Images/fb2/3" "/Images/zip/3"; do
 	check_status "with credentials: $path"  200 "$path" -u "$user:$password"
 done
 check_status "public route stays public: /favicon.ico" 200 "/favicon.ico"
+
+# Last on purpose: if the server treats this as an unknown route, it bans the client address for a minute
+traversal=$(curl -s --max-time 20 -o "$work/response" -w '%{http_code}' -u "$user:$password" "$base/assets/..%2F..%2FLICENSE.txt")
+report "assets cannot reach files outside the web app folder" \
+	"$([ "$traversal" != 200 ] && ! grep -q 'Permission is hereby granted' "$work/response" && echo ok)" "got $traversal: $(head -c 120 "$work/response")"
 
 stop_server
 
