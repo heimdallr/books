@@ -169,7 +169,7 @@ public:
 		m_ui.editAdditional->Setup(&m_self, m_settings.get(), m_uiFactory.get(), m_ui.btnAdditional);
 
 		m_ui.checkBoxAddUnindexedBooks->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), true));
-		m_ui.checkBoxMarkUnindexedAdDeleted->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(MARK_UN_INDEXED_BOOKS_AS_DELETED), true));
+		m_ui.checkBoxMarkUnindexedAsDeleted->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(MARK_UN_INDEXED_BOOKS_AS_DELETED), true));
 		m_ui.checkBoxScanUnindexedArchives->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), false));
 		m_ui.checkBoxAddMissingBooks->setChecked(!m_settings->Get(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), true));
 		m_ui.checkBoxAdditional->setChecked(m_settings->Get(QString(RECENT_TEMPLATE).arg(ADDITIONAL_FOLDER_ENABLED), true));
@@ -198,7 +198,7 @@ public:
 
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(NAME), GetName());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(ADD_UN_INDEXED_BOOKS), m_ui.checkBoxAddUnindexedBooks->isChecked());
-		m_settings->Set(QString(RECENT_TEMPLATE).arg(MARK_UN_INDEXED_BOOKS_AS_DELETED), m_ui.checkBoxMarkUnindexedAdDeleted->isChecked());
+		m_settings->Set(QString(RECENT_TEMPLATE).arg(MARK_UN_INDEXED_BOOKS_AS_DELETED), m_ui.checkBoxMarkUnindexedAsDeleted->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SCAN_UN_INDEXED_FOLDERS), m_ui.checkBoxScanUnindexedArchives->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(SKIP_NOT_IN_ARCHIVES), !m_ui.checkBoxAddMissingBooks->isChecked());
 		m_settings->Set(QString(RECENT_TEMPLATE).arg(ADDITIONAL_FOLDER_ENABLED), m_ui.checkBoxAdditional->isChecked());
@@ -254,7 +254,7 @@ public:
 
 	bool MarkUnIndexedBooksAsDeleted() const
 	{
-		return m_ui.checkBoxMarkUnindexedAdDeleted->isChecked();
+		return m_ui.checkBoxMarkUnindexedAsDeleted->isChecked();
 	}
 
 	bool LoadAnnotations() const

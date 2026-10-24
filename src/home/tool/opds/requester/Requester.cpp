@@ -590,6 +590,21 @@ Node GetHead(QString id, QString title, QString root, QString self)
 	};
 }
 
+// Join parameters come straight from the http request and are substituted into the query text,
+// so only integer ids and plain genre codes (e.g. "0.001.003") are let through; anything else matches nothing
+QString ToJoinValue(const NavigationDescription& item, const QString& value)
+{
+	if (std::string_view(item.type) == Loc::Genres)
+	{
+		static const QRegularExpression genreCode(R"(^[0-9A-Za-z._-]+$)");
+		return genreCode.match(value).hasMatch() ? value : QString {};
+	}
+
+	bool       ok = false;
+	const auto id = value.toLongLong(&ok);
+	return ok ? QString::number(id) : QString("NULL");
+}
+
 QString GetJoin(const IRequester::Parameters& parameters)
 {
 	if (parameters.empty())
@@ -602,7 +617,7 @@ QString GetJoin(const IRequester::Parameters& parameters)
 		}),
 		std::back_inserter(list),
 		[&](const auto& item) {
-			return QString(item.joinParameters).arg(parameters.at(item.type));
+			return QString(item.joinParameters).arg(ToJoinValue(item, parameters.at(item.type)));
 		}
 	);
 	if (list.isEmpty())
@@ -630,13 +645,16 @@ QString GetTitle(DB::IDatabase& db, const IQueryTextFilter& queryTextFilter, con
 		[&](const auto& item) {
 			const auto query = db.CreateQuery(queryTextFilter.FilterQueryText(item.select));
 			query->Execute(parameters.at(item.type));
-			assert(!query->Eof());
+			if (query->Eof()) // the id comes from the request and may match nothing
+				return QString {};
+
 			auto result = item.selectTrContext ? QString(Loc::Tr(item.selectTrContext, query->template Get<const char*>(0))) : query->template Get<const char*>(0);
 			if (query->ColumnCount() > 1)
 				result.append(' ').append(query->template Get<const char*>(1));
 			return result;
 		}
 	);
+	list.removeAll(QString {});
 	if (!helper.additionalTitle.isEmpty())
 		list.emplaceBack(std::move(helper.additionalTitle));
 
@@ -902,13 +920,7 @@ public:
 	{
 		Node head;
 
-		QEventLoop eventLoop;
-
-		AnnotationControllerObserver observer([&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
-			ScopedCall eventLoopGuard([&] {
-				eventLoop.exit();
-			});
-
+		AnnotationControllerObserver::Request(*m_annotationController, parameters.at(BOOKS), [&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
 			const auto  db   = m_databaseController->GetDatabase(true);
 			const auto& book = dataProvider.GetBook();
 
@@ -981,10 +993,6 @@ public:
 			}
 		});
 
-		m_annotationController->RegisterObserver(&observer);
-		m_annotationController->SetCurrentBookId(parameters.at(BOOKS), true);
-		eventLoop.exec();
-
 		return head;
 	}
 
@@ -1014,7 +1022,7 @@ public:
 			{ Loc::AllOptions,                          { SEARCH_QUERY_TEXT, &WriteBookEntries, BOOK_DESCRIPTION, SEARCH_RESULTS_BOOKS } },
 		};
 
-		const auto& [queryText, writeEntries, navigationDescription, foundMessage] = FindSecond(separatedDescriptions, separated.toStdString().data(), PszComparer {});
+		const auto [queryText, writeEntries, navigationDescription, foundMessage] = FindSecond(separatedDescriptions, separated.toStdString().data(), PszComparer {});
 
 		const auto n = head.children.size();
 

@@ -144,7 +144,7 @@ public:
 		auto& view = m_observer.GetView();
 
 		if (m_currentId.isEmpty())
-			return QTimer::singleShot(0, [&] {
+			return QTimer::singleShot(0, this, [&] {
 				view.setCurrentIndex(model()->index(0, 0));
 				return view.scrollToTop();
 			});
@@ -554,7 +554,8 @@ private: // ITreeViewController::IObserver
 	void OnModeChanged(const int index) override
 	{
 		if (!SetModeImpl(index))
-			m_modeMenu->defaultAction()->trigger();
+			if (auto* action = GetCurrentModeAction())
+				action->trigger();
 	}
 
 	void OnModelChanged(QAbstractItemModel* model) override
@@ -828,7 +829,7 @@ private:
 					m_ui.treeView->model()->setData(index, checkState, Qt::CheckStateRole);
 
 				indices.clear();
-				QTimer::singleShot(0, [this, selection = std::move(selection)] {
+				QTimer::singleShot(0, &m_self, [this, selection = std::move(selection)] {
 					m_ui.treeView->selectionModel()->select(selection, QItemSelectionModel::Select);
 				});
 			});
@@ -1110,8 +1111,8 @@ private:
 		m_controller->RegisterObserver(this);
 		m_filterProvider->RegisterObserver(this);
 
-		QTimer::singleShot(0, [&] {
-			emit m_self.NavigationModeNameChanged(m_modeMenu->defaultAction()->property(MODE_PROPERTY_KEY_NAME).toString());
+		QTimer::singleShot(0, &m_self, [&] {
+			emit m_self.NavigationModeNameChanged(GetCurrentModeName());
 		});
 	}
 
@@ -1129,7 +1130,7 @@ private:
 
 		if (const auto actionCount = m_modeMenu->actions().count(); actionCount < 2)
 		{
-			assert(false && "unexpected action count");
+			assert(actionCount == 0 && "unexpected action count");
 		}
 		else if (actionCount == 2)
 		{
@@ -1150,10 +1151,11 @@ private:
 
 		m_ui.btnMode->setStyleSheet("QToolButton::menu-indicator { image: none; width: 0px; }");
 
-		QTimer::singleShot(0, [this] {
+		QTimer::singleShot(0, &m_self, [this] {
 			m_menuCustomizer->RegisterObserver(this);
 			m_menuCustomizer->Add(m_controller->TrContext(), *m_ui.btnMode, Tr(IsNavigation() ? NAVIGATION_VIEW_MODE : BOOK_VIEW_MODE));
-			m_ui.btnMode->setIcon(m_modeMenu->defaultAction()->icon());
+			if (const auto* action = GetCurrentModeAction())
+				m_ui.btnMode->setIcon(action->icon());
 		});
 	}
 
@@ -1276,8 +1278,7 @@ private:
 		auto*                header = m_ui.treeView->header();
 		const QSignalBlocker resizeGuard(header);
 
-		auto lastRestoredLayoutKey =
-			m_ui.treeView->model()->rowCount() == 0 ? QString {} : QString("%1_%2").arg(m_navigationModeName, m_modeMenu->defaultAction()->property(MODE_PROPERTY_KEY_NAME).toString());
+		auto lastRestoredLayoutKey = m_ui.treeView->model()->rowCount() == 0 ? QString {} : QString("%1_%2").arg(m_navigationModeName, GetCurrentModeName());
 		if (!Util::Set(m_lastRestoredLayoutKey, lastRestoredLayoutKey))
 			return m_booksHeaderView->ApplySort();
 
@@ -1518,6 +1519,21 @@ private:
 		header->setSectionResizeMode(0, QHeaderView::Stretch);
 		if (header->count() > 1 && m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Authors))
 			m_ui.treeView->UpdateSectionSize();
+	}
+
+	QAction* GetCurrentModeAction() const
+	{
+		if (auto* action = m_modeMenu->defaultAction())
+			return action;
+
+		const auto actions = m_modeMenu->actions();
+		return actions.isEmpty() ? nullptr : actions.front();
+	}
+
+	QString GetCurrentModeName() const
+	{
+		const auto* action = GetCurrentModeAction();
+		return action ? action->property(MODE_PROPERTY_KEY_NAME).toString() : QString {};
 	}
 
 	bool SetModeImpl(const int mode) const

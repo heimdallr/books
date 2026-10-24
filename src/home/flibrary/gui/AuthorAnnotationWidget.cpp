@@ -176,8 +176,9 @@ private: // QAbstractItemModel
 private:
 	void SetVisible() const
 	{
-		QTimer::singleShot(0, [this] {
-			m_self->parentWidget()->setVisible(m_show && m_annotationController->IsReady());
+		QTimer::singleShot(0, m_self, [this] {
+			if (auto* parent = m_self->parentWidget())
+				parent->setVisible(m_show && m_annotationController->IsReady());
 		});
 	}
 
