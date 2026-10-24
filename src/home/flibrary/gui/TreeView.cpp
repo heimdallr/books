@@ -838,6 +838,7 @@ private:
 		model->setData({}, m_showAlreadyRead || m_navigationModeName == NAVIGATION_NAMES[static_cast<size_t>(NavigationMode::AlreadyRead)].first, Role::ShowAlreadyReadFilter);
 
 		m_delegate->OnModelChanged(*model);
+		m_ui.treeView->OnModelChanged(*model);
 
 		const auto modelEmpty = model->rowCount() == 0;
 
@@ -1044,6 +1045,7 @@ private:
 	{
 		m_ui.setupUi(&m_self);
 
+		m_ui.treeView->Init(std::shared_ptr<ISettings> { m_settings });
 		m_itemViewToolTipper->SetScrollArea(m_ui.treeView);
 		m_scrollBarController->SetScrollArea(m_ui.treeView);
 
@@ -1068,6 +1070,7 @@ private:
 
 		if (IsNavigation())
 		{
+			m_ui.treeView->SetIsNavigation();
 			m_delegate.reset(m_uiFactory->CreateTreeViewDelegateNavigation(*m_ui.treeView));
 
 			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, &m_self, SIGNAL(SearchNavigationItemSelected(long long, const QString&)));
