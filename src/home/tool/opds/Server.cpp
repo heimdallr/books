@@ -400,8 +400,7 @@ private:
 			searchUrl.setPath(QString("%1/search").arg(opds));
 			searchUrl.setQuery(QString {});
 			searchUrl.setFragment(QString {});
-			return QString(R"(<Url type="application/atom+xml;profile=opds-catalog" xmlns:atom="http://www.w3.org/2005/Atom" template="%1?q={searchTerms}" />)")
-			    .arg(searchUrl.toString(QUrl::RemoveUserInfo));
+			return QString(R"(<Url type="application/atom+xml;profile=opds-catalog" xmlns:atom="http://www.w3.org/2005/Atom" template="%1?q={searchTerms}" />)").arg(searchUrl.toString(QUrl::RemoveUserInfo));
 		});
 
 		bool exists = !roots.empty();
