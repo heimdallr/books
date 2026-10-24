@@ -32,10 +32,6 @@ using namespace Flibrary;
 
 namespace {
 
-constexpr auto ESCALATE_UP        = "Preferences/ReadMark/escalateUpward";
-constexpr auto READ_MARK_COLOR    = "Preferences/ReadMark/color%1";
-constexpr auto READ_MARK_WIDTH    = "Preferences/ReadMark/width%1";
-constexpr auto READ_MARK_POSITION = "Preferences/ReadMark/position%1";
 constexpr auto COLUMN_ALIGNMENT   = "Preferences/Books/Alignment/%1";
 
 constexpr auto LIB_RATE  = "LibRate";
@@ -171,33 +167,6 @@ std::unique_ptr<const IBookRenderer> GetLibRateRenderer(QStyledItemDelegate& imp
 	         : std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererNumber>(impl, settings) };
 }
 
-std::optional<QColor> GetReadMarkColor(const ISettings& settings, const QString& suffix = {})
-{
-	if (const auto var = settings.Get(QString(READ_MARK_COLOR).arg(suffix)); var.isValid())
-	{
-		const auto value = var.toUInt();
-		return QColor { static_cast<int>(value & 0xFF), static_cast<int>((value >> 8) & 0xFF), static_cast<int>((value >> 16) & 0xFF), 0xFF - static_cast<int>((value >> 24) & 0xFF) };
-	}
-
-	return {};
-}
-
-std::optional<int> GetReadMarkWidth(const ISettings& settings, const QString& suffix = {})
-{
-	if (const auto var = settings.Get(QString(READ_MARK_WIDTH).arg(suffix)); var.isValid())
-		return var.toInt();
-
-	return {};
-}
-
-std::optional<int> GetReadMarkPosition(const ISettings& settings, const QString& suffix = {})
-{
-	if (const auto var = settings.Get(QString(READ_MARK_POSITION).arg(suffix)); var.isValid())
-		return var.toInt();
-
-	return {};
-}
-
 } // namespace
 
 class TreeViewDelegateBooks::Impl final
@@ -211,9 +180,6 @@ public:
 		, m_textDelegate { &PassThruDelegate }
 		, m_libRateRenderer { GetLibRateRenderer(*this, *m_settings) }
 		, m_userRateRenderer { std::make_unique<RateRendererStars>(Role::UserRate, *m_settings, USER_RATE, Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY, GetZeroSymbol(*m_settings)) }
-		, m_readMarkColor { GetReadMarkColor(*m_settings) }
-		, m_readMarkWidth { GetReadMarkWidth(*m_settings) }
-		, m_readMarkPosition { GetReadMarkPosition(*m_settings) }
 	{
 		m_alignments.fill(Qt::AlignLeft);
 		for (const auto column : DELEGATES | std::views::keys)
@@ -223,20 +189,6 @@ public:
 #define BOOKS_COLUMN_ITEM(NAME) SetAlignment(m_alignments[BookItem::Column::NAME], *m_settings, #NAME);
 		BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
-	}
-
-	void OnModelChanged(const QAbstractItemModel& model)
-	{
-		const QString suffix = model.data({}, Role::IsTree).toBool() ? TreeViewMode : ListViewMode;
-
-		if (!((m_readMarkColor = GetReadMarkColor(*m_settings, suffix))))
-			m_readMarkColor = GetReadMarkColor(*m_settings);
-
-		if (!((m_readMarkWidth = GetReadMarkWidth(*m_settings, suffix))))
-			m_readMarkWidth = GetReadMarkWidth(*m_settings);
-
-		if (!((m_readMarkPosition = GetReadMarkPosition(*m_settings, suffix))))
-			m_readMarkPosition = GetReadMarkPosition(*m_settings);
 	}
 
 private: // QStyledItemDelegate
@@ -257,9 +209,6 @@ private: // QStyledItemDelegate
 
 		o.rect.setWidth(width);
 
-		if (m_escalateUp)
-			RenderReadMark(*painter, o, index);
-
 		QStyledItemDelegate::paint(painter, o, index);
 	}
 
@@ -274,39 +223,9 @@ private:
 		const auto column  = index.data(Role::Remap).toInt();
 		o.displayAlignment = m_alignments[static_cast<size_t>(column)];
 
-		RenderReadMark(painter, o, index);
-
 		ValueGuard  valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
 		const auto* renderer = FindSecond(m_rateRenderers, column, m_defaultRenderer.get());
 		renderer->Render(painter, o, index);
-	}
-
-	void RenderReadMark(QPainter& painter, QStyleOptionViewItem& o, const QModelIndex& index) const
-	{
-		const auto markColor = m_readMarkColor ? *m_readMarkColor : o.palette.color(QPalette::ColorRole::Text);
-
-		if (index.data(Role::IsRemoved).toBool())
-			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
-
-		if (m_readMarkWidth && m_view.header()->visualIndex(index.column()) == 0 && !index.data(Role::UserRate).toString().isEmpty())
-		{
-			const ScopedCall painterGuard(
-				[&] {
-					painter.save();
-				},
-				[&] {
-					painter.restore();
-				}
-			);
-			QPen pen(markColor, *m_readMarkWidth);
-			pen.setCapStyle(Qt::FlatCap);
-			painter.setPen(pen);
-			auto rect = o.rect;
-			if (m_readMarkPosition)
-				rect.setLeft(*m_readMarkPosition + *m_readMarkWidth / 2);
-			painter.drawLine(rect.topLeft(), rect.bottomLeft());
-			o.features &= ~QStyleOptionViewItem::Alternate;
-		}
 	}
 
 private:
@@ -320,10 +239,6 @@ private:
 		{  BookItem::Column::LibRate,  m_libRateRenderer.get() },
 		{ BookItem::Column::UserRate, m_userRateRenderer.get() },
 	};
-	std::optional<QColor> m_readMarkColor;
-	std::optional<int>    m_readMarkWidth;
-	std::optional<int>    m_readMarkPosition;
-	const bool            m_escalateUp { m_settings->Get(ESCALATE_UP, false) };
 
 	std::array<Qt::Alignment, BookItem::Column::Last> m_alignments {};
 };
@@ -344,9 +259,8 @@ QAbstractItemDelegate* TreeViewDelegateBooks::GetDelegate() noexcept
 	return m_impl.get();
 }
 
-void TreeViewDelegateBooks::OnModelChanged(const QAbstractItemModel& model)
+void TreeViewDelegateBooks::OnModelChanged(const QAbstractItemModel&)
 {
-	m_impl->OnModelChanged(model);
 }
 
 void TreeViewDelegateBooks::SetEnabled(bool /*enabled*/) noexcept
