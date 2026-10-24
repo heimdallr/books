@@ -238,15 +238,8 @@ public:
 			m_banned.erase(address);
 		});
 
-		const auto toAbort = std::ranges::equal_range(
-								 m_sockets,
-								 address,
-								 {},
-								 [](const auto& item) {
-									 return item.first;
-								 }
-							 )
-		                   | std::views::values | std::ranges::to<std::vector>();
+		const auto [first, last] = m_sockets.equal_range(address);
+		const auto toAbort       = std::ranges::subrange(first, last) | std::views::values | std::ranges::to<std::vector>();
 		for (auto* socket : toAbort)
 			socket->abort();
 
