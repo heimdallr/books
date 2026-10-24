@@ -554,7 +554,8 @@ private: // ITreeViewController::IObserver
 	void OnModeChanged(const int index) override
 	{
 		if (!SetModeImpl(index))
-			m_modeMenu->defaultAction()->trigger();
+			if (auto* action = GetCurrentModeAction())
+				action->trigger();
 	}
 
 	void OnModelChanged(QAbstractItemModel* model) override
@@ -1111,7 +1112,7 @@ private:
 		m_filterProvider->RegisterObserver(this);
 
 		QTimer::singleShot(0, [&] {
-			emit m_self.NavigationModeNameChanged(m_modeMenu->defaultAction()->property(MODE_PROPERTY_KEY_NAME).toString());
+			emit m_self.NavigationModeNameChanged(GetCurrentModeName());
 		});
 	}
 
@@ -1129,7 +1130,8 @@ private:
 
 		if (const auto actionCount = m_modeMenu->actions().count(); actionCount < 2)
 		{
-			assert(false && "unexpected action count");
+			// No mode at all is legitimate: an empty collection has nothing to navigate
+			assert(actionCount == 0 && "unexpected action count");
 		}
 		else if (actionCount == 2)
 		{
@@ -1153,7 +1155,8 @@ private:
 		QTimer::singleShot(0, [this] {
 			m_menuCustomizer->RegisterObserver(this);
 			m_menuCustomizer->Add(m_controller->TrContext(), *m_ui.btnMode, Tr(IsNavigation() ? NAVIGATION_VIEW_MODE : BOOK_VIEW_MODE));
-			m_ui.btnMode->setIcon(m_modeMenu->defaultAction()->icon());
+			if (const auto* action = GetCurrentModeAction())
+				m_ui.btnMode->setIcon(action->icon());
 		});
 	}
 
@@ -1276,8 +1279,7 @@ private:
 		auto*                header = m_ui.treeView->header();
 		const QSignalBlocker resizeGuard(header);
 
-		auto lastRestoredLayoutKey =
-			m_ui.treeView->model()->rowCount() == 0 ? QString {} : QString("%1_%2").arg(m_navigationModeName, m_modeMenu->defaultAction()->property(MODE_PROPERTY_KEY_NAME).toString());
+		auto lastRestoredLayoutKey = m_ui.treeView->model()->rowCount() == 0 ? QString {} : QString("%1_%2").arg(m_navigationModeName, GetCurrentModeName());
 		if (!Util::Set(m_lastRestoredLayoutKey, lastRestoredLayoutKey))
 			return m_booksHeaderView->ApplySort();
 
@@ -1518,6 +1520,23 @@ private:
 		header->setSectionResizeMode(0, QHeaderView::Stretch);
 		if (header->count() > 1 && m_controller->GetModeIndex() == static_cast<int>(NavigationMode::Authors))
 			m_ui.treeView->UpdateSectionSize();
+	}
+
+	// The mode action shown as current: the menu's default action, or the first one before any mode has been chosen.
+	// Null when the collection offers no mode at all, e.g. an empty collection
+	QAction* GetCurrentModeAction() const
+	{
+		if (auto* action = m_modeMenu->defaultAction())
+			return action;
+
+		const auto actions = m_modeMenu->actions();
+		return actions.isEmpty() ? nullptr : actions.front();
+	}
+
+	QString GetCurrentModeName() const
+	{
+		const auto* action = GetCurrentModeAction();
+		return action ? action->property(MODE_PROPERTY_KEY_NAME).toString() : QString {};
 	}
 
 	bool SetModeImpl(const int mode) const

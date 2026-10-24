@@ -110,7 +110,8 @@ else()
 	)
 endif()
 
-if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU")
+# Debug builds keep their symbols so a debugger can map code to source lines
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
     add_link_options("LINKER:--strip-all")
 endif()
 

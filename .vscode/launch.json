@@ -1,0 +1,59 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "FLibrary GUI (debug)",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build-debug/bin/FLibrary",
+            "args": [],
+            "cwd": "${workspaceFolder}/build-debug/bin",
+            "preLaunchTask": "FLibrary: build (debug)",
+            "MIMode": "gdb",
+            "externalConsole": false,
+            "environment": [
+                { "name": "LD_LIBRARY_PATH", "value": "${workspaceFolder}/build-debug/lib:${workspaceFolder}/build-debug/bin" },
+                { "name": "ICU_DATA", "value": "${workspaceFolder}/build-debug/lib" },
+                { "name": "XDG_DATA_DIRS", "value": "${env:XDG_DATA_DIRS_VSCODE_SNAP_ORIG}" },
+                { "name": "XDG_CONFIG_DIRS", "value": "${env:XDG_CONFIG_DIRS_VSCODE_SNAP_ORIG}" }
+            ],
+            "setupCommands": [
+                { "description": "Pretty-print STL and Qt containers", "text": "-enable-pretty-printing", "ignoreFailures": true },
+                { "description": "Drop the VS Code snap's GTK and GSettings paths, which make system GTK abort", "text": "unset environment GSETTINGS_SCHEMA_DIR", "ignoreFailures": true },
+                { "text": "unset environment GTK_PATH", "ignoreFailures": true },
+                { "text": "unset environment GTK_EXE_PREFIX", "ignoreFailures": true },
+                { "text": "unset environment GIO_MODULE_DIR", "ignoreFailures": true },
+                { "text": "unset environment GDK_PIXBUF_MODULE_FILE", "ignoreFailures": true },
+                { "text": "unset environment GDK_PIXBUF_MODULEDIR", "ignoreFailures": true },
+                { "text": "unset environment LOCPATH", "ignoreFailures": true }
+            ]
+        },
+        {
+            "name": "FLibrary GUI",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/bin/FLibrary",
+            "args": [],
+            "cwd": "${workspaceFolder}/build/bin",
+            "preLaunchTask": "FLibrary: build",
+            "MIMode": "gdb",
+            "externalConsole": false,
+            "environment": [
+                { "name": "LD_LIBRARY_PATH", "value": "${workspaceFolder}/build/lib:${workspaceFolder}/build/bin" },
+                { "name": "ICU_DATA", "value": "${workspaceFolder}/build/lib" },
+                { "name": "XDG_DATA_DIRS", "value": "${env:XDG_DATA_DIRS_VSCODE_SNAP_ORIG}" },
+                { "name": "XDG_CONFIG_DIRS", "value": "${env:XDG_CONFIG_DIRS_VSCODE_SNAP_ORIG}" }
+            ],
+            "setupCommands": [
+                { "description": "Pretty-print STL and Qt containers", "text": "-enable-pretty-printing", "ignoreFailures": true },
+                { "description": "Drop the VS Code snap's GTK and GSettings paths, which make system GTK abort", "text": "unset environment GSETTINGS_SCHEMA_DIR", "ignoreFailures": true },
+                { "text": "unset environment GTK_PATH", "ignoreFailures": true },
+                { "text": "unset environment GTK_EXE_PREFIX", "ignoreFailures": true },
+                { "text": "unset environment GIO_MODULE_DIR", "ignoreFailures": true },
+                { "text": "unset environment GDK_PIXBUF_MODULE_FILE", "ignoreFailures": true },
+                { "text": "unset environment GDK_PIXBUF_MODULEDIR", "ignoreFailures": true },
+                { "text": "unset environment LOCPATH", "ignoreFailures": true }
+            ]
+        }
+    ]
+}

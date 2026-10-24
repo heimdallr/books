@@ -590,6 +590,21 @@ Node GetHead(QString id, QString title, QString root, QString self)
 	};
 }
 
+// Join parameters come straight from the http request and are substituted into the query text,
+// so only integer ids and plain genre codes (e.g. "0.001.003") are let through; anything else matches nothing
+QString ToJoinValue(const NavigationDescription& item, const QString& value)
+{
+	if (std::string_view(item.type) == Loc::Genres)
+	{
+		static const QRegularExpression genreCode(R"(^[0-9A-Za-z._-]+$)");
+		return genreCode.match(value).hasMatch() ? value : QString {};
+	}
+
+	bool       ok = false;
+	const auto id = value.toLongLong(&ok);
+	return ok ? QString::number(id) : QString("NULL");
+}
+
 QString GetJoin(const IRequester::Parameters& parameters)
 {
 	if (parameters.empty())
@@ -602,7 +617,7 @@ QString GetJoin(const IRequester::Parameters& parameters)
 		}),
 		std::back_inserter(list),
 		[&](const auto& item) {
-			return QString(item.joinParameters).arg(parameters.at(item.type));
+			return QString(item.joinParameters).arg(ToJoinValue(item, parameters.at(item.type)));
 		}
 	);
 	if (list.isEmpty())
@@ -1014,7 +1029,7 @@ public:
 			{ Loc::AllOptions,                          { SEARCH_QUERY_TEXT, &WriteBookEntries, BOOK_DESCRIPTION, SEARCH_RESULTS_BOOKS } },
 		};
 
-		const auto& [queryText, writeEntries, navigationDescription, foundMessage] = FindSecond(separatedDescriptions, separated.toStdString().data(), PszComparer {});
+		const auto [queryText, writeEntries, navigationDescription, foundMessage] = FindSecond(separatedDescriptions, separated.toStdString().data(), PszComparer {});
 
 		const auto n = head.children.size();
 

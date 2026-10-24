@@ -308,11 +308,11 @@ public:
 private:
 	using BookGetter = std::pair<QString, QByteArray> (INoSqlRequester::*)(const QString& bookId, bool restoreImages, const IRequester::Parameters& parameters) const;
 
-	auto GetBook(BookGetter getter, QString value, QString acceptEncoding, const bool restoreImages, IRequester::Parameters parameters) const
+	auto GetBook(const QHttpServerRequest& request, BookGetter getter, QString value, const bool restoreImages, const bool encode) const
 	{
-		return QtConcurrent::run([this, getter, value = std::move(value), acceptEncoding = std::move(acceptEncoding), restoreImages, parameters = std::move(parameters)] {
+		return Authorization(request, request.url().path(), [this, getter, value = std::move(value), restoreImages, encode](IRequester::Parameters& parameters, const QString& acceptEncoding) {
 			auto [fileName, body] = std::invoke(getter, *m_noSqlRequester, std::cref(value), restoreImages, parameters);
-			auto response         = EncodeContent(body, acceptEncoding);
+			auto response         = EncodeContent(body, encode ? acceptEncoding : QString {});
 			ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, QString("application/%1").arg(QFileInfo(fileName).suffix()));
 			ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentDisposition, QString(R"(attachment; filename="%1")").arg(QUrl::toPercentEncoding(fileName)));
 			ReplaceOrAppendHeader(response, "content-description", "File Transfer");
@@ -436,8 +436,8 @@ private:
 			});
 		});
 
-		m_server.route(QString(GET_BOOKS_API_ASSETS).arg(ARG), [](const QString& fileName, const QHttpServerRequest& request) {
-			return QtConcurrent::run([fileName, acceptEncoding = GetAcceptEncoding(request)]() -> QHttpServerResponse {
+		m_server.route(QString(GET_BOOKS_API_ASSETS).arg(ARG), [this](const QString& fileName, const QHttpServerRequest& request) {
+			return Authorization(request, request.url().path(), [fileName](const IRequester::Parameters&, const QString& acceptEncoding) -> QHttpServerResponse {
 				auto response = FromWebsite("assets/" + fileName, acceptEncoding);
 				return response ? QHttpServerResponse { std::move(*response) } : QHttpServerResponse { QHttpServerResponse::StatusCode::NotFound };
 			});
@@ -452,7 +452,7 @@ private:
 
 		for (const auto& [name, requester] : booksApiDescription)
 			m_server.route(QString(GET_BOOKS_API).arg(name), [this, requester](const QHttpServerRequest& request) {
-				return QtConcurrent::run([this, requester, parameters = GetParameters<IReactAppRequester::Parameters>(request), acceptEncoding = GetAcceptEncoding(request)] {
+				return Authorization(request, request.url().path(), [this, requester](const IReactAppRequester::Parameters& parameters, const QString& acceptEncoding) {
 					auto response = EncodeContent(std::invoke(requester, *m_reactAppRequester, std::cref(parameters)), acceptEncoding);
 					ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "application/json");
 					return response;
@@ -462,8 +462,8 @@ private:
 
 	void RouteGetBook()
 	{
-		m_server.route(QString(GET_BOOKS_API_COVER).arg(ARG), [this](const QString& value) {
-			return QtConcurrent::run([this, value] {
+		m_server.route(QString(GET_BOOKS_API_COVER).arg(ARG), [this](const QString& value, const QHttpServerRequest& request) {
+			return Authorization(request, request.url().path(), [this, value](const IRequester::Parameters&, const QString&) {
 				QHttpServerResponse response(m_noSqlRequester->GetCover(value));
 				ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, "image/jpeg");
 				return response;
@@ -471,15 +471,15 @@ private:
 		});
 
 		m_server.route(QString(GET_BOOKS_API_BOOK_DATA_COMPACT).arg(ARG), [this](const QString& value, const QHttpServerRequest& request) {
-			return GetBook(&INoSqlRequester::GetBook, value, GetAcceptEncoding(request), false, GetParameters<IRequester::Parameters>(request));
+			return GetBook(request, &INoSqlRequester::GetBook, value, false, true);
 		});
 
 		m_server.route(QString(GET_BOOKS_API_BOOK_DATA).arg(ARG), [this](const QString& value, const QHttpServerRequest& request) {
-			return GetBook(&INoSqlRequester::GetBook, value, GetAcceptEncoding(request), true, GetParameters<IRequester::Parameters>(request));
+			return GetBook(request, &INoSqlRequester::GetBook, value, true, true);
 		});
 
 		m_server.route(QString(GET_BOOKS_API_BOOK_ZIP).arg(ARG), [this](const QString& value, const QHttpServerRequest& request) {
-			return GetBook(&INoSqlRequester::GetBookZip, value, "", true, GetParameters<IRequester::Parameters>(request));
+			return GetBook(request, &INoSqlRequester::GetBookZip, value, true, false);
 		});
 	}
 
