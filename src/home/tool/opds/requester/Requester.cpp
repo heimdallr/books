@@ -1,6 +1,7 @@
 #include "Requester.h"
 
 #include <ranges>
+#include <variant>
 
 #include <QBuffer>
 #include <QByteArray>
@@ -107,7 +108,7 @@ constexpr auto BOOK_COUNT    = "select count(42) from Books_View_Opds l %1";
 
 constexpr auto AUTHOR_JOIN_PARAMETERS  = "join Author_List al on al.BookID = l.BookID and al.AuthorID = %1";
 constexpr auto SERIES_JOIN_PARAMETERS  = "join Series_List sl on sl.BookID = l.BookID and sl.SeriesID = %1";
-constexpr auto GENRE_JOIN_PARAMETERS   = "join Genre_List gl on gl.BookID = l.BookID and gl.GenreCode = '%1'";
+constexpr auto GENRE_JOIN_PARAMETERS   = "join Genre_List gl on gl.BookID = l.BookID and gl.GenreCode = %1";
 constexpr auto KEYWORD_JOIN_PARAMETERS = "join Keyword_List kl on kl.BookID = l.BookID and kl.KeywordID = %1";
 constexpr auto UPDATE_JOIN_PARAMETERS  = "join Books_View_Opds ul on ul.BookID = l.BookID and ul.UpdateID = %1";
 constexpr auto FOLDER_JOIN_PARAMETERS  = "join Books_View_Opds fl on fl.BookID = l.BookID and fl.FolderID = %1";
@@ -216,12 +217,12 @@ constexpr auto KEYWORD_SELECT_EQUAL = "select distinct k.KeywordID, k.KeywordTit
 constexpr auto UPDATE_SELECT_EQUAL  = "select u.UpdateID from Updates u where exists (select 42 from Books_View_Opds l %1 where l.UpdateID = u.UpdateID)";
 constexpr auto BOOK_SELECT_EQUAL    = "select b.BookID, b.Title %1 where b.IsDeleted != #IS_DELETED# and b.SearchTitle = :starts";
 
-constexpr auto AUTHOR_CONTENT  = "select count (42) from Authors a %1 where l.AuthorID = ?";
-constexpr auto SERIES_CONTENT  = "select count (42) from Series s %1 where l.SeriesID = ?";
-constexpr auto GENRE_CONTENT   = "select count(42) from Genre_List l %1 where l.GenreCode = ?";
-constexpr auto KEYWORD_CONTENT = "select count (42) from Keywords k %1 where k.KeywordID = ?";
-constexpr auto UPDATE_CONTENT  = "select count (42) from Books_View_Opds l %1 where l.UpdateID = ?";
-constexpr auto FOLDER_CONTENT  = "select count (42) from Folders f %1 where f.FolderID = ?";
+constexpr auto AUTHOR_CONTENT  = "select count (42) from Authors a %1 where l.AuthorID = :id";
+constexpr auto SERIES_CONTENT  = "select count (42) from Series s %1 where l.SeriesID = :id";
+constexpr auto GENRE_CONTENT   = "select count(42) from Genre_List l %1 where l.GenreCode = :id";
+constexpr auto KEYWORD_CONTENT = "select count (42) from Keywords k %1 where k.KeywordID = :id";
+constexpr auto UPDATE_CONTENT  = "select count (42) from Books_View_Opds l %1 where l.UpdateID = :id";
+constexpr auto FOLDER_CONTENT  = "select count (42) from Folders f %1 where f.FolderID = :id";
 constexpr auto BOOK_CONTENT    = R"(
 select 
 	(select a.LastName || coalesce(' ' || nullif(substr(a.FirstName, 1, 1), '') || '.' || coalesce(nullif(substr(a.middleName, 1, 1), '') || '.', ''), '')
@@ -393,8 +394,73 @@ Node& WriteEntry(Node::Children& children, const QString& root, const QString& p
 }
 
 struct NavigationDescription;
-void WriteBookEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase&, const IQueryTextFilter&, QString, std::map<QString, QString>&&);
-void WriteNavigationEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase&, const IQueryTextFilter&, QString, std::map<QString, QString>&&);
+
+// A join built from request parameters. Its text holds only named placeholders, and the request values are bound to them
+// on every query that uses the join, so a value from the request never becomes part of the SQL text
+class ParameterJoin
+{
+public:
+	// No value (an id that is not a number) binds NULL, which matches nothing
+	using Value = std::variant<std::monostate, long long, std::string>;
+
+	ParameterJoin() = default;
+
+	explicit ParameterJoin(QString text)
+		: m_text { std::move(text) }
+	{
+	}
+
+	[[nodiscard]] const QString& Text() const noexcept
+	{
+		return m_text;
+	}
+
+	[[nodiscard]] bool IsEmpty() const noexcept
+	{
+		return m_text.isEmpty();
+	}
+
+	void Add(const QString& text, std::string placeholder, Value value)
+	{
+		Append(text);
+		m_values.emplace_back(std::move(placeholder), std::move(value));
+	}
+
+	void Append(const QString& text)
+	{
+		m_text = m_text.isEmpty() ? text : QString("%1\n%2").arg(m_text, text);
+	}
+
+	[[nodiscard]] ParameterJoin Prepended(const QString& text) const
+	{
+		auto result   = *this;
+		result.m_text = QString("%1\n%2").arg(text, m_text);
+		return result;
+	}
+
+	void Bind(DB::IQuery& query) const
+	{
+		for (const auto& [placeholder, value] : m_values)
+			std::visit(
+				[&]<typename T>(const T& v) {
+					if constexpr (std::is_same_v<T, std::monostate>)
+						query.Bind(placeholder);
+					else if constexpr (std::is_same_v<T, long long>)
+						query.BindLong(placeholder, v);
+					else
+						query.BindString(placeholder, std::string_view { v });
+				},
+				value
+			);
+	}
+
+private:
+	QString                                    m_text;
+	std::vector<std::pair<std::string, Value>> m_values;
+};
+
+void WriteBookEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase&, const IQueryTextFilter&, ParameterJoin, std::map<QString, QString>&&);
+void WriteNavigationEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase&, const IQueryTextFilter&, ParameterJoin, std::map<QString, QString>&&);
 
 class INavigationProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -407,14 +473,14 @@ public:
 
 using GetNavigation = Node (INavigationProvider::*)(const QString& root, const IRequester::Parameters& parameters, const NavigationDescription& d) const;
 using WriteEntries  = void (*)(
-	Node::Children&              children,
-	const QString&               root,
-	IRequester::Parameters       parameters,
-	const NavigationDescription& d,
-	DB::IDatabase&               db,
-	const IQueryTextFilter&      queryTextFilter,
-	QString                      join,
-	std::map<QString, QString>&& ones
+    Node::Children&              children,
+    const QString&               root,
+    IRequester::Parameters       parameters,
+    const NavigationDescription& d,
+    DB::IDatabase&               db,
+    const IQueryTextFilter&      queryTextFilter,
+    ParameterJoin                join,
+    std::map<QString, QString>&& ones
 );
 
 struct NavigationDescription
@@ -481,7 +547,7 @@ void WriteBookEntries(
 	const NavigationDescription& d,
 	DB::IDatabase&               db,
 	const IQueryTextFilter&      queryTextFilter,
-	QString,
+	ParameterJoin,
 	std::map<QString, QString>&& ones
 )
 {
@@ -522,17 +588,19 @@ void WriteNavigationEntries(
 	const NavigationDescription& d,
 	DB::IDatabase&               db,
 	const IQueryTextFilter&      queryTextFilter,
-	QString                      join,
+	ParameterJoin                join,
 	std::map<QString, QString>&& ones
 )
 {
-	if (join.isEmpty())
-		join = QString("join Books_View_Opds b on b.BookID = l.BookID\n%1").arg(d.joinSelect);
+	if (join.IsEmpty())
+		join = ParameterJoin(QString("join Books_View_Opds b on b.BookID = l.BookID\n%1").arg(d.joinSelect));
 
 	for (auto&& [navigationId, title] : ones)
 	{
-		const auto query = db.CreateQuery(queryTextFilter.FilterQueryText(QString(d.content).arg(join)));
-		query->Execute(navigationId);
+		const auto query = db.CreateQuery(queryTextFilter.FilterQueryText(QString(d.content).arg(join.Text())));
+		join.Bind(*query);
+		query->Bind(":id", navigationId);
+		query->Execute();
 		assert(!query->Eof());
 		parameters[d.type] = navigationId;
 		WriteEntry(children, root, "", parameters, QString("%1/%2").arg(d.type, navigationId), std::move(title), Tr(BOOKS_COUNTER).arg(query->Get<long long>(0)));
@@ -590,42 +658,33 @@ Node GetHead(QString id, QString title, QString root, QString self)
 	};
 }
 
-// Join parameters come straight from the http request and are substituted into the query text,
-// so only integer ids and plain genre codes (e.g. "0.001.003") are let through; anything else matches nothing
-QString ToJoinValue(const NavigationDescription& item, const QString& value)
+// Genre codes are text; every other navigation id is an integer, and one that is not a number binds NULL (matches nothing)
+ParameterJoin::Value ToBindValue(const NavigationDescription& item, const QString& value)
 {
 	if (std::string_view(item.type) == Loc::Genres)
-	{
-		static const QRegularExpression genreCode(R"(^[0-9A-Za-z._-]+$)");
-		return genreCode.match(value).hasMatch() ? value : QString {};
-	}
+		return value.toStdString();
 
 	bool       ok = false;
 	const auto id = value.toLongLong(&ok);
-	return ok ? QString::number(id) : QString("NULL");
+	return ok ? ParameterJoin::Value { id } : ParameterJoin::Value {};
 }
 
-QString GetJoin(const IRequester::Parameters& parameters)
+ParameterJoin GetJoin(const IRequester::Parameters& parameters)
 {
-	if (parameters.empty())
-		return {};
+	ParameterJoin join;
+	for (const auto& item : NAVIGATION_DESCRIPTION)
+	{
+		if (!item.joinParameters || !parameters.contains(item.type))
+			continue;
 
-	QStringList list;
-	std::ranges::transform(
-		NAVIGATION_DESCRIPTION | std::views::filter([&](const auto& item) {
-			return item.joinParameters && parameters.contains(item.type);
-		}),
-		std::back_inserter(list),
-		[&](const auto& item) {
-			return QString(item.joinParameters).arg(ToJoinValue(item, parameters.at(item.type)));
-		}
-	);
-	if (list.isEmpty())
-		return {};
+		const auto placeholder = QString(":join_%1").arg(item.type);
+		join.Add(QString(item.joinParameters).arg(placeholder), placeholder.toStdString(), ToBindValue(item, parameters.at(item.type)));
+	}
 
-	list << "join Books_View_Opds b on b.BookID = l.BookID";
+	if (!join.IsEmpty())
+		join.Append("join Books_View_Opds b on b.BookID = l.BookID");
 
-	return list.join("\n");
+	return join;
 }
 
 struct TitleHelper
@@ -856,7 +915,7 @@ public:
 			std::back_inserter(dbStatQueryTextItems),
 			[&](const auto& item) {
 				const auto& d = NAVIGATION_DESCRIPTION[static_cast<size_t>(item.first)];
-				return QString(d.count).arg(join).arg(d.type);
+				return QString(d.count).arg(join.Text()).arg(d.type);
 			}
 		);
 
@@ -868,6 +927,7 @@ public:
 			for (const auto& dbStatQueryText : dbStatQueryTextItems)
 			{
 				const auto query = db->CreateQuery(FilterQueryText(dbStatQueryText));
+				join.Bind(*query);
 				query->Execute();
 				assert(!query->Eof());
 				const auto* id = query->Get<const char*>(0);
@@ -879,7 +939,8 @@ public:
 				if (childCount == head.children.size())
 					return GetBooks(root, parameters);
 
-				const auto query = db->CreateQuery(FilterQueryText(QString(BOOK_DESCRIPTION.count).arg(join)));
+				const auto query = db->CreateQuery(FilterQueryText(QString(BOOK_DESCRIPTION.count).arg(join.Text())));
+				join.Bind(*query);
 				query->Execute();
 				assert(!query->Eof());
 
@@ -890,7 +951,9 @@ public:
 
 		if (!parameters.contains(Loc::Groups))
 		{
-			for (const auto query = db->CreateQuery(FilterQueryText(QString(GROUPS_SELECT).arg(join))); const auto& rec : *query)
+			const auto query = db->CreateQuery(FilterQueryText(QString(GROUPS_SELECT).arg(join.Text())));
+			join.Bind(*query);
+			for (const auto& rec : *query)
 			{
 				auto       p  = parameters;
 				const auto id = QString("%1/%2").arg(Loc::Groups).arg(p[Loc::Groups] = rec.Get<const char*>(0));
@@ -1189,16 +1252,20 @@ private: // INavigationProvider
 			auto p = parameters;
 			p.erase(d.type);
 			auto result = GetJoin(p);
-			if (result.isEmpty())
-				return QString("join Books_View_Opds b on b.BookID = l.BookID");
+			if (result.IsEmpty())
+				return ParameterJoin(QString("join Books_View_Opds b on b.BookID = l.BookID"));
 			return result;
 		}();
 
 		std::unordered_set<typename T::CodeType> itemsWithBooks;
 		if (!parameters.empty() && (parameters.size() > 1 || parameters.begin()->first != d.type))
-			db->CreateQuery(FilterQueryText(QString(d.selectEqual).arg(join)))->ForEach([&](const auto& rec) {
+		{
+			const auto query = db->CreateQuery(FilterQueryText(QString(d.selectEqual).arg(join.Text())));
+			join.Bind(*query);
+			query->ForEach([&](const auto& rec) {
 				itemsWithBooks.emplace(rec.template Get<DBCodeType>(0));
 			});
+		}
 
 		auto  rootItem   = T::Load(*db, itemsWithBooks);
 		auto* parentItem = &rootItem;
@@ -1225,8 +1292,10 @@ private: // INavigationProvider
 				if (!childItem.children.empty())
 					return std::make_pair(QString(d.type), GetContent(childItem));
 
-				const auto query = db->CreateQuery(FilterQueryText(QString(d.content).arg(join)));
-				query->Execute(childItem.code);
+				const auto query = db->CreateQuery(FilterQueryText(QString(d.content).arg(join.Text())));
+				join.Bind(*query);
+				query->Bind(":id", childItem.code);
+				query->Execute();
 				assert(!query->Eof());
 				return std::make_pair(QString {}, Tr(BOOKS_COUNTER).arg(query->template Get<int>(0)));
 			}();
@@ -1266,13 +1335,14 @@ private:
 
 		const auto startsWithGlobal = GetParameter(parameters, STARTS);
 		auto       join             = GetJoin(parameters);
-		if (!join.isEmpty())
-			join = QString("%1\n%2").arg(d.joinSelect, join);
+		if (!join.IsEmpty())
+			join = join.Prepended(d.joinSelect);
 
 		const auto countTotal = [&] {
 			const auto [startsWithLike, escape] = PrepareForLike(startsWithGlobal);
-			const auto queryText                = QString(d.countStartsWith).arg(escape).arg(join);
+			const auto queryText                = QString(d.countStartsWith).arg(escape).arg(join.Text());
 			const auto query                    = db->CreateQuery(FilterQueryText(queryText));
+			join.Bind(*query);
 			query->Bind(":starts", startsWithGlobal);
 			query->Bind(":starts_like", startsWithLike);
 			query->Execute();
@@ -1282,6 +1352,7 @@ private:
 
 		const auto selectOne = [&](const QString& queryText, const std::vector<std::pair<QString, QString>>& params) {
 			const auto query = db->CreateQuery(FilterQueryText(queryText));
+			join.Bind(*query);
 			for (const auto& [key, value] : params)
 				query->Bind(key.toStdString(), value);
 
@@ -1294,7 +1365,7 @@ private:
 		if (countTotal <= maxSize)
 		{
 			const auto [startsWithLike, escape] = PrepareForLike(startsWithGlobal);
-			const auto queryText                = QString(d.selectSingle).arg(escape).arg(join);
+			const auto queryText                = QString(d.selectSingle).arg(escape).arg(join.Text());
 			selectOne(
 				queryText,
 				{
@@ -1308,8 +1379,9 @@ private:
 			ptrdiff_t  equalCount   = 0;
 			const auto selectStarts = [&](const auto startsWith) {
 				const auto [startsWithLike, escape] = PrepareForLike(startsWith);
-				const auto queryText                = QString(d.startsWith).arg(escape).arg(join);
+				const auto queryText                = QString(d.startsWith).arg(escape).arg(join.Text());
 				const auto query                    = db->CreateQuery(FilterQueryText(queryText));
+				join.Bind(*query);
 				query->Bind(":length", startsWith.length() + 1);
 				query->Bind(":starts", startsWith.toStdString());
 				query->Bind(":starts_like", startsWithLike.toStdString());
@@ -1349,7 +1421,7 @@ private:
 
 		for (const auto& s : equal)
 		{
-			const auto queryText = QString(d.selectEqual).arg(join);
+			const auto queryText = QString(d.selectEqual).arg(join.Text());
 			selectOne(
 				queryText,
 				{

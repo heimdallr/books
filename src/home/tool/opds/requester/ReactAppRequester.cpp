@@ -66,14 +66,6 @@ QString PrepareSearchTerms(const QString& searchTerms)
 	return terms.join(' ');
 }
 
-// Ids come straight from the http request and are substituted into the query text, so anything but an integer matches nothing
-QString ToSqlId(const QString& value)
-{
-	bool       ok = false;
-	const auto id = value.toLongLong(&ok);
-	return ok ? QString::number(id) : QString("NULL");
-}
-
 QString Get(const IReactAppRequester::Parameters& parameters, const QString& key, const QString& defaultValue = {})
 {
 	const auto it = parameters.find(key);
@@ -421,19 +413,34 @@ private:
 	{
 		QJsonArray array;
 
-		QStringList joins;
-		std::ranges::transform(
-			list | std::views::filter([&](const auto& item) {
-				return parameters.contains(std::get<0>(item));
-			}),
-			std::back_inserter(joins),
-			[&](const auto& item) {
-				return QString(std::get<1>(item)).arg(ToSqlId(parameters.at(std::get<0>(item))));
-			}
-		);
+		// The ids come from the request: the SQL text gets named placeholders only, the values are bound
+		QStringList                                                   joins;
+		std::vector<std::pair<std::string, std::optional<long long>>> ids;
+		for (const auto& item : list)
+		{
+			const auto it = parameters.find(std::get<0>(item));
+			if (it == parameters.end())
+				continue;
 
-		const auto db = databaseController->GetDatabase(true);
-		for (auto query = db->CreateQuery(queryText.arg(joins.join('\n')).toStdString()); const auto& rec : *query)
+			const auto placeholder = QString(":%1").arg(std::get<0>(item));
+			joins << QString(std::get<1>(item)).arg(placeholder);
+
+			bool       ok = false;
+			const auto id = it->second.toLongLong(&ok);
+			ids.emplace_back(placeholder.toStdString(), ok ? std::optional { id } : std::nullopt);
+		}
+
+		const auto db    = databaseController->GetDatabase(true);
+		const auto query = db->CreateQuery(queryText.arg(joins.join('\n')).toStdString());
+		for (const auto& [placeholder, id] : ids)
+		{
+			if (id)
+				query->BindLong(placeholder, *id);
+			else
+				query->Bind(placeholder); // not a number: NULL matches nothing
+		}
+
+		for (const auto& rec : *query)
 			array.append(FromQuery<const char*>(rec));
 
 		return QJsonObject {
