@@ -129,8 +129,7 @@ public:
 		BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 
-		const auto textDelegateDefault = std::make_shared<TextDelegateDefault>();
-		m_textDelegates.fill(textDelegateDefault);
+		m_textDelegates.fill(m_textDelegateDefault);
 		m_textDelegates[BookItem::Column::LibRate]   = std::make_shared<TextDelegateStars>(*m_settings, Constant::Settings::PREFER_LIB_RATE_STAR_SYMBOL_KEY);
 		m_textDelegates[BookItem::Column::UserRate]  = std::make_shared<TextDelegateStars>(*m_settings, Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY);
 		m_textDelegates[BookItem::Column::Size]      = std::make_shared<TextDelegateSize>();
@@ -160,7 +159,7 @@ private: // QStyledItemDelegate
 
 	QString displayText(const QVariant& value, const QLocale& /*locale*/) const override
 	{
-		return m_textDelegates[m_currentColumn]->GetString(value);
+		return m_currentTextDelegate->GetString(value);
 	}
 
 private:
@@ -168,7 +167,8 @@ private:
 	{
 		const auto column  = index.data(Role::Remap).toInt();
 		o.displayAlignment = m_alignments[static_cast<size_t>(column)];
-		m_currentColumn    = column;
+
+		ValueGuard valueGuard(m_currentTextDelegate, m_textDelegates[column].get());
 		QStyledItemDelegate::paint(&painter, o, index);
 	}
 
@@ -178,7 +178,8 @@ private:
 
 	std::array<Qt::Alignment, BookItem::Column::Last>                        m_alignments {};
 	std::array<std::shared_ptr<const ITextDelegate>, BookItem::Column::Last> m_textDelegates;
-	mutable size_t                                                           m_currentColumn { 0 };
+	std::shared_ptr<const ITextDelegate>                                     m_textDelegateDefault { std::make_shared<TextDelegateDefault>() };
+	mutable const ITextDelegate*                                             m_currentTextDelegate { m_textDelegateDefault.get() };
 };
 
 TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory>& uiFactory, std::shared_ptr<const ISettings> settings)
