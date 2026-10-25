@@ -32,10 +32,70 @@ using namespace Flibrary;
 
 namespace {
 
-constexpr auto COLUMN_ALIGNMENT   = "Preferences/Books/Alignment/%1";
+constexpr auto COLUMN_ALIGNMENT = "Preferences/Books/Alignment/%1";
 
-constexpr auto LIB_RATE  = "LibRate";
-constexpr auto USER_RATE = "UserRate";
+class ITextDelegate // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~ITextDelegate()                                             = default;
+	[[nodiscard]] virtual QString GetString(const QVariant& value) const = 0;
+};
+
+class TextDelegateDefault final : public ITextDelegate
+{
+private: // ITextDelegate
+	[[nodiscard]] QString GetString(const QVariant& value) const override
+	{
+		return value.toString();
+	}
+};
+
+class TextDelegateStars final : public ITextDelegate
+{
+public:
+	explicit TextDelegateStars(const ISettings& settings, const QString& key)
+		: m_star { settings.Get(key, Constant::Settings::STAR_SYMBOL_DEFAULT) }
+		, m_zero { settings.Get(Constant::Settings::PREFER_USER_RATE_ZERO_SYMBOL_KEY, Constant::Settings::STAR_SYMBOL_DEFAULT) }
+	{
+	}
+
+private: // ITextDelegate
+	[[nodiscard]] QString GetString(const QVariant& value) const override
+	{
+		bool       ok   = false;
+		const auto rate = value.toInt(&ok);
+		if (!ok)
+			return {};
+
+		return rate == 0 ? QString { m_zero } : rate < 0 || rate > 5 ? QString {} : QString(rate, m_star);
+	}
+
+private:
+	const QChar m_star;
+	const QChar m_zero;
+};
+
+class TextDelegateSize final : public ITextDelegate
+{
+private: // ITextDelegate
+	[[nodiscard]] QString GetString(const QVariant& value) const override
+	{
+		bool       ok     = false;
+		const auto result = value.toULongLong(&ok);
+		return ok && result > 0 ? Measure::GetSize(result) : QString {};
+	}
+};
+
+class TextDelegateNumber final : public ITextDelegate
+{
+private: // ITextDelegate
+	[[nodiscard]] QString GetString(const QVariant& value) const override
+	{
+		bool       ok     = false;
+		const auto result = value.toInt(&ok);
+		return ok && result > 0 ? QString::number(result) : QString {};
+	}
+};
 
 void SetAlignment(Qt::Alignment& alignment, const ISettings& settings, const QString& columnName)
 {
@@ -49,124 +109,6 @@ void SetAlignment(Qt::Alignment& alignment, const ISettings& settings, const QSt
 		alignment = static_cast<Qt::Alignment>(value);
 }
 
-QString GetZeroSymbol(const ISettings& settings)
-{
-	const auto value = settings.Get(Constant::Settings::PREFER_USER_RATE_ZERO_SYMBOL_KEY, 0);
-	return value ? QString { QChar { value } } : QString {};
-}
-
-QString PassThruDelegate(const QVariant& value)
-{
-	return value.toString();
-}
-
-QString NumberDelegate(const QVariant& value)
-{
-	bool       ok     = false;
-	const auto result = value.toInt(&ok);
-	return ok && result > 0 ? QString::number(result) : QString {};
-}
-
-QString SizeDelegate(const QVariant& value)
-{
-	bool       ok     = false;
-	const auto result = value.toULongLong(&ok);
-	return ok && result > 0 ? Measure::GetSize(result) : QString {};
-}
-
-constexpr std::pair<int, TreeViewDelegateBooks::TextDelegate> DELEGATES[] {
-	{      BookItem::Column::Size,   &SizeDelegate },
-	{ BookItem::Column::SeqNumber, &NumberDelegate },
-	{      BookItem::Column::Year, &NumberDelegate },
-};
-
-class IBookRenderer // NOLINT(cppcoreguidelines-special-member-functions)
-{
-public:
-	virtual ~IBookRenderer()                                                                        = default;
-	virtual void Render(QPainter& painter, QStyleOptionViewItem& o, const QModelIndex& index) const = 0;
-};
-
-class BookRendererDefault : public IBookRenderer
-{
-public:
-	explicit BookRendererDefault(const QStyledItemDelegate& impl)
-		: m_impl { impl }
-	{
-	}
-
-protected: // IBookRenderer
-	void Render(QPainter& painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
-	{
-		m_impl.QStyledItemDelegate::paint(&painter, o, index);
-	}
-
-private:
-	const QStyledItemDelegate& m_impl;
-};
-
-class RateRendererStars final : public IBookRenderer
-{
-public:
-	RateRendererStars(const int role, const ISettings& settings, const QString& columnName, const QString& starSymbolKey, QString zeroSymbol = {})
-		: m_role { role }
-		, m_starSymbol { settings.Get(starSymbolKey, Constant::Settings::STAR_SYMBOL_DEFAULT) }
-		, m_zeroSymbol { std::move(zeroSymbol) }
-	{
-		SetAlignment(m_alignment, settings, columnName);
-	}
-
-private: // IRateRenderer
-	void Render(QPainter& painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
-	{
-		o.displayAlignment = m_alignment;
-		o.text             = [&]() -> QString {
-			const auto rateVar = index.data(m_role).toString();
-			bool       ok      = false;
-			const auto rate    = rateVar.toInt(&ok);
-			if (!ok)
-				return {};
-
-			return rate == 0 ? m_zeroSymbol : rate < 0 || rate > 5 ? QString {} : QString(rate, QChar(m_starSymbol));
-		}();
-		QApplication::style()->drawControl(QStyle::CE_ItemViewItem, &o, &painter, nullptr);
-	}
-
-private:
-	const int     m_role;
-	const int     m_starSymbol;
-	const QString m_zeroSymbol;
-
-	Qt::Alignment m_alignment { Qt::AlignLeft };
-};
-
-class RateRendererNumber final : public BookRendererDefault
-{
-public:
-	explicit RateRendererNumber(const QStyledItemDelegate& impl, const ISettings& settings)
-		: BookRendererDefault(impl)
-	{
-		SetAlignment(m_alignment, settings, USER_RATE);
-	}
-
-private: // IRateRenderer
-	void Render(QPainter& painter, QStyleOptionViewItem& o, const QModelIndex& index) const override
-	{
-		o.displayAlignment = m_alignment;
-		BookRendererDefault::Render(painter, o, index);
-	}
-
-private:
-	Qt::Alignment m_alignment { Qt::AlignRight };
-};
-
-std::unique_ptr<const IBookRenderer> GetLibRateRenderer(QStyledItemDelegate& impl, const ISettings& settings)
-{
-	return settings.Get(Constant::Settings::PREFER_LIBRATE_VIEW_PRECISION_KEY, Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT) <= Constant::Settings::LIBRATE_VIEW_PRECISION_DEFAULT
-	         ? std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererStars>(Role::LibRate, settings, LIB_RATE, Constant::Settings::PREFER_LIB_RATE_STAR_SYMBOL_KEY) }
-	         : std::unique_ptr<const IBookRenderer> { std::make_unique<RateRendererNumber>(impl, settings) };
-}
-
 } // namespace
 
 class TreeViewDelegateBooks::Impl final
@@ -177,18 +119,23 @@ public:
 	Impl(const IUiFactory& uiFactory, std::shared_ptr<const ISettings> settings)
 		: m_view { uiFactory.GetTreeView() }
 		, m_settings { std::move(settings) }
-		, m_textDelegate { &PassThruDelegate }
-		, m_libRateRenderer { GetLibRateRenderer(*this, *m_settings) }
-		, m_userRateRenderer { std::make_unique<RateRendererStars>(Role::UserRate, *m_settings, USER_RATE, Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY, GetZeroSymbol(*m_settings)) }
 	{
 		m_alignments.fill(Qt::AlignLeft);
-		for (const auto column : DELEGATES | std::views::keys)
+
+		for (const auto column : { BookItem::Column::Size, BookItem::Column::SeqNumber, BookItem::Column::Year })
 			m_alignments[column] = Qt::AlignRight;
 		m_alignments[BookItem::Column::Lang] = Qt::AlignHCenter;
 
-#define BOOKS_COLUMN_ITEM(NAME) SetAlignment(m_alignments[BookItem::Column::NAME], *m_settings, #NAME);
+		const auto textDelegateDefault = std::make_shared<TextDelegateDefault>();
+
+#define BOOKS_COLUMN_ITEM(NAME) SetAlignment(m_alignments[BookItem::Column::NAME], *m_settings, #NAME); m_textDelegates[BookItem::Column::NAME] = textDelegateDefault;
 		BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
+
+		m_textDelegates[BookItem::Column::LibRate]   = std::make_shared<TextDelegateStars>(*m_settings, Constant::Settings::PREFER_LIB_RATE_STAR_SYMBOL_KEY);
+		m_textDelegates[BookItem::Column::UserRate]  = std::make_shared<TextDelegateStars>(*m_settings, Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY);
+		m_textDelegates[BookItem::Column::Size]      = std::make_shared<TextDelegateSize>();
+		m_textDelegates[BookItem::Column::SeqNumber] = m_textDelegates[BookItem::Column::Year] = std::make_shared<TextDelegateNumber>();
 	}
 
 private: // QStyledItemDelegate
@@ -214,7 +161,7 @@ private: // QStyledItemDelegate
 
 	QString displayText(const QVariant& value, const QLocale& /*locale*/) const override
 	{
-		return m_textDelegate(value);
+		return m_textDelegates[m_currentColumn]->GetString(value);
 	}
 
 private:
@@ -222,25 +169,17 @@ private:
 	{
 		const auto column  = index.data(Role::Remap).toInt();
 		o.displayAlignment = m_alignments[static_cast<size_t>(column)];
-
-		ValueGuard  valueGuard(m_textDelegate, FindSecond(DELEGATES, column, &PassThruDelegate));
-		const auto* renderer = FindSecond(m_rateRenderers, column, m_defaultRenderer.get());
-		renderer->Render(painter, o, index);
+		m_currentColumn    = column;
+		QStyledItemDelegate::paint(&painter, o, index);
 	}
 
 private:
 	QTreeView&                                              m_view;
 	const std::shared_ptr<const ISettings>                  m_settings;
-	mutable TextDelegate                                    m_textDelegate;
-	std::unique_ptr<const IBookRenderer>                    m_defaultRenderer { std::make_unique<BookRendererDefault>(*this) };
-	std::unique_ptr<const IBookRenderer>                    m_libRateRenderer;
-	std::unique_ptr<const IBookRenderer>                    m_userRateRenderer;
-	const std::vector<std::pair<int, const IBookRenderer*>> m_rateRenderers {
-		{  BookItem::Column::LibRate,  m_libRateRenderer.get() },
-		{ BookItem::Column::UserRate, m_userRateRenderer.get() },
-	};
 
-	std::array<Qt::Alignment, BookItem::Column::Last> m_alignments {};
+	std::array<Qt::Alignment, BookItem::Column::Last>                        m_alignments {};
+	std::array<std::shared_ptr<const ITextDelegate>, BookItem::Column::Last> m_textDelegates;
+	mutable size_t                                                           m_currentColumn { 0 };
 };
 
 TreeViewDelegateBooks::TreeViewDelegateBooks(const std::shared_ptr<const IUiFactory>& uiFactory, std::shared_ptr<const ISettings> settings)

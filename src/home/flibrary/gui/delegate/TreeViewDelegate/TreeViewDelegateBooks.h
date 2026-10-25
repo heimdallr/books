@@ -22,9 +22,6 @@ class TreeViewDelegateBooks final : public ITreeViewDelegate
 	NON_COPY_MOVABLE(TreeViewDelegateBooks)
 
 public:
-	using TextDelegate = QString (*)(const QVariant& value);
-
-public:
 	TreeViewDelegateBooks(const std::shared_ptr<const class IUiFactory>& uiFactory, std::shared_ptr<const ISettings> settings);
 	~TreeViewDelegateBooks() override;
 
