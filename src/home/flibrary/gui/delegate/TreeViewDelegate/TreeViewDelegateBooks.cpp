@@ -121,17 +121,16 @@ public:
 		, m_settings { std::move(settings) }
 	{
 		m_alignments.fill(Qt::AlignLeft);
-
 		for (const auto column : { BookItem::Column::Size, BookItem::Column::SeqNumber, BookItem::Column::Year })
 			m_alignments[column] = Qt::AlignRight;
 		m_alignments[BookItem::Column::Lang] = Qt::AlignHCenter;
 
-		const auto textDelegateDefault = std::make_shared<TextDelegateDefault>();
-
-#define BOOKS_COLUMN_ITEM(NAME) SetAlignment(m_alignments[BookItem::Column::NAME], *m_settings, #NAME); m_textDelegates[BookItem::Column::NAME] = textDelegateDefault;
+#define BOOKS_COLUMN_ITEM(NAME) SetAlignment(m_alignments[BookItem::Column::NAME], *m_settings, #NAME);
 		BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 
+		const auto textDelegateDefault = std::make_shared<TextDelegateDefault>();
+		m_textDelegates.fill(textDelegateDefault);
 		m_textDelegates[BookItem::Column::LibRate]   = std::make_shared<TextDelegateStars>(*m_settings, Constant::Settings::PREFER_LIB_RATE_STAR_SYMBOL_KEY);
 		m_textDelegates[BookItem::Column::UserRate]  = std::make_shared<TextDelegateStars>(*m_settings, Constant::Settings::PREFER_USER_RATE_STAR_SYMBOL_KEY);
 		m_textDelegates[BookItem::Column::Size]      = std::make_shared<TextDelegateSize>();
@@ -174,8 +173,8 @@ private:
 	}
 
 private:
-	QTreeView&                                              m_view;
-	const std::shared_ptr<const ISettings>                  m_settings;
+	QTreeView&                             m_view;
+	const std::shared_ptr<const ISettings> m_settings;
 
 	std::array<Qt::Alignment, BookItem::Column::Last>                        m_alignments {};
 	std::array<std::shared_ptr<const ITextDelegate>, BookItem::Column::Last> m_textDelegates;
