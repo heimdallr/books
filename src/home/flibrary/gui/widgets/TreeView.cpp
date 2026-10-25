@@ -136,7 +136,6 @@ struct CustomTreeView::Impl
 			if (readMarkPosition)
 				rect.setLeft(*readMarkPosition + *readMarkWidth / 2);
 			painter.drawLine(rect.topLeft(), rect.bottomLeft());
-			o.features &= ~QStyleOptionViewItem::Alternate;
 		}
 	}
 
@@ -179,6 +178,6 @@ void CustomTreeView::SetIsNavigation() noexcept
 
 void CustomTreeView::drawRow(QPainter* painter, const QStyleOptionViewItem& options, const QModelIndex& index) const
 {
-	m_impl->RenderReadMark(*painter, options, index);
 	QTreeView::drawRow(painter, options, index);
+	m_impl->RenderReadMark(*painter, options, index);
 }
