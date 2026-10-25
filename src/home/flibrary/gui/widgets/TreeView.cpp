@@ -120,8 +120,6 @@ struct CustomTreeView::Impl
 		if (readMarkBackgroundColor)
 			painter.fillRect(options.rect, *readMarkBackgroundColor);
 
-		const auto markColor = readMarkColor ? *readMarkColor : options.palette.color(QPalette::ColorRole::Text);
-
 		auto o = options;
 
 		if (index.data(Role::IsRemoved).toBool())
@@ -129,7 +127,7 @@ struct CustomTreeView::Impl
 
 		if (readMarkWidth && m_view.header()->visualIndex(index.column()) == 0 && !index.data(Role::UserRate).toString().isEmpty())
 		{
-			QPen pen(markColor, *readMarkWidth);
+			QPen pen(readMarkColor ? *readMarkColor : options.palette.color(QPalette::ColorRole::Text), *readMarkWidth);
 			pen.setCapStyle(Qt::FlatCap);
 			painter.setPen(pen);
 			auto rect = o.rect;

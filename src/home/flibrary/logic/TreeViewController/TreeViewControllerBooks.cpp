@@ -255,7 +255,7 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex& index) const
 				return item.template Get<QString>(0);
 			}) | std::ranges::to<QStringList>(),
 			[&](const int n) {
-				ILogicFactory::Lock(m_impl->logicFactory)->FindBook(navigationMode, ids[n]);
+				ILogicFactory::Lock(m_impl->logicFactory)->FindBook(navigationMode, ids[static_cast<qsizetype>(n)]);
 			}
 		);
 	}

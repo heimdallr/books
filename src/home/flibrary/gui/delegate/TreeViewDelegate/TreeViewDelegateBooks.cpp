@@ -165,8 +165,8 @@ private: // QStyledItemDelegate
 private:
 	void RenderBooks(QPainter& painter, QStyleOptionViewItem& o, const QModelIndex& index) const
 	{
-		const auto column  = index.data(Role::Remap).toInt();
-		o.displayAlignment = m_alignments[static_cast<size_t>(column)];
+		const auto column  = static_cast<size_t>(index.data(Role::Remap).toInt());
+		o.displayAlignment = m_alignments[column];
 
 		ValueGuard valueGuard(m_currentTextDelegate, m_textDelegates[column].get());
 		QStyledItemDelegate::paint(&painter, o, index);
