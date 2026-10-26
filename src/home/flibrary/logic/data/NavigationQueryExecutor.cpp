@@ -82,7 +82,6 @@ constexpr auto SEARCH_WITH_ANNOTATION = R"(
          join Search s on Annotations_Search match s.Title
 )";
 
-// A file name as an SQL string literal: an apostrophe in it (O'Brien.fb2) is doubled, otherwise it would end the literal
 QString ToSqlStringLiteral(QString value)
 {
 	return QString("'%1'").arg(value.replace('\'', "''"));
