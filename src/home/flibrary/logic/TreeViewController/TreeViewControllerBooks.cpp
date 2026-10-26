@@ -240,7 +240,7 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex& index) const
 			return ILogicFactory::Lock(m_impl->logicFactory)->FindBook(navigationMode, ids.front());
 
 		static constexpr std::pair<NavigationMode, const char*> descriptions[] {
-			{ NavigationMode::Authors, "select a.LastName || coalesce(' ' || nullif(a.FirstName, '') || coalesce(' ' || nullif(a.middleName, ''), ''), '') from Authors a where AuthorID in (%1)" },
+			{ NavigationMode::Authors, "select a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '') from Authors a where AuthorID in (%1)" },
 			{  NavigationMode::Series,                                                                                                    "select SeriesTitle from Series where SeriesID in (%1)" },
 		};
 
