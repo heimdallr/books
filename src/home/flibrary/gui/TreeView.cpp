@@ -591,6 +591,8 @@ private: // ITreeViewController::IObserver
 				return m_ui.treeView->collapseAll();
 			case BooksMenuAction::ExpandAll:
 				return m_ui.treeView->expandAll();
+			case BooksMenuAction::SetUserRate:
+				return m_ui.treeView->viewport()->update();
 			default:
 				break;
 		}

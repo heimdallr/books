@@ -5,6 +5,7 @@
 
 #include <functional>
 #include <memory>
+#include <ranges>
 #include <vector>
 
 #include "fnd/EnumBitmask.h"
@@ -13,15 +14,15 @@ namespace HomeCompa::Flibrary {
 
 enum class ItemType;
 
-#define DATA_ITEMS_X_MACRO                                                                                                                                                                                     \
-	DATA_ITEM(DataItem)                                                                                                                                                                                        \
-	DATA_ITEM(NavigationItem)                                                                                                                                                                                  \
-	DATA_ITEM(GenreItem)                                                                                                                                                                                       \
-	DATA_ITEM(AuthorItem)                                                                                                                                                                                      \
-	DATA_ITEM(SeriesItem)                                                                                                                                                                                      \
-	DATA_ITEM(ReviewItem)                                                                                                                                                                                      \
-	DATA_ITEM(BookItem)                                                                                                                                                                                        \
-	DATA_ITEM(MenuItem)                                                                                                                                                                                        \
+#define DATA_ITEMS_X_MACRO    \
+	DATA_ITEM(DataItem)       \
+	DATA_ITEM(NavigationItem) \
+	DATA_ITEM(GenreItem)      \
+	DATA_ITEM(AuthorItem)     \
+	DATA_ITEM(SeriesItem)     \
+	DATA_ITEM(ReviewItem)     \
+	DATA_ITEM(BookItem)       \
+	DATA_ITEM(MenuItem)       \
 	DATA_ITEM(SettingsItem)
 
 #define DATA_ITEM(NAME) class NAME; // NOLINT(bugprone-macro-parentheses)
@@ -87,6 +88,21 @@ public:
 	virtual Ptr  FindChild(const std::function<bool(const IDataItem&)>& functor) const                         = 0;
 	virtual void SortChildren(const std::function<bool(const IDataItem& lhs, const IDataItem& rhs)>& comparer) = 0;
 
+	bool Enumerate(const std::invocable<IDataItem&> auto& f)
+	{
+		auto result = f(*this);
+
+		return result
+		    && std::ranges::all_of(
+				   std::views::iota(size_t { 0 }, GetChildCount()) | std::views::transform([this](const size_t item) {
+					   return GetChild(item);
+				   }),
+				   [&](const Ptr& item) {
+					   return f(*item);
+				   }
+			);
+	}
+
 public:
 	template <typename T>
 	T* To() noexcept = delete;
@@ -98,14 +114,12 @@ public:
 	}
 
 private:
-#define DATA_ITEM(NAME)                                                                                                                                                                                        \
-	[[nodiscard]] virtual NAME *To##NAME() noexcept { return nullptr; } // NOLINT(bugprone-macro-parentheses)
+#define DATA_ITEM(NAME) [[nodiscard]] virtual NAME *To##NAME() noexcept { return nullptr; } // NOLINT(bugprone-macro-parentheses)
 	DATA_ITEMS_X_MACRO
 #undef DATA_ITEM
 };
 
-#define DATA_ITEM(NAME)                                                                                                                                                                                        \
-	template <> inline NAME *IDataItem::To<NAME>() noexcept { return To##NAME(); } // NOLINT(bugprone-macro-parentheses)
+#define DATA_ITEM(NAME) template <> inline NAME *IDataItem::To<NAME>() noexcept { return To##NAME(); } // NOLINT(bugprone-macro-parentheses)
 DATA_ITEMS_X_MACRO
 #undef DATA_ITEM
 

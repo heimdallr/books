@@ -62,6 +62,7 @@ struct Role
 		HideFiltered,
 		HideFilteredCallback,
 		ModelSorter,
+		SetForIds,
 		Last
 	};
 
@@ -75,10 +76,18 @@ struct SelectedRequest
 	QModelIndexList* result { nullptr };
 };
 
+struct SetForIdsArg
+{
+	std::unordered_set<long long> ids;
+	int                           column;
+	QString                       value;
+};
+
 using FastFilterItems = std::unordered_set<QVariant, Util::VariantHash>;
 
 } // namespace HomeCompa::Flibrary
 
 Q_DECLARE_METATYPE(HomeCompa::Flibrary::SelectedRequest)
+Q_DECLARE_METATYPE(HomeCompa::Flibrary::SetForIdsArg)
 Q_DECLARE_METATYPE(HomeCompa::Flibrary::FastFilterItems*)
 Q_DECLARE_METATYPE(const HomeCompa::Flibrary::FastFilterItems*)
