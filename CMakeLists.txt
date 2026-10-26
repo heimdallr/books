@@ -245,6 +245,8 @@ add_compile_definitions(LOCALIZED_APPLICATION)
 
 include_directories("${EXT_ROOT}/Hypodermic")
 
+enable_testing()
+
 include("src/ext/sqlite.cmake")
 include("src/home/home.cmake")
 
