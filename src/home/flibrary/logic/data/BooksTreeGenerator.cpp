@@ -114,7 +114,7 @@ IDataItem::Ptr CreateBooksRoot(const std::vector<const char*>& additionalColumns
 	return root;
 }
 
-IDataItem::Items GetJoinedBooks(std::unordered_map<QString, IDataItem::Items> bookNames)
+IDataItem::Items GetJoinedBooks(std::unordered_map<QString, IDataItem::Items>&& bookNames)
 {
 	IDataItem::Items books;
 
@@ -773,9 +773,9 @@ join Keywords k on k.KeywordID = l.KeywordID
 		}
 
 		for (auto&& [series, items] : bookNames | std::views::values)
-			series->SetChildren(GetJoinedBooks(items));
+			series->SetChildren(GetJoinedBooks(std::move(items)));
 
-		for (auto&& item : GetJoinedBooks(bookNamesWoSeries))
+		for (auto&& item : GetJoinedBooks(std::move(bookNamesWoSeries)))
 			rootCached->AppendChild(std::move(item));
 	}
 
