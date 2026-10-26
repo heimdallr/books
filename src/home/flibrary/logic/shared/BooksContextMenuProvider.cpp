@@ -116,20 +116,31 @@ constexpr std::pair<int, IContextMenuHandler::Function> MENU_HANDLERS[] {
 
 void CreateMyRateMenu(const IDataItem::Ptr& root, const QString& id, DB::IDatabase& db, const int starSymbol)
 {
-	const auto parent = AddMenuItem(root, MARK_AS_READ, Tr(MARK_AS_READ));
-	AddMenuItem(parent, WITHOUT_RATE, Tr(WITHOUT_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter);
-	const auto myRate = AddMenuItem(parent, SET_MY_RATE, Tr(SET_MY_RATE));
-	for (int rate = 5; rate > 0; --rate)
-		AddMenuItem(myRate, QString("setRate%1").arg(rate), QString(rate, QChar(starSymbol)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
-
 	const auto query = db.CreateQuery(USER_RATE_QUERY);
 	query->Execute(id.toInt());
 	assert(!query->Eof());
-	if (const auto currentUserRate = query->Get<int>(0); currentUserRate < 0)
-		return;
+	const auto currentUserRate = query->Get<int>(0);
+
+	const auto setEnabled = [](IDataItem& item, const bool enabled) {
+		item.SetData(QVariant::fromValue(true).toString(), MenuItem::Column::Checkable)
+			.SetData(QVariant::fromValue(enabled).toString(), MenuItem::Column::Enabled)
+			.SetData(QVariant::fromValue(!enabled).toString(), MenuItem::Column::Checked);
+	};
+
+	const auto parent = AddMenuItem(root, MARK_AS_READ, Tr(MARK_AS_READ));
+	setEnabled(AddMenuItem(parent, WITHOUT_RATE, Tr(WITHOUT_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter), currentUserRate != 0);
+	const auto myRate = AddMenuItem(parent, SET_MY_RATE, Tr(SET_MY_RATE));
+
+	for (int rate = 5; rate > 0; --rate)
+		setEnabled(
+			AddMenuItem(myRate, QString("setRate%1").arg(rate), QString(rate, QChar(starSymbol)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter),
+			currentUserRate != rate
+		);
 
 	AddMenuItem(parent)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-	AddMenuItem(parent, REMOVE_MY_RATE, Tr(REMOVE_MY_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+	AddMenuItem(parent, REMOVE_MY_RATE, Tr(REMOVE_MY_RATE), BooksMenuAction::SetUserRate)
+		->SetData(QString::number(-1), MenuItem::Column::Parameter)
+		.SetData(QVariant::fromValue(currentUserRate >= 0).toString(), MenuItem::Column::Enabled);
 }
 
 void CreateSendMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options, const IScriptController::Scripts& scripts)
