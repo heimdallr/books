@@ -99,9 +99,6 @@ constexpr auto OPDS_SEPARATED_SEARCH   = "Preferences/opds/SeparatedSearch";
 
 TR_DEF
 
-// The shared author name, padded so it can sit between SQL keywords: "select" FULL_AUTHOR_NAME "from"
-#define FULL_AUTHOR_NAME " " FLIBRARY_SQL_AUTHOR_NAME " "
-
 constexpr auto AUTHOR_COUNT  = "with WithTable(Id) as (select distinct l.AuthorID from Author_List l %1) select '%2', count(42) from WithTable";
 constexpr auto SERIES_COUNT  = "with WithTable(Id) as (select distinct l.SeriesID from Series_List l %1) select '%2', count(42) from WithTable";
 constexpr auto GENRE_COUNT   = "with WithTable(Id) as (select distinct l.GenreCode from Genre_List l %1) select '%2', count(42) from WithTable";

@@ -82,8 +82,12 @@ constexpr auto SEARCH_WITH_ANNOTATION = R"(
          join Search s on Annotations_Search match s.Title
 )";
 
-// The file name match binds the origin's base name and extension: a file name may well contain an apostrophe
-BoundSql GetSearchWith(DB::IDatabase& db, const ISettings& settings, const QString& id)
+QString ToSqlStringLiteral(QString value)
+{
+	return QString("'%1'").arg(value.replace('\'', "''"));
+}
+
+QString GetSearchWith(DB::IDatabase& db, const ISettings& settings, const QString& id)
 {
 	QStringList result;
 	BoundSql    fileNameMatch;
@@ -103,13 +107,9 @@ BoundSql GetSearchWith(DB::IDatabase& db, const ISettings& settings, const QStri
 			if (!query->IsNull(0))
 			{
 				const QFileInfo fileInfo(query->Get<const char*>(0));
-				QString         searchWithFileNameQueryText("\n\tselect BookID\n\t\tfrom Books\n\t\twhere FileName = :search_file_name");
-				fileNameMatch.AddValue(":search_file_name", BoundSql::TextValue(fileInfo.completeBaseName()));
+				auto            searchWithFileNameQueryText = QString("\n\tselect BookID\n\t\tfrom Books\n\t\twhere FileName = %1").arg(ToSqlStringLiteral(fileInfo.completeBaseName()));
 				if (const auto suffix = fileInfo.suffix(); !suffix.isEmpty())
-				{
-					searchWithFileNameQueryText.append(" and lower(Ext) = :search_file_ext");
-					fileNameMatch.AddValue(":search_file_ext", BoundSql::TextValue("." + suffix.toLower()));
-				}
+					searchWithFileNameQueryText.append(QString(" and lower(Ext) = %1").arg(ToSqlStringLiteral("." + suffix.toLower())));
 				result << std::move(searchWithFileNameQueryText);
 			}
 		}
