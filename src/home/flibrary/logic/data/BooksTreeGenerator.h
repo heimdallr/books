@@ -5,6 +5,8 @@
 
 #include "interface/constants/Enums.h"
 
+#include "database/BoundSql.h"
+
 #include "DataItem.h"
 
 namespace HomeCompa {
@@ -76,11 +78,21 @@ public:
 
 using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query);
 
+// The where clauses refer to the selected navigation item as NAVIGATION_ID_PLACEHOLDER, which is bound as a parameter
+constexpr auto NAVIGATION_ID_PLACEHOLDER = ":navigationId";
+
 struct QueryClause
 {
-	using WithGetter = QString (*)(DB::IDatabase& db, const ISettings& settings, const QString& id);
+	using WithGetter = BoundSql (*)(DB::IDatabase& db, const ISettings& settings, const QString& id);
 
-	static QString GetWithStub(DB::IDatabase&, const ISettings&, const QString&)
+	// How the navigation id compares with the column in the where clauses
+	enum class IdType
+	{
+		Integer,
+		Text,
+	};
+
+	static BoundSql GetWithStub(DB::IDatabase&, const ISettings&, const QString&)
 	{
 		return {};
 	}
@@ -91,6 +103,7 @@ struct QueryClause
 	const char* navigationWhere { "" };
 	const char* additionalFields { "" };
 	WithGetter  with { &GetWithStub };
+	IdType      navigationIdType { IdType::Integer };
 };
 
 struct QueryDescription

@@ -458,16 +458,33 @@ private:
 		return QString::fromStdString(std::string(str)).arg(QString::fromStdString(DatabaseUtil::GetHistoryTableName(m_settings))).toStdString();
 	}
 
+	// A where clause of the book queries, with the navigation id bound when the clause refers to it
+	BoundSql CreateWhere(const char* text, const QueryClause& queryClause) const
+	{
+		BoundSql result { QString(text) };
+		if (result.Text().contains(NAVIGATION_ID_PLACEHOLDER))
+			result.AddValue(NAVIGATION_ID_PLACEHOLDER, queryClause.navigationIdType == QueryClause::IdType::Text ? BoundSql::TextValue(navigationId) : BoundSql::IntegerValue(navigationId));
+		return result;
+	}
+
+	// Creates a query from the text built with the with and where clauses, and binds the values of both
+	std::unique_ptr<DB::IQuery> CreateBookQuery(DB::IDatabase& db, const std::string_view text, const BoundSql& with, const BoundSql& where) const
+	{
+		auto query = db.CreateQuery(PrepareBookQuery(text));
+		with.Bind(*query);
+		where.Bind(*query);
+		return query;
+	}
+
 	void CreateSelectedBookItems(DB::IDatabase& db, const QueryClause& queryClause, const SelectAdditional& additional)
 	{
-		const auto with = queryClause.with(db, m_settings, navigationId).toStdString();
+		const auto boundWith = queryClause.with(db, m_settings, navigationId);
+		const auto with      = boundWith.Text().toStdString();
 
 		{
-			QString booksWhere = queryClause.booksWhere;
-			if (!booksWhere.isEmpty() && booksWhere.contains('%'))
-				booksWhere = booksWhere.arg(navigationId);
-
-			for (const auto  query = db.CreateQuery(PrepareBookQuery(std::format(DatabaseUtil::BOOKS_QUERY, with, queryClause.additionalFields, queryClause.booksFrom, booksWhere.toStdString())));
+			const auto booksWhere = CreateWhere(queryClause.booksWhere, queryClause);
+			for (const auto query =
+			         CreateBookQuery(db, std::format(DatabaseUtil::BOOKS_QUERY, with, queryClause.additionalFields, queryClause.booksFrom, booksWhere.Text().toStdString()), boundWith, booksWhere);
 			     const auto& rec : *query)
 			{
 				auto& book = m_books[rec.Get<long long>(BookQueryFields::BookId)];
@@ -487,12 +504,8 @@ private:
 			book.SetFlags(toSet);
 		};
 
-		auto where = [&] {
-			QString result(queryClause.navigationWhere);
-			if (!result.isEmpty() && result.contains('%'))
-				result = result.arg(navigationId);
-			return result.toStdString();
-		}();
+		const auto boundWhere = CreateWhere(queryClause.navigationWhere, queryClause);
+		const auto where      = boundWhere.Text().toStdString();
 
 		{
 			static constexpr auto queryText = R"({}
@@ -504,7 +517,7 @@ join Series s on s.SeriesID = l.SeriesID
 )";
 
 			BookToFlag flags;
-			for (const auto query = db.CreateQuery(PrepareBookQuery(std::format(queryText, with, queryClause.navigationFrom, where))); const auto& rec : *query)
+			for (const auto query = CreateBookQuery(db, std::format(queryText, with, queryClause.navigationFrom, where), boundWith, boundWhere); const auto& rec : *query)
 			{
 				const auto id   = rec.Get<long long>(0);
 				auto&      item = m_series[id];
@@ -538,7 +551,7 @@ join Authors a on a.AuthorID = l.AuthorID
 )";
 
 			BookToFlag flags;
-			for (const auto query = db.CreateQuery(PrepareBookQuery(std::format(queryText, with, queryClause.navigationFrom, where))); const auto& rec : *query)
+			for (const auto query = CreateBookQuery(db, std::format(queryText, with, queryClause.navigationFrom, where), boundWith, boundWhere); const auto& rec : *query)
 			{
 				auto  id   = rec.Get<long long>(0);
 				auto& item = m_authors[id];
@@ -565,7 +578,7 @@ join Genres g on g.GenreCode = l.GenreCode
 )";
 
 			BookToFlag flags;
-			for (const auto query = db.CreateQuery(PrepareBookQuery(std::format(queryText, with, queryClause.navigationFrom, where))); const auto& rec : *query)
+			for (const auto query = CreateBookQuery(db, std::format(queryText, with, queryClause.navigationFrom, where), boundWith, boundWhere); const auto& rec : *query)
 			{
 				QString id   = rec.Get<const char*>(0);
 				auto&   item = m_genres[id];
@@ -592,7 +605,7 @@ join Keywords k on k.KeywordID = l.KeywordID
 )";
 
 			BookToFlag flags;
-			for (const auto query = db.CreateQuery(PrepareBookQuery(std::format(queryText, with, queryClause.navigationFrom, where))); const auto& rec : *query)
+			for (const auto query = CreateBookQuery(db, std::format(queryText, with, queryClause.navigationFrom, where), boundWith, boundWhere); const auto& rec : *query)
 				m_keywordsFlagAccumulator(flags, rec.Get<long long>(1), static_cast<IDataItem::Flags>(rec.Get<int>(0)));
 			if (filterProvider.IsFilterEnabled())
 				for (const auto& [bookId, flag] : flags)

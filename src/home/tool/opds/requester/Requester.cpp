@@ -27,6 +27,8 @@
 
 #include "genre/Genre.h"
 #include "logic/data/DataItem.h"
+#include "logic/database/BoundSql.h"
+#include "logic/database/DatabaseUtil.h"
 #include "util/AnnotationControllerObserver.h"
 #include "util/BookView.h"
 #include "util/Fb2InpxParser.h"
@@ -53,6 +55,7 @@ OPDS_REQUEST_ROOT_ITEMS_X_MACRO
 
 using namespace HomeCompa;
 using namespace Opds;
+using Flibrary::BoundSql;
 
 namespace {
 
@@ -96,7 +99,8 @@ constexpr auto OPDS_SEPARATED_SEARCH   = "Preferences/opds/SeparatedSearch";
 
 TR_DEF
 
-#define FULL_AUTHOR_NAME " a.LastName || coalesce(' ' || nullif(a.FirstName, '') || coalesce(' ' || nullif(a.middleName, ''), ''), '') "
+// The shared author name, padded so it can sit between SQL keywords: "select" FULL_AUTHOR_NAME "from"
+#define FULL_AUTHOR_NAME " " FLIBRARY_SQL_AUTHOR_NAME " "
 
 constexpr auto AUTHOR_COUNT  = "with WithTable(Id) as (select distinct l.AuthorID from Author_List l %1) select '%2', count(42) from WithTable";
 constexpr auto SERIES_COUNT  = "with WithTable(Id) as (select distinct l.SeriesID from Series_List l %1) select '%2', count(42) from WithTable";
@@ -397,70 +401,9 @@ struct NavigationDescription;
 
 // A join built from request parameters. Its text holds only named placeholders, and the request values are bound to them
 // on every query that uses the join, so a value from the request never becomes part of the SQL text
-class ParameterJoin
-{
-public:
-	// No value (an id that is not a number) binds NULL, which matches nothing
-	using Value = std::variant<std::monostate, long long, std::string>;
 
-	ParameterJoin() = default;
-
-	explicit ParameterJoin(QString text)
-		: m_text { std::move(text) }
-	{
-	}
-
-	[[nodiscard]] const QString& Text() const noexcept
-	{
-		return m_text;
-	}
-
-	[[nodiscard]] bool IsEmpty() const noexcept
-	{
-		return m_text.isEmpty();
-	}
-
-	void Add(const QString& text, std::string placeholder, Value value)
-	{
-		Append(text);
-		m_values.emplace_back(std::move(placeholder), std::move(value));
-	}
-
-	void Append(const QString& text)
-	{
-		m_text = m_text.isEmpty() ? text : QString("%1\n%2").arg(m_text, text);
-	}
-
-	[[nodiscard]] ParameterJoin Prepended(const QString& text) const
-	{
-		auto result   = *this;
-		result.m_text = QString("%1\n%2").arg(text, m_text);
-		return result;
-	}
-
-	void Bind(DB::IQuery& query) const
-	{
-		for (const auto& [placeholder, value] : m_values)
-			std::visit(
-				[&]<typename T>(const T& v) {
-					if constexpr (std::is_same_v<T, std::monostate>)
-						query.Bind(placeholder);
-					else if constexpr (std::is_same_v<T, long long>)
-						query.BindLong(placeholder, v);
-					else
-						query.BindString(placeholder, std::string_view { v });
-				},
-				value
-			);
-	}
-
-private:
-	QString                                    m_text;
-	std::vector<std::pair<std::string, Value>> m_values;
-};
-
-void WriteBookEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase&, const IQueryTextFilter&, ParameterJoin, std::map<QString, QString>&&);
-void WriteNavigationEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase&, const IQueryTextFilter&, ParameterJoin, std::map<QString, QString>&&);
+void WriteBookEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase&, const IQueryTextFilter&, BoundSql, std::map<QString, QString>&&);
+void WriteNavigationEntries(Node::Children&, const QString&, IRequester::Parameters, const NavigationDescription&, DB::IDatabase&, const IQueryTextFilter&, BoundSql, std::map<QString, QString>&&);
 
 class INavigationProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -479,7 +422,7 @@ using WriteEntries  = void (*)(
     const NavigationDescription& d,
     DB::IDatabase&               db,
     const IQueryTextFilter&      queryTextFilter,
-    ParameterJoin                join,
+    BoundSql                     join,
     std::map<QString, QString>&& ones
 );
 
@@ -547,7 +490,7 @@ void WriteBookEntries(
 	const NavigationDescription& d,
 	DB::IDatabase&               db,
 	const IQueryTextFilter&      queryTextFilter,
-	ParameterJoin,
+	BoundSql,
 	std::map<QString, QString>&& ones
 )
 {
@@ -588,12 +531,12 @@ void WriteNavigationEntries(
 	const NavigationDescription& d,
 	DB::IDatabase&               db,
 	const IQueryTextFilter&      queryTextFilter,
-	ParameterJoin                join,
+	BoundSql                     join,
 	std::map<QString, QString>&& ones
 )
 {
 	if (join.IsEmpty())
-		join = ParameterJoin(QString("join Books_View_Opds b on b.BookID = l.BookID\n%1").arg(d.joinSelect));
+		join = BoundSql(QString("join Books_View_Opds b on b.BookID = l.BookID\n%1").arg(d.joinSelect));
 
 	for (auto&& [navigationId, title] : ones)
 	{
@@ -659,19 +602,14 @@ Node GetHead(QString id, QString title, QString root, QString self)
 }
 
 // Genre codes are text; every other navigation id is an integer, and one that is not a number binds NULL (matches nothing)
-ParameterJoin::Value ToBindValue(const NavigationDescription& item, const QString& value)
+BoundSql::Value ToBindValue(const NavigationDescription& item, const QString& value)
 {
-	if (std::string_view(item.type) == Loc::Genres)
-		return value.toStdString();
-
-	bool       ok = false;
-	const auto id = value.toLongLong(&ok);
-	return ok ? ParameterJoin::Value { id } : ParameterJoin::Value {};
+	return std::string_view(item.type) == Loc::Genres ? BoundSql::TextValue(value) : BoundSql::IntegerValue(value);
 }
 
-ParameterJoin GetJoin(const IRequester::Parameters& parameters)
+BoundSql GetJoin(const IRequester::Parameters& parameters)
 {
-	ParameterJoin join;
+	BoundSql join;
 	for (const auto& item : NAVIGATION_DESCRIPTION)
 	{
 		if (!item.joinParameters || !parameters.contains(item.type))
@@ -1253,7 +1191,7 @@ private: // INavigationProvider
 			p.erase(d.type);
 			auto result = GetJoin(p);
 			if (result.IsEmpty())
-				return ParameterJoin(QString("join Books_View_Opds b on b.BookID = l.BookID"));
+				return BoundSql(QString("join Books_View_Opds b on b.BookID = l.BookID"));
 			return result;
 		}();
 

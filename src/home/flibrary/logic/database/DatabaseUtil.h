@@ -4,6 +4,10 @@
 
 #include "interface/logic/IDataItem.h"
 
+// An author's display name, "Last First Middle", for the Authors table under the alias "a", shared by the desktop app, OPDS and
+// the web app. Empty parts add no spaces, and a missing first name keeps the middle name. A macro so it can be pasted into SQL literals.
+#define FLIBRARY_SQL_AUTHOR_NAME "a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '')"
+
 namespace HomeCompa {
 
 class ISettings;

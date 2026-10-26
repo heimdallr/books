@@ -13,6 +13,7 @@
 
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
+#include "database/DatabaseUtil.h"
 #include "shared/BooksContextMenuProvider.h"
 
 #include "log.h"
@@ -240,16 +241,22 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex& index) const
 			return ILogicFactory::Lock(m_impl->logicFactory)->FindBook(navigationMode, ids.front());
 
 		static constexpr std::pair<NavigationMode, const char*> descriptions[] {
-			{ NavigationMode::Authors, "select a.LastName || coalesce(' ' || nullif(a.FirstName, '') || coalesce(' ' || nullif(a.middleName, ''), ''), '') from Authors a where AuthorID in (%1)" },
-			{  NavigationMode::Series,                                                                                                    "select SeriesTitle from Series where SeriesID in (%1)" },
+			{ NavigationMode::Authors, "select " FLIBRARY_SQL_AUTHOR_NAME " from Authors a where a.AuthorID in (%1)" },
+			{  NavigationMode::Series,                       "select SeriesTitle from Series where SeriesID in (%1)" },
 		};
 
 		const auto* queryText = FindSecond(descriptions, navigationMode, nullptr);
 		if (!queryText)
 			return;
 
+		// One bound parameter per id
+		QStringList placeholders;
+		placeholders.fill("?", ids.size());
+
 		const auto db    = m_impl->databaseUser->Database();
-		const auto query = db->CreateQuery(QString(queryText).arg(ids.join(',')));
+		const auto query = db->CreateQuery(QString(queryText).arg(placeholders.join(',')));
+		for (qsizetype i = 0, sz = ids.size(); i < sz; ++i)
+			query->Bind(static_cast<size_t>(i), ids[i].toLongLong());
 		return m_impl->uiFactory->ExecMenu(
 			*query | std::views::transform([](const auto& item) {
 				return item.template Get<QString>(0);

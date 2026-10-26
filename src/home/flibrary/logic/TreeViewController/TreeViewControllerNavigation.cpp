@@ -17,6 +17,7 @@
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
+#include "database/DatabaseUtil.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/MenuItems.h"
 #include "util/FunctorExecutionForwarder.h"
@@ -625,9 +626,7 @@ private: // IContextMenuProvider
 			AddMenuItem(subMenu, ALL, ALL, removeAllCommandId);
 		};
 
-		constexpr auto authorsQueryText =
-			"select a.AuthorID, a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '') from Authors a join Groups_List_User glu on "
-			"glu.ObjectID = a.AuthorID and glu.GroupID = ?";
+		constexpr auto authorsQueryText  = "select a.AuthorID, " FLIBRARY_SQL_AUTHOR_NAME " from Authors a join Groups_List_User glu on glu.ObjectID = a.AuthorID and glu.GroupID = ?";
 		constexpr auto seriesQueryText   = "select s.SeriesID, s.SeriesTitle from Series s join Groups_List_User glu on glu.ObjectID = s.SeriesID and glu.GroupID = ?";
 		constexpr auto keywordsQueryText = "select k.KeywordID, k.KeywordTitle from Keywords k join Groups_List_User glu on glu.ObjectID = k.KeywordID and glu.GroupID = ?";
 
