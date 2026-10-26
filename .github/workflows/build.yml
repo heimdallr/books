@@ -204,6 +204,15 @@ jobs:
             -DNPM_EXECUTABLE="$NPM_PATH"
           cmake --build build/linux --config "${BUILD_TYPE}" --parallel 2
 
+      - name: OPDS server HTTP tests
+        run: src/home/tool/opds/test/http_test.sh build/linux
+
+      - name: GUI start-up tests
+        run: src/home/flibrary/test/gui_startup_test.sh build/linux
+
+      - name: GUI tests (Qt Test, via ctest)
+        run: ctest --test-dir build/linux --output-on-failure
+
       - name: Package and smoke test
         env:
           CC: gcc-14
@@ -236,10 +245,9 @@ jobs:
           tar -xJf "${archive}" -C "${smoke_dir}"
           binary="$(find "${smoke_dir}" -type f -name FLibrary -perm -111 -print -quit)"
           test -n "${binary}"
-          xvfb-run -a env \
-            LD_LIBRARY_PATH="$(dirname "${binary}")/lib" \
-            ICU_DATA="$(dirname "${binary}")/lib" \
-            timeout 30 "${binary}" --version
+          test -f "$(dirname "${binary}")/lib/compat/libstdc++.so.6"
+          test -f "$(dirname "${binary}")/lib/compat/libgcc_s.so.1"
+          xvfb-run -a timeout 30 "$(dirname "${binary}")/start.sh" --version
           dpkg-deb --info "${package}" >/dev/null
           (cd "${artifact_dir}" && sha256sum FLibrary-* > SHA256SUMS)
 
