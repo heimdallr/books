@@ -170,6 +170,13 @@ bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const i
 		case Role::ColumnCount:
 			return Util::Set(m_columnCount, value.toInt());
 
+		case Role::SetForIds:
+			return m_data && m_data->Enumerate([args = value.value<SetForIdsArg>()](IDataItem& item) {
+				if (args.ids.contains(item.GetId().toLongLong()))
+					item.SetData(args.value, args.column);
+				return true;
+			});
+
 		default:
 			break;
 	}
