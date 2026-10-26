@@ -82,6 +82,11 @@ constexpr auto SEARCH_WITH_ANNOTATION = R"(
          join Search s on Annotations_Search match s.Title
 )";
 
+QString ToSqlStringLiteral(QString value)
+{
+	return QString("'%1'").arg(value.replace('\'', "''"));
+}
+
 QString GetSearchWith(DB::IDatabase& db, const ISettings& settings, const QString& id)
 {
 	QStringList result;
@@ -99,9 +104,9 @@ QString GetSearchWith(DB::IDatabase& db, const ISettings& settings, const QStrin
 			if (!query->IsNull(0))
 			{
 				const QFileInfo fileInfo(query->Get<const char*>(0));
-				auto            searchWithFileNameQueryText = QString("\n\tselect BookID\n\t\tfrom Books\n\t\twhere FileName = '%1'").arg(fileInfo.completeBaseName());
+				auto            searchWithFileNameQueryText = QString("\n\tselect BookID\n\t\tfrom Books\n\t\twhere FileName = %1").arg(ToSqlStringLiteral(fileInfo.completeBaseName()));
 				if (const auto suffix = fileInfo.suffix(); !suffix.isEmpty())
-					searchWithFileNameQueryText.append(QString(" and lower(Ext) = '.%1'").arg(suffix.toLower()));
+					searchWithFileNameQueryText.append(QString(" and lower(Ext) = %1").arg(ToSqlStringLiteral("." + suffix.toLower())));
 				result << std::move(searchWithFileNameQueryText);
 			}
 		}

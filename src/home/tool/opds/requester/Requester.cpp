@@ -95,7 +95,7 @@ constexpr auto OPDS_SEPARATED_SEARCH   = "Preferences/opds/SeparatedSearch";
 
 TR_DEF
 
-#define FULL_AUTHOR_NAME " a.LastName || coalesce(' ' || nullif(a.FirstName, '') || coalesce(' ' || nullif(a.middleName, ''), ''), '') "
+#define FULL_AUTHOR_NAME " a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '') "
 
 constexpr auto AUTHOR_COUNT  = "with WithTable(Id) as (select distinct l.AuthorID from Author_List l %1) select '%2', count(42) from WithTable";
 constexpr auto SERIES_COUNT  = "with WithTable(Id) as (select distinct l.SeriesID from Series_List l %1) select '%2', count(42) from WithTable";
