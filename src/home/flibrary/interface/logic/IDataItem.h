@@ -88,7 +88,7 @@ public:
 	virtual Ptr  FindChild(const std::function<bool(const IDataItem&)>& functor) const                         = 0;
 	virtual void SortChildren(const std::function<bool(const IDataItem& lhs, const IDataItem& rhs)>& comparer) = 0;
 
-	bool Enumerate(const std::invocable<IDataItem&> auto& f)
+	bool Enumerate(const std::predicate<IDataItem&> auto& f)
 	{
 		auto result = f(*this);
 
