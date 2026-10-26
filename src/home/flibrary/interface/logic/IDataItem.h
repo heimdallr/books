@@ -98,7 +98,7 @@ public:
 					   return GetChild(item);
 				   }),
 				   [&](const Ptr& item) {
-					   return f(*item);
+					   return item->Enumerate(f);
 				   }
 			);
 	}
