@@ -1,0 +1,82 @@
+{
+    "version": "2.0.0",
+    "options": {
+        "env": {
+            "CC": "gcc-14",
+            "CXX": "g++-14",
+            "PATH": "${env:HOME}/.local/bin:${env:PATH}"
+        }
+    },
+    "tasks": [
+        {
+            "label": "FLibrary: configure",
+            "detail": "CMake configure into build/ (runs conan install); in its own memory-limited scope so a heavy build cannot get VS Code killed",
+            "type": "process",
+            "command": "systemd-run",
+            "args": [
+                "--user", "--scope", "--quiet", "--collect",
+                "-p", "MemoryHigh=7G", "-p", "MemoryMax=9G",
+                "cmake", "-S", "${workspaceFolder}", "-B", "${workspaceFolder}/build", "-G", "Ninja",
+                "-DCMAKE_BUILD_TYPE=Release",
+                "-DQt6_DIR=${env:HOME}/Qt/6.11.1/gcc_64/lib/cmake/Qt6",
+                "-D7zip_BIN_DIR=/usr/lib/7zip",
+                "-DNPM_EXECUTABLE=/usr/bin/npm",
+                "-DCPACK_GENERATOR=TXZ",
+                "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "FLibrary: build",
+            "detail": "Build everything in build/ with 8 parallel jobs, in its own memory-limited scope",
+            "type": "process",
+            "command": "systemd-run",
+            "args": [
+                "--user", "--scope", "--quiet", "--collect",
+                "-p", "MemoryHigh=7G", "-p", "MemoryMax=9G",
+                "cmake", "--build", "${workspaceFolder}/build", "--parallel", "8"
+            ],
+            "group": { "kind": "build", "isDefault": true },
+            "problemMatcher": { "base": "$gcc", "fileLocation": ["autoDetect", "${workspaceFolder}/build"] }
+        },
+        {
+            "label": "FLibrary: configure (debug)",
+            "detail": "CMake Debug configure into build-debug/ (Debug conan packages, symbols kept), in its own memory-limited scope",
+            "type": "process",
+            "command": "systemd-run",
+            "args": [
+                "--user", "--scope", "--quiet", "--collect",
+                "-p", "MemoryHigh=7G", "-p", "MemoryMax=9G",
+                "cmake", "-S", "${workspaceFolder}", "-B", "${workspaceFolder}/build-debug", "-G", "Ninja",
+                "-DCMAKE_BUILD_TYPE=Debug",
+                "-DQt6_DIR=${env:HOME}/Qt/6.11.1/gcc_64/lib/cmake/Qt6",
+                "-D7zip_BIN_DIR=/usr/lib/7zip",
+                "-DNPM_EXECUTABLE=/usr/bin/npm",
+                "-DCMAKE_EXPORT_COMPILE_COMMANDS=ON"
+            ],
+            "problemMatcher": []
+        },
+        {
+            "label": "FLibrary: build (debug)",
+            "detail": "Build everything in build-debug/ with 8 parallel jobs, in its own memory-limited scope",
+            "type": "process",
+            "command": "systemd-run",
+            "args": [
+                "--user", "--scope", "--quiet", "--collect",
+                "-p", "MemoryHigh=7G", "-p", "MemoryMax=9G",
+                "cmake", "--build", "${workspaceFolder}/build-debug", "--parallel", "8"
+            ],
+            "group": "build",
+            "problemMatcher": { "base": "$gcc", "fileLocation": ["autoDetect", "${workspaceFolder}/build-debug"] }
+        },
+        {
+            "label": "FLibrary: tests",
+            "detail": "OPDS HTTP tests, GUI start-up tests and the Qt Test GUI suite (ctest) against build/",
+            "type": "shell",
+            "command": "src/home/tool/opds/test/http_test.sh build && src/home/flibrary/test/gui_startup_test.sh build && ctest --test-dir build --output-on-failure",
+            "options": { "cwd": "${workspaceFolder}" },
+            "group": "test",
+            "problemMatcher": []
+        }
+    ]
+}
