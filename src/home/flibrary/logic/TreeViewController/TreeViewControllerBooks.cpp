@@ -13,6 +13,7 @@
 
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
+#include "database/DatabaseUtil.h"
 #include "shared/BooksContextMenuProvider.h"
 
 #include "log.h"
@@ -232,7 +233,7 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex& index) const
 		if (navigationMode == NavigationMode::Unknown)
 			return;
 
-		const auto ids = index.data(Role::Id).toString().split('|');
+		const auto ids = index.data(Role::Id).toString().split('|', Qt::SkipEmptyParts);
 		if (ids.isEmpty())
 			return;
 
@@ -240,16 +241,22 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex& index) const
 			return ILogicFactory::Lock(m_impl->logicFactory)->FindBook(navigationMode, ids.front());
 
 		static constexpr std::pair<NavigationMode, const char*> descriptions[] {
-			{ NavigationMode::Authors, "select a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '') from Authors a where AuthorID in (%1)" },
-			{  NavigationMode::Series,                                                                                                    "select SeriesTitle from Series where SeriesID in (%1)" },
+			{ NavigationMode::Authors, "select " FLIBRARY_SQL_FULL_AUTHOR_NAME " from Authors a where AuthorID in (%1)" },
+			{  NavigationMode::Series,                          "select SeriesTitle from Series where SeriesID in (%1)" },
 		};
 
 		const auto* queryText = FindSecond(descriptions, navigationMode, nullptr);
 		if (!queryText)
 			return;
 
+		QStringList placeholders;
+		placeholders.fill("?", ids.size());
+
 		const auto db    = m_impl->databaseUser->Database();
-		const auto query = db->CreateQuery(QString(queryText).arg(ids.join(',')));
+		const auto query = db->CreateQuery(QString(queryText).arg(placeholders.join(',')));
+		for (auto binder = query->Binder(); const auto& id : ids)
+			binder << id.toLongLong();
+
 		return m_impl->uiFactory->ExecMenu(
 			*query | std::views::transform([](const auto& item) {
 				return item.template Get<QString>(0);

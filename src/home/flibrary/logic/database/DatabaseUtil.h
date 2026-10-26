@@ -4,6 +4,8 @@
 
 #include "interface/logic/IDataItem.h"
 
+#define FLIBRARY_SQL_FULL_AUTHOR_NAME "a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '')"
+
 namespace HomeCompa {
 
 class ISettings;

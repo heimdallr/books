@@ -26,6 +26,7 @@
 
 #include "genre/Genre.h"
 #include "logic/data/DataItem.h"
+#include "logic/database/DatabaseUtil.h"
 #include "util/AnnotationControllerObserver.h"
 #include "util/BookView.h"
 #include "util/Fb2InpxParser.h"
@@ -95,8 +96,6 @@ constexpr auto OPDS_SEPARATED_SEARCH   = "Preferences/opds/SeparatedSearch";
 
 TR_DEF
 
-#define FULL_AUTHOR_NAME " a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '') "
-
 constexpr auto AUTHOR_COUNT  = "with WithTable(Id) as (select distinct l.AuthorID from Author_List l %1) select '%2', count(42) from WithTable";
 constexpr auto SERIES_COUNT  = "with WithTable(Id) as (select distinct l.SeriesID from Series_List l %1) select '%2', count(42) from WithTable";
 constexpr auto GENRE_COUNT   = "with WithTable(Id) as (select distinct l.GenreCode from Genre_List l %1) select '%2', count(42) from WithTable";
@@ -122,7 +121,7 @@ constexpr auto FOLDER_JOIN_SELECT  = "join Books_View_Opds l on l.FolderID = f.F
 constexpr auto GROUP_JOIN_SELECT   = "join Groups_List_User_View glu on glu.GroupID = gu.GroupID";
 constexpr auto BOOK_JOIN_SELECT    = "from Books_View_Opds l";
 
-constexpr auto AUTHOR_SELECT  = "select" FULL_AUTHOR_NAME "from Authors a where a.AuthorID = ?";
+constexpr auto AUTHOR_SELECT  = "select " FLIBRARY_SQL_FULL_AUTHOR_NAME "from Authors a where a.AuthorID = ?";
 constexpr auto SERIES_SELECT  = "select s.SeriesTitle from Series s where s.SeriesID = ?";
 constexpr auto GENRE_SELECT   = "select g.FB2Code from Genres g where g.GenreCode = ?";
 constexpr auto KEYWORD_SELECT = "select k.KeywordTitle from Keywords k where k.KeywordID = ?";
@@ -200,7 +199,7 @@ constexpr auto GROUPS_SELECT = R"(
 	group by g.GroupID
 )";
 
-constexpr auto AUTHOR_SELECT_SINGLE = "select distinct a.AuthorID," FULL_AUTHOR_NAME
+constexpr auto AUTHOR_SELECT_SINGLE = "select distinct a.AuthorID, " FLIBRARY_SQL_FULL_AUTHOR_NAME
 									  "from Authors a %2 where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0 and (a.SearchName = :starts or a.SearchName like :starts_like||'%' ESCAPE '%1')";
 constexpr auto SERIES_SELECT_SINGLE =
 	"select distinct s.SeriesID, s.SeriesTitle from Series s %2 where s.IsDeleted != #IS_DELETED# and s.Flags & #FLAGS# = 0 and (s.SearchTitle = :starts or s.SearchTitle like :starts_like||'%' ESCAPE '%1')";
@@ -209,7 +208,7 @@ constexpr auto KEYWORD_SELECT_SINGLE = "select distinct k.KeywordID, k.KeywordTi
 constexpr auto FOLDER_SELECT_SINGLE  = "select f.FolderID, f.FolderTitle from Folders f %2 where f.IsDeleted != #IS_DELETED# and ('%1' = '%1' and :starts = :starts and :starts_like = :starts_like)";
 constexpr auto BOOK_SELECT_SINGLE    = "select l.BookID, l.Title %2 where b.IsDeleted != #IS_DELETED# and (b.SearchTitle = :starts or b.SearchTitle like :starts_like||'%' ESCAPE '%1')";
 
-constexpr auto AUTHOR_SELECT_EQUAL = "select distinct a.AuthorID," FULL_AUTHOR_NAME "from Authors a %1 where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0 and a.SearchName = :starts";
+constexpr auto AUTHOR_SELECT_EQUAL = "select distinct a.AuthorID, " FLIBRARY_SQL_FULL_AUTHOR_NAME "from Authors a %1 where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0 and a.SearchName = :starts";
 constexpr auto SERIES_SELECT_EQUAL = "select distinct s.SeriesID, s.SeriesTitle from Series s %1 where s.IsDeleted != #IS_DELETED# and s.Flags & #FLAGS# = 0 and s.SearchTitle = :starts";
 constexpr auto GENRE_SELECT_EQUAL  = "select g.GenreCode from Genres g where g.IsDeleted != #IS_DELETED# and g.Flags & #FLAGS# = 0 and exists (select 42 from Genre_List l %1 where l.GenreCode = g.GenreCode)";
 constexpr auto KEYWORD_SELECT_EQUAL = "select distinct k.KeywordID, k.KeywordTitle from Keywords k %1 where k.IsDeleted != #IS_DELETED# and k.Flags & #FLAGS# = 0 and k.SearchTitle = :starts";
@@ -266,7 +265,7 @@ select b.BookID, b.Title
 	join Ids i on i.BookID = b.BookID
 )";
 
-constexpr auto SEARCH_QUERY_TEXT_AUTHORS = "select a.AuthorID, " FULL_AUTHOR_NAME R"(
+constexpr auto SEARCH_QUERY_TEXT_AUTHORS = "select a.AuthorID, " FLIBRARY_SQL_FULL_AUTHOR_NAME R"(
 	from Authors a
 	join Authors_Search s on s.rowid = a.AuthorID and Authors_Search match ?
 	where a.IsDeleted != #IS_DELETED# and a.Flags & #FLAGS# = 0
