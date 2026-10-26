@@ -5,6 +5,7 @@
 #include <QClipboard>
 #include <QGuiApplication>
 #include <QMimeData>
+#include <QPointer>
 #include <QTemporaryDir>
 #include <QTimer>
 
@@ -420,36 +421,36 @@ private: // IContextMenuHandler
 
 	void SetUserRate(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		m_databaseUser->Execute({ "Set my rate", [this, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable {
+		m_databaseUser->Execute({ "Set my rate", [this, model = QPointer { model }, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable {
 									 const auto db          = m_databaseUser->Database();
 									 const auto transaction = db->CreateTransaction();
-									 const auto command =
-										 transaction->CreateCommand("insert or replace into Books_User(BookID, UserRate, CreatedAt) values(:id, :user_rate, datetime(CURRENT_TIMESTAMP, 'localtime'))");
-									 const auto rate = [&] {
+									 const auto command = transaction->CreateCommand("insert or replace into Books_User(BookID, UserRate, CreatedAt) values(?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))");
+									 const auto rate    = [&]() -> std::optional<int> {
 										 const auto str = item->GetData(MenuItem::Column::Parameter);
 										 assert(!str.isEmpty());
 										 bool       ok    = false;
 										 const auto value = str.toInt(&ok);
-										 return ok ? value : 0;
+										 return ok ? (value >= 0 ? std::optional { value } : std::nullopt) : std::optional { 0 };
 									 }();
 
 									 auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&](const bool init, const auto id) {
-										 command->Bind(":id", id);
-										 if (rate < 0)
-											 command->Bind(":user_rate");
-										 else
-											 command->Bind(":user_rate", rate);
-										 return command->Execute() && init;
+										 return command->Execute(id, rate) && init;
 									 });
-									 ok      = transaction->Commit() && ok;
 
-									 return [this, item = std::move(item), callback = std::move(callback), ok](size_t) {
+									 ok = transaction->Commit() && ok;
+
+									 return [this, model = std::move(model), item = std::move(item), callback = std::move(callback), ok, rate, ids = std::move(ids)](size_t) mutable {
 										 if (!ok)
 											 m_uiFactory->ShowError(Tr(CANNOT_SET_USER_RATE));
 
+										 if (ok && !model.isNull())
+											 model->setData(
+												 {},
+												 QVariant::fromValue(SetForIdsArg { .ids = std::move(ids), .column = BookItem::Column::UserRate, .value = rate ? QString::number(*rate) : QString {} }),
+												 Role::SetForIds
+											 );
+
 										 callback(item);
-										 if (ok)
-											 m_dataProvider->RequestBooks(true);
 									 };
 								 } });
 	}
