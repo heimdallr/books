@@ -27,7 +27,9 @@
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseMigrator.h"
+#include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITaskQueue.h"
+#include "interface/logic/ITreeViewController.h"
 #include "interface/ui/IMainWindow.h"
 
 #include "Hypodermic/Hypodermic.h"
@@ -36,6 +38,7 @@
 #include "gui/di_ui.h"
 #include "gutil/di_gutil.h"
 #include "logging/init.h"
+#include "logic/data/DataItem.h"
 #include "logic/di_logic.h"
 #include "logic/model/LogModel.h"
 #include "settings/ISettings.h"
@@ -63,6 +66,8 @@ constexpr auto OTHER_AUTHOR_BOOK          = "Detective Story";
 constexpr auto BROWN_BOOK                 = "Lost Letters"; // stored as "O'Brien - Story.fb2"
 constexpr auto SERIES_SAGA                = "Test Saga";
 constexpr auto LANGUAGE_GERMAN            = "German";
+constexpr auto GROUP_TITLE                = "Test group";
+constexpr auto REMOVE_FROM_GROUP_KEY      = "Remove from group"; // menu item keys are the untranslated titles
 constexpr auto GENRE_DETECTIVES           = "Detectives";
 constexpr auto GENRE_CLASSICAL_DETECTIVES = "Classical detectives";
 constexpr auto SEARCH_TITLE               = "zzqx no such title"; // matches no book title, only the file name
@@ -427,6 +432,55 @@ private slots:
 		ExpectBooks(navigation, navigation.tree->model()->index(0, 0), { BROWN_BOOK }, { OTHER_AUTHOR_BOOK });
 	}
 
+	// The group's "Remove from group" menu lists its authors by name with the author id as the item's parameter, and
+	// choosing an author removes it from the group. All three are compared at once, so a failure shows every symptom.
+	void groupMenuRemovesAnAuthorFromTheGroup()
+	{
+		ActivateCollection(BOOKS_COLLECTION);
+		long long authorId = 0;
+		AddGroupWithAuthor(GROUP_TITLE, "Brown", authorId);
+		if (QTest::currentTestFailed())
+			return;
+		Start();
+
+		const auto navigation = FindPanel("Navigation");
+		ShowMode(navigation, "Groups", GROUP_TITLE);
+		if (QTest::currentTestFailed())
+			return;
+
+		const auto group      = FindText(*navigation.tree->model(), GROUP_TITLE);
+		const auto controller = m_container->resolve<ILogicFactory>()->GetTreeViewController(ItemType::Navigation);
+
+		// The menu arrives on the main thread later; shared, so a late callback after a failed wait has somewhere to write
+		const auto menu = std::make_shared<IDataItem::Ptr>();
+		controller->RequestContextMenu(group, ITreeViewController::RequestContextMenuOptions::HasSelection, [menu](const QString&, const IDataItem::Ptr& item) {
+			*menu = item;
+		});
+		QTRY_VERIFY_WITH_TIMEOUT(*menu, WAIT_MS);
+
+		const auto removeFromGroup = FindMenuChild(*menu, REMOVE_FROM_GROUP_KEY);
+		QVERIFY2(removeFromGroup, "the group menu must offer Remove from group");
+		const auto authors = FindMenuChild(removeFromGroup, "Authors");
+		QVERIFY2(authors && authors->GetChildCount() == 1, "Remove from group must list the group's one author");
+		const auto author = authors->GetChild(0);
+
+		QVERIFY2(IsInGroup(GROUP_TITLE, authorId), "the author must be in the group before it is removed");
+
+		// Choose the author, as a click on the menu item does
+		controller->OnContextMenuTriggered(navigation.tree->model(), group, { group }, author);
+		const auto removed = QTest::qWaitFor(
+			[&] {
+				return !IsInGroup(GROUP_TITLE, authorId);
+			},
+			WAIT_MS
+		);
+
+		const auto describe = [](const QString& name, const QString& id, const bool inGroup) {
+			return QString("name '%1', id %2, %3").arg(name, id, inGroup ? "still in the group" : "removed from the group");
+		};
+		QCOMPARE(describe(author->GetData(MenuItem::Column::Title), author->GetData(MenuItem::Column::Parameter), !removed), describe(AUTHOR_BROWN, QString::number(authorId), false));
+	}
+
 private:
 	// The navigation mode is a global setting that an earlier test may have changed, so each test chooses its own
 	// Waits for an item of the new mode: until the mode's model is ready, the view still shows the previous mode's items
@@ -490,6 +544,47 @@ private:
 		query->Bind(0, title.toStdString());
 		query->Execute();
 		return !query->Eof() && query->Get<int>(0) != 0;
+	}
+
+	// Creates a group holding the author with the given last name, the way "add to group" stores it
+	static void AddGroupWithAuthor(const QString& title, const QString& authorLastName, long long& authorId)
+	{
+		std::shared_ptr<Hypodermic::Container> container;
+		BuildContainer(container);
+
+		const auto db          = container->resolve<IDatabaseController>()->GetDatabase();
+		const auto transaction = db->CreateTransaction();
+		const auto author      = transaction->CreateQuery("select AuthorID from Authors where LastName = ?");
+		author->Bind(0, authorLastName.toStdString());
+		author->Execute();
+		QVERIFY2(!author->Eof(), "the test library must contain the author");
+		authorId = author->Get<long long>(0);
+
+		QVERIFY(transaction->CreateCommand("insert into Groups_User(Title, CreatedAt) values(?, datetime('now'))")->Execute(title.toStdString()));
+		QVERIFY(
+			transaction->CreateCommand("insert into Groups_List_User(GroupID, ObjectID, CreatedAt) select GroupID, ?, datetime('now') from Groups_User where Title = ?")->Execute(authorId, title.toStdString())
+		);
+		QVERIFY(transaction->Commit());
+	}
+
+	// Asks the running app's database whether the group holds the object
+	bool IsInGroup(const QString& title, const long long objectId) const
+	{
+		const auto db    = m_container->resolve<IDatabaseController>()->GetDatabase();
+		const auto query = db->CreateQuery("select exists (select 42 from Groups_List_User l join Groups_User g on g.GroupID = l.GroupID where g.Title = ? and l.ObjectID = ?)");
+		query->Bind(0, title.toStdString());
+		query->Bind(1, objectId);
+		query->Execute();
+		return !query->Eof() && query->Get<int>(0) != 0;
+	}
+
+	// The child menu item with the given key, or null
+	static IDataItem::Ptr FindMenuChild(const IDataItem::Ptr& menu, const QString& key)
+	{
+		for (size_t i = 0, sz = menu->GetChildCount(); i < sz; ++i)
+			if (auto child = menu->GetChild(i); child->GetData(MenuItem::Column::Key) == key)
+				return child;
+		return {};
 	}
 
 	QString ArchivesFolder(const QString& collection) const
