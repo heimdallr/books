@@ -1,6 +1,8 @@
 #include "StyleApplierFactory.h"
 
 #include <QAction>
+#include <QStyle>
+#include <QStyleFactory>
 
 #include "Hypodermic/Hypodermic.h"
 
@@ -44,6 +46,19 @@ struct StyleApplierFactory::Impl
 		return applier;
 	}
 };
+
+QString StyleApplierFactory::GetStyleName(const QString& key)
+{
+	if (const std::unique_ptr<const QStyle> style { QStyleFactory::create(key) })
+		return
+#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
+			style->name()
+#else
+			key
+#endif
+				;
+	return {};
+}
 
 StyleApplierFactory::StyleApplierFactory(Hypodermic::Container& container, std::shared_ptr<ISettings> settings)
 	: m_impl(container, std::move(settings))

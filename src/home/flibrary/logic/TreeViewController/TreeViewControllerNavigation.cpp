@@ -946,9 +946,17 @@ void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel*, c
 {
 	const auto invoker = FindSecond(MENU_HANDLERS, item->GetData(MenuItem::Column::Id).toInt(), &IContextMenuHandler::OnContextMenuTriggeredStub);
 	const auto itemRef = item;
-	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index), std::cref(itemRef), [this, id = index.data(Role::Id).toString(), item = std::move(item)] {
-		Perform(&IObserver::OnContextMenuTriggered, std::cref(id), std::cref(item));
-	});
+	std::invoke(
+		invoker,
+		*m_impl,
+		std::cref(indexList),
+		std::cref(index),
+		std::cref(itemRef),
+		[this, id = index.data(Role::Id).toString(), item = std::move(item), alive = std::weak_ptr { std::shared_ptr<Impl>(m_impl) }] {
+			if (!alive.expired())
+				Perform(&IObserver::OnContextMenuTriggered, std::cref(id), std::cref(item));
+		}
+	);
 }
 
 ITreeViewController::CreateNewItem TreeViewControllerNavigation::GetNewItemCreator() const

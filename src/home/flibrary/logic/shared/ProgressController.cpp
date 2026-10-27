@@ -91,7 +91,7 @@ struct ProgressController::Impl final
 			return;
 
 		globalValue += value;
-		forwarder->Forward([&] {
+		forwarder->Forward([&, self = this->shared_from_this()] {
 			Perform(&IProgressController::IObserver::OnValueChanged);
 		});
 	}
@@ -144,8 +144,9 @@ std::unique_ptr<IProgressController::IProgressItem> ProgressController::Add(cons
 	if (justStarted)
 	{
 		m_impl->stopped = false;
-		m_impl->forwarder->Forward([&] {
-			m_impl->Perform(&IObserver::OnStartedChanged);
+		m_impl->forwarder->Forward([impl = m_impl->weak_from_this()] {
+			if (const auto locked = impl.lock())
+				locked->Perform(&IObserver::OnStartedChanged);
 		});
 	}
 	return std::make_unique<ProgressItem>(m_impl->stopped, *m_impl, value);

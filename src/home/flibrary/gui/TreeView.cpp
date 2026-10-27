@@ -480,7 +480,7 @@ public:
 		m_filterProvider->UnregisterObserver(this);
 		m_controller->UnregisterObserver(this);
 		m_delegate->UnregisterObserver(this);
-		if (!IsNavigation())
+		if (m_menuCustomizerObserved)
 			m_menuCustomizer->UnregisterObserver(this);
 	}
 
@@ -1157,6 +1157,7 @@ private:
 		m_ui.btnMode->setStyleSheet("QToolButton::menu-indicator { image: none; width: 0px; }");
 
 		QTimer::singleShot(0, &m_self, [this] {
+			m_menuCustomizerObserved = true;
 			m_menuCustomizer->RegisterObserver(this);
 			m_menuCustomizer->Add(m_controller->TrContext(), *m_ui.btnMode, Tr(IsNavigation() ? NAVIGATION_VIEW_MODE : BOOK_VIEW_MODE));
 			if (const auto* action = GetCurrentModeAction())
@@ -1624,6 +1625,7 @@ private:
 	IDataItem::Flags                                              m_navigationItemFlags { IDataItem::Flags::None };
 	const ArchiveSorter                                           m_archiveSorter;
 	const QStringList                                             m_hiddenColumns;
+	bool                                                          m_menuCustomizerObserved { false }; // registered by a deferred call, which a quickly closed window never runs
 	std::unique_ptr<QTimer>                                       m_countChangedTimer { Util::CreateUiTimer([this] {
 		if (!m_self.isVisible())
 			return emit m_self.CounterChanged(-1);

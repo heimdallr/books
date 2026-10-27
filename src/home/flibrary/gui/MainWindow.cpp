@@ -11,6 +11,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QStandardPaths>
+#include <QStyle>
 #include <QStyleFactory>
 #include <QSystemTrayIcon>
 #include <QTimer>
@@ -39,6 +40,7 @@
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/IAlphabetPanel.h"
 
+#include "StyleApplier/StyleApplierFactory.h"
 #include "gutil/util.h"
 #include "logging/LogAppender.h"
 #include "util/FunctorExecutionForwarder.h"
@@ -136,20 +138,6 @@ QString ToString(const plog::Record& record)
 #endif
 		(record.getMessage());
 }
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-QString GetStyleName(const QString& key)
-{
-	if (const auto* style = QStyleFactory::create(key))
-		return style->name();
-	return {};
-}
-#else
-QString GetStyleName(const QString& key)
-{
-	return QStyleFactory::create(key) ? key : QString {};
-}
-#endif
 
 class LineEditPlaceholderTextController final : public QObject
 {
@@ -1526,7 +1514,7 @@ private:
 
 		std::vector<QAction*> styles;
 		for (const auto& name : QStyleFactory::keys())
-			if (const auto actionName = GetStyleName(name); !actionName.isEmpty())
+			if (const auto actionName = StyleApplierFactory::GetStyleName(name); !actionName.isEmpty())
 				styles.emplace_back(CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::PluginStyle, actionName, name));
 
 		m_ui.menuTheme->addSeparator();
@@ -2062,7 +2050,7 @@ void MainWindow::OnStartAnotherApp()
 
 void MainWindow::changeEvent(QEvent* event)
 {
-	if (!m_impl->Change(event))
+	if (event->type() == QEvent::WindowStateChange && !m_impl->Change(event))
 		event->ignore();
 }
 
