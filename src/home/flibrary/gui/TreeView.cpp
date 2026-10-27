@@ -480,7 +480,7 @@ public:
 		m_filterProvider->UnregisterObserver(this);
 		m_controller->UnregisterObserver(this);
 		m_delegate->UnregisterObserver(this);
-		if (!IsNavigation() && m_menuCustomizerObserved)
+		if (m_menuCustomizerObserved)
 			m_menuCustomizer->UnregisterObserver(this);
 	}
 
@@ -1157,8 +1157,8 @@ private:
 		m_ui.btnMode->setStyleSheet("QToolButton::menu-indicator { image: none; width: 0px; }");
 
 		QTimer::singleShot(0, &m_self, [this] {
-			m_menuCustomizer->RegisterObserver(this);
 			m_menuCustomizerObserved = true;
+			m_menuCustomizer->RegisterObserver(this);
 			m_menuCustomizer->Add(m_controller->TrContext(), *m_ui.btnMode, Tr(IsNavigation() ? NAVIGATION_VIEW_MODE : BOOK_VIEW_MODE));
 			if (const auto* action = GetCurrentModeAction())
 				m_ui.btnMode->setIcon(action->icon());
