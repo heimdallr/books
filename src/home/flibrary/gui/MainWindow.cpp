@@ -11,6 +11,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QStandardPaths>
+#include <QStyle>
 #include <QStyleFactory>
 #include <QSystemTrayIcon>
 #include <QTimer>
@@ -140,14 +141,15 @@ QString ToString(const plog::Record& record)
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 QString GetStyleName(const QString& key)
 {
-	if (const auto* style = QStyleFactory::create(key))
+	// QStyleFactory::create() hands the style to the caller
+	if (const std::unique_ptr<const QStyle> style { QStyleFactory::create(key) })
 		return style->name();
 	return {};
 }
 #else
 QString GetStyleName(const QString& key)
 {
-	return QStyleFactory::create(key) ? key : QString {};
+	return std::unique_ptr<const QStyle> { QStyleFactory::create(key) } ? key : QString {};
 }
 #endif
 
