@@ -15,9 +15,12 @@ class Container;
 
 namespace HomeCompa::Flibrary {
 
-class StyleApplierFactory : public IStyleApplierFactory
+class StyleApplierFactory final : public IStyleApplierFactory
 {
 	NON_COPY_MOVABLE(StyleApplierFactory)
+
+public:
+	static QString GetStyleName(const QString& key);
 
 public:
 	StyleApplierFactory(Hypodermic::Container& container, std::shared_ptr<ISettings> settings);
