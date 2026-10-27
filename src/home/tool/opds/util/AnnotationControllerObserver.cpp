@@ -1,4 +1,4 @@
-﻿#include "AnnotationControllerObserver.h"
+#include "AnnotationControllerObserver.h"
 
 #include <mutex>
 

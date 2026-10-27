@@ -1,4 +1,4 @@
-﻿#include "StackedPage.h"
+#include "StackedPage.h"
 
 #include <QAction>
 #include <QTimer>

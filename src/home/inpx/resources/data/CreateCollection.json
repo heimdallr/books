@@ -1,4 +1,4 @@
-﻿[
+[
 	"PRAGMA page_size = 16384",
 	"PRAGMA journal_mode = OFF",
 	"PRAGMA foreign_keys = OFF",

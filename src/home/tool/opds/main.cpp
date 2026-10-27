@@ -1,4 +1,4 @@
-﻿#include <QCommandLineParser>
+#include <QCommandLineParser>
 #include <QCoreApplication>
 #include <QStandardPaths>
 #include <QTimer>
