@@ -49,7 +49,8 @@ create_collection()
 	mkdir -p "$dir/config/HomeCompa" "$dir/tmp" "$archives"
 	local port
 	port=$(python3 -I -c 'import socket; s = socket.socket(); s.bind(("127.0.0.1", 0)); print(s.getsockname()[1])')
-	printf '[opds]\nhost=127.0.0.1\nport=%s\n' "$port" >"$dir/config/HomeCompa/FLibrary.conf"
+	# No check for a newer release at start-up: the test must not depend on the network
+	printf '[opds]\nhost=127.0.0.1\nport=%s\n\n[ui]\nView\\CheckForUpdateOnStart=false\n' "$port" >"$dir/config/HomeCompa/FLibrary.conf"
 
 	(cd "$build/bin" && XDG_CONFIG_HOME="$dir/config" TMPDIR="$dir/tmp" exec ./opds --name test --database "$dir/library.db" --archives "$archives") >"$dir/opds.out" 2>&1 &
 	local pid=$!

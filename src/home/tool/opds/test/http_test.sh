@@ -2,6 +2,7 @@
 # HTTP tests for the OPDS server (tool/opds):
 #  - query parameters must not be able to change the SQL text (OPDS and ReactApp book lists)
 #  - with a password set, every route that serves library data requires it
+#  - the fixture's awkward data (author nicknames, an ePub), search, and the format and encoding of downloads
 #
 # Usage: http_test.sh <build dir>
 # Needs: curl, python3, and a built opds binary in <build dir>/bin.
@@ -97,6 +98,20 @@ check_body()
 	report "$description" "$([ "$found" = "$mode" ] && echo ok)" "'$text' is $found in $path, expected $mode"
 }
 
+# check_content_type <description> <path> <expected content type>
+check_content_type()
+{
+	local description=$1 path=$2 expected=$3 actual
+	actual=$(curl -s --max-time 20 -o /dev/null -w '%{content_type}' "$base$path")
+	report "$description" "$([ "${actual%%;*}" = "$expected" ] && echo ok)" "expected $expected, got '$actual' for $path"
+}
+
+# book_id <title>: the book's id in the test collection
+book_id()
+{
+	python3 -I -c 'import sqlite3, sys; print(sqlite3.connect(sys.argv[1]).execute("select BookID from Books where Title = ?", (sys.argv[2],)).fetchone()[0])' "$work/test.db" "$1"
+}
+
 report()
 {
 	checks=$((checks + 1))
@@ -159,6 +174,39 @@ check_body "injected ReactApp author books return no other books"   "/main/getBo
 
 check_status "without a password, the book download is open"        200 "/Images/fb2/3"
 
+check_body "author nickname is not part of the name"                "/opds/Authors"                                                         "Nikolaev Petr" present
+check_body "author nickname is not shown"                           "/opds/Authors"                                                         "[nick]" absent
+check_body "OPDS search finds a book by its title"                  "/opds/search?q=Detective"                                              "Detective Story" present
+check_body "OPDS search lists only matching books"                  "/opds/search?q=Detective"                                              "First Test Book" absent
+
+detective_id=$(book_id "Detective Story")
+epub_id=$(book_id "Electronic Pages")
+check_content_type "an fb2 download is served as fb2"               "/Images/fb2/$detective_id" application/fb2
+check_content_type "an ePub download is served as epub"             "/Images/fb2/$epub_id"      application/epub
+check_content_type "a zip download is served as zip"                "/Images/zip/$detective_id" application/zip
+
+curl -s --max-time 20 -o "$work/book.zip" "$base/Images/zip/$detective_id"
+report "a zip download holds the book" "$(python3 -I - "$work/book.zip" <<'EOF'
+import sys, zipfile
+try:
+    with zipfile.ZipFile(sys.argv[1]) as z:
+        names = z.namelist()
+        print("ok" if len(names) == 1 and b"Detective Story" in z.read(names[0]) else "")
+except zipfile.BadZipFile:
+    pass
+EOF
+)" "$work/book.zip is not a zip archive with the book"
+
+cp1251_id=$(book_id "Second Test Book")
+curl -s --max-time 20 -o "$work/book-utf8.fb2" "$base/Images/fb2/$cp1251_id"
+report "without an export encoding, a book downloads in UTF-8" "$(python3 -I - "$work/book-utf8.fb2" <<'EOF'
+import sys
+data = open(sys.argv[1], "rb").read()
+# The fixture stores this book in windows-1251; its body text has the Cyrillic word "Test"
+print("ok" if b'encoding="utf-8"' in data.split(b"\n")[0].lower() and "Тест".encode() in data else "")
+EOF
+)" "got: $(head -c 100 "$work/book-utf8.fb2")"
+
 opensearch=$(curl -s --max-time 20 "$base/opds/opensearch")
 report "OpenSearch link uses the address the client called" \
 	"$(grep -qF "template=\"$base/opds/search?q={searchTerms}\"" <<<"$opensearch" && echo ok)" "got: $opensearch"
@@ -184,6 +232,7 @@ user=tester
 password=secret
 machine_id=$(head -c 32 /var/lib/dbus/machine-id 2>/dev/null || head -c 32 /etc/machine-id)
 set_setting opds Authentication "$(printf '%s%s:%s' "$machine_id" "$user" "$password" | md5sum | cut -d' ' -f1)"
+set_setting Preferences 'Export\Encoding\web' windows-1251
 
 start_server --name test
 
@@ -198,6 +247,15 @@ for path in "/opds" "/opds/Books?Authors=$author_id" "/" "/main/getBooks/getConf
 	check_status "with credentials: $path"  200 "$path" -u "$user:$password"
 done
 check_status "public route stays public: /favicon.ico" 200 "/favicon.ico"
+
+curl -s --max-time 20 -u "$user:$password" -o "$work/book-1251.fb2" "$base/Images/fb2/$detective_id"
+report "a book downloads in the chosen export encoding" "$(python3 -I - "$work/book-1251.fb2" <<'EOF'
+import sys
+data = open(sys.argv[1], "rb").read()
+# The fixture's body text has the Cyrillic word "Test"
+print("ok" if b'encoding="windows-1251"' in data.split(b"\n")[0] and "Тест".encode("cp1251") in data else "")
+EOF
+)" "got: $(head -c 100 "$work/book-1251.fb2")"
 
 # Last on purpose: if the server treats this as an unknown route, it bans the client address for a minute
 traversal=$(curl -s --max-time 20 -o "$work/response" -w '%{http_code}' -u "$user:$password" "$base/assets/..%2F..%2FLICENSE.txt")
