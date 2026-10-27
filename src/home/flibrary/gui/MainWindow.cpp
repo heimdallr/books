@@ -2050,8 +2050,6 @@ void MainWindow::OnStartAnotherApp()
 
 void MainWindow::changeEvent(QEvent* event)
 {
-	// Change events also arrive while m_impl is still being constructed (its Setup() sets the window title): only a window
-	// state change, which cannot happen before the window is shown, needs it
 	if (event->type() == QEvent::WindowStateChange && !m_impl->Change(event))
 		event->ignore();
 }
