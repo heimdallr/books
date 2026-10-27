@@ -54,7 +54,7 @@ private: // IBookInfoProvider
 
 private:
 	class Impl;
-	PropagateConstPtr<Impl> m_impl;
+	PropagateConstPtr<Impl, std::shared_ptr> m_impl;
 };
 
 } // namespace HomeCompa::Flibrary

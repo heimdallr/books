@@ -586,30 +586,6 @@ QStringView& GetBookBufFieldDefault(Book&)
 	return BOOK_BUF_FIELD_DEFAULT_VIEW;
 }
 
-Book ParseBook(const QString& line, const BookBufMapping& f, QString folder)
-{
-	Book buf;
-
-	auto       it    = std::cbegin(line);
-	const auto endIt = std::cend(line);
-
-	for (size_t i = 0, sz = f.size(); i < sz && it != endIt; ++i)
-		f[i].bookBufFieldGetter(buf) = f[i].next(it, endIt, Fb2InpxParser::FIELDS_SEPARATOR);
-
-	buf.fileName = QString("%1.%2").arg(buf.FILE, buf.EXT);
-
-	if (buf.GENRE.size() < 2)
-		buf.GENRE = GENRE_NOT_SPECIFIED;
-
-	if (buf.FOLDER.isEmpty())
-	{
-		buf.folder = std::move(folder);
-		buf.FOLDER = buf.folder;
-	}
-
-	return buf;
-}
-
 struct InpxContent
 {
 	std::vector<QString> collectionInfo;
@@ -825,13 +801,13 @@ size_t Store(DB::IDatabase& db, Data& data)
 		"INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, NickName, SearchName) VALUES(?, ?, ?, ?, ?, ?)",
 		data.authors,
 		[](DB::ICommand& cmd, const Dictionary::value_type& item) {
-			const auto& [title, id]         = item;
-			auto it                         = std::cbegin(title);
-			const auto [last, nickLast]     = SplitNameSuffix(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
-			const auto [first, nickFirst]   = SplitNameSuffix(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
-			const auto [middle, nickMiddle] = SplitNameSuffix(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
-			const auto lastUp               = last.toString().toUpper();
-			const auto nick                 = !nickLast.isEmpty() ? nickLast : !nickFirst.isEmpty() ? nickFirst : !nickMiddle.isEmpty() ? nickMiddle : QStringView {};
+			const auto& [title, id] = item;
+			auto       it           = std::cbegin(title);
+			const auto last         = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
+			const auto first        = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
+			const auto middle       = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
+			const auto nick         = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
+			const auto lastUp       = !last.isEmpty() ? last.toString().toUpper() : !first.isEmpty() ? first.toString().toUpper() : !middle.isEmpty() ? middle.toString().toUpper() : nick.toString().toUpper();
 
 			return cmd.Execute(id, last, first, middle, nick.isEmpty() ? std::optional<QStringView> {} : std::optional { nick }, lastUp);
 		},
@@ -1519,7 +1495,7 @@ private:
 		};
 
 		SetNextId(*m_db);
-		data.authors     = ReadDictionary<Dictionary>("authors", *m_db, "select AuthorID, LastName||coalesce(' ['||NickName||']', '')||','||FirstName||','||MiddleName from Authors", dictionaryInserter);
+		data.authors     = ReadDictionary<Dictionary>("authors", *m_db, "select AuthorID, LastName||','||FirstName||','||MiddleName||coalesce(','||NickName, '') from Authors", dictionaryInserter);
 		data.series      = ReadDictionary<Dictionary>("series", *m_db, "select SeriesID, SeriesTitle from Series", dictionaryInserter);
 		data.keywords    = ReadDictionary<Dictionary>("keywords", *m_db, "select KeywordID, KeywordTitle from Keywords", dictionaryInserter);
 		data.bookFolders = ReadDictionary<Dictionary>("folders", *m_db, "select FolderID, FolderTitle from Folders", dictionaryInserter);
@@ -2144,6 +2120,69 @@ where b.FileName = ? and b.Ext = ?)");
 		}
 
 		return fileList;
+	}
+
+	Book ParseBook(const QString& line, const BookBufMapping& f, QString folder)
+	{
+		Book buf;
+
+		auto       it    = std::cbegin(line);
+		const auto endIt = std::cend(line);
+
+		for (size_t i = 0, sz = f.size(); i < sz && it != endIt; ++i)
+			f[i].bookBufFieldGetter(buf) = f[i].next(it, endIt, Fb2InpxParser::FIELDS_SEPARATOR);
+
+		buf.fileName = QString("%1.%2").arg(buf.FILE, buf.EXT);
+
+		if (buf.GENRE.size() < 2)
+			buf.GENRE = GENRE_NOT_SPECIFIED;
+
+		if (buf.FOLDER.isEmpty())
+		{
+			buf.folder = std::move(folder);
+			buf.FOLDER = buf.folder;
+		}
+
+		CheckAuthorNickname(buf.AUTHOR);
+
+		return buf;
+	}
+
+	void CheckAuthorNickname(QStringView& authors)
+	{
+		const auto index1 = authors.indexOf('[');
+		if (index1 < 0)
+			return;
+		const auto index2 = authors.indexOf(']');
+		if (index2 < index1)
+			return;
+
+		auto authorIt = std::ranges::find_if(authors, [=](const auto ch) {
+			return ch != LIST_SEPARATOR;
+		});
+
+		QString& result = m_rawData.emplace_back();
+
+		while (authorIt != std::cend(authors))
+		{
+			const auto author = QNext(authorIt, std::cend(authors), LIST_SEPARATOR);
+			auto       it     = std::cbegin(author);
+
+			const auto [last, nickLast]     = SplitNameSuffix(QNext(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
+			const auto [first, nickFirst]   = SplitNameSuffix(QNext(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
+			const auto [middle, nickMiddle] = SplitNameSuffix(QNext(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
+			const auto nick                 = !nickLast.isEmpty() ? nickLast : !nickFirst.isEmpty() ? nickFirst : !nickMiddle.isEmpty() ? nickMiddle : QStringView {};
+			result.append(last)
+				.append(Fb2InpxParser::NAMES_SEPARATOR)
+				.append(first)
+				.append(Fb2InpxParser::NAMES_SEPARATOR)
+				.append(middle)
+				.append(Fb2InpxParser::NAMES_SEPARATOR)
+				.append(nick)
+				.append(LIST_SEPARATOR);
+		}
+
+		authors = { result.begin(), result.end() };
 	}
 
 	void ProcessInpxString(const QString& rootFolder, const QString& folder, const QByteArray& byteArray)

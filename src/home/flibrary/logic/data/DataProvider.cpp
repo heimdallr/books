@@ -47,7 +47,9 @@ void EnumerateBooks(IDataItem& parent, const F& functor)
 
 } // namespace
 
-class DataProvider::Impl final : public Observable<IBookInfoProvider::IObserver>
+class DataProvider::Impl final
+    : public Observable<IBookInfoProvider::IObserver>
+    , public std::enable_shared_from_this<Impl>
 {
 public:
 	Impl(
@@ -143,7 +145,7 @@ private:
 	{
 		m_navigationQueryExecutor->RequestNavigation(
 			m_navigationMode,
-			[this, alive = std::weak_ptr(m_alive)](const NavigationMode mode, IDataItem::Ptr root) {
+			[this, alive = weak_from_this()](const NavigationMode mode, IDataItem::Ptr root) {
 				if (!alive.expired())
 					SendNavigationCallback(mode, std::move(root));
 			},
@@ -176,16 +178,16 @@ private:
 
 		m_databaseUser->Execute(
 			{ "Get books",
-		      [this,
-		       alive          = std::weak_ptr(m_alive),
-		       navigationMode = m_navigationMode,
-		       navigationId   = m_navigationId,
-		       viewMode       = m_booksViewMode,
-		       generator      = std::move(m_booksGenerator),
-		       booksGeneratorReady,
-		       &description,
-		       &booksGenerator,
-		       &columnMapper]() mutable {
+			  [this,
+			   alive          = weak_from_this(),
+			   navigationMode = m_navigationMode,
+			   navigationId   = m_navigationId,
+			   viewMode       = m_booksViewMode,
+			   generator      = std::move(m_booksGenerator),
+			   booksGeneratorReady,
+			   &description,
+			   &booksGenerator,
+			   &columnMapper]() mutable {
 				  QString authorName;
 				  if (!booksGeneratorReady)
 				  {
@@ -204,39 +206,38 @@ private:
 
 				  generator->SetBooksViewMode(viewMode);
 				  auto root = std::invoke(booksGenerator, *generator, std::cref(description));
-				  return
-					  [this,
-			           alive = std::move(alive),
-			           navigationMode,
-			           navigationId = std::move(navigationId),
-			           root         = std::move(root),
-			           generator    = std::move(generator),
-			           authorName   = std::move(authorName),
-			           &description,
-			           &columnMapper](size_t) mutable {
-						  if (alive.expired())
-							  return;
+				  return [this,
+				          alive = std::move(alive),
+				          navigationMode,
+				          navigationId = std::move(navigationId),
+				          root         = std::move(root),
+				          generator    = std::move(generator),
+				          authorName   = std::move(authorName),
+				          &description,
+				          &columnMapper](size_t) mutable {
+					  if (alive.expired())
+						  return;
 
-						  m_booksGenerator     = std::move(generator);
-						  m_rootCache          = root;
-						  m_lastNavigationMode = navigationMode;
-						  m_lastNavigationId   = navigationId;
+					  m_booksGenerator     = std::move(generator);
+					  m_rootCache          = root;
+					  m_lastNavigationMode = navigationMode;
+					  m_lastNavigationId   = navigationId;
 
-						  if (!m_checkedCache.empty())
-						  {
-							  assert(m_rootCache);
-							  EnumerateBooks(*m_rootCache, [this](IDataItem& item) {
-								  if (m_checkedCache.contains(item.GetId()))
-									  item.SetCheckState(Qt::Checked);
-							  });
-							  m_checkedCache.clear();
-						  }
+					  if (!m_checkedCache.empty())
+					  {
+						  assert(m_rootCache);
+						  EnumerateBooks(*m_rootCache, [this](IDataItem& item) {
+							  if (m_checkedCache.contains(item.GetId()))
+								  item.SetCheckState(Qt::Checked);
+						  });
+						  m_checkedCache.clear();
+					  }
 
-						  SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());
-						  Perform(&IBookInfoProvider::IObserver::OnBooksSelected, navigationMode, static_cast<IBooksRootGenerator&>(*m_booksGenerator).GetRoot());
-						  if (!authorName.isEmpty())
-							  m_authorAnnotationController->SetAuthor(navigationId.toLongLong(), std::move(authorName));
-					  };
+					  SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());
+					  Perform(&IBookInfoProvider::IObserver::OnBooksSelected, navigationMode, static_cast<IBooksRootGenerator&>(*m_booksGenerator).GetRoot());
+					  if (!authorName.isEmpty())
+						  m_authorAnnotationController->SetAuthor(navigationId.toLongLong(), std::move(authorName));
+				  };
 			  } },
 			2
 		);

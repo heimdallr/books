@@ -40,6 +40,7 @@
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/IAlphabetPanel.h"
 
+#include "StyleApplier/StyleApplierFactory.h"
 #include "gutil/util.h"
 #include "logging/LogAppender.h"
 #include "util/FunctorExecutionForwarder.h"
@@ -137,21 +138,6 @@ QString ToString(const plog::Record& record)
 #endif
 		(record.getMessage());
 }
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-QString GetStyleName(const QString& key)
-{
-	// QStyleFactory::create() hands the style to the caller
-	if (const std::unique_ptr<const QStyle> style { QStyleFactory::create(key) })
-		return style->name();
-	return {};
-}
-#else
-QString GetStyleName(const QString& key)
-{
-	return std::unique_ptr<const QStyle> { QStyleFactory::create(key) } ? key : QString {};
-}
-#endif
 
 class LineEditPlaceholderTextController final : public QObject
 {
@@ -1528,7 +1514,7 @@ private:
 
 		std::vector<QAction*> styles;
 		for (const auto& name : QStyleFactory::keys())
-			if (const auto actionName = GetStyleName(name); !actionName.isEmpty())
+			if (const auto actionName = StyleApplierFactory::GetStyleName(name); !actionName.isEmpty())
 				styles.emplace_back(CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::PluginStyle, actionName, name));
 
 		m_ui.menuTheme->addSeparator();
@@ -2064,8 +2050,6 @@ void MainWindow::OnStartAnotherApp()
 
 void MainWindow::changeEvent(QEvent* event)
 {
-	// Change events also arrive while m_impl is still being constructed (its Setup() sets the window title): only a window
-	// state change, which cannot happen before the window is shown, needs it
 	if (event->type() == QEvent::WindowStateChange && !m_impl->Change(event))
 		event->ignore();
 }
