@@ -143,8 +143,9 @@ private:
 	{
 		m_navigationQueryExecutor->RequestNavigation(
 			m_navigationMode,
-			[&](const NavigationMode mode, IDataItem::Ptr root) {
-				SendNavigationCallback(mode, std::move(root));
+			[this, alive = std::weak_ptr(m_alive)](const NavigationMode mode, IDataItem::Ptr root) {
+				if (!alive.expired())
+					SendNavigationCallback(mode, std::move(root));
 			},
 			m_requestNavigationForce
 		);
@@ -175,15 +176,16 @@ private:
 
 		m_databaseUser->Execute(
 			{ "Get books",
-			  [this,
-			   navigationMode = m_navigationMode,
-			   navigationId   = m_navigationId,
-			   viewMode       = m_booksViewMode,
-			   generator      = std::move(m_booksGenerator),
-			   booksGeneratorReady,
-			   &description,
-			   &booksGenerator,
-			   &columnMapper]() mutable {
+		      [this,
+		       alive          = std::weak_ptr(m_alive),
+		       navigationMode = m_navigationMode,
+		       navigationId   = m_navigationId,
+		       viewMode       = m_booksViewMode,
+		       generator      = std::move(m_booksGenerator),
+		       booksGeneratorReady,
+		       &description,
+		       &booksGenerator,
+		       &columnMapper]() mutable {
 				  QString authorName;
 				  if (!booksGeneratorReady)
 				  {
@@ -203,9 +205,18 @@ private:
 				  generator->SetBooksViewMode(viewMode);
 				  auto root = std::invoke(booksGenerator, *generator, std::cref(description));
 				  return
-					  [this, navigationMode, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator), authorName = std::move(authorName), &description, &columnMapper](
-						  size_t
-					  ) mutable {
+					  [this,
+			           alive = std::move(alive),
+			           navigationMode,
+			           navigationId = std::move(navigationId),
+			           root         = std::move(root),
+			           generator    = std::move(generator),
+			           authorName   = std::move(authorName),
+			           &description,
+			           &columnMapper](size_t) mutable {
+						  if (alive.expired())
+							  return;
+
 						  m_booksGenerator     = std::move(generator);
 						  m_rootCache          = root;
 						  m_lastNavigationMode = navigationMode;
@@ -252,6 +263,10 @@ private:
 	QString        m_navigationId, m_lastNavigationId;
 	Callback       m_navigationRequestCallback;
 	Callback       m_booksRequestCallback;
+
+	// The results of the database work above reach the main thread in queued calls, which can come after this object is
+	// destroyed, when the app restarts or closes while a list loads: they check this token first
+	std::shared_ptr<char> m_alive { std::make_shared<char>() };
 
 	std::unordered_set<QString> m_checkedCache;
 

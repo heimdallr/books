@@ -91,7 +91,7 @@ struct ProgressController::Impl final
 			return;
 
 		globalValue += value;
-		forwarder->Forward([&] {
+		forwarder->Forward([&, self = this->shared_from_this()] {
 			Perform(&IProgressController::IObserver::OnValueChanged);
 		});
 	}
@@ -144,8 +144,9 @@ std::unique_ptr<IProgressController::IProgressItem> ProgressController::Add(cons
 	if (justStarted)
 	{
 		m_impl->stopped = false;
-		m_impl->forwarder->Forward([&] {
-			m_impl->Perform(&IObserver::OnStartedChanged);
+		// The queued call may run after this controller is destroyed: it keeps Impl alive, as the progress update below does
+		m_impl->forwarder->Forward([impl = m_impl->shared_from_this()] {
+			impl->Perform(&IObserver::OnStartedChanged);
 		});
 	}
 	return std::make_unique<ProgressItem>(m_impl->stopped, *m_impl, value);
