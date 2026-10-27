@@ -11,6 +11,7 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QStandardPaths>
+#include <QStyle>
 #include <QStyleFactory>
 #include <QSystemTrayIcon>
 #include <QTimer>
@@ -140,14 +141,15 @@ QString ToString(const plog::Record& record)
 #if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
 QString GetStyleName(const QString& key)
 {
-	if (const auto* style = QStyleFactory::create(key))
+	// QStyleFactory::create() hands the style to the caller
+	if (const std::unique_ptr<const QStyle> style { QStyleFactory::create(key) })
 		return style->name();
 	return {};
 }
 #else
 QString GetStyleName(const QString& key)
 {
-	return QStyleFactory::create(key) ? key : QString {};
+	return std::unique_ptr<const QStyle> { QStyleFactory::create(key) } ? key : QString {};
 }
 #endif
 
@@ -2062,7 +2064,9 @@ void MainWindow::OnStartAnotherApp()
 
 void MainWindow::changeEvent(QEvent* event)
 {
-	if (!m_impl->Change(event))
+	// Change events also arrive while m_impl is still being constructed (its Setup() sets the window title): only a window
+	// state change, which cannot happen before the window is shown, needs it
+	if (event->type() == QEvent::WindowStateChange && !m_impl->Change(event))
 		event->ignore();
 }
 
