@@ -144,9 +144,9 @@ std::unique_ptr<IProgressController::IProgressItem> ProgressController::Add(cons
 	if (justStarted)
 	{
 		m_impl->stopped = false;
-		// The queued call may run after this controller is destroyed: it keeps Impl alive, as the progress update below does
-		m_impl->forwarder->Forward([impl = m_impl->shared_from_this()] {
-			impl->Perform(&IObserver::OnStartedChanged);
+		m_impl->forwarder->Forward([impl = m_impl->weak_from_this()] {
+			if (const auto locked = impl.lock())
+				locked->Perform(&IObserver::OnStartedChanged);
 		});
 	}
 	return std::make_unique<ProgressItem>(m_impl->stopped, *m_impl, value);

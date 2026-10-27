@@ -271,7 +271,6 @@ struct TreeViewControllerNavigation::Impl final
 {
 	TreeViewControllerNavigation&                                               self;
 	mutable std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
-	std::shared_ptr<char> alive { std::make_shared<char>() }; // menu actions report back after database work, maybe after this is destroyed
 	std::weak_ptr<const ILogicFactory>                                          logicFactory;
 	std::shared_ptr<const ICollectionProvider>                                  collectionProvider;
 	std::shared_ptr<const IMenuCustomizer>                                      menuCustomizer;
@@ -947,10 +946,17 @@ void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel*, c
 {
 	const auto invoker = FindSecond(MENU_HANDLERS, item->GetData(MenuItem::Column::Id).toInt(), &IContextMenuHandler::OnContextMenuTriggeredStub);
 	const auto itemRef = item;
-	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index), std::cref(itemRef), [this, alive = std::weak_ptr(m_impl->alive), id = index.data(Role::Id).toString(), item = std::move(item)] {
-		if (!alive.expired())
-			Perform(&IObserver::OnContextMenuTriggered, std::cref(id), std::cref(item));
-	});
+	std::invoke(
+		invoker,
+		*m_impl,
+		std::cref(indexList),
+		std::cref(index),
+		std::cref(itemRef),
+		[this, id = index.data(Role::Id).toString(), item = std::move(item), alive = std::weak_ptr { std::shared_ptr<Impl>(m_impl) }] {
+			if (!alive.expired())
+				Perform(&IObserver::OnContextMenuTriggered, std::cref(id), std::cref(item));
+		}
+	);
 }
 
 ITreeViewController::CreateNewItem TreeViewControllerNavigation::GetNewItemCreator() const
