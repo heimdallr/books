@@ -530,6 +530,17 @@ public:
 		m_navigationItemFlags = index.data(Role::Flags).value<IDataItem::Flags>();
 	}
 
+	void OnSetToolBarPosition(const QString& key, QWidget* widget)
+	{
+		if (key != QString("%1SearchFilterBar").arg(m_controller->TrContext()))
+			return;
+
+		m_ui.btnMode->setAutoRaise(true);
+		m_ui.btnNew->setAutoRaise(true);
+		widget->setSizePolicy(QSizePolicy::Maximum, QSizePolicy::Preferred);
+		m_ui.searchFilterBarLayout->insertWidget(1, widget);
+	}
+
 	void ResizeEvent(const QResizeEvent* event)
 	{
 		auto size = m_ui.value->height();
@@ -1098,6 +1109,8 @@ private:
 			Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, &m_self, SLOT(OnBookTitleToSearchVisibleChanged()));
 			Util::ObjectsConnector::registerReceiver(ObjectConnectorID::CURRENT_NAVIGATION_ITEM_CHANGED, &m_self, SLOT(OnCurrentNavigationItemChanged(const QModelIndex&)));
 		}
+
+		Util::ObjectsConnector::registerReceiver(ObjectConnectorID::SET_TOOLBAR_POSITION, &m_self, SLOT(OnSetToolBarPosition(const QString&, QWidget*)));
 
 		m_ui.value->setAccessibleName(QString("%1SearchAndFilter").arg(m_controller->GetItemName()));
 
@@ -1704,6 +1717,11 @@ void TreeView::OnBookTitleToSearchVisibleChanged() const
 void TreeView::OnCurrentNavigationItemChanged(const QModelIndex& index)
 {
 	m_impl->OnCurrentNavigationItemChanged(index);
+}
+
+void TreeView::OnSetToolBarPosition(const QString& key, QWidget* toolBar)
+{
+	m_impl->OnSetToolBarPosition(key, toolBar);
 }
 
 void TreeView::resizeEvent(QResizeEvent* event)
