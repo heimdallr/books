@@ -73,6 +73,7 @@ public:
 
 signals:
 	void BookTitleToSearchVisibleChanged() const;
+	void SetToolBarPosition(const QString& key, QWidget* toolBar) const;
 
 private: // IMainWindow
 	void CreateCollection(Collection collection) override;
