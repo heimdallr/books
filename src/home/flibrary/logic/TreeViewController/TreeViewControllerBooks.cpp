@@ -18,6 +18,7 @@
 #include "database/DatabaseUtil.h"
 #include "shared/BooksContextMenuProvider.h"
 
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa;
