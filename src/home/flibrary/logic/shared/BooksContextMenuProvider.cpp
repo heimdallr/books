@@ -98,8 +98,7 @@ public:
 public:
 	virtual ~IContextMenuHandler() = default;
 
-#define MENU_ACTION_ITEM(NAME)                                                                                                                                                                                 \
-	virtual void NAME(QAbstractItemModel *model, const QModelIndex &index, const QList<QModelIndex> &indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const = 0;
+#define MENU_ACTION_ITEM(NAME) virtual void NAME(QAbstractItemModel *model, const QModelIndex &index, const QList<QModelIndex> &indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const = 0;
 	GROUPS_MENU_ACTION_ITEMS_X_MACRO
 	BOOKS_MENU_ACTION_ITEMS_X_MACRO
 #undef MENU_ACTION_ITEM
@@ -535,6 +534,8 @@ private: // IContextMenuHandler
 
 				 const auto db          = m_databaseUser->Database();
 				 const auto transaction = db->CreateTransaction();
+
+				 transaction->CreateCommand("insert or ignore into Languages(LanguageCode, Flags) values(?, 0)")->Execute(lang);
 
 				 const auto execute = [&](const char* commandText) -> bool {
 					 const auto command = transaction->CreateCommand(commandText);
