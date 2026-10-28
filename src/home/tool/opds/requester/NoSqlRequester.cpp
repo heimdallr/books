@@ -47,7 +47,7 @@ QByteArray Decompress(const QString& path, const QString& archive, const QString
 				buffer.close();
 			}
 		);
-		buffer.write(Util::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName, settings, settings.Get(EXPORT_ENCODING_KEY, QString {"utf-8"})));
+		buffer.write(Util::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName, settings, settings.Get(EXPORT_ENCODING_KEY, QString { "utf-8" })));
 	}
 	return data;
 }
