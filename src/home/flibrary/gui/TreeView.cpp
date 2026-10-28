@@ -713,14 +713,15 @@ private: // IMenuCustomizer::IObserver
 
 	void RequestMenuItems(RequestMenuCallback callback) override
 	{
-		m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [callback = std::move(callback)](const QString& id, const IDataItem::Ptr& item) {
-			callback(id, item);
-		});
+		m_controller
+			->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [callback = std::move(callback)](const QString& id, const IDataItem::Ptr& item, const std::set<QString>& /*ids*/) {
+				callback(id, item);
+			});
 	}
 
 	void OnHotkeyActivated(const QString& key) override
 	{
-		m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [this, key](const QString& /*id*/, const IDataItem::Ptr& item) {
+		m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [this, key](const QString& /*id*/, const IDataItem::Ptr& item, const std::set<QString>& /*ids*/) {
 			const auto find = [&](const QString& id, const IDataItem& parent, const auto& r) -> IDataItem::Ptr {
 				for (size_t i = 0, sz = parent.GetChildCount(); i < sz; ++i)
 				{
@@ -1231,7 +1232,7 @@ private:
 				m_ui.treeView->setCurrentIndex(model.index(0, 0));
 		});
 		connect(m_ui.treeView, &QWidget::customContextMenuRequested, &m_self, [this] {
-			m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [&](const QString& id, const IDataItem::Ptr& item) {
+			m_controller->RequestContextMenu(m_ui.treeView->currentIndex(), GetContextMenuOptions(), [&](const QString& id, const IDataItem::Ptr& item, const std::set<QString>& /*ids*/) {
 				OnContextMenuReady(id, item);
 			});
 		});

@@ -325,7 +325,7 @@ struct TreeViewControllerNavigation::Impl final
 		const auto db   = databaseController->GetDatabase(true);
 		auto       item = std::invoke(MENU_REQUESTERS[mode], static_cast<IContextMenuProvider*>(this), std::ref(*db), std::cref(id), options);
 		forwarder.Forward([callback = std::move(callback), id = std::move(id), item = std::move(item)] {
-			callback(id, item);
+			callback(id, item, {});
 		});
 	}
 
@@ -497,8 +497,7 @@ private: // ITableSubscriptionHandler
 		self.RequestBooks(true);
 	}
 
-#define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(NAME, TYPE)                                                                                                                                                   \
-	void On_##NAME##_Changed() override { OnTableChanged(NavigationMode::TYPE); }
+#define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(NAME, TYPE) void On_##NAME##_Changed() override { OnTableChanged(NavigationMode::TYPE); }
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_X_MACRO
 #undef SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM
 

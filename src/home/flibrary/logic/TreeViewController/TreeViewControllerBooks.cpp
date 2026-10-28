@@ -1,6 +1,7 @@
 #include "TreeViewControllerBooks.h"
 
 #include <QModelIndex>
+#include <QPointer>
 #include <QString>
 
 #include "fnd/FindPair.h"
@@ -10,6 +11,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/constants/SettingsConstant.h"
 
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
@@ -206,8 +208,8 @@ ViewMode TreeViewControllerBooks::GetViewMode() const noexcept
 void TreeViewControllerBooks::RequestContextMenu(const QModelIndex& index, const RequestContextMenuOptions options, RequestContextMenuCallback callback)
 {
 	auto menuProvider = ILogicFactory::Lock(m_impl->logicFactory)->CreateBooksContextMenuProvider();
-	menuProvider->Request(index, options, [&, menuProvider, id = index.data(Role::Id).toString(), callback = std::move(callback)](const IDataItem::Ptr& item) mutable {
-		callback(id, item);
+	menuProvider->Request(index, options, [&, menuProvider, id = index.data(Role::Id).toString(), callback = std::move(callback)](const IDataItem::Ptr& item, const std::set<QString>& ids) mutable {
+		callback(id, item, ids);
 		menuProvider.reset();
 	});
 }
@@ -215,10 +217,18 @@ void TreeViewControllerBooks::RequestContextMenu(const QModelIndex& index, const
 void TreeViewControllerBooks::OnContextMenuTriggered(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item)
 {
 	auto menuProvider = ILogicFactory::Lock(m_impl->logicFactory)->CreateBooksContextMenuProvider();
-	menuProvider->OnContextMenuTriggered(model, index, indexList, std::move(item), [&, menuProvider, id = index.data(Role::Id).toString()](const IDataItem::Ptr& itemResult) mutable {
-		Perform(&ITreeViewController::IObserver::OnContextMenuTriggered, std::cref(id), std::cref(itemResult));
-		menuProvider.reset();
-	});
+	menuProvider->OnContextMenuTriggered(
+		model,
+		index,
+		indexList,
+		std::move(item),
+		[this, model = QPointer(model), menuProvider, id = index.data(Role::Id).toString()](const IDataItem::Ptr& itemResult, const std::set<QString>& ids) mutable {
+			Perform(&ITreeViewController::IObserver::OnContextMenuTriggered, std::cref(id), std::cref(itemResult));
+			if (!model.isNull() && !m_settings->Get(Constant::Settings::PREFER_KEEP_CHECK, false))
+				model->setData({}, QVariant::fromValue(ids), Role::Uncheck);
+			menuProvider.reset();
+		}
+	);
 }
 
 void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex& index) const
