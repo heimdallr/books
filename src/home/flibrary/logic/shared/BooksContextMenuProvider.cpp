@@ -438,8 +438,8 @@ private: // IContextMenuHandler
 		m_databaseUser->Execute({ "Set my rate", [this, model = QPointer { model }, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable {
 									 const auto db          = m_databaseUser->Database();
 									 const auto transaction = db->CreateTransaction();
-									 const auto command = transaction->CreateCommand("insert or replace into Books_User(BookID, UserRate, CreatedAt) values(?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))");
-									 const auto rate    = [&]() -> std::optional<int> {
+									 const auto command     = transaction->CreateCommand(IDatabaseUser::SET_USER_RATE_COMMAND);
+									 const auto rate        = [&]() -> std::optional<int> {
 										 const auto str = item->GetData(MenuItem::Column::Parameter);
 										 assert(!str.isEmpty());
 										 bool       ok    = false;
@@ -543,8 +543,7 @@ private: // IContextMenuHandler
 						 return command->Execute(lang, id) && init;
 					 });
 				 };
-				 const auto ok = execute("insert or replace into Books_User(Lang, BookID, CreatedAt) values(?, ?, datetime(CURRENT_TIMESTAMP, 'localtime'))")
-			                  && execute("update Books set Lang = ? where BookID = ?") && transaction->Commit();
+				 const auto ok = execute(IDatabaseUser::SET_LANG_COMMAND) && execute("update Books set Lang = ? where BookID = ?") && transaction->Commit();
 
 				 auto idSet = ids | std::views::transform([](const auto& id) {
 								  return QString::number(id);

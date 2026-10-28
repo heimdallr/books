@@ -132,8 +132,15 @@ bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& i
 			progressItem->Increment(1);
 		}
 	}
-	transaction
-		->CreateCommand(std::format("insert or replace into Books_User(BookID, IsDeleted, CreatedAt) select id, {}, datetime(CURRENT_TIMESTAMP, 'localtime') from {}", remove ? 1 : 0, tempTable->GetName()))
+
+	static constexpr auto removeQueryText = R"(
+INSERT INTO Books_User (BookID, IsDeleted, CreatedAt)
+SELECT id, {}, datetime(CURRENT_TIMESTAMP, 'localtime')
+FROM {} WHERE true
+ON CONFLICT(BookID) DO UPDATE SET 
+IsDeleted = excluded.IsDeleted, CreatedAt = excluded.CreatedAt)";
+
+	transaction->CreateCommand(std::format(removeQueryText, remove ? 1 : 0, tempTable->GetName()))
 		->Execute();
 
 	ok = transaction
