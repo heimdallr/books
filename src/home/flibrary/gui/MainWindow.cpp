@@ -11,7 +11,6 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QStandardPaths>
-#include <QStyle>
 #include <QStyleFactory>
 #include <QSystemTrayIcon>
 #include <QTimer>
