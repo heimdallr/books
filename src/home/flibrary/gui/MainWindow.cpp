@@ -820,7 +820,7 @@ private:
 		SetupTrayMenu();
 	}
 
-	void ReplaceMenuBar() const
+	void ReplaceMenuBar()
 	{
 		PLOGV << "ReplaceMenuBar";
 		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(
@@ -843,6 +843,8 @@ private:
 		else if (m_settings->Get(TOOLBAR_WITH_MAIN_MENU, false))
 		{
 			m_ui.toolWidgetFillerLeftLayout->insertWidget(1, m_ui.toolBar);
+			m_settings->Set(TOOLBAR_POSITION, QString { TOOLBAR_POSITION_MAIN_MENU });
+			m_settings->Remove(TOOLBAR_WITH_MAIN_MENU);
 		}
 
 		m_self.setMenuWidget(m_ui.toolWidget);
