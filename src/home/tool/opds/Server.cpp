@@ -169,11 +169,17 @@ std::optional<QHttpServerResponse> FromFile(
 {
 	QFile file(fileName);
 	if (!file.exists())
+	{
+		PLOGE << fileName << " - not exists";
 		return std::nullopt;
+	}
 
 	const auto ok = file.open(QIODevice::ReadOnly);
 	if (!ok)
+	{
+		PLOGE << fileName << " - cannot open";
 		return std::nullopt;
+	}
 
 	QHttpServerResponse response(EncodeContent(dataUpdater(file.readAll()), acceptEncoding));
 	ReplaceOrAppendHeader(response, QHttpHeaders::WellKnownHeader::ContentType, contentType);

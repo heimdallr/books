@@ -54,10 +54,7 @@ Name: "ukrainian"; MessagesFile: "compiler:Languages\Ukrainian.isl"; LicenseFile
 Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{cm:AdditionalIcons}"; Flags: unchecked
 
 [Files]
-Source: "{#MyBuildFolder}\*.exe"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#MyBuildFolder}\*.json"; DestDir: "{app}"; Flags: ignoreversion
-Source: "{#MyBuildFolder}\*.dll"; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
-Source: "{#MyBuildFolder}\*.qm" ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
+Source: "{#MyBuildFolder}\*" ; DestDir: "{app}"; Flags: ignoreversion recursesubdirs createallsubdirs
 Source: "{#MyBuildFolder}\LICENSE.txt"; DestDir: "{app}"; Flags: ignoreversion; AfterInstall: RegisterLanguage
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 

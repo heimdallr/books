@@ -37,10 +37,11 @@ cpack -G WIX -C Release
 if %errorlevel% NEQ 0 goto Error
 cd %originalDir%
 move  %BUILD_DIR%\*.msi %~dp0build\installer\
+del /s /q %BUILD_DIR%\FLibrary\installer_mode
 
 set MIN_WIN_WERSION=10.0.17763
 if [%OS%]==[Win7] set MIN_WIN_WERSION=6.1
-ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% /DMyAppUid=%PRODUCT_GUID% /DMyBuildFolder=%BUILD_DIR%\bin /DMyOS=%OS% /DMyPlatform=%PLATFORM% /DMyMinVersion=%MIN_WIN_WERSION% %~dp0src\home\script\install\flibrary.iss
+ISCC.exe /DRootDir=%~dp0 /DMyAppVersion=%PRODUCT_VERSION% /DMyAppUid=%PRODUCT_GUID% /DMyBuildFolder=%BUILD_DIR%\FLibrary /DMyOS=%OS% /DMyPlatform=%PLATFORM% /DMyMinVersion=%MIN_WIN_WERSION% %~dp0src\home\script\install\flibrary.iss
 if %errorlevel% NEQ 0 goto Error
 
 echo portable creating
