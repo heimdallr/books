@@ -60,6 +60,7 @@ public:
 private slots:
 	void OnBookTitleToSearchVisibleChanged() const;
 	void OnCurrentNavigationItemChanged(const QModelIndex& index);
+	void OnSetToolBarPosition(const QString& key, QWidget* toolBar);
 
 private: // QWidget
 	void resizeEvent(QResizeEvent* event) override;

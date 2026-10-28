@@ -11,7 +11,6 @@
 #include <QKeyEvent>
 #include <QLabel>
 #include <QStandardPaths>
-#include <QStyle>
 #include <QStyleFactory>
 #include <QSystemTrayIcon>
 #include <QTimer>
@@ -110,10 +109,11 @@ constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
 constexpr auto SHOW_STATUS_BAR_KEY                = "ui/View/Status";
 constexpr auto SHOW_TOOLBAR_KEY                   = "ui/View/ShowToolBar";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
-constexpr auto MAIN_WINDOW_STATE                  = "ui/View/MainWindowState";
+constexpr auto MAIN_WINDOW_STATE                  = "ui/MainWindow/WindowState";
 constexpr auto TOOLBAR_ORDER_KEY                  = "ui/MenuCustomization/ToolbarOrder";
 constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
 constexpr auto TOOLBAR_WITH_MAIN_MENU             = "Preferences/ToolbarWithMainMenu";
+constexpr auto TOOLBAR_POSITION                   = "Preferences/ToolbarPosition";
 constexpr auto STATUS_BAR_FONT_FAMILY             = "Preferences/StatusBar/Font/family";
 constexpr auto STATUS_BAR_FONT_SIZE               = "Preferences/StatusBar/Font/size";
 constexpr auto QSS                                = "qss";
@@ -121,6 +121,7 @@ constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 constexpr auto NAVIGATION_ACTION_ID_PROPERTY      = "navigationMode";
 constexpr auto INDEX                              = "index";
 constexpr auto VISIBLE                            = "needShow";
+constexpr auto TOOLBAR_POSITION_MAIN_MENU         = "MainMenu";
 
 #define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO \
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)      \
@@ -414,6 +415,7 @@ public:
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
 		, m_navigationWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Navigation) }
 	{
+		SetupObjectsConnectors();
 		Setup();
 		ConnectActions();
 		CreateStylesMenu();
@@ -431,8 +433,11 @@ public:
 		if (m_checkForUpdateOnStartEnabled && m_collectionController->ActiveCollectionExists())
 			CheckForUpdates(false);
 
-		if (const auto var = m_settings->Get(MAIN_WINDOW_STATE); var.isValid())
-			m_self.restoreState(var.toByteArray());
+		if (!m_settings->Get(TOOLBAR_POSITION).isValid() && !m_settings->Get(TOOLBAR_WITH_MAIN_MENU).isValid())
+			if (const auto var = m_settings->Get(MAIN_WINDOW_STATE); var.isValid())
+				m_self.restoreState(var.toByteArray());
+
+		m_ui.toolWidgetFillerLeft->setAcceptDrops(true);
 	}
 
 	~Impl() override
@@ -730,6 +735,18 @@ private: // ToolbarController::IObserver
 	}
 
 private:
+	void SetupObjectsConnectors()
+	{
+		Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, &m_self, SIGNAL(BookTitleToSearchVisibleChanged()));
+		Util::ObjectsConnector::registerEmitter(ObjectConnectorID::SET_TOOLBAR_POSITION, &m_self, SIGNAL(SetToolBarPosition(const QString&, QWidget*)));
+		Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, &m_self, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)), true);
+		Util::ObjectsConnector::registerReceiver(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, &m_self, SLOT(OnSearchNavigationItemSelected(long long, const QString&)), true);
+		Util::ObjectsConnector::registerReceiver(ObjectConnectorID::STACKED_PAGE_STATE_CHANGED, &m_self, SLOT(OnStackedPageStateChanged(QStackedWidget*, std::shared_ptr<QWidget>, int)), true);
+		Util::ObjectsConnector::registerReceiver(ObjectConnectorID::NAVIGATION_COUNTER_CHANGED, &m_self, SLOT(OnNavigationCountChanged(int)));
+		Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOK_COUNTER_CHANGED, &m_self, SLOT(OnBookCountChanged(int)));
+		Util::ObjectsConnector::registerReceiver(ObjectConnectorID::IMAGE_COUNTER_CHANGED, &m_self, SLOT(OnImageCountChanged(int)));
+	}
+
 	void Setup()
 	{
 		PLOGV << "Setup";
@@ -815,8 +832,19 @@ private:
 		));
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 		m_ui.toolWidgetLayout->insertWidget(0, m_self.menuBar());
-		if (m_settings->Get(TOOLBAR_WITH_MAIN_MENU, false))
+
+		if (const auto toolBarPositionVar = m_settings->Get(TOOLBAR_POSITION); toolBarPositionVar.isValid())
+		{
+			if (const auto toolBarPosition = toolBarPositionVar.toString(); toolBarPosition == TOOLBAR_POSITION_MAIN_MENU)
+				m_ui.toolWidgetFillerLeftLayout->insertWidget(1, m_ui.toolBar);
+			else
+				emit m_self.SetToolBarPosition(toolBarPosition, m_ui.toolBar);
+		}
+		else if (m_settings->Get(TOOLBAR_WITH_MAIN_MENU, false))
+		{
 			m_ui.toolWidgetFillerLeftLayout->insertWidget(1, m_ui.toolBar);
+		}
+
 		m_self.setMenuWidget(m_ui.toolWidget);
 	}
 
@@ -2023,13 +2051,6 @@ MainWindow::MainWindow(
 		  std::move(navigationUndoRedo)
 	  )
 {
-	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
-	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)), true);
-	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, this, SLOT(OnSearchNavigationItemSelected(long long, const QString&)), true);
-	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::STACKED_PAGE_STATE_CHANGED, this, SLOT(OnStackedPageStateChanged(QStackedWidget*, std::shared_ptr<QWidget>, int)), true);
-	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::NAVIGATION_COUNTER_CHANGED, this, SLOT(OnNavigationCountChanged(int)));
-	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOK_COUNTER_CHANGED, this, SLOT(OnBookCountChanged(int)));
-	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::IMAGE_COUNTER_CHANGED, this, SLOT(OnImageCountChanged(int)));
 	PLOGV << "MainWindow created";
 }
 

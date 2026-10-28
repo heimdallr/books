@@ -30,7 +30,7 @@
     <number>0</number>
    </property>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
+    <layout class="QHBoxLayout" name="searchFilterBarLayout">
      <property name="spacing">
       <number>4</number>
      </property>
