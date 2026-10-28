@@ -110,6 +110,7 @@ constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
 constexpr auto SHOW_STATUS_BAR_KEY                = "ui/View/Status";
 constexpr auto SHOW_TOOLBAR_KEY                   = "ui/View/ShowToolBar";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
+constexpr auto MAIN_WINDOW_STATE                  = "ui/View/MainWindowState";
 constexpr auto TOOLBAR_ORDER_KEY                  = "ui/MenuCustomization/ToolbarOrder";
 constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
 constexpr auto TOOLBAR_WITH_MAIN_MENU             = "Preferences/ToolbarWithMainMenu";
@@ -429,6 +430,9 @@ public:
 
 		if (m_checkForUpdateOnStartEnabled && m_collectionController->ActiveCollectionExists())
 			CheckForUpdates(false);
+
+		if (const auto var = m_settings->Get(MAIN_WINDOW_STATE); var.isValid())
+			m_self.restoreState(var.toByteArray());
 	}
 
 	~Impl() override
@@ -439,6 +443,7 @@ public:
 		m_collectionController->UnregisterObserver(this);
 		m_alphabetPanel->UnregisterObserver(this);
 		m_navigationUndoRedo->UnregisterObserver(this);
+		m_settings->Set(MAIN_WINDOW_STATE, m_self.saveState());
 	}
 
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry)
