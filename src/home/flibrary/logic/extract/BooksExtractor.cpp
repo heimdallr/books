@@ -19,13 +19,13 @@
 
 #include "data/DataItem.h"
 #include "platform/StrUtil.h"
+#include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
 #include "util/ImageRestore.h"
 #include "util/ObjectsConnector.h"
 
 #include "log.h"
 #include "zip.h"
-#include "util/FunctorExecutionForwarder.h"
 
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
