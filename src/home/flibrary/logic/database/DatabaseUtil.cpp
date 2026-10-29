@@ -140,8 +140,7 @@ FROM {} WHERE true
 ON CONFLICT(BookID) DO UPDATE SET 
 IsDeleted = excluded.IsDeleted, CreatedAt = excluded.CreatedAt)";
 
-	transaction->CreateCommand(std::format(removeQueryText, remove ? 1 : 0, tempTable->GetName()))
-		->Execute();
+	transaction->CreateCommand(std::format(removeQueryText, remove ? 1 : 0, tempTable->GetName()))->Execute();
 
 	ok = transaction
 	         ->CreateCommand(R"(

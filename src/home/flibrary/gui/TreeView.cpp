@@ -530,6 +530,12 @@ public:
 		m_navigationItemFlags = index.data(Role::Flags).value<IDataItem::Flags>();
 	}
 
+	void OnSetBooksColumnValue(const SetForIdsArg& args) const
+	{
+		if (auto* model = m_ui.treeView->model())
+			model->setData({}, QVariant::fromValue(args), Role::SetForIds);
+	}
+
 	void OnSetToolBarPosition(const QString& key, QWidget* widget)
 	{
 		if (key != QString("%1SearchFilterBar").arg(m_controller->TrContext()))
@@ -1109,6 +1115,7 @@ private:
 			Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_COUNTER_CHANGED, &m_self, SIGNAL(CounterChanged(int)));
 			Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, &m_self, SLOT(OnBookTitleToSearchVisibleChanged()));
 			Util::ObjectsConnector::registerReceiver(ObjectConnectorID::CURRENT_NAVIGATION_ITEM_CHANGED, &m_self, SLOT(OnCurrentNavigationItemChanged(const QModelIndex&)));
+			Util::ObjectsConnector::registerReceiver(ObjectConnectorID::SET_BOOKS_COLUMN_VALUE, &m_self, SLOT(OnSetBooksColumnValue(const SetForIdsArg&)));
 		}
 
 		Util::ObjectsConnector::registerReceiver(ObjectConnectorID::SET_TOOLBAR_POSITION, &m_self, SLOT(OnSetToolBarPosition(const QString&, QWidget*)));
@@ -1723,6 +1730,11 @@ void TreeView::OnCurrentNavigationItemChanged(const QModelIndex& index)
 void TreeView::OnSetToolBarPosition(const QString& key, QWidget* toolBar)
 {
 	m_impl->OnSetToolBarPosition(key, toolBar);
+}
+
+void TreeView::OnSetBooksColumnValue(const SetForIdsArg& args)
+{
+	m_impl->OnSetBooksColumnValue(args);
 }
 
 void TreeView::resizeEvent(QResizeEvent* event)

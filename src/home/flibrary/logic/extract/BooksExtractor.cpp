@@ -13,11 +13,16 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ExportStat.h"
+#include "interface/constants/ModelRole.h"
+#include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
 
+#include "data/DataItem.h"
 #include "platform/StrUtil.h"
+#include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
 #include "util/ImageRestore.h"
+#include "util/ObjectsConnector.h"
 
 #include "log.h"
 #include "zip.h"
@@ -28,6 +33,7 @@ using namespace HomeCompa;
 namespace {
 
 constexpr auto EXPORT_ENCODING_KEY = "Preferences/Export/Encoding/export";
+constexpr auto AUTO_RATE_KEY       = "Preferences/Export/AutoRateOnExport";
 
 class IExportHelper // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -165,7 +171,7 @@ std::filesystem::path Process(
 	return Write(settings, stream->GetStream(), folder, book, progress, std::move(zipProgressCallback), std::move(encoding), exportHelper, mode);
 }
 
-void Process(
+bool Process(
 	const ISettings&                    settings,
 	const std::filesystem::path&        archiveFolder,
 	const QString&                      dstFolder,
@@ -194,12 +200,14 @@ void Process(
 		ILogicFactory::FillScriptTemplate(db, command.args, book);
 
 		if (progress.IsStopped() || !scriptController.Execute(command))
-			return;
+			return false;
 	}
+
+	return true;
 }
 
 using ProcessFunctor = std::function<
-	void(const std::filesystem::path& archiveFolder, const QString& dstFolder, const Util::ExtractedBook& book, QString encoding, IProgressController::IProgressItem& progress, IExportHelper& exportHelper)>;
+	bool(const std::filesystem::path& archiveFolder, const QString& dstFolder, const Util::ExtractedBook& book, QString encoding, IProgressController::IProgressItem& progress, IExportHelper& exportHelper)>;
 
 } // namespace
 
@@ -211,6 +219,7 @@ class BooksExtractor::Impl final
 
 public:
 	Impl(
+		const BooksExtractor&                       self,
 		std::shared_ptr<const ISettings>            settings,
 		std::shared_ptr<ICollectionController>      collectionController,
 		std::shared_ptr<IProgressController>        progressController,
@@ -219,8 +228,10 @@ public:
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
 		std::shared_ptr<const IDatabaseUser>        databaseUser
 	)
-		: m_settings { std::move(settings) }
+		: m_self { self }
+		, m_settings { std::move(settings) }
 		, m_encoding { m_settings->Get(EXPORT_ENCODING_KEY, QString {}) }
+		, m_autoRateValue { m_settings->Get(AUTO_RATE_KEY) }
 		, m_collectionController { std::move(collectionController) }
 		, m_progressController { std::move(progressController) }
 		, m_logicFactory { logicFactory }
@@ -243,20 +254,15 @@ public:
 		m_hasError       = false;
 		m_callback       = std::move(callback);
 		m_taskCount      = std::size(books);
+		m_exportStatType = static_cast<int>(exportStatType);
 		m_processFunctor = std::move(processFunctor);
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor({ static_cast<int>(m_taskCount) }).swap(m_executor);
 		m_dstFolder     = std::move(dstFolder);
 		m_archiveFolder = Platform::StringToPath(m_collectionController->GetActiveCollection().GetFolder());
 
-		const auto transaction = m_databaseUser->Database()->CreateTransaction();
-		const auto command     = transaction->CreateCommand(ExportStat::INSERT_QUERY);
-
 		std::for_each(std::make_move_iterator(std::begin(books)), std::make_move_iterator(std::end(books)), [&](Util::ExtractedBook&& book) {
-			command->Execute(book.id, static_cast<int>(exportStatType));
 			(*m_executor)(CreateTask(std::move(book)));
 		});
-
-		transaction->Commit();
 	}
 
 	std::shared_ptr<const IScriptController> GetScriptController() const
@@ -355,7 +361,8 @@ private:
 										  bool error = false;
 										  try
 										  {
-											  m_processFunctor(m_archiveFolder, m_dstFolder, book, m_encoding, *progressItem, *this);
+											  if (m_processFunctor(m_archiveFolder, m_dstFolder, book, m_encoding, *progressItem, *this))
+												  OnExtracted(book.id);
 										  }
 										  catch (const std::exception& ex)
 										  {
@@ -371,9 +378,25 @@ private:
 									  } };
 	}
 
+	void OnExtracted(const long long id) const
+	{
+		const auto transaction = m_databaseUser->Database()->CreateTransaction();
+		transaction->CreateCommand(ExportStat::INSERT_QUERY)->Execute(id, m_exportStatType);
+		if (m_autoRateValue.isValid())
+		{
+			transaction->CreateCommand(IDatabaseUser::SET_USER_RATE_COMMAND)->Execute(id, m_autoRateValue.toInt());
+			m_forwarder.Forward([this, id] {
+				emit m_self.SetUserRate({ .ids = { id }, .column = BookItem::Column::UserRate, .value = m_autoRateValue.toString() });
+			});
+		}
+		transaction->Commit();
+	}
+
 private:
+	const BooksExtractor&                                     m_self;
 	std::shared_ptr<const ISettings>                          m_settings;
 	const QString                                             m_encoding;
+	const QVariant                                            m_autoRateValue;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 	PropagateConstPtr<IProgressController, std::shared_ptr>   m_progressController;
 	std::weak_ptr<const ILogicFactory>                        m_logicFactory;
@@ -383,6 +406,7 @@ private:
 	Callback                                                  m_callback;
 	size_t                                                    m_taskCount { 0 };
 	bool                                                      m_hasError { false };
+	int                                                       m_exportStatType;
 	ProcessFunctor                                            m_processFunctor { nullptr };
 	std::unique_ptr<Util::IExecutor>                          m_executor;
 	QString                                                   m_dstFolder;
@@ -390,6 +414,7 @@ private:
 	std::mutex                                                m_usedPathGuard;
 	std::unordered_set<QString>                               m_usedPath;
 	bool                                                      m_needReplaceMetadata;
+	Util::FunctorExecutionForwarder                           m_forwarder;
 };
 
 BooksExtractor::BooksExtractor(
@@ -401,8 +426,9 @@ BooksExtractor::BooksExtractor(
 	std::shared_ptr<const IBookExtractor>       bookExtractor,
 	std::shared_ptr<const IDatabaseUser>        databaseUser
 )
-	: m_impl(std::move(settings), std::move(collectionController), std::move(progressController), logicFactory, std::move(scriptController), std::move(bookExtractor), std::move(databaseUser))
+	: m_impl(*this, std::move(settings), std::move(collectionController), std::move(progressController), logicFactory, std::move(scriptController), std::move(bookExtractor), std::move(databaseUser))
 {
+	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::SET_BOOKS_COLUMN_VALUE, this, SIGNAL(SetUserRate(const SetForIdsArg&)));
 	PLOGV << "BooksExtractor created";
 }
 
@@ -427,7 +453,7 @@ void BooksExtractor::ExtractAsArchives(QString folder, const QString& /*paramete
 			IProgressController::IProgressItem& progress,
 			IExportHelper&                      exportHelper
 		) mutable {
-			Process(m_impl->GetSettings(), archiveFolder, book, progress, std::move(zipProgressCallback), std::move(encoding), exportHelper, WriteMode::Archive);
+			return !Process(m_impl->GetSettings(), archiveFolder, book, progress, std::move(zipProgressCallback), std::move(encoding), exportHelper, WriteMode::Archive).empty();
 		}
 	);
 }
@@ -447,7 +473,7 @@ void BooksExtractor::ExtractAsIs(QString folder, const QString& /*parameter*/, U
 			IProgressController::IProgressItem& progress,
 			IExportHelper&                      exportHelper
 		) {
-			Process(m_impl->GetSettings(), archiveFolder, book, progress, {}, std::move(encoding), exportHelper, WriteMode::AsIs);
+			return !Process(m_impl->GetSettings(), archiveFolder, book, progress, {}, std::move(encoding), exportHelper, WriteMode::AsIs).empty();
 		}
 	);
 }
@@ -467,7 +493,7 @@ void BooksExtractor::ExtractUnpack(QString folder, const QString& /*parameter*/,
 			IProgressController::IProgressItem& progress,
 			IExportHelper&                      exportHelper
 		) {
-			Process(m_impl->GetSettings(), archiveFolder, book, progress, {}, std::move(encoding), exportHelper, WriteMode::Unpack);
+			return !Process(m_impl->GetSettings(), archiveFolder, book, progress, {}, std::move(encoding), exportHelper, WriteMode::Unpack).empty();
 		}
 	);
 }
@@ -489,7 +515,7 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, U
 			IProgressController::IProgressItem& progress,
 			IExportHelper&                      exportHelper
 		) {
-			Process(m_impl->GetSettings(), archiveFolder, dstFolder, *db, book, progress, std::move(encoding), exportHelper, *scriptController, commands);
+			return Process(m_impl->GetSettings(), archiveFolder, dstFolder, *db, book, progress, std::move(encoding), exportHelper, *scriptController, commands);
 		}
 	);
 }
