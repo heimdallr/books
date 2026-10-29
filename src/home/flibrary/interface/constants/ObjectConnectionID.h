@@ -11,5 +11,6 @@ constexpr auto NAVIGATION_COUNTER_CHANGED                 = "NAVIGATION_COUNTER_
 constexpr auto BOOK_COUNTER_CHANGED                       = "BOOK_COUNTER_CHANGED";
 constexpr auto IMAGE_COUNTER_CHANGED                      = "IMAGE_COUNTER_CHANGED";
 constexpr auto SET_TOOLBAR_POSITION                       = "SET_TOOLBAR_POSITION";
+constexpr auto SET_BOOKS_COLUMN_VALUE                     = "SET_BOOKS_COLUMN_VALUE";
 
 } // namespace HomeCompa::Flibrary::ObjectConnectorID
