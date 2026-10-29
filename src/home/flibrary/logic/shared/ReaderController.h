@@ -1,7 +1,5 @@
 #pragma once
 
-#include <functional>
-
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
@@ -17,9 +15,17 @@ class QString;
 
 namespace HomeCompa::Flibrary {
 
-class ReaderController : public IReaderController
+struct SetForIdsArg;
+
+class ReaderController final
+    : public QObject
+    , public IReaderController
 {
+	Q_OBJECT
 	NON_COPY_MOVABLE(ReaderController)
+
+signals:
+	void SetUserRate(const SetForIdsArg& args) const;
 
 public:
 	ReaderController(
