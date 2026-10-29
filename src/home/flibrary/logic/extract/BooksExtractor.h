@@ -16,9 +16,16 @@
 
 namespace HomeCompa::Flibrary {
 
-class BooksExtractor
+struct SetForIdsArg;
+
+class BooksExtractor final : public QObject
+
 {
+	Q_OBJECT
 	NON_COPY_MOVABLE(BooksExtractor)
+
+signals:
+	void SetUserRate(const SetForIdsArg& args) const;
 
 public:
 	using Callback = std::function<void(bool)>;
@@ -34,7 +41,7 @@ public:
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
 		std::shared_ptr<const IDatabaseUser>        databaseUser
 	);
-	~BooksExtractor();
+	~BooksExtractor() override;
 
 public:
 	void ExtractAsArchives(QString folder, const QString& parameter, Util::ExtractedBooks&& books, Callback callback);
