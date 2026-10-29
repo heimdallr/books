@@ -698,7 +698,7 @@ private: //	ModeComboBox::IValueApplier
 private: // HeaderView::IObserver
 	void OnSortChanged() override
 	{
-		SaveHeaderLayout();
+		m_saveHeaderLayoutTimer->start();
 	}
 
 	QAbstractItemView& GetView() noexcept override
@@ -1073,12 +1073,8 @@ private:
 		{
 			m_booksHeaderView = new HeaderView(*this, m_currentId, &m_self);
 			m_ui.treeView->setHeader(m_booksHeaderView);
-			connect(m_booksHeaderView, &QHeaderView::sectionResized, &m_self, [this] {
-				SaveHeaderLayout();
-			});
-			connect(m_booksHeaderView, &QHeaderView::sectionMoved, &m_self, [this] {
-				SaveHeaderLayout();
-			});
+			connect(m_booksHeaderView, &QHeaderView::sectionResized, m_saveHeaderLayoutTimer.get(), qOverload<>(&QTimer::start));
+			connect(m_booksHeaderView, &QHeaderView::sectionMoved, m_saveHeaderLayoutTimer.get(), qOverload<>(&QTimer::start));
 		}
 
 		auto& treeViewHeader = *m_ui.treeView->header();
@@ -1397,7 +1393,7 @@ private:
 		CheckHeaderViewWidth(QResizeEvent(m_self.size(), m_self.size()));
 	}
 
-	void CheckHeaderViewWidth(const QResizeEvent& event)
+	void CheckHeaderViewWidth(const QResizeEvent& event) const
 	{
 		const auto diff   = m_ui.treeView->width() - m_ui.treeView->viewport()->width();
 		auto&      header = *m_ui.treeView->header();
@@ -1407,7 +1403,7 @@ private:
 			{
 				QSignalBlocker block(&header);
 				header.resizeSection(0, m_ui.treeView->header()->sectionSize(0) + offset);
-				SaveHeaderLayout();
+				m_saveHeaderLayoutTimer->start();
 			}
 		}
 	}
@@ -1646,13 +1642,16 @@ private:
 	IDataItem::Flags                                              m_navigationItemFlags { IDataItem::Flags::None };
 	const ArchiveSorter                                           m_archiveSorter;
 	const QStringList                                             m_hiddenColumns;
-	bool                                                          m_menuCustomizerObserved { false }; // registered by a deferred call, which a quickly closed window never runs
+	bool                                                          m_menuCustomizerObserved { false };
 	std::unique_ptr<QTimer>                                       m_countChangedTimer { Util::CreateUiTimer([this] {
 		if (!m_self.isVisible())
 			return emit m_self.CounterChanged(-1);
 
 		if (m_ui.treeView->model())
 			emit m_self.CounterChanged(m_ui.treeView->model()->data({}, Role::Count).toInt());
+	}) };
+	std::unique_ptr<QTimer> m_saveHeaderLayoutTimer { Util::CreateUiTimer([this] {
+		SaveHeaderLayout();
 	}) };
 };
 
