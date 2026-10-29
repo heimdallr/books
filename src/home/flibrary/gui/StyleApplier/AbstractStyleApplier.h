@@ -8,7 +8,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class AbstractStyleApplier : virtual public IStyleApplier
+class AbstractStyleApplier : public IStyleApplier
 {
 protected:
 	explicit AbstractStyleApplier(std::shared_ptr<ISettings> settings);

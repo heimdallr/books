@@ -5,6 +5,7 @@
 #include <QClipboard>
 #include <QGuiApplication>
 #include <QMimeData>
+#include <QPointer>
 #include <QTemporaryDir>
 #include <QTimer>
 
@@ -30,7 +31,6 @@
 
 #include "Constant.h"
 #include "MenuItems.h"
-#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa;
@@ -97,8 +97,7 @@ public:
 public:
 	virtual ~IContextMenuHandler() = default;
 
-#define MENU_ACTION_ITEM(NAME)                                                                                                                                                                                 \
-	virtual void NAME(QAbstractItemModel *model, const QModelIndex &index, const QList<QModelIndex> &indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const = 0;
+#define MENU_ACTION_ITEM(NAME) virtual void NAME(QAbstractItemModel *model, const QModelIndex &index, const QList<QModelIndex> &indexList, IDataItem::Ptr item, BooksContextMenuProvider::Callback callback) const = 0;
 	GROUPS_MENU_ACTION_ITEMS_X_MACRO
 	BOOKS_MENU_ACTION_ITEMS_X_MACRO
 #undef MENU_ACTION_ITEM
@@ -115,21 +114,31 @@ constexpr std::pair<int, IContextMenuHandler::Function> MENU_HANDLERS[] {
 
 void CreateMyRateMenu(const IDataItem::Ptr& root, const QString& id, DB::IDatabase& db, const int starSymbol)
 {
-	const auto parent = AddMenuItem(root, MARK_AS_READ, Tr(MARK_AS_READ));
-	AddMenuItem(parent, WITHOUT_RATE, Tr(WITHOUT_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter);
-	const auto myRate = AddMenuItem(parent, SET_MY_RATE, Tr(SET_MY_RATE));
-	for (int rate = 5; rate > 0; --rate)
-		AddMenuItem(myRate, QString("setRate%1").arg(rate), QString(rate, QChar(starSymbol)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter);
-
 	const auto query = db.CreateQuery(USER_RATE_QUERY);
-	query->Bind(0, id.toInt());
-	query->Execute();
+	query->Execute(id.toInt());
 	assert(!query->Eof());
-	if (const auto currentUserRate = query->Get<int>(0); currentUserRate < 0)
-		return;
+	const auto currentUserRate = query->Get<int>(0);
+
+	const auto setEnabled = [](IDataItem& item, const bool enabled) {
+		item.SetData(QVariant::fromValue(true).toString(), MenuItem::Column::Checkable)
+			.SetData(QVariant::fromValue(enabled).toString(), MenuItem::Column::Enabled)
+			.SetData(QVariant::fromValue(!enabled).toString(), MenuItem::Column::Checked);
+	};
+
+	const auto parent = AddMenuItem(root, MARK_AS_READ, Tr(MARK_AS_READ));
+	setEnabled(AddMenuItem(parent, WITHOUT_RATE, Tr(WITHOUT_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(0), MenuItem::Column::Parameter), currentUserRate != 0);
+	const auto myRate = AddMenuItem(parent, SET_MY_RATE, Tr(SET_MY_RATE));
+
+	for (int rate = 5; rate > 0; --rate)
+		setEnabled(
+			AddMenuItem(myRate, QString("setRate%1").arg(rate), QString(rate, QChar(starSymbol)), BooksMenuAction::SetUserRate)->SetData(QString::number(rate), MenuItem::Column::Parameter),
+			currentUserRate != rate
+		);
 
 	AddMenuItem(parent)->SetData(QString::number(-1), MenuItem::Column::Parameter);
-	AddMenuItem(parent, REMOVE_MY_RATE, Tr(REMOVE_MY_RATE), BooksMenuAction::SetUserRate)->SetData(QString::number(-1), MenuItem::Column::Parameter);
+	AddMenuItem(parent, REMOVE_MY_RATE, Tr(REMOVE_MY_RATE), BooksMenuAction::SetUserRate)
+		->SetData(QString::number(-1), MenuItem::Column::Parameter)
+		.SetData(QVariant::fromValue(currentUserRate >= 0).toString(), MenuItem::Column::Enabled);
 }
 
 void CreateSendMenu(const IDataItem::Ptr& root, const ITreeViewController::RequestContextMenuOptions options, const IScriptController::Scripts& scripts)
@@ -288,7 +297,7 @@ public:
 
 				  return [callback = std::move(callback), result = std::move(result)](size_t) {
 					  if (result->GetChildCount() > 0)
-						  callback(result);
+						  callback(result, {});
 				  };
 			  } }
 		);
@@ -297,9 +306,10 @@ public:
 private: // IContextMenuHandler
 	void ReadBook(QAbstractItemModel* /*model*/, const QModelIndex& index, const QList<QModelIndex>& /*indexList*/, IDataItem::Ptr item, Callback callback) const override
 	{
-		m_readerController->Read(index.data(Role::Id).toLongLong());
-		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] {
-			callback(item);
+		const auto id = index.data(Role::Id).toLongLong();
+		m_readerController->Read(id);
+		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback), id] {
+			callback(item, { QString::number(id) });
 		});
 	}
 
@@ -317,18 +327,22 @@ private: // IContextMenuHandler
 		if (idList.empty())
 			return;
 
+		auto ids = idList | std::views::transform([](const auto& id) {
+					   return id.front();
+				   })
+		         | std::views::common | std::ranges::to<std::set>();
+
 		Util::Remove::Books books;
 		books.reserve(idList.size());
-		const auto count = idList.size();
 		std::ranges::transform(std::move(idList), std::back_inserter(books), [](auto&& idListItem) {
 			return Util::Remove::Book { idListItem[0].toLongLong(), std::move(idListItem[1]), std::move(idListItem[2]) };
 		});
 		auto  cleaner    = ILogicFactory::Lock(m_logicFactory)->CreateCollectionCleaner();
 		auto& cleanerRef = *cleaner;
-		cleanerRef.RemovePermanently(std::move(books), [&, cleaner = std::move(cleaner), item = std::move(item), callback = std::move(callback), count](const bool result) mutable {
+		cleanerRef.RemovePermanently(std::move(books), [&, cleaner = std::move(cleaner), item = std::move(item), callback = std::move(callback), ids = std::move(ids)](const bool result) mutable {
 			if (result)
-				m_uiFactory->ShowInfo(Loc::Tr(ICollectionCleaner::CONTEXT, ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(count));
-			callback(item);
+				m_uiFactory->ShowInfo(Loc::Tr(ICollectionCleaner::CONTEXT, ICollectionCleaner::REMOVE_PERMANENTLY_INFO).arg(ids.size()));
+			callback(item, ids);
 		});
 	}
 
@@ -341,7 +355,7 @@ private: // IContextMenuHandler
 	{
 		model->setData({}, QVariant::fromValue(indexList), Role::CheckAll);
 		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] {
-			callback(item);
+			callback(item, {});
 		});
 	}
 
@@ -349,7 +363,7 @@ private: // IContextMenuHandler
 	{
 		model->setData({}, QVariant::fromValue(indexList), Role::UncheckAll);
 		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] {
-			callback(item);
+			callback(item, {});
 		});
 	}
 
@@ -357,35 +371,35 @@ private: // IContextMenuHandler
 	{
 		model->setData({}, QVariant::fromValue(indexList), Role::InvertCheck);
 		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] {
-			callback(item);
+			callback(item, {});
 		});
 	}
 
 	void Collapse(QAbstractItemModel*, const QModelIndex&, const QList<QModelIndex>&, IDataItem::Ptr item, Callback callback) const override
 	{
 		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] {
-			callback(item);
+			callback(item, {});
 		});
 	}
 
 	void Expand(QAbstractItemModel*, const QModelIndex&, const QList<QModelIndex>&, IDataItem::Ptr item, Callback callback) const override
 	{
 		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] {
-			callback(item);
+			callback(item, {});
 		});
 	}
 
 	void CollapseAll(QAbstractItemModel*, const QModelIndex&, const QList<QModelIndex>&, IDataItem::Ptr item, Callback callback) const override
 	{
 		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] {
-			callback(item);
+			callback(item, {});
 		});
 	}
 
 	void ExpandAll(QAbstractItemModel*, const QModelIndex&, const QList<QModelIndex>&, IDataItem::Ptr item, Callback callback) const override
 	{
 		QTimer::singleShot(0, [item = std::move(item), callback = std::move(callback)] {
-			callback(item);
+			callback(item, {});
 		});
 	}
 
@@ -421,36 +435,41 @@ private: // IContextMenuHandler
 
 	void SetUserRate(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		m_databaseUser->Execute({ "Set my rate", [this, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable {
+		m_databaseUser->Execute({ "Set my rate", [this, model = QPointer { model }, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable {
 									 const auto db          = m_databaseUser->Database();
 									 const auto transaction = db->CreateTransaction();
-									 const auto command =
-										 transaction->CreateCommand("insert or replace into Books_User(BookID, UserRate, CreatedAt) values(:id, :user_rate, datetime(CURRENT_TIMESTAMP, 'localtime'))");
-									 const auto rate = [&] {
+									 const auto command     = transaction->CreateCommand(IDatabaseUser::SET_USER_RATE_COMMAND);
+									 const auto rate        = [&]() -> std::optional<int> {
 										 const auto str = item->GetData(MenuItem::Column::Parameter);
 										 assert(!str.isEmpty());
 										 bool       ok    = false;
 										 const auto value = str.toInt(&ok);
-										 return ok ? value : 0;
+										 return ok ? (value >= 0 ? std::optional { value } : std::nullopt) : std::optional { 0 };
 									 }();
 
 									 auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&](const bool init, const auto id) {
-										 command->Bind(":id", id);
-										 if (rate < 0)
-											 command->Bind(":user_rate");
-										 else
-											 command->Bind(":user_rate", rate);
-										 return command->Execute() && init;
+										 return command->Execute(id, rate) && init;
 									 });
-									 ok      = transaction->Commit() && ok;
 
-									 return [this, item = std::move(item), callback = std::move(callback), ok](size_t) {
+									 ok = transaction->Commit() && ok;
+
+									 auto idSet = ids | std::views::transform([](const auto& id) {
+													  return QString::number(id);
+												  })
+			                                    | std::views::common | std::ranges::to<std::set>();
+
+									 return [this, model = std::move(model), item = std::move(item), callback = std::move(callback), ok, rate, ids = std::move(ids), idSet = std::move(idSet)](size_t) mutable {
 										 if (!ok)
 											 m_uiFactory->ShowError(Tr(CANNOT_SET_USER_RATE));
 
-										 callback(item);
-										 if (ok)
-											 m_dataProvider->RequestBooks(true);
+										 if (ok && !model.isNull())
+											 model->setData(
+												 {},
+												 QVariant::fromValue(SetForIdsArg { .ids = std::move(ids), .column = BookItem::Column::UserRate, .value = rate ? QString::number(*rate) : QString {} }),
+												 Role::SetForIds
+											 );
+
+										 callback(item, idSet);
 									 };
 								 } });
 	}
@@ -503,38 +522,45 @@ private: // IContextMenuHandler
 	{
 		auto idList = ILogicFactory::Lock(m_logicFactory)->GetSelectedBookIds(model, index, indexList, { Role::Id });
 		if (idList.empty())
-			return callback(item);
+			return callback(item, {});
 
 		if (m_uiFactory->ShowQuestion(Tr(CHANGE_LANGUAGE_CONFIRM).arg(item->GetData(MenuItem::Column::Title)), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
-			return callback(item);
+			return callback(item, {});
 
-		m_databaseUser->Execute({ "Change book language", [this, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable {
-									 const auto lang = item->GetData(MenuItem::Column::Parameter).toStdString();
+		m_databaseUser->Execute(
+			{ "Change book language", [this, model = QPointer(model), ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable {
+				 auto lang = item->GetData(MenuItem::Column::Parameter).toStdString();
 
-									 const auto db          = m_databaseUser->Database();
-									 const auto transaction = db->CreateTransaction();
+				 const auto db          = m_databaseUser->Database();
+				 const auto transaction = db->CreateTransaction();
 
-									 const auto execute = [&](const char* commandText) -> bool {
-										 const auto command = transaction->CreateCommand(commandText);
+				 transaction->CreateCommand("insert or ignore into Languages(LanguageCode, Flags) values(?, 0)")->Execute(lang);
 
-										 return std::accumulate(ids.cbegin(), ids.cend(), true, [&](const bool init, const auto id) {
-											 command->Bind(":id", id);
-											 command->Bind(":lang", lang);
-											 return command->Execute() && init;
-										 });
-									 };
-									 const auto ok = execute("insert or replace into Books_User(BookID, Lang, CreatedAt) values(:id, :lang, datetime(CURRENT_TIMESTAMP, 'localtime'))")
-			                                      && execute("update Books set Lang = :lang where BookID = :id") && transaction->Commit();
+				 const auto execute = [&](const char* commandText) -> bool {
+					 const auto command = transaction->CreateCommand(commandText);
 
-									 return [this, item = std::move(item), callback = std::move(callback), ok](size_t) {
-										 if (!ok)
-											 m_uiFactory->ShowError(Tr(CANNOT_SET_LANGUAGE));
+					 return std::accumulate(ids.cbegin(), ids.cend(), true, [&](const bool init, const auto id) {
+						 return command->Execute(lang, id) && init;
+					 });
+				 };
+				 const auto ok = execute(IDatabaseUser::SET_LANG_COMMAND) && execute("update Books set Lang = ? where BookID = ?") && transaction->Commit();
 
-										 callback(item);
-										 if (ok)
-											 m_dataProvider->RequestBooks(true);
-									 };
-								 } });
+				 auto idSet = ids | std::views::transform([](const auto& id) {
+								  return QString::number(id);
+							  })
+			                | std::views::common | std::ranges::to<std::set>();
+
+				 return [this, model = std::move(model), item = std::move(item), callback = std::move(callback), lang = std::move(lang), ok, ids = std::move(ids), idSet = std::move(idSet)](size_t) mutable {
+					 if (!ok)
+						 m_uiFactory->ShowError(Tr(CANNOT_SET_LANGUAGE));
+
+					 if (ok && !model.isNull())
+						 model->setData({}, QVariant::fromValue(SetForIdsArg { .ids = std::move(ids), .column = BookItem::Column::Lang, .value = QString::fromStdString(lang) }), Role::SetForIds);
+
+					 callback(item, idSet);
+				 };
+			 } }
+		);
 	}
 
 	void HashCalculate(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
@@ -555,9 +581,11 @@ private: // IContextMenuHandler
 			   selectedBook = std::make_pair(index.data(Role::Folder).toString(), index.data(Role::FileName)),
 			   books        = std::move(books),
 			   progressItem = std::move(progressItem)]() mutable {
+				  std::set<QString>  ids;
 				  Util::BookHashItem toClipboard;
 				  for (auto&& book : books)
 				  {
+					  ids.emplace(book.front());
 					  auto hash = Util::GetHash(folder, std::move(book.front()), book.back());
 					  PLOGI << hash;
 					  if (hash.folder == selectedBook.first && hash.file == selectedBook.second)
@@ -568,11 +596,11 @@ private: // IContextMenuHandler
 						  break;
 				  }
 				  auto serialized = Serialize(toClipboard);
-				  return [item = std::move(item), callback = std::move(callback), executor = std::move(executor), serialized = std::move(serialized)](size_t) {
+				  return [item = std::move(item), callback = std::move(callback), executor = std::move(executor), serialized = std::move(serialized), ids = std::move(ids)](size_t) {
 					  auto* data = new QMimeData;
 					  data->setData(Constant::BOOK_HASH_MIME_DATA_TYPE, serialized);
 					  QGuiApplication::clipboard()->setMimeData(data);
-					  callback(item);
+					  callback(item, ids);
 				  };
 			  } }
 		);
@@ -618,11 +646,12 @@ private: // IContextMenuHandler
 				  updateItem(lhs);
 				  updateItem(rhs);
 
-				  auto result = Compare(lhs, rhs).join('\n');
+				  auto     result = Compare(lhs, rhs).join('\n');
+				  std::set ids { books.front().front(), books.front().back() };
 
-				  return [item = std::move(item), callback = std::move(callback), executor = std::move(executor), result = std::move(result)](size_t) {
+				  return [item = std::move(item), callback = std::move(callback), executor = std::move(executor), result = std::move(result), ids = std::move(ids)](size_t) {
 					  PLOGI << result;
-					  callback(item);
+					  callback(item, ids);
 				  };
 			  } }
 		);
@@ -630,7 +659,7 @@ private: // IContextMenuHandler
 
 	void ClearHistory(QAbstractItemModel*, const QModelIndex&, const QList<QModelIndex>&, IDataItem::Ptr item, Callback callback) const override
 	{
-		m_databaseUser->Execute({ "Change book language", [this, item = std::move(item), callback = std::move(callback)]() mutable {
+		m_databaseUser->Execute({ "Clear history", [this, item = std::move(item), callback = std::move(callback)]() mutable {
 									 const auto lang = item->GetData(MenuItem::Column::Parameter).toStdString();
 
 									 const auto db = m_databaseUser->Database();
@@ -638,7 +667,7 @@ private: // IContextMenuHandler
 									 tr->CreateCommand(std::format("delete from {}", DatabaseUtil::GetHistoryTableName(*m_settings)))->Execute();
 									 tr->Commit();
 									 return [this, item = std::move(item), callback = std::move(callback)](size_t) {
-										 callback(item);
+										 callback(item, {});
 										 m_dataProvider->RequestBooks(true);
 									 };
 								 } });
@@ -664,14 +693,26 @@ private:
 
 		auto inpxName = m_uiFactory->GetSaveFileName(Constant::Settings::EXPORT_DIALOG_KEY, Loc::Tr(Loc::EXPORT, Loc::SELECT_INPX_FILE), Loc::Tr(Loc::EXPORT, Loc::SELECT_INPX_FILE_FILTER));
 		if (inpxName.isEmpty())
-			return callback(item);
+			return callback(item, {});
+
+		auto ids = idList | std::views::transform([](const auto& id) {
+					   return id.front();
+				   })
+		         | std::views::common | std::ranges::to<std::set>();
 
 		auto extractor = ILogicFactory::Lock(m_logicFactory)->CreateInpxGenerator();
-		std::invoke(extractorMethod, *extractor, std::move(inpxName), idList.front(), *m_dataProvider, [extractor, item = std::move(item), callback = std::move(callback)](const bool hasError) mutable {
-			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
-			callback(item);
-			extractor.reset();
-		});
+		std::invoke(
+			extractorMethod,
+			*extractor,
+			std::move(inpxName),
+			idList.front(),
+			*m_dataProvider,
+			[extractor, item = std::move(item), callback = std::move(callback), ids = std::move(ids)](const bool hasError) mutable {
+				item->SetData(QString::number(hasError), MenuItem::Column::HasError);
+				callback(item, ids);
+				extractor.reset();
+			}
+		);
 	}
 
 	void SendAsImpl(
@@ -703,7 +744,7 @@ private:
 	{
 		auto dir = dstFolderRequired ? m_uiFactory->GetExistingDirectory(Constant::Settings::EXPORT_DIALOG_KEY, Loc::SELECT_SEND_TO_FOLDER) : QString();
 		if (dstFolderRequired && dir.isEmpty())
-			return callback(item);
+			return callback(item, {});
 
 		const auto logicFactory = ILogicFactory::Lock(m_logicFactory);
 
@@ -720,7 +761,7 @@ private:
 			fillTemplateConverter->Fill(*db, outputFileNameTemplate, book, tempDir ? tempDir->filePath("") : dir);
 
 		if (CheckUniqueFileNames(books, sendSettings.dstPathSuffix))
-			return callback(item);
+			return callback(item, {});
 
 		auto       ids       = books | std::views::transform([](const auto book) {
 					   return QString::number(book.id);
@@ -728,27 +769,26 @@ private:
 		                     | std::ranges::to<std::set<QString>>();
 		auto       extractor = logicFactory->CreateBooksExtractor();
 		const auto parameter = item->GetData(MenuItem::Column::Parameter);
-		((*extractor).*f)(
-			dir,
-			parameter,
-			std::move(books),
-			[extractor, model, item = std::move(item), ids = std::move(ids), tempDir = std::move(tempDir), callback = std::move(callback), settings = m_settings](const bool hasError) mutable {
-				item->SetData(QString::number(hasError), MenuItem::Column::HasError);
-				callback(item);
-				if (!settings->Get(Constant::Settings::PREFER_KEEP_CHECK, false))
-					model->setData({}, QVariant::fromValue(ids), Role::Uncheck);
-				extractor.reset();
-			}
-		);
+		((*extractor)
+		 .*f)(dir, parameter, std::move(books), [extractor, item = std::move(item), ids = std::move(ids), tempDir = std::move(tempDir), callback = std::move(callback)](const bool hasError) mutable {
+			item->SetData(QString::number(hasError), MenuItem::Column::HasError);
+			callback(item, ids);
+			extractor.reset();
+		});
 	}
 
 	void GroupAction(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback, const GroupActionFunction f) const
 	{
-		const auto  id            = item->GetData(MenuItem::Column::Parameter).toLongLong();
 		auto        controller    = ILogicFactory::Lock(m_logicFactory)->CreateGroupController();
 		const auto& controllerRef = *controller;
-		(controllerRef.*f)(id, GetSelected(model, index, indexList), [item = std::move(item), callback = std::move(callback), controller = std::move(controller)](long long) mutable {
-			callback(item);
+		const auto  ids           = GetSelected(model, index, indexList);
+		auto        idSet         = ids | std::views::transform([](const auto& id) {
+						 return QString::number(id);
+									})
+		                          | std::views::common | std::ranges::to<std::set>();
+		const auto  id            = item->GetData(MenuItem::Column::Parameter).toLongLong();
+		(controllerRef.*f)(id, ids, [item = std::move(item), callback = std::move(callback), controller = std::move(controller), idSet = std::move(idSet)](long long) mutable {
+			callback(item, idSet);
 			controller.reset();
 		});
 	}
@@ -768,12 +808,16 @@ private:
 	void ChangeBookRemoved(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback, const bool remove) const
 	{
 		m_databaseUser->Execute({ "Remove books", [this, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback), remove]() mutable {
-									 const bool ok = DatabaseUtil::ChangeBookRemoved(*m_databaseUser->Database(), ids, remove);
-									 return [this, item = std::move(item), callback = std::move(callback), remove, ok](size_t) {
+									 const bool ok    = DatabaseUtil::ChangeBookRemoved(*m_databaseUser->Database(), ids, remove);
+									 auto       idSet = ids | std::views::transform([](const auto& id) {
+													  return QString::number(id);
+														})
+			                                          | std::views::common | std::ranges::to<std::set>();
+									 return [this, item = std::move(item), callback = std::move(callback), remove, ok, idSet = std::move(idSet)](size_t) {
 										 if (!ok)
 											 m_uiFactory->ShowError(Tr(CANNOT_REMOVE_BOOK).arg(Tr(remove ? REMOVE : RESTORE)));
 
-										 callback(item);
+										 callback(item, idSet);
 										 if (ok)
 											 m_dataProvider->RequestBooks(true);
 									 };

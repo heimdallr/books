@@ -8,7 +8,7 @@
 
 namespace HomeCompa::Opds {
 
-class CoverCache final : virtual public ICoverCache
+class CoverCache final : public ICoverCache
 {
 	NON_COPY_MOVABLE(CoverCache)
 

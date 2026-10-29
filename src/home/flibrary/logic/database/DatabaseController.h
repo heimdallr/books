@@ -7,7 +7,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class DatabaseController final : virtual public IDatabaseController
+class DatabaseController final : public IDatabaseController
 {
 	NON_COPY_MOVABLE(DatabaseController)
 

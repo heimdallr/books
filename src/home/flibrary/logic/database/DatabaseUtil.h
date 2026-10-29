@@ -4,6 +4,8 @@
 
 #include "interface/logic/IDataItem.h"
 
+#define FLIBRARY_SQL_FULL_AUTHOR_NAME "a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '')"
+
 namespace HomeCompa {
 
 class ISettings;
@@ -45,5 +47,6 @@ bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& i
 
 void        CreateHistoryTable(DB::IDatabase& db, const ISettings& settings);
 std::string GetHistoryTableName(const ISettings& settings);
+std::string GetHistoryIndexName(const ISettings& settings);
 
 } // namespace HomeCompa::Flibrary::DatabaseUtil

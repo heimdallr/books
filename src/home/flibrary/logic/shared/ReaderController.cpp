@@ -1,6 +1,7 @@
 #include "ReaderController.h"
 
 #include <random>
+#include <ranges>
 
 #include <QDesktopServices>
 #include <QFileInfo>
@@ -17,6 +18,8 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ExportStat.h"
+#include "interface/constants/ModelRole.h"
+#include "interface/constants/ObjectConnectionID.h"
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 
@@ -24,6 +27,7 @@
 #include "platform/PlatformUtil.h"
 #include "util/IExecutor.h"
 #include "util/ImageRestore.h"
+#include "util/ObjectsConnector.h"
 #include "util/files.h"
 
 #include "log.h"
@@ -49,6 +53,8 @@ constexpr auto DEFAULT    = "default";
 
 constexpr auto DEFAULT_FOLDER_KEY    = "Preferences/Export/readFolder";
 constexpr auto FILENAME_TEMPLATE_KEY = "Preferences/Export/readFileNameTemplate";
+constexpr auto EXPORT_ENCODING_KEY   = "Preferences/Export/Encoding/read";
+constexpr auto AUTO_RATE             = "Preferences/Export/AutoRateOnRead";
 
 TR_DEF
 
@@ -60,18 +66,25 @@ public:
 		, m_temporaryDir(std::move(temporaryDir))
 	{
 		start(process, { fileName });
-		waitForStarted();
+		m_isStarted = waitForStarted();
 		connect(this, qOverload<int, ExitStatus>(&QProcess::finished), this, &QObject::deleteLater);
+	}
+
+	bool IsStarted() const noexcept
+	{
+		return m_isStarted;
 	}
 
 private:
 	std::shared_ptr<ILogicFactory::ITemporaryDir> m_temporaryDir;
+	bool                                          m_isStarted { false };
 };
 
 } // namespace
 
 struct ReaderController::Impl
 {
+	const ReaderController&                                   self;
 	std::weak_ptr<const ILogicFactory>                        logicFactory;
 	std::shared_ptr<ISettings>                                settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> collectionController;
@@ -82,13 +95,15 @@ struct ReaderController::Impl
 	mutable std::mt19937       mt { rd() };
 
 	Impl(
+		const ReaderController&                     self,
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<ISettings>                  settings,
 		std::shared_ptr<ICollectionController>      collectionController,
 		std::shared_ptr<IUiFactory>                 uiFactory,
 		std::shared_ptr<IDatabaseUser>              databaseUser
 	)
-		: logicFactory { logicFactory }
+		: self { self }
+		, logicFactory { logicFactory }
 		, settings { std::move(settings) }
 		, collectionController { std::move(collectionController) }
 		, uiFactory { std::move(uiFactory) }
@@ -96,21 +111,47 @@ struct ReaderController::Impl
 	{
 	}
 
-	void Read(std::shared_ptr<ILogicFactory::ITemporaryDir> temporaryDir, QString fileName, const bool removeCurrentReader, const QString& error) const
+	void Read(const long long id, std::shared_ptr<ILogicFactory::ITemporaryDir> temporaryDir, QString fileName, const bool removeCurrentReader, const QString& error) const
 	{
+		if (!ReadImpl(std::move(temporaryDir), std::move(fileName), removeCurrentReader, error))
+			return;
+
+		const auto db          = databaseUser->Database();
+		const auto transaction = db->CreateTransaction();
+		transaction->CreateQuery(ExportStat::INSERT_QUERY)->Execute(id, static_cast<int>(ExportStat::Type::Read));
+
+		if (const auto autoRate = settings->Get(AUTO_RATE); autoRate.isValid())
+		{
+			transaction->CreateQuery(IDatabaseUser::SET_USER_RATE_COMMAND)->Execute(id, autoRate.toInt());
+			emit self.SetUserRate({ .ids = { id }, .column = BookItem::Column::UserRate, .value = autoRate.toString() });
+		}
+
+		transaction->Commit();
+	}
+
+	bool ReadImpl(std::shared_ptr<ILogicFactory::ITemporaryDir> temporaryDir, QString fileName, const bool removeCurrentReader, const QString& error) const
+	{
+		if (!error.isEmpty())
+		{
+			uiFactory->ShowError(error);
+			return false;
+		}
+
+		assert(temporaryDir);
+
 		if (fileName.isEmpty())
 		{
 			fileName = uiFactory->GetOpenFileName({}, Tr(SELECT_FILE), {}, temporaryDir->path());
 			if (fileName.isEmpty())
-				return;
+				return false;
 		}
-
-		if (!temporaryDir)
-			return uiFactory->ShowError(error);
 
 		auto ext = QFileInfo(fileName).suffix();
 		if (ext.isEmpty())
-			return uiFactory->ShowError(Tr(UNSUPPORTED));
+		{
+			uiFactory->ShowError(Tr(UNSUPPORTED));
+			return false;
+		}
 
 		auto key = QString(READER_KEY).arg(ext);
 		if (removeCurrentReader)
@@ -140,44 +181,45 @@ struct ReaderController::Impl
 						break;
 					case QMessageBox::Cancel:
 					default:
-						return;
+						return false;
 				}
 
 			if (reader.isEmpty())
 			{
 				getReader();
 				if (reader.isEmpty())
-					return;
+					return false;
 			}
 		}
 
 		if (reader == DEFAULT)
 		{
 			if (QDesktopServices::openUrl(QUrl::fromLocalFile(fileName)))
-				return;
+				return true;
 
 			settings->Remove(key);
 			if (uiFactory->ShowQuestion(Tr(CANNOT_START_DEFAULT_READER), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) != QMessageBox::Yes)
-				return;
+				return false;
 
 			getReader();
 			if (reader.isEmpty())
-				return;
+				return false;
 		}
 
 		reader = Util::ToAbsolutePath(reader);
 		while (!QFile::exists(reader))
 		{
 			if (uiFactory->ShowQuestion(Tr(CANNOT_START_READER).arg(QFileInfo(reader).fileName()), QMessageBox::Yes | QMessageBox::No | QMessageBox::Cancel, QMessageBox::Yes) != QMessageBox::Yes)
-				return;
+				return false;
 
 			getReader();
 			if (reader.isEmpty())
-				return;
+				return true;
 		}
 
 		assert(!reader.isEmpty());
-		new ReaderProcess(reader, fileName, std::move(temporaryDir), uiFactory->GetParentObject());
+		const auto* readerProcess = new ReaderProcess(reader, fileName, std::move(temporaryDir), uiFactory->GetParentObject());
+		return readerProcess->IsStarted();
 	}
 
 	QString GenerateFileName(const QString& fileName, const bool useFileNameTemplate) const
@@ -208,7 +250,7 @@ struct ReaderController::Impl
 
 		const auto settingsStub = ILogicFactory::Lock(logicFactory)->CreateSettingsStub();
 
-		const auto bytes = Util::PrepareToExport(stream, archive, fileName, *settingsStub);
+		const auto bytes = Util::PrepareToExport(stream, archive, fileName, *settingsStub, settings->Get(EXPORT_ENCODING_KEY, QString {}));
 		if (QFile file(fileNameDst); file.exists() && file.open(QIODevice::ReadOnly) && file.readAll() == bytes)
 			return fileNameDst;
 
@@ -271,8 +313,9 @@ ReaderController::ReaderController(
 	std::shared_ptr<IUiFactory>                 uiFactory,
 	std::shared_ptr<IDatabaseUser>              databaseUser
 )
-	: m_impl(logicFactory, std::move(settings), std::move(collectionController), std::move(uiFactory), std::move(databaseUser))
+	: m_impl(*this, logicFactory, std::move(settings), std::move(collectionController), std::move(uiFactory), std::move(databaseUser))
 {
+	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::SET_BOOKS_COLUMN_VALUE, this, SIGNAL(SetUserRate(const SetForIdsArg&)), true);
 	PLOGV << "ReaderController created";
 }
 
@@ -290,22 +333,12 @@ void ReaderController::Read(long long id) const
 	const auto& executorRef = *executor;
 	executorRef({ "Get archive and file names", [this, id, executor = std::move(executor), removeCurrentReader]() mutable {
 					 const auto db = m_impl->databaseUser->Database();
-					 {
-						 const auto transaction = db->CreateTransaction();
-						 const auto command     = transaction->CreateQuery(ExportStat::INSERT_QUERY);
-						 command->Bind(0, id);
-						 command->Bind(1, static_cast<int>(ExportStat::Type::Read));
-						 command->Execute();
-						 transaction->Commit();
-					 }
 
 					 auto [folderName, fileName] = [&] {
 						 const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
-						 query->Bind(0, id);
-						 query->Execute();
+						 query->Execute(id);
 						 assert(!query->Eof());
-
-						 return std::make_pair(query->Get<QString>(0), query->Get<QString>(1));
+						 return query->Get<QString, QString>();
 					 }();
 
 					 auto archive      = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection().GetFolder(), folderName);
@@ -316,8 +349,8 @@ void ReaderController::Read(long long id) const
 						 return logicFactory->CreateTemporaryDir(true);
 					 }();
 					 auto error = m_impl->Extract(*temporaryDir, archive, fileName);
-					 return [this, executor = std::move(executor), fileName = std::move(fileName), temporaryDir = std::move(temporaryDir), removeCurrentReader, error = std::move(error)](size_t) mutable {
-						 m_impl->Read(std::move(temporaryDir), std::move(fileName), removeCurrentReader, error);
+					 return [this, id, executor = std::move(executor), fileName = std::move(fileName), temporaryDir = std::move(temporaryDir), removeCurrentReader, error = std::move(error)](size_t) mutable {
+						 m_impl->Read(id, std::move(temporaryDir), std::move(fileName), removeCurrentReader, error);
 						 executor.reset();
 					 };
 				 } });
@@ -328,12 +361,13 @@ void ReaderController::ReadRandomBook(QString lang) const
 	m_impl->databaseUser->Execute({ "Get books for language", [this, lang = std::move(lang)]() {
 									   std::function<void(size_t)> result { [](size_t) {
 									   } };
-									   const auto                  db    = m_impl->databaseUser->Database();
-									   const auto                  query = db->CreateQuery("select b.BookID from Books b join Folders f on f.FolderID = b.FolderID where b.Lang = ?");
-									   query->Bind(0, lang.toStdString());
-									   std::vector<long long> allBooks;
-									   for (query->Execute(); !query->Eof(); query->Next())
-										   allBooks.emplace_back(query->Get<long long>(0));
+
+									   const auto db    = m_impl->databaseUser->Database();
+									   const auto query = db->CreateQuery("select b.BookID from Books b join Folders f on f.FolderID = b.FolderID where b.Lang = ?", lang);
+
+									   const auto allBooks = *query | std::views::transform([](auto& item) {
+										   return item.template Get<long long>(0);
+									   }) | std::ranges::to<std::vector>();
 
 									   if (allBooks.empty())
 										   return result;

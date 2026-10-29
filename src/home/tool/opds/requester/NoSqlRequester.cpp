@@ -27,6 +27,8 @@ using namespace HomeCompa;
 
 namespace {
 
+constexpr auto EXPORT_ENCODING_KEY = "Preferences/Export/Encoding/web";
+
 QByteArray Decompress(const QString& path, const QString& archive, const QString& fileName, const bool restoreImages, const ISettings& settings)
 {
 	const Zip  unzip(path + "/" + archive);
@@ -45,7 +47,7 @@ QByteArray Decompress(const QString& path, const QString& archive, const QString
 				buffer.close();
 			}
 		);
-		buffer.write(Util::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName, settings));
+		buffer.write(Util::PrepareToExport(stream->GetStream(), path + "/" + archive, fileName, settings, settings.Get(EXPORT_ENCODING_KEY, QString { "utf-8" })));
 	}
 	return data;
 }
@@ -88,13 +90,9 @@ struct NoSqlRequester::Impl
 		if (auto result = coverCache->Get(bookId); !result.isEmpty())
 			return result;
 
-		QEventLoop eventLoop;
 		QByteArray result;
 
-		AnnotationControllerObserver observer([&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
-			ScopedCall eventLoopGuard([&] {
-				eventLoop.exit();
-			});
+		AnnotationControllerObserver::Request(*annotationController, bookId, [&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
 			if (const auto& covers = dataProvider.GetCovers(); !covers.empty())
 				return (void)(result = std::move(Util::Recode(covers.front().bytes).first));
 
@@ -103,10 +101,6 @@ struct NoSqlRequester::Impl
 			assert(ok);
 			result = file.readAll();
 		});
-
-		annotationController->RegisterObserver(&observer);
-		annotationController->SetCurrentBookId(bookId, true);
-		eventLoop.exec();
 
 		return result;
 	}

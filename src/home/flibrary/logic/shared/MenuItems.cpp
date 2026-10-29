@@ -50,24 +50,25 @@ left join Groups_List_User_View gw on gw.GroupID = g.GroupID and gw.BookID = :id
 	const auto remove = AddMenuItem(parent, GROUPS_REMOVE_FROM, Tr(GROUPS_REMOVE_FROM));
 	const auto move   = AddMenuItem(parent, GROUPS_MOVE_TO, Tr(GROUPS_MOVE_TO));
 
-	const auto createMenuItem = [&](const DB::IQuery& query) -> void {
-		auto title         = query.Get<QString>(1);
-		title              = title.replace('&', "&&");
-		const auto groupId = QString::number(query.Get<long long>(0));
-		if (const auto itemExistsInLinkTable = query.Get<long long>(2) >= 0; itemExistsInLinkTable)
-			return (void)AddMenuItem(remove, QString("removeFromGroup%1").arg(groupId), std::move(title), GroupsMenuAction::RemoveFromGroup)->SetData(groupId, MenuItem::Column::Parameter);
+	{
+		const auto createMenuItem = [&](const DB::IQuery& query) -> void {
+			auto title         = query.Get<QString>(1);
+			title              = title.replace('&', "&&");
+			const auto groupId = QString::number(query.Get<long long>(0));
+			if (const auto itemExistsInLinkTable = query.Get<long long>(2) >= 0; itemExistsInLinkTable)
+				return (void)AddMenuItem(remove, QString("removeFromGroup%1").arg(groupId), std::move(title), GroupsMenuAction::RemoveFromGroup)->SetData(groupId, MenuItem::Column::Parameter);
 
-		if (const auto bookAlreadyExistsInLinkView = query.Get<long long>(3) >= 0; bookAlreadyExistsInLinkView)
-			return;
+			if (const auto bookAlreadyExistsInLinkView = query.Get<long long>(3) >= 0; bookAlreadyExistsInLinkView)
+				return;
 
-		AddMenuItem(add, QString("addToGroup%1").arg(groupId), title, GroupsMenuAction::AddToGroup)->SetData(groupId, MenuItem::Column::Parameter);
-		AddMenuItem(move, QString("moveToGroup%1").arg(groupId), std::move(title), GroupsMenuAction::MoveToGroup)->SetData(groupId, MenuItem::Column::Parameter);
-	};
+			AddMenuItem(add, QString("addToGroup%1").arg(groupId), title, GroupsMenuAction::AddToGroup)->SetData(groupId, MenuItem::Column::Parameter);
+			AddMenuItem(move, QString("moveToGroup%1").arg(groupId), std::move(title), GroupsMenuAction::MoveToGroup)->SetData(groupId, MenuItem::Column::Parameter);
+		};
 
-	const auto query = db.CreateQuery(GROUPS_QUERY);
-	query->Bind(":id", id.toInt());
-	for (query->Execute(); !query->Eof(); query->Next())
-		createMenuItem(*query);
+		const auto query = db.CreateQuery(GROUPS_QUERY);
+		query->Bind(":id", id.toInt());
+		query->ForEach(createMenuItem);
+	}
 
 	if (remove->GetChildCount() > 0)
 	{

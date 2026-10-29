@@ -40,7 +40,7 @@ public:
 		m_scrollBarController->SetScrollArea(m_ui.view);
 
 		connect(m_ui.view, &QAbstractItemView::doubleClicked, [this](const QModelIndex& index) {
-			m_bookInteractor->OnDoubleClicked(index.data(AuthorReviewModelRole::BookId).toLongLong());
+			m_bookInteractor->OnDoubleClicked(index.data(AuthorReviewModelRole::BookId).toLongLong(), {});
 		});
 
 		LoadGeometry();

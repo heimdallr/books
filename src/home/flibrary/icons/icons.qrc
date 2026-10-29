@@ -26,4 +26,22 @@
         <file alias="undo.svg">icons/undo.svg</file>
         <file alias="redo.svg">icons/redo.svg</file>
 	</qresource>
+	<qresource prefix="icons/mode">
+        <file alias="list.svg">icons/mode/list.svg</file>
+        <file alias="tree.svg">icons/mode/tree.svg</file>
+        <file alias="authors.svg">icons/mode/authors.svg</file>
+        <file alias="series.svg">icons/mode/series.svg</file>
+        <file alias="genres.svg">icons/mode/genres.svg</file>
+        <file alias="publishyear.svg">icons/mode/publishyear.svg</file>
+        <file alias="keywords.svg">icons/mode/keywords.svg</file>
+        <file alias="updates.svg">icons/mode/updates.svg</file>
+        <file alias="archives.svg">icons/mode/archives.svg</file>
+        <file alias="languages.svg">icons/mode/languages.svg</file>
+        <file alias="groups.svg">icons/mode/groups.svg</file>
+        <file alias="search.svg">icons/mode/search.svg</file>
+        <file alias="reviews.svg">icons/mode/reviews.svg</file>
+        <file alias="alreadyread.svg">icons/mode/alreadyread.svg</file>
+        <file alias="history.svg">icons/mode/history.svg</file>
+        <file alias="allbooks.svg">icons/mode/allbooks.svg</file>
+	</qresource>
 </RCC>

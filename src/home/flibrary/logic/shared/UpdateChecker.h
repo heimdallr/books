@@ -13,7 +13,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class UpdateChecker final : virtual public IUpdateChecker
+class UpdateChecker final : public IUpdateChecker
 {
 	NON_COPY_MOVABLE(UpdateChecker)
 

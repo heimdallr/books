@@ -48,7 +48,7 @@ struct FieldNo
 	};
 };
 
-class BooksRestorer final : virtual public IRestorer
+class BooksRestorer final : public IRestorer
 {
 	struct Item : Book
 	{
@@ -97,7 +97,7 @@ private: // IRestorer
 				if (const auto integer = value.toInt(&ok); ok)
 					command->Bind(index, integer);
 				else
-					command->Bind(index, value.toStdString());
+					command->Bind(index, value);
 			};
 
 			for (const auto& item : m_items)
@@ -106,8 +106,8 @@ private: // IRestorer
 				ADDITIONAL_BOOK_FIELDS_X_MACRO
 #undef ADDITIONAL_BOOK_FIELD
 
-				command->Bind(FieldNo::Folder, item.folder.toStdString());
-				command->Bind(FieldNo::FileName, item.fileName.toStdString());
+				command->Bind(FieldNo::Folder, item.folder);
+				command->Bind(FieldNo::FileName, item.fileName);
 				command->Execute();
 			}
 		}

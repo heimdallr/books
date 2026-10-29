@@ -47,7 +47,7 @@ public:
 };
 
 class LogAppenderImpl final
-    : virtual public plog::IAppender
+    : public plog::IAppender
     , public Observable<ILogAppenderObserver>
 {
 private: // plog::IAppender

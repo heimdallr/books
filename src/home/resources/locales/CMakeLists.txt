@@ -1,4 +1,4 @@
-﻿cmake_minimum_required (VERSION 3.20)
+cmake_minimum_required (VERSION 3.20)
 
 set(EXECUTABLE_EXT)
 if (WIN32)
@@ -43,6 +43,7 @@ set(LUPDATE_COMMAND_PARAMETERS
 	"${FOUNDATION_ROOT}/util/language.h"
 	"${FOUNDATION_ROOT}/util/GenresLocalization.h"
 	"${FOUNDATION_ROOT}/utilgui/"
+	"${FOUNDATION_ROOT}/zip/interface/error.cpp"
 	./
 	-recursive
 	-locations none

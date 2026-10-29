@@ -18,6 +18,7 @@
 
 #include "data/DataItem.h"
 #include "platform/StrUtil.h"
+#include "settings/ISettings.h"
 #include "util/Fb2InpxParser.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
@@ -32,30 +33,44 @@ using namespace HomeCompa;
 
 namespace {
 
+constexpr auto EXPORT_ENCODING_KEY = "Preferences/Export/Encoding/inpx";
+
 using Genres = std::unordered_map<QString, QString>;
+
+const auto getDictionaryValueDefault = [](const DB::IQuery& query) {
+	return QString { query.Get<const char*>(1) };
+};
+
+template <typename Key = long long, typename Value = QString, typename Functor = decltype(getDictionaryValueDefault)>
+std::unordered_map<Key, Value> GetDictionary(DB::IDatabase& db, const std::string_view queryText, const Functor& f = getDictionaryValueDefault)
+{
+	const auto query = db.CreateQuery(queryText);
+	return *query | std::views::transform([&](const auto& item) {
+		return std::make_pair(item.template Get<Key>(0), f(item));
+	}) | std::views::common
+	     | std::ranges::to<std::unordered_map>();
+}
+
+template <typename Value, typename Container>
+std::unordered_map<long long, std::vector<Value>> GetBookToDictionaryMap(DB::IDatabase& db, const std::string_view queryText, const Container& container)
+{
+	std::unordered_map<long long, std::vector<Value>> result;
+	for (const auto query = db.CreateQuery(queryText); const auto& rec : *query)
+		if (auto value = rec.Get<Value>(1); container.contains(value))
+			result[rec.Get<long long>(0)].emplace_back(std::move(value));
+	return result;
+}
 
 Genres GetGenres(DB::IDatabase& db)
 {
-	Genres result;
-
-	const auto query = db.CreateQuery("select GenreCode, FB2Code, ParentCode from Genres");
-	for (query->Execute(); !query->Eof(); query->Next())
-		result.try_emplace(query->Get<const char*>(0), query->Get<const char*>(1));
-
-	return result;
+	return GetDictionary<QString>(db, "select GenreCode, FB2Code from Genres");
 }
 
 using BookGenres = std::unordered_map<long long, std::vector<QString>>;
 
 BookGenres GetBookGenres(DB::IDatabase& db, const Genres& genres)
 {
-	BookGenres result;
-	const auto query = db.CreateQuery("select BookID, GenreCode from Genre_List order by BookID, GenreCode");
-	for (query->Execute(); !query->Eof(); query->Next())
-		if (auto genre = QString(query->Get<const char*>(1)); genres.contains(genre))
-			result[query->Get<long long>(0)].emplace_back(std::move(genre));
-
-	return result;
+	return GetBookToDictionaryMap<QString>(db, "select BookID, GenreCode from Genre_List order by BookID, GenreCode", genres);
 }
 
 using Author  = std::tuple<QString, QString, QString>;
@@ -63,62 +78,37 @@ using Authors = std::unordered_map<long long, Author>;
 
 Authors GetAuthors(DB::IDatabase& db)
 {
-	Authors    result;
-	const auto query = db.CreateQuery("select AuthorID, LastName, FirstName, MiddleName from Authors");
-	for (query->Execute(); !query->Eof(); query->Next())
-		result.try_emplace(query->Get<long long>(0), Author { query->Get<const char*>(1), query->Get<const char*>(2), query->Get<const char*>(3) });
-
-	return result;
+	return GetDictionary<long long, Author>(db, "select AuthorID, LastName, FirstName, MiddleName from Authors", [](const DB::IQuery& item) {
+		return Author { item.Get<const char*>(1), item.Get<const char*>(2), item.Get<const char*>(3) };
+	});
 }
 
 using BookAuthors = std::unordered_map<long long, std::vector<long long>>;
 
 BookAuthors GetBookAuthors(DB::IDatabase& db, const Authors& authors)
 {
-	BookAuthors result;
-	const auto  query = db.CreateQuery("select BookID, AuthorID from Author_List order by BookID, AuthorID");
-	for (query->Execute(); !query->Eof(); query->Next())
-		if (const auto id = query->Get<long long>(1); authors.contains(id))
-			result[query->Get<long long>(0)].emplace_back(id);
-
-	return result;
+	return GetBookToDictionaryMap<long long>(db, "select BookID, AuthorID from Author_List order by BookID, AuthorID", authors);
 }
 
 using Series = std::unordered_map<long long, QString>;
 
 Series GetSeries(DB::IDatabase& db)
 {
-	Series     result;
-	const auto query = db.CreateQuery("select SeriesID, SeriesTitle from Series");
-	for (query->Execute(); !query->Eof(); query->Next())
-		result.try_emplace(query->Get<long long>(0), query->Get<const char*>(1));
-
-	return result;
+	return GetDictionary(db, "select SeriesID, SeriesTitle from Series");
 }
 
 using Keywords = std::unordered_map<long long, QString>;
 
 Keywords GetKeywords(DB::IDatabase& db)
 {
-	Keywords   result;
-	const auto query = db.CreateQuery("select KeywordID, KeywordTitle from Keywords");
-	for (query->Execute(); !query->Eof(); query->Next())
-		result.try_emplace(query->Get<long long>(0), query->Get<const char*>(1));
-
-	return result;
+	return GetDictionary(db, "select KeywordID, KeywordTitle from Keywords");
 }
 
 using BookKeywords = std::unordered_map<long long, std::vector<long long>>;
 
 BookKeywords GetBookKeywords(DB::IDatabase& db, const Keywords& keywords)
 {
-	BookKeywords result;
-	const auto   query = db.CreateQuery("select BookID, KeywordID from Keyword_List");
-	for (query->Execute(); !query->Eof(); query->Next())
-		if (const auto id = query->Get<long long>(1); keywords.contains(id))
-			result[query->Get<long long>(0)].emplace_back(id);
-
-	return result;
+	return GetBookToDictionaryMap<long long>(db, "select BookID, KeywordID from Keyword_List", keywords);
 }
 
 //"AUTHOR;GENRE;TITLE;SERIES;SERNO;FILE;SIZE;LIBID;DEL;EXT;DATE;INSNO;FOLDER;LANG;LIBRATE;KEYWORDS;"
@@ -238,7 +228,8 @@ void Unpack(
 	const BookInfoList&                         bookInfoLists,
 	const std::unordered_map<QString, QString>& idToFileName,
 	IProgress&                                  progress,
-	const ISettings&                            settings
+	const ISettings&                            settings,
+	const QString&                              encoding
 )
 {
 	if (bookInfoLists.empty())
@@ -254,7 +245,7 @@ void Unpack(
 
 		auto       fileName = book.book->GetRawData(BookItem::Column::FileName);
 		const auto input    = zip.Read(fileName);
-		const auto bytes    = Util::PrepareToExport(input->GetStream(), archivePath, fileName, settings);
+		const auto bytes    = Util::PrepareToExport(input->GetStream(), archivePath, fileName, settings, encoding);
 		if (const auto it = idToFileName.find(book.book->GetId()); it != idToFileName.end())
 			fileName = it->second;
 
@@ -360,12 +351,14 @@ public:
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
 		std::shared_ptr<const IDatabaseUser>        databaseUser,
-		std::shared_ptr<IProgressController>        progressController
+		std::shared_ptr<IProgressController>        progressController,
+		QString                                     encoding
 	)
-		: m_logicFactory(logicFactory)
-		, m_collectionProvider(std::move(collectionProvider))
-		, m_databaseUser(std::move(databaseUser))
-		, m_progressController(std::move(progressController))
+		: m_logicFactory { logicFactory }
+		, m_collectionProvider { std::move(collectionProvider) }
+		, m_databaseUser { std::move(databaseUser) }
+		, m_progressController { std::move(progressController) }
+		, m_encoding { std::move(encoding) }
 		, m_archiveFolder { Platform::StringToPath(m_collectionProvider->GetActiveCollection().GetFolder()) }
 	{
 	}
@@ -402,10 +395,10 @@ public:
 		std::unordered_map<QString, BookInfoList> ordered;
 		for (auto&& book : books)
 		{
-			auto fileName    = book.book->GetRawData(BookItem::Column::FileName); //-V821
-			auto& [key, ids] = uniqueFileNames[fileName.toLower()];
+			const auto& fileName = book.book->GetRawData(BookItem::Column::FileName);
+			auto& [key, ids]     = uniqueFileNames[fileName.toLower()];
 			if (key.isEmpty())
-				key = std::move(fileName);
+				key = fileName;
 			ids.emplace_back(book.book->GetId());
 			const auto folder = book.book->GetRawData(BookItem::Column::Folder);
 			ordered[folder].emplace_back(std::move(book));
@@ -470,8 +463,11 @@ public:
 							   }
 
 							   const auto fileName = book.book->GetRawData(BookItem::Column::FileName);
-							   assert(currentZip);
-							   if (const auto n = currentZip->GetFileIndex(fileName); n != Zip::INVALID_INDEX) //-V614
+
+							   if (!currentZip)
+								   throw std::runtime_error("unexpected nullptr");
+
+							   if (const auto n = currentZip->GetFileIndex(fileName); n != Zip::INVALID_INDEX)
 								   data.try_emplace(n, Write(book, fileName, n, book.book->GetRawData(BookItem::Column::Folder), book.book->GetRawData(BookItem::Column::Size)));
 
 							   m_progressItem->Increment(1);
@@ -523,7 +519,7 @@ private:
 		return Util::IExecutor::Task { std::move(taskName), [this, books = std::move(books)]() mutable {
 										  try
 										  {
-											  Unpack(m_archiveFolder, m_tmpFolder, books, m_idToFileName, *this, *m_settingsStub);
+											  Unpack(m_archiveFolder, m_tmpFolder, books, m_idToFileName, *this, *m_settingsStub, m_encoding);
 										  }
 										  catch (const std::exception& ex)
 										  {
@@ -681,13 +677,12 @@ private:
 			zipFileController->AddFile(fileInfo.completeBaseName() + ".inp", bytes, QDateTime::currentDateTime());
 		};
 
-		const auto query = db->CreateQuery(BOOK_QUERY);
-		for (query->Execute(); !query->Eof(); query->Next())
+		for (const auto query = db->CreateQuery(BOOK_QUERY); const auto& rec : *query)
 		{
 			if (m_progressItem->IsStopped())
 				return;
 
-			QString folder = query->Get<const char*>(8);
+			QString folder = rec.Get<const char*>(8);
 			if (currentFolder != folder)
 			{
 				write();
@@ -696,9 +691,10 @@ private:
 				inputZip      = std::make_unique<Zip>(Platform::PathToString(m_archiveFolder / Platform::StringToPath(currentFolder)));
 				m_progressItem->Increment(-1);
 			}
-			assert(inputZip);
-			if (const auto index = inputZip->GetFileIndex(QString("%1%2").arg(query->Get<const char*>(9), query->Get<const char*>(10))); index != Zip::INVALID_INDEX) //-V614
-				data.try_emplace(index, Write(*query, series, genres, bookGenres, authors, bookAuthors, keywords, bookKeywords, index));
+			if (!inputZip)
+				throw std::runtime_error("unexpected nullptr");
+			if (const auto index = inputZip->GetFileIndex(QString("%1%2").arg(rec.Get<const char*>(9), rec.Get<const char*>(10))); index != Zip::INVALID_INDEX)
+				data.try_emplace(index, Write(rec, series, genres, bookGenres, authors, bookAuthors, keywords, bookKeywords, index));
 
 			m_progressItem->Increment(1);
 		}
@@ -714,6 +710,7 @@ private:
 	std::shared_ptr<const IDatabaseUser>                    m_databaseUser;
 	std::shared_ptr<const ISettings>                        m_settingsStub;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
+	const QString                                           m_encoding;
 
 	Callback m_callback;
 
@@ -737,12 +734,13 @@ private:
 };
 
 InpxGenerator::InpxGenerator(
+	const std::shared_ptr<const ISettings>&     settings,
 	const std::shared_ptr<const ILogicFactory>& logicFactory,
 	std::shared_ptr<const ICollectionProvider>  collectionProvider,
 	std::shared_ptr<const IDatabaseUser>        databaseUser,
 	std::shared_ptr<IMainProgressController>    progressController
 )
-	: m_impl(logicFactory, std::move(collectionProvider), std::move(databaseUser), std::move(progressController))
+	: m_impl(logicFactory, std::move(collectionProvider), std::move(databaseUser), std::move(progressController), settings->Get(EXPORT_ENCODING_KEY, QString {}))
 {
 	PLOGV << "InpxGenerator created";
 }

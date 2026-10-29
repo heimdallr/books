@@ -53,37 +53,28 @@ constexpr auto AUTHOR_JOIN       = "\n	join Author_List al on al.BookID = b.Book
 constexpr auto AUTHOR_FIELD      = "al.AuthorID";
 constexpr auto WHERE_NOT_DELETED = "where coalesce(bu.IsDeleted, b.IsDeleted, 0) = 0";
 
-bool RemoveBooksImpl(const Books& books, DB::ITransaction& transaction, std::unique_ptr<IProgressController::IProgressItem> progressItem)
+bool RemoveBooksImpl(const Books& books, DB::ITransaction& transaction, IProgressController::IProgressItem& progressItem)
 {
 	PLOGI << "Removing database books records started";
 
-	return std::accumulate(
-		books.cbegin(),
-		books.cend(),
-		true,
-		[&,
-		 progressItem = std::move(progressItem),
-		 command      = transaction.CreateCommand("delete from Books where BookID = ?"),
-		 total        = books.size(),
-		 currentPct   = 0,
-		 lastPct      = 0,
-		 lastPctLog   = 0,
-		 n            = size_t { 0 }](const bool init, const auto& book) mutable {
-			++n;
-			currentPct = static_cast<int>(100U * n / total);
-			progressItem->Increment(currentPct - lastPct);
-			lastPct = currentPct;
+	const auto command = transaction.CreateCommand("delete from Books where BookID = ?");
 
-			if (!(lastPct % 10) && lastPctLog != lastPct)
-			{
-				lastPctLog = lastPct;
-				PLOGV << lastPct << '%';
-			}
+	auto functor = [&, total = books.size(), currentPct = 0, lastPct = 0, lastPctLog = 0, n = 0](const bool init, const auto& book) mutable {
+		++n;
+		currentPct = 100 * n / static_cast<int>(total);
+		progressItem.Increment(currentPct - lastPct);
+		lastPct = currentPct;
 
-			command->Bind(0, book.id);
-			return command->Execute() && init;
+		if (!(lastPct % 10) && lastPctLog != lastPct)
+		{
+			lastPctLog = lastPct;
+			PLOGV << lastPct << '%';
 		}
-	);
+
+		return command->Execute(book.id) && init;
+	};
+
+	return std::accumulate(books.cbegin(), books.cend(), true, std::move(functor));
 }
 
 bool CleanupNavigationItems(DB::ITransaction& transaction)
@@ -119,32 +110,31 @@ not exists (select 42 from Keywords k where k.KeywordID = Groups_List_User.Objec
 
 AnalyzedBooks GetAnalyzedBooks(DB::IDatabase& db, const ILibRateProvider& libRateProvider, const ICollectionCleaner::IAnalyzeObserver& observer, const bool hasGenres, const std::atomic_bool& analyzeCanceled)
 {
-	const auto query = db.CreateQuery(QString(SELECT_ANALYZED_BOOKS_QUERY)
-	                                      .arg(hasGenres ? GENRE_FIELD : EMPTY_FIELD)
-	                                      .arg(hasGenres ? GENRE_JOIN : "")
-	                                      .arg(observer.NeedDeleteDuplicates() ? AUTHOR_FIELD : EMPTY_FIELD)
-	                                      .arg(observer.NeedDeleteDuplicates() ? AUTHOR_JOIN : "")
-	                                      .arg(observer.IsPermanently() ? "" : WHERE_NOT_DELETED)
-	                                      .toStdString());
+	const auto queryText = QString(SELECT_ANALYZED_BOOKS_QUERY)
+	                           .arg(hasGenres ? GENRE_FIELD : EMPTY_FIELD)
+	                           .arg(hasGenres ? GENRE_JOIN : "")
+	                           .arg(observer.NeedDeleteDuplicates() ? AUTHOR_FIELD : EMPTY_FIELD)
+	                           .arg(observer.NeedDeleteDuplicates() ? AUTHOR_JOIN : "")
+	                           .arg(observer.IsPermanently() ? "" : WHERE_NOT_DELETED);
 
 	AnalyzedBooks analyzedBooks;
-	for (query->Execute(); !query->Eof(); query->Next())
+	for (const auto query = db.CreateQuery(queryText); const auto& rec : *query)
 	{
-		auto [it, inserted] = analyzedBooks.try_emplace(query->Get<long long>(0), AnalyzedBook {});
+		auto [it, inserted] = analyzedBooks.try_emplace(rec.Get<long long>(0), AnalyzedBook {});
 		if (inserted)
 		{
-			it->second.folder  = query->Get<const char*>(1);
-			it->second.file    = query->Get<const char*>(2);
-			it->second.lang    = query->Get<const char*>(3);
-			it->second.deleted = query->Get<int>(4);
-			it->second.date    = query->Get<const char*>(5);
-			it->second.title   = QString(query->Get<const char*>(6)).toLower();
-			it->second.size    = query->Get<long long>(7);
-			it->second.libRate = libRateProvider.GetLibRate(it->first, Util::Fb2InpxParser::GetSeqNumber(query->Get<const char*>(8)));
+			it->second.folder  = rec.Get<const char*>(1);
+			it->second.file    = rec.Get<const char*>(2);
+			it->second.lang    = rec.Get<const char*>(3);
+			it->second.deleted = rec.Get<int>(4);
+			it->second.date    = rec.Get<const char*>(5);
+			it->second.title   = QString(rec.Get<const char*>(6)).toLower();
+			it->second.size    = rec.Get<long long>(7);
+			it->second.libRate = libRateProvider.GetLibRate(it->first, Util::Fb2InpxParser::GetSeqNumber(rec.Get<const char*>(8)));
 		}
 
-		it->second.genres.emplace(query->Get<const char*>(9));
-		it->second.authors.emplace(query->Get<long long>(10));
+		it->second.genres.emplace(rec.Get<const char*>(9));
+		it->second.authors.emplace(rec.Get<long long>(10));
 		if (analyzeCanceled)
 			break;
 	}
@@ -191,17 +181,19 @@ void RemoveCompletelyDuplicatedCompilations(DB::IDatabase& db, const AnalyzedBoo
 {
 	std::unordered_map<long long, std::pair<long long, std::vector<std::pair<long long, int>>>> compilation;
 
-	const auto query = db.CreateQuery(R"(select c.CompilationID, c.BookId, l.BookId, l.Part
+	const auto queryText = R"(select c.CompilationID, c.BookId, l.BookId, l.Part
 from Compilations c
 join Compilation_List l on l.CompilationID = c.CompilationID
-where c.Covered = 1)");
-	for (query->Execute(); !query->Eof(); query->Next())
-	{
-		auto& [bookId, parts] = compilation[query->Get<long long>(0)];
-		if (parts.empty())
-			bookId = query->Get<long long>(1);
+where c.Covered = 1)";
 
-		parts.emplace_back(query->Get<long long>(2), query->Get<int>(3));
+	const auto query = db.CreateQuery(queryText);
+	for (const auto& rec : *query)
+	{
+		auto& [bookId, parts] = compilation[rec.Get<long long>(0)];
+		if (parts.empty())
+			bookId = rec.Get<long long>(1);
+
+		parts.emplace_back(rec.Get<long long>(2), rec.Get<int>(3));
 	}
 	std::ranges::copy(
 		compilation | std::views::values | std::views::filter([&](const auto& item) {
@@ -224,13 +216,13 @@ where c.Covered = 1)");
 
 void RemoveBooksDuplicatedByCompilations(DB::IDatabase& db, const AnalyzedBooks& analyzedBooks, std::unordered_set<long long>& toDelete)
 {
-	const auto query = db.CreateQuery(R"(select c.BookId, l.BookId
+	constexpr auto queryText = R"(select c.BookId, l.BookId
 from Compilations c
 join Compilation_List l on c.CompilationID = l.CompilationID
-)");
-	for (query->Execute(); !query->Eof(); query->Next())
-		if (!toDelete.contains(query->Get<long long>(0)))
-			if (const auto id = query->Get<long long>(1); analyzedBooks.contains(id))
+)";
+	for (const auto query = db.CreateQuery(queryText); const auto& rec : *query)
+		if (!toDelete.contains(rec.Get<long long>(0)))
+			if (const auto id = rec.Get<long long>(1); analyzedBooks.contains(id))
 				toDelete.emplace(id);
 }
 
@@ -406,7 +398,7 @@ struct CollectionCleanerLogic::Impl
 				 const auto db          = databaseUser->Database();
 				 const auto transaction = db->CreateTransaction();
 
-				 auto ok = RemoveBooksImpl(books, *transaction, std::move(progressItem));
+				 auto ok = RemoveBooksImpl(books, *transaction, *progressItem);
 				 ok      = CleanupNavigationItems(*transaction) && ok;
 				 ok      = transaction->Commit() && ok;
 

@@ -154,7 +154,7 @@ public:
 		return std::make_pair(it->first, it->second);
 	}
 
-	std::pair<QStringView, size_t> emplace(const QStringView key, const size_t value) //-V801
+	std::pair<QStringView, size_t> emplace(const QStringView key, const size_t value)
 	{
 		if (const auto it = m_data.find(key); it != m_data.end())
 			return std::make_pair(it->first, it->second);
@@ -163,12 +163,12 @@ public:
 		return std::make_pair(it->first, it->second);
 	}
 
-	bool contains(const QStringView key) const //-V801
+	bool contains(const QStringView key) const
 	{
 		return m_view.contains(key) || m_data.contains(key);
 	}
 
-	std::optional<size_t> find(const QStringView key) const //-V801
+	std::optional<size_t> find(const QStringView key) const
 	{
 		if (const auto it = m_view.find(key); it != m_view.end())
 			return it->second;
@@ -184,6 +184,11 @@ public:
 		return m_data.size() + m_view.size();
 	}
 
+	bool empty() const noexcept
+	{
+		return m_data.empty() && m_view.empty();
+	}
+
 	template <typename F>
 	std::optional<size_t> find_if(const F& f) const
 	{
@@ -196,7 +201,7 @@ public:
 		return std::nullopt;
 	}
 
-	size_t erase(const QStringView key) //-V801
+	size_t erase(const QStringView key)
 	{
 		const auto it = m_data.find(key);
 		return static_cast<size_t>(it != m_data.end() ? (m_data.erase(it), 1) : 0) + m_view.erase(key);
@@ -268,14 +273,14 @@ bool ParseCheckerDefault(QStringView)
 	return true;
 }
 
-bool ParseCheckerAuthor(const QStringView str) //-V801
+bool ParseCheckerAuthor(const QStringView str)
 {
 	return !str.empty() && !std::ranges::all_of(str, [](const auto ch) {
 		return ch == ',';
 	});
 }
 
-std::optional<size_t> FindDefault(const Dictionary& container, const QStringView value) //-V801
+std::optional<size_t> FindDefault(const Dictionary& container, const QStringView value)
 {
 	return container.find(value);
 }
@@ -357,10 +362,7 @@ private: // SaxParser
 		if (it == m_books.end())
 			return true;
 
-		m_command.Bind(0, it->second);
-		m_command.Bind(1, m_annotation);
-
-		m_command.Execute();
+		m_command.Execute(it->second, m_annotation);
 
 		m_annotation.clear();
 
@@ -475,7 +477,7 @@ ReturnType Add(ValueType value, Dictionary& container, const GetIdFunctor& getId
 }
 
 std::vector<size_t> ParseItem(
-	const QStringView   data, //-V801
+	const QStringView   data,
 	Dictionary&         container,
 	const char          separator    = Inpx::LIST_SEPARATOR,
 	const ParseChecker& parseChecker = &ParseCheckerDefault,
@@ -496,7 +498,7 @@ std::vector<size_t> ParseItem(
 	return result;
 }
 
-std::vector<size_t> ParseItem(const QStringView data, Dictionary& container, const Splitter& splitter, const GetIdFunctor& getId = &GetIdDefault, const FindFunctor& find = &FindDefault) //-V801
+std::vector<size_t> ParseItem(const QStringView data, Dictionary& container, const Splitter& splitter, const GetIdFunctor& getId = &GetIdDefault, const FindFunctor& find = &FindDefault)
 {
 	std::unordered_set<size_t> unique;
 	std::vector<size_t>        result;
@@ -507,7 +509,7 @@ std::vector<size_t> ParseItem(const QStringView data, Dictionary& container, con
 	return result;
 }
 
-std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& keywordsLinks) //-V801
+std::vector<size_t> ParseKeywords(const QStringView keywordsSrc, Dictionary& keywordsLinks)
 {
 	return ParseItem(
 		keywordsSrc,
@@ -577,8 +579,7 @@ struct BookBufFieldGetters
 
 using BookBufMapping = std::vector<BookBufFieldGetters>;
 
-#define BOOK_BUF_FIELD_ITEM(NAME)                                                                                                                                                                              \
-	QStringView &Get##NAME(Book &book) { return book.NAME; }
+#define BOOK_BUF_FIELD_ITEM(NAME) QStringView &Get##NAME(Book &book) { return book.NAME; }
 BOOK_BUF_FIELD_ITEMS_XMACRO
 #undef BOOK_BUF_FIELD_ITEM
 
@@ -587,30 +588,6 @@ QStringView BOOK_BUF_FIELD_DEFAULT_VIEW;
 QStringView& GetBookBufFieldDefault(Book&)
 {
 	return BOOK_BUF_FIELD_DEFAULT_VIEW;
-}
-
-Book ParseBook(const QString& line, const BookBufMapping& f, QString folder)
-{
-	Book buf;
-
-	auto       it    = std::cbegin(line);
-	const auto endIt = std::cend(line);
-
-	for (size_t i = 0, sz = f.size(); i < sz && it != endIt; ++i)
-		f[i].bookBufFieldGetter(buf) = f[i].next(it, endIt, Fb2InpxParser::FIELDS_SEPARATOR);
-
-	buf.fileName = QString("%1.%2").arg(buf.FILE, buf.EXT);
-
-	if (buf.GENRE.size() < 2)
-		buf.GENRE = GENRE_NOT_SPECIFIED;
-
-	if (buf.FOLDER.isEmpty())
-	{
-		buf.folder = std::move(folder);
-		buf.FOLDER = buf.folder;
-	}
-
-	return buf;
 }
 
 struct InpxContent
@@ -828,22 +805,15 @@ size_t Store(DB::IDatabase& db, Data& data)
 		"INSERT INTO Authors (AuthorID, LastName, FirstName, MiddleName, NickName, SearchName) VALUES(?, ?, ?, ?, ?, ?)",
 		data.authors,
 		[](DB::ICommand& cmd, const Dictionary::value_type& item) {
-			const auto& [title, id]         = item;
-			auto it                         = std::cbegin(title);
-			const auto [last, nickLast]     = SplitNameSuffix(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
-			const auto [first, nickFirst]   = SplitNameSuffix(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
-			const auto [middle, nickMiddle] = SplitNameSuffix(QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR));
-			const auto lastUp               = last.toString().toUpper();
-			const auto nick                 = !nickLast.isEmpty() ? nickLast : !nickFirst.isEmpty() ? nickFirst : !nickMiddle.isEmpty() ? nickMiddle : QStringView {};
+			const auto& [title, id] = item;
+			auto       it           = std::cbegin(title);
+			const auto last         = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
+			const auto first        = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
+			const auto middle       = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
+			const auto nick         = QNext(it, std::cend(title), Fb2InpxParser::NAMES_SEPARATOR);
+			const auto lastUp       = !last.isEmpty() ? last.toString().toUpper() : !first.isEmpty() ? first.toString().toUpper() : !middle.isEmpty() ? middle.toString().toUpper() : nick.toString().toUpper();
 
-			cmd.Bind(0, id);
-			cmd.Bind(1, last);
-			cmd.Bind(2, first);
-			cmd.Bind(3, middle);
-			nick.isEmpty() ? cmd.Bind(4) : cmd.Bind(4, nick);
-			cmd.Bind(5, lastUp);
-
-			return cmd.Execute();
+			return cmd.Execute(id, last, first, middle, nick.isEmpty() ? std::optional<QStringView> {} : std::optional { nick }, lastUp);
 		},
 		"INSERT INTO Authors_Search(Authors_Search) VALUES('rebuild')"
 	);
@@ -855,34 +825,23 @@ size_t Store(DB::IDatabase& db, Data& data)
 		data.series,
 		[](DB::ICommand& cmd, const Dictionary::value_type& item) {
 			const auto& [title, id] = item;
-			cmd.Bind(0, id);
-			cmd.Bind(1, title);
-			cmd.Bind(2, title.toString().toUpper());
-			return cmd.Execute();
+			return cmd.Execute(id, title, title.toString().toUpper());
 		},
 		"INSERT INTO Series_Search(Series_Search) VALUES('rebuild')"
 	);
 
 	result += StoreRange(db, "Folders", "INSERT INTO Folders (FolderID, FolderTitle) VALUES (?, ?)", data.bookFolders, [](DB::ICommand& cmd, const auto& item) {
 		const auto& [title, id] = item;
-		cmd.Bind(0, id);
-		cmd.Bind(1, title);
-		return cmd.Execute();
+		return cmd.Execute(id, title);
 	});
 
 	result += StoreRange(db, "InpxFolders", "INSERT INTO Inpx (Folder, File, Hash) VALUES (?, ?, ?)", data.inpxFolders, [](DB::ICommand& cmd, const auto& item) {
-		cmd.Bind(0, item.first.first);
-		cmd.Bind(1, item.first.second);
-		cmd.Bind(2, item.second);
-		return cmd.Execute();
+		return cmd.Execute(item.first.first, item.first.second, item.second);
 	});
 
 	result += StoreRange(db, "Keywords", "INSERT INTO Keywords (KeywordID, KeywordTitle, SearchTitle) VALUES (?, ?, ?)", data.keywords, [](DB::ICommand& cmd, const Dictionary::value_type& item) {
 		const auto& [title, id] = item;
-		cmd.Bind(0, id);
-		cmd.Bind(1, title);
-		cmd.Bind(2, title.toString().toUpper());
-		return cmd.Execute();
+		return cmd.Execute(id, title, title.toString().toUpper());
 	});
 
 	std::vector<size_t> newGenresIndex;
@@ -895,15 +854,7 @@ size_t Store(DB::IDatabase& db, Data& data)
 		"INSERT INTO Genres (GenreCode, ParentCode, FB2Code, GenreAlias, GenreTitle) VALUES(?, ?, ?, ?, ?)",
 		newGenresIndex | std::views::drop(1),
 		[&genres = data.genres](DB::ICommand& cmd, const size_t n) {
-			cmd.Bind(0, genres[n].dbCode);
-			cmd.Bind(1, genres[genres[n].parentId].dbCode);
-			cmd.Bind(2, genres[n].code);
-			cmd.Bind(3, genres[n].name);
-			if (genres[n].title.isEmpty())
-				cmd.Bind(4);
-			else
-				cmd.Bind(4, genres[n].title);
-			return cmd.Execute();
+			return cmd.Execute(genres[n].dbCode, genres[genres[n].parentId].dbCode, genres[n].code, genres[n].name, !genres[n].title.isEmpty() ? std::optional { genres[n].title } : std::nullopt);
 		}
 	);
 
@@ -919,22 +870,23 @@ size_t Store(DB::IDatabase& db, Data& data)
 		queryText,
 		data.books,
 		[](DB::ICommand& cmd, const Book& book) {
-			cmd.Bind(0, book.id);
-			cmd.Bind(1, book.LIBID);
-			cmd.Bind(2, book.TITLE);
-			cmd.Bind(3, book.DATE);
-			cmd.Bind(4, book.LIBRATE);
-			cmd.Bind(5, book.LANG);
-			book.YEAR.isEmpty() ? cmd.Bind(6) : cmd.Bind(6, book.YEAR);
-			cmd.Bind(7, book.folderId);
-			cmd.Bind(8, book.FILE);
-			cmd.Bind(9, QString(".%1").arg(book.EXT));
-			cmd.Bind(10, book.SIZE);
-			cmd.Bind(11, book.DEL);
-			cmd.Bind(12, book.updateId);
-			cmd.Bind(13, book.SOURCELIB);
-			cmd.Bind(14, book.TITLE.toString().toUpper());
-			return cmd.Execute();
+			return cmd.Execute(
+				book.id,
+				book.LIBID,
+				book.TITLE,
+				book.DATE,
+				book.LIBRATE,
+				book.LANG,
+				!book.YEAR.isEmpty() ? std::optional { book.YEAR } : std::nullopt,
+				book.folderId,
+				book.FILE,
+				QString(".%1").arg(book.EXT),
+				book.SIZE,
+				book.DEL,
+				book.updateId,
+				book.SOURCELIB,
+				book.TITLE.toString().toUpper()
+			);
 		},
 		"INSERT INTO Books_Search(Books_Search) VALUES('rebuild')"
 	);
@@ -945,17 +897,13 @@ size_t Store(DB::IDatabase& db, Data& data)
 			return item.LANG;
 		});
 		result += StoreRange(db, "Languages", "INSERT OR IGNORE INTO Languages (LanguageCode) VALUES(?)", languages, [](DB::ICommand& cmd, const QStringView& item) {
-			cmd.Bind(0, item);
-			return cmd.Execute();
+			return cmd.Execute(item);
 		});
 	}
 
 	result += StoreRange(db, "Author_List", "INSERT INTO Author_List (AuthorID, BookID, OrdNum) VALUES(?, ?, ?)", data.booksAuthors, [](DB::ICommand& cmd, const Links::value_type& item) {
 		return std::accumulate(item.second.cbegin(), item.second.cend(), true, [&, ordNum = 0](const auto init, const size_t id) mutable {
-			cmd.Bind(0, id);
-			cmd.Bind(1, item.first);
-			cmd.Bind(2, ++ordNum);
-			return cmd.Execute() && init;
+			return cmd.Execute(id, item.first, ++ordNum) && init;
 		});
 	});
 
@@ -965,20 +913,13 @@ size_t Store(DB::IDatabase& db, Data& data)
 			if (!storedSeries.insert(series.first).second)
 				return init;
 
-			cmd.Bind(0, series.first);
-			cmd.Bind(1, item.first);
-			series.second ? cmd.Bind(2, *series.second) : cmd.Bind(2);
-			cmd.Bind(3, ++ordNum);
-			return cmd.Execute() && init;
+			return cmd.Execute(series.first, item.first, series.second, ++ordNum) && init;
 		});
 	});
 
 	result += StoreRange(db, "Keyword_List", "INSERT INTO Keyword_List (KeywordID, BookID, OrdNum) VALUES(?, ?, ?)", data.booksKeywords, [](DB::ICommand& cmd, const Links::value_type& item) {
 		return std::accumulate(item.second.cbegin(), item.second.cend(), true, [&, ordNum = 0](const auto init, const size_t id) mutable {
-			cmd.Bind(0, id);
-			cmd.Bind(1, item.first);
-			cmd.Bind(2, ++ordNum);
-			return cmd.Execute() && init;
+			return cmd.Execute(id, item.first, ++ordNum) && init;
 		});
 	});
 
@@ -990,10 +931,7 @@ size_t Store(DB::IDatabase& db, Data& data)
 		StoreRange(db, "Genre_List", "INSERT INTO Genre_List (BookID, GenreCode, OrdNum) VALUES(?, ?, ?)", data.booksGenres, [genres = std::move(genres)](DB::ICommand& cmd, const Links::value_type& item) {
 			return std::accumulate(item.second.cbegin(), item.second.cend(), true, [&, ordNum = 0](const auto init, const size_t id) mutable {
 				assert(id < std::size(genres));
-				cmd.Bind(0, item.first);
-				cmd.Bind(1, genres[id]);
-				cmd.Bind(2, ++ordNum);
-				return cmd.Execute() && init;
+				return cmd.Execute(item.first, genres[id], ++ordNum) && init;
 			});
 		});
 
@@ -1014,10 +952,7 @@ size_t Store(DB::IDatabase& db, Data& data)
 	}
 
 	result += StoreRange(db, "Updates", "INSERT INTO Updates (UpdateID, UpdateTitle, ParentID) VALUES(?, ?, ?)", updates, [](DB::ICommand& cmd, const auto& item) {
-		cmd.Bind(0, std::get<0>(item));
-		cmd.Bind(1, std::get<1>(item));
-		cmd.Bind(2, std::get<2>(item));
-		return cmd.Execute();
+		return cmd.Execute(item);
 	});
 
 	if (!data.reviews.empty())
@@ -1025,11 +960,10 @@ size_t Store(DB::IDatabase& db, Data& data)
 		std::vector<std::pair<size_t, QString>> reviews;
 
 		{
-			const auto query = db.CreateQuery("select b.BookID, f.FolderTitle||'#'||b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID");
-			for (query->Execute(); !query->Eof(); query->Next())
+			for (const auto query = db.CreateQuery("select b.BookID, f.FolderTitle||'#'||b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID"); const auto& rec : *query)
 			{
-				const auto bookId = query->Get<int64_t>(0);
-				const auto uid    = query->Get<QString>(1);
+				const auto bookId = rec.Get<int64_t>(0);
+				const auto uid    = rec.Get<QString>(1);
 				if (const auto it = data.reviews.find(uid); it != data.reviews.end())
 				{
 					std::ranges::transform(it->second, std::back_inserter(reviews), [&](const auto& item) {
@@ -1040,16 +974,12 @@ size_t Store(DB::IDatabase& db, Data& data)
 		}
 
 		result += StoreRange(db, "Reviews", "INSERT INTO Reviews (BookID, Folder) VALUES(?, ?)", reviews, [](DB::ICommand& cmd, const auto& item) {
-			cmd.Bind(0, item.first);
-			cmd.Bind(1, item.second);
-			return cmd.Execute();
+			return cmd.Execute(item);
 		});
 	}
 
 	result += StoreRange(db, "Annotations", "INSERT INTO Annotations (BookID, Text) VALUES(?, ?)", data.annotations, [](DB::ICommand& cmd, const auto& item) {
-		cmd.Bind(0, item.first);
-		cmd.Bind(1, item.second);
-		return cmd.Execute();
+		return cmd.Execute(item);
 	});
 
 	return result;
@@ -1111,11 +1041,10 @@ template <typename T>
 T ReadDictionary(const std::string_view name, DB::IDatabase& db, const char* statement, const auto& f)
 {
 	PLOGI << "Read " << name;
-	T          data;
-	const auto query = db.CreateQuery(statement);
-	for (query->Execute(); !query->Eof(); query->Next())
+	T data;
+	for (const auto query = db.CreateQuery(statement); const auto& rec : *query)
 	{
-		const auto [key, value] = f(*query);
+		const auto [key, value] = f(rec);
 		data.emplace(key, value);
 	}
 
@@ -1129,12 +1058,11 @@ Update ReadUpdates(DB::IDatabase& db)
 	std::unordered_map<size_t, Update*> updates {
 		{ 0, &result },
 	};
-	const auto query = db.CreateQuery("select UpdateID, UpdateTitle, ParentID from Updates order by ParentId");
-	for (query->Execute(); !query->Eof(); query->Next())
+	for (const auto query = db.CreateQuery("select UpdateID, UpdateTitle, ParentID from Updates order by ParentId"); const auto& rec : *query)
 	{
-		const auto id       = query->Get<long long>(0);
-		const auto title    = query->Get<int>(1);
-		const auto parentId = query->Get<long long>(2);
+		const auto id       = rec.Get<long long>(0);
+		const auto title    = rec.Get<int>(1);
+		const auto parentId = rec.Get<long long>(2);
 
 		const auto parentIt = updates.find(parentId);
 		assert(parentIt != updates.end());
@@ -1148,12 +1076,12 @@ Update ReadUpdates(DB::IDatabase& db)
 Reviews ReadReviews(DB::IDatabase& db)
 {
 	PLOGI << "Read reviews";
-	Reviews    reviews;
-	const auto query = db.CreateQuery("select f.FolderTitle||'#'||b.FileName||b.Ext, r.Folder from Reviews r join Books b on b.BookID = r.BookID join Folders f on f.FolderID = b.FolderID");
-	for (query->Execute(); !query->Eof(); query->Next())
+	Reviews reviews;
+	for (const auto  query = db.CreateQuery("select f.FolderTitle||'#'||b.FileName||b.Ext, r.Folder from Reviews r join Books b on b.BookID = r.BookID join Folders f on f.FolderID = b.FolderID");
+	     const auto& rec : *query)
 	{
-		const char* uid    = query->Get<const char*>(0);
-		const char* folder = query->Get<const char*>(1);
+		const char* uid    = rec.Get<const char*>(0);
+		const char* folder = rec.Get<const char*>(1);
 		reviews[uid].emplace(folder);
 	}
 
@@ -1171,15 +1099,10 @@ std::pair<Genres, Dictionary> ReadGenres(DB::IDatabase& db, const QString& genre
 
 	std::map<QString, std::vector<size_t>> children;
 
-	auto       n     = std::size(genres);
-	const auto query = db.CreateQuery("select FB2Code, GenreCode, ParentCode, GenreAlias, GenreTitle from Genres");
-	for (query->Execute(); !query->Eof(); query->Next())
+	auto n = std::size(genres);
+	for (const auto query = db.CreateQuery("select FB2Code, GenreCode, ParentCode, GenreAlias, GenreTitle from Genres"); const auto& rec : *query)
 	{
-		const auto* fb2Code    = query->Get<const char*>(0);
-		const auto* genreCode  = query->Get<const char*>(1);
-		const auto* parentCode = query->Get<const char*>(2);
-		const auto* genreAlias = query->Get<const char*>(3);
-		const auto* genreTitle = query->Get<const char*>(4);
+		const auto [fb2Code, genreCode, parentCode, genreAlias, genreTitle] = rec.Get<const char*, const char*, const char*, const char*, const char*>();
 
 		Genre genre(fb2Code, "", genreAlias);
 		genre.dbCode = genreCode;
@@ -1279,7 +1202,7 @@ private:
 
 } // namespace
 
-class Parser::Impl final : virtual public IPool
+class Parser::Impl final : public IPool
 {
 	NON_COPY_MOVABLE(Impl)
 
@@ -1572,14 +1495,14 @@ private:
 		Data data;
 
 		const auto dictionaryInserter = [](const DB::IQuery& query) {
-			return std::make_pair(query.Get<QString>(1), query.Get<size_t>(0));
+			return query.Get<QString, size_t>(1, 0);
 		};
 
 		SetNextId(*m_db);
-		data.authors     = ReadDictionary<Dictionary>("authors", *m_db, "select AuthorID, LastName||coalesce( '['||NickName||']', '')||','||FirstName||','||MiddleName from Authors", dictionaryInserter);
-		data.series      = ReadDictionary<Dictionary>("series", *m_db, "select SeriesID, SeriesTitle from Series", dictionaryInserter);
-		data.keywords    = ReadDictionary<Dictionary>("keywords", *m_db, "select KeywordID, KeywordTitle from Keywords", dictionaryInserter);
-		data.bookFolders = ReadDictionary<Dictionary>("folders", *m_db, "select FolderID, FolderTitle from Folders", dictionaryInserter);
+		data.authors               = ReadDictionary<Dictionary>("authors", *m_db, "select AuthorID, LastName||','||FirstName||','||MiddleName||coalesce(','||NickName, '') from Authors", dictionaryInserter);
+		data.series                = ReadDictionary<Dictionary>("series", *m_db, "select SeriesID, SeriesTitle from Series", dictionaryInserter);
+		data.keywords              = ReadDictionary<Dictionary>("keywords", *m_db, "select KeywordID, KeywordTitle from Keywords", dictionaryInserter);
+		data.bookFolders           = ReadDictionary<Dictionary>("folders", *m_db, "select FolderID, FolderTitle from Folders", dictionaryInserter);
 		auto [genres, genresIndex] = ReadGenres(*m_db, genresFileName);
 		data.genres                = std::move(genres);
 		data.updates               = ReadUpdates(*m_db);
@@ -1587,17 +1510,13 @@ private:
 
 		{
 			const auto query = m_db->CreateQuery("select BookID, FolderID, FileName||Ext from Books");
-			for (query->Execute(); !query->Eof(); query->Next())
-			{
-				const auto  bookId   = query->Get<long long>(0);
-				const auto  folderId = query->Get<long long>(1);
-				const auto* value    = query->Get<const char*>(2);
-				m_uniqueFiles.try_emplace(std::make_pair(static_cast<size_t>(folderId), value), bookId);
-			}
+			std::ranges::transform(*query, std::inserter(m_uniqueFiles, m_uniqueFiles.end()), [](const auto& item) {
+				return std::make_pair(item.template Get<size_t, QString>(1, 2), item.template Get<long long>(0));
+			});
 		}
 
 		const auto inpxFolderInserter = [](const DB::IQuery& query) {
-			return std::make_pair(std::make_pair(query.Get<QString>(0), query.Get<QString>(1)), query.Get<QString>(2));
+			return std::make_pair(query.Get<QString, QString>(0, 1), query.Get<QString>(2));
 		};
 		data.inpxFolders = ReadDictionary<InpxFolders>("inpx", *m_db, "select Folder, File, Hash from Inpx", inpxFolderInserter);
 
@@ -1886,11 +1805,7 @@ where b.FileName = ? and b.Ext = ?)");
 				const QFileInfo fileInfo(file);
 				const auto      name = fileInfo.completeBaseName(), ext = "." + fileInfo.suffix();
 
-				query->Bind(0, folder);
-				query->Bind(1, name);
-				query->Bind(2, ext);
-
-				query->Execute();
+				query->Execute(folder, name, ext);
 
 				if (query->Eof())
 					return std::make_pair(0LL, QString {});
@@ -1958,25 +1873,14 @@ where b.FileName = ? and b.Ext = ?)");
 				for (const auto& token : compilation.title | std::views::drop(1))
 					title.append(" ").append(token.toStdString());
 
-				command->Bind(0, compilation.id);
-				command->Bind(1, compilation.bookId);
-				command->Bind(2, title);
-				command->Bind(3, compilation.covered ? 1 : 0);
-				command->Execute();
+				command->Execute(compilation.id, compilation.bookId, title, compilation.covered ? 1 : 0);
 			}
 		}
 		{
 			const auto command = tr->CreateCommand("insert into Compilation_List(CompilationID, BookId, Part) values(?, ?, ?)");
 			for (const auto& compilation : compilations)
-			{
 				for (const auto& book : compilation.books)
-				{
-					command->Bind(0, compilation.id);
-					command->Bind(1, book.first);
-					command->Bind(2, book.second);
-					command->Execute();
-				}
-			}
+					command->Execute(compilation.id, book.first, book.second);
 		}
 
 		tr->CreateCommand("INSERT INTO Compilations_Search(Compilations_Search) VALUES('rebuild')")->Execute();
@@ -2178,7 +2082,9 @@ where b.FileName = ? and b.Ext = ?)");
 			return file.toLower();
 		});
 
-		folder = suitableFiles.isEmpty() ? folderInfo.completeBaseName() + "." + m_ini(DEFAULT_ARCHIVE_TYPE) : suitableFiles.front();
+		const auto defaultArchiveType = m_data.bookFolders.empty() ? QString {} : QFileInfo(m_data.bookFolders.cbegin()->first.toString()).suffix();
+
+		folder = suitableFiles.isEmpty() ? folderInfo.completeBaseName() + "." + m_ini(DEFAULT_ARCHIVE_TYPE, defaultArchiveType) : suitableFiles.front();
 
 		QCryptographicHash hash(QCryptographicHash::Md5);
 		size_t             n = 0;
@@ -2193,7 +2099,7 @@ where b.FileName = ? and b.Ext = ?)");
 		return n;
 	}
 
-	auto& GetFileList(const QString& rootFolder, const QStringView folder) //-V801
+	auto& GetFileList(const QString& rootFolder, const QStringView folder)
 	{
 		if (const auto it = m_foldersContent.find(folder); it != m_foldersContent.end())
 			return it->second;
@@ -2220,6 +2126,69 @@ where b.FileName = ? and b.Ext = ?)");
 		}
 
 		return fileList;
+	}
+
+	Book ParseBook(const QString& line, const BookBufMapping& f, QString folder)
+	{
+		Book buf;
+
+		auto       it    = std::cbegin(line);
+		const auto endIt = std::cend(line);
+
+		for (size_t i = 0, sz = f.size(); i < sz && it != endIt; ++i)
+			f[i].bookBufFieldGetter(buf) = f[i].next(it, endIt, Fb2InpxParser::FIELDS_SEPARATOR);
+
+		buf.fileName = QString("%1.%2").arg(buf.FILE, buf.EXT);
+
+		if (buf.GENRE.size() < 2)
+			buf.GENRE = GENRE_NOT_SPECIFIED;
+
+		if (buf.FOLDER.isEmpty())
+		{
+			buf.folder = std::move(folder);
+			buf.FOLDER = buf.folder;
+		}
+
+		CheckAuthorNickname(buf.AUTHOR);
+
+		return buf;
+	}
+
+	void CheckAuthorNickname(QStringView& authors)
+	{
+		const auto index1 = authors.indexOf('[');
+		if (index1 < 0)
+			return;
+		const auto index2 = authors.indexOf(']');
+		if (index2 < index1)
+			return;
+
+		auto authorIt = std::ranges::find_if(authors, [=](const auto ch) {
+			return ch != LIST_SEPARATOR;
+		});
+
+		QString& result = m_rawData.emplace_back();
+
+		while (authorIt != std::cend(authors))
+		{
+			const auto author = QNext(authorIt, std::cend(authors), LIST_SEPARATOR);
+			auto       it     = std::cbegin(author);
+
+			const auto [last, nickLast]     = SplitNameSuffix(QNext(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
+			const auto [first, nickFirst]   = SplitNameSuffix(QNext(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
+			const auto [middle, nickMiddle] = SplitNameSuffix(QNext(it, std::cend(author), Fb2InpxParser::NAMES_SEPARATOR));
+			const auto nick                 = !nickLast.isEmpty() ? nickLast : !nickFirst.isEmpty() ? nickFirst : !nickMiddle.isEmpty() ? nickMiddle : QStringView {};
+			result.append(last)
+				.append(Fb2InpxParser::NAMES_SEPARATOR)
+				.append(first)
+				.append(Fb2InpxParser::NAMES_SEPARATOR)
+				.append(middle)
+				.append(Fb2InpxParser::NAMES_SEPARATOR)
+				.append(nick)
+				.append(LIST_SEPARATOR);
+		}
+
+		authors = { result.begin(), result.end() };
 	}
 
 	void ProcessInpxString(const QString& rootFolder, const QString& folder, const QByteArray& byteArray)
@@ -2282,7 +2251,7 @@ where b.FileName = ? and b.Ext = ?)");
 		return index;
 	}
 
-	size_t ParseDate(const QStringView date, Data& data) //-V801
+	size_t ParseDate(const QStringView date, Data& data)
 	{
 		const auto createUpdate = [this](const int title, const size_t parentId) {
 			const auto [it, ok] = m_newUpdates.emplace(GetId());
@@ -2474,12 +2443,7 @@ void Parser::FillInpx(IniMap data, DB::ITransaction& transaction)
 
 		const auto command = transaction.CreateCommand("INSERT INTO Inpx (Folder, File, Hash) VALUES (?, ?, ?)");
 		for (const auto& [first, second] : folders)
-		{
-			command->Bind(0, first.first);
-			command->Bind(1, first.second);
-			command->Bind(2, second);
-			command->Execute();
-		}
+			command->Execute(first.first, first.second, second);
 
 		return 0;
 	};
@@ -2495,8 +2459,9 @@ bool Parser::CheckForUpdate(IniMap data, DB::IDatabase& database)
 
 		InpxFolders dbFolders;
 		const auto  query = database.CreateQuery("select Folder, File, Hash from Inpx");
-		for (query->Execute(); !query->Eof(); query->Next())
-			dbFolders.try_emplace(std::make_pair(query->Get<const char*>(0), query->Get<const char*>(1)), query->Get<const char*>(2));
+		std::ranges::transform(*query, std::inserter(dbFolders, dbFolders.end()), [](const auto& item) {
+			return std::make_pair(item.template Get<QString, QString>(0, 1), item.template Get<QString>(2));
+		});
 
 		InpxFolders diff;
 		const auto  proj = [](const auto& item) {

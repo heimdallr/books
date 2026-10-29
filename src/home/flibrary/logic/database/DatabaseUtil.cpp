@@ -128,14 +128,19 @@ bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& i
 		const auto command = transaction->CreateCommand(std::format("insert into {} (id) values (?)", tempTable->GetName()));
 		for (const auto id : ids)
 		{
-			command->Bind(0, id);
-			ok = command->Execute() && ok;
+			ok = command->Execute(id) && ok;
 			progressItem->Increment(1);
 		}
 	}
-	transaction
-		->CreateCommand(std::format("insert or replace into Books_User(BookID, IsDeleted, CreatedAt) select id, {}, datetime(CURRENT_TIMESTAMP, 'localtime') from {}", remove ? 1 : 0, tempTable->GetName()))
-		->Execute();
+
+	static constexpr auto removeQueryText = R"(
+INSERT INTO Books_User (BookID, IsDeleted, CreatedAt)
+SELECT id, {}, datetime(CURRENT_TIMESTAMP, 'localtime')
+FROM {} WHERE true
+ON CONFLICT(BookID) DO UPDATE SET 
+IsDeleted = excluded.IsDeleted, CreatedAt = excluded.CreatedAt)";
+
+	transaction->CreateCommand(std::format(removeQueryText, remove ? 1 : 0, tempTable->GetName()))->Execute();
 
 	ok = transaction
 	         ->CreateCommand(R"(
@@ -186,6 +191,11 @@ void CreateHistoryTable(DB::IDatabase& db, const ISettings& settings)
 std::string GetHistoryTableName(const ISettings& settings)
 {
 	return settings.Get(KEEP_HISTORY, false) ? "History" : "tmp.History";
+}
+
+std::string GetHistoryIndexName(const ISettings& settings)
+{
+	return settings.Get(KEEP_HISTORY, false) ? "IX_History_BookID" : "tmp.IX_History_BookID";
 }
 
 } // namespace HomeCompa::Flibrary::DatabaseUtil

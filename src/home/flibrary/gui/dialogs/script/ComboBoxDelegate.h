@@ -24,7 +24,7 @@ private:
 	Values m_values;
 };
 
-class ScriptComboBoxDelegate : virtual public ComboBoxDelegate
+class ScriptComboBoxDelegate : public ComboBoxDelegate
 {
 };
 

@@ -1,0 +1,22 @@
+#!/bin/bash
+# Launcher for the Linux packages: points the dynamic linker and ICU at the bundled libraries
+dir=$(dirname "${BASH_SOURCE[0]}")
+lib_path="$dir/lib"
+
+# lib/compat holds the C++ runtime the program was built with. It is used only when the system runtime is older:
+# a newer system runtime must win, because system libraries loaded into the process (GL drivers, themes) may need it
+required_glibcxx="@REQUIRED_GLIBCXX@"
+if [ -n "$required_glibcxx" ] && [ -d "$dir/lib/compat" ]; then
+	use_compat=1
+	for lib in $(PATH="$PATH:/sbin:/usr/sbin" ldconfig -p 2>/dev/null | sed -n 's/^[[:space:]]*libstdc++\.so\.6 .*=> //p'); do
+		if grep -qaF "$required_glibcxx" "$lib"; then
+			use_compat=0
+			break
+		fi
+	done
+	if [ "$use_compat" = 1 ]; then
+		lib_path="$dir/lib/compat:$lib_path"
+	fi
+fi
+
+LD_LIBRARY_PATH="$lib_path:$LD_LIBRARY_PATH" ICU_DATA="$dir/lib" "$dir/@PROJECT_NAME@" "$@"

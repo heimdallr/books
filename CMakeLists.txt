@@ -1,4 +1,9 @@
-cmake_minimum_required(VERSION 3.12)
+cmake_minimum_required(VERSION 3.14)
+
+get_cmake_property(_variableNames VARIABLES)
+foreach(_variableName ${_variableNames})
+    message(STATUS "${_variableName} = ${${_variableName}}")
+endforeach()
 
 execute_process(COMMAND git log -1 --format=%h WORKING_DIRECTORY ${CMAKE_CURRENT_LIST_DIR} OUTPUT_VARIABLE GIT_HASH OUTPUT_STRIP_TRAILING_WHITESPACE)
 message(STATUS "Git commit hash: ${GIT_HASH}")
@@ -34,7 +39,7 @@ set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 set(MAJOR_PRODUCT_VERSION 2)
 set(MINOR_PRODUCT_VERSION 7)
-set(PATCH_PRODUCT_VERSION 2)
+set(PATCH_PRODUCT_VERSION 3)
 file(READ ${CMAKE_CURRENT_LIST_DIR}/src/home/flibrary/version/build.h BUILD_PRODUCT_VERSION)
 string(REGEX MATCH "[0-9]+" BUILD_PRODUCT_VERSION ${BUILD_PRODUCT_VERSION})
 
@@ -43,6 +48,10 @@ set(PRODUCT_VERSION_FULL ${PRODUCT_VERSION}.${BUILD_PRODUCT_VERSION})
 set(PRODUCT_UID 80B196FB-9529-459D-960E-0E0F00CE0981)
 
 project(FLibrary VERSION ${PRODUCT_VERSION})
+
+if(MSVC)
+    set(PVS_CONFIG_PATH "${BUILDSCRIPTS_ROOT}/config/.pvsconfig")
+endif()
 
 if ("${CMAKE_BUILD_TYPE}" STREQUAL "")
 	set(CMAKE_BUILD_TYPE Debug)
@@ -99,6 +108,14 @@ else()
 		-Wno-array-bounds
 		-fPIC		
 	)
+endif()
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")
+    add_link_options("LINKER:--strip-all")
+endif()
+
+if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
+    add_link_options("LINKER:--exclude-libs,ALL")
 endif()
 
 set(QtModules Core Gui Widgets Xml Network Svg Concurrent)
@@ -171,7 +188,7 @@ endif()
 find_package(plog REQUIRED)
 find_package(Boost REQUIRED)
 find_package(XercesC REQUIRED)
-find_package(ICU REQUIRED COMPONENTS tu io uc i18n data)
+find_package(ICU REQUIRED COMPONENTS uc i18n io)
 find_package(libjxl REQUIRED)
 find_package(cimg REQUIRED)
 find_package(SQLite3 REQUIRED)
@@ -230,6 +247,14 @@ include_directories("${EXT_ROOT}/Hypodermic")
 
 include("src/ext/sqlite.cmake")
 include("src/home/home.cmake")
+
+if ("${QT_MAJOR_VERSION}" STREQUAL "6")
+	if("${NPM_EXECUTABLE}" STREQUAL "" OR NOT EXISTS ${NPM_EXECUTABLE})
+		include("${EXT_ROOT}/ReactApp/scripts/ReactApp.cmake")
+		get_nodejs()
+	endif()
+	add_subdirectory("${EXT_ROOT}/ReactApp")
+endif()
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 	return()

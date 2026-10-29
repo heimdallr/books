@@ -1,6 +1,7 @@
 #pragma once
 
 #include <functional>
+#include <set>
 #include <vector>
 
 #include "fnd/EnumBitmask.h"
@@ -19,7 +20,7 @@ namespace HomeCompa::Flibrary {
 class ITreeViewController // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	using RequestContextMenuCallback = std::function<void(const QString& id, const IDataItem::Ptr& item)>;
+	using RequestContextMenuCallback = std::function<void(const QString& id, const IDataItem::Ptr& item, const std::set<QString>& ids)>;
 	using CreateNewItem              = std::function<void()>;
 	using RemoveItems                = std::function<void(const QList<QModelIndex>& indexList)>;
 	enum class RequestContextMenuOptions

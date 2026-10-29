@@ -28,11 +28,11 @@ public:
 	virtual QAbstractItemModel* GetModel() noexcept = 0;
 };
 
-class ILanguageModel : virtual public IModel
+class ILanguageModel : public IModel
 {
 };
 
-class IGenreModel : virtual public IModel
+class IGenreModel : public IModel
 {
 };
 

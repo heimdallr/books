@@ -58,7 +58,7 @@ struct Created
 	QString createdAt;
 };
 
-class BooksRestorer final : virtual public IRestorer
+class BooksRestorer final : public IRestorer
 {
 	struct Item : Book
 	{
@@ -106,7 +106,7 @@ private: // IRestorer
 			if (const auto integer = value.toInt(&ok); ok)
 				command->Bind(index, integer);
 			else
-				command->Bind(index, value.toStdString());
+				command->Bind(index, value);
 		};
 
 		for (const auto& item : m_items)
@@ -115,8 +115,8 @@ private: // IRestorer
 			ADDITIONAL_BOOK_FIELDS_X_MACRO
 #undef ADDITIONAL_BOOK_FIELD
 
-			command->Bind(FieldNo::Folder, item.folder.toStdString());
-			command->Bind(FieldNo::FileName, item.fileName.toStdString());
+			command->Bind(FieldNo::Folder, item.folder);
+			command->Bind(FieldNo::FileName, item.fileName);
 			command->Execute();
 		}
 
@@ -129,15 +129,12 @@ private:
 
 #undef ADDITIONAL_BOOK_FIELDS_X_MACRO
 
-void Bind(DB::ICommand& command, const size_t index, const QString& value)
+std::optional<QString> GetStringParameter(QString value)
 {
-	if (value.isEmpty())
-		command.Bind(index);
-	else
-		command.Bind(index, value.toStdString());
+	return !value.isEmpty() ? std::optional { std::move(value) } : std::nullopt;
 }
 
-class GroupsRestorer final : virtual public IRestorer
+class GroupsRestorer final : public IRestorer
 {
 	struct Item : Created
 	{
@@ -180,20 +177,12 @@ private: // IRestorer
 			const auto groupId = getLastIdQuery->Get<long long>(0);
 
 			for (const auto& [folder, fileName, createdAt] : books)
-			{
-				addBookToGroupCommand->Bind(0, groupId);
-				Bind(*addBookToGroupCommand, 1, createdAt);
-				addBookToGroupCommand->Bind(2, folder.toStdString());
-				addBookToGroupCommand->Bind(3, fileName.toStdString());
-				addBookToGroupCommand->Execute();
-			}
+				addBookToGroupCommand->Execute(groupId, GetStringParameter(createdAt), folder, fileName);
 		};
 
 		for (const auto& item : m_items)
 		{
-			createGroupCommand->Bind(0, item.title.toStdString());
-			Bind(*createGroupCommand, 1, item.createdAt);
-			createGroupCommand->Execute();
+			createGroupCommand->Execute(item.title, GetStringParameter(item.createdAt));
 			addBooksToGroup(item.books);
 		}
 
@@ -218,7 +207,7 @@ private:
 	Items m_items;
 };
 
-class SearchesRestorer final : virtual public IRestorer
+class SearchesRestorer final : public IRestorer
 {
 private: // IRestorer
 	void AddElement([[maybe_unused]] const QString& name, const Util::XmlAttributes& attributes) override
@@ -234,13 +223,9 @@ private: // IRestorer
 		using namespace Constant::UserData;
 		const auto transaction = db.CreateTransaction();
 		transaction->CreateCommand("delete from Searches_User")->Execute();
-		const auto createSearchCommand = transaction->CreateCommand(Searches::CreateNewSearchCommandText);
-		for (const auto& [title, createdAt] : m_items)
-		{
-			createSearchCommand->Bind(0, title.toStdString());
-			Bind(*createSearchCommand, 1, createdAt);
-			createSearchCommand->Execute();
-		}
+
+		for (const auto createSearchCommand = transaction->CreateCommand(Searches::CreateNewSearchCommandText); const auto& [title, createdAt] : m_items)
+			createSearchCommand->Execute(title, GetStringParameter(createdAt));
 
 		transaction->Commit();
 	}

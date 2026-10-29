@@ -22,6 +22,8 @@ class QModelIndex;
 
 namespace HomeCompa::Flibrary {
 
+struct SetForIdsArg;
+
 class TreeView final : public QWidget
 {
 	Q_OBJECT
@@ -48,6 +50,7 @@ signals:
 	void ValueGeometryChanged(const QRect& geometry) const;
 	void SearchNavigationItemSelected(long long id, const QString& text) const;
 	void CurrentNavigationItemChanged(const QModelIndex& index) const;
+	void CounterChanged(int count) const;
 
 public:
 	void               SetNavigationModeName(QString navigationModeName);
@@ -59,6 +62,8 @@ public:
 private slots:
 	void OnBookTitleToSearchVisibleChanged() const;
 	void OnCurrentNavigationItemChanged(const QModelIndex& index);
+	void OnSetToolBarPosition(const QString& key, QWidget* toolBar);
+	void OnSetBooksColumnValue(const SetForIdsArg& args);
 
 private: // QWidget
 	void resizeEvent(QResizeEvent* event) override;

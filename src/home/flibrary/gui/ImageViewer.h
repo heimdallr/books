@@ -24,6 +24,7 @@ class ImageViewer final : public StackedPage
 
 signals:
 	void ValueGeometryChanged(const QRect& geometry) const;
+	void CounterChanged(int count) const;
 
 public:
 	ImageViewer(

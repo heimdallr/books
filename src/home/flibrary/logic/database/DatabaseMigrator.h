@@ -9,7 +9,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class DatabaseMigrator final : virtual public IDatabaseMigrator
+class DatabaseMigrator final : public IDatabaseMigrator
 {
 	NON_COPY_MOVABLE(DatabaseMigrator)
 

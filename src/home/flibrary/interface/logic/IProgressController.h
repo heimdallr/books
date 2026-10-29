@@ -23,7 +23,7 @@ public:
 		virtual bool IsStopped() const noexcept = 0;
 	};
 
-	class ProgressItemStub final : virtual public IProgressItem
+	class ProgressItemStub final : public IProgressItem
 	{
 		void Increment(int64_t) override
 		{
@@ -47,7 +47,7 @@ public:
 	virtual void UnregisterObserver(IObserver* observer) = 0;
 };
 
-class IMainProgressController : virtual public IProgressController
+class IMainProgressController : public IProgressController
 {
 };
 

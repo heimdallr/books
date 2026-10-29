@@ -326,7 +326,7 @@ private: // IAnnotationController::IObserver
 		OnContentChanged();
 	}
 
-	void OnJokeErrorOccured(const QString& api, const QString& error) override
+	void OnJokeErrorOccurred(const QString& api, const QString& error) override
 	{
 		if (m_settings->Get(SHOW_JOKE_ERRORS, false))
 			m_ui.info->setText(QString(R"(<p>%1 failed:</p><p style="color:Red;">%2</p>)").arg(api, error));
@@ -667,7 +667,7 @@ private:
 		assert(url.size() == 2);
 		if (QString(Constant::BOOK).startsWith(url.front()))
 		{
-			return m_bookInteractor->OnLinkActivated(url.back().toLongLong());
+			return m_bookInteractor->OnLinkActivated(url.back().toLongLong(), {});
 		}
 		if (std::ranges::none_of(TYPE_TO_NAVIGATION, [&](const auto& schema) {
 				return schema.second.second && QString(schema.first).startsWith(url.front());

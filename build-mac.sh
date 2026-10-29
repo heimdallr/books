@@ -275,7 +275,8 @@ configure_and_build() {
     -DCONAN_PROFILE="${CONAN_PROFILE_NAME}" \
     -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
     -D7zip_BIN_DIR="${P7ZIP_DIR}" \
-    -DCPACK_GENERATOR=ZIP
+    -DCPACK_GENERATOR=ZIP \
+    -DNPM_EXECUTABLE="${NPM_EXECUTABLE}"
 
   log "Building ${CURRENT_ARCH}"
   cmake --build "${BUILD_DIR}" --config "${CONFIG}" --parallel
@@ -649,6 +650,8 @@ bundle_app() {
 
   copy_if_exists "${BUILD_DIR}/bin/locales" "${macos}/locales"
   copy_if_exists "${BUILD_DIR}/bin/locales" "${resources}/locales"
+  copy_if_exists "${BUILD_DIR}/bin/ReactApp" "${macos}/ReactApp"
+  copy_if_exists "${BUILD_DIR}/bin/ReactApp" "${resources}/ReactApp"
   copy_if_exists "${BUILD_DIR}/bin/genres.json" "${macos}/genres.json"
   copy_if_exists "${BUILD_DIR}/bin/genres.json" "${resources}/genres.json"
   copy_if_exists "${BUILD_DIR}/bin/LICENSE.txt" "${resources}/LICENSE.txt"

@@ -19,7 +19,7 @@ class QIODevice;
 
 namespace HomeCompa::Opds {
 
-class Requester final : virtual public IRequester
+class Requester final : public IRequester
 {
 	NON_COPY_MOVABLE(Requester)
 
@@ -38,6 +38,7 @@ public:
 	~Requester() override;
 
 private: // IRequester
+	void       Init() const override;
 	QByteArray Search(const QString& root, const Parameters& parameters) const override;
 	QByteArray GetBookText(const QString& root, const Parameters& parameters) const override;
 

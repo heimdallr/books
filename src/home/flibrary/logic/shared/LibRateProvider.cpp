@@ -75,12 +75,12 @@ std::unordered_map<long long, double> ReadRates(const ISettings& settings, const
 		}
 	);
 
-	const auto                            db    = databaseUser.Database();
-	const auto                            query = db->CreateQuery("select b.BookID, f.FolderTitle||'#'||b.FileName from Books_View b join Folders f on f.FolderID = b.FolderID");
 	std::unordered_map<long long, double> rate;
-	for (query->Execute(); !query->Eof(); query->Next())
-		if (const auto it = additionalRates.find(query->Get<const char*>(1)); it != additionalRates.end())
-			rate.try_emplace(query->Get<long long>(0), it->second);
+
+	const auto db = databaseUser.Database();
+	for (const auto query = db->CreateQuery("select b.BookID, f.FolderTitle||'#'||b.FileName from Books_View b join Folders f on f.FolderID = b.FolderID"); const auto& rec : *query)
+		if (const auto it = additionalRates.find(rec.Get<const char*>(1)); it != additionalRates.end())
+			rate.try_emplace(rec.Get<long long>(0), it->second);
 
 	return rate;
 }

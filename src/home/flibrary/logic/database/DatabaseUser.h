@@ -11,7 +11,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class DatabaseUser : virtual public IDatabaseUser
+class DatabaseUser : public IDatabaseUser
 {
 	NON_COPY_MOVABLE(DatabaseUser)
 

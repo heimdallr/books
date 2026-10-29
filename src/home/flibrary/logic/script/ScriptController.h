@@ -15,7 +15,7 @@ class Container;
 
 namespace HomeCompa::Flibrary {
 
-class ScriptController final : virtual public IScriptController
+class ScriptController final : public IScriptController
 {
 	NON_COPY_MOVABLE(ScriptController)
 
@@ -49,7 +49,7 @@ private:
 	PropagateConstPtr<Impl> m_impl;
 };
 
-class ScriptControllerProvider : virtual public IScriptControllerProvider
+class ScriptControllerProvider : public IScriptControllerProvider
 {
 public:
 	explicit ScriptControllerProvider(Hypodermic::Container& container);

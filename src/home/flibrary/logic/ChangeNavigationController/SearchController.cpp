@@ -51,10 +51,7 @@ QString GetSearchString(QString str)
 long long CreateNewSearchImpl(DB::ITransaction& transaction, const QString& name)
 {
 	assert(!name.isEmpty());
-	const auto command = transaction.CreateCommand(INSERT_SEARCH_QUERY);
-	command->Bind(0, name);
-	command->Bind(1, GetSearchString(name).toStdString());
-	if (!command->Execute())
+	if (const auto command = transaction.CreateCommand(INSERT_SEARCH_QUERY, name, GetSearchString(name)); !command->Execute())
 		return 0;
 
 	const auto query = transaction.CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
@@ -83,10 +80,11 @@ struct SearchController::Impl
 	{
 		auto db = databaseUser->Database();
 		databaseUser->Execute({ "Get all searches", [db = std::move(db), callback = std::move(callback)]() mutable {
-								   Names      names;
 								   const auto query = db->CreateQuery("select SearchID, Title from Searches_User");
-								   for (query->Execute(); !query->Eof(); query->Next())
-									   names.try_emplace(query->Get<QString>(1).toUpper(), query->Get<long long>(0));
+								   auto       names = *query | std::views::transform([](const auto& item) {
+									   return std::make_pair(item.template Get<QString>(1).toUpper(), item.template Get<long long>(0));
+								   }) | std::views::common
+			                                        | std::ranges::to<Names>();
 								   return [names = std::move(names), callback = std::move(callback)](size_t) {
 									   callback(names);
 								   };
@@ -195,8 +193,7 @@ void SearchController::Remove(Ids ids, Callback callback) const
 									   const auto command     = transaction->CreateCommand(REMOVE_SEARCH_QUERY);
 
 									   auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&](const bool init, const Id id) {
-										   command->Bind(0, id);
-										   return command->Execute() && init;
+										   return command->Execute(id) && init;
 									   });
 									   ok      = transaction->Commit() && ok;
 

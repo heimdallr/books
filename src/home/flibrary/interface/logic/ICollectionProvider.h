@@ -54,8 +54,6 @@ public:
 class ICollectionProvider : public ICollectionsObserver
 {
 public:
-	virtual ~ICollectionProvider() = default;
-
 	[[nodiscard]] virtual bool IsEmpty() const noexcept = 0;
 
 	[[nodiscard]] virtual bool              IsCollectionNameExists(const QString& name) const                = 0;

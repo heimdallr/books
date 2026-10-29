@@ -17,6 +17,7 @@
 #include "data/DataItem.h"
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
+#include "database/DatabaseUtil.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/MenuItems.h"
 #include "util/FunctorExecutionForwarder.h"
@@ -152,7 +153,6 @@ constexpr MenuRequester MENU_REQUESTERS[] {
 
 struct ModeDescriptor
 { //-V802
-
 	using Filter = bool (INavigationFilter::*)(const ModeDescriptor&) const;
 
 	ViewMode                   viewMode { ViewMode::Unknown };
@@ -321,12 +321,12 @@ struct TreeViewControllerNavigation::Impl final
 	void RequestContextMenu(const QModelIndex& index, RequestContextMenuOptions options, RequestContextMenuCallback callback)
 	{
 		assert(static_cast<size_t>(mode) < std::size(MENU_REQUESTERS));
-		auto       id = index.data(Role::Id).toString();
-		const auto db = databaseController->GetDatabase(true);
-		if (auto item = std::invoke(MENU_REQUESTERS[mode], static_cast<IContextMenuProvider*>(this), std::ref(*db), std::cref(id), options))
-			forwarder.Forward([callback = std::move(callback), id = std::move(id), item = std::move(item)] {
-				callback(id, item);
-			});
+		auto       id   = index.data(Role::Id).toString();
+		const auto db   = databaseController->GetDatabase(true);
+		auto       item = std::invoke(MENU_REQUESTERS[mode], static_cast<IContextMenuProvider*>(this), std::ref(*db), std::cref(id), options);
+		forwarder.Forward([callback = std::move(callback), id = std::move(id), item = std::move(item)] {
+			callback(id, item, {});
+		});
 	}
 
 private: // IContextMenuHandler
@@ -497,8 +497,7 @@ private: // ITableSubscriptionHandler
 		self.RequestBooks(true);
 	}
 
-#define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(NAME, TYPE)                                                                                                                                                   \
-	void On_##NAME##_Changed() override { OnTableChanged(NavigationMode::TYPE); }
+#define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(NAME, TYPE) void On_##NAME##_Changed() override { OnTableChanged(NavigationMode::TYPE); }
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_X_MACRO
 #undef SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM
 
@@ -546,9 +545,7 @@ private: // IContextMenuProvider
 
 		const auto query =
 			db.CreateQuery("select exists (select 42 from Reviews r join Books_View b on b.BookID = r.BookID and b.IsDeleted != ? join Author_List a on a.BookID = r.BookID and a.AuthorID = ?)");
-		query->Bind(0, !(options & RequestContextMenuOptions::ShowRemoved) ? 1 : 2);
-		query->Bind(1, id.toLongLong());
-		query->Execute();
+		query->Execute(!(options & RequestContextMenuOptions::ShowRemoved) ? 1 : 2, id.toLongLong());
 		assert(!query->Eof());
 
 		AddMenuItem(result, REVIEWS, REVIEWS, MenuAction::AuthorReview)->SetData(QVariant(query->Get<int>(0) != 0).toString(), MenuItem::Column::Enabled);
@@ -571,12 +568,12 @@ private: // IContextMenuProvider
 		return TreeMenuRequester(db, id, options);
 	}
 
-	IDataItem::Ptr CreateKeywordsContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override //-V524
+	IDataItem::Ptr CreateKeywordsContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
 	{
-		return MenuRequesterGroupNavigation(db, id, options);
+		return CreateSeriesContextMenu(db, id, options);
 	}
 
-	IDataItem::Ptr CreateUpdatesContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override //-V524
+	IDataItem::Ptr CreateUpdatesContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
 	{
 		return TreeMenuRequester(db, id, options);
 	}
@@ -602,8 +599,7 @@ private: // IContextMenuProvider
 		auto removeFromGroup = AddMenuItem(result, REMOVE_FROM_GROUP, REMOVE_FROM_GROUP);
 		if ([&] {
 				const auto query = db.CreateQuery("select exists (select 42 from Books b join Groups_List_User glu on glu.ObjectID = b.BookID and glu.GroupID = ?)");
-				query->Bind(0, id.toInt());
-				query->Execute();
+				query->Execute(id.toInt());
 				assert(!query->Eof());
 				return query->Get<int>(0) != 0;
 			}())
@@ -611,9 +607,7 @@ private: // IContextMenuProvider
 
 		const auto addRemoveFromGroupItems = [&](const char* queryText, QString subMenuTitle, const int removeAllCommandId) {
 			const auto query = db.CreateQuery(queryText);
-			query->Bind(0, id.toInt());
-			query->Execute();
-			if (query->Eof())
+			if (query->Execute(id.toInt()); query->Eof())
 				return;
 
 			auto subMenu = AddMenuItem(removeFromGroup, std::move(subMenuTitle));
@@ -631,9 +625,8 @@ private: // IContextMenuProvider
 			AddMenuItem(subMenu, ALL, ALL, removeAllCommandId);
 		};
 
-		constexpr auto authorsQueryText =
-			"select a.AuthorID, a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '') from Authors a join Groups_List_User glu on "
-			"glu.ObjectID = a.AuthorID and glu.GroupID = ?";
+		constexpr auto authorsQueryText  = "select a.AuthorID, " FLIBRARY_SQL_FULL_AUTHOR_NAME " from Authors a join Groups_List_User glu on "
+										   "glu.ObjectID = a.AuthorID and glu.GroupID = ?";
 		constexpr auto seriesQueryText   = "select s.SeriesID, s.SeriesTitle from Series s join Groups_List_User glu on glu.ObjectID = s.SeriesID and glu.GroupID = ?";
 		constexpr auto keywordsQueryText = "select k.KeywordID, k.KeywordTitle from Keywords k join Groups_List_User glu on glu.ObjectID = k.KeywordID and glu.GroupID = ?";
 
@@ -948,12 +941,21 @@ void TreeViewControllerNavigation::RequestContextMenu(const QModelIndex& index, 
 	m_impl->RequestContextMenu(index, options, std::move(callback));
 }
 
-void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel*, const QModelIndex& index, const QList<QModelIndex>& indexList, const IDataItem::Ptr item) //-V801
+void TreeViewControllerNavigation::OnContextMenuTriggered(QAbstractItemModel*, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item)
 {
 	const auto invoker = FindSecond(MENU_HANDLERS, item->GetData(MenuItem::Column::Id).toInt(), &IContextMenuHandler::OnContextMenuTriggeredStub);
-	std::invoke(invoker, *m_impl, std::cref(indexList), std::cref(index), std::cref(item), [this, id = index.data(Role::Id).toString(), item] {
-		Perform(&IObserver::OnContextMenuTriggered, std::cref(id), std::cref(item));
-	});
+	const auto itemRef = item;
+	std::invoke(
+		invoker,
+		*m_impl,
+		std::cref(indexList),
+		std::cref(index),
+		std::cref(itemRef),
+		[this, id = index.data(Role::Id).toString(), item = std::move(item), alive = std::weak_ptr { std::shared_ptr<Impl>(m_impl) }] {
+			if (!alive.expired())
+				Perform(&IObserver::OnContextMenuTriggered, std::cref(id), std::cref(item));
+		}
+	);
 }
 
 ITreeViewController::CreateNewItem TreeViewControllerNavigation::GetNewItemCreator() const

@@ -14,6 +14,7 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/IAnnotationController.h"
+#include "interface/logic/ICollectionProvider.h"
 
 #include "settings/ISettings.h"
 #include "util/xml/SaxParser.h"
@@ -126,8 +127,9 @@ public:
 	}
 
 protected:
-	AbstractParser(QIODevice& stream, const IRequester::Parameters& parameters)
+	AbstractParser(QIODevice& stream, const IRequester::Parameters& parameters, const ICollectionProvider& collectionProvider)
 		: SaxParser(stream)
+		, m_collectionProvider { collectionProvider }
 		, m_root { IRequester::GetParameter(parameters, ROOT) }
 		, m_session { IRequester::GetParameter(parameters, SESSION) }
 	{
@@ -138,7 +140,7 @@ protected:
 	{
 		auto home = m_root;
 		if (!m_session.isEmpty())
-			home += QString("?session=%1").arg(m_session);
+			home.append("?session=").append(m_session);
 		// clang-format off
 		m_writer->WriteStartElement(u"html")
 			.WriteStartElement(u"head")
@@ -151,7 +153,15 @@ protected:
 						.WriteStartElement(u"input").WriteAttribute(u"type", u"text").WriteAttribute(u"id", u"q").WriteAttribute(u"name", u"q").WriteAttribute(u"placeholder", Tr(SEARCH)).WriteAttribute(u"size", u"64").WriteEndElement()
 					.WriteEndElement()
 				.WriteEndElement()
-				.WriteStartElement(u"a").WriteAttribute(u"href", home).WriteCharacters(Tr(HOME).arg(QChar{0x2302})).WriteEndElement();
+				.WriteStartElement(u"a").WriteAttribute(u"href", home).WriteCharacters(Tr(HOME).arg(QChar{0x2302})).WriteEndElement()
+		;
+		for (const auto& collection : m_collectionProvider.GetCollections() | std::views::filter([this](const auto& item){ return item->id != m_collectionProvider.GetActiveCollectionId(); }))
+		{
+			auto url = QString("%1/collection?id=%2").arg(m_root, collection->id);
+			if (!m_session.isEmpty())
+				url.append("&session=").append(m_session);
+			m_writer->WriteStartElement(u"a").WriteAttribute(u"href", url).WriteCharacters(collection->name).WriteEndElement();
+		}
 		// clang-format on
 		WriteHead();
 		m_writer->Guard(u"hr");
@@ -166,6 +176,7 @@ private:
 	}
 
 protected:
+	const ICollectionProvider&   m_collectionProvider;
 	const QString                m_root;
 	const QString                m_session;
 	std::unique_ptr<QBuffer>     m_output { CreateStream() };
@@ -175,8 +186,8 @@ protected:
 class ParserOpds : public AbstractParser
 {
 protected:
-	ParserOpds(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters)
-		: AbstractParser(stream, parameters)
+	ParserOpds(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters, const ICollectionProvider& collectionProvider)
+		: AbstractParser(stream, parameters, collectionProvider)
 		, m_callback { callback }
 	{
 	}
@@ -271,14 +282,15 @@ class ParserNavigation final : public ParserOpds
 	};
 
 public:
-	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters, const ISettings&)
+	static std::unique_ptr<AbstractParser>
+	Create(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters, const ISettings&, const ICollectionProvider& collectionProvider)
 	{
-		return std::make_unique<ParserNavigation>(callback, stream, parameters, CreateGuard {});
+		return std::make_unique<ParserNavigation>(callback, stream, parameters, collectionProvider, CreateGuard {});
 	}
 
 public:
-	ParserNavigation(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters, CreateGuard)
-		: ParserOpds(callback, stream, parameters)
+	ParserNavigation(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters, const ICollectionProvider& collectionProvider, CreateGuard)
+		: ParserOpds(callback, stream, parameters, collectionProvider)
 	{
 	}
 
@@ -404,14 +416,15 @@ class ParserBookInfo final : public ParserOpds
 	}
 
 public:
-	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters, const ISettings& settings)
+	static std::unique_ptr<AbstractParser>
+	Create(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters, const ISettings& settings, const ICollectionProvider& collectionProvider)
 	{
-		return std::make_unique<ParserBookInfo>(callback, stream, parameters, settings, CreateGuard {});
+		return std::make_unique<ParserBookInfo>(callback, stream, parameters, settings, collectionProvider, CreateGuard {});
 	}
 
 public:
-	ParserBookInfo(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters, const ISettings& settings, CreateGuard)
-		: ParserOpds(callback, stream, parameters)
+	ParserBookInfo(const IPostProcessCallback& callback, QIODevice& stream, const IRequester::Parameters& parameters, const ISettings& settings, const ICollectionProvider& collectionProvider, CreateGuard)
+		: ParserOpds(callback, stream, parameters, collectionProvider)
 		, m_readTemplate { CreateReadTemplate(settings) }
 		, m_converters { [&] {
 			const SettingsGroup group(settings, INoSqlRequester::CONVERTERS_ROOT);
@@ -643,15 +656,15 @@ class ParserFb2 final : public AbstractParser
 	static constexpr auto IMAGE      = "image";
 
 public:
-	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback&, QIODevice& stream, const IRequester::Parameters& parameters, const ISettings&)
+	static std::unique_ptr<AbstractParser> Create(const IPostProcessCallback&, QIODevice& stream, const IRequester::Parameters& parameters, const ISettings&, const ICollectionProvider& collectionProvider)
 	{
 		assert(parameters.size() > 1);
-		return std::make_unique<ParserFb2>(stream, parameters, CreateGuard {});
+		return std::make_unique<ParserFb2>(stream, parameters, collectionProvider, CreateGuard {});
 	}
 
 public:
-	ParserFb2(QIODevice& stream, const IRequester::Parameters& parameters, CreateGuard)
-		: AbstractParser(stream, parameters)
+	ParserFb2(QIODevice& stream, const IRequester::Parameters& parameters, const ICollectionProvider& collectionProvider, CreateGuard)
+		: AbstractParser(stream, parameters, collectionProvider)
 		, m_bookId { IRequester::GetParameter(parameters, "book") }
 	{
 	}
@@ -974,17 +987,24 @@ private:
 	std::vector<Binary>   m_binary;
 };
 
-constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(const IPostProcessCallback&, QIODevice&, const IRequester::Parameters&, const ISettings&)> PARSER_CREATORS[] {
+constexpr std::pair<ContentType, std::unique_ptr<AbstractParser> (*)(const IPostProcessCallback&, QIODevice&, const IRequester::Parameters&, const ISettings&, const ICollectionProvider&)> PARSER_CREATORS[] {
 	{ ContentType::BookInfo, &ParserBookInfo::Create },
 	{ ContentType::BookText,      &ParserFb2::Create },
 };
 
 } // namespace
 
-QByteArray PostProcess_web(const IPostProcessCallback& callback, QIODevice& stream, const ContentType contentType, const IRequester::Parameters& parameters, const ISettings& settings)
+QByteArray PostProcess_web(
+	const IPostProcessCallback&   callback,
+	QIODevice&                    stream,
+	const ContentType             contentType,
+	const IRequester::Parameters& parameters,
+	const ISettings&              settings,
+	const ICollectionProvider&    collectionProvider
+)
 {
 	const auto parserCreator = FindSecond(PARSER_CREATORS, contentType, &ParserNavigation::Create);
-	const auto parser        = parserCreator(callback, stream, parameters, settings);
+	const auto parser        = parserCreator(callback, stream, parameters, settings, collectionProvider);
 	parser->Parse();
 	return parser->GetResult();
 }

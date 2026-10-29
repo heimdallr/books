@@ -12,7 +12,7 @@ class QString;
 
 namespace HomeCompa::Flibrary {
 
-class LineOption final : virtual public ILineOption
+class LineOption final : public ILineOption
 {
 	NON_COPY_MOVABLE(LineOption)
 

@@ -1,6 +1,7 @@
 #include "TreeViewControllerBooks.h"
 
 #include <QModelIndex>
+#include <QPointer>
 #include <QString>
 
 #include "fnd/FindPair.h"
@@ -10,11 +11,14 @@
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
 #include "interface/constants/ModelRole.h"
+#include "interface/constants/SettingsConstant.h"
 
 #include "data/DataProvider.h"
 #include "data/ModelProvider.h"
+#include "database/DatabaseUtil.h"
 #include "shared/BooksContextMenuProvider.h"
 
+#include "QtTypes.h"
 #include "log.h"
 
 using namespace HomeCompa;
@@ -97,6 +101,7 @@ struct TreeViewControllerBooks::Impl
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> annotationController;
 	std::shared_ptr<const IDatabaseUser>                      databaseUser;
 	PropagateConstPtr<IBookInfoProvider, std::shared_ptr>     dataProvider;
+	std::shared_ptr<const IUiFactory>                         uiFactory;
 	std::shared_ptr<const IBookInteractor>                    bookInteractor;
 
 	Impl(
@@ -104,12 +109,14 @@ struct TreeViewControllerBooks::Impl
 		std::shared_ptr<IAnnotationController> annotationController,
 		std::shared_ptr<const IDatabaseUser>   databaseUser,
 		std::shared_ptr<IBookInfoProvider>     dataProvider,
+		std::shared_ptr<const IUiFactory>      uiFactory,
 		std::shared_ptr<const IBookInteractor> bookInteractor
 	)
 		: logicFactory { std::move(logicFactory) }
 		, annotationController { std::move(annotationController) }
 		, databaseUser { std::move(databaseUser) }
 		, dataProvider { std::move(dataProvider) }
+		, uiFactory { std::move(uiFactory) }
 		, bookInteractor { std::move(bookInteractor) }
 	{
 	}
@@ -120,12 +127,13 @@ TreeViewControllerBooks::TreeViewControllerBooks(
 	const std::shared_ptr<IModelProvider>&      modelProvider,
 	const std::shared_ptr<const ILogicFactory>& logicFactory,
 	std::shared_ptr<IBookInfoProvider>          dataProvider,
+	std::shared_ptr<const IUiFactory>           uiFactory,
 	std::shared_ptr<const IBookInteractor>      bookInteractor,
 	std::shared_ptr<IAnnotationController>      annotationController,
 	std::shared_ptr<IDatabaseUser>              databaseUser
 )
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
-	, m_impl(logicFactory, std::move(annotationController), std::move(databaseUser), std::move(dataProvider), std::move(bookInteractor))
+	, m_impl(logicFactory, std::move(annotationController), std::move(databaseUser), std::move(dataProvider), std::move(uiFactory), std::move(bookInteractor))
 {
 	m_modeController.reset(std::make_unique<ModeController>(*m_settings, std::move(m_modeController)));
 
@@ -201,8 +209,8 @@ ViewMode TreeViewControllerBooks::GetViewMode() const noexcept
 void TreeViewControllerBooks::RequestContextMenu(const QModelIndex& index, const RequestContextMenuOptions options, RequestContextMenuCallback callback)
 {
 	auto menuProvider = ILogicFactory::Lock(m_impl->logicFactory)->CreateBooksContextMenuProvider();
-	menuProvider->Request(index, options, [&, menuProvider, id = index.data(Role::Id).toString(), callback = std::move(callback)](const IDataItem::Ptr& item) mutable {
-		callback(id, item);
+	menuProvider->Request(index, options, [&, menuProvider, id = index.data(Role::Id).toString(), callback = std::move(callback)](const IDataItem::Ptr& item, const std::set<QString>& ids) mutable {
+		callback(id, item, ids);
 		menuProvider.reset();
 	});
 }
@@ -210,19 +218,71 @@ void TreeViewControllerBooks::RequestContextMenu(const QModelIndex& index, const
 void TreeViewControllerBooks::OnContextMenuTriggered(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item)
 {
 	auto menuProvider = ILogicFactory::Lock(m_impl->logicFactory)->CreateBooksContextMenuProvider();
-	menuProvider->OnContextMenuTriggered(model, index, indexList, std::move(item), [&, menuProvider, id = index.data(Role::Id).toString()](const IDataItem::Ptr& itemResult) mutable {
-		Perform(&ITreeViewController::IObserver::OnContextMenuTriggered, std::cref(id), std::cref(itemResult));
-		menuProvider.reset();
-	});
+	menuProvider->OnContextMenuTriggered(
+		model,
+		index,
+		indexList,
+		std::move(item),
+		[this, model = QPointer(model), menuProvider, id = index.data(Role::Id).toString()](const IDataItem::Ptr& itemResult, const std::set<QString>& ids) mutable {
+			Perform(&ITreeViewController::IObserver::OnContextMenuTriggered, std::cref(id), std::cref(itemResult));
+			if (!model.isNull() && !m_settings->Get(Constant::Settings::PREFER_KEEP_CHECK, false))
+				model->setData({}, QVariant::fromValue(ids), Role::Uncheck);
+			menuProvider.reset();
+		}
+	);
 }
 
 void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex& index) const
 {
+	if (index.data(Role::Type).value<ItemType>() == ItemType::Navigation)
+	{
+		const auto navigationModeVar = index.data(Role::NavigationMode);
+		if (!navigationModeVar.isValid())
+			return;
+
+		const auto navigationMode = navigationModeVar.value<NavigationMode>();
+		if (navigationMode == NavigationMode::Unknown)
+			return;
+
+		const auto ids = index.data(Role::Id).toString().split('|', Qt::SkipEmptyParts);
+		if (ids.isEmpty())
+			return;
+
+		if (ids.size() == 1)
+			return ILogicFactory::Lock(m_impl->logicFactory)->FindBook(navigationMode, ids.front());
+
+		static constexpr std::pair<NavigationMode, const char*> descriptions[] {
+			{ NavigationMode::Authors, "select " FLIBRARY_SQL_FULL_AUTHOR_NAME " from Authors a where AuthorID in (%1)" },
+			{  NavigationMode::Series,                          "select SeriesTitle from Series where SeriesID in (%1)" },
+		};
+
+		const auto* queryText = FindSecond(descriptions, navigationMode, nullptr);
+		if (!queryText)
+			return;
+
+		const auto db    = m_impl->databaseUser->Database();
+		const auto query = db->CreateQuery(QString(queryText).arg(QStringList::fromVector(QVector<QString>(ids.size(), QString { '?' })).join(',')));
+		for (auto binder = query->Binder(); const auto& id : ids)
+			binder << id.toLongLong();
+
+		return m_impl->uiFactory->ExecMenu(
+			*query | std::views::transform([](const auto& item) {
+				return item.template Get<QString>(0);
+			}) | std::ranges::to<QStringList>(),
+			[&](const int n) {
+				ILogicFactory::Lock(m_impl->logicFactory)->FindBook(navigationMode, ids[static_cast<qsizetype>(n)]);
+			}
+		);
+	}
+
 	if (index.data(Role::Type).value<ItemType>() != ItemType::Books)
 		return;
 
-	const auto id = index.data(Role::Id).toLongLong();
-	m_impl->bookInteractor->OnDoubleClicked(id);
+	const auto id     = index.data(Role::Id).toLongLong();
+	const auto column = index.data(Role::Remap).toInt();
+	const auto value  = index.data(Qt::DisplayRole).toString();
+
+	m_impl->bookInteractor->OnDoubleClicked(id, QString("%1|%2").arg(column).arg(value));
 }
 
 void TreeViewControllerBooks::OnNavigationModeChanged()

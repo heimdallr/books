@@ -36,7 +36,7 @@ struct Book
 
 using Books = std::vector<Book>;
 
-class ExportStatRestorer final : virtual public IRestorer
+class ExportStatRestorer final : public IRestorer
 {
 private: // IRestorer
 	void AddElement([[maybe_unused]] const QString& name, const Util::XmlAttributes& attributes) override
@@ -57,16 +57,8 @@ private: // IRestorer
 		const auto transaction = db.CreateTransaction();
 		transaction->CreateCommand("delete from Export_List_User")->Execute();
 
-		const auto command = transaction->CreateCommand(commandText);
-
-		for (const auto& item : m_items)
-		{
-			command->Bind(0, item.exportType.toInt());
-			command->Bind(1, item.createdAt.toStdString());
-			command->Bind(2, item.folder.toStdString());
-			command->Bind(3, item.fileName.toStdString());
-			command->Execute();
-		}
+		for (const auto command = transaction->CreateCommand(commandText); const auto& item : m_items)
+			command->Execute(item.exportType.toInt(), item.createdAt, item.folder, item.fileName);
 
 		transaction->Commit();
 	}

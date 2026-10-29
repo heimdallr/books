@@ -70,6 +70,14 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 			}
 		}
 	}
+	else if (item->GetType() == ItemType::Navigation)
+	{
+		if (role == Role::NavigationMode)
+		{
+			const auto navigationItem = item->To<NavigationItem>();
+			return QVariant::fromValue(navigationItem ? navigationItem->GetNavigationMode() : NavigationMode::Unknown);
+		}
+	}
 
 	switch (role)
 	{
@@ -161,6 +169,13 @@ bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const i
 
 		case Role::ColumnCount:
 			return Util::Set(m_columnCount, value.toInt());
+
+		case Role::SetForIds:
+			return m_data && m_data->Enumerate([args = value.value<SetForIdsArg>()](IDataItem& item) {
+				if (args.ids.contains(item.GetId().toLongLong()))
+					item.SetData(args.value, args.column);
+				return true;
+			});
 
 		default:
 			break;

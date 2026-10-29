@@ -5,12 +5,15 @@
 #include <QDesktopServices>
 #include <QFileInfo>
 #include <QGuiApplication>
+#include <QIconEngine>
 #include <QJsonArray>
 #include <QJsonDocument>
 #include <QJsonObject>
 #include <QMenuBar>
+#include <QPainter>
 #include <QShortcut>
 #include <QStackedWidget>
+#include <QSvgRenderer>
 #include <QToolTip>
 
 #include "fnd/FindPair.h"
@@ -103,7 +106,7 @@ constexpr const char* COMPONENTS[] = {
 	"<tr><td><a href='https://github.com/heimdallr/ReactApp'>FLibrary React interface</a> &copy; 2025 alloroc2 <a href='https://opensource.org/license/mit'>MIT</a></td></tr>",
 	"<tr><td><a href='https://icu.unicode.org/'>ICU</a> &copy; 2016-2025 Unicode, Inc. <a href='https://www.unicode.org/copyright.html#License'>Open Source License</a></td></tr>",
 	"<tr><td><a href='https://cimg.eu/'>CImg</a> &copy; 2004, David Tschumperlé - GREYC UMR CNRS 6072, Image team. <a href='http://www.cecill.info/licences/Licence_CeCILL-C_V1-en.txt'>CeCILL-C</a></td></tr>",
-	"<tr><td><a href='https://uxwing.com/'>UXWing</a> &copy; 2025 UXWing <a href='https://uxwing.com/license/'>License</a></td></tr>",
+	"<tr><td>GUI icon pack &copy; 2026 <a href='https://gemini.google.com'>Google Gemini</a> <a href='https://creativecommons.org/publicdomain/zero/1.0/'>CC0 1.0</a></td></tr>",
 	// clang-format on
 	// ReSharper enable StringLiteralTypo
 	"</table>"
@@ -121,6 +124,9 @@ constexpr auto MENU_ITEM_TITLE_FORMAT_DEFAULT    = "%author% \t %title%";
 constexpr auto MENU_ITEM_DATETIME_FORMAT_DEFAULT = "yyyy-MM-dd hh:mm:ss";
 constexpr auto MENU_SETTINGS_FILE_DIALOG_KEY     = "MenuSettings";
 
+constexpr auto BASE_ICON_COLOR_TEMPLATE_KEY = "Preferences/MenuCustomization/BaseIconColor%1Theme";
+constexpr auto THEME_SEPARATED              = "Preferences/MenuCustomization/ThemeSeparated";
+
 constexpr auto MENU_CUSTOM_ROOT = "ui/MenuCustomization";
 constexpr auto HOTKEY           = "hotkey";
 constexpr auto HIDDEN           = "hidden";
@@ -130,6 +136,23 @@ constexpr auto TITLE            = "title";
 constexpr auto ID               = "id";
 constexpr auto VALUES           = "values";
 constexpr auto BASE64_PREFIX    = "base64#";
+
+struct ColorSchemeDescription
+{
+	const char* name;
+	uint32_t    defaultBaseColor;
+	const char* iconKey;
+};
+
+constexpr ColorSchemeDescription DARK { "Dark", 0xffffff, "iconDark" };
+constexpr ColorSchemeDescription LIGHT { "Light", 0x222222, "iconLight" };
+
+bool IsDarkMode()
+{
+	QPalette palette     = QGuiApplication::palette();
+	QColor   windowColor = palette.color(QPalette::Window);
+	return windowColor.lightness() < 128;
+}
 
 QString GetPersonalBuildString()
 {
@@ -159,340 +182,56 @@ QWidget* CreateStackedPage(Hypodermic::Container& container, const QObject* sign
 	return pagePtr;
 }
 
-} // namespace
-
-struct UiFactory::Impl
+class SvgMemoryIconEngine final : public QIconEngine
 {
-	Hypodermic::Container& container;
-
-	mutable std::filesystem::path                inpxFolder;
-	mutable std::shared_ptr<ITreeViewController> treeViewController;
-	mutable QTreeView*                           treeView { nullptr };
-	mutable QAbstractItemView*                   abstractItemView { nullptr };
-	mutable QString                              title;
-	mutable long long                            authorId { -1 };
-	mutable QStackedWidget*                      stackedWidget { nullptr };
-
-	explicit Impl(Hypodermic::Container& container)
-		: container(container)
+public:
+	explicit SvgMemoryIconEngine(QByteArray svgData)
+		: m_svgData(std::move(svgData))
 	{
+		m_renderer.load(m_svgData);
 	}
+
+	SvgMemoryIconEngine(QByteArray svgData, const ISettings& settings)
+		: m_svgData(std::move(svgData))
+	{
+		FixDataForColorScheme(settings);
+		m_renderer.load(m_svgData);
+	}
+
+private: // QIconEngine
+	void paint(QPainter* painter, const QRect& rect, QIcon::Mode, QIcon::State) override
+	{
+		if (m_renderer.isValid())
+			m_renderer.render(painter, rect);
+	}
+
+	QIconEngine* clone() const override
+	{
+		return new SvgMemoryIconEngine(m_svgData);
+	}
+
+	QPixmap pixmap(const QSize& size, const QIcon::Mode mode, const QIcon::State state) override
+	{
+		QPixmap pixmap(size);
+		pixmap.fill(Qt::transparent);
+		QPainter painter(&pixmap);
+		paint(&painter, QRect(QPoint(0, 0), size), mode, state);
+		return pixmap;
+	}
+
+private:
+	void FixDataForColorScheme(const ISettings& settings)
+	{
+		const auto& colorSchemeDescription = IsDarkMode() ? DARK : LIGHT;
+		const auto  schemeBaseColor        = settings.Get(QString(BASE_ICON_COLOR_TEMPLATE_KEY).arg(colorSchemeDescription.name), colorSchemeDescription.defaultBaseColor);
+		m_svgData.replace(R"(stroke="#SCHEME_BASE_COLOR")", QString(R"(stroke="#%1")").arg(schemeBaseColor, 6, 16, QChar { '0' }).toUtf8());
+		m_svgData.replace(R"(fill="#SCHEME_BASE_COLOR")", QString(R"(fill="#%1")").arg(schemeBaseColor, 6, 16, QChar { '0' }).toUtf8());
+	}
+
+private:
+	QByteArray   m_svgData;
+	QSvgRenderer m_renderer;
 };
-
-UiFactory::UiFactory(Hypodermic::Container& container)
-	: m_impl(container)
-{
-	PLOGV << "UiFactory created";
-}
-
-UiFactory::~UiFactory()
-{
-	PLOGV << "UiFactory destroyed";
-}
-
-QObject* UiFactory::GetParentObject(QObject* defaultObject) const noexcept
-{
-	return m_impl->container.resolve<Util::IUiFactory>()->GetParentObject(defaultObject);
-}
-
-QWidget* UiFactory::GetParentWidget(QWidget* defaultWidget) const noexcept
-{
-	return m_impl->container.resolve<Util::IUiFactory>()->GetParentWidget(defaultWidget);
-}
-
-int UiFactory::GetParentWidgetFontSize() const noexcept
-{
-	return m_impl->container.resolve<Util::IUiFactory>()->GetParentWidgetFontSize();
-}
-
-std::shared_ptr<TreeView> UiFactory::CreateTreeViewWidget(const ItemType type) const
-{
-	m_impl->treeViewController = m_impl->container.resolve<ILogicFactory>()->GetTreeViewController(type);
-	return m_impl->container.resolve<TreeView>();
-}
-
-std::shared_ptr<IAddCollectionDialog> UiFactory::CreateAddCollectionDialog(std::filesystem::path inpxFolder) const
-{
-	m_impl->inpxFolder = std::move(inpxFolder);
-	return m_impl->container.resolve<IAddCollectionDialog>();
-}
-
-std::shared_ptr<QDialog> UiFactory::CreateScriptDialog() const
-{
-	return m_impl->container.resolve<ScriptDialog>();
-}
-
-std::shared_ptr<QDialog> UiFactory::CreateSettingsDialog() const
-{
-	return m_impl->container.resolve<SettingsDialog>();
-}
-
-std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateBooks(QTreeView& parent) const
-{
-	m_impl->treeView = &parent;
-	return m_impl->container.resolve<TreeViewDelegateBooks>();
-}
-
-std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateNavigation(QAbstractItemView& parent) const
-{
-	m_impl->abstractItemView = &parent;
-	return m_impl->container.resolve<TreeViewDelegateNavigation>();
-}
-
-std::shared_ptr<QDialog> UiFactory::CreateOpdsDialog() const
-{
-	return m_impl->container.resolve<OpdsDialog>();
-}
-
-std::shared_ptr<QDialog> UiFactory::CreateHotkeyDialog() const
-{
-	return m_impl->container.resolve<CustomizeMenuDialog>();
-}
-
-std::shared_ptr<QDialog> UiFactory::CreateFilterSettingsDialog() const
-{
-	return m_impl->container.resolve<FilterSettingsDialog>();
-}
-
-std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString title) const
-{
-	m_impl->title = std::move(title);
-	return m_impl->container.resolve<IComboBoxTextDialog>();
-}
-
-std::shared_ptr<QMainWindow> UiFactory::CreateQueryWindow() const
-{
-	return m_impl->container.resolve<QueryWindow>();
-}
-
-QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, const int column, std::function<void(bool, QVariantList)> callback) const
-{
-	auto&      container            = m_impl->container;
-	const auto parentWidgetProvider = container.resolve<IParentWidgetProvider>();
-	auto       settings             = container.resolve<ISettings>();
-
-	switch (column)
-	{
-		case BookItem::Column::Size:
-			return new RangeFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings));
-
-		case BookItem::Column::UpdateDate:
-			return new DateIntervalFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings));
-
-		default:
-			break;
-	}
-
-	return new FastFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings), container.resolve<Util::ItemViewToolTipper>(), container.resolve<Util::ScrollBarController>());
-}
-
-QWidget* UiFactory::CreateChangeSizeWidget(const int current, const int minimum, const int maximum, IChangeSizeWidgetObserver* observer) const
-{
-	return new ChangeSizeDialog(current, minimum, maximum, observer);
-}
-
-QMenu* UiFactory::CreateCheckableMenu(const std::vector<std::pair<QString, bool>>& values, std::function<void(int, bool)> callback) const
-{
-	return Util::CreateCheckableMenu(values, std::move(callback), GetParentWidget(nullptr));
-}
-
-QWidget* UiFactory::CreateCollectionCleaner(QStackedWidget* stackedWidget) const
-{
-	m_impl->stackedWidget = stackedWidget;
-	return CreateStackedPage<CollectionCleaner>(m_impl->container, this);
-}
-
-QWidget* UiFactory::CreateImageViewer(QStackedWidget* stackedWidget) const
-{
-	m_impl->stackedWidget = stackedWidget;
-	return CreateStackedPage<ImageViewer>(m_impl->container, this);
-}
-
-void UiFactory::CreateAuthorReview(const long long id) const
-{
-	assert(id >= 0 && m_impl->authorId < 0);
-	m_impl->authorId = id;
-	CreateStackedPage<AuthorReview>(m_impl->container, this);
-}
-
-void UiFactory::ExecuteContextMenu(QLineEdit* lineEdit) const
-{
-	QMenu menu(lineEdit);
-	for (const auto& item : IScriptController::s_commandMacros | std::views::values)
-	{
-		const auto menuItemTitle = QString("%1\t%2").arg(Loc::Tr(IScriptController::s_context, item), item);
-		menu.addAction(menuItemTitle, [=, value = QString(item)] {
-			auto       currentText     = lineEdit->text();
-			const auto currentPosition = lineEdit->cursorPosition();
-			lineEdit->setText(currentText.insert(currentPosition, value));
-			lineEdit->setCursorPosition(currentPosition + static_cast<int>(value.size()));
-		});
-	}
-	menu.setFont(lineEdit->font());
-	menu.exec(QCursor::pos());
-}
-
-void UiFactory::ShowAbout() const
-{
-	auto*       parent = m_impl->container.resolve<IParentWidgetProvider>()->GetWidget();
-	QMessageBox msgBox(parent);
-	msgBox.setFont(parent->font());
-	msgBox.setIcon(QMessageBox::Information);
-	msgBox.setWindowTitle(Tr(ABOUT_TITLE));
-	msgBox.setTextFormat(Qt::RichText);
-	msgBox.setText(
-		QString(ABOUT_TEXT)
-			.arg(
-				Tr(ABOUT_DESCRIPTION),
-				Tr(ABOUT_VERSION)
-					.arg(GetApplicationVersion(), GIT_HASH, QString("<font size='%1px;'><a href='%2'>%3</a></font>").arg(msgBox.font().pointSize() * 9 / 10).arg(COPY_VERSION_LINK, QChar { 0x29C9 })),
-				"https://github.com/heimdallr/books",
-				Tr(ABOUT_LICENSE).arg("<a href='https://opensource.org/license/mit'>MIT</a>"),
-				GetPersonalBuildString()
-			)
-	);
-
-	for (auto* label : msgBox.findChildren<QLabel*>())
-	{
-		label->setOpenExternalLinks(false);
-		connect(label, &QLabel::linkActivated, [&](const QString& link) {
-			if (link != COPY_VERSION_LINK)
-				return (void)QDesktopServices::openUrl(link);
-
-			QGuiApplication::clipboard()->setText(QString("%1 (%2)").arg(GetApplicationVersion(), GIT_HASH));
-			QToolTip::setFont(msgBox.font());
-			QToolTip::showText(QCursor::pos(), Tr(VERSION_COPIED));
-		});
-	}
-
-	msgBox.setStandardButtons(QMessageBox::Ok);
-	QStringList text;
-	std::ranges::transform(COMPONENTS, std::back_inserter(text), [](const char* str) {
-		return Loc::Tr(CONTEXT, str);
-	});
-	msgBox.setInformativeText(QString(R"(<font size="%1px;">%2</font>)").arg(msgBox.font().pointSize() * 9 / 10).arg(text.join("")));
-	msgBox.show();
-	Util::MoveToParentCenter(msgBox);
-	msgBox.exec();
-}
-
-QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
-	const QMessageBox::Icon                                         icon,
-	const QString&                                                  title,
-	const QString&                                                  text,
-	const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
-	const QMessageBox::ButtonRole                                   defaultButton,
-	const QString&                                                  detailedText
-) const
-{
-	return m_impl->container.resolve<Util::IUiFactory>()->ShowCustomDialog(icon, title, text, buttons, defaultButton, detailedText);
-}
-
-QMessageBox::StandardButton UiFactory::ShowQuestion(Util::DialogInitializer& initializer) const
-{
-	return m_impl->container.resolve<Util::IUiFactory>()->ShowQuestion(initializer);
-}
-
-QMessageBox::StandardButton UiFactory::ShowWarning(Util::DialogInitializer& initializer) const
-{
-	return m_impl->container.resolve<Util::IUiFactory>()->ShowWarning(initializer);
-}
-
-void UiFactory::ShowInfo(const QString& text) const
-{
-	m_impl->container.resolve<Util::IUiFactory>()->ShowInfo(text);
-}
-
-void UiFactory::ShowError(const QString& text) const
-{
-	m_impl->container.resolve<Util::IUiFactory>()->ShowError(text);
-}
-
-QString UiFactory::GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, const QLineEdit::EchoMode mode) const
-{
-	return m_impl->container.resolve<Util::IUiFactory>()->GetText(title, label, text, comboBoxItems, mode);
-}
-
-std::shared_ptr<QFont> UiFactory::GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options) const
-{
-	return m_impl->container.resolve<Util::IUiFactory>()->GetFont(title, font, options);
-}
-
-std::optional<QColor> UiFactory::GetColor(const QString& title, const QColor& color, const QColorDialog::ColorDialogOptions& options) const
-{
-	return m_impl->container.resolve<Util::IUiFactory>()->GetColor(title, color, options);
-}
-
-QStringList UiFactory::GetOpenFileNames(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
-{
-	return m_impl->container.resolve<Util::IUiFactory>()->GetOpenFileNames(key, title, filter, dir, options);
-}
-
-QString UiFactory::GetOpenFileName(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
-{
-	return m_impl->container.resolve<Util::IUiFactory>()->GetOpenFileName(key, title, filter, dir, options);
-}
-
-QString UiFactory::GetSaveFileName(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
-{
-	return m_impl->container.resolve<Util::IUiFactory>()->GetSaveFileName(key, title, filter, dir, options);
-}
-
-QString UiFactory::GetExistingDirectory(const QString& key, const QString& title, const QString& dir, const QFileDialog::Options& options) const
-{
-	return m_impl->container.resolve<Util::IUiFactory>()->GetExistingDirectory(key, title, dir, options);
-}
-
-std::filesystem::path UiFactory::GetNewCollectionInpxFolder() const noexcept
-{
-	auto result        = std::move(m_impl->inpxFolder);
-	m_impl->inpxFolder = std::filesystem::path {};
-	return result;
-}
-
-std::shared_ptr<ITreeViewController> UiFactory::GetTreeViewController() const noexcept
-{
-	assert(m_impl->treeViewController);
-	auto result                = std::move(m_impl->treeViewController);
-	m_impl->treeViewController = {};
-	return result;
-}
-
-QTreeView& UiFactory::GetTreeView() const
-{
-	assert(m_impl->treeView);
-	return *m_impl->treeView;
-}
-
-QAbstractItemView& UiFactory::GetAbstractItemView() const
-{
-	assert(m_impl->abstractItemView);
-	auto* result             = m_impl->abstractItemView;
-	m_impl->abstractItemView = nullptr;
-	return *result;
-}
-
-QString UiFactory::GetTitle() const noexcept
-{
-	return std::move(m_impl->title);
-}
-
-long long UiFactory::GetAuthorId() const noexcept
-{
-	assert(m_impl->authorId >= 0);
-	const auto result = m_impl->authorId;
-	m_impl->authorId  = -1;
-	return result;
-}
-
-QStackedWidget* UiFactory::GetStackedWidget() const noexcept
-{
-	auto* result          = m_impl->stackedWidget;
-	m_impl->stackedWidget = nullptr;
-	return result;
-}
-
-namespace {
 
 QString GetName(const QString& parent, const QString& child, const QString& key = {})
 {
@@ -536,16 +275,23 @@ const auto setForceGetterStub = [](const QString&) {
 class MenuCustomizerItemBase : public IMenuCustomizer::IItem
 {
 	static std::unique_ptr<ISettings> s_settingsStub;
+	static bool                       s_themeSeparated;
 
 	template <typename SetForceGetter = decltype(setForceGetterStub)>
 	void Set(ISettings& settings, const QString& key, const bool value, const SetForceGetter& setForceGetter = setForceGetterStub) const
 	{
-		const auto id = m_item->GetData(SettingsItem::Column::Key);
+		const auto id          = m_item->GetData(SettingsItem::Column::Key);
 		const auto settingsKey = GetName(MENU_CUSTOM_ROOT, id, key);
 		if (value || setForceGetter(id))
 			settings.Set(settingsKey, value);
 		else
 			settings.Remove(settingsKey);
+	}
+
+public:
+	static void SetThemeSeparated(const bool value) noexcept
+	{
+		s_themeSeparated = value;
 	}
 
 public:
@@ -622,11 +368,11 @@ protected: // IMenuCustomizer::IItem
 
 	void SetIcon(ISettings& settings, const QVariant&, const QByteArray& bytes) override
 	{
-		const auto key = GetName(MENU_CUSTOM_ROOT, m_item->GetData(SettingsItem::Column::Key), ICON);
+		const auto key = GetName(MENU_CUSTOM_ROOT, m_item->GetData(SettingsItem::Column::Key), !s_themeSeparated ? ICON : IsDarkMode() ? DARK.iconKey : LIGHT.iconKey);
 		bytes.isEmpty() ? settings.Set(key, QString {}) : settings.Set(key, bytes);
 	}
 
-	void Setup(const ISettings& settings) override
+	void Setup(const ISettings& settings, const IUiFactory& uiFactory) override
 	{
 		if (m_item->GetData(SettingsItem::Column::Title).isEmpty())
 			if (const auto var = settings.Get(TITLE); var.isValid())
@@ -640,16 +386,9 @@ protected: // IMenuCustomizer::IItem
 		else if (IMenuCustomizer::IsHiddenByDefault(m_item->GetData(SettingsItem::Column::Key)))
 			Hide(*s_settingsStub, true);
 
-		if (const auto var = settings.Get(ICON); var.isValid())
-		{
-			const auto bytes = var.toByteArray();
-			if (bytes.isEmpty())
-				SetIcon(*s_settingsStub, {}, {});
-			else if (const auto image = Util::Decode(bytes); !image.isNull())
-				SetIcon(*s_settingsStub, QVariant::fromValue(QIcon(QPixmap::fromImage(image))), {});
-			else
-				SetIcon(*s_settingsStub, {}, {});
-		}
+		if (const auto var = settings.Get(!s_themeSeparated ? ICON : IsDarkMode() ? DARK.iconKey : LIGHT.iconKey); var.isValid())
+			SetIcon(*s_settingsStub, QVariant::fromValue(*uiFactory.CreateIcon(var.toByteArray())), {});
+
 		{
 			const auto var = settings.Get(TOOLBAR);
 			AddToToolbar(*s_settingsStub, var.isValid() && var.toBool());
@@ -683,6 +422,8 @@ protected:
 };
 
 std::unique_ptr<ISettings> MenuCustomizerItemBase::s_settingsStub { SettingsFactory::CreateStub() };
+
+bool MenuCustomizerItemBase::s_themeSeparated { true };
 
 class MenuCustomizerItemAction final : public MenuCustomizerItemBase
 {
@@ -878,6 +619,364 @@ private:
 
 } // namespace
 
+struct UiFactory::Impl
+{
+	Hypodermic::Container& container;
+
+	mutable std::filesystem::path                inpxFolder;
+	mutable std::shared_ptr<ITreeViewController> treeViewController;
+	mutable QTreeView*                           treeView { nullptr };
+	mutable QAbstractItemView*                   abstractItemView { nullptr };
+	mutable QString                              title;
+	mutable long long                            authorId { -1 };
+	mutable QStackedWidget*                      stackedWidget { nullptr };
+
+	explicit Impl(Hypodermic::Container& container)
+		: container(container)
+	{
+		MenuCustomizerItemBase::SetThemeSeparated(container.resolve<ISettings>()->Get(THEME_SEPARATED, true));
+	}
+};
+
+UiFactory::UiFactory(Hypodermic::Container& container)
+	: m_impl(container)
+{
+	PLOGV << "UiFactory created";
+}
+
+UiFactory::~UiFactory()
+{
+	PLOGV << "UiFactory destroyed";
+}
+
+QObject* UiFactory::GetParentObject(QObject* defaultObject) const noexcept
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetParentObject(defaultObject);
+}
+
+QWidget* UiFactory::GetParentWidget(QWidget* defaultWidget) const noexcept
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetParentWidget(defaultWidget);
+}
+
+int UiFactory::GetParentWidgetFontSize() const noexcept
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetParentWidgetFontSize();
+}
+
+std::shared_ptr<TreeView> UiFactory::CreateTreeViewWidget(const ItemType type) const
+{
+	m_impl->treeViewController = m_impl->container.resolve<ILogicFactory>()->GetTreeViewController(type);
+	return m_impl->container.resolve<TreeView>();
+}
+
+std::shared_ptr<IAddCollectionDialog> UiFactory::CreateAddCollectionDialog(std::filesystem::path inpxFolder) const
+{
+	m_impl->inpxFolder = std::move(inpxFolder);
+	return m_impl->container.resolve<IAddCollectionDialog>();
+}
+
+std::shared_ptr<QDialog> UiFactory::CreateScriptDialog() const
+{
+	return m_impl->container.resolve<ScriptDialog>();
+}
+
+std::shared_ptr<QDialog> UiFactory::CreateSettingsDialog() const
+{
+	return m_impl->container.resolve<SettingsDialog>();
+}
+
+std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateBooks(QTreeView& parent) const
+{
+	m_impl->treeView = &parent;
+	return m_impl->container.resolve<TreeViewDelegateBooks>();
+}
+
+std::shared_ptr<ITreeViewDelegate> UiFactory::CreateTreeViewDelegateNavigation(QAbstractItemView& parent) const
+{
+	m_impl->abstractItemView = &parent;
+	return m_impl->container.resolve<TreeViewDelegateNavigation>();
+}
+
+std::shared_ptr<QDialog> UiFactory::CreateOpdsDialog() const
+{
+	return m_impl->container.resolve<OpdsDialog>();
+}
+
+std::shared_ptr<QDialog> UiFactory::CreateHotkeyDialog() const
+{
+	return m_impl->container.resolve<CustomizeMenuDialog>();
+}
+
+std::shared_ptr<QDialog> UiFactory::CreateFilterSettingsDialog() const
+{
+	return m_impl->container.resolve<FilterSettingsDialog>();
+}
+
+std::shared_ptr<IComboBoxTextDialog> UiFactory::CreateComboBoxTextDialog(QString title) const
+{
+	m_impl->title = std::move(title);
+	return m_impl->container.resolve<IComboBoxTextDialog>();
+}
+
+std::shared_ptr<QMainWindow> UiFactory::CreateQueryWindow() const
+{
+	return m_impl->container.resolve<QueryWindow>();
+}
+
+QWidget* UiFactory::CreateFastFilterWidget(const QAbstractItemModel& model, const int column, std::function<void(bool, QVariantList)> callback) const
+{
+	auto&      container            = m_impl->container;
+	const auto parentWidgetProvider = container.resolve<IParentWidgetProvider>();
+	auto       settings             = container.resolve<ISettings>();
+
+	switch (column)
+	{
+		case BookItem::Column::Size:
+			return new RangeFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings));
+
+		case BookItem::Column::UpdateDate:
+			return new DateIntervalFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings));
+
+		default:
+			break;
+	}
+
+	return new FastFilterWidget(model, column, std::move(callback), *parentWidgetProvider, std::move(settings), container.resolve<Util::ItemViewToolTipper>(), container.resolve<Util::ScrollBarController>());
+}
+
+QWidget* UiFactory::CreateChangeSizeWidget(const int current, const int minimum, const int maximum, IChangeSizeWidgetObserver* observer) const
+{
+	return new ChangeSizeDialog(current, minimum, maximum, observer);
+}
+
+void UiFactory::ExecMenu(const QStringList& values, std::function<void(int)> callback) const
+{
+	auto* parent = GetParentWidget(nullptr);
+	QMenu menu(parent);
+	auto  font = parent->font();
+	menu.setFont(font);
+	for (auto&& [value, index] : std::views::zip(values, std::views::iota(0)))
+		connect(menu.addAction(value), &QAction::triggered, [index, callback] {
+			callback(index);
+		});
+	menu.exec(QCursor::pos());
+}
+
+QMenu* UiFactory::CreateCheckableMenu(const std::vector<std::pair<QString, bool>>& values, std::function<void(int, bool)> callback) const
+{
+	return Util::CreateCheckableMenu(values, std::move(callback), GetParentWidget(nullptr));
+}
+
+std::shared_ptr<QIcon> UiFactory::CreateIcon(QByteArray data) const
+{
+	if (data.isEmpty())
+		return {};
+
+	if (data.startsWith("<svg"))
+		return std::make_shared<QIcon>(new SvgMemoryIconEngine(std::move(data), *m_impl->container.resolve<ISettings>()));
+
+	if (const auto image = Util::Decode(data); !image.isNull())
+		return std::make_shared<QIcon>(QPixmap::fromImage(image));
+
+	return {};
+}
+
+QWidget* UiFactory::CreateCollectionCleaner(QStackedWidget* stackedWidget) const
+{
+	m_impl->stackedWidget = stackedWidget;
+	return CreateStackedPage<CollectionCleaner>(m_impl->container, this);
+}
+
+QWidget* UiFactory::CreateImageViewer(QStackedWidget* stackedWidget) const
+{
+	m_impl->stackedWidget = stackedWidget;
+	return CreateStackedPage<ImageViewer>(m_impl->container, this);
+}
+
+void UiFactory::CreateAuthorReview(const long long id) const
+{
+	assert(id >= 0 && m_impl->authorId < 0);
+	m_impl->authorId = id;
+	CreateStackedPage<AuthorReview>(m_impl->container, this);
+}
+
+void UiFactory::ExecuteContextMenu(QLineEdit* lineEdit) const
+{
+	QMenu menu(lineEdit);
+	for (const auto& item : IScriptController::s_commandMacros | std::views::values)
+	{
+		const auto menuItemTitle = QString("%1\t%2").arg(Loc::Tr(IScriptController::s_context, item), item);
+		menu.addAction(menuItemTitle, [=, value = QString(item)] {
+			auto       currentText     = lineEdit->text();
+			const auto currentPosition = lineEdit->cursorPosition();
+			lineEdit->setText(currentText.insert(currentPosition, value));
+			lineEdit->setCursorPosition(currentPosition + static_cast<int>(value.size()));
+		});
+	}
+	menu.setFont(lineEdit->font());
+	menu.exec(QCursor::pos());
+}
+
+void UiFactory::ShowAbout() const
+{
+	auto*       parent = m_impl->container.resolve<IParentWidgetProvider>()->GetWidget();
+	QMessageBox msgBox(parent);
+	msgBox.setFont(parent->font());
+	msgBox.setIcon(QMessageBox::Information);
+	msgBox.setWindowTitle(Tr(ABOUT_TITLE));
+	msgBox.setTextFormat(Qt::RichText);
+	msgBox.setText(
+		QString(ABOUT_TEXT)
+			.arg(
+				Tr(ABOUT_DESCRIPTION),
+				Tr(ABOUT_VERSION)
+					.arg(GetApplicationVersion(), GIT_HASH, QString("<font size='%1px;'><a href='%2'>%3</a></font>").arg(msgBox.font().pointSize() * 9 / 10).arg(COPY_VERSION_LINK, QChar { 0x29C9 })),
+				"https://github.com/heimdallr/books",
+				Tr(ABOUT_LICENSE).arg("<a href='https://opensource.org/license/mit'>MIT</a>"),
+				GetPersonalBuildString()
+			)
+	);
+
+	for (auto* label : msgBox.findChildren<QLabel*>())
+	{
+		label->setOpenExternalLinks(false);
+		connect(label, &QLabel::linkActivated, [&](const QString& link) {
+			if (link != COPY_VERSION_LINK)
+				return (void)QDesktopServices::openUrl(link);
+
+			QGuiApplication::clipboard()->setText(QString("%1 (%2)").arg(GetApplicationVersion(), GIT_HASH));
+			QToolTip::showText(QCursor::pos(), Tr(VERSION_COPIED));
+		});
+	}
+
+	msgBox.setStandardButtons(QMessageBox::Ok);
+	QStringList text;
+	std::ranges::transform(COMPONENTS, std::back_inserter(text), [](const char* str) {
+		return Loc::Tr(CONTEXT, str);
+	});
+	msgBox.setInformativeText(QString(R"(<font size="%1px;">%2</font>)").arg(msgBox.font().pointSize() * 9 / 10).arg(text.join("")));
+	msgBox.show();
+	Util::MoveToParentCenter(msgBox);
+	msgBox.exec();
+}
+
+QMessageBox::ButtonRole UiFactory::ShowCustomDialog(
+	const QMessageBox::Icon                                         icon,
+	const QString&                                                  title,
+	const QString&                                                  text,
+	const std::vector<std::pair<QMessageBox::ButtonRole, QString>>& buttons,
+	const QMessageBox::ButtonRole                                   defaultButton,
+	const QString&                                                  detailedText
+) const
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->ShowCustomDialog(icon, title, text, buttons, defaultButton, detailedText);
+}
+
+QMessageBox::StandardButton UiFactory::ShowQuestion(Util::DialogInitializer& initializer) const
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->ShowQuestion(initializer);
+}
+
+QMessageBox::StandardButton UiFactory::ShowWarning(Util::DialogInitializer& initializer) const
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->ShowWarning(initializer);
+}
+
+void UiFactory::ShowInfo(const QString& text) const
+{
+	m_impl->container.resolve<Util::IUiFactory>()->ShowInfo(text);
+}
+
+void UiFactory::ShowError(const QString& text) const
+{
+	m_impl->container.resolve<Util::IUiFactory>()->ShowError(text);
+}
+
+QString UiFactory::GetText(const QString& title, const QString& label, const QString& text, const QStringList& comboBoxItems, const QLineEdit::EchoMode mode) const
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetText(title, label, text, comboBoxItems, mode);
+}
+
+std::shared_ptr<QFont> UiFactory::GetFont(const QString& title, const QFont& font, const QFontDialog::FontDialogOptions& options) const
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetFont(title, font, options);
+}
+
+std::optional<QColor> UiFactory::GetColor(const QString& title, const QColor& color, const QColorDialog::ColorDialogOptions& options) const
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetColor(title, color, options);
+}
+
+QStringList UiFactory::GetOpenFileNames(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetOpenFileNames(key, title, filter, dir, options);
+}
+
+QString UiFactory::GetOpenFileName(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetOpenFileName(key, title, filter, dir, options);
+}
+
+QString UiFactory::GetSaveFileName(const QString& key, const QString& title, const QString& filter, const QString& dir, const QFileDialog::Options& options) const
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetSaveFileName(key, title, filter, dir, options);
+}
+
+QString UiFactory::GetExistingDirectory(const QString& key, const QString& title, const QString& dir, const QFileDialog::Options& options) const
+{
+	return m_impl->container.resolve<Util::IUiFactory>()->GetExistingDirectory(key, title, dir, options);
+}
+
+std::filesystem::path UiFactory::GetNewCollectionInpxFolder() const noexcept
+{
+	auto result        = std::move(m_impl->inpxFolder);
+	m_impl->inpxFolder = std::filesystem::path {};
+	return result;
+}
+
+std::shared_ptr<ITreeViewController> UiFactory::GetTreeViewController() const noexcept
+{
+	assert(m_impl->treeViewController);
+	auto result                = std::move(m_impl->treeViewController);
+	m_impl->treeViewController = {};
+	return result;
+}
+
+QTreeView& UiFactory::GetTreeView() const
+{
+	assert(m_impl->treeView);
+	return *m_impl->treeView;
+}
+
+QAbstractItemView& UiFactory::GetAbstractItemView() const
+{
+	assert(m_impl->abstractItemView);
+	auto* result             = m_impl->abstractItemView;
+	m_impl->abstractItemView = nullptr;
+	return *result;
+}
+
+QString UiFactory::GetTitle() const noexcept
+{
+	return std::move(m_impl->title);
+}
+
+long long UiFactory::GetAuthorId() const noexcept
+{
+	assert(m_impl->authorId >= 0);
+	const auto result = m_impl->authorId;
+	m_impl->authorId  = -1;
+	return result;
+}
+
+QStackedWidget* UiFactory::GetStackedWidget() const noexcept
+{
+	auto* result          = m_impl->stackedWidget;
+	m_impl->stackedWidget = nullptr;
+	return result;
+}
+
 std::pair<IDataItem::Ptr, QObject*> UiFactory::AddWidgetToMenuCustomizer(const QString& rootKey, QWidget& widget, const QString& title, const MenuCustomizeFunctor& functor) const
 {
 	const auto dataItemFactory = m_impl->container.resolve<IDataItemFactory>();
@@ -966,7 +1065,7 @@ IMenuCustomizer::IItem::Ptr UiFactory::CreateMenuCustomizerItem(QString key) con
 	auto result = std::unique_ptr<IMenuCustomizer::IItem> { std::make_unique<MenuCustomizerItemBase>(std::move(item), IMenuCustomizer::ItemAbility::None) };
 
 	const SettingsGroup settingsSubGroup(*settings, GetName(MENU_CUSTOM_ROOT, result->GetItem()->GetData(SettingsItem::Column::Key)));
-	result->Setup(*settings);
+	result->Setup(*settings, *this);
 
 	return result;
 }
@@ -1019,15 +1118,15 @@ limit {}
 	databaseUser->Execute(
 		{ "Update recent books menu",
 		  [this, &menu, queryText = std::move(queryText), menuItemTitleFormat = std::move(menuItemTitleFormat), menuItemDateTimeFormat = std::move(menuItemDateTimeFormat), db = std::move(db)]() mutable {
-			  const auto                                 query = db->CreateQuery(queryText);
-			  std::vector<std::pair<long long, QString>> data;
-			  for (query->Execute(); !query->Eof(); query->Next())
-			  {
-				  const auto dateTime = QDateTime::fromString(query->Get<const char*>(3), MENU_ITEM_DATETIME_FORMAT_DEFAULT).toString(menuItemDateTimeFormat);
-				  auto       title    = menuItemTitleFormat;
-				  title.replace("%title%", query->Get<const char*>(1)).replace("%author%", query->Get<const char*>(2)).replace("%time%", dateTime);
-				  data.emplace_back(query->Get<long long>(0), std::move(title));
-			  }
+			  auto data = [&] {
+				  const auto query = db->CreateQuery(queryText);
+				  return *query | std::views::transform([&](const auto& item) {
+					  const auto dateTime = QDateTime::fromString(query->Get<const char*>(3), MENU_ITEM_DATETIME_FORMAT_DEFAULT).toString(menuItemDateTimeFormat);
+					  auto       title    = menuItemTitleFormat;
+					  title.replace("%title%", item.template Get<const char*>(1)).replace("%author%", item.template Get<const char*>(2)).replace("%time%", dateTime);
+					  return std::make_pair(item.template Get<long long>(0), std::move(title));
+				  }) | std::ranges::to<std::vector>();
+			  }();
 
 			  return [this, &menu, data = std::move(data)](size_t) mutable {
 				  menu.menuAction()->setEnabled(!data.empty());
@@ -1036,7 +1135,7 @@ limit {}
 				  {
 					  const auto* action = menu.addAction(title.replace('&', "&&"));
 					  connect(action, &QAction::triggered, [this, id] {
-						  m_impl->container.resolve<IBookInteractor>()->OnRecentBookMenuTriggered(id);
+						  m_impl->container.resolve<IBookInteractor>()->OnRecentBookMenuTriggered(id, {});
 					  });
 				  }
 				  menu.addSeparator();
@@ -1213,14 +1312,19 @@ bool UiFactory::LoadMenuCustomizerSettings() const
 	if (path.isEmpty())
 		return false;
 
+	const auto showError = [this](const QString& errorText) {
+		ShowError(errorText);
+		return false;
+	};
+
 	QFile file(path);
 	if (!file.open(QIODevice::ReadOnly))
-		return ShowError(Tr(CANNOT_READ).arg(path)), false;
+		return showError(Tr(CANNOT_READ).arg(path));
 
 	QJsonParseError parseError;
-	auto            doc = QJsonDocument::fromJson(file.readAll(), &parseError);
+	const auto      doc = QJsonDocument::fromJson(file.readAll(), &parseError);
 	if (parseError.error != QJsonParseError::NoError)
-		return ShowError(parseError.errorString()), false;
+		return showError(parseError.errorString());
 
 	const auto settings = m_impl->container.resolve<ISettings>();
 	settings->Remove(MENU_CUSTOM_ROOT);

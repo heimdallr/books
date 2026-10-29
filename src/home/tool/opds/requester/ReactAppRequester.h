@@ -13,7 +13,7 @@
 
 namespace HomeCompa::Opds {
 
-class ReactAppRequester final : virtual public IReactAppRequester
+class ReactAppRequester final : public IReactAppRequester
 {
 	NON_COPY_MOVABLE(ReactAppRequester)
 

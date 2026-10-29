@@ -14,7 +14,7 @@ on:
         default: true
         type: boolean
       windows:
-        description: Build the optional Windows x86_64 package
+        description: Build the Windows x86_64 package
         required: true
         default: true
         type: boolean
@@ -34,6 +34,7 @@ env:
   BUILD_TYPE: Release
   CONAN_VERSION: 2.30.0
   QT_VERSION: 6.11.1
+  NODE_VERSION: 26.11.0
 
 jobs:
   linux:
@@ -57,7 +58,7 @@ jobs:
             software-properties-common
 
       - name: Check out sources and submodules
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
           submodules: recursive
@@ -95,12 +96,35 @@ jobs:
             "aqtinstall==${AQT_VERSION}" \
             "conan==${CONAN_VERSION}"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
+
+      - name: Get NodeJS cache directory
+        id: npm-cache-dir
+        shell: bash
+        run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
+                  
+      - name: Restore NodeJS
+        id: nodejs-cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-ubuntu-22.04-x86_64-node-${{ env.NODE_VERSION }}
+
+      - name: Install NodeJS
+        if: steps.nodejs-cache.outputs.cache-hit != 'true'
+        run: |
+          npm install --save npm react react-dom
+        
       - name: Restore Qt
         id: qt-cache
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@v6
         with:
           path: ${{ env.QT_ROOT }}
-          key: qt-linux-ubuntu-22.04-x86_64-${{ env.QT_VERSION }}-http-image-wayland-websockets
+          key: ${{ runner.os }}-ubuntu-22.04-x86_64-qt-${{ env.QT_VERSION }}-http-image-wayland-websockets
 
       - name: Install Qt
         if: steps.qt-cache.outputs.cache-hit != 'true'
@@ -133,16 +157,15 @@ jobs:
 
       - name: Prepare Conan profile
         run: |
-          cp .github/conan/gcc-14-linux-x86_64 \
-            src/ext/scripts/conan/profiles/gcc-14-linux-x86_64_Release
+          cp .github/conan/gcc14_x86_64_Release src/ext/scripts/conan/profiles/gcc14_x86_64_Release
 
       - name: Restore Conan packages
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@v6
         with:
           path: ~/.conan2
-          key: conan-linux-ubuntu-22.04-x86_64-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', '.github/conan/*') }}
+          key: ${{ runner.os }}-ubuntu-22.04-x86_64-conan-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', '.github/conan/*') }}
           restore-keys: |
-            conan-linux-ubuntu-22.04-x86_64-${{ env.CONAN_VERSION }}-
+            ${{ runner.os }}-ubuntu-22.04-x86_64-conan-${{ env.CONAN_VERSION }}-
 
       - name: Seed Conan source fallback
         run: |
@@ -172,12 +195,13 @@ jobs:
           CC: gcc-14
           CXX: g++-14
         run: |
+          NPM_PATH=$(which npm)
           cmake -S . -B build/linux -G Ninja \
             -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
-            -DCONAN_PROFILE=gcc-14-linux-x86_64 \
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
             -D7zip_BIN_DIR="${P7ZIP_DIR}" \
-            -DCPACK_GENERATOR=TXZ
+            -DCPACK_GENERATOR=TXZ \
+            -DNPM_EXECUTABLE="$NPM_PATH"
           cmake --build build/linux --config "${BUILD_TYPE}" --parallel 2
 
       - name: Package and smoke test
@@ -185,8 +209,9 @@ jobs:
           CC: gcc-14
           CXX: g++-14
         run: |
-          artifact_dir="${GITHUB_WORKSPACE}/build/artifacts/linux-x86_64"
+          artifact_dir="${GITHUB_WORKSPACE}/build/artifacts/${{ runner.os }}-x86_64"
           smoke_dir="${RUNNER_TEMP}/flibrary-linux-smoke"
+          NPM_PATH=$(which npm)
           rm -rf "${artifact_dir}" "${smoke_dir}"
           mkdir -p "${artifact_dir}" "${smoke_dir}"
 
@@ -195,10 +220,10 @@ jobs:
 
           cmake -S . -B build/linux -G Ninja \
             -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
-            -DCONAN_PROFILE=gcc-14-linux-x86_64 \
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
             -D7zip_BIN_DIR="${P7ZIP_DIR}" \
-            -DCPACK_GENERATOR=DEB
+            -DCPACK_GENERATOR=DEB \
+            -DNPM_EXECUTABLE="$NPM_PATH"
           cpack --config build/linux/CPackConfig.cmake \
             -G DEB -C "${BUILD_TYPE}" -B "${artifact_dir}"
 
@@ -219,10 +244,10 @@ jobs:
           (cd "${artifact_dir}" && sha256sum FLibrary-* > SHA256SUMS)
 
       - name: Upload Linux packages
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@v7
         with:
-          name: FLibrary-linux-x86_64
-          path: build/artifacts/linux-x86_64
+          name: FLibrary-${{ runner.os }}-x86_64
+          path: build/artifacts/${{ runner.os }}-x86_64
           compression-level: 0
           if-no-files-found: error
           retention-days: 2
@@ -250,13 +275,13 @@ jobs:
       QT_ROOT: ${{ github.workspace }}\.ci\Qt
     steps:
       - name: Check out sources and submodules
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
           submodules: recursive
 
       - name: Set up Python
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
@@ -267,12 +292,35 @@ jobs:
             "aqtinstall==$env:AQT_VERSION" `
             "conan==$env:CONAN_VERSION"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
+
+      - name: Get NodeJS cache directory
+        id: npm-cache-dir
+        shell: bash
+        run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
+                  
+      - name: Restore NodeJS
+        id: nodejs-cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-x86_64-node-${{ env.NODE_VERSION }}
+
+      - name: Install NodeJS
+        if: steps.nodejs-cache.outputs.cache-hit != 'true'
+        run: |
+          npm install --save npm react react-dom
+        
       - name: Restore Qt
         id: qt-cache
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@v6
         with:
           path: ${{ env.QT_ROOT }}
-          key: qt-windows-x86_64-${{ matrix.qt_version }}-http-image-websockets
+          key: ${{ runner.os }}-x86_64-qt-${{ matrix.qt_version }}-http-image-websockets
 
       - name: Install Qt
         if: steps.qt-cache.outputs.cache-hit != 'true'
@@ -347,12 +395,12 @@ jobs:
           Select-String '^compiler.version=' $profile
 
       - name: Restore Conan packages
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@v6
         with:
           path: ~/.conan2
-          key: conan-windows-x86_64-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', 'src/ext/scripts/conan/profiles/*') }}
+          key: ${{ runner.os }}-x86_64-conan-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', 'src/ext/scripts/conan/profiles/*') }}
           restore-keys: |
-            conan-windows-x86_64-${{ env.CONAN_VERSION }}-
+            ${{ runner.os }}-x86_64-conan-${{ env.CONAN_VERSION }}-
 
       - name: Configure and build
         shell: pwsh
@@ -370,6 +418,8 @@ jobs:
           $compiler = $env:MSVC_COMPILER
           $compilerDir = Split-Path $compiler -Parent
           $env:Path = "$compilerDir;$env:Path"
+          $NPM_PATH = (where.exe npm | Select-Object -First 1)
+          Write-Host "Found npm at: $NPM_PATH"
 
           cmake -S . -B build/windows `
             -G Ninja `
@@ -380,14 +430,15 @@ jobs:
             -DQT_MAJOR_VERSION=${{ matrix.qt_major_version }} `
             "-DQt${{ matrix.qt_major_version }}_DIR=$env:QT_PREFIX/lib/cmake/Qt${{ matrix.qt_major_version }}" `
             "-D7zip_BIN_DIR=C:/Program Files/7-Zip" `
-            -DCPACK_GENERATOR=ZIP
+            -DCPACK_GENERATOR=ZIP `
+            "-DNPM_EXECUTABLE=${NPM_PATH}.cmd"
           cmake --build build/windows `
             --config $env:BUILD_TYPE --parallel 2
 
       - name: Package and smoke test
         shell: pwsh
         run: |
-          $artifactDir = "$env:GITHUB_WORKSPACE\build\artifacts\windows-${{ matrix.ver }}-x86_64"
+          $artifactDir = "$env:GITHUB_WORKSPACE\build\artifacts\${{ runner.os }}-${{ matrix.ver }}-x86_64"
           $smokeDir = "$env:RUNNER_TEMP\flibrary-windows-smoke"
           Remove-Item $artifactDir, $smokeDir -Recurse -Force `
             -ErrorAction SilentlyContinue
@@ -426,10 +477,10 @@ jobs:
             } | Set-Content "$artifactDir\SHA256SUMS"
 
       - name: Upload Windows package
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@v7
         with:
-          name: FLibrary-windows-${{ matrix.ver }}-x86_64
-          path: build/artifacts/windows-${{ matrix.ver }}-x86_64
+          name: FLibrary-${{ runner.os }}-${{ matrix.ver }}-x86_64
+          path: build/artifacts/${{ runner.os }}-${{ matrix.ver }}-x86_64
           compression-level: 0
           if-no-files-found: error
           retention-days: 2
@@ -452,9 +503,10 @@ jobs:
     env:
       MACOSX_DEPLOYMENT_TARGET: "13.3"
       QT_ROOT: ${{ github.workspace }}/.ci/Qt
+      NODEJS_ROOT: ${{ github.workspace }}/.ci/NodeJS
     steps:
       - name: Check out sources and submodules
-        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        uses: actions/checkout@v7
         with:
           persist-credentials: false
           submodules: recursive
@@ -466,7 +518,7 @@ jobs:
           clang --version
 
       - name: Set up Python
-        uses: actions/setup-python@83679a892e2d95755f2dac6acb0bfd1e9ac5d548 # v6.1.0
+        uses: actions/setup-python@v7
         with:
           python-version: "3.13"
 
@@ -477,12 +529,35 @@ jobs:
             "aqtinstall==${AQT_VERSION}" \
             "conan==${CONAN_VERSION}"
 
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
+
+      - name: Get NodeJS cache directory
+        id: npm-cache-dir
+        shell: bash
+        run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
+                  
+      - name: Restore NodeJS
+        id: nodejs-cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-${{ matrix.arch }}-node-${{ env.NODE_VERSION }}
+
+      - name: Install NodeJS
+        if: steps.nodejs-cache.outputs.cache-hit != 'true'
+        run: |
+          npm install --save npm react react-dom
+        
       - name: Restore Qt
         id: qt-cache
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@v6
         with:
           path: ${{ env.QT_ROOT }}
-          key: qt-macos-${{ matrix.arch }}-${{ env.QT_VERSION }}-http-image-pdf-virtualkeyboard-websockets
+          key: ${{ runner.os }}-${{ matrix.arch }}-qt-${{ env.QT_VERSION }}-http-image-pdf-virtualkeyboard-websockets
 
       - name: Install Qt
         if: steps.qt-cache.outputs.cache-hit != 'true'
@@ -526,16 +601,17 @@ jobs:
           grep '^compiler.version=' "${profile}"
 
       - name: Restore Conan packages
-        uses: actions/cache@cdf6c1fa76f9f475f3d7449005a359c84ca0f306 # v5.0.3
+        uses: actions/cache@v6
         with:
           path: ~/.conan2
-          key: conan-macos-${{ matrix.arch }}-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', 'src/ext/scripts/conan/profiles/*') }}
+          key: ${{ runner.os }}-${{ matrix.arch }}-conan-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', 'src/ext/scripts/conan/profiles/*') }}
           restore-keys: |
-            conan-macos-${{ matrix.arch }}-${{ env.CONAN_VERSION }}-
+            ${{ runner.os }}-${{ matrix.arch }}-conan-${{ env.CONAN_VERSION }}-
 
       - name: Build and package DMG
         run: |
-          artifact_dir="${GITHUB_WORKSPACE}/build/artifacts/macos-${{ matrix.arch }}"
+          artifact_dir="${GITHUB_WORKSPACE}/build/artifacts/${{ runner.os }}-${{ matrix.arch }}"
+          NPM_PATH=$(which npm)
           rm -rf "${artifact_dir}"
           mkdir -p "${artifact_dir}"
           ARCHS="${{ matrix.arch }}" \
@@ -544,14 +620,15 @@ jobs:
           BUILD_DIR="${GITHUB_WORKSPACE}/build/macos-${{ matrix.arch }}" \
           P7ZIP_DIR="${P7ZIP_DIR}" \
           QT_PREFIX="${QT_PREFIX}" \
+          NPM_EXECUTABLE="$NPM_PATH" \
             ./build-mac.sh
           (cd "${artifact_dir}" && shasum -a 256 FLibrary-*.dmg > SHA256SUMS)
 
       - name: Upload macOS DMG
-        uses: actions/upload-artifact@bbbca2ddaa5d8feaa63e36b76fdaad77386f024f # v7.0.0
+        uses: actions/upload-artifact@v7
         with:
-          name: FLibrary-macos-${{ matrix.arch }}
-          path: build/artifacts/macos-${{ matrix.arch }}
+          name: FLibrary-${{ runner.os }}-${{ matrix.arch }}
+          path: build/artifacts/${{ runner.os }}-${{ matrix.arch }}
           compression-level: 0
           if-no-files-found: error
           retention-days: 2

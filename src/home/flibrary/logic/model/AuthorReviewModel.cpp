@@ -111,23 +111,21 @@ private:
 
 	Items GetReviews(const long long authorId, DB::IDatabase& db) const
 	{
-		const auto query = db.CreateQuery(R"(
+		constexpr auto queryText = R"(
 select r.Folder, b.BookID, f.FolderTitle||'#'||b.FileName, b.Title 
 	from Reviews r 
 	join Books_View b on b.BookID = r.BookID and b.IsDeleted != ? 
 	join Folders f on f.FolderID = b.FolderID
 	join Author_List a on a.BookID = r.BookID and a.AuthorID = ? 
 	order by r.Folder
-)");
-		query->Bind(0, m_showRemoved ? 2 : 1);
-		query->Bind(1, authorId);
+)";
 
 		Items items;
 
 		std::shared_ptr<const Zip> zip;
 		QString                    folder;
-		const auto                 getZip = [&] {
-			if (!Util::Set(folder, QString(query->Get<const char*>(0))))
+		const auto                 getZip = [&](const DB::IQuery& query) {
+			if (!Util::Set(folder, QString(query.Get<const char*>(0))))
 				return assert(zip);
 
 			try
@@ -145,9 +143,9 @@ select r.Folder, b.BookID, f.FolderTitle||'#'||b.FileName, b.Title
 			}
 		};
 
-		for (query->Execute(); !query->Eof(); query->Next())
-			if (getZip(), zip)
-				GetReviews(items, *query, *zip);
+		for (const auto query = db.CreateQuery(queryText, m_showRemoved ? 2 : 1, authorId); const auto& rec : *query)
+			if (getZip(rec), zip)
+				GetReviews(items, rec, *zip);
 
 		return items;
 	}

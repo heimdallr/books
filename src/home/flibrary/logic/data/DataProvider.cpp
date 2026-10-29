@@ -47,7 +47,9 @@ void EnumerateBooks(IDataItem& parent, const F& functor)
 
 } // namespace
 
-class DataProvider::Impl final : public Observable<IBookInfoProvider::IObserver>
+class DataProvider::Impl final
+    : public Observable<IBookInfoProvider::IObserver>
+    , public std::enable_shared_from_this<Impl>
 {
 public:
 	Impl(
@@ -143,8 +145,9 @@ private:
 	{
 		m_navigationQueryExecutor->RequestNavigation(
 			m_navigationMode,
-			[&](const NavigationMode mode, IDataItem::Ptr root) {
-				SendNavigationCallback(mode, std::move(root));
+			[this, alive = weak_from_this()](const NavigationMode mode, IDataItem::Ptr root) {
+				if (!alive.expired())
+					SendNavigationCallback(mode, std::move(root));
 			},
 			m_requestNavigationForce
 		);
@@ -176,6 +179,7 @@ private:
 		m_databaseUser->Execute(
 			{ "Get books",
 			  [this,
+			   alive          = weak_from_this(),
 			   navigationMode = m_navigationMode,
 			   navigationId   = m_navigationId,
 			   viewMode       = m_booksViewMode,
@@ -193,7 +197,7 @@ private:
 
 					  if (navigationMode == NavigationMode::Authors && !navigationId.isEmpty())
 					  {
-						  const auto query = db->CreateQuery(QString("select LastName || ' ' || FirstName || ' ' || MiddleName from Authors where AuthorID = %1").arg(navigationId).toStdString());
+						  const auto query = db->CreateQuery(QString("select " FLIBRARY_SQL_FULL_AUTHOR_NAME " from Authors a where a.AuthorID = %1").arg(navigationId).toStdString());
 						  query->Execute();
 						  assert(!query->Eof());
 						  authorName = query->Get<const char*>(0);
@@ -202,30 +206,38 @@ private:
 
 				  generator->SetBooksViewMode(viewMode);
 				  auto root = std::invoke(booksGenerator, *generator, std::cref(description));
-				  return
-					  [this, navigationMode, navigationId = std::move(navigationId), root = std::move(root), generator = std::move(generator), authorName = std::move(authorName), &description, &columnMapper](
-						  size_t
-					  ) mutable {
-						  m_booksGenerator     = std::move(generator);
-						  m_rootCache          = root;
-						  m_lastNavigationMode = navigationMode;
-						  m_lastNavigationId   = navigationId;
+				  return [this,
+				          alive = std::move(alive),
+				          navigationMode,
+				          navigationId = std::move(navigationId),
+				          root         = std::move(root),
+				          generator    = std::move(generator),
+				          authorName   = std::move(authorName),
+				          &description,
+				          &columnMapper](size_t) mutable {
+					  if (alive.expired())
+						  return;
 
-						  if (!m_checkedCache.empty())
-						  {
-							  assert(m_rootCache);
-							  EnumerateBooks(*m_rootCache, [this](IDataItem& item) {
-								  if (m_checkedCache.contains(item.GetId()))
-									  item.SetCheckState(Qt::Checked);
-							  });
-							  m_checkedCache.clear();
-						  }
+					  m_booksGenerator     = std::move(generator);
+					  m_rootCache          = root;
+					  m_lastNavigationMode = navigationMode;
+					  m_lastNavigationId   = navigationId;
 
-						  SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());
-						  Perform(&IBookInfoProvider::IObserver::OnBooksSelected, navigationMode, static_cast<IBooksRootGenerator&>(*m_booksGenerator).GetRoot());
-						  if (!authorName.isEmpty())
-							  m_authorAnnotationController->SetAuthor(navigationId.toLongLong(), std::move(authorName));
-					  };
+					  if (!m_checkedCache.empty())
+					  {
+						  assert(m_rootCache);
+						  EnumerateBooks(*m_rootCache, [this](IDataItem& item) {
+							  if (m_checkedCache.contains(item.GetId()))
+								  item.SetCheckState(Qt::Checked);
+						  });
+						  m_checkedCache.clear();
+					  }
+
+					  SendBooksCallback(navigationId, std::move(root), (description.*columnMapper)());
+					  Perform(&IBookInfoProvider::IObserver::OnBooksSelected, navigationMode, static_cast<IBooksRootGenerator&>(*m_booksGenerator).GetRoot());
+					  if (!authorName.isEmpty())
+						  m_authorAnnotationController->SetAuthor(navigationId.toLongLong(), std::move(authorName));
+				  };
 			  } },
 			2
 		);
@@ -252,6 +264,10 @@ private:
 	QString        m_navigationId, m_lastNavigationId;
 	Callback       m_navigationRequestCallback;
 	Callback       m_booksRequestCallback;
+
+	// The results of the database work above reach the main thread in queued calls, which can come after this object is
+	// destroyed, when the app restarts or closes while a list loads: they check this token first
+	std::shared_ptr<char> m_alive { std::make_shared<char>() };
 
 	std::unordered_set<QString> m_checkedCache;
 

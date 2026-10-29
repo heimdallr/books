@@ -868,6 +868,10 @@
         <source>Series:</source>
         <translation>Серии:</translation>
     </message>
+    <message>
+        <source>Update date:</source>
+        <translation>Дата обновления:</translation>
+    </message>
 </context>
 <context>
     <name>CommandLine</name>
@@ -5354,6 +5358,10 @@ Try again?</source>
         <translation>История</translation>
     </message>
     <message>
+        <source>Images</source>
+        <translation>Изображения</translation>
+    </message>
+    <message>
         <source>Keywords</source>
         <translation>Ключевые слова</translation>
     </message>
@@ -5934,6 +5942,10 @@ Try again?</source>
         <source>Books view mode</source>
         <translation>Режим просмотра книг</translation>
     </message>
+    <message>
+        <source>Navigation section</source>
+        <translation>Раздел навигации</translation>
+    </message>
 </context>
 <context>
     <name>UpdateChecker</name>
@@ -6043,6 +6055,45 @@ Try again?</source>
     <message>
         <source>Version %1 must be greater than 0 and less than %2</source>
         <translation>Версия файла %1 должна быть больше 0 и меньше %2</translation>
+    </message>
+</context>
+<context>
+    <name>ZipError</name>
+    <message>
+        <source>Cannon find entry point &apos;%1&apos;</source>
+        <translation>Не удалось найти точку входа &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot  create object</source>
+        <translation>Не удалось создать объект</translation>
+    </message>
+    <message>
+        <source>Cannot add file &apos;%1&apos; to archive</source>
+        <translation>Не удалось добавить файл &apos;%1&apos; в архив</translation>
+    </message>
+    <message>
+        <source>Cannot create file &apos;%1&apos;</source>
+        <translation>Не удалось создать файл &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot extract file &apos;%1&apos;</source>
+        <translation>Не удалось извлечь файл &quot;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot find file &apos;%1&apos;</source>
+        <translation>Файл &apos;%1&apos; не найден</translation>
+    </message>
+    <message>
+        <source>Cannot load %1</source>
+        <translation>Не удалось загрузить %1</translation>
+    </message>
+    <message>
+        <source>Cannot open archive &apos;%1&apos;</source>
+        <translation>Не удалось открыть архив &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot open file &apos;%1&apos;</source>
+        <translation>Не удалось открыть файл &apos;%1&apos;</translation>
     </message>
 </context>
 <context>

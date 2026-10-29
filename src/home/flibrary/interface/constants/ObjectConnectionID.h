@@ -1,4 +1,4 @@
-﻿#pragma once
+#pragma once
 
 namespace HomeCompa::Flibrary::ObjectConnectorID {
 
@@ -7,5 +7,10 @@ constexpr auto BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED       = "BOOK_TITLE_TO_SEARC
 constexpr auto SEARCH_NAVIGATION_ITEM_SELECTED            = "SEARCH_NAVIGATION_ITEM_SELECTED";
 constexpr auto STACKED_PAGE_STATE_CHANGED                 = "STACKED_PAGE_STATE_CHANGED";
 constexpr auto CURRENT_NAVIGATION_ITEM_CHANGED            = "CURRENT_NAVIGATION_ITEM_CHANGED";
+constexpr auto NAVIGATION_COUNTER_CHANGED                 = "NAVIGATION_COUNTER_CHANGED";
+constexpr auto BOOK_COUNTER_CHANGED                       = "BOOK_COUNTER_CHANGED";
+constexpr auto IMAGE_COUNTER_CHANGED                      = "IMAGE_COUNTER_CHANGED";
+constexpr auto SET_TOOLBAR_POSITION                       = "SET_TOOLBAR_POSITION";
+constexpr auto SET_BOOKS_COLUMN_VALUE                     = "SET_BOOKS_COLUMN_VALUE";
 
 } // namespace HomeCompa::Flibrary::ObjectConnectorID

@@ -9,11 +9,13 @@
 #include <QDirIterator>
 #include <QGuiApplication>
 #include <QKeyEvent>
+#include <QLabel>
 #include <QStandardPaths>
 #include <QStyleFactory>
 #include <QSystemTrayIcon>
 #include <QTimer>
 #include <QToolBar>
+#include <QToolTip>
 
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
@@ -37,6 +39,7 @@
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/IAlphabetPanel.h"
 
+#include "StyleApplier/StyleApplierFactory.h"
 #include "gutil/util.h"
 #include "logging/LogAppender.h"
 #include "util/FunctorExecutionForwarder.h"
@@ -106,13 +109,19 @@ constexpr auto SHOW_SEARCH_BOOK_KEY               = "ui/View/ShowSearchBook";
 constexpr auto SHOW_STATUS_BAR_KEY                = "ui/View/Status";
 constexpr auto SHOW_TOOLBAR_KEY                   = "ui/View/ShowToolBar";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
+constexpr auto MAIN_WINDOW_STATE                  = "ui/MainWindow/WindowState";
 constexpr auto TOOLBAR_ORDER_KEY                  = "ui/MenuCustomization/ToolbarOrder";
 constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
 constexpr auto TOOLBAR_WITH_MAIN_MENU             = "Preferences/ToolbarWithMainMenu";
+constexpr auto TOOLBAR_POSITION                   = "Preferences/ToolbarPosition";
+constexpr auto STATUS_BAR_FONT_FAMILY             = "Preferences/StatusBar/Font/family";
+constexpr auto STATUS_BAR_FONT_SIZE               = "Preferences/StatusBar/Font/size";
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 constexpr auto NAVIGATION_ACTION_ID_PROPERTY      = "navigationMode";
 constexpr auto INDEX                              = "index";
+constexpr auto VISIBLE                            = "needShow";
+constexpr auto TOOLBAR_POSITION_MAIN_MENU         = "MainMenu";
 
 #define SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO \
 	SEARCH_BOOKS_PLACEHOLDER_ITEM(AUTHOR)      \
@@ -131,20 +140,6 @@ QString ToString(const plog::Record& record)
 #endif
 		(record.getMessage());
 }
-
-#if QT_VERSION >= QT_VERSION_CHECK(6, 0, 0)
-QString GetStyleName(const QString& key)
-{
-	if (const auto* style = QStyleFactory::create(key))
-		return style->name();
-	return {};
-}
-#else
-QString GetStyleName(const QString& key)
-{
-	return QStyleFactory::create(key) ? key : QString {};
-}
-#endif
 
 class LineEditPlaceholderTextController final : public QObject
 {
@@ -420,6 +415,7 @@ public:
 		, m_booksWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Books) }
 		, m_navigationWidget { m_uiFactory->CreateTreeViewWidget(ItemType::Navigation) }
 	{
+		SetupObjectsConnectors();
 		Setup();
 		ConnectActions();
 		CreateStylesMenu();
@@ -436,6 +432,12 @@ public:
 
 		if (m_checkForUpdateOnStartEnabled && m_collectionController->ActiveCollectionExists())
 			CheckForUpdates(false);
+
+		if (!m_settings->Get(TOOLBAR_POSITION).isValid() && !m_settings->Get(TOOLBAR_WITH_MAIN_MENU).isValid())
+			if (const auto var = m_settings->Get(MAIN_WINDOW_STATE); var.isValid())
+				m_self.restoreState(var.toByteArray());
+
+		m_ui.toolWidgetFillerLeft->setAcceptDrops(true);
 	}
 
 	~Impl() override
@@ -446,6 +448,7 @@ public:
 		m_collectionController->UnregisterObserver(this);
 		m_alphabetPanel->UnregisterObserver(this);
 		m_navigationUndoRedo->UnregisterObserver(this);
+		m_settings->Set(MAIN_WINDOW_STATE, m_self.saveState());
 	}
 
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry)
@@ -493,6 +496,21 @@ public:
 			default:
 				assert(false && "unexpected state");
 		}
+	}
+
+	void OnNavigationCountChanged(const int count) const
+	{
+		OnPermanentWidgetChanged(0, count, IFilterProvider::GetFilteredNavigationDescription(m_currentNavigationMode).navigationTitle);
+	}
+
+	void OnBookCountChanged(const int count) const
+	{
+		OnPermanentWidgetChanged(1, count, Loc::Books);
+	}
+
+	void OnImageCountChanged(const int count) const
+	{
+		OnPermanentWidgetChanged(2, count, Loc::Images);
 	}
 
 	void RemoveCustomStyleFile()
@@ -556,6 +574,12 @@ public:
 		m_isFullScreen = m_self.isFullScreen();
 	}
 
+private:
+	void OnFontChanged(const QFont& font) override
+	{
+		QToolTip::setFont(font);
+	}
+
 private: // ICollectionsObserver
 	void OnActiveCollectionChanged() override
 	{
@@ -599,7 +623,7 @@ private: // ILineOption::IObserver
 	void OnOptionEditingFinished(const QString& /*value*/) override
 	{
 		disconnect(m_settingsLineEditExecuteContextMenuConnection);
-		QTimer::singleShot(0, [&] {
+		QTimer::singleShot(0, &m_self, [&] {
 			m_lineOption->Unregister(this);
 		});
 	}
@@ -649,12 +673,12 @@ private: // IAlphabetPanel::IObserver
 private: // ITreeViewController::IObserver
 	void OnModeChanged(const int index) override
 	{
-		const auto navigationMode = static_cast<NavigationMode>(index);
-		m_ui.leftWidget->setVisible(!IsOneOf(navigationMode, NavigationMode::AlreadyRead, NavigationMode::History, NavigationMode::AllBooks));
+		m_currentNavigationMode = static_cast<NavigationMode>(index);
+		m_ui.leftWidget->setVisible(!IsOneOf(m_currentNavigationMode, NavigationMode::AlreadyRead, NavigationMode::History, NavigationMode::AllBooks));
 
 		for (auto* action : m_ui.menuNavigation->actions())
 		{
-			const auto isCurrentMode = action->property(NAVIGATION_ACTION_ID_PROPERTY).value<NavigationMode>() == navigationMode;
+			const auto isCurrentMode = action->property(NAVIGATION_ACTION_ID_PROPERTY).value<NavigationMode>() == m_currentNavigationMode;
 			SignalBlocker(action)->setChecked(isCurrentMode);
 			action->setEnabled(!isCurrentMode);
 		}
@@ -711,6 +735,18 @@ private: // ToolbarController::IObserver
 	}
 
 private:
+	void SetupObjectsConnectors()
+	{
+		Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, &m_self, SIGNAL(BookTitleToSearchVisibleChanged()));
+		Util::ObjectsConnector::registerEmitter(ObjectConnectorID::SET_TOOLBAR_POSITION, &m_self, SIGNAL(SetToolBarPosition(const QString&, QWidget*)));
+		Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, &m_self, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)), true);
+		Util::ObjectsConnector::registerReceiver(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, &m_self, SLOT(OnSearchNavigationItemSelected(long long, const QString&)), true);
+		Util::ObjectsConnector::registerReceiver(ObjectConnectorID::STACKED_PAGE_STATE_CHANGED, &m_self, SLOT(OnStackedPageStateChanged(QStackedWidget*, std::shared_ptr<QWidget>, int)), true);
+		Util::ObjectsConnector::registerReceiver(ObjectConnectorID::NAVIGATION_COUNTER_CHANGED, &m_self, SLOT(OnNavigationCountChanged(int)));
+		Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOK_COUNTER_CHANGED, &m_self, SLOT(OnBookCountChanged(int)));
+		Util::ObjectsConnector::registerReceiver(ObjectConnectorID::IMAGE_COUNTER_CHANGED, &m_self, SLOT(OnImageCountChanged(int)));
+	}
+
 	void Setup()
 	{
 		PLOGV << "Setup";
@@ -766,8 +802,9 @@ private:
 		m_navigationViewController->RegisterObserver(this);
 
 		ReplaceMenuBar();
+		SetupStatusBar();
 
-		QTimer::singleShot(0, [this] {
+		QTimer::singleShot(0, &m_self, [this] {
 			const auto widgets = m_self.findChildren<QWidget*>();
 			if (const auto it = std::ranges::find(
 					widgets,
@@ -783,7 +820,7 @@ private:
 		SetupTrayMenu();
 	}
 
-	void ReplaceMenuBar() const
+	void ReplaceMenuBar()
 	{
 		PLOGV << "ReplaceMenuBar";
 		m_ui.lineEditBookTitleToSearch->installEventFilter(new LineEditPlaceholderTextController(
@@ -795,9 +832,49 @@ private:
 		));
 		m_self.menuBar()->setSizePolicy(QSizePolicy::Minimum, QSizePolicy::Fixed);
 		m_ui.toolWidgetLayout->insertWidget(0, m_self.menuBar());
-		if (m_settings->Get(TOOLBAR_WITH_MAIN_MENU, false))
+
+		if (const auto toolBarPositionVar = m_settings->Get(TOOLBAR_POSITION); toolBarPositionVar.isValid())
+		{
+			if (const auto toolBarPosition = toolBarPositionVar.toString(); toolBarPosition == TOOLBAR_POSITION_MAIN_MENU)
+				m_ui.toolWidgetFillerLeftLayout->insertWidget(1, m_ui.toolBar);
+			else
+				emit m_self.SetToolBarPosition(toolBarPosition, m_ui.toolBar);
+		}
+		else if (m_settings->Get(TOOLBAR_WITH_MAIN_MENU, false))
+		{
 			m_ui.toolWidgetFillerLeftLayout->insertWidget(1, m_ui.toolBar);
+			m_settings->Set(TOOLBAR_POSITION, QString { TOOLBAR_POSITION_MAIN_MENU });
+			m_settings->Remove(TOOLBAR_WITH_MAIN_MENU);
+		}
+
 		m_self.setMenuWidget(m_ui.toolWidget);
+	}
+
+	void SetupStatusBar()
+	{
+		auto fixedFontComponent = FontComponent::None;
+		auto statusBarFont      = m_ui.statusBar->font();
+		if (const auto var = m_settings->Get(STATUS_BAR_FONT_FAMILY); var.isValid())
+		{
+			fixedFontComponent |= FontComponent::Family;
+			statusBarFont.setFamily(var.toString());
+		}
+		if (const auto var = m_settings->Get(STATUS_BAR_FONT_SIZE); var.isValid())
+			statusBarFont.setPointSize(var.toInt());
+
+		m_ui.statusBar->setFont(statusBarFont);
+		for (auto* widget : m_permanentWidgets)
+		{
+			widget->setVisible(false);
+			widget->setProperty(VISIBLE, false);
+		}
+
+		if (fixedFontComponent == FontComponent::None)
+			return;
+
+		SetFixedFont(m_ui.statusBar, fixedFontComponent);
+		for (auto* widget : m_permanentWidgets)
+			SetFixedFont(widget, fixedFontComponent);
 	}
 
 	void SetupTrayMenu()
@@ -961,7 +1038,7 @@ private:
 	void SetupActionsNavigation()
 	{
 		const auto createAction = [this](const NavigationMode navigationMode, const char* name) {
-			auto* action = m_ui.menuNavigation->addAction(Loc::Tr(Loc::NAVIGATION, name));
+			auto* action = m_ui.menuNavigation->addAction(QIcon(QString(":/icons/mode/%1.svg").arg(name).toLower()), Loc::Tr(Loc::NAVIGATION, name));
 			action->setObjectName(QString("%1_isActive").arg(name));
 			action->setCheckable(true);
 			action->setProperty(NAVIGATION_ACTION_ID_PROPERTY, QVariant::fromValue(navigationMode));
@@ -1036,7 +1113,7 @@ private:
 			connect(action, &QAction::triggered, [this, action, name, disclaimer](const bool checked) {
 				if (!checked || disclaimer.isEmpty() || m_uiFactory->ShowWarning(disclaimer, QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::Yes)
 					return (void)m_settings->Set(QString(SHOW_ANNOTATION_JOKES_KEY_TEMPLATE).arg(name), checked);
-				QTimer::singleShot(0, [action] {
+				QTimer::singleShot(0, action, [action] {
 					action->setChecked(false);
 				});
 			});
@@ -1419,9 +1496,7 @@ private:
 
 	void OnBooksSearchFilterValueGeometryChangedImpl(const int timeout = 0) const
 	{
-		QTimer::singleShot(timeout, [this] {
-			const auto globalRight = Util::GetGlobalGeometry(m_self).right();
-			m_ui.toolWidgetFillerRight->setFixedWidth(std::max(globalRight - m_lastGeometry.right(), 0));
+		QTimer::singleShot(timeout, &m_self, [this] {
 			const auto toolWidgetLeft = Util::GetGlobalGeometry(*m_ui.toolWidgetFillerLeft).left();
 			const auto minWidth       = m_ui.toolBar->isVisible() && m_ui.toolWidgetFillerLeftLayout->count() > 2 ? m_ui.toolBar->height() * static_cast<int>(m_ui.toolBar->actions().count()) + 4 : 0;
 			m_ui.toolWidgetFillerLeft->setFixedWidth(std::max(m_lastGeometry.left() - toolWidgetLeft, minWidth));
@@ -1474,7 +1549,7 @@ private:
 
 		std::vector<QAction*> styles;
 		for (const auto& name : QStyleFactory::keys())
-			if (const auto actionName = GetStyleName(name); !actionName.isEmpty())
+			if (const auto actionName = StyleApplierFactory::GetStyleName(name); !actionName.isEmpty())
 				styles.emplace_back(CreateStyleAction(*m_ui.menuTheme, IStyleApplier::Type::PluginStyle, actionName, name));
 
 		m_ui.menuTheme->addSeparator();
@@ -1721,6 +1796,33 @@ private:
 		});
 	}
 
+	void OnPermanentWidgetChanged(const size_t index, const int count, const char* message) const
+	{
+		const auto visible = count > 0;
+		auto*      widget  = m_permanentWidgets[index];
+
+		widget->setText(visible ? QString("%1: %2").arg(Loc::Tr(Loc::NAVIGATION, message)).arg(count) : QString {});
+
+		if (widget->isVisible() == visible)
+			return;
+
+		for (auto* w : m_permanentWidgets)
+			if (w->property(VISIBLE).toBool())
+				m_ui.statusBar->removeWidget(w);
+
+		widget->setProperty(VISIBLE, visible);
+
+		for (auto* w : m_permanentWidgets)
+		{
+			if (w->property(VISIBLE).toBool())
+			{
+				m_ui.statusBar->addPermanentWidget(w);
+				w->setFont(m_ui.statusBar->font());
+				w->show();
+			}
+		}
+	}
+
 	void StartDelayed(std::function<void()> f)
 	{
 		PLOGV << "StartDelayed";
@@ -1835,6 +1937,8 @@ private:
 	Ui::MainWindow m_ui {};
 	QTimer         m_delayStarter;
 
+	std::vector<QLabel*> m_permanentWidgets { new QLabel(&m_self), new QLabel(&m_self), new QLabel(&m_self) };
+
 	std::weak_ptr<const ILogicFactory>           m_logicFactory;
 	std::shared_ptr<const IStyleApplierFactory>  m_styleApplierFactory;
 	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
@@ -1872,7 +1976,8 @@ private:
 	QMetaObject::Connection m_settingsLineEditExecuteContextMenuConnection;
 	QObject*                m_annotationWidgetEventFilter;
 
-	bool m_checkForUpdateOnStartEnabled { true };
+	NavigationMode m_currentNavigationMode { NavigationMode::Unknown };
+	bool           m_checkForUpdateOnStartEnabled { true };
 
 	QActionGroup* m_stylesActionGroup { new QActionGroup(&m_self) };
 	QString       m_lastStyleFileHovered;
@@ -1948,10 +2053,6 @@ MainWindow::MainWindow(
 		  std::move(navigationUndoRedo)
 	  )
 {
-	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, this, SIGNAL(BookTitleToSearchVisibleChanged()));
-	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SLOT(OnBooksSearchFilterValueGeometryChanged(const QRect&)), true);
-	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::SEARCH_NAVIGATION_ITEM_SELECTED, this, SLOT(OnSearchNavigationItemSelected(long long, const QString&)), true);
-	Util::ObjectsConnector::registerReceiver(ObjectConnectorID::STACKED_PAGE_STATE_CHANGED, this, SLOT(OnStackedPageStateChanged(QStackedWidget*, std::shared_ptr<QWidget>, int)), true);
 	PLOGV << "MainWindow created";
 }
 
@@ -1977,7 +2078,7 @@ void MainWindow::OnStartAnotherApp()
 
 void MainWindow::changeEvent(QEvent* event)
 {
-	if (!m_impl->Change(event))
+	if (event->type() == QEvent::WindowStateChange && !m_impl->Change(event))
 		event->ignore();
 }
 
@@ -2013,4 +2114,19 @@ void MainWindow::OnSearchNavigationItemSelected(const long long id, const QStrin
 void MainWindow::OnStackedPageStateChanged(QStackedWidget* stackedWidget, std::shared_ptr<QWidget> widget, const int state)
 {
 	m_impl->OnStackedPageStateChanged(stackedWidget, std::move(widget), state);
+}
+
+void MainWindow::OnNavigationCountChanged(const int count)
+{
+	m_impl->OnNavigationCountChanged(count);
+}
+
+void MainWindow::OnBookCountChanged(const int count)
+{
+	m_impl->OnBookCountChanged(count);
+}
+
+void MainWindow::OnImageCountChanged(const int count)
+{
+	m_impl->OnImageCountChanged(count);
 }

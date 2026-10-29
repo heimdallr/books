@@ -265,7 +265,7 @@ private:
 				m_changedAccumulations[m_indexToMode[m_ui.tabs->currentIndex()]] = m_ui.radioButtonOr->accessibleName();
 		});
 
-		QTimer::singleShot(0, [this] {
+		QTimer::singleShot(0, &m_self, [this] {
 			m_ui.tabs->setCurrentIndex(m_settings->Get(RECENT_TAB_KEY, 0));
 		});
 

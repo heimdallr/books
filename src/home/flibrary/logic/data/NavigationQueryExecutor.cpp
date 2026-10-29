@@ -82,6 +82,11 @@ constexpr auto SEARCH_WITH_ANNOTATION = R"(
          join Search s on Annotations_Search match s.Title
 )";
 
+QString ToSqlStringLiteral(QString value)
+{
+	return QString("'%1'").arg(value.replace('\'', "''"));
+}
+
 QString GetSearchWith(DB::IDatabase& db, const ISettings& settings, const QString& id)
 {
 	QStringList result;
@@ -99,9 +104,9 @@ QString GetSearchWith(DB::IDatabase& db, const ISettings& settings, const QStrin
 			if (!query->IsNull(0))
 			{
 				const QFileInfo fileInfo(query->Get<const char*>(0));
-				auto            searchWithFileNameQueryText = QString("\n\tselect BookID\n\t\tfrom Books\n\t\twhere FileName = '%1'").arg(fileInfo.completeBaseName());
+				auto            searchWithFileNameQueryText = QString("\n\tselect BookID\n\t\tfrom Books\n\t\twhere FileName = %1").arg(ToSqlStringLiteral(fileInfo.completeBaseName()));
 				if (const auto suffix = fileInfo.suffix(); !suffix.isEmpty())
-					searchWithFileNameQueryText.append(QString(" and lower(Ext) = '.%1'").arg(suffix.toLower()));
+					searchWithFileNameQueryText.append(QString(" and lower(Ext) = %1").arg(ToSqlStringLiteral("." + suffix.toLower())));
 				result << std::move(searchWithFileNameQueryText);
 			}
 		}
@@ -184,14 +189,13 @@ void RequestNavigationList(
 	databaseUser.Execute(
 		{ "Get navigation",
 		  [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), postProcess = std::move(postProcess), db = std::move(db)]() mutable {
-			  std::unordered_map<QString, IDataItem::Ptr> index;
-
 			  const auto query = db->CreateQuery(queryDescription.navigationQuery);
-			  for (query->Execute(); !query->Eof(); query->Next())
-			  {
-				  auto item = queryDescription.navigationExtractor(*query);
-				  index.try_emplace(item->GetId(), item);
-			  }
+			  const auto index = *query | std::views::transform([&](const auto& item) {
+				  auto dataItem = queryDescription.navigationExtractor(item);
+				  auto id       = dataItem->GetId();
+				  return std::make_pair(id, std::move(dataItem));
+			  }) | std::views::common
+		                       | std::ranges::to<std::unordered_map>();
 
 			  IDataItem::Items items;
 			  items.reserve(std::size(index));
@@ -315,12 +319,11 @@ void RequestNavigationUpdates(
 		{ "Get navigation",
 		  [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable {
 			  return CreateCalendarTree(mode, std::move(callback), cache, [&queryDescription, db = std::move(db)](std::unordered_map<long long, IDataItem::Ptr>& items) {
-				  const auto query = db->CreateQuery(queryDescription.navigationQuery);
-				  for (query->Execute(); !query->Eof(); query->Next())
+				  for (const auto query = db->CreateQuery(queryDescription.navigationQuery); const auto& rec : *query)
 				  {
-					  auto       item     = queryDescription.navigationExtractor(*query);
+					  auto       item     = queryDescription.navigationExtractor(rec);
 					  const auto id       = item->GetId().toLongLong();
-					  const auto parentIt = items.find(query->Get<long long>(4));
+					  const auto parentIt = items.find(rec.Get<long long>(4));
 					  assert(parentIt != items.end());
 					  parentIt->second->AppendChild(items.try_emplace(id, std::move(item)).first->second);
 				  }
@@ -525,7 +528,7 @@ from PublishYears y)",
 
 	{ NavigationMode::AlreadyRead,
 	 { &RequestNavigationSimpleList,
-	 { "select 'Already read books'",
+	 { "select 'Already read books', ''",
 	 &DatabaseUtil::CreateSimpleListItem,
 	 { .booksFrom        = "from Books_View b",
 	 .booksWhere       = "where b.UserRate is not null",
@@ -539,7 +542,7 @@ from PublishYears y)",
 
 	{     NavigationMode::History,
 	 { &RequestNavigationSimpleList,
-	 { "select 'History'",
+	 { "select 'History', ''",
 	 &DatabaseUtil::CreateSimpleListItem,
 	 { .booksFrom = "from %1 t join Books_View b on b.BookID = t.BookID", .navigationFrom = "from %1 t join Books_View b on b.BookID = t.BookID", .additionalFields = ", t.CreatedAt" },
 	 &IBooksListCreator::CreateGeneralList,
@@ -549,7 +552,7 @@ from PublishYears y)",
 
 	{    NavigationMode::AllBooks,
 	 { &RequestNavigationSimpleList,
-	 { "select 'All books'",
+	 { "select 'All books', ''",
 	 &DatabaseUtil::CreateSimpleListItem,
 	 { .booksFrom = "from Books_View b", .navigationFrom = "from Books_View b" },
 	 &IBooksListCreator::CreateGeneralList,

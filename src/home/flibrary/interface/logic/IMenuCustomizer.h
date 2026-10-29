@@ -23,6 +23,8 @@ class ISettings;
 
 namespace HomeCompa::Flibrary {
 
+class IUiFactory;
+
 class IMenuCustomizer // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
@@ -64,7 +66,7 @@ public:
 		virtual void SetAbilities(ItemAbility abilities) noexcept                                           = 0;
 		virtual void SetEnabled(bool)                                                                       = 0;
 
-		virtual void Setup(const ISettings& settings) = 0;
+		virtual void Setup(const ISettings& settings, const IUiFactory& uiFactory) = 0;
 
 		[[nodiscard]] virtual QString  GetHotkey() const        = 0;
 		[[nodiscard]] virtual QVariant GetIcon() const          = 0;

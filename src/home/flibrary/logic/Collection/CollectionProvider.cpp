@@ -1,5 +1,7 @@
 #include "CollectionProvider.h"
 
+#include <ranges>
+
 #include <QDir>
 #include <QTimer>
 
@@ -168,14 +170,15 @@ QString CollectionProvider::GetActiveCollectionId() const noexcept
 
 QStringList CollectionProvider::GetCollectionStatistics(const IDatabaseUser& databaseUser, const bool withAdditionalInfo) const
 {
-	static constexpr auto dbStatQueryText = "select '%1', count(42) from Folders union all "
-											"select '%2', count(42) from Authors union all "
-											"select '%3', count(42) from Series union all "
-											"select '%4', count(42) from Keywords union all "
-											"select '%5', count(42) from Languages l where (select count(42) from Books b where b.Lang = l.LanguageCode) > 1 union all "
-											"select '%6', count(42) from Groups_User union all "
-											"select '%7', count(42) from Books union all "
-											"select '%8', count(42) from Books b left join Books_User bu on bu.BookID = b.BookID where coalesce(bu.IsDeleted, b.IsDeleted, 0) != 0";
+	static constexpr auto dbStatQueryText = "select count(42) from Folders union all "
+											"select count(42) from Authors union all "
+											"select count(42) from Series union all "
+											"select count(42) from Keywords union all "
+											"select count(42) from Languages l where (select count(42) from Books b where b.Lang = l.LanguageCode) > 1 union all "
+											"select replace(max(UpdateDate), '-', '.') from Books union all "
+											"select count(42) from Groups_User union all "
+											"select count(42) from Books union all "
+											"select count(42) from Books b left join Books_User bu on bu.BookID = b.BookID where coalesce(bu.IsDeleted, b.IsDeleted, 0) != 0";
 
 	QStringList stats;
 	if (withAdditionalInfo)
@@ -189,24 +192,15 @@ QStringList CollectionProvider::GetCollectionStatistics(const IDatabaseUser& dat
 		stats << Tr(DATABASE).arg(QDir::toNativeSeparators(collection.GetDatabase()));
 	}
 
-	const auto bookQuery = databaseUser.Database()->CreateQuery(QString(dbStatQueryText)
-	                                                                .arg(
-																		QT_TRANSLATE_NOOP("CollectionStatistics", "Archives:"),
-																		QT_TRANSLATE_NOOP("CollectionStatistics", "Authors:"),
-																		QT_TRANSLATE_NOOP("CollectionStatistics", "Series:"),
-																		QT_TRANSLATE_NOOP("CollectionStatistics", "Keywords:"),
-																		QT_TRANSLATE_NOOP("CollectionStatistics", "Languages:"),
-																		QT_TRANSLATE_NOOP("CollectionStatistics", "Groups:"),
-																		QT_TRANSLATE_NOOP("CollectionStatistics", "Books:"),
-																		QT_TRANSLATE_NOOP("CollectionStatistics", "Deleted books:")
-																	)
-	                                                                .toStdString());
-	for (bookQuery->Execute(); !bookQuery->Eof(); bookQuery->Next())
-	{
-		[[maybe_unused]] const auto* name       = bookQuery->Get<const char*>(0);
-		[[maybe_unused]] const auto  translated = Loc::Tr(CONTEXT, bookQuery->Get<const char*>(0));
-		stats << QString("%1 %2").arg(translated).arg(bookQuery->Get<long long>(1));
-	}
+	static constexpr const char* names[] = {
+		QT_TRANSLATE_NOOP("CollectionStatistics", "Archives:"), QT_TRANSLATE_NOOP("CollectionStatistics", "Authors:"),   QT_TRANSLATE_NOOP("CollectionStatistics", "Series:"),
+		QT_TRANSLATE_NOOP("CollectionStatistics", "Keywords:"), QT_TRANSLATE_NOOP("CollectionStatistics", "Languages:"), QT_TRANSLATE_NOOP("CollectionStatistics", "Update date:"),
+		QT_TRANSLATE_NOOP("CollectionStatistics", "Groups:"),   QT_TRANSLATE_NOOP("CollectionStatistics", "Books:"),     QT_TRANSLATE_NOOP("CollectionStatistics", "Deleted books:"),
+	};
+
+	const auto bookQuery = databaseUser.Database()->CreateQuery(dbStatQueryText);
+	for (auto&& [it, name] : std::views::zip(*bookQuery, names))
+		stats << QString("%1 %2").arg(Loc::Tr(CONTEXT, name)).arg(it.Get<const char*>(0));
 
 	return stats;
 }

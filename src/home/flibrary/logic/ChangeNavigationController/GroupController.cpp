@@ -45,8 +45,7 @@ using Names = std::unordered_set<QString>;
 long long CreateNewGroupImpl(DB::ITransaction& transaction, const QString& name)
 {
 	assert(!name.isEmpty());
-	const auto command = transaction.CreateCommand(CREATE_NEW_GROUP_QUERY);
-	command->Bind(0, name.toStdString());
+	const auto command = transaction.CreateCommand(CREATE_NEW_GROUP_QUERY, name);
 	if (!command->Execute())
 		return -1;
 
@@ -111,10 +110,8 @@ struct GroupController::Impl
 		databaseUser->Execute({ "Rename group", [&, id, name = std::move(name), callback = std::move(callback)]() mutable {
 								   const auto db          = databaseUser->Database();
 								   const auto transaction = db->CreateTransaction();
-								   const auto command     = transaction->CreateCommand("update Groups_User set Title = ? where GroupID = ?");
-								   command->Bind(0, name.toStdString());
-								   command->Bind(1, id);
-								   const auto ok = command->Execute() && transaction->Commit();
+								   const auto command     = transaction->CreateCommand("update Groups_User set Title = ? where GroupID = ?", name, id);
+								   const auto ok          = command->Execute() && transaction->Commit();
 
 								   return [this, id, callback = std::move(callback), ok](size_t) {
 									   if (!ok)
@@ -154,9 +151,7 @@ struct GroupController::Impl
 										   const auto command = transaction->CreateCommand(ADD_TO_GROUP_QUERY);
 										   bool       any     = false;
 										   std::ranges::for_each(ids, [&](const Id idObj) {
-											   command->Bind(0, id);
-											   command->Bind(1, idObj);
-											   any = command->Execute() || any;
+											   any = command->Execute(id, idObj) || any;
 										   });
 										   return any;
 									   }()
@@ -209,10 +204,8 @@ struct GroupController::Impl
 		databaseUser->Execute({ QString("Remove all %1 from group").arg(logArg).toStdString(), [&, id, callback = std::move(callback), queryArg]() mutable {
 								   const auto db          = databaseUser->Database();
 								   const auto transaction = db->CreateTransaction();
-								   const auto command     = transaction->CreateCommand(
-									   QString("delete from Groups_List_User where GroupID = ? and exists (select 42 from %1 = Groups_List_User.ObjectID)").arg(queryArg).toStdString()
-								   );
-								   command->Bind(0, id);
+								   const auto command =
+									   transaction->CreateCommand(QString("delete from Groups_List_User where GroupID = ? and exists (select 42 from %1 = Groups_List_User.ObjectID)").arg(queryArg), id);
 								   const auto ok = command->Execute() && transaction->Commit();
 
 								   return [this, id, callback = std::move(callback), ok](size_t) {
@@ -261,8 +254,7 @@ void GroupController::Remove(Ids ids, Callback callback) const
 									   const auto command     = transaction->CreateCommand(REMOVE_GROUP_QUERY);
 
 									   auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&](const bool init, const Id id) {
-										   command->Bind(0, id);
-										   return command->Execute() && init;
+										   return command->Execute(id) && init;
 									   });
 									   ok      = transaction->Commit() && ok;
 
@@ -324,9 +316,9 @@ void GroupController::RemoveFromGroup(const Id id, Ids ids, Callback callback) c
 									   const auto ok          = std::ranges::all_of(
 																	ids,
 																	[&](const Id idBook) {
-															   command->Bind(0, idBook);
+															   auto binder = *command << idBook;
 															   if (id >= 0)
-																   command->Bind(1, id);
+																   binder << id;
 
 															   return command->Execute();
 																	}

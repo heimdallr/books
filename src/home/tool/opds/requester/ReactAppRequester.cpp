@@ -18,6 +18,7 @@
 
 #include "genre/Genre.h"
 #include "logic/data/DataItem.h"
+#include "logic/database/DatabaseUtil.h"
 #include "util/AnnotationControllerObserver.h"
 #include "util/Fb2InpxParser.h"
 #include "util/FunctorExecutionForwarder.h"
@@ -33,10 +34,8 @@ constexpr auto SEARCH            = "search";
 constexpr auto SELECTED_ITEM_ID  = "selectedItemID";
 constexpr auto SELECTED_GROUP_ID = "selectedGroupID";
 
-#define AUTHOR_FULL_NAME "a.LastName || coalesce(' ' || nullif(a.FirstName, ''), '') || coalesce(' ' || nullif(a.MiddleName, ''), '')"
-
 constexpr auto MAIN_BOOK_FIELDS = "b.BookID, b.Title, b.BookSize, b.Lang, b.LibRate, b.BaseFileName, b.Ext, b.UpdateDate, b.Year, b.UserRate";
-constexpr auto AUTHORS_FIELD    = "(select group_concat(" AUTHOR_FULL_NAME R"(, ', ')
+constexpr auto AUTHORS_FIELD    = "(select group_concat(" FLIBRARY_SQL_FULL_AUTHOR_NAME R"(, ', ')
 	from Authors a 
 	join Author_List al on al.AuthorID = a.AuthorID and al.BookID = b.BookID
 ) as AuthorsNames
@@ -64,6 +63,14 @@ QString PrepareSearchTerms(const QString& searchTerms)
 		return item + '*';
 	});
 	return terms.join(' ');
+}
+
+// Ids come straight from the http request and are substituted into the query text, so anything but an integer matches nothing
+QString ToSqlId(const QString& value)
+{
+	bool       ok = false;
+	const auto id = value.toLongLong(&ok);
+	return ok ? QString::number(id) : QString("NULL");
 }
 
 QString Get(const IReactAppRequester::Parameters& parameters, const QString& key, const QString& defaultValue = {})
@@ -138,7 +145,7 @@ SELECT gu.GroupID, gu.Title
           , (SELECT COUNT(42) FROM Groups_List_User_View WHERE Groups_List_User_View.GroupID = gu.GroupID) AS numberOfBooks
           , (SELECT COUNT(42) FROM Books_View_Opds b join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = b.BookID) AS booksInGroup
           , (SELECT COUNT(42) FROM Authors a join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = a.AuthorID) AS authorsInGroup
-          , (SELECT group_concat()" AUTHOR_FULL_NAME R"(, ", ") FROM Authors a join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = a.AuthorID) AS authorsListInGroup
+          , (SELECT group_concat()" FLIBRARY_SQL_FULL_AUTHOR_NAME R"(, ", ") FROM Authors a join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = a.AuthorID) AS authorsListInGroup
           , (SELECT COUNT(42) FROM Series s join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = s.SeriesID) AS seriesInGroup
           , (SELECT group_concat(s.SeriesTitle, ", ") FROM Series s join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = s.SeriesID) AS seriesListInGroup
           , (SELECT COUNT(42) FROM Keywords k join Groups_List_User glu on glu.GroupID = gu.GroupID and glu.ObjectID = k.KeywordID) AS keywordsInGroup
@@ -146,9 +153,8 @@ SELECT gu.GroupID, gu.Title
           FROM Groups_User gu
 )";
 			QJsonArray array;
-			const auto query = db->CreateQuery(queryText);
-			for (query->Execute(); !query->Eof(); query->Next())
-				array.append(FromQuery<const char*>(*query));
+			for (const auto query = db->CreateQuery(queryText); const auto& rec : *query)
+				array.append(FromQuery<const char*>(rec));
 			result.insert("groups", array);
 		}
 
@@ -232,7 +238,7 @@ where g.GroupID = ?
 
 	QJsonObject getSearchAuthors(const Parameters& parameters) const
 	{
-		static constexpr auto queryText  = "select a.AuthorID, " AUTHOR_FULL_NAME " as Authors, count(42) as Books from Authors a %1 group by a.AuthorID";
+		static constexpr auto queryText  = "select a.AuthorID, " FLIBRARY_SQL_FULL_AUTHOR_NAME " as Authors, count(42) as Books from Authors a %1 group by a.AuthorID";
 		static constexpr auto groupJoin  = "join Author_List al on al.AuthorID = a.AuthorID join Groups_List_User_View gl on gl.BookID = al.BookID and gl.GroupID = ?";
 		static constexpr auto searchJoin = "join Author_List al on al.AuthorID = a.AuthorID join Authors_Search fts on fts.rowid = a.AuthorID and Authors_Search match ?";
 
@@ -287,12 +293,7 @@ where g.GroupID = ?
 
 		const auto bookId = Get(parameters, SELECTED_ITEM_ID);
 
-		QEventLoop                   eventLoop;
-		AnnotationControllerObserver observer([&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
-			ScopedCall eventLoopGuard([&] {
-				eventLoop.exit();
-			});
-
+		AnnotationControllerObserver::Request(*annotationController, bookId, [&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
 			const auto& book = dataProvider.GetBook();
 
 			QJsonArray authors;
@@ -373,10 +374,6 @@ where g.GroupID = ?
 				coverCache->Set(bookId, std::move(Util::Recode(covers.front().bytes).first));
 		});
 
-		annotationController->RegisterObserver(&observer);
-		annotationController->SetCurrentBookId(bookId, true);
-		eventLoop.exec();
-
 		return result;
 	}
 
@@ -409,10 +406,9 @@ private:
 
 		std::unordered_set<long long> uniqueIds;
 
-		const auto query = CreateParameterQuery(queryText, parameter, isSearch);
-		for (query->Execute(); !query->Eof(); query->Next())
-			if (uniqueIds.emplace(query->Get<long long>(0)).second)
-				array.append(FromQuery<const char*>(*query));
+		for (const auto query = CreateParameterQuery(queryText, parameter, isSearch); const auto& rec : *query)
+			if (uniqueIds.emplace(rec.Get<long long>(0)).second)
+				array.append(FromQuery<const char*>(rec));
 
 		return QJsonObject {
 			{ resultName, array }
@@ -431,14 +427,13 @@ private:
 			}),
 			std::back_inserter(joins),
 			[&](const auto& item) {
-				return QString(std::get<1>(item)).arg(parameters.at(std::get<0>(item)));
+				return QString(std::get<1>(item)).arg(ToSqlId(parameters.at(std::get<0>(item))));
 			}
 		);
 
-		const auto db    = databaseController->GetDatabase(true);
-		auto       query = db->CreateQuery(queryText.arg(joins.join('\n')).toStdString());
-		for (query->Execute(); !query->Eof(); query->Next())
-			array.append(FromQuery<const char*>(*query));
+		const auto db = databaseController->GetDatabase(true);
+		for (auto query = db->CreateQuery(queryText.arg(joins.join('\n')).toStdString()); const auto& rec : *query)
+			array.append(FromQuery<const char*>(rec));
 
 		return QJsonObject {
 			{ resultName, array }

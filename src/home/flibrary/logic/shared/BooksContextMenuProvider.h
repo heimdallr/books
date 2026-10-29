@@ -29,7 +29,7 @@ class BooksContextMenuProvider final
 	NON_COPY_MOVABLE(BooksContextMenuProvider)
 
 public:
-	using Callback = std::function<void(const IDataItem::Ptr&)>;
+	using Callback = std::function<void(const IDataItem::Ptr& menuItem, const std::set<QString>& ids)>;
 	static void AddTreeMenuItems(const IDataItem::Ptr& parent, ITreeViewController::RequestContextMenuOptions options);
 
 public:

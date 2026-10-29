@@ -868,6 +868,10 @@
         <source>Series:</source>
         <translation>Серія:</translation>
     </message>
+    <message>
+        <source>Update date:</source>
+        <translation>Дата оновлення:</translation>
+    </message>
 </context>
 <context>
     <name>CommandLine</name>
@@ -5354,6 +5358,10 @@ Try again?</source>
         <translation>Історія</translation>
     </message>
     <message>
+        <source>Images</source>
+        <translation>Зображення</translation>
+    </message>
+    <message>
         <source>Keywords</source>
         <translation>Ключові слова</translation>
     </message>
@@ -5934,6 +5942,10 @@ Try again?</source>
         <source>Books view mode</source>
         <translation>Режим перегляду книг</translation>
     </message>
+    <message>
+        <source>Navigation section</source>
+        <translation>Розділ навігації</translation>
+    </message>
 </context>
 <context>
     <name>UpdateChecker</name>
@@ -6043,6 +6055,45 @@ Try again?</source>
     <message>
         <source>Version %1 must be greater than 0 and less than %2</source>
         <translation>Версія файлу %1 повинна бути більше 0 і менше %2</translation>
+    </message>
+</context>
+<context>
+    <name>ZipError</name>
+    <message>
+        <source>Cannon find entry point &apos;%1&apos;</source>
+        <translation>Не вдалося знайти точку входу &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot  create object</source>
+        <translation>Неможливо створити об’єкт</translation>
+    </message>
+    <message>
+        <source>Cannot add file &apos;%1&apos; to archive</source>
+        <translation>Не вдалося додати файл &apos;%1&apos; до архіву</translation>
+    </message>
+    <message>
+        <source>Cannot create file &apos;%1&apos;</source>
+        <translation>Не вдалося створити файл &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot extract file &apos;%1&apos;</source>
+        <translation>Не вдалося розпакувати файл &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot find file &apos;%1&apos;</source>
+        <translation>Не вдалося знайти файл &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot load %1</source>
+        <translation>Не вдалося завантажити %1</translation>
+    </message>
+    <message>
+        <source>Cannot open archive &apos;%1&apos;</source>
+        <translation>Не вдалося відкрити архів &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot open file &apos;%1&apos;</source>
+        <translation>Не вдалося відкрити файл &apos;%1&apos;</translation>
     </message>
 </context>
 <context>

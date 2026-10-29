@@ -28,6 +28,14 @@ public:
 public:
 	static constexpr auto SELECT_LAST_ID_QUERY = "select last_insert_rowid()";
 
+	static constexpr auto SET_USER_RATE_COMMAND = R"(
+INSERT INTO Books_User (BookID, UserRate, CreatedAt) VALUES (?, ?, datetime(CURRENT_TIMESTAMP, 'localtime')) 
+ON CONFLICT(BookID) DO UPDATE SET UserRate = excluded.UserRate, CreatedAt = excluded.CreatedAt)";
+
+	static constexpr auto SET_LANG_COMMAND = R"(
+INSERT INTO Books_User (Lang, BookID, CreatedAt) VALUES (?, ?, datetime(CURRENT_TIMESTAMP, 'localtime')) 
+ON CONFLICT(BookID) DO UPDATE SET Lang = excluded.Lang, CreatedAt = excluded.CreatedAt)";
+
 	FLINT_EXPORT static QString GetDatabaseVersionStatement();
 
 public:

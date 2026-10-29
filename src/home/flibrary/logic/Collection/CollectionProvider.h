@@ -12,7 +12,7 @@ namespace HomeCompa::Flibrary {
 
 struct CollectionImpl;
 
-class CollectionProvider final : virtual public ICollectionProvider
+class CollectionProvider final : public ICollectionProvider
 {
 	NON_COPY_MOVABLE(CollectionProvider)
 

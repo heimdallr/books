@@ -15,7 +15,7 @@ namespace HomeCompa::Flibrary {
 
 class MigrateWindow final
     : public QListView
-    , virtual public IMigrateWindow
+    , public IMigrateWindow
 {
 	Q_OBJECT
 	NON_COPY_MOVABLE(MigrateWindow)

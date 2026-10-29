@@ -36,7 +36,7 @@ namespace HomeCompa::Flibrary {
 
 class MainWindow final
     : public QMainWindow
-    , virtual public IMainWindow
+    , public IMainWindow
 {
 	Q_OBJECT
 	NON_COPY_MOVABLE(MainWindow)
@@ -73,6 +73,7 @@ public:
 
 signals:
 	void BookTitleToSearchVisibleChanged() const;
+	void SetToolBarPosition(const QString& key, QWidget* toolBar) const;
 
 private: // IMainWindow
 	void CreateCollection(Collection collection) override;
@@ -91,6 +92,9 @@ private slots:
 	void OnBooksSearchFilterValueGeometryChanged(const QRect& geometry);
 	void OnSearchNavigationItemSelected(long long id, const QString& text);
 	void OnStackedPageStateChanged(QStackedWidget* stackedWidget, std::shared_ptr<QWidget> widget, int state);
+	void OnNavigationCountChanged(int count);
+	void OnBookCountChanged(int count);
+	void OnImageCountChanged(int count);
 
 private:
 	class Impl;

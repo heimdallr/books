@@ -75,7 +75,7 @@ public:
 	void RequestImage(const QModelIndex& index)
 	{
 		if (auto pixmap = m_imageModel->data(index, ImageModelRole::Image).value<QPixmap>(); !pixmap.isNull())
-			return Perform(&IImageViewerController::IObserver::OnImageReceived, pixmap.toImage());
+			return Perform(&IImageViewerController::IObserver::OnImageReceived, pixmap.toImage(), index.data(Qt::ToolTipRole).toString());
 
 		m_requestImage = index.row();
 		m_requestImageTimer->start();
@@ -118,7 +118,7 @@ private: // IBookInfoProvider::IObserver
 private:
 	void OnModelReset()
 	{
-		Perform(&IImageViewerController::IObserver::OnImageReceived, QImage {});
+		Perform(&IImageViewerController::IObserver::OnImageReceived, QImage {}, QString {});
 	}
 
 	void OnModelDataChanged(const QModelIndex& topLeft, const QModelIndex& /*bottomRight*/, const QVector<int>& roles)

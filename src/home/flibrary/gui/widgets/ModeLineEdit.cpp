@@ -4,8 +4,6 @@
 
 #include <ranges>
 
-#include <QMenu>
-
 #include "settings/ISettings.h"
 
 using namespace HomeCompa::Flibrary;
@@ -74,23 +72,18 @@ ModeLineEdit::IValueApplier::ValueApplier ModeLineEdit::Setup(std::shared_ptr<IS
 
 void ModeLineEdit::OnValueModeActionTriggered()
 {
+	QObject* activeAction = qobject_cast<QAction*>(sender());
+	assert(activeAction && m_impl->valueModeActions.size() == 2);
+
 	auto& impl = *m_impl;
-	QMenu menu;
-	for (auto* item : impl.valueModeActions | std::views::keys)
+	for (const auto& [item, applier] : impl.valueModeActions)
 	{
-		auto* action = menu.addAction(item->icon(), item->text());
-		connect(action, &QAction::triggered, this, [this, &impl, item] {
-			impl.settings->Set(impl.settingsKey, item->property(TYPE));
-			for (const auto& [modeAction, applier] : impl.valueModeActions)
-			{
-				const bool isActive = modeAction == item;
-				modeAction->setVisible(isActive);
-				if (isActive)
-					emit ValueApplierChanged(applier);
-			}
-		});
+		const bool isActive = item != activeAction;
+		item->setVisible(isActive);
+		if (!isActive)
+			continue;
+
+		emit ValueApplierChanged(applier);
+		impl.settings->Set(impl.settingsKey, item->property(TYPE));
 	}
-	menu.setFont(parentWidget()->font());
-	if (!menu.isEmpty())
-		menu.exec(QCursor::pos());
 }

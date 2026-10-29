@@ -3,6 +3,7 @@
 #include "ImageViewer.h"
 
 #include <QMenu>
+#include <QMouseEvent>
 #include <QStyledItemDelegate>
 #include <QTimer>
 #include <QWidgetAction>
@@ -107,6 +108,7 @@ public:
 		m_ui.images->setModel(m_imageViewerController->GetImageModel());
 		m_ui.images->setAlternatingRowColors(m_settings->Get(Constant::Settings::PREFER_ALTERNATING_ROW_COLORS, false));
 
+		m_ui.image->installEventFilter(this);
 		m_ui.imageScrollArea->installEventFilter(this);
 		m_ui.filter->installEventFilter(this);
 		m_ui.filter->addAction(m_ui.actionFilter, QLineEdit::LeadingPosition);
@@ -137,6 +139,7 @@ public:
 
 	~Impl() override
 	{
+		emit m_self.CounterChanged(-1);
 		m_imageViewerController->UnregisterObserver(this);
 		SaveGeometry();
 
@@ -150,16 +153,48 @@ private: // QObject
 		{
 			if (obj == m_ui.imageScrollArea)
 				OnImageResized();
-
-			if (obj == m_ui.filter)
+			else if (obj == m_ui.filter)
 				emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.filter));
+		}
+		else if (obj == m_ui.image)
+		{
+			switch (event->type())
+			{
+				case QEvent::Type::Enter:
+					m_ui.position->setText({});
+					m_ui.position->setVisible(true);
+					m_ui.image->setMouseTracking(true);
+					break;
+				case QEvent::Type::Leave:
+					if (m_ui.image->hasMouseTracking())
+						m_ui.position->setVisible(false);
+					m_ui.image->setMouseTracking(false);
+					break;
+				case QEvent::Type::MouseButtonPress:
+					m_ui.image->setMouseTracking(!m_ui.image->hasMouseTracking());
+					[[fallthrough]];
+				case QEvent::Type::MouseMove:
+				{
+					if (m_currentImage.isNull())
+						break;
+
+					const auto* mouseEvent = static_cast<QMouseEvent*>(event);
+					const auto  position   = mouseEvent->pos();
+					const auto  pixmap     = m_ui.image->pixmap(Qt::ReturnByValue);
+					m_ui.position->setText(QString("%1:%2").arg(position.x() * m_currentImage.width() / pixmap.width()).arg(position.y() * m_currentImage.height() / pixmap.height()));
+					break;
+				}
+
+				default:
+					break;
+			}
 		}
 
 		return QObject::eventFilter(obj, event);
 	}
 
 private: // IImageViewerController::IObserver
-	void OnImageReceived(QImage pixmap) override
+	void OnImageReceived(QImage pixmap, const QString& description) override
 	{
 		const QString styleSheet = [&] {
 			if (pixmap.isNull())
@@ -169,6 +204,9 @@ private: // IImageViewerController::IObserver
 			return QString {};
 		}();
 		m_ui.image->setStyleSheet(styleSheet);
+		m_ui.description->setText(description);
+		m_ui.resolution->setText(pixmap.isNull() ? QString {} : QString("%1:%2").arg(pixmap.width()).arg(pixmap.height()));
+		m_ui.position->setText({});
 
 		m_currentImage = std::move(pixmap);
 		OnImageResized();
@@ -176,7 +214,7 @@ private: // IImageViewerController::IObserver
 
 	void OnCountChanges(const int count) override
 	{
-		m_ui.count->setText(QString::number(count));
+		emit m_self.CounterChanged(count);
 	}
 
 private: // IUiFactory::IChangeSizeWidgetObserver
@@ -205,7 +243,9 @@ private:
 
 	void OnImageResized() const
 	{
-		auto       areaSize  = m_ui.imageScrollArea->size();
+		auto areaSize = m_ui.imageScrollArea->size();
+		m_ui.description->setMaximumWidth(areaSize.width());
+
 		const auto imageSize = m_currentImage.size();
 		if (imageSize.width() <= areaSize.width() && imageSize.height() <= areaSize.height())
 			return m_ui.image->setPixmap(QPixmap::fromImage(m_currentImage));
@@ -310,6 +350,7 @@ ImageViewer::ImageViewer(
 	  )
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOKS_SEARCH_FILTER_VALUE_GEOMETRY_CHANGED, this, SIGNAL(ValueGeometryChanged(const QRect&)));
+	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::IMAGE_COUNTER_CHANGED, this, SIGNAL(CounterChanged(int)));
 }
 
 ImageViewer::~ImageViewer() = default;

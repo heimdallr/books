@@ -9,7 +9,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class MenuCustomizer final : virtual public IMenuCustomizer
+class MenuCustomizer final : public IMenuCustomizer
 {
 	NON_COPY_MOVABLE(MenuCustomizer)
 

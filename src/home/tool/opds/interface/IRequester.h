@@ -28,6 +28,7 @@ public:
 
 public:
 	virtual ~IRequester()                                                                   = default;
+	virtual void       Init() const                                                         = 0;
 	virtual QByteArray Search(const QString& root, const Parameters& parameters) const      = 0;
 	virtual QByteArray GetBookText(const QString& root, const Parameters& parameters) const = 0;
 

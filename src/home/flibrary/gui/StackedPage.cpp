@@ -1,4 +1,4 @@
-﻿#include "StackedPage.h"
+#include "StackedPage.h"
 
 #include <QAction>
 #include <QTimer>
@@ -17,7 +17,7 @@ StackedPage::StackedPage(const IUiFactory& uiFactory, QWidget* parent)
 	, stackedWidget { uiFactory.GetStackedWidget() }
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::STACKED_PAGE_STATE_CHANGED, this, SIGNAL(StateChanged(QStackedWidget*, std::shared_ptr<QWidget>, int)), true);
-	QTimer::singleShot(0, [this] {
+	QTimer::singleShot(0, this, [this] {
 		StateChanged(State::Created);
 	});
 

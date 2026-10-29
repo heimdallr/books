@@ -218,7 +218,7 @@ Table CreateUrlTable(const IAnnotationController::IDataProvider& dataProvider, c
 	return table;
 }
 
-class JokeRequesterClientImpl : virtual public IJokeRequester::IClient
+class JokeRequesterClientImpl : public IJokeRequester::IClient
 {
 public:
 	static std::shared_ptr<IClient> Create(IClient& impl)
@@ -540,7 +540,7 @@ private: // IProgressController::IObserver
 private: // IJokeRequester::IClient
 	void OnError(const QString& api, const QString& error) override
 	{
-		Perform(&IAnnotationController::IObserver::OnJokeErrorOccured, std::cref(api), std::cref(error));
+		Perform(&IAnnotationController::IObserver::OnJokeErrorOccurred, std::cref(api), std::cref(error));
 	}
 
 	void OnTextReceived(const QString& value) override
@@ -630,15 +630,13 @@ private:
 				  {
 					  std::unordered_map<ExportStat::Type, std::vector<QDateTime>> exportStatisticsBuffer;
 
-					  const auto query = db->CreateQuery("select ExportType, CreatedAt from Export_List_User where BookID = ?");
-					  for (query->Bind(0, bookId), query->Execute(); !query->Eof(); query->Next())
-						  exportStatisticsBuffer[static_cast<ExportStat::Type>(query->Get<int>(0))].emplace_back(QDateTime::fromString(query->Get<const char*>(1), Qt::ISODate));
+					  for (const auto query = db->CreateQuery("select ExportType, CreatedAt from Export_List_User where BookID = ?", bookId); auto& rec : *query)
+						  exportStatisticsBuffer[static_cast<ExportStat::Type>(rec.Get<int>(0))].emplace_back(QDateTime::fromString(rec.Get<const char*>(1), Qt::ISODate));
 					  std::ranges::move(exportStatisticsBuffer, std::back_inserter(exportStatistics));
 				  }
 
 				  const auto singleQuery = [&](const std::string_view queryText) -> QString {
-					  const auto query = db->CreateQuery(queryText);
-					  query->Bind(0, bookId);
+					  const auto query = db->CreateQuery(queryText, bookId);
 					  query->Execute();
 					  return query->Eof() ? QString {} : QString { query->Get<const char*>(0) };
 				  };
@@ -649,11 +647,11 @@ private:
 				  if (!IsOneOf(m_navigationMode, NavigationMode::Unknown, NavigationMode::History))
 				  {
 					  const auto tr = db->CreateTransaction();
-					  tr->CreateCommand(std::format("INSERT OR REPLACE INTO {} (BookID, CreatedAt) VALUES ({}, datetime('now', 'localtime'))", m_historyTableName, book->GetId().toStdString()))->Execute();
+					  tr->CreateCommand(std::format("INSERT OR REPLACE INTO {} (BookID, CreatedAt) VALUES (?, datetime('now', 'localtime'))", m_historyTableName))->Execute(book->GetId().toLongLong());
 					  if (m_historyWriteCounter && ++m_historyWriteCounter > 10)
 					  {
 						  m_historyWriteCounter = 0;
-						  tr->CreateCommand("analyze")->Execute();
+						  tr->CreateCommand(std::format("analyze {}", DatabaseUtil::GetHistoryIndexName(*m_settings)))->Execute();
 					  }
 					  tr->Commit();
 				  }
@@ -703,10 +701,8 @@ private:
 
 		std::vector<std::pair<QString, QString>> reviewFolders;
 		{
-			const auto query = db.CreateQuery(REVIEWS_QUERY);
-			query->Bind(0, bookId);
-			for (query->Execute(); !query->Eof(); query->Next())
-				reviewFolders.emplace_back(query->Get<const char*>(0), query->Get<const char*>(1));
+			for (const auto query = db.CreateQuery(REVIEWS_QUERY, bookId); auto& rec : *query)
+				reviewFolders.emplace_back(rec.Get<const char*>(0), rec.Get<const char*>(1));
 		}
 		const auto archivesFolder = m_collectionProvider->GetActiveCollection().GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER;
 
@@ -750,8 +746,7 @@ private:
 
 	static IDataItem::Ptr CreateBook(DB::IDatabase& db, const long long id)
 	{
-		const auto query = db.CreateQuery(std::format(DatabaseUtil::BOOKS_QUERY, "", "", "from Books_View b", "where b.BookID = :id"));
-		query->Bind(":id", id);
+		const auto query = db.CreateQuery(std::format(DatabaseUtil::BOOKS_QUERY, "", "", "from Books_View b", "where b.BookID = ?"), id);
 		query->Execute();
 		return query->Eof() ? NavigationItem::Create() : DatabaseUtil::CreateBookItem(*query);
 	}
@@ -760,10 +755,9 @@ private:
 	{
 		auto       root  = NavigationItem::Create();
 		const auto query = db.CreateQuery(queryText);
-		query->Bind(":id", id);
-		for (query->Execute(); !query->Eof(); query->Next())
+		for (query->Bind(":id", id); auto& rec : *query)
 		{
-			auto child = extractor(*query);
+			auto child = extractor(rec);
 			child->Reduce();
 			root->AppendChild(std::move(child));
 		}

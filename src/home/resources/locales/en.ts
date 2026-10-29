@@ -858,6 +858,10 @@
         <source>Series:</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Update date:</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>CommandLine</name>
@@ -5340,6 +5344,10 @@ Try again?</source>
         <translation></translation>
     </message>
     <message>
+        <source>Images</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Keywords</source>
         <translation></translation>
     </message>
@@ -5917,6 +5925,10 @@ Try again?</source>
         <source>Books view mode</source>
         <translation></translation>
     </message>
+    <message>
+        <source>Navigation section</source>
+        <translation></translation>
+    </message>
 </context>
 <context>
     <name>UpdateChecker</name>
@@ -6025,6 +6037,45 @@ Try again?</source>
     </message>
     <message>
         <source>Version %1 must be greater than 0 and less than %2</source>
+        <translation></translation>
+    </message>
+</context>
+<context>
+    <name>ZipError</name>
+    <message>
+        <source>Cannon find entry point &apos;%1&apos;</source>
+        <translation>Cannot find entry point &apos;%1&apos;</translation>
+    </message>
+    <message>
+        <source>Cannot  create object</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot add file &apos;%1&apos; to archive</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot create file &apos;%1&apos;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot extract file &apos;%1&apos;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot find file &apos;%1&apos;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot load %1</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot open archive &apos;%1&apos;</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Cannot open file &apos;%1&apos;</source>
         <translation></translation>
     </message>
 </context>

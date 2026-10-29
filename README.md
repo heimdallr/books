@@ -28,7 +28,7 @@ git clone https://github.com/heimdallr/books.git --recursive
 [Инструкция](https://docs.conan.io/2/installation.html)  
 
 #### Устанавливаем модули, которых нет в conan
-* Qt6 (6.10.0 минимум, но лучше 6.11) [^1] [^2]  
+* Qt6 (6.10.0 минимум) [^1] [^2]  
 * 7zip [^3]  
 
 <br/>
@@ -72,10 +72,6 @@ cmake --install .
 ##### Ещё варианты
 * Запустить скрипт `build.sh`. В результате в папке build будет создан архив FLibrary-x.y.z-portable-Linux.tar.xz  
 * Запустить скрипт с параметром `build.sh DEB`. В папке build будет собран пакет FLibrary-x.y.z-setup-Linux.deb  
-
-#### Проблемы и решения
-* При использовании Qt, не собранного статически с libjpeg, возможна runtime-ошибка `qt.gui.imageio.jpeg: Wrong JPEG library version: library is 90, caller expects 62`. Некоторым помогает добавление в начало `start.sh` указания `LD_PRELOAD=/usr/lib/x86_64-linux-gnu/libjpeg.so.62.x.y`, где x.y - ваша версия системной libjpeg.so. Спасибо уважаемому Simply234 за этот workaround.  
-* Ошибка munmap_chunk(): invalid pointer при вызове окна выбора каталога. В start.sh добавил строку export QT_QPA_PLATFORMTHEME=generic - тема qt стала по умолчанию и окно выбора каталога перестало падать. К сожалению тему теперь не изменить. Linux Mint Mate 22.3 Zena.  
 
 <br/>
 

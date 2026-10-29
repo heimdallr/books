@@ -2,8 +2,6 @@
 
 #include <vector>
 
-#include <QString>
-
 #include "interface/logic/ICollectionProvider.h"
 
 namespace HomeCompa {

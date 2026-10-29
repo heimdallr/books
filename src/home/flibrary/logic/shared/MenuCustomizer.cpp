@@ -239,8 +239,8 @@ public:
 		if (bytes.isEmpty())
 			return std::unexpected(Tr(FILE_EMPTY).arg(path));
 
-		if (const auto image = Util::Decode(bytes); !image.isNull())
-			return it->second->SetIcon(*m_settings, QVariant::fromValue(QIcon(QPixmap::fromImage(image))), bytes), std::expected<void, QString> {};
+		if (const auto icon = m_uiFactory->CreateIcon(bytes))
+			return it->second->SetIcon(*m_settings, QVariant::fromValue(*icon), bytes), std::expected<void, QString> {};
 
 		return std::unexpected(Tr(BAD_IMAGE).arg(path));
 	}
@@ -271,7 +271,7 @@ public:
 				it->second->SetAbilities(parentKey.isEmpty() ? ItemAbility::None : ItemAbility::All);
 			}
 
-			it->second->Setup(*m_settings);
+			it->second->Setup(*m_settings, *m_uiFactory);
 
 			if (m_toolbarController)
 				if (auto* action = it->second->GetToolbarAction())
@@ -330,7 +330,7 @@ private:
 		auto key = item->GetItem()->GetData(SettingsItem::Column::Key);
 		{
 			const SettingsGroup settingsSubGroup(*m_settings, GetName(MENU_CUSTOM_ROOT, key));
-			item->Setup(*m_settings);
+			item->Setup(*m_settings, *m_uiFactory);
 		}
 		if (m_toolbarController)
 			if (auto* action = item->GetToolbarAction())
@@ -391,6 +391,8 @@ private:
 		});
 
 		auto count = GetObserverCount();
+		if (count == 0)
+			return;
 
 		QEventLoop eventLoop;
 
@@ -407,7 +409,7 @@ private:
 
 	void UpdateObserverMenu(IObserver* observer, const IDataItem::Ptr& item)
 	{
-		if (item->GetChildCount() == 0)
+		if (!item || item->GetChildCount() == 0)
 			return;
 
 		const auto enumerate = [this, observer](const IDataItem& src, IDataItem& dst, const auto& r) -> void {

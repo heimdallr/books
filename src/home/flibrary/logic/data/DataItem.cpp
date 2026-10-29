@@ -197,6 +197,16 @@ IDataItem::Ptr NavigationItem::Clone() const
 	return std::make_shared<NavigationItem>(*this);
 }
 
+NavigationMode NavigationItem::GetNavigationMode() const noexcept
+{
+	return m_navigationMode;
+}
+
+void NavigationItem::SetNavigationMode(const NavigationMode navigationMode) noexcept
+{
+	m_navigationMode = navigationMode;
+}
+
 IDataItem::Ptr SettingsItem::Create(IDataItem* parent)
 {
 	return std::make_shared<SettingsItem>(parent);
@@ -275,7 +285,7 @@ void AuthorItem::Reduce()
 
 		last   = std::move(first);
 		first  = std::move(middle);
-		middle = QString(); //-V815
+		middle = QString {};
 	}
 
 	if (last.isEmpty())

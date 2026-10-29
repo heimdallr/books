@@ -174,9 +174,18 @@ private: // IUiFactory
 		return nullptr;
 	}
 
+	void ExecMenu(const QStringList&, std::function<void(int)>) const override
+	{
+	}
+
 	QMenu* CreateCheckableMenu(const std::vector<std::pair<QString, bool>>&, std::function<void(int, bool)>) const override
 	{
 		return nullptr;
+	}
+
+	std::shared_ptr<QIcon> CreateIcon(QByteArray) const override
+	{
+		return {};
 	}
 
 	void CreateAuthorReview(long long /*id*/) const override
