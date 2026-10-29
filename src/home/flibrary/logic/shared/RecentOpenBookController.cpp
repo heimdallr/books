@@ -30,7 +30,7 @@ public:
 			UpdateImpl();
 		});
 
-		if (const auto db = m_databaseUser->Database())
+		if (const auto db = m_databaseUser->GetDatabase())
 			db->RegisterObserver(this);
 	}
 

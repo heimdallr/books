@@ -77,7 +77,7 @@ std::unordered_map<long long, double> ReadRates(const ISettings& settings, const
 
 	std::unordered_map<long long, double> rate;
 
-	const auto db = databaseUser.Database();
+	const auto db = databaseUser.GetDatabase();
 	for (const auto query = db->CreateQuery("select b.BookID, f.FolderTitle||'#'||b.FileName from Books_View b join Folders f on f.FolderID = b.FolderID"); const auto& rec : *query)
 		if (const auto it = additionalRates.find(rec.Get<const char*>(1)); it != additionalRates.end())
 			rate.try_emplace(rec.Get<long long>(0), it->second);

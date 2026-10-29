@@ -54,7 +54,7 @@ IDatabaseMigrator::NeedMigrateResult DatabaseMigrator::NeedMigrate() const
 void DatabaseMigrator::Migrate()
 {
 	m_impl->databaseUser->Execute({ "Database migration", [this] {
-									   const auto db = m_impl->databaseUser->Database();
+									   const auto db = m_impl->databaseUser->GetDatabase();
 									   DatabaseScheme::Update(*db, *m_impl->collectionProvider);
 									   return [this](size_t) {
 										   m_impl->databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, Constant::FlibraryDatabaseVersionNumber);

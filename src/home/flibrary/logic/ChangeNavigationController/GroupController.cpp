@@ -87,7 +87,7 @@ struct GroupController::Impl
 			return;
 
 		databaseUser->Execute({ "Create group", [&, name = std::move(name), callback = std::move(callback)]() mutable {
-								   const auto db          = databaseUser->Database();
+								   const auto db          = databaseUser->GetDatabase();
 								   const auto transaction = db->CreateTransaction();
 								   auto       id          = CreateNewGroupImpl(*transaction, name);
 								   const auto ok          = id > 0 && transaction->Commit();
@@ -108,7 +108,7 @@ struct GroupController::Impl
 			return;
 
 		databaseUser->Execute({ "Rename group", [&, id, name = std::move(name), callback = std::move(callback)]() mutable {
-								   const auto db          = databaseUser->Database();
+								   const auto db          = databaseUser->GetDatabase();
 								   const auto transaction = db->CreateTransaction();
 								   const auto command     = transaction->CreateCommand("update Groups_User set Title = ? where GroupID = ?", name, id);
 								   const auto ok          = command->Execute() && transaction->Commit();
@@ -125,7 +125,7 @@ struct GroupController::Impl
 	void AddToGroup(Id id, Ids ids, QString name, Callback callback) const
 	{
 		databaseUser->Execute({ "Add to group", [&, id, ids = std::move(ids), callback = std::move(callback), name = std::move(name)]() mutable {
-								   const auto db          = databaseUser->Database();
+								   const auto db          = databaseUser->GetDatabase();
 								   const auto transaction = db->CreateTransaction();
 
 								   auto errorMessage = std::make_shared<QString>();
@@ -202,7 +202,7 @@ struct GroupController::Impl
 	void RemoveFromGroupAll(const Id id, Callback callback, const char* queryArg, const char* logArg) const
 	{
 		databaseUser->Execute({ QString("Remove all %1 from group").arg(logArg).toStdString(), [&, id, callback = std::move(callback), queryArg]() mutable {
-								   const auto db          = databaseUser->Database();
+								   const auto db          = databaseUser->GetDatabase();
 								   const auto transaction = db->CreateTransaction();
 								   const auto command =
 									   transaction->CreateCommand(QString("delete from Groups_List_User where GroupID = ? and exists (select 42 from %1 = Groups_List_User.ObjectID)").arg(queryArg), id);
@@ -249,7 +249,7 @@ void GroupController::Remove(Ids ids, Callback callback) const
 		return;
 
 	m_impl->databaseUser->Execute({ "Remove groups", [&, ids = std::move(ids), callback = std::move(callback)]() mutable {
-									   const auto db          = m_impl->databaseUser->Database();
+									   const auto db          = m_impl->databaseUser->GetDatabase();
 									   const auto transaction = db->CreateTransaction();
 									   const auto command     = transaction->CreateCommand(REMOVE_GROUP_QUERY);
 
@@ -310,7 +310,7 @@ void GroupController::RemoveFromGroup(const Id id, Ids ids, Callback callback) c
 									   if (id >= 0)
 										   queryText.append(REMOVE_FROM_GROUP_QUERY_SUFFIX);
 
-									   const auto db          = m_impl->databaseUser->Database();
+									   const auto db          = m_impl->databaseUser->GetDatabase();
 									   const auto transaction = db->CreateTransaction();
 									   const auto command     = transaction->CreateCommand(queryText);
 									   const auto ok          = std::ranges::all_of(

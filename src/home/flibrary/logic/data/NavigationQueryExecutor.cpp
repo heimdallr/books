@@ -182,13 +182,12 @@ void RequestNavigationList(
 	std::function<void(IDataItem::Items&)> postProcess
 )
 {
-	auto db = databaseUser.Database();
-	if (!db)
-		return;
-
 	databaseUser.Execute(
 		{ "Get navigation",
-		  [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), postProcess = std::move(postProcess), db = std::move(db)]() mutable {
+		  [&databaseUser, &queryDescription, &cache, mode = navigationMode, callback = std::move(callback), postProcess = std::move(postProcess)]() mutable {
+			  auto db = databaseUser.GetDatabase();
+			  assert(db);
+
 			  const auto query = db->CreateQuery(queryDescription.navigationQuery);
 			  const auto index = *query | std::views::transform([&](const auto& item) {
 				  auto dataItem = queryDescription.navigationExtractor(item);
@@ -266,13 +265,12 @@ void RequestNavigationPublishYears(
 
 void RequestNavigationGenres(NavigationMode navigationMode, INavigationQueryExecutor::Callback callback, const IDatabaseUser& databaseUser, const QueryDescription&, const ICollectionProvider&, Cache& cache)
 {
-	auto db = databaseUser.Database();
-	if (!db)
-		return;
-
 	databaseUser.Execute(
 		{ "Get navigation",
-		  [&cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable {
+		  [&databaseUser, &cache, mode = navigationMode, callback = std::move(callback)]() mutable {
+			  const auto db = databaseUser.GetDatabase();
+			  assert(!db);
+
 			  auto                                            genre = Genre::Load(*db);
 			  auto                                            root  = NavigationItem::Create();
 			  std::queue<std::pair<const Genre*, IDataItem*>> queue;
@@ -311,13 +309,12 @@ void RequestNavigationUpdates(
 	Cache& cache
 )
 {
-	auto db = databaseUser.Database();
-	if (!db)
-		return;
-
 	databaseUser.Execute(
 		{ "Get navigation",
-		  [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable {
+		  [&databaseUser, &queryDescription, &cache, mode = navigationMode, callback = std::move(callback)]() mutable {
+			  auto db = databaseUser.GetDatabase();
+			  assert(db);
+
 			  return CreateCalendarTree(mode, std::move(callback), cache, [&queryDescription, db = std::move(db)](std::unordered_map<long long, IDataItem::Ptr>& items) {
 				  for (const auto query = db->CreateQuery(queryDescription.navigationQuery); const auto& rec : *query)
 				  {
@@ -586,7 +583,7 @@ struct NavigationQueryExecutor::Impl final : virtual DB::IDatabaseObserver
 		: databaseUser { std::move(databaseUser) }
 		, collectionProvider { std::move(collectionProvider) }
 	{
-		if (const auto db = this->databaseUser->Database())
+		if (const auto db = this->databaseUser->GetDatabase())
 			db->RegisterObserver(this);
 	}
 

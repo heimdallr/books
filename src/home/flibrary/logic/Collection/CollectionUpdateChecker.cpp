@@ -65,10 +65,9 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 	if (!m_impl->collectionProvider->ActiveCollectionExists())
 		return callback(false, Collection {});
 
-	auto db = m_impl->databaseUser->Database();
 	m_impl->databaseUser->Execute(
 		{ "Check for collection index updated",
-		  [&, db = std::move(db), callback = std::move(callback)]() mutable {
+		  [&, callback = std::move(callback)]() mutable {
 			  std::function<void(size_t)> result;
 
 			  const auto& collection       = m_impl->collectionProvider->GetActiveCollection();
@@ -91,6 +90,7 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 			  }
 
 			  auto [_, ini]          = Inpx::Parser::GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), explicitInpx, false);
+			  const auto db          = m_impl->databaseUser->GetDatabase();
 			  const auto checkResult = Inpx::Parser::CheckForUpdate(std::move(ini), *db);
 			  result                 = [checkResult, updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) mutable {
 				  callback(checkResult, updatedCollection);

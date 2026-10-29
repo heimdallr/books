@@ -68,7 +68,7 @@ public:
 		, m_authorAnnotationController { std::move(authorAnnotationController) }
 	{
 		if (m_collectionProvider->ActiveCollectionExists())
-			DatabaseUtil::CreateHistoryTable(*m_databaseUser->Database(), *m_settings);
+			DatabaseUtil::CreateHistoryTable(*m_databaseUser->GetDatabase(), *m_settings);
 	}
 
 	void SetNavigationMode(const NavigationMode navigationMode)
@@ -192,7 +192,7 @@ private:
 				  if (!booksGeneratorReady)
 				  {
 					  const auto& activeCollection = m_collectionProvider->GetActiveCollection();
-					  const auto  db               = m_databaseUser->Database();
+					  const auto  db               = m_databaseUser->GetDatabase();
 					  generator                    = std::make_unique<BooksTreeGenerator>(*m_settings, activeCollection, *db, navigationMode, navigationId, description, *m_filterProvider);
 
 					  if (navigationMode == NavigationMode::Authors && !navigationId.isEmpty())

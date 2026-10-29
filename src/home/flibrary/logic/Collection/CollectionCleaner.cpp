@@ -250,7 +250,7 @@ struct CollectionCleanerLogic::Impl
 			         && !observer.NeedDeleteUnrated() && !observer.GetMinimumLibRate() && !observer.NeedDeleteCompletelyDuplicatedCompilations() && !observer.NeedDeleteBooksDuplicatedByCompilations())
 					 return result;
 
-				 const auto db = databaseUser->Database();
+				 const auto db = databaseUser->GetDatabase();
 				 PLOGI << "get books info";
 				 auto analyzedBooks = GetAnalyzedBooks(*db, *libRateProvider, observer, !genres.isEmpty(), analyzeCanceled);
 				 PLOGI << "total books found: " << analyzedBooks.size();
@@ -371,7 +371,8 @@ struct CollectionCleanerLogic::Impl
 								   std::ranges::transform(books, std::inserter(ids, ids.end()), [](const auto& book) {
 									   return book.id;
 								   });
-								   const bool ok = DatabaseUtil::ChangeBookRemoved(*databaseUser->Database(), ids, true, progressController);
+								   const auto db = databaseUser->GetDatabase();
+								   const bool ok = DatabaseUtil::ChangeBookRemoved(*db, ids, true, progressController);
 								   return [callback = std::move(callback), ok](size_t) {
 									   callback(ok);
 								   };
@@ -395,7 +396,7 @@ struct CollectionCleanerLogic::Impl
 				 std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
 				 RemoveFiles(allFiles, collectionFolder);
 
-				 const auto db          = databaseUser->Database();
+				 const auto db          = databaseUser->GetDatabase();
 				 const auto transaction = db->CreateTransaction();
 
 				 auto ok = RemoveBooksImpl(books, *transaction, *progressItem);
@@ -445,7 +446,7 @@ void CollectionCleanerLogic::AnalyzeCancel() const
 
 void CollectionCleanerLogic::CompilationInfoExistsRequest(IAnalyzeObserver& callback) const
 {
-	const auto db    = m_impl->databaseUser->Database();
+	const auto db    = m_impl->databaseUser->GetDatabase();
 	const auto query = db->CreateQuery(std::format("SELECT exists(SELECT 42 FROM Compilation_List)"));
 	query->Execute();
 	callback.CompilationInfoExistsResponse(query->Get<int>(0) != 0);

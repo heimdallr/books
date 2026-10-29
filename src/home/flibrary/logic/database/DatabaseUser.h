@@ -1,27 +1,29 @@
 #pragma once
 
+#include <memory>
+
 #include <QTimer>
 
 #include "fnd/NonCopyMovable.h"
-#include "fnd/memory.h"
 
-#include "interface/logic/IDatabaseController.h"
+#include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/ILogicFactory.h"
 
 namespace HomeCompa::Flibrary {
 
-class DatabaseUser : public IDatabaseUser
+class DatabaseUser final : public IDatabaseUser
 {
 	NON_COPY_MOVABLE(DatabaseUser)
 
 public:
-	DatabaseUser(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<IDatabaseController> databaseController);
+	DatabaseUser(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<const ICollectionProvider> collectionProvider);
 	~DatabaseUser() override;
 
 public:
 	size_t                           Execute(Util::IExecutor::Task&& task, int priority = 0) const override;
-	std::shared_ptr<DB::IDatabase>   Database() const override;
+	void                             Reset() override;
+	std::shared_ptr<DB::IDatabase>   GetDatabase() const override;
 	std::shared_ptr<DB::IDatabase>   CheckDatabase() const override;
 	std::shared_ptr<Util::IExecutor> Executor() const override;
 	void                             EnableApplicationCursorChange(bool value) override;
@@ -30,7 +32,7 @@ public:
 
 private:
 	struct Impl;
-	PropagateConstPtr<Impl> m_impl;
+	std::unique_ptr<Impl> m_impl;
 };
 
 } // namespace HomeCompa::Flibrary

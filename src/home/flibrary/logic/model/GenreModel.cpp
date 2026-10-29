@@ -216,7 +216,8 @@ private:
 	{
 		const auto& databaseUserRef = *databaseUser;
 		databaseUserRef.Execute({ "Create genre list", [&, databaseUser = std::move(databaseUser)]() mutable {
-									 auto root = Genre::Load(*databaseUser->Database());
+									 const auto db   = databaseUser->GetDatabase();
+									 auto       root = Genre::Load(*db);
 									 return [this, root = std::move(root)](size_t) mutable {
 										 const ScopedCall modelGuard(
 											 [this] {

@@ -52,7 +52,7 @@ struct BookExtractor::Impl
 
 	Util::ExtractedBook GetExtractedBook(const QString& bookId) const
 	{
-		const auto db    = databaseUser->Database();
+		const auto db    = databaseUser->GetDatabase();
 		const auto query = db->CreateQuery(R"(
 select
     f.FolderTitle,
@@ -100,7 +100,7 @@ order by al.OrdNum, sl.OrdNum limit 1
 
 	Util::ExtractedBook::Author GetExtractedBookAuthor(const QString& bookId) const
 	{
-		const auto db    = databaseUser->Database();
+		const auto db    = databaseUser->GetDatabase();
 		const auto query = db->CreateQuery(R"(
 select a.FirstName, a.MiddleName, a.LastName
 from Authors a
@@ -121,7 +121,7 @@ order by al.OrdNum limit 1
 	QString GetFileName(const Util::ExtractedBook& book) const
 	{
 		auto outputFileName = m_outputFileNameTemplate;
-		auto db             = databaseUser->Database();
+		auto db             = databaseUser->GetDatabase();
 		ILogicFactory::FillScriptTemplate(*db, outputFileName, book);
 		if (!settings->Get(OPDS_TRANSLITERATE, false))
 			return outputFileName;

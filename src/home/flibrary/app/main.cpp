@@ -13,7 +13,6 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseMigrator.h"
 #include "interface/logic/IDatabaseUser.h"
 #include "interface/logic/IOpdsController.h"
@@ -70,7 +69,7 @@ std::optional<Collection> RecreateDatabase(Hypodermic::Container& container, con
 
 	if (!force && uiFactory->ShowWarning(Tr(UNSUPPORTED_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::Yes) != QMessageBox::Yes)
 	{
-		container.resolve<IDatabaseController>()->Reset();
+		container.resolve<IDatabaseUser>()->Reset();
 		return showWarning(Tr(REMOVE_DATABASE_MANUALLY).arg(container.resolve<ICollectionProvider>()->GetActiveCollection().GetDatabase()));
 	}
 
@@ -95,7 +94,7 @@ std::optional<Collection> RecreateDatabase(Hypodermic::Container& container, con
 	if (!errorMessage.isEmpty())
 		return showWarning(errorMessage);
 
-	container.resolve<IDatabaseController>()->Reset();
+	container.resolve<IDatabaseUser>()->Reset();
 
 	QFile db(activeCollection.GetDatabase());
 	db.remove();

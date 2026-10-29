@@ -7,7 +7,7 @@
 #include "interface/IReactAppRequester.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseController.h"
+#include "interface/logic/IDatabaseUser.h"
 
 #include "settings/ISettings.h"
 
@@ -21,7 +21,7 @@ public:
 	ReactAppRequester(
 		std::shared_ptr<const ISettings>                     settings,
 		std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-		std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
+		std::shared_ptr<const Flibrary::IDatabaseUser>       databaseUser,
 		std::shared_ptr<const ICoverCache>                   coverCache,
 		std::shared_ptr<Flibrary::IAnnotationController>     annotationController
 	);

@@ -615,7 +615,7 @@ private: // ILineOption::IObserver
 			return;
 
 		const auto converter = logicFactory->CreateFillTemplateConverter();
-		auto       db        = m_databaseUser->Database();
+		auto       db        = m_databaseUser->GetDatabase();
 		converter->Fill(*db, value, books.front(), Tr(MY_FOLDER));
 		PLOGI << books.front().dstFileName;
 	}
@@ -1338,7 +1338,7 @@ private:
 		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 
-		const auto db = m_databaseUser->Database();
+		const auto db = m_databaseUser->GetDatabase();
 		if (!db)
 			return;
 

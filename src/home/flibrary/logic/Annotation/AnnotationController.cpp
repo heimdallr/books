@@ -563,13 +563,14 @@ private:
 	void ExtractInfo()
 	{
 		m_ready = Ready::None;
-		auto db = m_databaseUser->Database();
-		if (!db || m_currentBookId.isEmpty())
+		if (m_currentBookId.isEmpty())
 			return;
 
 		m_databaseUser->Execute(
 			{ "Get database book info",
-			  [&, db = std::move(db), id = m_currentBookId.toLongLong()] {
+			  [&, id = m_currentBookId.toLongLong()] {
+				  const auto db = m_databaseUser->GetDatabase();
+				  assert(db);
 				  return [this, book = CreateBook(*db, id)](size_t) mutable {
 					  if (book->GetId() == m_currentBookId)
 						  ExtractInfo(std::move(book));
@@ -616,7 +617,7 @@ private:
 		m_databaseUser->Execute(
 			{ "Get database book additional info",
 			  [this, book = std::move(book)]() mutable {
-				  const auto db       = m_databaseUser->Database();
+				  const auto db       = m_databaseUser->GetDatabase();
 				  const auto bookId   = book->GetId().toLongLong();
 				  auto       series   = CreateDictionary(*db, std::format(SERIES_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSeriesItem);
 				  auto       authors  = CreateDictionary(*db, std::format(AUTHORS_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateFullAuthorItem);

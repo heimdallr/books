@@ -85,20 +85,20 @@ struct ReactAppRequester::Impl
 {
 	std::shared_ptr<const ISettings>                     settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider;
-	std::shared_ptr<const Flibrary::IDatabaseController> databaseController;
+	std::shared_ptr<const Flibrary::IDatabaseUser>       databaseUser;
 	std::shared_ptr<const ICoverCache>                   coverCache;
 	std::shared_ptr<Flibrary::IAnnotationController>     annotationController;
 
 	Impl(
 		std::shared_ptr<const ISettings>                     settings,
 		std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-		std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
+		std::shared_ptr<const Flibrary::IDatabaseUser>       databaseUser,
 		std::shared_ptr<const ICoverCache>                   coverCache,
 		std::shared_ptr<Flibrary::IAnnotationController>     annotationController
 	)
 		: settings { std::move(settings) }
 		, collectionProvider { std::move(collectionProvider) }
-		, databaseController { std::move(databaseController) }
+		, databaseUser { std::move(databaseUser) }
 		, coverCache { std::move(coverCache) }
 		, annotationController { std::move(annotationController) }
 	{
@@ -106,7 +106,7 @@ struct ReactAppRequester::Impl
 
 	QJsonObject getConfig(const Parameters&) const
 	{
-		const auto db = databaseController->GetDatabase(true);
+		const auto db = databaseUser->GetDatabase();
 
 		QJsonObject result;
 		{
@@ -380,7 +380,7 @@ where g.GroupID = ?
 private:
 	std::unique_ptr<DB::IQuery> CreateParameterQuery(const QString& queryText, const QString& parameter, const bool isSearch) const
 	{
-		const auto db    = databaseController->GetDatabase(true);
+		const auto db    = databaseUser->GetDatabase();
 		auto       query = db->CreateQuery(queryText.toStdString());
 		query->Bind(0, (isSearch ? PrepareSearchTerms(parameter) : parameter).toStdString());
 		return query;
@@ -431,7 +431,7 @@ private:
 			}
 		);
 
-		const auto db = databaseController->GetDatabase(true);
+		const auto db = databaseUser->GetDatabase();
 		for (auto query = db->CreateQuery(queryText.arg(joins.join('\n')).toStdString()); const auto& rec : *query)
 			array.append(FromQuery<const char*>(rec));
 
@@ -481,17 +481,16 @@ QByteArray GetImpl(Obj& obj, NavigationGetter getter, const ARGS&... args)
 ReactAppRequester::ReactAppRequester(
 	std::shared_ptr<const ISettings>                     settings,
 	std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-	std::shared_ptr<const Flibrary::IDatabaseController> databaseController,
+	std::shared_ptr<const Flibrary::IDatabaseUser>       databaseUser,
 	std::shared_ptr<const ICoverCache>                   coverCache,
 	std::shared_ptr<Flibrary::IAnnotationController>     annotationController
 )
-	: m_impl(std::move(settings), std::move(collectionProvider), std::move(databaseController), std::move(coverCache), std::move(annotationController))
+	: m_impl(std::move(settings), std::move(collectionProvider), std::move(databaseUser), std::move(coverCache), std::move(annotationController))
 {
 }
 
 ReactAppRequester::~ReactAppRequester() = default;
 
-#define OPDS_GET_BOOKS_API_ITEM(NAME)                                                                                                                                                                          \
-	QByteArray ReactAppRequester::NAME(const Parameters &parameters) const { return GetImpl(*m_impl, &Impl::NAME, parameters); }
+#define OPDS_GET_BOOKS_API_ITEM(NAME) QByteArray ReactAppRequester::NAME(const Parameters &parameters) const { return GetImpl(*m_impl, &Impl::NAME, parameters); }
 OPDS_GET_BOOKS_API_ITEMS_X_MACRO
 #undef OPDS_GET_BOOKS_API_ITEM

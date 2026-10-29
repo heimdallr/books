@@ -5,7 +5,6 @@
 #include <QBuffer>
 #include <QByteArray>
 #include <QDir>
-#include <QEventLoop>
 #include <QFileInfo>
 #include <QRegularExpression>
 #include <QUrl>
@@ -22,7 +21,6 @@
 #include "interface/localization.h"
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseController.h"
 
 #include "genre/Genre.h"
 #include "logic/data/DataItem.h"
@@ -807,7 +805,7 @@ public:
 	Impl(
 		std::shared_ptr<const ISettings>                             settings,
 		std::shared_ptr<const Flibrary::ICollectionProvider>         collectionProvider,
-		std::shared_ptr<const Flibrary::IDatabaseController>         databaseController,
+		std::shared_ptr<const Flibrary::IDatabaseUser>               databaseUser,
 		std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
 		std::shared_ptr<const Flibrary::IFilterProvider>             filterProvider,
 		std::shared_ptr<const Flibrary::IBookExtractor>              bookExtractor,
@@ -817,7 +815,7 @@ public:
 	)
 		: m_settings { std::move(settings) }
 		, m_collectionProvider { std::move(collectionProvider) }
-		, m_databaseController { std::move(databaseController) }
+		, m_databaseUser { std::move(databaseUser) }
 		, m_authorAnnotationController { std::move(authorAnnotationController) }
 		, m_filterProvider { std::move(filterProvider) }
 		, m_bookExtractor { std::move(bookExtractor) }
@@ -835,7 +833,7 @@ public:
 
 	Node GetRoot(const QString& root, const Parameters& parameters) const
 	{
-		const auto db = m_databaseController->GetDatabase(true);
+		const auto db = m_databaseUser->GetDatabase();
 
 		static constexpr std::pair<Flibrary::NavigationMode, const char*> navigationTypes[] {
 #define OPDS_INVOKER_ITEM(NAME) { Flibrary::NavigationMode::NAME, Loc::NAME },
@@ -902,7 +900,7 @@ public:
 
 	Node GetBooks(const QString& root, const Parameters& parameters) const
 	{
-		const auto db = m_databaseController->GetDatabase(true);
+		const auto db = m_databaseUser->GetDatabase();
 
 		auto head = GetHead(BOOKS, GetTitle(*db, *this, parameters, {}), root, CreateSelf(root, BOOKS, parameters));
 		FoldNavigation(head.children, root, parameters, BOOK_DESCRIPTION);
@@ -920,7 +918,7 @@ public:
 		Node head;
 
 		AnnotationControllerObserver::Request(*m_annotationController, parameters.at(BOOKS), [&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
-			const auto  db   = m_databaseController->GetDatabase(true);
+			const auto  db   = m_databaseUser->GetDatabase();
 			const auto& book = dataProvider.GetBook();
 
 			head = GetHead(book.GetId(), book.GetRawData(Flibrary::BookItem::Column::Title), root, CreateSelf(root, BOOKS, parameters));
@@ -1026,7 +1024,7 @@ public:
 		const auto n = head.children.size();
 
 		{
-			const auto db   = m_databaseController->GetDatabase(true);
+			const auto db   = m_databaseUser->GetDatabase();
 			auto       ones = [&] {
 				const auto query = db->CreateQuery(FilterQueryText(queryText), terms);
 				return *query | std::views::transform([](auto& item) {
@@ -1115,7 +1113,7 @@ public:
 
 	void Init() const
 	{
-		const auto db = m_databaseController->GetDatabase();
+		const auto db = m_databaseUser->GetDatabase();
 		BookView::Create(*db, *m_settings, *m_filterProvider);
 	}
 
@@ -1165,7 +1163,7 @@ public:
 private: // INavigationProvider
 	Node GetNavigationMain(const QString& root, const Parameters& parameters, const NavigationDescription& d) const override
 	{
-		const auto db   = m_databaseController->GetDatabase(true);
+		const auto db   = m_databaseUser->GetDatabase();
 		auto       head = GetHead(d.type, GetTitle(*db, *this, parameters, { .additionalTitle = Loc::Tr(Loc::NAVIGATION, d.type) }), root, CreateSelf(root, d.type, parameters));
 		FoldNavigation(head.children, root, parameters, d);
 
@@ -1182,7 +1180,7 @@ private: // INavigationProvider
 	template <typename T, typename DBCodeType>
 	Node GetNavigationT(const QString& root, const Parameters& parameters, const NavigationDescription& d) const
 	{
-		const auto db = m_databaseController->GetDatabase(true);
+		const auto db = m_databaseUser->GetDatabase();
 
 		auto join = [&] {
 			auto p = parameters;
@@ -1257,7 +1255,7 @@ private: // IQueryTextFilter
 private:
 	void FoldNavigation(Node::Children& children, const QString& root, const Parameters& parameters, const NavigationDescription& d) const
 	{
-		const auto db = m_databaseController->GetDatabase(true);
+		const auto db = m_databaseUser->GetDatabase();
 
 		QStringList                                       equal;
 		std::map<QString, QString>                        ones;
@@ -1377,7 +1375,7 @@ private:
 private:
 	std::shared_ptr<const ISettings>                             m_settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider>         m_collectionProvider;
-	std::shared_ptr<const Flibrary::IDatabaseController>         m_databaseController;
+	std::shared_ptr<const Flibrary::IDatabaseUser>               m_databaseUser;
 	std::shared_ptr<const Flibrary::IAuthorAnnotationController> m_authorAnnotationController;
 	std::shared_ptr<const Flibrary::IFilterProvider>             m_filterProvider;
 	std::shared_ptr<const Flibrary::IBookExtractor>              m_bookExtractor;
@@ -1393,7 +1391,7 @@ namespace {
 Requester::Requester(
 	std::shared_ptr<const ISettings>                             settings,
 	std::shared_ptr<const Flibrary::ICollectionProvider>         collectionProvider,
-	std::shared_ptr<const Flibrary::IDatabaseController>         databaseController,
+	std::shared_ptr<const Flibrary::IDatabaseUser>               databaseUser,
 	std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
 	std::shared_ptr<const Flibrary::IFilterProvider>             filterProvider,
 	std::shared_ptr<const Flibrary::IBookExtractor>              bookExtractor,
@@ -1404,7 +1402,7 @@ Requester::Requester(
 	: m_impl(
 		  std::move(settings),
 		  std::move(collectionProvider),
-		  std::move(databaseController),
+		  std::move(databaseUser),
 		  std::move(authorAnnotationController),
 		  std::move(filterProvider),
 		  std::move(bookExtractor),
@@ -1436,14 +1434,13 @@ QByteArray Requester::GetBookText(const QString& root, const Parameters& paramet
 	return m_impl->GetBookText(root, parameters);
 }
 
-#define OPDS_INVOKER_ITEM(NAME)                                                                                                                                                                                \
-	QByteArray Requester::Get##NAME(const QString &root, const Parameters &parameters) const {                                                                                                                 \
-		return m_impl->GetImpl(&Impl::GetNavigation, ContentType::Navigation, std::cref(root), std::cref(parameters), Flibrary::NavigationMode::NAME);                                                         \
+#define OPDS_INVOKER_ITEM(NAME)                                                                                                                        \
+	QByteArray Requester::Get##NAME(const QString &root, const Parameters &parameters) const {                                                         \
+		return m_impl->GetImpl(&Impl::GetNavigation, ContentType::Navigation, std::cref(root), std::cref(parameters), Flibrary::NavigationMode::NAME); \
 	}
 OPDS_NAVIGATION_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM
 
-#define OPDS_INVOKER_ITEM(NAME)                                                                                                                                                                                \
-	QByteArray Requester::Get##NAME(const QString &root, const Parameters &parameters) const { return m_impl->GetImpl(&Impl::Get##NAME, ContentType::NAME, std::cref(root), std::cref(parameters)); }
+#define OPDS_INVOKER_ITEM(NAME) QByteArray Requester::Get##NAME(const QString &root, const Parameters &parameters) const { return m_impl->GetImpl(&Impl::Get##NAME, ContentType::NAME, std::cref(root), std::cref(parameters)); }
 OPDS_ADDITIONAL_ITEMS_X_MACRO
 #undef OPDS_INVOKER_ITEM

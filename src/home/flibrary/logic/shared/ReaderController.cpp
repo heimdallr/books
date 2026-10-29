@@ -116,7 +116,7 @@ struct ReaderController::Impl
 		if (!ReadImpl(std::move(temporaryDir), std::move(fileName), removeCurrentReader, error))
 			return;
 
-		const auto db          = databaseUser->Database();
+		const auto db          = databaseUser->GetDatabase();
 		const auto transaction = db->CreateTransaction();
 		transaction->CreateQuery(ExportStat::INSERT_QUERY)->Execute(id, static_cast<int>(ExportStat::Type::Read));
 
@@ -234,7 +234,7 @@ struct ReaderController::Impl
 		fileNameTemplate.replace("%file_ext%", QFileInfo(fileName).suffix());
 		fileNameTemplate.replace("%user_destination_folder%", "");
 
-		const auto db = databaseUser->Database();
+		const auto db = databaseUser->GetDatabase();
 		ILogicFactory::FillScriptTemplate(*db, fileNameTemplate, ILogicFactory::Lock(logicFactory)->GetCurrentExtractedBook());
 
 		return fileNameTemplate;
@@ -332,7 +332,7 @@ void ReaderController::Read(long long id) const
 
 	const auto& executorRef = *executor;
 	executorRef({ "Get archive and file names", [this, id, executor = std::move(executor), removeCurrentReader]() mutable {
-					 const auto db = m_impl->databaseUser->Database();
+					 const auto db = m_impl->databaseUser->GetDatabase();
 
 					 auto [folderName, fileName] = [&] {
 						 const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
@@ -362,7 +362,7 @@ void ReaderController::ReadRandomBook(QString lang) const
 									   std::function<void(size_t)> result { [](size_t) {
 									   } };
 
-									   const auto db    = m_impl->databaseUser->Database();
+									   const auto db    = m_impl->databaseUser->GetDatabase();
 									   const auto query = db->CreateQuery("select b.BookID from Books b join Folders f on f.FolderID = b.FolderID where b.Lang = ?", lang);
 
 									   const auto allBooks = *query | std::views::transform([](auto& item) {

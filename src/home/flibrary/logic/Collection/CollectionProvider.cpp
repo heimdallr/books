@@ -198,8 +198,7 @@ QStringList CollectionProvider::GetCollectionStatistics(const IDatabaseUser& dat
 		QT_TRANSLATE_NOOP("CollectionStatistics", "Groups:"),   QT_TRANSLATE_NOOP("CollectionStatistics", "Books:"),     QT_TRANSLATE_NOOP("CollectionStatistics", "Deleted books:"),
 	};
 
-	const auto bookQuery = databaseUser.Database()->CreateQuery(dbStatQueryText);
-	for (auto&& [it, name] : std::views::zip(*bookQuery, names))
+	for (const auto bookQuery = databaseUser.GetDatabase()->CreateQuery(dbStatQueryText); auto&& [it, name] : std::views::zip(*bookQuery, names))
 		stats << QString("%1 %2").arg(Loc::Tr(CONTEXT, name)).arg(it.Get<const char*>(0));
 
 	return stats;

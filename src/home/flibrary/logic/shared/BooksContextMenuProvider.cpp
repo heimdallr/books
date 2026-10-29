@@ -261,7 +261,7 @@ public:
 			   options,
 			   starSymbol    = m_starSymbol,
 			   callback      = std::move(callback),
-			   db            = m_databaseUser->Database(),
+			   db            = m_databaseUser->GetDatabase(),
 			   scripts       = std::move(scripts),
 			   currentLocale = std::move(currentLocale)]() mutable {
 				  auto result = MenuItem::Create();
@@ -436,7 +436,7 @@ private: // IContextMenuHandler
 	void SetUserRate(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
 		m_databaseUser->Execute({ "Set my rate", [this, model = QPointer { model }, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable {
-									 const auto db          = m_databaseUser->Database();
+									 const auto db          = m_databaseUser->GetDatabase();
 									 const auto transaction = db->CreateTransaction();
 									 const auto command     = transaction->CreateCommand(IDatabaseUser::SET_USER_RATE_COMMAND);
 									 const auto rate        = [&]() -> std::optional<int> {
@@ -531,10 +531,10 @@ private: // IContextMenuHandler
 			{ "Change book language", [this, model = QPointer(model), ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable {
 				 auto lang = item->GetData(MenuItem::Column::Parameter).toStdString();
 
-				 const auto db          = m_databaseUser->Database();
+				 const auto db          = m_databaseUser->GetDatabase();
 				 const auto transaction = db->CreateTransaction();
 
-				 transaction->CreateCommand("insert or ignore into Languages(LanguageCode, Flags) values(?, 0)")->Execute(lang);
+				 transaction->CreateCommand("insert or ignore into Languages(LanguageCode) values(?)")->Execute(lang);
 
 				 const auto execute = [&](const char* commandText) -> bool {
 					 const auto command = transaction->CreateCommand(commandText);
@@ -662,7 +662,7 @@ private: // IContextMenuHandler
 		m_databaseUser->Execute({ "Clear history", [this, item = std::move(item), callback = std::move(callback)]() mutable {
 									 const auto lang = item->GetData(MenuItem::Column::Parameter).toStdString();
 
-									 const auto db = m_databaseUser->Database();
+									 const auto db = m_databaseUser->GetDatabase();
 									 const auto tr = db->CreateTransaction();
 									 tr->CreateCommand(std::format("delete from {}", DatabaseUtil::GetHistoryTableName(*m_settings)))->Execute();
 									 tr->Commit();
@@ -756,7 +756,7 @@ private:
 		if (sendSettings.tempFolder)
 			tempDir = std::make_shared<QTemporaryDir>();
 
-		const auto db = m_databaseUser->Database();
+		const auto db = m_databaseUser->GetDatabase();
 		for (auto& book : books)
 			fillTemplateConverter->Fill(*db, outputFileNameTemplate, book, tempDir ? tempDir->filePath("") : dir);
 
@@ -808,7 +808,7 @@ private:
 	void ChangeBookRemoved(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback, const bool remove) const
 	{
 		m_databaseUser->Execute({ "Remove books", [this, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback), remove]() mutable {
-									 const bool ok    = DatabaseUtil::ChangeBookRemoved(*m_databaseUser->Database(), ids, remove);
+									 const bool ok    = DatabaseUtil::ChangeBookRemoved(*m_databaseUser->GetDatabase(), ids, remove);
 									 auto       idSet = ids | std::views::transform([](const auto& id) {
 													  return QString::number(id);
 														})

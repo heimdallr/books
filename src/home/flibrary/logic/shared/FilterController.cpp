@@ -59,11 +59,11 @@ struct FilterController::Impl final : Observable<IObserver>
 
 	void ProcessNavigationItemFlags(const NavigationMode navigationMode, QStringList navigationIds, const IDataItem::Flags flags, Callback callback, const std::string_view queryText)
 	{
-		auto db = databaseUser->Database();
-		databaseUser->Execute({ "Apply filter", [this, db = std::move(db), navigationMode, ids = std::move(navigationIds), flags, callback = std::move(callback), queryText]() mutable {
+		databaseUser->Execute({ "Apply filter", [this, navigationMode, ids = std::move(navigationIds), flags, callback = std::move(callback), queryText]() mutable {
 								   const auto& description = GetFilteredNavigationDescription(navigationMode);
 								   assert(description.table && description.idField);
 
+								   const auto db      = databaseUser->GetDatabase();
 								   const auto tr      = db->CreateTransaction();
 								   const auto command = tr->CreateCommand(std::vformat(queryText, std::make_format_args(description.table, description.idField)));
 								   for (const auto& id : ids)
@@ -102,7 +102,7 @@ std::vector<IDataItem::Flags> FilterController::GetFlags(const NavigationMode na
 
 	std::vector<IDataItem::Flags> result;
 
-	const auto db    = m_impl->databaseUser->Database();
+	const auto db    = m_impl->databaseUser->GetDatabase();
 	const auto query = db->CreateQuery(std::format("select Flags from {} where {} = ?", description.table, description.idField));
 	for (const auto& id : ids)
 	{
@@ -153,8 +153,7 @@ void FilterController::SetFilterEnabled(const bool enabled)
 
 void FilterController::Apply()
 {
-	auto db = m_impl->databaseUser->Database();
-	m_impl->databaseUser->Execute({ "Apply filter", [this, db = std::move(db), changes = std::move(m_impl->changes)] {
+	m_impl->databaseUser->Execute({ "Apply filter", [this, changes = std::move(m_impl->changes)] {
 									   std::vector<NavigationMode> changed;
 									   for (size_t index = 0; auto& change : changes)
 									   {
@@ -169,6 +168,7 @@ void FilterController::Apply()
 										   const auto& description = GetFilteredNavigationDescription(navigationMode);
 										   assert(description.table && description.idField);
 
+										   const auto db      = m_impl->databaseUser->GetDatabase();
 										   const auto tr      = db->CreateTransaction();
 										   const auto command = tr->CreateCommand(std::vformat(SET_FILTER_QUERY, std::make_format_args(description.table, description.idField)));
 										   for (const auto& [id, flags] : change)
@@ -228,8 +228,7 @@ void FilterController::HideFiltered(NavigationMode navigationMode, QPointer<QAbs
 	if (const auto locked = callback.lock())
 		locked->OnStarted();
 
-	auto db = m_impl->databaseUser->Database();
-	m_impl->databaseUser->Execute({ "Hide filtered", [navigationMode, model = std::move(model), callback = std::move(callback), db = std::move(db)]() mutable {
+	m_impl->databaseUser->Execute({ "Hide filtered", [this, navigationMode, model = std::move(model), callback = std::move(callback)]() mutable {
 									   using DescriptionItem = std::tuple<NavigationMode, const char*, const char*, const char*, const char*>;
 									   static constexpr DescriptionItem description[] {
 										   {   NavigationMode::Authors,       " join Author_List al on al.BookID = b.BookID",         " join Authors a on a.AuthorID = al.AuthorID", "a",    "al.AuthorID" },
@@ -254,6 +253,9 @@ void FilterController::HideFiltered(NavigationMode navigationMode, QPointer<QAbs
 									   auto now = std::chrono::system_clock::now();
 
 									   std::unordered_map<QString, std::pair<std::unordered_set<long long>, std::unordered_set<long long>>> values;
+
+									   const auto db = m_impl->databaseUser->GetDatabase();
+
 									   for (const auto query =
 									            db->CreateQuery(std::format("select {}, b.BookID, (0 {}) & {} from Books b{}", select, flags, static_cast<int>(IDataItem::Flags::BooksFiltered), from));
 									        const auto& rec : *query)

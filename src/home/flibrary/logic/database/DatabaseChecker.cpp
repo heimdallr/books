@@ -17,5 +17,5 @@ DatabaseChecker::~DatabaseChecker()
 
 bool DatabaseChecker::IsDatabaseValid() const
 {
-	return !!m_databaseUser->Database();
+	return !!m_databaseUser->GetDatabase();
 }

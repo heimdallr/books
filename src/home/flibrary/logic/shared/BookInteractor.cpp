@@ -278,7 +278,7 @@ private: // IBookInteractorImpl
 		if (std::get<0>(description) == NavigationMode::Unknown)
 			return Read(bookId, {}, {});
 
-		const auto db    = databaseUser->Database();
+		const auto db    = databaseUser->GetDatabase();
 		const auto query = db->CreateQuery(std::get<1>(description), bookId);
 		const auto match = *query | std::views::transform([&](const auto& item) {
 			return std::invoke(std::get<2>(description), title, item);
@@ -314,7 +314,7 @@ private:
 			tempDir = std::make_shared<QTemporaryDir>();
 
 		const auto fillTemplateConverter = ILogicFactory::Lock(logicFactory)->CreateFillTemplateConverter(options.createFillTemplateConverterParameter);
-		const auto db                    = databaseUser->Database();
+		const auto db                    = databaseUser->GetDatabase();
 		fillTemplateConverter->Fill(*db, book.dstFileName, book, tempDir ? tempDir->filePath("") : folder);
 
 		if (!options.ext.isEmpty())
@@ -336,7 +336,7 @@ private:
 		if (!NAVIGATION_ID_QUERY[navigationIndex])
 			return;
 
-		const auto db    = databaseUser->Database();
+		const auto db    = databaseUser->GetDatabase();
 		const auto query = db->CreateQuery(NAVIGATION_ID_QUERY[navigationIndex]);
 		query->Execute(bookId);
 		if (!query->Eof())

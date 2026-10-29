@@ -73,7 +73,7 @@ public:
 private:
 	void StartTransaction()
 	{
-		m_transaction = m_databaseUser->Database()->CreateTransaction();
+		m_transaction = m_databaseUser->GetDatabase()->CreateTransaction();
 		SetEnabled();
 	}
 
@@ -123,7 +123,7 @@ private:
 
 	void ExecuteQueryImpl() const
 	{
-		const auto db    = m_databaseUser->Database();
+		const auto db    = m_databaseUser->GetDatabase();
 		const auto query = db->CreateQuery(GetQueryText());
 		query->Execute();
 		{

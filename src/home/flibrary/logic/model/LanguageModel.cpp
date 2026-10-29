@@ -41,7 +41,7 @@ public:
 	{
 		const auto& databaseUserRef = *databaseUser;
 		databaseUserRef.Execute({ "Create language list", [&, databaseUser = std::move(databaseUser)]() mutable {
-									 const auto db    = databaseUser->Database();
+									 const auto db    = databaseUser->GetDatabase();
 									 const auto query = db->CreateQuery("select Lang, count(42) from Books group by Lang");
 									 auto       items = *query | std::views::transform([](const auto& item) {
 										 return Item { item.template Get<const char*>(0), item.template Get<int>(1) };

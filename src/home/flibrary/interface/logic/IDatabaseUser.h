@@ -43,7 +43,8 @@ public:
 
 public:
 	virtual size_t                           Execute(Util::IExecutor::Task&& task, int priority = 0) const = 0;
-	virtual std::shared_ptr<DB::IDatabase>   Database() const                                              = 0;
+	virtual void                             Reset()                                                       = 0;
+	virtual std::shared_ptr<DB::IDatabase>   GetDatabase() const                                           = 0;
 	virtual std::shared_ptr<DB::IDatabase>   CheckDatabase() const                                         = 0;
 	virtual std::shared_ptr<Util::IExecutor> Executor() const                                              = 0;
 	virtual void                             EnableApplicationCursorChange(bool value)                     = 0;

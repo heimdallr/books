@@ -25,14 +25,14 @@ TR_DEF
 
 namespace HomeCompa::Flibrary::UserData {
 
-void Restore(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName, Callback callback);
-void ImportFromMyHomeLib(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName, Callback callback);
+void Restore(const Util::IExecutor& executor, const IDatabaseUser& databaseUser, QString fileName, Callback callback);
+void ImportFromMyHomeLib(const Util::IExecutor& executor, const IDatabaseUser& databaseUser, QString fileName, Callback callback);
 
 } // namespace HomeCompa::Flibrary::UserData
 
-UserDataController::UserDataController(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<IUiFactory> uiFactory)
-	: m_databaseUser(std::move(databaseUser))
-	, m_uiFactory(std::move(uiFactory))
+UserDataController::UserDataController(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<IUiFactory> uiFactory)
+	: m_databaseUser { std::move(databaseUser) }
+	, m_uiFactory { std::move(uiFactory) }
 {
 	PLOGV << "UserDataController created";
 }
@@ -69,11 +69,9 @@ void UserDataController::Do(Callback callback, QString fileName, const char* suc
 		return;
 
 	auto executor = m_databaseUser->Executor();
-	auto db       = m_databaseUser->Database();
 
-	f(*executor, *db, std::move(fileName), [&, successMessage, executor, db, callback = std::move(callback)](const QString& error) mutable {
+	f(*executor, *m_databaseUser, std::move(fileName), [&, successMessage, executor, callback = std::move(callback)](const QString& error) mutable {
 		executor.reset();
-		db.reset();
 		callback(error.isEmpty(), Tr(error.isEmpty() ? successMessage : error.toStdString().data()));
 	});
 }

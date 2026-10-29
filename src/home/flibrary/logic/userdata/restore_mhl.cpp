@@ -207,9 +207,9 @@ private:
 
 } // namespace
 
-void ImportFromMyHomeLib(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName, Callback callback)
+void ImportFromMyHomeLib(const Util::IExecutor& executor, const IDatabaseUser& dbUser, QString fileName, Callback callback)
 {
-	executor({ "Restore MHL user data", [&db, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
+	executor({ "Restore MHL user data", [&dbUser, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
 				  auto createResult = [callback = std::move(callback)](QString error = {}) mutable {
 					  if (!error.isEmpty())
 					  {
@@ -229,7 +229,8 @@ void ImportFromMyHomeLib(const Util::IExecutor& executor, DB::IDatabase& db, QSt
 				  {
 					  ZDecompressionStream stream(inp);
 					  stream.open(QIODevice::ReadOnly);
-					  const XmlParser parser(stream, db);
+					  const auto      db = dbUser.GetDatabase();
+					  const XmlParser parser(stream, *db);
 				  }
 				  catch (const std::exception& ex)
 				  {

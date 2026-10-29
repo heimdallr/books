@@ -83,6 +83,17 @@ private: // IRestorer
 		transaction->CreateCommand("delete from Books_User")->Execute();
 
 		{
+			if (const auto langs = m_items | std::views::filter([](const Item& item) {
+									   return !item.Lang.isEmpty();
+								   })
+			                     | std::views::transform([](const Item& item) {
+									   return item.Lang;
+								   })
+			                     | std::views::common | std::ranges::to<std::unordered_set>();
+			    !langs.empty())
+				for (const auto command = transaction->CreateCommand("insert or ignore into Languages(LanguageCode) values(?)"); const auto& lang : langs)
+					command->Execute(lang);
+
 			static constexpr auto commandText = "insert into Books_User(BookID, IsDeleted, UserRate, Lang, CreatedAt) "
 												"select BookID, ?, ?, ?, ? "
 												"from Books "

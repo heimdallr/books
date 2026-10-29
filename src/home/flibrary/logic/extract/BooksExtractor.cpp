@@ -280,14 +280,14 @@ public:
 		return *m_settings;
 	}
 
-	std::shared_ptr<DB::IDatabase> GetDatabase() const
-	{
-		return m_databaseUser->Database();
-	}
-
 	std::shared_ptr<const ILogicFactory> GetLogicFactory() const
 	{
 		return ILogicFactory::Lock(m_logicFactory);
+	}
+
+	std::shared_ptr<const IDatabaseUser> GetDatabaseUser() const
+	{
+		return m_databaseUser;
 	}
 
 private: // IExportHelper
@@ -380,7 +380,7 @@ private:
 
 	void OnExtracted(const long long id) const
 	{
-		const auto transaction = m_databaseUser->Database()->CreateTransaction();
+		const auto transaction = m_databaseUser->GetDatabase()->CreateTransaction();
 		transaction->CreateCommand(ExportStat::INSERT_QUERY)->Execute(id, m_exportStatType);
 		if (m_autoRateValue.isValid())
 		{
@@ -507,7 +507,7 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, U
 		std::move(books),
 		std::move(callback),
 		ExportStat::Type::Script,
-		[this, scriptController = std::move(scriptController), commands = std::move(commands), db = m_impl->GetDatabase()](
+		[this, scriptController = std::move(scriptController), commands = std::move(commands), dbUser = m_impl->GetDatabaseUser()](
 			const std::filesystem::path&        archiveFolder,
 			const QString&                      dstFolder,
 			const Util::ExtractedBook&          book,
@@ -515,6 +515,7 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, U
 			IProgressController::IProgressItem& progress,
 			IExportHelper&                      exportHelper
 		) {
+			const auto db = dbUser->GetDatabase();
 			return Process(m_impl->GetSettings(), archiveFolder, dstFolder, *db, book, progress, std::move(encoding), exportHelper, *scriptController, commands);
 		}
 	);
