@@ -184,6 +184,11 @@ public:
 		return m_data.size() + m_view.size();
 	}
 
+	bool empty() const noexcept
+	{
+		return m_data.empty() && m_view.empty();
+	}
+
 	template <typename F>
 	std::optional<size_t> find_if(const F& f) const
 	{
@@ -574,8 +579,7 @@ struct BookBufFieldGetters
 
 using BookBufMapping = std::vector<BookBufFieldGetters>;
 
-#define BOOK_BUF_FIELD_ITEM(NAME)                                                                                                                                                                              \
-	QStringView &Get##NAME(Book &book) { return book.NAME; }
+#define BOOK_BUF_FIELD_ITEM(NAME) QStringView &Get##NAME(Book &book) { return book.NAME; }
 BOOK_BUF_FIELD_ITEMS_XMACRO
 #undef BOOK_BUF_FIELD_ITEM
 
@@ -2078,7 +2082,9 @@ where b.FileName = ? and b.Ext = ?)");
 			return file.toLower();
 		});
 
-		folder = suitableFiles.isEmpty() ? folderInfo.completeBaseName() + "." + m_ini(DEFAULT_ARCHIVE_TYPE) : suitableFiles.front();
+		const auto defaultArchiveType = m_data.bookFolders.empty() ? QString {} : QFileInfo(m_data.bookFolders.cbegin()->first.toString()).suffix();
+
+		folder = suitableFiles.isEmpty() ? folderInfo.completeBaseName() + "." + m_ini(DEFAULT_ARCHIVE_TYPE, defaultArchiveType) : suitableFiles.front();
 
 		QCryptographicHash hash(QCryptographicHash::Md5);
 		size_t             n = 0;
