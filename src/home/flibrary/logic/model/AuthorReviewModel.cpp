@@ -40,19 +40,19 @@ class Model final : public QAbstractListModel
 	using Items = std::vector<Item>;
 
 public:
-	static std::unique_ptr<QAbstractItemModel> Create(const ISettings& settings, const ICollectionProvider& collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)
+	static std::unique_ptr<QAbstractItemModel> Create(const ISettings& settings, const ICollectionProvider& collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseProvider)
 	{
 		return std::make_unique<Model>(
 			settings.Get(Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false),
 			collectionProvider.ActiveCollectionExists() ? collectionProvider.GetActiveCollection().GetAdditionalFolder() : QString {},
-			std::move(databaseUser)
+			std::move(databaseProvider)
 		);
 	}
 
-	Model(const bool showRemoved, const QString& folder, std::shared_ptr<const IDatabaseUser> databaseUser)
+	Model(const bool showRemoved, const QString& folder, std::shared_ptr<const IDatabaseProvider> databaseProvider)
 		: m_showRemoved { showRemoved }
 		, m_folder { folder + "/" + Inpx::REVIEWS_FOLDER }
-		, m_databaseUser { std::move(databaseUser) }
+		, m_databaseProvider { std::move(databaseProvider) }
 	{
 	}
 
@@ -93,20 +93,20 @@ private: // QAbstractItemModel
 private:
 	void Reset(const long long authorId)
 	{
-		auto db = m_databaseUser->Database();
-		m_databaseUser->Execute({ "Get author reviews", [this, authorId, db = std::move(db)] {
-									 return [this, items = GetReviews(authorId, *db)](size_t) mutable {
-										 ScopedCall resetGuard(
-											 [this] {
-												 beginResetModel();
-											 },
-											 [this] {
-												 endResetModel();
-											 }
-										 );
-										 m_items = std::move(items);
-									 };
-								 } });
+		m_databaseProvider->Execute({ "Get author reviews", [this, authorId] {
+										 const auto db = m_databaseProvider->GetDatabase();
+										 return [this, items = GetReviews(authorId, *db)](size_t) mutable {
+											 ScopedCall resetGuard(
+												 [this] {
+													 beginResetModel();
+												 },
+												 [this] {
+													 endResetModel();
+												 }
+											 );
+											 m_items = std::move(items);
+										 };
+									 } });
 	}
 
 	Items GetReviews(const long long authorId, DB::IDatabase& db) const
@@ -187,10 +187,10 @@ select r.Folder, b.BookID, f.FolderTitle||'#'||b.FileName, b.Title
 	}
 
 private:
-	const bool                                 m_showRemoved;
-	const QDir                                 m_folder;
-	const std::shared_ptr<const IDatabaseUser> m_databaseUser;
-	Items                                      m_items;
+	const bool                                     m_showRemoved;
+	const QDir                                     m_folder;
+	const std::shared_ptr<const IDatabaseProvider> m_databaseProvider;
+	Items                                          m_items;
 };
 
 } // namespace
@@ -198,11 +198,11 @@ private:
 AuthorReviewModel::AuthorReviewModel(
 	const std::shared_ptr<const ISettings>&           settings,
 	const std::shared_ptr<const ICollectionProvider>& collectionProvider,
-	std::shared_ptr<const IDatabaseUser>              databaseUser,
+	std::shared_ptr<const IDatabaseProvider>          databaseProvider,
 	QObject*                                          parent
 )
 	: QSortFilterProxyModel(parent)
-	, m_source { Model::Create(*settings, *collectionProvider, std::move(databaseUser)) }
+	, m_source { Model::Create(*settings, *collectionProvider, std::move(databaseProvider)) }
 {
 	QSortFilterProxyModel::setSourceModel(m_source.get());
 

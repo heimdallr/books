@@ -5,7 +5,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 #include "gutil/Dialog.h"
 #include "settings/ISettings.h"
@@ -18,7 +18,7 @@ class QueryWindow : public QMainWindow
 	NON_COPY_MOVABLE(QueryWindow)
 
 public:
-	QueryWindow(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<IDatabaseUser> databaseUser, QWidget* parent = nullptr);
+	QueryWindow(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<const IDatabaseProvider> databaseProvider, QWidget* parent = nullptr);
 	~QueryWindow() override;
 
 private:

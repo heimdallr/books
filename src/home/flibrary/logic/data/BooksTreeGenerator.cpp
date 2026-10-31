@@ -21,7 +21,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/localization.h"
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IFilterProvider.h"
 
 #include "database/DatabaseUtil.h"
@@ -170,13 +170,13 @@ public:
 	ViewMode               viewMode { ViewMode::Unknown };
 
 	Impl(
-		const ISettings&        settings,
-		const Collection&       activeCollection,
-		DB::IDatabase&          db,
-		const NavigationMode    navigationMode,
-		QString                 navigationId,
-		const QueryDescription& description,
-		const IFilterProvider&  filterProvider
+		const ISettings&         settings,
+		const Collection&        activeCollection,
+		const IDatabaseProvider& dbProvider,
+		const NavigationMode     navigationMode,
+		QString                  navigationId,
+		const QueryDescription&  description,
+		const IFilterProvider&   filterProvider
 	)
 		: navigationMode { navigationMode }
 		, navigationId { std::move(navigationId) }
@@ -188,7 +188,7 @@ public:
 		, m_keywordsFlagAccumulator { GetFlagsAccumulator(filterProvider.GetFlagsAccumulationMode(NavigationMode::Keywords)) }
 	{
 		if (!this->navigationId.isEmpty())
-			std::invoke(description.bookSelector, static_cast<IBookSelector&>(*this), std::cref(activeCollection), std::ref(db), std::cref(description));
+			std::invoke(description.bookSelector, static_cast<IBookSelector&>(*this), std::cref(activeCollection), std::cref(dbProvider), std::cref(description));
 	}
 
 	[[nodiscard]] IDataItem::Ptr GetRoot() const
@@ -334,7 +334,7 @@ public:
 	}
 
 private: // IBookSelector
-	void SelectBooks(const Collection&, DB::IDatabase& db, const QueryDescription& description) override
+	void SelectBooks(const Collection&, const IDatabaseProvider& dbProvider, const QueryDescription& description) override
 	{
 		const auto additionalDefault = [](const DB::IQuery&, const auto&) {
 		};
@@ -348,20 +348,21 @@ private: // IBookSelector
  item.book->SetData(QString(query.Get<const char*>(BookQueryFields::Last)), BookItem::Column::UpdateDate);
  } },
 		};
-		CreateSelectedBookItems(db, description.queryClause, FindSecond(additions, navigationMode, additionalDefault));
+		CreateSelectedBookItems(dbProvider, description.queryClause, FindSecond(additions, navigationMode, additionalDefault));
 	}
 
-	void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription& description) override
+	void SelectReviews(const Collection& activeCollection, const IDatabaseProvider& dbProvider, const QueryDescription& description) override
 	{
 		const auto folder = activeCollection.GetAdditionalFolder() + "/" + Inpx::REVIEWS_FOLDER + "/" + navigationId + ".7z";
 		if (!QFile::exists(folder))
 			return;
 
-		const auto  tmpTable     = db.CreateTemporaryTable({ "Folder VARCHAR (200)", "FileName VARCHAR(170)", "Ext VARCHAR(10)", "ReviewID INTEGER" });
+		const auto  dbWritable   = dbProvider.GetDatabaseWritable();
+		const auto  tmpTable     = dbWritable->CreateTemporaryTable({ "Folder VARCHAR (200)", "FileName VARCHAR(170)", "Ext VARCHAR(10)", "ReviewID INTEGER" });
 		const auto& tmpTableName = tmpTable->GetName();
 
 		{
-			const auto tr            = db.CreateTransaction();
+			const auto tr            = dbWritable->CreateTransaction();
 			const auto insertCommand = tr->CreateCommand(std::format("insert into {}(Folder, FileName, Ext, ReviewID) values(?, ?, ?, ?)", tmpTableName));
 			Zip        zip(folder);
 			for (long long reviewId = 0; const auto& file : zip.GetFileNameList())
@@ -407,7 +408,7 @@ private: // IBookSelector
 		queryClause.booksFrom      = booksFrom.data();
 		queryClause.navigationFrom = navigationFrom.data();
 
-		CreateSelectedBookItems(db, queryClause, [&](const DB::IQuery& query, const SelectedBookItem& selectedItem) {
+		CreateSelectedBookItems(dbProvider, queryClause, [&](const DB::IQuery& query, const SelectedBookItem& selectedItem) {
 			const auto it = m_reviews.find(query.Get<long long>(BookQueryFields::Last));
 			assert(it != m_reviews.end());
 
@@ -458,9 +459,11 @@ private:
 		return QString::fromStdString(std::string(str)).arg(QString::fromStdString(DatabaseUtil::GetHistoryTableName(m_settings))).toStdString();
 	}
 
-	void CreateSelectedBookItems(DB::IDatabase& db, const QueryClause& queryClause, const SelectAdditional& additional)
+	void CreateSelectedBookItems(const IDatabaseProvider& dbProvider, const QueryClause& queryClause, const SelectAdditional& additional)
 	{
-		const auto with = queryClause.with(db, m_settings, navigationId).toStdString();
+		const auto dbPtr = dbProvider.GetDatabase();
+		auto&      db    = *dbPtr;
+		const auto with  = queryClause.with(db, m_settings, navigationId).toStdString();
 
 		{
 			QString booksWhere = queryClause.booksWhere;
@@ -827,15 +830,15 @@ private:
 };
 
 BooksTreeGenerator::BooksTreeGenerator(
-	const ISettings&        settings,
-	const Collection&       activeCollection,
-	DB::IDatabase&          db,
-	const NavigationMode    navigationMode,
-	QString                 navigationId,
-	const QueryDescription& description,
-	const IFilterProvider&  filterProvider
+	const ISettings&         settings,
+	const Collection&        activeCollection,
+	const IDatabaseProvider& dbProvider,
+	const NavigationMode     navigationMode,
+	QString                  navigationId,
+	const QueryDescription&  description,
+	const IFilterProvider&   filterProvider
 )
-	: m_impl(settings, activeCollection, db, navigationMode, std::move(navigationId), description, filterProvider)
+	: m_impl(settings, activeCollection, dbProvider, navigationMode, std::move(navigationId), description, filterProvider)
 {
 	PLOGV << "BooksTreeGenerator created";
 }

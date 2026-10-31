@@ -4,7 +4,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/ILogController.h"
 
 namespace HomeCompa::Flibrary {
@@ -14,7 +14,7 @@ class LogController final : public ILogController
 	NON_COPY_MOVABLE(LogController)
 
 public:
-	LogController(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider);
+	LogController(std::shared_ptr<const IDatabaseProvider> databaseProvider, std::shared_ptr<const ICollectionProvider> collectionProvider);
 	~LogController() override;
 
 private:

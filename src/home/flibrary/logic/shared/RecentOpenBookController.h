@@ -3,7 +3,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IRecentOpenBookController.h"
 #include "interface/ui/IUiFactory.h"
 
@@ -14,7 +14,7 @@ class RecentOpenBookController final : public IRecentOpenBookController
 	NON_COPY_MOVABLE(RecentOpenBookController)
 
 public:
-	RecentOpenBookController(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseUser> databaseUser);
+	RecentOpenBookController(const std::shared_ptr<IDatabaseController>& databaseController, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseProvider> databaseProvider);
 	~RecentOpenBookController() override;
 
 private: // IRecentOpenBookController

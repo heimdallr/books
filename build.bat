@@ -25,9 +25,9 @@ if %errorlevel% NEQ 0 goto Error
 
 cmake --install %BUILD_DIR% --prefix %BUILD_DIR%/FLibrary
 
-rem echo testing
-rem ctest --test-dir %BUILD_DIR% -C Release
-rem if %errorlevel% NEQ 0 goto Error
+echo testing
+ctest --test-dir %BUILD_DIR% -C Release
+if %errorlevel% NEQ 0 goto Error
 
 mkdir %~dp0build\installer
 

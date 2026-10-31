@@ -10,7 +10,7 @@
 #include "database/interface/ITemporaryTable.h"
 #include "database/interface/ITransaction.h"
 
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 #include "constants/UserData.h"
 #include "constants/groups.h"
@@ -127,7 +127,7 @@ class XmlParser final : public Util::SaxParser
 	using Groups = std::vector<Group>;
 
 public:
-	explicit XmlParser(QIODevice& stream, DB::IDatabase& db)
+	explicit XmlParser(QIODevice& stream, DB::IDatabaseWritable& db)
 		: SaxParser(stream)
 	{
 		Parse();
@@ -150,7 +150,7 @@ private: // Util::SaxParser
 	}
 
 private:
-	void Write(DB::IDatabase& db)
+	void Write(DB::IDatabaseWritable& db)
 	{
 		const auto tmpBooksUser      = db.CreateTemporaryTable({ "LibID VARCHAR (200)", "UserRate  INTEGER" });
 		const auto tmpGroupsListUser = db.CreateTemporaryTable({ "LibID VARCHAR (200)", "GroupID  INTEGER" });
@@ -179,7 +179,7 @@ private:
 				{
 					createGroupCommand->Execute(group.name);
 
-					const auto getLastIdQuery = tr->CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
+					const auto getLastIdQuery = tr->CreateQuery(IDatabaseProvider::SELECT_LAST_ID_QUERY);
 					getLastIdQuery->Execute();
 					group.id = getLastIdQuery->Get<long long>(0);
 				}
@@ -207,9 +207,9 @@ private:
 
 } // namespace
 
-void ImportFromMyHomeLib(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName, Callback callback)
+void ImportFromMyHomeLib(const Util::IExecutor& executor, const IDatabaseProvider& dbProvider, QString fileName, Callback callback)
 {
-	executor({ "Restore MHL user data", [&db, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
+	executor({ "Restore MHL user data", [&dbProvider, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
 				  auto createResult = [callback = std::move(callback)](QString error = {}) mutable {
 					  if (!error.isEmpty())
 					  {
@@ -229,7 +229,8 @@ void ImportFromMyHomeLib(const Util::IExecutor& executor, DB::IDatabase& db, QSt
 				  {
 					  ZDecompressionStream stream(inp);
 					  stream.open(QIODevice::ReadOnly);
-					  const XmlParser parser(stream, db);
+					  const auto      db = dbProvider.GetDatabaseWritable();
+					  const XmlParser parser(stream, *db);
 				  }
 				  catch (const std::exception& ex)
 				  {

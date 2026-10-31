@@ -447,7 +447,7 @@ class TreeView::Impl final
 public:
 	Impl(
 		TreeView&                                  self,
-		const IDatabaseUser&                       databaseUser,
+		const IDatabaseProvider&                   databaseProvider,
 		std::shared_ptr<const ICollectionProvider> collectionProvider,
 		std::shared_ptr<const IDataItemFactory>    dataItemFactory,
 		std::shared_ptr<ISettings>                 settings,
@@ -470,19 +470,12 @@ public:
 		, m_scrollBarController { std::move(scrollBarController) }
 		, m_navigationUndoRedo { std::move(navigationUndoRedo) }
 		, m_delegate { std::shared_ptr<ITreeViewDelegate>() }
-		, m_hiddenColumns { databaseUser.GetSetting(IDatabaseUser::Key::DisabledBookFields).toString().split(LIST_SEPARATOR, Qt::SkipEmptyParts) }
+		, m_hiddenColumns { databaseProvider.GetSetting(IDatabaseProvider::Key::DisabledBookFields).toString().split(LIST_SEPARATOR, Qt::SkipEmptyParts) }
 	{
 		Setup();
 	}
 
-	~Impl() override
-	{
-		m_filterProvider->UnregisterObserver(this);
-		m_controller->UnregisterObserver(this);
-		m_delegate->UnregisterObserver(this);
-		if (m_menuCustomizerObserved)
-			m_menuCustomizer->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 	void SetNavigationModeName(QString navigationModeName)
 	{
@@ -1174,7 +1167,6 @@ private:
 		m_ui.btnMode->setStyleSheet("QToolButton::menu-indicator { image: none; width: 0px; }");
 
 		QTimer::singleShot(0, &m_self, [this] {
-			m_menuCustomizerObserved = true;
 			m_menuCustomizer->RegisterObserver(this);
 			m_menuCustomizer->Add(m_controller->TrContext(), *m_ui.btnMode, Tr(IsNavigation() ? NAVIGATION_VIEW_MODE : BOOK_VIEW_MODE));
 			if (const auto* action = GetCurrentModeAction())
@@ -1642,7 +1634,6 @@ private:
 	IDataItem::Flags                                              m_navigationItemFlags { IDataItem::Flags::None };
 	const ArchiveSorter                                           m_archiveSorter;
 	const QStringList                                             m_hiddenColumns;
-	bool                                                          m_menuCustomizerObserved { false };
 	std::unique_ptr<QTimer>                                       m_countChangedTimer { Util::CreateUiTimer([this] {
 		if (!m_self.isVisible())
 			return emit m_self.CounterChanged(-1);
@@ -1656,22 +1647,22 @@ private:
 };
 
 TreeView::TreeView(
-	const std::shared_ptr<const IDatabaseUser>& databaseUser,
-	std::shared_ptr<const ICollectionProvider>  collectionProvider,
-	std::shared_ptr<const IDataItemFactory>     dataItemFactory,
-	std::shared_ptr<ISettings>                  settings,
-	std::shared_ptr<IUiFactory>                 uiFactory,
-	std::shared_ptr<IFilterProvider>            filterProvider,
-	std::shared_ptr<IMenuCustomizer>            menuCustomizer,
-	std::shared_ptr<Util::ItemViewToolTipper>   itemViewToolTipper,
-	std::shared_ptr<Util::ScrollBarController>  scrollBarController,
-	std::shared_ptr<INavigationUndoRedo>        navigationUndoRedo,
-	QWidget*                                    parent
+	const std::shared_ptr<const IDatabaseProvider>& databaseProvider,
+	std::shared_ptr<const ICollectionProvider>      collectionProvider,
+	std::shared_ptr<const IDataItemFactory>         dataItemFactory,
+	std::shared_ptr<ISettings>                      settings,
+	std::shared_ptr<IUiFactory>                     uiFactory,
+	std::shared_ptr<IFilterProvider>                filterProvider,
+	std::shared_ptr<IMenuCustomizer>                menuCustomizer,
+	std::shared_ptr<Util::ItemViewToolTipper>       itemViewToolTipper,
+	std::shared_ptr<Util::ScrollBarController>      scrollBarController,
+	std::shared_ptr<INavigationUndoRedo>            navigationUndoRedo,
+	QWidget*                                        parent
 )
 	: QWidget(parent)
 	, m_impl(
 		  *this,
-		  *databaseUser,
+		  *databaseProvider,
 		  std::move(collectionProvider),
 		  std::move(dataItemFactory),
 		  std::move(settings),

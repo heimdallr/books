@@ -350,13 +350,13 @@ public:
 	Impl(
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
-		std::shared_ptr<const IDatabaseUser>        databaseUser,
+		std::shared_ptr<const IDatabaseProvider>    databaseProvider,
 		std::shared_ptr<IProgressController>        progressController,
 		QString                                     encoding
 	)
 		: m_logicFactory { logicFactory }
 		, m_collectionProvider { std::move(collectionProvider) }
-		, m_databaseUser { std::move(databaseUser) }
+		, m_databaseProvider { std::move(databaseProvider) }
 		, m_progressController { std::move(progressController) }
 		, m_encoding { std::move(encoding) }
 		, m_archiveFolder { Platform::StringToPath(m_collectionProvider->GetActiveCollection().GetFolder()) }
@@ -626,7 +626,7 @@ private:
 
 	void GenerateInpxImpl(const QString& inpxFileName)
 	{
-		auto       db         = m_databaseUser->Database();
+		auto       db         = m_databaseProvider->GetDatabase();
 		const auto booksCount = [&] {
 			auto query = db->CreateQuery("select count(42) from Books b left join Series_List sl on sl.BookID = b.BookID");
 			query->Execute();
@@ -707,7 +707,7 @@ private:
 private:
 	std::weak_ptr<const ILogicFactory>                      m_logicFactory;
 	std::shared_ptr<const ICollectionProvider>              m_collectionProvider;
-	std::shared_ptr<const IDatabaseUser>                    m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                m_databaseProvider;
 	std::shared_ptr<const ISettings>                        m_settingsStub;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
 	const QString                                           m_encoding;
@@ -737,10 +737,10 @@ InpxGenerator::InpxGenerator(
 	const std::shared_ptr<const ISettings>&     settings,
 	const std::shared_ptr<const ILogicFactory>& logicFactory,
 	std::shared_ptr<const ICollectionProvider>  collectionProvider,
-	std::shared_ptr<const IDatabaseUser>        databaseUser,
+	std::shared_ptr<const IDatabaseProvider>    databaseProvider,
 	std::shared_ptr<IMainProgressController>    progressController
 )
-	: m_impl(logicFactory, std::move(collectionProvider), std::move(databaseUser), std::move(progressController), settings->Get(EXPORT_ENCODING_KEY, QString {}))
+	: m_impl(logicFactory, std::move(collectionProvider), std::move(databaseProvider), std::move(progressController), settings->Get(EXPORT_ENCODING_KEY, QString {}))
 {
 	PLOGV << "InpxGenerator created";
 }

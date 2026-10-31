@@ -314,14 +314,14 @@ public:
 		std::shared_ptr<const ISettings>             settings,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
 		std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
-		std::shared_ptr<const IDatabaseUser>         databaseUser,
+		std::shared_ptr<const IDatabaseProvider>     databaseProvider,
 		std::shared_ptr<IFilterProvider>             filterProvider
 	)
 		: m_logicFactory { logicFactory }
 		, m_settings { std::move(settings) }
 		, m_collectionProvider { std::move(collectionProvider) }
 		, m_jokeRequesterFactory { std::move(jokeRequesterFactory) }
-		, m_databaseUser { std::move(databaseUser) }
+		, m_databaseProvider { std::move(databaseProvider) }
 		, m_filterProvider { std::move(filterProvider) }
 		, m_executor { logicFactory->GetExecutor() }
 		, m_jokeRequesterClientImpl(JokeRequesterClientImpl::Create(*this))
@@ -334,10 +334,7 @@ public:
 		m_filterProvider->RegisterObserver(this);
 	}
 
-	~Impl() override
-	{
-		m_filterProvider->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 public:
 	void SetNavigationMode(const NavigationMode navigationMode) noexcept
@@ -563,13 +560,14 @@ private:
 	void ExtractInfo()
 	{
 		m_ready = Ready::None;
-		auto db = m_databaseUser->Database();
-		if (!db || m_currentBookId.isEmpty())
+		if (m_currentBookId.isEmpty())
 			return;
 
-		m_databaseUser->Execute(
+		m_databaseProvider->Execute(
 			{ "Get database book info",
-			  [&, db = std::move(db), id = m_currentBookId.toLongLong()] {
+			  [&, id = m_currentBookId.toLongLong()] {
+				  const auto db = m_databaseProvider->GetDatabase();
+				  assert(db);
 				  return [this, book = CreateBook(*db, id)](size_t) mutable {
 					  if (book->GetId() == m_currentBookId)
 						  ExtractInfo(std::move(book));
@@ -613,10 +611,10 @@ private:
 
 	void ExtractDatabaseInfo(IDataItem::Ptr book)
 	{
-		m_databaseUser->Execute(
+		m_databaseProvider->Execute(
 			{ "Get database book additional info",
 			  [this, book = std::move(book)]() mutable {
-				  const auto db       = m_databaseUser->Database();
+				  const auto db       = m_databaseProvider->GetDatabase();
 				  const auto bookId   = book->GetId().toLongLong();
 				  auto       series   = CreateDictionary(*db, std::format(SERIES_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSeriesItem);
 				  auto       authors  = CreateDictionary(*db, std::format(AUTHORS_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateFullAuthorItem);
@@ -646,7 +644,8 @@ private:
 
 				  if (!IsOneOf(m_navigationMode, NavigationMode::Unknown, NavigationMode::History))
 				  {
-					  const auto tr = db->CreateTransaction();
+					  const auto dbWritable = m_databaseProvider->GetDatabaseWritable();
+					  const auto tr         = dbWritable->CreateTransaction();
 					  tr->CreateCommand(std::format("INSERT OR REPLACE INTO {} (BookID, CreatedAt) VALUES (?, datetime('now', 'localtime'))", m_historyTableName))->Execute(book->GetId().toLongLong());
 					  if (m_historyWriteCounter && ++m_historyWriteCounter > 10)
 					  {
@@ -782,7 +781,7 @@ private:
 	std::shared_ptr<const ISettings>             m_settings;
 	std::shared_ptr<const ICollectionProvider>   m_collectionProvider;
 	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
-	std::shared_ptr<const IDatabaseUser>         m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>     m_databaseProvider;
 
 	PropagateConstPtr<IFilterProvider, std::shared_ptr> m_filterProvider;
 
@@ -832,10 +831,10 @@ AnnotationController::AnnotationController(
 	std::shared_ptr<const ISettings>             settings,
 	std::shared_ptr<const ICollectionProvider>   collectionProvider,
 	std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
-	std::shared_ptr<const IDatabaseUser>         databaseUser,
+	std::shared_ptr<const IDatabaseProvider>     databaseProvider,
 	std::shared_ptr<IFilterProvider>             filterProvider
 )
-	: m_impl(logicFactory, std::move(settings), std::move(collectionProvider), std::move(jokeRequesterFactory), std::move(databaseUser), std::move(filterProvider))
+	: m_impl(logicFactory, std::move(settings), std::move(collectionProvider), std::move(jokeRequesterFactory), std::move(databaseProvider), std::move(filterProvider))
 {
 	PLOGV << "AnnotationController created";
 }

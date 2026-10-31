@@ -640,7 +640,7 @@ void GetDecodedStream(const Zip& zip, const QString& file, const std::function<v
 	});
 }
 
-bool ExecuteScript(DB::IDatabase& db, QString action, const QString& scriptFileName)
+bool ExecuteScript(DB::IDatabaseWritable& db, QString action, const QString& scriptFileName)
 {
 	Timer t(std::move(action));
 
@@ -681,7 +681,7 @@ bool ExecuteScript(DB::IDatabase& db, QString action, const QString& scriptFileN
 	return true;
 }
 
-void SetIsNavigationDeleted(DB::IDatabase& db)
+void SetIsNavigationDeleted(DB::IDatabaseWritable& db)
 {
 	const auto tr = db.CreateTransaction();
 	for (const auto& [table, where, _, join, additional] : IS_DELETED_UPDATE_ARGS)
@@ -696,7 +696,7 @@ void SetIsNavigationDeleted(DB::IDatabase& db)
 	tr->Commit();
 }
 
-int Analyze(DB::IDatabase& db)
+int Analyze(DB::IDatabaseWritable& db)
 {
 	SetIsNavigationDeleted(db);
 
@@ -718,7 +718,7 @@ int Analyze(DB::IDatabase& db)
 	return tr->Commit() ? 0 : 1;
 }
 
-void WriteDatabaseVersion(DB::IDatabase& db, const QString& statement)
+void WriteDatabaseVersion(DB::IDatabaseWritable& db, const QString& statement)
 {
 	const auto tr = db.CreateTransaction();
 	tr->CreateCommand(statement)->Execute();
@@ -726,7 +726,7 @@ void WriteDatabaseVersion(DB::IDatabase& db, const QString& statement)
 }
 
 template <typename Container, typename Functor>
-size_t StoreRange(DB::IDatabase& db, const QString& process, const std::string_view query, Container&& container, Functor&& f, const std::string_view queryAfter = {})
+size_t StoreRange(DB::IDatabaseWritable& db, const QString& process, const std::string_view query, Container&& container, Functor&& f, const std::string_view queryAfter = {})
 {
 	auto impl = [&] {
 		const auto rowsTotal = std::size(container);
@@ -796,7 +796,7 @@ std::pair<QStringView, QStringView> SplitNameSuffix(QStringView str)
 	return std::make_pair(lastName, nickName);
 }
 
-size_t Store(DB::IDatabase& db, Data& data)
+size_t Store(DB::IDatabaseWritable& db, Data& data)
 {
 	size_t result  = 0;
 	result        += StoreRange(
@@ -1415,7 +1415,7 @@ private:
 		const auto& dbFileName       = m_ini(DB_PATH);
 		const auto  connectionString = QString("path=%1").arg(dbFileName).toStdString();
 
-		m_db = Create(DB::Factory::Impl::Sqlite, connectionString);
+		m_db = CreateWritable(DB::Factory::Impl::Sqlite, connectionString);
 		m_db->CreateQuery("PRAGMA synchronous = OFF;")->Execute();
 
 		ExecuteScript(*m_db, "create database", m_ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
@@ -1638,7 +1638,7 @@ private:
 		const auto& dbFileName       = m_ini(DB_PATH);
 		const auto  connectionString = QString("path=%1").arg(dbFileName).toStdString();
 
-		m_db = Create(DB::Factory::Impl::Sqlite, connectionString);
+		m_db = CreateWritable(DB::Factory::Impl::Sqlite, connectionString);
 
 		const auto [oldData, oldGenresIndex] = ReadData(m_ini(GENRES_PATH, DEFAULT_GENRES));
 
@@ -2366,11 +2366,11 @@ where b.FileName = ? and b.Ext = ?)");
 	}
 
 private:
-	const Ini                      m_ini;
-	const CreateCollectionMode     m_mode;
-	const Callback                 m_callback;
-	std::shared_ptr<DB::IDatabase> m_db;
-	std::unique_ptr<IExecutor>     m_executor;
+	const Ini                              m_ini;
+	const CreateCollectionMode             m_mode;
+	const Callback                         m_callback;
+	std::shared_ptr<DB::IDatabaseWritable> m_db;
+	std::unique_ptr<IExecutor>             m_executor;
 
 	std::list<QString>                                                                                                                         m_rawData;
 	Data                                                                                                                                       m_data;

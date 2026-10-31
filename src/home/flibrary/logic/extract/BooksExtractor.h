@@ -7,7 +7,7 @@
 
 #include "interface/logic/IBookExtractor.h"
 #include "interface/logic/ICollectionController.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 #include "interface/logic/IScriptController.h"
@@ -39,7 +39,7 @@ public:
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const IScriptController>    scriptController,
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
-		std::shared_ptr<const IDatabaseUser>        databaseUser
+		std::shared_ptr<const IDatabaseProvider>    databaseProvider
 	);
 	~BooksExtractor() override;
 

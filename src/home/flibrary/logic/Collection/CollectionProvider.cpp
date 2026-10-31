@@ -13,7 +13,7 @@
 #include "database/interface/IQuery.h"
 
 #include "interface/localization.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 #include "platform/StrUtil.h"
 #include "util/IExecutor.h"
@@ -168,7 +168,7 @@ QString CollectionProvider::GetActiveCollectionId() const noexcept
 	return m_impl->GetActiveCollectionId();
 }
 
-QStringList CollectionProvider::GetCollectionStatistics(const IDatabaseUser& databaseUser, const bool withAdditionalInfo) const
+QStringList CollectionProvider::GetCollectionStatistics(const IDatabaseProvider& databaseProvider, const bool withAdditionalInfo) const
 {
 	static constexpr auto dbStatQueryText = "select count(42) from Folders union all "
 											"select count(42) from Authors union all "
@@ -198,8 +198,7 @@ QStringList CollectionProvider::GetCollectionStatistics(const IDatabaseUser& dat
 		QT_TRANSLATE_NOOP("CollectionStatistics", "Groups:"),   QT_TRANSLATE_NOOP("CollectionStatistics", "Books:"),     QT_TRANSLATE_NOOP("CollectionStatistics", "Deleted books:"),
 	};
 
-	const auto bookQuery = databaseUser.Database()->CreateQuery(dbStatQueryText);
-	for (auto&& [it, name] : std::views::zip(*bookQuery, names))
+	for (const auto bookQuery = databaseProvider.GetDatabase()->CreateQuery(dbStatQueryText); auto&& [it, name] : std::views::zip(*bookQuery, names))
 		stats << QString("%1 %2").arg(Loc::Tr(CONTEXT, name)).arg(it.Get<const char*>(0));
 
 	return stats;

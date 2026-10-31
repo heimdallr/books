@@ -99,22 +99,22 @@ struct TreeViewControllerBooks::Impl
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>    model { std::shared_ptr<QAbstractItemModel>() };
 	std::weak_ptr<const ILogicFactory>                        logicFactory;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> annotationController;
-	std::shared_ptr<const IDatabaseUser>                      databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                  databaseProvider;
 	PropagateConstPtr<IBookInfoProvider, std::shared_ptr>     dataProvider;
 	std::shared_ptr<const IUiFactory>                         uiFactory;
 	std::shared_ptr<const IBookInteractor>                    bookInteractor;
 
 	Impl(
-		std::weak_ptr<const ILogicFactory>     logicFactory,
-		std::shared_ptr<IAnnotationController> annotationController,
-		std::shared_ptr<const IDatabaseUser>   databaseUser,
-		std::shared_ptr<IBookInfoProvider>     dataProvider,
-		std::shared_ptr<const IUiFactory>      uiFactory,
-		std::shared_ptr<const IBookInteractor> bookInteractor
+		std::weak_ptr<const ILogicFactory>       logicFactory,
+		std::shared_ptr<IAnnotationController>   annotationController,
+		std::shared_ptr<const IDatabaseProvider> databaseProvider,
+		std::shared_ptr<IBookInfoProvider>       dataProvider,
+		std::shared_ptr<const IUiFactory>        uiFactory,
+		std::shared_ptr<const IBookInteractor>   bookInteractor
 	)
 		: logicFactory { std::move(logicFactory) }
 		, annotationController { std::move(annotationController) }
-		, databaseUser { std::move(databaseUser) }
+		, databaseProvider { std::move(databaseProvider) }
 		, dataProvider { std::move(dataProvider) }
 		, uiFactory { std::move(uiFactory) }
 		, bookInteractor { std::move(bookInteractor) }
@@ -130,10 +130,10 @@ TreeViewControllerBooks::TreeViewControllerBooks(
 	std::shared_ptr<const IUiFactory>           uiFactory,
 	std::shared_ptr<const IBookInteractor>      bookInteractor,
 	std::shared_ptr<IAnnotationController>      annotationController,
-	std::shared_ptr<IDatabaseUser>              databaseUser
+	std::shared_ptr<const IDatabaseProvider>    databaseProvider
 )
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
-	, m_impl(logicFactory, std::move(annotationController), std::move(databaseUser), std::move(dataProvider), std::move(uiFactory), std::move(bookInteractor))
+	, m_impl(logicFactory, std::move(annotationController), std::move(databaseProvider), std::move(dataProvider), std::move(uiFactory), std::move(bookInteractor))
 {
 	m_modeController.reset(std::make_unique<ModeController>(*m_settings, std::move(m_modeController)));
 
@@ -154,8 +154,6 @@ TreeViewControllerBooks::TreeViewControllerBooks(
 
 TreeViewControllerBooks::~TreeViewControllerBooks()
 {
-	m_impl->dataProvider->UnregisterObserver(this);
-
 	PLOGV << "TreeViewControllerBooks destroyed";
 }
 
@@ -260,7 +258,7 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex& index) const
 		if (!queryText)
 			return;
 
-		const auto db    = m_impl->databaseUser->Database();
+		const auto db    = m_impl->databaseProvider->GetDatabase();
 		const auto query = db->CreateQuery(QString(queryText).arg(QStringList::fromVector(QVector<QString>(ids.size(), QString { '?' })).join(',')));
 		for (auto binder = query->Binder(); const auto& id : ids)
 			binder << id.toLongLong();

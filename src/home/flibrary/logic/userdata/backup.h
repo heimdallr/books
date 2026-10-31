@@ -1,14 +1,8 @@
 #pragma once
 
-class QString;
-
 #include "constants/UserData.h"
 
-namespace HomeCompa::DB {
-
-class IDatabase;
-
-}
+class QString;
 
 namespace HomeCompa::Util {
 
@@ -16,8 +10,14 @@ class IExecutor;
 
 }
 
+namespace HomeCompa::Flibrary {
+
+class IDatabaseProvider;
+
+}
+
 namespace HomeCompa::Flibrary::UserData {
 
-void Backup(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName, Callback callback);
+void Backup(const Util::IExecutor& executor, const IDatabaseProvider& databaseProvider, QString fileName, Callback callback);
 
 }

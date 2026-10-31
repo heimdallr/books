@@ -140,7 +140,6 @@ public:
 	~Impl() override
 	{
 		emit m_self.CounterChanged(-1);
-		m_imageViewerController->UnregisterObserver(this);
 		SaveGeometry();
 
 		PLOGV << "destroyed created";

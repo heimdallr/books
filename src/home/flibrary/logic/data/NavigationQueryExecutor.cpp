@@ -176,19 +176,18 @@ auto CreateCalendarTree(const NavigationMode mode, INavigationQueryExecutor::Cal
 void RequestNavigationList(
 	const NavigationMode                   navigationMode,
 	INavigationQueryExecutor::Callback     callback,
-	const IDatabaseUser&                   databaseUser,
+	const IDatabaseProvider&               databaseProvider,
 	const QueryDescription&                queryDescription,
 	Cache&                                 cache,
 	std::function<void(IDataItem::Items&)> postProcess
 )
 {
-	auto db = databaseUser.Database();
-	if (!db)
-		return;
-
-	databaseUser.Execute(
+	databaseProvider.Execute(
 		{ "Get navigation",
-		  [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), postProcess = std::move(postProcess), db = std::move(db)]() mutable {
+		  [&databaseProvider, &queryDescription, &cache, mode = navigationMode, callback = std::move(callback), postProcess = std::move(postProcess)]() mutable {
+			  auto db = databaseProvider.GetDatabase();
+			  assert(db);
+
 			  const auto query = db->CreateQuery(queryDescription.navigationQuery);
 			  const auto index = *query | std::views::transform([&](const auto& item) {
 				  auto dataItem = queryDescription.navigationExtractor(item);
@@ -218,13 +217,13 @@ void RequestNavigationList(
 void RequestNavigationSimpleList(
 	const NavigationMode               navigationMode,
 	INavigationQueryExecutor::Callback callback,
-	const IDatabaseUser&               databaseUser,
+	const IDatabaseProvider&           databaseProvider,
 	const QueryDescription&            queryDescription,
 	const ICollectionProvider&,
 	Cache& cache
 )
 {
-	RequestNavigationList(navigationMode, std::move(callback), databaseUser, queryDescription, cache, [](IDataItem::Items& items) {
+	RequestNavigationList(navigationMode, std::move(callback), databaseProvider, queryDescription, cache, [](IDataItem::Items& items) {
 		std::ranges::sort(items, [](const IDataItem::Ptr& lhs, const IDataItem::Ptr& rhs) {
 			return Util::QStringWrapper { lhs->GetData() } < Util::QStringWrapper { rhs->GetData() };
 		});
@@ -234,13 +233,13 @@ void RequestNavigationSimpleList(
 void RequestNavigationPublishYears(
 	const NavigationMode               navigationMode,
 	INavigationQueryExecutor::Callback callback,
-	const IDatabaseUser&               databaseUser,
+	const IDatabaseProvider&           databaseProvider,
 	const QueryDescription&            queryDescription,
 	const ICollectionProvider&,
 	Cache& cache
 )
 {
-	RequestNavigationList(navigationMode, std::move(callback), databaseUser, queryDescription, cache, [](IDataItem::Items& items) {
+	RequestNavigationList(navigationMode, std::move(callback), databaseProvider, queryDescription, cache, [](IDataItem::Items& items) {
 		auto getYear = [](const IDataItem& item) -> int {
 			const auto& id = item.GetId();
 			if (id.isEmpty())
@@ -264,15 +263,21 @@ void RequestNavigationPublishYears(
 	});
 }
 
-void RequestNavigationGenres(NavigationMode navigationMode, INavigationQueryExecutor::Callback callback, const IDatabaseUser& databaseUser, const QueryDescription&, const ICollectionProvider&, Cache& cache)
+void RequestNavigationGenres(
+	NavigationMode                     navigationMode,
+	INavigationQueryExecutor::Callback callback,
+	const IDatabaseProvider&           databaseProvider,
+	const QueryDescription&,
+	const ICollectionProvider&,
+	Cache& cache
+)
 {
-	auto db = databaseUser.Database();
-	if (!db)
-		return;
-
-	databaseUser.Execute(
+	databaseProvider.Execute(
 		{ "Get navigation",
-		  [&cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable {
+		  [&databaseProvider, &cache, mode = navigationMode, callback = std::move(callback)]() mutable {
+			  const auto db = databaseProvider.GetDatabase();
+			  assert(!db);
+
 			  auto                                            genre = Genre::Load(*db);
 			  auto                                            root  = NavigationItem::Create();
 			  std::queue<std::pair<const Genre*, IDataItem*>> queue;
@@ -305,19 +310,18 @@ void RequestNavigationGenres(NavigationMode navigationMode, INavigationQueryExec
 void RequestNavigationUpdates(
 	NavigationMode                     navigationMode,
 	INavigationQueryExecutor::Callback callback,
-	const IDatabaseUser&               databaseUser,
+	const IDatabaseProvider&           databaseProvider,
 	const QueryDescription&            queryDescription,
 	const ICollectionProvider&,
 	Cache& cache
 )
 {
-	auto db = databaseUser.Database();
-	if (!db)
-		return;
-
-	databaseUser.Execute(
+	databaseProvider.Execute(
 		{ "Get navigation",
-		  [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), db = std::move(db)]() mutable {
+		  [&databaseProvider, &queryDescription, &cache, mode = navigationMode, callback = std::move(callback)]() mutable {
+			  auto db = databaseProvider.GetDatabase();
+			  assert(db);
+
 			  return CreateCalendarTree(mode, std::move(callback), cache, [&queryDescription, db = std::move(db)](std::unordered_map<long long, IDataItem::Ptr>& items) {
 				  for (const auto query = db->CreateQuery(queryDescription.navigationQuery); const auto& rec : *query)
 				  {
@@ -336,7 +340,7 @@ void RequestNavigationUpdates(
 void RequestNavigationReviews(
 	NavigationMode                     navigationMode,
 	INavigationQueryExecutor::Callback callback,
-	const IDatabaseUser&               databaseUser,
+	const IDatabaseProvider&           databaseProvider,
 	const QueryDescription& /*queryDescription*/,
 	const ICollectionProvider& collectionProvider,
 	Cache&                     cache
@@ -344,7 +348,7 @@ void RequestNavigationReviews(
 {
 	assert(collectionProvider.ActiveCollectionExists());
 
-	databaseUser.Execute(
+	databaseProvider.Execute(
 		{ "Get navigation",
 		  [&cache, mode = navigationMode, folder = collectionProvider.GetActiveCollection().GetAdditionalFolder(), callback = std::move(callback)]() mutable {
 			  return CreateCalendarTree(mode, std::move(callback), cache, [&folder](std::unordered_map<long long, IDataItem::Ptr>& items) {
@@ -373,8 +377,14 @@ void RequestNavigationReviews(
 	);
 }
 
-using NavigationRequest =
-	void (*)(NavigationMode navigationMode, INavigationQueryExecutor::Callback callback, const IDatabaseUser& databaseUser, const QueryDescription& queryDescription, const ICollectionProvider&, Cache& cache);
+using NavigationRequest = void (*)(
+	NavigationMode                     navigationMode,
+	INavigationQueryExecutor::Callback callback,
+	const IDatabaseProvider&           databaseProvider,
+	const QueryDescription&            queryDescription,
+	const ICollectionProvider&,
+	Cache& cache
+);
 
 constexpr int MAPPING_FULL[] { BookItem::Column::Author,     BookItem::Column::Title,  BookItem::Column::Series,   BookItem::Column::SeqNumber, BookItem::Column::Size,
                                BookItem::Column::Genre,      BookItem::Column::Folder, BookItem::Column::FileName, BookItem::Column::LibRate,   BookItem::Column::UserRate,
@@ -576,25 +586,20 @@ constexpr std::pair<const char*, NavigationMode> TABLES[] {
 
 } // namespace
 
-struct NavigationQueryExecutor::Impl final : virtual DB::IDatabaseObserver
+struct NavigationQueryExecutor::Impl final : virtual IDatabaseProvider::IObserver
 {
-	std::shared_ptr<const IDatabaseUser>       databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   databaseProvider;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 	mutable Cache                              cache;
 
-	Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
-		: databaseUser { std::move(databaseUser) }
+	Impl(IDatabaseController& databaseController, std::shared_ptr<const IDatabaseProvider> databaseProvider, std::shared_ptr<const ICollectionProvider> collectionProvider)
+		: databaseProvider { std::move(databaseProvider) }
 		, collectionProvider { std::move(collectionProvider) }
 	{
-		if (const auto db = this->databaseUser->Database())
-			db->RegisterObserver(this);
+		databaseController.RegisterObserver(this);
 	}
 
-	~Impl() override
-	{
-		if (const auto db = this->databaseUser->CheckDatabase())
-			db->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 private: // DB::IDatabaseObserver
 	void OnInsert(std::string_view, const std::string_view tableName, int64_t) override
@@ -621,8 +626,12 @@ private:
 	NON_COPY_MOVABLE(Impl)
 };
 
-NavigationQueryExecutor::NavigationQueryExecutor(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
-	: m_impl(std::move(databaseUser), std::move(collectionProvider))
+NavigationQueryExecutor::NavigationQueryExecutor(
+	const std::shared_ptr<IDatabaseController>& databaseController,
+	std::shared_ptr<const IDatabaseProvider>    databaseProvider,
+	std::shared_ptr<const ICollectionProvider>  collectionProvider
+)
+	: m_impl(*databaseController, std::move(databaseProvider), std::move(collectionProvider))
 {
 	PLOGV << "NavigationQueryExecutor created";
 }
@@ -644,7 +653,7 @@ void NavigationQueryExecutor::RequestNavigation(const NavigationMode navigationM
 	}
 
 	const auto& [request, description] = FindSecond(QUERIES, navigationMode);
-	(*request)(navigationMode, std::move(callback), *m_impl->databaseUser, description, *m_impl->collectionProvider, cache);
+	(*request)(navigationMode, std::move(callback), *m_impl->databaseProvider, description, *m_impl->collectionProvider, cache);
 }
 
 const QueryDescription& NavigationQueryExecutor::GetQueryDescription(const NavigationMode navigationMode) const

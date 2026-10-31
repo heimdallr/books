@@ -5,7 +5,7 @@
 
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/ICollectionUpdateChecker.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -13,7 +13,7 @@ class CollectionUpdateChecker final : public ICollectionUpdateChecker
 {
 	NON_COPY_MOVABLE(CollectionUpdateChecker)
 public:
-	CollectionUpdateChecker(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser);
+	CollectionUpdateChecker(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseProvider);
 	~CollectionUpdateChecker() override;
 
 private: // ICollectionUpdateChecker

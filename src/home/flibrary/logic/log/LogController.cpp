@@ -23,18 +23,18 @@ namespace {
 struct LogController::Impl
 {
 	std::unique_ptr<QAbstractItemModel>        model { CreateLogModel() };
-	std::shared_ptr<const IDatabaseUser>       databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   databaseProvider;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 
-	Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
-		: databaseUser { std::move(databaseUser) }
+	Impl(std::shared_ptr<const IDatabaseProvider> databaseProvider, std::shared_ptr<const ICollectionProvider> collectionProvider)
+		: databaseProvider { std::move(databaseProvider) }
 		, collectionProvider { std::move(collectionProvider) }
 	{
 	}
 };
 
-LogController::LogController(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
-	: m_impl(std::move(databaseUser), std::move(collectionProvider))
+LogController::LogController(std::shared_ptr<const IDatabaseProvider> databaseProvider, std::shared_ptr<const ICollectionProvider> collectionProvider)
+	: m_impl(std::move(databaseProvider), std::move(collectionProvider))
 {
 }
 
@@ -73,11 +73,11 @@ void LogController::ShowCollectionStatistics() const
 	if (!m_impl->collectionProvider->ActiveCollectionExists())
 		return;
 
-	m_impl->databaseUser->Execute({ "Get collection statistics", [this] {
-									   return [stats = m_impl->collectionProvider->GetCollectionStatistics(*m_impl->databaseUser, true).join("\n")](size_t) {
-										   PLOGI << stats;
-									   };
-								   } });
+	m_impl->databaseProvider->Execute({ "Get collection statistics", [this] {
+										   return [stats = m_impl->collectionProvider->GetCollectionStatistics(*m_impl->databaseProvider, true).join("\n")](size_t) {
+											   PLOGI << stats;
+										   };
+									   } });
 }
 
 void LogController::TestColors() const

@@ -7,15 +7,12 @@
 #include <QTranslator>
 
 #include "fnd/FindPair.h"
-#include "fnd/ScopedCall.h"
 
 #include "interface/constants/ProductConstant.h"
-#include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseController.h"
 #include "interface/logic/IDatabaseMigrator.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IOpdsController.h"
 #include "interface/logic/IScriptController.h"
 #include "interface/logic/ISingleInstanceController.h"
@@ -218,7 +215,7 @@ int main(int argc, char* argv[])
 
 			container->resolve<ITaskQueue>()->Execute();
 			const auto mainWindow = container->resolve<IMainWindow>();
-			container->resolve<IDatabaseUser>()->EnableApplicationCursorChange(true);
+			container->resolve<IDatabaseController>()->EnableApplicationCursorChange(true);
 
 			if (singleInstanceController)
 				singleInstanceController->RegisterObserver(mainWindow.get());

@@ -145,7 +145,6 @@ struct OpdsDialog::Impl final
 	~Impl() override
 	{
 		SaveGeometry();
-		opdsController->UnregisterObserver(this);
 	}
 
 private: // GeometryRestorableObserver

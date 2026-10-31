@@ -8,7 +8,7 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 #include "constants/books.h"
 #include "constants/groups.h"
@@ -56,7 +56,7 @@ private: // IRestorer
 		m_items.emplace_back(attributes);
 	}
 
-	void Restore(DB::IDatabase& db) const override
+	void Restore(DB::IDatabaseWritable& db) const override
 	{
 		using namespace Constant::UserData::Books;
 		static constexpr auto commandText = "insert into Books_User(BookID, IsDeleted) "
@@ -103,7 +103,7 @@ private: // IRestorer
 		std::invoke(invoker, this, std::cref(attributes));
 	}
 
-	void Restore(DB::IDatabase& db) const override
+	void Restore(DB::IDatabaseWritable& db) const override
 	{
 		static constexpr auto addBookToGroupCommandText = "insert into Groups_List_User(GroupID, BookID) "
 														  "select ?, BookID "
@@ -120,7 +120,7 @@ private: // IRestorer
 		{
 			createGroupCommand->Execute(group);
 
-			const auto getLastIdQuery = transaction->CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
+			const auto getLastIdQuery = transaction->CreateQuery(IDatabaseProvider::SELECT_LAST_ID_QUERY);
 			getLastIdQuery->Execute();
 			const auto groupId = getLastIdQuery->Get<long long>(0);
 
@@ -156,7 +156,7 @@ private: // IRestorer
 		m_items << attributes.GetAttribute(Constant::TITLE).toString();
 	}
 
-	void Restore(DB::IDatabase& db) const override
+	void Restore(DB::IDatabaseWritable& db) const override
 	{
 		using namespace Constant::UserData;
 		const auto transaction = db.CreateTransaction();

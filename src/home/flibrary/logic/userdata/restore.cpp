@@ -10,6 +10,7 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 #include "inpx/InpxConstant.h"
 #include "util/IExecutor.h"
@@ -72,7 +73,7 @@ class XmlParser final : public Util::SaxParser
 	NON_COPY_MOVABLE(XmlParser)
 
 public:
-	explicit XmlParser(QIODevice& stream, DB::IDatabase& db)
+	explicit XmlParser(QIODevice& stream, DB::IDatabaseWritable& db)
 		: SaxParser(stream)
 	{
 		constexpr std::tuple<const char*, int, RestorerCreator> creators[] {
@@ -251,9 +252,9 @@ private:
 	QString m_error;
 };
 
-void RestoreImpl(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName, Callback callback)
+void RestoreImpl(const Util::IExecutor& executor, const IDatabaseProvider& dbProvider, QString fileName, Callback callback)
 {
-	executor({ "Restore user data", [&db, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
+	executor({ "Restore user data", [&dbProvider, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
 				  auto createResult = [callback = std::move(callback)](QString error = {}) mutable {
 					  if (!error.isEmpty())
 					  {
@@ -269,16 +270,17 @@ void RestoreImpl(const Util::IExecutor& executor, DB::IDatabase& db, QString fil
 				  if (!inp.open(QIODevice::ReadOnly))
 					  return createResult(QString(CANNOT_READ_FROM).arg(fileName));
 
-				  const XmlParser parser(inp, db);
+				  const auto      db = dbProvider.GetDatabaseWritable();
+				  const XmlParser parser(inp, *db);
 				  return createResult(parser.GetError());
 			  } });
 }
 
 } // namespace
 
-void Restore(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName, Callback callback)
+void Restore(const Util::IExecutor& executor, const IDatabaseProvider& dbProvider, QString fileName, Callback callback)
 {
-	RestoreImpl(executor, db, std::move(fileName), std::move(callback));
+	RestoreImpl(executor, dbProvider, std::move(fileName), std::move(callback));
 }
 
 } // namespace HomeCompa::Flibrary::UserData

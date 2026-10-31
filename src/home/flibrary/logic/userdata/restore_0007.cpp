@@ -6,7 +6,7 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 #include "constants/books.h"
 #include "constants/groups.h"
@@ -96,7 +96,7 @@ private: // IRestorer
 		std::invoke(invoker, this, std::cref(attributes));
 	}
 
-	void Restore(DB::IDatabase& db) const override
+	void Restore(DB::IDatabaseWritable& db) const override
 	{
 		static constexpr auto commandTextBooks    = "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) "
 													"select ?, BookID, ? "
@@ -134,7 +134,7 @@ private:
 		const auto                                  command = tr.CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
 		std::ranges::transform(m_groups, std::back_inserter(groups), [&](const Group& group) {
 			group.Write(*command);
-			const auto getLastIdQuery = tr.CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
+			const auto getLastIdQuery = tr.CreateQuery(IDatabaseProvider::SELECT_LAST_ID_QUERY);
 			getLastIdQuery->Execute();
 			return std::make_pair(GroupRef { group }, getLastIdQuery->Get<long long>(0));
 		});

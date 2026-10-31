@@ -11,6 +11,7 @@
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IFilterProvider.h"
 
 #include "constants/ExportStat.h"
@@ -221,9 +222,9 @@ constexpr std::pair<const char*, BackupFunction> BACKUPERS[] {
 
 } // namespace
 
-void Backup(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName, Callback callback)
+void Backup(const Util::IExecutor& executor, const IDatabaseProvider& databaseProvider, QString fileName, Callback callback)
 {
-	executor({ "Backup user data", [&db, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
+	executor({ "Backup user data", [&databaseProvider, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
 				  std::function<void(size_t)> result;
 
 				  QFile out(fileName);
@@ -269,6 +270,8 @@ void Backup(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName
 						  xmlWriter.WriteEndElement();
 					  }
 				  );
+
+				  const auto db = databaseProvider.GetDatabase();
 				  for (const auto& [name, functor] : BACKUPERS)
 				  {
 					  ScopedCall item(
@@ -279,7 +282,7 @@ void Backup(const Util::IExecutor& executor, DB::IDatabase& db, QString fileName
 							  xmlWriter.WriteEndElement();
 						  }
 					  );
-					  functor(db, xmlWriter);
+					  functor(*db, xmlWriter);
 				  }
 
 				  return result = [callback = std::move(callback)](size_t) {

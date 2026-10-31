@@ -105,7 +105,7 @@ std::string GetCreateBookViewCommandText(const ISettings& settings, const Flibra
 
 } // namespace
 
-void Create(DB::IDatabase& db, const ISettings& settings, const Flibrary::IFilterProvider& filterProvider)
+void Create(DB::IDatabaseWritable& db, const ISettings& settings, const Flibrary::IFilterProvider& filterProvider)
 {
 	const auto tr = db.CreateTransaction();
 	tr->CreateCommand(DROP_BOOKS_VIEW)->Execute();

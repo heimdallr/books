@@ -4,6 +4,8 @@
 
 #include "database/interface/IDatabase.h"
 
+#include "interface/logic/IDatabaseProvider.h"
+
 #include "util/FunctorExecutionForwarder.h"
 
 using namespace HomeCompa::Flibrary;
@@ -15,14 +17,14 @@ constexpr auto TABLE_NAME = "Export_List_User";
 
 } // namespace
 
-class RecentOpenBookController::Impl final : DB::IDatabaseObserver
+class RecentOpenBookController::Impl final : IDatabaseProvider::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseUser> databaseUser)
+	Impl(IDatabaseController& databaseController, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseProvider> databaseProvider)
 		: m_uiFactory { std::move(uiFactory) }
-		, m_databaseUser { std::move(databaseUser) }
+		, m_databaseProvider { std::move(databaseProvider) }
 	{
 		m_timer.setInterval(std::chrono::seconds(1));
 		m_timer.setSingleShot(true);
@@ -30,8 +32,7 @@ public:
 			UpdateImpl();
 		});
 
-		if (const auto db = m_databaseUser->Database())
-			db->RegisterObserver(this);
+		databaseController.RegisterObserver(this);
 	}
 
 	void SetMenu(QMenu* menu)
@@ -40,11 +41,7 @@ public:
 		Update();
 	}
 
-	~Impl() override
-	{
-		if (const auto db = m_databaseUser->CheckDatabase())
-			db->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 private: // IDatabaseObserver
 	void OnInsert(std::string_view /*dbName*/, const std::string_view tableName, int64_t /*rowId*/) override
@@ -77,15 +74,19 @@ private:
 	}
 
 private:
-	std::shared_ptr<const IUiFactory>    m_uiFactory;
-	std::shared_ptr<const IDatabaseUser> m_databaseUser;
-	QMenu*                               m_menu { nullptr };
-	Util::FunctorExecutionForwarder      m_forwarder;
-	QTimer                               m_timer;
+	std::shared_ptr<const IUiFactory>        m_uiFactory;
+	std::shared_ptr<const IDatabaseProvider> m_databaseProvider;
+	QMenu*                                   m_menu { nullptr };
+	Util::FunctorExecutionForwarder          m_forwarder;
+	QTimer                                   m_timer;
 };
 
-RecentOpenBookController::RecentOpenBookController(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseUser> databaseUser)
-	: m_impl { std::move(uiFactory), std::move(databaseUser) }
+RecentOpenBookController::RecentOpenBookController(
+	const std::shared_ptr<IDatabaseController>& databaseController,
+	std::shared_ptr<const IUiFactory>           uiFactory,
+	std::shared_ptr<const IDatabaseProvider>    databaseProvider
+)
+	: m_impl(*databaseController, std::move(uiFactory), std::move(databaseProvider))
 {
 }
 

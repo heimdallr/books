@@ -5,7 +5,7 @@
 
 #include "interface/logic/ICollectionCleaner.h"
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/ILibRateProvider.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
@@ -18,7 +18,7 @@ class CollectionCleanerLogic final : public ICollectionCleaner
 public:
 	CollectionCleanerLogic(
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
-		std::shared_ptr<const IDatabaseUser>        databaseUser,
+		std::shared_ptr<const IDatabaseProvider>    databaseProvider,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
 		std::shared_ptr<const ILibRateProvider>     libRateProvider,
 		std::shared_ptr<IMainProgressController>    progressController

@@ -7,7 +7,7 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDataItem.h"
 #include "interface/logic/IDataProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IFilterProvider.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 
@@ -27,7 +27,7 @@ public:
 	DataProvider(
 		std::shared_ptr<const ISettings>             settings,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
-		std::shared_ptr<const IDatabaseUser>         databaseUser,
+		std::shared_ptr<const IDatabaseProvider>     databaseProvider,
 		std::shared_ptr<const IFilterProvider>       filterProvider,
 		std::shared_ptr<INavigationQueryExecutor>    navigationQueryExecutor,
 		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController

@@ -226,7 +226,7 @@ public:
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const IScriptController>    scriptController,
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
-		std::shared_ptr<const IDatabaseUser>        databaseUser
+		std::shared_ptr<const IDatabaseProvider>    databaseProvider
 	)
 		: m_self { self }
 		, m_settings { std::move(settings) }
@@ -237,16 +237,13 @@ public:
 		, m_logicFactory { logicFactory }
 		, m_scriptController { std::move(scriptController) }
 		, m_bookExtractor { std::move(bookExtractor) }
-		, m_databaseUser { std::move(databaseUser) }
+		, m_databaseProvider { std::move(databaseProvider) }
 		, m_needReplaceMetadata { m_settings->Get(Constant::Settings::EXPORT_REPLACE_METADATA_KEY, false) }
 	{
 		m_progressController->RegisterObserver(this);
 	}
 
-	~Impl() override
-	{
-		m_progressController->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 	void Extract(QString dstFolder, Util::ExtractedBooks&& books, Callback callback, const ExportStat::Type exportStatType, ProcessFunctor processFunctor)
 	{
@@ -280,14 +277,14 @@ public:
 		return *m_settings;
 	}
 
-	std::shared_ptr<DB::IDatabase> GetDatabase() const
-	{
-		return m_databaseUser->Database();
-	}
-
 	std::shared_ptr<const ILogicFactory> GetLogicFactory() const
 	{
 		return ILogicFactory::Lock(m_logicFactory);
+	}
+
+	std::shared_ptr<const IDatabaseProvider> GetDatabaseUser() const
+	{
+		return m_databaseProvider;
 	}
 
 private: // IExportHelper
@@ -380,11 +377,12 @@ private:
 
 	void OnExtracted(const long long id) const
 	{
-		const auto transaction = m_databaseUser->Database()->CreateTransaction();
+		const auto db          = m_databaseProvider->GetDatabaseWritable();
+		const auto transaction = db->CreateTransaction();
 		transaction->CreateCommand(ExportStat::INSERT_QUERY)->Execute(id, m_exportStatType);
 		if (m_autoRateValue.isValid())
 		{
-			transaction->CreateCommand(IDatabaseUser::SET_USER_RATE_COMMAND)->Execute(id, m_autoRateValue.toInt());
+			transaction->CreateCommand(IDatabaseProvider::SET_USER_RATE_COMMAND)->Execute(id, m_autoRateValue.toInt());
 			m_forwarder.Forward([this, id] {
 				emit m_self.SetUserRate({ .ids = { id }, .column = BookItem::Column::UserRate, .value = m_autoRateValue.toString() });
 			});
@@ -402,7 +400,7 @@ private:
 	std::weak_ptr<const ILogicFactory>                        m_logicFactory;
 	std::shared_ptr<const IScriptController>                  m_scriptController;
 	std::shared_ptr<const IBookExtractor>                     m_bookExtractor;
-	std::shared_ptr<const IDatabaseUser>                      m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                  m_databaseProvider;
 	Callback                                                  m_callback;
 	size_t                                                    m_taskCount { 0 };
 	bool                                                      m_hasError { false };
@@ -424,9 +422,9 @@ BooksExtractor::BooksExtractor(
 	const std::shared_ptr<const ILogicFactory>& logicFactory,
 	std::shared_ptr<const IScriptController>    scriptController,
 	std::shared_ptr<const IBookExtractor>       bookExtractor,
-	std::shared_ptr<const IDatabaseUser>        databaseUser
+	std::shared_ptr<const IDatabaseProvider>    databaseProvider
 )
-	: m_impl(*this, std::move(settings), std::move(collectionController), std::move(progressController), logicFactory, std::move(scriptController), std::move(bookExtractor), std::move(databaseUser))
+	: m_impl(*this, std::move(settings), std::move(collectionController), std::move(progressController), logicFactory, std::move(scriptController), std::move(bookExtractor), std::move(databaseProvider))
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::SET_BOOKS_COLUMN_VALUE, this, SIGNAL(SetUserRate(const SetForIdsArg&)));
 	PLOGV << "BooksExtractor created";
@@ -507,7 +505,7 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, U
 		std::move(books),
 		std::move(callback),
 		ExportStat::Type::Script,
-		[this, scriptController = std::move(scriptController), commands = std::move(commands), db = m_impl->GetDatabase()](
+		[this, scriptController = std::move(scriptController), commands = std::move(commands), dbProvider = m_impl->GetDatabaseUser()](
 			const std::filesystem::path&        archiveFolder,
 			const QString&                      dstFolder,
 			const Util::ExtractedBook&          book,
@@ -515,6 +513,7 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, U
 			IProgressController::IProgressItem& progress,
 			IExportHelper&                      exportHelper
 		) {
+			const auto db = dbProvider->GetDatabase();
 			return Process(m_impl->GetSettings(), archiveFolder, dstFolder, *db, book, progress, std::move(encoding), exportHelper, *scriptController, commands);
 		}
 	);

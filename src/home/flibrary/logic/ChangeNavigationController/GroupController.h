@@ -6,7 +6,7 @@
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 #include "interface/ui/IUiFactory.h"
 
@@ -24,7 +24,7 @@ public:
 	using Ids      = std::unordered_set<Id>;
 
 public:
-	GroupController(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<IUiFactory> uiFactory);
+	GroupController(std::shared_ptr<const IDatabaseProvider> databaseProvider, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<IUiFactory> uiFactory);
 	~GroupController();
 
 public:

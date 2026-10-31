@@ -95,7 +95,7 @@ void AddTableFields(DB::ITransaction& transaction)
 
 } // namespace
 
-void Update(DB::IDatabase& db, const ICollectionProvider& /*collectionProvider*/)
+void Update(DB::IDatabaseWritable& db, const ICollectionProvider& /*collectionProvider*/)
 {
 	const auto transaction = db.CreateTransaction();
 

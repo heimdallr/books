@@ -89,7 +89,7 @@ struct ReaderController::Impl
 	std::shared_ptr<ISettings>                                settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> collectionController;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>            uiFactory;
-	PropagateConstPtr<IDatabaseUser, std::shared_ptr>         databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                  databaseProvider;
 
 	mutable std::random_device rd {};
 	mutable std::mt19937       mt { rd() };
@@ -100,14 +100,14 @@ struct ReaderController::Impl
 		std::shared_ptr<ISettings>                  settings,
 		std::shared_ptr<ICollectionController>      collectionController,
 		std::shared_ptr<IUiFactory>                 uiFactory,
-		std::shared_ptr<IDatabaseUser>              databaseUser
+		std::shared_ptr<const IDatabaseProvider>    databaseProvider
 	)
 		: self { self }
 		, logicFactory { logicFactory }
 		, settings { std::move(settings) }
 		, collectionController { std::move(collectionController) }
 		, uiFactory { std::move(uiFactory) }
-		, databaseUser { std::move(databaseUser) }
+		, databaseProvider { std::move(databaseProvider) }
 	{
 	}
 
@@ -116,13 +116,13 @@ struct ReaderController::Impl
 		if (!ReadImpl(std::move(temporaryDir), std::move(fileName), removeCurrentReader, error))
 			return;
 
-		const auto db          = databaseUser->Database();
+		const auto db          = databaseProvider->GetDatabaseWritable();
 		const auto transaction = db->CreateTransaction();
 		transaction->CreateQuery(ExportStat::INSERT_QUERY)->Execute(id, static_cast<int>(ExportStat::Type::Read));
 
 		if (const auto autoRate = settings->Get(AUTO_RATE); autoRate.isValid())
 		{
-			transaction->CreateQuery(IDatabaseUser::SET_USER_RATE_COMMAND)->Execute(id, autoRate.toInt());
+			transaction->CreateQuery(IDatabaseProvider::SET_USER_RATE_COMMAND)->Execute(id, autoRate.toInt());
 			emit self.SetUserRate({ .ids = { id }, .column = BookItem::Column::UserRate, .value = autoRate.toString() });
 		}
 
@@ -234,7 +234,7 @@ struct ReaderController::Impl
 		fileNameTemplate.replace("%file_ext%", QFileInfo(fileName).suffix());
 		fileNameTemplate.replace("%user_destination_folder%", "");
 
-		const auto db = databaseUser->Database();
+		const auto db = databaseProvider->GetDatabase();
 		ILogicFactory::FillScriptTemplate(*db, fileNameTemplate, ILogicFactory::Lock(logicFactory)->GetCurrentExtractedBook());
 
 		return fileNameTemplate;
@@ -311,9 +311,9 @@ ReaderController::ReaderController(
 	std::shared_ptr<ISettings>                  settings,
 	std::shared_ptr<ICollectionController>      collectionController,
 	std::shared_ptr<IUiFactory>                 uiFactory,
-	std::shared_ptr<IDatabaseUser>              databaseUser
+	std::shared_ptr<const IDatabaseProvider>    databaseProvider
 )
-	: m_impl(*this, logicFactory, std::move(settings), std::move(collectionController), std::move(uiFactory), std::move(databaseUser))
+	: m_impl(*this, logicFactory, std::move(settings), std::move(collectionController), std::move(uiFactory), std::move(databaseProvider))
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::SET_BOOKS_COLUMN_VALUE, this, SIGNAL(SetUserRate(const SetForIdsArg&)), true);
 	PLOGV << "ReaderController created";
@@ -332,7 +332,7 @@ void ReaderController::Read(long long id) const
 
 	const auto& executorRef = *executor;
 	executorRef({ "Get archive and file names", [this, id, executor = std::move(executor), removeCurrentReader]() mutable {
-					 const auto db = m_impl->databaseUser->Database();
+					 const auto db = m_impl->databaseProvider->GetDatabase();
 
 					 auto [folderName, fileName] = [&] {
 						 const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
@@ -358,27 +358,27 @@ void ReaderController::Read(long long id) const
 
 void ReaderController::ReadRandomBook(QString lang) const
 {
-	m_impl->databaseUser->Execute({ "Get books for language", [this, lang = std::move(lang)]() {
-									   std::function<void(size_t)> result { [](size_t) {
-									   } };
+	m_impl->databaseProvider->Execute({ "Get books for language", [this, lang = std::move(lang)]() {
+										   std::function<void(size_t)> result { [](size_t) {
+										   } };
 
-									   const auto db    = m_impl->databaseUser->Database();
-									   const auto query = db->CreateQuery("select b.BookID from Books b join Folders f on f.FolderID = b.FolderID where b.Lang = ?", lang);
+										   const auto db    = m_impl->databaseProvider->GetDatabase();
+										   const auto query = db->CreateQuery("select b.BookID from Books b join Folders f on f.FolderID = b.FolderID where b.Lang = ?", lang);
 
-									   const auto allBooks = *query | std::views::transform([](auto& item) {
-										   return item.template Get<long long>(0);
-									   }) | std::ranges::to<std::vector>();
+										   const auto allBooks = *query | std::views::transform([](auto& item) {
+											   return item.template Get<long long>(0);
+										   }) | std::ranges::to<std::vector>();
 
-									   if (allBooks.empty())
+										   if (allBooks.empty())
+											   return result;
+
+										   std::uniform_int_distribution<size_t> distribution(0, allBooks.size() - 1);
+										   const auto                            n = distribution(m_impl->mt);
+
+										   result = [this, id = allBooks[n]](size_t) mutable {
+											   Read(id);
+										   };
+
 										   return result;
-
-									   std::uniform_int_distribution<size_t> distribution(0, allBooks.size() - 1);
-									   const auto                            n = distribution(m_impl->mt);
-
-									   result = [this, id = allBooks[n]](size_t) mutable {
-										   Read(id);
-									   };
-
-									   return result;
-								   } });
+									   } });
 }

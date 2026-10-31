@@ -2,7 +2,7 @@
 
 namespace HomeCompa::DB {
 
-class IDatabase;
+class IDatabaseWritable;
 
 }
 
@@ -14,6 +14,6 @@ class ICollectionProvider;
 
 namespace HomeCompa::Flibrary::DatabaseScheme {
 
-void Update(DB::IDatabase& db, const ICollectionProvider& collectionProvider);
+void Update(DB::IDatabaseWritable& db, const ICollectionProvider& collectionProvider);
 
 }

@@ -23,6 +23,7 @@ class FLibrary(ConanFile):
     
     def requirements(self):
         self.requires("boost/1.89.0")
+        self.requires("gtest/1.18.0")
         self.requires("plog/1.1.10")
         self.requires("xerces-c/3.3.0")
         self.requires("libjxl/0.12.0")

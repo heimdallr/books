@@ -46,7 +46,7 @@ private: // IRestorer
 		m_items.emplace_back(attributes);
 	}
 
-	void Restore(DB::IDatabase& db) const override
+	void Restore(DB::IDatabaseWritable& db) const override
 	{
 		using namespace Constant::UserData::Books;
 		static constexpr auto commandText = "insert into Export_List_User(BookID, ExportType, CreatedAt) "

@@ -37,11 +37,11 @@ class ModelImpl : public QAbstractTableModel
 	using Items = std::vector<Item>;
 
 public:
-	explicit ModelImpl(std::shared_ptr<const IDatabaseUser> databaseUser)
+	explicit ModelImpl(std::shared_ptr<const IDatabaseProvider> databaseProvider)
 	{
-		const auto& databaseUserRef = *databaseUser;
-		databaseUserRef.Execute({ "Create language list", [&, databaseUser = std::move(databaseUser)]() mutable {
-									 const auto db    = databaseUser->Database();
+		const auto& databaseUserRef = *databaseProvider;
+		databaseUserRef.Execute({ "Create language list", [&, databaseProvider = std::move(databaseProvider)]() mutable {
+									 const auto db    = databaseProvider->GetDatabase();
 									 const auto query = db->CreateQuery("select Lang, count(42) from Books group by Lang");
 									 auto       items = *query | std::views::transform([](const auto& item) {
 										 return Item { item.template Get<const char*>(0), item.template Get<int>(1) };
@@ -210,8 +210,8 @@ private:
 class LanguageModel::Model final : public QSortFilterProxyModel
 {
 public:
-	explicit Model(std::shared_ptr<const IDatabaseUser> databaseUser)
-		: m_source { std::unique_ptr<QAbstractItemModel> { std::make_unique<ModelImpl>(std::move(databaseUser)) } }
+	explicit Model(std::shared_ptr<const IDatabaseProvider> databaseProvider)
+		: m_source { std::unique_ptr<QAbstractItemModel> { std::make_unique<ModelImpl>(std::move(databaseProvider)) } }
 	{
 		QSortFilterProxyModel::setSourceModel(m_source.get());
 	}
@@ -220,8 +220,8 @@ private:
 	PropagateConstPtr<QAbstractItemModel> m_source;
 };
 
-LanguageModel::LanguageModel(std::shared_ptr<const IDatabaseUser> databaseUser)
-	: m_model(std::move(databaseUser))
+LanguageModel::LanguageModel(std::shared_ptr<const IDatabaseProvider> databaseProvider)
+	: m_model(std::move(databaseProvider))
 {
 }
 

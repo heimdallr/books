@@ -1108,17 +1108,18 @@ limit {}
 	if (maxMenuItemCount < 1)
 		return menu.menuAction()->setVisible(false);
 
-	const auto databaseUser = container.resolve<IDatabaseUser>();
-
-	auto db = databaseUser->CheckDatabase();
-	if (!db)
-		return;
-
-	auto queryText = std::format(QUERY, std::to_underlying(IDatabaseUser::Key::RecentBookDateTime), maxMenuItemCount);
-	databaseUser->Execute(
+	auto  databaseProvider = container.resolve<IDatabaseProvider>();
+	auto& databaseUserRef  = *databaseProvider;
+	databaseUserRef.Execute(
 		{ "Update recent books menu",
-		  [this, &menu, queryText = std::move(queryText), menuItemTitleFormat = std::move(menuItemTitleFormat), menuItemDateTimeFormat = std::move(menuItemDateTimeFormat), db = std::move(db)]() mutable {
-			  auto data = [&] {
+		  [this,
+		   &menu,
+		   databaseProvider       = std::move(databaseProvider),
+		   queryText              = std::format(QUERY, std::to_underlying(IDatabaseProvider::Key::RecentBookDateTime), maxMenuItemCount),
+		   menuItemTitleFormat    = std::move(menuItemTitleFormat),
+		   menuItemDateTimeFormat = std::move(menuItemDateTimeFormat)]() mutable {
+			  const auto db   = databaseProvider->GetDatabase();
+			  auto       data = [&] {
 				  const auto query = db->CreateQuery(queryText);
 				  return *query | std::views::transform([&](const auto& item) {
 					  const auto dateTime = QDateTime::fromString(query->Get<const char*>(3), MENU_ITEM_DATETIME_FORMAT_DEFAULT).toString(menuItemDateTimeFormat);
@@ -1141,12 +1142,12 @@ limit {}
 				  menu.addSeparator();
 				  const auto* action = menu.addAction(Tr(CLEAR_RECENT_BOOKS));
 				  connect(action, &QAction::triggered, [this, &menu] {
-					  const auto database = m_impl->container.resolve<IDatabaseUser>()->Database();
+					  const auto database = m_impl->container.resolve<IDatabaseProvider>()->GetDatabaseWritable();
 					  const auto tr       = database->CreateTransaction();
 					  tr->CreateCommand(
 							std::format(
 								"insert or replace into Settings(SettingID, SettingValue) values({}, datetime(CURRENT_TIMESTAMP, 'localtime'))",
-								std::to_underlying(IDatabaseUser::Key::RecentBookDateTime)
+								std::to_underlying(IDatabaseProvider::Key::RecentBookDateTime)
 							)
 					  )
 						  ->Execute();

@@ -41,7 +41,7 @@ private: // IRestorer
 		item.createdAt = attributes.GetAttribute(Constant::UserData::Books::CreatedAt).toString();
 	}
 
-	void Restore(DB::IDatabase& db) const override
+	void Restore(DB::IDatabaseWritable& db) const override
 	{
 		using namespace Constant::UserData;
 		const auto transaction = db.CreateTransaction();

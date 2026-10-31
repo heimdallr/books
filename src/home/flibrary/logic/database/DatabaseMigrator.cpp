@@ -11,11 +11,11 @@ using namespace HomeCompa::Flibrary;
 
 struct DatabaseMigrator::Impl : Observable<IDatabaseMigrator::IObserver>
 {
-	std::shared_ptr<const IDatabaseUser>       databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   databaseProvider;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 
-	Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
-		: databaseUser { std::move(databaseUser) }
+	Impl(std::shared_ptr<const IDatabaseProvider> databaseProvider, std::shared_ptr<const ICollectionProvider> collectionProvider)
+		: databaseProvider { std::move(databaseProvider) }
 		, collectionProvider { std::move(collectionProvider) }
 	{
 	}
@@ -26,8 +26,8 @@ struct DatabaseMigrator::Impl : Observable<IDatabaseMigrator::IObserver>
 	}
 };
 
-DatabaseMigrator::DatabaseMigrator(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
-	: m_impl(std::move(databaseUser), std::move(collectionProvider))
+DatabaseMigrator::DatabaseMigrator(std::shared_ptr<const IDatabaseProvider> databaseProvider, std::shared_ptr<const ICollectionProvider> collectionProvider)
+	: m_impl(std::move(databaseProvider), std::move(collectionProvider))
 {
 	PLOGV << "DatabaseMigrator created";
 }
@@ -42,7 +42,7 @@ IDatabaseMigrator::NeedMigrateResult DatabaseMigrator::NeedMigrate() const
 	if (!m_impl->collectionProvider->ActiveCollectionExists())
 		return NeedMigrateResult::Actual;
 
-	const auto dbVersion = m_impl->databaseUser->GetSetting(IDatabaseUser::Key::DatabaseVersion).toInt();
+	const auto dbVersion = m_impl->databaseProvider->GetSetting(IDatabaseProvider::Key::DatabaseVersion).toInt();
 
 	return dbVersion == -1                                            ? NeedMigrateResult::Recreate
 	     : dbVersion == Constant::FlibraryDatabaseVersionNumber       ? NeedMigrateResult::Actual
@@ -53,14 +53,14 @@ IDatabaseMigrator::NeedMigrateResult DatabaseMigrator::NeedMigrate() const
 
 void DatabaseMigrator::Migrate()
 {
-	m_impl->databaseUser->Execute({ "Database migration", [this] {
-									   const auto db = m_impl->databaseUser->Database();
-									   DatabaseScheme::Update(*db, *m_impl->collectionProvider);
-									   return [this](size_t) {
-										   m_impl->databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, Constant::FlibraryDatabaseVersionNumber);
-										   m_impl->Perform(&IObserver::OnMigrationFinished);
-									   };
-								   } });
+	m_impl->databaseProvider->Execute({ "Database migration", [this] {
+										   const auto db = m_impl->databaseProvider->GetDatabaseWritable();
+										   DatabaseScheme::Update(*db, *m_impl->collectionProvider);
+										   return [this](size_t) {
+											   m_impl->databaseProvider->SetSetting(IDatabaseProvider::Key::DatabaseVersion, Constant::FlibraryDatabaseVersionNumber);
+											   m_impl->Perform(&IObserver::OnMigrationFinished);
+										   };
+									   } });
 }
 
 void DatabaseMigrator::RegisterObserver(IObserver* observer)

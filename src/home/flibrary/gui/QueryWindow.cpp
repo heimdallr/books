@@ -26,11 +26,11 @@ class QueryWindow::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(QMainWindow* self, std::shared_ptr<ISettings> settings, std::shared_ptr<IDatabaseUser> databaseUser)
+	Impl(QMainWindow* self, std::shared_ptr<ISettings> settings, std::shared_ptr<const IDatabaseProvider> databaseProvider)
 		: GeometryRestorable(*this, settings, "QueryWindow")
 		, GeometryRestorableObserver(*self)
 		, m_settings { std::move(settings) }
-		, m_databaseUser { std::move(databaseUser) }
+		, m_databaseProvider { std::move(databaseProvider) }
 	{
 		m_ui.setupUi(self);
 
@@ -73,7 +73,7 @@ public:
 private:
 	void StartTransaction()
 	{
-		m_transaction = m_databaseUser->Database()->CreateTransaction();
+		m_transaction = m_databaseProvider->GetDatabaseWritable()->CreateTransaction();
 		SetEnabled();
 	}
 
@@ -114,16 +114,16 @@ private:
 
 	void ExecuteQuery() const
 	{
-		m_databaseUser->Execute({ "Execute query", [this] {
-									 ExecuteQueryImpl();
-									 return [](size_t) {
-									 };
-								 } });
+		m_databaseProvider->Execute({ "Execute query", [this] {
+										 ExecuteQueryImpl();
+										 return [](size_t) {
+										 };
+									 } });
 	}
 
 	void ExecuteQueryImpl() const
 	{
-		const auto db    = m_databaseUser->Database();
+		const auto db    = m_databaseProvider->GetDatabase();
 		const auto query = db->CreateQuery(GetQueryText());
 		query->Execute();
 		{
@@ -157,15 +157,15 @@ private:
 	}
 
 private:
-	Ui::QueryWindow                   m_ui {};
-	std::shared_ptr<ISettings>        m_settings;
-	std::shared_ptr<IDatabaseUser>    m_databaseUser;
-	std::shared_ptr<DB::ITransaction> m_transaction;
+	Ui::QueryWindow                          m_ui {};
+	std::shared_ptr<ISettings>               m_settings;
+	std::shared_ptr<const IDatabaseProvider> m_databaseProvider;
+	std::shared_ptr<DB::ITransaction>        m_transaction;
 };
 
-QueryWindow::QueryWindow(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<IDatabaseUser> databaseUser, QWidget* parent)
+QueryWindow::QueryWindow(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<const IDatabaseProvider> databaseProvider, QWidget* parent)
 	: QMainWindow(parent ? parent : parentWidgetProvider->GetWidget())
-	, m_impl(this, std::move(settings), std::move(databaseUser))
+	, m_impl(this, std::move(settings), std::move(databaseProvider))
 {
 }
 

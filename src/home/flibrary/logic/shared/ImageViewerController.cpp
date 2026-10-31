@@ -49,10 +49,7 @@ public:
 		connect(m_imageModel.get(), &QAbstractItemModel::rowsInserted, this, &Impl::OnModelRowCountChanged);
 	}
 
-	~Impl() override
-	{
-		m_bookInfoProvider->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 	QAbstractItemModel* GetImagesModel() noexcept
 	{

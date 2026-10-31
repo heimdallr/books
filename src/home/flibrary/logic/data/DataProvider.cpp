@@ -55,20 +55,20 @@ public:
 	Impl(
 		std::shared_ptr<const ISettings>             settings,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
-		std::shared_ptr<const IDatabaseUser>         databaseUser,
+		std::shared_ptr<const IDatabaseProvider>     databaseProvider,
 		std::shared_ptr<const IFilterProvider>       filterProvider,
 		std::shared_ptr<INavigationQueryExecutor>    navigationQueryExecutor,
 		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController
 	)
 		: m_settings { std::move(settings) }
 		, m_collectionProvider { std::move(collectionProvider) }
-		, m_databaseUser { std::move(databaseUser) }
+		, m_databaseProvider { std::move(databaseProvider) }
 		, m_filterProvider { std::move(filterProvider) }
 		, m_navigationQueryExecutor { std::move(navigationQueryExecutor) }
 		, m_authorAnnotationController { std::move(authorAnnotationController) }
 	{
 		if (m_collectionProvider->ActiveCollectionExists())
-			DatabaseUtil::CreateHistoryTable(*m_databaseUser->Database(), *m_settings);
+			DatabaseUtil::CreateHistoryTable(*m_databaseProvider->GetDatabaseWritable(), *m_settings);
 	}
 
 	void SetNavigationMode(const NavigationMode navigationMode)
@@ -176,7 +176,7 @@ private:
 				});
 		}
 
-		m_databaseUser->Execute(
+		m_databaseProvider->Execute(
 			{ "Get books",
 			  [this,
 			   alive          = weak_from_this(),
@@ -192,11 +192,11 @@ private:
 				  if (!booksGeneratorReady)
 				  {
 					  const auto& activeCollection = m_collectionProvider->GetActiveCollection();
-					  const auto  db               = m_databaseUser->Database();
-					  generator                    = std::make_unique<BooksTreeGenerator>(*m_settings, activeCollection, *db, navigationMode, navigationId, description, *m_filterProvider);
+					  generator                    = std::make_unique<BooksTreeGenerator>(*m_settings, activeCollection, *m_databaseProvider, navigationMode, navigationId, description, *m_filterProvider);
 
 					  if (navigationMode == NavigationMode::Authors && !navigationId.isEmpty())
 					  {
+						  const auto db    = m_databaseProvider->GetDatabase();
 						  const auto query = db->CreateQuery(QString("select " FLIBRARY_SQL_FULL_AUTHOR_NAME " from Authors a where a.AuthorID = %1").arg(navigationId).toStdString());
 						  query->Execute();
 						  assert(!query->Eof());
@@ -276,7 +276,7 @@ private:
 
 	std::shared_ptr<const ISettings>                                m_settings;
 	std::shared_ptr<const ICollectionProvider>                      m_collectionProvider;
-	std::shared_ptr<const IDatabaseUser>                            m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                        m_databaseProvider;
 	std::shared_ptr<const IFilterProvider>                          m_filterProvider;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr>    m_navigationQueryExecutor;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> m_authorAnnotationController;
@@ -293,12 +293,12 @@ private:
 DataProvider::DataProvider(
 	std::shared_ptr<const ISettings>             settings,
 	std::shared_ptr<const ICollectionProvider>   collectionProvider,
-	std::shared_ptr<const IDatabaseUser>         databaseUser,
+	std::shared_ptr<const IDatabaseProvider>     databaseProvider,
 	std::shared_ptr<const IFilterProvider>       filterProvider,
 	std::shared_ptr<INavigationQueryExecutor>    navigationQueryExecutor,
 	std::shared_ptr<IAuthorAnnotationController> authorAnnotationController
 )
-	: m_impl(std::move(settings), std::move(collectionProvider), std::move(databaseUser), std::move(filterProvider), std::move(navigationQueryExecutor), std::move(authorAnnotationController))
+	: m_impl(std::move(settings), std::move(collectionProvider), std::move(databaseProvider), std::move(filterProvider), std::move(navigationQueryExecutor), std::move(authorAnnotationController))
 {
 	PLOGV << "DataProvider created";
 }

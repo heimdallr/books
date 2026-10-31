@@ -255,10 +255,7 @@ public:
 		CreateCoverButtons();
 	}
 
-	~Impl() override
-	{
-		m_annotationController->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 	void ShowContent(const bool value, const ContentMode mode)
 	{

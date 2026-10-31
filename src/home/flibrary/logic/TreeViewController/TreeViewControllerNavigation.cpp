@@ -263,7 +263,7 @@ static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode:
 
 struct TreeViewControllerNavigation::Impl final
     : virtual IContextMenuHandler
-    , virtual private IDatabaseController::IObserver
+    //    , virtual private IDatabaseController::IObserver
     , virtual private DB::IDatabaseObserver
     , virtual private ITableSubscriptionHandler
     , virtual private INavigationFilter
@@ -276,7 +276,7 @@ struct TreeViewControllerNavigation::Impl final
 	std::shared_ptr<const IMenuCustomizer>                                      menuCustomizer;
 	PropagateConstPtr<INavigationInfoProvider, std::shared_ptr>                 dataProvider;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>                              uiFactory;
-	PropagateConstPtr<IDatabaseController, std::shared_ptr>                     databaseController;
+	std::shared_ptr<const IDatabaseProvider>                                    databaseProvider;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr>                   annotationController;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr>             authorAnnotationController;
 	std::shared_ptr<IFilterController>                                          filterController;
@@ -291,7 +291,7 @@ struct TreeViewControllerNavigation::Impl final
 		std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
 		std::shared_ptr<INavigationInfoProvider>     dataProvider,
 		std::shared_ptr<IUiFactory>                  uiFactory,
-		std::shared_ptr<IDatabaseController>         databaseController,
+		std::shared_ptr<const IDatabaseProvider>     databaseProvider,
 		std::shared_ptr<IAnnotationController>       annotationController,
 		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
 		std::shared_ptr<IFilterController>           filterController
@@ -302,7 +302,7 @@ struct TreeViewControllerNavigation::Impl final
 		, menuCustomizer { std::move(menuCustomizer) }
 		, dataProvider { std::move(dataProvider) }
 		, uiFactory { std::move(uiFactory) }
-		, databaseController { std::move(databaseController) }
+		, databaseProvider { std::move(databaseProvider) }
 		, annotationController { std::move(annotationController) }
 		, authorAnnotationController { std::move(authorAnnotationController) }
 		, filterController { std::move(filterController) }
@@ -310,19 +310,16 @@ struct TreeViewControllerNavigation::Impl final
 		for ([[maybe_unused]] const auto& _ : MODE_DESCRIPTORS)
 			models.emplace_back(std::shared_ptr<QAbstractItemModel>());
 
-		this->databaseController->RegisterObserver(this);
+		this->databaseProvider->GetDatabase()->RegisterObserver(this);
 	}
 
-	~Impl() override
-	{
-		this->databaseController->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 	void RequestContextMenu(const QModelIndex& index, RequestContextMenuOptions options, RequestContextMenuCallback callback)
 	{
 		assert(static_cast<size_t>(mode) < std::size(MENU_REQUESTERS));
 		auto       id   = index.data(Role::Id).toString();
-		const auto db   = databaseController->GetDatabase(true);
+		const auto db   = databaseProvider->GetDatabase();
 		auto       item = std::invoke(MENU_REQUESTERS[mode], static_cast<IContextMenuProvider*>(this), std::ref(*db), std::cref(id), options);
 		forwarder.Forward([callback = std::move(callback), id = std::move(id), item = std::move(item)] {
 			callback(id, item, {});
@@ -452,17 +449,6 @@ private: // IContextMenuHandler
 		std::invoke(invoker, *filterController, static_cast<NavigationMode>(mode), std::move(ids), IDataItem::Flags::BooksFiltered, std::move(callback));
 	}
 
-private: // DatabaseController::IObserver
-	void AfterDatabaseCreated(DB::IDatabase& db) override
-	{
-		db.RegisterObserver(this);
-	}
-
-	void BeforeDatabaseDestroyed(DB::IDatabase& db) override
-	{
-		db.UnregisterObserver(this);
-	}
-
 private: // DB::IDatabaseObserver
 	void OnInsert(std::string_view /*dbName*/, const std::string_view tableName, int64_t /*rowId*/) override
 	{
@@ -512,7 +498,7 @@ private: // INavigationFilter
 		if (!descriptor.filterParameter)
 			return true;
 
-		const auto db = databaseController->GetDatabase();
+		const auto db = databaseProvider->GetDatabase();
 		if (!db)
 			return true;
 
@@ -826,7 +812,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 	std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
 	std::shared_ptr<INavigationInfoProvider>     dataProvider,
 	std::shared_ptr<IUiFactory>                  uiFactory,
-	std::shared_ptr<IDatabaseController>         databaseController,
+	std::shared_ptr<const IDatabaseProvider>     databaseProvider,
 	std::shared_ptr<IAnnotationController>       annotationController,
 	std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
 	std::shared_ptr<IFilterController>           filterController
@@ -839,7 +825,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 		  std::move(menuCustomizer),
 		  std::move(dataProvider),
 		  std::move(uiFactory),
-		  std::move(databaseController),
+		  std::move(databaseProvider),
 		  std::move(annotationController),
 		  std::move(authorAnnotationController),
 		  std::move(filterController)
