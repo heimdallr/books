@@ -24,10 +24,7 @@ struct AuthorsModel::Impl : private IAuthorAnnotationController::IObserver
 		this->authorAnnotationController->RegisterObserver(this);
 	}
 
-	~Impl() override
-	{
-		authorAnnotationController->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 private: // IAuthorAnnotationController::IObserver
 	void OnReadyChanged() override

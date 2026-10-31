@@ -313,11 +313,7 @@ struct TreeViewControllerNavigation::Impl final
 		this->databaseUser->GetDatabase()->RegisterObserver(this);
 	}
 
-	~Impl() override
-	{
-		if (const auto db = databaseUser->CheckDatabase())
-			db->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 	void RequestContextMenu(const QModelIndex& index, RequestContextMenuOptions options, RequestContextMenuCallback callback)
 	{

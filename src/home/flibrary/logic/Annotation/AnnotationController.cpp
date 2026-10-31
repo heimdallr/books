@@ -334,10 +334,7 @@ public:
 		m_filterProvider->RegisterObserver(this);
 	}
 
-	~Impl() override
-	{
-		m_filterProvider->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 public:
 	void SetNavigationMode(const NavigationMode navigationMode) noexcept

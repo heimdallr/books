@@ -24,10 +24,7 @@ public:
 		Impl::OnStartedChanged();
 	}
 
-	~Impl() override
-	{
-		m_progressController->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 private: // IProgressController::IObserver
 	void OnStartedChanged() override

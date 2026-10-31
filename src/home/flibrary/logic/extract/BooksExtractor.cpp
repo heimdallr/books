@@ -243,10 +243,7 @@ public:
 		m_progressController->RegisterObserver(this);
 	}
 
-	~Impl() override
-	{
-		m_progressController->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 	void Extract(QString dstFolder, Util::ExtractedBooks&& books, Callback callback, const ExportStat::Type exportStatType, ProcessFunctor processFunctor)
 	{

@@ -92,10 +92,7 @@ public:
 		});
 	}
 
-	~Impl() override
-	{
-		m_annotationController->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 	void Show(const bool value)
 	{

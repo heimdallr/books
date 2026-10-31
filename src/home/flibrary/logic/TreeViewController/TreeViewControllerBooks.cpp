@@ -154,8 +154,6 @@ TreeViewControllerBooks::TreeViewControllerBooks(
 
 TreeViewControllerBooks::~TreeViewControllerBooks()
 {
-	m_impl->dataProvider->UnregisterObserver(this);
-
 	PLOGV << "TreeViewControllerBooks destroyed";
 }
 

@@ -30,7 +30,6 @@ struct MigrateWindow::Impl
 	~Impl() override
 	{
 		SaveGeometry();
-		migrator->UnregisterObserver(this);
 	}
 
 private: // IDatabaseMigrator::IObserver

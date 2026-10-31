@@ -444,10 +444,6 @@ public:
 	{
 		SaveGeometry();
 		m_ui.annotationWidget->removeEventFilter(m_annotationWidgetEventFilter);
-		m_navigationViewController->UnregisterObserver(this);
-		m_collectionController->UnregisterObserver(this);
-		m_alphabetPanel->UnregisterObserver(this);
-		m_navigationUndoRedo->UnregisterObserver(this);
 		m_settings->Set(MAIN_WINDOW_STATE, m_self.saveState());
 	}
 

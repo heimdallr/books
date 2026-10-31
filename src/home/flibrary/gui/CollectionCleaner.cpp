@@ -180,7 +180,6 @@ public:
 
 	~Impl() override
 	{
-		m_settings->UnregisterObserver(this);
 		SaveGeometry();
 		Save();
 	}

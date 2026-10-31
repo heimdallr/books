@@ -587,11 +587,7 @@ struct NavigationQueryExecutor::Impl final : virtual DB::IDatabaseObserver
 			db->RegisterObserver(this);
 	}
 
-	~Impl() override
-	{
-		if (const auto db = this->databaseUser->CheckDatabase())
-			db->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 private: // DB::IDatabaseObserver
 	void OnInsert(std::string_view, const std::string_view tableName, int64_t) override

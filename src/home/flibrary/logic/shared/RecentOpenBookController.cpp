@@ -40,11 +40,7 @@ public:
 		Update();
 	}
 
-	~Impl() override
-	{
-		if (const auto db = m_databaseUser->CheckDatabase())
-			db->UnregisterObserver(this);
-	}
+	~Impl() override = default;
 
 private: // IDatabaseObserver
 	void OnInsert(std::string_view /*dbName*/, const std::string_view tableName, int64_t /*rowId*/) override
