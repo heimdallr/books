@@ -573,18 +573,17 @@ constexpr std::pair<const char*, NavigationMode> TABLES[] {
 
 } // namespace
 
-struct NavigationQueryExecutor::Impl final : virtual DB::IDatabaseObserver
+struct NavigationQueryExecutor::Impl final : virtual IDatabaseUser::IObserver
 {
-	std::shared_ptr<const IDatabaseUser>       databaseUser;
-	std::shared_ptr<const ICollectionProvider> collectionProvider;
-	mutable Cache                              cache;
+	PropagateConstPtr<IDatabaseUser, std::shared_ptr> databaseUser;
+	std::shared_ptr<const ICollectionProvider>        collectionProvider;
+	mutable Cache                                     cache;
 
-	Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
+	Impl(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
 		: databaseUser { std::move(databaseUser) }
 		, collectionProvider { std::move(collectionProvider) }
 	{
-		if (const auto db = this->databaseUser->GetDatabase())
-			db->RegisterObserver(this);
+		this->databaseUser->RegisterObserver(this);
 	}
 
 	~Impl() override = default;

@@ -4,6 +4,7 @@
 #include <QtGui/QGuiApplication>
 
 #include "fnd/StrUtil.h"
+#include "fnd/observable.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -85,7 +86,9 @@ std::unique_ptr<Util::IExecutor> CreateExecutor(const ILogicFactory& logicFactor
 
 } // namespace
 
-struct DatabaseUser::Impl
+struct DatabaseUser::Impl final
+    : Observable<IObserver>
+    , DB::IDatabaseObserver
 {
 	std::shared_ptr<Util::IExecutor> executor;
 
@@ -93,7 +96,8 @@ struct DatabaseUser::Impl
 		: executor { CreateExecutor(logicFactory) }
 		, m_collectionProvider { std::move(collectionProvider) }
 	{
-		std::ignore = GetDatabase();
+		if (const auto db = GetDatabase())
+			db->RegisterObserver(this);
 	}
 
 	std::shared_ptr<DB::IDatabase> GetDatabase(const bool checkOnly = false)
@@ -127,6 +131,22 @@ struct DatabaseUser::Impl
 		m_dbList.clear();
 	}
 
+private: // DB::IDatabaseObserver
+	void OnInsert(const std::string_view dbName, const std::string_view tableName, const int64_t rowId) override
+	{
+		Perform(&IObserver::OnInsert, dbName, tableName, rowId);
+	}
+
+	void OnUpdate(const std::string_view dbName, const std::string_view tableName, const int64_t rowId) override
+	{
+		Perform(&IObserver::OnUpdate, dbName, tableName, rowId);
+	}
+
+	void OnDelete(const std::string_view dbName, const std::string_view tableName, const int64_t rowId) override
+	{
+		Perform(&IObserver::OnDelete, dbName, tableName, rowId);
+	}
+
 private:
 	std::shared_ptr<const ICollectionProvider>                 m_collectionProvider;
 	std::mutex                                                 m_dbListGuard;
@@ -157,11 +177,6 @@ void DatabaseUser::Reset()
 std::shared_ptr<DB::IDatabase> DatabaseUser::GetDatabase() const
 {
 	return m_impl->GetDatabase();
-}
-
-std::shared_ptr<DB::IDatabase> DatabaseUser::CheckDatabase() const
-{
-	return m_impl->GetDatabase(true);
 }
 
 std::shared_ptr<Util::IExecutor> DatabaseUser::Executor() const
@@ -201,4 +216,14 @@ void DatabaseUser::SetSetting(const Key key, const QVariant& value) const
 	const auto command = tr->CreateCommand("insert or replace into Settings(SettingID, SettingValue) values(?, ?)");
 	command->Execute(static_cast<long long>(key), value.toString());
 	tr->Commit();
+}
+
+void DatabaseUser::RegisterObserver(IObserver* observer)
+{
+	m_impl->Register(observer);
+}
+
+void DatabaseUser::UnregisterObserver(IObserver* observer)
+{
+	m_impl->Unregister(observer);
 }

@@ -4,6 +4,8 @@
 
 #include "database/interface/IDatabase.h"
 
+#include "interface/logic/IDatabaseUser.h"
+
 #include "util/FunctorExecutionForwarder.h"
 
 using namespace HomeCompa::Flibrary;
@@ -15,12 +17,12 @@ constexpr auto TABLE_NAME = "Export_List_User";
 
 } // namespace
 
-class RecentOpenBookController::Impl final : DB::IDatabaseObserver
+class RecentOpenBookController::Impl final : IDatabaseUser::IObserver
 {
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseUser> databaseUser)
+	Impl(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<IDatabaseUser> databaseUser)
 		: m_uiFactory { std::move(uiFactory) }
 		, m_databaseUser { std::move(databaseUser) }
 	{
@@ -30,8 +32,7 @@ public:
 			UpdateImpl();
 		});
 
-		if (const auto db = m_databaseUser->GetDatabase())
-			db->RegisterObserver(this);
+		m_databaseUser->RegisterObserver(this);
 	}
 
 	void SetMenu(QMenu* menu)
@@ -73,14 +74,14 @@ private:
 	}
 
 private:
-	std::shared_ptr<const IUiFactory>    m_uiFactory;
-	std::shared_ptr<const IDatabaseUser> m_databaseUser;
-	QMenu*                               m_menu { nullptr };
-	Util::FunctorExecutionForwarder      m_forwarder;
-	QTimer                               m_timer;
+	std::shared_ptr<const IUiFactory>                 m_uiFactory;
+	PropagateConstPtr<IDatabaseUser, std::shared_ptr> m_databaseUser;
+	QMenu*                                            m_menu { nullptr };
+	Util::FunctorExecutionForwarder                   m_forwarder;
+	QTimer                                            m_timer;
 };
 
-RecentOpenBookController::RecentOpenBookController(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseUser> databaseUser)
+RecentOpenBookController::RecentOpenBookController(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<IDatabaseUser> databaseUser)
 	: m_impl { std::move(uiFactory), std::move(databaseUser) }
 {
 }
