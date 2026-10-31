@@ -7,10 +7,8 @@
 #include <QTranslator>
 
 #include "fnd/FindPair.h"
-#include "fnd/ScopedCall.h"
 
 #include "interface/constants/ProductConstant.h"
-#include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseMigrator.h"
@@ -69,7 +67,7 @@ std::optional<Collection> RecreateDatabase(Hypodermic::Container& container, con
 
 	if (!force && uiFactory->ShowWarning(Tr(UNSUPPORTED_DB_VERSION), QMessageBox::No | QMessageBox::Yes, QMessageBox::Yes) != QMessageBox::Yes)
 	{
-		container.resolve<IDatabaseProvider>()->Reset();
+		container.resolve<IDatabaseController>()->Reset();
 		return showWarning(Tr(REMOVE_DATABASE_MANUALLY).arg(container.resolve<ICollectionProvider>()->GetActiveCollection().GetDatabase()));
 	}
 
@@ -94,7 +92,7 @@ std::optional<Collection> RecreateDatabase(Hypodermic::Container& container, con
 	if (!errorMessage.isEmpty())
 		return showWarning(errorMessage);
 
-	container.resolve<IDatabaseProvider>()->Reset();
+	container.resolve<IDatabaseController>()->Reset();
 
 	QFile db(activeCollection.GetDatabase());
 	db.remove();
@@ -217,7 +215,7 @@ int main(int argc, char* argv[])
 
 			container->resolve<ITaskQueue>()->Execute();
 			const auto mainWindow = container->resolve<IMainWindow>();
-			container->resolve<IDatabaseProvider>()->EnableApplicationCursorChange(true);
+			container->resolve<IDatabaseController>()->EnableApplicationCursorChange(true);
 
 			if (singleInstanceController)
 				singleInstanceController->RegisterObserver(mainWindow.get());

@@ -10,7 +10,7 @@
 
 namespace HomeCompa::Flibrary {
 
-class DatabaseProvider final : public IDatabaseProvider
+class DatabaseProvider final : public IDatabaseController
 {
 	NON_COPY_MOVABLE(DatabaseProvider)
 

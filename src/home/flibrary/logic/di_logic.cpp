@@ -86,7 +86,7 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<CollectionController>().as<ICollectionController>().singleInstance();
 	builder.registerType<CollectionProvider>().as<ICollectionProvider>().singleInstance();
 	builder.registerType<CommandExecutor>().as<IScriptController::ICommandExecutor>().singleInstance();
-	builder.registerType<DatabaseProvider>().as<IDatabaseProvider>().singleInstance();
+	builder.registerType<DatabaseProvider>().as<IDatabaseController>().singleInstance();
 	builder.registerType<DataProvider>().as<IDataProvider>().singleInstance();
 	builder.registerType<DataProvider>().as<IFilterDataProvider>().singleInstance();
 	builder.registerType<FilterController>().as<IFilterController>().singleInstance();
@@ -98,6 +98,11 @@ void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypode
 	builder.registerType<ReaderController>().as<IReaderController>().singleInstance();
 	builder.registerType<SearchController>().as<IBookSearchController>().singleInstance();
 
+	builder
+		.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) {
+			return ctx.resolve<IDatabaseController>();
+		})
+		.as<IDatabaseProvider>();
 	builder
 		.registerInstanceFactory([&](Hypodermic::ComponentContext& ctx) {
 			return ctx.resolve<IDataProvider>();
