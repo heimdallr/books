@@ -1389,15 +1389,17 @@ private:
 	{
 		const auto diff   = m_ui.treeView->width() - m_ui.treeView->viewport()->width();
 		auto&      header = *m_ui.treeView->header();
-		if (const auto length = header.length() + diff; std::abs(length - event.oldSize().width()) < 3 * QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent))
-		{
-			if (const auto offset = event.size().width() - length)
-			{
-				QSignalBlocker block(&header);
-				header.resizeSection(0, m_ui.treeView->header()->sectionSize(0) + offset);
-				m_saveHeaderLayoutTimer->start();
-			}
-		}
+		const auto length = header.length() + diff;
+		if (std::abs(length - event.oldSize().width()) > 3 * QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent))
+			return;
+
+		const auto offset = event.size().width() - length;
+		if (offset == 0)
+			return;
+
+		QSignalBlocker block(&header);
+		header.resizeSection(0, m_ui.treeView->header()->sectionSize(0) + offset);
+		m_saveHeaderLayoutTimer->start();
 	}
 
 	void OnHeaderSectionsVisibleChanged() const
