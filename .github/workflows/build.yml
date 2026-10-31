@@ -398,6 +398,7 @@ jobs:
           Select-String '^compiler.version=' $profile
 
       - name: Restore Conan packages
+        id: conan-cache
         uses: actions/cache@v6
         with:
           path: ~/.conan2
@@ -405,21 +406,36 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-x86_64-conan-${{ env.CONAN_VERSION }}-
 
-      - name: Pre-generate Conan Dependencies
-        shell: cmd
+      - name: Setup MSYS2
+        if: steps.conan-cache.outputs.cache-hit != 'true'
+        uses: msys2/setup-msys2@v2
+        with:
+          update: true
+          install: make autoconf automake libtool
+            
+      - name: Build DjVuLibre
+        if: steps.conan-cache.outputs.cache-hit != 'true'
+        shell: msys2 {0}
         run: |
-          for /f "delims=" %%i in ('where conan') do set "CONAN_DIR=%%~dpi"
-          for /f "delims=" %%i in ('where cmake') do set "CMAKE_DIR=%%~dpi"
-          for /f "delims=" %%i in ('where python') do set "PYTHON_DIR=%%~dpi"
-          set "PATH=%PYTHON_DIR%;%CMAKE_DIR%;%CONAN_DIR%;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem"
-          conan config set global.tools.env.virtualenv:powershell=
+          WIN_PYTHON_PATH="${{ env.pythonLocation }}/Scripts"
+          PYTHON_SCRIPTS_PATH=$(cygpath -u "$WIN_PYTHON_PATH")
+          MSVC_EXE_PATH=$(cygpath -u "${{ env.MSVC_COMPILER }}")
+          MSVC_BIN_DIR=$(dirname "$MSVC_EXE_PATH")
+          
+          export PATH="$PYTHON_SCRIPTS_PATH:$PATH"
+          echo ${MSVC_BIN_DIR}
 
-          set "CYGWIN=sysvshm"
-          set "MSYS=winsymlinks:nativestrict disable_pcon"
-          set "TMPDIR=%TEMP%"
-          set "TMP=%TEMP%"
-
-          conan install src/home/script/conan --output-folder=build/windows --build=missing -s build_type=Release -c tools.cmake.cmaketoolchain:generator=Ninja -pr:b src/ext/scripts/conan/profiles/msvc2022_x86_64_Release -pr:h src/ext/scripts/conan/profiles/msvc2022_x86_64_Release
+          conan install --requires="djvulibre/3.5.28" \
+            -o djvulibre/*:shared=True -o djvulibre/*:tools=False \
+            --output-folder build/windows --build=missing \
+            -s:b os=Windows -s:b arch=x86_64 \
+            -pr:b src/ext/scripts/conan/profiles/msvc2022_x86_64_Release \
+            -pr:h src/ext/scripts/conan/profiles/msvc2022_x86_64_Release \
+            -c tools.cmake.cmaketoolchain:generator=Ninja \
+            -c tools.microsoft.bash:subsystem=msys2 \
+            -c tools.microsoft.bash:path="/usr/bin/bash" \
+            -c tools.build:compiler_executables="{'c': '$MSVC_BIN_DIR/cl.exe', 'cpp': '$MSVC_BIN_DIR/cl.exe'}" \
+            --build="!msys2/*" --build="!automake/*" --build="!autoconf/*"
 
       - name: Configure and build
         shell: pwsh
