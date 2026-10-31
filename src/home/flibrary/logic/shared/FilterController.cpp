@@ -39,12 +39,12 @@ struct FilterController::Impl final : Observable<IObserver>
 {
 	using Changes = std::array<std::unordered_map<QString, IDataItem::Flags>, static_cast<size_t>(NavigationMode::Last)>;
 
-	std::shared_ptr<const IDatabaseProvider> databaseUser;
+	std::shared_ptr<const IDatabaseProvider> databaseProvider;
 	std::shared_ptr<ISettings>               settings;
 	Changes                                  changes;
 
-	Impl(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<ISettings> settings)
-		: databaseUser { std::move(databaseUser) }
+	Impl(std::shared_ptr<const IDatabaseProvider> databaseProvider, std::shared_ptr<ISettings> settings)
+		: databaseProvider { std::move(databaseProvider) }
 		, settings { std::move(settings) }
 	{
 	}
@@ -59,31 +59,31 @@ struct FilterController::Impl final : Observable<IObserver>
 
 	void ProcessNavigationItemFlags(const NavigationMode navigationMode, QStringList navigationIds, const IDataItem::Flags flags, Callback callback, const std::string_view queryText)
 	{
-		databaseUser->Execute({ "Apply filter", [this, navigationMode, ids = std::move(navigationIds), flags, callback = std::move(callback), queryText]() mutable {
-								   const auto& description = GetFilteredNavigationDescription(navigationMode);
-								   assert(description.table && description.idField);
+		databaseProvider->Execute({ "Apply filter", [this, navigationMode, ids = std::move(navigationIds), flags, callback = std::move(callback), queryText]() mutable {
+									   const auto& description = GetFilteredNavigationDescription(navigationMode);
+									   assert(description.table && description.idField);
 
-								   const auto db      = databaseUser->GetDatabase();
-								   const auto tr      = db->CreateTransaction();
-								   const auto command = tr->CreateCommand(std::vformat(queryText, std::make_format_args(description.table, description.idField)));
-								   for (const auto& id : ids)
-								   {
-									   command->Bind(0, static_cast<int>(flags));
-									   description.commandBinder(*command, 1, id);
-									   command->Execute();
-								   }
+									   const auto db      = databaseProvider->GetDatabase();
+									   const auto tr      = db->CreateTransaction();
+									   const auto command = tr->CreateCommand(std::vformat(queryText, std::make_format_args(description.table, description.idField)));
+									   for (const auto& id : ids)
+									   {
+										   command->Bind(0, static_cast<int>(flags));
+										   description.commandBinder(*command, 1, id);
+										   command->Execute();
+									   }
 
-								   tr->Commit();
-								   return [this, navigationMode, flags, callback = std::move(callback)](size_t) {
-									   Notify(navigationMode, flags);
-									   callback();
-								   };
-							   } });
+									   tr->Commit();
+									   return [this, navigationMode, flags, callback = std::move(callback)](size_t) {
+										   Notify(navigationMode, flags);
+										   callback();
+									   };
+								   } });
 	}
 };
 
-FilterController::FilterController(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<ISettings> settings)
-	: m_impl { std::make_unique<Impl>(std::move(databaseUser), std::move(settings)) }
+FilterController::FilterController(std::shared_ptr<const IDatabaseProvider> databaseProvider, std::shared_ptr<ISettings> settings)
+	: m_impl { std::make_unique<Impl>(std::move(databaseProvider), std::move(settings)) }
 {
 }
 
@@ -102,7 +102,7 @@ std::vector<IDataItem::Flags> FilterController::GetFlags(const NavigationMode na
 
 	std::vector<IDataItem::Flags> result;
 
-	const auto db    = m_impl->databaseUser->GetDatabase();
+	const auto db    = m_impl->databaseProvider->GetDatabase();
 	const auto query = db->CreateQuery(std::format("select Flags from {} where {} = ?", description.table, description.idField));
 	for (const auto& id : ids)
 	{
@@ -153,38 +153,38 @@ void FilterController::SetFilterEnabled(const bool enabled)
 
 void FilterController::Apply()
 {
-	m_impl->databaseUser->Execute({ "Apply filter", [this, changes = std::move(m_impl->changes)] {
-									   std::vector<NavigationMode> changed;
-									   for (size_t index = 0; auto& change : changes)
-									   {
-										   const ScopedCall indexGuard([&] {
-											   ++index;
-										   });
-										   if (change.empty())
-											   continue;
-
-										   const auto navigationMode = static_cast<NavigationMode>(index);
-										   changed.emplace_back(navigationMode);
-										   const auto& description = GetFilteredNavigationDescription(navigationMode);
-										   assert(description.table && description.idField);
-
-										   const auto db      = m_impl->databaseUser->GetDatabase();
-										   const auto tr      = db->CreateTransaction();
-										   const auto command = tr->CreateCommand(std::vformat(SET_FILTER_QUERY, std::make_format_args(description.table, description.idField)));
-										   for (const auto& [id, flags] : change)
+	m_impl->databaseProvider->Execute({ "Apply filter", [this, changes = std::move(m_impl->changes)] {
+										   std::vector<NavigationMode> changed;
+										   for (size_t index = 0; auto& change : changes)
 										   {
-											   command->Bind(0, static_cast<int>(flags));
-											   description.commandBinder(*command, 1, id);
-											   command->Execute();
-										   }
+											   const ScopedCall indexGuard([&] {
+												   ++index;
+											   });
+											   if (change.empty())
+												   continue;
 
-										   tr->Commit();
-									   }
-									   return [this, changed = std::move(changed)](size_t) {
-										   for (const auto& item : changed)
-											   m_impl->Perform(&IObserver::OnFilterNavigationChanged, item);
-									   };
-								   } });
+											   const auto navigationMode = static_cast<NavigationMode>(index);
+											   changed.emplace_back(navigationMode);
+											   const auto& description = GetFilteredNavigationDescription(navigationMode);
+											   assert(description.table && description.idField);
+
+											   const auto db      = m_impl->databaseProvider->GetDatabase();
+											   const auto tr      = db->CreateTransaction();
+											   const auto command = tr->CreateCommand(std::vformat(SET_FILTER_QUERY, std::make_format_args(description.table, description.idField)));
+											   for (const auto& [id, flags] : change)
+											   {
+												   command->Bind(0, static_cast<int>(flags));
+												   description.commandBinder(*command, 1, id);
+												   command->Execute();
+											   }
+
+											   tr->Commit();
+										   }
+										   return [this, changed = std::move(changed)](size_t) {
+											   for (const auto& item : changed)
+												   m_impl->Perform(&IObserver::OnFilterNavigationChanged, item);
+										   };
+									   } });
 	m_impl->changes = {};
 }
 
@@ -228,83 +228,83 @@ void FilterController::HideFiltered(NavigationMode navigationMode, QPointer<QAbs
 	if (const auto locked = callback.lock())
 		locked->OnStarted();
 
-	m_impl->databaseUser->Execute({ "Hide filtered", [this, navigationMode, model = std::move(model), callback = std::move(callback)]() mutable {
-									   using DescriptionItem = std::tuple<NavigationMode, const char*, const char*, const char*, const char*>;
-									   static constexpr DescriptionItem description[] {
-										   {   NavigationMode::Authors,       " join Author_List al on al.BookID = b.BookID",         " join Authors a on a.AuthorID = al.AuthorID", "a",    "al.AuthorID" },
-										   {    NavigationMode::Series,  " left join Series_List sl on sl.BookID = b.BookID",     " left join Series s on s.SeriesID = sl.SeriesID", "s",    "sl.SeriesID" },
-										   {    NavigationMode::Genres,        " join Genre_List gl on gl.BookID = b.BookID",        " join Genres g on g.GenreCode = gl.GenreCode", "g",   "gl.GenreCode" },
-										   {  NavigationMode::Keywords, " left join Keyword_List kl on kl.BookID = b.BookID", " left join Keywords k on k.KeywordID = kl.KeywordID", "k",   "kl.KeywordID" },
-										   { NavigationMode::Languages,       " join Languages l on l.LanguageCode = b.Lang",                                                    "", "l", "l.LanguageCode" },
-									   };
+	m_impl->databaseProvider->Execute({ "Hide filtered", [this, navigationMode, model = std::move(model), callback = std::move(callback)]() mutable {
+										   using DescriptionItem = std::tuple<NavigationMode, const char*, const char*, const char*, const char*>;
+										   static constexpr DescriptionItem description[] {
+											   {   NavigationMode::Authors,       " join Author_List al on al.BookID = b.BookID",         " join Authors a on a.AuthorID = al.AuthorID", "a",    "al.AuthorID" },
+											   {    NavigationMode::Series,  " left join Series_List sl on sl.BookID = b.BookID",     " left join Series s on s.SeriesID = sl.SeriesID", "s",    "sl.SeriesID" },
+											   {    NavigationMode::Genres,        " join Genre_List gl on gl.BookID = b.BookID",        " join Genres g on g.GenreCode = gl.GenreCode", "g",   "gl.GenreCode" },
+											   {  NavigationMode::Keywords, " left join Keyword_List kl on kl.BookID = b.BookID", " left join Keywords k on k.KeywordID = kl.KeywordID", "k",   "kl.KeywordID" },
+											   { NavigationMode::Languages,       " join Languages l on l.LanguageCode = b.Lang",                                                    "", "l", "l.LanguageCode" },
+										   };
 
-									   std::string flags;
-									   std::string from;
-									   std::string select;
-									   std::ranges::for_each(description, [&](const auto& item) {
-										   from.append(std::get<1>(item));
-										   if (get<0>(item) == navigationMode)
-											   return (void)(select = std::format("{}", std::get<4>(item)));
+										   std::string flags;
+										   std::string from;
+										   std::string select;
+										   std::ranges::for_each(description, [&](const auto& item) {
+											   from.append(std::get<1>(item));
+											   if (get<0>(item) == navigationMode)
+												   return (void)(select = std::format("{}", std::get<4>(item)));
 
-										   flags.append(std::format(" | coalesce({}.Flags, 0)", std::get<3>(item)));
-										   from.append(std::get<2>(item));
-									   });
+											   flags.append(std::format(" | coalesce({}.Flags, 0)", std::get<3>(item)));
+											   from.append(std::get<2>(item));
+										   });
 
-									   auto now = std::chrono::system_clock::now();
+										   auto now = std::chrono::system_clock::now();
 
-									   std::unordered_map<QString, std::pair<std::unordered_set<long long>, std::unordered_set<long long>>> values;
+										   std::unordered_map<QString, std::pair<std::unordered_set<long long>, std::unordered_set<long long>>> values;
 
-									   const auto db = m_impl->databaseUser->GetDatabase();
+										   const auto db = m_impl->databaseProvider->GetDatabase();
 
-									   for (const auto query =
-									            db->CreateQuery(std::format("select {}, b.BookID, (0 {}) & {} from Books b{}", select, flags, static_cast<int>(IDataItem::Flags::BooksFiltered), from));
-									        const auto& rec : *query)
-									   {
-										   auto& [nonFiltered, filtered] = values[rec.Get<const char*>(0)];
-										   const auto bookId             = rec.Get<long long>(1);
-										   if (rec.Get<int>(2) == 0)
+										   for (const auto query =
+										            db->CreateQuery(std::format("select {}, b.BookID, (0 {}) & {} from Books b{}", select, flags, static_cast<int>(IDataItem::Flags::BooksFiltered), from));
+										        const auto& rec : *query)
 										   {
-											   if (!filtered.contains(bookId))
-												   nonFiltered.emplace(bookId);
-										   }
-										   else
-										   {
-											   nonFiltered.erase(bookId);
-											   filtered.emplace(bookId);
-										   }
-
-										   if (auto time = std::chrono::system_clock::now(); time - now > std::chrono::milliseconds(200))
-										   {
-											   now = time;
-											   if (const auto locked = callback.lock(); !locked || locked->Stopped())
+											   auto& [nonFiltered, filtered] = values[rec.Get<const char*>(0)];
+											   const auto bookId             = rec.Get<long long>(1);
+											   if (rec.Get<int>(2) == 0)
 											   {
-												   values.clear();
-												   break;
+												   if (!filtered.contains(bookId))
+													   nonFiltered.emplace(bookId);
+											   }
+											   else
+											   {
+												   nonFiltered.erase(bookId);
+												   filtered.emplace(bookId);
+											   }
+
+											   if (auto time = std::chrono::system_clock::now(); time - now > std::chrono::milliseconds(200))
+											   {
+												   now = time;
+												   if (const auto locked = callback.lock(); !locked || locked->Stopped())
+												   {
+													   values.clear();
+													   break;
+												   }
 											   }
 										   }
-									   }
 
-									   std::unordered_set<QString> ids;
-									   std::ranges::transform(
-										   values | std::views::filter([](const auto& item) {
-											   return item.second.first.empty();
-										   }),
-										   std::inserter(ids, ids.end()),
-										   [](const auto& item) {
-											   return item.first;
-										   }
-									   );
-									   return [model = std::move(model), callback = std::move(callback), ids = std::move(ids)](size_t) mutable {
-										   if (model.isNull())
-											   return;
+										   std::unordered_set<QString> ids;
+										   std::ranges::transform(
+											   values | std::views::filter([](const auto& item) {
+												   return item.second.first.empty();
+											   }),
+											   std::inserter(ids, ids.end()),
+											   [](const auto& item) {
+												   return item.first;
+											   }
+										   );
+										   return [model = std::move(model), callback = std::move(callback), ids = std::move(ids)](size_t) mutable {
+											   if (model.isNull())
+												   return;
 
-										   if (!ids.empty())
-											   model->setData({}, QVariant::fromValue(ids), Role::HideFilteredCallback);
+											   if (!ids.empty())
+												   model->setData({}, QVariant::fromValue(ids), Role::HideFilteredCallback);
 
-										   if (const auto locked = callback.lock())
-											   locked->OnFinished();
-									   };
-								   } });
+											   if (const auto locked = callback.lock())
+												   locked->OnFinished();
+										   };
+									   } });
 }
 
 void FilterController::RegisterObserver(IObserver* observer)

@@ -168,7 +168,7 @@ QString CollectionProvider::GetActiveCollectionId() const noexcept
 	return m_impl->GetActiveCollectionId();
 }
 
-QStringList CollectionProvider::GetCollectionStatistics(const IDatabaseProvider& databaseUser, const bool withAdditionalInfo) const
+QStringList CollectionProvider::GetCollectionStatistics(const IDatabaseProvider& databaseProvider, const bool withAdditionalInfo) const
 {
 	static constexpr auto dbStatQueryText = "select count(42) from Folders union all "
 											"select count(42) from Authors union all "
@@ -198,7 +198,7 @@ QStringList CollectionProvider::GetCollectionStatistics(const IDatabaseProvider&
 		QT_TRANSLATE_NOOP("CollectionStatistics", "Groups:"),   QT_TRANSLATE_NOOP("CollectionStatistics", "Books:"),     QT_TRANSLATE_NOOP("CollectionStatistics", "Deleted books:"),
 	};
 
-	for (const auto bookQuery = databaseUser.GetDatabase()->CreateQuery(dbStatQueryText); auto&& [it, name] : std::views::zip(*bookQuery, names))
+	for (const auto bookQuery = databaseProvider.GetDatabase()->CreateQuery(dbStatQueryText); auto&& [it, name] : std::views::zip(*bookQuery, names))
 		stats << QString("%1 %2").arg(Loc::Tr(CONTEXT, name)).arg(it.Get<const char*>(0));
 
 	return stats;

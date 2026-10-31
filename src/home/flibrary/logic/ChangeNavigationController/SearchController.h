@@ -17,7 +17,7 @@ class SearchController final : public IBookSearchController
 	NON_COPY_MOVABLE(SearchController)
 
 public:
-	SearchController(const std::shared_ptr<const ICollectionController>& collectionController, std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<IUiFactory> uiFactory);
+	SearchController(const std::shared_ptr<const ICollectionController>& collectionController, std::shared_ptr<const IDatabaseProvider> databaseProvider, std::shared_ptr<IUiFactory> uiFactory);
 	~SearchController() override;
 
 private: // IBookSearchController

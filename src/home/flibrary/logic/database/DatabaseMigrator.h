@@ -14,7 +14,7 @@ class DatabaseMigrator final : public IDatabaseMigrator
 	NON_COPY_MOVABLE(DatabaseMigrator)
 
 public:
-	DatabaseMigrator(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider);
+	DatabaseMigrator(std::shared_ptr<const IDatabaseProvider> databaseProvider, std::shared_ptr<const ICollectionProvider> collectionProvider);
 	~DatabaseMigrator() override;
 
 private: // IDatabaseMigrator

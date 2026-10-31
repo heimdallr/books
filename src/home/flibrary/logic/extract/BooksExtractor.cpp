@@ -226,7 +226,7 @@ public:
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const IScriptController>    scriptController,
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
-		std::shared_ptr<const IDatabaseProvider>    databaseUser
+		std::shared_ptr<const IDatabaseProvider>    databaseProvider
 	)
 		: m_self { self }
 		, m_settings { std::move(settings) }
@@ -237,7 +237,7 @@ public:
 		, m_logicFactory { logicFactory }
 		, m_scriptController { std::move(scriptController) }
 		, m_bookExtractor { std::move(bookExtractor) }
-		, m_databaseUser { std::move(databaseUser) }
+		, m_databaseProvider { std::move(databaseProvider) }
 		, m_needReplaceMetadata { m_settings->Get(Constant::Settings::EXPORT_REPLACE_METADATA_KEY, false) }
 	{
 		m_progressController->RegisterObserver(this);
@@ -284,7 +284,7 @@ public:
 
 	std::shared_ptr<const IDatabaseProvider> GetDatabaseUser() const
 	{
-		return m_databaseUser;
+		return m_databaseProvider;
 	}
 
 private: // IExportHelper
@@ -377,7 +377,7 @@ private:
 
 	void OnExtracted(const long long id) const
 	{
-		const auto transaction = m_databaseUser->GetDatabase()->CreateTransaction();
+		const auto transaction = m_databaseProvider->GetDatabase()->CreateTransaction();
 		transaction->CreateCommand(ExportStat::INSERT_QUERY)->Execute(id, m_exportStatType);
 		if (m_autoRateValue.isValid())
 		{
@@ -399,7 +399,7 @@ private:
 	std::weak_ptr<const ILogicFactory>                        m_logicFactory;
 	std::shared_ptr<const IScriptController>                  m_scriptController;
 	std::shared_ptr<const IBookExtractor>                     m_bookExtractor;
-	std::shared_ptr<const IDatabaseProvider>                  m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                  m_databaseProvider;
 	Callback                                                  m_callback;
 	size_t                                                    m_taskCount { 0 };
 	bool                                                      m_hasError { false };
@@ -421,9 +421,9 @@ BooksExtractor::BooksExtractor(
 	const std::shared_ptr<const ILogicFactory>& logicFactory,
 	std::shared_ptr<const IScriptController>    scriptController,
 	std::shared_ptr<const IBookExtractor>       bookExtractor,
-	std::shared_ptr<const IDatabaseProvider>    databaseUser
+	std::shared_ptr<const IDatabaseProvider>    databaseProvider
 )
-	: m_impl(*this, std::move(settings), std::move(collectionController), std::move(progressController), logicFactory, std::move(scriptController), std::move(bookExtractor), std::move(databaseUser))
+	: m_impl(*this, std::move(settings), std::move(collectionController), std::move(progressController), logicFactory, std::move(scriptController), std::move(bookExtractor), std::move(databaseProvider))
 {
 	Util::ObjectsConnector::registerEmitter(ObjectConnectorID::SET_BOOKS_COLUMN_VALUE, this, SIGNAL(SetUserRate(const SetForIdsArg&)));
 	PLOGV << "BooksExtractor created";

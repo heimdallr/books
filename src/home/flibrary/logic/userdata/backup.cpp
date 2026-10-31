@@ -222,9 +222,9 @@ constexpr std::pair<const char*, BackupFunction> BACKUPERS[] {
 
 } // namespace
 
-void Backup(const Util::IExecutor& executor, const IDatabaseProvider& databaseUser, QString fileName, Callback callback)
+void Backup(const Util::IExecutor& executor, const IDatabaseProvider& databaseProvider, QString fileName, Callback callback)
 {
-	executor({ "Backup user data", [&databaseUser, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
+	executor({ "Backup user data", [&databaseProvider, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
 				  std::function<void(size_t)> result;
 
 				  QFile out(fileName);
@@ -271,7 +271,7 @@ void Backup(const Util::IExecutor& executor, const IDatabaseProvider& databaseUs
 					  }
 				  );
 
-				  const auto db = databaseUser.GetDatabase();
+				  const auto db = databaseProvider.GetDatabase();
 				  for (const auto& [name, functor] : BACKUPERS)
 				  {
 					  ScopedCall item(

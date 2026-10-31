@@ -16,7 +16,7 @@ class NavigationQueryExecutor final : public INavigationQueryExecutor
 public:
 	NavigationQueryExecutor(
 		const std::shared_ptr<IDatabaseController>& databaseController,
-		std::shared_ptr<const IDatabaseProvider>    databaseUser,
+		std::shared_ptr<const IDatabaseProvider>    databaseProvider,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider
 	);
 	~NavigationQueryExecutor() override;

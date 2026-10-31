@@ -13,7 +13,7 @@ class GenreModel final : public IGenreModel
 	NON_COPY_MOVABLE(GenreModel)
 
 public:
-	explicit GenreModel(std::shared_ptr<const IDatabaseProvider> databaseUser);
+	explicit GenreModel(std::shared_ptr<const IDatabaseProvider> databaseProvider);
 	~GenreModel() override;
 
 protected: // ILanguageMode

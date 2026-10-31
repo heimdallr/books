@@ -57,15 +57,15 @@ Qt::CheckState IsChecked(const QModelIndex& index)
 class Model final : public QAbstractItemModel
 {
 public:
-	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const IDatabaseProvider> databaseUser)
+	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const IDatabaseProvider> databaseProvider)
 	{
-		return std::make_unique<Model>(std::move(databaseUser));
+		return std::make_unique<Model>(std::move(databaseProvider));
 	}
 
 public:
-	explicit Model(std::shared_ptr<const IDatabaseProvider> databaseUser)
+	explicit Model(std::shared_ptr<const IDatabaseProvider> databaseProvider)
 	{
-		CreateGenreTree(std::move(databaseUser));
+		CreateGenreTree(std::move(databaseProvider));
 	}
 
 private: // QAbstractItemModel
@@ -212,11 +212,11 @@ private:
 		return true;
 	}
 
-	void CreateGenreTree(std::shared_ptr<const IDatabaseProvider> databaseUser)
+	void CreateGenreTree(std::shared_ptr<const IDatabaseProvider> databaseProvider)
 	{
-		const auto& databaseUserRef = *databaseUser;
-		databaseUserRef.Execute({ "Create genre list", [&, databaseUser = std::move(databaseUser)]() mutable {
-									 const auto db   = databaseUser->GetDatabase();
+		const auto& databaseUserRef = *databaseProvider;
+		databaseUserRef.Execute({ "Create genre list", [&, databaseProvider = std::move(databaseProvider)]() mutable {
+									 const auto db   = databaseProvider->GetDatabase();
 									 auto       root = Genre::Load(*db);
 									 return [this, root = std::move(root)](size_t) mutable {
 										 const ScopedCall modelGuard(
@@ -245,15 +245,15 @@ private:
 class ModelFiltered final : public QSortFilterProxyModel
 {
 public:
-	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const IDatabaseProvider> databaseUser, QObject* parent = nullptr)
+	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const IDatabaseProvider> databaseProvider, QObject* parent = nullptr)
 	{
-		return std::make_unique<ModelFiltered>(std::move(databaseUser), parent);
+		return std::make_unique<ModelFiltered>(std::move(databaseProvider), parent);
 	}
 
 public:
-	ModelFiltered(std::shared_ptr<const IDatabaseProvider> databaseUser, QObject* parent)
+	ModelFiltered(std::shared_ptr<const IDatabaseProvider> databaseProvider, QObject* parent)
 		: QSortFilterProxyModel(parent)
-		, m_sourceModel { Model::Create(std::move(databaseUser)) }
+		, m_sourceModel { Model::Create(std::move(databaseProvider)) }
 	{
 		QSortFilterProxyModel::setSourceModel(m_sourceModel.get());
 	}
@@ -346,8 +346,8 @@ private:
 
 } // namespace
 
-GenreModel::GenreModel(std::shared_ptr<const IDatabaseProvider> databaseUser)
-	: m_model { ModelFiltered::Create(std::move(databaseUser)) }
+GenreModel::GenreModel(std::shared_ptr<const IDatabaseProvider> databaseProvider)
+	: m_model { ModelFiltered::Create(std::move(databaseProvider)) }
 {
 }
 

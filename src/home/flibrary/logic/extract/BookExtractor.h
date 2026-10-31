@@ -16,7 +16,7 @@ class BookExtractor final : public IBookExtractor
 	NON_COPY_MOVABLE(BookExtractor)
 
 public:
-	BookExtractor(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser);
+	BookExtractor(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseProvider);
 	~BookExtractor() override;
 
 private: // IBookExtractor

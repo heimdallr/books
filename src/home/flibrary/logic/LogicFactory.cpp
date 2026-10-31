@@ -267,9 +267,9 @@ struct LogicFactory::Impl final
 		if (!genreParents.empty())
 			return;
 
-		const auto databaseUser = container.resolve<IDatabaseProvider>();
-		const auto db           = databaseUser->GetDatabase();
-		const auto genres       = Genre::Load(*db);
+		const auto databaseProvider = container.resolve<IDatabaseProvider>();
+		const auto db               = databaseProvider->GetDatabase();
+		const auto genres           = Genre::Load(*db);
 
 		const auto process = [this](const std::vector<Genre>& children, const auto& f) -> void {
 			for (const auto& genre : children)

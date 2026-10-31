@@ -276,7 +276,7 @@ struct TreeViewControllerNavigation::Impl final
 	std::shared_ptr<const IMenuCustomizer>                                      menuCustomizer;
 	PropagateConstPtr<INavigationInfoProvider, std::shared_ptr>                 dataProvider;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>                              uiFactory;
-	std::shared_ptr<const IDatabaseProvider>                                    databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                                    databaseProvider;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr>                   annotationController;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr>             authorAnnotationController;
 	std::shared_ptr<IFilterController>                                          filterController;
@@ -291,7 +291,7 @@ struct TreeViewControllerNavigation::Impl final
 		std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
 		std::shared_ptr<INavigationInfoProvider>     dataProvider,
 		std::shared_ptr<IUiFactory>                  uiFactory,
-		std::shared_ptr<const IDatabaseProvider>     databaseUser,
+		std::shared_ptr<const IDatabaseProvider>     databaseProvider,
 		std::shared_ptr<IAnnotationController>       annotationController,
 		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
 		std::shared_ptr<IFilterController>           filterController
@@ -302,7 +302,7 @@ struct TreeViewControllerNavigation::Impl final
 		, menuCustomizer { std::move(menuCustomizer) }
 		, dataProvider { std::move(dataProvider) }
 		, uiFactory { std::move(uiFactory) }
-		, databaseUser { std::move(databaseUser) }
+		, databaseProvider { std::move(databaseProvider) }
 		, annotationController { std::move(annotationController) }
 		, authorAnnotationController { std::move(authorAnnotationController) }
 		, filterController { std::move(filterController) }
@@ -310,7 +310,7 @@ struct TreeViewControllerNavigation::Impl final
 		for ([[maybe_unused]] const auto& _ : MODE_DESCRIPTORS)
 			models.emplace_back(std::shared_ptr<QAbstractItemModel>());
 
-		this->databaseUser->GetDatabase()->RegisterObserver(this);
+		this->databaseProvider->GetDatabase()->RegisterObserver(this);
 	}
 
 	~Impl() override = default;
@@ -319,7 +319,7 @@ struct TreeViewControllerNavigation::Impl final
 	{
 		assert(static_cast<size_t>(mode) < std::size(MENU_REQUESTERS));
 		auto       id   = index.data(Role::Id).toString();
-		const auto db   = databaseUser->GetDatabase();
+		const auto db   = databaseProvider->GetDatabase();
 		auto       item = std::invoke(MENU_REQUESTERS[mode], static_cast<IContextMenuProvider*>(this), std::ref(*db), std::cref(id), options);
 		forwarder.Forward([callback = std::move(callback), id = std::move(id), item = std::move(item)] {
 			callback(id, item, {});
@@ -498,7 +498,7 @@ private: // INavigationFilter
 		if (!descriptor.filterParameter)
 			return true;
 
-		const auto db = databaseUser->GetDatabase();
+		const auto db = databaseProvider->GetDatabase();
 		if (!db)
 			return true;
 
@@ -812,7 +812,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 	std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
 	std::shared_ptr<INavigationInfoProvider>     dataProvider,
 	std::shared_ptr<IUiFactory>                  uiFactory,
-	std::shared_ptr<const IDatabaseProvider>     databaseUser,
+	std::shared_ptr<const IDatabaseProvider>     databaseProvider,
 	std::shared_ptr<IAnnotationController>       annotationController,
 	std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
 	std::shared_ptr<IFilterController>           filterController
@@ -825,7 +825,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 		  std::move(menuCustomizer),
 		  std::move(dataProvider),
 		  std::move(uiFactory),
-		  std::move(databaseUser),
+		  std::move(databaseProvider),
 		  std::move(annotationController),
 		  std::move(authorAnnotationController),
 		  std::move(filterController)

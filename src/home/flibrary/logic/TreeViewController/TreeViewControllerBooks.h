@@ -31,7 +31,7 @@ public:
 		std::shared_ptr<const IUiFactory>           uiFactory,
 		std::shared_ptr<const IBookInteractor>      bookInteractor,
 		std::shared_ptr<IAnnotationController>      annotationController,
-		std::shared_ptr<const IDatabaseProvider>          databaseUser
+		std::shared_ptr<const IDatabaseProvider>    databaseProvider
 	);
 	~TreeViewControllerBooks() override;
 

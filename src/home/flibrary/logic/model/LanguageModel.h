@@ -13,7 +13,7 @@ class LanguageModel final : public ILanguageModel
 	NON_COPY_MOVABLE(LanguageModel)
 
 public:
-	explicit LanguageModel(std::shared_ptr<const IDatabaseProvider> databaseUser);
+	explicit LanguageModel(std::shared_ptr<const IDatabaseProvider> databaseProvider);
 	~LanguageModel() override;
 
 protected: // ILanguageMode

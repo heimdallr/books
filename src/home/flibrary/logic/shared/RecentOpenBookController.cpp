@@ -22,9 +22,9 @@ class RecentOpenBookController::Impl final : IDatabaseProvider::IObserver
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(IDatabaseController& databaseController, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseProvider> databaseUser)
+	Impl(IDatabaseController& databaseController, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseProvider> databaseProvider)
 		: m_uiFactory { std::move(uiFactory) }
-		, m_databaseUser { std::move(databaseUser) }
+		, m_databaseProvider { std::move(databaseProvider) }
 	{
 		m_timer.setInterval(std::chrono::seconds(1));
 		m_timer.setSingleShot(true);
@@ -75,7 +75,7 @@ private:
 
 private:
 	std::shared_ptr<const IUiFactory>        m_uiFactory;
-	std::shared_ptr<const IDatabaseProvider> m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider> m_databaseProvider;
 	QMenu*                                   m_menu { nullptr };
 	Util::FunctorExecutionForwarder          m_forwarder;
 	QTimer                                   m_timer;
@@ -84,9 +84,9 @@ private:
 RecentOpenBookController::RecentOpenBookController(
 	const std::shared_ptr<IDatabaseController>& databaseController,
 	std::shared_ptr<const IUiFactory>           uiFactory,
-	std::shared_ptr<const IDatabaseProvider>    databaseUser
+	std::shared_ptr<const IDatabaseProvider>    databaseProvider
 )
-	: m_impl(*databaseController, std::move(uiFactory), std::move(databaseUser))
+	: m_impl(*databaseController, std::move(uiFactory), std::move(databaseProvider))
 {
 }
 

@@ -40,17 +40,17 @@ QString GetFileHash(const std::set<QString>& fileNames)
 struct CollectionUpdateChecker::Impl
 {
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
-	std::shared_ptr<const IDatabaseProvider>   databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   databaseProvider;
 
-	Impl(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser)
+	Impl(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseProvider)
 		: collectionProvider { std::move(collectionProvider) }
-		, databaseUser { std::move(databaseUser) }
+		, databaseProvider { std::move(databaseProvider) }
 	{
 	}
 };
 
-CollectionUpdateChecker::CollectionUpdateChecker(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser)
-	: m_impl(std::move(collectionProvider), std::move(databaseUser))
+CollectionUpdateChecker::CollectionUpdateChecker(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseProvider)
+	: m_impl(std::move(collectionProvider), std::move(databaseProvider))
 {
 	PLOGV << "CollectionUpdateChecker created";
 }
@@ -65,7 +65,7 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 	if (!m_impl->collectionProvider->ActiveCollectionExists())
 		return callback(false, Collection {});
 
-	m_impl->databaseUser->Execute(
+	m_impl->databaseProvider->Execute(
 		{ "Check for collection index updated",
 		  [&, callback = std::move(callback)]() mutable {
 			  std::function<void(size_t)> result;
@@ -90,7 +90,7 @@ void CollectionUpdateChecker::CheckForUpdate(Callback callback) const
 			  }
 
 			  auto [_, ini]          = Inpx::Parser::GetIniMap(collection.GetDatabase(), collection.GetFolder(), collection.GetAdditionalFolder(), explicitInpx, false);
-			  const auto db          = m_impl->databaseUser->GetDatabase();
+			  const auto db          = m_impl->databaseProvider->GetDatabase();
 			  const auto checkResult = Inpx::Parser::CheckForUpdate(std::move(ini), *db);
 			  result                 = [checkResult, updatedCollection = std::move(updatedCollection), callback = std::move(callback)](size_t) mutable {
 				  callback(checkResult, updatedCollection);

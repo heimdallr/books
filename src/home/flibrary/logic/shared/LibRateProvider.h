@@ -28,7 +28,11 @@ class LibRateProviderDouble : public AbstractLibRateProvider
 	NON_COPY_MOVABLE(LibRateProviderDouble)
 
 public:
-	LibRateProviderDouble(const std::shared_ptr<const ISettings>& settings, const std::shared_ptr<const ICollectionProvider>& collectionProvider, const std::shared_ptr<const IDatabaseProvider>& databaseUser);
+	LibRateProviderDouble(
+		const std::shared_ptr<const ISettings>&           settings,
+		const std::shared_ptr<const ICollectionProvider>& collectionProvider,
+		const std::shared_ptr<const IDatabaseProvider>&   databaseProvider
+	);
 	~LibRateProviderDouble() override;
 
 private: // ILibRateProvider

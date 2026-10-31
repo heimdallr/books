@@ -30,7 +30,7 @@ using namespace Flibrary;
 
 namespace {
 
-std::unordered_map<long long, double> ReadRates(const ISettings& settings, const ICollectionProvider& collectionProvider, const IDatabaseProvider& databaseUser)
+std::unordered_map<long long, double> ReadRates(const ISettings& settings, const ICollectionProvider& collectionProvider, const IDatabaseProvider& databaseProvider)
 {
 	if (!collectionProvider.ActiveCollectionExists())
 		return {};
@@ -77,7 +77,7 @@ std::unordered_map<long long, double> ReadRates(const ISettings& settings, const
 
 	std::unordered_map<long long, double> rate;
 
-	const auto db = databaseUser.GetDatabase();
+	const auto db = databaseProvider.GetDatabase();
 	for (const auto query = db->CreateQuery("select b.BookID, f.FolderTitle||'#'||b.FileName from Books_View b join Folders f on f.FolderID = b.FolderID"); const auto& rec : *query)
 		if (const auto it = additionalRates.find(rec.Get<const char*>(1)); it != additionalRates.end())
 			rate.try_emplace(rec.Get<long long>(0), it->second);
@@ -137,8 +137,8 @@ struct LibRateProviderDouble::Impl
 	const int                                   precision;
 	const int                                   power { GetPower(precision) };
 
-	Impl(const ISettings& settings, const ICollectionProvider& collectionProvider, const IDatabaseProvider& databaseUser)
-		: rate { ReadRates(settings, collectionProvider, databaseUser) }
+	Impl(const ISettings& settings, const ICollectionProvider& collectionProvider, const IDatabaseProvider& databaseProvider)
+		: rate { ReadRates(settings, collectionProvider, databaseProvider) }
 		, colors { ReadColors(settings) }
 		, precision { settings.Get(Constant::Settings::PREFER_LIBRATE_VIEW_PRECISION_KEY, 0) }
 	{
@@ -148,9 +148,9 @@ struct LibRateProviderDouble::Impl
 LibRateProviderDouble::LibRateProviderDouble(
 	const std::shared_ptr<const ISettings>&           settings,
 	const std::shared_ptr<const ICollectionProvider>& collectionProvider,
-	const std::shared_ptr<const IDatabaseProvider>&   databaseUser
+	const std::shared_ptr<const IDatabaseProvider>&   databaseProvider
 )
-	: m_impl(*settings, *collectionProvider, *databaseUser)
+	: m_impl(*settings, *collectionProvider, *databaseProvider)
 {
 }
 

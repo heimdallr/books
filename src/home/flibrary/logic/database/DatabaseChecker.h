@@ -13,14 +13,14 @@ class DatabaseChecker final : public IDatabaseChecker
 	NON_COPY_MOVABLE(DatabaseChecker)
 
 public:
-	explicit DatabaseChecker(std::shared_ptr<const IDatabaseProvider> databaseUser);
+	explicit DatabaseChecker(std::shared_ptr<const IDatabaseProvider> databaseProvider);
 	~DatabaseChecker() override;
 
 private: // IDatabaseChecker
 	bool IsDatabaseValid() const override;
 
 private:
-	std::shared_ptr<const IDatabaseProvider> m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider> m_databaseProvider;
 };
 
 } // namespace HomeCompa::Flibrary

@@ -215,15 +215,15 @@ class Model final
     , public Decoder::IObserver
 {
 public:
-	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser)
+	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseProvider)
 	{
-		return std::make_unique<Model>(std::move(collectionProvider), std::move(databaseUser));
+		return std::make_unique<Model>(std::move(collectionProvider), std::move(databaseProvider));
 	}
 
 public:
-	explicit Model(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser)
+	explicit Model(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseProvider)
 		: m_collectionProvider { std::move(collectionProvider) }
-		, m_databaseUser { std::move(databaseUser) }
+		, m_databaseProvider { std::move(databaseProvider) }
 	{
 		m_imagePlaceholder.load(":/images/image-placeholder.png");
 	}
@@ -467,7 +467,7 @@ private:
 private:
 	Util::FunctorExecutionForwarder            m_forwarder;
 	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
-	std::shared_ptr<const IDatabaseProvider>   m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   m_databaseProvider;
 
 	int                     m_imageSize { -1 };
 	IDataItem::Ptr          m_bookRoot;
@@ -488,15 +488,15 @@ private:
 class ModelFiltered final : public QSortFilterProxyModel
 {
 public:
-	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser, QObject* parent = nullptr)
+	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseProvider, QObject* parent = nullptr)
 	{
-		return std::make_unique<ModelFiltered>(std::move(collectionProvider), std::move(databaseUser), parent);
+		return std::make_unique<ModelFiltered>(std::move(collectionProvider), std::move(databaseProvider), parent);
 	}
 
 public:
-	ModelFiltered(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser, QObject* parent)
+	ModelFiltered(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseProvider, QObject* parent)
 		: QSortFilterProxyModel(parent)
-		, m_sourceModel { Model::Create(std::move(collectionProvider), std::move(databaseUser)) }
+		, m_sourceModel { Model::Create(std::move(collectionProvider), std::move(databaseProvider)) }
 	{
 		QSortFilterProxyModel::setSourceModel(m_sourceModel.get());
 	}
@@ -542,8 +542,8 @@ private:
 
 } // namespace
 
-ImageModel::ImageModel(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser)
-	: m_model { ModelFiltered::Create(std::move(collectionProvider), std::move(databaseUser)) }
+ImageModel::ImageModel(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseProvider)
+	: m_model { ModelFiltered::Create(std::move(collectionProvider), std::move(databaseProvider)) }
 {
 	QIdentityProxyModel::setSourceModel(m_model.get());
 }

@@ -15,7 +15,7 @@ class ImageModel final : public QIdentityProxyModel
 	NON_COPY_MOVABLE(ImageModel)
 
 public:
-	ImageModel(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser);
+	ImageModel(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseProvider);
 	~ImageModel() override;
 
 protected:

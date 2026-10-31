@@ -31,7 +31,7 @@ class TreeView final : public QWidget
 
 public:
 	TreeView(
-		const std::shared_ptr<const IDatabaseProvider>& databaseUser,
+		const std::shared_ptr<const IDatabaseProvider>& databaseProvider,
 		std::shared_ptr<const ICollectionProvider>      collectionProvider,
 		std::shared_ptr<const IDataItemFactory>         dataItemFactory,
 		std::shared_ptr<ISettings>                      settings,

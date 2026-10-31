@@ -366,7 +366,7 @@ public:
 		std::shared_ptr<const IStyleApplierFactory>     styleApplierFactory,
 		std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
 		std::shared_ptr<const IUiFactory>               uiFactory,
-		std::shared_ptr<const IDatabaseProvider>        databaseUser,
+		std::shared_ptr<const IDatabaseProvider>        databaseProvider,
 		std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 		std::shared_ptr<const IDatabaseChecker>         databaseChecker,
 		std::shared_ptr<const ICommandLine>             commandLine,
@@ -394,7 +394,7 @@ public:
 		, m_styleApplierFactory { std::move(styleApplierFactory) }
 		, m_jokeRequesterFactory { std::move(jokeRequesterFactory) }
 		, m_uiFactory { std::move(uiFactory) }
-		, m_databaseUser { std::move(databaseUser) }
+		, m_databaseProvider { std::move(databaseProvider) }
 		, m_settings { std::move(settings) }
 		, m_collectionController { std::move(collectionController) }
 		, m_parentWidgetProvider { std::move(parentWidgetProvider) }
@@ -611,7 +611,7 @@ private: // ILineOption::IObserver
 			return;
 
 		const auto converter = logicFactory->CreateFillTemplateConverter();
-		auto       db        = m_databaseUser->GetDatabase();
+		auto       db        = m_databaseProvider->GetDatabase();
 		converter->Fill(*db, value, books.front(), Tr(MY_FOLDER));
 		PLOGI << books.front().dstFileName;
 	}
@@ -980,14 +980,14 @@ private:
 			m_collectionController->AddCollection({});
 		});
 		connect(m_ui.actionRecreateCollection, &QAction::triggered, &m_self, [this] {
-			m_databaseUser->SetSetting(IDatabaseProvider::Key::DatabaseVersion, -1);
+			m_databaseProvider->SetSetting(IDatabaseProvider::Key::DatabaseVersion, -1);
 			Reboot();
 		});
 		connect(m_ui.actionRescanCollectionFolder, &QAction::triggered, &m_self, [this] {
 			m_collectionController->RescanCollectionFolder();
 		});
 		connect(m_ui.actionShowCollectionStatisticsDialog, &QAction::triggered, &m_self, [this] {
-			auto stats = m_collectionController->GetCollectionStatistics(*m_databaseUser);
+			auto stats = m_collectionController->GetCollectionStatistics(*m_databaseProvider);
 			std::ranges::transform(stats, stats.begin(), [](const auto& item) {
 				return QString("<tr><td>%1</td></tr>").arg(item);
 			});
@@ -1334,7 +1334,7 @@ private:
 		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 
-		const auto db = m_databaseUser->GetDatabase();
+		const auto db = m_databaseProvider->GetDatabase();
 		if (!db)
 			return;
 
@@ -1784,7 +1784,7 @@ private:
 		collectionUpdateCheckerRef.CheckForUpdate([this, collectionUpdateChecker = std::move(collectionUpdateChecker)](const bool result, const Collection& updatedCollection) mutable {
 			if (result && m_collectionController->OnInpxUpdateChecked(updatedCollection))
 			{
-				m_databaseUser->SetSetting(IDatabaseProvider::Key::DatabaseVersion, -1);
+				m_databaseProvider->SetSetting(IDatabaseProvider::Key::DatabaseVersion, -1);
 				return Reboot();
 			}
 
@@ -1939,7 +1939,7 @@ private:
 	std::shared_ptr<const IStyleApplierFactory>  m_styleApplierFactory;
 	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
 	std::shared_ptr<const IUiFactory>            m_uiFactory;
-	std::shared_ptr<const IDatabaseProvider>     m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>     m_databaseProvider;
 
 	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr>     m_collectionController;
@@ -1998,7 +1998,7 @@ MainWindow::MainWindow(
 	std::shared_ptr<const IStyleApplierFactory>     styleApplierFactory,
 	std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
 	std::shared_ptr<const IUiFactory>               uiFactory,
-	std::shared_ptr<const IDatabaseProvider>        databaseUser,
+	std::shared_ptr<const IDatabaseProvider>        databaseProvider,
 	std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 	std::shared_ptr<const IDatabaseChecker>         databaseChecker,
 	std::shared_ptr<const ICommandLine>             commandLine,
@@ -2027,7 +2027,7 @@ MainWindow::MainWindow(
 		  std::move(styleApplierFactory),
 		  std::move(jokeRequesterFactory),
 		  std::move(uiFactory),
-		  std::move(databaseUser),
+		  std::move(databaseProvider),
 		  std::move(collectionUpdateChecker),
 		  std::move(databaseChecker),
 		  std::move(commandLine),

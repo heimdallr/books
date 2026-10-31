@@ -27,7 +27,7 @@ public:
 	Requester(
 		std::shared_ptr<const ISettings>                             settings,
 		std::shared_ptr<const Flibrary::ICollectionProvider>         collectionProvider,
-		std::shared_ptr<const Flibrary::IDatabaseProvider>           databaseUser,
+		std::shared_ptr<const Flibrary::IDatabaseProvider>           databaseProvider,
 		std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
 		std::shared_ptr<const Flibrary::IFilterProvider>             filterProvider,
 		std::shared_ptr<const Flibrary::IBookExtractor>              bookExtractor,

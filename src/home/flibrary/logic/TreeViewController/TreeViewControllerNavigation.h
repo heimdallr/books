@@ -29,7 +29,7 @@ public:
 		std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
 		std::shared_ptr<INavigationInfoProvider>     dataProvider,
 		std::shared_ptr<IUiFactory>                  uiFactory,
-		std::shared_ptr<const IDatabaseProvider>           databaseUser,
+		std::shared_ptr<const IDatabaseProvider>     databaseProvider,
 		std::shared_ptr<IAnnotationController>       annotationController,
 		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
 		std::shared_ptr<IFilterController>           filterController

@@ -33,7 +33,7 @@ public:
 		std::shared_ptr<ISettings>                  settings,
 		std::shared_ptr<ICollectionController>      collectionController,
 		std::shared_ptr<IUiFactory>                 uiFactory,
-		std::shared_ptr<const IDatabaseProvider>          databaseUser
+		std::shared_ptr<const IDatabaseProvider>    databaseProvider
 	);
 	~ReaderController() override;
 

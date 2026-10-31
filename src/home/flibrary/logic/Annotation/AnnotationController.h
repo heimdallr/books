@@ -23,7 +23,7 @@ public:
 		std::shared_ptr<const ISettings>             settings,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
 		std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
-		std::shared_ptr<const IDatabaseProvider>     databaseUser,
+		std::shared_ptr<const IDatabaseProvider>     databaseProvider,
 		std::shared_ptr<IFilterProvider>             filterProvider
 	);
 	~AnnotationController() override;

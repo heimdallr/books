@@ -18,6 +18,6 @@ class IDatabaseProvider;
 
 namespace HomeCompa::Flibrary::UserData {
 
-void Backup(const Util::IExecutor& executor, const IDatabaseProvider& databaseUser, QString fileName, Callback callback);
+void Backup(const Util::IExecutor& executor, const IDatabaseProvider& databaseProvider, QString fileName, Callback callback);
 
 }

@@ -231,7 +231,7 @@ join Compilation_List l on c.CompilationID = l.CompilationID
 struct CollectionCleanerLogic::Impl
 {
 	std::weak_ptr<const ILogicFactory>         logicFactory;
-	std::shared_ptr<const IDatabaseProvider>   databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   databaseProvider;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 	std::shared_ptr<const ILibRateProvider>    libRateProvider;
 	std::shared_ptr<IMainProgressController>   progressController;
@@ -239,7 +239,7 @@ struct CollectionCleanerLogic::Impl
 
 	void Analyze(IAnalyzeObserver& observer) const
 	{
-		databaseUser->Execute(
+		databaseProvider->Execute(
 			{ "Analyze", [&] {
 				 std::function result { [&](size_t) {
 					 observer.AnalyzeFinished({});
@@ -250,7 +250,7 @@ struct CollectionCleanerLogic::Impl
 			         && !observer.NeedDeleteUnrated() && !observer.GetMinimumLibRate() && !observer.NeedDeleteCompletelyDuplicatedCompilations() && !observer.NeedDeleteBooksDuplicatedByCompilations())
 					 return result;
 
-				 const auto db = databaseUser->GetDatabase();
+				 const auto db = databaseProvider->GetDatabase();
 				 PLOGI << "get books info";
 				 auto analyzedBooks = GetAnalyzedBooks(*db, *libRateProvider, observer, !genres.isEmpty(), analyzeCanceled);
 				 PLOGI << "total books found: " << analyzedBooks.size();
@@ -366,22 +366,22 @@ struct CollectionCleanerLogic::Impl
 
 	void Remove(Books books, Callback callback) const
 	{
-		databaseUser->Execute({ "Delete books permanently", [this, books = std::move(books), callback = std::move(callback)]() mutable {
-								   std::unordered_set<long long> ids;
-								   std::ranges::transform(books, std::inserter(ids, ids.end()), [](const auto& book) {
-									   return book.id;
-								   });
-								   const auto db = databaseUser->GetDatabase();
-								   const bool ok = DatabaseUtil::ChangeBookRemoved(*db, ids, true, progressController);
-								   return [callback = std::move(callback), ok](size_t) {
-									   callback(ok);
-								   };
-							   } });
+		databaseProvider->Execute({ "Delete books permanently", [this, books = std::move(books), callback = std::move(callback)]() mutable {
+									   std::unordered_set<long long> ids;
+									   std::ranges::transform(books, std::inserter(ids, ids.end()), [](const auto& book) {
+										   return book.id;
+									   });
+									   const auto db = databaseProvider->GetDatabase();
+									   const bool ok = DatabaseUtil::ChangeBookRemoved(*db, ids, true, progressController);
+									   return [callback = std::move(callback), ok](size_t) {
+										   callback(ok);
+									   };
+								   } });
 	}
 
 	void RemovePermanently(Books books, Callback callback) const
 	{
-		databaseUser->Execute(
+		databaseProvider->Execute(
 			{ "Delete books permanently", [this, books = std::move(books), callback = std::move(callback), collectionFolder = collectionProvider->GetActiveCollection().GetFolder()]() mutable {
 				 auto progressItem = progressController->Add(100);
 
@@ -396,7 +396,7 @@ struct CollectionCleanerLogic::Impl
 				 std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
 				 RemoveFiles(allFiles, collectionFolder);
 
-				 const auto db          = databaseUser->GetDatabase();
+				 const auto db          = databaseProvider->GetDatabase();
 				 const auto transaction = db->CreateTransaction();
 
 				 auto ok = RemoveBooksImpl(books, *transaction, *progressItem);
@@ -413,12 +413,12 @@ struct CollectionCleanerLogic::Impl
 
 CollectionCleanerLogic::CollectionCleanerLogic(
 	const std::shared_ptr<const ILogicFactory>& logicFactory,
-	std::shared_ptr<const IDatabaseProvider>    databaseUser,
+	std::shared_ptr<const IDatabaseProvider>    databaseProvider,
 	std::shared_ptr<const ICollectionProvider>  collectionProvider,
 	std::shared_ptr<const ILibRateProvider>     libRateProvider,
 	std::shared_ptr<IMainProgressController>    progressController
 )
-	: m_impl { std::make_unique<Impl>(logicFactory, std::move(databaseUser), std::move(collectionProvider), std::move(libRateProvider), std::move(progressController)) }
+	: m_impl { std::make_unique<Impl>(logicFactory, std::move(databaseProvider), std::move(collectionProvider), std::move(libRateProvider), std::move(progressController)) }
 {
 }
 
@@ -446,7 +446,7 @@ void CollectionCleanerLogic::AnalyzeCancel() const
 
 void CollectionCleanerLogic::CompilationInfoExistsRequest(IAnalyzeObserver& callback) const
 {
-	const auto db    = m_impl->databaseUser->GetDatabase();
+	const auto db    = m_impl->databaseProvider->GetDatabase();
 	const auto query = db->CreateQuery(std::format("SELECT exists(SELECT 42 FROM Compilation_List)"));
 	query->Execute();
 	callback.CompilationInfoExistsResponse(query->Get<int>(0) != 0);

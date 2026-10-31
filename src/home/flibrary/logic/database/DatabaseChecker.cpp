@@ -4,8 +4,8 @@
 
 using namespace HomeCompa::Flibrary;
 
-DatabaseChecker::DatabaseChecker(std::shared_ptr<const IDatabaseProvider> databaseUser)
-	: m_databaseUser(std::move(databaseUser))
+DatabaseChecker::DatabaseChecker(std::shared_ptr<const IDatabaseProvider> databaseProvider)
+	: m_databaseProvider(std::move(databaseProvider))
 {
 	PLOGV << "DatabaseChecker created";
 }
@@ -17,5 +17,5 @@ DatabaseChecker::~DatabaseChecker()
 
 bool DatabaseChecker::IsDatabaseValid() const
 {
-	return !!m_databaseUser->GetDatabase();
+	return !!m_databaseProvider->GetDatabase();
 }

@@ -34,13 +34,13 @@ struct BookExtractor::Impl
 {
 	std::shared_ptr<const ISettings>           settings;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
-	std::shared_ptr<const IDatabaseProvider>   databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   databaseProvider;
 	const QString                              m_outputFileNameTemplate { GetOutputFileNameTemplate(*settings) };
 
-	Impl(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser)
+	Impl(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseProvider)
 		: settings { std::move(settings) }
 		, collectionProvider { std::move(collectionProvider) }
-		, databaseUser { std::move(databaseUser) }
+		, databaseProvider { std::move(databaseProvider) }
 	{
 		m_transliteratorTimer.setInterval(std::chrono::seconds(5));
 		m_transliteratorTimer.setSingleShot(false);
@@ -52,7 +52,7 @@ struct BookExtractor::Impl
 
 	Util::ExtractedBook GetExtractedBook(const QString& bookId) const
 	{
-		const auto db    = databaseUser->GetDatabase();
+		const auto db    = databaseProvider->GetDatabase();
 		const auto query = db->CreateQuery(R"(
 select
     f.FolderTitle,
@@ -100,7 +100,7 @@ order by al.OrdNum, sl.OrdNum limit 1
 
 	Util::ExtractedBook::Author GetExtractedBookAuthor(const QString& bookId) const
 	{
-		const auto db    = databaseUser->GetDatabase();
+		const auto db    = databaseProvider->GetDatabase();
 		const auto query = db->CreateQuery(R"(
 select a.FirstName, a.MiddleName, a.LastName
 from Authors a
@@ -121,7 +121,7 @@ order by al.OrdNum limit 1
 	QString GetFileName(const Util::ExtractedBook& book) const
 	{
 		auto outputFileName = m_outputFileNameTemplate;
-		auto db             = databaseUser->GetDatabase();
+		auto db             = databaseProvider->GetDatabase();
 		ILogicFactory::FillScriptTemplate(*db, outputFileName, book);
 		if (!settings->Get(OPDS_TRANSLITERATE, false))
 			return outputFileName;
@@ -148,8 +148,8 @@ private:
 	Util::FunctorExecutionForwarder               m_forwarder;
 };
 
-BookExtractor::BookExtractor(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser)
-	: m_impl { std::move(settings), std::move(collectionProvider), std::move(databaseUser) }
+BookExtractor::BookExtractor(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseProvider)
+	: m_impl { std::move(settings), std::move(collectionProvider), std::move(databaseProvider) }
 {
 }
 

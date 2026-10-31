@@ -163,7 +163,7 @@ struct BookInteractor::Impl final : IBookInteractorImpl
 	std::shared_ptr<const ISettings>           settings;
 	std::shared_ptr<const IBookExtractor>      bookExtractor;
 	std::shared_ptr<const IReaderController>   readerController;
-	std::shared_ptr<const IDatabaseProvider>   databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   databaseProvider;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 	std::shared_ptr<IScriptControllerProvider> scriptControllerProvider;
 
@@ -173,7 +173,7 @@ struct BookInteractor::Impl final : IBookInteractorImpl
 		std::shared_ptr<const ISettings>            settings,
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
 		std::shared_ptr<const IReaderController>    readerController,
-		std::shared_ptr<const IDatabaseProvider>    databaseUser,
+		std::shared_ptr<const IDatabaseProvider>    databaseProvider,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
 		std::shared_ptr<IScriptControllerProvider>  scriptControllerProvider
 	)
@@ -182,7 +182,7 @@ struct BookInteractor::Impl final : IBookInteractorImpl
 		, settings { std::move(settings) }
 		, bookExtractor { std::move(bookExtractor) }
 		, readerController { std::move(readerController) }
-		, databaseUser { std::move(databaseUser) }
+		, databaseProvider { std::move(databaseProvider) }
 		, collectionProvider { std::move(collectionProvider) }
 		, scriptControllerProvider { std::move(scriptControllerProvider) }
 	{
@@ -278,7 +278,7 @@ private: // IBookInteractorImpl
 		if (std::get<0>(description) == NavigationMode::Unknown)
 			return Read(bookId, {}, {});
 
-		const auto db    = databaseUser->GetDatabase();
+		const auto db    = databaseProvider->GetDatabase();
 		const auto query = db->CreateQuery(std::get<1>(description), bookId);
 		const auto match = *query | std::views::transform([&](const auto& item) {
 			return std::invoke(std::get<2>(description), title, item);
@@ -314,7 +314,7 @@ private:
 			tempDir = std::make_shared<QTemporaryDir>();
 
 		const auto fillTemplateConverter = ILogicFactory::Lock(logicFactory)->CreateFillTemplateConverter(options.createFillTemplateConverterParameter);
-		const auto db                    = databaseUser->GetDatabase();
+		const auto db                    = databaseProvider->GetDatabase();
 		fillTemplateConverter->Fill(*db, book.dstFileName, book, tempDir ? tempDir->filePath("") : folder);
 
 		if (!options.ext.isEmpty())
@@ -336,7 +336,7 @@ private:
 		if (!NAVIGATION_ID_QUERY[navigationIndex])
 			return;
 
-		const auto db    = databaseUser->GetDatabase();
+		const auto db    = databaseProvider->GetDatabase();
 		const auto query = db->CreateQuery(NAVIGATION_ID_QUERY[navigationIndex]);
 		query->Execute(bookId);
 		if (!query->Eof())
@@ -350,7 +350,7 @@ BookInteractor::BookInteractor(
 	std::shared_ptr<const ISettings>            settings,
 	std::shared_ptr<const IBookExtractor>       bookExtractor,
 	std::shared_ptr<const IReaderController>    readerController,
-	std::shared_ptr<const IDatabaseProvider>    databaseUser,
+	std::shared_ptr<const IDatabaseProvider>    databaseProvider,
 	std::shared_ptr<const ICollectionProvider>  collectionProvider,
 	std::shared_ptr<IScriptControllerProvider>  scriptControllerProvider
 )
@@ -359,7 +359,7 @@ BookInteractor::BookInteractor(
 	           std::move(settings),
 	           std::move(bookExtractor),
 	           std::move(readerController),
-	           std::move(databaseUser),
+	           std::move(databaseProvider),
 	           std::move(collectionProvider),
 	           std::move(scriptControllerProvider) }
 {

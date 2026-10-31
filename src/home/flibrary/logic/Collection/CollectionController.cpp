@@ -296,9 +296,9 @@ public:
 		return m_collectionProvider->GetActiveCollectionId();
 	}
 
-	QStringList GetCollectionStatistics(const IDatabaseProvider& databaseUser, const bool withAdditionalInfo) const
+	QStringList GetCollectionStatistics(const IDatabaseProvider& databaseProvider, const bool withAdditionalInfo) const
 	{
-		return m_collectionProvider->GetCollectionStatistics(databaseUser, withAdditionalInfo);
+		return m_collectionProvider->GetCollectionStatistics(databaseProvider, withAdditionalInfo);
 	}
 
 private:
@@ -534,9 +534,9 @@ QString CollectionController::GetActiveCollectionId() const noexcept
 	return m_impl->GetActiveCollectionId();
 }
 
-QStringList CollectionController::GetCollectionStatistics(const IDatabaseProvider& databaseUser, const bool withAdditionalInfo) const
+QStringList CollectionController::GetCollectionStatistics(const IDatabaseProvider& databaseProvider, const bool withAdditionalInfo) const
 {
-	return m_impl->GetCollectionStatistics(databaseUser, withAdditionalInfo);
+	return m_impl->GetCollectionStatistics(databaseProvider, withAdditionalInfo);
 }
 
 void CollectionController::SetActiveCollection(const QString& id)

@@ -1108,17 +1108,17 @@ limit {}
 	if (maxMenuItemCount < 1)
 		return menu.menuAction()->setVisible(false);
 
-	auto  databaseUser    = container.resolve<IDatabaseProvider>();
-	auto& databaseUserRef = *databaseUser;
+	auto  databaseProvider = container.resolve<IDatabaseProvider>();
+	auto& databaseUserRef  = *databaseProvider;
 	databaseUserRef.Execute(
 		{ "Update recent books menu",
 		  [this,
 		   &menu,
-		   databaseUser           = std::move(databaseUser),
+		   databaseProvider       = std::move(databaseProvider),
 		   queryText              = std::format(QUERY, std::to_underlying(IDatabaseProvider::Key::RecentBookDateTime), maxMenuItemCount),
 		   menuItemTitleFormat    = std::move(menuItemTitleFormat),
 		   menuItemDateTimeFormat = std::move(menuItemDateTimeFormat)]() mutable {
-			  const auto db   = databaseUser->GetDatabase();
+			  const auto db   = databaseProvider->GetDatabase();
 			  auto       data = [&] {
 				  const auto query = db->CreateQuery(queryText);
 				  return *query | std::views::transform([&](const auto& item) {

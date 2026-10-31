@@ -16,7 +16,7 @@ class FilterController final : public IFilterController
 	NON_COPY_MOVABLE(FilterController)
 
 public:
-	FilterController(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<ISettings> settings);
+	FilterController(std::shared_ptr<const IDatabaseProvider> databaseProvider, std::shared_ptr<ISettings> settings);
 	~FilterController() override;
 
 private: // IFilterProvider

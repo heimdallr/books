@@ -31,7 +31,7 @@ class UserDataController : public IUserDataController
 	NON_COPY_MOVABLE(UserDataController)
 
 public:
-	UserDataController(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<IUiFactory> uiFactory);
+	UserDataController(std::shared_ptr<const IDatabaseProvider> databaseProvider, std::shared_ptr<IUiFactory> uiFactory);
 	~UserDataController() override;
 
 private: // IUserDataController
@@ -41,11 +41,11 @@ private: // IUserDataController
 	void Restore(QString path, Callback callback) const override;
 
 private:
-	using DoFunction = void (*)(const Util::IExecutor& executor, const IDatabaseProvider& databaseUser, QString fileName, UserData::Callback callback);
+	using DoFunction = void (*)(const Util::IExecutor& executor, const IDatabaseProvider& databaseProvider, QString fileName, UserData::Callback callback);
 	void Do(Callback callback, QString fileName, const char* successMessage, DoFunction f) const;
 
 private:
-	std::shared_ptr<const IDatabaseProvider> m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider> m_databaseProvider;
 	std::shared_ptr<const IUiFactory>        m_uiFactory;
 };
 

@@ -14,7 +14,7 @@ class LogController final : public ILogController
 	NON_COPY_MOVABLE(LogController)
 
 public:
-	LogController(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider);
+	LogController(std::shared_ptr<const IDatabaseProvider> databaseProvider, std::shared_ptr<const ICollectionProvider> collectionProvider);
 	~LogController() override;
 
 private:
