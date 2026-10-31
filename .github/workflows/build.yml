@@ -204,6 +204,9 @@ jobs:
             -DNPM_EXECUTABLE="$NPM_PATH"
           cmake --build build/linux --config "${BUILD_TYPE}" --parallel 2
 
+      - name: Run CTest
+        run: ctest --test-dir build/linux --output-on-failure -C Release
+
       - name: Package and smoke test
         env:
           CC: gcc-14
@@ -435,6 +438,9 @@ jobs:
           cmake --build build/windows `
             --config $env:BUILD_TYPE --parallel 2
 
+      - name: Run CTest
+        run: ctest --test-dir build/windows --output-on-failure -C Release
+
       - name: Package and smoke test
         shell: pwsh
         run: |
@@ -623,6 +629,9 @@ jobs:
           NPM_EXECUTABLE="$NPM_PATH" \
             ./build-mac.sh
           (cd "${artifact_dir}" && shasum -a 256 FLibrary-*.dmg > SHA256SUMS)
+
+      - name: Run CTest
+        run: ctest --test-dir "${GITHUB_WORKSPACE}/build/macos-${{ matrix.arch }}" --output-on-failure -C Release
 
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v7

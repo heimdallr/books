@@ -1,5 +1,8 @@
 #include "DatabaseProvider.h"
 
+#include <mutex>
+#include <thread>
+
 #include <QtGui/QCursor>
 #include <QtGui/QGuiApplication>
 
@@ -84,6 +87,14 @@ std::unique_ptr<Util::IExecutor> CreateExecutor(const ILogicFactory& logicFactor
 	);
 }
 
+void Pragma(DB::IDatabase& db)
+{
+	db.CreateQuery("PRAGMA synchronous = NORMAL;")->Execute();
+	db.CreateQuery("PRAGMA foreign_keys = ON;")->Execute();
+	db.CreateQuery("PRAGMA cache_size = -10000;")->Execute();
+	db.CreateQuery("PRAGMA busy_timeout = 5000;")->Execute();
+}
+
 } // namespace
 
 struct DatabaseProvider::Impl final
@@ -120,7 +131,7 @@ struct DatabaseProvider::Impl final
 		return m_dbList.try_emplace(threadId, std::move(db)).first->second;
 	}
 
-	std::shared_ptr<DB::IDatabaseWritable> GetDatabaseWritable()
+	std::shared_ptr<DB::IDatabaseWritable> GetDatabaseWritable() const
 	{
 		const auto databaseName = m_collectionProvider->GetActiveCollection().GetDatabase();
 		if (databaseName.isEmpty())
@@ -150,15 +161,6 @@ private: // DB::IDatabaseObserver
 	void OnDelete(const std::string_view dbName, const std::string_view tableName, const int64_t rowId) override
 	{
 		Perform(&IObserver::OnDelete, dbName, tableName, rowId);
-	}
-
-private:
-	void Pragma(DB::IDatabase& db)
-	{
-		db.CreateQuery("PRAGMA synchronous = NORMAL;")->Execute();
-		db.CreateQuery("PRAGMA foreign_keys = ON;")->Execute();
-		db.CreateQuery("PRAGMA cache_size = -10000;")->Execute();
-		db.CreateQuery("PRAGMA busy_timeout = 5000;")->Execute();
 	}
 
 private:
