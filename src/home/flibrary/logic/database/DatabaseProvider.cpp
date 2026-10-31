@@ -100,7 +100,7 @@ struct DatabaseProvider::Impl final
 			db->RegisterObserver(this);
 	}
 
-	std::shared_ptr<DB::IDatabaseWritable> GetDatabase(const bool checkOnly = false)
+	std::shared_ptr<DB::IDatabase> GetDatabase()
 	{
 		const auto threadId = std::hash<std::thread::id> {}(std::this_thread::get_id());
 		{
@@ -109,21 +109,26 @@ struct DatabaseProvider::Impl final
 				return it->second;
 		}
 
-		if (checkOnly || !m_collectionProvider->ActiveCollectionExists())
-			return {};
-
 		const auto databaseName = m_collectionProvider->GetActiveCollection().GetDatabase();
 		if (databaseName.isEmpty())
 			return {};
 
 		std::shared_ptr db = CreateWritable(DB::Factory::Impl::Sqlite, std::format("path={}", databaseName));
-		db->CreateQuery("PRAGMA synchronous = NORMAL;")->Execute();
-		db->CreateQuery("PRAGMA foreign_keys = ON;")->Execute();
-		db->CreateQuery("PRAGMA cache_size = -10000;")->Execute();
-		db->CreateQuery("PRAGMA busy_timeout = 5000;")->Execute();
+		Pragma(*db);
 
 		std::lock_guard lock(m_dbListGuard);
 		return m_dbList.try_emplace(threadId, std::move(db)).first->second;
+	}
+
+	std::shared_ptr<DB::IDatabaseWritable> GetDatabaseWritable()
+	{
+		const auto databaseName = m_collectionProvider->GetActiveCollection().GetDatabase();
+		if (databaseName.isEmpty())
+			return {};
+
+		std::shared_ptr db = CreateWritable(DB::Factory::Impl::Sqlite, std::format("path={}", databaseName));
+		Pragma(*db);
+		return db;
 	}
 
 	void Reset()
@@ -148,9 +153,18 @@ private: // DB::IDatabaseObserver
 	}
 
 private:
-	std::shared_ptr<const ICollectionProvider>                         m_collectionProvider;
-	std::mutex                                                         m_dbListGuard;
-	std::unordered_map<size_t, std::shared_ptr<DB::IDatabaseWritable>> m_dbList;
+	void Pragma(DB::IDatabase& db)
+	{
+		db.CreateQuery("PRAGMA synchronous = NORMAL;")->Execute();
+		db.CreateQuery("PRAGMA foreign_keys = ON;")->Execute();
+		db.CreateQuery("PRAGMA cache_size = -10000;")->Execute();
+		db.CreateQuery("PRAGMA busy_timeout = 5000;")->Execute();
+	}
+
+private:
+	std::shared_ptr<const ICollectionProvider>                 m_collectionProvider;
+	std::mutex                                                 m_dbListGuard;
+	std::unordered_map<size_t, std::shared_ptr<DB::IDatabase>> m_dbList;
 };
 
 DatabaseProvider::DatabaseProvider(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<const ICollectionProvider> collectionProvider)
@@ -181,7 +195,7 @@ std::shared_ptr<DB::IDatabase> DatabaseProvider::GetDatabase() const
 
 std::shared_ptr<DB::IDatabaseWritable> DatabaseProvider::GetDatabaseWritable() const
 {
-	return m_impl->GetDatabase();
+	return m_impl->GetDatabaseWritable();
 }
 
 std::shared_ptr<Util::IExecutor> DatabaseProvider::Executor() const
@@ -216,7 +230,7 @@ QVariant DatabaseProvider::GetSetting(const Key key, QVariant defaultValueSrc) c
 
 void DatabaseProvider::SetSetting(const Key key, const QVariant& value) const
 {
-	const auto db      = m_impl->GetDatabase();
+	const auto db      = GetDatabaseWritable();
 	const auto tr      = db->CreateTransaction();
 	const auto command = tr->CreateCommand("insert or replace into Settings(SettingID, SettingValue) values(?, ?)");
 	command->Execute(static_cast<long long>(key), value.toString());
