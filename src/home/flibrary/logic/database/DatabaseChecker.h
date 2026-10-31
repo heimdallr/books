@@ -13,7 +13,7 @@ class DatabaseChecker final : public IDatabaseChecker
 	NON_COPY_MOVABLE(DatabaseChecker)
 
 public:
-	explicit DatabaseChecker(std::shared_ptr<IDatabaseProvider> databaseUser);
+	explicit DatabaseChecker(std::shared_ptr<const IDatabaseProvider> databaseUser);
 	~DatabaseChecker() override;
 
 private: // IDatabaseChecker

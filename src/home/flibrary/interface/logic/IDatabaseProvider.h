@@ -58,16 +58,17 @@ public:
 
 	virtual QVariant GetSetting(Key key, QVariant defaultValue = {}) const = 0;
 	virtual void     SetSetting(Key key, const QVariant& value) const      = 0;
-
-	virtual void RegisterObserver(IObserver* observer)   = 0;
-	virtual void UnregisterObserver(IObserver* observer) = 0;
 };
 
 class IDatabaseController : public IDatabaseProvider
 {
 public:
-	virtual void Reset() = 0;
+	virtual void Reset()                                   = 0;
 	virtual void EnableApplicationCursorChange(bool value) = 0;
+
+public:
+	virtual void RegisterObserver(IObserver* observer)   = 0;
+	virtual void UnregisterObserver(IObserver* observer) = 0;
 };
 
 struct BookQueryFields

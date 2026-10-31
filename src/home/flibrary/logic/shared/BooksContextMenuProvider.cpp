@@ -612,9 +612,12 @@ private: // IContextMenuHandler
 		auto books        = logicFactory->GetSelectedBookIds(model, index, indexList, { Role::Folder, Role::FileName });
 		assert(IsOneOf(static_cast<int>(books.size()), 1, 2));
 
-		std::shared_ptr executor = logicFactory->GetExecutor();
+		auto getHash = [](const auto& folder, const auto& book) {
+			return Util::GetHash(folder, book.front(), book.back());
+		};
 
-		const auto& executorRef = *executor;
+		std::shared_ptr executor    = logicFactory->GetExecutor();
+		const auto&     executorRef = *executor;
 		executorRef(
 			{ "compare book hashes",
 			  [item         = std::move(item),
@@ -622,13 +625,14 @@ private: // IContextMenuHandler
 			   executor     = std::move(executor),
 			   folder       = m_collectionProvider->GetActiveCollection().GetFolder(),
 			   selectedBook = std::make_pair(index.data(Role::Folder).toString(), index.data(Role::FileName)),
-			   books        = std::move(books)]() mutable {
-				  auto lhs = books.size() > 1 ? Util::GetHash(folder, books.front().front(), books.front().back()) : [] {
+			   books        = std::move(books),
+			   getHash      = std::move(getHash)]() mutable {
+				  auto lhs = books.size() > 1 ? getHash(folder, books.front()) : [] {
 					  const auto data = QGuiApplication::clipboard()->mimeData();
 					  assert(data && data->hasFormat(Constant::BOOK_HASH_MIME_DATA_TYPE));
 					  const auto bytes = data->data(Constant::BOOK_HASH_MIME_DATA_TYPE);
 					  return Util::Deserialize(bytes);
-				  }(), rhs = Util::GetHash(folder, books.back().front(), books.back().back());
+				  }(), rhs = getHash(folder, books.back());
 
 				  const auto updateItem = [](Util::BookHashItem& bookHashItem) {
 					  if (bookHashItem.cover.hash.isEmpty())

@@ -26,7 +26,7 @@ class QueryWindow::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(QMainWindow* self, std::shared_ptr<ISettings> settings, std::shared_ptr<IDatabaseProvider> databaseUser)
+	Impl(QMainWindow* self, std::shared_ptr<ISettings> settings, std::shared_ptr<const IDatabaseProvider> databaseUser)
 		: GeometryRestorable(*this, settings, "QueryWindow")
 		, GeometryRestorableObserver(*self)
 		, m_settings { std::move(settings) }
@@ -159,11 +159,11 @@ private:
 private:
 	Ui::QueryWindow                    m_ui {};
 	std::shared_ptr<ISettings>         m_settings;
-	std::shared_ptr<IDatabaseProvider> m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider> m_databaseUser;
 	std::shared_ptr<DB::ITransaction>  m_transaction;
 };
 
-QueryWindow::QueryWindow(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<IDatabaseProvider> databaseUser, QWidget* parent)
+QueryWindow::QueryWindow(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<const IDatabaseProvider> databaseUser, QWidget* parent)
 	: QMainWindow(parent ? parent : parentWidgetProvider->GetWidget())
 	, m_impl(this, std::move(settings), std::move(databaseUser))
 {

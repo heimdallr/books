@@ -588,15 +588,15 @@ constexpr std::pair<const char*, NavigationMode> TABLES[] {
 
 struct NavigationQueryExecutor::Impl final : virtual IDatabaseProvider::IObserver
 {
-	PropagateConstPtr<IDatabaseProvider, std::shared_ptr> databaseUser;
-	std::shared_ptr<const ICollectionProvider>            collectionProvider;
-	mutable Cache                                         cache;
+	std::shared_ptr<const IDatabaseProvider>   databaseUser;
+	std::shared_ptr<const ICollectionProvider> collectionProvider;
+	mutable Cache                              cache;
 
-	Impl(std::shared_ptr<IDatabaseProvider> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
+	Impl(IDatabaseController& databaseController, std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
 		: databaseUser { std::move(databaseUser) }
 		, collectionProvider { std::move(collectionProvider) }
 	{
-		this->databaseUser->RegisterObserver(this);
+		databaseController.RegisterObserver(this);
 	}
 
 	~Impl() override = default;
@@ -626,8 +626,12 @@ private:
 	NON_COPY_MOVABLE(Impl)
 };
 
-NavigationQueryExecutor::NavigationQueryExecutor(std::shared_ptr<IDatabaseProvider> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
-	: m_impl(std::move(databaseUser), std::move(collectionProvider))
+NavigationQueryExecutor::NavigationQueryExecutor(
+	const std::shared_ptr<IDatabaseController>& databaseController,
+	std::shared_ptr<const IDatabaseProvider>    databaseUser,
+	std::shared_ptr<const ICollectionProvider>  collectionProvider
+)
+	: m_impl(*databaseController, std::move(databaseUser), std::move(collectionProvider))
 {
 	PLOGV << "NavigationQueryExecutor created";
 }

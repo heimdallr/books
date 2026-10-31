@@ -22,7 +22,7 @@ class RecentOpenBookController::Impl final : IDatabaseProvider::IObserver
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<IDatabaseProvider> databaseUser)
+	Impl(IDatabaseController& databaseController, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseProvider> databaseUser)
 		: m_uiFactory { std::move(uiFactory) }
 		, m_databaseUser { std::move(databaseUser) }
 	{
@@ -32,7 +32,7 @@ public:
 			UpdateImpl();
 		});
 
-		m_databaseUser->RegisterObserver(this);
+		databaseController.RegisterObserver(this);
 	}
 
 	void SetMenu(QMenu* menu)
@@ -74,15 +74,19 @@ private:
 	}
 
 private:
-	std::shared_ptr<const IUiFactory>                     m_uiFactory;
-	PropagateConstPtr<IDatabaseProvider, std::shared_ptr> m_databaseUser;
-	QMenu*                                                m_menu { nullptr };
-	Util::FunctorExecutionForwarder                       m_forwarder;
-	QTimer                                                m_timer;
+	std::shared_ptr<const IUiFactory>        m_uiFactory;
+	std::shared_ptr<const IDatabaseProvider> m_databaseUser;
+	QMenu*                                   m_menu { nullptr };
+	Util::FunctorExecutionForwarder          m_forwarder;
+	QTimer                                   m_timer;
 };
 
-RecentOpenBookController::RecentOpenBookController(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<IDatabaseProvider> databaseUser)
-	: m_impl { std::move(uiFactory), std::move(databaseUser) }
+RecentOpenBookController::RecentOpenBookController(
+	const std::shared_ptr<IDatabaseController>& databaseController,
+	std::shared_ptr<const IUiFactory>           uiFactory,
+	std::shared_ptr<const IDatabaseProvider>    databaseUser
+)
+	: m_impl(*databaseController, std::move(uiFactory), std::move(databaseUser))
 {
 }
 

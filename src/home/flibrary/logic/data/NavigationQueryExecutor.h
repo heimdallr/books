@@ -14,7 +14,11 @@ class NavigationQueryExecutor final : public INavigationQueryExecutor
 	NON_COPY_MOVABLE(NavigationQueryExecutor)
 
 public:
-	NavigationQueryExecutor(std::shared_ptr<IDatabaseProvider> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider);
+	NavigationQueryExecutor(
+		const std::shared_ptr<IDatabaseController>& databaseController,
+		std::shared_ptr<const IDatabaseProvider>    databaseUser,
+		std::shared_ptr<const ICollectionProvider>  collectionProvider
+	);
 	~NavigationQueryExecutor() override;
 
 private: // INavigationQueryExecutor

@@ -14,7 +14,7 @@ class RecentOpenBookController final : public IRecentOpenBookController
 	NON_COPY_MOVABLE(RecentOpenBookController)
 
 public:
-	RecentOpenBookController(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<IDatabaseProvider> databaseUser);
+	RecentOpenBookController(const std::shared_ptr<IDatabaseController>& databaseController, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseProvider> databaseUser);
 	~RecentOpenBookController() override;
 
 private: // IRecentOpenBookController

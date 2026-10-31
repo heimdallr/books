@@ -218,7 +218,7 @@ struct GroupController::Impl
 	}
 };
 
-GroupController::GroupController(std::shared_ptr<IDatabaseProvider> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<IUiFactory> uiFactory)
+GroupController::GroupController(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<IUiFactory> uiFactory)
 	: m_impl(std::move(databaseUser), std::move(navigationQueryExecutor), std::move(uiFactory))
 {
 	PLOGV << "GroupController created";

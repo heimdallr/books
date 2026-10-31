@@ -130,7 +130,7 @@ TreeViewControllerBooks::TreeViewControllerBooks(
 	std::shared_ptr<const IUiFactory>           uiFactory,
 	std::shared_ptr<const IBookInteractor>      bookInteractor,
 	std::shared_ptr<IAnnotationController>      annotationController,
-	std::shared_ptr<IDatabaseProvider>          databaseUser
+	std::shared_ptr<const IDatabaseProvider>          databaseUser
 )
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
 	, m_impl(logicFactory, std::move(annotationController), std::move(databaseUser), std::move(dataProvider), std::move(uiFactory), std::move(bookInteractor))

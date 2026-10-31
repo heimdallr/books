@@ -166,7 +166,7 @@ struct SearchController::Impl
 	}
 };
 
-SearchController::SearchController(const std::shared_ptr<const ICollectionController>& collectionController, std::shared_ptr<IDatabaseProvider> databaseUser, std::shared_ptr<IUiFactory> uiFactory)
+SearchController::SearchController(const std::shared_ptr<const ICollectionController>& collectionController, std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<IUiFactory> uiFactory)
 	: m_impl(*collectionController, std::move(databaseUser), std::move(uiFactory))
 {
 	PLOGV << "SearchController created";

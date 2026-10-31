@@ -18,7 +18,7 @@ class QueryWindow : public QMainWindow
 	NON_COPY_MOVABLE(QueryWindow)
 
 public:
-	QueryWindow(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<IDatabaseProvider> databaseUser, QWidget* parent = nullptr);
+	QueryWindow(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<const IDatabaseProvider> databaseUser, QWidget* parent = nullptr);
 	~QueryWindow() override;
 
 private:
