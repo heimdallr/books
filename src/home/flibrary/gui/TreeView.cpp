@@ -554,7 +554,7 @@ public:
 
 		emit m_self.ValueGeometryChanged(Util::GetGlobalGeometry(*m_ui.value));
 
-		if (m_recentMode.isEmpty() || m_navigationModeName.isEmpty())
+		if (m_recentMode.isEmpty() || m_navigationModeName.isEmpty() || std::abs(event->size().width() - event->oldSize().width()) > 3 * QApplication::style()->pixelMetric(QStyle::PM_ScrollBarExtent))
 			return;
 
 		CheckHeaderViewWidth(*event);
