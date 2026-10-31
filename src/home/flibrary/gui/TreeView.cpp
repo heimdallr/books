@@ -1562,7 +1562,13 @@ private:
 		if (it == std::end(actions))
 			return false;
 
-		(*it)->trigger();
+		auto& action = **it;
+		const auto enabled = action.isEnabled();
+		if (!enabled)
+			action.setEnabled(true);
+		action.trigger();
+		action.setEnabled(enabled);
+
 		return true;
 	}
 
