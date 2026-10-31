@@ -187,6 +187,7 @@ endif()
 
 find_package(plog REQUIRED)
 find_package(Boost REQUIRED)
+find_package(GTest REQUIRED)
 find_package(XercesC REQUIRED)
 find_package(ICU REQUIRED COMPONENTS uc i18n io)
 find_package(libjxl REQUIRED)
@@ -255,6 +256,8 @@ if ("${QT_MAJOR_VERSION}" STREQUAL "6")
 	endif()
 	add_subdirectory("${EXT_ROOT}/ReactApp")
 endif()
+
+enable_testing()
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
 	return()
