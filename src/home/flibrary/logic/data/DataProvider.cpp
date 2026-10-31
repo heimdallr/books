@@ -3,6 +3,7 @@
 #include <QTimer>
 
 #include "fnd/FindPair.h"
+#include "fnd/algorithm.h"
 #include "fnd/observable.h"
 
 #include "database/interface/IDatabase.h"
@@ -73,8 +74,10 @@ public:
 
 	void SetNavigationMode(const NavigationMode navigationMode)
 	{
-		m_navigationMode = navigationMode;
-		Perform(&IObserver::OnNavigationModeChanged);
+		Util::Set(m_navigationMode, navigationMode, [this] {
+			m_navigationId.clear();
+			Perform(&IObserver::OnNavigationModeChanged);
+		});
 	}
 
 	void SetNavigationId(QString id, const bool force)
