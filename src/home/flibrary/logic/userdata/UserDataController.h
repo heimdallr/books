@@ -46,7 +46,7 @@ private:
 
 private:
 	std::shared_ptr<const IDatabaseProvider> m_databaseUser;
-	std::shared_ptr<const IUiFactory>    m_uiFactory;
+	std::shared_ptr<const IUiFactory>        m_uiFactory;
 };
 
 } // namespace HomeCompa::Flibrary

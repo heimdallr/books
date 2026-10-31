@@ -21,7 +21,7 @@ public:
 	ReactAppRequester(
 		std::shared_ptr<const ISettings>                     settings,
 		std::shared_ptr<const Flibrary::ICollectionProvider> collectionProvider,
-		std::shared_ptr<const Flibrary::IDatabaseProvider>       databaseUser,
+		std::shared_ptr<const Flibrary::IDatabaseProvider>   databaseUser,
 		std::shared_ptr<const ICoverCache>                   coverCache,
 		std::shared_ptr<Flibrary::IAnnotationController>     annotationController
 	);

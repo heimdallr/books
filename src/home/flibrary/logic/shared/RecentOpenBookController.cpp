@@ -74,11 +74,11 @@ private:
 	}
 
 private:
-	std::shared_ptr<const IUiFactory>                 m_uiFactory;
+	std::shared_ptr<const IUiFactory>                     m_uiFactory;
 	PropagateConstPtr<IDatabaseProvider, std::shared_ptr> m_databaseUser;
-	QMenu*                                            m_menu { nullptr };
-	Util::FunctorExecutionForwarder                   m_forwarder;
-	QTimer                                            m_timer;
+	QMenu*                                                m_menu { nullptr };
+	Util::FunctorExecutionForwarder                       m_forwarder;
+	QTimer                                                m_timer;
 };
 
 RecentOpenBookController::RecentOpenBookController(std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<IDatabaseProvider> databaseUser)

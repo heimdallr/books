@@ -157,10 +157,10 @@ private:
 	}
 
 private:
-	Ui::QueryWindow                   m_ui {};
-	std::shared_ptr<ISettings>        m_settings;
-	std::shared_ptr<IDatabaseProvider>    m_databaseUser;
-	std::shared_ptr<DB::ITransaction> m_transaction;
+	Ui::QueryWindow                    m_ui {};
+	std::shared_ptr<ISettings>         m_settings;
+	std::shared_ptr<IDatabaseProvider> m_databaseUser;
+	std::shared_ptr<DB::ITransaction>  m_transaction;
 };
 
 QueryWindow::QueryWindow(const std::shared_ptr<IParentWidgetProvider>& parentWidgetProvider, std::shared_ptr<ISettings> settings, std::shared_ptr<IDatabaseProvider> databaseUser, QWidget* parent)

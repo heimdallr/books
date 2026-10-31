@@ -366,7 +366,7 @@ public:
 		std::shared_ptr<const IStyleApplierFactory>     styleApplierFactory,
 		std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
 		std::shared_ptr<const IUiFactory>               uiFactory,
-		std::shared_ptr<const IDatabaseProvider>            databaseUser,
+		std::shared_ptr<const IDatabaseProvider>        databaseUser,
 		std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 		std::shared_ptr<const IDatabaseChecker>         databaseChecker,
 		std::shared_ptr<const ICommandLine>             commandLine,
@@ -1939,7 +1939,7 @@ private:
 	std::shared_ptr<const IStyleApplierFactory>  m_styleApplierFactory;
 	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
 	std::shared_ptr<const IUiFactory>            m_uiFactory;
-	std::shared_ptr<const IDatabaseProvider>         m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>     m_databaseUser;
 
 	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr>     m_collectionController;
@@ -1998,7 +1998,7 @@ MainWindow::MainWindow(
 	std::shared_ptr<const IStyleApplierFactory>     styleApplierFactory,
 	std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
 	std::shared_ptr<const IUiFactory>               uiFactory,
-	std::shared_ptr<const IDatabaseProvider>            databaseUser,
+	std::shared_ptr<const IDatabaseProvider>        databaseUser,
 	std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 	std::shared_ptr<const IDatabaseChecker>         databaseChecker,
 	std::shared_ptr<const ICommandLine>             commandLine,

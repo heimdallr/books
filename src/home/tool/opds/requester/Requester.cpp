@@ -805,7 +805,7 @@ public:
 	Impl(
 		std::shared_ptr<const ISettings>                             settings,
 		std::shared_ptr<const Flibrary::ICollectionProvider>         collectionProvider,
-		std::shared_ptr<const Flibrary::IDatabaseProvider>               databaseUser,
+		std::shared_ptr<const Flibrary::IDatabaseProvider>           databaseUser,
 		std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
 		std::shared_ptr<const Flibrary::IFilterProvider>             filterProvider,
 		std::shared_ptr<const Flibrary::IBookExtractor>              bookExtractor,
@@ -1375,7 +1375,7 @@ private:
 private:
 	std::shared_ptr<const ISettings>                             m_settings;
 	std::shared_ptr<const Flibrary::ICollectionProvider>         m_collectionProvider;
-	std::shared_ptr<const Flibrary::IDatabaseProvider>               m_databaseUser;
+	std::shared_ptr<const Flibrary::IDatabaseProvider>           m_databaseUser;
 	std::shared_ptr<const Flibrary::IAuthorAnnotationController> m_authorAnnotationController;
 	std::shared_ptr<const Flibrary::IFilterProvider>             m_filterProvider;
 	std::shared_ptr<const Flibrary::IBookExtractor>              m_bookExtractor;
@@ -1391,7 +1391,7 @@ namespace {
 Requester::Requester(
 	std::shared_ptr<const ISettings>                             settings,
 	std::shared_ptr<const Flibrary::ICollectionProvider>         collectionProvider,
-	std::shared_ptr<const Flibrary::IDatabaseProvider>               databaseUser,
+	std::shared_ptr<const Flibrary::IDatabaseProvider>           databaseUser,
 	std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
 	std::shared_ptr<const Flibrary::IFilterProvider>             filterProvider,
 	std::shared_ptr<const Flibrary::IBookExtractor>              bookExtractor,

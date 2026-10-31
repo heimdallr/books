@@ -34,7 +34,7 @@ struct BookExtractor::Impl
 {
 	std::shared_ptr<const ISettings>           settings;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
-	std::shared_ptr<const IDatabaseProvider>       databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   databaseUser;
 	const QString                              m_outputFileNameTemplate { GetOutputFileNameTemplate(*settings) };
 
 	Impl(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser)

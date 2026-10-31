@@ -38,7 +38,7 @@ public:
 		std::shared_ptr<const ISettings>            settings,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
 		std::shared_ptr<const IReaderController>    readerController,
-		std::shared_ptr<const IDatabaseProvider>        databaseUser,
+		std::shared_ptr<const IDatabaseProvider>    databaseUser,
 		std::shared_ptr<const IBookInfoProvider>    dataProvider,
 		std::shared_ptr<const IUiFactory>           uiFactory,
 		std::shared_ptr<IScriptController>          scriptController,

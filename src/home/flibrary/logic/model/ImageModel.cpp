@@ -467,7 +467,7 @@ private:
 private:
 	Util::FunctorExecutionForwarder            m_forwarder;
 	std::shared_ptr<const ICollectionProvider> m_collectionProvider;
-	std::shared_ptr<const IDatabaseProvider>       m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   m_databaseUser;
 
 	int                     m_imageSize { -1 };
 	IDataItem::Ptr          m_bookRoot;

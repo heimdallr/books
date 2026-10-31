@@ -18,7 +18,7 @@ class CollectionCleanerLogic final : public ICollectionCleaner
 public:
 	CollectionCleanerLogic(
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
-		std::shared_ptr<const IDatabaseProvider>        databaseUser,
+		std::shared_ptr<const IDatabaseProvider>    databaseUser,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
 		std::shared_ptr<const ILibRateProvider>     libRateProvider,
 		std::shared_ptr<IMainProgressController>    progressController

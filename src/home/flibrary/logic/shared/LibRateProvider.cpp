@@ -148,7 +148,7 @@ struct LibRateProviderDouble::Impl
 LibRateProviderDouble::LibRateProviderDouble(
 	const std::shared_ptr<const ISettings>&           settings,
 	const std::shared_ptr<const ICollectionProvider>& collectionProvider,
-	const std::shared_ptr<const IDatabaseProvider>&       databaseUser
+	const std::shared_ptr<const IDatabaseProvider>&   databaseUser
 )
 	: m_impl(*settings, *collectionProvider, *databaseUser)
 {

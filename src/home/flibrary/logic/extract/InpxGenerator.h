@@ -20,7 +20,7 @@ public:
 		const std::shared_ptr<const ISettings>&     settings,
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
-		std::shared_ptr<const IDatabaseProvider>        databaseUser,
+		std::shared_ptr<const IDatabaseProvider>    databaseUser,
 		std::shared_ptr<IMainProgressController>    progressController
 	);
 	~InpxGenerator() override;

@@ -47,7 +47,7 @@ public:
 		std::shared_ptr<const IStyleApplierFactory>     styleApplierFactory,
 		std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
 		std::shared_ptr<const IUiFactory>               uiFactory,
-		std::shared_ptr<const IDatabaseProvider>            databaseUser,
+		std::shared_ptr<const IDatabaseProvider>        databaseUser,
 		std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 		std::shared_ptr<const IDatabaseChecker>         databaseChecker,
 		std::shared_ptr<const ICommandLine>             commandLine,

@@ -23,7 +23,7 @@ namespace {
 struct LogController::Impl
 {
 	std::unique_ptr<QAbstractItemModel>        model { CreateLogModel() };
-	std::shared_ptr<const IDatabaseProvider>       databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   databaseUser;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 
 	Impl(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)

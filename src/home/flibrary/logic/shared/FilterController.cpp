@@ -40,8 +40,8 @@ struct FilterController::Impl final : Observable<IObserver>
 	using Changes = std::array<std::unordered_map<QString, IDataItem::Flags>, static_cast<size_t>(NavigationMode::Last)>;
 
 	std::shared_ptr<const IDatabaseProvider> databaseUser;
-	std::shared_ptr<ISettings>           settings;
-	Changes                              changes;
+	std::shared_ptr<ISettings>               settings;
+	Changes                                  changes;
 
 	Impl(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<ISettings> settings)
 		: databaseUser { std::move(databaseUser) }

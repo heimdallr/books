@@ -163,7 +163,7 @@ struct BookInteractor::Impl final : IBookInteractorImpl
 	std::shared_ptr<const ISettings>           settings;
 	std::shared_ptr<const IBookExtractor>      bookExtractor;
 	std::shared_ptr<const IReaderController>   readerController;
-	std::shared_ptr<const IDatabaseProvider>       databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   databaseUser;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 	std::shared_ptr<IScriptControllerProvider> scriptControllerProvider;
 
@@ -173,7 +173,7 @@ struct BookInteractor::Impl final : IBookInteractorImpl
 		std::shared_ptr<const ISettings>            settings,
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
 		std::shared_ptr<const IReaderController>    readerController,
-		std::shared_ptr<const IDatabaseProvider>        databaseUser,
+		std::shared_ptr<const IDatabaseProvider>    databaseUser,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
 		std::shared_ptr<IScriptControllerProvider>  scriptControllerProvider
 	)
@@ -350,7 +350,7 @@ BookInteractor::BookInteractor(
 	std::shared_ptr<const ISettings>            settings,
 	std::shared_ptr<const IBookExtractor>       bookExtractor,
 	std::shared_ptr<const IReaderController>    readerController,
-	std::shared_ptr<const IDatabaseProvider>        databaseUser,
+	std::shared_ptr<const IDatabaseProvider>    databaseUser,
 	std::shared_ptr<const ICollectionProvider>  collectionProvider,
 	std::shared_ptr<IScriptControllerProvider>  scriptControllerProvider
 )

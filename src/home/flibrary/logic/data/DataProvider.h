@@ -27,7 +27,7 @@ public:
 	DataProvider(
 		std::shared_ptr<const ISettings>             settings,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
-		std::shared_ptr<const IDatabaseProvider>         databaseUser,
+		std::shared_ptr<const IDatabaseProvider>     databaseUser,
 		std::shared_ptr<const IFilterProvider>       filterProvider,
 		std::shared_ptr<INavigationQueryExecutor>    navigationQueryExecutor,
 		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController

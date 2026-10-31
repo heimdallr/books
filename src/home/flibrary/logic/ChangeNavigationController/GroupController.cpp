@@ -59,7 +59,7 @@ TR_DEF
 
 struct GroupController::Impl
 {
-	std::shared_ptr<const IDatabaseProvider>                         databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                     databaseUser;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> navigationQueryExecutor;
 	std::shared_ptr<const IUiFactory>                            uiFactory;
 

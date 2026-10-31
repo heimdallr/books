@@ -89,7 +89,7 @@ struct ReaderController::Impl
 	std::shared_ptr<ISettings>                                settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> collectionController;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>            uiFactory;
-	PropagateConstPtr<IDatabaseProvider, std::shared_ptr>         databaseUser;
+	PropagateConstPtr<IDatabaseProvider, std::shared_ptr>     databaseUser;
 
 	mutable std::random_device rd {};
 	mutable std::mt19937       mt { rd() };
@@ -100,7 +100,7 @@ struct ReaderController::Impl
 		std::shared_ptr<ISettings>                  settings,
 		std::shared_ptr<ICollectionController>      collectionController,
 		std::shared_ptr<IUiFactory>                 uiFactory,
-		std::shared_ptr<IDatabaseProvider>              databaseUser
+		std::shared_ptr<IDatabaseProvider>          databaseUser
 	)
 		: self { self }
 		, logicFactory { logicFactory }
@@ -311,7 +311,7 @@ ReaderController::ReaderController(
 	std::shared_ptr<ISettings>                  settings,
 	std::shared_ptr<ICollectionController>      collectionController,
 	std::shared_ptr<IUiFactory>                 uiFactory,
-	std::shared_ptr<IDatabaseProvider>              databaseUser
+	std::shared_ptr<IDatabaseProvider>          databaseUser
 )
 	: m_impl(*this, logicFactory, std::move(settings), std::move(collectionController), std::move(uiFactory), std::move(databaseUser))
 {

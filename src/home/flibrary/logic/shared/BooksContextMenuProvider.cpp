@@ -226,7 +226,7 @@ public:
 		std::shared_ptr<const ISettings>            settings,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
 		std::shared_ptr<const IReaderController>    readerController,
-		std::shared_ptr<const IDatabaseProvider>        databaseUser,
+		std::shared_ptr<const IDatabaseProvider>    databaseUser,
 		std::shared_ptr<const IBookInfoProvider>    dataProvider,
 		std::shared_ptr<const IUiFactory>           uiFactory,
 		std::shared_ptr<IScriptController>          scriptController,
@@ -889,7 +889,7 @@ private:
 	std::shared_ptr<const ISettings>                      m_settings;
 	std::shared_ptr<const ICollectionProvider>            m_collectionProvider;
 	std::shared_ptr<const IReaderController>              m_readerController;
-	std::shared_ptr<const IDatabaseProvider>                  m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>              m_databaseUser;
 	std::shared_ptr<const IBookInfoProvider>              m_dataProvider;
 	std::shared_ptr<const IUiFactory>                     m_uiFactory;
 	PropagateConstPtr<IScriptController, std::shared_ptr> m_scriptController;
@@ -914,7 +914,7 @@ BooksContextMenuProvider::BooksContextMenuProvider(
 	std::shared_ptr<const ISettings>            settings,
 	std::shared_ptr<const ICollectionProvider>  collectionProvider,
 	std::shared_ptr<const IReaderController>    readerController,
-	std::shared_ptr<const IDatabaseProvider>        databaseUser,
+	std::shared_ptr<const IDatabaseProvider>    databaseUser,
 	std::shared_ptr<const IBookInfoProvider>    dataProvider,
 	std::shared_ptr<const IUiFactory>           uiFactory,
 	std::shared_ptr<IScriptController>          scriptController,

@@ -11,7 +11,7 @@ using namespace HomeCompa::Flibrary;
 
 struct DatabaseMigrator::Impl : Observable<IDatabaseMigrator::IObserver>
 {
-	std::shared_ptr<const IDatabaseProvider>       databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   databaseUser;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 
 	Impl(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)

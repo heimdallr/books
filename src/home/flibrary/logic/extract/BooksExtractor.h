@@ -39,7 +39,7 @@ public:
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const IScriptController>    scriptController,
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
-		std::shared_ptr<const IDatabaseProvider>        databaseUser
+		std::shared_ptr<const IDatabaseProvider>    databaseUser
 	);
 	~BooksExtractor() override;
 

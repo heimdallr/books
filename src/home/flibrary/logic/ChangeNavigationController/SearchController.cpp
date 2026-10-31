@@ -66,8 +66,8 @@ TR_DEF
 struct SearchController::Impl
 {
 	std::shared_ptr<const IDatabaseProvider> databaseUser;
-	std::shared_ptr<const IUiFactory>    uiFactory;
-	const QString                        currentCollectionId;
+	std::shared_ptr<const IUiFactory>        uiFactory;
+	const QString                            currentCollectionId;
 
 	explicit Impl(const ICollectionController& collectionController, std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<const IUiFactory> uiFactory)
 		: databaseUser { std::move(databaseUser) }

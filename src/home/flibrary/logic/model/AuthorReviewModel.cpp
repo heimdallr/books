@@ -187,10 +187,10 @@ select r.Folder, b.BookID, f.FolderTitle||'#'||b.FileName, b.Title
 	}
 
 private:
-	const bool                                 m_showRemoved;
-	const QDir                                 m_folder;
+	const bool                                     m_showRemoved;
+	const QDir                                     m_folder;
 	const std::shared_ptr<const IDatabaseProvider> m_databaseUser;
-	Items                                      m_items;
+	Items                                          m_items;
 };
 
 } // namespace
@@ -198,7 +198,7 @@ private:
 AuthorReviewModel::AuthorReviewModel(
 	const std::shared_ptr<const ISettings>&           settings,
 	const std::shared_ptr<const ICollectionProvider>& collectionProvider,
-	std::shared_ptr<const IDatabaseProvider>              databaseUser,
+	std::shared_ptr<const IDatabaseProvider>          databaseUser,
 	QObject*                                          parent
 )
 	: QSortFilterProxyModel(parent)

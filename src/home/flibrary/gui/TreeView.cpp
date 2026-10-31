@@ -447,7 +447,7 @@ class TreeView::Impl final
 public:
 	Impl(
 		TreeView&                                  self,
-		const IDatabaseProvider&                       databaseUser,
+		const IDatabaseProvider&                   databaseUser,
 		std::shared_ptr<const ICollectionProvider> collectionProvider,
 		std::shared_ptr<const IDataItemFactory>    dataItemFactory,
 		std::shared_ptr<ISettings>                 settings,
@@ -1648,16 +1648,16 @@ private:
 
 TreeView::TreeView(
 	const std::shared_ptr<const IDatabaseProvider>& databaseUser,
-	std::shared_ptr<const ICollectionProvider>  collectionProvider,
-	std::shared_ptr<const IDataItemFactory>     dataItemFactory,
-	std::shared_ptr<ISettings>                  settings,
-	std::shared_ptr<IUiFactory>                 uiFactory,
-	std::shared_ptr<IFilterProvider>            filterProvider,
-	std::shared_ptr<IMenuCustomizer>            menuCustomizer,
-	std::shared_ptr<Util::ItemViewToolTipper>   itemViewToolTipper,
-	std::shared_ptr<Util::ScrollBarController>  scrollBarController,
-	std::shared_ptr<INavigationUndoRedo>        navigationUndoRedo,
-	QWidget*                                    parent
+	std::shared_ptr<const ICollectionProvider>      collectionProvider,
+	std::shared_ptr<const IDataItemFactory>         dataItemFactory,
+	std::shared_ptr<ISettings>                      settings,
+	std::shared_ptr<IUiFactory>                     uiFactory,
+	std::shared_ptr<IFilterProvider>                filterProvider,
+	std::shared_ptr<IMenuCustomizer>                menuCustomizer,
+	std::shared_ptr<Util::ItemViewToolTipper>       itemViewToolTipper,
+	std::shared_ptr<Util::ScrollBarController>      scrollBarController,
+	std::shared_ptr<INavigationUndoRedo>            navigationUndoRedo,
+	QWidget*                                        parent
 )
 	: QWidget(parent)
 	, m_impl(

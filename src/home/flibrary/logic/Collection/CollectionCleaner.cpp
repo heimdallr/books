@@ -231,7 +231,7 @@ join Compilation_List l on c.CompilationID = l.CompilationID
 struct CollectionCleanerLogic::Impl
 {
 	std::weak_ptr<const ILogicFactory>         logicFactory;
-	std::shared_ptr<const IDatabaseProvider>       databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   databaseUser;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 	std::shared_ptr<const ILibRateProvider>    libRateProvider;
 	std::shared_ptr<IMainProgressController>   progressController;
@@ -413,7 +413,7 @@ struct CollectionCleanerLogic::Impl
 
 CollectionCleanerLogic::CollectionCleanerLogic(
 	const std::shared_ptr<const ILogicFactory>& logicFactory,
-	std::shared_ptr<const IDatabaseProvider>        databaseUser,
+	std::shared_ptr<const IDatabaseProvider>    databaseUser,
 	std::shared_ptr<const ICollectionProvider>  collectionProvider,
 	std::shared_ptr<const ILibRateProvider>     libRateProvider,
 	std::shared_ptr<IMainProgressController>    progressController

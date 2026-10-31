@@ -276,7 +276,7 @@ struct TreeViewControllerNavigation::Impl final
 	std::shared_ptr<const IMenuCustomizer>                                      menuCustomizer;
 	PropagateConstPtr<INavigationInfoProvider, std::shared_ptr>                 dataProvider;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>                              uiFactory;
-	PropagateConstPtr<IDatabaseProvider, std::shared_ptr>                           databaseUser;
+	PropagateConstPtr<IDatabaseProvider, std::shared_ptr>                       databaseUser;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr>                   annotationController;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr>             authorAnnotationController;
 	std::shared_ptr<IFilterController>                                          filterController;
@@ -291,7 +291,7 @@ struct TreeViewControllerNavigation::Impl final
 		std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
 		std::shared_ptr<INavigationInfoProvider>     dataProvider,
 		std::shared_ptr<IUiFactory>                  uiFactory,
-		std::shared_ptr<IDatabaseProvider>               databaseUser,
+		std::shared_ptr<IDatabaseProvider>           databaseUser,
 		std::shared_ptr<IAnnotationController>       annotationController,
 		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
 		std::shared_ptr<IFilterController>           filterController
@@ -812,7 +812,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 	std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
 	std::shared_ptr<INavigationInfoProvider>     dataProvider,
 	std::shared_ptr<IUiFactory>                  uiFactory,
-	std::shared_ptr<IDatabaseProvider>               databaseUser,
+	std::shared_ptr<IDatabaseProvider>           databaseUser,
 	std::shared_ptr<IAnnotationController>       annotationController,
 	std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
 	std::shared_ptr<IFilterController>           filterController

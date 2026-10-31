@@ -40,7 +40,7 @@ QString GetFileHash(const std::set<QString>& fileNames)
 struct CollectionUpdateChecker::Impl
 {
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
-	std::shared_ptr<const IDatabaseProvider>       databaseUser;
+	std::shared_ptr<const IDatabaseProvider>   databaseUser;
 
 	Impl(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser)
 		: collectionProvider { std::move(collectionProvider) }

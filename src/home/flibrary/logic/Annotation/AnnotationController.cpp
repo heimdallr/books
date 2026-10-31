@@ -314,7 +314,7 @@ public:
 		std::shared_ptr<const ISettings>             settings,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
 		std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
-		std::shared_ptr<const IDatabaseProvider>         databaseUser,
+		std::shared_ptr<const IDatabaseProvider>     databaseUser,
 		std::shared_ptr<IFilterProvider>             filterProvider
 	)
 		: m_logicFactory { logicFactory }
@@ -780,7 +780,7 @@ private:
 	std::shared_ptr<const ISettings>             m_settings;
 	std::shared_ptr<const ICollectionProvider>   m_collectionProvider;
 	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
-	std::shared_ptr<const IDatabaseProvider>         m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>     m_databaseUser;
 
 	PropagateConstPtr<IFilterProvider, std::shared_ptr> m_filterProvider;
 
@@ -830,7 +830,7 @@ AnnotationController::AnnotationController(
 	std::shared_ptr<const ISettings>             settings,
 	std::shared_ptr<const ICollectionProvider>   collectionProvider,
 	std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
-	std::shared_ptr<const IDatabaseProvider>         databaseUser,
+	std::shared_ptr<const IDatabaseProvider>     databaseUser,
 	std::shared_ptr<IFilterProvider>             filterProvider
 )
 	: m_impl(logicFactory, std::move(settings), std::move(collectionProvider), std::move(jokeRequesterFactory), std::move(databaseUser), std::move(filterProvider))

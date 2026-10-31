@@ -226,7 +226,7 @@ public:
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const IScriptController>    scriptController,
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
-		std::shared_ptr<const IDatabaseProvider>        databaseUser
+		std::shared_ptr<const IDatabaseProvider>    databaseUser
 	)
 		: m_self { self }
 		, m_settings { std::move(settings) }
@@ -399,7 +399,7 @@ private:
 	std::weak_ptr<const ILogicFactory>                        m_logicFactory;
 	std::shared_ptr<const IScriptController>                  m_scriptController;
 	std::shared_ptr<const IBookExtractor>                     m_bookExtractor;
-	std::shared_ptr<const IDatabaseProvider>                      m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                  m_databaseUser;
 	Callback                                                  m_callback;
 	size_t                                                    m_taskCount { 0 };
 	bool                                                      m_hasError { false };
@@ -421,7 +421,7 @@ BooksExtractor::BooksExtractor(
 	const std::shared_ptr<const ILogicFactory>& logicFactory,
 	std::shared_ptr<const IScriptController>    scriptController,
 	std::shared_ptr<const IBookExtractor>       bookExtractor,
-	std::shared_ptr<const IDatabaseProvider>        databaseUser
+	std::shared_ptr<const IDatabaseProvider>    databaseUser
 )
 	: m_impl(*this, std::move(settings), std::move(collectionController), std::move(progressController), logicFactory, std::move(scriptController), std::move(bookExtractor), std::move(databaseUser))
 {

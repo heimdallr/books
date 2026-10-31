@@ -350,7 +350,7 @@ public:
 	Impl(
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
-		std::shared_ptr<const IDatabaseProvider>        databaseUser,
+		std::shared_ptr<const IDatabaseProvider>    databaseUser,
 		std::shared_ptr<IProgressController>        progressController,
 		QString                                     encoding
 	)
@@ -707,7 +707,7 @@ private:
 private:
 	std::weak_ptr<const ILogicFactory>                      m_logicFactory;
 	std::shared_ptr<const ICollectionProvider>              m_collectionProvider;
-	std::shared_ptr<const IDatabaseProvider>                    m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                m_databaseUser;
 	std::shared_ptr<const ISettings>                        m_settingsStub;
 	PropagateConstPtr<IProgressController, std::shared_ptr> m_progressController;
 	const QString                                           m_encoding;
@@ -737,7 +737,7 @@ InpxGenerator::InpxGenerator(
 	const std::shared_ptr<const ISettings>&     settings,
 	const std::shared_ptr<const ILogicFactory>& logicFactory,
 	std::shared_ptr<const ICollectionProvider>  collectionProvider,
-	std::shared_ptr<const IDatabaseProvider>        databaseUser,
+	std::shared_ptr<const IDatabaseProvider>    databaseUser,
 	std::shared_ptr<IMainProgressController>    progressController
 )
 	: m_impl(logicFactory, std::move(collectionProvider), std::move(databaseUser), std::move(progressController), settings->Get(EXPORT_ENCODING_KEY, QString {}))
