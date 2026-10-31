@@ -7,7 +7,7 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 #include "constants/books.h"
 #include "util/xml/XmlAttributes.h"

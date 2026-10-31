@@ -57,13 +57,13 @@ Qt::CheckState IsChecked(const QModelIndex& index)
 class Model final : public QAbstractItemModel
 {
 public:
-	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const IDatabaseUser> databaseUser)
+	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const IDatabaseProvider> databaseUser)
 	{
 		return std::make_unique<Model>(std::move(databaseUser));
 	}
 
 public:
-	explicit Model(std::shared_ptr<const IDatabaseUser> databaseUser)
+	explicit Model(std::shared_ptr<const IDatabaseProvider> databaseUser)
 	{
 		CreateGenreTree(std::move(databaseUser));
 	}
@@ -212,7 +212,7 @@ private:
 		return true;
 	}
 
-	void CreateGenreTree(std::shared_ptr<const IDatabaseUser> databaseUser)
+	void CreateGenreTree(std::shared_ptr<const IDatabaseProvider> databaseUser)
 	{
 		const auto& databaseUserRef = *databaseUser;
 		databaseUserRef.Execute({ "Create genre list", [&, databaseUser = std::move(databaseUser)]() mutable {
@@ -245,13 +245,13 @@ private:
 class ModelFiltered final : public QSortFilterProxyModel
 {
 public:
-	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const IDatabaseUser> databaseUser, QObject* parent = nullptr)
+	static std::unique_ptr<QAbstractItemModel> Create(std::shared_ptr<const IDatabaseProvider> databaseUser, QObject* parent = nullptr)
 	{
 		return std::make_unique<ModelFiltered>(std::move(databaseUser), parent);
 	}
 
 public:
-	ModelFiltered(std::shared_ptr<const IDatabaseUser> databaseUser, QObject* parent)
+	ModelFiltered(std::shared_ptr<const IDatabaseProvider> databaseUser, QObject* parent)
 		: QSortFilterProxyModel(parent)
 		, m_sourceModel { Model::Create(std::move(databaseUser)) }
 	{
@@ -346,7 +346,7 @@ private:
 
 } // namespace
 
-GenreModel::GenreModel(std::shared_ptr<const IDatabaseUser> databaseUser)
+GenreModel::GenreModel(std::shared_ptr<const IDatabaseProvider> databaseUser)
 	: m_model { ModelFiltered::Create(std::move(databaseUser)) }
 {
 }

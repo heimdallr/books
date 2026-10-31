@@ -39,11 +39,11 @@ struct FilterController::Impl final : Observable<IObserver>
 {
 	using Changes = std::array<std::unordered_map<QString, IDataItem::Flags>, static_cast<size_t>(NavigationMode::Last)>;
 
-	std::shared_ptr<const IDatabaseUser> databaseUser;
+	std::shared_ptr<const IDatabaseProvider> databaseUser;
 	std::shared_ptr<ISettings>           settings;
 	Changes                              changes;
 
-	Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<ISettings> settings)
+	Impl(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<ISettings> settings)
 		: databaseUser { std::move(databaseUser) }
 		, settings { std::move(settings) }
 	{
@@ -82,7 +82,7 @@ struct FilterController::Impl final : Observable<IObserver>
 	}
 };
 
-FilterController::FilterController(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<ISettings> settings)
+FilterController::FilterController(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<ISettings> settings)
 	: m_impl { std::make_unique<Impl>(std::move(databaseUser), std::move(settings)) }
 {
 }

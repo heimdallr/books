@@ -4,7 +4,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/ILibRateProvider.h"
 
 #include "settings/ISettings.h"
@@ -28,7 +28,7 @@ class LibRateProviderDouble : public AbstractLibRateProvider
 	NON_COPY_MOVABLE(LibRateProviderDouble)
 
 public:
-	LibRateProviderDouble(const std::shared_ptr<const ISettings>& settings, const std::shared_ptr<const ICollectionProvider>& collectionProvider, const std::shared_ptr<const IDatabaseUser>& databaseUser);
+	LibRateProviderDouble(const std::shared_ptr<const ISettings>& settings, const std::shared_ptr<const ICollectionProvider>& collectionProvider, const std::shared_ptr<const IDatabaseProvider>& databaseUser);
 	~LibRateProviderDouble() override;
 
 private: // ILibRateProvider

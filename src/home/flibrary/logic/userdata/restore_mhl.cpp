@@ -10,7 +10,7 @@
 #include "database/interface/ITemporaryTable.h"
 #include "database/interface/ITransaction.h"
 
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 #include "constants/UserData.h"
 #include "constants/groups.h"
@@ -179,7 +179,7 @@ private:
 				{
 					createGroupCommand->Execute(group.name);
 
-					const auto getLastIdQuery = tr->CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
+					const auto getLastIdQuery = tr->CreateQuery(IDatabaseProvider::SELECT_LAST_ID_QUERY);
 					getLastIdQuery->Execute();
 					group.id = getLastIdQuery->Get<long long>(0);
 				}
@@ -207,7 +207,7 @@ private:
 
 } // namespace
 
-void ImportFromMyHomeLib(const Util::IExecutor& executor, const IDatabaseUser& dbUser, QString fileName, Callback callback)
+void ImportFromMyHomeLib(const Util::IExecutor& executor, const IDatabaseProvider& dbUser, QString fileName, Callback callback)
 {
 	executor({ "Restore MHL user data", [&dbUser, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
 				  auto createResult = [callback = std::move(callback)](QString error = {}) mutable {

@@ -1108,14 +1108,14 @@ limit {}
 	if (maxMenuItemCount < 1)
 		return menu.menuAction()->setVisible(false);
 
-	auto  databaseUser    = container.resolve<IDatabaseUser>();
+	auto  databaseUser    = container.resolve<IDatabaseProvider>();
 	auto& databaseUserRef = *databaseUser;
 	databaseUserRef.Execute(
 		{ "Update recent books menu",
 		  [this,
 		   &menu,
 		   databaseUser           = std::move(databaseUser),
-		   queryText              = std::format(QUERY, std::to_underlying(IDatabaseUser::Key::RecentBookDateTime), maxMenuItemCount),
+		   queryText              = std::format(QUERY, std::to_underlying(IDatabaseProvider::Key::RecentBookDateTime), maxMenuItemCount),
 		   menuItemTitleFormat    = std::move(menuItemTitleFormat),
 		   menuItemDateTimeFormat = std::move(menuItemDateTimeFormat)]() mutable {
 			  const auto db   = databaseUser->GetDatabase();
@@ -1142,12 +1142,12 @@ limit {}
 				  menu.addSeparator();
 				  const auto* action = menu.addAction(Tr(CLEAR_RECENT_BOOKS));
 				  connect(action, &QAction::triggered, [this, &menu] {
-					  const auto database = m_impl->container.resolve<IDatabaseUser>()->GetDatabase();
+					  const auto database = m_impl->container.resolve<IDatabaseProvider>()->GetDatabase();
 					  const auto tr       = database->CreateTransaction();
 					  tr->CreateCommand(
 							std::format(
 								"insert or replace into Settings(SettingID, SettingValue) values({}, datetime(CURRENT_TIMESTAMP, 'localtime'))",
-								std::to_underlying(IDatabaseUser::Key::RecentBookDateTime)
+								std::to_underlying(IDatabaseProvider::Key::RecentBookDateTime)
 							)
 					  )
 						  ->Execute();

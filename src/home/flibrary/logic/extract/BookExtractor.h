@@ -5,7 +5,7 @@
 
 #include "interface/logic/IBookExtractor.h"
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 #include "settings/ISettings.h"
 
@@ -16,7 +16,7 @@ class BookExtractor final : public IBookExtractor
 	NON_COPY_MOVABLE(BookExtractor)
 
 public:
-	BookExtractor(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser);
+	BookExtractor(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser);
 	~BookExtractor() override;
 
 private: // IBookExtractor

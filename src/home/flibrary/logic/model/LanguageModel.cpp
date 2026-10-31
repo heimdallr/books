@@ -37,7 +37,7 @@ class ModelImpl : public QAbstractTableModel
 	using Items = std::vector<Item>;
 
 public:
-	explicit ModelImpl(std::shared_ptr<const IDatabaseUser> databaseUser)
+	explicit ModelImpl(std::shared_ptr<const IDatabaseProvider> databaseUser)
 	{
 		const auto& databaseUserRef = *databaseUser;
 		databaseUserRef.Execute({ "Create language list", [&, databaseUser = std::move(databaseUser)]() mutable {
@@ -210,7 +210,7 @@ private:
 class LanguageModel::Model final : public QSortFilterProxyModel
 {
 public:
-	explicit Model(std::shared_ptr<const IDatabaseUser> databaseUser)
+	explicit Model(std::shared_ptr<const IDatabaseProvider> databaseUser)
 		: m_source { std::unique_ptr<QAbstractItemModel> { std::make_unique<ModelImpl>(std::move(databaseUser)) } }
 	{
 		QSortFilterProxyModel::setSourceModel(m_source.get());
@@ -220,7 +220,7 @@ private:
 	PropagateConstPtr<QAbstractItemModel> m_source;
 };
 
-LanguageModel::LanguageModel(std::shared_ptr<const IDatabaseUser> databaseUser)
+LanguageModel::LanguageModel(std::shared_ptr<const IDatabaseProvider> databaseUser)
 	: m_model(std::move(databaseUser))
 {
 }

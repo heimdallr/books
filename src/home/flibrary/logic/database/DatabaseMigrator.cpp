@@ -11,10 +11,10 @@ using namespace HomeCompa::Flibrary;
 
 struct DatabaseMigrator::Impl : Observable<IDatabaseMigrator::IObserver>
 {
-	std::shared_ptr<const IDatabaseUser>       databaseUser;
+	std::shared_ptr<const IDatabaseProvider>       databaseUser;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 
-	Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
+	Impl(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
 		: databaseUser { std::move(databaseUser) }
 		, collectionProvider { std::move(collectionProvider) }
 	{
@@ -26,7 +26,7 @@ struct DatabaseMigrator::Impl : Observable<IDatabaseMigrator::IObserver>
 	}
 };
 
-DatabaseMigrator::DatabaseMigrator(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
+DatabaseMigrator::DatabaseMigrator(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
 	: m_impl(std::move(databaseUser), std::move(collectionProvider))
 {
 	PLOGV << "DatabaseMigrator created";
@@ -42,7 +42,7 @@ IDatabaseMigrator::NeedMigrateResult DatabaseMigrator::NeedMigrate() const
 	if (!m_impl->collectionProvider->ActiveCollectionExists())
 		return NeedMigrateResult::Actual;
 
-	const auto dbVersion = m_impl->databaseUser->GetSetting(IDatabaseUser::Key::DatabaseVersion).toInt();
+	const auto dbVersion = m_impl->databaseUser->GetSetting(IDatabaseProvider::Key::DatabaseVersion).toInt();
 
 	return dbVersion == -1                                            ? NeedMigrateResult::Recreate
 	     : dbVersion == Constant::FlibraryDatabaseVersionNumber       ? NeedMigrateResult::Actual
@@ -57,7 +57,7 @@ void DatabaseMigrator::Migrate()
 									   const auto db = m_impl->databaseUser->GetDatabase();
 									   DatabaseScheme::Update(*db, *m_impl->collectionProvider);
 									   return [this](size_t) {
-										   m_impl->databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, Constant::FlibraryDatabaseVersionNumber);
+										   m_impl->databaseUser->SetSetting(IDatabaseProvider::Key::DatabaseVersion, Constant::FlibraryDatabaseVersionNumber);
 										   m_impl->Perform(&IObserver::OnMigrationFinished);
 									   };
 								   } });

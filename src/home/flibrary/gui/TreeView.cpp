@@ -447,7 +447,7 @@ class TreeView::Impl final
 public:
 	Impl(
 		TreeView&                                  self,
-		const IDatabaseUser&                       databaseUser,
+		const IDatabaseProvider&                       databaseUser,
 		std::shared_ptr<const ICollectionProvider> collectionProvider,
 		std::shared_ptr<const IDataItemFactory>    dataItemFactory,
 		std::shared_ptr<ISettings>                 settings,
@@ -470,7 +470,7 @@ public:
 		, m_scrollBarController { std::move(scrollBarController) }
 		, m_navigationUndoRedo { std::move(navigationUndoRedo) }
 		, m_delegate { std::shared_ptr<ITreeViewDelegate>() }
-		, m_hiddenColumns { databaseUser.GetSetting(IDatabaseUser::Key::DisabledBookFields).toString().split(LIST_SEPARATOR, Qt::SkipEmptyParts) }
+		, m_hiddenColumns { databaseUser.GetSetting(IDatabaseProvider::Key::DisabledBookFields).toString().split(LIST_SEPARATOR, Qt::SkipEmptyParts) }
 	{
 		Setup();
 	}
@@ -1647,7 +1647,7 @@ private:
 };
 
 TreeView::TreeView(
-	const std::shared_ptr<const IDatabaseUser>& databaseUser,
+	const std::shared_ptr<const IDatabaseProvider>& databaseUser,
 	std::shared_ptr<const ICollectionProvider>  collectionProvider,
 	std::shared_ptr<const IDataItemFactory>     dataItemFactory,
 	std::shared_ptr<ISettings>                  settings,

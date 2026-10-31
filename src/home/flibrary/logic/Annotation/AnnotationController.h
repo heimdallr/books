@@ -5,7 +5,7 @@
 
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IFilterProvider.h"
 #include "interface/logic/ILogicFactory.h"
 
@@ -23,7 +23,7 @@ public:
 		std::shared_ptr<const ISettings>             settings,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
 		std::shared_ptr<const IJokeRequesterFactory> jokeRequesterFactory,
-		std::shared_ptr<const IDatabaseUser>         databaseUser,
+		std::shared_ptr<const IDatabaseProvider>         databaseUser,
 		std::shared_ptr<IFilterProvider>             filterProvider
 	);
 	~AnnotationController() override;

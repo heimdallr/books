@@ -54,7 +54,7 @@ long long CreateNewSearchImpl(DB::ITransaction& transaction, const QString& name
 	if (const auto command = transaction.CreateCommand(INSERT_SEARCH_QUERY, name, GetSearchString(name)); !command->Execute())
 		return 0;
 
-	const auto query = transaction.CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
+	const auto query = transaction.CreateQuery(IDatabaseProvider::SELECT_LAST_ID_QUERY);
 	query->Execute();
 	return query->Get<long long>(0);
 }
@@ -65,11 +65,11 @@ TR_DEF
 
 struct SearchController::Impl
 {
-	std::shared_ptr<const IDatabaseUser> databaseUser;
+	std::shared_ptr<const IDatabaseProvider> databaseUser;
 	std::shared_ptr<const IUiFactory>    uiFactory;
 	const QString                        currentCollectionId;
 
-	explicit Impl(const ICollectionController& collectionController, std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const IUiFactory> uiFactory)
+	explicit Impl(const ICollectionController& collectionController, std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<const IUiFactory> uiFactory)
 		: databaseUser { std::move(databaseUser) }
 		, uiFactory { std::move(uiFactory) }
 		, currentCollectionId { collectionController.GetActiveCollectionId() }
@@ -166,7 +166,7 @@ struct SearchController::Impl
 	}
 };
 
-SearchController::SearchController(const std::shared_ptr<const ICollectionController>& collectionController, std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<IUiFactory> uiFactory)
+SearchController::SearchController(const std::shared_ptr<const ICollectionController>& collectionController, std::shared_ptr<IDatabaseProvider> databaseUser, std::shared_ptr<IUiFactory> uiFactory)
 	: m_impl(*collectionController, std::move(databaseUser), std::move(uiFactory))
 {
 	PLOGV << "SearchController created";

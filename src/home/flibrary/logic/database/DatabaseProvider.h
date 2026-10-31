@@ -2,23 +2,21 @@
 
 #include <memory>
 
-#include <QTimer>
-
 #include "fnd/NonCopyMovable.h"
 
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/ILogicFactory.h"
 
 namespace HomeCompa::Flibrary {
 
-class DatabaseUser final : public IDatabaseUser
+class DatabaseProvider final : public IDatabaseProvider
 {
-	NON_COPY_MOVABLE(DatabaseUser)
+	NON_COPY_MOVABLE(DatabaseProvider)
 
 public:
-	DatabaseUser(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<const ICollectionProvider> collectionProvider);
-	~DatabaseUser() override;
+	DatabaseProvider(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<const ICollectionProvider> collectionProvider);
+	~DatabaseProvider() override;
 
 public:
 	size_t                           Execute(Util::IExecutor::Task&& task, int priority = 0) const override;

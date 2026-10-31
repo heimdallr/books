@@ -10,7 +10,7 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 #include "inpx/InpxConstant.h"
 #include "util/IExecutor.h"
@@ -252,7 +252,7 @@ private:
 	QString m_error;
 };
 
-void RestoreImpl(const Util::IExecutor& executor, const IDatabaseUser& dbUser, QString fileName, Callback callback)
+void RestoreImpl(const Util::IExecutor& executor, const IDatabaseProvider& dbUser, QString fileName, Callback callback)
 {
 	executor({ "Restore user data", [&dbUser, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
 				  auto createResult = [callback = std::move(callback)](QString error = {}) mutable {
@@ -278,7 +278,7 @@ void RestoreImpl(const Util::IExecutor& executor, const IDatabaseUser& dbUser, Q
 
 } // namespace
 
-void Restore(const Util::IExecutor& executor, const IDatabaseUser& dbUser, QString fileName, Callback callback)
+void Restore(const Util::IExecutor& executor, const IDatabaseProvider& dbUser, QString fileName, Callback callback)
 {
 	RestoreImpl(executor, dbUser, std::move(fileName), std::move(callback));
 }

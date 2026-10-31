@@ -16,7 +16,7 @@
 #include "constants/SettingsConstant.h"
 #include "logic/IAnnotationController.h"
 #include "logic/ICollectionProvider.h"
-#include "logic/IDatabaseUser.h"
+#include "logic/IDatabaseProvider.h"
 #include "logic/IFilterProvider.h"
 #include "logic/ILogicFactory.h"
 #include "logic/IMenuCustomizer.h"
@@ -356,7 +356,7 @@ void ILogicFactory::FillScriptTemplate(DB::IDatabase& db, QString& scriptTemplat
 								 }) | std::ranges::to<std::unordered_map>());
 }
 
-QString IDatabaseUser::GetDatabaseVersionStatement()
+QString IDatabaseProvider::GetDatabaseVersionStatement()
 {
 	return QString("insert or replace into Settings(SettingID, SettingValue) values(%1, %2)").arg(static_cast<int>(Key::DatabaseVersion)).arg(Constant::FlibraryDatabaseVersionNumber);
 }

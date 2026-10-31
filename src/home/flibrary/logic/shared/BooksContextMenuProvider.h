@@ -8,7 +8,7 @@
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDataItem.h"
 #include "interface/logic/IDataProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
 #include "interface/logic/IReaderController.h"
@@ -38,7 +38,7 @@ public:
 		std::shared_ptr<const ISettings>            settings,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
 		std::shared_ptr<const IReaderController>    readerController,
-		std::shared_ptr<const IDatabaseUser>        databaseUser,
+		std::shared_ptr<const IDatabaseProvider>        databaseUser,
 		std::shared_ptr<const IBookInfoProvider>    dataProvider,
 		std::shared_ptr<const IUiFactory>           uiFactory,
 		std::shared_ptr<IScriptController>          scriptController,

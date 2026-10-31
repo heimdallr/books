@@ -1,4 +1,4 @@
-#include "DatabaseUser.h"
+#include "DatabaseProvider.h"
 
 #include <QtGui/QCursor>
 #include <QtGui/QGuiApplication>
@@ -86,7 +86,7 @@ std::unique_ptr<Util::IExecutor> CreateExecutor(const ILogicFactory& logicFactor
 
 } // namespace
 
-struct DatabaseUser::Impl final
+struct DatabaseProvider::Impl final
     : Observable<IObserver>
     , DB::IDatabaseObserver
 {
@@ -153,43 +153,43 @@ private:
 	std::unordered_map<size_t, std::shared_ptr<DB::IDatabase>> m_dbList;
 };
 
-DatabaseUser::DatabaseUser(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<const ICollectionProvider> collectionProvider)
+DatabaseProvider::DatabaseProvider(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<const ICollectionProvider> collectionProvider)
 	: m_impl(std::make_unique<Impl>(*logicFactory, std::move(collectionProvider)))
 {
 	PLOGV << "DatabaseUser created";
 }
 
-DatabaseUser::~DatabaseUser()
+DatabaseProvider::~DatabaseProvider()
 {
 	PLOGV << "DatabaseUser destroyed";
 }
 
-size_t DatabaseUser::Execute(Util::IExecutor::Task&& task, const int priority) const
+size_t DatabaseProvider::Execute(Util::IExecutor::Task&& task, const int priority) const
 {
 	return (*m_impl->executor)(std::move(task), priority);
 }
 
-void DatabaseUser::Reset()
+void DatabaseProvider::Reset()
 {
 	m_impl->Reset();
 }
 
-std::shared_ptr<DB::IDatabase> DatabaseUser::GetDatabase() const
+std::shared_ptr<DB::IDatabase> DatabaseProvider::GetDatabase() const
 {
 	return m_impl->GetDatabase();
 }
 
-std::shared_ptr<Util::IExecutor> DatabaseUser::Executor() const
+std::shared_ptr<Util::IExecutor> DatabaseProvider::Executor() const
 {
 	return m_impl->executor;
 }
 
-void DatabaseUser::EnableApplicationCursorChange(const bool value)
+void DatabaseProvider::EnableApplicationCursorChange(const bool value)
 {
 	APPLICATION_CURSOR_CONTROLLER = value ? ApplicationCursorController::create() : ApplicationCursorControllerStub::create();
 }
 
-QVariant DatabaseUser::GetSetting(const Key key, QVariant defaultValueSrc) const
+QVariant DatabaseProvider::GetSetting(const Key key, QVariant defaultValueSrc) const
 {
 	auto defaultValue = std::move(defaultValueSrc);
 
@@ -209,7 +209,7 @@ QVariant DatabaseUser::GetSetting(const Key key, QVariant defaultValueSrc) const
 	}
 }
 
-void DatabaseUser::SetSetting(const Key key, const QVariant& value) const
+void DatabaseProvider::SetSetting(const Key key, const QVariant& value) const
 {
 	const auto db      = m_impl->GetDatabase();
 	const auto tr      = db->CreateTransaction();
@@ -218,12 +218,12 @@ void DatabaseUser::SetSetting(const Key key, const QVariant& value) const
 	tr->Commit();
 }
 
-void DatabaseUser::RegisterObserver(IObserver* observer)
+void DatabaseProvider::RegisterObserver(IObserver* observer)
 {
 	m_impl->Register(observer);
 }
 
-void DatabaseUser::UnregisterObserver(IObserver* observer)
+void DatabaseProvider::UnregisterObserver(IObserver* observer)
 {
 	m_impl->Unregister(observer);
 }

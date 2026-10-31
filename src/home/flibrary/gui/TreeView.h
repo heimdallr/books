@@ -7,7 +7,7 @@
 
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDataItemFactory.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IFilterProvider.h"
 #include "interface/logic/IMenuCustomizer.h"
 #include "interface/logic/INavigationUndoRedo.h"
@@ -31,7 +31,7 @@ class TreeView final : public QWidget
 
 public:
 	TreeView(
-		const std::shared_ptr<const IDatabaseUser>& databaseUser,
+		const std::shared_ptr<const IDatabaseProvider>& databaseUser,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
 		std::shared_ptr<const IDataItemFactory>     dataItemFactory,
 		std::shared_ptr<ISettings>                  settings,

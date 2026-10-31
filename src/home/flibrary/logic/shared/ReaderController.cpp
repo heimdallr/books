@@ -89,7 +89,7 @@ struct ReaderController::Impl
 	std::shared_ptr<ISettings>                                settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> collectionController;
 	PropagateConstPtr<IUiFactory, std::shared_ptr>            uiFactory;
-	PropagateConstPtr<IDatabaseUser, std::shared_ptr>         databaseUser;
+	PropagateConstPtr<IDatabaseProvider, std::shared_ptr>         databaseUser;
 
 	mutable std::random_device rd {};
 	mutable std::mt19937       mt { rd() };
@@ -100,7 +100,7 @@ struct ReaderController::Impl
 		std::shared_ptr<ISettings>                  settings,
 		std::shared_ptr<ICollectionController>      collectionController,
 		std::shared_ptr<IUiFactory>                 uiFactory,
-		std::shared_ptr<IDatabaseUser>              databaseUser
+		std::shared_ptr<IDatabaseProvider>              databaseUser
 	)
 		: self { self }
 		, logicFactory { logicFactory }
@@ -122,7 +122,7 @@ struct ReaderController::Impl
 
 		if (const auto autoRate = settings->Get(AUTO_RATE); autoRate.isValid())
 		{
-			transaction->CreateQuery(IDatabaseUser::SET_USER_RATE_COMMAND)->Execute(id, autoRate.toInt());
+			transaction->CreateQuery(IDatabaseProvider::SET_USER_RATE_COMMAND)->Execute(id, autoRate.toInt());
 			emit self.SetUserRate({ .ids = { id }, .column = BookItem::Column::UserRate, .value = autoRate.toString() });
 		}
 
@@ -311,7 +311,7 @@ ReaderController::ReaderController(
 	std::shared_ptr<ISettings>                  settings,
 	std::shared_ptr<ICollectionController>      collectionController,
 	std::shared_ptr<IUiFactory>                 uiFactory,
-	std::shared_ptr<IDatabaseUser>              databaseUser
+	std::shared_ptr<IDatabaseProvider>              databaseUser
 )
 	: m_impl(*this, logicFactory, std::move(settings), std::move(collectionController), std::move(uiFactory), std::move(databaseUser))
 {

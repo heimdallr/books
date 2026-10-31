@@ -366,7 +366,7 @@ public:
 		std::shared_ptr<const IStyleApplierFactory>     styleApplierFactory,
 		std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
 		std::shared_ptr<const IUiFactory>               uiFactory,
-		std::shared_ptr<const IDatabaseUser>            databaseUser,
+		std::shared_ptr<const IDatabaseProvider>            databaseUser,
 		std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 		std::shared_ptr<const IDatabaseChecker>         databaseChecker,
 		std::shared_ptr<const ICommandLine>             commandLine,
@@ -980,7 +980,7 @@ private:
 			m_collectionController->AddCollection({});
 		});
 		connect(m_ui.actionRecreateCollection, &QAction::triggered, &m_self, [this] {
-			m_databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, -1);
+			m_databaseUser->SetSetting(IDatabaseProvider::Key::DatabaseVersion, -1);
 			Reboot();
 		});
 		connect(m_ui.actionRescanCollectionFolder, &QAction::triggered, &m_self, [this] {
@@ -1784,7 +1784,7 @@ private:
 		collectionUpdateCheckerRef.CheckForUpdate([this, collectionUpdateChecker = std::move(collectionUpdateChecker)](const bool result, const Collection& updatedCollection) mutable {
 			if (result && m_collectionController->OnInpxUpdateChecked(updatedCollection))
 			{
-				m_databaseUser->SetSetting(IDatabaseUser::Key::DatabaseVersion, -1);
+				m_databaseUser->SetSetting(IDatabaseProvider::Key::DatabaseVersion, -1);
 				return Reboot();
 			}
 
@@ -1939,7 +1939,7 @@ private:
 	std::shared_ptr<const IStyleApplierFactory>  m_styleApplierFactory;
 	std::shared_ptr<const IJokeRequesterFactory> m_jokeRequesterFactory;
 	std::shared_ptr<const IUiFactory>            m_uiFactory;
-	std::shared_ptr<const IDatabaseUser>         m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>         m_databaseUser;
 
 	PropagateConstPtr<ISettings, std::shared_ptr>                 m_settings;
 	PropagateConstPtr<ICollectionController, std::shared_ptr>     m_collectionController;
@@ -1998,7 +1998,7 @@ MainWindow::MainWindow(
 	std::shared_ptr<const IStyleApplierFactory>     styleApplierFactory,
 	std::shared_ptr<const IJokeRequesterFactory>    jokeRequesterFactory,
 	std::shared_ptr<const IUiFactory>               uiFactory,
-	std::shared_ptr<const IDatabaseUser>            databaseUser,
+	std::shared_ptr<const IDatabaseProvider>            databaseUser,
 	std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
 	std::shared_ptr<const IDatabaseChecker>         databaseChecker,
 	std::shared_ptr<const ICommandLine>             commandLine,

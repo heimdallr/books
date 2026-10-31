@@ -55,7 +55,7 @@ public:
 	Impl(
 		std::shared_ptr<const ISettings>             settings,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
-		std::shared_ptr<const IDatabaseUser>         databaseUser,
+		std::shared_ptr<const IDatabaseProvider>         databaseUser,
 		std::shared_ptr<const IFilterProvider>       filterProvider,
 		std::shared_ptr<INavigationQueryExecutor>    navigationQueryExecutor,
 		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController
@@ -276,7 +276,7 @@ private:
 
 	std::shared_ptr<const ISettings>                                m_settings;
 	std::shared_ptr<const ICollectionProvider>                      m_collectionProvider;
-	std::shared_ptr<const IDatabaseUser>                            m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                            m_databaseUser;
 	std::shared_ptr<const IFilterProvider>                          m_filterProvider;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr>    m_navigationQueryExecutor;
 	PropagateConstPtr<IAuthorAnnotationController, std::shared_ptr> m_authorAnnotationController;
@@ -293,7 +293,7 @@ private:
 DataProvider::DataProvider(
 	std::shared_ptr<const ISettings>             settings,
 	std::shared_ptr<const ICollectionProvider>   collectionProvider,
-	std::shared_ptr<const IDatabaseUser>         databaseUser,
+	std::shared_ptr<const IDatabaseProvider>         databaseUser,
 	std::shared_ptr<const IFilterProvider>       filterProvider,
 	std::shared_ptr<INavigationQueryExecutor>    navigationQueryExecutor,
 	std::shared_ptr<IAuthorAnnotationController> authorAnnotationController

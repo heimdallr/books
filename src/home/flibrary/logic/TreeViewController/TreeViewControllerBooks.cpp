@@ -99,7 +99,7 @@ struct TreeViewControllerBooks::Impl
 	PropagateConstPtr<QAbstractItemModel, std::shared_ptr>    model { std::shared_ptr<QAbstractItemModel>() };
 	std::weak_ptr<const ILogicFactory>                        logicFactory;
 	PropagateConstPtr<IAnnotationController, std::shared_ptr> annotationController;
-	std::shared_ptr<const IDatabaseUser>                      databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                      databaseUser;
 	PropagateConstPtr<IBookInfoProvider, std::shared_ptr>     dataProvider;
 	std::shared_ptr<const IUiFactory>                         uiFactory;
 	std::shared_ptr<const IBookInteractor>                    bookInteractor;
@@ -107,7 +107,7 @@ struct TreeViewControllerBooks::Impl
 	Impl(
 		std::weak_ptr<const ILogicFactory>     logicFactory,
 		std::shared_ptr<IAnnotationController> annotationController,
-		std::shared_ptr<const IDatabaseUser>   databaseUser,
+		std::shared_ptr<const IDatabaseProvider>   databaseUser,
 		std::shared_ptr<IBookInfoProvider>     dataProvider,
 		std::shared_ptr<const IUiFactory>      uiFactory,
 		std::shared_ptr<const IBookInteractor> bookInteractor
@@ -130,7 +130,7 @@ TreeViewControllerBooks::TreeViewControllerBooks(
 	std::shared_ptr<const IUiFactory>           uiFactory,
 	std::shared_ptr<const IBookInteractor>      bookInteractor,
 	std::shared_ptr<IAnnotationController>      annotationController,
-	std::shared_ptr<IDatabaseUser>              databaseUser
+	std::shared_ptr<IDatabaseProvider>              databaseUser
 )
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
 	, m_impl(logicFactory, std::move(annotationController), std::move(databaseUser), std::move(dataProvider), std::move(uiFactory), std::move(bookInteractor))

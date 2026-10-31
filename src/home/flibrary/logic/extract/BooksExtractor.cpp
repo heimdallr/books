@@ -226,7 +226,7 @@ public:
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const IScriptController>    scriptController,
 		std::shared_ptr<const IBookExtractor>       bookExtractor,
-		std::shared_ptr<const IDatabaseUser>        databaseUser
+		std::shared_ptr<const IDatabaseProvider>        databaseUser
 	)
 		: m_self { self }
 		, m_settings { std::move(settings) }
@@ -282,7 +282,7 @@ public:
 		return ILogicFactory::Lock(m_logicFactory);
 	}
 
-	std::shared_ptr<const IDatabaseUser> GetDatabaseUser() const
+	std::shared_ptr<const IDatabaseProvider> GetDatabaseUser() const
 	{
 		return m_databaseUser;
 	}
@@ -381,7 +381,7 @@ private:
 		transaction->CreateCommand(ExportStat::INSERT_QUERY)->Execute(id, m_exportStatType);
 		if (m_autoRateValue.isValid())
 		{
-			transaction->CreateCommand(IDatabaseUser::SET_USER_RATE_COMMAND)->Execute(id, m_autoRateValue.toInt());
+			transaction->CreateCommand(IDatabaseProvider::SET_USER_RATE_COMMAND)->Execute(id, m_autoRateValue.toInt());
 			m_forwarder.Forward([this, id] {
 				emit m_self.SetUserRate({ .ids = { id }, .column = BookItem::Column::UserRate, .value = m_autoRateValue.toString() });
 			});
@@ -399,7 +399,7 @@ private:
 	std::weak_ptr<const ILogicFactory>                        m_logicFactory;
 	std::shared_ptr<const IScriptController>                  m_scriptController;
 	std::shared_ptr<const IBookExtractor>                     m_bookExtractor;
-	std::shared_ptr<const IDatabaseUser>                      m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                      m_databaseUser;
 	Callback                                                  m_callback;
 	size_t                                                    m_taskCount { 0 };
 	bool                                                      m_hasError { false };
@@ -421,7 +421,7 @@ BooksExtractor::BooksExtractor(
 	const std::shared_ptr<const ILogicFactory>& logicFactory,
 	std::shared_ptr<const IScriptController>    scriptController,
 	std::shared_ptr<const IBookExtractor>       bookExtractor,
-	std::shared_ptr<const IDatabaseUser>        databaseUser
+	std::shared_ptr<const IDatabaseProvider>        databaseUser
 )
 	: m_impl(*this, std::move(settings), std::move(collectionController), std::move(progressController), logicFactory, std::move(scriptController), std::move(bookExtractor), std::move(databaseUser))
 {

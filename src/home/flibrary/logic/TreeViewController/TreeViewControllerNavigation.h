@@ -7,7 +7,7 @@
 #include "interface/logic/IAuthorAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDataProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IFilterController.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/ui/IUiFactory.h"
@@ -29,7 +29,7 @@ public:
 		std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
 		std::shared_ptr<INavigationInfoProvider>     dataProvider,
 		std::shared_ptr<IUiFactory>                  uiFactory,
-		std::shared_ptr<IDatabaseUser>               databaseUser,
+		std::shared_ptr<IDatabaseProvider>               databaseUser,
 		std::shared_ptr<IAnnotationController>       annotationController,
 		std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
 		std::shared_ptr<IFilterController>           filterController

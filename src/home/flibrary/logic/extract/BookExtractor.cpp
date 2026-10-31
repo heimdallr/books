@@ -34,10 +34,10 @@ struct BookExtractor::Impl
 {
 	std::shared_ptr<const ISettings>           settings;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
-	std::shared_ptr<const IDatabaseUser>       databaseUser;
+	std::shared_ptr<const IDatabaseProvider>       databaseUser;
 	const QString                              m_outputFileNameTemplate { GetOutputFileNameTemplate(*settings) };
 
-	Impl(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)
+	Impl(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser)
 		: settings { std::move(settings) }
 		, collectionProvider { std::move(collectionProvider) }
 		, databaseUser { std::move(databaseUser) }
@@ -148,7 +148,7 @@ private:
 	Util::FunctorExecutionForwarder               m_forwarder;
 };
 
-BookExtractor::BookExtractor(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)
+BookExtractor::BookExtractor(std::shared_ptr<const ISettings> settings, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser)
 	: m_impl { std::move(settings), std::move(collectionProvider), std::move(databaseUser) }
 {
 }

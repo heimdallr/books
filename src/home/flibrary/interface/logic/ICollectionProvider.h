@@ -17,7 +17,7 @@ class QTemporaryDir;
 
 namespace HomeCompa::Flibrary {
 
-class IDatabaseUser;
+class IDatabaseProvider;
 
 struct FLINT_EXPORT Collection
 {
@@ -67,7 +67,7 @@ public:
 	[[nodiscard]] virtual const Collection&  GetActiveCollection() const noexcept                                                              = 0;
 	[[nodiscard]] virtual bool               ActiveCollectionExists() const noexcept                                                           = 0;
 	[[nodiscard]] virtual QString            GetActiveCollectionId() const noexcept                                                            = 0;
-	[[nodiscard]] virtual QStringList        GetCollectionStatistics(const IDatabaseUser& databaseUser, bool withAdditionalInfo = false) const = 0;
+	[[nodiscard]] virtual QStringList        GetCollectionStatistics(const IDatabaseProvider& databaseUser, bool withAdditionalInfo = false) const = 0;
 
 	virtual void RegisterObserver(ICollectionsObserver* observer)   = 0;
 	virtual void UnregisterObserver(ICollectionsObserver* observer) = 0;

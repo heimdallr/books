@@ -4,7 +4,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/IDatabaseChecker.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -13,14 +13,14 @@ class DatabaseChecker final : public IDatabaseChecker
 	NON_COPY_MOVABLE(DatabaseChecker)
 
 public:
-	explicit DatabaseChecker(std::shared_ptr<IDatabaseUser> databaseUser);
+	explicit DatabaseChecker(std::shared_ptr<IDatabaseProvider> databaseUser);
 	~DatabaseChecker() override;
 
 private: // IDatabaseChecker
 	bool IsDatabaseValid() const override;
 
 private:
-	std::shared_ptr<const IDatabaseUser> m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider> m_databaseUser;
 };
 
 } // namespace HomeCompa::Flibrary

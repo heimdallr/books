@@ -12,12 +12,12 @@ class IExecutor;
 
 namespace HomeCompa::Flibrary {
 
-class IDatabaseUser;
+class IDatabaseProvider;
 
 }
 
 namespace HomeCompa::Flibrary::UserData {
 
-void Backup(const Util::IExecutor& executor, const IDatabaseUser& databaseUser, QString fileName, Callback callback);
+void Backup(const Util::IExecutor& executor, const IDatabaseProvider& databaseUser, QString fileName, Callback callback);
 
 }

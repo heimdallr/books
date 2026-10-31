@@ -25,12 +25,12 @@ TR_DEF
 
 namespace HomeCompa::Flibrary::UserData {
 
-void Restore(const Util::IExecutor& executor, const IDatabaseUser& databaseUser, QString fileName, Callback callback);
-void ImportFromMyHomeLib(const Util::IExecutor& executor, const IDatabaseUser& databaseUser, QString fileName, Callback callback);
+void Restore(const Util::IExecutor& executor, const IDatabaseProvider& databaseUser, QString fileName, Callback callback);
+void ImportFromMyHomeLib(const Util::IExecutor& executor, const IDatabaseProvider& databaseUser, QString fileName, Callback callback);
 
 } // namespace HomeCompa::Flibrary::UserData
 
-UserDataController::UserDataController(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<IUiFactory> uiFactory)
+UserDataController::UserDataController(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<IUiFactory> uiFactory)
 	: m_databaseUser { std::move(databaseUser) }
 	, m_uiFactory { std::move(uiFactory) }
 {

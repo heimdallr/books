@@ -11,7 +11,7 @@
 
 #include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IFilterProvider.h"
 
 #include "constants/ExportStat.h"
@@ -222,7 +222,7 @@ constexpr std::pair<const char*, BackupFunction> BACKUPERS[] {
 
 } // namespace
 
-void Backup(const Util::IExecutor& executor, const IDatabaseUser& databaseUser, QString fileName, Callback callback)
+void Backup(const Util::IExecutor& executor, const IDatabaseProvider& databaseUser, QString fileName, Callback callback)
 {
 	executor({ "Backup user data", [&databaseUser, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
 				  std::function<void(size_t)> result;

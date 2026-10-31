@@ -8,7 +8,7 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/localization.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IProgressController.h"
 
 #include "data/DataItem.h"

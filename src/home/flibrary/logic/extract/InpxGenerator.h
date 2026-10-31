@@ -4,7 +4,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IInpxGenerator.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IProgressController.h"
@@ -20,7 +20,7 @@ public:
 		const std::shared_ptr<const ISettings>&     settings,
 		const std::shared_ptr<const ILogicFactory>& logicFactory,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
-		std::shared_ptr<const IDatabaseUser>        databaseUser,
+		std::shared_ptr<const IDatabaseProvider>        databaseUser,
 		std::shared_ptr<IMainProgressController>    progressController
 	);
 	~InpxGenerator() override;

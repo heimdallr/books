@@ -10,7 +10,7 @@
 #include "interface/logic/IAuthorAnnotationController.h"
 #include "interface/logic/IBookExtractor.h"
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IFilterProvider.h"
 
 #include "settings/ISettings.h"
@@ -27,7 +27,7 @@ public:
 	Requester(
 		std::shared_ptr<const ISettings>                             settings,
 		std::shared_ptr<const Flibrary::ICollectionProvider>         collectionProvider,
-		std::shared_ptr<const Flibrary::IDatabaseUser>               databaseUser,
+		std::shared_ptr<const Flibrary::IDatabaseProvider>               databaseUser,
 		std::shared_ptr<const Flibrary::IAuthorAnnotationController> authorAnnotationController,
 		std::shared_ptr<const Flibrary::IFilterProvider>             filterProvider,
 		std::shared_ptr<const Flibrary::IBookExtractor>              bookExtractor,

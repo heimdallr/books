@@ -40,16 +40,16 @@ QString GetFileHash(const std::set<QString>& fileNames)
 struct CollectionUpdateChecker::Impl
 {
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
-	std::shared_ptr<const IDatabaseUser>       databaseUser;
+	std::shared_ptr<const IDatabaseProvider>       databaseUser;
 
-	Impl(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)
+	Impl(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser)
 		: collectionProvider { std::move(collectionProvider) }
 		, databaseUser { std::move(databaseUser) }
 	{
 	}
 };
 
-CollectionUpdateChecker::CollectionUpdateChecker(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)
+CollectionUpdateChecker::CollectionUpdateChecker(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser)
 	: m_impl(std::move(collectionProvider), std::move(databaseUser))
 {
 	PLOGV << "CollectionUpdateChecker created";

@@ -40,7 +40,7 @@ class Model final : public QAbstractListModel
 	using Items = std::vector<Item>;
 
 public:
-	static std::unique_ptr<QAbstractItemModel> Create(const ISettings& settings, const ICollectionProvider& collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser)
+	static std::unique_ptr<QAbstractItemModel> Create(const ISettings& settings, const ICollectionProvider& collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser)
 	{
 		return std::make_unique<Model>(
 			settings.Get(Constant::Settings::SHOW_REMOVED_BOOKS_KEY, false),
@@ -49,7 +49,7 @@ public:
 		);
 	}
 
-	Model(const bool showRemoved, const QString& folder, std::shared_ptr<const IDatabaseUser> databaseUser)
+	Model(const bool showRemoved, const QString& folder, std::shared_ptr<const IDatabaseProvider> databaseUser)
 		: m_showRemoved { showRemoved }
 		, m_folder { folder + "/" + Inpx::REVIEWS_FOLDER }
 		, m_databaseUser { std::move(databaseUser) }
@@ -189,7 +189,7 @@ select r.Folder, b.BookID, f.FolderTitle||'#'||b.FileName, b.Title
 private:
 	const bool                                 m_showRemoved;
 	const QDir                                 m_folder;
-	const std::shared_ptr<const IDatabaseUser> m_databaseUser;
+	const std::shared_ptr<const IDatabaseProvider> m_databaseUser;
 	Items                                      m_items;
 };
 
@@ -198,7 +198,7 @@ private:
 AuthorReviewModel::AuthorReviewModel(
 	const std::shared_ptr<const ISettings>&           settings,
 	const std::shared_ptr<const ICollectionProvider>& collectionProvider,
-	std::shared_ptr<const IDatabaseUser>              databaseUser,
+	std::shared_ptr<const IDatabaseProvider>              databaseUser,
 	QObject*                                          parent
 )
 	: QSortFilterProxyModel(parent)

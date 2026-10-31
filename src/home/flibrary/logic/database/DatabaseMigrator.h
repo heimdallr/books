@@ -5,7 +5,7 @@
 
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseMigrator.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -14,7 +14,7 @@ class DatabaseMigrator final : public IDatabaseMigrator
 	NON_COPY_MOVABLE(DatabaseMigrator)
 
 public:
-	DatabaseMigrator(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider);
+	DatabaseMigrator(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider);
 	~DatabaseMigrator() override;
 
 private: // IDatabaseMigrator

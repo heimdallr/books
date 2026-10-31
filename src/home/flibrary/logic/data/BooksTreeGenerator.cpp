@@ -21,7 +21,7 @@
 #include "interface/constants/Enums.h"
 #include "interface/localization.h"
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IFilterProvider.h"
 
 #include "database/DatabaseUtil.h"

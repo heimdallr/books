@@ -4,7 +4,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ICollectionController.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/IReaderController.h"
 #include "interface/ui/IUiFactory.h"
@@ -33,7 +33,7 @@ public:
 		std::shared_ptr<ISettings>                  settings,
 		std::shared_ptr<ICollectionController>      collectionController,
 		std::shared_ptr<IUiFactory>                 uiFactory,
-		std::shared_ptr<IDatabaseUser>              databaseUser
+		std::shared_ptr<IDatabaseProvider>              databaseUser
 	);
 	~ReaderController() override;
 

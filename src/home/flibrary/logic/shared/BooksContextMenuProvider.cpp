@@ -226,7 +226,7 @@ public:
 		std::shared_ptr<const ISettings>            settings,
 		std::shared_ptr<const ICollectionProvider>  collectionProvider,
 		std::shared_ptr<const IReaderController>    readerController,
-		std::shared_ptr<const IDatabaseUser>        databaseUser,
+		std::shared_ptr<const IDatabaseProvider>        databaseUser,
 		std::shared_ptr<const IBookInfoProvider>    dataProvider,
 		std::shared_ptr<const IUiFactory>           uiFactory,
 		std::shared_ptr<IScriptController>          scriptController,
@@ -438,7 +438,7 @@ private: // IContextMenuHandler
 		m_databaseUser->Execute({ "Set my rate", [this, model = QPointer { model }, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable {
 									 const auto db          = m_databaseUser->GetDatabase();
 									 const auto transaction = db->CreateTransaction();
-									 const auto command     = transaction->CreateCommand(IDatabaseUser::SET_USER_RATE_COMMAND);
+									 const auto command     = transaction->CreateCommand(IDatabaseProvider::SET_USER_RATE_COMMAND);
 									 const auto rate        = [&]() -> std::optional<int> {
 										 const auto str = item->GetData(MenuItem::Column::Parameter);
 										 assert(!str.isEmpty());
@@ -543,7 +543,7 @@ private: // IContextMenuHandler
 						 return command->Execute(lang, id) && init;
 					 });
 				 };
-				 const auto ok = execute(IDatabaseUser::SET_LANG_COMMAND) && execute("update Books set Lang = ? where BookID = ?") && transaction->Commit();
+				 const auto ok = execute(IDatabaseProvider::SET_LANG_COMMAND) && execute("update Books set Lang = ? where BookID = ?") && transaction->Commit();
 
 				 auto idSet = ids | std::views::transform([](const auto& id) {
 								  return QString::number(id);
@@ -889,7 +889,7 @@ private:
 	std::shared_ptr<const ISettings>                      m_settings;
 	std::shared_ptr<const ICollectionProvider>            m_collectionProvider;
 	std::shared_ptr<const IReaderController>              m_readerController;
-	std::shared_ptr<const IDatabaseUser>                  m_databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                  m_databaseUser;
 	std::shared_ptr<const IBookInfoProvider>              m_dataProvider;
 	std::shared_ptr<const IUiFactory>                     m_uiFactory;
 	PropagateConstPtr<IScriptController, std::shared_ptr> m_scriptController;
@@ -914,7 +914,7 @@ BooksContextMenuProvider::BooksContextMenuProvider(
 	std::shared_ptr<const ISettings>            settings,
 	std::shared_ptr<const ICollectionProvider>  collectionProvider,
 	std::shared_ptr<const IReaderController>    readerController,
-	std::shared_ptr<const IDatabaseUser>        databaseUser,
+	std::shared_ptr<const IDatabaseProvider>        databaseUser,
 	std::shared_ptr<const IBookInfoProvider>    dataProvider,
 	std::shared_ptr<const IUiFactory>           uiFactory,
 	std::shared_ptr<IScriptController>          scriptController,

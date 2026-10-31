@@ -11,7 +11,7 @@
 
 #include "interface/constants/ProductConstant.h"
 #include "interface/localization.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IUserDataController.h"
 #include "interface/ui/dialogs/IAddCollectionDialog.h"
 
@@ -296,7 +296,7 @@ public:
 		return m_collectionProvider->GetActiveCollectionId();
 	}
 
-	QStringList GetCollectionStatistics(const IDatabaseUser& databaseUser, const bool withAdditionalInfo) const
+	QStringList GetCollectionStatistics(const IDatabaseProvider& databaseUser, const bool withAdditionalInfo) const
 	{
 		return m_collectionProvider->GetCollectionStatistics(databaseUser, withAdditionalInfo);
 	}
@@ -358,7 +358,7 @@ private:
 		auto [tmpDir, ini] = Inpx::Parser::GetIniMap(db, folder, additionalFolder, inpx, true);
 		ini.try_emplace(DEFAULT_ARCHIVE_TYPE, defaultArchiveType);
 
-		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseUser::GetDatabaseVersionStatement());
+		ini.try_emplace(SET_DATABASE_VERSION_STATEMENT, IDatabaseProvider::GetDatabaseVersionStatement());
 		auto callback = [this,
 		                 name                   = std::move(name),
 		                 dbOrigin               = std::move(dbOrigin),
@@ -534,7 +534,7 @@ QString CollectionController::GetActiveCollectionId() const noexcept
 	return m_impl->GetActiveCollectionId();
 }
 
-QStringList CollectionController::GetCollectionStatistics(const IDatabaseUser& databaseUser, const bool withAdditionalInfo) const
+QStringList CollectionController::GetCollectionStatistics(const IDatabaseProvider& databaseUser, const bool withAdditionalInfo) const
 {
 	return m_impl->GetCollectionStatistics(databaseUser, withAdditionalInfo);
 }

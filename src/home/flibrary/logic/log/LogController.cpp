@@ -23,17 +23,17 @@ namespace {
 struct LogController::Impl
 {
 	std::unique_ptr<QAbstractItemModel>        model { CreateLogModel() };
-	std::shared_ptr<const IDatabaseUser>       databaseUser;
+	std::shared_ptr<const IDatabaseProvider>       databaseUser;
 	std::shared_ptr<const ICollectionProvider> collectionProvider;
 
-	Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
+	Impl(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
 		: databaseUser { std::move(databaseUser) }
 		, collectionProvider { std::move(collectionProvider) }
 	{
 	}
 };
 
-LogController::LogController(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
+LogController::LogController(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider)
 	: m_impl(std::move(databaseUser), std::move(collectionProvider))
 {
 }

@@ -13,7 +13,7 @@
 #include "database/interface/IQuery.h"
 
 #include "interface/localization.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 #include "platform/StrUtil.h"
 #include "util/IExecutor.h"
@@ -168,7 +168,7 @@ QString CollectionProvider::GetActiveCollectionId() const noexcept
 	return m_impl->GetActiveCollectionId();
 }
 
-QStringList CollectionProvider::GetCollectionStatistics(const IDatabaseUser& databaseUser, const bool withAdditionalInfo) const
+QStringList CollectionProvider::GetCollectionStatistics(const IDatabaseProvider& databaseUser, const bool withAdditionalInfo) const
 {
 	static constexpr auto dbStatQueryText = "select count(42) from Folders union all "
 											"select count(42) from Authors union all "

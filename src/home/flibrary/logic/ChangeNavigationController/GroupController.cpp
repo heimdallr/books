@@ -49,7 +49,7 @@ long long CreateNewGroupImpl(DB::ITransaction& transaction, const QString& name)
 	if (!command->Execute())
 		return -1;
 
-	const auto query = transaction.CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
+	const auto query = transaction.CreateQuery(IDatabaseProvider::SELECT_LAST_ID_QUERY);
 	return query->Execute() ? query->Get<long long>(0) : -1;
 }
 
@@ -59,11 +59,11 @@ TR_DEF
 
 struct GroupController::Impl
 {
-	std::shared_ptr<const IDatabaseUser>                         databaseUser;
+	std::shared_ptr<const IDatabaseProvider>                         databaseUser;
 	PropagateConstPtr<INavigationQueryExecutor, std::shared_ptr> navigationQueryExecutor;
 	std::shared_ptr<const IUiFactory>                            uiFactory;
 
-	explicit Impl(std::shared_ptr<const IDatabaseUser> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<const IUiFactory> uiFactory)
+	explicit Impl(std::shared_ptr<const IDatabaseProvider> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<const IUiFactory> uiFactory)
 		: databaseUser(std::move(databaseUser))
 		, navigationQueryExecutor(std::move(navigationQueryExecutor))
 		, uiFactory(std::move(uiFactory))
@@ -218,7 +218,7 @@ struct GroupController::Impl
 	}
 };
 
-GroupController::GroupController(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<IUiFactory> uiFactory)
+GroupController::GroupController(std::shared_ptr<IDatabaseProvider> databaseUser, std::shared_ptr<INavigationQueryExecutor> navigationQueryExecutor, std::shared_ptr<IUiFactory> uiFactory)
 	: m_impl(std::move(databaseUser), std::move(navigationQueryExecutor), std::move(uiFactory))
 {
 	PLOGV << "GroupController created";

@@ -16,7 +16,7 @@ class IDatabase;
 
 namespace HomeCompa::Flibrary {
 
-class IDatabaseUser // NOLINT(cppcoreguidelines-special-member-functions)
+class IDatabaseProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	class IObserver : public Observer
@@ -49,7 +49,7 @@ ON CONFLICT(BookID) DO UPDATE SET Lang = excluded.Lang, CreatedAt = excluded.Cre
 	FLINT_EXPORT static QString GetDatabaseVersionStatement();
 
 public:
-	virtual ~IDatabaseUser() = default;
+	virtual ~IDatabaseProvider() = default;
 
 public:
 	virtual size_t                           Execute(Util::IExecutor::Task&& task, int priority = 0) const = 0;

@@ -8,7 +8,7 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 #include "constants/books.h"
 #include "constants/groups.h"
@@ -120,7 +120,7 @@ private: // IRestorer
 		{
 			createGroupCommand->Execute(group);
 
-			const auto getLastIdQuery = transaction->CreateQuery(IDatabaseUser::SELECT_LAST_ID_QUERY);
+			const auto getLastIdQuery = transaction->CreateQuery(IDatabaseProvider::SELECT_LAST_ID_QUERY);
 			getLastIdQuery->Execute();
 			const auto groupId = getLastIdQuery->Get<long long>(0);
 

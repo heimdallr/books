@@ -267,7 +267,7 @@ struct LogicFactory::Impl final
 		if (!genreParents.empty())
 			return;
 
-		const auto databaseUser = container.resolve<IDatabaseUser>();
+		const auto databaseUser = container.resolve<IDatabaseProvider>();
 		const auto db           = databaseUser->GetDatabase();
 		const auto genres       = Genre::Load(*db);
 

@@ -4,7 +4,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/INavigationQueryExecutor.h"
 
 namespace HomeCompa::Flibrary {
@@ -14,7 +14,7 @@ class NavigationQueryExecutor final : public INavigationQueryExecutor
 	NON_COPY_MOVABLE(NavigationQueryExecutor)
 
 public:
-	NavigationQueryExecutor(std::shared_ptr<IDatabaseUser> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider);
+	NavigationQueryExecutor(std::shared_ptr<IDatabaseProvider> databaseUser, std::shared_ptr<const ICollectionProvider> collectionProvider);
 	~NavigationQueryExecutor() override;
 
 private: // INavigationQueryExecutor

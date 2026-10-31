@@ -6,7 +6,7 @@
 #include "fnd/memory.h"
 
 #include "interface/logic/ICollectionProvider.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 namespace HomeCompa::Flibrary {
 
@@ -15,7 +15,7 @@ class ImageModel final : public QIdentityProxyModel
 	NON_COPY_MOVABLE(ImageModel)
 
 public:
-	ImageModel(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseUser> databaseUser);
+	ImageModel(std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const IDatabaseProvider> databaseUser);
 	~ImageModel() override;
 
 protected:

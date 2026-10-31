@@ -3,7 +3,7 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
-#include "interface/logic/IDatabaseUser.h"
+#include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IFilterProvider.h"
 
 #include "constants/filter.h"

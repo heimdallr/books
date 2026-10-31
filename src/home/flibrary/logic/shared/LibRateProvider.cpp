@@ -30,7 +30,7 @@ using namespace Flibrary;
 
 namespace {
 
-std::unordered_map<long long, double> ReadRates(const ISettings& settings, const ICollectionProvider& collectionProvider, const IDatabaseUser& databaseUser)
+std::unordered_map<long long, double> ReadRates(const ISettings& settings, const ICollectionProvider& collectionProvider, const IDatabaseProvider& databaseUser)
 {
 	if (!collectionProvider.ActiveCollectionExists())
 		return {};
@@ -137,7 +137,7 @@ struct LibRateProviderDouble::Impl
 	const int                                   precision;
 	const int                                   power { GetPower(precision) };
 
-	Impl(const ISettings& settings, const ICollectionProvider& collectionProvider, const IDatabaseUser& databaseUser)
+	Impl(const ISettings& settings, const ICollectionProvider& collectionProvider, const IDatabaseProvider& databaseUser)
 		: rate { ReadRates(settings, collectionProvider, databaseUser) }
 		, colors { ReadColors(settings) }
 		, precision { settings.Get(Constant::Settings::PREFER_LIBRATE_VIEW_PRECISION_KEY, 0) }
@@ -148,7 +148,7 @@ struct LibRateProviderDouble::Impl
 LibRateProviderDouble::LibRateProviderDouble(
 	const std::shared_ptr<const ISettings>&           settings,
 	const std::shared_ptr<const ICollectionProvider>& collectionProvider,
-	const std::shared_ptr<const IDatabaseUser>&       databaseUser
+	const std::shared_ptr<const IDatabaseProvider>&       databaseUser
 )
 	: m_impl(*settings, *collectionProvider, *databaseUser)
 {
