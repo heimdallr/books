@@ -6,7 +6,7 @@ class QString;
 
 namespace HomeCompa::DB {
 
-class IDatabase;
+class IDatabaseWritable;
 
 }
 
@@ -24,7 +24,7 @@ class IRestorer // NOLINT(cppcoreguidelines-special-member-functions)
 public:
 	virtual ~IRestorer()                                                                = default;
 	virtual void AddElement(const QString& name, const Util::XmlAttributes& attributes) = 0;
-	virtual void Restore(DB::IDatabase& db) const                                       = 0;
+	virtual void Restore(DB::IDatabaseWritable& db) const                               = 0;
 };
 
 } // namespace HomeCompa::Flibrary::UserData

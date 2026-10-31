@@ -15,12 +15,14 @@ class ISettings;
 
 namespace HomeCompa::DB {
 
-class IQuery;
 class IDatabase;
+class IQuery;
 
 } // namespace HomeCompa::DB
 
 namespace HomeCompa::Flibrary {
+
+class IDatabaseProvider;
 
 class IFilterProvider;
 struct Collection;
@@ -66,12 +68,12 @@ public:
 class IBookSelector // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	using Selector = void (IBookSelector::*)(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&);
+	using Selector = void (IBookSelector::*)(const Collection& activeCollection, const IDatabaseProvider& dbProvider, const QueryDescription&);
 
 public:
-	virtual ~IBookSelector()                                                                                   = default;
-	virtual void SelectBooks(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&)   = 0;
-	virtual void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const QueryDescription&) = 0;
+	virtual ~IBookSelector()                                                                                                     = default;
+	virtual void SelectBooks(const Collection& activeCollection, const IDatabaseProvider& dbProvider, const QueryDescription&)   = 0;
+	virtual void SelectReviews(const Collection& activeCollection, const IDatabaseProvider& dbProvider, const QueryDescription&) = 0;
 };
 
 using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query);
@@ -127,13 +129,13 @@ class BooksTreeGenerator final
 
 public:
 	BooksTreeGenerator(
-		const ISettings&        settings,
-		const Collection&       activeCollection,
-		DB::IDatabase&          db,
-		NavigationMode          navigationMode,
-		QString                 navigationId,
-		const QueryDescription& description,
-		const IFilterProvider&  filterProvider
+		const ISettings&         settings,
+		const Collection&        activeCollection,
+		const IDatabaseProvider& dbProvider,
+		NavigationMode           navigationMode,
+		QString                  navigationId,
+		const QueryDescription&  description,
+		const IFilterProvider&   filterProvider
 	);
 	~BooksTreeGenerator() override;
 

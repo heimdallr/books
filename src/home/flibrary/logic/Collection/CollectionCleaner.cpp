@@ -371,7 +371,7 @@ struct CollectionCleanerLogic::Impl
 									   std::ranges::transform(books, std::inserter(ids, ids.end()), [](const auto& book) {
 										   return book.id;
 									   });
-									   const auto db = databaseProvider->GetDatabase();
+									   const auto db = databaseProvider->GetDatabaseWritable();
 									   const bool ok = DatabaseUtil::ChangeBookRemoved(*db, ids, true, progressController);
 									   return [callback = std::move(callback), ok](size_t) {
 										   callback(ok);
@@ -396,7 +396,7 @@ struct CollectionCleanerLogic::Impl
 				 std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
 				 RemoveFiles(allFiles, collectionFolder);
 
-				 const auto db          = databaseProvider->GetDatabase();
+				 const auto db          = databaseProvider->GetDatabaseWritable();
 				 const auto transaction = db->CreateTransaction();
 
 				 auto ok = RemoveBooksImpl(books, *transaction, *progressItem);

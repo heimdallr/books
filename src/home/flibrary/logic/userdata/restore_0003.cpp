@@ -85,7 +85,7 @@ private: // IRestorer
 		m_items.emplace_back(attributes);
 	}
 
-	void Restore(DB::IDatabase& db) const override
+	void Restore(DB::IDatabaseWritable& db) const override
 	{
 		using namespace Constant::UserData::Books;
 		static constexpr auto commandText = "insert into Books_User(BookID, IsDeleted, UserRate, CreatedAt) "
@@ -158,7 +158,7 @@ private: // IRestorer
 		std::invoke(invoker, this, std::cref(attributes));
 	}
 
-	void Restore(DB::IDatabase& db) const override
+	void Restore(DB::IDatabaseWritable& db) const override
 	{
 		static constexpr auto addBookToGroupCommandText = "insert into Groups_List_User(GroupID, BookID, CreatedAt) "
 														  "select ?, BookID, ? "
@@ -218,7 +218,7 @@ private: // IRestorer
 		item.createdAt = attributes.GetAttribute(Constant::UserData::Books::CreatedAt).toString();
 	}
 
-	void Restore(DB::IDatabase& db) const override
+	void Restore(DB::IDatabaseWritable& db) const override
 	{
 		using namespace Constant::UserData;
 		const auto transaction = db.CreateTransaction();

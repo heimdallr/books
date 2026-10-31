@@ -437,7 +437,7 @@ private: // IContextMenuHandler
 	{
 		m_databaseProvider->Execute(
 			{ "Set my rate", [this, model = QPointer { model }, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable {
-				 const auto db          = m_databaseProvider->GetDatabase();
+				 const auto db          = m_databaseProvider->GetDatabaseWritable();
 				 const auto transaction = db->CreateTransaction();
 				 const auto command     = transaction->CreateCommand(IDatabaseProvider::SET_USER_RATE_COMMAND);
 				 const auto rate        = [&]() -> std::optional<int> {
@@ -533,7 +533,7 @@ private: // IContextMenuHandler
 			{ "Change book language", [this, model = QPointer(model), ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable {
 				 auto lang = item->GetData(MenuItem::Column::Parameter).toStdString();
 
-				 const auto db          = m_databaseProvider->GetDatabase();
+				 const auto db          = m_databaseProvider->GetDatabaseWritable();
 				 const auto transaction = db->CreateTransaction();
 
 				 transaction->CreateCommand("insert or ignore into Languages(LanguageCode) values(?)")->Execute(lang);
@@ -668,7 +668,7 @@ private: // IContextMenuHandler
 		m_databaseProvider->Execute({ "Clear history", [this, item = std::move(item), callback = std::move(callback)]() mutable {
 										 const auto lang = item->GetData(MenuItem::Column::Parameter).toStdString();
 
-										 const auto db = m_databaseProvider->GetDatabase();
+										 const auto db = m_databaseProvider->GetDatabaseWritable();
 										 const auto tr = db->CreateTransaction();
 										 tr->CreateCommand(std::format("delete from {}", DatabaseUtil::GetHistoryTableName(*m_settings)))->Execute();
 										 tr->Commit();
@@ -814,7 +814,7 @@ private:
 	void ChangeBookRemoved(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback, const bool remove) const
 	{
 		m_databaseProvider->Execute({ "Remove books", [this, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback), remove]() mutable {
-										 const bool ok    = DatabaseUtil::ChangeBookRemoved(*m_databaseProvider->GetDatabase(), ids, remove);
+										 const bool ok    = DatabaseUtil::ChangeBookRemoved(*m_databaseProvider->GetDatabaseWritable(), ids, remove);
 										 auto       idSet = ids | std::views::transform([](const auto& id) {
 														  return QString::number(id);
 															})

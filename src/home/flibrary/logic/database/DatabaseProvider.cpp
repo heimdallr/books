@@ -100,7 +100,7 @@ struct DatabaseProvider::Impl final
 			db->RegisterObserver(this);
 	}
 
-	std::shared_ptr<DB::IDatabase> GetDatabase(const bool checkOnly = false)
+	std::shared_ptr<DB::IDatabaseWritable> GetDatabase(const bool checkOnly = false)
 	{
 		const auto threadId = std::hash<std::thread::id> {}(std::this_thread::get_id());
 		{
@@ -116,7 +116,7 @@ struct DatabaseProvider::Impl final
 		if (databaseName.isEmpty())
 			return {};
 
-		std::shared_ptr db = Create(DB::Factory::Impl::Sqlite, std::format("path={}", databaseName));
+		std::shared_ptr db = CreateWritable(DB::Factory::Impl::Sqlite, std::format("path={}", databaseName));
 		db->CreateQuery("PRAGMA synchronous = NORMAL;")->Execute();
 		db->CreateQuery("PRAGMA foreign_keys = ON;")->Execute();
 		db->CreateQuery("PRAGMA cache_size = -10000;")->Execute();
@@ -148,9 +148,9 @@ private: // DB::IDatabaseObserver
 	}
 
 private:
-	std::shared_ptr<const ICollectionProvider>                 m_collectionProvider;
-	std::mutex                                                 m_dbListGuard;
-	std::unordered_map<size_t, std::shared_ptr<DB::IDatabase>> m_dbList;
+	std::shared_ptr<const ICollectionProvider>                         m_collectionProvider;
+	std::mutex                                                         m_dbListGuard;
+	std::unordered_map<size_t, std::shared_ptr<DB::IDatabaseWritable>> m_dbList;
 };
 
 DatabaseProvider::DatabaseProvider(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<const ICollectionProvider> collectionProvider)
@@ -175,6 +175,11 @@ void DatabaseProvider::Reset()
 }
 
 std::shared_ptr<DB::IDatabase> DatabaseProvider::GetDatabase() const
+{
+	return m_impl->GetDatabase();
+}
+
+std::shared_ptr<DB::IDatabaseWritable> DatabaseProvider::GetDatabaseWritable() const
 {
 	return m_impl->GetDatabase();
 }

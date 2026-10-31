@@ -127,7 +127,7 @@ class XmlParser final : public Util::SaxParser
 	using Groups = std::vector<Group>;
 
 public:
-	explicit XmlParser(QIODevice& stream, DB::IDatabase& db)
+	explicit XmlParser(QIODevice& stream, DB::IDatabaseWritable& db)
 		: SaxParser(stream)
 	{
 		Parse();
@@ -150,7 +150,7 @@ private: // Util::SaxParser
 	}
 
 private:
-	void Write(DB::IDatabase& db)
+	void Write(DB::IDatabaseWritable& db)
 	{
 		const auto tmpBooksUser      = db.CreateTemporaryTable({ "LibID VARCHAR (200)", "UserRate  INTEGER" });
 		const auto tmpGroupsListUser = db.CreateTemporaryTable({ "LibID VARCHAR (200)", "GroupID  INTEGER" });
@@ -229,7 +229,7 @@ void ImportFromMyHomeLib(const Util::IExecutor& executor, const IDatabaseProvide
 				  {
 					  ZDecompressionStream stream(inp);
 					  stream.open(QIODevice::ReadOnly);
-					  const auto      db = dbUser.GetDatabase();
+					  const auto      db = dbUser.GetDatabaseWritable();
 					  const XmlParser parser(stream, *db);
 				  }
 				  catch (const std::exception& ex)

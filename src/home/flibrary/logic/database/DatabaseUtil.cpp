@@ -118,7 +118,7 @@ IDataItem::Ptr CreateBookItem(const DB::IQuery& query)
 	return item;
 }
 
-bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& ids, const bool remove, const std::shared_ptr<IProgressController>& progressController)
+bool ChangeBookRemoved(DB::IDatabaseWritable& db, const std::unordered_set<long long>& ids, const bool remove, const std::shared_ptr<IProgressController>& progressController)
 {
 	auto       progressItem = progressController ? progressController->Add(static_cast<int64_t>(11 * ids.size() / 10)) : std::make_unique<IProgressController::ProgressItemStub>();
 	bool       ok           = true;
@@ -166,7 +166,7 @@ IsDeleted = excluded.IsDeleted, CreatedAt = excluded.CreatedAt)";
 	return transaction->Commit() && ok;
 }
 
-void CreateHistoryTable(DB::IDatabase& db, const ISettings& settings)
+void CreateHistoryTable(DB::IDatabaseWritable& db, const ISettings& settings)
 {
 	try
 	{

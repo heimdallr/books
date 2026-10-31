@@ -63,7 +63,7 @@ struct FilterController::Impl final : Observable<IObserver>
 									   const auto& description = GetFilteredNavigationDescription(navigationMode);
 									   assert(description.table && description.idField);
 
-									   const auto db      = databaseProvider->GetDatabase();
+									   const auto db      = databaseProvider->GetDatabaseWritable();
 									   const auto tr      = db->CreateTransaction();
 									   const auto command = tr->CreateCommand(std::vformat(queryText, std::make_format_args(description.table, description.idField)));
 									   for (const auto& id : ids)
@@ -168,7 +168,7 @@ void FilterController::Apply()
 											   const auto& description = GetFilteredNavigationDescription(navigationMode);
 											   assert(description.table && description.idField);
 
-											   const auto db      = m_impl->databaseProvider->GetDatabase();
+											   const auto db      = m_impl->databaseProvider->GetDatabaseWritable();
 											   const auto tr      = db->CreateTransaction();
 											   const auto command = tr->CreateCommand(std::vformat(SET_FILTER_QUERY, std::make_format_args(description.table, description.idField)));
 											   for (const auto& [id, flags] : change)

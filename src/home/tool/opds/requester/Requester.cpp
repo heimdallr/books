@@ -1113,7 +1113,7 @@ public:
 
 	void Init() const
 	{
-		const auto db = m_databaseProvider->GetDatabase();
+		const auto db = m_databaseProvider->GetDatabaseWritable();
 		BookView::Create(*db, *m_settings, *m_filterProvider);
 	}
 

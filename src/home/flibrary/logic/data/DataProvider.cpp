@@ -68,7 +68,7 @@ public:
 		, m_authorAnnotationController { std::move(authorAnnotationController) }
 	{
 		if (m_collectionProvider->ActiveCollectionExists())
-			DatabaseUtil::CreateHistoryTable(*m_databaseProvider->GetDatabase(), *m_settings);
+			DatabaseUtil::CreateHistoryTable(*m_databaseProvider->GetDatabaseWritable(), *m_settings);
 	}
 
 	void SetNavigationMode(const NavigationMode navigationMode)
@@ -192,11 +192,11 @@ private:
 				  if (!booksGeneratorReady)
 				  {
 					  const auto& activeCollection = m_collectionProvider->GetActiveCollection();
-					  const auto  db               = m_databaseProvider->GetDatabase();
-					  generator                    = std::make_unique<BooksTreeGenerator>(*m_settings, activeCollection, *db, navigationMode, navigationId, description, *m_filterProvider);
+					  generator                    = std::make_unique<BooksTreeGenerator>(*m_settings, activeCollection, *m_databaseProvider, navigationMode, navigationId, description, *m_filterProvider);
 
 					  if (navigationMode == NavigationMode::Authors && !navigationId.isEmpty())
 					  {
+						  const auto db    = m_databaseProvider->GetDatabase();
 						  const auto query = db->CreateQuery(QString("select " FLIBRARY_SQL_FULL_AUTHOR_NAME " from Authors a where a.AuthorID = %1").arg(navigationId).toStdString());
 						  query->Execute();
 						  assert(!query->Eof());

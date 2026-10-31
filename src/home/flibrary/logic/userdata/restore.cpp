@@ -73,7 +73,7 @@ class XmlParser final : public Util::SaxParser
 	NON_COPY_MOVABLE(XmlParser)
 
 public:
-	explicit XmlParser(QIODevice& stream, DB::IDatabase& db)
+	explicit XmlParser(QIODevice& stream, DB::IDatabaseWritable& db)
 		: SaxParser(stream)
 	{
 		constexpr std::tuple<const char*, int, RestorerCreator> creators[] {
@@ -270,7 +270,7 @@ void RestoreImpl(const Util::IExecutor& executor, const IDatabaseProvider& dbUse
 				  if (!inp.open(QIODevice::ReadOnly))
 					  return createResult(QString(CANNOT_READ_FROM).arg(fileName));
 
-				  const auto      db = dbUser.GetDatabase();
+				  const auto      db = dbUser.GetDatabaseWritable();
 				  const XmlParser parser(inp, *db);
 				  return createResult(parser.GetError());
 			  } });

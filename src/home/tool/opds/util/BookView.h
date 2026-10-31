@@ -14,12 +14,12 @@ class ISettings;
 
 namespace HomeCompa::DB {
 
-class IDatabase;
+class IDatabaseWritable;
 
 }
 
 namespace HomeCompa::Opds::BookView {
 
-void Create(DB::IDatabase& db, const ISettings& settings, const Flibrary::IFilterProvider& filterProvider);
+void Create(DB::IDatabaseWritable& db, const ISettings& settings, const Flibrary::IFilterProvider& filterProvider);
 
 }

@@ -96,7 +96,7 @@ private: // IRestorer
 		std::invoke(invoker, this, std::cref(attributes));
 	}
 
-	void Restore(DB::IDatabase& db) const override
+	void Restore(DB::IDatabaseWritable& db) const override
 	{
 		static constexpr auto commandTextBooks    = "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) "
 													"select ?, BookID, ? "

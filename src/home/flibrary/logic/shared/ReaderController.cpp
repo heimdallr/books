@@ -116,7 +116,7 @@ struct ReaderController::Impl
 		if (!ReadImpl(std::move(temporaryDir), std::move(fileName), removeCurrentReader, error))
 			return;
 
-		const auto db          = databaseProvider->GetDatabase();
+		const auto db          = databaseProvider->GetDatabaseWritable();
 		const auto transaction = db->CreateTransaction();
 		transaction->CreateQuery(ExportStat::INSERT_QUERY)->Execute(id, static_cast<int>(ExportStat::Type::Read));
 

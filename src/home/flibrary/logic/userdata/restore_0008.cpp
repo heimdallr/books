@@ -32,7 +32,7 @@ private: // IRestorer
 		m_dataValues->emplace_back(attributes.GetAttribute(Title).toString(), attributes.GetAttribute(Flag).toInt());
 	}
 
-	void Restore(DB::IDatabase& db) const override
+	void Restore(DB::IDatabaseWritable& db) const override
 	{
 		const auto tr    = db.CreateTransaction();
 		auto       range = IFilterProvider::GetDescriptions();

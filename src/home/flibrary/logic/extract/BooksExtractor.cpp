@@ -377,7 +377,8 @@ private:
 
 	void OnExtracted(const long long id) const
 	{
-		const auto transaction = m_databaseProvider->GetDatabase()->CreateTransaction();
+		const auto db          = m_databaseProvider->GetDatabaseWritable();
+		const auto transaction = db->CreateTransaction();
 		transaction->CreateCommand(ExportStat::INSERT_QUERY)->Execute(id, m_exportStatType);
 		if (m_autoRateValue.isValid())
 		{

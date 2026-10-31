@@ -14,7 +14,7 @@ class ISettings;
 
 namespace HomeCompa::DB {
 
-class IDatabase;
+class IDatabaseWritable;
 class IQuery;
 
 } // namespace HomeCompa::DB
@@ -43,9 +43,9 @@ IDataItem::Ptr CreateLanguageItem(const DB::IQuery& query);
 IDataItem::Ptr CreateFullAuthorItem(const DB::IQuery& query);
 IDataItem::Ptr CreateBookItem(const DB::IQuery& query);
 
-bool ChangeBookRemoved(DB::IDatabase& db, const std::unordered_set<long long>& ids, bool remove = true, const std::shared_ptr<IProgressController>& progressController = {});
+bool ChangeBookRemoved(DB::IDatabaseWritable& db, const std::unordered_set<long long>& ids, bool remove = true, const std::shared_ptr<IProgressController>& progressController = {});
 
-void        CreateHistoryTable(DB::IDatabase& db, const ISettings& settings);
+void        CreateHistoryTable(DB::IDatabaseWritable& db, const ISettings& settings);
 std::string GetHistoryTableName(const ISettings& settings);
 std::string GetHistoryIndexName(const ISettings& settings);
 

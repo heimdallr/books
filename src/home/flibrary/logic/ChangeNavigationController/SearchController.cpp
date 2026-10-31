@@ -105,7 +105,7 @@ struct SearchController::Impl
 	{
 		const auto& databaseUserRef = *databaseProvider;
 		databaseUserRef.Execute({ "Create search string", [&, dbUser = databaseProvider, searchString = std::move(searchString), callback = std::move(callback)]() mutable {
-									 const auto db          = dbUser->GetDatabase();
+									 const auto db          = dbUser->GetDatabaseWritable();
 									 const auto transaction = db->CreateTransaction();
 									 const auto id          = CreateNewSearchImpl(*transaction, searchString);
 									 transaction->Commit();
@@ -191,7 +191,7 @@ void SearchController::Remove(Ids ids, Callback callback) const
 
 	const auto& databaseUserRef = *m_impl->databaseProvider;
 	databaseUserRef.Execute({ "Remove search string", [&, dbUser = m_impl->databaseProvider, ids = std::move(ids), callback = std::move(callback)]() mutable {
-								 const auto db          = dbUser->GetDatabase();
+								 const auto db          = dbUser->GetDatabaseWritable();
 								 const auto transaction = db->CreateTransaction();
 								 const auto command     = transaction->CreateCommand(REMOVE_SEARCH_QUERY);
 
