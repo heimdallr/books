@@ -1108,17 +1108,18 @@ limit {}
 	if (maxMenuItemCount < 1)
 		return menu.menuAction()->setVisible(false);
 
-	const auto databaseUser = container.resolve<IDatabaseUser>();
-
-	auto db = databaseUser->CheckDatabase();
-	if (!db)
-		return;
-
-	auto queryText = std::format(QUERY, std::to_underlying(IDatabaseUser::Key::RecentBookDateTime), maxMenuItemCount);
-	databaseUser->Execute(
+	auto  databaseUser    = container.resolve<IDatabaseUser>();
+	auto& databaseUserRef = *databaseUser;
+	databaseUserRef.Execute(
 		{ "Update recent books menu",
-		  [this, &menu, queryText = std::move(queryText), menuItemTitleFormat = std::move(menuItemTitleFormat), menuItemDateTimeFormat = std::move(menuItemDateTimeFormat), db = std::move(db)]() mutable {
-			  auto data = [&] {
+		  [this,
+		   &menu,
+		   databaseUser           = std::move(databaseUser),
+		   queryText              = std::format(QUERY, std::to_underlying(IDatabaseUser::Key::RecentBookDateTime), maxMenuItemCount),
+		   menuItemTitleFormat    = std::move(menuItemTitleFormat),
+		   menuItemDateTimeFormat = std::move(menuItemDateTimeFormat)]() mutable {
+			  const auto db   = databaseUser->GetDatabase();
+			  auto       data = [&] {
 				  const auto query = db->CreateQuery(queryText);
 				  return *query | std::views::transform([&](const auto& item) {
 					  const auto dateTime = QDateTime::fromString(query->Get<const char*>(3), MENU_ITEM_DATETIME_FORMAT_DEFAULT).toString(menuItemDateTimeFormat);
