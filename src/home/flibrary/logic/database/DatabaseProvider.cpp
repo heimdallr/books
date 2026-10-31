@@ -113,7 +113,7 @@ struct DatabaseProvider::Impl final
 		if (databaseName.isEmpty())
 			return {};
 
-		std::shared_ptr db = CreateWritable(DB::Factory::Impl::Sqlite, std::format("path={}", databaseName));
+		std::shared_ptr db = Create(DB::Factory::Impl::Sqlite, std::format("path={}", databaseName));
 		Pragma(*db);
 
 		std::lock_guard lock(m_dbListGuard);
