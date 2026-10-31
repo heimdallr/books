@@ -505,7 +505,7 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, U
 		std::move(books),
 		std::move(callback),
 		ExportStat::Type::Script,
-		[this, scriptController = std::move(scriptController), commands = std::move(commands), dbUser = m_impl->GetDatabaseUser()](
+		[this, scriptController = std::move(scriptController), commands = std::move(commands), dbProvider = m_impl->GetDatabaseUser()](
 			const std::filesystem::path&        archiveFolder,
 			const QString&                      dstFolder,
 			const Util::ExtractedBook&          book,
@@ -513,7 +513,7 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, U
 			IProgressController::IProgressItem& progress,
 			IExportHelper&                      exportHelper
 		) {
-			const auto db = dbUser->GetDatabase();
+			const auto db = dbProvider->GetDatabase();
 			return Process(m_impl->GetSettings(), archiveFolder, dstFolder, *db, book, progress, std::move(encoding), exportHelper, *scriptController, commands);
 		}
 	);
