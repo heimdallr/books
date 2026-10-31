@@ -405,6 +405,22 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-x86_64-conan-${{ env.CONAN_VERSION }}-
 
+      - name: Pre-generate Conan Dependencies
+        shell: cmd
+        run: |
+          for /f "delims=" %%i in ('where conan') do set "CONAN_DIR=%%~dpi"
+          for /f "delims=" %%i in ('where cmake') do set "CMAKE_DIR=%%~dpi"
+          for /f "delims=" %%i in ('where python') do set "PYTHON_DIR=%%~dpi"
+          set "PATH=%PYTHON_DIR%;%CMAKE_DIR%;%CONAN_DIR%;C:\Windows\system32;C:\Windows;C:\Windows\System32\Wbem"
+          conan config set global.tools.env.virtualenv:powershell=
+
+          set "CYGWIN=sysvshm"
+          set "MSYS=winsymlinks:nativestrict disable_pcon"
+          set "TMPDIR=%TEMP%"
+          set "TMP=%TEMP%"
+
+          conan install src/home/script/conan --output-folder=build/windows --build=missing -s build_type=Release -c tools.cmake.cmaketoolchain:generator=Ninja -pr:b src/ext/scripts/conan/profiles/msvc2022_x86_64_Release -pr:h src/ext/scripts/conan/profiles/msvc2022_x86_64_Release
+
       - name: Configure and build
         shell: pwsh
         run: |
