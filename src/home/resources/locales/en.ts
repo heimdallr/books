@@ -1384,6 +1384,10 @@ Restart now?</source>
         <translation>Romantic</translation>
     </message>
     <message>
+        <source>child_psychology</source>
+        <translation>Psychology for Teens</translation>
+    </message>
+    <message>
         <source>child_sf</source>
         <translation>Science Fiction</translation>
     </message>
@@ -1830,6 +1834,10 @@ Restart now?</source>
     <message>
         <source>literature_20</source>
         <translation>20th century</translation>
+    </message>
+    <message>
+        <source>llm_art</source>
+        <translation>Neural Network Creativity</translation>
     </message>
     <message>
         <source>love</source>

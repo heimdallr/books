@@ -1395,6 +1395,10 @@ Restart now?</source>
         <translation>Романтическое</translation>
     </message>
     <message>
+        <source>child_psychology</source>
+        <translation>Психология для подростков</translation>
+    </message>
+    <message>
         <source>child_sf</source>
         <translation>Детская фантастика</translation>
     </message>
@@ -1841,6 +1845,10 @@ Restart now?</source>
     <message>
         <source>literature_20</source>
         <translation>20-й век</translation>
+    </message>
+    <message>
+        <source>llm_art</source>
+        <translation>Творчество нейросети</translation>
     </message>
     <message>
         <source>love</source>

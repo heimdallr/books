@@ -987,6 +987,10 @@
                 "id": "psy_childs"
             },
             {
+                "description": "Психология для подростков",
+                "id": "child_psychology"
+            },
+            {
                 "description": "Научная литература: прочее",
                 "id": "sci_all"
             }
@@ -1616,6 +1620,10 @@
             {
                 "description": "Машинный перевод",
                 "id": "computer_translation"
+            },
+            {
+                "description": "Творчество нейросети",
+                "id": "llm_art"
             },
             {
                 "description": "Недописанное",
