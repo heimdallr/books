@@ -59,26 +59,25 @@ struct FilterController::Impl final : Observable<IObserver>
 
 	void ProcessNavigationItemFlags(const NavigationMode navigationMode, QStringList navigationIds, const IDataItem::Flags flags, Callback callback, const std::string_view queryText)
 	{
-		databaseProvider->Execute({ "Apply filter", [this, navigationMode, ids = std::move(navigationIds), flags, callback = std::move(callback), queryText]() mutable {
-									   const auto& description = GetFilteredNavigationDescription(navigationMode);
-									   assert(description.table && description.idField);
+		databaseProvider->ExecuteWritable({ "Apply filter", [this, navigationMode, ids = std::move(navigationIds), flags, callback = std::move(callback), queryText](DB::IDatabaseWritable& db) mutable {
+											   const auto& description = GetFilteredNavigationDescription(navigationMode);
+											   assert(description.table && description.idField);
 
-									   const auto db      = databaseProvider->GetDatabaseWritable();
-									   const auto tr      = db->CreateTransaction();
-									   const auto command = tr->CreateCommand(std::vformat(queryText, std::make_format_args(description.table, description.idField)));
-									   for (const auto& id : ids)
-									   {
-										   command->Bind(0, static_cast<int>(flags));
-										   description.commandBinder(*command, 1, id);
-										   command->Execute();
-									   }
+											   const auto tr      = db.CreateTransaction();
+											   const auto command = tr->CreateCommand(std::vformat(queryText, std::make_format_args(description.table, description.idField)));
+											   for (const auto& id : ids)
+											   {
+												   command->Bind(0, static_cast<int>(flags));
+												   description.commandBinder(*command, 1, id);
+												   command->Execute();
+											   }
 
-									   tr->Commit();
-									   return [this, navigationMode, flags, callback = std::move(callback)](size_t) {
-										   Notify(navigationMode, flags);
-										   callback();
-									   };
-								   } });
+											   tr->Commit();
+											   return [this, navigationMode, flags, callback = std::move(callback)](size_t) {
+												   Notify(navigationMode, flags);
+												   callback();
+											   };
+										   } });
 	}
 };
 
@@ -102,8 +101,8 @@ std::vector<IDataItem::Flags> FilterController::GetFlags(const NavigationMode na
 
 	std::vector<IDataItem::Flags> result;
 
-	const auto db    = m_impl->databaseProvider->GetDatabase();
-	const auto query = db->CreateQuery(std::format("select Flags from {} where {} = ?", description.table, description.idField));
+	auto&      db    = m_impl->databaseProvider->GetDatabase1();
+	const auto query = db.CreateQuery(std::format("select Flags from {} where {} = ?", description.table, description.idField));
 	for (const auto& id : ids)
 	{
 		description.queueBinder(*query, 0, id);
@@ -153,38 +152,37 @@ void FilterController::SetFilterEnabled(const bool enabled)
 
 void FilterController::Apply()
 {
-	m_impl->databaseProvider->Execute({ "Apply filter", [this, changes = std::move(m_impl->changes)] {
-										   std::vector<NavigationMode> changed;
-										   for (size_t index = 0; auto& change : changes)
-										   {
-											   const ScopedCall indexGuard([&] {
-												   ++index;
-											   });
-											   if (change.empty())
-												   continue;
+	m_impl->databaseProvider->ExecuteWritable({ "Apply filter", [this, changes = std::move(m_impl->changes)](DB::IDatabaseWritable& db) {
+												   std::vector<NavigationMode> changed;
+												   for (size_t index = 0; auto& change : changes)
+												   {
+													   const ScopedCall indexGuard([&] {
+														   ++index;
+													   });
+													   if (change.empty())
+														   continue;
 
-											   const auto navigationMode = static_cast<NavigationMode>(index);
-											   changed.emplace_back(navigationMode);
-											   const auto& description = GetFilteredNavigationDescription(navigationMode);
-											   assert(description.table && description.idField);
+													   const auto navigationMode = static_cast<NavigationMode>(index);
+													   changed.emplace_back(navigationMode);
+													   const auto& description = GetFilteredNavigationDescription(navigationMode);
+													   assert(description.table && description.idField);
 
-											   const auto db      = m_impl->databaseProvider->GetDatabaseWritable();
-											   const auto tr      = db->CreateTransaction();
-											   const auto command = tr->CreateCommand(std::vformat(SET_FILTER_QUERY, std::make_format_args(description.table, description.idField)));
-											   for (const auto& [id, flags] : change)
-											   {
-												   command->Bind(0, static_cast<int>(flags));
-												   description.commandBinder(*command, 1, id);
-												   command->Execute();
-											   }
+													   const auto tr      = db.CreateTransaction();
+													   const auto command = tr->CreateCommand(std::vformat(SET_FILTER_QUERY, std::make_format_args(description.table, description.idField)));
+													   for (const auto& [id, flags] : change)
+													   {
+														   command->Bind(0, static_cast<int>(flags));
+														   description.commandBinder(*command, 1, id);
+														   command->Execute();
+													   }
 
-											   tr->Commit();
-										   }
-										   return [this, changed = std::move(changed)](size_t) {
-											   for (const auto& item : changed)
-												   m_impl->Perform(&IObserver::OnFilterNavigationChanged, item);
-										   };
-									   } });
+													   tr->Commit();
+												   }
+												   return [this, changed = std::move(changed)](size_t) {
+													   for (const auto& item : changed)
+														   m_impl->Perform(&IObserver::OnFilterNavigationChanged, item);
+												   };
+											   } });
 	m_impl->changes = {};
 }
 
@@ -228,7 +226,7 @@ void FilterController::HideFiltered(NavigationMode navigationMode, QPointer<QAbs
 	if (const auto locked = callback.lock())
 		locked->OnStarted();
 
-	m_impl->databaseProvider->Execute({ "Hide filtered", [this, navigationMode, model = std::move(model), callback = std::move(callback)]() mutable {
+	m_impl->databaseProvider->Execute({ "Hide filtered", [navigationMode, model = std::move(model), callback = std::move(callback)](DB::IDatabase& db) mutable {
 										   using DescriptionItem = std::tuple<NavigationMode, const char*, const char*, const char*, const char*>;
 										   static constexpr DescriptionItem description[] {
 											   {   NavigationMode::Authors,       " join Author_List al on al.BookID = b.BookID",         " join Authors a on a.AuthorID = al.AuthorID", "a",    "al.AuthorID" },
@@ -254,10 +252,8 @@ void FilterController::HideFiltered(NavigationMode navigationMode, QPointer<QAbs
 
 										   std::unordered_map<QString, std::pair<std::unordered_set<long long>, std::unordered_set<long long>>> values;
 
-										   const auto db = m_impl->databaseProvider->GetDatabase();
-
 										   for (const auto query =
-										            db->CreateQuery(std::format("select {}, b.BookID, (0 {}) & {} from Books b{}", select, flags, static_cast<int>(IDataItem::Flags::BooksFiltered), from));
+										            db.CreateQuery(std::format("select {}, b.BookID, (0 {}) & {} from Books b{}", select, flags, static_cast<int>(IDataItem::Flags::BooksFiltered), from));
 										        const auto& rec : *query)
 										   {
 											   auto& [nonFiltered, filtered] = values[rec.Get<const char*>(0)];

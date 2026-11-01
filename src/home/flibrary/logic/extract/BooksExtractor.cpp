@@ -354,7 +354,7 @@ private:
 	{
 		std::shared_ptr progressItem = m_progressController->Add(1);
 		auto            taskName     = book.file.toStdString();
-		return Util::IExecutor::Task { std::move(taskName), [this, book = std::move(book), progressItem = std::move(progressItem)]() mutable {
+		return Util::IExecutor::Task { std::move(taskName), [this, book = std::move(book), progressItem = std::move(progressItem)](auto&) mutable {
 										  bool error = false;
 										  try
 										  {
@@ -377,7 +377,7 @@ private:
 
 	void OnExtracted(const long long id) const
 	{
-		const auto db          = m_databaseProvider->GetDatabaseWritable();
+		const auto db          = m_databaseProvider->GetDatabaseWritable1();
 		const auto transaction = db->CreateTransaction();
 		transaction->CreateCommand(ExportStat::INSERT_QUERY)->Execute(id, m_exportStatType);
 		if (m_autoRateValue.isValid())
@@ -513,8 +513,8 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, U
 			IProgressController::IProgressItem& progress,
 			IExportHelper&                      exportHelper
 		) {
-			const auto db = dbProvider->GetDatabase();
-			return Process(m_impl->GetSettings(), archiveFolder, dstFolder, *db, book, progress, std::move(encoding), exportHelper, *scriptController, commands);
+			auto& db = dbProvider->GetDatabase1();
+			return Process(m_impl->GetSettings(), archiveFolder, dstFolder, db, book, progress, std::move(encoding), exportHelper, *scriptController, commands);
 		}
 	);
 }

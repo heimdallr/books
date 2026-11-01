@@ -86,19 +86,18 @@ struct GroupController::Impl
 		if (name.isEmpty())
 			return;
 
-		databaseProvider->Execute({ "Create group", [&, name = std::move(name), callback = std::move(callback)]() mutable {
-									   const auto db          = databaseProvider->GetDatabaseWritable();
-									   const auto transaction = db->CreateTransaction();
-									   auto       id          = CreateNewGroupImpl(*transaction, name);
-									   const auto ok          = id > 0 && transaction->Commit();
+		databaseProvider->ExecuteWritable({ "Create group", [&, name = std::move(name), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+											   const auto transaction = db.CreateTransaction();
+											   auto       id          = CreateNewGroupImpl(*transaction, name);
+											   const auto ok          = id > 0 && transaction->Commit();
 
-									   return [this, id, callback = std::move(callback), ok](size_t) {
-										   if (!ok)
-											   uiFactory->ShowError(Tr(CANNOT_CREATE_GROUP));
+											   return [this, id, callback = std::move(callback), ok](size_t) {
+												   if (!ok)
+													   uiFactory->ShowError(Tr(CANNOT_CREATE_GROUP));
 
-										   callback(id);
-									   };
-								   } });
+												   callback(id);
+											   };
+										   } });
 	}
 
 	void RenameGroup(const Id id, QString name, const Names& names, Callback callback) const
@@ -107,61 +106,59 @@ struct GroupController::Impl
 		if (name.isEmpty())
 			return;
 
-		databaseProvider->Execute({ "Rename group", [&, id, name = std::move(name), callback = std::move(callback)]() mutable {
-									   const auto db          = databaseProvider->GetDatabaseWritable();
-									   const auto transaction = db->CreateTransaction();
-									   const auto command     = transaction->CreateCommand("update Groups_User set Title = ? where GroupID = ?", name, id);
-									   const auto ok          = command->Execute() && transaction->Commit();
+		databaseProvider->ExecuteWritable({ "Rename group", [&, id, name = std::move(name), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+											   const auto transaction = db.CreateTransaction();
+											   const auto command     = transaction->CreateCommand("update Groups_User set Title = ? where GroupID = ?", name, id);
+											   const auto ok          = command->Execute() && transaction->Commit();
 
-									   return [this, id, callback = std::move(callback), ok](size_t) {
-										   if (!ok)
-											   uiFactory->ShowError(Tr(CANNOT_RENAME_GROUP));
+											   return [this, id, callback = std::move(callback), ok](size_t) {
+												   if (!ok)
+													   uiFactory->ShowError(Tr(CANNOT_RENAME_GROUP));
 
-										   callback(id);
-									   };
-								   } });
+												   callback(id);
+											   };
+										   } });
 	}
 
 	void AddToGroup(Id id, Ids ids, QString name, Callback callback) const
 	{
-		databaseProvider->Execute({ "Add to group", [&, id, ids = std::move(ids), callback = std::move(callback), name = std::move(name)]() mutable {
-									   const auto db          = databaseProvider->GetDatabaseWritable();
-									   const auto transaction = db->CreateTransaction();
+		databaseProvider->ExecuteWritable({ "Add to group", [&, id, ids = std::move(ids), callback = std::move(callback), name = std::move(name)](DB::IDatabaseWritable& db) mutable {
+											   const auto transaction = db.CreateTransaction();
 
-									   auto errorMessage = std::make_shared<QString>();
+											   auto errorMessage = std::make_shared<QString>();
 
-									   if (id < 0)
-										   id = CreateNewGroupImpl(*transaction, name);
+											   if (id < 0)
+												   id = CreateNewGroupImpl(*transaction, name);
 
-									   std::function result = [this, id, callback = std::move(callback), errorMessage](size_t) {
-										   if (!errorMessage->isEmpty())
-											   uiFactory->ShowError(*errorMessage);
+											   std::function result = [this, id, callback = std::move(callback), errorMessage](size_t) {
+												   if (!errorMessage->isEmpty())
+													   uiFactory->ShowError(*errorMessage);
 
-										   callback(id);
-									   };
+												   callback(id);
+											   };
 
-									   if (id < 0)
-									   {
-										   *errorMessage = Tr(CANNOT_CREATE_GROUP);
-										   return result;
-									   }
+											   if (id < 0)
+											   {
+												   *errorMessage = Tr(CANNOT_CREATE_GROUP);
+												   return result;
+											   }
 
-									   const bool ok =
-										   [&] {
-											   const auto command = transaction->CreateCommand(ADD_TO_GROUP_QUERY);
-											   bool       any     = false;
-											   std::ranges::for_each(ids, [&](const Id idObj) {
-												   any = command->Execute(id, idObj) || any;
-											   });
-											   return any;
-										   }()
-			                               && transaction->CreateCommand(REMOVE_FROM_GROUP_ALREADY_EXIST_BOOKS)->Execute() && transaction->Commit();
+											   const bool ok =
+												   [&] {
+													   const auto command = transaction->CreateCommand(ADD_TO_GROUP_QUERY);
+													   bool       any     = false;
+													   std::ranges::for_each(ids, [&](const Id idObj) {
+														   any = command->Execute(id, idObj) || any;
+													   });
+													   return any;
+												   }()
+			                                       && transaction->CreateCommand(REMOVE_FROM_GROUP_ALREADY_EXIST_BOOKS)->Execute() && transaction->Commit();
 
-									   if (!ok)
-										   *errorMessage = Tr(CANNOT_ADD_BOOK_TO_GROUP);
+											   if (!ok)
+												   *errorMessage = Tr(CANNOT_ADD_BOOK_TO_GROUP);
 
-									   return result;
-								   } });
+											   return result;
+										   } });
 	}
 
 	QString GetNewGroupName(const Names& names, QString name = {}) const
@@ -201,20 +198,20 @@ struct GroupController::Impl
 
 	void RemoveFromGroupAll(const Id id, Callback callback, const char* queryArg, const char* logArg) const
 	{
-		databaseProvider->Execute({ QString("Remove all %1 from group").arg(logArg).toStdString(), [&, id, callback = std::move(callback), queryArg]() mutable {
-									   const auto db          = databaseProvider->GetDatabaseWritable();
-									   const auto transaction = db->CreateTransaction();
-									   const auto command =
-										   transaction->CreateCommand(QString("delete from Groups_List_User where GroupID = ? and exists (select 42 from %1 = Groups_List_User.ObjectID)").arg(queryArg), id);
-									   const auto ok = command->Execute() && transaction->Commit();
+		databaseProvider->ExecuteWritable(
+			{ QString("Remove all %1 from group").arg(logArg).toStdString(), [&, id, callback = std::move(callback), queryArg](DB::IDatabaseWritable& db) mutable {
+				 const auto transaction = db.CreateTransaction();
+				 const auto command     = transaction->CreateCommand(QString("delete from Groups_List_User where GroupID = ? and exists (select 42 from %1 = Groups_List_User.ObjectID)").arg(queryArg), id);
+				 const auto ok          = command->Execute() && transaction->Commit();
 
-									   return [this, id, callback = std::move(callback), ok](size_t) {
-										   if (!ok)
-											   uiFactory->ShowError(Tr(CANNOT_REMOVE_BOOKS_FROM_GROUP));
+				 return [this, id, callback = std::move(callback), ok](size_t) {
+					 if (!ok)
+						 uiFactory->ShowError(Tr(CANNOT_REMOVE_BOOKS_FROM_GROUP));
 
-										   callback(id);
-									   };
-								   } });
+					 callback(id);
+				 };
+			 } }
+		);
 	}
 };
 
@@ -248,23 +245,22 @@ void GroupController::Remove(Ids ids, Callback callback) const
 	if (ids.empty() || m_impl->uiFactory->ShowQuestion(Tr(REMOVE_GROUP_CONFIRM).arg(ids.size()), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
 		return;
 
-	m_impl->databaseProvider->Execute({ "Remove groups", [&, ids = std::move(ids), callback = std::move(callback)]() mutable {
-										   const auto db          = m_impl->databaseProvider->GetDatabaseWritable();
-										   const auto transaction = db->CreateTransaction();
-										   const auto command     = transaction->CreateCommand(REMOVE_GROUP_QUERY);
+	m_impl->databaseProvider->ExecuteWritable({ "Remove groups", [&, ids = std::move(ids), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+												   const auto transaction = db.CreateTransaction();
+												   const auto command     = transaction->CreateCommand(REMOVE_GROUP_QUERY);
 
-										   auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&](const bool init, const Id id) {
-											   return command->Execute(id) && init;
-										   });
-										   ok      = transaction->Commit() && ok;
+												   auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&](const bool init, const Id id) {
+													   return command->Execute(id) && init;
+												   });
+												   ok      = transaction->Commit() && ok;
 
-										   return [this, callback = std::move(callback), ok](size_t) {
-											   if (!ok)
-												   m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_GROUPS));
+												   return [this, callback = std::move(callback), ok](size_t) {
+													   if (!ok)
+														   m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_GROUPS));
 
-											   callback(-1);
-										   };
-									   } });
+													   callback(-1);
+												   };
+											   } });
 }
 
 void GroupController::AddToGroup(const Id id, Ids ids, Callback callback) const
@@ -305,33 +301,32 @@ void GroupController::MoveToGroup(const Id id, Ids ids, Callback callback) const
 
 void GroupController::RemoveFromGroup(const Id id, Ids ids, Callback callback) const
 {
-	m_impl->databaseProvider->Execute({ "Remove from group", [&, id, ids = std::move(ids), callback = std::move(callback)]() mutable {
-										   std::string queryText = REMOVE_FROM_GROUP_QUERY;
-										   if (id >= 0)
-											   queryText.append(REMOVE_FROM_GROUP_QUERY_SUFFIX);
+	m_impl->databaseProvider->ExecuteWritable({ "Remove from group", [&, id, ids = std::move(ids), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+												   std::string queryText = REMOVE_FROM_GROUP_QUERY;
+												   if (id >= 0)
+													   queryText.append(REMOVE_FROM_GROUP_QUERY_SUFFIX);
 
-										   const auto db          = m_impl->databaseProvider->GetDatabaseWritable();
-										   const auto transaction = db->CreateTransaction();
-										   const auto command     = transaction->CreateCommand(queryText);
-										   const auto ok          = std::ranges::all_of(
-																		ids,
-																		[&](const Id idBook) {
-																   auto binder = *command << idBook;
-																   if (id >= 0)
-																	   binder << id;
+												   const auto transaction = db.CreateTransaction();
+												   const auto command     = transaction->CreateCommand(queryText);
+												   const auto ok          = std::ranges::all_of(
+																				ids,
+																				[&](const Id idBook) {
+																		   auto binder = *command << idBook;
+																		   if (id >= 0)
+																			   binder << id;
 
-																   return command->Execute();
-																		}
-																	)
-		                                                         && transaction->Commit();
+																		   return command->Execute();
+																				}
+																			)
+		                                                                 && transaction->Commit();
 
-										   return [this, id, callback = std::move(callback), ok](size_t) {
-											   if (!ok)
-												   m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_BOOKS_FROM_GROUP));
+												   return [this, id, callback = std::move(callback), ok](size_t) {
+													   if (!ok)
+														   m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_BOOKS_FROM_GROUP));
 
-											   callback(id);
-										   };
-									   } });
+													   callback(id);
+												   };
+											   } });
 }
 
 void GroupController::RemoveBooks(const Id id, Ids, Callback callback) const

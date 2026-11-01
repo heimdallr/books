@@ -73,7 +73,7 @@ public:
 private:
 	void StartTransaction()
 	{
-		m_transaction = m_databaseProvider->GetDatabaseWritable()->CreateTransaction();
+		m_transaction = m_databaseProvider->GetDatabaseWritable1()->CreateTransaction();
 		SetEnabled();
 	}
 
@@ -114,17 +114,16 @@ private:
 
 	void ExecuteQuery() const
 	{
-		m_databaseProvider->Execute({ "Execute query", [this] {
-										 ExecuteQueryImpl();
+		m_databaseProvider->Execute({ "Execute query", [this](DB::IDatabase& db) {
+										 ExecuteQueryImpl(db);
 										 return [](size_t) {
 										 };
 									 } });
 	}
 
-	void ExecuteQueryImpl() const
+	void ExecuteQueryImpl(DB::IDatabase& db) const
 	{
-		const auto db    = m_databaseProvider->GetDatabase();
-		const auto query = db->CreateQuery(GetQueryText());
+		const auto query = db.CreateQuery(GetQueryText());
 		query->Execute();
 		{
 			QStringList names;

@@ -25,8 +25,8 @@ TR_DEF
 
 namespace HomeCompa::Flibrary::UserData {
 
-void Restore(const Util::IExecutor& executor, const IDatabaseProvider& databaseProvider, QString fileName, Callback callback);
-void ImportFromMyHomeLib(const Util::IExecutor& executor, const IDatabaseProvider& databaseProvider, QString fileName, Callback callback);
+void Restore(const IDatabaseProvider& databaseProvider, QString fileName, Callback callback);
+void ImportFromMyHomeLib(const IDatabaseProvider& databaseProvider, QString fileName, Callback callback);
 
 } // namespace HomeCompa::Flibrary::UserData
 
@@ -68,10 +68,7 @@ void UserDataController::Do(Callback callback, QString fileName, const char* suc
 	if (fileName.isEmpty())
 		return;
 
-	auto executor = m_databaseProvider->Executor();
-
-	f(*executor, *m_databaseProvider, std::move(fileName), [&, successMessage, executor, callback = std::move(callback)](const QString& error) mutable {
-		executor.reset();
+	f(*m_databaseProvider, std::move(fileName), [&, successMessage, callback = std::move(callback)](const QString& error) mutable {
 		callback(error.isEmpty(), Tr(error.isEmpty() ? successMessage : error.toStdString().data()));
 	});
 }

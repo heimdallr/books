@@ -368,7 +368,6 @@ public:
 		std::shared_ptr<const IUiFactory>               uiFactory,
 		std::shared_ptr<const IDatabaseProvider>        databaseProvider,
 		std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
-		std::shared_ptr<const IDatabaseChecker>         databaseChecker,
 		std::shared_ptr<const ICommandLine>             commandLine,
 		std::shared_ptr<ISettings>                      settings,
 		std::shared_ptr<ICollectionController>          collectionController,
@@ -423,8 +422,8 @@ public:
 		CreateCollectionsMenu();
 		SetupHotkeys();
 		LoadGeometry();
-		StartDelayed([this, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker), databaseChecker = std::move(databaseChecker)]() mutable {
-			CheckForUpdateCollection(*commandLine, *databaseChecker, std::move(collectionUpdateChecker));
+		StartDelayed([this, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker)]() mutable {
+			CheckForUpdateCollection(*commandLine, std::move(collectionUpdateChecker));
 			m_recentOpenBookController->SetMenu(m_ui.menuRecentBooks);
 			if (m_collectionController->ActiveCollectionExists())
 				RestoreUserData(m_collectionController->GetActiveCollectionId());
@@ -611,8 +610,8 @@ private: // ILineOption::IObserver
 			return;
 
 		const auto converter = logicFactory->CreateFillTemplateConverter();
-		auto       db        = m_databaseProvider->GetDatabase();
-		converter->Fill(*db, value, books.front(), Tr(MY_FOLDER));
+		auto&      db        = m_databaseProvider->GetDatabase1();
+		converter->Fill(db, value, books.front(), Tr(MY_FOLDER));
 		PLOGI << books.front().dstFileName;
 	}
 
@@ -987,11 +986,15 @@ private:
 			m_collectionController->RescanCollectionFolder();
 		});
 		connect(m_ui.actionShowCollectionStatisticsDialog, &QAction::triggered, &m_self, [this] {
-			auto stats = m_collectionController->GetCollectionStatistics(*m_databaseProvider);
-			std::ranges::transform(stats, stats.begin(), [](const auto& item) {
-				return QString("<tr><td>%1</td></tr>").arg(item);
-			});
-			m_uiFactory->ShowInfo(QString("<table>%1</table>").arg(stats.join('\n')));
+			m_databaseProvider->Execute({ "get collection statistics", [this](DB::IDatabase& db) {
+											 auto stats = m_collectionController->GetCollectionStatistics(db);
+											 std::ranges::transform(stats, stats.begin(), [](const auto& item) {
+												 return QString("<tr><td>%1</td></tr>").arg(item);
+											 });
+											 return [this, stats = std::move(stats)](size_t) {
+												 m_uiFactory->ShowInfo(QString("<table>%1</table>").arg(stats.join('\n')));
+											 };
+										 } });
 		});
 		connect(m_ui.actionRemoveCollection, &QAction::triggered, &m_self, [this] {
 			m_collectionController->RemoveCollection();
@@ -1334,11 +1337,8 @@ private:
 		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 
-		const auto db = m_databaseProvider->GetDatabase();
-		if (!db)
-			return;
-
-		const auto query = db->CreateQuery("SELECT exists(SELECT 42 FROM Annotations)");
+		auto&      db    = m_databaseProvider->GetDatabase1();
+		const auto query = db.CreateQuery("SELECT exists(SELECT 42 FROM Annotations)");
 		query->Execute();
 		m_ui.actionSearchByANNOTATION->setVisible(query->Get<int>(0) != 0);
 	}
@@ -1757,7 +1757,7 @@ private:
 		});
 	}
 
-	void CheckForUpdateCollection(const ICommandLine& commandLine, const IDatabaseChecker& databaseChecker, std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker)
+	void CheckForUpdateCollection(const ICommandLine& commandLine, std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker)
 	{
 		if (m_collectionToRecreate)
 			return m_collectionController->CreateCollection(*m_collectionToRecreate);
@@ -1774,7 +1774,7 @@ private:
 			return m_collectionController->AddCollection(commandLine.GetInpxDir());
 		}
 
-		if (!databaseChecker.IsDatabaseValid())
+		if (!m_databaseProvider->IsDatabaseValid())
 		{
 			m_uiFactory->ShowWarning(Tr(DATABASE_BROKEN).arg(m_collectionController->GetActiveCollection().GetDatabase()));
 			return QCoreApplication::exit(Global::APP_FAILED);
@@ -2000,7 +2000,6 @@ MainWindow::MainWindow(
 	std::shared_ptr<const IUiFactory>               uiFactory,
 	std::shared_ptr<const IDatabaseProvider>        databaseProvider,
 	std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
-	std::shared_ptr<const IDatabaseChecker>         databaseChecker,
 	std::shared_ptr<const ICommandLine>             commandLine,
 	std::shared_ptr<ISettings>                      settings,
 	std::shared_ptr<ICollectionController>          collectionController,
@@ -2029,7 +2028,6 @@ MainWindow::MainWindow(
 		  std::move(uiFactory),
 		  std::move(databaseProvider),
 		  std::move(collectionUpdateChecker),
-		  std::move(databaseChecker),
 		  std::move(commandLine),
 		  std::move(settings),
 		  std::move(collectionController),

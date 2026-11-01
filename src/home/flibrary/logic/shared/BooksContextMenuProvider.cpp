@@ -261,9 +261,8 @@ public:
 			   options,
 			   starSymbol    = m_starSymbol,
 			   callback      = std::move(callback),
-			   db            = m_databaseProvider->GetDatabase(),
 			   scripts       = std::move(scripts),
-			   currentLocale = std::move(currentLocale)]() mutable {
+			   currentLocale = std::move(currentLocale)](DB::IDatabase& db) mutable {
 				  auto result = MenuItem::Create();
 
 				  if (type == ItemType::Books)
@@ -274,8 +273,8 @@ public:
 
 				  if (type == ItemType::Books)
 				  {
-					  CreateGroupMenu(result, id, *db);
-					  CreateMyRateMenu(result, id, *db, starSymbol);
+					  CreateGroupMenu(result, id, db);
+					  CreateMyRateMenu(result, id, db, starSymbol);
 				  }
 
 				  CreateCheckMenu(result);
@@ -435,10 +434,9 @@ private: // IContextMenuHandler
 
 	void SetUserRate(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback) const override
 	{
-		m_databaseProvider->Execute(
-			{ "Set my rate", [this, model = QPointer { model }, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable {
-				 const auto db          = m_databaseProvider->GetDatabaseWritable();
-				 const auto transaction = db->CreateTransaction();
+		m_databaseProvider->ExecuteWritable(
+			{ "Set my rate", [this, model = QPointer { model }, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+				 const auto transaction = db.CreateTransaction();
 				 const auto command     = transaction->CreateCommand(IDatabaseProvider::SET_USER_RATE_COMMAND);
 				 const auto rate        = [&]() -> std::optional<int> {
 					 const auto str = item->GetData(MenuItem::Column::Parameter);
@@ -529,12 +527,11 @@ private: // IContextMenuHandler
 		if (m_uiFactory->ShowQuestion(Tr(CHANGE_LANGUAGE_CONFIRM).arg(item->GetData(MenuItem::Column::Title)), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) != QMessageBox::Yes)
 			return callback(item, {});
 
-		m_databaseProvider->Execute(
-			{ "Change book language", [this, model = QPointer(model), ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)]() mutable {
+		m_databaseProvider->ExecuteWritable(
+			{ "Change book language", [this, model = QPointer(model), ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
 				 auto lang = item->GetData(MenuItem::Column::Parameter).toStdString();
 
-				 const auto db          = m_databaseProvider->GetDatabaseWritable();
-				 const auto transaction = db->CreateTransaction();
+				 const auto transaction = db.CreateTransaction();
 
 				 transaction->CreateCommand("insert or ignore into Languages(LanguageCode) values(?)")->Execute(lang);
 
@@ -582,7 +579,7 @@ private: // IContextMenuHandler
 			   folder       = m_collectionProvider->GetActiveCollection().GetFolder(),
 			   selectedBook = std::make_pair(index.data(Role::Folder).toString(), index.data(Role::FileName)),
 			   books        = std::move(books),
-			   progressItem = std::move(progressItem)]() mutable {
+			   progressItem = std::move(progressItem)](auto&) mutable {
 				  std::set<QString>  ids;
 				  Util::BookHashItem toClipboard;
 				  for (auto&& book : books)
@@ -628,7 +625,7 @@ private: // IContextMenuHandler
 			   folder       = m_collectionProvider->GetActiveCollection().GetFolder(),
 			   selectedBook = std::make_pair(index.data(Role::Folder).toString(), index.data(Role::FileName)),
 			   books        = std::move(books),
-			   getHash      = std::move(getHash)]() mutable {
+			   getHash      = std::move(getHash)](auto&) mutable {
 				  auto lhs = books.size() > 1 ? getHash(folder, books.front()) : [] {
 					  const auto data = QGuiApplication::clipboard()->mimeData();
 					  assert(data && data->hasFormat(Constant::BOOK_HASH_MIME_DATA_TYPE));
@@ -665,18 +662,16 @@ private: // IContextMenuHandler
 
 	void ClearHistory(QAbstractItemModel*, const QModelIndex&, const QList<QModelIndex>&, IDataItem::Ptr item, Callback callback) const override
 	{
-		m_databaseProvider->Execute({ "Clear history", [this, item = std::move(item), callback = std::move(callback)]() mutable {
-										 const auto lang = item->GetData(MenuItem::Column::Parameter).toStdString();
-
-										 const auto db = m_databaseProvider->GetDatabaseWritable();
-										 const auto tr = db->CreateTransaction();
-										 tr->CreateCommand(std::format("delete from {}", DatabaseUtil::GetHistoryTableName(*m_settings)))->Execute();
-										 tr->Commit();
-										 return [this, item = std::move(item), callback = std::move(callback)](size_t) {
-											 callback(item, {});
-											 m_dataProvider->RequestBooks(true);
-										 };
-									 } });
+		m_databaseProvider->ExecuteWritable({ "Clear history", [this, item = std::move(item), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+												 const auto lang = item->GetData(MenuItem::Column::Parameter).toStdString();
+												 const auto tr   = db.CreateTransaction();
+												 tr->CreateCommand(std::format("delete from {}", DatabaseUtil::GetHistoryTableName(*m_settings)))->Execute();
+												 tr->Commit();
+												 return [this, item = std::move(item), callback = std::move(callback)](size_t) {
+													 callback(item, {});
+													 m_dataProvider->RequestBooks(true);
+												 };
+											 } });
 	}
 
 private:
@@ -762,9 +757,9 @@ private:
 		if (sendSettings.tempFolder)
 			tempDir = std::make_shared<QTemporaryDir>();
 
-		const auto db = m_databaseProvider->GetDatabase();
+		auto& db = m_databaseProvider->GetDatabase1();
 		for (auto& book : books)
-			fillTemplateConverter->Fill(*db, outputFileNameTemplate, book, tempDir ? tempDir->filePath("") : dir);
+			fillTemplateConverter->Fill(db, outputFileNameTemplate, book, tempDir ? tempDir->filePath("") : dir);
 
 		if (CheckUniqueFileNames(books, sendSettings.dstPathSuffix))
 			return callback(item, {});
@@ -813,21 +808,23 @@ private:
 
 	void ChangeBookRemoved(QAbstractItemModel* model, const QModelIndex& index, const QList<QModelIndex>& indexList, IDataItem::Ptr item, Callback callback, const bool remove) const
 	{
-		m_databaseProvider->Execute({ "Remove books", [this, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback), remove]() mutable {
-										 const bool ok    = DatabaseUtil::ChangeBookRemoved(*m_databaseProvider->GetDatabaseWritable(), ids, remove);
-										 auto       idSet = ids | std::views::transform([](const auto& id) {
-														  return QString::number(id);
-															})
-			                                              | std::views::common | std::ranges::to<std::set>();
-										 return [this, item = std::move(item), callback = std::move(callback), remove, ok, idSet = std::move(idSet)](size_t) {
-											 if (!ok)
-												 m_uiFactory->ShowError(Tr(CANNOT_REMOVE_BOOK).arg(Tr(remove ? REMOVE : RESTORE)));
+		m_databaseProvider->ExecuteWritable(
+			{ "Remove books", [this, ids = GetSelected(model, index, indexList), item = std::move(item), callback = std::move(callback), remove](DB::IDatabaseWritable& db) mutable {
+				 const bool ok    = DatabaseUtil::ChangeBookRemoved(db, ids, remove);
+				 auto       idSet = ids | std::views::transform([](const auto& id) {
+								  return QString::number(id);
+									})
+			                      | std::views::common | std::ranges::to<std::set>();
+				 return [this, item = std::move(item), callback = std::move(callback), remove, ok, idSet = std::move(idSet)](size_t) {
+					 if (!ok)
+						 m_uiFactory->ShowError(Tr(CANNOT_REMOVE_BOOK).arg(Tr(remove ? REMOVE : RESTORE)));
 
-											 callback(item, idSet);
-											 if (ok)
-												 m_dataProvider->RequestBooks(true);
-										 };
-									 } });
+					 callback(item, idSet);
+					 if (ok)
+						 m_dataProvider->RequestBooks(true);
+				 };
+			 } }
+		);
 	}
 
 	bool CheckUniqueFileNames(Util::ExtractedBooks& books, const QString& dstPathSuffix) const

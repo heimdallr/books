@@ -429,7 +429,7 @@ public:
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor().swap(m_executor);
 		m_progressItem = m_progressController->Add(static_cast<int64_t>(books.size()) + 1);
 
-		(*m_executor)({ "Create inpx", [this, books = std::move(books), inpxFileName = std::move(inpxFileName)]() mutable {
+		(*m_executor)({ "Create inpx", [this, books = std::move(books), inpxFileName = std::move(inpxFileName)](auto&) mutable {
 						   std::ranges::sort(books, {}, [](const auto& item) {
 							   return item.book->GetRawData(BookItem::Column::Folder);
 						   });
@@ -484,7 +484,7 @@ public:
 		assert(!m_callback);
 		m_hasError = false;
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor().swap(m_executor);
-		(*m_executor)({ "Create inpx", [this, inpxFileName = std::move(inpxFileName), callback = std::move(callback)]() mutable {
+		(*m_executor)({ "Create inpx", [this, inpxFileName = std::move(inpxFileName), callback = std::move(callback)](auto&) mutable {
 						   GenerateInpxImpl(inpxFileName);
 						   return [this, callback = std::move(callback)](size_t) {
 							   callback(!m_hasError);
@@ -516,7 +516,7 @@ private:
 	{
 		++m_unpackTaskCount;
 		auto taskName = books.front().book->GetRawData(BookItem::Column::Folder).toStdString();
-		return Util::IExecutor::Task { std::move(taskName), [this, books = std::move(books)]() mutable {
+		return Util::IExecutor::Task { std::move(taskName), [this, books = std::move(books)](auto&) mutable {
 										  try
 										  {
 											  Unpack(m_archiveFolder, m_tmpFolder, books, m_idToFileName, *this, *m_settingsStub, m_encoding);
@@ -562,7 +562,7 @@ private:
 
 		auto taskName = uid.toStdString();
 		++m_packTaskCount;
-		return Util::IExecutor::Task { std::move(taskName), [this, books = std::move(books), uid = std::move(uid)]() mutable {
+		return Util::IExecutor::Task { std::move(taskName), [this, books = std::move(books), uid = std::move(uid)](auto&) mutable {
 										  bool       error = false;
 										  QByteArray inpx;
 										  try
@@ -626,9 +626,9 @@ private:
 
 	void GenerateInpxImpl(const QString& inpxFileName)
 	{
-		auto       db         = m_databaseProvider->GetDatabase();
+		auto&      db         = m_databaseProvider->GetDatabase1();
 		const auto booksCount = [&] {
-			auto query = db->CreateQuery("select count(42) from Books b left join Series_List sl on sl.BookID = b.BookID");
+			auto query = db.CreateQuery("select count(42) from Books b left join Series_List sl on sl.BookID = b.BookID");
 			query->Execute();
 			assert(!query->Eof());
 			return query->Get<long long>(0);
@@ -639,17 +639,17 @@ private:
 		const auto dictionaryProgressSize = booksCount / 10;
 		auto       dictionaryProgressItem = m_progressController->Add(dictionaryProgressSize);
 
-		const auto genres     = GetGenres(*db);
-		const auto bookGenres = GetBookGenres(*db, genres);
+		const auto genres     = GetGenres(db);
+		const auto bookGenres = GetBookGenres(db, genres);
 		dictionaryProgressItem->Increment(60 * dictionaryProgressSize / 100);
-		const auto authors = GetAuthors(*db);
+		const auto authors = GetAuthors(db);
 		dictionaryProgressItem->Increment(10 * dictionaryProgressSize / 100);
-		const auto bookAuthors = GetBookAuthors(*db, authors);
+		const auto bookAuthors = GetBookAuthors(db, authors);
 		dictionaryProgressItem->Increment(20 * dictionaryProgressSize / 100);
-		const auto series = GetSeries(*db);
+		const auto series = GetSeries(db);
 		dictionaryProgressItem->Increment(5 * dictionaryProgressSize / 100);
-		const auto keywords     = GetKeywords(*db);
-		const auto bookKeywords = GetBookKeywords(*db, keywords);
+		const auto keywords     = GetKeywords(db);
+		const auto bookKeywords = GetBookKeywords(db, keywords);
 		dictionaryProgressItem.reset();
 
 		if (QFile::exists(inpxFileName))
@@ -677,7 +677,7 @@ private:
 			zipFileController->AddFile(fileInfo.completeBaseName() + ".inp", bytes, QDateTime::currentDateTime());
 		};
 
-		for (const auto query = db->CreateQuery(BOOK_QUERY); const auto& rec : *query)
+		for (const auto query = db.CreateQuery(BOOK_QUERY); const auto& rec : *query)
 		{
 			if (m_progressItem->IsStopped())
 				return;

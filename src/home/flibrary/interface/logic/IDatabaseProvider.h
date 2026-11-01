@@ -4,6 +4,8 @@
 
 #include "fnd/observer.h"
 
+#include "database/interface/IDatabase.h"
+
 #include "util/IExecutor.h"
 
 #include "export/flint.h"
@@ -37,6 +39,14 @@ public:
 	};
 
 public:
+	template <typename T>
+	struct Task
+	{
+		std::string                                    name;
+		std::function<Util::IExecutor::TaskResult(T&)> task;
+	};
+
+public:
 	static constexpr auto SELECT_LAST_ID_QUERY = "select last_insert_rowid()";
 
 	static constexpr auto SET_USER_RATE_COMMAND = R"(
@@ -53,10 +63,12 @@ public:
 	virtual ~IDatabaseProvider() = default;
 
 public:
-	virtual size_t                                               Execute(Util::IExecutor::Task&& task, int priority = 0) const = 0;
-	[[nodiscard]] virtual std::shared_ptr<DB::IDatabase>         GetDatabase() const                                           = 0;
-	[[nodiscard]] virtual std::shared_ptr<DB::IDatabaseWritable> GetDatabaseWritable() const                                   = 0;
-	[[nodiscard]] virtual std::shared_ptr<Util::IExecutor>       Executor() const                                              = 0;
+	virtual size_t Execute(Task<DB::IDatabase>&& task, int priority = 0) const                 = 0;
+	virtual size_t ExecuteWritable(Task<DB::IDatabaseWritable>&& task, int priority = 0) const = 0;
+
+	[[nodiscard]] virtual bool                                   IsDatabaseValid() const noexcept = 0;
+	[[nodiscard]] virtual DB::IDatabase&                         GetDatabase1() const             = 0;
+	[[nodiscard]] virtual std::unique_ptr<DB::IDatabaseWritable> GetDatabaseWritable1() const     = 0;
 
 	[[nodiscard]] virtual QVariant GetSetting(Key key, QVariant defaultValue = {}) const = 0;
 	virtual void                   SetSetting(Key key, const QVariant& value) const      = 0;

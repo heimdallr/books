@@ -116,7 +116,7 @@ public:
 		m_callback = std::move(callback);
 
 		std::shared_ptr executor = ILogicFactory::Lock(m_logicFactory)->GetExecutor();
-		(*executor)({ "Check for app updates", [this, executor, client = std::move(client), force]() mutable {
+		(*executor)({ "Check for app updates", [this, executor, client = std::move(client), force](auto&) mutable {
 						 Requester requester { CreateQtConnection("https://api.github.com") };
 						 requester.GetLatestRelease(client, "heimdallr", "books");
 						 const auto checkResult = Check(force);

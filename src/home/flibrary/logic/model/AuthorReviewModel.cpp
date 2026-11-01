@@ -93,9 +93,8 @@ private: // QAbstractItemModel
 private:
 	void Reset(const long long authorId)
 	{
-		m_databaseProvider->Execute({ "Get author reviews", [this, authorId] {
-										 const auto db = m_databaseProvider->GetDatabase();
-										 return [this, items = GetReviews(authorId, *db)](size_t) mutable {
+		m_databaseProvider->Execute({ "Get author reviews", [this, authorId](DB::IDatabase& db) {
+										 return [this, items = GetReviews(authorId, db)](size_t) mutable {
 											 ScopedCall resetGuard(
 												 [this] {
 													 beginResetModel();

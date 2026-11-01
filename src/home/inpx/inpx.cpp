@@ -1241,7 +1241,7 @@ public:
 			return processed;
 		};
 		(*m_executor)(
-			{ "Create collection", [&, process] {
+			{ "Create collection", [&, process](auto&) {
 				 const auto ok = TRY("create collection", process);
 
 				 const auto genres = static_cast<size_t>(std::ranges::count_if(
@@ -1267,7 +1267,7 @@ public:
 		auto parse = [this, archiveParser]() {
 			return UpdateDatabaseImpl(archiveParser);
 		};
-		(*m_executor)({ "Update collection", [&, parse] {
+		(*m_executor)({ "Update collection", [&, parse](auto&) {
 						   auto       foldersCount = TRY("update collection", parse);
 						   const auto genres       = static_cast<size_t>(std::ranges::count_if(
 														 m_data.genres,
@@ -1415,7 +1415,7 @@ private:
 		const auto& dbFileName       = m_ini(DB_PATH);
 		const auto  connectionString = QString("path=%1").arg(dbFileName).toStdString();
 
-		m_db = CreateWritable(DB::Factory::Impl::Sqlite, connectionString);
+		m_db = Create<DB::IDatabaseWritable>(DB::Factory::Impl::Sqlite, connectionString);
 		m_db->CreateQuery("PRAGMA synchronous = OFF;")->Execute();
 
 		ExecuteScript(*m_db, "create database", m_ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
@@ -1638,7 +1638,7 @@ private:
 		const auto& dbFileName       = m_ini(DB_PATH);
 		const auto  connectionString = QString("path=%1").arg(dbFileName).toStdString();
 
-		m_db = CreateWritable(DB::Factory::Impl::Sqlite, connectionString);
+		m_db = Create<DB::IDatabaseWritable>(DB::Factory::Impl::Sqlite, connectionString);
 
 		const auto [oldData, oldGenresIndex] = ReadData(m_ini(GENRES_PATH, DEFAULT_GENRES));
 

@@ -207,38 +207,37 @@ private:
 
 } // namespace
 
-void ImportFromMyHomeLib(const Util::IExecutor& executor, const IDatabaseProvider& dbProvider, QString fileName, Callback callback)
+void ImportFromMyHomeLib(const IDatabaseProvider& dbProvider, QString fileName, Callback callback)
 {
-	executor({ "Restore MHL user data", [&dbProvider, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
-				  auto createResult = [callback = std::move(callback)](QString error = {}) mutable {
-					  if (!error.isEmpty())
-					  {
-						  PLOGE << error;
-					  }
+	dbProvider.ExecuteWritable({ "Restore MHL user data", [fileName = std::move(fileName), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+									auto createResult = [callback = std::move(callback)](QString error = {}) mutable {
+										if (!error.isEmpty())
+										{
+											PLOGE << error;
+										}
 
-					  return [callback = std::move(callback), error = std::move(error)](size_t) {
-						  callback(error);
-					  };
-				  };
+										return [callback = std::move(callback), error = std::move(error)](size_t) {
+											callback(error);
+										};
+									};
 
-				  QFile inp(fileName);
-				  if (!inp.open(QIODevice::ReadOnly))
-					  return createResult(QString(CANNOT_READ_FROM).arg(fileName));
+									QFile inp(fileName);
+									if (!inp.open(QIODevice::ReadOnly))
+										return createResult(QString(CANNOT_READ_FROM).arg(fileName));
 
-				  try
-				  {
-					  ZDecompressionStream stream(inp);
-					  stream.open(QIODevice::ReadOnly);
-					  const auto      db = dbProvider.GetDatabaseWritable();
-					  const XmlParser parser(stream, *db);
-				  }
-				  catch (const std::exception& ex)
-				  {
-					  PLOGE << ex.what();
-					  return createResult(ex.what());
-				  }
-				  return createResult();
-			  } });
+									try
+									{
+										ZDecompressionStream stream(inp);
+										stream.open(QIODevice::ReadOnly);
+										const XmlParser parser(stream, db);
+									}
+									catch (const std::exception& ex)
+									{
+										PLOGE << ex.what();
+										return createResult(ex.what());
+									}
+									return createResult();
+								} });
 }
 
 } // namespace HomeCompa::Flibrary::UserData

@@ -240,7 +240,7 @@ struct CollectionCleanerLogic::Impl
 	void Analyze(IAnalyzeObserver& observer) const
 	{
 		databaseProvider->Execute(
-			{ "Analyze", [&] {
+			{ "Analyze", [&](DB::IDatabase& db) {
 				 std::function result { [&](size_t) {
 					 observer.AnalyzeFinished({});
 				 } };
@@ -250,9 +250,8 @@ struct CollectionCleanerLogic::Impl
 			         && !observer.NeedDeleteUnrated() && !observer.GetMinimumLibRate() && !observer.NeedDeleteCompletelyDuplicatedCompilations() && !observer.NeedDeleteBooksDuplicatedByCompilations())
 					 return result;
 
-				 const auto db = databaseProvider->GetDatabase();
 				 PLOGI << "get books info";
-				 auto analyzedBooks = GetAnalyzedBooks(*db, *libRateProvider, observer, !genres.isEmpty(), analyzeCanceled);
+				 auto analyzedBooks = GetAnalyzedBooks(db, *libRateProvider, observer, !genres.isEmpty(), analyzeCanceled);
 				 PLOGI << "total books found: " << analyzedBooks.size();
 
 				 std::unordered_set<long long> toDelete;
@@ -328,14 +327,14 @@ struct CollectionCleanerLogic::Impl
 				 if (observer.NeedDeleteCompletelyDuplicatedCompilations())
 				 {
 					 const auto n = toDelete.size();
-					 RemoveCompletelyDuplicatedCompilations(*db, analyzedBooks, toDelete);
+					 RemoveCompletelyDuplicatedCompilations(db, analyzedBooks, toDelete);
 					 PLOGI << "completely duplicated compilations found: " << toDelete.size() - n;
 				 }
 
 				 if (observer.NeedDeleteBooksDuplicatedByCompilations())
 				 {
 					 const auto n = toDelete.size();
-					 RemoveBooksDuplicatedByCompilations(*db, analyzedBooks, toDelete);
+					 RemoveBooksDuplicatedByCompilations(db, analyzedBooks, toDelete);
 					 PLOGI << "duplicated by compilations found: " << toDelete.size() - n;
 				 }
 
@@ -366,47 +365,46 @@ struct CollectionCleanerLogic::Impl
 
 	void Remove(Books books, Callback callback) const
 	{
-		databaseProvider->Execute({ "Delete books permanently", [this, books = std::move(books), callback = std::move(callback)]() mutable {
-									   std::unordered_set<long long> ids;
-									   std::ranges::transform(books, std::inserter(ids, ids.end()), [](const auto& book) {
-										   return book.id;
-									   });
-									   const auto db = databaseProvider->GetDatabaseWritable();
-									   const bool ok = DatabaseUtil::ChangeBookRemoved(*db, ids, true, progressController);
-									   return [callback = std::move(callback), ok](size_t) {
-										   callback(ok);
-									   };
-								   } });
+		databaseProvider->ExecuteWritable({ "Delete books permanently", [this, books = std::move(books), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+											   std::unordered_set<long long> ids;
+											   std::ranges::transform(books, std::inserter(ids, ids.end()), [](const auto& book) {
+												   return book.id;
+											   });
+											   const bool ok = DatabaseUtil::ChangeBookRemoved(db, ids, true, progressController);
+											   return [callback = std::move(callback), ok](size_t) {
+												   callback(ok);
+											   };
+										   } });
 	}
 
 	void RemovePermanently(Books books, Callback callback) const
 	{
-		databaseProvider->Execute(
-			{ "Delete books permanently", [this, books = std::move(books), callback = std::move(callback), collectionFolder = collectionProvider->GetActiveCollection().GetFolder()]() mutable {
-				 auto progressItem = progressController->Add(100);
+		databaseProvider->ExecuteWritable(
+			{ "Delete books permanently",
+			  [this, books = std::move(books), callback = std::move(callback), collectionFolder = collectionProvider->GetActiveCollection().GetFolder()](DB::IDatabaseWritable& db) mutable {
+				  auto progressItem = progressController->Add(100);
 
-				 auto logicFactoryPtr = ILogicFactory::Lock(logicFactory);
-				 auto allFiles        = CollectBookFiles(books, [&] {
-					 return logicFactoryPtr->CreateZipProgressCallback(progressController);
-				 });
-				 auto images          = CollectImageFiles(allFiles, collectionFolder, [&] {
-					 return logicFactoryPtr->CreateZipProgressCallback(progressController);
-				 });
+				  auto logicFactoryPtr = ILogicFactory::Lock(logicFactory);
+				  auto allFiles        = CollectBookFiles(books, [&] {
+					  return logicFactoryPtr->CreateZipProgressCallback(progressController);
+				  });
+				  auto images          = CollectImageFiles(allFiles, collectionFolder, [&] {
+					  return logicFactoryPtr->CreateZipProgressCallback(progressController);
+				  });
 
-				 std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
-				 RemoveFiles(allFiles, collectionFolder);
+				  std::ranges::move(std::move(images), std::inserter(allFiles, allFiles.end()));
+				  RemoveFiles(allFiles, collectionFolder);
 
-				 const auto db          = databaseProvider->GetDatabaseWritable();
-				 const auto transaction = db->CreateTransaction();
+				  const auto transaction = db.CreateTransaction();
 
-				 auto ok = RemoveBooksImpl(books, *transaction, *progressItem);
-				 ok      = CleanupNavigationItems(*transaction) && ok;
-				 ok      = transaction->Commit() && ok;
+				  auto ok = RemoveBooksImpl(books, *transaction, *progressItem);
+				  ok      = CleanupNavigationItems(*transaction) && ok;
+				  ok      = transaction->Commit() && ok;
 
-				 return [callback = std::move(callback), ok](size_t) {
-					 callback(ok);
-				 };
-			 } }
+				  return [callback = std::move(callback), ok](size_t) {
+					  callback(ok);
+				  };
+			  } }
 		);
 	}
 };
@@ -446,8 +444,8 @@ void CollectionCleanerLogic::AnalyzeCancel() const
 
 void CollectionCleanerLogic::CompilationInfoExistsRequest(IAnalyzeObserver& callback) const
 {
-	const auto db    = m_impl->databaseProvider->GetDatabase();
-	const auto query = db->CreateQuery(std::format("SELECT exists(SELECT 42 FROM Compilation_List)"));
+	auto&      db    = m_impl->databaseProvider->GetDatabase1();
+	const auto query = db.CreateQuery("SELECT exists(SELECT 42 FROM Compilation_List)");
 	query->Execute();
 	callback.CompilationInfoExistsResponse(query->Get<int>(0) != 0);
 }

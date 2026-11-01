@@ -222,73 +222,72 @@ constexpr std::pair<const char*, BackupFunction> BACKUPERS[] {
 
 } // namespace
 
-void Backup(const Util::IExecutor& executor, const IDatabaseProvider& databaseProvider, QString fileName, Callback callback)
+void Backup(const IDatabaseProvider& databaseProvider, QString fileName, Callback callback)
 {
-	executor({ "Backup user data", [&databaseProvider, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
-				  std::function<void(size_t)> result;
+	databaseProvider.Execute({ "Backup user data", [fileName = std::move(fileName), callback = std::move(callback)](DB::IDatabase& db) mutable {
+								  std::function<void(size_t)> result;
 
-				  QFile out(fileName);
-				  if (!out.open(QIODevice::WriteOnly))
-				  {
-					  auto error = QString(CANNOT_WRITE).arg(fileName);
-					  PLOGE << error;
-					  result = [error = std::move(error), callback = std::move(callback)](size_t) {
-						  callback(error);
-					  };
-					  return result;
-				  }
-
-				  Util::XmlWriter xmlWriter(out);
-				  ScopedCall      rootElement(
-					  [&] {
-						  xmlWriter.WriteStartElement(Constant::FlibraryBackup);
-					  },
-					  [&] {
-						  xmlWriter.WriteEndElement();
-					  }
-				  );
-				  ScopedCall(
-					  [&] {
-						  xmlWriter.WriteStartElement(
-							  Constant::FlibraryBackupVersion,
-							  XmlAttributes(
+								  QFile out(fileName);
+								  if (!out.open(QIODevice::WriteOnly))
 								  {
-									  { QString::fromStdU16String(Constant::VALUE), QString::number(Constant::FlibraryBackupVersionNumber) },
-						  }
-							  )
-						  );
-					  },
-					  [&] {
-						  xmlWriter.WriteEndElement();
-					  }
-				  );
-				  ScopedCall userData(
-					  [&] {
-						  xmlWriter.WriteStartElement(Constant::FlibraryUserData);
-					  },
-					  [&] {
-						  xmlWriter.WriteEndElement();
-					  }
-				  );
+									  auto error = QString(CANNOT_WRITE).arg(fileName);
+									  PLOGE << error;
+									  result = [error = std::move(error), callback = std::move(callback)](size_t) {
+										  callback(error);
+									  };
+									  return result;
+								  }
 
-				  const auto db = databaseProvider.GetDatabase();
-				  for (const auto& [name, functor] : BACKUPERS)
-				  {
-					  ScopedCall item(
-						  [&] {
-							  xmlWriter.WriteStartElement(QString(name));
-						  },
-						  [&] {
-							  xmlWriter.WriteEndElement();
-						  }
-					  );
-					  functor(*db, xmlWriter);
-				  }
+								  Util::XmlWriter xmlWriter(out);
+								  ScopedCall      rootElement(
+									  [&] {
+										  xmlWriter.WriteStartElement(Constant::FlibraryBackup);
+									  },
+									  [&] {
+										  xmlWriter.WriteEndElement();
+									  }
+								  );
+								  ScopedCall(
+									  [&] {
+										  xmlWriter.WriteStartElement(
+											  Constant::FlibraryBackupVersion,
+											  XmlAttributes(
+												  {
+													  { QString::fromStdU16String(Constant::VALUE), QString::number(Constant::FlibraryBackupVersionNumber) },
+										  }
+											  )
+										  );
+									  },
+									  [&] {
+										  xmlWriter.WriteEndElement();
+									  }
+								  );
+								  ScopedCall userData(
+									  [&] {
+										  xmlWriter.WriteStartElement(Constant::FlibraryUserData);
+									  },
+									  [&] {
+										  xmlWriter.WriteEndElement();
+									  }
+								  );
 
-				  return result = [callback = std::move(callback)](size_t) {
-					  callback({});
-				  };
-			  } });
+								  for (const auto& [name, functor] : BACKUPERS)
+								  {
+									  ScopedCall item(
+										  [&] {
+											  xmlWriter.WriteStartElement(QString(name));
+										  },
+										  [&] {
+											  xmlWriter.WriteEndElement();
+										  }
+									  );
+									  functor(db, xmlWriter);
+								  }
+
+								  return result = [callback = std::move(callback)](size_t) {
+									  callback({});
+								  };
+							  } });
 }
 
 } // namespace HomeCompa::Flibrary::UserData

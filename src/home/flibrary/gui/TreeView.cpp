@@ -1562,7 +1562,7 @@ private:
 		if (it == std::end(actions))
 			return false;
 
-		auto& action = **it;
+		auto&      action  = **it;
 		const auto enabled = action.isEnabled();
 		if (!enabled)
 			action.setEnabled(true);

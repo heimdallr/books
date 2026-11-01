@@ -9,7 +9,6 @@
 #include "interface/logic/ICollectionController.h"
 #include "interface/logic/ICollectionUpdateChecker.h"
 #include "interface/logic/ICommandLine.h"
-#include "interface/logic/IDatabaseChecker.h"
 #include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IJokeRequesterFactory.h"
 #include "interface/logic/ILogController.h"
@@ -49,7 +48,6 @@ public:
 		std::shared_ptr<const IUiFactory>               uiFactory,
 		std::shared_ptr<const IDatabaseProvider>        databaseProvider,
 		std::shared_ptr<const ICollectionUpdateChecker> collectionUpdateChecker,
-		std::shared_ptr<const IDatabaseChecker>         databaseChecker,
 		std::shared_ptr<const ICommandLine>             commandLine,
 		std::shared_ptr<ISettings>                      settings,
 		std::shared_ptr<ICollectionController>          collectionController,

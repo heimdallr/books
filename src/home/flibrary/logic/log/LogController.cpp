@@ -73,8 +73,8 @@ void LogController::ShowCollectionStatistics() const
 	if (!m_impl->collectionProvider->ActiveCollectionExists())
 		return;
 
-	m_impl->databaseProvider->Execute({ "Get collection statistics", [this] {
-										   return [stats = m_impl->collectionProvider->GetCollectionStatistics(*m_impl->databaseProvider, true).join("\n")](size_t) {
+	m_impl->databaseProvider->Execute({ "Get collection statistics", [this](DB::IDatabase& db) {
+										   return [stats = m_impl->collectionProvider->GetCollectionStatistics(db, true).join("\n")](size_t) {
 											   PLOGI << stats;
 										   };
 									   } });

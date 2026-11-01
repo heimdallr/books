@@ -215,9 +215,8 @@ private:
 	void CreateGenreTree(std::shared_ptr<const IDatabaseProvider> databaseProvider)
 	{
 		const auto& databaseUserRef = *databaseProvider;
-		databaseUserRef.Execute({ "Create genre list", [&, databaseProvider = std::move(databaseProvider)]() mutable {
-									 const auto db   = databaseProvider->GetDatabase();
-									 auto       root = Genre::Load(*db);
+		databaseUserRef.Execute({ "Create genre list", [&, databaseProvider = std::move(databaseProvider)](DB::IDatabase& db) mutable {
+									 auto root = Genre::Load(db);
 									 return [this, root = std::move(root)](size_t) mutable {
 										 const ScopedCall modelGuard(
 											 [this] {

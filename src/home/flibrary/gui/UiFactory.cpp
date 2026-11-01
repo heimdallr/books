@@ -1117,10 +1117,9 @@ limit {}
 		   databaseProvider       = std::move(databaseProvider),
 		   queryText              = std::format(QUERY, std::to_underlying(IDatabaseProvider::Key::RecentBookDateTime), maxMenuItemCount),
 		   menuItemTitleFormat    = std::move(menuItemTitleFormat),
-		   menuItemDateTimeFormat = std::move(menuItemDateTimeFormat)]() mutable {
-			  const auto db   = databaseProvider->GetDatabase();
-			  auto       data = [&] {
-				  const auto query = db->CreateQuery(queryText);
+		   menuItemDateTimeFormat = std::move(menuItemDateTimeFormat)](DB::IDatabase& db) mutable {
+			  auto data = [&] {
+				  const auto query = db.CreateQuery(queryText);
 				  return *query | std::views::transform([&](const auto& item) {
 					  const auto dateTime = QDateTime::fromString(query->Get<const char*>(3), MENU_ITEM_DATETIME_FORMAT_DEFAULT).toString(menuItemDateTimeFormat);
 					  auto       title    = menuItemTitleFormat;
@@ -1142,7 +1141,7 @@ limit {}
 				  menu.addSeparator();
 				  const auto* action = menu.addAction(Tr(CLEAR_RECENT_BOOKS));
 				  connect(action, &QAction::triggered, [this, &menu] {
-					  const auto database = m_impl->container.resolve<IDatabaseProvider>()->GetDatabaseWritable();
+					  const auto database = m_impl->container.resolve<IDatabaseProvider>()->GetDatabaseWritable1();
 					  const auto tr       = database->CreateTransaction();
 					  tr->CreateCommand(
 							std::format(

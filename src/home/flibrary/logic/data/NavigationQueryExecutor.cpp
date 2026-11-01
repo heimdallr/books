@@ -184,11 +184,8 @@ void RequestNavigationList(
 {
 	databaseProvider.Execute(
 		{ "Get navigation",
-		  [&databaseProvider, &queryDescription, &cache, mode = navigationMode, callback = std::move(callback), postProcess = std::move(postProcess)]() mutable {
-			  auto db = databaseProvider.GetDatabase();
-			  assert(db);
-
-			  const auto query = db->CreateQuery(queryDescription.navigationQuery);
+		  [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback), postProcess = std::move(postProcess)](DB::IDatabase& db) mutable {
+			  const auto query = db.CreateQuery(queryDescription.navigationQuery);
 			  const auto index = *query | std::views::transform([&](const auto& item) {
 				  auto dataItem = queryDescription.navigationExtractor(item);
 				  auto id       = dataItem->GetId();
@@ -274,11 +271,8 @@ void RequestNavigationGenres(
 {
 	databaseProvider.Execute(
 		{ "Get navigation",
-		  [&databaseProvider, &cache, mode = navigationMode, callback = std::move(callback)]() mutable {
-			  const auto db = databaseProvider.GetDatabase();
-			  assert(db);
-
-			  auto                                            genre = Genre::Load(*db);
+		  [&cache, mode = navigationMode, callback = std::move(callback)](DB::IDatabase& db) mutable {
+			  auto                                            genre = Genre::Load(db);
 			  auto                                            root  = NavigationItem::Create();
 			  std::queue<std::pair<const Genre*, IDataItem*>> queue;
 			  queue.emplace(&genre, root.get());
@@ -318,12 +312,9 @@ void RequestNavigationUpdates(
 {
 	databaseProvider.Execute(
 		{ "Get navigation",
-		  [&databaseProvider, &queryDescription, &cache, mode = navigationMode, callback = std::move(callback)]() mutable {
-			  auto db = databaseProvider.GetDatabase();
-			  assert(db);
-
-			  return CreateCalendarTree(mode, std::move(callback), cache, [&queryDescription, db = std::move(db)](std::unordered_map<long long, IDataItem::Ptr>& items) {
-				  for (const auto query = db->CreateQuery(queryDescription.navigationQuery); const auto& rec : *query)
+		  [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback)](DB::IDatabase& db) mutable {
+			  return CreateCalendarTree(mode, std::move(callback), cache, [&queryDescription, &db](std::unordered_map<long long, IDataItem::Ptr>& items) {
+				  for (const auto query = db.CreateQuery(queryDescription.navigationQuery); const auto& rec : *query)
 				  {
 					  auto       item     = queryDescription.navigationExtractor(rec);
 					  const auto id       = item->GetId().toLongLong();
@@ -350,7 +341,7 @@ void RequestNavigationReviews(
 
 	databaseProvider.Execute(
 		{ "Get navigation",
-		  [&cache, mode = navigationMode, folder = collectionProvider.GetActiveCollection().GetAdditionalFolder(), callback = std::move(callback)]() mutable {
+		  [&cache, mode = navigationMode, folder = collectionProvider.GetActiveCollection().GetAdditionalFolder(), callback = std::move(callback)](DB::IDatabase&) mutable {
 			  return CreateCalendarTree(mode, std::move(callback), cache, [&folder](std::unordered_map<long long, IDataItem::Ptr>& items) {
 				  for (const auto& reviewInfo : QDir(folder + "/" + Inpx::REVIEWS_FOLDER).entryInfoList({ "??????.7z" }))
 				  {

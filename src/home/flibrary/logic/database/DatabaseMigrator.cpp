@@ -53,14 +53,13 @@ IDatabaseMigrator::NeedMigrateResult DatabaseMigrator::NeedMigrate() const
 
 void DatabaseMigrator::Migrate()
 {
-	m_impl->databaseProvider->Execute({ "Database migration", [this] {
-										   const auto db = m_impl->databaseProvider->GetDatabaseWritable();
-										   DatabaseScheme::Update(*db, *m_impl->collectionProvider);
-										   return [this](size_t) {
-											   m_impl->databaseProvider->SetSetting(IDatabaseProvider::Key::DatabaseVersion, Constant::FlibraryDatabaseVersionNumber);
-											   m_impl->Perform(&IObserver::OnMigrationFinished);
-										   };
-									   } });
+	m_impl->databaseProvider->ExecuteWritable({ "Database migration", [this](DB::IDatabaseWritable& db) {
+												   DatabaseScheme::Update(db, *m_impl->collectionProvider);
+												   return [this](size_t) {
+													   m_impl->databaseProvider->SetSetting(IDatabaseProvider::Key::DatabaseVersion, Constant::FlibraryDatabaseVersionNumber);
+													   m_impl->Perform(&IObserver::OnMigrationFinished);
+												   };
+											   } });
 }
 
 void DatabaseMigrator::RegisterObserver(IObserver* observer)

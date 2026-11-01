@@ -833,7 +833,7 @@ public:
 
 	Node GetRoot(const QString& root, const Parameters& parameters) const
 	{
-		const auto db = m_databaseProvider->GetDatabase();
+		auto& db = m_databaseProvider->GetDatabase1();
 
 		static constexpr std::pair<Flibrary::NavigationMode, const char*> navigationTypes[] {
 #define OPDS_INVOKER_ITEM(NAME) { Flibrary::NavigationMode::NAME, Loc::NAME },
@@ -841,7 +841,7 @@ public:
 #undef OPDS_INVOKER_ITEM
 		};
 
-		auto head = GetHead(ROOT, GetTitle(*db, *this, parameters, { .defaultTitle = m_collectionProvider->GetActiveCollection().name }), root, CreateSelf(root, "", parameters));
+		auto head = GetHead(ROOT, GetTitle(db, *this, parameters, { .defaultTitle = m_collectionProvider->GetActiveCollection().name }), root, CreateSelf(root, "", parameters));
 
 		const auto join = GetJoin(parameters);
 
@@ -864,7 +864,7 @@ public:
 			const auto childCount = head.children.size();
 			for (const auto& dbStatQueryText : dbStatQueryTextItems)
 			{
-				const auto query = db->CreateQuery(FilterQueryText(dbStatQueryText));
+				const auto query = db.CreateQuery(FilterQueryText(dbStatQueryText));
 				query->Execute();
 				assert(!query->Eof());
 				const auto* id = query->Get<const char*>(0);
@@ -876,7 +876,7 @@ public:
 				if (childCount == head.children.size())
 					return GetBooks(root, parameters);
 
-				const auto query = db->CreateQuery(FilterQueryText(QString(BOOK_DESCRIPTION.count).arg(join)));
+				const auto query = db.CreateQuery(FilterQueryText(QString(BOOK_DESCRIPTION.count).arg(join)));
 				query->Execute();
 				assert(!query->Eof());
 
@@ -887,7 +887,7 @@ public:
 
 		if (!parameters.contains(Loc::Groups))
 		{
-			for (const auto query = db->CreateQuery(FilterQueryText(QString(GROUPS_SELECT).arg(join))); const auto& rec : *query)
+			for (const auto query = db.CreateQuery(FilterQueryText(QString(GROUPS_SELECT).arg(join))); const auto& rec : *query)
 			{
 				auto       p  = parameters;
 				const auto id = QString("%1/%2").arg(Loc::Groups).arg(p[Loc::Groups] = rec.Get<const char*>(0));
@@ -900,9 +900,9 @@ public:
 
 	Node GetBooks(const QString& root, const Parameters& parameters) const
 	{
-		const auto db = m_databaseProvider->GetDatabase();
+		auto& db = m_databaseProvider->GetDatabase1();
 
-		auto head = GetHead(BOOKS, GetTitle(*db, *this, parameters, {}), root, CreateSelf(root, BOOKS, parameters));
+		auto head = GetHead(BOOKS, GetTitle(db, *this, parameters, {}), root, CreateSelf(root, BOOKS, parameters));
 		FoldNavigation(head.children, root, parameters, BOOK_DESCRIPTION);
 
 		const auto entryBegin = std::ranges::find(head.children, ENTRY, [](const auto& item) {
@@ -918,7 +918,6 @@ public:
 		Node head;
 
 		AnnotationControllerObserver::Request(*m_annotationController, parameters.at(BOOKS), [&](const Flibrary::IAnnotationController::IDataProvider& dataProvider) {
-			const auto  db   = m_databaseProvider->GetDatabase();
 			const auto& book = dataProvider.GetBook();
 
 			head = GetHead(book.GetId(), book.GetRawData(Flibrary::BookItem::Column::Title), root, CreateSelf(root, BOOKS, parameters));
@@ -1024,9 +1023,9 @@ public:
 		const auto n = head.children.size();
 
 		{
-			const auto db   = m_databaseProvider->GetDatabase();
-			auto       ones = [&] {
-				const auto query = db->CreateQuery(FilterQueryText(queryText), terms);
+			auto& db   = m_databaseProvider->GetDatabase1();
+			auto  ones = [&] {
+				const auto query = db.CreateQuery(FilterQueryText(queryText), terms);
 				return *query | std::views::transform([](auto& item) {
 					return std::make_pair(QString { item.template Get<const char*>(0) }, QString { item.template Get<const char*>(1) });
 				}) | std::views::common
@@ -1035,7 +1034,7 @@ public:
 			auto p = parameters;
 			p.erase("q");
 			p.erase(SEPARATED);
-			writeEntries(head.children, root, std::move(p), navigationDescription, *db, *this, {}, std::move(ones));
+			writeEntries(head.children, root, std::move(p), navigationDescription, db, *this, {}, std::move(ones));
 		}
 
 		if (n != head.children.size())
@@ -1113,7 +1112,7 @@ public:
 
 	void Init() const
 	{
-		const auto db = m_databaseProvider->GetDatabaseWritable();
+		const auto db = m_databaseProvider->GetDatabaseWritable1();
 		BookView::Create(*db, *m_settings, *m_filterProvider);
 	}
 
@@ -1163,8 +1162,8 @@ public:
 private: // INavigationProvider
 	Node GetNavigationMain(const QString& root, const Parameters& parameters, const NavigationDescription& d) const override
 	{
-		const auto db   = m_databaseProvider->GetDatabase();
-		auto       head = GetHead(d.type, GetTitle(*db, *this, parameters, { .additionalTitle = Loc::Tr(Loc::NAVIGATION, d.type) }), root, CreateSelf(root, d.type, parameters));
+		auto& db   = m_databaseProvider->GetDatabase1();
+		auto  head = GetHead(d.type, GetTitle(db, *this, parameters, { .additionalTitle = Loc::Tr(Loc::NAVIGATION, d.type) }), root, CreateSelf(root, d.type, parameters));
 		FoldNavigation(head.children, root, parameters, d);
 
 		const auto entryBegin = std::ranges::find(head.children, ENTRY, [](const auto& item) {
@@ -1180,7 +1179,7 @@ private: // INavigationProvider
 	template <typename T, typename DBCodeType>
 	Node GetNavigationT(const QString& root, const Parameters& parameters, const NavigationDescription& d) const
 	{
-		const auto db = m_databaseProvider->GetDatabase();
+		auto& db = m_databaseProvider->GetDatabase1();
 
 		auto join = [&] {
 			auto p = parameters;
@@ -1193,11 +1192,11 @@ private: // INavigationProvider
 
 		std::unordered_set<typename T::CodeType> itemsWithBooks;
 		if (!parameters.empty() && (parameters.size() > 1 || parameters.begin()->first != d.type))
-			db->CreateQuery(FilterQueryText(QString(d.selectEqual).arg(join)))->ForEach([&](const auto& rec) {
+			db.CreateQuery(FilterQueryText(QString(d.selectEqual).arg(join)))->ForEach([&](const auto& rec) {
 				itemsWithBooks.emplace(rec.template Get<DBCodeType>(0));
 			});
 
-		auto  rootItem   = T::Load(*db, itemsWithBooks);
+		auto  rootItem   = T::Load(db, itemsWithBooks);
 		auto* parentItem = &rootItem;
 		if (const auto it = parameters.find(d.type); it != parameters.end())
 			parentItem = T::Find(parentItem, ToItemCode<typename T::CodeType>(it->second));
@@ -1210,7 +1209,7 @@ private: // INavigationProvider
 		TitleHelper titleHelper { .defaultTitle = Loc::Tr(Loc::NAVIGATION, d.type) };
 		if (!parameters.contains(d.type))
 			titleHelper.additionalTitle = titleHelper.defaultTitle;
-		auto head = GetHead(d.type, GetTitle(*db, *this, parameters, std::move(titleHelper)), root, CreateSelf(root, d.type, parameters));
+		auto head = GetHead(d.type, GetTitle(db, *this, parameters, std::move(titleHelper)), root, CreateSelf(root, d.type, parameters));
 
 		Parameters typedParameters = parameters;
 		typedParameters.erase(STARTS);
@@ -1222,7 +1221,7 @@ private: // INavigationProvider
 				if (!childItem.children.empty())
 					return std::make_pair(QString(d.type), GetContent(childItem));
 
-				const auto query = db->CreateQuery(FilterQueryText(QString(d.content).arg(join)));
+				const auto query = db.CreateQuery(FilterQueryText(QString(d.content).arg(join)));
 				query->Execute(childItem.code);
 				assert(!query->Eof());
 				return std::make_pair(QString {}, Tr(BOOKS_COUNTER).arg(query->template Get<int>(0)));
@@ -1255,7 +1254,7 @@ private: // IQueryTextFilter
 private:
 	void FoldNavigation(Node::Children& children, const QString& root, const Parameters& parameters, const NavigationDescription& d) const
 	{
-		const auto db = m_databaseProvider->GetDatabase();
+		auto& db = m_databaseProvider->GetDatabase1();
 
 		QStringList                                       equal;
 		std::map<QString, QString>                        ones;
@@ -1269,7 +1268,7 @@ private:
 		const auto countTotal = [&] {
 			const auto [startsWithLike, escape] = PrepareForLike(startsWithGlobal);
 			const auto queryText                = QString(d.countStartsWith).arg(escape).arg(join);
-			const auto query                    = db->CreateQuery(FilterQueryText(queryText));
+			const auto query                    = db.CreateQuery(FilterQueryText(queryText));
 			query->Bind(":starts", startsWithGlobal);
 			query->Bind(":starts_like", startsWithLike);
 			query->Execute();
@@ -1278,7 +1277,7 @@ private:
 		}();
 
 		const auto selectOne = [&](const QString& queryText, const std::vector<std::pair<QString, QString>>& params) {
-			const auto query = db->CreateQuery(FilterQueryText(queryText));
+			const auto query = db.CreateQuery(FilterQueryText(queryText));
 			for (const auto& [key, value] : params)
 				query->Bind(key.toStdString(), value);
 
@@ -1306,7 +1305,7 @@ private:
 			const auto selectStarts = [&](const auto startsWith) {
 				const auto [startsWithLike, escape] = PrepareForLike(startsWith);
 				const auto queryText                = QString(d.startsWith).arg(escape).arg(join);
-				const auto query                    = db->CreateQuery(FilterQueryText(queryText));
+				const auto query                    = db.CreateQuery(FilterQueryText(queryText));
 				query->Bind(":length", startsWith.length() + 1);
 				query->Bind(":starts", startsWith.toStdString());
 				query->Bind(":starts_like", startsWithLike.toStdString());
@@ -1357,7 +1356,7 @@ private:
 
 		Parameters typedParameters = parameters;
 		typedParameters.erase(STARTS);
-		d.writeEntries(children, root, std::move(typedParameters), d, *db, *this, std::move(join), std::move(ones));
+		d.writeEntries(children, root, std::move(typedParameters), d, db, *this, std::move(join), std::move(ones));
 	}
 
 	ptrdiff_t GetMaxResultSize() const

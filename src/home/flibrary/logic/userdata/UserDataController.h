@@ -41,7 +41,7 @@ private: // IUserDataController
 	void Restore(QString path, Callback callback) const override;
 
 private:
-	using DoFunction = void (*)(const Util::IExecutor& executor, const IDatabaseProvider& databaseProvider, QString fileName, UserData::Callback callback);
+	using DoFunction = void (*)(const IDatabaseProvider& databaseProvider, QString fileName, UserData::Callback callback);
 	void Do(Callback callback, QString fileName, const char* successMessage, DoFunction f) const;
 
 private:

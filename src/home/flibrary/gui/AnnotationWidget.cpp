@@ -597,7 +597,7 @@ private:
 		std::shared_ptr progressItem = m_progressController->Add(static_cast<int>(m_covers.size()));
 		std::shared_ptr executor     = ILogicFactory::Lock(m_logicFactory)->GetExecutor();
 
-		(*executor)({ "Save images", [this, executor, folder = std::move(folder), covers = m_covers, progressItem = std::move(progressItem)]() mutable {
+		(*executor)({ "Save images", [this, executor, folder = std::move(folder), covers = m_covers, progressItem = std::move(progressItem)](auto&) mutable {
 						 size_t savedCount = 0;
 						 for (const auto& [name, bytes] : covers)
 						 {

@@ -116,7 +116,7 @@ struct ReaderController::Impl
 		if (!ReadImpl(std::move(temporaryDir), std::move(fileName), removeCurrentReader, error))
 			return;
 
-		const auto db          = databaseProvider->GetDatabaseWritable();
+		const auto db          = databaseProvider->GetDatabaseWritable1();
 		const auto transaction = db->CreateTransaction();
 		transaction->CreateQuery(ExportStat::INSERT_QUERY)->Execute(id, static_cast<int>(ExportStat::Type::Read));
 
@@ -234,8 +234,8 @@ struct ReaderController::Impl
 		fileNameTemplate.replace("%file_ext%", QFileInfo(fileName).suffix());
 		fileNameTemplate.replace("%user_destination_folder%", "");
 
-		const auto db = databaseProvider->GetDatabase();
-		ILogicFactory::FillScriptTemplate(*db, fileNameTemplate, ILogicFactory::Lock(logicFactory)->GetCurrentExtractedBook());
+		auto& db = databaseProvider->GetDatabase1();
+		ILogicFactory::FillScriptTemplate(db, fileNameTemplate, ILogicFactory::Lock(logicFactory)->GetCurrentExtractedBook());
 
 		return fileNameTemplate;
 	}
@@ -330,40 +330,38 @@ void ReaderController::Read(long long id) const
 
 	const auto removeCurrentReader = (QGuiApplication::keyboardModifiers() & (Qt::ShiftModifier | Qt::AltModifier | Qt::ControlModifier));
 
-	const auto& executorRef = *executor;
-	executorRef({ "Get archive and file names", [this, id, executor = std::move(executor), removeCurrentReader]() mutable {
-					 const auto db = m_impl->databaseProvider->GetDatabase();
+	m_impl->databaseProvider->Execute(
+		{ "Get archive and file names", [this, id, executor = std::move(executor), removeCurrentReader](DB::IDatabase& db) mutable {
+			 auto [folderName, fileName] = [&] {
+				 const auto query = db.CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
+				 query->Execute(id);
+				 assert(!query->Eof());
+				 return query->Get<QString, QString>();
+			 }();
 
-					 auto [folderName, fileName] = [&] {
-						 const auto query = db->CreateQuery("select f.FolderTitle, b.FileName||b.Ext from Books b join Folders f on f.FolderID = b.FolderID where b.BookID = ?");
-						 query->Execute(id);
-						 assert(!query->Eof());
-						 return query->Get<QString, QString>();
-					 }();
-
-					 auto archive      = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection().GetFolder(), folderName);
-					 auto temporaryDir = [this] {
-						 const auto logicFactory = ILogicFactory::Lock(m_impl->logicFactory);
-						 if (const auto folder = m_impl->settings->Get(DEFAULT_FOLDER_KEY); folder.isValid())
-							 return logicFactory->CreateTemporaryDir(folder.toString());
-						 return logicFactory->CreateTemporaryDir(true);
-					 }();
-					 auto error = m_impl->Extract(*temporaryDir, archive, fileName);
-					 return [this, id, executor = std::move(executor), fileName = std::move(fileName), temporaryDir = std::move(temporaryDir), removeCurrentReader, error = std::move(error)](size_t) mutable {
-						 m_impl->Read(id, std::move(temporaryDir), std::move(fileName), removeCurrentReader, error);
-						 executor.reset();
-					 };
-				 } });
+			 auto archive      = QString("%1/%2").arg(m_impl->collectionController->GetActiveCollection().GetFolder(), folderName);
+			 auto temporaryDir = [this] {
+				 const auto logicFactory = ILogicFactory::Lock(m_impl->logicFactory);
+				 if (const auto folder = m_impl->settings->Get(DEFAULT_FOLDER_KEY); folder.isValid())
+					 return logicFactory->CreateTemporaryDir(folder.toString());
+				 return logicFactory->CreateTemporaryDir(true);
+			 }();
+			 auto error = m_impl->Extract(*temporaryDir, archive, fileName);
+			 return [this, id, executor = std::move(executor), fileName = std::move(fileName), temporaryDir = std::move(temporaryDir), removeCurrentReader, error = std::move(error)](size_t) mutable {
+				 m_impl->Read(id, std::move(temporaryDir), std::move(fileName), removeCurrentReader, error);
+				 executor.reset();
+			 };
+		 } }
+	);
 }
 
 void ReaderController::ReadRandomBook(QString lang) const
 {
-	m_impl->databaseProvider->Execute({ "Get books for language", [this, lang = std::move(lang)]() {
+	m_impl->databaseProvider->Execute({ "Get books for language", [this, lang = std::move(lang)](DB::IDatabase& db) {
 										   std::function<void(size_t)> result { [](size_t) {
 										   } };
 
-										   const auto db    = m_impl->databaseProvider->GetDatabase();
-										   const auto query = db->CreateQuery("select b.BookID from Books b join Folders f on f.FolderID = b.FolderID where b.Lang = ?", lang);
+										   const auto query = db.CreateQuery("select b.BookID from Books b join Folders f on f.FolderID = b.FolderID where b.Lang = ?", lang);
 
 										   const auto allBooks = *query | std::views::transform([](auto& item) {
 											   return item.template Get<long long>(0);

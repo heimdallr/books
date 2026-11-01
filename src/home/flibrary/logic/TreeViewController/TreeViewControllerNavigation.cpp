@@ -12,6 +12,7 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 #include "interface/logic/IBookSearchController.h"
+#include "interface/logic/IDatabaseProvider.h"
 
 #include "ChangeNavigationController/GroupController.h"
 #include "data/DataItem.h"
@@ -263,8 +264,7 @@ static_assert(std::size(MODE_DESCRIPTORS) == static_cast<size_t>(NavigationMode:
 
 struct TreeViewControllerNavigation::Impl final
     : virtual IContextMenuHandler
-    //    , virtual private IDatabaseController::IObserver
-    , virtual private DB::IDatabaseObserver
+    , virtual private IDatabaseProvider::IObserver
     , virtual private ITableSubscriptionHandler
     , virtual private INavigationFilter
     , virtual private IContextMenuProvider
@@ -286,6 +286,7 @@ struct TreeViewControllerNavigation::Impl final
 
 	Impl(
 		TreeViewControllerNavigation&                self,
+		IDatabaseController&                         databaseController,
 		const std::shared_ptr<const ILogicFactory>&  logicFactory,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
 		std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
@@ -310,7 +311,7 @@ struct TreeViewControllerNavigation::Impl final
 		for ([[maybe_unused]] const auto& _ : MODE_DESCRIPTORS)
 			models.emplace_back(std::shared_ptr<QAbstractItemModel>());
 
-		this->databaseProvider->GetDatabase()->RegisterObserver(this);
+		databaseController.RegisterObserver(this);
 	}
 
 	~Impl() override = default;
@@ -318,9 +319,9 @@ struct TreeViewControllerNavigation::Impl final
 	void RequestContextMenu(const QModelIndex& index, RequestContextMenuOptions options, RequestContextMenuCallback callback)
 	{
 		assert(static_cast<size_t>(mode) < std::size(MENU_REQUESTERS));
-		auto       id   = index.data(Role::Id).toString();
-		const auto db   = databaseProvider->GetDatabase();
-		auto       item = std::invoke(MENU_REQUESTERS[mode], static_cast<IContextMenuProvider*>(this), std::ref(*db), std::cref(id), options);
+		auto  id   = index.data(Role::Id).toString();
+		auto& db   = databaseProvider->GetDatabase1();
+		auto  item = std::invoke(MENU_REQUESTERS[mode], static_cast<IContextMenuProvider*>(this), std::ref(db), std::cref(id), options);
 		forwarder.Forward([callback = std::move(callback), id = std::move(id), item = std::move(item)] {
 			callback(id, item, {});
 		});
@@ -498,11 +499,8 @@ private: // INavigationFilter
 		if (!descriptor.filterParameter)
 			return true;
 
-		const auto db = databaseProvider->GetDatabase();
-		if (!db)
-			return true;
-
-		const auto query = db->CreateQuery(descriptor.filterParameter);
+		auto&      db    = databaseProvider->GetDatabase1();
+		const auto query = db.CreateQuery(descriptor.filterParameter);
 		query->Execute();
 		assert(!query->Eof());
 		return query->Get<int>(0) != 0;
@@ -807,6 +805,7 @@ private:
 TreeViewControllerNavigation::TreeViewControllerNavigation(
 	std::shared_ptr<ISettings>                   settings,
 	const std::shared_ptr<IModelProvider>&       modelProvider,
+	const std::shared_ptr<IDatabaseController>&  databaseController,
 	const std::shared_ptr<const ILogicFactory>&  logicFactory,
 	std::shared_ptr<const ICollectionProvider>   collectionProvider,
 	std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
@@ -820,6 +819,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
 	, m_impl(
 		  *this,
+		  *databaseController,
 		  logicFactory,
 		  std::move(collectionProvider),
 		  std::move(menuCustomizer),

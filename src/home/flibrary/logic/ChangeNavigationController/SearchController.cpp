@@ -79,9 +79,8 @@ struct SearchController::Impl
 	void GetAllSearches(std::function<void(const Names&)> callback) const
 	{
 		const auto& databaseUserRef = *databaseProvider;
-		databaseUserRef.Execute({ "Get all searches", [dbProvider = databaseProvider, callback = std::move(callback)]() mutable {
-									 const auto db    = dbProvider->GetDatabase();
-									 const auto query = db->CreateQuery("select SearchID, Title from Searches_User");
+		databaseUserRef.Execute({ "Get all searches", [dbProvider = databaseProvider, callback = std::move(callback)](DB::IDatabase& db) mutable {
+									 const auto query = db.CreateQuery("select SearchID, Title from Searches_User");
 									 auto       names = *query | std::views::transform([](const auto& item) {
 										 return std::make_pair(item.template Get<QString>(1).toUpper(), item.template Get<long long>(0));
 									 }) | std::views::common
@@ -104,18 +103,19 @@ struct SearchController::Impl
 	void CreateNewSearch(Callback callback, QString searchString)
 	{
 		const auto& databaseUserRef = *databaseProvider;
-		databaseUserRef.Execute({ "Create search string", [&, dbProvider = databaseProvider, searchString = std::move(searchString), callback = std::move(callback)]() mutable {
-									 const auto db          = dbProvider->GetDatabaseWritable();
-									 const auto transaction = db->CreateTransaction();
-									 const auto id          = CreateNewSearchImpl(*transaction, searchString);
-									 transaction->Commit();
+		databaseUserRef.ExecuteWritable(
+			{ "Create search string", [&, dbProvider = databaseProvider, searchString = std::move(searchString), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+				 const auto transaction = db.CreateTransaction();
+				 const auto id          = CreateNewSearchImpl(*transaction, searchString);
+				 transaction->Commit();
 
-									 return [this, id, dbProvider = std::move(dbProvider), searchString = std::move(searchString), callback = std::move(callback)](size_t) {
-										 if (!id)
-											 uiFactory->ShowError(Tr(CANNOT_CREATE_SEARCH).arg(searchString));
-										 callback(id);
-									 };
-								 } });
+				 return [this, id, dbProvider = std::move(dbProvider), searchString = std::move(searchString), callback = std::move(callback)](size_t) {
+					 if (!id)
+						 uiFactory->ShowError(Tr(CANNOT_CREATE_SEARCH).arg(searchString));
+					 callback(id);
+				 };
+			 } }
+		);
 	}
 
 	void FindOrCreateNewSearch(const Names& names, QString searchString, Callback callback)
@@ -190,23 +190,22 @@ void SearchController::Remove(Ids ids, Callback callback) const
 		return;
 
 	const auto& databaseUserRef = *m_impl->databaseProvider;
-	databaseUserRef.Execute({ "Remove search string", [&, dbProvider = m_impl->databaseProvider, ids = std::move(ids), callback = std::move(callback)]() mutable {
-								 const auto db          = dbProvider->GetDatabaseWritable();
-								 const auto transaction = db->CreateTransaction();
-								 const auto command     = transaction->CreateCommand(REMOVE_SEARCH_QUERY);
+	databaseUserRef.ExecuteWritable({ "Remove search string", [&, dbProvider = m_impl->databaseProvider, ids = std::move(ids), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+										 const auto transaction = db.CreateTransaction();
+										 const auto command     = transaction->CreateCommand(REMOVE_SEARCH_QUERY);
 
-								 auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&](const bool init, const Id id) {
-									 return command->Execute(id) && init;
-								 });
-								 ok      = transaction->Commit() && ok;
+										 auto ok = std::accumulate(ids.cbegin(), ids.cend(), true, [&](const bool init, const Id id) {
+											 return command->Execute(id) && init;
+										 });
+										 ok      = transaction->Commit() && ok;
 
-								 return [this, dbProvider = std::move(dbProvider), callback = std::move(callback), ok](size_t) {
-									 if (!ok)
-										 m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_SEARCH));
+										 return [this, dbProvider = std::move(dbProvider), callback = std::move(callback), ok](size_t) {
+											 if (!ok)
+												 m_impl->uiFactory->ShowError(Tr(CANNOT_REMOVE_SEARCH));
 
-									 callback(-1);
-								 };
-							 } });
+											 callback(-1);
+										 };
+									 } });
 }
 
 void SearchController::Search(QString searchString, Callback callback)

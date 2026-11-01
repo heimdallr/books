@@ -68,12 +68,12 @@ public:
 class IBookSelector // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
-	using Selector = void (IBookSelector::*)(const Collection& activeCollection, const IDatabaseProvider& dbProvider, const QueryDescription&);
+	using Selector = void (IBookSelector::*)(const Collection& activeCollection, DB::IDatabase& db, const IDatabaseProvider& dbProvider, const QueryDescription&);
 
 public:
-	virtual ~IBookSelector()                                                                                                     = default;
-	virtual void SelectBooks(const Collection& activeCollection, const IDatabaseProvider& dbProvider, const QueryDescription&)   = 0;
-	virtual void SelectReviews(const Collection& activeCollection, const IDatabaseProvider& dbProvider, const QueryDescription&) = 0;
+	virtual ~IBookSelector()                                                                                                                        = default;
+	virtual void SelectBooks(const Collection& activeCollection, DB::IDatabase& db, const IDatabaseProvider& dbProvider, const QueryDescription&)   = 0;
+	virtual void SelectReviews(const Collection& activeCollection, DB::IDatabase& db, const IDatabaseProvider& dbProvider, const QueryDescription&) = 0;
 };
 
 using QueryDataExtractor = IDataItem::Ptr (*)(const DB::IQuery& query);
@@ -131,6 +131,7 @@ public:
 	BooksTreeGenerator(
 		const ISettings&         settings,
 		const Collection&        activeCollection,
+		DB::IDatabase&           db,
 		const IDatabaseProvider& dbProvider,
 		NavigationMode           navigationMode,
 		QString                  navigationId,

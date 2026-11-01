@@ -39,18 +39,17 @@ class ModelImpl : public QAbstractTableModel
 public:
 	explicit ModelImpl(std::shared_ptr<const IDatabaseProvider> databaseProvider)
 	{
-		const auto& databaseUserRef = *databaseProvider;
-		databaseUserRef.Execute({ "Create language list", [&, databaseProvider = std::move(databaseProvider)]() mutable {
-									 const auto db    = databaseProvider->GetDatabase();
-									 const auto query = db->CreateQuery("select Lang, count(42) from Books group by Lang");
-									 auto       items = *query | std::views::transform([](const auto& item) {
-										 return Item { item.template Get<const char*>(0), item.template Get<int>(1) };
-									 }) | std::ranges::to<std::vector>();
+		const auto& databaseProviderRef = *databaseProvider;
+		databaseProviderRef.Execute({ "Create language list", [&, databaseProvider = std::move(databaseProvider)](DB::IDatabase& db) mutable {
+										 const auto query = db.CreateQuery("select Lang, count(42) from Books group by Lang");
+										 auto       items = *query | std::views::transform([](const auto& item) {
+											 return Item { item.template Get<const char*>(0), item.template Get<int>(1) };
+										 }) | std::ranges::to<std::vector>();
 
-									 return [this, items = std::move(items)](size_t) mutable {
-										 Reset(std::move(items));
-									 };
-								 } });
+										 return [this, items = std::move(items)](size_t) mutable {
+											 Reset(std::move(items));
+										 };
+									 } });
 	}
 
 private: // QAbstractItemModel

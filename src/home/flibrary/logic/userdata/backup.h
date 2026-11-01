@@ -4,12 +4,6 @@
 
 class QString;
 
-namespace HomeCompa::Util {
-
-class IExecutor;
-
-}
-
 namespace HomeCompa::Flibrary {
 
 class IDatabaseProvider;
@@ -18,6 +12,6 @@ class IDatabaseProvider;
 
 namespace HomeCompa::Flibrary::UserData {
 
-void Backup(const Util::IExecutor& executor, const IDatabaseProvider& databaseProvider, QString fileName, Callback callback);
+void Backup(const IDatabaseProvider& databaseProvider, QString fileName, Callback callback);
 
 }

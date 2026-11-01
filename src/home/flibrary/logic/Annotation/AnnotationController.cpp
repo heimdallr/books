@@ -565,10 +565,8 @@ private:
 
 		m_databaseProvider->Execute(
 			{ "Get database book info",
-			  [&, id = m_currentBookId.toLongLong()] {
-				  const auto db = m_databaseProvider->GetDatabase();
-				  assert(db);
-				  return [this, book = CreateBook(*db, id)](size_t) mutable {
+			  [&, id = m_currentBookId.toLongLong()](DB::IDatabase& db) {
+				  return [this, book = CreateBook(db, id)](size_t) mutable {
 					  if (book->GetId() == m_currentBookId)
 						  ExtractInfo(std::move(book));
 				  };
@@ -591,7 +589,7 @@ private:
 		auto parser     = ILogicFactory::Lock(m_logicFactory)->CreateArchiveParser();
 		m_archiveParser = parser;
 
-		(*m_executor)({ "Get archive book info", [this, book = std::move(book), parser = std::move(parser)]() mutable {
+		(*m_executor)({ "Get archive book info", [this, book = std::move(book), parser = std::move(parser)](auto&) mutable {
 						   const auto progressController = parser->GetProgressController();
 						   progressController->RegisterObserver(this);
 						   m_archiveParserProgressController = progressController;
@@ -613,28 +611,27 @@ private:
 	{
 		m_databaseProvider->Execute(
 			{ "Get database book additional info",
-			  [this, book = std::move(book)]() mutable {
-				  const auto db       = m_databaseProvider->GetDatabase();
+			  [this, book = std::move(book)](DB::IDatabase& db) mutable {
 				  const auto bookId   = book->GetId().toLongLong();
-				  auto       series   = CreateDictionary(*db, std::format(SERIES_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSeriesItem);
-				  auto       authors  = CreateDictionary(*db, std::format(AUTHORS_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateFullAuthorItem);
-				  auto       genres   = CreateDictionary(*db, std::format(GENRES_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSimpleListItem);
-				  auto       groups   = CreateDictionary(*db, GROUPS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
-				  auto       keywords = CreateDictionary(*db, std::format(KEYWORDS_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSimpleListItem);
-				  auto       folder   = CreateDictionary(*db, FOLDER_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
-				  auto       update   = CreateDictionary(*db, UPDATE_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
+				  auto       series   = CreateDictionary(db, std::format(SERIES_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSeriesItem);
+				  auto       authors  = CreateDictionary(db, std::format(AUTHORS_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateFullAuthorItem);
+				  auto       genres   = CreateDictionary(db, std::format(GENRES_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSimpleListItem);
+				  auto       groups   = CreateDictionary(db, GROUPS_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
+				  auto       keywords = CreateDictionary(db, std::format(KEYWORDS_QUERY, m_filterProvider->IsFilterEnabled() ? 1 : 0), bookId, &DatabaseUtil::CreateSimpleListItem);
+				  auto       folder   = CreateDictionary(db, FOLDER_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
+				  auto       update   = CreateDictionary(db, UPDATE_QUERY, bookId, &DatabaseUtil::CreateSimpleListItem);
 
 				  ExportStatistics exportStatistics;
 				  {
 					  std::unordered_map<ExportStat::Type, std::vector<QDateTime>> exportStatisticsBuffer;
 
-					  for (const auto query = db->CreateQuery("select ExportType, CreatedAt from Export_List_User where BookID = ?", bookId); auto& rec : *query)
+					  for (const auto query = db.CreateQuery("select ExportType, CreatedAt from Export_List_User where BookID = ?", bookId); auto& rec : *query)
 						  exportStatisticsBuffer[static_cast<ExportStat::Type>(rec.Get<int>(0))].emplace_back(QDateTime::fromString(rec.Get<const char*>(1), Qt::ISODate));
 					  std::ranges::move(exportStatisticsBuffer, std::back_inserter(exportStatistics));
 				  }
 
 				  const auto singleQuery = [&](const std::string_view queryText) -> QString {
-					  const auto query = db->CreateQuery(queryText, bookId);
+					  const auto query = db.CreateQuery(queryText, bookId);
 					  query->Execute();
 					  return query->Eof() ? QString {} : QString { query->Get<const char*>(0) };
 				  };
@@ -644,7 +641,7 @@ private:
 
 				  if (!IsOneOf(m_navigationMode, NavigationMode::Unknown, NavigationMode::History))
 				  {
-					  const auto dbWritable = m_databaseProvider->GetDatabaseWritable();
+					  const auto dbWritable = m_databaseProvider->GetDatabaseWritable1();
 					  const auto tr         = dbWritable->CreateTransaction();
 					  tr->CreateCommand(std::format("INSERT OR REPLACE INTO {} (BookID, CreatedAt) VALUES (?, datetime('now', 'localtime'))", m_historyTableName))->Execute(book->GetId().toLongLong());
 					  if (m_historyWriteCounter && ++m_historyWriteCounter > 10)
@@ -667,7 +664,7 @@ private:
 				          update           = std::move(update),
 				          sourceLib        = std::move(sourceLib),
 				          annotation       = std::move(annotation),
-				          reviews          = CollectReviews(*db, bookId)](size_t) mutable {
+				          reviews          = CollectReviews(db, bookId)](size_t) mutable {
 					  if (book->GetId() != m_currentBookId)
 						  return;
 

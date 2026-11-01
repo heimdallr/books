@@ -252,35 +252,34 @@ private:
 	QString m_error;
 };
 
-void RestoreImpl(const Util::IExecutor& executor, const IDatabaseProvider& dbProvider, QString fileName, Callback callback)
+void RestoreImpl(const IDatabaseProvider& dbProvider, QString fileName, Callback callback)
 {
-	executor({ "Restore user data", [&dbProvider, fileName = std::move(fileName), callback = std::move(callback)]() mutable {
-				  auto createResult = [callback = std::move(callback)](QString error = {}) mutable {
-					  if (!error.isEmpty())
-					  {
-						  PLOGE << error;
-					  }
+	dbProvider.ExecuteWritable({ "Restore user data", [fileName = std::move(fileName), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+									auto createResult = [callback = std::move(callback)](QString error = {}) mutable {
+										if (!error.isEmpty())
+										{
+											PLOGE << error;
+										}
 
-					  return [callback = std::move(callback), error = std::move(error)](size_t) {
-						  callback(error);
-					  };
-				  };
+										return [callback = std::move(callback), error = std::move(error)](size_t) {
+											callback(error);
+										};
+									};
 
-				  QFile inp(fileName);
-				  if (!inp.open(QIODevice::ReadOnly))
-					  return createResult(QString(CANNOT_READ_FROM).arg(fileName));
+									QFile inp(fileName);
+									if (!inp.open(QIODevice::ReadOnly))
+										return createResult(QString(CANNOT_READ_FROM).arg(fileName));
 
-				  const auto      db = dbProvider.GetDatabaseWritable();
-				  const XmlParser parser(inp, *db);
-				  return createResult(parser.GetError());
-			  } });
+									const XmlParser parser(inp, db);
+									return createResult(parser.GetError());
+								} });
 }
 
 } // namespace
 
-void Restore(const Util::IExecutor& executor, const IDatabaseProvider& dbProvider, QString fileName, Callback callback)
+void Restore(const IDatabaseProvider& dbProvider, QString fileName, Callback callback)
 {
-	RestoreImpl(executor, dbProvider, std::move(fileName), std::move(callback));
+	RestoreImpl(dbProvider, std::move(fileName), std::move(callback));
 }
 
 } // namespace HomeCompa::Flibrary::UserData

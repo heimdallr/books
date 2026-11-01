@@ -32,7 +32,7 @@ private: // ICollectionProvider
 	[[nodiscard]] const Collection&  GetActiveCollection() const noexcept override;
 	[[nodiscard]] bool               ActiveCollectionExists() const noexcept override;
 	[[nodiscard]] QString            GetActiveCollectionId() const noexcept override;
-	[[nodiscard]] QStringList        GetCollectionStatistics(const IDatabaseProvider& databaseProvider, bool withAdditionalInfo) const override;
+	[[nodiscard]] QStringList        GetCollectionStatistics(DB::IDatabase& db, bool withAdditionalInfo) const override;
 
 	void RegisterObserver(ICollectionsObserver* observer) override;
 	void UnregisterObserver(ICollectionsObserver* observer) override;
