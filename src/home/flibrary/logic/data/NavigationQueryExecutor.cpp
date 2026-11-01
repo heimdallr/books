@@ -276,7 +276,7 @@ void RequestNavigationGenres(
 		{ "Get navigation",
 		  [&databaseProvider, &cache, mode = navigationMode, callback = std::move(callback)]() mutable {
 			  const auto db = databaseProvider.GetDatabase();
-			  assert(!db);
+			  assert(db);
 
 			  auto                                            genre = Genre::Load(*db);
 			  auto                                            root  = NavigationItem::Create();
