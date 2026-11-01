@@ -7,7 +7,7 @@ namespace HomeCompa::Flibrary {
 class ICollectionController : public ICollectionProvider
 {
 public:
-	virtual void AddCollection(const std::filesystem::path& inpxDir) = 0;
+	virtual bool AddCollection(const std::filesystem::path& inpxDir) = 0;
 	virtual void CreateCollection(const Collection& collection)      = 0;
 	virtual void RescanCollectionFolder()                            = 0;
 	virtual void RemoveCollection()                                  = 0;

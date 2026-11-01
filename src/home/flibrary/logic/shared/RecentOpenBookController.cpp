@@ -22,10 +22,13 @@ class RecentOpenBookController::Impl final : IDatabaseProvider::IObserver
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(IDatabaseController& databaseController, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseProvider> databaseProvider)
+	Impl(const ICollectionProvider& collectionProvider, IDatabaseController& databaseController, std::shared_ptr<const IUiFactory> uiFactory, std::shared_ptr<const IDatabaseProvider> databaseProvider)
 		: m_uiFactory { std::move(uiFactory) }
 		, m_databaseProvider { std::move(databaseProvider) }
 	{
+		if (!collectionProvider.ActiveCollectionExists())
+			return;
+
 		m_timer.setInterval(std::chrono::seconds(1));
 		m_timer.setSingleShot(true);
 		QObject::connect(&m_timer, &QTimer::timeout, [this] {
@@ -82,11 +85,12 @@ private:
 };
 
 RecentOpenBookController::RecentOpenBookController(
-	const std::shared_ptr<IDatabaseController>& databaseController,
-	std::shared_ptr<const IUiFactory>           uiFactory,
-	std::shared_ptr<const IDatabaseProvider>    databaseProvider
+	const std::shared_ptr<const ICollectionProvider>& collectionProvider,
+	const std::shared_ptr<IDatabaseController>&       databaseController,
+	std::shared_ptr<const IUiFactory>                 uiFactory,
+	std::shared_ptr<const IDatabaseProvider>          databaseProvider
 )
-	: m_impl(*databaseController, std::move(uiFactory), std::move(databaseProvider))
+	: m_impl(*collectionProvider, *databaseController, std::move(uiFactory), std::move(databaseProvider))
 {
 }
 

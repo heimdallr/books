@@ -27,7 +27,7 @@ public:
 	~CollectionController() override;
 
 public: // ICollectionController
-	void                             AddCollection(const std::filesystem::path& inpxDir) override;
+	bool                             AddCollection(const std::filesystem::path& inpxDir) override;
 	void                             CreateCollection(const Collection& collection) override;
 	void                             RescanCollectionFolder() override;
 	void                             RemoveCollection() override;

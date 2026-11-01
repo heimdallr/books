@@ -212,14 +212,15 @@ void RequestNavigationList(
 }
 
 void RequestNavigationSimpleList(
-	const NavigationMode               navigationMode,
-	INavigationQueryExecutor::Callback callback,
-	const IDatabaseProvider&           databaseProvider,
-	const QueryDescription&            queryDescription,
-	const ICollectionProvider&,
-	Cache& cache
+	const NavigationMode                        navigationMode,
+	INavigationQueryExecutor::Callback          callback,
+	const IDatabaseProvider&                    databaseProvider,
+	const QueryDescription&                     queryDescription,
+	[[maybe_unused]] const ICollectionProvider& collectionProvider,
+	Cache&                                      cache
 )
 {
+	assert(collectionProvider.ActiveCollectionExists());
 	RequestNavigationList(navigationMode, std::move(callback), databaseProvider, queryDescription, cache, [](IDataItem::Items& items) {
 		std::ranges::sort(items, [](const IDataItem::Ptr& lhs, const IDataItem::Ptr& rhs) {
 			return Util::QStringWrapper { lhs->GetData() } < Util::QStringWrapper { rhs->GetData() };
@@ -228,14 +229,15 @@ void RequestNavigationSimpleList(
 }
 
 void RequestNavigationPublishYears(
-	const NavigationMode               navigationMode,
-	INavigationQueryExecutor::Callback callback,
-	const IDatabaseProvider&           databaseProvider,
-	const QueryDescription&            queryDescription,
-	const ICollectionProvider&,
-	Cache& cache
+	const NavigationMode                        navigationMode,
+	INavigationQueryExecutor::Callback          callback,
+	const IDatabaseProvider&                    databaseProvider,
+	const QueryDescription&                     queryDescription,
+	[[maybe_unused]] const ICollectionProvider& collectionProvider,
+	Cache&                                      cache
 )
 {
+	assert(collectionProvider.ActiveCollectionExists());
 	RequestNavigationList(navigationMode, std::move(callback), databaseProvider, queryDescription, cache, [](IDataItem::Items& items) {
 		auto getYear = [](const IDataItem& item) -> int {
 			const auto& id = item.GetId();
@@ -265,10 +267,12 @@ void RequestNavigationGenres(
 	INavigationQueryExecutor::Callback callback,
 	const IDatabaseProvider&           databaseProvider,
 	const QueryDescription&,
-	const ICollectionProvider&,
-	Cache& cache
+	[[maybe_unused]] const ICollectionProvider& collectionProvider,
+	Cache&                                      cache
 )
 {
+	assert(collectionProvider.ActiveCollectionExists());
+
 	databaseProvider.Execute(
 		{ "Get navigation",
 		  [&cache, mode = navigationMode, callback = std::move(callback)](DB::IDatabase& db) mutable {
@@ -302,14 +306,16 @@ void RequestNavigationGenres(
 }
 
 void RequestNavigationUpdates(
-	NavigationMode                     navigationMode,
-	INavigationQueryExecutor::Callback callback,
-	const IDatabaseProvider&           databaseProvider,
-	const QueryDescription&            queryDescription,
-	const ICollectionProvider&,
-	Cache& cache
+	NavigationMode                              navigationMode,
+	INavigationQueryExecutor::Callback          callback,
+	const IDatabaseProvider&                    databaseProvider,
+	const QueryDescription&                     queryDescription,
+	[[maybe_unused]] const ICollectionProvider& collectionProvider,
+	Cache&                                      cache
 )
 {
+	assert(collectionProvider.ActiveCollectionExists());
+
 	databaseProvider.Execute(
 		{ "Get navigation",
 		  [&queryDescription, &cache, mode = navigationMode, callback = std::move(callback)](DB::IDatabase& db) mutable {

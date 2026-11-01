@@ -111,6 +111,9 @@ void Pragma(DB::IDatabase& db)
 template <typename T>
 std::unique_ptr<T> CreateImpl(const ICollectionProvider& collectionProvider)
 {
+	if (!collectionProvider.ActiveCollectionExists())
+		return {};
+
 	const auto databaseName = collectionProvider.GetActiveCollection().GetDatabase();
 	if (databaseName.isEmpty())
 		return {};
@@ -146,10 +149,12 @@ public:
 		, m_mainThreadDb { CreateImpl<DB::IDatabaseWritable>(*m_collectionProvider) }
 		, m_executor { CreateExecutor(logicFactory) }
 	{
+		if (!m_mainThreadDb)
+			return;
+
 		[[maybe_unused]] const auto ok = m_dbList.try_emplace(GetThreadId(), m_mainThreadDb).second;
 		assert(ok);
-		if (m_mainThreadDb)
-			m_mainThreadDb->RegisterObserver(this);
+		m_mainThreadDb->RegisterObserver(this);
 	}
 
 	~Impl() override
@@ -170,6 +175,7 @@ public:
 		}
 
 		std::shared_ptr db = CreateImpl<DB::IDatabase>(*m_collectionProvider);
+		assert(db);
 
 		std::lock_guard lock(m_dbListGuard);
 		m_dbList.try_emplace(threadId, db);
@@ -189,7 +195,7 @@ public:
 			  [this, t = std::move(task.task)](Util::IExecutor::ThreadContext& ctx) {
 				  auto [ok, db] = GetDatabase();
 				  auto& dbRef   = *db;
-				  if (ok && db)
+				  if (ok)
 					  ctx.Add(std::make_unique<ThreadHandled>(std::move(db)));
 				  return t(dbRef);
 			  } },
@@ -272,7 +278,7 @@ bool DatabaseProvider::IsDatabaseValid() const noexcept
 
 void DatabaseProvider::Reset()
 {
-	m_impl->Reset();
+	m_impl.reset();
 }
 
 DB::IDatabase& DatabaseProvider::GetDatabase1() const
@@ -293,14 +299,10 @@ void DatabaseProvider::EnableApplicationCursorChange(const bool value)
 QVariant DatabaseProvider::GetSetting(const Key key, QVariant defaultValueSrc) const
 {
 	auto defaultValue = std::move(defaultValueSrc);
-
 	try
 	{
-		const auto db = m_impl->GetDatabase().second;
-		if (!db)
-			return {};
-
-		const auto query = db->CreateQuery("select SettingValue from Settings where SettingID = ?", static_cast<long long>(key));
+		auto& db = GetDatabase1();
+		const auto query = db.CreateQuery("select SettingValue from Settings where SettingID = ?", static_cast<long long>(key));
 		query->Execute();
 		return query->Eof() ? defaultValue : QString::fromStdString(query->Get<std::string>(0));
 	}

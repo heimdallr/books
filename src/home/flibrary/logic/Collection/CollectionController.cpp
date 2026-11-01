@@ -117,7 +117,7 @@ public:
 		return m_collectionProvider->GetCollections();
 	}
 
-	void AddCollection(const std::filesystem::path& inpx = {})
+	[[nodiscard]] bool AddCollection(const std::filesystem::path& inpx = {})
 	{
 		const auto dialog = m_uiFactory->CreateAddCollectionDialog(inpx);
 		const auto action = dialog->Exec();
@@ -129,23 +129,21 @@ public:
 		switch (action)
 		{
 			case IAddCollectionDialog::Result::CreateNew:
-				CreateNew(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), dialog->GetAdditionalFolder(), dialog->GetInpx(), dialog->GetDefaultArchiveType(), mode);
-				break;
+				return CreateNew(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), dialog->GetAdditionalFolder(), dialog->GetInpx(), dialog->GetDefaultArchiveType(), mode);
 
 			case IAddCollectionDialog::Result::Add:
-				Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), dialog->GetAdditionalFolder(), dialog->GetInpx(), mode);
-				break;
+				return Add(dialog->GetName(), dialog->GetDatabaseFileName(), dialog->GetArchiveFolder(), dialog->GetAdditionalFolder(), dialog->GetInpx(), mode);
 
 			default:
 				break;
 		}
 
-		m_overwriteConfirmCount = 0;
+		return false;
 	}
 
 	void CreateCollection(const Collection& collection)
 	{
-		CreateNew(
+		std::ignore = CreateNew(
 			collection.name,
 			collection.GetDatabase(),
 			collection.GetFolder(),
@@ -333,7 +331,8 @@ private:
 		eventLoop.exec();
 	}
 
-	void CreateNew(QString name, QString dbOrigin, QString folderOrigin, QString additionalFolderOrigin, QString inpxOrigin, const QString& defaultArchiveType, const Inpx::CreateCollectionMode mode)
+	[[nodiscard]] bool
+	CreateNew(QString name, QString dbOrigin, QString folderOrigin, QString additionalFolderOrigin, QString inpxOrigin, const QString& defaultArchiveType, const Inpx::CreateCollectionMode mode)
 	{
 		const auto db               = Util::ToAbsolutePath(dbOrigin);
 		const auto folder           = Util::ToAbsolutePath(folderOrigin);
@@ -342,7 +341,7 @@ private:
 		if (QFile(db).exists())
 		{
 			if (m_uiFactory->ShowWarning(Tr(CONFIRM_OVERWRITE_DATABASE), QMessageBox::Yes | QMessageBox::No, QMessageBox::No) == QMessageBox::No)
-				return ++m_overwriteConfirmCount < MAX_OVERWRITE_CONFIRM_COUNT ? AddCollection() : Perform(&ICollectionsObserver::OnActiveCollectionChanged);
+				return ++m_overwriteConfirmCount < MAX_OVERWRITE_CONFIRM_COUNT ? AddCollection() : (Perform(&ICollectionsObserver::OnActiveCollectionChanged), false);
 
 			PLOGW << db << " will be rewritten";
 		}
@@ -350,7 +349,7 @@ private:
 		if (!QFile(db).open(QIODevice::WriteOnly))
 		{
 			(void)m_uiFactory->ShowWarning(Tr(CANNOT_WRITE_TO_DATABASE).arg(db), QMessageBox::Ok);
-			return;
+			return false;
 		}
 
 		auto  parser       = std::make_shared<Inpx::Parser>();
@@ -374,13 +373,15 @@ private:
 			Perform(&ICollectionsObserver::OnNewCollectionCreating, false);
 			ShowUpdateResult(updateResult, name, COLLECTION_UPDATE_ACTION_CREATED);
 			if (!updateResult.error)
-				Add(std::move(name), std::move(dbOrigin), std::move(folderOrigin), std::move(additionalFolderOrigin), std::move(inpxOrigin), mode);
+				std::ignore = Add(std::move(name), std::move(dbOrigin), std::move(folderOrigin), std::move(additionalFolderOrigin), std::move(inpxOrigin), mode);
 		};
 		Perform(&ICollectionsObserver::OnNewCollectionCreating, true);
 		parserRef.CreateNewCollection(std::move(ini), mode, std::move(callback));
+
+		return true;
 	}
 
-	void Add(QString name, QString db, QString folder, QString additionalFolder, QString inpx, const Inpx::CreateCollectionMode mode)
+	[[nodiscard]] bool Add(QString name, QString db, QString folder, QString additionalFolder, QString inpx, const Inpx::CreateCollectionMode mode)
 	{
 		CollectionImpl collection(std::move(name), std::move(db), std::move(folder), std::move(additionalFolder), std::move(inpx));
 		collection.createCollectionMode = static_cast<int>(mode);
@@ -388,6 +389,7 @@ private:
 		auto& collections = m_collectionProvider->GetCollections();
 		collections.push_back(std::make_unique<CollectionImpl>(std::move(collection)));
 		SetActiveCollection(collections.back()->id);
+		return true;
 	}
 
 	void UpdateCollection(const Collection& updatedCollection)
@@ -459,9 +461,9 @@ CollectionController::~CollectionController()
 	PLOGV << "CollectionController destroyed";
 }
 
-void CollectionController::AddCollection(const std::filesystem::path& inpxDir)
+bool CollectionController::AddCollection(const std::filesystem::path& inpxDir)
 {
-	m_impl->AddCollection(inpxDir);
+	return m_impl->AddCollection(inpxDir);
 }
 
 void CollectionController::CreateCollection(const Collection& collection)

@@ -730,7 +730,7 @@ private: // ToolbarController::IObserver
 	}
 
 private:
-	void SetupObjectsConnectors()
+	void SetupObjectsConnectors() const
 	{
 		Util::ObjectsConnector::registerEmitter(ObjectConnectorID::BOOK_TITLE_TO_SEARCH_VISIBLE_CHANGED, &m_self, SIGNAL(BookTitleToSearchVisibleChanged()));
 		Util::ObjectsConnector::registerEmitter(ObjectConnectorID::SET_TOOLBAR_POSITION, &m_self, SIGNAL(SetToolBarPosition(const QString&, QWidget*)));
@@ -1337,6 +1337,9 @@ private:
 		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 
+		if (!m_collectionController->ActiveCollectionExists())
+			return;
+
 		auto&      db    = m_databaseProvider->GetDatabase1();
 		const auto query = db.CreateQuery("SELECT exists(SELECT 42 FROM Annotations)");
 		query->Execute();
@@ -1771,7 +1774,11 @@ private:
 			if (!m_ui.actionShowLog->isChecked())
 				m_ui.actionShowLog->trigger();
 
-			return m_collectionController->AddCollection(commandLine.GetInpxDir());
+			if (m_collectionController->AddCollection(commandLine.GetInpxDir()))
+				return;
+
+			if (!m_collectionController->ActiveCollectionExists())
+				return QCoreApplication::exit();
 		}
 
 		if (!m_databaseProvider->IsDatabaseValid())

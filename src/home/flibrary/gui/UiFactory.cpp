@@ -1097,6 +1097,8 @@ limit {}
 	auto& container = m_impl->container;
 
 	const auto collectionProvider = container.resolve<ICollectionProvider>();
+	if (!collectionProvider->ActiveCollectionExists())
+		return;
 
 	const auto settings               = container.resolve<ISettings>();
 	const auto maxMenuItemCount       = settings->Get(MAX_MENU_ITEM_COUNT_KEY, MAX_MENU_ITEM_DEFAULT);

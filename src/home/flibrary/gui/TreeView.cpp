@@ -470,7 +470,8 @@ public:
 		, m_scrollBarController { std::move(scrollBarController) }
 		, m_navigationUndoRedo { std::move(navigationUndoRedo) }
 		, m_delegate { std::shared_ptr<ITreeViewDelegate>() }
-		, m_hiddenColumns { databaseProvider.GetSetting(IDatabaseProvider::Key::DisabledBookFields).toString().split(LIST_SEPARATOR, Qt::SkipEmptyParts) }
+		, m_hiddenColumns { m_collectionProvider->ActiveCollectionExists() ? databaseProvider.GetSetting(IDatabaseProvider::Key::DisabledBookFields).toString().split(LIST_SEPARATOR, Qt::SkipEmptyParts)
+		                                                                   : QStringList {} }
 	{
 		Setup();
 	}
@@ -1057,6 +1058,8 @@ private:
 	void Setup()
 	{
 		m_ui.setupUi(&m_self);
+		if (!m_collectionProvider->ActiveCollectionExists())
+			return;
 
 		m_ui.treeView->Init(std::shared_ptr<ISettings> { m_settings });
 		m_itemViewToolTipper->SetScrollArea(m_ui.treeView);

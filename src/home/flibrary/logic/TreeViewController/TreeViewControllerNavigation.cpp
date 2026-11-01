@@ -496,7 +496,7 @@ private: // INavigationFilter
 
 	bool IsRecordExists(const ModeDescriptor& descriptor) const override
 	{
-		if (!descriptor.filterParameter)
+		if (!descriptor.filterParameter || !databaseProvider->IsDatabaseValid())
 			return true;
 
 		auto&      db    = databaseProvider->GetDatabase1();
@@ -831,6 +831,9 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 		  std::move(filterController)
 	  )
 {
+	if (!m_impl->collectionProvider->ActiveCollectionExists())
+		return;
+
 	AbstractTreeViewController::RegisterObserver(modelProvider.get());
 	Setup();
 
