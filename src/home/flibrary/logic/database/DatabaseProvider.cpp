@@ -154,7 +154,6 @@ public:
 
 		[[maybe_unused]] const auto ok = m_dbList.try_emplace(GetThreadId(), m_mainThreadDb).second;
 		assert(ok);
-		m_mainThreadDb->RegisterObserver(this);
 	}
 
 	~Impl() override
@@ -170,9 +169,12 @@ public:
 		return GetEnlistedDatabase().second;
 	}
 
-	std::unique_ptr<DB::IDatabaseWritable> GetDatabaseWritable() const
+	std::unique_ptr<DB::IDatabaseWritable> GetDatabaseWritable()
 	{
-		return CreateImpl<DB::IDatabaseWritable>(*m_collectionProvider);
+		auto db = CreateImpl<DB::IDatabaseWritable>(*m_collectionProvider);
+		if (db)
+			db->RegisterObserver(this);
+		return db;
 	}
 
 	size_t Execute(Task<DB::IDatabase>&& task, const int priority)
@@ -196,7 +198,7 @@ public:
 		);
 	}
 
-	size_t Execute(Task<DB::IDatabaseWritable>&& task, const int priority) const
+	size_t Execute(Task<DB::IDatabaseWritable>&& task, const int priority)
 	{
 		return (*m_executor)(
 			{ std::move(task.name),
