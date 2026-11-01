@@ -116,7 +116,7 @@ struct ReaderController::Impl
 		if (!ReadImpl(std::move(temporaryDir), std::move(fileName), removeCurrentReader, error))
 			return;
 
-		const auto db          = databaseProvider->GetDatabaseWritable1();
+		const auto db          = databaseProvider->GetDatabaseWritable();
 		const auto transaction = db->CreateTransaction();
 		transaction->CreateQuery(ExportStat::INSERT_QUERY)->Execute(id, static_cast<int>(ExportStat::Type::Read));
 
@@ -234,8 +234,8 @@ struct ReaderController::Impl
 		fileNameTemplate.replace("%file_ext%", QFileInfo(fileName).suffix());
 		fileNameTemplate.replace("%user_destination_folder%", "");
 
-		auto& db = databaseProvider->GetDatabase1();
-		ILogicFactory::FillScriptTemplate(db, fileNameTemplate, ILogicFactory::Lock(logicFactory)->GetCurrentExtractedBook());
+		const auto db = databaseProvider->GetDatabase();
+		ILogicFactory::FillScriptTemplate(*db, fileNameTemplate, ILogicFactory::Lock(logicFactory)->GetCurrentExtractedBook());
 
 		return fileNameTemplate;
 	}

@@ -444,8 +444,8 @@ void CollectionCleanerLogic::AnalyzeCancel() const
 
 void CollectionCleanerLogic::CompilationInfoExistsRequest(IAnalyzeObserver& callback) const
 {
-	auto&      db    = m_impl->databaseProvider->GetDatabase1();
-	const auto query = db.CreateQuery("SELECT exists(SELECT 42 FROM Compilation_List)");
+	const auto db    = m_impl->databaseProvider->GetDatabase();
+	const auto query = db->CreateQuery("SELECT exists(SELECT 42 FROM Compilation_List)");
 	query->Execute();
 	callback.CompilationInfoExistsResponse(query->Get<int>(0) != 0);
 }

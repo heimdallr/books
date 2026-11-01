@@ -377,7 +377,7 @@ private:
 
 	void OnExtracted(const long long id) const
 	{
-		const auto db          = m_databaseProvider->GetDatabaseWritable1();
+		const auto db          = m_databaseProvider->GetDatabaseWritable();
 		const auto transaction = db->CreateTransaction();
 		transaction->CreateCommand(ExportStat::INSERT_QUERY)->Execute(id, m_exportStatType);
 		if (m_autoRateValue.isValid())
@@ -513,8 +513,8 @@ void BooksExtractor::ExtractAsScript(QString folder, const QString& parameter, U
 			IProgressController::IProgressItem& progress,
 			IExportHelper&                      exportHelper
 		) {
-			auto& db = dbProvider->GetDatabase1();
-			return Process(m_impl->GetSettings(), archiveFolder, dstFolder, db, book, progress, std::move(encoding), exportHelper, *scriptController, commands);
+			const auto db = dbProvider->GetDatabase();
+			return Process(m_impl->GetSettings(), archiveFolder, dstFolder, *db, book, progress, std::move(encoding), exportHelper, *scriptController, commands);
 		}
 	);
 }

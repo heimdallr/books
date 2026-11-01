@@ -73,7 +73,7 @@ public:
 private:
 	void StartTransaction()
 	{
-		m_transaction = m_databaseProvider->GetDatabaseWritable1()->CreateTransaction();
+		m_transaction = m_databaseProvider->GetDatabaseWritable()->CreateTransaction();
 		SetEnabled();
 	}
 

@@ -69,7 +69,7 @@ public:
 		, m_authorAnnotationController { std::move(authorAnnotationController) }
 	{
 		if (m_collectionProvider->ActiveCollectionExists())
-			DatabaseUtil::CreateHistoryTable(*m_databaseProvider->GetDatabaseWritable1(), *m_settings);
+			DatabaseUtil::CreateHistoryTable(*m_databaseProvider->GetDatabaseWritable(), *m_settings);
 	}
 
 	void SetNavigationMode(const NavigationMode navigationMode)

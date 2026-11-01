@@ -165,22 +165,9 @@ public:
 			db->CreateQuery("PRAGMA wal_checkpoint(TRUNCATE);")->Execute();
 	}
 
-	std::pair<bool, std::shared_ptr<DB::IDatabase>> GetDatabase()
+	std::shared_ptr<DB::IDatabase> GetDatabase()
 	{
-		const auto threadId = GetThreadId();
-		{
-			std::lock_guard lock(m_dbListGuard);
-			if (const auto it = m_dbList.find(threadId); it != m_dbList.end())
-				return std::make_pair(false, it->second.lock());
-		}
-
-		std::shared_ptr db = CreateImpl<DB::IDatabase>(*m_collectionProvider);
-		assert(db);
-
-		std::lock_guard lock(m_dbListGuard);
-		m_dbList.try_emplace(threadId, db);
-
-		return std::make_pair(true, std::move(db));
+		return GetEnlistedDatabase().second;
 	}
 
 	std::unique_ptr<DB::IDatabaseWritable> GetDatabaseWritable() const
@@ -193,10 +180,16 @@ public:
 		return (*m_executor)(
 			{ std::move(task.name),
 			  [this, t = std::move(task.task)](Util::IExecutor::ThreadContext& ctx) {
-				  auto [ok, db] = GetDatabase();
-				  auto& dbRef   = *db;
-				  if (ok)
+				  auto [threadId, db] = GetEnlistedDatabase();
+				  auto& dbRef         = *db;
+				  if (threadId)
+				  {
+					  {
+						  std::lock_guard lock(m_dbListGuard);
+						  m_dbList.try_emplace(threadId, db);
+					  }
 					  ctx.Add(std::make_unique<ThreadHandled>(std::move(db)));
+				  }
 				  return t(dbRef);
 			  } },
 			priority
@@ -243,6 +236,21 @@ private: // DB::IDatabaseObserver
 	}
 
 private:
+	std::pair<size_t, std::shared_ptr<DB::IDatabase>> GetEnlistedDatabase()
+	{
+		const auto threadId = GetThreadId();
+		{
+			std::lock_guard lock(m_dbListGuard);
+			if (const auto it = m_dbList.find(threadId); it != m_dbList.end())
+				return std::make_pair(0, it->second.lock());
+		}
+
+		std::shared_ptr db = CreateImpl<DB::IDatabase>(*m_collectionProvider);
+		assert(db);
+		return std::make_pair(threadId, std::move(db));
+	}
+
+private:
 	std::shared_ptr<const ICollectionProvider>               m_collectionProvider;
 	std::mutex                                               m_dbListGuard;
 	std::unordered_map<size_t, std::weak_ptr<DB::IDatabase>> m_dbList;
@@ -281,12 +289,12 @@ void DatabaseProvider::Reset()
 	m_impl.reset();
 }
 
-DB::IDatabase& DatabaseProvider::GetDatabase1() const
+std::shared_ptr<DB::IDatabase> DatabaseProvider::GetDatabase() const
 {
-	return *m_impl->GetDatabase().second;
+	return m_impl->GetDatabase();
 }
 
-std::unique_ptr<DB::IDatabaseWritable> DatabaseProvider::GetDatabaseWritable1() const
+std::unique_ptr<DB::IDatabaseWritable> DatabaseProvider::GetDatabaseWritable() const
 {
 	return m_impl->GetDatabaseWritable();
 }
@@ -301,8 +309,8 @@ QVariant DatabaseProvider::GetSetting(const Key key, QVariant defaultValueSrc) c
 	auto defaultValue = std::move(defaultValueSrc);
 	try
 	{
-		auto& db = GetDatabase1();
-		const auto query = db.CreateQuery("select SettingValue from Settings where SettingID = ?", static_cast<long long>(key));
+		const auto db    = m_impl->GetDatabase();
+		const auto query = db->CreateQuery("select SettingValue from Settings where SettingID = ?", static_cast<long long>(key));
 		query->Execute();
 		return query->Eof() ? defaultValue : QString::fromStdString(query->Get<std::string>(0));
 	}

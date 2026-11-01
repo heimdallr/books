@@ -610,8 +610,8 @@ private: // ILineOption::IObserver
 			return;
 
 		const auto converter = logicFactory->CreateFillTemplateConverter();
-		auto&      db        = m_databaseProvider->GetDatabase1();
-		converter->Fill(db, value, books.front(), Tr(MY_FOLDER));
+		const auto db        = m_databaseProvider->GetDatabase();
+		converter->Fill(*db, value, books.front(), Tr(MY_FOLDER));
 		PLOGI << books.front().dstFileName;
 	}
 
@@ -1340,8 +1340,8 @@ private:
 		if (!m_collectionController->ActiveCollectionExists())
 			return;
 
-		auto&      db    = m_databaseProvider->GetDatabase1();
-		const auto query = db.CreateQuery("SELECT exists(SELECT 42 FROM Annotations)");
+		const auto db    = m_databaseProvider->GetDatabase();
+		const auto query = db->CreateQuery("SELECT exists(SELECT 42 FROM Annotations)");
 		query->Execute();
 		m_ui.actionSearchByANNOTATION->setVisible(query->Get<int>(0) != 0);
 	}

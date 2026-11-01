@@ -268,8 +268,8 @@ struct LogicFactory::Impl final
 			return;
 
 		const auto databaseProvider = container.resolve<IDatabaseProvider>();
-		auto&      db               = databaseProvider->GetDatabase1();
-		const auto genres           = Genre::Load(db);
+		const auto db               = databaseProvider->GetDatabase();
+		const auto genres           = Genre::Load(*db);
 
 		const auto process = [this](const std::vector<Genre>& children, const auto& f) -> void {
 			for (const auto& genre : children)

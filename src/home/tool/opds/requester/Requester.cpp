@@ -833,7 +833,8 @@ public:
 
 	Node GetRoot(const QString& root, const Parameters& parameters) const
 	{
-		auto& db = m_databaseProvider->GetDatabase1();
+		const auto dbPtr = m_databaseProvider->GetDatabase();
+		auto&      db    = *dbPtr;
 
 		static constexpr std::pair<Flibrary::NavigationMode, const char*> navigationTypes[] {
 #define OPDS_INVOKER_ITEM(NAME) { Flibrary::NavigationMode::NAME, Loc::NAME },
@@ -900,9 +901,9 @@ public:
 
 	Node GetBooks(const QString& root, const Parameters& parameters) const
 	{
-		auto& db = m_databaseProvider->GetDatabase1();
+		const auto db = m_databaseProvider->GetDatabase();
 
-		auto head = GetHead(BOOKS, GetTitle(db, *this, parameters, {}), root, CreateSelf(root, BOOKS, parameters));
+		auto head = GetHead(BOOKS, GetTitle(*db, *this, parameters, {}), root, CreateSelf(root, BOOKS, parameters));
 		FoldNavigation(head.children, root, parameters, BOOK_DESCRIPTION);
 
 		const auto entryBegin = std::ranges::find(head.children, ENTRY, [](const auto& item) {
@@ -1023,9 +1024,9 @@ public:
 		const auto n = head.children.size();
 
 		{
-			auto& db   = m_databaseProvider->GetDatabase1();
-			auto  ones = [&] {
-				const auto query = db.CreateQuery(FilterQueryText(queryText), terms);
+			const auto db   = m_databaseProvider->GetDatabase();
+			auto       ones = [&] {
+				const auto query = db->CreateQuery(FilterQueryText(queryText), terms);
 				return *query | std::views::transform([](auto& item) {
 					return std::make_pair(QString { item.template Get<const char*>(0) }, QString { item.template Get<const char*>(1) });
 				}) | std::views::common
@@ -1034,7 +1035,7 @@ public:
 			auto p = parameters;
 			p.erase("q");
 			p.erase(SEPARATED);
-			writeEntries(head.children, root, std::move(p), navigationDescription, db, *this, {}, std::move(ones));
+			writeEntries(head.children, root, std::move(p), navigationDescription, *db, *this, {}, std::move(ones));
 		}
 
 		if (n != head.children.size())
@@ -1112,7 +1113,7 @@ public:
 
 	void Init() const
 	{
-		const auto db = m_databaseProvider->GetDatabaseWritable1();
+		const auto db = m_databaseProvider->GetDatabaseWritable();
 		BookView::Create(*db, *m_settings, *m_filterProvider);
 	}
 
@@ -1162,8 +1163,8 @@ public:
 private: // INavigationProvider
 	Node GetNavigationMain(const QString& root, const Parameters& parameters, const NavigationDescription& d) const override
 	{
-		auto& db   = m_databaseProvider->GetDatabase1();
-		auto  head = GetHead(d.type, GetTitle(db, *this, parameters, { .additionalTitle = Loc::Tr(Loc::NAVIGATION, d.type) }), root, CreateSelf(root, d.type, parameters));
+		const auto db   = m_databaseProvider->GetDatabase();
+		auto       head = GetHead(d.type, GetTitle(*db, *this, parameters, { .additionalTitle = Loc::Tr(Loc::NAVIGATION, d.type) }), root, CreateSelf(root, d.type, parameters));
 		FoldNavigation(head.children, root, parameters, d);
 
 		const auto entryBegin = std::ranges::find(head.children, ENTRY, [](const auto& item) {
@@ -1179,7 +1180,8 @@ private: // INavigationProvider
 	template <typename T, typename DBCodeType>
 	Node GetNavigationT(const QString& root, const Parameters& parameters, const NavigationDescription& d) const
 	{
-		auto& db = m_databaseProvider->GetDatabase1();
+		const auto dbPtr = m_databaseProvider->GetDatabase();
+		auto&      db    = *dbPtr;
 
 		auto join = [&] {
 			auto p = parameters;
@@ -1254,7 +1256,8 @@ private: // IQueryTextFilter
 private:
 	void FoldNavigation(Node::Children& children, const QString& root, const Parameters& parameters, const NavigationDescription& d) const
 	{
-		auto& db = m_databaseProvider->GetDatabase1();
+		const auto dbPtr = m_databaseProvider->GetDatabase();
+		auto&      db    = *dbPtr;
 
 		QStringList                                       equal;
 		std::map<QString, QString>                        ones;

@@ -258,8 +258,8 @@ void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex& index) const
 		if (!queryText)
 			return;
 
-		auto&      db    = m_impl->databaseProvider->GetDatabase1();
-		const auto query = db.CreateQuery(QString(queryText).arg(QStringList::fromVector(QVector<QString>(ids.size(), QString { '?' })).join(',')));
+		const auto db    = m_impl->databaseProvider->GetDatabase();
+		const auto query = db->CreateQuery(QString(queryText).arg(QStringList::fromVector(QVector<QString>(ids.size(), QString { '?' })).join(',')));
 		for (auto binder = query->Binder(); const auto& id : ids)
 			binder << id.toLongLong();
 

@@ -641,7 +641,7 @@ private:
 
 				  if (!IsOneOf(m_navigationMode, NavigationMode::Unknown, NavigationMode::History))
 				  {
-					  const auto dbWritable = m_databaseProvider->GetDatabaseWritable1();
+					  const auto dbWritable = m_databaseProvider->GetDatabaseWritable();
 					  const auto tr         = dbWritable->CreateTransaction();
 					  tr->CreateCommand(std::format("INSERT OR REPLACE INTO {} (BookID, CreatedAt) VALUES (?, datetime('now', 'localtime'))", m_historyTableName))->Execute(book->GetId().toLongLong());
 					  if (m_historyWriteCounter && ++m_historyWriteCounter > 10)

@@ -358,7 +358,7 @@ private: // IBookSelector
 		if (!QFile::exists(folder))
 			return;
 
-		const auto  dbWritable   = dbProvider.GetDatabaseWritable1();
+		const auto  dbWritable   = dbProvider.GetDatabaseWritable();
 		const auto  tmpTable     = dbWritable->CreateTemporaryTable({ "Folder VARCHAR (200)", "FileName VARCHAR(170)", "Ext VARCHAR(10)", "ReviewID INTEGER" });
 		const auto& tmpTableName = tmpTable->GetName();
 

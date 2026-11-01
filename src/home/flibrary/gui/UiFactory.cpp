@@ -1143,7 +1143,7 @@ limit {}
 				  menu.addSeparator();
 				  const auto* action = menu.addAction(Tr(CLEAR_RECENT_BOOKS));
 				  connect(action, &QAction::triggered, [this, &menu] {
-					  const auto database = m_impl->container.resolve<IDatabaseProvider>()->GetDatabaseWritable1();
+					  const auto database = m_impl->container.resolve<IDatabaseProvider>()->GetDatabaseWritable();
 					  const auto tr       = database->CreateTransaction();
 					  tr->CreateCommand(
 							std::format(

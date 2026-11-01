@@ -67,8 +67,8 @@ public:
 	virtual size_t ExecuteWritable(Task<DB::IDatabaseWritable>&& task, int priority = 0) const = 0;
 
 	[[nodiscard]] virtual bool                                   IsDatabaseValid() const noexcept = 0;
-	[[nodiscard]] virtual DB::IDatabase&                         GetDatabase1() const             = 0;
-	[[nodiscard]] virtual std::unique_ptr<DB::IDatabaseWritable> GetDatabaseWritable1() const     = 0;
+	[[nodiscard]] virtual std::shared_ptr<DB::IDatabase>         GetDatabase() const              = 0;
+	[[nodiscard]] virtual std::unique_ptr<DB::IDatabaseWritable> GetDatabaseWritable() const      = 0;
 
 	[[nodiscard]] virtual QVariant GetSetting(Key key, QVariant defaultValue = {}) const = 0;
 	virtual void                   SetSetting(Key key, const QVariant& value) const      = 0;

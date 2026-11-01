@@ -101,8 +101,8 @@ std::vector<IDataItem::Flags> FilterController::GetFlags(const NavigationMode na
 
 	std::vector<IDataItem::Flags> result;
 
-	auto&      db    = m_impl->databaseProvider->GetDatabase1();
-	const auto query = db.CreateQuery(std::format("select Flags from {} where {} = ?", description.table, description.idField));
+	const auto db    = m_impl->databaseProvider->GetDatabase();
+	const auto query = db->CreateQuery(std::format("select Flags from {} where {} = ?", description.table, description.idField));
 	for (const auto& id : ids)
 	{
 		description.queueBinder(*query, 0, id);

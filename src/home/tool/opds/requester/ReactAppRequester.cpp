@@ -106,11 +106,11 @@ struct ReactAppRequester::Impl
 
 	QJsonObject getConfig(const Parameters&) const
 	{
-		auto& db = databaseProvider->GetDatabase1();
+		const auto db = databaseProvider->GetDatabase();
 
 		QJsonObject result;
 		{
-			const auto query = db.CreateQuery("select count (42) from Books_View_Opds");
+			const auto query = db->CreateQuery("select count (42) from Books_View_Opds");
 			query->Execute();
 			assert(!query->Eof());
 			result.insert("numberOfBooks", query->Get<long long>(0));
@@ -118,7 +118,7 @@ struct ReactAppRequester::Impl
 
 		{
 			QJsonArray array;
-			const auto genres  = Flibrary::Genre::Load(db);
+			const auto genres  = Flibrary::Genre::Load(*db);
 			const auto process = [&](const Flibrary::Genre& genre, const auto& f) -> void {
 				for (const auto& child : genre.children)
 				{
@@ -153,7 +153,7 @@ SELECT gu.GroupID, gu.Title
           FROM Groups_User gu
 )";
 			QJsonArray array;
-			for (const auto query = db.CreateQuery(queryText); const auto& rec : *query)
+			for (const auto query = db->CreateQuery(queryText); const auto& rec : *query)
 				array.append(FromQuery<const char*>(rec));
 			result.insert("groups", array);
 		}
@@ -380,8 +380,8 @@ where g.GroupID = ?
 private:
 	std::unique_ptr<DB::IQuery> CreateParameterQuery(const QString& queryText, const QString& parameter, const bool isSearch) const
 	{
-		auto& db    = databaseProvider->GetDatabase1();
-		auto  query = db.CreateQuery(queryText);
+		const auto db    = databaseProvider->GetDatabase();
+		auto       query = db->CreateQuery(queryText);
 		query->Bind(0, (isSearch ? PrepareSearchTerms(parameter) : parameter));
 		return query;
 	}
@@ -431,8 +431,8 @@ private:
 			}
 		);
 
-		auto& db = databaseProvider->GetDatabase1();
-		for (const auto query = db.CreateQuery(queryText.arg(joins.join('\n')).toStdString()); const auto& rec : *query)
+		const auto db = databaseProvider->GetDatabase();
+		for (const auto query = db->CreateQuery(queryText.arg(joins.join('\n')).toStdString()); const auto& rec : *query)
 			array.append(FromQuery<const char*>(rec));
 
 		return QJsonObject {

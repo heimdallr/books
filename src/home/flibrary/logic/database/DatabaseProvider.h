@@ -19,12 +19,12 @@ public:
 	~DatabaseProvider() override;
 
 private: // IDatabaseProvider
-	size_t                                 Execute(Task<DB::IDatabase>&& task, int priority = 0) const override;
-	size_t                                 ExecuteWritable(Task<DB::IDatabaseWritable>&& task, int priority = 0) const override;
+	size_t Execute(Task<DB::IDatabase>&& task, int priority = 0) const override;
+	size_t ExecuteWritable(Task<DB::IDatabaseWritable>&& task, int priority = 0) const override;
 
 	bool                                   IsDatabaseValid() const noexcept override;
-	DB::IDatabase&                         GetDatabase1() const override;
-	std::unique_ptr<DB::IDatabaseWritable> GetDatabaseWritable1() const override;
+	std::shared_ptr<DB::IDatabase>         GetDatabase() const override;
+	std::unique_ptr<DB::IDatabaseWritable> GetDatabaseWritable() const override;
 	QVariant                               GetSetting(Key key, QVariant defaultValue) const override;
 	void                                   SetSetting(Key key, const QVariant& value) const override;
 

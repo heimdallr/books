@@ -319,9 +319,9 @@ struct TreeViewControllerNavigation::Impl final
 	void RequestContextMenu(const QModelIndex& index, RequestContextMenuOptions options, RequestContextMenuCallback callback)
 	{
 		assert(static_cast<size_t>(mode) < std::size(MENU_REQUESTERS));
-		auto  id   = index.data(Role::Id).toString();
-		auto& db   = databaseProvider->GetDatabase1();
-		auto  item = std::invoke(MENU_REQUESTERS[mode], static_cast<IContextMenuProvider*>(this), std::ref(db), std::cref(id), options);
+		auto       id   = index.data(Role::Id).toString();
+		const auto db   = databaseProvider->GetDatabase();
+		auto       item = std::invoke(MENU_REQUESTERS[mode], static_cast<IContextMenuProvider*>(this), std::ref(*db), std::cref(id), options);
 		forwarder.Forward([callback = std::move(callback), id = std::move(id), item = std::move(item)] {
 			callback(id, item, {});
 		});
@@ -499,8 +499,8 @@ private: // INavigationFilter
 		if (!descriptor.filterParameter || !databaseProvider->IsDatabaseValid())
 			return true;
 
-		auto&      db    = databaseProvider->GetDatabase1();
-		const auto query = db.CreateQuery(descriptor.filterParameter);
+		const auto db    = databaseProvider->GetDatabase();
+		const auto query = db->CreateQuery(descriptor.filterParameter);
 		query->Execute();
 		assert(!query->Eof());
 		return query->Get<int>(0) != 0;

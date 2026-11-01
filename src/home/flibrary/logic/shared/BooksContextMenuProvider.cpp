@@ -757,9 +757,9 @@ private:
 		if (sendSettings.tempFolder)
 			tempDir = std::make_shared<QTemporaryDir>();
 
-		auto& db = m_databaseProvider->GetDatabase1();
+		const auto db = m_databaseProvider->GetDatabase();
 		for (auto& book : books)
-			fillTemplateConverter->Fill(db, outputFileNameTemplate, book, tempDir ? tempDir->filePath("") : dir);
+			fillTemplateConverter->Fill(*db, outputFileNameTemplate, book, tempDir ? tempDir->filePath("") : dir);
 
 		if (CheckUniqueFileNames(books, sendSettings.dstPathSuffix))
 			return callback(item, {});

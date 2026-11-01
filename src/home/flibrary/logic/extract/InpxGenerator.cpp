@@ -626,7 +626,8 @@ private:
 
 	void GenerateInpxImpl(const QString& inpxFileName)
 	{
-		auto&      db         = m_databaseProvider->GetDatabase1();
+		const auto dbPtr      = m_databaseProvider->GetDatabase();
+		auto&      db         = *dbPtr;
 		const auto booksCount = [&] {
 			auto query = db.CreateQuery("select count(42) from Books b left join Series_List sl on sl.BookID = b.BookID");
 			query->Execute();
