@@ -272,6 +272,9 @@
                 <property name="textFormat">
                  <enum>Qt::TextFormat::RichText</enum>
                 </property>
+                <property name="alignment">
+                 <set>Qt::AlignmentFlag::AlignJustify|Qt::AlignmentFlag::AlignVCenter</set>
+                </property>
                 <property name="wordWrap">
                  <bool>true</bool>
                 </property>
