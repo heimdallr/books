@@ -605,14 +605,16 @@ private: // ILineOption::IObserver
 	{
 		const auto logicFactory = ILogicFactory::Lock(m_logicFactory);
 		auto       books        = logicFactory->GetExtractedBooks(m_booksWidget->GetView()->model(), m_booksWidget->GetView()->currentIndex());
-
 		if (books.empty())
 			return;
 
-		const auto converter = logicFactory->CreateFillTemplateConverter();
-		const auto db        = m_databaseProvider->GetDatabase();
-		converter->Fill(*db, value, books.front(), Tr(MY_FOLDER));
-		PLOGI << books.front().dstFileName;
+		auto converter = logicFactory->CreateFillTemplateConverter();
+		m_databaseProvider->Execute({ "fill export file name template", [converter = std::move(converter), value, books = std::move(books)](DB::IDatabase& db) mutable {
+										 converter->Fill(db, value, books.front(), Tr(MY_FOLDER));
+										 return [books = std::move(books)](size_t) {
+											 PLOGI << books.front().dstFileName;
+										 };
+									 } });
 	}
 
 	void OnOptionEditingFinished(const QString& /*value*/) override
