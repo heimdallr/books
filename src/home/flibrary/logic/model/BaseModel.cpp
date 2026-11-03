@@ -1,5 +1,8 @@
 #include "BaseModel.h"
 
+#include <QBrush>
+#include <QFont>
+
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
 #include "fnd/algorithm.h"
@@ -88,6 +91,18 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 		case Qt::CheckStateRole:
 		case Role::CheckState:
 			return item->GetCheckState();
+
+		case Qt::ForegroundRole:
+			return item->IsRemoved() ? QBrush(Qt::gray) : QVariant {};
+
+		case Qt::FontRole:
+			if (item->IsRemoved())
+			{
+				QFont font;
+				font.setItalic(true);
+				return font;
+			}
+			return QVariant {};
 
 		case Role::CheckableColumn:
 			return m_checkableColumn ? QVariant::fromValue(*m_checkableColumn) : QVariant {};
