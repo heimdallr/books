@@ -73,7 +73,8 @@ public:
 private:
 	void StartTransaction()
 	{
-		m_transaction = m_databaseProvider->GetDatabaseWritable()->CreateTransaction();
+		m_database    = m_databaseProvider->GetDatabaseWritable();
+		m_transaction = m_database->CreateTransaction();
 		SetEnabled();
 	}
 
@@ -81,6 +82,7 @@ private:
 	{
 		m_transaction->Commit();
 		m_transaction.reset();
+		m_database.reset();
 		SetEnabled();
 	}
 
@@ -88,6 +90,7 @@ private:
 	{
 		m_transaction->Rollback();
 		m_transaction.reset();
+		m_database.reset();
 		SetEnabled();
 	}
 
@@ -159,6 +162,7 @@ private:
 	Ui::QueryWindow                          m_ui {};
 	std::shared_ptr<ISettings>               m_settings;
 	std::shared_ptr<const IDatabaseProvider> m_databaseProvider;
+	std::shared_ptr<DB::IDatabaseWritable>   m_database;
 	std::shared_ptr<DB::ITransaction>        m_transaction;
 };
 
