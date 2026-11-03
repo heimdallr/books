@@ -62,8 +62,6 @@ private: // QStyledItemDelegate
 	void paint(QPainter* painter, const QStyleOptionViewItem& option, const QModelIndex& index) const override
 	{
 		auto o = option;
-		if (index.data(Role::IsRemoved).toBool())
-			o.palette.setColor(QPalette::ColorRole::Text, Qt::gray);
 
 		if (index.column() == 1)
 		{

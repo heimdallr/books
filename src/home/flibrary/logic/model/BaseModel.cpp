@@ -1,5 +1,8 @@
 #include "BaseModel.h"
 
+#include <QBrush>
+#include <QFont>
+
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
 #include "fnd/algorithm.h"
@@ -89,6 +92,18 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 		case Role::CheckState:
 			return item->GetCheckState();
 
+		case Qt::ForegroundRole:
+			return item->IsRemoved() ? QBrush(Qt::gray) : QVariant {};
+
+		case Qt::FontRole:
+			if (item->IsRemoved())
+			{
+				QFont font;
+				font.setItalic(true);
+				return font;
+			}
+			return QVariant {};
+
 		case Role::CheckableColumn:
 			return m_checkableColumn ? QVariant::fromValue(*m_checkableColumn) : QVariant {};
 
@@ -113,9 +128,7 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 		case Role::Remap:
 			return item->RemapColumn(index.column());
 
-#define BOOKS_COLUMN_ITEM(NAME)                                                                                                                                                                                \
-	case Role::NAME:                                                                                                                                                                                           \
-		return GetValue(*item, BookItem::Column::NAME);
+#define BOOKS_COLUMN_ITEM(NAME)  case Role::NAME: return GetValue(*item, BookItem::Column::NAME);
 			BOOKS_COLUMN_ITEMS_X_MACRO
 #undef BOOKS_COLUMN_ITEM
 
