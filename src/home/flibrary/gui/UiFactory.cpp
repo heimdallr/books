@@ -1139,9 +1139,7 @@ limit {}
 
 	container.resolve<IDatabaseProvider>()->Execute(
 		{ "Update recent books menu",
-		  [this,
-		   &menu,
-		   queryText                       = std::format(QUERY, std::to_underlying(IDatabaseProvider::Key::RecentBookDateTime), maxMenuItemCount),
+		  [queryText                       = std::format(QUERY, std::to_underlying(IDatabaseProvider::Key::RecentBookDateTime), maxMenuItemCount),
 		   menuItemTitleFormat             = std::move(menuItemTitleFormat),
 		   menuItemDateTimeFormat          = std::move(menuItemDateTimeFormat),
 		   updateRecentBookExecuteCallback = std::move(updateRecentBookExecuteCallback)](DB::IDatabase& db) mutable {
