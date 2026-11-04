@@ -444,8 +444,11 @@ void CollectionCleanerLogic::AnalyzeCancel() const
 
 void CollectionCleanerLogic::CompilationInfoExistsRequest(IAnalyzeObserver& callback) const
 {
-	const auto db    = m_impl->databaseProvider->GetDatabase();
-	const auto query = db->CreateQuery("SELECT exists(SELECT 42 FROM Compilation_List)");
-	query->Execute();
-	callback.CompilationInfoExistsResponse(query->Get<int>(0) != 0);
+	m_impl->databaseProvider->Execute({ "check compilations exist", [&callback](DB::IDatabase& db) {
+										   const auto query = db.CreateQuery("SELECT exists(SELECT 42 FROM Compilation_List)");
+										   query->Execute();
+										   return [&callback, exist = query->Get<int>(0) != 0](size_t) {
+											   callback.CompilationInfoExistsResponse(exist);
+										   };
+									   } });
 }

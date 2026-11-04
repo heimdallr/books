@@ -278,23 +278,29 @@ private: // IBookInteractorImpl
 		if (std::get<0>(description) == NavigationMode::Unknown)
 			return Read(bookId, {}, {});
 
-		const auto db    = databaseProvider->GetDatabase();
-		const auto query = db->CreateQuery(std::get<1>(description), bookId);
-		const auto match = *query | std::views::transform([&](const auto& item) {
-			return std::invoke(std::get<2>(description), title, item);
-		}) | std::views::filter([](const auto& item) {
-			return !item.first.isEmpty();
-		}) | std::ranges::to<std::vector>();
+		auto callback = [this, bookId, &description](const std::vector<std::pair<QString, QString>>& match) {
+			if (match.empty())
+				return assert(false && "unexpected logic"), Read(bookId, {}, {});
 
-		if (match.empty())
-			return assert(false && "unexpected logic"), Read(bookId, {}, {});
+			if (match.size() == 1)
+				return ILogicFactory::Lock(logicFactory)->FindBook(std::get<0>(description), match.front().first);
 
-		if (match.size() == 1)
-			return ILogicFactory::Lock(logicFactory)->FindBook(std::get<0>(description), match.front().first);
+			uiFactory->ExecMenu(match | std::views::values | std::ranges::to<QStringList>(), [&](const int n) {
+				ILogicFactory::Lock(logicFactory)->FindBook(std::get<0>(description), match[static_cast<size_t>(n)].first);
+			});
+		};
 
-		uiFactory->ExecMenu(match | std::views::values | std::ranges::to<QStringList>(), [&](const int n) {
-			ILogicFactory::Lock(logicFactory)->FindBook(std::get<0>(description), match[static_cast<size_t>(n)].first);
-		});
+		databaseProvider->Execute({ "get navigation object", [&description, bookId, title = title.toString(), callback = std::move(callback)](DB::IDatabase& db) mutable {
+									   const auto query = db.CreateQuery(std::get<1>(description), bookId);
+									   auto       match = *query | std::views::transform([&](const auto& item) {
+										   return std::invoke(std::get<2>(description), title, item);
+									   }) | std::views::filter([](const auto& item) {
+										   return !item.first.isEmpty();
+									   }) | std::ranges::to<std::vector>();
+									   return [match = std::move(match), callback = std::move(callback)](size_t) {
+										   callback(match);
+									   };
+								   } });
 	}
 
 #define NAVIGATION_MODE_ITEM(NAME) void FindWith##NAME(const long long bookId, const QStringList&, const QString&) const override { FindWithImpl(NavigationMode::NAME, bookId); }

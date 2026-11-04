@@ -1343,10 +1343,13 @@ private:
 		if (!m_collectionController->ActiveCollectionExists())
 			return;
 
-		const auto db    = m_databaseProvider->GetDatabase();
-		const auto query = db->CreateQuery("SELECT exists(SELECT 42 FROM Annotations)");
-		query->Execute();
-		m_ui.actionSearchByANNOTATION->setVisible(query->Get<int>(0) != 0);
+		m_databaseProvider->Execute({ "check annotations exist", [action = m_ui.actionSearchByANNOTATION](DB::IDatabase& db) {
+										 const auto query = db.CreateQuery("SELECT exists(SELECT 42 FROM Annotations)");
+										 query->Execute();
+										 return [action, exist = query->Get<int>(0) != 0](size_t) {
+											 action->setVisible(exist);
+										 };
+									 } });
 	}
 
 	void ConnectActionsSettings()
