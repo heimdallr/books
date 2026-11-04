@@ -1462,6 +1462,17 @@
     <enum>QAction::MenuRole::NoRole</enum>
    </property>
   </action>
+  <action name="actionSerializeLayouts">
+   <property name="text">
+    <string>Serialize Layouts</string>
+   </property>
+   <property name="shortcut">
+    <string>Alt+Shift+L</string>
+   </property>
+   <property name="menuRole">
+    <enum>QAction::MenuRole::NoRole</enum>
+   </property>
+  </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
  <resources>

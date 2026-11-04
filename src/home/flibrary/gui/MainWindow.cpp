@@ -116,6 +116,7 @@ constexpr auto TOOLBAR_WITH_MAIN_MENU             = "Preferences/ToolbarWithMain
 constexpr auto TOOLBAR_POSITION                   = "Preferences/ToolbarPosition";
 constexpr auto STATUS_BAR_FONT_FAMILY             = "Preferences/StatusBar/Font/family";
 constexpr auto STATUS_BAR_FONT_SIZE               = "Preferences/StatusBar/Font/size";
+constexpr auto UI_CUSTOMIZATION_ENABLED_KEY       = "Preferences/UiCustomizationEnabled";
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 constexpr auto NAVIGATION_ACTION_ID_PROPERTY      = "navigationMode";
@@ -420,6 +421,8 @@ public:
 		CreateCollectionsMenu();
 		SetupHotkeys();
 		LoadGeometry();
+		if (m_settings->Get(UI_CUSTOMIZATION_ENABLED_KEY, false))
+			LoadLayout();
 		StartDelayed([this, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker)]() mutable {
 			CheckForUpdateCollection(*commandLine, std::move(collectionUpdateChecker));
 			m_recentOpenBookController->SetMenu(m_ui.menuRecentBooks);
@@ -790,7 +793,7 @@ private:
 		if (m_collectionController->ActiveCollectionExists())
 			m_self.setWindowTitle(QString("%1 - [ %2 ]").arg(getProductName(), m_collectionController->GetActiveCollection().name));
 
-		m_self.addAction(m_ui.actionShowQueryWindow);
+		m_self.addActions({ m_ui.actionShowQueryWindow, m_ui.actionSerializeLayouts });
 
 		SetupActionsNavigation();
 		OnModeChanged(m_navigationViewController->GetModeIndex());
@@ -1430,6 +1433,11 @@ private:
 			m_queryWindow = m_uiFactory->CreateQueryWindow();
 			m_queryWindow->show();
 		});
+		m_ui.actionSerializeLayouts->setEnabled(m_settings->Get(UI_CUSTOMIZATION_ENABLED_KEY, false));
+		if (m_ui.actionSerializeLayouts->isEnabled())
+			connect(m_ui.actionSerializeLayouts, &QAction::triggered, &m_self, [this] {
+				SaveLayout();
+			});
 	}
 
 	template <typename T = QAction>
