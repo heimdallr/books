@@ -31,7 +31,7 @@
    </property>
    <item>
     <widget class="QFrame" name="searchFilterFrame">
-     <layout class="QHBoxLayout" name="_2">
+     <layout class="QHBoxLayout" name="searchFilterBarLayout">
       <property name="spacing">
        <number>4</number>
       </property>

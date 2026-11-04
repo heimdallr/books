@@ -541,7 +541,7 @@ public:
 		m_ui.searchFilterBarLayout->insertWidget(1, widget);
 	}
 
-	void ResizeEvent(const QResizeEvent* event)
+	void ResizeEvent(const QResizeEvent* event) const
 	{
 		auto size = m_ui.value->height();
 		m_ui.btnMode->setFixedSize(size, size);
