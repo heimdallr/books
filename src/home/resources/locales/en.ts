@@ -1102,11 +1102,11 @@ Restart now?</source>
 <context>
     <name>FilterModel</name>
     <message>
-        <source>Books filtered</source>
+        <source>Hide books</source>
         <translation></translation>
     </message>
     <message>
-        <source>Hidden</source>
+        <source>Hide navigation</source>
         <translation></translation>
     </message>
     <message>

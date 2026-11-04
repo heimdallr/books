@@ -15,8 +15,8 @@ namespace HomeCompa::Flibrary {
 constexpr auto        CONTEXT = "FilterModel";
 constexpr const char* HEADERS[] {
 	QT_TRANSLATE_NOOP("FilterModel", "Title"),
-	QT_TRANSLATE_NOOP("FilterModel", "Hidden"),
-	QT_TRANSLATE_NOOP("FilterModel", "Books filtered"),
+	QT_TRANSLATE_NOOP("FilterModel", "Hide navigation"),
+	QT_TRANSLATE_NOOP("FilterModel", "Hide books"),
 };
 TR_DEF
 

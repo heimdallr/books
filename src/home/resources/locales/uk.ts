@@ -1113,12 +1113,12 @@ Restart now?</source>
 <context>
     <name>FilterModel</name>
     <message>
-        <source>Books filtered</source>
-        <translation>Книги відфільтровані</translation>
+        <source>Hide books</source>
+        <translation>Приховати книги</translation>
     </message>
     <message>
-        <source>Hidden</source>
-        <translation>Приховано</translation>
+        <source>Hide navigation</source>
+        <translation>Приховати навігацію</translation>
     </message>
     <message>
         <source>Title</source>
