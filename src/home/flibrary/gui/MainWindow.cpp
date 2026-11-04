@@ -100,7 +100,6 @@ constexpr auto SHOW_ALREADY_READ_KEY              = "ui/View/ShowAlreadyReadBook
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY        = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY  = "ui/View/AnnotationCoverButtons";
 constexpr auto SHOW_ANNOTATION_COVER_KEY          = "ui/View/AnnotationCover";
-constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "Preferences/AnnotationJokes/%1";
 constexpr auto SHOW_ANNOTATION_KEY                = "ui/View/Annotation";
 constexpr auto SHOW_ANNOTATION_METADATA_KEY       = "ui/View/AnnotationMetadata";
 constexpr auto SHOW_AUTHOR_ANNOTATION_KEY         = "ui/View/AuthorAnnotation";
@@ -111,11 +110,13 @@ constexpr auto SHOW_TOOLBAR_KEY                   = "ui/View/ShowToolBar";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
 constexpr auto MAIN_WINDOW_STATE                  = "ui/MainWindow/WindowState";
 constexpr auto TOOLBAR_ORDER_KEY                  = "ui/MenuCustomization/ToolbarOrder";
+constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "Preferences/AnnotationJokes/%1";
 constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
 constexpr auto TOOLBAR_WITH_MAIN_MENU             = "Preferences/ToolbarWithMainMenu";
 constexpr auto TOOLBAR_POSITION                   = "Preferences/ToolbarPosition";
 constexpr auto STATUS_BAR_FONT_FAMILY             = "Preferences/StatusBar/Font/family";
 constexpr auto STATUS_BAR_FONT_SIZE               = "Preferences/StatusBar/Font/size";
+constexpr auto UI_CUSTOMIZATION_ENABLED_KEY       = "Preferences/UiCustomizationEnabled";
 constexpr auto QSS                                = "qss";
 constexpr auto SETTINGS_FILE_KEY                  = "settings_file";
 constexpr auto NAVIGATION_ACTION_ID_PROPERTY      = "navigationMode";
@@ -179,9 +180,7 @@ private: // QObject
 	QString GetPlaceholderText() const
 	{
 		QStringList list;
-#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME)                                                                                                                                                                    \
-	if (m_action##NAME.isVisible() && m_action##NAME.isChecked())                                                                                                                                              \
-		list << Tr(SEARCH_BOOKS_PLACEHOLDER_##NAME);
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) if (m_action##NAME.isVisible() && m_action##NAME.isChecked()) list << Tr(SEARCH_BOOKS_PLACEHOLDER_##NAME);
 		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 
@@ -422,6 +421,8 @@ public:
 		CreateCollectionsMenu();
 		SetupHotkeys();
 		LoadGeometry();
+		if (m_settings->Get(UI_CUSTOMIZATION_ENABLED_KEY, false))
+			LoadLayout();
 		StartDelayed([this, commandLine = std::move(commandLine), collectionUpdateChecker = std::move(collectionUpdateChecker)]() mutable {
 			CheckForUpdateCollection(*commandLine, std::move(collectionUpdateChecker));
 			m_recentOpenBookController->SetMenu(m_ui.menuRecentBooks);
@@ -792,7 +793,7 @@ private:
 		if (m_collectionController->ActiveCollectionExists())
 			m_self.setWindowTitle(QString("%1 - [ %2 ]").arg(getProductName(), m_collectionController->GetActiveCollection().name));
 
-		m_self.addAction(m_ui.actionShowQueryWindow);
+		m_self.addActions({ m_ui.actionShowQueryWindow, m_ui.actionSerializeLayouts });
 
 		SetupActionsNavigation();
 		OnModeChanged(m_navigationViewController->GetModeIndex());
@@ -1432,6 +1433,11 @@ private:
 			m_queryWindow = m_uiFactory->CreateQueryWindow();
 			m_queryWindow->show();
 		});
+		m_ui.actionSerializeLayouts->setEnabled(m_settings->Get(UI_CUSTOMIZATION_ENABLED_KEY, false));
+		if (m_ui.actionSerializeLayouts->isEnabled())
+			connect(m_ui.actionSerializeLayouts, &QAction::triggered, &m_self, [this] {
+				SaveLayout();
+			});
 	}
 
 	template <typename T = QAction>
