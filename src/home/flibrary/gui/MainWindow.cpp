@@ -100,7 +100,6 @@ constexpr auto SHOW_ALREADY_READ_KEY              = "ui/View/ShowAlreadyReadBook
 constexpr auto SHOW_ANNOTATION_CONTENT_KEY        = "ui/View/AnnotationContent";
 constexpr auto SHOW_ANNOTATION_COVER_BUTTONS_KEY  = "ui/View/AnnotationCoverButtons";
 constexpr auto SHOW_ANNOTATION_COVER_KEY          = "ui/View/AnnotationCover";
-constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "Preferences/AnnotationJokes/%1";
 constexpr auto SHOW_ANNOTATION_KEY                = "ui/View/Annotation";
 constexpr auto SHOW_ANNOTATION_METADATA_KEY       = "ui/View/AnnotationMetadata";
 constexpr auto SHOW_AUTHOR_ANNOTATION_KEY         = "ui/View/AuthorAnnotation";
@@ -111,6 +110,7 @@ constexpr auto SHOW_TOOLBAR_KEY                   = "ui/View/ShowToolBar";
 constexpr auto CHECK_FOR_UPDATE_ON_START_KEY      = "ui/View/CheckForUpdateOnStart";
 constexpr auto MAIN_WINDOW_STATE                  = "ui/MainWindow/WindowState";
 constexpr auto TOOLBAR_ORDER_KEY                  = "ui/MenuCustomization/ToolbarOrder";
+constexpr auto SHOW_ANNOTATION_JOKES_KEY_TEMPLATE = "Preferences/AnnotationJokes/%1";
 constexpr auto START_FOCUSED_CONTROL              = "Preferences/StartFocusedControl";
 constexpr auto TOOLBAR_WITH_MAIN_MENU             = "Preferences/ToolbarWithMainMenu";
 constexpr auto TOOLBAR_POSITION                   = "Preferences/ToolbarPosition";
@@ -179,9 +179,7 @@ private: // QObject
 	QString GetPlaceholderText() const
 	{
 		QStringList list;
-#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME)                                                                                                                                                                    \
-	if (m_action##NAME.isVisible() && m_action##NAME.isChecked())                                                                                                                                              \
-		list << Tr(SEARCH_BOOKS_PLACEHOLDER_##NAME);
+#define SEARCH_BOOKS_PLACEHOLDER_ITEM(NAME) if (m_action##NAME.isVisible() && m_action##NAME.isChecked()) list << Tr(SEARCH_BOOKS_PLACEHOLDER_##NAME);
 		SEARCH_BOOKS_PLACEHOLDER_ITEMS_X_MACRO
 #undef SEARCH_BOOKS_PLACEHOLDER_ITEM
 
