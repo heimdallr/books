@@ -209,7 +209,7 @@ public:
 	~Impl() override
 	{
 		SaveGeometry();
-		SaveLayout(m_self, *m_ui.viewScript, *m_settings);
+		::SaveLayout(m_self, *m_ui.viewScript, *m_settings);
 	}
 
 private:
