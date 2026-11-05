@@ -319,12 +319,12 @@ struct TreeViewControllerNavigation::Impl final
 	void RequestContextMenu(const QModelIndex& index, RequestContextMenuOptions options, RequestContextMenuCallback callback)
 	{
 		assert(static_cast<size_t>(mode) < std::size(MENU_REQUESTERS));
-		auto       id   = index.data(Role::Id).toString();
-		const auto db   = databaseProvider->GetDatabase();
-		auto       item = std::invoke(MENU_REQUESTERS[mode], static_cast<IContextMenuProvider*>(this), std::ref(*db), std::cref(id), options);
-		forwarder.Forward([callback = std::move(callback), id = std::move(id), item = std::move(item)] {
-			callback(id, item, {});
-		});
+		databaseProvider->Execute({ "request context menu", [this, options, callback = std::move(callback), id = index.data(Role::Id).toString()](DB::IDatabase& db) mutable {
+									   auto item = std::invoke(MENU_REQUESTERS[mode], static_cast<IContextMenuProvider*>(this), std::ref(db), std::cref(id), options);
+									   return [callback = std::move(callback), id = std::move(id), item = std::move(item)](size_t) {
+										   callback(id, item, {});
+									   };
+								   } });
 	}
 
 private: // IContextMenuHandler

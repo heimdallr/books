@@ -120,6 +120,47 @@ struct TreeViewControllerBooks::Impl
 		, bookInteractor { std::move(bookInteractor) }
 	{
 	}
+
+	void OnDoubleClickNavigation(const QModelIndex& index) const
+	{
+		const auto navigationModeVar = index.data(Role::NavigationMode);
+		if (!navigationModeVar.isValid())
+			return;
+
+		const auto navigationMode = navigationModeVar.value<NavigationMode>();
+		if (navigationMode == NavigationMode::Unknown)
+			return;
+
+		auto ids = index.data(Role::Id).toString().split('|', Qt::SkipEmptyParts);
+		if (ids.isEmpty())
+			return;
+
+		if (ids.size() == 1)
+			return ILogicFactory::Lock(logicFactory)->FindBook(navigationMode, ids.front());
+
+		static constexpr std::pair<NavigationMode, const char*> descriptions[] {
+			{ NavigationMode::Authors, "select " FLIBRARY_SQL_FULL_AUTHOR_NAME " from Authors a where AuthorID in (%1)" },
+			{  NavigationMode::Series,                          "select SeriesTitle from Series where SeriesID in (%1)" },
+		};
+
+		const auto* queryText = FindSecond(descriptions, navigationMode, nullptr);
+		if (!queryText)
+			return;
+
+		databaseProvider->Execute({ "extract navigation items", [this, navigationMode, queryText, ids = std::move(ids)](DB::IDatabase& db) mutable {
+									   const auto query = db.CreateQuery(QString(queryText).arg(QStringList::fromVector(QVector<QString>(ids.size(), QString { '?' })).join(',')));
+									   for (auto binder = query->Binder(); const auto& id : ids)
+										   binder << id.toLongLong();
+									   auto values = *query | std::views::transform([](const auto& item) {
+										   return item.template Get<QString>(0);
+									   }) | std::ranges::to<QStringList>();
+									   return [this, navigationMode, ids = std::move(ids), values = std::move(values)](size_t) {
+										   uiFactory->ExecMenu(values, [&](const int n) {
+											   ILogicFactory::Lock(logicFactory)->FindBook(navigationMode, ids[static_cast<qsizetype>(n)]);
+										   });
+									   };
+								   } });
+	}
 };
 
 TreeViewControllerBooks::TreeViewControllerBooks(
@@ -233,45 +274,7 @@ void TreeViewControllerBooks::OnContextMenuTriggered(QAbstractItemModel* model, 
 void TreeViewControllerBooks::OnDoubleClicked(const QModelIndex& index) const
 {
 	if (index.data(Role::Type).value<ItemType>() == ItemType::Navigation)
-	{
-		const auto navigationModeVar = index.data(Role::NavigationMode);
-		if (!navigationModeVar.isValid())
-			return;
-
-		const auto navigationMode = navigationModeVar.value<NavigationMode>();
-		if (navigationMode == NavigationMode::Unknown)
-			return;
-
-		const auto ids = index.data(Role::Id).toString().split('|', Qt::SkipEmptyParts);
-		if (ids.isEmpty())
-			return;
-
-		if (ids.size() == 1)
-			return ILogicFactory::Lock(m_impl->logicFactory)->FindBook(navigationMode, ids.front());
-
-		static constexpr std::pair<NavigationMode, const char*> descriptions[] {
-			{ NavigationMode::Authors, "select " FLIBRARY_SQL_FULL_AUTHOR_NAME " from Authors a where AuthorID in (%1)" },
-			{  NavigationMode::Series,                          "select SeriesTitle from Series where SeriesID in (%1)" },
-		};
-
-		const auto* queryText = FindSecond(descriptions, navigationMode, nullptr);
-		if (!queryText)
-			return;
-
-		const auto db    = m_impl->databaseProvider->GetDatabase();
-		const auto query = db->CreateQuery(QString(queryText).arg(QStringList::fromVector(QVector<QString>(ids.size(), QString { '?' })).join(',')));
-		for (auto binder = query->Binder(); const auto& id : ids)
-			binder << id.toLongLong();
-
-		return m_impl->uiFactory->ExecMenu(
-			*query | std::views::transform([](const auto& item) {
-				return item.template Get<QString>(0);
-			}) | std::ranges::to<QStringList>(),
-			[&](const int n) {
-				ILogicFactory::Lock(m_impl->logicFactory)->FindBook(navigationMode, ids[static_cast<qsizetype>(n)]);
-			}
-		);
-	}
+		return m_impl->OnDoubleClickNavigation(index);
 
 	if (index.data(Role::Type).value<ItemType>() != ItemType::Books)
 		return;
