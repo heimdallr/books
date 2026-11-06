@@ -1566,6 +1566,9 @@ private:
 			return false;
 
 		auto& action = **it;
+		if (&action == m_modeMenu->defaultAction())
+			return true;
+
 		if (!action.isEnabled())
 			action.setEnabled(true);
 		action.trigger();
