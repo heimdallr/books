@@ -1094,6 +1094,10 @@ Restart now?</source>
 <context>
     <name>FastFilterWidget</name>
     <message>
+        <source>Deselect all</source>
+        <translation>Снять выделение</translation>
+    </message>
+    <message>
         <source>Invert selection</source>
         <translation>Инвертировать выделение</translation>
     </message>
@@ -2750,11 +2754,11 @@ Try again?</source>
     <name>HomeCompa::Flibrary::FastFilterWidget</name>
     <message>
         <source>Deselect all</source>
-        <translation>Снять выделение</translation>
+        <translation type="vanished">Снять выделение</translation>
     </message>
     <message>
         <source>Select all</source>
-        <translation>Выделить всё</translation>
+        <translation type="vanished">Выделить всё</translation>
     </message>
 </context>
 <context>

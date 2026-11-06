@@ -34,6 +34,13 @@ using namespace HomeCompa;
 
 namespace {
 
+constexpr auto CONTEXT = "FastFilterWidget";
+
+constexpr auto SELECT_ALL   = QT_TRANSLATE_NOOP("FastFilterWidget", "Select all");
+constexpr auto DESELECT_ALL = QT_TRANSLATE_NOOP("FastFilterWidget", "Deselect all");
+
+TR_DEF
+
 struct ModelRole
 {
 	enum
@@ -394,7 +401,7 @@ public:
 				});
 
 			m_model->setData({}, checkState, Qt::CheckStateRole);
-			m_ui.checkBoxAll->setToolTip(checkState == Qt::Checked ? tr("Deselect all") : tr("Select all"));
+			m_ui.checkBoxAll->setToolTip(checkState == Qt::Checked ? Tr(DESELECT_ALL) : Tr(SELECT_ALL));
 		});
 		connect(m_ui.btnRevertSelection, &QAbstractButton::clicked, this, [this] {
 			m_model->setData({}, Qt::PartiallyChecked, Qt::CheckStateRole);

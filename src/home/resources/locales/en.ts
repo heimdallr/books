@@ -1083,6 +1083,10 @@ Restart now?</source>
 <context>
     <name>FastFilterWidget</name>
     <message>
+        <source>Deselect all</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>Invert selection</source>
         <translation></translation>
     </message>
@@ -2730,17 +2734,6 @@ Try again?</source>
     </message>
     <message>
         <source>New group</source>
-        <translation></translation>
-    </message>
-</context>
-<context>
-    <name>HomeCompa::Flibrary::FastFilterWidget</name>
-    <message>
-        <source>Deselect all</source>
-        <translation></translation>
-    </message>
-    <message>
-        <source>Select all</source>
         <translation></translation>
     </message>
 </context>
