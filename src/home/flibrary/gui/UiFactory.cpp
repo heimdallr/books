@@ -1129,7 +1129,7 @@ limit {}
 					 tr->CreateCommand("insert or replace into Settings(SettingID, SettingValue) values(?, datetime(CURRENT_TIMESTAMP, 'localtime'))")
 						 ->Execute(std::to_underlying(IDatabaseProvider::Key::RecentBookDateTime));
 					 tr->Commit();
-					 return [&](size_t) {
+					 return [this, &menu](size_t) {
 						 UpdateRecentOpenBookControllerMenu(menu);
 					 };
 				 } }

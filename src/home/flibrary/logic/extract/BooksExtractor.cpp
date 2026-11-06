@@ -1,7 +1,11 @@
 #include "BooksExtractor.h"
 
+#include <condition_variable>
 #include <filesystem>
+#include <mutex>
+#include <queue>
 #include <ranges>
+#include <thread>
 
 #include <QBuffer>
 #include <QTemporaryDir>
@@ -19,7 +23,6 @@
 
 #include "data/DataItem.h"
 #include "platform/StrUtil.h"
-#include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"
 #include "util/ImageRestore.h"
 #include "util/ObjectsConnector.h"
@@ -41,6 +44,88 @@ public:
 	virtual ~IExportHelper()                                                                                             = default;
 	virtual void                                       CheckPath(std::filesystem::path& path, const std::string& suffix) = 0;
 	virtual std::unique_ptr<const Util::ExtractedBook> GetMetadataReplacement(const Util::ExtractedBook& book) const     = 0;
+};
+
+class StatisticsWriter
+{
+	NON_COPY_MOVABLE(StatisticsWriter)
+
+public:
+	StatisticsWriter(const BooksExtractor& booksExtractor, const ISettings& settings, const IDatabaseProvider& databaseProvider)
+		: m_booksExtractor { booksExtractor }
+		, m_autoRateValue { settings.Get(AUTO_RATE_KEY) }
+		, m_thread { [this, &databaseProvider](std::stop_token stop) {
+			Work(std::move(stop), databaseProvider);
+		} }
+	{
+	}
+
+	~StatisticsWriter()
+	{
+		m_thread.request_stop();
+		m_thread.join();
+		if (!m_ids.empty())
+			emit m_booksExtractor.SetUserRate({ .ids = { std::move(m_ids) }, .column = BookItem::Column::UserRate, .value = m_autoRateValue.toString() });
+	}
+
+	void SetExportStatType(const int value) noexcept
+	{
+		m_exportStatType = value;
+	}
+
+	void Enqueue(const long long id)
+	{
+		{
+			std::unique_lock lock(m_queueGuard);
+			m_queue.push(id);
+		}
+		m_condition.notify_one();
+	}
+
+private:
+	void Work(const std::stop_token stop, const IDatabaseProvider& databaseProvider)
+	{
+		const auto db           = databaseProvider.GetDatabaseWritable();
+		const auto transaction  = db->CreateTransaction();
+		const auto insertExport = transaction->CreateCommand(ExportStat::INSERT_QUERY);
+		const auto setUserRate  = transaction->CreateCommand(IDatabaseProvider::SET_USER_RATE_COMMAND);
+
+		while (true)
+		{
+			long long id = 0;
+			{
+				std::unique_lock lock(m_queueGuard);
+				std::ignore = m_condition.wait(lock, stop, [this] {
+					return !m_queue.empty();
+				});
+
+				if (stop.stop_requested() && m_queue.empty())
+					break;
+
+				id = m_queue.front();
+				m_queue.pop();
+			}
+
+			insertExport->Execute(id, m_exportStatType);
+			if (m_autoRateValue.isValid())
+			{
+				setUserRate->Execute(id, m_autoRateValue.toInt());
+				m_ids.emplace(id);
+			}
+		}
+		transaction->Commit();
+	}
+
+private:
+	const BooksExtractor&           m_booksExtractor;
+	const QVariant                  m_autoRateValue;
+	int                             m_exportStatType { -1 };
+
+	std::unordered_set<long long> m_ids;
+	std::queue<long long>         m_queue;
+	std::mutex                    m_queueGuard;
+	std::condition_variable_any   m_condition;
+	std::jthread                  m_thread;
 };
 
 void Write(const QByteArray& input, const std::filesystem::path& path)
@@ -231,7 +316,6 @@ public:
 		: m_self { self }
 		, m_settings { std::move(settings) }
 		, m_encoding { m_settings->Get(EXPORT_ENCODING_KEY, QString {}) }
-		, m_autoRateValue { m_settings->Get(AUTO_RATE_KEY) }
 		, m_collectionController { std::move(collectionController) }
 		, m_progressController { std::move(progressController) }
 		, m_logicFactory { logicFactory }
@@ -248,10 +332,10 @@ public:
 	void Extract(QString dstFolder, Util::ExtractedBooks&& books, Callback callback, const ExportStat::Type exportStatType, ProcessFunctor processFunctor)
 	{
 		assert(!m_callback);
-		m_hasError       = false;
-		m_callback       = std::move(callback);
-		m_taskCount      = std::size(books);
-		m_exportStatType = static_cast<int>(exportStatType);
+		m_hasError  = false;
+		m_callback  = std::move(callback);
+		m_taskCount = std::size(books);
+		m_statisticsWriter.SetExportStatType(static_cast<int>(exportStatType));
 		m_processFunctor = std::move(processFunctor);
 		ILogicFactory::Lock(m_logicFactory)->GetExecutor({ static_cast<int>(m_taskCount) }).swap(m_executor);
 		m_dstFolder     = std::move(dstFolder);
@@ -359,7 +443,7 @@ private:
 										  try
 										  {
 											  if (m_processFunctor(m_archiveFolder, m_dstFolder, book, m_encoding, *progressItem, *this))
-												  OnExtracted(book.id);
+												  m_statisticsWriter.Enqueue(book.id);
 										  }
 										  catch (const std::exception& ex)
 										  {
@@ -375,26 +459,10 @@ private:
 									  } };
 	}
 
-	void OnExtracted(const long long id) const
-	{
-		const auto db          = m_databaseProvider->GetDatabaseWritable();
-		const auto transaction = db->CreateTransaction();
-		transaction->CreateCommand(ExportStat::INSERT_QUERY)->Execute(id, m_exportStatType);
-		if (m_autoRateValue.isValid())
-		{
-			transaction->CreateCommand(IDatabaseProvider::SET_USER_RATE_COMMAND)->Execute(id, m_autoRateValue.toInt());
-			m_forwarder.Forward([this, id] {
-				emit m_self.SetUserRate({ .ids = { id }, .column = BookItem::Column::UserRate, .value = m_autoRateValue.toString() });
-			});
-		}
-		transaction->Commit();
-	}
-
 private:
 	const BooksExtractor&                                     m_self;
 	std::shared_ptr<const ISettings>                          m_settings;
 	const QString                                             m_encoding;
-	const QVariant                                            m_autoRateValue;
 	PropagateConstPtr<ICollectionController, std::shared_ptr> m_collectionController;
 	PropagateConstPtr<IProgressController, std::shared_ptr>   m_progressController;
 	std::weak_ptr<const ILogicFactory>                        m_logicFactory;
@@ -404,7 +472,6 @@ private:
 	Callback                                                  m_callback;
 	size_t                                                    m_taskCount { 0 };
 	bool                                                      m_hasError { false };
-	int                                                       m_exportStatType;
 	ProcessFunctor                                            m_processFunctor { nullptr };
 	std::unique_ptr<Util::IExecutor>                          m_executor;
 	QString                                                   m_dstFolder;
@@ -412,7 +479,7 @@ private:
 	std::mutex                                                m_usedPathGuard;
 	std::unordered_set<QString>                               m_usedPath;
 	bool                                                      m_needReplaceMetadata;
-	Util::FunctorExecutionForwarder                           m_forwarder;
+	StatisticsWriter                                          m_statisticsWriter { m_self, *m_settings, *m_databaseProvider };
 };
 
 BooksExtractor::BooksExtractor(

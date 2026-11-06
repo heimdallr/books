@@ -640,16 +640,18 @@ private:
 				  auto annotation = singleQuery("select Text from Annotations where BookID = ?");
 
 				  if (!IsOneOf(m_navigationMode, NavigationMode::Unknown, NavigationMode::History))
+					  m_databaseProvider->ExecuteWritable(
+						  { "add to history", [this, bookId = book->GetId().toLongLong()](DB::IDatabaseWritable& dbHistory) {
+							   const auto tr = dbHistory.CreateTransaction();
+							   tr->CreateCommand(std::format("INSERT OR REPLACE INTO {} (BookID, CreatedAt) VALUES (?, datetime('now', 'localtime'))", m_historyTableName))->Execute(bookId);
+							   if (m_historyWriteCounter.fetch_add(1) == 10)
+								   tr->CreateCommand(std::format("analyze {}", DatabaseUtil::GetHistoryIndexName(*m_settings)))->Execute();
+							   tr->Commit();
+							   return [](size_t) {
+							   };
+						   } }
+					  );
 				  {
-					  const auto dbWritable = m_databaseProvider->GetDatabaseWritable();
-					  const auto tr         = dbWritable->CreateTransaction();
-					  tr->CreateCommand(std::format("INSERT OR REPLACE INTO {} (BookID, CreatedAt) VALUES (?, datetime('now', 'localtime'))", m_historyTableName))->Execute(book->GetId().toLongLong());
-					  if (m_historyWriteCounter && ++m_historyWriteCounter > 10)
-					  {
-						  m_historyWriteCounter = 0;
-						  tr->CreateCommand(std::format("analyze {}", DatabaseUtil::GetHistoryIndexName(*m_settings)))->Execute();
-					  }
-					  tr->Commit();
 				  }
 
 				  return [this,
@@ -820,7 +822,7 @@ private:
 	std::mt19937       m_mt { m_rd() };
 
 	const std::string m_historyTableName { DatabaseUtil::GetHistoryTableName(*m_settings) };
-	size_t            m_historyWriteCounter { 1 };
+	std::atomic_int   m_historyWriteCounter { 0 };
 };
 
 AnnotationController::AnnotationController(
