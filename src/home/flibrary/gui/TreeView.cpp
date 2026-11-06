@@ -1565,12 +1565,10 @@ private:
 		if (it == std::end(actions))
 			return false;
 
-		auto&      action  = **it;
-		const auto enabled = action.isEnabled();
-		if (!enabled)
+		auto& action = **it;
+		if (!action.isEnabled())
 			action.setEnabled(true);
 		action.trigger();
-		action.setEnabled(enabled);
 
 		return true;
 	}
