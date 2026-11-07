@@ -1,11 +1,15 @@
+#include <thread>
+
 #include <gtest/gtest.h>
 
 #include "interface/logic/IDatabaseProvider.h"
 
 #include "Hypodermic/Hypodermic.h"
+#include "mock/database/MockCommand.h"
 #include "mock/database/MockDatabase.h"
 #include "mock/database/MockDatabaseFactory.h"
 #include "mock/database/MockQuery.h"
+#include "mock/database/MockTransaction.h"
 #include "mock/logic/MockCollectionProvider.h"
 #include "mock/logic/MockLogicFactory.h"
 #include "mock/util/MockExecutor.h"
@@ -227,9 +231,36 @@ TEST_F(DatabaseProviderTest, GetSettings)
 	setupQuery                  = [](DB::Test::MockQuery& query) {
 		EXPECT_CALL(query, BindLong(testing::Matcher<size_t>(testing::_), static_cast<int>(IDatabaseProvider::Key::DatabaseVersion))).WillOnce(testing::Return(0));
 		EXPECT_CALL(query, Eof).WillOnce(testing::Return(false));
-		EXPECT_CALL(query, GetString(0)).WillOnce(testing::Return(std::string{"specialValue"}));
+		EXPECT_CALL(query, GetString(0)).WillOnce(testing::Return(std::string { "specialValue" }));
 	};
 	EXPECT_EQ(databaseProvider->GetSetting(IDatabaseProvider::Key::DatabaseVersion, QString("defaultValue")).toString(), "specialValue");
+}
+
+TEST_F(DatabaseProviderTest, SetSettings)
+{
+	EXPECT_CALL(*logicFactory, GetExecutor).WillOnce(testing::Return(CreateExecutor()));
+	EXPECT_CALL(*collectionProvider, ActiveCollectionExists).WillRepeatedly(testing::Return(true));
+	EXPECT_CALL(testing::Const(*collectionProvider), GetActiveCollection()).WillRepeatedly(testing::ReturnRef(collection));
+	const auto createCommand = [] {
+		auto command = std::make_unique<DB::Test::MockCommand>();
+		EXPECT_CALL(*command, BindLong(testing::Matcher<size_t>(testing::_), static_cast<int>(IDatabaseProvider::Key::DisabledBookFields))).WillOnce(testing::Return(0));
+		EXPECT_CALL(*command, BindString(testing::Matcher<size_t>(testing::_), "all")).WillOnce(testing::Return(0));
+		EXPECT_CALL(*command, Execute).WillOnce(testing::Return(0));
+		return command;
+	};
+	const auto createTransaction = [createCommand] {
+		auto tr = std::make_unique<DB::Test::MockTransaction>();
+		EXPECT_CALL(*tr, CreateCommand).WillOnce(createCommand);
+		EXPECT_CALL(*tr, Commit).WillOnce(testing::Return(0));
+		return tr;
+	};
+	setupDatabaseWritable = [createTransaction](DB::Test::MockDatabaseWritable& db) {
+		EXPECT_CALL(db, RegisterObserver(testing::_)).WillOnce([](auto*) {
+		});
+		EXPECT_CALL(db, CreateTransaction).WillOnce(createTransaction);
+	};
+	const auto databaseProvider = di.Resolve<IDatabaseProvider>();
+	databaseProvider->SetSetting(IDatabaseProvider::Key::DisabledBookFields, QVariant("all"));
 }
 
 } // namespace
