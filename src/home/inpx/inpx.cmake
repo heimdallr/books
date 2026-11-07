@@ -9,8 +9,6 @@ AddTarget(inpx	shared_lib
 	LINK_TARGETS
 		dbfactory
 		logging
-		platform
-		sqlite3pp
 		util
 		zip
 	LINK_LIBRARIES

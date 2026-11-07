@@ -6,7 +6,7 @@ int main(int argc, char* argv[])
 {
 #ifdef Q_OS_LINUX
 	if (qEnvironmentVariableIsEmpty("QT_QPA_PLATFORM"))
-		qputenv("QT_QPA_PLATFORM", "offscreen"); // CI machines have no display
+		qputenv("QT_QPA_PLATFORM", "offscreen");
 #endif
 
 	QApplication app(argc, argv);
