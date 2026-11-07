@@ -1415,7 +1415,7 @@ private:
 		const auto& dbFileName       = m_ini(DB_PATH);
 		const auto  connectionString = QString("path=%1").arg(dbFileName).toStdString();
 
-		m_db = Create<DB::IDatabaseWritable>(DB::Factory::Impl::Sqlite, connectionString);
+		m_db = DB::Factory::Create<DB::IDatabaseWritable>(DB::IFactory::Impl::Sqlite, connectionString);
 		m_db->CreateQuery("PRAGMA synchronous = OFF;")->Execute();
 
 		ExecuteScript(*m_db, "create database", m_ini(DB_CREATE_SCRIPT, DEFAULT_DB_CREATE_SCRIPT));
@@ -1638,7 +1638,7 @@ private:
 		const auto& dbFileName       = m_ini(DB_PATH);
 		const auto  connectionString = QString("path=%1").arg(dbFileName).toStdString();
 
-		m_db = Create<DB::IDatabaseWritable>(DB::Factory::Impl::Sqlite, connectionString);
+		m_db = DB::Factory::Create<DB::IDatabaseWritable>(DB::IFactory::Impl::Sqlite, connectionString);
 
 		const auto [oldData, oldGenresIndex] = ReadData(m_ini(GENRES_PATH, DEFAULT_GENRES));
 

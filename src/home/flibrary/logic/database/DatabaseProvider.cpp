@@ -109,7 +109,7 @@ void Pragma(DB::IDatabase& db)
 }
 
 template <typename T>
-std::unique_ptr<T> CreateImpl(const ICollectionProvider& collectionProvider)
+std::unique_ptr<T> CreateImpl(const ICollectionProvider& collectionProvider, const DB::IFactory& databaseFactory)
 {
 	if (!collectionProvider.ActiveCollectionExists())
 		return {};
@@ -119,7 +119,7 @@ std::unique_ptr<T> CreateImpl(const ICollectionProvider& collectionProvider)
 		return {};
 	try
 	{
-		auto db = Create<T>(DB::Factory::Impl::Sqlite, std::format("path={}", databaseName));
+		auto db = databaseFactory.CreateT<T>(DB::IFactory::Impl::Sqlite, std::format("path={}", databaseName));
 		Pragma(*db);
 		return db;
 	}
@@ -144,9 +144,10 @@ class DatabaseProvider::Impl final
 	NON_COPY_MOVABLE(Impl)
 
 public:
-	Impl(const ILogicFactory& logicFactory, std::shared_ptr<const ICollectionProvider> collectionProvider)
+	Impl(const ILogicFactory& logicFactory, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const DB::IFactory> databaseFactory)
 		: m_collectionProvider { std::move(collectionProvider) }
-		, m_mainThreadDb { CreateImpl<DB::IDatabaseWritable>(*m_collectionProvider) }
+		, m_databaseFactory { std::move(databaseFactory) }
+		, m_mainThreadDb { CreateImpl<DB::IDatabase>(*m_collectionProvider, *m_databaseFactory) }
 		, m_executor { CreateExecutor(logicFactory) }
 	{
 		if (!m_mainThreadDb)
@@ -160,7 +161,7 @@ public:
 	{
 		m_executor.reset();
 		m_mainThreadDb.reset();
-		if (const auto db = GetDatabaseWritable())
+		if (const auto db = CreateImpl<DB::IDatabaseWritable>(*m_collectionProvider, *m_databaseFactory))
 			db->CreateQuery("PRAGMA wal_checkpoint(TRUNCATE);")->Execute();
 	}
 
@@ -171,7 +172,7 @@ public:
 
 	std::unique_ptr<DB::IDatabaseWritable> GetDatabaseWritable()
 	{
-		auto db = CreateImpl<DB::IDatabaseWritable>(*m_collectionProvider);
+		auto db = CreateImpl<DB::IDatabaseWritable>(*m_collectionProvider, *m_databaseFactory);
 		if (db)
 			db->RegisterObserver(this);
 		return db;
@@ -247,21 +248,22 @@ private:
 				return std::make_pair(0, it->second.lock());
 		}
 
-		std::shared_ptr db = CreateImpl<DB::IDatabase>(*m_collectionProvider);
+		std::shared_ptr db = CreateImpl<DB::IDatabase>(*m_collectionProvider, *m_databaseFactory);
 		assert(db);
 		return std::make_pair(threadId, std::move(db));
 	}
 
 private:
 	std::shared_ptr<const ICollectionProvider>               m_collectionProvider;
+	std::shared_ptr<const DB::IFactory>                      m_databaseFactory;
 	std::mutex                                               m_dbListGuard;
 	std::unordered_map<size_t, std::weak_ptr<DB::IDatabase>> m_dbList;
-	std::shared_ptr<DB::IDatabaseWritable>                   m_mainThreadDb;
+	std::shared_ptr<DB::IDatabase>                           m_mainThreadDb;
 	std::shared_ptr<Util::IExecutor>                         m_executor;
 };
 
-DatabaseProvider::DatabaseProvider(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<const ICollectionProvider> collectionProvider)
-	: m_impl(std::make_unique<Impl>(*logicFactory, std::move(collectionProvider)))
+DatabaseProvider::DatabaseProvider(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const DB::IFactory> databaseFactory)
+	: m_impl(std::make_unique<Impl>(*logicFactory, std::move(collectionProvider), std::move(databaseFactory)))
 {
 	PLOGV << "DatabaseUser created";
 }
