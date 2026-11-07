@@ -280,7 +280,7 @@ SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO
 
 QString Collection::GetDatabase() const
 {
-	return Util::ToAbsolutePath(m_database);
+	return m_database.contains(":memory:") ? m_database : Util::ToAbsolutePath(m_database);
 }
 
 QString Collection::GetFolder() const

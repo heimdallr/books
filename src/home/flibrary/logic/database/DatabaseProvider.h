@@ -4,6 +4,8 @@
 
 #include "fnd/NonCopyMovable.h"
 
+#include "database/interface/IFactory.h"
+
 #include "interface/logic/ICollectionProvider.h"
 #include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/ILogicFactory.h"
@@ -15,7 +17,7 @@ class DatabaseProvider final : public IDatabaseController
 	NON_COPY_MOVABLE(DatabaseProvider)
 
 public:
-	DatabaseProvider(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<const ICollectionProvider> collectionProvider);
+	DatabaseProvider(const std::shared_ptr<ILogicFactory>& logicFactory, std::shared_ptr<const ICollectionProvider> collectionProvider, std::shared_ptr<const DB::IFactory> databaseFactory);
 	~DatabaseProvider() override;
 
 private: // IDatabaseProvider

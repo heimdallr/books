@@ -51,11 +51,14 @@
 #include "LogicFactory.h"
 
 #include "config/version.h"
+#include "database/factory/Factory.h"
 
 namespace HomeCompa::Flibrary {
 
 void DiLogic(Hypodermic::ContainerBuilder& builder, const std::shared_ptr<Hypodermic::Container>& container)
 {
+	builder.registerType<DB::DatabaseFactory>().as<DB::IFactory>();
+
 	builder.registerType<CollectionAutoUpdater>().as<ICollectionAutoUpdater>();
 	builder.registerType<CollectionCleanerLogic>().as<ICollectionCleaner>();
 	builder.registerType<CollectionUpdateChecker>().as<ICollectionUpdateChecker>();

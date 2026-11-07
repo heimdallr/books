@@ -15,6 +15,12 @@
 
 class QTemporaryDir;
 
+namespace HomeCompa::Flibrary::Test {
+
+struct CollectionTest;
+
+}
+
 namespace HomeCompa::Flibrary {
 
 class IDatabaseProvider;
@@ -39,7 +45,9 @@ private:
 	QString m_folder;
 	QString m_additionalFolder;
 	QString m_inpx;
+
 	friend struct CollectionImpl;
+	friend struct Test::CollectionTest;
 };
 
 using Collections = std::vector<Collection::Ptr>;
