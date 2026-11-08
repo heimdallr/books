@@ -1,3 +1,4 @@
+#include <latch>
 #include <thread>
 
 #include <gtest/gtest.h>
@@ -116,9 +117,11 @@ void DatabaseProviderTest::SetUp()
 	});
 }
 
-std::unique_ptr<IExecutor> CreateExecutor()
+std::unique_ptr<IExecutor> CreateExecutor(const std::function<void(MockExecutor&)> f = [](auto&) {
+})
 {
 	auto executor = std::make_unique<testing::StrictMock<MockExecutor>>();
+	f(*executor);
 	return executor;
 }
 
@@ -266,6 +269,67 @@ TEST_F(DatabaseProviderTest, SetSettings)
 	};
 	const auto databaseProvider = di.Resolve<IDatabaseProvider>();
 	databaseProvider->SetSetting(IDatabaseProvider::Key::DisabledBookFields, QVariant("all"));
+}
+
+TEST_F(DatabaseProviderTest, Execute)
+{
+	const auto prepareExecutor = [](MockExecutor& executor) {
+		EXPECT_CALL(executor, DoExecute).WillOnce([](IExecutor::Task&& task, int /*priority*/, bool /*displace*/) {
+			IExecutor::ThreadContext ctx;
+			auto                     callback = task.task(ctx);
+			callback(0);
+			return 0;
+		});
+	};
+	EXPECT_CALL(*logicFactory, GetExecutor).WillOnce(testing::Return(CreateExecutor(prepareExecutor)));
+	EXPECT_CALL(*collectionProvider, ActiveCollectionExists).WillRepeatedly(testing::Return(true));
+	EXPECT_CALL(testing::Const(*collectionProvider), GetActiveCollection()).WillRepeatedly(testing::ReturnRef(collection));
+	const auto databaseProvider = di.Resolve<IDatabaseProvider>();
+
+	std::latch latch(1);
+	databaseProvider->Execute({ "test", [&](DB::IDatabase& db) {
+								   const auto db1 = databaseProvider->GetDatabase();
+								   EXPECT_EQ(&db, db1.get());
+								   return [&](size_t) {
+									   latch.count_down();
+								   };
+							   } });
+	latch.wait();
+}
+
+TEST_F(DatabaseProviderTest, ExecuteWritable)
+{
+	const auto prepareExecutor = [](MockExecutor& executor) {
+		EXPECT_CALL(executor, DoExecute).WillOnce([](IExecutor::Task&& task, int /*priority*/, bool /*displace*/) {
+			IExecutor::ThreadContext ctx;
+			auto                     callback = task.task(ctx);
+			callback(0);
+			return 0;
+		});
+	};
+	EXPECT_CALL(*logicFactory, GetExecutor).WillOnce(testing::Return(CreateExecutor(prepareExecutor)));
+	EXPECT_CALL(*collectionProvider, ActiveCollectionExists).WillRepeatedly(testing::Return(true));
+	EXPECT_CALL(testing::Const(*collectionProvider), GetActiveCollection()).WillRepeatedly(testing::ReturnRef(collection));
+
+	int observableCount   = 0;
+	setupDatabaseWritable = [&](DB::Test::MockDatabaseWritable& db) {
+		EXPECT_CALL(db, RegisterObserver(testing::_)).WillOnce([&](auto*) {
+			++observableCount;
+		});
+	};
+
+	const auto databaseProvider = di.Resolve<IDatabaseProvider>();
+
+	std::latch latch(1);
+	databaseProvider->ExecuteWritable({ "test", [&](DB::IDatabaseWritable& db) {
+										   const auto db1 = databaseProvider->GetDatabaseWritable();
+										   EXPECT_NE(&db, db1.get());
+										   return [&](size_t) {
+											   latch.count_down();
+										   };
+									   } });
+	latch.wait();
+	EXPECT_EQ(observableCount, 2);
 }
 
 } // namespace
