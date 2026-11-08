@@ -170,9 +170,9 @@ SELECT gu.GroupID, gu.Title
 
 		{
 			QJsonArray    array;
-			SettingsGroup group(*settings, INoSqlRequester::CONVERTERS_ROOT);
-			for (const auto& profile : settings->GetGroups())
-				array.append(settings->Get(QString("%1/%2").arg(profile, INoSqlRequester::CONVERTER_TITLE)).toString());
+			const auto group = settings->CreateGroupSettings(INoSqlRequester::CONVERTERS_ROOT);
+			for (const auto& profile : group->GetGroups())
+				array.append(group->Get(QString("%1/%2").arg(profile, INoSqlRequester::CONVERTER_TITLE)).toString());
 			if (!array.isEmpty())
 				result.insert("converters", std::move(array));
 		}

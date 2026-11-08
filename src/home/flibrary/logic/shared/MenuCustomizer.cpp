@@ -260,7 +260,7 @@ public:
 
 		std::unordered_set<QString> uniqueKeys;
 
-		const auto enumerate = [&](const QString& parentKey, const QString& key, const auto& r) -> void {
+		const auto enumerate = [&](const ISettings& settings, const QString& parentKey, const QString& key, const auto& r) -> void {
 			const auto itemKey = GetName(parentKey, key);
 			auto       it      = m_actions.find(itemKey);
 			if (it == m_actions.end())
@@ -271,20 +271,20 @@ public:
 				it->second->SetAbilities(parentKey.isEmpty() ? ItemAbility::None : ItemAbility::All);
 			}
 
-			it->second->Setup(*m_settings, *m_uiFactory);
+			it->second->Setup(settings, *m_uiFactory);
 
 			if (m_toolbarController)
 				if (auto* action = it->second->GetToolbarAction())
 					m_toolbarController->AddAction(itemKey, action);
 
-			for (const auto& group : m_settings->GetGroups())
+			for (const auto& group : settings.GetGroups())
 			{
-				const SettingsGroup settingsSubGroup(*m_settings, group);
-				r(itemKey, group, r); // NOLINT(readability-suspicious-call-argument)
+				const auto settingsSubGroup = settings.CreateGroupSettings(group);
+				r(*settingsSubGroup, itemKey, group, r);
 			}
 		};
-		const SettingsGroup settingsSubGroup(*m_settings, GetName(MENU_CUSTOM_ROOT, observer->GetRootKey()));
-		enumerate({}, observer->GetRootKey(), enumerate);
+		const auto settingsSubGroup = m_settings->CreateGroupSettings(GetName(MENU_CUSTOM_ROOT, observer->GetRootKey()));
+		enumerate(*settingsSubGroup, {}, observer->GetRootKey(), enumerate);
 	}
 
 	void RemoveObserver(IObserver* observer)
@@ -329,8 +329,8 @@ private:
 	{
 		auto key = item->GetItem()->GetData(SettingsItem::Column::Key);
 		{
-			const SettingsGroup settingsSubGroup(*m_settings, GetName(MENU_CUSTOM_ROOT, key));
-			item->Setup(*m_settings, *m_uiFactory);
+			const auto settingsSubGroup = m_settings->CreateGroupSettings(GetName(MENU_CUSTOM_ROOT, key));
+			item->Setup(*settingsSubGroup, *m_uiFactory);
 		}
 		if (m_toolbarController)
 			if (auto* action = item->GetToolbarAction())

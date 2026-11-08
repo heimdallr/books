@@ -1064,8 +1064,8 @@ IMenuCustomizer::IItem::Ptr UiFactory::CreateMenuCustomizerItem(QString key) con
 	item->SetData(std::move(key), SettingsItem::Column::Key);
 	auto result = std::unique_ptr<IMenuCustomizer::IItem> { std::make_unique<MenuCustomizerItemBase>(std::move(item), IMenuCustomizer::ItemAbility::None) };
 
-	const SettingsGroup settingsSubGroup(*settings, GetName(MENU_CUSTOM_ROOT, result->GetItem()->GetData(SettingsItem::Column::Key)));
-	result->Setup(*settings, *this);
+	const auto settingsSubGroup = settings->CreateGroupSettings(GetName(MENU_CUSTOM_ROOT, result->GetItem()->GetData(SettingsItem::Column::Key)));
+	result->Setup(*settingsSubGroup, *this);
 
 	return result;
 }
@@ -1278,12 +1278,12 @@ void UiFactory::SaveMenuCustomizerSettings() const
 
 	QJsonArray values;
 
-	const auto enumerate = [&](const QString& parentName, const QString& name, const auto& r) -> void {
-		const SettingsGroup settingsGroup(*settings, name);
+	const auto enumerate = [&values](const ISettings& s, const QString& parentName, const QString& name, const auto& r) -> void {
+		const auto settingsGroup = s.CreateGroupSettings(name);
 
 		QJsonObject obj;
-		for (const auto& key : settings->GetKeys())
-			obj.insert(key, ToJsonValue(settings->Get(key)));
+		for (const auto& key : settingsGroup->GetKeys())
+			obj.insert(key, ToJsonValue(settingsGroup->Get(key)));
 
 		const auto key = GetName(parentName, name);
 
@@ -1297,12 +1297,12 @@ void UiFactory::SaveMenuCustomizerSettings() const
 			);
 		}
 
-		for (const auto& group : settings->GetGroups())
-			r(key, group, r);
+		for (const auto& group : settingsGroup->GetGroups())
+			r(*settingsGroup, key, group, r);
 	};
 
-	const SettingsGroup group(*settings, Constant::UI);
-	enumerate("", "MenuCustomization", enumerate);
+	const auto group = settings->CreateGroupSettings(Constant::UI);
+	enumerate(*group, "", "MenuCustomization", enumerate);
 
 	const auto data = QJsonDocument(values).toJson();
 	file.write(data) == data.size() ? ShowInfo(Tr(MENU_SETTINGS_SAVED_OK)) : ShowError(Tr(MENU_SETTINGS_SAVED_FAILED));
@@ -1330,7 +1330,7 @@ bool UiFactory::LoadMenuCustomizerSettings() const
 
 	const auto settings = m_impl->container.resolve<ISettings>();
 	settings->Remove(MENU_CUSTOM_ROOT);
-	const SettingsGroup group(*settings, Constant::UI);
+	const auto group = settings->CreateGroupSettings(Constant::UI);
 
 	for (const auto node : doc.array())
 	{
@@ -1338,7 +1338,7 @@ bool UiFactory::LoadMenuCustomizerSettings() const
 		const auto id     = obj[ID].toString();
 		const auto values = obj[VALUES].toObject();
 		for (auto it = values.constBegin(), end = values.constEnd(); it != end; ++it)
-			settings->Set(GetName(id, it.key()), FromJsonValue(it.value()));
+			group->Set(GetName(id, it.key()), FromJsonValue(it.value()));
 	}
 
 	return true;

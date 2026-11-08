@@ -3,6 +3,7 @@
 #include <QDialog>
 
 #include "fnd/memory.h"
+#include "fnd/NonCopyMovable.h"
 
 #include "interface/logic/IMenuCustomizer.h"
 #include "interface/logic/IModelProvider.h"

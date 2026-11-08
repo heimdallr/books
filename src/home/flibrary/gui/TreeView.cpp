@@ -107,12 +107,12 @@ public:
 		m_sort.clear();
 
 		std::multimap<int, std::pair<QString, Qt::SortOrder>> buffer;
-		SettingsGroup                                         guard(settings, SORT_KEY);
-		std::ranges::transform(settings.GetGroups(), std::inserter(buffer, buffer.end()), [&](const QString& columnName) {
+		const auto                                            guard = settings.CreateGroupSettings(SORT_KEY);
+		std::ranges::transform(guard->GetGroups(), std::inserter(buffer, buffer.end()), [&](const QString& columnName) {
 			const auto key = QString("%1/%2").arg(columnName, "%1");
 			return std::make_pair(
-				settings.Get(key.arg(SORT_INDEX_KEY), std::numeric_limits<int>::max()),
-				std::make_pair(columnName, static_cast<Qt::SortOrder>(settings.Get(key.arg(SORT_ORDER_KEY), Qt::SortOrder::AscendingOrder)))
+				guard->Get(key.arg(SORT_INDEX_KEY), std::numeric_limits<int>::max()),
+				std::make_pair(columnName, static_cast<Qt::SortOrder>(guard->Get(key.arg(SORT_ORDER_KEY), Qt::SortOrder::AscendingOrder)))
 			);
 		});
 
@@ -1249,15 +1249,15 @@ private:
 
 		const auto* header           = m_ui.treeView->header();
 		const auto* model            = header->model();
-		const auto  saveHeaderLayout = [&] {
+		const auto  saveHeaderLayout = [&](ISettings& settings) {
 			for (int i = 0, sz = header->count(); i < sz; ++i)
 			{
 				if (header->isSectionHidden(i))
 					continue;
 
 				const auto name = model->headerData(i, Qt::Horizontal, Role::HeaderName).toString();
-				m_settings->Set(QString(COLUMN_WIDTH_LOCAL_KEY).arg(name), header->sectionSize(i));
-				m_settings->Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(name), header->visualIndex(i));
+				settings.Set(QString(COLUMN_WIDTH_LOCAL_KEY).arg(name), header->sectionSize(i));
+				settings.Set(QString(COLUMN_INDEX_LOCAL_KEY).arg(name), header->visualIndex(i));
 			}
 
 			m_booksHeaderView->Save(*m_settings);
@@ -1265,12 +1265,12 @@ private:
 
 		if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
 		{
-			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
-			saveHeaderLayout();
+			const auto guard = m_settings->CreateGroupSettings(GetColumnSettingsKey());
+			saveHeaderLayout(*guard);
 		}
 		{
-			SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
-			saveHeaderLayout();
+			const auto guard = m_settings->CreateGroupSettings(GetColumnSettingsKey(nullptr, LAST));
+			saveHeaderLayout(*guard);
 		}
 
 		m_ui.treeView->model()->setData({}, m_booksHeaderView->logicalIndex(0), Role::CheckableColumn);
@@ -1316,8 +1316,8 @@ private:
 		});
 
 		bool       needDataCollect = true;
-		const auto collectData     = [&] {
-			const auto columns = m_settings->GetGroups();
+		const auto collectData     = [&](const ISettings& settings) {
+			const auto columns = settings.GetGroups();
 			needDataCollect    = columns.isEmpty();
 			for (const auto& columnName : columns)
 			{
@@ -1329,9 +1329,9 @@ private:
 				assert(logicalIndex < static_cast<int>(columnInfoList.size()));
 
 				auto& columnInfo  = columnInfoList[logicalIndex];
-				columnInfo.index  = m_settings->Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(columnName), std::numeric_limits<int>::max());
-				columnInfo.width  = m_settings->Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(columnName), header->minimumSectionSize());
-				columnInfo.hidden = m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || m_settings->Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), false);
+				columnInfo.index  = settings.Get(QString(COLUMN_INDEX_LOCAL_KEY).arg(columnName), std::numeric_limits<int>::max());
+				columnInfo.width  = settings.Get(QString(COLUMN_WIDTH_LOCAL_KEY).arg(columnName), header->minimumSectionSize());
+				columnInfo.hidden = m_hiddenColumns.contains(columnName, Qt::CaseInsensitive) || settings.Get(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(columnName), false);
 			}
 
 			m_booksHeaderView->Load(*m_settings);
@@ -1339,13 +1339,13 @@ private:
 
 		if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
 		{
-			SettingsGroup guard(*m_settings, GetColumnSettingsKey());
-			collectData();
+			const auto guard = m_settings->CreateGroupSettings(GetColumnSettingsKey());
+			collectData(*guard);
 		}
 		if (needDataCollect)
 		{
-			SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
-			collectData();
+			const auto guard = m_settings->CreateGroupSettings(GetColumnSettingsKey(nullptr, LAST));
+			collectData(*guard);
 		}
 
 		if (needDataCollect)
@@ -1456,14 +1456,8 @@ private:
 				header->resizeSection(0, header->sectionSize(0) - header->sectionSize(logicalIndex));
 
 			if (!m_settings->Get(COMMON_BOOKS_TABLE_COLUMN_SETTINGS, false))
-			{
-				SettingsGroup guard(*m_settings, GetColumnSettingsKey());
-				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), !checked);
-			}
-			{
-				SettingsGroup guard(*m_settings, GetColumnSettingsKey(nullptr, LAST));
-				m_settings->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), !checked);
-			}
+				m_settings->CreateGroupSettings(GetColumnSettingsKey())->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), !checked);
+			m_settings->CreateGroupSettings(GetColumnSettingsKey(nullptr, LAST))->Set(QString(COLUMN_HIDDEN_LOCAL_KEY).arg(name), !checked);
 
 			OnHeaderSectionsVisibleChanged();
 

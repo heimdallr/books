@@ -260,6 +260,11 @@ endif()
 enable_testing()
 
 if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+	file(WRITE "${CMAKE_BINARY_DIR}/bin/qt.conf" 
+    	"[Paths]\n"
+	    "Prefix = ${QT_INSTALL_DIR}\n"
+    	"Plugins = plugins\n"
+	)
 	return()
 endif()
 

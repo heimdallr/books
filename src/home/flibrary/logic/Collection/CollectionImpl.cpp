@@ -44,14 +44,13 @@ CollectionImpl::CollectionImpl(QString name_, QString database, QString folder, 
 
 QString CollectionImpl::GetActive(const ISettings& settings)
 {
-	SettingsGroup databaseGroup(settings, Constant::Settings::COLLECTIONS);
-	return settings.Get(CURRENT, QString {});
+	return settings.Get(QString(Constant::Settings::COLLECTIONS).append("/").append(CURRENT), QString {});
 }
 
-void CollectionImpl::Serialize(const Collection& collection, ISettings& settings)
+void CollectionImpl::Serialize(const Collection& collection, ISettings& settingsSrc)
 {
-	SettingsGroup databaseGroup(settings, Constant::Settings::COLLECTIONS);
-	SettingsGroup idGroup(settings, collection.id);
+	const auto idGroup       = settingsSrc.CreateGroupSettings(QString(Constant::Settings::COLLECTIONS).append("/").append(collection.id));
+	auto&      settings      = *idGroup;
 
 	settings.Set(NAME, collection.name);
 	settings.Set(DATABASE, collection.m_database);
@@ -66,36 +65,37 @@ void CollectionImpl::Serialize(const Collection& collection, ISettings& settings
 	settings.Set(Constant::Settings::DESTRUCTIVE_OPERATIONS_ALLOWED_KEY, collection.destructiveOperationsAllowed);
 }
 
-Collections CollectionImpl::Deserialize(ISettings& settings)
+Collections CollectionImpl::Deserialize(ISettings& settingsSrc)
 {
-	Collections   collections;
-	SettingsGroup settingsGroup(settings, Constant::Settings::COLLECTIONS);
-	std::ranges::transform(settings.GetGroups(), std::back_inserter(collections), [&](QString groupId) {
-		return Deserialize(settings, std::move(groupId));
+	Collections collections;
+	const auto  settingsGroup = settingsSrc.CreateGroupSettings(Constant::Settings::COLLECTIONS);
+	std::ranges::transform(settingsGroup->GetGroups(), std::back_inserter(collections), [&](QString groupId) {
+		return Deserialize(*settingsGroup, std::move(groupId));
 	});
 
 	std::erase_if(collections, [&](const auto& item) {
 		if (QFile::exists(item->GetDatabase()))
 			return false;
 
-		settings.Remove(item->id);
+		settingsGroup->Remove(item->id);
 		return true;
 	});
 
 	return collections;
 }
 
-Collection::Ptr CollectionImpl::Deserialize(const ISettings& settings, QString collectionId)
+Collection::Ptr CollectionImpl::Deserialize(const ISettings& settingsSrc, QString collectionId)
 {
 	auto collection = std::make_unique<CollectionImpl>();
 	if (collectionId.isEmpty())
 		return collection;
 
-	if (!settings.HasGroup(collectionId))
+	if (!settingsSrc.HasGroup(collectionId))
 		return collection;
 
-	SettingsGroup idGroup(settings, collectionId);
-	collection->id = std::move(collectionId);
+	const auto  idGroup  = settingsSrc.CreateGroupSettings(collectionId);
+	const auto& settings = *idGroup;
+	collection->id       = std::move(collectionId);
 
 	if ((collection->name = settings.Get(NAME, QString {})).isEmpty())
 		return collection;
@@ -116,9 +116,10 @@ Collection::Ptr CollectionImpl::Deserialize(const ISettings& settings, QString c
 	return collection;
 }
 
-void CollectionImpl::SetActive(ISettings& settings, const QString& uid)
+void CollectionImpl::SetActive(ISettings& settingsSrc, const QString& uid)
 {
-	SettingsGroup databaseGroup(settings, Constant::Settings::COLLECTIONS);
+	const auto databaseGroup = settingsSrc.CreateGroupSettings(Constant::Settings::COLLECTIONS);
+	auto&      settings      = *databaseGroup;
 	if (uid.isEmpty())
 	{
 		settings.Remove(CURRENT);
@@ -130,9 +131,10 @@ void CollectionImpl::SetActive(ISettings& settings, const QString& uid)
 	PLOGI << "Collection " << uid << " is active now";
 }
 
-void CollectionImpl::Remove(ISettings& settings, const QString& uid)
+void CollectionImpl::Remove(ISettings& settingsSrc, const QString& uid)
 {
-	SettingsGroup databaseGroup(settings, Constant::Settings::COLLECTIONS);
+	const auto databaseGroup = settingsSrc.CreateGroupSettings(Constant::Settings::COLLECTIONS);
+	auto&      settings      = *databaseGroup;
 	settings.Remove(uid);
 	PLOGW << "Collection " << uid << " removed";
 }

@@ -85,7 +85,7 @@ std::unordered_map<long long, double> ReadRates(const ISettings& settings, const
 	return rate;
 }
 
-std::map<double, uint32_t> ReadColors(const ISettings& settings)
+std::map<double, uint32_t> ReadColors(const ISettings& settingsSrc)
 {
 	const auto color = QGuiApplication::palette().brush(QPalette::ColorRole::WindowText).color().rgb();
 
@@ -94,7 +94,8 @@ std::map<double, uint32_t> ReadColors(const ISettings& settings)
 		{ 6.0, color },
 	};
 
-	SettingsGroup viewColorsGroup(settings, Constant::Settings::PREFER_LIBRATE_VIEW_COLORS_KEY);
+	const auto  viewColorsGroup = settingsSrc.CreateGroupSettings(Constant::Settings::PREFER_LIBRATE_VIEW_COLORS_KEY);
+	const auto& settings        = *viewColorsGroup;
 	for (const auto& key : settings.GetKeys())
 	{
 		bool ok = false;

@@ -1180,8 +1180,8 @@ private:
 		connect(m_ui.actionFontSettings, &QAction::triggered, &m_self, [&] {
 			if (const auto font = m_uiFactory->GetFont(Tr(FONT_DIALOG_TITLE), m_self.font()))
 			{
-				const SettingsGroup group(*m_settings, Global::FONT_KEY);
-				Util::Serialize(*font, *m_settings);
+				const auto group = m_settings->CreateGroupSettings(Global::FONT_KEY);
+				Util::Serialize(*font, *group);
 			}
 		});
 	}

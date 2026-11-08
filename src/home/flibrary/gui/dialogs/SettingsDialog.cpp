@@ -41,28 +41,28 @@ IDataItem::Ptr CreateModelData(const ISettings& settings, const IDataItemFactory
 	root->SetData(Tr(KEY), SettingsItem::Column::Key);
 	root->SetData(Tr(VALUE), SettingsItem::Column::Value);
 
-	const auto enumerate = [&](IDataItem& parent, const auto& r) -> void {
-		for (const auto& group : settings.GetGroups())
+	const auto enumerate = [&dataItemFactory](const ISettings& s, IDataItem& parent, const auto& r) -> void {
+		for (const auto& group : s.GetGroups())
 		{
 			auto child = dataItemFactory.CreateSettingsItem();
 			child->SetId(GetName(parent.GetId(), group));
 			child->SetData(group, SettingsItem::Column::Key);
-			SettingsGroup settingsGroup(settings, group);
-			r(*child, r);
+			const auto settingsGroup = s.CreateGroupSettings(group);
+			r(*settingsGroup, * child, r);
 			parent.AppendChild(std::move(child));
 		}
 
-		for (const auto& key : settings.GetKeys())
+		for (const auto& key : s.GetKeys())
 		{
 			auto child = dataItemFactory.CreateSettingsItem();
 			child->SetId(GetName(parent.GetId(), key));
 			child->SetData(key, SettingsItem::Column::Key);
-			child->SetData(settings.Get(key).toString(), SettingsItem::Column::Value);
+			child->SetData(s.Get(key).toString(), SettingsItem::Column::Value);
 			parent.AppendChild(std::move(child));
 		}
 	};
 
-	enumerate(*root, enumerate);
+	enumerate(settings, *root, enumerate);
 
 	return root;
 }

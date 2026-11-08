@@ -83,24 +83,24 @@ struct ScriptController::Impl
 private:
 	void Init()
 	{
-		const SettingsGroup scriptsGuard(*settings, SCRIPTS);
-		std::ranges::transform(settings->GetGroups(), std::back_inserter(scripts), [&](const QString& uid) {
-			const SettingsGroup scriptGuard(*settings, uid);
+		const auto scriptsGuard = settings->CreateGroupSettings(SCRIPTS);
+		std::ranges::transform(scriptsGuard->GetGroups(), std::back_inserter(scripts), [&](const QString& uid) {
+			const auto scriptGuard = scriptsGuard->CreateGroupSettings(uid);
 			Script              script {
-				{ uid, settings->Get(NUMBER).toInt() },
-				settings->Get(NAME).toString(),
-				FindFirst(s_scriptTypes, settings->Get(TYPE).toString().toStdString().data(), Script::Type::Undefined, PszComparer {}
+				{ uid, scriptGuard->Get(NUMBER).toInt() },
+				scriptGuard->Get(NAME).toString(),
+				FindFirst(s_scriptTypes, scriptGuard->Get(TYPE).toString().toStdString().data(), Script::Type::Undefined, PszComparer {}
                 )
 			};
-			std::ranges::transform(settings->GetGroups(), std::back_inserter(commands), [this, &uid](const QString& commandUid) {
-				const SettingsGroup commandGuard(*settings, commandUid);
+			std::ranges::transform(scriptGuard->GetGroups(), std::back_inserter(commands), [&uid, &scriptGuard](const QString& commandUid) {
+				const auto commandGuard = scriptGuard->CreateGroupSettings(commandUid);
 				return Command {
-					{ commandUid, settings->Get(NUMBER).toInt() },
+					{ commandUid, commandGuard->Get(NUMBER).toInt() },
 					uid,
-					settings->Get(COMMAND).toString(),
-					settings->Get(ARGUMENTS).toString(),
-					settings->Get(CWD).toString(),
-					FindFirst(s_commandTypes, CommandDescription { settings->Get(TYPE).toString().toStdString().data() },
+					commandGuard->Get(COMMAND).toString(),
+					commandGuard->Get(ARGUMENTS).toString(),
+					commandGuard->Get(CWD).toString(),
+					FindFirst(s_commandTypes, CommandDescription { commandGuard->Get(TYPE).toString().toStdString().data() },
                     CommandDescriptionComparer {}
                     )
 				};

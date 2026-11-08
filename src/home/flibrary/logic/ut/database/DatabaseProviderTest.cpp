@@ -53,9 +53,9 @@ struct DatabaseProviderTest : testing::Test
 	std::function<void(DB::Test::MockQuery&)>            setupQuery { [](auto&) {
 	} };
 
-	std::shared_ptr<MockLogicFactory>       logicFactory { std::make_shared<MockLogicFactory>() };
-	std::shared_ptr<MockCollectionProvider> collectionProvider { std::make_shared<MockCollectionProvider>() };
-	std::shared_ptr<DB::Test::MockFactory>  databaseFactory { std::make_shared<DB::Test::MockFactory>() };
+	std::shared_ptr<MockLogicFactory>       logicFactory { std::make_shared<testing::StrictMock<MockLogicFactory>>() };
+	std::shared_ptr<MockCollectionProvider> collectionProvider { std::make_shared<testing::StrictMock<MockCollectionProvider>>() };
+	std::shared_ptr<DB::Test::MockFactory>  databaseFactory { std::make_shared<testing::StrictMock<DB::Test::MockFactory>>() };
 
 	DI di { [this](Hypodermic::ContainerBuilder& builder, Hypodermic::Container& /*container*/) {
 		builder.registerInstance(databaseFactory).as<DB::IFactory>();
@@ -98,7 +98,7 @@ void DatabaseProviderTest::SetUp()
 		SetupDatabase<T>(*db);
 
 		EXPECT_CALL(*db, CreateQuery).Times(testing::AnyNumber()).WillRepeatedly([&](const auto) {
-			auto query = std::make_unique<DB::Test::MockQuery>();
+			auto query = std::make_unique<testing::StrictMock<DB::Test::MockQuery>>();
 			EXPECT_CALL(*query, Execute).Times(testing::AnyNumber()).WillRepeatedly(testing::Return(true));
 			setupQuery(*query);
 			return query;
@@ -118,8 +118,13 @@ void DatabaseProviderTest::SetUp()
 
 std::unique_ptr<IExecutor> CreateExecutor()
 {
-	auto executor = std::make_unique<MockExecutor>();
+	auto executor = std::make_unique<testing::StrictMock<MockExecutor>>();
 	return executor;
+}
+
+TEST_F(DatabaseProviderTest, Stub)
+{
+	SUCCEED();
 }
 
 TEST_F(DatabaseProviderTest, CreateWithoutActiveCollection)
@@ -242,14 +247,14 @@ TEST_F(DatabaseProviderTest, SetSettings)
 	EXPECT_CALL(*collectionProvider, ActiveCollectionExists).WillRepeatedly(testing::Return(true));
 	EXPECT_CALL(testing::Const(*collectionProvider), GetActiveCollection()).WillRepeatedly(testing::ReturnRef(collection));
 	const auto createCommand = [] {
-		auto command = std::make_unique<DB::Test::MockCommand>();
+		auto command = std::make_unique<testing::StrictMock<DB::Test::MockCommand>>();
 		EXPECT_CALL(*command, BindLong(testing::Matcher<size_t>(testing::_), static_cast<int>(IDatabaseProvider::Key::DisabledBookFields))).WillOnce(testing::Return(0));
 		EXPECT_CALL(*command, BindString(testing::Matcher<size_t>(testing::_), "all")).WillOnce(testing::Return(0));
 		EXPECT_CALL(*command, Execute).WillOnce(testing::Return(0));
 		return command;
 	};
 	const auto createTransaction = [createCommand] {
-		auto tr = std::make_unique<DB::Test::MockTransaction>();
+		auto tr = std::make_unique<testing::StrictMock<DB::Test::MockTransaction>>();
 		EXPECT_CALL(*tr, CreateCommand).WillOnce(createCommand);
 		EXPECT_CALL(*tr, Commit).WillOnce(testing::Return(0));
 		return tr;

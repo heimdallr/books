@@ -131,13 +131,13 @@ public:
 
 		const auto customIds = [this] {
 			QStringList                 ids;
-			const SettingsGroup         group(*m_settings, GROUP_KEY);
+			const auto group = m_settings->CreateGroupSettings(GROUP_KEY);
 			std::unordered_set<QString> unique;
 			std::ranges::transform(m_toolBars, std::inserter(unique, unique.end()), [](const auto* item) {
 				return item->property(ID_KEY).toString();
 			});
 			std::ranges::copy(
-				m_settings->GetGroups() | std::views::filter([&](const auto& item) {
+				group->GetGroups() | std::views::filter([&](const auto& item) {
 					return !unique.contains(item);
 				}),
 				std::back_inserter(ids)

@@ -227,10 +227,10 @@ QString INoSqlRequester::GetProfileRoot(const ISettings& settings, const QString
 	if (profileTitle.isEmpty())
 		return CONVERTER_ROOT;
 
-	SettingsGroup group(settings, CONVERTERS_ROOT);
-	auto          profiles = settings.GetGroups();
-	const auto    it       = std::ranges::find(profiles, profileTitle, [&](const QString& item) {
-		const auto title = settings.Get(QString("%1/%2").arg(item, CONVERTER_TITLE)).toString();
+	const auto group    = settings.CreateGroupSettings(CONVERTERS_ROOT);
+	auto       profiles = group->GetGroups();
+	const auto it       = std::ranges::find(profiles, profileTitle, [&](const QString& item) {
+		const auto title = group->Get(QString("%1/%2").arg(item, CONVERTER_TITLE)).toString();
 		return title;
 	});
 
