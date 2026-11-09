@@ -7,6 +7,7 @@
 #include <set>
 #include <sstream>
 
+#include <QBuffer>
 #include <QCoreApplication>
 #include <QDirIterator>
 #include <QFile>
@@ -597,19 +598,42 @@ struct InpxContent
 	std::vector<QString> inpx;
 };
 
-InpxContent ExtractInpxFileNames(const QString& inpxPath)
+std::pair<std::unique_ptr<Zip>, std::unique_ptr<QBuffer>> CreateInpxArchive(const QString& inpxPath)
 {
-	if (!QFile::exists(inpxPath))
+	std::pair<std::unique_ptr<Zip>, std::unique_ptr<QBuffer>> result;
+
+	bool inpxPathIsZipString = false;
+	if (inpxPath.endsWith("_BASE64"))
+	{
+		inpxPathIsZipString = true;
+	}
+	else if (!QFile::exists(inpxPath))
 	{
 		PLOGW << inpxPath << " not found";
-		return {};
+		return result;
 	}
 
-	InpxContent inpxContent;
+	const auto createZip = [&]() -> std::unique_ptr<Zip> {
+		if (!inpxPathIsZipString)
+			return std::make_unique<Zip>(inpxPath);
 
-	const auto zip = TRY(QString("open %1").arg(inpxPath), [&] {
-		return std::make_unique<Zip>(inpxPath);
-	});
+		auto inpxPathData = inpxPath.toUtf8();
+		inpxPathData.resize(inpxPathData.size() - 7);
+		result.second->setData(QByteArray::fromBase64(inpxPathData));
+		result.second->open(QIODevice::ReadOnly);
+		return std::make_unique<Zip>(*result.second);
+	};
+
+	result.second = std::make_unique<QBuffer>();
+	result.first  = TRY(QString("open %1").arg(inpxPath), createZip);
+
+	return result;
+}
+
+InpxContent ExtractInpxFileNames(const QString& inpxPath)
+{
+	InpxContent inpxContent;
+	const auto [zip, _] = CreateInpxArchive(inpxPath);
 	if (!zip)
 		return inpxContent;
 
@@ -1244,13 +1268,9 @@ public:
 			{ "Create collection", [&, process](auto&) {
 				 const auto ok = TRY("create collection", process);
 
-				 const auto genres = static_cast<size_t>(std::ranges::count_if(
-										 m_data.genres,
-										 [](const Genre& genre) {
-											 return genre.newGenre;
-										 }
-									 ))
-			                       - 1;
+				 const auto genres = ok && static_cast<size_t>(std::ranges::count_if(m_data.genres, [](const Genre& genre) {
+											   return genre.newGenre;
+										   })) - 1;
 				 return [this, genres, hasError = !ok](size_t) {
 					 if (m_badFolders.size() > 5)
 						 m_badFolders = QStringList(m_badFolders.begin(), std::next(m_badFolders.begin(), 5));
@@ -1413,7 +1433,7 @@ private:
 		Timer t("work");
 
 		const auto& dbFileName       = m_ini(DB_PATH);
-		const auto  connectionString = QString("path=%1").arg(dbFileName).toStdString();
+		const auto  connectionString = std::format(R"(path="{}")", dbFileName);
 
 		m_db = DB::Factory::Create<DB::IDatabaseWritable>(DB::IFactory::Impl::Sqlite, connectionString);
 		m_db->CreateQuery("PRAGMA synchronous = OFF;")->Execute();
@@ -1636,7 +1656,7 @@ private:
 	size_t UpdateDatabaseImpl(ArchiveParser archiveParser)
 	{
 		const auto& dbFileName       = m_ini(DB_PATH);
-		const auto  connectionString = QString("path=%1").arg(dbFileName).toStdString();
+		const auto  connectionString = std::format(R"(path="{}")", dbFileName);
 
 		m_db = DB::Factory::Create<DB::IDatabaseWritable>(DB::IFactory::Impl::Sqlite, connectionString);
 
@@ -1702,16 +1722,7 @@ private:
 		{
 			PLOGI << QString("parsing %1 started").arg(inpxPath);
 			const auto inpxContent = ExtractInpxFileNames(inpxPath);
-
-			const auto zip = [&] {
-				if (!QFile::exists(inpxPath))
-					return std::unique_ptr<Zip> {};
-
-				return TRY(QString("open %1").arg(inpxPath), [&] {
-					return std::make_unique<Zip>(inpxPath);
-				});
-			}();
-
+			const auto [zip, _]    = CreateInpxArchive(inpxPath);
 			if (zip)
 				ParseInpxFiles(inpxPath, zip.get(), inpxContent.inpx);
 
@@ -1736,6 +1747,9 @@ private:
 
 	void CollectReviews()
 	{
+		if (!m_ini.Exists(ADDITIONAL_FOLDER))
+			return;
+
 		PLOGI << "Collect reviews";
 
 		for (QDirIterator it(m_ini(ADDITIONAL_FOLDER) + "/" + REVIEWS_FOLDER, { "*.7z" }, QDir::Files); it.hasNext();)
@@ -1754,8 +1768,11 @@ private:
 		}
 	}
 
-	QString GetExistingsFilePathFromAdditionalFolder(const QString& fileName) const
+	QString GetExistingFilePathFromAdditionalFolder(const QString& fileName) const
 	{
+		if (!m_ini.Exists(ADDITIONAL_FOLDER))
+			return {};
+
 		const QDir additionalFolder(m_ini(ADDITIONAL_FOLDER));
 		const auto fileNames = additionalFolder.entryList({ QString("%1.*").arg(QFileInfo(fileName).completeBaseName()) }, QDir::Files);
 		if (fileNames.isEmpty())
@@ -1770,7 +1787,7 @@ private:
 
 	void CollectCompilations() const
 	{
-		const auto fileName = GetExistingsFilePathFromAdditionalFolder(COMPILATIONS);
+		const auto fileName = GetExistingFilePathFromAdditionalFolder(COMPILATIONS);
 		if (fileName.isEmpty())
 			return;
 
@@ -1893,7 +1910,7 @@ where b.FileName = ? and b.Ext = ?)");
 		if (!(m_mode & CreateCollectionMode::LoadAnnotations))
 			return;
 
-		const auto fileName = GetExistingsFilePathFromAdditionalFolder(ANNOTATIONS);
+		const auto fileName = GetExistingFilePathFromAdditionalFolder(ANNOTATIONS);
 		if (fileName.isEmpty())
 			return;
 
@@ -2082,7 +2099,7 @@ where b.FileName = ? and b.Ext = ?)");
 			return file.toLower();
 		});
 
-		const auto defaultArchiveType = m_data.bookFolders.empty() ? QString {} : QFileInfo(m_data.bookFolders.cbegin()->first.toString()).suffix();
+		const auto defaultArchiveType = m_data.bookFolders.empty() ? QString { "zip" } : QFileInfo(m_data.bookFolders.cbegin()->first.toString()).suffix();
 
 		folder = suitableFiles.isEmpty() ? folderInfo.completeBaseName() + "." + m_ini(DEFAULT_ARCHIVE_TYPE, defaultArchiveType) : suitableFiles.front();
 

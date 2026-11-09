@@ -24,6 +24,7 @@ cmake --build %BUILD_DIR% --config Release
 if %errorlevel% NEQ 0 goto Error
 
 cmake --install %BUILD_DIR% --prefix %BUILD_DIR%/FLibrary
+if %errorlevel% NEQ 0 goto Error
 
 echo testing
 ctest --test-dir %BUILD_DIR% --output-on-failure -C Release
