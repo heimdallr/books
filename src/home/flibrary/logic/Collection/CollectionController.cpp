@@ -95,11 +95,6 @@ public:
 		, m_taskQueue { taskQueue }
 	{
 		Register(m_collectionProvider.get());
-		const auto& collections = m_collectionProvider->GetCollections();
-		if (std::ranges::none_of(collections, [id = CollectionImpl::GetActive(*m_settings)](const auto& item) {
-				return item->id == id;
-			}))
-			SetActiveCollection(collections.empty() ? QString {} : collections.front()->id);
 	}
 
 	~Impl() override

@@ -49,8 +49,8 @@ QString CollectionImpl::GetActive(const ISettings& settings)
 
 void CollectionImpl::Serialize(const Collection& collection, ISettings& settingsSrc)
 {
-	const auto idGroup       = settingsSrc.CreateGroupSettings(QString(Constant::Settings::COLLECTIONS).append("/").append(collection.id));
-	auto&      settings      = *idGroup;
+	const auto idGroup  = settingsSrc.CreateGroupSettings(QString(Constant::Settings::COLLECTIONS).append("/").append(collection.id));
+	auto&      settings = *idGroup;
 
 	settings.Set(NAME, collection.name);
 	settings.Set(DATABASE, collection.m_database);
@@ -80,6 +80,11 @@ Collections CollectionImpl::Deserialize(ISettings& settingsSrc)
 		settingsGroup->Remove(item->id);
 		return true;
 	});
+
+	if (!collections.empty() && std::ranges::none_of(collections, [currentId = settingsGroup->Get(CURRENT)](const auto& item) {
+			return item->id == currentId;
+		}))
+		settingsGroup->Set(CURRENT, collections.front()->id);
 
 	return collections;
 }

@@ -2,8 +2,6 @@
 
 #include <unordered_map>
 
-#include <QStringView>
-
 #include "util/StrUtil.h"
 
 namespace HomeCompa::Inpx {
@@ -32,29 +30,87 @@ public:
 		{
 		};
 
-		Iterator() = default;
-		Iterator(const DataStorage& dataStorage, const ViewStorage& viewStorage, const DataStorage::const_iterator& dataIt, const ViewStorage::const_iterator& viewIt);
+		Iterator()
+		{
+		}
 
-		reference operator*() const noexcept;
-		pointer   operator->() const noexcept;
+		Iterator(const DataStorage& dataStorage, const ViewStorage& viewStorage, const DataStorage::const_iterator& dataIt, const ViewStorage::const_iterator& viewIt)
+			: m_dataStorage { &dataStorage }
+			, m_viewStorage { &viewStorage }
+			, m_dataIt { dataIt }
+			, m_viewIt { viewIt }
+		{
+			UpdateValue();
+		}
 
-		Iterator& operator++() noexcept;
-		Iterator  operator++(int) noexcept;
+		reference operator*() const noexcept
+		{
+			return m_value;
+		}
 
-		bool operator==(const Iterator& other) const noexcept;
-		bool operator==(Sentinel) const noexcept;
+		pointer operator->() const noexcept
+		{
+			return &(operator*());
+		}
+
+		Iterator& operator++() noexcept
+		{
+			if (m_dataIt != m_dataStorage->end())
+			{
+				++m_dataIt;
+				if (m_dataIt == m_dataStorage->end())
+					m_viewIt = m_viewStorage->begin();
+			}
+			else
+			{
+				++m_viewIt;
+			}
+
+			UpdateValue();
+
+			return *this;
+		}
+
+		Iterator operator++(int) noexcept
+		{
+			Iterator tmp = *this;
+			++(*this);
+			return tmp;
+		}
+
+		bool operator==(const Iterator& other) const noexcept
+		{
+			return m_dataIt == other.m_dataIt && m_viewIt == other.m_viewIt;
+		}
+
+		bool operator==(Sentinel) const noexcept
+		{
+			return m_dataIt == m_dataStorage->end() && m_viewIt == m_viewStorage->end();
+		}
 
 	private:
-		void UpdateValue() const noexcept;
+		void UpdateValue() const noexcept
+		{
+			if (m_dataIt != m_dataStorage->end())
+			{
+				m_value.first  = m_dataIt->first;
+				m_value.second = m_dataIt->second;
+			}
+			else if (m_viewIt != m_viewStorage->end())
+			{
+				m_value.first  = m_viewIt->first;
+				m_value.second = m_viewIt->second;
+			}
+		}
 
 	private:
 		const DataStorage* m_dataStorage { nullptr };
 		const ViewStorage* m_viewStorage { nullptr };
 
-		DataStorage::const_iterator m_dataIt;
-		ViewStorage::const_iterator m_viewIt;
+		DataStorage::const_iterator m_dataIt {};
+		ViewStorage::const_iterator m_viewIt {};
 
-		mutable value_type m_value;
+		mutable value_type m_value {};
 	};
 
 	static_assert(std::forward_iterator<Iterator>);
