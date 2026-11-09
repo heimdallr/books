@@ -1,0 +1,26 @@
+<RCC>
+	<qresource prefix="common">
+		<file alias="collection.info">data/common/collection.info</file>
+		<file alias="version.info">data/common/version.info</file>
+		<file alias="structure.info">data/common/structure.info</file>
+	</qresource>
+	<qresource prefix="0001">
+		<file alias="1.inp">data/0001/d.fb2-009373-367300.inp</file>
+	</qresource>
+	<qresource prefix="0002">
+		<file alias="1.inp">data/0002/d.fb2-009373-367300.inp</file>
+	</qresource>
+	<qresource prefix="0003">
+		<file alias="1.inp">data/0003/d.fb2-009373-367300.inp</file>
+	</qresource>
+	<qresource prefix="0004">
+		<file alias="1.inp">data/0004/d.fb2-009373-367300.inp</file>
+	</qresource>
+	<qresource prefix="0005">
+		<file alias="1.inp">data/0005/d.fb2-009373-367300.inp</file>
+		<file alias="2.inp">data/0005/f.fb2-891323-894460.inp</file>
+		<file alias="3.inp">data/0005/f.usr-891323-894460.inp</file>
+		<file alias="4.inp">data/0005/fb2-824014-826219.inp</file>
+		<file alias="5.inp">data/0005/usr-821960-824009.inp</file>
+	</qresource>
+</RCC>

@@ -45,6 +45,8 @@ struct UpdateResult
 	bool        oldDataUpdateFound { false };
 	bool        error { false };
 	QStringList badFolders;
+
+	auto operator<=>(const UpdateResult&) const = default;
 };
 
 class INPX_EXPORT Parser

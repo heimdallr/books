@@ -1,0 +1,25 @@
+[
+	{
+		"inpx": [
+		],
+		"check": [
+			{
+				"query": "select count(42) from Books",
+				"result": [ "0" ]
+			}
+		]
+	},
+	{
+		"inpx": [
+			":/common/collection.info",
+			":/common/version.info",
+			":/0001/1.inp"
+		],
+		"check": [
+			{
+				"query": "select count(42) from Books",
+				"result": [ "1" ]
+			}
+		]
+	}
+]
