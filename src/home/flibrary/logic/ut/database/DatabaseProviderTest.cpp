@@ -19,17 +19,13 @@
 
 namespace HomeCompa::Flibrary::Test {
 
-struct CollectionTest : Collection
+struct CollectionTest final : Collection
 {
 	CollectionTest()
 	{
 		id         = "testId";
 		name       = "testName";
-		m_database = "file::memory:?cache=shared";
-	}
-
-	~CollectionTest()
-	{
+		m_database = "file:my_shared_mem_db?mode=memory&cache=shared";
 	}
 };
 

@@ -5,3 +5,12 @@ int main(int argc, char* argv[])
 	testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
 }
+
+namespace{
+
+TEST(Logic, Main)
+{
+	SUCCEED();
+}
+
+}

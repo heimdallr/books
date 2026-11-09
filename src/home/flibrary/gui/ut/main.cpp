@@ -9,7 +9,16 @@ int main(int argc, char* argv[])
 		qputenv("QT_QPA_PLATFORM", "offscreen");
 #endif
 
-	QApplication app(argc, argv);
-	::testing::InitGoogleTest(&argc, argv);
+	[[maybe_unused]] QApplication app(argc, argv);
+	testing::InitGoogleTest(&argc, argv);
 	return RUN_ALL_TESTS();
+}
+
+namespace {
+
+TEST(Gui, Main)
+{
+	SUCCEED();
+}
+
 }
