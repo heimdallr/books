@@ -31,7 +31,6 @@ class FLibrary(ConanFile):
         self.requires("sqlite3/3.53.4")
         self.requires("djvulibre/3.5.28")
         self.requires("poppler/25.11.0")
-        self.requires("libxml2/2.15.3")
         self.requires("zlib/1.3.2")
         self.requires(f"icu/{self.icu_version}")
 
@@ -43,7 +42,6 @@ class FLibrary(ConanFile):
         u.configure_sqlite3(self)
         u.configure_djvulibre(self)
         u.configure_poppler(self)
-        u.configure_libxml2(self)
         u.configure_zlib(self)
 
     def generate(self):
