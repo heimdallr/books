@@ -118,7 +118,7 @@ if (CMAKE_SYSTEM_NAME STREQUAL "Linux")
     add_link_options("LINKER:--exclude-libs,ALL")
 endif()
 
-set(QtModules Core Gui Widgets Xml Network Svg Concurrent)
+set(QtModules Core Gui Widgets Network Svg Concurrent)
 if(QT6)
 	list(APPEND QtModules HttpServer WebSockets)
 endif()
