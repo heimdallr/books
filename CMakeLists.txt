@@ -197,7 +197,6 @@ find_package(SQLite3 REQUIRED)
 find_package(djvulibre REQUIRED)
 find_package(poppler REQUIRED)
 find_package(poppler-data REQUIRED)
-find_package(libxml2 REQUIRED)
 find_package(ZLIB REQUIRED)
 
 include(${BUILDSCRIPTS_ROOT}/cmake/target.cmake)

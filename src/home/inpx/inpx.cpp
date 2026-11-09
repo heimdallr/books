@@ -18,8 +18,6 @@
 #include <QRegularExpression>
 #include <QTemporaryDir>
 
-#include <boost/iterator/iterator_facade.hpp>
-
 #include "fnd/IsOneOf.h"
 #include "fnd/StrUtil.h"
 #include "fnd/try.h"
@@ -45,6 +43,7 @@
 #include "log.h"
 #include "types.h"
 #include "zip.h"
+#include "dictionary.h"
 
 using namespace HomeCompa;
 using namespace Inpx;
@@ -59,179 +58,6 @@ const QString UNKNOWN_ROOT        = "unknown_root";
 const QString AUTHOR_UNKNOWN_STR  = QString(Global::AUTHOR_UNKNOWN) + Inpx::LIST_SEPARATOR;
 const QString GENRE_NOT_SPECIFIED = QString(UNORDERED_GENRE) + Inpx::LIST_SEPARATOR;
 size_t        g_id                = 0;
-
-class Dictionary
-{
-	using DataStorage = std::unordered_map<QString, size_t, WStringHash, WStringEqualTo>;
-	using ViewStorage = std::unordered_map<QStringView, size_t, WStringHash, WStringEqualTo>;
-
-public:
-	using value_type = std::pair<QStringView, size_t>;
-
-public:
-	class const_iterator : public boost::iterator_facade<const_iterator, value_type, boost::forward_traversal_tag>
-	{
-	public:
-		const_iterator(const DataStorage& dataStorage, const ViewStorage& viewStorage, const DataStorage::const_iterator& dataIt, const ViewStorage::const_iterator& viewIt)
-			: m_dataStorage { &dataStorage }
-			, m_viewStorage { &viewStorage }
-			, m_dataIt { dataIt }
-			, m_viewIt { viewIt }
-		{
-			UpdateValue();
-		}
-
-		template <class OtherValue>
-		explicit const_iterator(const OtherValue& other)
-			: m_dataStorage { other.dataStorage }
-			, m_viewStorage { other.viewStorage }
-			, m_dataIt { other.dataIt }
-			, m_viewIt { other.viewIt }
-		{
-			UpdateValue();
-		}
-
-	private:
-		friend class boost::iterator_core_access;
-
-		template <class OtherValue>
-		bool equal(const OtherValue& other) const
-		{
-			return this->m_dataIt == other.m_dataIt && this->m_viewIt == other.m_viewIt;
-		}
-
-		void increment()
-		{
-			if (m_dataIt != m_dataStorage->end())
-			{
-				++m_dataIt;
-				if (m_dataIt == m_dataStorage->end())
-					m_viewIt = m_viewStorage->begin();
-			}
-			else
-			{
-				++m_viewIt;
-			}
-
-			UpdateValue();
-		}
-
-		value_type& dereference() const
-		{
-			return m_value;
-		}
-
-		void UpdateValue() const
-		{
-			if (m_dataIt != m_dataStorage->end())
-			{
-				m_value.first  = m_dataIt->first;
-				m_value.second = m_dataIt->second;
-			}
-			else if (m_viewIt != m_viewStorage->end())
-			{
-				m_value.first  = m_viewIt->first;
-				m_value.second = m_viewIt->second;
-			}
-		}
-
-	private:
-		const DataStorage* m_dataStorage { nullptr };
-		const ViewStorage* m_viewStorage { nullptr };
-
-		DataStorage::const_iterator m_dataIt;
-		ViewStorage::const_iterator m_viewIt;
-
-		mutable value_type m_value;
-	};
-
-public:
-	std::pair<QStringView, size_t> emplace(QString key, const size_t value)
-	{
-		if (const auto it = m_view.find(key); it != m_view.end())
-			return std::make_pair(it->first, it->second);
-
-		const auto it = m_data.try_emplace(std::move(key), value).first;
-		return std::make_pair(it->first, it->second);
-	}
-
-	std::pair<QStringView, size_t> emplace(const QStringView key, const size_t value)
-	{
-		if (const auto it = m_data.find(key); it != m_data.end())
-			return std::make_pair(it->first, it->second);
-
-		const auto it = m_view.try_emplace(key, value).first;
-		return std::make_pair(it->first, it->second);
-	}
-
-	bool contains(const QStringView key) const
-	{
-		return m_view.contains(key) || m_data.contains(key);
-	}
-
-	std::optional<size_t> find(const QStringView key) const
-	{
-		if (const auto it = m_view.find(key); it != m_view.end())
-			return it->second;
-
-		if (const auto it = m_data.find(key); it != m_data.end())
-			return it->second;
-
-		return std::nullopt;
-	}
-
-	size_t size() const noexcept
-	{
-		return m_data.size() + m_view.size();
-	}
-
-	bool empty() const noexcept
-	{
-		return m_data.empty() && m_view.empty();
-	}
-
-	template <typename F>
-	std::optional<size_t> find_if(const F& f) const
-	{
-		if (const auto it = std::ranges::find_if(m_data, f); it != m_data.end())
-			return it->second;
-
-		if (const auto it = std::ranges::find_if(m_view, f); it != m_view.end())
-			return it->second;
-
-		return std::nullopt;
-	}
-
-	size_t erase(const QStringView key)
-	{
-		const auto it = m_data.find(key);
-		return static_cast<size_t>(it != m_data.end() ? (m_data.erase(it), 1) : 0) + m_view.erase(key);
-	}
-
-	const_iterator cbegin() const
-	{
-		return { m_data, m_view, m_data.begin(), m_view.begin() };
-	}
-
-	const_iterator cend() const
-	{
-		return { m_data, m_view, m_data.cend(), m_view.cend() };
-	}
-
-private:
-	DataStorage m_data;
-	ViewStorage m_view;
-};
-
-Dictionary::const_iterator begin(const Dictionary& dictionary)
-{
-	return dictionary.cbegin();
-}
-
-Dictionary::const_iterator end(const Dictionary& dictionary)
-{
-	return dictionary.cend();
-}
 
 using Books  = std::vector<Book>;
 using Genres = std::vector<Genre>;
