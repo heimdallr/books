@@ -23,4 +23,7 @@
 		<file alias="4.inp">data/0005/fb2-824014-826219.inp</file>
 		<file alias="5.inp">data/0005/usr-821960-824009.inp</file>
 	</qresource>
+	<qresource prefix="0006">
+		<file alias="6.inp">data/0006/d.fb2-009373-367301.inp</file>
+	</qresource>
 </RCC>

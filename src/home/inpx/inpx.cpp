@@ -40,10 +40,10 @@
 #include "Constant.h"
 #include "InpxConstant.h"
 #include "QtTypes.h"
+#include "dictionary.h"
 #include "log.h"
 #include "types.h"
 #include "zip.h"
-#include "dictionary.h"
 
 using namespace HomeCompa;
 using namespace Inpx;
@@ -52,6 +52,8 @@ using namespace Util;
 namespace {
 
 constexpr auto INVALID_INDEX = std::numeric_limits<size_t>::max();
+constexpr auto MEMORY        = "memory";
+constexpr auto BASE64        = "_BASE64";
 
 const QString EMPTY_STRING;
 const QString UNKNOWN_ROOT        = "unknown_root";
@@ -429,7 +431,7 @@ std::pair<std::unique_ptr<Zip>, std::unique_ptr<QBuffer>> CreateInpxArchive(cons
 	std::pair<std::unique_ptr<Zip>, std::unique_ptr<QBuffer>> result;
 
 	bool inpxPathIsZipString = false;
-	if (inpxPath.endsWith("_BASE64"))
+	if (inpxPath.endsWith(BASE64))
 	{
 		inpxPathIsZipString = true;
 	}
@@ -445,12 +447,12 @@ std::pair<std::unique_ptr<Zip>, std::unique_ptr<QBuffer>> CreateInpxArchive(cons
 
 		auto inpxPathData = inpxPath.toUtf8();
 		inpxPathData.resize(inpxPathData.size() - 7);
+		result.second = std::make_unique<QBuffer>();
 		result.second->setData(QByteArray::fromBase64(inpxPathData));
 		result.second->open(QIODevice::ReadOnly);
 		return std::make_unique<Zip>(*result.second);
 	};
 
-	result.second = std::make_unique<QBuffer>();
 	result.first  = TRY(QString("open %1").arg(inpxPath), createZip);
 
 	return result;
@@ -860,9 +862,7 @@ InpxFolders GetInpxFolder(const Ini& ini, const bool needHashes)
 	{
 		PLOGV << "check " << inpxPath << " started";
 
-		const auto zip = TRY(QString("open %1").arg(inpxPath), [&] {
-			return std::make_unique<Zip>(inpxPath);
-		});
+		const auto [zip, zipStream] = CreateInpxArchive(inpxPath);
 		if (!zip)
 			continue;
 
@@ -879,7 +879,7 @@ InpxFolders GetInpxFolder(const Ini& ini, const bool needHashes)
 			}()
 			                       : QString();
 
-			folders.try_emplace(std::make_pair(QFileInfo(inpxPath).fileName(), fileName), std::move(hash));
+			folders.try_emplace(std::make_pair(zipStream ? MEMORY : QFileInfo(inpxPath).fileName(), fileName), std::move(hash));
 		}
 
 		PLOGV << "check " << inpxPath << " finished";
@@ -1430,13 +1430,11 @@ private:
 		const auto newInpxFolders = GetNewInpxFolders();
 		for (const auto& inpxPath : GetInpxFilesInFolder(m_ini))
 		{
-			const auto it = newInpxFolders.find(QFileInfo(inpxPath).fileName());
+			const auto it = newInpxFolders.find(inpxPath.endsWith(BASE64) ? MEMORY : QFileInfo(inpxPath).fileName());
 			if (it == newInpxFolders.end())
 				continue;
 
-			const auto zip = TRY(QString("open %1").arg(inpxPath), [&] {
-				return std::make_unique<Zip>(inpxPath);
-			});
+			const auto [zip, _] = CreateInpxArchive(inpxPath);
 			if (!zip)
 				continue;
 
@@ -1547,10 +1545,10 @@ private:
 		for (const auto& inpxPath : GetInpxFilesInFolder(m_ini))
 		{
 			PLOGI << QString("parsing %1 started").arg(inpxPath);
-			const auto inpxContent = ExtractInpxFileNames(inpxPath);
-			const auto [zip, _]    = CreateInpxArchive(inpxPath);
+			const auto inpxContent      = ExtractInpxFileNames(inpxPath);
+			const auto [zip, zipStream] = CreateInpxArchive(inpxPath);
 			if (zip)
-				ParseInpxFiles(inpxPath, zip.get(), inpxContent.inpx);
+				ParseInpxFiles(zipStream ? MEMORY : inpxPath, zip.get(), inpxContent.inpx);
 
 			PLOGI << QString("parsing %1 finished").arg(inpxPath);
 		}

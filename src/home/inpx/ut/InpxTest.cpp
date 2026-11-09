@@ -18,13 +18,14 @@
 
 namespace HomeCompa::Flibrary::Test {
 
-using SetInpx = std::function<void(IZipFileController&)>;
-using Check   = std::function<void(const Inpx::UpdateResult&, DB::IDatabase&)>;
+using SetInpx      = std::function<void(IZipFileController&)>;
+using Check        = std::function<void(const Inpx::UpdateResult&, DB::IDatabase&)>;
+using ParseProcess = void (Inpx::Parser::*)(Inpx::Parser::IniMap data, Inpx::CreateCollectionMode mode, Inpx::Parser::Callback callback);
 
-void CheckImpl(const SetInpx& setInpx, const Check& check)
+auto Process(const SetInpx& setInpx, const Check& check, const ParseProcess process)
 {
 	static constexpr auto dbPath = "file:my_shared_mem_db?mode=memory&cache=shared";
-	const auto            db     = DB::Factory::Create<DB::IDatabase>(DB::IFactory::Impl::Sqlite, std::format(R"(path="{}")", dbPath));
+	auto                  db     = DB::Factory::Create<DB::IDatabase>(DB::IFactory::Impl::Sqlite, std::format(R"(path="{}")", dbPath));
 
 	QByteArray bytes;
 	{
@@ -51,12 +52,14 @@ void CheckImpl(const SetInpx& setInpx, const Check& check)
 		{                 ARCHIVE_FOLDER,                                         "folder" },
 	};
 
-	parser.CreateNewCollection(std::move(ini), Inpx::CreateCollectionMode::None, [&](const Inpx::UpdateResult& result) {
+	std::invoke(process, std::ref(parser), std::move(ini), Inpx::CreateCollectionMode::None, [&](const Inpx::UpdateResult& result) {
 		check(result, *db);
 		eventLoop.exit();
 	});
 
 	eventLoop.exec();
+
+	return db;
 }
 
 struct InpxTestData
@@ -69,7 +72,11 @@ struct InpxTestData
 
 	std::vector<QString> files;
 	std::vector<Check>   checks;
-	Inpx::UpdateResult   r { .genres = 1 };
+	Inpx::UpdateResult   result { .genres = 1 };
+
+	std::vector<QString> updateFiles;
+	std::vector<Check>   updateChecks;
+	Inpx::UpdateResult   updateResult { .genres = 1 };
 };
 
 struct InpxTest : testing::TestWithParam<InpxTestData>
@@ -81,25 +88,37 @@ INSTANTIATE_TEST_SUITE_P(
 	InpxTest,
 	testing::Values(
 		InpxTestData {
+			// empty
 			{                                             },
 			{ { "select count(42) from Books", { { "0" } } } },
 },
-		InpxTestData { { ":/common/version.info" }, { { "select count(42) from Books", { { "0" } } } } },
-		InpxTestData { { ":/common/version.info", ":/common/version.info" }, { { "select count(42) from Books", { { "0" } } } } },
-		InpxTestData { { ":/common/collection.info", ":/common/version.info", ":/0001/1.inp" }, { { "select count(42) from Books", { { "1" } } } }, { .folders = 1, .authors = 1, .books = 1, .genres = 1 } },
-		InpxTestData { { ":/common/collection.info", ":/common/version.info", ":/0002/1.inp" },
+		InpxTestData { // empty (no inp)
+		               { ":/common/version.info" },
+		               { { "select count(42) from Books", { { "0" } } } } },
+		InpxTestData { // empty (no inp)
+		               { ":/common/version.info", ":/common/version.info" },
+		               { { "select count(42) from Books", { { "0" } } } } },
+		InpxTestData { // one book
+		               { ":/common/collection.info", ":/common/version.info", ":/0001/1.inp" },
+		               { { "select count(42) from Books", { { "1" } } } },
+		               { .folders = 1, .authors = 1, .books = 1, .genres = 1 } },
+		InpxTestData { // one series
+		               { ":/common/collection.info", ":/common/version.info", ":/0002/1.inp" },
 		               { { "select count(42) from Books", { { "1" } } } },
 		               { .folders = 1, .authors = 1, .series = 1, .books = 1, .genres = 1 } },
-		InpxTestData { { ":/common/collection.info", ":/common/version.info", ":/0003/1.inp" },
+		InpxTestData { // multi series (2)
+		               { ":/common/collection.info", ":/common/version.info", ":/0003/1.inp" },
 		               { { "select count(42) from Books", { { "1" } } } },
 		               { .folders = 1, .authors = 1, .series = 2, .books = 1, .genres = 1 } },
-		InpxTestData { { ":/common/collection.info", ":/common/version.info", ":/0004/1.inp" },
+		InpxTestData { // author with nick
+		               { ":/common/collection.info", ":/common/version.info", ":/0004/1.inp" },
 		               {
 						   { "select count(42) from Books", { { "2" } } },
 						   { "select count(42) from Authors where NickName is not null", { { "1" } } },
 					   },
 		               { .folders = 1, .authors = 1, .series = 1, .books = 2, .genres = 1 } },
-		InpxTestData { { ":/common/collection.info", ":/common/version.info", ":/common/structure.info", ":/0005/1.inp", ":/0005/2.inp", ":/0005/3.inp", ":/0005/4.inp", ":/0005/5.inp" },
+		InpxTestData { // usual parsing - inps, authors, books, series, etc
+		               { ":/common/collection.info", ":/common/version.info", ":/common/structure.info", ":/0005/1.inp", ":/0005/2.inp", ":/0005/3.inp", ":/0005/4.inp", ":/0005/5.inp" },
 		               {
 						   { "select count(42) from Books", { { "76" } } },
 						   { "select count(42) from Authors", { { "122" } } },
@@ -159,15 +178,37 @@ INSTANTIATE_TEST_SUITE_P(
 								 { "librusec", "28" },
 							 } },
 					   },
-		               { .folders = 5, .authors = 122, .series = 46, .books = 76, .keywords = 60, .genres = 1 } }
+		               { .folders = 5, .authors = 122, .series = 46, .books = 76, .keywords = 60, .genres = 1 } },
+		InpxTestData { // update collection by author with nick
+		               { ":/common/collection.info", ":/common/version.info", ":/0004/1.inp" },
+		               {
+						   { "select count(42) from Books", { { "2" } } },
+						   { "select count(42) from Authors where NickName is not null", { { "1" } } },
+					   },
+		               { .folders = 1, .authors = 1, .series = 1, .books = 2, .genres = 1 },
+		               { ":/common/collection.info", ":/common/version.info", ":/0004/1.inp", ":/0006/6.inp" },
+		               {
+						   { "select count(42) from Books", { { "3" } } },
+						   { "select count(42) from Authors where NickName is not null", { { "1" } } },
+					   },
+		               { .folders = 1, .books = 1, .genres = 1 } },
+		InpxTestData { // update collection, old data update detected
+		               { ":/common/collection.info", ":/common/version.info", ":/0001/1.inp" },
+		               {
+						   { "select count(42) from Books", { { "1" } } },
+					   },
+		               { .folders = 1, .authors = 1, .books = 1, .genres = 1 },
+		               { ":/common/collection.info", ":/common/version.info", ":/0002/1.inp", ":/0006/6.inp" },
+		               {
+						   { "select count(42) from Books", { { "2" } } },
+					   },
+		               { .folders = 1, .authors = 1, .books = 1, .genres = 1, .oldDataUpdateFound = true } }
 	)
 );
 
-TEST_P(InpxTest, Stub)
+auto GetInpxSetter(const std::vector<QString>& files)
 {
-	const auto& [files, checks, updateResult] = GetParam();
-
-	const auto setInpx = [&files](IZipFileController& zipFiles) {
+	return [&](IZipFileController& zipFiles) {
 		for (const auto& file : files)
 		{
 			QFile stream(file);
@@ -175,7 +216,11 @@ TEST_P(InpxTest, Stub)
 			zipFiles.AddFile(QFileInfo(file).fileName(), stream.readAll());
 		}
 	};
-	const auto check = [&checks, &updateResult](const Inpx::UpdateResult& result, DB::IDatabase& db) {
+}
+
+auto GetResultChecker(const std::vector<InpxTestData::Check>& checks, const Inpx::UpdateResult& updateResult)
+{
+	return [&](const Inpx::UpdateResult& result, DB::IDatabase& db) {
 		EXPECT_EQ(result, updateResult);
 		for (const auto& [queryText, results] : checks)
 		{
@@ -207,7 +252,15 @@ TEST_P(InpxTest, Stub)
 			EXPECT_EQ(n, results.size());
 		}
 	};
-	CheckImpl(setInpx, check);
+}
+
+TEST_P(InpxTest, Create)
+{
+	const auto& [files, checks, result, updateFiles, updateChecks, updateResult] = GetParam();
+
+	const auto db = Process(GetInpxSetter(files), GetResultChecker(checks, result), &Inpx::Parser::CreateNewCollection);
+	if (!updateFiles.empty())
+		Process(GetInpxSetter(updateFiles), GetResultChecker(updateChecks, updateResult), &Inpx::Parser::UpdateCollection);
 }
 
 } // namespace HomeCompa::Flibrary::Test
