@@ -169,7 +169,7 @@ SELECT gu.GroupID, gu.Title
 		}
 
 		{
-			QJsonArray    array;
+			QJsonArray array;
 			const auto group = settings->CreateGroupSettings(INoSqlRequester::CONVERTERS_ROOT);
 			for (const auto& profile : group->GetGroups())
 				array.append(group->Get(QString("%1/%2").arg(profile, INoSqlRequester::CONVERTER_TITLE)).toString());

@@ -453,7 +453,7 @@ std::pair<std::unique_ptr<Zip>, std::unique_ptr<QBuffer>> CreateInpxArchive(cons
 		return std::make_unique<Zip>(*result.second);
 	};
 
-	result.first  = TRY(QString("open %1").arg(inpxPath), createZip);
+	result.first = TRY(QString("open %1").arg(inpxPath), createZip);
 
 	return result;
 }

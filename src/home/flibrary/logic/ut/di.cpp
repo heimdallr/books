@@ -1,8 +1,8 @@
 #include "di.h"
+
 #include "logic/di_logic.h"
 
 using namespace HomeCompa::Flibrary::Test;
-
 
 DI::DI(const std::function<void(Hypodermic::ContainerBuilder& builder, Hypodermic::Container& container)>& init)
 {

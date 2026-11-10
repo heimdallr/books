@@ -86,7 +86,7 @@ private:
 		const auto scriptsGuard = settings->CreateGroupSettings(SCRIPTS);
 		std::ranges::transform(scriptsGuard->GetGroups(), std::back_inserter(scripts), [&](const QString& uid) {
 			const auto scriptGuard = scriptsGuard->CreateGroupSettings(uid);
-			Script              script {
+			Script     script {
 				{ uid, scriptGuard->Get(NUMBER).toInt() },
 				scriptGuard->Get(NAME).toString(),
 				FindFirst(s_scriptTypes, scriptGuard->Get(TYPE).toString().toStdString().data(), Script::Type::Undefined, PszComparer {}

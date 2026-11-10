@@ -48,7 +48,7 @@ IDataItem::Ptr CreateModelData(const ISettings& settings, const IDataItemFactory
 			child->SetId(GetName(parent.GetId(), group));
 			child->SetData(group, SettingsItem::Column::Key);
 			const auto settingsGroup = s.CreateGroupSettings(group);
-			r(*settingsGroup, * child, r);
+			r(*settingsGroup, *child, r);
 			parent.AppendChild(std::move(child));
 		}
 

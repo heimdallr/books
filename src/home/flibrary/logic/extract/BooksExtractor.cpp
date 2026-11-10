@@ -117,9 +117,9 @@ private:
 	}
 
 private:
-	const BooksExtractor&           m_booksExtractor;
-	const QVariant                  m_autoRateValue;
-	int                             m_exportStatType { -1 };
+	const BooksExtractor& m_booksExtractor;
+	const QVariant        m_autoRateValue;
+	int                   m_exportStatType { -1 };
 
 	std::unordered_set<long long> m_ids;
 	std::queue<long long>         m_queue;

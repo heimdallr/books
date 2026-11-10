@@ -131,7 +131,7 @@ public:
 
 		const auto customIds = [this] {
 			QStringList                 ids;
-			const auto group = m_settings->CreateGroupSettings(GROUP_KEY);
+			const auto                  group = m_settings->CreateGroupSettings(GROUP_KEY);
 			std::unordered_set<QString> unique;
 			std::ranges::transform(m_toolBars, std::inserter(unique, unique.end()), [](const auto* item) {
 				return item->property(ID_KEY).toString();

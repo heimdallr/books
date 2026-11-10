@@ -19,6 +19,7 @@
 #include "data/NavigationQueryExecutor.h"
 #include "database/DatabaseMigrator.h"
 #include "database/DatabaseProvider.h"
+#include "database/factory/Factory.h"
 #include "extract/BookExtractor.h"
 #include "joke/factory/JokeRequesterFactory.h"
 #include "log/LogController.h"
@@ -51,7 +52,6 @@
 #include "LogicFactory.h"
 
 #include "config/version.h"
-#include "database/factory/Factory.h"
 
 namespace HomeCompa::Flibrary {
 
