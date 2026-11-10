@@ -5,6 +5,8 @@ endif()
 AddTarget(opds	app
 	PROJECT_GROUP    Tool
 	SOURCE_DIRECTORY "${CMAKE_CURRENT_LIST_DIR}"
+	EXCLUDE_SOURCES
+		${CMAKE_CURRENT_LIST_DIR}/unit-tests
 	LINK_LIBRARIES
 		Boost::headers
 		Qt${QT_MAJOR_VERSION}::Concurrent
@@ -21,4 +23,10 @@ AddTarget(opds	app
 		util
 		ver
 		zip
+)
+
+AddGTest(opds
+	PROJECT_GROUP UT/Tool
+	SOURCE_DIRECTORY
+		"${CMAKE_CURRENT_LIST_DIR}/unit-tests"
 )
