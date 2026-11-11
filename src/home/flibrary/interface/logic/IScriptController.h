@@ -57,30 +57,30 @@ public:
 		Removed,
 	};
 
-#define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO                                                                                                                                                         \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(SourceFile)                                                                                                                                                          \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(UserDestinationFolder)                                                                                                                                               \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Title)                                                                                                                                                               \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileName)                                                                                                                                                            \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileExt)                                                                                                                                                             \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(BaseFileName)                                                                                                                                                        \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Author)                                                                                                                                                              \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorLastFM)                                                                                                                                                        \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorLastName)                                                                                                                                                      \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorFirstName)                                                                                                                                                     \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorMiddleName)                                                                                                                                                    \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorF)                                                                                                                                                             \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorM)                                                                                                                                                             \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Series)                                                                                                                                                              \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(SeqNumber)                                                                                                                                                           \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileSize)                                                                                                                                                            \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Genre)                                                                                                                                                               \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(GenreTree)                                                                                                                                                           \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Keyword)                                                                                                                                                             \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AllKeywords)                                                                                                                                                         \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Language)                                                                                                                                                            \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Id)                                                                                                                                                                  \
-	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(LibId)                                                                                                                                                               \
+#define SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEMS_X_MACRO            \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(SourceFile)             \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(UserDestinationFolder)  \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Title)                  \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileName)               \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileExt)                \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(BaseFileName)           \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Author)                 \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorLastFM)           \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorLastName)         \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorFirstName)        \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorMiddleName)       \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorF)                \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AuthorM)                \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Series)                 \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(SeqNumber)              \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(FileSize)               \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Genre)                  \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(GenreTree)              \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Keyword)                \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(AllKeywords)            \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Language)               \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Id)                     \
+	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(LibId)                  \
 	SCRIPT_CONTROLLER_TEMPLATE_MACRO_ITEM(Uid)
 
 	enum class Macro
@@ -91,8 +91,8 @@ public:
 			Last
 	};
 
-#define SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEMS_X_MACRO                                                                                                                                                       \
-	SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM(Download)                                                                                                                                                          \
+#define SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEMS_X_MACRO \
+	SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM(Download)    \
 	SCRIPT_CONTROLLER_EMBEDDED_COMMAND_ITEM(OpenLink)
 
 	enum class EmbeddedCommand
