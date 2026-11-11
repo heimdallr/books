@@ -663,8 +663,18 @@ jobs:
             ./build-mac.sh
           (cd "${artifact_dir}" && shasum -a 256 FLibrary-*.dmg > SHA256SUMS)
 
-      - name: Run CTest
-        run: ctest --test-dir "${GITHUB_WORKSPACE}/build/macos-${{ matrix.arch }}" --output-on-failure -C Release
+      - name: Run CTest        
+        run: |
+          BUILD_DIR="${GITHUB_WORKSPACE}/build/macos-${{ matrix.arch }}"
+          P7ZIP_SO="$(brew --prefix p7zip)/lib/p7zip/7z.so"
+
+          find "$BUILD_DIR" -path "*/CMakeFiles" -prune -o -type f -perm +111 -print | while read -r bin_file; do
+            parent_dir="$(dirname "$(dirname "$bin_file")")"
+            mkdir -p "$parent_dir/Frameworks"
+            ln -sf "$P7ZIP_SO" "$parent_dir/Frameworks/7z.so"
+          done
+
+          ctest --test-dir "$BUILD_DIR" --output-on-failure -C Release
 
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v7
