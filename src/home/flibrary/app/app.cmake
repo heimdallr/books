@@ -30,4 +30,13 @@ AddGTest(app
 	PROJECT_GROUP UT/App
 	SOURCE_DIRECTORY
 		"${CMAKE_CURRENT_LIST_DIR}/unit-tests"
+	SOURCES
+		"${CMAKE_CURRENT_LIST_DIR}/di_app.cpp"
+	LINK_LIBRARIES
+		Boost::headers
+		Qt${QT_MAJOR_VERSION}::Widgets
+	LINK_TARGETS
+		gui
+		gutil
+		logic
 )
