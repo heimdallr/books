@@ -10,6 +10,7 @@ AddTarget(unit-test-util	shared_lib
 		genre
 		flint
 		inpx
+		logging
 		util
 		zip
 )
