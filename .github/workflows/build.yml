@@ -43,6 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ubuntu:22.04
+      options: --dns 8.8.8.8 --dns 1.1.1.1
     timeout-minutes: 240
     env:
       QT_ROOT: ${{ github.workspace }}/.ci/Qt
