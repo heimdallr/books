@@ -205,7 +205,7 @@ jobs:
             -DNPM_EXECUTABLE="$NPM_PATH"
           cmake --build build/linux --config "${BUILD_TYPE}" --parallel 2
 
-      - name: Run CTest
+      - name: Run Unit tests
         run: LD_LIBRARY_PATH="${P7ZIP_DIR}:${LD_LIBRARY_PATH}" ctest --test-dir build/linux --output-on-failure -C Release
 
       - name: Package and smoke test
@@ -471,7 +471,7 @@ jobs:
           cmake --build build/windows `
             --config $env:BUILD_TYPE --parallel 2
 
-      - name: Run CTest
+      - name: Run Unit tests
         run: ctest --test-dir build/windows --output-on-failure -C Release
 
       - name: Package and smoke test
@@ -663,7 +663,7 @@ jobs:
             ./build-mac.sh
           (cd "${artifact_dir}" && shasum -a 256 FLibrary-*.dmg > SHA256SUMS)
 
-      - name: Run CTest        
+      - name: Run Unit tests        
         run: |
           BUILD_DIR="${GITHUB_WORKSPACE}/build/macos-${{ matrix.arch }}"
           P7ZIP_SO="$(brew --prefix p7zip)/lib/p7zip/7z.so"
