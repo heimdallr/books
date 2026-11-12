@@ -206,7 +206,7 @@ jobs:
           cmake --build build/linux --config "${BUILD_TYPE}" --parallel 2
 
       - name: Run CTest
-        run: ctest --test-dir build/linux --output-on-failure -C Release
+        run: LD_LIBRARY_PATH="${P7ZIP_DIR}:${LD_LIBRARY_PATH}" ctest --test-dir build/linux --output-on-failure -C Release
 
       - name: Package and smoke test
         env:
