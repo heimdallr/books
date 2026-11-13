@@ -72,6 +72,8 @@ jobs:
             cmake \
             dpkg-dev \
             file \
+            binutils \
+            gcc-12 \
             g++-14 \
             libdbus-1-dev \
             libegl1-mesa-dev \
@@ -89,7 +91,6 @@ jobs:
             libxkbcommon-dev \
             libxkbcommon-x11-0 \
             ninja-build \
-            p7zip-full \
             python3 \
             python3-pip \
             xvfb
@@ -146,15 +147,23 @@ jobs:
           done
           exit 1
 
+      - name: Build 7-Zip
+        run: |
+          cd "${GITHUB_WORKSPACE}/src/ext/zip/7z/7-zip/CPP/7zip/Bundles/Format7zF"
+          make -j$(nproc) -f ../../cmpl_gcc.mak CC=gcc-12 CXX=g++-14
+          mkdir -p /usr/local/lib/7zip
+          cp b/g/7z.so /usr/local/lib/7zip/7z.so
+
       - name: Locate Qt and 7-Zip
         run: |
           qt_config="$(find "${QT_ROOT}" -path '*/lib/cmake/Qt6/Qt6Config.cmake' -print -quit)"
           test -n "${qt_config}"
           qt_prefix="${qt_config%/lib/cmake/Qt6/Qt6Config.cmake}"
-          p7zip_library="$(find /usr/lib -name 7z.so -print -quit)"
+          p7zip_library="$(find /usr/local/lib /usr/lib -name 7z.so -print -quit 2>/dev/null || true)"
           test -n "${p7zip_library}"
           printf 'QT_PREFIX=%s\n' "${qt_prefix}" >> "${GITHUB_ENV}"
           printf 'P7ZIP_DIR=%s\n' "$(dirname "${p7zip_library}")" >> "${GITHUB_ENV}"
+          echo "qt_prefix: ${qt_prefix}, p7zip_library: ${p7zip_library}"
 
       - name: Prepare Conan profile
         run: |
