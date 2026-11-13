@@ -147,23 +147,13 @@ jobs:
           done
           exit 1
 
-      - name: Build 7-Zip
-        run: |
-          cd "${GITHUB_WORKSPACE}/src/ext/zip/7z/7-zip/CPP/7zip/Bundles/Format7zF"
-          make -j$(nproc) -f ../../cmpl_gcc.mak CC=gcc-12 CXX=g++-14
-          mkdir -p /usr/local/lib/7zip
-          cp b/g/7z.so /usr/local/lib/7zip/7z.so
-
-      - name: Locate Qt and 7-Zip
+      - name: Locate Qt
         run: |
           qt_config="$(find "${QT_ROOT}" -path '*/lib/cmake/Qt6/Qt6Config.cmake' -print -quit)"
           test -n "${qt_config}"
           qt_prefix="${qt_config%/lib/cmake/Qt6/Qt6Config.cmake}"
-          p7zip_library="$(find /usr/local/lib /usr/lib -name 7z.so -print -quit 2>/dev/null || true)"
-          test -n "${p7zip_library}"
           printf 'QT_PREFIX=%s\n' "${qt_prefix}" >> "${GITHUB_ENV}"
-          printf 'P7ZIP_DIR=%s\n' "$(dirname "${p7zip_library}")" >> "${GITHUB_ENV}"
-          echo "qt_prefix: ${qt_prefix}, p7zip_library: ${p7zip_library}"
+          echo "qt_prefix: ${qt_prefix}"
 
       - name: Prepare Conan profile
         run: |
@@ -209,13 +199,12 @@ jobs:
           cmake -S . -B build/linux -G Ninja \
             -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
-            -D7zip_BIN_DIR="${P7ZIP_DIR}" \
             -DCPACK_GENERATOR=TXZ \
             -DNPM_EXECUTABLE="$NPM_PATH"
           cmake --build build/linux --config "${BUILD_TYPE}" --parallel 2
 
       - name: Run Unit tests
-        run: LD_LIBRARY_PATH="${P7ZIP_DIR}:${LD_LIBRARY_PATH}" ctest --test-dir build/linux --output-on-failure -C Release
+        run: LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/build/linux/lib:${LD_LIBRARY_PATH}" ctest --test-dir build/linux --output-on-failure -C Release
 
       - name: Package and smoke test
         env:
@@ -234,7 +223,6 @@ jobs:
           cmake -S . -B build/linux -G Ninja \
             -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" \
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
-            -D7zip_BIN_DIR="${P7ZIP_DIR}" \
             -DCPACK_GENERATOR=DEB \
             -DNPM_EXECUTABLE="$NPM_PATH"
           cpack --config build/linux/CPackConfig.cmake \
