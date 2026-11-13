@@ -16,7 +16,6 @@ set start_time=%DATE% %TIME%
 
 set /p PRODUCT_VERSION=<%BUILD_DIR%\var\version
 set /p PRODUCT_GUID=<%BUILD_DIR%\var\uid
-set /p SEVEN_ZIP_PATH=<%BUILD_DIR%\var\7z
 set /p OS=<%BUILD_DIR%\var\os
 
 echo building
@@ -49,7 +48,7 @@ echo portable creating
 echo portable > %BUILD_DIR%/FLibrary/installer_mode
 
 copy /Y %~dp0src\home\script\install\ProtonStart.sh %BUILD_DIR%\FLibrary\ProtonStart.sh
-%SEVEN_ZIP_PATH%7z a %~dp0build\installer\FLibrary-%PRODUCT_VERSION%-portable-%OS%-%PLATFORM%.7z %BUILD_DIR%\FLibrary
+7z a %~dp0build\installer\FLibrary-%PRODUCT_VERSION%-portable-%OS%-%PLATFORM%.7z %BUILD_DIR%\FLibrary
 
 goto End
 

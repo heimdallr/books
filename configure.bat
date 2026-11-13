@@ -29,7 +29,6 @@ cmake -B %BUILD_DIR% ^
 -DCMAKE_BUILD_TYPE=%BUILD_TYPE% ^
 -DQT_MAJOR_VERSION=%QT_MAJOR_VERSION% ^
 -DQt%QT_MAJOR_VERSION%_DIR=%QT_DIR% ^
--D7zip_BIN_DIR=D:/sdk/7z/%PLATFORM%/bin ^
 -DCPACK_GENERATOR=WIX ^
 %* ^
 -G "Visual Studio 17 2022" %~dp0 2>&1 | %tee_name% %BUILD_DIR%\configure.log

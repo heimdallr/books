@@ -59,15 +59,6 @@ endif ()
 set(CMAKE_CONFIGURATION_TYPES ${CMAKE_BUILD_TYPE})
 message(STATUS "Build type: ${CMAKE_BUILD_TYPE}")
 
-if (NOT DEFINED 7zip_BIN_DIR)
-	if(${CMAKE_CXX_COMPILER_ID} STREQUAL GNU)
-		set(7zip_BIN_DIR "/usr/lib/7zip" CACHE STRING "Path to 7zip binaries (required)")
-	endif()
-endif()
-if ("${7zip_BIN_DIR}" STREQUAL "")
-	message(FATAL_ERROR "7zip_BIN_DIR is not set. Please provide a value using -D7zip_BIN_DIR='Path/to/7zip/binaries'")
-endif ()
-
 include(${BUILDSCRIPTS_ROOT}/cmake/conan.cmake)
 conan_install(
 	${CMAKE_SOURCE_DIR}/src/home/script/conan
@@ -226,7 +217,6 @@ include(${FOUNDATION_ROOT}/platform/platform.cmake)
 include(${FOUNDATION_ROOT}/platformgui/platformgui.cmake)
 include(${FOUNDATION_ROOT}/settings/settings.cmake)
 
-file(WRITE "${CMAKE_BINARY_DIR}/var/7z" "${7zip_BIN_DIR}/")
 file(WRITE "${CMAKE_BINARY_DIR}/var/version" ${PRODUCT_VERSION})
 file(WRITE "${CMAKE_BINARY_DIR}/var/uid" ${PRODUCT_UID})
 set(OS_NAME ${CMAKE_HOST_SYSTEM_NAME})
