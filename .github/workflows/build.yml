@@ -43,6 +43,7 @@ jobs:
     runs-on: ubuntu-latest
     container:
       image: ubuntu:22.04
+      options: --dns 8.8.8.8 --dns 1.1.1.1
     timeout-minutes: 240
     env:
       QT_ROOT: ${{ github.workspace }}/.ci/Qt
@@ -71,6 +72,8 @@ jobs:
             cmake \
             dpkg-dev \
             file \
+            binutils \
+            gcc-12 \
             g++-14 \
             libdbus-1-dev \
             libegl1-mesa-dev \
@@ -88,7 +91,6 @@ jobs:
             libxkbcommon-dev \
             libxkbcommon-x11-0 \
             ninja-build \
-            p7zip-full \
             python3 \
             python3-pip \
             xvfb
@@ -145,15 +147,23 @@ jobs:
           done
           exit 1
 
+      - name: Build 7-Zip
+        run: |
+          cd "${GITHUB_WORKSPACE}/src/ext/zip/7z/7-zip/CPP/7zip/Bundles/Format7zF"
+          make -j$(nproc) -f ../../cmpl_gcc.mak CC=gcc-12 CXX=g++-14
+          mkdir -p /usr/local/lib/7zip
+          cp b/g/7z.so /usr/local/lib/7zip/7z.so
+
       - name: Locate Qt and 7-Zip
         run: |
           qt_config="$(find "${QT_ROOT}" -path '*/lib/cmake/Qt6/Qt6Config.cmake' -print -quit)"
           test -n "${qt_config}"
           qt_prefix="${qt_config%/lib/cmake/Qt6/Qt6Config.cmake}"
-          p7zip_library="$(find /usr/lib -name 7z.so -print -quit)"
+          p7zip_library="$(find /usr/local/lib /usr/lib -name 7z.so -print -quit 2>/dev/null || true)"
           test -n "${p7zip_library}"
           printf 'QT_PREFIX=%s\n' "${qt_prefix}" >> "${GITHUB_ENV}"
           printf 'P7ZIP_DIR=%s\n' "$(dirname "${p7zip_library}")" >> "${GITHUB_ENV}"
+          echo "qt_prefix: ${qt_prefix}, p7zip_library: ${p7zip_library}"
 
       - name: Prepare Conan profile
         run: |
@@ -204,8 +214,8 @@ jobs:
             -DNPM_EXECUTABLE="$NPM_PATH"
           cmake --build build/linux --config "${BUILD_TYPE}" --parallel 2
 
-      - name: Run CTest
-        run: ctest --test-dir build/linux --output-on-failure -C Release
+      - name: Run Unit tests
+        run: LD_LIBRARY_PATH="${P7ZIP_DIR}:${LD_LIBRARY_PATH}" ctest --test-dir build/linux --output-on-failure -C Release
 
       - name: Package and smoke test
         env:
@@ -470,7 +480,7 @@ jobs:
           cmake --build build/windows `
             --config $env:BUILD_TYPE --parallel 2
 
-      - name: Run CTest
+      - name: Run Unit tests
         run: ctest --test-dir build/windows --output-on-failure -C Release
 
       - name: Package and smoke test
@@ -662,8 +672,18 @@ jobs:
             ./build-mac.sh
           (cd "${artifact_dir}" && shasum -a 256 FLibrary-*.dmg > SHA256SUMS)
 
-      - name: Run CTest
-        run: ctest --test-dir "${GITHUB_WORKSPACE}/build/macos-${{ matrix.arch }}" --output-on-failure -C Release
+      - name: Run Unit tests        
+        run: |
+          BUILD_DIR="${GITHUB_WORKSPACE}/build/macos-${{ matrix.arch }}"
+          P7ZIP_SO="$(brew --prefix p7zip)/lib/p7zip/7z.so"
+
+          find "$BUILD_DIR" -path "*/CMakeFiles" -prune -o -type f -perm +111 -print | while read -r bin_file; do
+            parent_dir="$(dirname "$(dirname "$bin_file")")"
+            mkdir -p "$parent_dir/Frameworks"
+            ln -sf "$P7ZIP_SO" "$parent_dir/Frameworks/7z.so"
+          done
+
+          ctest --test-dir "$BUILD_DIR" --output-on-failure -C Release
 
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v7

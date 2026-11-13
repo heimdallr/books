@@ -39,4 +39,5 @@ AddGTest(logic
 	LINK_TARGETS
 		flint
 		logic
+		unit-test-util
 )

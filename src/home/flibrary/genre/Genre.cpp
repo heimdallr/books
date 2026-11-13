@@ -262,3 +262,27 @@ void Genre::SetSortMode(const ISettings& settings)
 {
 	SORTER = FindSecond(SORTERS, settings.Get(GENRES_SORT_MODE_KEY).toString().toStdString().data(), &SortByCode, PszComparer {});
 }
+
+std::unordered_map<QString, QString> Genre::CreateGenreParentsMap(const Genre& root)
+{
+	std::unordered_map<QString, QString> genreParents;
+
+	const auto process = [&](const std::vector<Genre>& children, const auto& f) -> void {
+		for (const auto& genre : children)
+		{
+			assert(genre.parent);
+			genreParents.try_emplace(genre.name, genre.parent->name);
+			f(genre.children, f);
+		}
+	};
+
+	process(root.children, process);
+
+	return genreParents;
+}
+
+std::unordered_map<QString, QString> Genre::CreateGenreParentsMap(DB::IDatabase& db)
+{
+	const auto root = Load(db);
+	return CreateGenreParentsMap(root);
+}

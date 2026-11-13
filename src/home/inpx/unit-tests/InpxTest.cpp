@@ -25,7 +25,7 @@ using ParseProcess = void (Inpx::Parser::*)(Inpx::Parser::IniMap data, Inpx::Cre
 auto Process(const SetInpx& setInpx, const Check& check, const ParseProcess process)
 {
 	static constexpr auto dbPath = "file:my_shared_mem_db?mode=memory&cache=shared";
-	auto                  db     = DB::Factory::Create<DB::IDatabase>(DB::IFactory::Impl::Sqlite, std::format(R"(path="{}")", dbPath));
+    auto                  db     = DB::Factory::Create<DB::IDatabaseWritable>(DB::IFactory::Impl::Sqlite, std::format(R"(path="{}")", dbPath));
 
 	QByteArray bytes;
 	{
@@ -59,7 +59,7 @@ auto Process(const SetInpx& setInpx, const Check& check, const ParseProcess proc
 
 	eventLoop.exec();
 
-	return db;
+    return DB::Factory::Create<DB::IDatabase>(DB::IFactory::Impl::Sqlite, std::format(R"(path="{}")", dbPath));;
 }
 
 struct InpxTestData

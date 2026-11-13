@@ -1,0 +1,7 @@
+<RCC>
+	<qresource prefix="database">
+		<file alias="collection.info">data/database/collection.info</file>
+		<file alias="version.info">data/database/version.info</file>
+		<file alias="structure.info">data/database/structure.info</file>
+	</qresource>
+</RCC>

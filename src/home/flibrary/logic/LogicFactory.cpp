@@ -269,18 +269,7 @@ struct LogicFactory::Impl final
 
 		const auto databaseProvider = container.resolve<IDatabaseProvider>();
 		const auto db               = databaseProvider->GetDatabase();
-		const auto genres           = Genre::Load(*db);
-
-		const auto process = [this](const std::vector<Genre>& children, const auto& f) -> void {
-			for (const auto& genre : children)
-			{
-				assert(genre.parent);
-				genreParents.try_emplace(genre.name, genre.parent->name);
-				f(genre.children, f);
-			}
-		};
-
-		process(genres.children, process);
+		genreParents                = Genre::CreateGenreParentsMap(*db);
 	}
 };
 

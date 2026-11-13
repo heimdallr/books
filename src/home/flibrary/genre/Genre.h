@@ -60,6 +60,9 @@ struct Genre
 	GENRE_EXPORT static Genre* Find(Genre* root, const QString& code);
 	GENRE_EXPORT static void   SetSortMode(const ISettings& settings);
 
+	GENRE_EXPORT static std::unordered_map<QString, QString> CreateGenreParentsMap(const Genre& root);
+	GENRE_EXPORT static std::unordered_map<QString, QString> CreateGenreParentsMap(DB::IDatabase& db);
+
 	static const Genre* Find(const Genre* root, const QString& code)
 	{
 		return Find(const_cast<Genre*>(root), code);
