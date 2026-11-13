@@ -29,7 +29,6 @@ git clone https://github.com/heimdallr/books.git --recursive
 
 #### Устанавливаем модули, которых нет в conan
 * Qt6 (6.10.0 минимум) [^1] [^2]  
-* 7zip [^3]  
 
 <br/>
 
@@ -183,4 +182,3 @@ codesign --sign -
 
 [^1]: Ну ладно, Qt 6.11 уже есть в conan'е. Но всё равно лучше собрать самостоятельно, с патчами src/home/script/conan/patch/qt. И слинковать с icu из conan.
 [^2]: Если есть необходимость запуска на Windows7, можно и с Qt5. Я собирал с 5.15.16
-[^3]: 7zip в конане тоже есть, но shared library только под Windows
