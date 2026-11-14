@@ -3,6 +3,8 @@
 #include "interface/constants/ProductConstant.h"
 #include "interface/localization.h"
 
+#include "constants/UserData.h"
+
 #include "backup.h"
 #include "log.h"
 
@@ -18,6 +20,7 @@ constexpr auto EXPORT_FILE_FILTER = QT_TRANSLATE_NOOP("UserData", "FLibrary user
 constexpr auto IMPORT_FILE_FILTER = QT_TRANSLATE_NOOP("UserData", "FLibrary user data files (*%1);;MyHomeLib user data files (*.mhlud2);;All files (*.*)");
 constexpr auto IMPORT_SUCCESS     = QT_TRANSLATE_NOOP("UserData", "User data successfully recovered");
 constexpr auto EXPORT_SUCCESS     = QT_TRANSLATE_NOOP("UserData", "User data successfully saved");
+constexpr auto CANNOT_WRITE       = QT_TRANSLATE_NOOP("UserData", "Cannot write to '%1'");
 constexpr auto DIALOG_KEY         = "Backup";
 TR_DEF
 
@@ -25,8 +28,8 @@ TR_DEF
 
 namespace HomeCompa::Flibrary::UserData {
 
-void Restore(const IDatabaseProvider& databaseProvider, QString fileName, Callback callback);
-void ImportFromMyHomeLib(const IDatabaseProvider& databaseProvider, QString fileName, Callback callback);
+void Restore(const IDatabaseProvider& databaseProvider, QIODevice& stream, Callback callback);
+void ImportFromMyHomeLib(const IDatabaseProvider& databaseProvider, QIODevice& stream, Callback callback);
 
 } // namespace HomeCompa::Flibrary::UserData
 
@@ -52,23 +55,47 @@ void UserDataController::Restore(Callback callback) const
 	Restore(m_uiFactory->GetOpenFileName(DIALOG_KEY, Tr(SELECT_IMPORT_FILE), Tr(IMPORT_FILE_FILTER).arg(Constant::BACKUP_FILE_EXT)), std::move(callback));
 }
 
-void UserDataController::Backup(QString path, Callback callback) const
+void UserDataController::Backup(const QString& path, Callback callback) const
 {
-	Do(std::move(callback), std::move(path), EXPORT_SUCCESS, &UserData::Backup);
+	if (path.isEmpty())
+		return callback(false, QString {});
+
+	QFile out(path);
+	if (out.open(QIODevice::WriteOnly))
+		return Backup(out, std::move(callback));
+
+	const auto error = QString(CANNOT_WRITE).arg(path);
+	PLOGE << error;
+	return callback(false, error);
 }
 
-void UserDataController::Restore(QString path, Callback callback) const
+void UserDataController::Backup(QIODevice& stream, Callback callback) const
 {
-	const auto f = path.endsWith(".mhlud2", Qt::CaseInsensitive) ? &UserData::ImportFromMyHomeLib : &UserData::Restore;
-	Do(std::move(callback), std::move(path), IMPORT_SUCCESS, f);
+	Do(std::move(callback), stream, EXPORT_SUCCESS, &UserData::Backup);
 }
 
-void UserDataController::Do(Callback callback, QString fileName, const char* successMessage, const DoFunction f) const
+void UserDataController::Restore(QIODevice& stream, const RestoreMode mode, Callback callback) const
 {
-	if (fileName.isEmpty())
-		return;
+	const auto f = mode == RestoreMode::MyHomeLib ? &UserData::ImportFromMyHomeLib : &UserData::Restore;
+	Do(std::move(callback), stream, IMPORT_SUCCESS, f);
+}
 
-	f(*m_databaseProvider, std::move(fileName), [&, successMessage, callback = std::move(callback)](const QString& error) mutable {
+void UserDataController::Restore(const QString& path, Callback callback) const
+{
+	if (path.isEmpty())
+		return callback(false, QString {});
+
+	QFile inp(path);
+	if (!inp.open(QIODevice::ReadOnly))
+		return callback(false, QString(UserData::CANNOT_READ_FROM).arg(path));
+
+	const auto mode = path.endsWith(".mhlud2", Qt::CaseInsensitive) ? RestoreMode::MyHomeLib : RestoreMode::FLibrary;
+	Restore(inp, mode, std::move(callback));
+}
+
+void UserDataController::Do(Callback callback, QIODevice& stream, const char* successMessage, const DoFunction f) const
+{
+	f(*m_databaseProvider, std::ref(stream), [&, successMessage, callback = std::move(callback)](const QString& error) mutable {
 		callback(error.isEmpty(), Tr(error.isEmpty() ? successMessage : error.toStdString().data()));
 	});
 }

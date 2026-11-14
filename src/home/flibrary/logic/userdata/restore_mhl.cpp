@@ -207,9 +207,9 @@ private:
 
 } // namespace
 
-void ImportFromMyHomeLib(const IDatabaseProvider& dbProvider, QString fileName, Callback callback)
+void ImportFromMyHomeLib(const IDatabaseProvider& dbProvider, QIODevice& inp, Callback callback)
 {
-	dbProvider.ExecuteWritable({ "Restore MHL user data", [fileName = std::move(fileName), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+	dbProvider.ExecuteWritable({ "Restore MHL user data", [&inp, callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
 									auto createResult = [callback = std::move(callback)](QString error = {}) mutable {
 										if (!error.isEmpty())
 										{
@@ -220,10 +220,6 @@ void ImportFromMyHomeLib(const IDatabaseProvider& dbProvider, QString fileName, 
 											callback(error);
 										};
 									};
-
-									QFile inp(fileName);
-									if (!inp.open(QIODevice::ReadOnly))
-										return createResult(QString(CANNOT_READ_FROM).arg(fileName));
 
 									try
 									{

@@ -29,8 +29,6 @@ namespace HomeCompa::Flibrary::UserData {
 
 namespace {
 
-constexpr auto CANNOT_WRITE = QT_TRANSLATE_NOOP("UserData", "Cannot write to '%1'");
-
 using BackupFunction = void (*)(DB::IDatabase& db, Util::XmlWriter&);
 
 class XmlAttributes final : public Util::XmlAttributes
@@ -222,23 +220,12 @@ constexpr std::pair<const char*, BackupFunction> BACKUPERS[] {
 
 } // namespace
 
-void Backup(const IDatabaseProvider& databaseProvider, QString fileName, Callback callback)
+void Backup(const IDatabaseProvider& databaseProvider, QIODevice& stream, Callback callback)
 {
-	databaseProvider.Execute({ "Backup user data", [fileName = std::move(fileName), callback = std::move(callback)](DB::IDatabase& db) mutable {
+	databaseProvider.Execute({ "Backup user data", [&stream, callback = std::move(callback)](DB::IDatabase& db) mutable {
 								  std::function<void(size_t)> result;
 
-								  QFile out(fileName);
-								  if (!out.open(QIODevice::WriteOnly))
-								  {
-									  auto error = QString(CANNOT_WRITE).arg(fileName);
-									  PLOGE << error;
-									  result = [error = std::move(error), callback = std::move(callback)](size_t) {
-										  callback(error);
-									  };
-									  return result;
-								  }
-
-								  Util::XmlWriter xmlWriter(out);
+								  Util::XmlWriter xmlWriter(stream);
 								  ScopedCall      rootElement(
 									  [&] {
 										  xmlWriter.WriteStartElement(Constant::FlibraryBackup);

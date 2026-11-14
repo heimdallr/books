@@ -10,6 +10,7 @@
 
 #include "constants/UserData.h"
 
+class QIODevice;
 class QString;
 
 namespace HomeCompa::DB {
@@ -37,12 +38,14 @@ public:
 private: // IUserDataController
 	void Backup(Callback callback) const override;
 	void Restore(Callback callback) const override;
-	void Backup(QString path, Callback callback) const override;
-	void Restore(QString path, Callback callback) const override;
+	void Backup(const QString& path, Callback callback) const override;
+	void Restore(const QString& path, Callback callback) const override;
+	void Backup(QIODevice& stream, Callback callback) const override;
+	void Restore(QIODevice& stream, RestoreMode mode, Callback callback) const override;
 
 private:
-	using DoFunction = void (*)(const IDatabaseProvider& databaseProvider, QString fileName, UserData::Callback callback);
-	void Do(Callback callback, QString fileName, const char* successMessage, DoFunction f) const;
+	using DoFunction = void (*)(const IDatabaseProvider& databaseProvider, QIODevice& stream, UserData::Callback callback);
+	void Do(Callback callback, QIODevice& stream, const char* successMessage, DoFunction f) const;
 
 private:
 	std::shared_ptr<const IDatabaseProvider> m_databaseProvider;
