@@ -2,6 +2,8 @@
 
 #include <functional>
 
+class QString;
+
 namespace HomeCompa::Flibrary {
 
 class IUserDataController // NOLINT(cppcoreguidelines-special-member-functions)

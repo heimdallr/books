@@ -26,7 +26,7 @@ class IExecutor;
 
 namespace HomeCompa::Flibrary {
 
-class UserDataController : public IUserDataController
+class UserDataController final : public IUserDataController
 {
 	NON_COPY_MOVABLE(UserDataController)
 
