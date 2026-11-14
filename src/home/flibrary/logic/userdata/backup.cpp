@@ -9,7 +9,6 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IFilterProvider.h"
@@ -19,7 +18,6 @@
 #include "constants/filter.h"
 #include "constants/groups.h"
 #include "constants/searches.h"
-#include "util/IExecutor.h"
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"
 
@@ -42,8 +40,6 @@ public:
 			return std::pair(QString::fromStdU16String(value), query.Get<const char*>(n++));
 		});
 	}
-
-	XmlAttributes() = default;
 
 	explicit XmlAttributes(std::vector<std::pair<QString, QString>> values)
 		: m_values { std::move(values) }
@@ -223,9 +219,7 @@ constexpr std::pair<const char*, BackupFunction> BACKUPERS[] {
 void Backup(const IDatabaseProvider& databaseProvider, QIODevice& stream, Callback callback)
 {
 	databaseProvider.Execute({ "Backup user data", [&stream, callback = std::move(callback)](DB::IDatabase& db) mutable {
-								  std::function<void(size_t)> result;
-
-								  Util::XmlWriter xmlWriter(stream);
+								  Util::XmlWriter              xmlWriter(stream);
 								  ScopedCall      rootElement(
 									  [&] {
 										  xmlWriter.WriteStartElement(Constant::FlibraryBackup);
@@ -271,7 +265,7 @@ void Backup(const IDatabaseProvider& databaseProvider, QIODevice& stream, Callba
 									  functor(db, xmlWriter);
 								  }
 
-								  return result = [callback = std::move(callback)](size_t) {
+								  return [callback = std::move(callback)](size_t) {
 									  callback({});
 								  };
 							  } });

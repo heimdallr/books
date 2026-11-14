@@ -35,9 +35,10 @@ AddGTest(logic
 		"${CMAKE_CURRENT_LIST_DIR}/unit-tests"
 	LINK_LIBRARIES
 		Boost::headers
-		Qt${QT_MAJOR_VERSION}::Core
+		Qt${QT_MAJOR_VERSION}::Gui
 	LINK_TARGETS
 		flint
 		logic
+		util
 		unit-test-util
 )
