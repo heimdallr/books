@@ -88,7 +88,7 @@ TEST(LogicFactoryTest, Stub)
 
 TEST(LogicFactoryTest, FillScriptTemplate)
 {
-	const auto db    = CreateDatabase<IDatabase>();
+	const auto db = CreateDatabase<IDatabase>();
 	ASSERT_TRUE(!!db);
 	const auto books = GetExtractedBooks(*db);
 	ASSERT_FALSE(books.empty());
