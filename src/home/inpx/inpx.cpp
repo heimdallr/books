@@ -1953,18 +1953,20 @@ where b.FileName = ? and b.Ext = ?)");
 		if (!archiveFileInfo.exists())
 			return fileList;
 
-		try
-		{
-			Zip archiveFile(archiveFileInfo.filePath());
-			std::ranges::transform(archiveFile.GetFileNameList(), std::inserter(fileList, fileList.end()), [&](const auto& item) {
-				return std::make_pair(item, std::make_pair(archiveFile.GetFileSize(item), 0));
-			});
-		}
-		catch (...)
+		const auto archivePath = archiveFileInfo.filePath();
+		const auto zip         = TRY(QString("open %1").arg(archivePath), [&]() -> std::unique_ptr<Zip> {
+			return std::make_unique<Zip>(archivePath);
+		});
+
+		if (!zip)
 		{
 			m_badFolders << archiveFileInfo.fileName();
-			throw;
+			return fileList;
 		}
+
+		std::ranges::transform(zip->GetFileNameList(), std::inserter(fileList, fileList.end()), [&](const auto& item) {
+			return std::make_pair(item, std::make_pair(zip->GetFileSize(item), 0));
+		});
 
 		return fileList;
 	}
