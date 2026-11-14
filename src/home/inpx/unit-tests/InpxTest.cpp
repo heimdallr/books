@@ -1,9 +1,12 @@
 #include "inpx/inpx.h"
 
 #include <QBuffer>
+#include <QCoreApplication>
+#include <QDir>
 #include <QEventLoop>
 #include <QFile>
 #include <QFileInfo>
+#include <QTemporaryDir>
 
 #include <gtest/gtest.h>
 
@@ -22,10 +25,10 @@ using SetInpx      = std::function<void(IZipFileController&)>;
 using Check        = std::function<void(const Inpx::UpdateResult&, DB::IDatabase&)>;
 using ParseProcess = void (Inpx::Parser::*)(Inpx::Parser::IniMap data, Inpx::CreateCollectionMode mode, Inpx::Parser::Callback callback);
 
-auto Process(const SetInpx& setInpx, const Check& check, const ParseProcess process)
+auto Process(const SetInpx& setInpx, const Check& check, const ParseProcess process, const QString& archiveFolder = "folder", Inpx::CreateCollectionMode createMode = Inpx::CreateCollectionMode::None)
 {
 	static constexpr auto dbPath = "file:my_shared_mem_db?mode=memory&cache=shared";
-    auto                  db     = DB::Factory::Create<DB::IDatabaseWritable>(DB::IFactory::Impl::Sqlite, std::format(R"(path="{}")", dbPath));
+	auto                  db     = DB::Factory::Create<DB::IDatabaseWritable>(DB::IFactory::Impl::Sqlite, std::format(R"(path="{}")", dbPath));
 
 	QByteArray bytes;
 	{
@@ -49,17 +52,17 @@ auto Process(const SetInpx& setInpx, const Check& check, const ParseProcess proc
 		{                    GENRES_PATH,                             ":/data/genres.json" },
 		{ SET_DATABASE_VERSION_STATEMENT, IDatabaseProvider::GetDatabaseVersionStatement() },
 		{                      INPX_PATH,  QString::fromUtf8(bytes.toBase64()) + "_BASE64" },
-		{                 ARCHIVE_FOLDER,                                         "folder" },
+		{                 ARCHIVE_FOLDER,                                    archiveFolder },
 	};
 
-	std::invoke(process, std::ref(parser), std::move(ini), Inpx::CreateCollectionMode::None, [&](const Inpx::UpdateResult& result) {
+	std::invoke(process, std::ref(parser), std::move(ini), createMode, [&](const Inpx::UpdateResult& result) {
 		check(result, *db);
 		eventLoop.exit();
 	});
 
 	eventLoop.exec();
 
-    return DB::Factory::Create<DB::IDatabase>(DB::IFactory::Impl::Sqlite, std::format(R"(path="{}")", dbPath));;
+	return DB::Factory::Create<DB::IDatabase>(DB::IFactory::Impl::Sqlite, std::format(R"(path="{}")", dbPath));
 }
 
 struct InpxTestData
@@ -254,6 +257,13 @@ auto GetResultChecker(const std::vector<InpxTestData::Check>& checks, const Inpx
 	};
 }
 
+void CreateBadArchive(const QTemporaryDir& dir, const QString& fileName)
+{
+	QFile f(dir.filePath(fileName));
+	ASSERT_TRUE(f.open(QIODevice::WriteOnly));
+	f.write("12345");
+}
+
 TEST_P(InpxTest, Create)
 {
 	const auto& [files, checks, result, updateFiles, updateChecks, updateResult] = GetParam();
@@ -261,6 +271,45 @@ TEST_P(InpxTest, Create)
 	const auto db = Process(GetInpxSetter(files), GetResultChecker(checks, result), &Inpx::Parser::CreateNewCollection);
 	if (!updateFiles.empty())
 		Process(GetInpxSetter(updateFiles), GetResultChecker(updateChecks, updateResult), &Inpx::Parser::UpdateCollection);
+}
+
+TEST(InpxTest, SkipLostBooksNoArchives)
+{
+	const InpxTestData testData {
+		.files = { ":/common/collection.info", ":/common/version.info", ":/0001/1.inp" }
+	};
+
+	const QTemporaryDir temporaryDir;
+
+	const auto db =
+		Process(GetInpxSetter(testData.files), GetResultChecker(testData.checks, testData.result), &Inpx::Parser::CreateNewCollection, temporaryDir.path(), Inpx::CreateCollectionMode::SkipLostBooks);
+}
+
+TEST(InpxTest, SkipLostBooksBadArchive)
+{
+	const InpxTestData testData {
+		.files  = { ":/common/collection.info", ":/common/version.info", ":/0001/1.inp" },
+		.result = { .genres = 1, .badFolders = { "1.zip" } }
+	};
+
+	const QTemporaryDir temporaryDir;
+	CreateBadArchive(temporaryDir, "1.zip");
+
+	const auto db =
+		Process(GetInpxSetter(testData.files), GetResultChecker(testData.checks, testData.result), &Inpx::Parser::CreateNewCollection, temporaryDir.path(), Inpx::CreateCollectionMode::SkipLostBooks);
+}
+
+TEST(InpxTest, BadArchive)
+{
+	const InpxTestData testData {
+		.files  = { ":/common/collection.info", ":/common/version.info", ":/0001/1.inp" },
+		.result = { .folders = 1, .authors = 1, .books = 1, .genres = 1, .badFolders = { "1.zip" } }
+	};
+
+	const QTemporaryDir temporaryDir;
+	CreateBadArchive(temporaryDir, "1.zip");
+
+	const auto db = Process(GetInpxSetter(testData.files), GetResultChecker(testData.checks, testData.result), &Inpx::Parser::CreateNewCollection, temporaryDir.path());
 }
 
 } // namespace HomeCompa::Flibrary::Test
