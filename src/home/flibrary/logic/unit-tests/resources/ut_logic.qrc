@@ -1,0 +1,7 @@
+<RCC>
+	<qresource prefix="common">
+	</qresource>
+	<qresource prefix="0001">
+		<file alias="user_data.mhlud2">data/0001.mhlud2</file>
+	</qresource>
+</RCC>

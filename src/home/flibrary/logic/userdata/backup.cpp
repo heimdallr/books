@@ -9,7 +9,6 @@
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 
-#include "interface/constants/Localization.h"
 #include "interface/constants/ProductConstant.h"
 #include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IFilterProvider.h"
@@ -19,7 +18,6 @@
 #include "constants/filter.h"
 #include "constants/groups.h"
 #include "constants/searches.h"
-#include "util/IExecutor.h"
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"
 
@@ -28,8 +26,6 @@
 namespace HomeCompa::Flibrary::UserData {
 
 namespace {
-
-constexpr auto CANNOT_WRITE = QT_TRANSLATE_NOOP("UserData", "Cannot write to '%1'");
 
 using BackupFunction = void (*)(DB::IDatabase& db, Util::XmlWriter&);
 
@@ -44,8 +40,6 @@ public:
 			return std::pair(QString::fromStdU16String(value), query.Get<const char*>(n++));
 		});
 	}
-
-	XmlAttributes() = default;
 
 	explicit XmlAttributes(std::vector<std::pair<QString, QString>> values)
 		: m_values { std::move(values) }
@@ -222,23 +216,10 @@ constexpr std::pair<const char*, BackupFunction> BACKUPERS[] {
 
 } // namespace
 
-void Backup(const IDatabaseProvider& databaseProvider, QString fileName, Callback callback)
+void Backup(const IDatabaseProvider& databaseProvider, QIODevice& stream, Callback callback)
 {
-	databaseProvider.Execute({ "Backup user data", [fileName = std::move(fileName), callback = std::move(callback)](DB::IDatabase& db) mutable {
-								  std::function<void(size_t)> result;
-
-								  QFile out(fileName);
-								  if (!out.open(QIODevice::WriteOnly))
-								  {
-									  auto error = QString(CANNOT_WRITE).arg(fileName);
-									  PLOGE << error;
-									  result = [error = std::move(error), callback = std::move(callback)](size_t) {
-										  callback(error);
-									  };
-									  return result;
-								  }
-
-								  Util::XmlWriter xmlWriter(out);
+	databaseProvider.Execute({ "Backup user data", [&stream, callback = std::move(callback)](DB::IDatabase& db) mutable {
+								  Util::XmlWriter              xmlWriter(stream);
 								  ScopedCall      rootElement(
 									  [&] {
 										  xmlWriter.WriteStartElement(Constant::FlibraryBackup);
@@ -284,7 +265,7 @@ void Backup(const IDatabaseProvider& databaseProvider, QString fileName, Callbac
 									  functor(db, xmlWriter);
 								  }
 
-								  return result = [callback = std::move(callback)](size_t) {
+								  return [callback = std::move(callback)](size_t) {
 									  callback({});
 								  };
 							  } });

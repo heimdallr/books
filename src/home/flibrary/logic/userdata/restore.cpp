@@ -198,7 +198,17 @@ private:
 	bool OnStartElementFlibraryBackupUserDataItem(const QString& name, const Util::XmlAttributes&)
 	{
 		const auto it = m_restorerCreators.find(name);
-		assert(it != m_restorerCreators.end());
+		if (it == m_restorerCreators.end())
+		{
+			PLOGW << "cannot find parser for " << name;
+			return true;
+		}
+
+		if (it->second.begin()->first > m_version)
+		{
+			PLOGW << "first parser version for " << name << " is " << it->second.begin()->first << " but " << m_version << " received";
+			return true;
+		}
 
 		const auto itParser = it->second.upper_bound(m_version);
 		assert(itParser != it->second.begin());
@@ -252,34 +262,26 @@ private:
 	QString m_error;
 };
 
-void RestoreImpl(const IDatabaseProvider& dbProvider, QString fileName, Callback callback)
+void RestoreImpl(const IDatabaseProvider& dbProvider, QIODevice& stream, Callback callback)
 {
-	dbProvider.ExecuteWritable({ "Restore user data", [fileName = std::move(fileName), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
-									auto createResult = [callback = std::move(callback)](QString error = {}) mutable {
+	dbProvider.ExecuteWritable({ "Restore user data", [&stream, callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+									const XmlParser parser(stream, db);
+									auto            error = parser.GetError();
+									return [error = std::move(error), callback = std::move(callback)](size_t) {
 										if (!error.isEmpty())
 										{
 											PLOGE << error;
 										}
-
-										return [callback = std::move(callback), error = std::move(error)](size_t) {
-											callback(error);
-										};
+										callback(error);
 									};
-
-									QFile inp(fileName);
-									if (!inp.open(QIODevice::ReadOnly))
-										return createResult(QString(CANNOT_READ_FROM).arg(fileName));
-
-									const XmlParser parser(inp, db);
-									return createResult(parser.GetError());
 								} });
 }
 
 } // namespace
 
-void Restore(const IDatabaseProvider& dbProvider, QString fileName, Callback callback)
+void Restore(const IDatabaseProvider& dbProvider, QIODevice& stream, Callback callback)
 {
-	RestoreImpl(dbProvider, std::move(fileName), std::move(callback));
+	RestoreImpl(dbProvider, stream, std::move(callback));
 }
 
 } // namespace HomeCompa::Flibrary::UserData
