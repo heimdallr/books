@@ -1,0 +1,48 @@
+name: flibrary
+
+services:
+  opds:
+    build:
+      context: .
+      dockerfile: Dockerfile
+      args:
+        BOOKS_REF: ${BOOKS_REF:?BOOKS_REF не задан - положите файл .env рядом с docker-compose.yml}
+        QT_VERSION: ${QT_VERSION:?QT_VERSION не задан - положите файл .env рядом с docker-compose.yml}
+    # Сборка только под x86_64 (Qt и профиль Conan - под эту архитектуру)
+    platform: linux/amd64
+    restart: unless-stopped
+
+    ports:
+      # http://localhost:12791/      - веб-интерфейс
+      # http://localhost:12791/web   - простой веб-интерфейс
+      # http://localhost:12791/opds  - OPDS-каталог для читалок
+      - "${OPDS_PORT:-12791}:12791"
+
+    environment:
+      # Имя коллекции. При первом запуске создаётся из .inpx, дальше просто открывается.
+      FLIBRARY_COLLECTION: ${FLIBRARY_COLLECTION:-Library}
+      # Путь к .inpx, если он лежит не в корне библиотеки или их там несколько
+      # FLIBRARY_INPX: /library/all_index.inpx
+      # Папка с дополнительными данными (необязательно); не забудьте том ниже. Описание смотрите в .env файле для ADDITIONAL_DIR
+      FLIBRARY_ADDITIONAL: /additional
+
+    volumes:
+      # Папка с архивами книг и файлом .inpx
+      - ${LIBRARY_DIR:-./library}:/library:ro
+      # База авторов, отзывов и прочего - смотри описание в .env
+      - ${ADDITIONAL_DIR:-./additional}:/additional:ro
+      # База коллекции и настройки сервера
+      - flibrary-data:/data
+
+    healthcheck:
+      # /favicon.ico отдаётся без авторизации. Несуществующие адреса проверять нельзя:
+      # за запрос неизвестного пути сервер на минуту банит IP клиента.
+      test: ["CMD", "curl", "--fail", "--silent", "--output", "/dev/null", "http://127.0.0.1:12791/favicon.ico"]
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      # Порт открывается только после создания коллекции, на большой библиотеке это долго
+      start_period: 30m
+
+volumes:
+  flibrary-data:
