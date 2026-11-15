@@ -35,6 +35,43 @@ constexpr const char* XML[] {
 	"FlibraryBackup/FlibraryUserData/Searches",
 };
 
+struct CheckRestore
+{
+	QString                           queryText;
+	std::vector<std::vector<QString>> results;
+
+	void Check(IDatabase& db) const
+	{
+		const auto query = db.CreateQuery(queryText);
+		if (results.empty())
+		{
+			ASSERT_TRUE(query->Execute());
+			ASSERT_TRUE(query->Eof());
+		}
+		else
+		{
+			size_t n = 0;
+			for (auto&& [rec, result] : std::views::zip(*query, results))
+			{
+				++n;
+				for (auto&& [value, index] : std::views::zip(result, std::views::iota(0)))
+				{
+					if (value.isEmpty())
+					{
+						EXPECT_TRUE(rec.IsNull(index));
+					}
+					else
+					{
+						const auto* selected = rec.Get<const char*>(index);
+						EXPECT_STREQ(selected, value.toStdString().data());
+					}
+				}
+			}
+			EXPECT_EQ(n, results.size());
+		}
+	}
+};
+
 struct UserDataControllerTest : testing::Test
 {
 	std::shared_ptr<MockDatabaseProvider> databaseProvider { std::make_shared<testing::StrictMock<MockDatabaseProvider>>() };
@@ -95,6 +132,39 @@ TEST_F(UserDataControllerTest, RestoreWithBadFileName)
 	});
 }
 
+TEST_F(UserDataControllerTest, RestoreMHL)
+{
+	const auto userDataController = di.Resolve<IUserDataController>();
+	EXPECT_TRUE(!!userDataController);
+
+	auto db = CreateDatabase<IDatabaseWritable>();
+	EXPECT_CALL(*databaseProvider, ExecuteWritable).WillOnce([&](auto&& task, int) {
+		auto callback = task.task(*db);
+		callback(0);
+		return 0;
+	});
+
+	EXPECT_CALL(*uiFactory, GetOpenFileName).WillOnce(testing::Return(QString { ":/0001/user_data.mhlud2" }));
+	userDataController->Restore([](const bool ok, const QString& /*errorMessage*/) {
+		EXPECT_TRUE(ok);
+	});
+
+	const CheckRestore checks[] {
+		{                                                                                                                      "select IsDeleted, UserRate, Lang from Books_User",
+		 {
+		 { "", "1", "" },
+		 } },
+		{ "select g.Title, b.Title from Groups_User g left join Groups_List_User l on l.GroupID = g.GroupID left join Books b on b.BookID = l.ObjectID order by g.Title, b.Title",
+		 {
+		 { "Favorites", "" },
+		 { "To read", "BookTitle" },
+		 } },
+	};
+
+	for (const auto& check : checks)
+		check.Check(*db);
+}
+
 struct XmlParser final : Util::SaxParser
 {
 	explicit XmlParser(QIODevice& stream)
@@ -151,12 +221,6 @@ struct Node
 
 struct TestData
 {
-	struct CheckRestore
-	{
-		QString                           query;
-		std::vector<std::vector<QString>> results;
-	};
-
 	std::vector<QString>      setQueries;
 	std::set<QString>         xml;
 	std::vector<CheckRestore> checkRestore;
@@ -392,36 +456,8 @@ TEST_P(UserDataControllerBackupRestore, RestoreActual)
 		EXPECT_TRUE(ok);
 	});
 
-	for (const auto& [queryText, results] : checkSet)
-	{
-		const auto query = db->CreateQuery(queryText);
-		if (results.empty())
-		{
-			ASSERT_TRUE(query->Execute());
-			ASSERT_TRUE(query->Eof());
-		}
-		else
-		{
-			size_t n = 0;
-			for (auto&& [rec, result] : std::views::zip(*query, results))
-			{
-				++n;
-				for (auto&& [value, index] : std::views::zip(result, std::views::iota(0)))
-				{
-					if (value.isEmpty())
-					{
-						EXPECT_TRUE(rec.IsNull(index));
-					}
-					else
-					{
-						const auto* selected = rec.Get<const char*>(index);
-						EXPECT_STREQ(selected, value.toStdString().data());
-					}
-				}
-			}
-			EXPECT_EQ(n, results.size());
-		}
-	}
+	for (const auto& check : checkSet)
+		check.Check(*db);
 }
 
 } // namespace
