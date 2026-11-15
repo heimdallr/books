@@ -1,4 +1,6 @@
 #include <QBuffer>
+#include <QFile>
+#include <QTemporaryDir>
 
 #include <gtest/gtest.h>
 
@@ -458,6 +460,79 @@ TEST_P(UserDataControllerBackupRestore, RestoreActual)
 
 	for (const auto& check : checkSet)
 		check.Check(*db);
+}
+
+// The database provider runs a task later, on its own thread, after the call that queued it has returned
+TEST_F(UserDataControllerTest, BackupToFile)
+{
+	const QTemporaryDir dir;
+	ASSERT_TRUE(dir.isValid());
+	const auto path = dir.filePath(QString("user_data%1").arg(Constant::BACKUP_FILE_EXT));
+
+	IDatabaseProvider::Task<IDatabase> queued;
+	EXPECT_CALL(*databaseProvider, Execute).WillOnce([&](auto&& task, int) {
+		queued = std::move(task);
+		return 0;
+	});
+
+	const auto userDataController = di.Resolve<IUserDataController>();
+	ASSERT_TRUE(!!userDataController);
+
+	bool done = false;
+	userDataController->Backup(path, [&](const bool ok, const QString& /*errorMessage*/) {
+		EXPECT_TRUE(ok);
+		done = true;
+	});
+
+	ASSERT_TRUE(!!queued.task);
+	const auto db       = CreateDatabase<IDatabaseWritable>();
+	const auto callback = queued.task(*db);
+	callback(0);
+	EXPECT_TRUE(done);
+
+	QFile file(path);
+	ASSERT_TRUE(file.open(QIODevice::ReadOnly));
+	const XmlParser parser(file);
+	EXPECT_TRUE(parser.GetResult().contains(QString("FlibraryBackup/FlibraryBackupVersion~Value=%1").arg(Constant::FlibraryBackupVersionNumber)));
+}
+
+TEST_F(UserDataControllerTest, RestoreFromFile)
+{
+	const QTemporaryDir dir;
+	ASSERT_TRUE(dir.isValid());
+	const auto path = dir.filePath(QString("user_data%1").arg(Constant::BACKUP_FILE_EXT));
+	{
+		auto xml = XML | std::ranges::to<decltype(TestData::xml)>();
+		xml.emplace(QString("FlibraryBackup/FlibraryBackupVersion~Value=%1").arg(Constant::FlibraryBackupVersionNumber));
+		xml.emplace("FlibraryBackup/FlibraryUserData/Groups/Group~CreatedAt=1974-01-01 02:03:08;Title=My books group title");
+		QFile file(path);
+		ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+		ASSERT_GT(file.write(TestData::GenerateXml(xml)), 0);
+	}
+
+	IDatabaseProvider::Task<IDatabaseWritable> queued;
+	EXPECT_CALL(*databaseProvider, ExecuteWritable).WillOnce([&](auto&& task, int) {
+		queued = std::move(task);
+		return 0;
+	});
+
+	const auto userDataController = di.Resolve<IUserDataController>();
+	ASSERT_TRUE(!!userDataController);
+
+	bool done = false;
+	userDataController->Restore(path, [&](const bool ok, const QString& /*errorMessage*/) {
+		EXPECT_TRUE(ok);
+		done = true;
+	});
+
+	ASSERT_TRUE(!!queued.task);
+	const auto db       = CreateDatabase<IDatabaseWritable>();
+	const auto callback = queued.task(*db);
+	callback(0);
+	EXPECT_TRUE(done);
+
+	const CheckRestore check { "select Title from Groups_User", { { "My books group title" } } };
+	check.Check(*db);
 }
 
 } // namespace
