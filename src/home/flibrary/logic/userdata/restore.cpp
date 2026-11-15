@@ -198,7 +198,17 @@ private:
 	bool OnStartElementFlibraryBackupUserDataItem(const QString& name, const Util::XmlAttributes&)
 	{
 		const auto it = m_restorerCreators.find(name);
-		assert(it != m_restorerCreators.end());
+		if (it == m_restorerCreators.end())
+		{
+			PLOGW << "cannot find parser for " << name;
+			return true;
+		}
+
+		if (it->second.begin()->first > m_version)
+		{
+			PLOGW << "first parser version for " << name << " is " << it->second.begin()->first << " but " << m_version << " received";
+			return true;
+		}
 
 		const auto itParser = it->second.upper_bound(m_version);
 		assert(itParser != it->second.begin());
