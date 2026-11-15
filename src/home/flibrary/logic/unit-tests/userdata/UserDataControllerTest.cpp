@@ -89,13 +89,6 @@ TEST_F(UserDataControllerTest, RestoreWithBadFileName)
 	EXPECT_TRUE(!!userDataController);
 
 	EXPECT_CALL(*uiFactory, GetOpenFileName).WillOnce(testing::Return(QString { "fake/File\\Name" }));
-	//	EXPECT_CALL(*databaseProvider, ExecuteWritable).WillOnce([](auto&& task, int) {
-	//		MockDatabseWritable db;
-	//		auto        callback = task.task(db);
-	//		callback(0);
-	//		return 0;
-	//	});
-
 	userDataController->Restore([](const bool ok, const QString& errorMessage) {
 		EXPECT_FALSE(ok);
 		EXPECT_FALSE(errorMessage.isEmpty());
@@ -178,9 +171,9 @@ struct TestData
 			auto&      node = root.Add(list.front());
 			if (list.size() > 1)
 				std::ranges::transform(list.back().split(';'), std::inserter(node.attributes, node.attributes.end()), [](const auto& item) {
-					auto list = item.split('=', Qt::KeepEmptyParts);
-					assert(list.size() == 2);
-					return std::make_pair(std::move(list.front()), std::move(list.back()));
+					auto itemList = item.split('=', Qt::KeepEmptyParts);
+					assert(itemList.size() == 2);
+					return std::make_pair(std::move(itemList.front()), std::move(itemList.back()));
 				});
 		}
 
