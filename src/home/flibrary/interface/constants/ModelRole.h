@@ -12,6 +12,26 @@
 
 namespace HomeCompa::Flibrary {
 
+#define FONT_SETTING_SETTER_ITEMS_X_MACRO          \
+	FONT_SETTING_SETTER_ITEM(setBold)              \
+	FONT_SETTING_SETTER_ITEM(setCapitalization)    \
+	FONT_SETTING_SETTER_ITEM(setFamily)            \
+	FONT_SETTING_SETTER_ITEM(setFixedPitch)        \
+	FONT_SETTING_SETTER_ITEM(setHintingPreference) \
+	FONT_SETTING_SETTER_ITEM(setItalic)            \
+	FONT_SETTING_SETTER_ITEM(setKerning)           \
+	FONT_SETTING_SETTER_ITEM(setOverline)          \
+	FONT_SETTING_SETTER_ITEM(setPixelSize)         \
+	FONT_SETTING_SETTER_ITEM(setPointSize)         \
+	FONT_SETTING_SETTER_ITEM(setStretch)           \
+	FONT_SETTING_SETTER_ITEM(setStrikeOut)         \
+	FONT_SETTING_SETTER_ITEM(setStyle)             \
+	FONT_SETTING_SETTER_ITEM(setStyleName)         \
+	FONT_SETTING_SETTER_ITEM(setStyleStrategy)     \
+	FONT_SETTING_SETTER_ITEM(setUnderline)         \
+	FONT_SETTING_SETTER_ITEM(setWeight)            \
+	FONT_SETTING_SETTER_ITEM(setWordSpacing)
+
 struct Role
 {
 	enum Value
@@ -63,7 +83,12 @@ struct Role
 		HideFilteredCallback,
 		ModelSorter,
 		SetForIds,
-		Last
+		RemovedItemBackgroundColor,
+		RemovedItemForegroundColor,
+#define FONT_SETTING_SETTER_ITEM(NAME) RemovedItemFont_##NAME,
+		FONT_SETTING_SETTER_ITEMS_X_MACRO
+#undef FONT_SETTING_SETTER_ITEM
+			Last
 	};
 
 	inline static constexpr int FirstItemColumn = Author;

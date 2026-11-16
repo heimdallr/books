@@ -21,6 +21,7 @@
 #include "database/DatabaseUtil.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/MenuItems.h"
+#include "util/ColorUtil.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/SortString.h"
 
@@ -45,6 +46,9 @@ constexpr auto HIDE              = QT_TRANSLATE_NOOP("Navigation", "Hide");
 constexpr auto FILTER_BOOKS      = QT_TRANSLATE_NOOP("Navigation", "Filter books");
 constexpr auto FILTER_SETTINGS   = QT_TRANSLATE_NOOP("Navigation", "Filter settings...");
 
+constexpr auto REMOVED_ITEMS_BACKGROUND_COLOR = "Preferences/Removed/Background/color";
+constexpr auto REMOVED_ITEMS_FOREGROUND_COLOR = "Preferences/Removed/Font/color";
+
 using ModelCreator = std::shared_ptr<QAbstractItemModel> (IModelProvider::*)(IDataItem::Ptr) const;
 using Callback     = std::function<void()>;
 
@@ -59,25 +63,43 @@ std::unordered_set<T> GetSelected(const QModelIndex& index, const QList<QModelIn
 	return ids;
 }
 
-#define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_X_MACRO                                                                                                                                                      \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Authors, Authors)                                                                                                                                                 \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Genres, Genres)                                                                                                                                                   \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Groups_User, Groups)                                                                                                                                              \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Keywords, Keywords)                                                                                                                                               \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Searches_User, Search)                                                                                                                                            \
-	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Series, Series)                                                                                                                                                   \
+#define SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEMS_X_MACRO            \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Authors, Authors)       \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Genres, Genres)         \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Groups_User, Groups)    \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Keywords, Keywords)     \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Searches_User, Search)  \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Series, Series)         \
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Updates, Updates)
 
-#define SUBSCRIBED_TABLES_ITEMS_X_MACRO                                                                                                                                                                        \
-	SUBSCRIBED_TABLES_ITEM(Authors)                                                                                                                                                                            \
-	SUBSCRIBED_TABLES_ITEM(Books)                                                                                                                                                                              \
-	SUBSCRIBED_TABLES_ITEM(Genres)                                                                                                                                                                             \
-	SUBSCRIBED_TABLES_ITEM(Groups_List_User)                                                                                                                                                                   \
-	SUBSCRIBED_TABLES_ITEM(Groups_User)                                                                                                                                                                        \
-	SUBSCRIBED_TABLES_ITEM(Keywords)                                                                                                                                                                           \
-	SUBSCRIBED_TABLES_ITEM(Searches_User)                                                                                                                                                                      \
-	SUBSCRIBED_TABLES_ITEM(Series)                                                                                                                                                                             \
+#define SUBSCRIBED_TABLES_ITEMS_X_MACRO       \
+	SUBSCRIBED_TABLES_ITEM(Authors)           \
+	SUBSCRIBED_TABLES_ITEM(Books)             \
+	SUBSCRIBED_TABLES_ITEM(Genres)            \
+	SUBSCRIBED_TABLES_ITEM(Groups_List_User)  \
+	SUBSCRIBED_TABLES_ITEM(Groups_User)       \
+	SUBSCRIBED_TABLES_ITEM(Keywords)          \
+	SUBSCRIBED_TABLES_ITEM(Searches_User)     \
+	SUBSCRIBED_TABLES_ITEM(Series)            \
 	SUBSCRIBED_TABLES_ITEM(Updates)
+
+void SetRemovedBooksViewSettingsImpl(const ISettings& settings, QAbstractItemModel& model)
+{
+	const auto setColor = [&](const QString& key, const int role) {
+		if (const auto color = Util::GetColor(settings, key))
+			model.setData({}, *color, role);
+	};
+	const auto setFont = [&](const QString& key, const int role) {
+		if (const auto var = settings.Get(key); var.isValid())
+			model.setData({}, var, role);
+	};
+
+	setColor(REMOVED_ITEMS_BACKGROUND_COLOR, Role::RemovedItemBackgroundColor);
+	setColor(REMOVED_ITEMS_FOREGROUND_COLOR, Role::RemovedItemForegroundColor);
+#define FONT_SETTING_SETTER_ITEM(NAME) setFont("Preferences/Removed/Font/"#NAME, Role::RemovedItemFont_##NAME);
+	FONT_SETTING_SETTER_ITEMS_X_MACRO
+#undef FONT_SETTING_SETTER_ITEM
+}
 
 class ITableSubscriptionHandler // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -272,6 +294,7 @@ struct TreeViewControllerNavigation::Impl final
 	TreeViewControllerNavigation&                                               self;
 	mutable std::vector<PropagateConstPtr<QAbstractItemModel, std::shared_ptr>> models;
 	std::weak_ptr<const ILogicFactory>                                          logicFactory;
+	std::shared_ptr<const ISettings>                                            settings;
 	std::shared_ptr<const ICollectionProvider>                                  collectionProvider;
 	std::shared_ptr<const IMenuCustomizer>                                      menuCustomizer;
 	PropagateConstPtr<INavigationInfoProvider, std::shared_ptr>                 dataProvider;
@@ -288,6 +311,7 @@ struct TreeViewControllerNavigation::Impl final
 		TreeViewControllerNavigation&                self,
 		IDatabaseController&                         databaseController,
 		const std::shared_ptr<const ILogicFactory>&  logicFactory,
+		std::shared_ptr<const ISettings>             settings,
 		std::shared_ptr<const ICollectionProvider>   collectionProvider,
 		std::shared_ptr<const IMenuCustomizer>       menuCustomizer,
 		std::shared_ptr<INavigationInfoProvider>     dataProvider,
@@ -299,6 +323,7 @@ struct TreeViewControllerNavigation::Impl final
 	)
 		: self { self }
 		, logicFactory { logicFactory }
+		, settings { std::move(settings) }
 		, collectionProvider { std::move(collectionProvider) }
 		, menuCustomizer { std::move(menuCustomizer) }
 		, dataProvider { std::move(dataProvider) }
@@ -325,6 +350,11 @@ struct TreeViewControllerNavigation::Impl final
 										   callback(id, item, {});
 									   };
 								   } });
+	}
+
+	void SetRemovedBooksViewSettings(QAbstractItemModel& model)
+	{
+		std::call_once(m_onceFlag, &SetRemovedBooksViewSettingsImpl, std::cref(*settings), std::ref(model));
 	}
 
 private: // IContextMenuHandler
@@ -800,6 +830,9 @@ private:
 	}
 
 	NON_COPY_MOVABLE(Impl)
+
+private:
+	std::once_flag m_onceFlag;
 };
 
 TreeViewControllerNavigation::TreeViewControllerNavigation(
@@ -816,11 +849,12 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 	std::shared_ptr<IAuthorAnnotationController> authorAnnotationController,
 	std::shared_ptr<IFilterController>           filterController
 )
-	: AbstractTreeViewController(CONTEXT, std::move(settings), modelProvider)
+	: AbstractTreeViewController(CONTEXT, settings, modelProvider)
 	, m_impl(
 		  *this,
 		  *databaseController,
 		  logicFactory,
+		  std::move(settings),
 		  std::move(collectionProvider),
 		  std::move(menuCustomizer),
 		  std::move(dataProvider),
@@ -840,6 +874,7 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 	m_impl->dataProvider->SetNavigationRequestCallback([&](IDataItem::Ptr data) {
 		const auto modelCreator = MODE_DESCRIPTORS[m_impl->mode].second.modelCreator;
 		auto       model        = std::invoke(modelCreator, IModelProvider::Lock(m_modelProvider), std::move(data));
+		m_impl->SetRemovedBooksViewSettings(*model);
 		m_impl->models[m_impl->mode].reset(std::move(model));
 		Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 	});
