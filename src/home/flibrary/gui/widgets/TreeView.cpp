@@ -8,6 +8,7 @@
 #include "interface/constants/ModelRole.h"
 
 #include "settings/ISettings.h"
+#include "util/ColorUtil.h"
 
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;
@@ -22,24 +23,12 @@ constexpr auto READ_MARK_WIDTH            = "Preferences/ReadMark/width%1";
 
 std::optional<QColor> GetReadMarkBackgroundColor(const ISettings& settings, const QString& suffix = {})
 {
-	if (const auto var = settings.Get(QString(READ_MARK_BACKGROUND_COLOR).arg(suffix)); var.isValid())
-	{
-		const auto value = var.toUInt();
-		return QColor { static_cast<int>(value & 0xFF), static_cast<int>((value >> 8) & 0xFF), static_cast<int>((value >> 16) & 0xFF), 0xFF - static_cast<int>((value >> 24) & 0xFF) };
-	}
-
-	return {};
+	return Util::GetColor(settings, QString(READ_MARK_BACKGROUND_COLOR).arg(suffix));
 }
 
 std::optional<QColor> GetReadMarkColor(const ISettings& settings, const QString& suffix = {})
 {
-	if (const auto var = settings.Get(QString(READ_MARK_COLOR).arg(suffix)); var.isValid())
-	{
-		const auto value = var.toUInt();
-		return QColor { static_cast<int>(value & 0xFF), static_cast<int>((value >> 8) & 0xFF), static_cast<int>((value >> 16) & 0xFF), 0xFF - static_cast<int>((value >> 24) & 0xFF) };
-	}
-
-	return {};
+	return Util::GetColor(settings, QString(READ_MARK_COLOR).arg(suffix));
 }
 
 std::optional<int> GetReadMarkWidth(const ISettings& settings, const QString& suffix = {})
