@@ -219,7 +219,7 @@ constexpr std::pair<const char*, BackupFunction> BACKUPERS[] {
 void Backup(const IDatabaseProvider& databaseProvider, QIODevice& stream, Callback callback)
 {
 	databaseProvider.Execute({ "Backup user data", [&stream, callback = std::move(callback)](DB::IDatabase& db) mutable {
-								  Util::XmlWriter              xmlWriter(stream);
+								  Util::XmlWriter xmlWriter(stream);
 								  ScopedCall      rootElement(
 									  [&] {
 										  xmlWriter.WriteStartElement(Constant::FlibraryBackup);
