@@ -18,6 +18,18 @@
 using namespace HomeCompa;
 using namespace Flibrary;
 
+namespace {
+
+QColor   REMOVED_ITEM_FOREGROUND_COLOR = Qt::gray;
+QVariant REMOVED_ITEM_BACKGROUND_COLOR;
+QFont    REMOVED_ITEM_FONT = [] {
+	QFont font;
+	font.setItalic(true);
+	return font;
+}();
+
+}
+
 BaseModel::BaseModel(const std::shared_ptr<IModelProvider>& modelProvider, QObject* parent)
 	: QAbstractItemModel(parent)
 	, m_data { modelProvider->GetData() }
@@ -93,16 +105,13 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 			return item->GetCheckState();
 
 		case Qt::ForegroundRole:
-			return item->IsRemoved() ? QBrush(Qt::gray) : QVariant {};
+			return item->IsRemoved() ? QBrush(REMOVED_ITEM_FOREGROUND_COLOR) : QVariant {};
+
+		case Qt::BackgroundRole:
+			return item->IsRemoved() ? REMOVED_ITEM_BACKGROUND_COLOR : QVariant {};
 
 		case Qt::FontRole:
-			if (item->IsRemoved())
-			{
-				QFont font;
-				font.setItalic(true);
-				return font;
-			}
-			return QVariant {};
+			return item->IsRemoved() ? REMOVED_ITEM_FONT : QVariant {};
 
 		case Role::CheckableColumn:
 			return m_checkableColumn ? QVariant::fromValue(*m_checkableColumn) : QVariant {};
@@ -137,6 +146,50 @@ QVariant BaseModel::data(const QModelIndex& index, const int role) const
 	}
 
 	return {};
+}
+
+template <typename T>
+using FontPropertySetter = void (QFont::*)(T);
+template <typename T>
+void SetFontProperty(QFont& font, const QVariant& value, FontPropertySetter<T>) = delete;
+
+template <>
+void SetFontProperty<bool>(QFont& font, const QVariant& value, const FontPropertySetter<bool> f)
+{
+	std::invoke(f, std::ref(font), value.toBool());
+}
+
+template <>
+void SetFontProperty<int>(QFont& font, const QVariant& value, const FontPropertySetter<int> f)
+{
+	bool ok = false;
+	if (const auto v = value.toInt(&ok); ok)
+		std::invoke(f, std::ref(font), v);
+}
+
+template <>
+void SetFontProperty<qreal>(QFont& font, const QVariant& value, const FontPropertySetter<qreal> f)
+{
+	bool ok = false;
+	if (const auto v = value.toInt(&ok); ok)
+		std::invoke(f, std::ref(font), v);
+}
+
+template <typename T>
+concept EnumType = std::is_enum_v<T>;
+
+template <EnumType T>
+void SetFontProperty(QFont& font, const QVariant& value, const FontPropertySetter<T> f)
+{
+	bool ok = false;
+	if (const auto v = value.toInt(&ok); ok)
+		std::invoke(f, std::ref(font), static_cast<T>(v));
+}
+
+template <>
+void SetFontProperty<const QString&>(QFont& font, const QVariant& value, const FontPropertySetter<const QString&> f)
+{
+	std::invoke(f, std::ref(font), value.toString());
 }
 
 bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const int role)
@@ -189,6 +242,16 @@ bool BaseModel::setData(const QModelIndex& index, const QVariant& value, const i
 					item.SetData(args.value, args.column);
 				return true;
 			});
+
+		case Role::RemovedItemBackgroundColor:
+			return Util::Set(REMOVED_ITEM_BACKGROUND_COLOR, QVariant::fromValue(QBrush(value.value<QColor>())));
+
+		case Role::RemovedItemForegroundColor:
+			return Util::Set(REMOVED_ITEM_FOREGROUND_COLOR, value.value<QColor>());
+
+#define FONT_SETTING_SETTER_ITEM(NAME) case Role::RemovedItemFont_##NAME: return SetFontProperty(REMOVED_ITEM_FONT, value, &QFont::NAME), true;
+			FONT_SETTING_SETTER_ITEMS_X_MACRO
+#undef FONT_SETTING_SETTER_ITEM
 
 		default:
 			break;
