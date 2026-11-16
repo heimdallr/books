@@ -60,9 +60,14 @@ void UserDataController::Backup(const QString& path, Callback callback) const
 	if (path.isEmpty())
 		return callback(false, QString {});
 
-	QFile out(path);
-	if (out.open(QIODevice::WriteOnly))
-		return Backup(out, std::move(callback));
+	if (auto out = std::make_shared<QFile>(path); out->open(QIODevice::WriteOnly))
+	{
+		auto& outRef = *out;
+		return Backup(outRef, [out = std::move(out), callback = std::move(callback)](const bool ok, const QString& errorMessage) {
+			out->close();
+			callback(ok, errorMessage);
+		});
+	}
 
 	const auto error = QString(CANNOT_WRITE).arg(path);
 	PLOGE << error;
@@ -85,12 +90,18 @@ void UserDataController::Restore(const QString& path, Callback callback) const
 	if (path.isEmpty())
 		return callback(false, QString {});
 
-	QFile inp(path);
-	if (!inp.open(QIODevice::ReadOnly))
-		return callback(false, QString(UserData::CANNOT_READ_FROM).arg(path));
+	if (auto inp = std::make_shared<QFile>(path); inp->open(QIODevice::ReadOnly))
+	{
+		const auto mode   = path.endsWith(".mhlud2", Qt::CaseInsensitive) ? RestoreMode::MyHomeLib : RestoreMode::FLibrary;
+		auto&      inpRef = *inp;
+		return Restore(inpRef, mode, [inp = std::move(inp), callback = std::move(callback)](const bool ok, const QString& errorMessage) {
+			callback(ok, errorMessage);
+		});
+	}
 
-	const auto mode = path.endsWith(".mhlud2", Qt::CaseInsensitive) ? RestoreMode::MyHomeLib : RestoreMode::FLibrary;
-	Restore(inp, mode, std::move(callback));
+	const auto error = QString(UserData::CANNOT_READ_FROM).arg(path);
+	PLOGE << error;
+	callback(false, error);
 }
 
 void UserDataController::Do(Callback callback, QIODevice& stream, const char* successMessage, const DoFunction f) const

@@ -1,4 +1,6 @@
 #include <QBuffer>
+#include <QFile>
+#include <QTemporaryDir>
 
 #include <gtest/gtest.h>
 
@@ -89,10 +91,14 @@ TEST_F(UserDataControllerTest, BackupCancelled)
 	EXPECT_TRUE(!!userDataController);
 
 	EXPECT_CALL(*uiFactory, GetSaveFileName).WillOnce(testing::Return(QString {}));
-	userDataController->Backup([](const bool ok, const QString& errorMessage) {
+
+	bool done = false;
+	userDataController->Backup([&](const bool ok, const QString& errorMessage) {
 		EXPECT_FALSE(ok);
 		EXPECT_TRUE(errorMessage.isEmpty());
+		done = true;
 	});
+	EXPECT_TRUE(done);
 }
 
 TEST_F(UserDataControllerTest, RestoreCancelled)
@@ -101,10 +107,14 @@ TEST_F(UserDataControllerTest, RestoreCancelled)
 	EXPECT_TRUE(!!userDataController);
 
 	EXPECT_CALL(*uiFactory, GetOpenFileName).WillOnce(testing::Return(QString {}));
-	userDataController->Restore([](const bool ok, const QString& errorMessage) {
+
+	bool done = false;
+	userDataController->Restore([&](const bool ok, const QString& errorMessage) {
 		EXPECT_FALSE(ok);
 		EXPECT_TRUE(errorMessage.isEmpty());
+		done = true;
 	});
+	EXPECT_TRUE(done);
 }
 
 TEST_F(UserDataControllerTest, BackupWithBadFileName)
@@ -114,10 +124,13 @@ TEST_F(UserDataControllerTest, BackupWithBadFileName)
 
 	EXPECT_CALL(*uiFactory, GetSaveFileName).WillOnce(testing::Return(QString { "fake/File\\Name" }));
 
-	userDataController->Backup([](const bool ok, const QString& errorMessage) {
+	bool done = false;
+	userDataController->Backup([&](const bool ok, const QString& errorMessage) {
 		EXPECT_FALSE(ok);
 		EXPECT_FALSE(errorMessage.isEmpty());
+		done = true;
 	});
+	EXPECT_TRUE(done);
 }
 
 TEST_F(UserDataControllerTest, RestoreWithBadFileName)
@@ -126,10 +139,14 @@ TEST_F(UserDataControllerTest, RestoreWithBadFileName)
 	EXPECT_TRUE(!!userDataController);
 
 	EXPECT_CALL(*uiFactory, GetOpenFileName).WillOnce(testing::Return(QString { "fake/File\\Name" }));
-	userDataController->Restore([](const bool ok, const QString& errorMessage) {
+
+	bool done = false;
+	userDataController->Restore([&](const bool ok, const QString& errorMessage) {
 		EXPECT_FALSE(ok);
 		EXPECT_FALSE(errorMessage.isEmpty());
+		done = true;
 	});
+	EXPECT_TRUE(done);
 }
 
 TEST_F(UserDataControllerTest, RestoreMHL)
@@ -145,9 +162,13 @@ TEST_F(UserDataControllerTest, RestoreMHL)
 	});
 
 	EXPECT_CALL(*uiFactory, GetOpenFileName).WillOnce(testing::Return(QString { ":/0001/user_data.mhlud2" }));
-	userDataController->Restore([](const bool ok, const QString& /*errorMessage*/) {
+
+	bool done = false;
+	userDataController->Restore([&](const bool ok, const QString& /*errorMessage*/) {
 		EXPECT_TRUE(ok);
+		done = true;
 	});
+	EXPECT_TRUE(done);
 
 	const CheckRestore checks[] {
 		{                                                                                                                      "select IsDeleted, UserRate, Lang from Books_User",
@@ -412,12 +433,17 @@ TEST_P(UserDataControllerBackupRestore, Backup)
 			return 0;
 		});
 
+		bool done = false;
+
 		const auto userDataController = di.Resolve<IUserDataController>();
 		ASSERT_TRUE(!!userDataController);
 		userDataController->Backup(stream, [&](const bool ok, const QString& /*errorMessage*/) {
 			EXPECT_TRUE(ok);
 			stream.close();
+			done = true;
 		});
+
+		EXPECT_TRUE(done);
 	}
 
 	QBuffer stream(&bytes);
@@ -452,12 +478,92 @@ TEST_P(UserDataControllerBackupRestore, RestoreActual)
 		return 0;
 	});
 
-	userDataController->Restore(stream, IUserDataController::RestoreMode::FLibrary, [](const bool ok, const QString& /*errorMessage*/) {
+	bool done = false;
+	userDataController->Restore(stream, IUserDataController::RestoreMode::FLibrary, [&](const bool ok, const QString& /*errorMessage*/) {
 		EXPECT_TRUE(ok);
+		done = true;
 	});
+	EXPECT_TRUE(done);
 
 	for (const auto& check : checkSet)
 		check.Check(*db);
+}
+
+TEST_F(UserDataControllerTest, BackupToFileQueued)
+{
+	const QTemporaryDir dir;
+	ASSERT_TRUE(dir.isValid());
+	const auto path = dir.filePath(QString("user_data%1").arg(Constant::BACKUP_FILE_EXT));
+
+	IDatabaseProvider::Task<IDatabase> queued;
+	EXPECT_CALL(*databaseProvider, Execute).WillOnce([&](auto&& task, int) {
+		queued = std::move(task);
+		return 0;
+	});
+
+	const auto userDataController = di.Resolve<IUserDataController>();
+	ASSERT_TRUE(!!userDataController);
+
+	bool done = false;
+	userDataController->Backup(path, [&](const bool ok, const QString& /*errorMessage*/) {
+		EXPECT_TRUE(ok);
+		done = true;
+	});
+
+	ASSERT_TRUE(!!queued.task);
+	const auto db       = CreateDatabase<IDatabaseWritable>();
+	const auto callback = queued.task(*db);
+	callback(0);
+	EXPECT_TRUE(done);
+
+	QFile file(path);
+	ASSERT_TRUE(file.open(QIODevice::ReadOnly));
+	const XmlParser parser(file);
+	const auto      parseResult = parser.GetResult();
+	auto            xml         = XML | std::ranges::to<decltype(TestData::xml)>();
+	xml.emplace(QString("FlibraryBackup/FlibraryBackupVersion~Value=%1").arg(Constant::FlibraryBackupVersionNumber));
+	EXPECT_EQ(xml.size(), parseResult.size());
+	for (auto&& [serialized, check] : std::views::zip(parseResult, xml))
+		EXPECT_STREQ(serialized.toStdString().data(), check.toStdString().data());
+}
+
+TEST_F(UserDataControllerTest, RestoreFromFileQueued)
+{
+	const QTemporaryDir dir;
+	ASSERT_TRUE(dir.isValid());
+	const auto path = dir.filePath(QString("user_data%1").arg(Constant::BACKUP_FILE_EXT));
+	{
+		auto xml = XML | std::ranges::to<decltype(TestData::xml)>();
+		xml.emplace(QString("FlibraryBackup/FlibraryBackupVersion~Value=%1").arg(Constant::FlibraryBackupVersionNumber));
+		xml.emplace("FlibraryBackup/FlibraryUserData/Groups/Group~CreatedAt=1974-01-01 02:03:08;Title=My books group title");
+		QFile file(path);
+		ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+		ASSERT_GT(file.write(TestData::GenerateXml(xml)), 0);
+	}
+
+	IDatabaseProvider::Task<IDatabaseWritable> queued;
+	EXPECT_CALL(*databaseProvider, ExecuteWritable).WillOnce([&](auto&& task, int) {
+		queued = std::move(task);
+		return 0;
+	});
+
+	const auto userDataController = di.Resolve<IUserDataController>();
+	ASSERT_TRUE(!!userDataController);
+
+	bool done = false;
+	userDataController->Restore(path, [&](const bool ok, const QString& /*errorMessage*/) {
+		EXPECT_TRUE(ok);
+		done = true;
+	});
+
+	ASSERT_TRUE(!!queued.task);
+	const auto db       = CreateDatabase<IDatabaseWritable>();
+	const auto callback = queued.task(*db);
+	callback(0);
+	EXPECT_TRUE(done);
+
+	const CheckRestore check { "select Title from Groups_User", { { "My books group title" } } };
+	check.Check(*db);
 }
 
 } // namespace
