@@ -1,5 +1,6 @@
 #include "TreeViewControllerNavigation.h"
 
+#include <mutex>
 #include <ranges>
 
 #include "fnd/FindPair.h"
