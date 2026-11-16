@@ -91,10 +91,14 @@ TEST_F(UserDataControllerTest, BackupCancelled)
 	EXPECT_TRUE(!!userDataController);
 
 	EXPECT_CALL(*uiFactory, GetSaveFileName).WillOnce(testing::Return(QString {}));
-	userDataController->Backup([](const bool ok, const QString& errorMessage) {
+
+	bool done = false;
+	userDataController->Backup([&](const bool ok, const QString& errorMessage) {
 		EXPECT_FALSE(ok);
 		EXPECT_TRUE(errorMessage.isEmpty());
+		done = true;
 	});
+	EXPECT_TRUE(done);
 }
 
 TEST_F(UserDataControllerTest, RestoreCancelled)
@@ -103,10 +107,14 @@ TEST_F(UserDataControllerTest, RestoreCancelled)
 	EXPECT_TRUE(!!userDataController);
 
 	EXPECT_CALL(*uiFactory, GetOpenFileName).WillOnce(testing::Return(QString {}));
-	userDataController->Restore([](const bool ok, const QString& errorMessage) {
+
+	bool done = false;
+	userDataController->Restore([&](const bool ok, const QString& errorMessage) {
 		EXPECT_FALSE(ok);
 		EXPECT_TRUE(errorMessage.isEmpty());
+		done = true;
 	});
+	EXPECT_TRUE(done);
 }
 
 TEST_F(UserDataControllerTest, BackupWithBadFileName)
@@ -116,10 +124,13 @@ TEST_F(UserDataControllerTest, BackupWithBadFileName)
 
 	EXPECT_CALL(*uiFactory, GetSaveFileName).WillOnce(testing::Return(QString { "fake/File\\Name" }));
 
-	userDataController->Backup([](const bool ok, const QString& errorMessage) {
+	bool done = false;
+	userDataController->Backup([&](const bool ok, const QString& errorMessage) {
 		EXPECT_FALSE(ok);
 		EXPECT_FALSE(errorMessage.isEmpty());
+		done = true;
 	});
+	EXPECT_TRUE(done);
 }
 
 TEST_F(UserDataControllerTest, RestoreWithBadFileName)
@@ -128,10 +139,14 @@ TEST_F(UserDataControllerTest, RestoreWithBadFileName)
 	EXPECT_TRUE(!!userDataController);
 
 	EXPECT_CALL(*uiFactory, GetOpenFileName).WillOnce(testing::Return(QString { "fake/File\\Name" }));
-	userDataController->Restore([](const bool ok, const QString& errorMessage) {
+
+	bool done = false;
+	userDataController->Restore([&](const bool ok, const QString& errorMessage) {
 		EXPECT_FALSE(ok);
 		EXPECT_FALSE(errorMessage.isEmpty());
+		done = true;
 	});
+	EXPECT_TRUE(done);
 }
 
 TEST_F(UserDataControllerTest, RestoreMHL)
@@ -147,9 +162,13 @@ TEST_F(UserDataControllerTest, RestoreMHL)
 	});
 
 	EXPECT_CALL(*uiFactory, GetOpenFileName).WillOnce(testing::Return(QString { ":/0001/user_data.mhlud2" }));
-	userDataController->Restore([](const bool ok, const QString& /*errorMessage*/) {
+
+	bool done = false;
+	userDataController->Restore([&](const bool ok, const QString& /*errorMessage*/) {
 		EXPECT_TRUE(ok);
+		done = true;
 	});
+	EXPECT_TRUE(done);
 
 	const CheckRestore checks[] {
 		{                                                                                                                      "select IsDeleted, UserRate, Lang from Books_User",
@@ -414,12 +433,17 @@ TEST_P(UserDataControllerBackupRestore, Backup)
 			return 0;
 		});
 
+		bool done = false;
+
 		const auto userDataController = di.Resolve<IUserDataController>();
 		ASSERT_TRUE(!!userDataController);
 		userDataController->Backup(stream, [&](const bool ok, const QString& /*errorMessage*/) {
 			EXPECT_TRUE(ok);
 			stream.close();
+			done = true;
 		});
+
+		EXPECT_TRUE(done);
 	}
 
 	QBuffer stream(&bytes);
@@ -454,16 +478,18 @@ TEST_P(UserDataControllerBackupRestore, RestoreActual)
 		return 0;
 	});
 
-	userDataController->Restore(stream, IUserDataController::RestoreMode::FLibrary, [](const bool ok, const QString& /*errorMessage*/) {
+	bool done = false;
+	userDataController->Restore(stream, IUserDataController::RestoreMode::FLibrary, [&](const bool ok, const QString& /*errorMessage*/) {
 		EXPECT_TRUE(ok);
+		done = true;
 	});
+	EXPECT_TRUE(done);
 
 	for (const auto& check : checkSet)
 		check.Check(*db);
 }
 
-// The database provider runs a task later, on its own thread, after the call that queued it has returned
-TEST_F(UserDataControllerTest, BackupToFile)
+TEST_F(UserDataControllerTest, BackupToFileQueued)
 {
 	const QTemporaryDir dir;
 	ASSERT_TRUE(dir.isValid());
@@ -493,10 +519,15 @@ TEST_F(UserDataControllerTest, BackupToFile)
 	QFile file(path);
 	ASSERT_TRUE(file.open(QIODevice::ReadOnly));
 	const XmlParser parser(file);
-	EXPECT_TRUE(parser.GetResult().contains(QString("FlibraryBackup/FlibraryBackupVersion~Value=%1").arg(Constant::FlibraryBackupVersionNumber)));
+	const auto      parseResult = parser.GetResult();
+	auto            xml         = XML | std::ranges::to<decltype(TestData::xml)>();
+	xml.emplace(QString("FlibraryBackup/FlibraryBackupVersion~Value=%1").arg(Constant::FlibraryBackupVersionNumber));
+	EXPECT_EQ(xml.size(), parseResult.size());
+	for (auto&& [serialized, check] : std::views::zip(parseResult, xml))
+		EXPECT_STREQ(serialized.toStdString().data(), check.toStdString().data());
 }
 
-TEST_F(UserDataControllerTest, RestoreFromFile)
+TEST_F(UserDataControllerTest, RestoreFromFileQueued)
 {
 	const QTemporaryDir dir;
 	ASSERT_TRUE(dir.isValid());
