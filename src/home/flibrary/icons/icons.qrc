@@ -38,6 +38,7 @@
         <file alias="archives.svg">icons/mode/archives.svg</file>
         <file alias="languages.svg">icons/mode/languages.svg</file>
         <file alias="groups.svg">icons/mode/groups.svg</file>
+        <file alias="favorites.svg">icons/mode/favorites.svg</file>
         <file alias="search.svg">icons/mode/search.svg</file>
         <file alias="reviews.svg">icons/mode/reviews.svg</file>
         <file alias="alreadyread.svg">icons/mode/alreadyread.svg</file>
