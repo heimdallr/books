@@ -15,6 +15,7 @@
 
 #include "constants/ExportStat.h"
 #include "constants/books.h"
+#include "constants/favorites.h"
 #include "constants/filter.h"
 #include "constants/groups.h"
 #include "constants/searches.h"
@@ -208,9 +209,40 @@ void BackupUserDataFilter(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 	});
 }
 
+void BackupUserDataFavorites(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
+{
+	constexpr std::pair<NavigationMode, const char*> types[] {
+		{     NavigationMode::Authors, "select a.LastName||','||a.FirstName||','||a.MiddleName||','||coalesce(a.NickName, '') from Authors a join Favorites f on f.ObjectID = a.AuthorID and f.FavoriteID = ?" },
+		{      NavigationMode::Series,                                                                   "select s.SeriesTitle from Series s join Favorites f on f.ObjectID = s.SeriesID and f.FavoriteID = ?" },
+		{      NavigationMode::Genres,                                                                    "select g.FB2Code from Genres g join Favorites f on f.ObjectCode = g.GenreCode and f.FavoriteID = ?" },
+		{ NavigationMode::PublishYear,                                                                                                                   "select ObjectID from Favorites where FavoriteID = ?" },
+		{    NavigationMode::Keywords,                                                               "select k.KeywordTitle from Keywords k join Favorites f on f.ObjectID = k.KeywordID and f.FavoriteID = ?" },
+		{   NavigationMode::Languages,                                                                                                                 "select ObjectCode from Favorites where FavoriteID = ?" },
+	};
+	static_assert(std::ranges::is_sorted(types, {}, [](const auto& item) {
+		return item.first;
+	}));
+
+	for (const auto& [navigationMode, queryText] : types)
+	{
+		const auto mode  = static_cast<size_t>(navigationMode);
+		const auto query = db.CreateQuery(queryText);
+		query->Execute(mode);
+		if (query->Eof())
+			continue;
+
+		const auto type = xmlWriter.Guard(QString { NAVIGATION_NAMES[mode].first });
+		for (; !query->Eof(); query->Next())
+		{
+			const auto item = type->Guard(Constant::ITEM);
+			item->WriteAttribute(Constant::TITLE, query->Get<QString>(0));
+		}
+	}
+}
+
 constexpr std::pair<const char*, BackupFunction> BACKUPERS[] {
 #define ITEM(NAME) { Constant::UserData::NAME::RootNode, &BackupUserData##NAME }
-	ITEM(Books), ITEM(Groups), ITEM(Searches), ITEM(ExportStat), ITEM(Filter),
+	ITEM(Books), ITEM(Groups), ITEM(Searches), ITEM(ExportStat), ITEM(Filter), ITEM(Favorites),
 #undef ITEM
 };
 

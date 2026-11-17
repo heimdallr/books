@@ -68,6 +68,18 @@ constexpr auto FLIBRARY_BACKUP_USER_DATA_SEARCHES    = u"FlibraryBackup/Flibrary
 constexpr auto FLIBRARY_BACKUP_USER_DATA_EXPORT_STAT = u"FlibraryBackup/FlibraryUserData/ExportStat";
 constexpr auto FLIBRARY_BACKUP_USER_DATA_FILTER      = u"FlibraryBackup/FlibraryUserData/Filter";
 
+class RestorerStub final : public IRestorer
+{
+private: // IRestorer
+	void AddElement(const QString& /*name*/, const Util::XmlAttributes& /*attributes*/) override
+	{
+	}
+
+	void Restore(DB::IDatabaseWritable& /*db*/) const override
+	{
+	}
+};
+
 class XmlParser final : public Util::SaxParser
 {
 	NON_COPY_MOVABLE(XmlParser)
@@ -127,7 +139,15 @@ private: // Util::SaxParser
 
 		const auto result = Parse(*this, PARSERS, path, name.toString(), attributes);
 		if (!IsLastItemProcessed())
+		{
+			if (path.startsWith(FLIBRARY_BACKUP_USER_DATA) && path.size() == QStringView(FLIBRARY_BACKUP_USER_DATA).size() + name.size() + 1)
+			{
+				m_restorers.push_back(std::make_unique<RestorerStub>());
+				return result;
+			}
+
 			m_restorers.back()->AddElement(name.toString(), attributes);
+		}
 
 		return result;
 	}

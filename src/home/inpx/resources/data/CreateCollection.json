@@ -5,8 +5,8 @@
 	[
 		"CREATE TABLE Favorites (",
 		"    FavoriteID INTEGER NOT NULL,",
-		"    ObjectID   INTEGER",
-		"    ObjectCode VARCHER (20)",
+		"    ObjectID   INTEGER,",
+		"    ObjectCode VARCHAR (20)",
 		")"
 	],
 	[

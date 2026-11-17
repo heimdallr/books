@@ -27,14 +27,15 @@ using namespace HomeCompa;
 
 namespace {
 
-constexpr const char* XML[] {
-	"FlibraryBackup",
-	"FlibraryBackup/FlibraryUserData",
-	"FlibraryBackup/FlibraryUserData/Books",
-	"FlibraryBackup/FlibraryUserData/ExportStat",
-	"FlibraryBackup/FlibraryUserData/Filter",
-	"FlibraryBackup/FlibraryUserData/Groups",
-	"FlibraryBackup/FlibraryUserData/Searches",
+constexpr std::pair<int, const char*> XML[] {
+	{  1,                             "FlibraryBackup" },
+	{  1,            "FlibraryBackup/FlibraryUserData" },
+	{  1,      "FlibraryBackup/FlibraryUserData/Books" },
+	{  1, "FlibraryBackup/FlibraryUserData/ExportStat" },
+	{ 10,  "FlibraryBackup/FlibraryUserData/Favorites" },
+	{  1,     "FlibraryBackup/FlibraryUserData/Filter" },
+	{  1,     "FlibraryBackup/FlibraryUserData/Groups" },
+	{  1,   "FlibraryBackup/FlibraryUserData/Searches" },
 };
 
 struct CheckRestore
@@ -74,6 +75,106 @@ struct CheckRestore
 	}
 };
 
+struct XmlParser final : Util::SaxParser
+{
+	explicit XmlParser(QIODevice& stream)
+		: SaxParser(stream)
+	{
+		Parse();
+	}
+
+	[[nodiscard]] std::set<QString> GetResult() const
+	{
+		return m_data | std::views::transform([](const auto& item) {
+				   QStringList result = { item.first };
+				   if (!item.second.empty())
+					   result << (item.second | std::views::transform([](const auto& subItem) {
+									  return QString("%1=%2").arg(subItem.first, subItem.second);
+								  })
+				                  | std::ranges::to<QStringList>())
+									 .join(';');
+				   return result.join('~');
+			   })
+		     | std::views::common | std::ranges::to<std::set>();
+	}
+
+private: // SaxParser
+	bool OnStartElement(QStringView, const QStringView path, const Util::XmlAttributes& attributes) override
+	{
+		auto& values = m_data.emplace(path.toString(), std::map<QString, QString> {})->second;
+		for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
+			values.try_emplace(attributes.GetName(i).toString(), attributes.GetValue(i).toString());
+		return true;
+	}
+
+private:
+	std::unordered_multimap<QString, std::map<QString, QString>> m_data;
+};
+
+struct Node;
+
+struct Node
+{
+	std::map<QString, QString> attributes;
+	std::map<QString, Node>    children;
+
+	Node& Add(const QStringView name)
+	{
+		const auto sepIndex = name.indexOf('/');
+		if (sepIndex < 0)
+			return children.try_emplace(name.toString(), decltype(attributes) {}).first->second;
+
+		auto& child = children.try_emplace(QStringView(name.begin(), std::next(name.begin(), sepIndex)).toString(), decltype(attributes) {}).first->second;
+		return child.Add(QStringView { std::next(name.begin(), sepIndex + 1), name.end() });
+	}
+};
+
+struct TestData
+{
+	std::vector<QString>      setQueries;
+	std::set<QString>         xml;
+	std::vector<CheckRestore> checkRestore;
+	int                       version { 1 };
+
+	static QByteArray GenerateXml(const std::set<QString>& xml)
+	{
+		Node root;
+
+		for (const auto& str : xml)
+		{
+			const auto list = str.split('~');
+			auto&      node = root.Add(list.front());
+			if (list.size() > 1)
+				std::ranges::transform(list.back().split(';'), std::inserter(node.attributes, node.attributes.end()), [](const auto& item) {
+					auto itemList = item.split('=', Qt::KeepEmptyParts);
+					assert(itemList.size() == 2);
+					return std::make_pair(std::move(itemList.front()), std::move(itemList.back()));
+				});
+		}
+
+		QByteArray result;
+		{
+			QBuffer stream(&result);
+			stream.open(QIODevice::WriteOnly);
+			Util::XmlWriter writer(stream);
+
+			const auto enumerate = [&](const Node& parent, const auto& r) -> void {
+				for (const auto& [name, node] : parent.children)
+				{
+					const auto element = writer.Guard(name);
+					for (const auto& [key, value] : node.attributes)
+						element->WriteAttribute(key, value);
+					r(node, r);
+				}
+			};
+
+			enumerate(root, enumerate);
+		}
+
+		return result;
+	}
+};
+
 struct UserDataControllerTest : testing::Test
 {
 	std::shared_ptr<MockDatabaseProvider> databaseProvider { std::make_shared<testing::StrictMock<MockDatabaseProvider>>() };
@@ -83,6 +184,41 @@ struct UserDataControllerTest : testing::Test
 		builder.registerInstance(databaseProvider).as<IDatabaseProvider>();
 		builder.registerInstance(uiFactory).as<IUiFactory>();
 	} };
+
+	void TestRestore(const std::set<QString>& xmlSrc, const std::vector<CheckRestore>& checkSet, const int backupVersionNumber)
+	{
+		auto xml = XML | std::views::filter([&](const auto& item) {
+					   return item.first <= backupVersionNumber;
+				   })
+		         | std::views::values | std::ranges::to<decltype(TestData::xml)>();
+		xml.emplace(QString("FlibraryBackup/FlibraryBackupVersion~Value=%1").arg(backupVersionNumber));
+		std::ranges::copy(xmlSrc, std::inserter(xml, xml.end()));
+		auto bytes = TestData::GenerateXml(xml);
+
+		auto db = CreateDatabase<IDatabaseWritable>();
+
+		QBuffer stream(&bytes);
+		ASSERT_TRUE(stream.open(QIODevice::ReadOnly));
+
+		const auto userDataController = di.Resolve<IUserDataController>();
+		ASSERT_TRUE(!!userDataController);
+
+		EXPECT_CALL(*databaseProvider, ExecuteWritable).WillOnce([&](auto&& task, int) {
+			auto callback = task.task(*db);
+			callback(0);
+			return 0;
+		});
+
+		bool done = false;
+		userDataController->Restore(stream, IUserDataController::RestoreMode::FLibrary, [&](const bool ok, const QString& /*errorMessage*/) {
+			EXPECT_TRUE(ok);
+			done = true;
+		});
+		EXPECT_TRUE(done);
+
+		for (const auto& check : checkSet)
+			check.Check(*db);
+	}
 };
 
 TEST_F(UserDataControllerTest, BackupCancelled)
@@ -186,104 +322,82 @@ TEST_F(UserDataControllerTest, RestoreMHL)
 		check.Check(*db);
 }
 
-struct XmlParser final : Util::SaxParser
+TEST_F(UserDataControllerTest, BackupToFileQueued)
 {
-	explicit XmlParser(QIODevice& stream)
-		: SaxParser(stream)
-	{
-		Parse();
-	}
+	const QTemporaryDir dir;
+	ASSERT_TRUE(dir.isValid());
+	const auto path = dir.filePath(QString("user_data%1").arg(Constant::BACKUP_FILE_EXT));
 
-	[[nodiscard]] std::set<QString> GetResult() const
-	{
-		return m_data | std::views::transform([](const auto& item) {
-				   QStringList result = { item.first };
-				   if (!item.second.empty())
-					   result << (item.second | std::views::transform([](const auto& subItem) {
-									  return QString("%1=%2").arg(subItem.first, subItem.second);
-								  })
-				                  | std::ranges::to<QStringList>())
-									 .join(';');
-				   return result.join('~');
-			   })
-		     | std::views::common | std::ranges::to<std::set>();
-	}
+	IDatabaseProvider::Task<IDatabase> queued;
+	EXPECT_CALL(*databaseProvider, Execute).WillOnce([&](auto&& task, int) {
+		queued = std::move(task);
+		return 0;
+	});
 
-private: // SaxParser
-	bool OnStartElement(QStringView, const QStringView path, const Util::XmlAttributes& attributes) override
-	{
-		auto& values = m_data.emplace(path.toString(), std::map<QString, QString> {})->second;
-		for (size_t i = 0, sz = attributes.GetCount(); i < sz; ++i)
-			values.try_emplace(attributes.GetName(i).toString(), attributes.GetValue(i).toString());
-		return true;
-	}
+	const auto userDataController = di.Resolve<IUserDataController>();
+	ASSERT_TRUE(!!userDataController);
 
-private:
-	std::unordered_multimap<QString, std::map<QString, QString>> m_data;
-};
+	bool done = false;
+	userDataController->Backup(path, [&](const bool ok, const QString& /*errorMessage*/) {
+		EXPECT_TRUE(ok);
+		done = true;
+	});
 
-struct Node;
+	ASSERT_TRUE(!!queued.task);
+	const auto db       = CreateDatabase<IDatabaseWritable>();
+	const auto callback = queued.task(*db);
+	callback(0);
+	EXPECT_TRUE(done);
 
-struct Node
+	QFile file(path);
+	ASSERT_TRUE(file.open(QIODevice::ReadOnly));
+	const XmlParser parser(file);
+	const auto      parseResult = parser.GetResult();
+	auto            xml         = XML | std::views::values | std::ranges::to<decltype(TestData::xml)>();
+	xml.emplace(QString("FlibraryBackup/FlibraryBackupVersion~Value=%1").arg(Constant::FlibraryBackupVersionNumber));
+	EXPECT_EQ(xml.size(), parseResult.size());
+	for (auto&& [serialized, check] : std::views::zip(parseResult, xml))
+		EXPECT_STREQ(serialized.toStdString().data(), check.toStdString().data());
+}
+
+TEST_F(UserDataControllerTest, RestoreFromFileQueued)
 {
-	std::map<QString, QString> attributes;
-	std::map<QString, Node>    children;
-
-	Node& Add(const QStringView name)
+	const QTemporaryDir dir;
+	ASSERT_TRUE(dir.isValid());
+	const auto path = dir.filePath(QString("user_data%1").arg(Constant::BACKUP_FILE_EXT));
 	{
-		const auto sepIndex = name.indexOf('/');
-		if (sepIndex < 0)
-			return children.try_emplace(name.toString(), decltype(attributes) {}).first->second;
-
-		auto& child = children.try_emplace(QStringView(name.begin(), std::next(name.begin(), sepIndex)).toString(), decltype(attributes) {}).first->second;
-		return child.Add(QStringView { std::next(name.begin(), sepIndex + 1), name.end() });
+		auto xml = XML | std::views::values | std::ranges::to<decltype(TestData::xml)>();
+		xml.emplace(QString("FlibraryBackup/FlibraryBackupVersion~Value=%1").arg(Constant::FlibraryBackupVersionNumber));
+		xml.emplace("FlibraryBackup/FlibraryUserData/Groups/Group~CreatedAt=1974-01-01 02:03:08;Title=My books group title");
+		QFile file(path);
+		ASSERT_TRUE(file.open(QIODevice::WriteOnly));
+		ASSERT_GT(file.write(TestData::GenerateXml(xml)), 0);
 	}
-};
 
-struct TestData
-{
-	std::vector<QString>      setQueries;
-	std::set<QString>         xml;
-	std::vector<CheckRestore> checkRestore;
+	IDatabaseProvider::Task<IDatabaseWritable> queued;
+	EXPECT_CALL(*databaseProvider, ExecuteWritable).WillOnce([&](auto&& task, int) {
+		queued = std::move(task);
+		return 0;
+	});
 
-	static QByteArray GenerateXml(const std::set<QString>& xml)
-	{
-		Node root;
+	const auto userDataController = di.Resolve<IUserDataController>();
+	ASSERT_TRUE(!!userDataController);
 
-		for (const auto& str : xml)
-		{
-			const auto list = str.split('~');
-			auto&      node = root.Add(list.front());
-			if (list.size() > 1)
-				std::ranges::transform(list.back().split(';'), std::inserter(node.attributes, node.attributes.end()), [](const auto& item) {
-					auto itemList = item.split('=', Qt::KeepEmptyParts);
-					assert(itemList.size() == 2);
-					return std::make_pair(std::move(itemList.front()), std::move(itemList.back()));
-				});
-		}
+	bool done = false;
+	userDataController->Restore(path, [&](const bool ok, const QString& /*errorMessage*/) {
+		EXPECT_TRUE(ok);
+		done = true;
+	});
 
-		QByteArray result;
-		{
-			QBuffer stream(&result);
-			stream.open(QIODevice::WriteOnly);
-			Util::XmlWriter writer(stream);
+	ASSERT_TRUE(!!queued.task);
+	const auto db       = CreateDatabase<IDatabaseWritable>();
+	const auto callback = queued.task(*db);
+	callback(0);
+	EXPECT_TRUE(done);
 
-			const auto enumerate = [&](const Node& parent, const auto& r) -> void {
-				for (const auto& [name, node] : parent.children)
-				{
-					const auto element = writer.Guard(name);
-					for (const auto& [key, value] : node.attributes)
-						element->WriteAttribute(key, value);
-					r(node, r);
-				}
-			};
-
-			enumerate(root, enumerate);
-		}
-
-		return result;
-	}
-};
+	const CheckRestore check { "select Title from Groups_User", { { "My books group title" } } };
+	check.Check(*db);
+}
 
 namespace {
 
@@ -375,6 +489,43 @@ INSTANTIATE_TEST_SUITE_P(
 			.setQueries   = { "update Keywords set Flags = 1 where KeywordID = :keywordId" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Filter/Keywords", "FlibraryBackup/FlibraryUserData/Filter/Keywords/Item~Flag=1;Title=Story" },
 			.checkRestore = { { "select KeywordTitle, Flags from Keywords", { { "Story", "1" } } } },
+		},
+		TestData {
+			.setQueries   = { "insert into Favorites (FavoriteID, ObjectID) values(0, :authorId)" },
+			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Authors", "FlibraryBackup/FlibraryUserData/Favorites/Authors/Item~Title=LastName,FirstName,MiddleName,NickName" },
+			.checkRestore = { { "select a.LastName, a.FirstName, a.MiddleName, a.NickName from Authors a join Favorites f on f.ObjectID = a.AuthorID and f.FavoriteID = 0",
+			                    { { "LastName", "FirstName", "MiddleName", "NickName" } } } },
+			.version      = 10,
+		},
+		TestData {
+			.setQueries   = { "insert into Favorites (FavoriteID, ObjectID) values(1, :seriesId)" },
+			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Series", "FlibraryBackup/FlibraryUserData/Favorites/Series/Item~Title=SeriesTitle" },
+			.checkRestore = { { "select KeywordTitle, Flags from Keywords", { { "Story", "1" } } } },
+			.version      = 10,
+		},
+		TestData {
+			.setQueries   = { "insert into Favorites (FavoriteID, ObjectCode) values(2, '001.001')" },
+			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Genres", "FlibraryBackup/FlibraryUserData/Favorites/Genres/Item~Title=sf" },
+			.checkRestore = { { "select KeywordTitle, Flags from Keywords", { { "Story", "1" } } } },
+			.version      = 10,
+		},
+		TestData {
+			.setQueries   = { "insert into Favorites (FavoriteID, ObjectID) values(3, 1974)" },
+			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/PublishYear", "FlibraryBackup/FlibraryUserData/Favorites/PublishYear/Item~Title=1974" },
+			.checkRestore = { { "select KeywordTitle, Flags from Keywords", { { "Story", "1" } } } },
+			.version      = 10,
+		},
+		TestData {
+			.setQueries   = { "insert into Favorites (FavoriteID, ObjectID) values(4, :keywordId)" },
+			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Keywords", "FlibraryBackup/FlibraryUserData/Favorites/Keywords/Item~Title=Story" },
+			.checkRestore = { { "select KeywordTitle, Flags from Keywords", { { "Story", "1" } } } },
+			.version      = 10,
+		},
+		TestData {
+			.setQueries   = { "insert into Favorites (FavoriteID, ObjectCode) values(7, 'sq')" },
+			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Languages", "FlibraryBackup/FlibraryUserData/Favorites/Languages/Item~Title=sq" },
+			.checkRestore = { { "select KeywordTitle, Flags from Keywords", { { "Story", "1" } } } },
+			.version      = 10,
 		}
 	)
 );
@@ -383,9 +534,9 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(UserDataControllerBackupRestore, Backup)
 {
-	const auto& [setQueries, checkSetSrc, _] = GetParam();
+	const auto& [setQueries, checkSetSrc, _1, _2] = GetParam();
 
-	auto checkSet = XML | std::ranges::to<decltype(TestData::xml)>();
+	auto checkSet = XML | std::views::values | std::ranges::to<decltype(TestData::xml)>();
 	checkSet.emplace(QString("FlibraryBackup/FlibraryBackupVersion~Value=%1").arg(Constant::FlibraryBackupVersionNumber));
 	std::ranges::copy(checkSetSrc, std::inserter(checkSet, checkSet.end()));
 
@@ -456,114 +607,17 @@ TEST_P(UserDataControllerBackupRestore, Backup)
 		EXPECT_STREQ(serialized.toStdString().data(), check.toStdString().data());
 }
 
+TEST_P(UserDataControllerBackupRestore, Restore0009)
+{
+	const auto& [_, xmlSrc, checkSet, version] = GetParam();
+	if (version <= 9)
+		TestRestore(xmlSrc, checkSet, 9);
+}
+
 TEST_P(UserDataControllerBackupRestore, RestoreActual)
 {
-	const auto& [_, xmlSrc, checkSet] = GetParam();
-	auto xml                          = XML | std::ranges::to<decltype(TestData::xml)>();
-	xml.emplace(QString("FlibraryBackup/FlibraryBackupVersion~Value=%1").arg(Constant::FlibraryBackupVersionNumber));
-	std::ranges::copy(xmlSrc, std::inserter(xml, xml.end()));
-	auto bytes = TestData::GenerateXml(xml);
-
-	auto db = CreateDatabase<IDatabaseWritable>();
-
-	QBuffer stream(&bytes);
-	ASSERT_TRUE(stream.open(QIODevice::ReadOnly));
-
-	const auto userDataController = di.Resolve<IUserDataController>();
-	ASSERT_TRUE(!!userDataController);
-
-	EXPECT_CALL(*databaseProvider, ExecuteWritable).WillOnce([&](auto&& task, int) {
-		auto callback = task.task(*db);
-		callback(0);
-		return 0;
-	});
-
-	bool done = false;
-	userDataController->Restore(stream, IUserDataController::RestoreMode::FLibrary, [&](const bool ok, const QString& /*errorMessage*/) {
-		EXPECT_TRUE(ok);
-		done = true;
-	});
-	EXPECT_TRUE(done);
-
-	for (const auto& check : checkSet)
-		check.Check(*db);
-}
-
-TEST_F(UserDataControllerTest, BackupToFileQueued)
-{
-	const QTemporaryDir dir;
-	ASSERT_TRUE(dir.isValid());
-	const auto path = dir.filePath(QString("user_data%1").arg(Constant::BACKUP_FILE_EXT));
-
-	IDatabaseProvider::Task<IDatabase> queued;
-	EXPECT_CALL(*databaseProvider, Execute).WillOnce([&](auto&& task, int) {
-		queued = std::move(task);
-		return 0;
-	});
-
-	const auto userDataController = di.Resolve<IUserDataController>();
-	ASSERT_TRUE(!!userDataController);
-
-	bool done = false;
-	userDataController->Backup(path, [&](const bool ok, const QString& /*errorMessage*/) {
-		EXPECT_TRUE(ok);
-		done = true;
-	});
-
-	ASSERT_TRUE(!!queued.task);
-	const auto db       = CreateDatabase<IDatabaseWritable>();
-	const auto callback = queued.task(*db);
-	callback(0);
-	EXPECT_TRUE(done);
-
-	QFile file(path);
-	ASSERT_TRUE(file.open(QIODevice::ReadOnly));
-	const XmlParser parser(file);
-	const auto      parseResult = parser.GetResult();
-	auto            xml         = XML | std::ranges::to<decltype(TestData::xml)>();
-	xml.emplace(QString("FlibraryBackup/FlibraryBackupVersion~Value=%1").arg(Constant::FlibraryBackupVersionNumber));
-	EXPECT_EQ(xml.size(), parseResult.size());
-	for (auto&& [serialized, check] : std::views::zip(parseResult, xml))
-		EXPECT_STREQ(serialized.toStdString().data(), check.toStdString().data());
-}
-
-TEST_F(UserDataControllerTest, RestoreFromFileQueued)
-{
-	const QTemporaryDir dir;
-	ASSERT_TRUE(dir.isValid());
-	const auto path = dir.filePath(QString("user_data%1").arg(Constant::BACKUP_FILE_EXT));
-	{
-		auto xml = XML | std::ranges::to<decltype(TestData::xml)>();
-		xml.emplace(QString("FlibraryBackup/FlibraryBackupVersion~Value=%1").arg(Constant::FlibraryBackupVersionNumber));
-		xml.emplace("FlibraryBackup/FlibraryUserData/Groups/Group~CreatedAt=1974-01-01 02:03:08;Title=My books group title");
-		QFile file(path);
-		ASSERT_TRUE(file.open(QIODevice::WriteOnly));
-		ASSERT_GT(file.write(TestData::GenerateXml(xml)), 0);
-	}
-
-	IDatabaseProvider::Task<IDatabaseWritable> queued;
-	EXPECT_CALL(*databaseProvider, ExecuteWritable).WillOnce([&](auto&& task, int) {
-		queued = std::move(task);
-		return 0;
-	});
-
-	const auto userDataController = di.Resolve<IUserDataController>();
-	ASSERT_TRUE(!!userDataController);
-
-	bool done = false;
-	userDataController->Restore(path, [&](const bool ok, const QString& /*errorMessage*/) {
-		EXPECT_TRUE(ok);
-		done = true;
-	});
-
-	ASSERT_TRUE(!!queued.task);
-	const auto db       = CreateDatabase<IDatabaseWritable>();
-	const auto callback = queued.task(*db);
-	callback(0);
-	EXPECT_TRUE(done);
-
-	const CheckRestore check { "select Title from Groups_User", { { "My books group title" } } };
-	check.Check(*db);
+	const auto& [_1, xmlSrc, checkSet, _2] = GetParam();
+	TestRestore(xmlSrc, checkSet, Constant::FlibraryBackupVersionNumber);
 }
 
 } // namespace
