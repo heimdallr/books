@@ -35,8 +35,14 @@ using namespace Flibrary;
 
 namespace {
 
+constexpr auto COMMON_WITH = R"(
+with Ids(BookID) as (
+	%1
+)
+)";
+
 constexpr auto SEARCH_WITH = R"(
-with Ids as (
+with Ids(BookID) as (
 	with Search (Title) as (
 		select Title
 		from Searches_User where SearchID = %1
@@ -116,6 +122,39 @@ QString GetSearchWith(DB::IDatabase& db, const ISettings& settings, const QStrin
 		result << "select -1";
 
 	return QString(SEARCH_WITH).arg(id, result.join("union"));
+}
+
+QString GetFavoritesWith(DB::IDatabase&, const ISettings&, const QString& id)
+{
+	const auto list = id.split('/');
+	if (list.size() < 2)
+		return QString(COMMON_WITH).arg("select -1");
+
+	static constexpr const char* withs[] {
+		"select BookID from Author_List where AuthorID=%1",
+		"select BookID from Series_List where SeriesID=%1",
+		"select BookID from Genre_List where GenreCode='%1'",
+		"select BookID from Books where Year=%1",
+		"select BookID from Keyword_List where KeywordID=%1",
+		nullptr,
+		nullptr,
+		"select BookID from Books where Lang='%1'",
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+		nullptr,
+	};
+	static_assert(std::size(withs) == static_cast<size_t>(NavigationMode::Last));
+
+	bool       ok    = false;
+	const auto index = list.front().toULongLong(&ok);
+	assert(ok && index < std::size(withs));
+	auto* with = withs[index];
+
+	return QString(COMMON_WITH).arg(QString(with).arg(list.back()));
 }
 
 using Cache = std::unordered_map<NavigationMode, IDataItem::Ptr>;
@@ -260,6 +299,145 @@ void RequestNavigationPublishYears(
 		    it != std::cend(items))
 			(*it)->SetData(Loc::Tr(LANGUAGES_CONTEXT, UNDEFINED));
 	});
+}
+
+namespace RequestNavigationFavoritesDetails {
+
+class IItemTitleUpdater // NOLINT(cppcoreguidelines-special-member-functions)
+{
+public:
+	virtual ~IItemTitleUpdater()                    = default;
+	virtual void UpdateTitle(IDataItem& item) const = 0;
+};
+
+class GenreTitleUpdater final : public IItemTitleUpdater
+{
+	struct CreatorGuard
+	{
+	};
+
+public:
+	static std::unique_ptr<IItemTitleUpdater> Create(DB::IDatabase& db)
+	{
+		return std::make_unique<GenreTitleUpdater>(db, CreatorGuard {});
+	}
+
+public:
+	GenreTitleUpdater(DB::IDatabase& db, CreatorGuard)
+		: m_root { Genre::Load(db) }
+	{
+	}
+
+private: // IItemTitleTranslator
+	void UpdateTitle(IDataItem& item) const override
+	{
+		if (const auto* itemGenre = Genre::Find(&m_root, item.GetId()))
+			item.SetData(itemGenre->name);
+	}
+
+private:
+	Genre m_root;
+};
+
+class LanguageTitleUpdater final : public IItemTitleUpdater
+{
+	struct CreatorGuard
+	{
+	};
+
+public:
+	static std::unique_ptr<IItemTitleUpdater> Create(DB::IDatabase&)
+	{
+		return std::make_unique<LanguageTitleUpdater>(CreatorGuard {});
+	}
+
+public:
+	explicit LanguageTitleUpdater(CreatorGuard)
+	{
+	}
+
+private: // IItemTitleTranslator
+	void UpdateTitle(IDataItem& item) const override
+	{
+		if (const auto it = m_languages.find(item.GetId()); it != m_languages.end())
+			item.SetData(Loc::Tr(LANGUAGES_CONTEXT, it->second));
+	}
+
+private:
+	std::unordered_map<QString, const char*> m_languages { GetLanguagesMap() };
+};
+
+constexpr std::pair<NavigationMode, std::unique_ptr<IItemTitleUpdater> (*)(DB::IDatabase&)> ITEM_TITLE_UPDATERS[] {
+	{    NavigationMode::Genres,    &GenreTitleUpdater::Create },
+	{ NavigationMode::Languages, &LanguageTitleUpdater::Create },
+};
+
+} // namespace RequestNavigationFavoritesDetails
+
+void RequestNavigationFavorites(
+	const NavigationMode                        navigationMode,
+	INavigationQueryExecutor::Callback          callback,
+	const IDatabaseProvider&                    databaseProvider,
+	const QueryDescription&                     queryDescription,
+	[[maybe_unused]] const ICollectionProvider& collectionProvider,
+	Cache&                                      cache
+)
+{
+	assert(collectionProvider.ActiveCollectionExists());
+	databaseProvider.Execute(
+		{ "Get navigation",
+		  [&cache, mode = navigationMode, callback = std::move(callback), &queryDescription](DB::IDatabase& db) mutable {
+			  auto root        = NavigationItem::Create();
+			  auto currentMode = std::numeric_limits<size_t>::max();
+
+			  IDataItem::Ptr currentBranch;
+
+			  for (const auto query = db.CreateQuery(queryDescription.navigationQuery); const auto& rec : *query)
+			  {
+				  if (const auto type = rec.Get<size_t>(3); currentMode != type)
+				  {
+					  currentMode   = type;
+					  currentBranch = root->AppendChild(NavigationItem::Create());
+					  currentBranch->SetId(QString::number(currentMode));
+					  currentBranch->SetData(Loc::Tr(Loc::NAVIGATION, NAVIGATION_NAMES[currentMode].first));
+					  currentBranch->To<NavigationItem>()->SetNavigationMode(NavigationMode::Favorites);
+				  }
+				  const auto& item = currentBranch->AppendChild(queryDescription.navigationExtractor(rec));
+				  item->To<NavigationItem>()->SetNavigationMode(NAVIGATION_NAMES[currentMode].second);
+			  }
+
+			  for (const auto& [navMode, updaterCreator] : RequestNavigationFavoritesDetails::ITEM_TITLE_UPDATERS)
+			  {
+				  if (const auto branch = root->FindChild([id = QString::number(static_cast<int>(navMode))](const IDataItem& item) {
+						  return item.GetId() == id;
+					  }))
+				  {
+					  const auto updater = std::invoke(updaterCreator, db);
+					  for (size_t i = 0, sz = branch->GetChildCount(); i < sz; ++i)
+						  updater->UpdateTitle(*branch->GetChild(i));
+				  }
+			  }
+
+			  for (size_t i = 0, szi = root->GetChildCount(); i < szi; ++i)
+			  {
+				  const auto branch = root->GetChild(i);
+				  branch->SortChildren([](const auto& lhs, const auto& rhs) {
+					  return Util::QStringWrapper::Compare(Util::QStringWrapper { lhs.GetData() }, Util::QStringWrapper { rhs.GetData() });
+				  });
+				  for (size_t j = 0, szj = branch->GetChildCount(); j < szj; ++j)
+				  {
+					  const auto item = branch->GetChild(j);
+					  item->SetId(QString("%1/%2").arg(branch->GetId(), item->GetId()));
+				  }
+			  }
+
+			  return [&cache, mode, callback = std::move(callback), root = std::move(root)](size_t) mutable {
+				  cache[mode] = root;
+				  callback(mode, std::move(root));
+			  };
+		  } },
+		1
+	);
 }
 
 void RequestNavigationGenres(
@@ -475,6 +653,32 @@ from PublishYears y)",
 	 .booksWhere      = "where glu.GroupID = %1",
 	 .navigationFrom  = "from Groups_List_User_View b",
 	 .navigationWhere = "where b.GroupID = %1" },
+	 &IBooksListCreator::CreateGeneralList,
+	 &IBooksTreeCreator::CreateGeneralTree,
+	 BookItem::Mapping(MAPPING_FULL),
+	 BookItem::Mapping(MAPPING_TREE_COMMON) } } },
+
+	{   NavigationMode::Favorites,
+	 { &RequestNavigationFavorites,
+	 { R"(select coalesce(f.ObjectID, f.ObjectCode) id, coalesce()"
+FLIBRARY_SQL_FULL_AUTHOR_NAME
+R"(, s.SeriesTitle
+  , g.FB2Code
+  , l.LanguageCode
+  , k.KeywordTitle
+  , case when f.FavoriteID = 3 then f.ObjectID else null end
+  , null) title, 0 Flags, f.FavoriteID
+from Favorites f
+left join Authors a on a.AuthorID = f.ObjectID and f.FavoriteID = 0
+left join Series s on s.SeriesID = f.ObjectID and f.FavoriteID = 1
+left join Genres g on g.GenreCode = f.ObjectCode and f.FavoriteID = 2
+left join (select 42) as y on f.FavoriteID = 3
+left join Keywords k on k.KeywordID = f.ObjectID and f.FavoriteID = 4
+left join Languages l on l.LanguageCode = f.ObjectCode and f.FavoriteID = 7
+order by f.FavoriteID
+)",
+	 &DatabaseUtil::CreateSimpleListItem,
+	 { .booksFrom = "from Ids i join Books_View b on b.BookID = i.BookID", .navigationFrom = "from Ids b", .with = &GetFavoritesWith },
 	 &IBooksListCreator::CreateGeneralList,
 	 &IBooksTreeCreator::CreateGeneralTree,
 	 BookItem::Mapping(MAPPING_FULL),

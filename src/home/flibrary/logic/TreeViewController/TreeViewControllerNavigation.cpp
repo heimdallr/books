@@ -4,9 +4,11 @@
 #include <ranges>
 
 #include "fnd/FindPair.h"
+#include "fnd/IsOneOf.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
+#include "database/interface/ITransaction.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/ModelRole.h"
@@ -33,19 +35,21 @@ using namespace Flibrary;
 
 namespace {
 
-constexpr auto CONTEXT           = "Navigation";
-constexpr auto REMOVE            = QT_TRANSLATE_NOOP("Navigation", "Remove");
-constexpr auto REVIEWS           = QT_TRANSLATE_NOOP("Navigation", "Reviews");
-constexpr auto CREATE_NEW_GROUP  = QT_TRANSLATE_NOOP("Navigation", "Create new group...");
-constexpr auto RENAME_GROUP      = QT_TRANSLATE_NOOP("Navigation", "Rename group...");
-constexpr auto REMOVE_FROM_GROUP = QT_TRANSLATE_NOOP("Navigation", "Remove from group");
-constexpr auto ALL_BOOKS         = QT_TRANSLATE_NOOP("Navigation", "All books");
-constexpr auto ALL               = QT_TRANSLATE_NOOP("Navigation", "All");
-constexpr auto CREATE_NEW_SEARCH = QT_TRANSLATE_NOOP("Navigation", "Create new search...");
-constexpr auto FILTERS           = QT_TRANSLATE_NOOP("Navigation", "Filters");
-constexpr auto HIDE              = QT_TRANSLATE_NOOP("Navigation", "Hide");
-constexpr auto FILTER_BOOKS      = QT_TRANSLATE_NOOP("Navigation", "Filter books");
-constexpr auto FILTER_SETTINGS   = QT_TRANSLATE_NOOP("Navigation", "Filter settings...");
+constexpr auto CONTEXT               = "Navigation";
+constexpr auto REMOVE                = QT_TRANSLATE_NOOP("Navigation", "Remove");
+constexpr auto REVIEWS               = QT_TRANSLATE_NOOP("Navigation", "Reviews");
+constexpr auto CREATE_NEW_GROUP      = QT_TRANSLATE_NOOP("Navigation", "Create new group...");
+constexpr auto RENAME_GROUP          = QT_TRANSLATE_NOOP("Navigation", "Rename group...");
+constexpr auto REMOVE_FROM_GROUP     = QT_TRANSLATE_NOOP("Navigation", "Remove from group");
+constexpr auto ALL_BOOKS             = QT_TRANSLATE_NOOP("Navigation", "All books");
+constexpr auto ALL                   = QT_TRANSLATE_NOOP("Navigation", "All");
+constexpr auto CREATE_NEW_SEARCH     = QT_TRANSLATE_NOOP("Navigation", "Create new search...");
+constexpr auto FILTERS               = QT_TRANSLATE_NOOP("Navigation", "Filters");
+constexpr auto HIDE                  = QT_TRANSLATE_NOOP("Navigation", "Hide");
+constexpr auto FILTER_BOOKS          = QT_TRANSLATE_NOOP("Navigation", "Filter books");
+constexpr auto FILTER_SETTINGS       = QT_TRANSLATE_NOOP("Navigation", "Filter settings...");
+constexpr auto ADD_TO_FAVORITES      = QT_TRANSLATE_NOOP("Navigation", "Add to favorites");
+constexpr auto REMOVE_FROM_FAVORITES = QT_TRANSLATE_NOOP("Navigation", "Remove from favorites");
 
 constexpr auto REMOVED_ITEMS_BACKGROUND_COLOR = "Preferences/Removed/Background/color";
 constexpr auto REMOVED_ITEMS_FOREGROUND_COLOR = "Preferences/Removed/Font/color";
@@ -68,6 +72,7 @@ std::unordered_set<T> GetSelected(const QModelIndex& index, const QList<QModelIn
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Authors, Authors)       \
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Genres, Genres)         \
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Groups_User, Groups)    \
+	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Favorites, Favorites)   \
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Keywords, Keywords)     \
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Searches_User, Search)  \
 	SUBSCRIBED_TABLES_RELOAD_NAVIGATION_ITEM(Series, Series)         \
@@ -79,6 +84,7 @@ std::unordered_set<T> GetSelected(const QModelIndex& index, const QList<QModelIn
 	SUBSCRIBED_TABLES_ITEM(Genres)            \
 	SUBSCRIBED_TABLES_ITEM(Groups_List_User)  \
 	SUBSCRIBED_TABLES_ITEM(Groups_User)       \
+	SUBSCRIBED_TABLES_ITEM(Favorites)         \
 	SUBSCRIBED_TABLES_ITEM(Keywords)          \
 	SUBSCRIBED_TABLES_ITEM(Searches_User)     \
 	SUBSCRIBED_TABLES_ITEM(Series)            \
@@ -100,6 +106,21 @@ void SetRemovedBooksViewSettingsImpl(const ISettings& settings, QAbstractItemMod
 #define FONT_SETTING_SETTER_ITEM(NAME) setFont("Preferences/Removed/Font/"#NAME, Role::RemovedItemFont_##NAME);
 	FONT_SETTING_SETTER_ITEMS_X_MACRO
 #undef FONT_SETTING_SETTER_ITEM
+}
+
+void AddFavoritesMenuItem(DB::IDatabase& db, const QString& id, const IDataItem::Ptr& dst, const NavigationMode navigationMode)
+{
+	const auto mode            = static_cast<int>(navigationMode);
+	const auto [title, action] = [&]() -> std::pair<const char*, int> {
+		const auto query = db.CreateQuery(
+			std::format("select exists (select 42 from Favorites where FavoriteID = ? and {} = ?)", IsOneOf(navigationMode, NavigationMode::Genres, NavigationMode::Languages) ? "ObjectCode" : "ObjectID")
+		);
+		query->Execute(mode, id);
+		assert(!query->Eof());
+		return query->Get<int>(0) ? std::make_pair(REMOVE_FROM_FAVORITES, MenuAction::RemoveFromFavorites) : std::make_pair(ADD_TO_FAVORITES, MenuAction::AddToFavorites);
+	}();
+
+	AddMenuItem(dst, title, title, action)->SetData(QString::number(mode), MenuItem::Column::Parameter);
 }
 
 class ITableSubscriptionHandler // NOLINT(cppcoreguidelines-special-member-functions)
@@ -162,12 +183,12 @@ class IContextMenuProvider // NOLINT(cppcoreguidelines-special-member-functions)
 {
 public:
 	virtual ~IContextMenuProvider() = default;
-#define NAVIGATION_MODE_ITEM(NAME) virtual IDataItem::Ptr Create##NAME##ContextMenu(DB::IDatabase &db, const QString &id, ITreeViewController::RequestContextMenuOptions options) = 0;
+#define NAVIGATION_MODE_ITEM(NAME) virtual IDataItem::Ptr Create##NAME##ContextMenu(DB::IDatabase &db, const QModelIndex &index, ITreeViewController::RequestContextMenuOptions options) = 0;
 	NAVIGATION_MODE_ITEMS_X_MACRO
 #undef NAVIGATION_MODE_ITEM
 };
 
-using MenuRequester = IDataItem::Ptr (IContextMenuProvider::*)(DB::IDatabase& db, const QString& id, ITreeViewController::RequestContextMenuOptions options);
+using MenuRequester = IDataItem::Ptr (IContextMenuProvider::*)(DB::IDatabase& db, const QModelIndex& index, ITreeViewController::RequestContextMenuOptions options);
 
 constexpr MenuRequester MENU_REQUESTERS[] {
 #define NAVIGATION_MODE_ITEM(NAME) &IContextMenuProvider::Create##NAME##ContextMenu,
@@ -260,6 +281,14 @@ constexpr std::pair<const char*, ModeDescriptor> MODE_DESCRIPTORS[] {
 	 nullptr,
 	 &IContextMenuHandler::OnCreateNewGroupTriggered,
 	 &IContextMenuHandler::OnRemoveGroupTriggered }                                                                                                                      },
+	{    Loc::Favorites,
+	 {
+	 ViewMode::Tree,
+	 &IModelProvider::CreateTreeModel,
+	 NavigationMode::Favorites,
+	 &INavigationFilter::Stub,
+	 nullptr,
+	 }                                                                                                                                                                   },
 
 	{       Loc::Search,
 	 { ViewMode::List,
@@ -345,10 +374,10 @@ struct TreeViewControllerNavigation::Impl final
 	void RequestContextMenu(const QModelIndex& index, RequestContextMenuOptions options, RequestContextMenuCallback callback)
 	{
 		assert(static_cast<size_t>(mode) < std::size(MENU_REQUESTERS));
-		databaseProvider->Execute({ "request context menu", [this, options, callback = std::move(callback), id = index.data(Role::Id).toString()](DB::IDatabase& db) mutable {
-									   auto item = std::invoke(MENU_REQUESTERS[mode], static_cast<IContextMenuProvider*>(this), std::ref(db), std::cref(id), options);
-									   return [callback = std::move(callback), id = std::move(id), item = std::move(item)](size_t) {
-										   callback(id, item, {});
+		databaseProvider->Execute({ "request context menu", [this, options, callback = std::move(callback), index](DB::IDatabase& db) mutable {
+									   auto item = std::invoke(MENU_REQUESTERS[mode], static_cast<IContextMenuProvider*>(this), std::ref(db), std::cref(index), options);
+									   return [callback = std::move(callback), index, item = std::move(item)](size_t) {
+										   callback(index.data(Role::Id).toString(), item, {});
 									   };
 								   } });
 	}
@@ -481,6 +510,16 @@ private: // IContextMenuHandler
 		std::invoke(invoker, *filterController, static_cast<NavigationMode>(mode), std::move(ids), IDataItem::Flags::BooksFiltered, std::move(callback));
 	}
 
+	void OnAddToFavoritesTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
+	{
+		ExecuteFavoritesActionImpl("add to favorites", "insert into Favorites(FavoriteID, %1) values(?, ?)", indexList, index, item, std::move(callback));
+	}
+
+	void OnRemoveFromFavoritesTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
+	{
+		ExecuteFavoritesActionImpl("remove from favorites", "delete from Favorites where FavoriteID = ? and %1 = ?", indexList, index, item, std::move(callback));
+	}
+
 private: // DB::IDatabaseObserver
 	void OnInsert(std::string_view /*dbName*/, const std::string_view tableName, int64_t /*rowId*/) override
 	{
@@ -544,12 +583,16 @@ private: // INavigationFilter
 	}
 
 private: // IContextMenuProvider
-	IDataItem::Ptr CreateAuthorsContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
+	IDataItem::Ptr CreateAuthorsContextMenu(DB::IDatabase& db, const QModelIndex& index, const RequestContextMenuOptions options) override
 	{
-		auto result = MenuRequesterGroupNavigation(db, id, options);
+		const auto id     = index.data(Role::Id).toString();
+		auto       result = MenuRequesterGroupNavigation(db, id, options);
 
 		if (!result)
 			return {};
+
+		AddFavoritesMenuItem(db, id, result, NavigationMode::Authors);
+
 		{
 			const auto query = db.CreateQuery("select exists (select 42 from Reviews)");
 			query->Execute();
@@ -567,44 +610,60 @@ private: // IContextMenuProvider
 		return result;
 	}
 
-	IDataItem::Ptr CreateSeriesContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
+	IDataItem::Ptr CreateSeriesContextMenu(DB::IDatabase& db, const QModelIndex& index, const RequestContextMenuOptions options) override
 	{
-		return MenuRequesterGroupNavigation(db, id, options);
+		const auto id     = index.data(Role::Id).toString();
+		auto       result = MenuRequesterGroupNavigation(db, id, options);
+		AddFavoritesMenuItem(db, id, result, NavigationMode::Series);
+		return result;
 	}
 
-	IDataItem::Ptr CreateGenresContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
+	IDataItem::Ptr CreateGenresContextMenu(DB::IDatabase& db, const QModelIndex& index, const RequestContextMenuOptions options) override
 	{
-		auto result = MenuRequesterFilter(db, id, options);
+		const auto id     = index.data(Role::Id).toString();
+		auto       result = MenuRequesterFilter(db, id, options);
+		AddFavoritesMenuItem(db, id, result, NavigationMode::Genres);
 		return TreeMenuRequester(db, id, options, std::move(result));
 	}
 
-	IDataItem::Ptr CreatePublishYearContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
+	IDataItem::Ptr CreatePublishYearContextMenu(DB::IDatabase& db, const QModelIndex& index, const RequestContextMenuOptions) override
 	{
+		const auto id     = index.data(Role::Id).toString();
+		auto       result = MenuItem::Create();
+		AddFavoritesMenuItem(db, id, result, NavigationMode::PublishYear);
+		return result;
+	}
+
+	IDataItem::Ptr CreateKeywordsContextMenu(DB::IDatabase& db, const QModelIndex& index, const RequestContextMenuOptions options) override
+	{
+		const auto id     = index.data(Role::Id).toString();
+		auto       result = MenuRequesterGroupNavigation(db, id, options);
+		AddFavoritesMenuItem(db, id, result, NavigationMode::Keywords);
+		return result;
+	}
+
+	IDataItem::Ptr CreateUpdatesContextMenu(DB::IDatabase& db, const QModelIndex& index, const RequestContextMenuOptions options) override
+	{
+		const auto id = index.data(Role::Id).toString();
 		return TreeMenuRequester(db, id, options);
 	}
 
-	IDataItem::Ptr CreateKeywordsContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
-	{
-		return CreateSeriesContextMenu(db, id, options);
-	}
-
-	IDataItem::Ptr CreateUpdatesContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
-	{
-		return TreeMenuRequester(db, id, options);
-	}
-
-	IDataItem::Ptr CreateArchivesContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, RequestContextMenuOptions /*options*/) override
+	IDataItem::Ptr CreateArchivesContextMenu(DB::IDatabase& /*db*/, const QModelIndex& /*id*/, RequestContextMenuOptions /*options*/) override
 	{
 		return {};
 	}
 
-	IDataItem::Ptr CreateLanguagesContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
+	IDataItem::Ptr CreateLanguagesContextMenu(DB::IDatabase& db, const QModelIndex& index, const RequestContextMenuOptions options) override
 	{
-		return MenuRequesterFilter(db, id, options);
+		const auto id     = index.data(Role::Id).toString();
+		auto       result = MenuRequesterFilter(db, id, options);
+		AddFavoritesMenuItem(db, id, result, NavigationMode::Languages);
+		return result;
 	}
 
-	IDataItem::Ptr CreateGroupsContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
+	IDataItem::Ptr CreateGroupsContextMenu(DB::IDatabase& db, const QModelIndex& index, const RequestContextMenuOptions options) override
 	{
+		const auto id           = index.data(Role::Id).toString();
 		const auto hasSelection = !!(options & RequestContextMenuOptions::HasSelection);
 		auto       result       = MenuItem::Create();
 
@@ -652,7 +711,18 @@ private: // IContextMenuProvider
 		return result;
 	}
 
-	IDataItem::Ptr CreateSearchContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, const RequestContextMenuOptions options) override
+	IDataItem::Ptr CreateFavoritesContextMenu(DB::IDatabase& /*db*/, const QModelIndex& index, RequestContextMenuOptions /*options*/) override
+	{
+		const auto navigationMode = index.data(Role::NavigationMode).value<NavigationMode>();
+		if (navigationMode == NavigationMode::Favorites)
+			return {};
+
+		auto result = MenuItem::Create();
+		AddMenuItem(result, REMOVE_FROM_FAVORITES, REMOVE_FROM_FAVORITES, MenuAction::RemoveFromFavorites)->SetData(QString::number(static_cast<int>(navigationMode)), MenuItem::Column::Parameter);
+		return result;
+	}
+
+	IDataItem::Ptr CreateSearchContextMenu(DB::IDatabase& /*db*/, const QModelIndex&, const RequestContextMenuOptions options) override
 	{
 		auto result = MenuItem::Create();
 
@@ -662,22 +732,23 @@ private: // IContextMenuProvider
 		return result;
 	}
 
-	IDataItem::Ptr CreateReviewsContextMenu(DB::IDatabase& db, const QString& id, const RequestContextMenuOptions options) override
+	IDataItem::Ptr CreateReviewsContextMenu(DB::IDatabase& db, const QModelIndex& index, const RequestContextMenuOptions options) override
 	{
+		const auto id = index.data(Role::Id).toString();
 		return TreeMenuRequester(db, id, options);
 	}
 
-	IDataItem::Ptr CreateAlreadyReadContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, RequestContextMenuOptions /*options*/) override
+	IDataItem::Ptr CreateAlreadyReadContextMenu(DB::IDatabase& /*db*/, const QModelIndex&, RequestContextMenuOptions /*options*/) override
 	{
 		return {};
 	}
 
-	IDataItem::Ptr CreateHistoryContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, RequestContextMenuOptions /*options*/) override
+	IDataItem::Ptr CreateHistoryContextMenu(DB::IDatabase& /*db*/, const QModelIndex&, RequestContextMenuOptions /*options*/) override
 	{
 		return {};
 	}
 
-	IDataItem::Ptr CreateAllBooksContextMenu(DB::IDatabase& /*db*/, const QString& /*id*/, RequestContextMenuOptions /*options*/) override
+	IDataItem::Ptr CreateAllBooksContextMenu(DB::IDatabase& /*db*/, const QModelIndex&, RequestContextMenuOptions /*options*/) override
 	{
 		return {};
 	}
@@ -771,6 +842,25 @@ private:
 				callback();
 				controller.reset();
 			}
+		);
+	}
+
+	void ExecuteFavoritesActionImpl(const char* title, QString queryText, const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const
+	{
+		QStringList ids;
+		std::ranges::move(GetSelected<QString>(index, indexList), std::back_inserter(ids));
+		databaseProvider->ExecuteWritable(
+			{ title, [ids = std::move(ids), fId = item->GetData(MenuItem::Column::Parameter).toInt(), queryText = std::move(queryText), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+				 const auto tr      = db.CreateTransaction();
+				 queryText          = queryText.arg(IsOneOf(static_cast<NavigationMode>(fId), NavigationMode::Genres, NavigationMode::Languages) ? "ObjectCode" : "ObjectID");
+				 const auto command = tr->CreateCommand(queryText);
+				 for (const auto& id : ids)
+					 command->Execute(fId, id);
+				 tr->Commit();
+				 return [callback = std::move(callback)](size_t) {
+					 callback();
+				 };
+			 } }
 		);
 	}
 
@@ -936,7 +1026,7 @@ void TreeViewControllerNavigation::OnModeChanged(const QString& modeSrc)
 	if (m_impl->models[m_impl->mode])
 		return Perform(&IObserver::OnModelChanged, m_impl->models[m_impl->mode].get());
 
-	m_impl->dataProvider->RequestNavigation();
+	m_impl->dataProvider->RequestNavigation(true);
 }
 
 int TreeViewControllerNavigation::GetModeIndex(const QString& mode) const

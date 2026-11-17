@@ -442,6 +442,7 @@ constexpr NavigationDescription NAVIGATION_DESCRIPTION[] {
 	{ Loc::Archives ,  FOLDER_COUNT,  FOLDER_JOIN_PARAMETERS,  FOLDER_JOIN_SELECT,  FOLDER_SELECT,         nullptr,  FOLDER_COUNT_STARTS_WITH,             nullptr,  FOLDER_SELECT_SINGLE,              nullptr,  FOLDER_CONTENT  },
 	{ Loc::Languages },
 	{ Loc::Groups   ,       nullptr,   GROUP_JOIN_PARAMETERS,   GROUP_JOIN_SELECT,   GROUP_SELECT },
+	{ Loc::Favorites },
 	{ Loc::Search },
 	{ Loc::Reviews },
 	{ Loc::AlreadyRead },
