@@ -791,7 +791,8 @@ private:
 			}
 
 			static constexpr NavigationMode extendedSelectionModes[] {
-				NavigationMode::Authors, NavigationMode::Series, NavigationMode::Genres, NavigationMode::Keywords, NavigationMode::Languages, NavigationMode::Groups, NavigationMode::Search,
+				NavigationMode::Authors,   NavigationMode::Series, NavigationMode::Genres,    NavigationMode::Keywords,
+				NavigationMode::Languages, NavigationMode::Groups, NavigationMode::Favorites, NavigationMode::Search,
 			};
 			m_ui.treeView->setSelectionMode(
 				std::ranges::any_of(

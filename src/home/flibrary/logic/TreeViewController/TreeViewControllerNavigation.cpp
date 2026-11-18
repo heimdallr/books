@@ -517,7 +517,9 @@ private: // IContextMenuHandler
 
 	void OnRemoveFromFavoritesTriggered(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr& item, Callback callback) const override
 	{
-		ExecuteFavoritesActionImpl("remove from favorites", "delete from Favorites where FavoriteID = ? and %1 = ?", indexList, index, item, std::move(callback));
+		static_cast<NavigationMode>(mode) != NavigationMode::Favorites
+			? ExecuteFavoritesActionImpl("remove from favorites", "delete from Favorites where FavoriteID = ? and %1 = ?", indexList, index, item, std::move(callback))
+			: RemoveFavoritesActionOnFavoriteModeImpl(indexList, index, item, std::move(callback));
 	}
 
 private: // DB::IDatabaseObserver
@@ -862,6 +864,42 @@ private:
 				 };
 			 } }
 		);
+	}
+
+	void RemoveFavoritesActionOnFavoriteModeImpl(const QList<QModelIndex>& indexList, const QModelIndex& index, const IDataItem::Ptr&, Callback callback) const
+	{
+		QStringList ids;
+		std::ranges::move(GetSelected<QString>(index, indexList), std::back_inserter(ids));
+		databaseProvider->ExecuteWritable({ "remove from favorites", [ids = std::move(ids), callback = std::move(callback)](DB::IDatabaseWritable& db) mutable {
+											   std::pair<const char*, std::vector<std::pair<int, QString>>> toRemove[] {
+												   {   "delete from Favorites where FavoriteID = ? and ObjectID = ?", std::vector<std::pair<int, QString>> {} },
+												   { "delete from Favorites where FavoriteID = ? and ObjectCode = ?", std::vector<std::pair<int, QString>> {} },
+											   };
+											   for (const auto& id : ids)
+											   {
+												   if (auto list = id.split('/', Qt::SkipEmptyParts); list.size() == 2)
+												   {
+													   const auto   navigationMode = list.front().toInt();
+													   const size_t codeMode       = IsOneOf(static_cast<NavigationMode>(navigationMode), NavigationMode::Genres, NavigationMode::Languages);
+													   toRemove[codeMode].second.emplace_back(navigationMode, std::move(list.back()));
+												   }
+											   }
+											   const auto tr = db.CreateTransaction();
+											   for (const auto& [queryText, parameters] : toRemove)
+											   {
+												   if (parameters.empty())
+													   continue;
+
+												   const auto command = tr->CreateCommand(queryText);
+												   for (const auto& [fId, id] : parameters)
+													   command->Execute(fId, id);
+											   }
+
+											   tr->Commit();
+											   return [callback = std::move(callback)](size_t) {
+												   callback();
+											   };
+										   } });
 	}
 
 	void OnTableChanged(const NavigationMode tableMode) const
