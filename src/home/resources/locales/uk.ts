@@ -5302,6 +5302,10 @@ Try again?</source>
 <context>
     <name>Navigation</name>
     <message>
+        <source>Add to favorites</source>
+        <translation>Додати до обраного</translation>
+    </message>
+    <message>
         <source>All</source>
         <translation>Усі</translation>
     </message>
@@ -5340,6 +5344,10 @@ Try again?</source>
     <message>
         <source>Create new search...</source>
         <translation>Новий пошук...</translation>
+    </message>
+    <message>
+        <source>Favorites</source>
+        <translation>Вибране</translation>
     </message>
     <message>
         <source>Filter books</source>
@@ -5388,6 +5396,10 @@ Try again?</source>
     <message>
         <source>Remove</source>
         <translation>Видалити</translation>
+    </message>
+    <message>
+        <source>Remove from favorites</source>
+        <translation>Видалити з обраного</translation>
     </message>
     <message>
         <source>Remove from group</source>

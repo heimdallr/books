@@ -5277,6 +5277,10 @@ Try again?</source>
 <context>
     <name>Navigation</name>
     <message>
+        <source>Add to favorites</source>
+        <translation></translation>
+    </message>
+    <message>
         <source>All</source>
         <translation></translation>
     </message>
@@ -5314,6 +5318,10 @@ Try again?</source>
     </message>
     <message>
         <source>Create new search...</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Favorites</source>
         <translation></translation>
     </message>
     <message>
@@ -5362,6 +5370,10 @@ Try again?</source>
     </message>
     <message>
         <source>Remove</source>
+        <translation></translation>
+    </message>
+    <message>
+        <source>Remove from favorites</source>
         <translation></translation>
     </message>
     <message>
