@@ -94,7 +94,7 @@ void BackupUserDataBooks(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 void BackupUserDataGroups(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 {
 	static constexpr auto text = "select g.Title, g.CreatedAt, gl.CreatedAt, b.FileName, f.FolderTitle "
-								 ", a.LastName||','||a.FirstName||','||a.MiddleName "
+								 ", a.LastName||','||a.FirstName||','||a.MiddleName||','||coalesce(a.NickName, '') "
 								 ", s.SeriesTitle, k.KeywordTitle "
 								 "from Groups_User g "
 								 "left join Groups_List_User gl on gl.GroupID = g.GroupID "
@@ -191,11 +191,14 @@ void BackupUserDataExportStat(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 
 void BackupUserDataFilter(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 {
+	static constexpr std::string_view FIELD_NAMES[] { "LastName||','||FirstName||','||MiddleName||','||coalesce(NickName, '')", "SeriesTitle", "FB2Code", "", "KeywordTitle", "", "", "LanguageCode", "Title", "", "", "", "", "", "" };
+	static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(FIELD_NAMES));
+
 	auto range = IFilterProvider::GetDescriptions();
 	(void)std::ranges::for_each(range, [&](const IFilterProvider::FilteredNavigation& description) {
 		const auto index = static_cast<size_t>(description.navigationMode);
-		assert(!Constant::UserData::Filter::FIELD_NAMES[index].empty());
-		const auto query = db.CreateQuery(std::format("select {}, Flags from {} where Flags != 0", Constant::UserData::Filter::FIELD_NAMES[index], description.table));
+		assert(!FIELD_NAMES[index].empty());
+		const auto query = db.CreateQuery(std::format("select {}, Flags from {} where Flags != 0", FIELD_NAMES[index], description.table));
 		query->Execute();
 		if (query->Eof())
 			return;

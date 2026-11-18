@@ -28,12 +28,12 @@ using namespace HomeCompa;
 namespace {
 
 constexpr std::pair<int, const char*> XML[] {
-	{  1,                             "FlibraryBackup" },
-	{  1,            "FlibraryBackup/FlibraryUserData" },
+	{  0,                             "FlibraryBackup" },
+	{  0,            "FlibraryBackup/FlibraryUserData" },
 	{  1,      "FlibraryBackup/FlibraryUserData/Books" },
-	{  1, "FlibraryBackup/FlibraryUserData/ExportStat" },
+	{  4, "FlibraryBackup/FlibraryUserData/ExportStat" },
 	{ 10,  "FlibraryBackup/FlibraryUserData/Favorites" },
-	{  1,     "FlibraryBackup/FlibraryUserData/Filter" },
+	{  8,     "FlibraryBackup/FlibraryUserData/Filter" },
 	{  1,     "FlibraryBackup/FlibraryUserData/Groups" },
 	{  1,   "FlibraryBackup/FlibraryUserData/Searches" },
 };
@@ -135,7 +135,8 @@ struct TestData
 	std::vector<QString>      setQueries;
 	std::set<QString>         xml;
 	std::vector<CheckRestore> checkRestore;
-	int                       version { 1 };
+	int                       minVersion { 1 };
+	int                       maxVersion { std::numeric_limits<int>::max() };
 
 	static QByteArray GenerateXml(const std::set<QString>& xml)
 	{
@@ -186,8 +187,11 @@ struct UserDataControllerTest : testing::Test
 		builder.registerInstance(uiFactory).as<IUiFactory>();
 	} };
 
-	void TestRestore(const std::set<QString>& xmlSrc, const std::vector<CheckRestore>& checkSet, const int backupVersionNumber)
+	void TestRestore(const std::set<QString>& xmlSrc, const std::vector<CheckRestore>& checkSet, const int minVersion, const int maxVersion, const int backupVersionNumber)
 	{
+		if (backupVersionNumber < minVersion || backupVersionNumber > maxVersion)
+			return SUCCEED();
+
 		auto xml = XML | std::views::filter([&](const auto& item) {
 					   return item.first <= backupVersionNumber;
 				   })
@@ -424,16 +428,25 @@ INSTANTIATE_TEST_SUITE_P(
 			.setQueries   = { "INSERT INTO Books_User (BookID, UserRate, CreatedAt ) VALUES (:bookId, 3, '1974-01-01 02:03:05')" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Books", "FlibraryBackup/FlibraryUserData/Books/Item~CreatedAt=1974-01-01 02:03:05;FileName=100500;Folder=1.zip;IsDeleted=;Lang=;UserRate=3" },
 			.checkRestore = { { "select IsDeleted, UserRate, Lang from Books_User", { { "", "3", "" } } } },
+			.minVersion   = 2,
 		},
 		TestData {
 			.setQueries   = { "INSERT INTO Books_User (BookID, Lang, CreatedAt ) VALUES (:bookId, 'ja', '1974-01-01 02:03:06')" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Books", "FlibraryBackup/FlibraryUserData/Books/Item~CreatedAt=1974-01-01 02:03:06;FileName=100500;Folder=1.zip;IsDeleted=;Lang=ja;UserRate=" },
 			.checkRestore = { { "select IsDeleted, UserRate, Lang from Books_User", { { "", "", "ja" } } } },
+			.minVersion   = 6,
+		},
+		TestData {
+			.setQueries   = { "INSERT INTO Books_User (BookID, IsDeleted, UserRate, CreatedAt ) VALUES (:bookId, 0, 5, '1974-01-01 02:03:07')" },
+			.xml          = { "FlibraryBackup/FlibraryUserData/Books", "FlibraryBackup/FlibraryUserData/Books/Item~CreatedAt=1974-01-01 02:03:07;FileName=100500;Folder=1.zip;IsDeleted=0;Lang=;UserRate=5" },
+			.checkRestore = { { "select IsDeleted, UserRate from Books_User", { { "0", "5" } } } },
+			.minVersion   = 2,
 		},
 		TestData {
 			.setQueries   = { "INSERT INTO Books_User (BookID, IsDeleted, UserRate, Lang, CreatedAt ) VALUES (:bookId, 0, 5, 'uk', '1974-01-01 02:03:07')" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Books", "FlibraryBackup/FlibraryUserData/Books/Item~CreatedAt=1974-01-01 02:03:07;FileName=100500;Folder=1.zip;IsDeleted=0;Lang=uk;UserRate=5" },
 			.checkRestore = { { "select IsDeleted, UserRate, Lang from Books_User", { { "0", "5", "uk" } } } },
+			.minVersion   = 6,
 		},
 		TestData {
 			.setQueries   = { "insert into Groups_User(Title, CreatedAt) values('My books group title', '1974-01-01 02:03:08')",
@@ -443,11 +456,19 @@ INSTANTIATE_TEST_SUITE_P(
 			.checkRestore = { { "select Title from Groups_User", { { "My books group title" } } }, { "select count(42) from Groups_List_User l join Books b on b.BookID = l.ObjectID", { { "1" } } } },
 		},
 		TestData {
-			.setQueries   = { "insert into Groups_User(Title, CreatedAt) values('My authors group title', '1974-01-01 02:03:10')",
-			                  "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) values(1, :authorId, '1974-01-01 02:03:11')" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Groups/Group/Author~CreatedAt=1974-01-01 02:03:11;Title=LastName,FirstName,MiddleName",
 			                  "FlibraryBackup/FlibraryUserData/Groups/Group~CreatedAt=1974-01-01 02:03:10;Title=My authors group title" },
 			.checkRestore = { { "select Title from Groups_User", { { "My authors group title" } } }, { "select count(42) from Groups_List_User l join Authors a on a.AuthorID = l.ObjectID", { { "1" } } } },
+			.minVersion   = 7,
+			.maxVersion   = 9,
+		},
+		TestData {
+			.setQueries   = { "insert into Groups_User(Title, CreatedAt) values('My authors group title', '1974-01-01 02:03:10')",
+			                  "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) values(1, :authorId, '1974-01-01 02:03:11')" },
+			.xml          = { "FlibraryBackup/FlibraryUserData/Groups/Group/Author~CreatedAt=1974-01-01 02:03:11;Title=LastName,FirstName,MiddleName,NickName",
+			                  "FlibraryBackup/FlibraryUserData/Groups/Group~CreatedAt=1974-01-01 02:03:10;Title=My authors group title" },
+			.checkRestore = { { "select Title from Groups_User", { { "My authors group title" } } }, { "select count(42) from Groups_List_User l join Authors a on a.AuthorID = l.ObjectID", { { "1" } } } },
+			.minVersion   = 10,
 		},
 		TestData {
 			.setQueries   = { "insert into Groups_User(Title, CreatedAt) values('My series group title', '1974-01-01 02:03:12')",
@@ -455,78 +476,97 @@ INSTANTIATE_TEST_SUITE_P(
 			.xml          = { "FlibraryBackup/FlibraryUserData/Groups/Group/Series~CreatedAt=1974-01-01 02:03:13;Title=SeriesTitle",
 			                  "FlibraryBackup/FlibraryUserData/Groups/Group~CreatedAt=1974-01-01 02:03:12;Title=My series group title" },
 			.checkRestore = { { "select Title from Groups_User", { { "My series group title" } } }, { "select count(42) from Groups_List_User l join Series s on s.SeriesID = l.ObjectID", { { "1" } } } },
+			.minVersion   = 7,
+		},
+		TestData {
+			.xml          = { "FlibraryBackup/FlibraryUserData/Searches/Item~CreatedAt=1974-01-01 02:03:14;Title=horse*" },
+			.checkRestore = { { "select Origin, Title from Searches_User", { { "", "horse*" } } } },
+			.maxVersion   = 8,
 		},
 		TestData {
 			.setQueries   = { "insert into Searches_User(Origin, Title, CreatedAt) values('horse', 'horse*', '1974-01-01 02:03:14')" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Searches/Item~CreatedAt=1974-01-01 02:03:14;Origin=horse;Title=horse*" },
 			.checkRestore = { { "select Origin, Title from Searches_User", { { "horse", "horse*" } } } },
+			.minVersion   = 9,
 		},
 		TestData {
 			.setQueries   = { "insert into Export_List_User(BookID, ExportType, CreatedAt) values(:bookId, 4, '1974-01-01 02:03:15')" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/ExportStat/Item~CreatedAt=1974-01-01 02:03:15;ExportType=4;FileName=100500;Folder=1.zip" },
 			.checkRestore = { { "select ExportType from Export_List_User", { { "4" } } } },
+			.minVersion   = 4,
 		},
 		TestData {
 			.setQueries   = { "update Languages set Flags = 1 where LanguageCode = 'sq'" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Filter/Languages", "FlibraryBackup/FlibraryUserData/Filter/Languages/Item~Flag=1;Title=sq" },
 			.checkRestore = { { "select LanguageCode, Flags from Languages", { { "sq", "1" } } } },
+			.minVersion   = 8,
+		},
+		TestData {
+			.xml          = { "FlibraryBackup/FlibraryUserData/Filter/Authors", "FlibraryBackup/FlibraryUserData/Filter/Authors/Item~Flag=3;Title=LastName,FirstName,MiddleName" },
+			.checkRestore = { { "select LastName, FirstName, MiddleName, Flags from Authors", { { "LastName", "FirstName", "MiddleName", "3" } } } },
+			.minVersion   = 8,
+			.maxVersion   = 9,
 		},
 		TestData {
 			.setQueries   = { "update Authors set Flags = 3 where AuthorID = :authorId" },
-			.xml          = { "FlibraryBackup/FlibraryUserData/Filter/Authors", "FlibraryBackup/FlibraryUserData/Filter/Authors/Item~Flag=3;Title=LastName,FirstName,MiddleName" },
-			.checkRestore = { { "select LastName, FirstName, MiddleName, Flags from Authors", { { "LastName", "FirstName", "MiddleName", "3" } } } },
+			.xml          = { "FlibraryBackup/FlibraryUserData/Filter/Authors", "FlibraryBackup/FlibraryUserData/Filter/Authors/Item~Flag=3;Title=LastName,FirstName,MiddleName,NickName" },
+			.checkRestore = { { "select LastName, FirstName, MiddleName, NickName, Flags from Authors", { { "LastName", "FirstName", "MiddleName", "NickName", "3" } } } },
+			.minVersion   = 10,
 		},
 		TestData {
 			.setQueries   = { "update Series set Flags = 2 where SeriesID = :seriesId" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Filter/Series", "FlibraryBackup/FlibraryUserData/Filter/Series/Item~Flag=2;Title=SeriesTitle" },
 			.checkRestore = { { "select SeriesTitle, Flags from Series", { { "SeriesTitle", "2" } } } },
+			.minVersion   = 8,
 		},
 		TestData {
 			.setQueries   = { "update Genres set Flags = 2 where FB2Code='sf'" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Filter/Genres", "FlibraryBackup/FlibraryUserData/Filter/Genres/Item~Flag=2;Title=sf" },
 			.checkRestore = { { "select FB2Code, Flags from Genres where Flags <> 0", { { "sf", "2" } } } },
+			.minVersion   = 8,
 		},
 		TestData {
 			.setQueries   = { "update Keywords set Flags = 1 where KeywordID = :keywordId" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Filter/Keywords", "FlibraryBackup/FlibraryUserData/Filter/Keywords/Item~Flag=1;Title=Story" },
 			.checkRestore = { { "select KeywordTitle, Flags from Keywords", { { "Story", "1" } } } },
+			.minVersion   = 8,
 		},
 		TestData {
 			.setQueries   = { "insert into Favorites (FavoriteID, ObjectID) values(0, :authorId)" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Authors", "FlibraryBackup/FlibraryUserData/Favorites/Authors/Item~Title=LastName,FirstName,MiddleName,NickName" },
 			.checkRestore = { { "select a.LastName, a.FirstName, a.MiddleName, a.NickName, f.ObjectCode from Authors a join Favorites f on f.ObjectID = a.AuthorID and f.FavoriteID = 0",
 			                    { { "LastName", "FirstName", "MiddleName", "NickName", "" } } } },
-			.version      = 10,
+			.minVersion   = 10,
 		},
 		TestData {
 			.setQueries   = { "insert into Favorites (FavoriteID, ObjectID) values(1, :seriesId)" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Series", "FlibraryBackup/FlibraryUserData/Favorites/Series/Item~Title=SeriesTitle" },
 			.checkRestore = { { "select s.SeriesTitle, f.ObjectCode from Series s join Favorites f on f.ObjectID = s.SeriesID and f.FavoriteID = 1", { { "SeriesTitle", "" } } } },
-			.version      = 10,
+			.minVersion   = 10,
 		},
 		TestData {
 			.setQueries   = { "insert into Favorites (FavoriteID, ObjectCode) values(2, '001.001')" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Genres", "FlibraryBackup/FlibraryUserData/Favorites/Genres/Item~Title=sf" },
 			.checkRestore = { { "select g.FB2Code, f.ObjectID from Genres g join Favorites f on f.ObjectCode = g.GenreCode and f.FavoriteID = 2", { { "sf", "" } } } },
-			.version      = 10,
+			.minVersion   = 10,
 		},
 		TestData {
 			.setQueries   = { "insert into Favorites (FavoriteID, ObjectID) values(3, 1974)" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/PublishYear", "FlibraryBackup/FlibraryUserData/Favorites/PublishYear/Item~Title=1974" },
 			.checkRestore = { { "select ObjectID, ObjectCode from Favorites where FavoriteID = 3", { { "1974", "" } } } },
-			.version      = 10,
+			.minVersion   = 10,
 		},
 		TestData {
 			.setQueries   = { "insert into Favorites (FavoriteID, ObjectID) values(4, :keywordId)" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Keywords", "FlibraryBackup/FlibraryUserData/Favorites/Keywords/Item~Title=Story" },
 			.checkRestore = { { "select k.KeywordTitle, f.ObjectCode from Keywords k join Favorites f on f.ObjectID = k.KeywordID and f.FavoriteID = 4", { { "Story", "" } } } },
-			.version      = 10,
+			.minVersion   = 10,
 		},
 		TestData {
 			.setQueries   = { "insert into Favorites (FavoriteID, ObjectCode) values(7, 'sq')" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Languages", "FlibraryBackup/FlibraryUserData/Favorites/Languages/Item~Title=sq" },
 			.checkRestore = { { "select ObjectID, ObjectCode from Favorites where FavoriteID = 7", { { "", "sq" } } } },
-			.version      = 10,
+			.minVersion   = 10,
 		}
 	)
 );
@@ -535,7 +575,10 @@ INSTANTIATE_TEST_SUITE_P(
 
 TEST_P(UserDataControllerBackupRestore, Backup)
 {
-	const auto& [setQueries, checkSetSrc, _1, _2] = GetParam();
+	const auto& [setQueries, checkSetSrc, _1, _2, _3] = GetParam();
+
+	if (setQueries.empty())
+		return SUCCEED();
 
 	auto checkSet = XML | std::views::values | std::ranges::to<decltype(TestData::xml)>();
 	checkSet.emplace(QString("FlibraryBackup/FlibraryBackupVersion~Value=%1").arg(Constant::FlibraryBackupVersionNumber));
@@ -608,17 +651,64 @@ TEST_P(UserDataControllerBackupRestore, Backup)
 		EXPECT_STREQ(serialized.toStdString().data(), check.toStdString().data());
 }
 
+TEST_P(UserDataControllerBackupRestore, Restore0001)
+{
+	const auto& [_, xmlSrc, checkSet, minVersion, maxVersion] = GetParam();
+	TestRestore(xmlSrc, checkSet, minVersion, maxVersion, 1);
+}
+
+TEST_P(UserDataControllerBackupRestore, Restore0002)
+{
+	const auto& [_, xmlSrc, checkSet, minVersion, maxVersion] = GetParam();
+	TestRestore(xmlSrc, checkSet, minVersion, maxVersion, 2);
+}
+
+TEST_P(UserDataControllerBackupRestore, Restore0003)
+{
+	const auto& [_, xmlSrc, checkSet, minVersion, maxVersion] = GetParam();
+	TestRestore(xmlSrc, checkSet, minVersion, maxVersion, 3);
+}
+
+TEST_P(UserDataControllerBackupRestore, Restore0004)
+{
+	const auto& [_, xmlSrc, checkSet, minVersion, maxVersion] = GetParam();
+	TestRestore(xmlSrc, checkSet, minVersion, maxVersion, 4);
+}
+
+TEST_P(UserDataControllerBackupRestore, Restore0005)
+{
+	const auto& [_, xmlSrc, checkSet, minVersion, maxVersion] = GetParam();
+	TestRestore(xmlSrc, checkSet, minVersion, maxVersion, 5);
+}
+
+TEST_P(UserDataControllerBackupRestore, Restore0006)
+{
+	const auto& [_, xmlSrc, checkSet, minVersion, maxVersion] = GetParam();
+	TestRestore(xmlSrc, checkSet, minVersion, maxVersion, 6);
+}
+
+TEST_P(UserDataControllerBackupRestore, Restore0007)
+{
+	const auto& [_, xmlSrc, checkSet, minVersion, maxVersion] = GetParam();
+	TestRestore(xmlSrc, checkSet, minVersion, maxVersion, 7);
+}
+
+TEST_P(UserDataControllerBackupRestore, Restore0008)
+{
+	const auto& [_, xmlSrc, checkSet, minVersion, maxVersion] = GetParam();
+	TestRestore(xmlSrc, checkSet, minVersion, maxVersion, 8);
+}
+
 TEST_P(UserDataControllerBackupRestore, Restore0009)
 {
-	const auto& [_, xmlSrc, checkSet, version] = GetParam();
-	if (version <= 9)
-		TestRestore(xmlSrc, checkSet, 9);
+	const auto& [_, xmlSrc, checkSet, minVersion, maxVersion] = GetParam();
+	TestRestore(xmlSrc, checkSet, minVersion, maxVersion, 9);
 }
 
 TEST_P(UserDataControllerBackupRestore, RestoreActual)
 {
-	const auto& [_1, xmlSrc, checkSet, _2] = GetParam();
-	TestRestore(xmlSrc, checkSet, Constant::FlibraryBackupVersionNumber);
+	const auto& [_, xmlSrc, checkSet, minVersion, maxVersion] = GetParam();
+	TestRestore(xmlSrc, checkSet, minVersion, maxVersion, Constant::FlibraryBackupVersionNumber);
 }
 
 } // namespace

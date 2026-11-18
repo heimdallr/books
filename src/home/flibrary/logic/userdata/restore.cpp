@@ -44,12 +44,14 @@ ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::UserData::Check);
 	RESTORE_ITEM(Groups, 1)     \
 	RESTORE_ITEM(Groups, 3)     \
 	RESTORE_ITEM(Groups, 7)     \
+	RESTORE_ITEM(Groups, 10)    \
 	RESTORE_ITEM(Searches, 1)   \
 	RESTORE_ITEM(Searches, 3)   \
 	RESTORE_ITEM(Searches, 5)   \
 	RESTORE_ITEM(Searches, 9)   \
 	RESTORE_ITEM(ExportStat, 4) \
 	RESTORE_ITEM(Filter, 8)     \
+	RESTORE_ITEM(Filter, 10)    \
 	RESTORE_ITEM(Favorites, 10)
 
 namespace HomeCompa::Flibrary::UserData {
@@ -224,12 +226,14 @@ private:
 		if (it == m_restorerCreators.end())
 		{
 			PLOGW << "cannot find parser for " << name;
+			m_processed = false;
 			return true;
 		}
 
 		if (it->second.begin()->first > m_version)
 		{
 			PLOGW << "first parser version for " << name << " is " << it->second.begin()->first << " but " << m_version << " received";
+			m_processed = false;
 			return true;
 		}
 

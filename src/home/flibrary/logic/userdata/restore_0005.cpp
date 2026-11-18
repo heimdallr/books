@@ -7,10 +7,8 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
-#include "interface/logic/IBookSearchController.h"
 
 #include "constants/books.h"
-#include "constants/searches.h"
 #include "util/xml/XmlAttributes.h"
 
 #include "restore.h"
@@ -44,7 +42,7 @@ private: // IRestorer
 		using namespace Constant::UserData;
 		const auto transaction = db.CreateTransaction();
 		transaction->CreateCommand("delete from Searches_User")->Execute();
-		for (const auto createSearchCommand = transaction->CreateCommand(Searches::CreateNewSearchCommandText); const auto& [title, createdAt] : m_items)
+		for (const auto createSearchCommand = transaction->CreateCommand("insert into Searches_User(Title, CreatedAt) values(?, ?)"); const auto& [title, createdAt] : m_items)
 			createSearchCommand->Execute(title, GetStringParameter(createdAt));
 
 		transaction->Commit();

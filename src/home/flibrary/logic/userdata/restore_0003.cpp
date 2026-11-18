@@ -160,7 +160,7 @@ private: // IRestorer
 
 	void Restore(DB::IDatabaseWritable& db) const override
 	{
-		static constexpr auto addBookToGroupCommandText = "insert into Groups_List_User(GroupID, BookID, CreatedAt) "
+		static constexpr auto addBookToGroupCommandText = "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) "
 														  "select ?, BookID, ? "
 														  "from Books "
 														  "where FolderID = (select FolderID from Folders where FolderTitle = ?) and FileName = ?";
@@ -168,7 +168,7 @@ private: // IRestorer
 		const auto transaction = db.CreateTransaction();
 		transaction->CreateCommand("delete from Groups_User")->Execute();
 
-		const auto createGroupCommand    = transaction->CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
+		const auto createGroupCommand    = transaction->CreateCommand("insert into Groups_User(Title, CreatedAt) values(?, ?)");
 		const auto addBookToGroupCommand = transaction->CreateCommand(addBookToGroupCommandText);
 
 		const auto addBooksToGroup = [&](const Books& books) {
@@ -224,7 +224,7 @@ private: // IRestorer
 		const auto transaction = db.CreateTransaction();
 		transaction->CreateCommand("delete from Searches_User")->Execute();
 
-		for (const auto createSearchCommand = transaction->CreateCommand(Searches::CreateNewSearchCommandText); const auto& [title, createdAt] : m_items)
+		for (const auto createSearchCommand = transaction->CreateCommand("insert into Searches_User(Title, CreatedAt) values(?, ?)"); const auto& [title, createdAt] : m_items)
 			createSearchCommand->Execute(title, GetStringParameter(createdAt));
 
 		transaction->Commit();

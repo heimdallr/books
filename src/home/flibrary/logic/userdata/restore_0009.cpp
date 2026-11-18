@@ -46,7 +46,7 @@ private: // IRestorer
 		const auto transaction = db.CreateTransaction();
 		transaction->CreateCommand("delete from Searches_User")->Execute();
 
-		for (const auto createSearchCommand = transaction->CreateCommand(Searches::CreateNewSearchCommandText); const auto& [origin, title, createdAt] : m_items)
+		for (const auto createSearchCommand = transaction->CreateCommand("insert into Searches_User(Origin, Title, CreatedAt) values(?, ?, ?)"); const auto& [origin, title, createdAt] : m_items)
 			createSearchCommand->Execute(GetStringParameter(origin), title, GetStringParameter(createdAt));
 
 		transaction->Commit();

@@ -174,7 +174,7 @@ private:
 			tr->CreateCommand("delete from Groups_User")->Execute();
 
 			{
-				const auto createGroupCommand = tr->CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
+				const auto createGroupCommand = tr->CreateCommand("insert into Groups_User(Title) values(?)");
 				for (auto& group : m_groups)
 				{
 					createGroupCommand->Execute(group.name);

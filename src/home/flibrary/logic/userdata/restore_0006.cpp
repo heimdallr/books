@@ -30,10 +30,10 @@ struct Book
 	}
 };
 
-#define ADDITIONAL_BOOK_FIELDS_X_MACRO                                                                                                                                                                         \
-	ADDITIONAL_BOOK_FIELD(IsDeleted)                                                                                                                                                                           \
-	ADDITIONAL_BOOK_FIELD(UserRate)                                                                                                                                                                            \
-	ADDITIONAL_BOOK_FIELD(Lang)                                                                                                                                                                                \
+#define ADDITIONAL_BOOK_FIELDS_X_MACRO \
+	ADDITIONAL_BOOK_FIELD(IsDeleted)   \
+	ADDITIONAL_BOOK_FIELD(UserRate)    \
+	ADDITIONAL_BOOK_FIELD(Lang)        \
 	ADDITIONAL_BOOK_FIELD(CreatedAt)
 
 struct FieldNo

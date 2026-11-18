@@ -131,7 +131,7 @@ private:
 	std::vector<std::pair<GroupRef, long long>> WriteGroups(DB::ITransaction& tr) const
 	{
 		std::vector<std::pair<GroupRef, long long>> groups;
-		const auto                                  command = tr.CreateCommand(Constant::UserData::Groups::CreateNewGroupCommandText);
+		const auto                                  command = tr.CreateCommand("insert into Groups_User(Title, CreatedAt) values(?, ?)");
 		std::ranges::transform(m_groups, std::back_inserter(groups), [&](const Group& group) {
 			group.Write(*command);
 			const auto getLastIdQuery = tr.CreateQuery(IDatabaseProvider::SELECT_LAST_ID_QUERY);

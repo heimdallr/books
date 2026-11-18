@@ -6,7 +6,4 @@ constexpr auto RootNode = "Filter";
 constexpr auto Title    = u"Title";
 constexpr auto Flag     = u"Flag";
 
-static constexpr std::string_view FIELD_NAMES[] { "LastName||','||FirstName||','||MiddleName", "SeriesTitle", "FB2Code", "", "KeywordTitle", "", "", "LanguageCode", "Title", "", "", "", "", "", "" };
-static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(FIELD_NAMES));
-
 } // namespace HomeCompa::Flibrary::Constant::UserData::Filter

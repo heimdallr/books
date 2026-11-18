@@ -5,15 +5,20 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
+#include "interface/logic/IDatabaseProvider.h"
+#include "interface/logic/IFilterProvider.h"
 
+#include "constants/books.h"
+#include "constants/groups.h"
 #include "model/AuthorsModel.h"
 #include "util/xml/XmlAttributes.h"
 
 #include "restore.h"
+#include "constants/filter.h"
 
 namespace HomeCompa::Flibrary::UserData {
 
-namespace {
+namespace Favorites { namespace {
 
 struct ICodeGetter // NOLINT(cppcoreguidelines-special-member-functions)
 {
@@ -79,7 +84,7 @@ struct AuthorsCodeGetter final : QueryCodeGetter
 	{
 		const auto list = title.split(',', Qt::KeepEmptyParts);
 		m_query->Execute(list[0], list[1], list[2], !list[3].isEmpty() ? std::optional { list[3] } : std::nullopt);
-		return !m_query->Eof() ? std::optional { std::make_pair(m_query->Get<long long>(0), QString{}) } : std::nullopt;
+		return !m_query->Eof() ? std::optional { std::make_pair(m_query->Get<long long>(0), QString {}) } : std::nullopt;
 	}
 };
 
@@ -187,7 +192,7 @@ constexpr CodeGetterCreator CODE_GETTER_CREATORS[] {
 #undef NAVIGATION_MODE_ITEM
 };
 
-class FavoritesRestorer final : public IRestorer
+class Restorer final : public IRestorer
 {
 private: // IRestorer
 	void AddElement(const QString& name, const Util::XmlAttributes& attributes) override
@@ -234,11 +239,238 @@ private:
 	std::vector<std::pair<NavigationMode, std::vector<QString>>> m_data;
 };
 
-} // namespace
+}} // namespace Favorites
+
+namespace Groups { namespace {
+
+std::optional<QString> GetStringParameter(QString value)
+{
+	return !value.isEmpty() ? std::optional { std::move(value) } : std::nullopt;
+}
+
+class Restorer final : public IRestorer
+{
+	struct Item
+	{
+		QString title;
+		QString createdAt;
+
+		explicit Item(const Util::XmlAttributes& attributes)
+			: title { attributes.GetAttribute(Constant::TITLE).toString() }
+			, createdAt { attributes.GetAttribute(Constant::UserData::Books::CreatedAt).toString() }
+		{
+		}
+
+		void Write(DB::ICommand& command, const long long groupId) const
+		{
+			command.Execute(groupId, GetStringParameter(createdAt), GetStringParameter(title));
+		}
+	};
+
+	using Items = std::vector<Item>;
+
+	struct Book
+	{
+		QString file;
+		QString folder;
+		QString createdAt;
+
+		explicit Book(const Util::XmlAttributes& attributes)
+			: file { attributes.GetAttribute(Constant::UserData::Books::FileName).toString() }
+			, folder { attributes.GetAttribute(Constant::UserData::Books::Folder).toString() }
+			, createdAt { attributes.GetAttribute(Constant::UserData::Books::CreatedAt).toString() }
+		{
+		}
+
+		void Write(DB::ICommand& command, const long long groupId) const
+		{
+			command.Execute(groupId, GetStringParameter(createdAt), GetStringParameter(folder), GetStringParameter(file));
+		}
+	};
+
+	using Books = std::vector<Book>;
+
+	struct Group : Item
+	{
+		Books books;
+		Items authors, series, keywords;
+
+		explicit Group(const Util::XmlAttributes& attributes)
+			: Item(attributes)
+		{
+		}
+
+		void Write(DB::ICommand& command) const
+		{
+			command.Execute(GetStringParameter(title), GetStringParameter(createdAt));
+		}
+	};
+
+	using Groups   = std::vector<Group>;
+	using GroupRef = std::reference_wrapper<const Group>;
+
+private: // IRestorer
+	void AddElement(const QString& name, const Util::XmlAttributes& attributes) override
+	{
+		using Functor = void (Restorer::*)(const Util::XmlAttributes&);
+		constexpr std::pair<const char*, Functor> collectors[] {
+#define ITEM(NAME) { #NAME, &Restorer::Add##NAME }
+			ITEM(Group), ITEM(Item), ITEM(Author), ITEM(Series), ITEM(Keyword),
+#undef ITEM
+		};
+
+		const auto invoker = FindSecond(collectors, name.toStdString().data(), PszComparer {});
+		std::invoke(invoker, this, std::cref(attributes));
+	}
+
+	void Restore(DB::IDatabaseWritable& db) const override
+	{
+		static constexpr auto commandTextBooks    = "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) "
+													"select ?, BookID, ? "
+													"from Books "
+													"where FolderID = (select FolderID from Folders where FolderTitle = ?) and FileName = ?";
+		static constexpr auto commandTextAuthors  = "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) "
+													"select ?, AuthorID, ? "
+													"from Authors "
+													"where LastName||','||FirstName||','||MiddleName||','||coalesce(NickName, '') = ?";
+		static constexpr auto commandTextSeries   = "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) "
+													"select ?, SeriesID, ? "
+													"from Series "
+													"where SeriesTitle = ?";
+		static constexpr auto commandTextKeywords = "insert into Groups_List_User(GroupID, ObjectID, CreatedAt) "
+													"select ?, KeywordID, ? "
+													"from Keywords "
+													"where KeywordTitle = ?";
+
+		const auto transaction = db.CreateTransaction();
+		transaction->CreateCommand("delete from Groups_User")->Execute();
+		const auto groups = WriteGroups(*transaction);
+
+		WriteItems<Books>(*transaction, commandTextBooks, groups, &Group::books);
+		WriteItems<Items>(*transaction, commandTextAuthors, groups, &Group::authors);
+		WriteItems<Items>(*transaction, commandTextSeries, groups, &Group::series);
+		WriteItems<Items>(*transaction, commandTextKeywords, groups, &Group::keywords);
+
+		transaction->Commit();
+	}
+
+private:
+	std::vector<std::pair<GroupRef, long long>> WriteGroups(DB::ITransaction& tr) const
+	{
+		std::vector<std::pair<GroupRef, long long>> groups;
+		const auto                                  command = tr.CreateCommand("insert into Groups_User(Title, CreatedAt) values(?, ?)");
+		std::ranges::transform(m_groups, std::back_inserter(groups), [&](const Group& group) {
+			group.Write(*command);
+			const auto getLastIdQuery = tr.CreateQuery(IDatabaseProvider::SELECT_LAST_ID_QUERY);
+			getLastIdQuery->Execute();
+			return std::make_pair(GroupRef { group }, getLastIdQuery->Get<long long>(0));
+		});
+		return groups;
+	}
+
+	template <std::ranges::range Container>
+	void WriteItems(DB::ITransaction& tr, const char* commandText, const std::vector<std::pair<GroupRef, long long>>& groups, const std::function<const Container&(const Group&)>& functor) const
+	{
+		for (const auto command = tr.CreateCommand(commandText); const auto& [group, groupId] : groups)
+			for (const auto& book : functor(group.get()))
+				book.Write(*command, groupId);
+	}
+
+	void AddGroup(const Util::XmlAttributes& attributes)
+	{
+		m_groups.emplace_back(attributes);
+	}
+
+	void AddItem(const Util::XmlAttributes& attributes)
+	{
+		assert(!m_groups.empty());
+		m_groups.back().books.emplace_back(attributes);
+	}
+
+	void AddAuthor(const Util::XmlAttributes& attributes)
+	{
+		assert(!m_groups.empty());
+		m_groups.back().authors.emplace_back(attributes);
+	}
+
+	void AddSeries(const Util::XmlAttributes& attributes)
+	{
+		assert(!m_groups.empty());
+		m_groups.back().series.emplace_back(attributes);
+	}
+
+	void AddKeyword(const Util::XmlAttributes& attributes)
+	{
+		assert(!m_groups.empty());
+		m_groups.back().keywords.emplace_back(attributes);
+	}
+
+private:
+	Groups m_groups;
+};
+
+}} // namespace Groups
+
+namespace Filter { namespace {
+
+constexpr std::string_view FIELD_NAMES[] { "LastName||','||FirstName||','||MiddleName||','||coalesce(NickName, '')", "SeriesTitle", "FB2Code", "", "KeywordTitle", "", "", "LanguageCode", "Title", "", "", "", "", "", "" };
+static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(FIELD_NAMES));
+
+using namespace Constant::UserData::Filter;
+
+class Restorer final : public IRestorer
+{
+	using DataValues = std::vector<std::pair<QString, int>>;
+
+private: // IRestorer
+	void AddElement(const QString& name, const Util::XmlAttributes& attributes) override
+	{
+		if (name != Constant::ITEM)
+			return (void)(m_dataValues = &m_data[name]);
+
+		assert(m_dataValues);
+		m_dataValues->emplace_back(attributes.GetAttribute(Title).toString(), attributes.GetAttribute(Flag).toInt());
+	}
+
+	void Restore(DB::IDatabaseWritable& db) const override
+	{
+		const auto tr    = db.CreateTransaction();
+		auto       range = IFilterProvider::GetDescriptions();
+		(void)std::ranges::for_each(range, [&](const IFilterProvider::FilteredNavigation& description) {
+			const auto it = m_data.find(description.navigationTitle);
+			if (it == m_data.end())
+				return;
+
+			const auto index = static_cast<size_t>(description.navigationMode);
+			assert(!FIELD_NAMES[index].empty());
+			tr->CreateCommand(std::format("update {} set Flags = 0", description.table))->Execute();
+
+			for (const auto command = tr->CreateCommand(std::format("update {} set Flags = ? where {} = ?", description.table, FIELD_NAMES[index])); const auto& [title, flags] : it->second)
+				command->Execute(flags, title);
+		});
+		tr->Commit();
+	}
+
+private:
+	DataValues*                             m_dataValues { nullptr };
+	std::unordered_map<QString, DataValues> m_data;
+};
+
+}}
 
 std::unique_ptr<IRestorer> CreateFavoritesRestorer10()
 {
-	return std::make_unique<FavoritesRestorer>();
+	return std::make_unique<Favorites::Restorer>();
+}
+
+std::unique_ptr<IRestorer> CreateGroupsRestorer10()
+{
+	return std::make_unique<Groups::Restorer>();
+}
+
+std::unique_ptr<IRestorer> CreateFilterRestorer10()
+{
+	return std::make_unique<Filter::Restorer>();
 }
 
 } // namespace HomeCompa::Flibrary::UserData
