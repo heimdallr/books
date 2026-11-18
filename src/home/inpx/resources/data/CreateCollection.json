@@ -3,6 +3,13 @@
 	"PRAGMA journal_mode = OFF",
 	"PRAGMA foreign_keys = OFF",
 	[
+		"CREATE TABLE Favorites (",
+		"    FavoriteID INTEGER NOT NULL,",
+		"    ObjectID   INTEGER,",
+		"    ObjectCode VARCHAR (20)",
+		")"
+	],
+	[
 		"CREATE TABLE Annotations (",
 		"	BookID INTEGER NOT NULL PRIMARY KEY REFERENCES Books (BookID) ON DELETE CASCADE,",
 		"	Text   VARCHAR (10240) NOT NULL",

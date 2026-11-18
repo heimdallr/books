@@ -14,6 +14,7 @@ namespace HomeCompa::Flibrary {
 	NAVIGATION_MODE_ITEM(Archives)      \
 	NAVIGATION_MODE_ITEM(Languages)     \
 	NAVIGATION_MODE_ITEM(Groups)        \
+	NAVIGATION_MODE_ITEM(Favorites)     \
 	NAVIGATION_MODE_ITEM(Search)        \
 	NAVIGATION_MODE_ITEM(Reviews)       \
 	NAVIGATION_MODE_ITEM(AlreadyRead)   \
@@ -132,7 +133,9 @@ struct BooksMenuAction
 	MENU_ACTION_ITEM(AuthorReview)               \
 	MENU_ACTION_ITEM(HideNavigationItem)         \
 	MENU_ACTION_ITEM(FilterNavigationItemBooks)  \
-	MENU_ACTION_ITEM(ShowFilterSettings)
+	MENU_ACTION_ITEM(ShowFilterSettings)         \
+	MENU_ACTION_ITEM(AddToFavorites)             \
+	MENU_ACTION_ITEM(RemoveFromFavorites)
 
 struct MenuAction
 {

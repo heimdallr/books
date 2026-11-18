@@ -7,7 +7,6 @@
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/ProductConstant.h"
-#include "interface/logic/IBookSearchController.h"
 
 #include "constants/books.h"
 #include "constants/searches.h"

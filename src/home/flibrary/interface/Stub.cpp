@@ -481,6 +481,7 @@ constexpr IFilterProvider::FilteredNavigation FILTERED_NAVIGATION_DESCRIPTION[] 
 		{ NavigationMode::Archives   , Loc::Archives    , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::Languages  , Loc::Languages   , &IModelProvider::CreateFilterListModel, LANGUAGES, LANGUAGE_ID, &Binder<DB::ICommand, std::string>::Bind, &Binder<DB::IQuery, std::string>::Bind },
 		{ NavigationMode::Groups     , Loc::Groups      , &IModelProvider::CreateFilterListModel },
+		{ NavigationMode::Favorites  , Loc::Favorites   , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::Search     , Loc::Search      , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::Reviews    , Loc::Reviews     , &IModelProvider::CreateFilterListModel },
 		{ NavigationMode::AlreadyRead, Loc::AlreadyRead , &IModelProvider::CreateFilterListModel },

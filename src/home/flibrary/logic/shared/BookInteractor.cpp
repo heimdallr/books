@@ -38,6 +38,7 @@ inline constexpr const char* NAVIGATION_ID_QUERY[] = {
 	"select FolderID from Books where BookID = ?",
 	"select Lang from Books where BookID = ?",
 	"select GroupID from Groups_List_User where ObjectID = ? order by CreatedAt desc limit 1",
+	"select FavoriteID from Favorites where ObjectID = ? limit 1",
 	nullptr,
 	nullptr,
 	"select 42",

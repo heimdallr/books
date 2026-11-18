@@ -49,7 +49,8 @@ ENABLE_BITMASK_OPERATORS(HomeCompa::Flibrary::UserData::Check);
 	RESTORE_ITEM(Searches, 5)   \
 	RESTORE_ITEM(Searches, 9)   \
 	RESTORE_ITEM(ExportStat, 4) \
-	RESTORE_ITEM(Filter, 8)
+	RESTORE_ITEM(Filter, 8)     \
+	RESTORE_ITEM(Favorites, 10)
 
 namespace HomeCompa::Flibrary::UserData {
 
@@ -67,6 +68,19 @@ constexpr auto FLIBRARY_BACKUP_USER_DATA_GROUPS      = u"FlibraryBackup/Flibrary
 constexpr auto FLIBRARY_BACKUP_USER_DATA_SEARCHES    = u"FlibraryBackup/FlibraryUserData/Searches";
 constexpr auto FLIBRARY_BACKUP_USER_DATA_EXPORT_STAT = u"FlibraryBackup/FlibraryUserData/ExportStat";
 constexpr auto FLIBRARY_BACKUP_USER_DATA_FILTER      = u"FlibraryBackup/FlibraryUserData/Filter";
+constexpr auto FLIBRARY_BACKUP_USER_DATA_FAVORITES   = u"FlibraryBackup/FlibraryUserData/Favorites";
+
+class RestorerStub final : public IRestorer
+{
+private: // IRestorer
+	void AddElement(const QString& /*name*/, const Util::XmlAttributes& /*attributes*/) override
+	{
+	}
+
+	void Restore(DB::IDatabaseWritable& /*db*/) const override
+	{
+	}
+};
 
 class XmlParser final : public Util::SaxParser
 {
@@ -123,11 +137,20 @@ private: // Util::SaxParser
 			{    FLIBRARY_BACKUP_USER_DATA_SEARCHES, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
 			{ FLIBRARY_BACKUP_USER_DATA_EXPORT_STAT, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
 			{      FLIBRARY_BACKUP_USER_DATA_FILTER, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
+			{   FLIBRARY_BACKUP_USER_DATA_FAVORITES, &XmlParser::OnStartElementFlibraryBackupUserDataItem },
 		};
 
 		const auto result = Parse(*this, PARSERS, path, name.toString(), attributes);
 		if (!IsLastItemProcessed())
+		{
+			if (path.startsWith(FLIBRARY_BACKUP_USER_DATA) && path.size() == QStringView(FLIBRARY_BACKUP_USER_DATA).size() + name.size() + 1)
+			{
+				m_restorers.push_back(std::make_unique<RestorerStub>());
+				return result;
+			}
+
 			m_restorers.back()->AddElement(name.toString(), attributes);
+		}
 
 		return result;
 	}
