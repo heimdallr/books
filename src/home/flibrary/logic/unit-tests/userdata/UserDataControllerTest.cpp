@@ -70,6 +70,7 @@ struct CheckRestore
 					}
 				}
 			}
+			EXPECT_TRUE(query->Eof());
 			EXPECT_EQ(n, results.size());
 		}
 	}
@@ -493,38 +494,38 @@ INSTANTIATE_TEST_SUITE_P(
 		TestData {
 			.setQueries   = { "insert into Favorites (FavoriteID, ObjectID) values(0, :authorId)" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Authors", "FlibraryBackup/FlibraryUserData/Favorites/Authors/Item~Title=LastName,FirstName,MiddleName,NickName" },
-			.checkRestore = { { "select a.LastName, a.FirstName, a.MiddleName, a.NickName from Authors a join Favorites f on f.ObjectID = a.AuthorID and f.FavoriteID = 0",
-			                    { { "LastName", "FirstName", "MiddleName", "NickName" } } } },
+			.checkRestore = { { "select a.LastName, a.FirstName, a.MiddleName, a.NickName, f.ObjectCode from Authors a join Favorites f on f.ObjectID = a.AuthorID and f.FavoriteID = 0",
+			                    { { "LastName", "FirstName", "MiddleName", "NickName", "" } } } },
 			.version      = 10,
 		},
 		TestData {
 			.setQueries   = { "insert into Favorites (FavoriteID, ObjectID) values(1, :seriesId)" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Series", "FlibraryBackup/FlibraryUserData/Favorites/Series/Item~Title=SeriesTitle" },
-			.checkRestore = { { "select KeywordTitle, Flags from Keywords", { { "Story", "1" } } } },
+			.checkRestore = { { "select s.SeriesTitle, f.ObjectCode from Series s join Favorites f on f.ObjectID = s.SeriesID and f.FavoriteID = 1", { { "SeriesTitle", "" } } } },
 			.version      = 10,
 		},
 		TestData {
 			.setQueries   = { "insert into Favorites (FavoriteID, ObjectCode) values(2, '001.001')" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Genres", "FlibraryBackup/FlibraryUserData/Favorites/Genres/Item~Title=sf" },
-			.checkRestore = { { "select KeywordTitle, Flags from Keywords", { { "Story", "1" } } } },
+			.checkRestore = { { "select g.FB2Code, f.ObjectID from Genres g join Favorites f on f.ObjectCode = g.GenreCode and f.FavoriteID = 2", { { "sf", "" } } } },
 			.version      = 10,
 		},
 		TestData {
 			.setQueries   = { "insert into Favorites (FavoriteID, ObjectID) values(3, 1974)" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/PublishYear", "FlibraryBackup/FlibraryUserData/Favorites/PublishYear/Item~Title=1974" },
-			.checkRestore = { { "select KeywordTitle, Flags from Keywords", { { "Story", "1" } } } },
+			.checkRestore = { { "select ObjectID, ObjectCode from Favorites where FavoriteID = 3", { { "1974", "" } } } },
 			.version      = 10,
 		},
 		TestData {
 			.setQueries   = { "insert into Favorites (FavoriteID, ObjectID) values(4, :keywordId)" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Keywords", "FlibraryBackup/FlibraryUserData/Favorites/Keywords/Item~Title=Story" },
-			.checkRestore = { { "select KeywordTitle, Flags from Keywords", { { "Story", "1" } } } },
+			.checkRestore = { { "select k.KeywordTitle, f.ObjectCode from Keywords k join Favorites f on f.ObjectID = k.KeywordID and f.FavoriteID = 4", { { "Story", "" } } } },
 			.version      = 10,
 		},
 		TestData {
 			.setQueries   = { "insert into Favorites (FavoriteID, ObjectCode) values(7, 'sq')" },
 			.xml          = { "FlibraryBackup/FlibraryUserData/Favorites/Languages", "FlibraryBackup/FlibraryUserData/Favorites/Languages/Item~Title=sq" },
-			.checkRestore = { { "select KeywordTitle, Flags from Keywords", { { "Story", "1" } } } },
+			.checkRestore = { { "select ObjectID, ObjectCode from Favorites where FavoriteID = 7", { { "", "sq" } } } },
 			.version      = 10,
 		}
 	)
