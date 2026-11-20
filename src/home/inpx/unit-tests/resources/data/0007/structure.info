@@ -1,0 +1,18 @@
+﻿0  AUTHOR;
+1  GENRE;
+2  TITLE;
+3  SERIES;
+4  SERNO;
+5  FILE;
+6  SIZE;
+7  PAGES;     // body -> plain text. Skip <body name="notes">
+8  DEL;
+9  EXT;
+10 DATE;
+11 LANG;
+12 RATE;
+13 IMAGES;    // binary -> count 
+14 YEAR;      // title-info -> date
+15 PUBLISHER; // publish-info -> publisher;city;year
+16 ISBN;      // publish-info -> isbn // omitted
+17 KEYWORD;

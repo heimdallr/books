@@ -205,7 +205,11 @@ INSTANTIATE_TEST_SUITE_P(
 		               {
 						   { "select count(42) from Books", { { "2" } } },
 					   },
-		               { .folders = 1, .authors = 1, .books = 1, .genres = 1, .oldDataUpdateFound = true } }
+		               { .folders = 1, .authors = 1, .books = 1, .genres = 1, .oldDataUpdateFound = true } },
+		InpxTestData { // inpx.v2 :)
+		               { ":/common/collection.info", ":/common/version.info", ":/0007/structure.info", ":/0007/1.inp" },
+		               { { "select count(42) from Books", { { "1" } } } },
+		               { .folders = 1, .authors = 1, .series = 1, .books = 1, .keywords = 1, .genres = 1 } }
 	)
 );
 

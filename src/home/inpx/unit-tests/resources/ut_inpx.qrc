@@ -26,4 +26,8 @@
 	<qresource prefix="0006">
 		<file alias="6.inp">data/0006/d.fb2-009373-367301.inp</file>
 	</qresource>
+	<qresource prefix="0007">
+		<file alias="structure.info">data/0007/structure.info</file>
+		<file alias="1.inp">data/0007/f.fb2-891323-894460.inp</file>
+	</qresource>
 </RCC>
