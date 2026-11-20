@@ -230,6 +230,42 @@ QStringView QNext(QString::const_iterator& beg, const QString::const_iterator en
 	return QNextRaw(beg, end, separator);
 }
 
+QString GetFieldListImpl(const Zip* zip)
+{
+	if (!zip)
+		return INP_FIELDS_DESCRIPTION_DEFAULT;
+
+	if (const auto fileList = zip->GetFileNameList(); !fileList.contains(STRUCTURE_INFO))
+		return INP_FIELDS_DESCRIPTION_DEFAULT;
+
+	const auto structureInfoFileContent = QString::fromUtf8(zip->Read(STRUCTURE_INFO)->GetStream().readAll());
+
+	auto structureInfoFileContentList = structureInfoFileContent.split('\n', Qt::SkipEmptyParts);
+	if (structureInfoFileContentList.size() == 1)
+		return structureInfoFileContent.simplified();
+
+	const QRegularExpression rx(R"((\d+?)\s+?(\S+?);.*)");
+
+	auto fields = std::views::iota(0, structureInfoFileContentList.size()) | std::views::transform([](const int item) {
+					  return std::make_pair(item, QString { "STUB_STUPID_FIELD" });
+				  })
+	            | std::views::common | std::ranges::to<std::map>();
+
+	for (const auto& item : structureInfoFileContentList)
+		if (const auto match = rx.match(item); match.hasMatch())
+			fields[match.captured(1).toInt()] = match.captured(2);
+
+	const std::unordered_map<QString, QString> replacement {
+		{ "KEYWORD", "KEYWORDS" }
+	};
+	return (fields | std::views::values | std::views::as_rvalue | std::views::transform([&](auto&& item) {
+				const auto it = replacement.find(item);
+				return it != replacement.end() ? it->second : std::forward<QString>(item);
+			})
+	        | std::ranges::to<QStringList>())
+	    .join(';');
+}
+
 auto LoadGenres(const QString& genresIniFileName)
 {
 	Genres     genres;
@@ -1885,9 +1921,7 @@ where b.FileName = ? and b.Ext = ?)");
 
 	void GetFieldList(const Zip* zip = nullptr)
 	{
-		const auto fieldList = [&]() -> QString {
-			return zip && zip->GetFileNameList().contains(STRUCTURE_INFO) ? QString::fromUtf8(zip->Read(STRUCTURE_INFO)->GetStream().readAll()).simplified() : QString(INP_FIELDS_DESCRIPTION_DEFAULT);
-		}();
+		const auto fieldList = GetFieldListImpl(zip);
 
 		const std::unordered_map<QString, BookBufFieldGetter> bookBufMapping {
 #define BOOK_BUF_FIELD_ITEM(NAME) { QString(#NAME), &Get##NAME },
