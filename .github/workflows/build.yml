@@ -209,7 +209,9 @@ jobs:
           cmake --build build/linux --config "${BUILD_TYPE}" --parallel 2
 
       - name: Run Unit tests
-        run: LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/build/linux/lib:${LD_LIBRARY_PATH}" ctest --test-dir build/linux --output-on-failure -C Release
+        run: |
+          LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/build/linux/lib:${LD_LIBRARY_PATH}" ctest --test-dir build/linux --output-on-failure -C Release
+          conan cache clean "*"
 
       - name: Package and smoke test
         env:
@@ -470,11 +472,13 @@ jobs:
             "-D7zip_BIN_DIR=C:/Program Files/7-Zip" `
             -DCPACK_GENERATOR=ZIP `
             "-DNPM_EXECUTABLE=${NPM_PATH}.cmd"
-          cmake --build build/windows `
-            --config $env:BUILD_TYPE --parallel 2
+
+          cmake --build build/windows ` --config $env:BUILD_TYPE --parallel 2
 
       - name: Run Unit tests
-        run: ctest --test-dir build/windows --output-on-failure -C Release
+        run: |
+          ctest --test-dir build/windows --output-on-failure -C Release
+          conan cache clean "*"
 
       - name: Package and smoke test
         shell: pwsh
@@ -677,6 +681,7 @@ jobs:
           done
 
           ctest --test-dir "$BUILD_DIR" --output-on-failure -C Release
+          conan cache clean "*"
 
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v7
@@ -832,18 +837,21 @@ jobs:
             -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
             -DCPACK_GENERATOR=TXZ \
             -DNPM_EXECUTABLE="$NPM_PATH"
-          conan cache clean "*"
           cmake --build build/linux --config Debug --parallel 2
 
       - name: Run Unit tests
-        run: LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/build/linux/lib:${LD_LIBRARY_PATH}" ctest --test-dir build/linux --output-on-failure -C Release
+        run: |
+          LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/build/linux/lib:${LD_LIBRARY_PATH}" ctest --test-dir build/linux --output-on-failure -C Debug
+          conan cache clean "*"
 
       - name: Generate coverage report
         run: |
           gcovr --root . \
+                --gcov-executable gcov-14 \
                 --filter "src/home/" \
                 --filter "src/ext/foundation/" \
                 --exclude ".*/unit-tests/.*" \
+                --gcov-ignore-parse-errors \
                 --xml-pretty --output coverage.xml
 
       - name: Upload to Codecov
