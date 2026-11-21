@@ -1,5 +1,7 @@
 cmake_minimum_required(VERSION 3.14)
 
+option(ENABLE_COVERAGE "Enable coverage reporting" OFF)
+
 get_cmake_property(_variableNames VARIABLES)
 foreach(_variableName ${_variableNames})
     message(STATUS "${_variableName} = ${${_variableName}}")
@@ -99,6 +101,11 @@ else()
 		-Wno-array-bounds
 		-fPIC		
 	)
+
+	if(ENABLE_COVERAGE)
+    	add_compile_options(--coverage -O0 -g)
+	    add_link_options(--coverage)
+	endif()
 endif()
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" AND NOT CMAKE_BUILD_TYPE STREQUAL "Debug")

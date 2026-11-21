@@ -18,6 +18,11 @@ on:
         required: true
         default: true
         type: boolean
+      coverage:
+        description: Test coverage
+        required: true
+        default: true
+        type: boolean
 
   push:
     branches: [ develop, master ]
@@ -681,3 +686,168 @@ jobs:
           compression-level: 0
           if-no-files-found: error
           retention-days: 2
+
+  coverage:
+    name: Test coverage
+    if: ${{ inputs.coverage || github.event_name == 'push' }}
+    runs-on: ubuntu-latest
+    container:
+      image: ubuntu:22.04
+      options: --dns 8.8.8.8 --dns 1.1.1.1
+    timeout-minutes: 240
+    env:
+      QT_ROOT: ${{ github.workspace }}/.ci/Qt
+    steps:
+      - name: Bootstrap Ubuntu 22.04 container
+        run: |
+          apt-get update
+          apt-get install --yes --no-install-recommends \
+            ca-certificates \
+            curl \
+            git \
+            gnupg \
+            software-properties-common
+
+      - name: Check out sources and submodules
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+          submodules: recursive
+
+      - name: Install system build dependencies
+        env:
+          DEBIAN_FRONTEND: noninteractive
+        run: |
+          add-apt-repository --yes ppa:ubuntu-toolchain-r/test
+          apt-get update
+          apt-get install --yes --no-install-recommends \
+            cmake \
+            dpkg-dev \
+            file \
+            binutils \
+            gcc-12 \
+            g++-14 \
+            libdbus-1-dev \
+            libegl1-mesa-dev \
+            libfontconfig1 \
+            libgl1-mesa-dev \
+            libgtk-3-0 \
+            libwayland-dev \
+            libxcb-cursor0 \
+            libxcb-icccm4 \
+            libxcb-image0 \
+            libxcb-keysyms1 \
+            libxcb-render-util0 \
+            libxcb-shape0 \
+            libxcb-xinerama0 \
+            libxkbcommon-dev \
+            libxkbcommon-x11-0 \
+            ninja-build \
+            python3 \
+            python3-pip \
+            xvfb \
+            gcovr
+          python3 -m pip install \
+            "aqtinstall==${AQT_VERSION}" \
+            "conan==${CONAN_VERSION}"
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: ${{ env.NODE_VERSION }}
+          package-manager-cache: false
+
+      - name: Get NodeJS cache directory
+        id: npm-cache-dir
+        shell: bash
+        run: echo "dir=$(npm config get cache)" >> $GITHUB_OUTPUT
+                  
+      - name: Restore NodeJS
+        id: nodejs-cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ steps.npm-cache-dir.outputs.dir }}
+          key: ${{ runner.os }}-ubuntu-22.04-x86_64-node-${{ env.NODE_VERSION }}
+
+      - name: Install NodeJS
+        if: steps.nodejs-cache.outputs.cache-hit != 'true'
+        run: |
+          npm install --save npm react react-dom
+        
+      - name: Restore Qt
+        id: qt-cache
+        uses: actions/cache@v6
+        with:
+          path: ${{ env.QT_ROOT }}
+          key: ${{ runner.os }}-ubuntu-22.04-x86_64-qt-${{ env.QT_VERSION }}-http-image-wayland-websockets
+
+      - name: Install Qt
+        if: steps.qt-cache.outputs.cache-hit != 'true'
+        run: |
+          for mirror in \
+            "https://ftp.fau.de/qtproject/" \
+            "https://mirror.netcologne.de/qtproject/" \
+            "https://mirrors.ukfast.co.uk/sites/qt.io/"; do
+            rm -rf "${QT_ROOT}"
+            echo "Installing Qt from ${mirror}"
+            if aqt install-qt linux desktop "${QT_VERSION}" linux_gcc_64 \
+              -O "${QT_ROOT}" \
+              --base "${mirror}" \
+              --timeout 30 \
+              -m qthttpserver qtimageformats qtwaylandcompositor qtwebsockets; then
+              exit 0
+            fi
+          done
+          exit 1
+
+      - name: Locate Qt
+        run: |
+          qt_config="$(find "${QT_ROOT}" -path '*/lib/cmake/Qt6/Qt6Config.cmake' -print -quit)"
+          test -n "${qt_config}"
+          qt_prefix="${qt_config%/lib/cmake/Qt6/Qt6Config.cmake}"
+          printf 'QT_PREFIX=%s\n' "${qt_prefix}" >> "${GITHUB_ENV}"
+          echo "qt_prefix: ${qt_prefix}"
+
+      - name: Prepare Conan profile
+        run: |
+          cp .github/conan/gcc14_x86_64_Debug src/ext/scripts/conan/profiles/gcc14_x86_64_Debug
+
+      - name: Restore Conan packages
+        uses: actions/cache@v6
+        with:
+          path: ~/.conan2
+          key: ${{ runner.os }}-ubuntu-22.04-x86_64-conan-${{ env.CONAN_VERSION }}-debug-${{ hashFiles('src/home/script/conan/conanfile.py', '.github/conan/*') }}
+          restore-keys: |
+            ${{ runner.os }}-ubuntu-22.04-x86_64-conan-${{ env.CONAN_VERSION }}-debug-
+
+      - name: Configure and build
+        env:
+          CC: gcc-14
+          CXX: g++-14
+        run: |
+          NPM_PATH=$(which npm)
+          cmake -S . -B build/linux -G Ninja \
+            -DCMAKE_BUILD_TYPE=Debug \
+            -DENABLE_COVERAGE=ON \
+            -DQt6_DIR="${QT_PREFIX}/lib/cmake/Qt6" \
+            -DCPACK_GENERATOR=TXZ \
+            -DNPM_EXECUTABLE="$NPM_PATH"
+          conan cache clean "*"
+          cmake --build build/linux --config Debug --parallel 2
+
+      - name: Run Unit tests
+        run: LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/build/linux/lib:${LD_LIBRARY_PATH}" ctest --test-dir build/linux --output-on-failure -C Release
+
+      - name: Generate coverage report
+        run: |
+          gcovr --root . \
+                --filter "src/home/" \
+                --filter "src/ext/foundation/" \
+                --exclude ".*/unit-tests/.*" \
+                --xml-pretty --output coverage.xml
+
+      - name: Upload to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          files: ./coverage.xml
