@@ -390,7 +390,7 @@ jobs:
             throw 'MSVC compiler was not found.'
           }
           $compilerForConan = $compiler.Replace('\', '/')
-          $profile = 'src/ext/scripts/conan/profiles/msvc2022_x86_64_Release'
+          $profile = 'src/ext/scripts/conan/profiles/msvc2026_x86_64_Release'
           (Get-Content $profile) `
             -replace '^compiler.version=.*', "compiler.version=$conanCompiler" |
             Set-Content $profile
@@ -434,8 +434,8 @@ jobs:
             -o djvulibre/*:shared=True -o djvulibre/*:tools=False \
             --output-folder build/windows --build=missing \
             -s:b os=Windows -s:b arch=x86_64 \
-            -pr:b src/ext/scripts/conan/profiles/msvc2022_x86_64_Release \
-            -pr:h src/ext/scripts/conan/profiles/msvc2022_x86_64_Release \
+            -pr:b src/ext/scripts/conan/profiles/msvc2026_x86_64_Release \
+            -pr:h src/ext/scripts/conan/profiles/msvc2026_x86_64_Release \
             -c tools.cmake.cmaketoolchain:generator=Ninja \
             -c tools.microsoft.bash:subsystem=msys2 \
             -c tools.microsoft.bash:path="/usr/bin/bash" \
@@ -466,7 +466,7 @@ jobs:
             "-DCMAKE_BUILD_TYPE=$env:BUILD_TYPE" `
             "-DCMAKE_C_COMPILER=$compiler" `
             "-DCMAKE_CXX_COMPILER=$compiler" `
-            -DCONAN_PROFILE=msvc2022_x86_64 `
+            -DCONAN_PROFILE=msvc2026_x86_64 `
             -DQT_MAJOR_VERSION=${{ matrix.qt_major_version }} `
             "-DQt${{ matrix.qt_major_version }}_DIR=$env:QT_PREFIX/lib/cmake/Qt${{ matrix.qt_major_version }}" `
             "-D7zip_BIN_DIR=C:/Program Files/7-Zip" `
