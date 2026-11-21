@@ -345,6 +345,10 @@ jobs:
             $config.FullName -Parent) -Parent) -Parent) -Parent
           "QT_PREFIX=$prefix" | Out-File -FilePath $env:GITHUB_ENV -Append
 
+      - name: Prepare Conan profile
+        run: |
+          cp .github/conan/msvc2026_x86_64_Release src/ext/scripts/conan/profiles/msvc2026_x86_64_Release
+
       - name: Restore Conan packages
         id: conan-cache
         uses: actions/cache@v6
@@ -389,10 +393,6 @@ jobs:
 
           $compilerForConan = $compiler.Replace('\', '/')
           $profile = 'src/ext/scripts/conan/profiles/msvc2026_x86_64_Release'
-
-          @(
-            "tools.microsoft.msbuild:vs_version=18"
-          ) | Add-Content $profile
 
           "MSVC_COMPILER=$compiler" | Out-File -FilePath $env:GITHUB_ENV -Append
           "MSVC_TOOLSET_VERSION=$toolsetVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
