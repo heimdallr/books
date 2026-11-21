@@ -254,7 +254,7 @@ jobs:
             qt_major_version: 6
             qt_additional: -m qthttpserver qtimageformats qtwebsockets
             qt_build: win64_msvc2022_64
-    runs-on: windows-2022
+    runs-on: windows-2025
     timeout-minutes: 240
     env:
       QT_ROOT: ${{ github.workspace }}\.ci\Qt
@@ -353,6 +353,52 @@ jobs:
           key: ${{ runner.os }}-x86_64-conan-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', 'src/ext/scripts/conan/profiles/*') }}
           restore-keys: |
             ${{ runner.os }}-x86_64-conan-${{ env.CONAN_VERSION }}-
+            
+      - name: Pin MSVC 2026 (195) toolset for Conan
+        shell: pwsh
+        run: |
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsPaths = & $vswhere -all -products '*' `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+            -property installationPath
+
+          if (-not $vsPaths) {
+            throw 'Visual Studio C++ tools were not found.'
+          }
+          
+          Write-Host "vsPaths: $vsPaths"
+
+          $toolsetDir = $vsPaths | ForEach-Object {
+            $msvcRoot = Join-Path $_.Trim() 'VC\Tools\MSVC'
+            if (Test-Path $msvcRoot) {
+              Get-ChildItem -Path $msvcRoot -Directory -Filter '14.5*'
+            }
+          } | Sort-Object Name -Descending | Select-Object -First 1
+
+          Write-Host "toolsetDir: $toolsetDir"
+
+          if (-not $toolsetDir) {
+            throw 'MSVC 2026 toolset (14.5x / 195) was not found on the runner.'
+          }
+
+          $toolsetVersion = $toolsetDir.Name
+          $compiler = Join-Path $toolsetDir.FullName 'bin\Hostx64\x64\cl.exe'
+          if (-not (Test-Path $compiler)) {
+            throw "MSVC compiler cl.exe was not found at $compiler"
+          }
+
+          $compilerForConan = $compiler.Replace('\', '/')
+          $profile = 'src/ext/scripts/conan/profiles/msvc2026_x86_64_Release'
+
+          @(
+            "tools.microsoft.msbuild:vs_version=18"
+          ) | Add-Content $profile
+
+          "MSVC_COMPILER=$compiler" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "MSVC_TOOLSET_VERSION=$toolsetVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+          Write-Host "Pinned toolset: $toolsetVersion ($compiler)"
+          Get-Content $profile
 
       - name: Setup MSYS2
         if: steps.conan-cache.outputs.cache-hit != 'true'
