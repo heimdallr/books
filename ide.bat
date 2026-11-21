@@ -8,7 +8,7 @@ goto find
 set SOLUTION_PATH=%~dp0build\Qt6-x86_64\Debug
 
 :find
-FOR %%F IN (%SOLUTION_PATH%\*.sln) DO (
+FOR %%F IN (%SOLUTION_PATH%\*.slnx) DO (
 	set SOLUTION_FILE=%%F
 	goto run
 )

@@ -12,7 +12,7 @@ call src\ext\scripts\batch\check_executable.bat %tee_name%
 if NOT [%ERRORLEVEL%]==[0] goto end
 
 mkdir %BUILD_DIR%
-del %BUILD_DIR%\*.sln
+del %BUILD_DIR%\*.slnx
 
 if %QT_MAJOR_VERSION%==5 (
 	set QT_DIR=D:/sdk/Qt/Qt5/5.15.19/msvc2022_%PLATFORM%_%BUILD_TYPE%/lib/cmake/Qt5
@@ -23,6 +23,10 @@ if %QT_MAJOR_VERSION%==5 (
 	goto end
 )
 
+set VSLANG=1033
+set PreferredUILang=en-US
+set DOTNET_CLI_UI_LANGUAGE=en-US
+
 cmake -B %BUILD_DIR% ^
 --no-warn-unused-cli ^
 -DPLATFORM=%PLATFORM% ^
@@ -31,7 +35,7 @@ cmake -B %BUILD_DIR% ^
 -DQt%QT_MAJOR_VERSION%_DIR=%QT_DIR% ^
 -DCPACK_GENERATOR=WIX ^
 %* ^
--G "Visual Studio 17 2022" %~dp0 2>&1 | %tee_name% %BUILD_DIR%\configure.log
+-G "Visual Studio 18 2026" -T v145 -A x64 %~dp0 2>&1 | %tee_name% %BUILD_DIR%\configure.log
 
 echo -- Start: %start_time%
 echo -- Stop:  %DATE% %TIME%
