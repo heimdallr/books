@@ -400,37 +400,6 @@ jobs:
           Write-Host "Pinned toolset: $toolsetVersion ($compiler)"
           Get-Content $profile
 
-      - name: Setup MSYS2
-        if: steps.conan-cache.outputs.cache-hit != 'true'
-        uses: msys2/setup-msys2@v2
-        with:
-          update: true
-          install: make autoconf automake libtool
-            
-      - name: Build DjVuLibre
-        if: steps.conan-cache.outputs.cache-hit != 'true'
-        shell: msys2 {0}
-        run: |
-          WIN_PYTHON_PATH="${{ env.pythonLocation }}/Scripts"
-          PYTHON_SCRIPTS_PATH=$(cygpath -u "$WIN_PYTHON_PATH")
-          
-          MSVC_WIN_PATH=$(cygpath -m "${{ env.MSVC_COMPILER }}")
-          MSYS_BASH_WIN_PATH=$(cygpath -m "/usr/bin/bash")
-          
-          export PATH="$PYTHON_SCRIPTS_PATH:$PATH"
-
-          conan install --requires="djvulibre/3.5.28" \
-            -o djvulibre/*:shared=True -o djvulibre/*:tools=False \
-            --output-folder build/windows --build=missing \
-            -s:b os=Windows -s:b arch=x86_64 \
-            -pr:b src/ext/scripts/conan/profiles/msvc2026_x86_64_Release \
-            -pr:h src/ext/scripts/conan/profiles/msvc2026_x86_64_Release \
-            -c tools.cmake.cmaketoolchain:generator=Ninja \
-            -c tools.microsoft.bash:subsystem=msys2 \
-            -c "tools.microsoft.bash:path=$MSYS_BASH_WIN_PATH" \
-            -c "tools.build:compiler_executables={'c': '$MSVC_WIN_PATH', 'cpp': '$MSVC_WIN_PATH'}" \
-            --build="!msys2/*" --build="!automake/*" --build="!autoconf/*"
-
       - name: Configure and build
         shell: pwsh
         run: |
