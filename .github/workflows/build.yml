@@ -394,6 +394,11 @@ jobs:
           $compilerForConan = $compiler.Replace('\', '/')
           $profile = 'src/ext/scripts/conan/profiles/msvc2026_x86_64_Release'
 
+          @(
+            '[conf]'
+            "tools.build:compiler_executables={`"c`": `"$compilerForConan`", `"cpp`": `"$compilerForConan`"}"
+          ) | Add-Content $profile
+
           "MSVC_COMPILER=$compiler" | Out-File -FilePath $env:GITHUB_ENV -Append
           "MSVC_TOOLSET_VERSION=$toolsetVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
 
