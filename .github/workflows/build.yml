@@ -413,11 +413,11 @@ jobs:
         run: |
           WIN_PYTHON_PATH="${{ env.pythonLocation }}/Scripts"
           PYTHON_SCRIPTS_PATH=$(cygpath -u "$WIN_PYTHON_PATH")
-          MSVC_EXE_PATH=$(cygpath -u "${{ env.MSVC_COMPILER }}")
-          MSVC_BIN_DIR=$(dirname "$MSVC_EXE_PATH")
+          
+          MSVC_WIN_PATH=$(cygpath -m "${{ env.MSVC_COMPILER }}")
+          MSYS_BASH_WIN_PATH=$(cygpath -m "/usr/bin/bash")
           
           export PATH="$PYTHON_SCRIPTS_PATH:$PATH"
-          echo ${MSVC_BIN_DIR}
 
           conan install --requires="djvulibre/3.5.28" \
             -o djvulibre/*:shared=True -o djvulibre/*:tools=False \
@@ -427,8 +427,8 @@ jobs:
             -pr:h src/ext/scripts/conan/profiles/msvc2026_x86_64_Release \
             -c tools.cmake.cmaketoolchain:generator=Ninja \
             -c tools.microsoft.bash:subsystem=msys2 \
-            -c tools.microsoft.bash:path="/usr/bin/bash" \
-            -c tools.build:compiler_executables="{'c': '$MSVC_BIN_DIR/cl.exe', 'cpp': '$MSVC_BIN_DIR/cl.exe'}" \
+            -c "tools.microsoft.bash:path=$MSYS_BASH_WIN_PATH" \
+            -c "tools.build:compiler_executables={'c': '$MSVC_WIN_PATH', 'cpp': '$MSVC_WIN_PATH'}" \
             --build="!msys2/*" --build="!automake/*" --build="!autoconf/*"
 
       - name: Configure and build
@@ -441,28 +441,36 @@ jobs:
           if (-not $vsPath) {
             throw 'Visual Studio C++ tools were not found.'
           }
-          $devShell = Join-Path $vsPath.Trim() `
-            'Common7\Tools\Launch-VsDevShell.ps1'
-          & $devShell -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
-          $compiler = $env:MSVC_COMPILER
-          $compilerDir = Split-Path $compiler -Parent
-          $env:Path = "$compilerDir;$env:Path"
-          $NPM_PATH = (where.exe npm | Select-Object -First 1)
+
+          $vcvars = Join-Path $vsPath.Trim() 'VC\Auxiliary\Build\vcvarsall.bat'
+          $envLines = cmd.exe /c "`"$vcvars`" x64 -vcvars_ver=$env:MSVC_TOOLSET_VERSION && set"
+          if ($LASTEXITCODE -ne 0) {
+            throw "vcvarsall.bat failed with exit code $LASTEXITCODE"
+          }
+
+          foreach ($line in $envLines) {
+            if ($line -match '^([^=]+)=(.*)$') {
+              [System.Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process')
+            }
+          }
+
+          $compilerCmake = $env:MSVC_COMPILER.Replace('\', '/')
+          $NPM_PATH = (Get-Command npm.cmd).Source
           Write-Host "Found npm at: $NPM_PATH"
+          Write-Host "Using cl.exe: $(Get-Command cl.exe | Select-Object -ExpandProperty Source)"
 
           cmake -S . -B build/windows `
             -G Ninja `
             "-DCMAKE_BUILD_TYPE=$env:BUILD_TYPE" `
-            "-DCMAKE_C_COMPILER=$compiler" `
-            "-DCMAKE_CXX_COMPILER=$compiler" `
+            "-DCMAKE_C_COMPILER=$compilerCmake" `
+            "-DCMAKE_CXX_COMPILER=$compilerCmake" `
             -DCONAN_PROFILE=msvc2026_x86_64 `
-            -DQT_MAJOR_VERSION=${{ matrix.qt_major_version }} `
-            "-DQt${{ matrix.qt_major_version }}_DIR=$env:QT_PREFIX/lib/cmake/Qt${{ matrix.qt_major_version }}" `
-            "-D7zip_BIN_DIR=C:/Program Files/7-Zip" `
+            -DQT_MAJOR_VERSION=6 `
+            "-DQt6_DIR=$env:QT_PREFIX/lib/cmake/Qt6" `
             -DCPACK_GENERATOR=ZIP `
-            "-DNPM_EXECUTABLE=${NPM_PATH}.cmd"
+            "-DNPM_EXECUTABLE=$NPM_PATH"
 
-          cmake --build build/windows ` --config $env:BUILD_TYPE --parallel 2
+          cmake --build build/windows --config $env:BUILD_TYPE --parallel 2
 
       - name: Run Unit tests
         run: |
