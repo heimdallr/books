@@ -86,6 +86,13 @@ if(MSVC)
 		/wd4503	# decorated name length exceeded, name was truncated
 		/bigobj # number of sections exceeded object file format limit
 	)
+
+	if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
+    	add_link_options(/PROFILE /INCREMENTAL:NO /DEBUG)
+	    add_compile_options(/Od /Zi /Gy)
+	    add_link_options(/OPT:REF /OPT:ICF)
+	    configure_file("${CMAKE_SOURCE_DIR}/.runsettings" "${CMAKE_BINARY_DIR}/.runsettings" COPYONLY)
+	endif()
 else()
 	SET(CMAKE_SKIP_BUILD_RPATH FALSE)
 	SET(CMAKE_INSTALL_RPATH_USE_LINK_PATH TRUE)

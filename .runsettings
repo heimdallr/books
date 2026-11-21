@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RunSettings>
+  <DataCollectionRunSettings>
+    <DataCollectors>
+      <DataCollector friendlyName="Code Coverage" uri="datacollector://Microsoft/CodeCoverage/2.0" assemblyQualifiedName="Microsoft.VisualStudio.Coverage.DynamicCoverageDataCollector, Microsoft.VisualStudio.TraceCollector, Version=11.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <Configuration>
+          <CodeCoverage>
+
+            <ModulePaths>
+              <Include>
+                <ModulePath>.*</ModulePath>
+              </Include>
+              <Exclude>
+                <ModulePath1>.*[\\/](Qt|icu|7z)[^\\/]*\.dll$</ModulePath1>
+              </Exclude>
+            </ModulePaths>
+
+            <Sources>
+              <Include>
+                <Source>.*[\\/]books[\\/]src[\\/]home[\\/].*</Source>
+                <Source>.*[\\/]books[\\/]src[\\/]ext[\\/]foundation[\\/].*</Source>
+              </Include>
+              <Exclude>
+                <Source>.*[\\/]unit-tests[\\/].*</Source>
+              </Exclude>
+            </Sources>
+
+            <UseVerifiableInstrumentation>True</UseVerifiableInstrumentation>
+            <AllowLowIntegrityProcesses>True</AllowLowIntegrityProcesses>
+            <CollectFromChildProcesses>True</CollectFromChildProcesses>
+            <CollectAspDotNet>False</CollectAspDotNet>
+          </CodeCoverage>
+        </Configuration>
+      </DataCollector>
+    </DataCollectors>
+  </DataCollectionRunSettings>
+</RunSettings>
