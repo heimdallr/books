@@ -8,6 +8,7 @@
 [![Linux](https://img.shields.io/badge/-Linux-ad3a90.svg?style=flat&logo=linux&logoColor=white)](https://ubuntu.com/)
 [![macOS](https://img.shields.io/badge/-macOS-000000.svg?logo=apple&logoColor=white)](https://www.apple.com/macos/)
 [![Cross-platform builds](https://github.com/heimdallr/books/actions/workflows/build.yml/badge.svg)](https://github.com/heimdallr/books/actions/workflows/build.yml)
+[![codecov](https://codecov.io/gh/heimdallr/books/graph/badge.svg)](https://codecov.io/gh/heimdallr/books)
 
 # FLibrary - каталогизатор электронной библиотеки
 
