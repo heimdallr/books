@@ -17,7 +17,7 @@ del %BUILD_DIR%\*.slnx
 if %QT_MAJOR_VERSION%==5 (
 	set QT_DIR=D:/sdk/Qt/Qt5/5.15.19/msvc2022_%PLATFORM%_%BUILD_TYPE%/lib/cmake/Qt5
 ) else if %QT_MAJOR_VERSION%==6 (
-	set QT_DIR=D:/sdk/Qt/Qt6/6.12.0/msvc2022_%PLATFORM%_%BUILD_TYPE%/lib/cmake/Qt6
+	set QT_DIR=D:/sdk/Qt/Qt6/6.12.0/msvc2026_%PLATFORM%_%BUILD_TYPE%/lib/cmake/Qt6
 ) else (
 	echo unsupported Qt major version: %QT_MAJOR_VERSION%
 	goto end

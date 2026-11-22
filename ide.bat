@@ -1,14 +1,14 @@
 @echo off
 
 if "%*"=="" goto read
-set SOLUTION_PATH=%~dp0%1
+set BUILD_DIR=%~dp0%1
 goto find
 
 :read
-set SOLUTION_PATH=%~dp0build\Qt6-x86_64\Debug
+call init.bat
 
 :find
-FOR %%F IN (%SOLUTION_PATH%\*.slnx) DO (
+FOR %%F IN (%BUILD_DIR%\*.slnx) DO (
 	set SOLUTION_FILE=%%F
 	goto run
 )
