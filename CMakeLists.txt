@@ -88,9 +88,8 @@ if(MSVC)
 	)
 
 	if("${CMAKE_BUILD_TYPE}" STREQUAL "Debug")
-    	add_link_options(/PROFILE /INCREMENTAL:NO /DEBUG)
 	    add_compile_options(/Od /Zi /Gy)
-	    add_link_options(/OPT:REF /OPT:ICF)
+    	add_link_options(/PROFILE /INCREMENTAL:NO /DEBUG /OPT:REF /OPT:ICF)
 	    configure_file("${CMAKE_SOURCE_DIR}/.runsettings" "${CMAKE_BINARY_DIR}/.runsettings" COPYONLY)
 	endif()
 

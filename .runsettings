@@ -11,7 +11,7 @@
                 <ModulePath>.*</ModulePath>
               </Include>
               <Exclude>
-                <ModulePath1>.*[\\/](Qt|icu|7z)[^\\/]*\.dll$</ModulePath1>
+                <ModulePath>.*[\\/](Qt|icu|7z)[^\\/]*\.dll$</ModulePath>
               </Exclude>
             </ModulePaths>
 
