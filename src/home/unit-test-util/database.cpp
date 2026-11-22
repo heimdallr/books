@@ -1,6 +1,7 @@
 #include "database.h"
 
 #include <QBuffer>
+#include <QCoreApplication>
 #include <QEventLoop>
 #include <QFileInfo>
 
@@ -41,8 +42,8 @@ std::unique_ptr<T> CreateDatabase()
 {
 	try
 	{
-		constexpr auto dbPath = "file:my_shared_mem_db?mode=memory&cache=shared";
-		auto           db     = DB::Factory::Create<DB::IDatabaseWritable>(DB::IFactory::Impl::Sqlite, std::format(R"(path="{}")", dbPath));
+		const auto dbPath = QString("file:%1_db?mode=memory&cache=shared").arg(QCoreApplication::applicationName());
+		auto       db     = DB::Factory::Create<DB::IDatabaseWritable>(DB::IFactory::Impl::Sqlite, std::format(R"(path="{}")", dbPath));
 
 		QByteArray bytes;
 		{
