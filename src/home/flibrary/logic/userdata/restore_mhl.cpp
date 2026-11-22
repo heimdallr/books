@@ -224,7 +224,9 @@ void ImportFromMyHomeLib(const IDatabaseProvider& dbProvider, QIODevice& inp, Ca
 									try
 									{
 										ZDecompressionStream stream(inp);
-										stream.open(QIODevice::ReadOnly);
+										if (!stream.open(QIODevice::ReadOnly))
+											return createResult("cannot open MHL user data stream");
+
 										const XmlParser parser(stream, db);
 									}
 									catch (const std::exception& ex)
