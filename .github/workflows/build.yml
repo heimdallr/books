@@ -172,29 +172,6 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-ubuntu-22.04-x86_64-conan-${{ env.CONAN_VERSION }}-
 
-      - name: Seed Conan source fallback
-        run: |
-          source_cache="${HOME}/.conan2/sources"
-          source_sha256="fff1ffcf2b0da84d308a14de513a1aa23d4e9aa3464d17e64b9714bfdd0bbfb6"
-          source_file="${source_cache}/s/${source_sha256}"
-          global_conf="${HOME}/.conan2/global.conf"
-
-          mkdir -p "$(dirname "${source_file}")"
-          if [ -f "${global_conf}" ]; then
-            sed -i '/^core\.sources:download_cache=/d' "${global_conf}"
-          fi
-          printf 'core.sources:download_cache=%s\n' "${source_cache}" >> "${global_conf}"
-
-          if [ ! -f "${source_file}" ]; then
-            curl --fail --silent --show-error --location \
-              --retry 3 --retry-all-errors --connect-timeout 30 \
-              --output "${source_file}.tmp" \
-              https://github.com/tukaani-project/xz/releases/download/v5.8.3/xz-5.8.3.tar.xz
-            printf '%s  %s\n' "${source_sha256}" "${source_file}.tmp" | \
-              sha256sum --check -
-            mv "${source_file}.tmp" "${source_file}"
-          fi
-
       - name: Configure and build
         env:
           CC: gcc-14
@@ -277,7 +254,7 @@ jobs:
             qt_major_version: 6
             qt_additional: -m qthttpserver qtimageformats qtwebsockets
             qt_build: win64_msvc2022_64
-    runs-on: windows-2022
+    runs-on: windows-2025
     timeout-minutes: 240
     env:
       QT_ROOT: ${{ github.workspace }}\.ci\Qt
@@ -368,39 +345,9 @@ jobs:
             $config.FullName -Parent) -Parent) -Parent) -Parent
           "QT_PREFIX=$prefix" | Out-File -FilePath $env:GITHUB_ENV -Append
 
-      - name: Match Conan profile to the runner compiler
-        shell: pwsh
+      - name: Prepare Conan profile
         run: |
-          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
-          $vsPath = & $vswhere -latest -products '*' `
-            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
-            -property installationPath
-          if (-not $vsPath) {
-            throw 'Visual Studio C++ tools were not found.'
-          }
-
-          $versionFile = Join-Path $vsPath.Trim() `
-            'VC\Auxiliary\Build\Microsoft.VCToolsVersion.default.txt'
-          $toolsetVersion = (Get-Content $versionFile).Trim()
-          $toolsetMinor = [int]$toolsetVersion.Split('.')[1]
-          $conanCompiler = if ($toolsetMinor -ge 40) { '194' } else { '193' }
-          $compiler = Join-Path $vsPath.Trim() `
-            "VC\Tools\MSVC\$toolsetVersion\bin\Hostx64\x64\cl.exe"
-          if (-not (Test-Path $compiler)) {
-            throw 'MSVC compiler was not found.'
-          }
-          $compilerForConan = $compiler.Replace('\', '/')
-          $profile = 'src/ext/scripts/conan/profiles/msvc2022_x86_64_Release'
-          (Get-Content $profile) `
-            -replace '^compiler.version=.*', "compiler.version=$conanCompiler" |
-            Set-Content $profile
-          @(
-            '[conf]'
-            "tools.build:compiler_executables={`"c`": `"$compilerForConan`", `"cpp`": `"$compilerForConan`"}"
-          ) | Add-Content $profile
-          "MSVC_COMPILER=$compiler" | Out-File `
-            -FilePath $env:GITHUB_ENV -Append
-          Select-String '^compiler.version=' $profile
+          cp .github/conan/msvc2026_x86_64_Release src/ext/scripts/conan/profiles/msvc2026_x86_64_Release
 
       - name: Restore Conan packages
         id: conan-cache
@@ -410,37 +357,53 @@ jobs:
           key: ${{ runner.os }}-x86_64-conan-${{ env.CONAN_VERSION }}-${{ hashFiles('src/home/script/conan/conanfile.py', 'src/ext/scripts/conan/profiles/*') }}
           restore-keys: |
             ${{ runner.os }}-x86_64-conan-${{ env.CONAN_VERSION }}-
-
-      - name: Setup MSYS2
-        if: steps.conan-cache.outputs.cache-hit != 'true'
-        uses: msys2/setup-msys2@v2
-        with:
-          update: true
-          install: make autoconf automake libtool
             
-      - name: Build DjVuLibre
-        if: steps.conan-cache.outputs.cache-hit != 'true'
-        shell: msys2 {0}
+      - name: Pin MSVC 2026 (195) toolset for Conan
+        shell: pwsh
         run: |
-          WIN_PYTHON_PATH="${{ env.pythonLocation }}/Scripts"
-          PYTHON_SCRIPTS_PATH=$(cygpath -u "$WIN_PYTHON_PATH")
-          MSVC_EXE_PATH=$(cygpath -u "${{ env.MSVC_COMPILER }}")
-          MSVC_BIN_DIR=$(dirname "$MSVC_EXE_PATH")
-          
-          export PATH="$PYTHON_SCRIPTS_PATH:$PATH"
-          echo ${MSVC_BIN_DIR}
+          $vswhere = "${env:ProgramFiles(x86)}\Microsoft Visual Studio\Installer\vswhere.exe"
+          $vsPaths = & $vswhere -all -products '*' `
+            -requires Microsoft.VisualStudio.Component.VC.Tools.x86.x64 `
+            -property installationPath
 
-          conan install --requires="djvulibre/3.5.28" \
-            -o djvulibre/*:shared=True -o djvulibre/*:tools=False \
-            --output-folder build/windows --build=missing \
-            -s:b os=Windows -s:b arch=x86_64 \
-            -pr:b src/ext/scripts/conan/profiles/msvc2022_x86_64_Release \
-            -pr:h src/ext/scripts/conan/profiles/msvc2022_x86_64_Release \
-            -c tools.cmake.cmaketoolchain:generator=Ninja \
-            -c tools.microsoft.bash:subsystem=msys2 \
-            -c tools.microsoft.bash:path="/usr/bin/bash" \
-            -c tools.build:compiler_executables="{'c': '$MSVC_BIN_DIR/cl.exe', 'cpp': '$MSVC_BIN_DIR/cl.exe'}" \
-            --build="!msys2/*" --build="!automake/*" --build="!autoconf/*"
+          if (-not $vsPaths) {
+            throw 'Visual Studio C++ tools were not found.'
+          }
+          
+          Write-Host "vsPaths: $vsPaths"
+
+          $toolsetDir = $vsPaths | ForEach-Object {
+            $msvcRoot = Join-Path $_.Trim() 'VC\Tools\MSVC'
+            if (Test-Path $msvcRoot) {
+              Get-ChildItem -Path $msvcRoot -Directory -Filter '14.5*'
+            }
+          } | Sort-Object Name -Descending | Select-Object -First 1
+
+          Write-Host "toolsetDir: $toolsetDir"
+
+          if (-not $toolsetDir) {
+            throw 'MSVC 2026 toolset (14.5x / 195) was not found on the runner.'
+          }
+
+          $toolsetVersion = $toolsetDir.Name
+          $compiler = Join-Path $toolsetDir.FullName 'bin\Hostx64\x64\cl.exe'
+          if (-not (Test-Path $compiler)) {
+            throw "MSVC compiler cl.exe was not found at $compiler"
+          }
+
+          $compilerForConan = $compiler.Replace('\', '/')
+          $profile = 'src/ext/scripts/conan/profiles/msvc2026_x86_64_Release'
+
+          @(
+            '[conf]'
+            "tools.build:compiler_executables={`"c`": `"$compilerForConan`", `"cpp`": `"$compilerForConan`"}"
+          ) | Add-Content $profile
+
+          "MSVC_COMPILER=$compiler" | Out-File -FilePath $env:GITHUB_ENV -Append
+          "MSVC_TOOLSET_VERSION=$toolsetVersion" | Out-File -FilePath $env:GITHUB_ENV -Append
+
+          Write-Host "Pinned toolset: $toolsetVersion ($compiler)"
+          Get-Content $profile
 
       - name: Configure and build
         shell: pwsh
@@ -452,28 +415,36 @@ jobs:
           if (-not $vsPath) {
             throw 'Visual Studio C++ tools were not found.'
           }
-          $devShell = Join-Path $vsPath.Trim() `
-            'Common7\Tools\Launch-VsDevShell.ps1'
-          & $devShell -Arch amd64 -HostArch amd64 -SkipAutomaticLocation
-          $compiler = $env:MSVC_COMPILER
-          $compilerDir = Split-Path $compiler -Parent
-          $env:Path = "$compilerDir;$env:Path"
-          $NPM_PATH = (where.exe npm | Select-Object -First 1)
+
+          $vcvars = Join-Path $vsPath.Trim() 'VC\Auxiliary\Build\vcvarsall.bat'
+          $envLines = cmd.exe /c "`"$vcvars`" x64 -vcvars_ver=$env:MSVC_TOOLSET_VERSION && set"
+          if ($LASTEXITCODE -ne 0) {
+            throw "vcvarsall.bat failed with exit code $LASTEXITCODE"
+          }
+
+          foreach ($line in $envLines) {
+            if ($line -match '^([^=]+)=(.*)$') {
+              [System.Environment]::SetEnvironmentVariable($matches[1], $matches[2], 'Process')
+            }
+          }
+
+          $compilerCmake = $env:MSVC_COMPILER.Replace('\', '/')
+          $NPM_PATH = (Get-Command npm.cmd).Source
           Write-Host "Found npm at: $NPM_PATH"
+          Write-Host "Using cl.exe: $(Get-Command cl.exe | Select-Object -ExpandProperty Source)"
 
           cmake -S . -B build/windows `
             -G Ninja `
             "-DCMAKE_BUILD_TYPE=$env:BUILD_TYPE" `
-            "-DCMAKE_C_COMPILER=$compiler" `
-            "-DCMAKE_CXX_COMPILER=$compiler" `
-            -DCONAN_PROFILE=msvc2022_x86_64 `
-            -DQT_MAJOR_VERSION=${{ matrix.qt_major_version }} `
+            "-DCMAKE_C_COMPILER=$compilerCmake" `
+            "-DCMAKE_CXX_COMPILER=$compilerCmake" `
+            "-DCONAN_PROFILE=msvc2026_x86_64" `
+            "-DQT_MAJOR_VERSION=${{ matrix.qt_major_version }}" `
             "-DQt${{ matrix.qt_major_version }}_DIR=$env:QT_PREFIX/lib/cmake/Qt${{ matrix.qt_major_version }}" `
-            "-D7zip_BIN_DIR=C:/Program Files/7-Zip" `
-            -DCPACK_GENERATOR=ZIP `
-            "-DNPM_EXECUTABLE=${NPM_PATH}.cmd"
+            "-DCPACK_GENERATOR=ZIP" `
+            "-DNPM_EXECUTABLE=$NPM_PATH"
 
-          cmake --build build/windows ` --config $env:BUILD_TYPE --parallel 2
+          cmake --build build/windows --config $env:BUILD_TYPE --parallel 2
 
       - name: Run Unit tests
         run: |

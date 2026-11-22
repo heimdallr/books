@@ -35,7 +35,7 @@ git clone https://github.com/heimdallr/books.git --recursive
 
 ### Windows  
 <hr/>
-Проверялось на Windows 10 и 11, компилятор от MS в средах MSVS2022 и QtCreator
+Проверялось на Windows 10 и 11, компилятор от MS в средах MSVS (2022, 2026) и QtCreator
 
 #### Добавляем в PATH пути к: 
 * conan.exe  
