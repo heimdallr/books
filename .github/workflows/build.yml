@@ -438,10 +438,10 @@ jobs:
             "-DCMAKE_BUILD_TYPE=$env:BUILD_TYPE" `
             "-DCMAKE_C_COMPILER=$compilerCmake" `
             "-DCMAKE_CXX_COMPILER=$compilerCmake" `
-            -DCONAN_PROFILE=msvc2026_x86_64 `
-            -DQT_MAJOR_VERSION=6 `
-            "-DQt6_DIR=$env:QT_PREFIX/lib/cmake/Qt6" `
-            -DCPACK_GENERATOR=ZIP `
+            "-DCONAN_PROFILE=msvc2026_x86_64" `
+            "-DQT_MAJOR_VERSION=${{ matrix.qt_major_version }}" `
+            "-DQt${{ matrix.qt_major_version }}_DIR=$env:QT_PREFIX/lib/cmake/Qt${{ matrix.qt_major_version }}" `
+            "-DCPACK_GENERATOR=ZIP" `
             "-DNPM_EXECUTABLE=$NPM_PATH"
 
           cmake --build build/windows --config $env:BUILD_TYPE --parallel 2
