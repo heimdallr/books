@@ -191,7 +191,9 @@ void BackupUserDataExportStat(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 
 void BackupUserDataFilter(DB::IDatabase& db, Util::XmlWriter& xmlWriter)
 {
-	static constexpr std::string_view FIELD_NAMES[] { "LastName||','||FirstName||','||MiddleName||','||coalesce(NickName, '')", "SeriesTitle", "FB2Code", "", "KeywordTitle", "", "", "LanguageCode", "Title", "", "", "", "", "", "" };
+	static constexpr std::string_view FIELD_NAMES[] {
+		"LastName||','||FirstName||','||MiddleName||','||coalesce(NickName, '')", "SeriesTitle", "FB2Code", "", "KeywordTitle", "", "", "LanguageCode", "Title", "", "", "", "", "", ""
+	};
 	static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(FIELD_NAMES));
 
 	auto range = IFilterProvider::GetDescriptions();

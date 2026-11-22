@@ -9,12 +9,12 @@
 #include "interface/logic/IFilterProvider.h"
 
 #include "constants/books.h"
+#include "constants/filter.h"
 #include "constants/groups.h"
 #include "model/AuthorsModel.h"
 #include "util/xml/XmlAttributes.h"
 
 #include "restore.h"
-#include "constants/filter.h"
 
 namespace HomeCompa::Flibrary::UserData {
 
@@ -413,7 +413,9 @@ private:
 
 namespace Filter { namespace {
 
-constexpr std::string_view FIELD_NAMES[] { "LastName||','||FirstName||','||MiddleName||','||coalesce(NickName, '')", "SeriesTitle", "FB2Code", "", "KeywordTitle", "", "", "LanguageCode", "Title", "", "", "", "", "", "" };
+constexpr std::string_view FIELD_NAMES[] {
+	"LastName||','||FirstName||','||MiddleName||','||coalesce(NickName, '')", "SeriesTitle", "FB2Code", "", "KeywordTitle", "", "", "LanguageCode", "Title", "", "", "", "", "", ""
+};
 static_assert(static_cast<size_t>(NavigationMode::Last) == std::size(FIELD_NAMES));
 
 using namespace Constant::UserData::Filter;
@@ -456,7 +458,7 @@ private:
 	std::unordered_map<QString, DataValues> m_data;
 };
 
-}}
+}} // namespace Filter
 
 std::unique_ptr<IRestorer> CreateFavoritesRestorer10()
 {

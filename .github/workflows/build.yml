@@ -165,6 +165,7 @@ jobs:
           cp .github/conan/gcc14_x86_64_Release src/ext/scripts/conan/profiles/gcc14_x86_64_Release
 
       - name: Restore Conan packages
+        id: conan-cache
         uses: actions/cache@v6
         with:
           path: ~/.conan2
@@ -186,9 +187,11 @@ jobs:
           cmake --build build/linux --config "${BUILD_TYPE}" --parallel 2
 
       - name: Run Unit tests
-        run: |
-          LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/build/linux/lib:${LD_LIBRARY_PATH}" ctest --test-dir build/linux --output-on-failure -C Release
-          conan cache clean "*"
+        run: LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/build/linux/lib:${LD_LIBRARY_PATH}" ctest --test-dir build/linux --output-on-failure -C Release
+
+      - name: Cleanup conan cache
+        if: steps.conan-cache.outputs.cache-hit != 'true'
+        run: conan cache clean "*"
 
       - name: Package and smoke test
         env:
@@ -346,8 +349,7 @@ jobs:
           "QT_PREFIX=$prefix" | Out-File -FilePath $env:GITHUB_ENV -Append
 
       - name: Prepare Conan profile
-        run: |
-          cp .github/conan/msvc2026_x86_64_Release src/ext/scripts/conan/profiles/msvc2026_x86_64_Release
+        run: cp .github/conan/msvc2026_x86_64_Release src/ext/scripts/conan/profiles/msvc2026_x86_64_Release
 
       - name: Restore Conan packages
         id: conan-cache
@@ -447,9 +449,11 @@ jobs:
           cmake --build build/windows --config $env:BUILD_TYPE --parallel 2
 
       - name: Run Unit tests
-        run: |
-          ctest --test-dir build/windows --output-on-failure -C Release
-          conan cache clean "*"
+        run: ctest --test-dir build/windows --output-on-failure -C Release
+
+      - name: Cleanup conan cache
+        if: steps.conan-cache.outputs.cache-hit != 'true'
+        run: conan cache clean "*"
 
       - name: Package and smoke test
         shell: pwsh
@@ -617,6 +621,7 @@ jobs:
           grep '^compiler.version=' "${profile}"
 
       - name: Restore Conan packages
+        id: conan-cache
         uses: actions/cache@v6
         with:
           path: ~/.conan2
@@ -652,7 +657,10 @@ jobs:
           done
 
           ctest --test-dir "$BUILD_DIR" --output-on-failure -C Release
-          conan cache clean "*"
+
+      - name: Cleanup conan cache
+        if: steps.conan-cache.outputs.cache-hit != 'true'
+        run: conan cache clean "*"
 
       - name: Upload macOS DMG
         uses: actions/upload-artifact@v7
@@ -785,10 +793,10 @@ jobs:
           echo "qt_prefix: ${qt_prefix}"
 
       - name: Prepare Conan profile
-        run: |
-          cp .github/conan/gcc14_x86_64_Debug src/ext/scripts/conan/profiles/gcc14_x86_64_Debug
+        run: cp .github/conan/gcc14_x86_64_Debug src/ext/scripts/conan/profiles/gcc14_x86_64_Debug
 
       - name: Restore Conan packages
+        id: conan-cache
         uses: actions/cache@v6
         with:
           path: ~/.conan2
@@ -811,9 +819,11 @@ jobs:
           cmake --build build/linux --config Debug --parallel 2
 
       - name: Run Unit tests
-        run: |
-          LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/build/linux/lib:${LD_LIBRARY_PATH}" ctest --test-dir build/linux --output-on-failure -C Debug
-          conan cache clean "*"
+        run: LD_LIBRARY_PATH="${GITHUB_WORKSPACE}/build/linux/lib:${LD_LIBRARY_PATH}" ctest --test-dir build/linux --output-on-failure -C Debug
+
+      - name: Cleanup conan cache
+        if: steps.conan-cache.outputs.cache-hit != 'true'
+        run: conan cache clean "*"
 
       - name: Generate coverage report
         run: |

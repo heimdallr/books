@@ -660,9 +660,8 @@ from PublishYears y)",
 
 	{   NavigationMode::Favorites,
 	 { &RequestNavigationFavorites,
-	 { R"(select coalesce(f.ObjectID, f.ObjectCode) id, coalesce()"
-FLIBRARY_SQL_FULL_AUTHOR_NAME
-R"(, s.SeriesTitle
+	 { R"(select coalesce(f.ObjectID, f.ObjectCode) id, coalesce()" FLIBRARY_SQL_FULL_AUTHOR_NAME
+	 R"(, s.SeriesTitle
   , g.FB2Code
   , l.LanguageCode
   , k.KeywordTitle
