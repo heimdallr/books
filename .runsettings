@@ -22,6 +22,7 @@
               </Include>
               <Exclude>
                 <Source>.*[\\/]unit-tests[\\/].*</Source>
+                <Source>.*[\\/]mock[\\/].*</Source>
               </Exclude>
             </Sources>
 
