@@ -2,12 +2,11 @@
 
 #include <memory>
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 
 #include "interface/logic/IDatabaseProvider.h"
 #include "interface/logic/IFilterController.h"
-
-#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary {
 

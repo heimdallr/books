@@ -3,6 +3,7 @@
 #include <QAbstractItemModel>
 #include <QTimer>
 
+#include "fnd/UiTimer.h"
 #include "fnd/observable.h"
 
 #include "database/interface/IDatabase.h"
@@ -12,7 +13,6 @@
 #include "interface/logic/IImageViewerController.h"
 
 #include "TreeViewController/AbstractTreeViewController.h"
-#include "settings/UiTimer.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ImageUtil.h"
 #include "util/executor/ThreadPool.h"

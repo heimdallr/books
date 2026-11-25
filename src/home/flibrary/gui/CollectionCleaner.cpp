@@ -6,6 +6,7 @@
 #include <QPushButton>
 
 #include "fnd/FindPair.h"
+#include "fnd/ISettingsObserver.h"
 #include "fnd/ScopedCall.h"
 
 #include "interface/constants/SettingsConstant.h"
@@ -13,7 +14,6 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "gutil/util.h"
-#include "settings/ISettingsObserver.h"
 #include "utilgui/GeometryRestorable.h"
 
 using namespace HomeCompa;

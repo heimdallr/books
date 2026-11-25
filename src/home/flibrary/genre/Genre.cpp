@@ -3,6 +3,7 @@
 #include <ranges>
 
 #include "fnd/FindPair.h"
+#include "fnd/ISettings.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -10,7 +11,6 @@
 #include "interface/constants/Localization.h"
 #include "interface/localization.h"
 
-#include "settings/ISettings.h"
 #include "util/GenresLocalization.h"
 #include "util/SortString.h"
 

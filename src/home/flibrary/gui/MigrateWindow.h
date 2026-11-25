@@ -2,14 +2,13 @@
 
 #include <QListView>
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
 #include "interface/logic/IDatabaseMigrator.h"
 #include "interface/logic/ILogController.h"
 #include "interface/ui/IMigrateWindow.h"
-
-#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary {
 

@@ -1,11 +1,10 @@
 #pragma once
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
 #include "interface/ui/IStyleApplierFactory.h"
-
-#include "settings/ISettings.h"
 
 namespace Hypodermic {
 

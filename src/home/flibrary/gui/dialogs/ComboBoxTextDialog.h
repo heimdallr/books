@@ -2,13 +2,12 @@
 
 #include <QDialog>
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
 #include "interface/ui/IUiFactory.h"
 #include "interface/ui/dialogs/IComboBoxTextDialog.h"
-
-#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary {
 

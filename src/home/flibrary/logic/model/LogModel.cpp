@@ -11,6 +11,7 @@
 #include <plog/Appenders/IAppender.h>
 #include <plog/Severity.h>
 
+#include "fnd/UiTimer.h"
 #include "fnd/algorithm.h"
 #include "fnd/observable.h"
 #include "fnd/observer.h"
@@ -20,7 +21,6 @@
 #include "interface/logic/LogModelRole.h"
 
 #include "logging/LogAppender.h"
-#include "settings/UiTimer.h"
 #include "util/FunctorExecutionForwarder.h"
 
 #include "QtTypes.h"

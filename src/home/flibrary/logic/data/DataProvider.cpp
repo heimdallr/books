@@ -3,6 +3,7 @@
 #include <QTimer>
 
 #include "fnd/FindPair.h"
+#include "fnd/UiTimer.h"
 #include "fnd/algorithm.h"
 #include "fnd/observable.h"
 
@@ -14,7 +15,6 @@
 #include "interface/logic/IDataProvider.h"
 
 #include "database/DatabaseUtil.h"
-#include "settings/UiTimer.h"
 
 #include "BooksTreeGenerator.h"
 #include "DataItem.h"

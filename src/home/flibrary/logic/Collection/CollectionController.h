@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
@@ -7,8 +8,6 @@
 #include "interface/logic/ILogicFactory.h"
 #include "interface/logic/ITaskQueue.h"
 #include "interface/ui/IUiFactory.h"
-
-#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary {
 

@@ -11,6 +11,7 @@
 #include <QTreeView>
 
 #include "fnd/FindPair.h"
+#include "fnd/ISettings.h"
 #include "fnd/ScopedCall.h"
 #include "fnd/ValueGuard.h"
 #include "fnd/observable.h"
@@ -21,7 +22,6 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "logic/data/DataItem.h"
-#include "settings/ISettings.h"
 
 #include "Measure.h"
 #include "log.h"

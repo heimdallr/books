@@ -16,6 +16,7 @@ AddTarget(logic	shared_lib
 		flidjvu
 		flint
 		flipdf
+		fnd
 		genre
 		inpx
 		joke
@@ -23,7 +24,6 @@ AddTarget(logic	shared_lib
 		network
 		platform
 		rest
-		settings
 		util
 		zip
 )

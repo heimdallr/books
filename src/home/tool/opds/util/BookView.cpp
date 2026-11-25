@@ -1,13 +1,13 @@
 #include "BookView.h"
 
+#include "fnd/ISettings.h"
+
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/ITransaction.h"
 
 #include "interface/constants/SettingsConstant.h"
 #include "interface/logic/IFilterProvider.h"
-
-#include "settings/ISettings.h"
 
 namespace HomeCompa::Opds::BookView {
 

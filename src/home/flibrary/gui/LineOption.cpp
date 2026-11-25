@@ -3,9 +3,8 @@
 #include <QLineEdit>
 #include <QString>
 
+#include "fnd/ISettings.h"
 #include "fnd/observable.h"
-
-#include "settings/ISettings.h"
 
 #include "log.h"
 

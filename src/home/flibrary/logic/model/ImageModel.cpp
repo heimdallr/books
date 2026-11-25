@@ -6,6 +6,7 @@
 #include <QTimer>
 
 #include "fnd/ScopedCall.h"
+#include "fnd/UiTimer.h"
 #include "fnd/try.h"
 
 #include "interface/constants/ImageModelRole.h"
@@ -13,7 +14,6 @@
 #include "interface/localization.h"
 
 #include "data/DataItem.h"
-#include "settings/UiTimer.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/ImageUtil.h"
 #include "util/executor/ThreadPool.h"

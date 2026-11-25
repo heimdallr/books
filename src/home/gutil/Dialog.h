@@ -1,12 +1,11 @@
 #pragma once
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
 #include "interface/IDialog.h"
 #include "interface/IParentWidgetProvider.h"
-
-#include "settings/ISettings.h"
 
 class QWidget;
 

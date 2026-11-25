@@ -3,6 +3,7 @@
 #include <QTemporaryDir>
 
 #include "fnd/FindPair.h"
+#include "fnd/Settings.h"
 
 #include "interface/constants/Enums.h"
 #include "interface/constants/Localization.h"
@@ -22,7 +23,6 @@
 #include "extract/BooksExtractor.h"
 #include "extract/InpxGenerator.h"
 #include "genre/Genre.h"
-#include "settings/Settings.h"
 #include "shared/BooksContextMenuProvider.h"
 #include "shared/ZipProgressCallback.h"
 #include "util/translit.h"

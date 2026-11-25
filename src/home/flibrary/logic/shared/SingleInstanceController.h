@@ -1,12 +1,11 @@
 #pragma once
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
 #include "interface/logic/ISingleInstanceController.h"
 #include "interface/ui/IUiFactory.h"
-
-#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary {
 

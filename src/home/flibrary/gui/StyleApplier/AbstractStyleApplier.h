@@ -1,10 +1,9 @@
 #pragma once
 
+#include "fnd/ISettings.h"
 #include "fnd/memory.h"
 
 #include "interface/ui/IStyleApplier.h"
-
-#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary {
 

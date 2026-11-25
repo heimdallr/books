@@ -12,10 +12,10 @@ AddTarget(gui	shared_lib
 		Qt${QT_MAJOR_VERSION}::Svg
 	LINK_TARGETS
 		flint
+		fnd
 		gutil
 		logging
 		platform
-		settings
 		util
 		utilgui
 		ver

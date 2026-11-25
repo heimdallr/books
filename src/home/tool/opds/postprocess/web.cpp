@@ -7,6 +7,7 @@
 #include <QTextStream>
 
 #include "fnd/FindPair.h"
+#include "fnd/ISettings.h"
 #include "fnd/ScopedCall.h"
 
 #include "interface/INoSqlRequester.h"
@@ -17,7 +18,6 @@
 #include "interface/logic/IAnnotationController.h"
 #include "interface/logic/ICollectionProvider.h"
 
-#include "settings/ISettings.h"
 #include "util/xml/SaxParser.h"
 #include "util/xml/XmlAttributes.h"
 #include "util/xml/XmlWriter.h"

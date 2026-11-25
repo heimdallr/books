@@ -17,6 +17,7 @@
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
 #include "fnd/ScopedCall.h"
+#include "fnd/UiTimer.h"
 #include "fnd/algorithm.h"
 #include "fnd/linear.h"
 
@@ -34,7 +35,6 @@
 #include "gutil/util.h"
 #include "inpx/InpxConstant.h"
 #include "platform/FileUtil.h"
-#include "settings/UiTimer.h"
 #include "util/ColorUtil.h"
 #include "util/ObjectsConnector.h"
 #include "util/language.h"

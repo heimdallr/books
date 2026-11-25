@@ -7,8 +7,9 @@
 #include <QLocale>
 #include <QTranslator>
 
+#include "fnd/ISettings.h"
+
 #include "constants/SettingsConstant.h"
-#include "settings/ISettings.h"
 
 #include "log.h"
 

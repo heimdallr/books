@@ -2,6 +2,7 @@
 
 #include <functional>
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
@@ -16,7 +17,6 @@
 #include "interface/logic/ITreeViewController.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "settings/ISettings.h"
 #include "util/bookhash/flihash.h"
 
 class QAbstractItemModel;

@@ -10,6 +10,8 @@
 #include <QTimer>
 #include <QUuid>
 
+#include "fnd/ISettings.h"
+
 #include "database/interface/ICommand.h"
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
@@ -18,7 +20,6 @@
 
 #include "data/DataItem.h"
 #include "platform/StrUtil.h"
-#include "settings/ISettings.h"
 #include "util/Fb2InpxParser.h"
 #include "util/FunctorExecutionForwarder.h"
 #include "util/IExecutor.h"

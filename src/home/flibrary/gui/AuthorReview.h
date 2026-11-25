@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
@@ -7,7 +8,6 @@
 #include "interface/logic/IModelProvider.h"
 #include "interface/ui/IUiFactory.h"
 
-#include "settings/ISettings.h"
 #include "utilgui/ScrollBarController.h"
 
 #include "StackedPage.h"

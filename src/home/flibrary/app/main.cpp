@@ -7,6 +7,7 @@
 #include <QTranslator>
 
 #include "fnd/FindPair.h"
+#include "fnd/ISettings.h"
 
 #include "interface/constants/ProductConstant.h"
 #include "interface/localization.h"
@@ -29,7 +30,6 @@
 #include "logging/init.h"
 #include "logic/model/LogModel.h"
 #include "platform/PlatformUtil.h"
-#include "settings/ISettings.h"
 #include "util/xml/Initializer.h"
 #include "version/AppVersion.h"
 

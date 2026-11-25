@@ -4,7 +4,7 @@
 
 #include <ranges>
 
-#include "settings/ISettings.h"
+#include "fnd/ISettings.h"
 
 using namespace HomeCompa::Flibrary;
 using namespace HomeCompa;

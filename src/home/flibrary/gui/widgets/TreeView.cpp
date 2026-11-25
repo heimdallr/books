@@ -3,11 +3,11 @@
 #include <QHeaderView>
 #include <QPainter>
 
+#include "fnd/ISettings.h"
 #include "fnd/ScopedCall.h"
 
 #include "interface/constants/ModelRole.h"
 
-#include "settings/ISettings.h"
 #include "util/ColorUtil.h"
 
 using namespace HomeCompa::Flibrary;

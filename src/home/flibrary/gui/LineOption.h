@@ -1,11 +1,10 @@
 #pragma once
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
 #include "interface/ui/ILineOption.h"
-
-#include "settings/ISettings.h"
 
 class QLineEdit;
 class QString;

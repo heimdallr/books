@@ -12,6 +12,7 @@
 #include "fnd/EnumBitmask.h"
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
+#include "fnd/UiTimer.h"
 #include "fnd/observable.h"
 
 #include "database/interface/IDatabase.h"
@@ -26,7 +27,6 @@
 
 #include "data/DataItem.h"
 #include "database/DatabaseUtil.h"
-#include "settings/UiTimer.h"
 #include "util/StrUtil.h"
 #include "util/language.h"
 

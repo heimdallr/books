@@ -11,6 +11,7 @@
 #include <QJsonObject>
 
 #include "fnd/FindPair.h"
+#include "fnd/ISettings.h"
 #include "fnd/IsOneOf.h"
 
 #include "database/interface/IDatabase.h"
@@ -25,7 +26,6 @@
 #include "interface/logic/IFilterProvider.h"
 
 #include "database/DatabaseUtil.h"
-#include "settings/ISettings.h"
 #include "util/SortString.h"
 #include "util/StrUtil.h"
 

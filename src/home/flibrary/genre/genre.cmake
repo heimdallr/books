@@ -8,7 +8,7 @@ AddTarget(genre	shared_lib
 		Qt${QT_MAJOR_VERSION}::Core
 	LINK_TARGETS
 		flint
-		settings
+		fnd
 		util
 )
 

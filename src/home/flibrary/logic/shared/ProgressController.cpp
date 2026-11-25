@@ -4,11 +4,11 @@
 
 #include <QTimer>
 
+#include "fnd/UiTimer.h"
 #include "fnd/observable.h"
 
 #include "interface/logic/IProgressController.h"
 
-#include "settings/UiTimer.h"
 #include "util/FunctorExecutionForwarder.h"
 
 #include "log.h"

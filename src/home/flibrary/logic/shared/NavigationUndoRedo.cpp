@@ -2,10 +2,9 @@
 
 #include <QTimer>
 
+#include "fnd/UiTimer.h"
 #include "fnd/algorithm.h"
 #include "fnd/observable.h"
-
-#include "settings/UiTimer.h"
 
 using namespace HomeCompa::Flibrary;
 

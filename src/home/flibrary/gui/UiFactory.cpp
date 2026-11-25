@@ -18,6 +18,7 @@
 
 #include "fnd/FindPair.h"
 #include "fnd/IsOneOf.h"
+#include "fnd/Settings.h"
 
 #include "database/interface/IDatabase.h"
 #include "database/interface/ITransaction.h"
@@ -45,7 +46,6 @@
 #include "filters/FastFilterWidget.h"
 #include "filters/RangeFilterWidget.h"
 #include "logic/data/DataItem.h"
-#include "settings/Settings.h"
 #include "util/ImageUtil.h"
 #include "utilgui/CheckableMenu.h"
 #include "utilgui/GeometryRestorable.h"

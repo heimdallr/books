@@ -2,6 +2,8 @@
 
 #include <QCoreApplication>
 
+#include "fnd/Settings.h"
+
 #include "interface/constants/SettingsConstant.h"
 
 #include "Annotation/AnnotationController.h"
@@ -31,7 +33,6 @@
 #include "model/TreeModel.h"
 #include "script/CommandExecutor.h"
 #include "script/ScriptController.h"
-#include "settings/Settings.h"
 #include "shared/BookInteractor.h"
 #include "shared/CommandLine.h"
 #include "shared/FilterController.h"

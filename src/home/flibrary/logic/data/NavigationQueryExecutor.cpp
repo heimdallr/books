@@ -9,6 +9,7 @@
 #include <QDir>
 
 #include "fnd/FindPair.h"
+#include "fnd/ISettings.h"
 #include "fnd/StrUtil.h"
 
 #include "database/interface/IDatabase.h"
@@ -21,7 +22,6 @@
 
 #include "database/DatabaseUtil.h"
 #include "genre/Genre.h"
-#include "settings/ISettings.h"
 #include "util/SortString.h"
 #include "util/StrUtil.h"
 #include "util/language.h"

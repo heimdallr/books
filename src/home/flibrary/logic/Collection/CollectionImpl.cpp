@@ -3,9 +3,10 @@
 
 #include <QFile>
 
+#include "fnd/ISettings.h"
+
 #include "interface/constants/SettingsConstant.h"
 
-#include "settings/ISettings.h"
 #include "util/hash.h"
 
 #include "log.h"

@@ -7,6 +7,7 @@
 #include <plog/Appenders/ConsoleAppender.h>
 #include <plog/Formatters/TxtFormatter.h>
 
+#include "fnd/ISettings.h"
 #include "fnd/ScopedCall.h"
 
 #include "interface/IServer.h"
@@ -23,7 +24,6 @@
 #include "logging/init.h"
 #include "logic/Collection/CollectionImpl.h"
 #include "platform/NativeEventFilter.h"
-#include "settings/ISettings.h"
 #include "util/SortString.h"
 #include "util/xml/Initializer.h"
 

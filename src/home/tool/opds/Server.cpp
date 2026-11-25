@@ -8,6 +8,7 @@
 #include <QtConcurrent>
 
 #include "fnd/FindPair.h"
+#include "fnd/ISettings.h"
 #include "fnd/ScopedCall.h"
 #include "fnd/StrUtil.h"
 
@@ -17,7 +18,6 @@
 #include "interface/constants/SettingsConstant.h"
 #include "interface/localization.h"
 
-#include "settings/ISettings.h"
 #include "util/hash.h"
 
 #include "Constant.h"

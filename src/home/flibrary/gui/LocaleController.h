@@ -2,12 +2,11 @@
 
 #include <QObject>
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
 #include "interface/ui/IUiFactory.h"
-
-#include "settings/ISettings.h"
 
 class QMenu;
 

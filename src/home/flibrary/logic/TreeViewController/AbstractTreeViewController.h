@@ -1,13 +1,12 @@
 #pragma once
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 #include "fnd/observable.h"
 
 #include "interface/logic/IModelProvider.h"
 #include "interface/logic/ITreeViewController.h"
-
-#include "settings/ISettings.h"
 
 class QString;
 

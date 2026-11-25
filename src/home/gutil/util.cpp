@@ -6,9 +6,9 @@
 #include <QMenu>
 #include <QTreeView>
 
-#include "interface/localization.h"
+#include "fnd/ISettings.h"
 
-#include "settings/ISettings.h"
+#include "interface/localization.h"
 
 namespace HomeCompa::Util {
 

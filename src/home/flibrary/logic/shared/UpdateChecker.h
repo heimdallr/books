@@ -2,6 +2,7 @@
 
 #include <memory>
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 
 #include "interface/logic/ILogicFactory.h"
@@ -9,7 +10,6 @@
 #include "interface/logic/IUpdateChecker.h"
 
 #include "gutil/interface/IUiFactory.h"
-#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary {
 

@@ -6,13 +6,13 @@
 #include <QJsonObject>
 #include <QPushButton>
 
+#include "fnd/ISettings.h"
 #include "fnd/algorithm.h"
 
 #include "interface/constants/ModelRole.h"
 #include "interface/constants/SettingsConstant.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
-#include "settings/ISettings.h"
 
 #include "log.h"
 

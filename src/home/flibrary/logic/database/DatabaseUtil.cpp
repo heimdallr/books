@@ -2,6 +2,8 @@
 
 #include <format>
 
+#include "fnd/ISettings.h"
+
 #include "database/interface/IDatabase.h"
 #include "database/interface/IQuery.h"
 #include "database/interface/ITemporaryTable.h"
@@ -13,7 +15,6 @@
 
 #include "data/DataItem.h"
 #include "inpx/InpxConstant.h"
-#include "settings/ISettings.h"
 #include "util/GenresLocalization.h"
 #include "util/language.h"
 

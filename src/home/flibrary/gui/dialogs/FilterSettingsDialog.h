@@ -2,6 +2,7 @@
 
 #include <QDialog>
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
@@ -10,7 +11,6 @@
 #include "interface/logic/IModelProvider.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
-#include "settings/ISettings.h"
 #include "utilgui/ItemViewToolTipper.h"
 #include "utilgui/ScrollBarController.h"
 

@@ -2,13 +2,13 @@
 
 #include <QMainWindow>
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
 #include "interface/logic/IDatabaseProvider.h"
 
 #include "gutil/Dialog.h"
-#include "settings/ISettings.h"
 
 namespace HomeCompa::Flibrary {
 

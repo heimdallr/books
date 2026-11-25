@@ -2,6 +2,7 @@
 
 #include <QMainWindow>
 
+#include "fnd/ISettings.h"
 #include "fnd/NonCopyMovable.h"
 #include "fnd/memory.h"
 
@@ -23,7 +24,6 @@
 #include "interface/ui/IUiFactory.h"
 
 #include "gutil/interface/IParentWidgetProvider.h"
-#include "settings/ISettings.h"
 
 #include "AnnotationWidget.h"
 #include "AuthorAnnotationWidget.h"

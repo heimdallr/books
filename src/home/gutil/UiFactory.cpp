@@ -4,11 +4,11 @@
 #include <QPushButton>
 
 #include "fnd/FindPair.h"
+#include "fnd/ISettings.h"
 
 #include "interface/IParentWidgetProvider.h"
 
 #include "Hypodermic/Hypodermic.h"
-#include "settings/ISettings.h"
 #include "utilgui/GeometryRestorable.h"
 
 #include "Dialog.h"
