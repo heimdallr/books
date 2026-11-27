@@ -2,14 +2,14 @@
 
 #include <unordered_map>
 
-#include "util/StrUtil.h"
+#include "fnd/algorithm.h"
 
 namespace HomeCompa::Inpx {
 
 class Dictionary
 {
-	using DataStorage = std::unordered_map<QString, size_t, Util::WStringHash, Util::WStringEqualTo>;
-	using ViewStorage = std::unordered_map<QStringView, size_t, Util::WStringHash, Util::WStringEqualTo>;
+	using DataStorage = Util::QtStringMap<QString, size_t, Qt::CaseInsensitive>;
+	using ViewStorage = Util::QtStringMap<QStringView, size_t, Qt::CaseInsensitive>;
 
 public:
 	using value_type = std::pair<QStringView, size_t>;

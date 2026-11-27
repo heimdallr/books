@@ -68,7 +68,7 @@ using Links  = std::unordered_map<size_t, std::vector<size_t>>;
 using GetIdFunctor = std::function<size_t(QStringView)>;
 using ParseChecker = std::function<bool(QStringView)>;
 using Splitter     = std::function<std::vector<QString>(QStringView)>;
-using InpxFolders  = std::map<std::pair<QString, QString>, QString, CaseInsensitiveComparer<>>;
+using InpxFolders  = std::map<std::pair<QString, QString>, QString, Comparer<>>;
 using BooksSeries  = std::unordered_map<size_t, std::vector<std::pair<size_t, std::optional<int>>>>;
 using Reviews      = std::map<QString, std::set<QString>>;
 using Annotations  = std::vector<std::pair<size_t, QString>>;
@@ -1979,7 +1979,7 @@ where b.FileName = ? and b.Ext = ?)");
 		if (const auto it = m_foldersContent.find(folder); it != m_foldersContent.end())
 			return it->second;
 
-		const auto it = m_foldersContent.try_emplace(folder.toString(), std::unordered_map<QString, std::pair<size_t, int>, WStringHash, WStringEqualTo> {}).first;
+		const auto it = m_foldersContent.try_emplace(folder.toString(), Util::QtStringMap<QString, std::pair<size_t, int>, Qt::CaseInsensitive> {}).first;
 
 		auto& fileList = it->second;
 
@@ -2249,17 +2249,17 @@ private:
 	std::shared_ptr<DB::IDatabaseWritable> m_db;
 	std::unique_ptr<IExecutor>             m_executor;
 
-	std::list<QString>                                                                                                                         m_rawData;
-	Data                                                                                                                                       m_data;
-	Dictionary                                                                                                                                 m_genresIndex;
-	std::atomic_uint64_t                                                                                                                       m_parsedN { 0 };
-	std::vector<QString>                                                                                                                       m_unknownGenres;
-	size_t                                                                                                                                     m_unknownGenreId { 0 };
-	std::unordered_set<size_t>                                                                                                                 m_newUpdates;
-	std::unordered_map<std::pair<size_t, QString>, size_t, PairHash<size_t, QString>>                                                          m_uniqueFiles;
-	std::unordered_map<QString, std::unordered_map<QString, std::pair<size_t, int>, WStringHash, WStringEqualTo>, WStringHash, WStringEqualTo> m_foldersContent;
-	bool                                                                                                                                       m_oldDataUpdateFound { false };
-	QStringList                                                                                                                                m_badFolders;
+	std::list<QString>                                                                                                       m_rawData;
+	Data                                                                                                                     m_data;
+	Dictionary                                                                                                               m_genresIndex;
+	std::atomic_uint64_t                                                                                                     m_parsedN { 0 };
+	std::vector<QString>                                                                                                     m_unknownGenres;
+	size_t                                                                                                                   m_unknownGenreId { 0 };
+	std::unordered_set<size_t>                                                                                               m_newUpdates;
+	std::unordered_map<std::pair<size_t, QString>, size_t, PairHash<size_t, QString>>                                        m_uniqueFiles;
+	Util::QtStringMap<QString, Util::QtStringMap<QString, std::pair<size_t, int>, Qt::CaseInsensitive>, Qt::CaseInsensitive> m_foldersContent;
+	bool                                                                                                                     m_oldDataUpdateFound { false };
+	QStringList                                                                                                              m_badFolders;
 
 	BookBufMapping m_bookBufMapping;
 
