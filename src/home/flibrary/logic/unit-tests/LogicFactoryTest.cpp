@@ -312,15 +312,15 @@ TEST_F(LogicFactoryTest, CreateFillTemplateConverter)
 	EXPECT_TRUE(!!logicFactory->CreateFillTemplateConverter(true));
 }
 
-struct LogicFactoryTestCreateFillTemplateConverterTest
+struct LogicFactoryCreateFillTemplateConverter
     : LogicFactoryTest
     , testing::WithParamInterface<QString>
 {
 };
 
-INSTANTIATE_TEST_SUITE_P(LogicFactoryTestCreateFillTemplateConverterTests, LogicFactoryTestCreateFillTemplateConverterTest, testing::Values("None", "FileNameOnly", "AllExceptUserPath", "All"));
+INSTANTIATE_TEST_SUITE_P(LogicFactoryTestCreateFillTemplateConverterTests, LogicFactoryCreateFillTemplateConverter, testing::Values("None", "FileNameOnly", "AllExceptUserPath", "All"));
 
-TEST_P(LogicFactoryTestCreateFillTemplateConverterTest, CreateFillTemplateConverter)
+TEST_P(LogicFactoryCreateFillTemplateConverter, Test)
 {
 	EXPECT_CALL(*m_Settings, Get(testing::_, testing::Matcher<const QVariant&>(testing::_))).WillOnce(testing::Return(GetParam()));
 
