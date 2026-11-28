@@ -833,7 +833,8 @@ jobs:
                 --filter "src/ext/foundation/" \
                 --exclude ".*/unit-tests/.*" \
                 --gcov-ignore-parse-errors \
-                --xml-pretty --output coverage.xml
+                --xml-pretty --output coverage.xml \
+                --exclude-unreachable-branches
 
       - name: Upload to Codecov
         uses: codecov/codecov-action@v4
