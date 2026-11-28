@@ -111,10 +111,10 @@ private:
 };
 
 constexpr auto EXPORT_TRANSLITERATE_MODE_KEY = "Preferences/Export/TransliterationMode";
-#define TRANSLITERATE_MODE_ITEMS_X_MACRO                                                                                                                                                                       \
-	TRANSLITERATE_MODE_ITEM(None)                                                                                                                                                                              \
-	TRANSLITERATE_MODE_ITEM(FileNameOnly)                                                                                                                                                                      \
-	TRANSLITERATE_MODE_ITEM(AllExceptUserPath)                                                                                                                                                                 \
+#define TRANSLITERATE_MODE_ITEMS_X_MACRO        \
+	TRANSLITERATE_MODE_ITEM(None)               \
+	TRANSLITERATE_MODE_ITEM(FileNameOnly)       \
+	TRANSLITERATE_MODE_ITEM(AllExceptUserPath)  \
 	TRANSLITERATE_MODE_ITEM(All)
 
 class FilledTemplateConverterNone final : public IFillTemplateConverter
@@ -163,11 +163,6 @@ public:
 	}
 
 private: // IFilledTemplateConverter
-	bool IsValid() const noexcept override
-	{
-		return true;
-	}
-
 	void Fill(DB::IDatabase& db, const QString& outputFileTemplate, Util::ExtractedBook& book, const QString& dstFolder) const override
 	{
 		book.dstFileName = outputFileTemplate;
@@ -190,11 +185,6 @@ public:
 	}
 
 private: // IFilledTemplateConverter
-	bool IsValid() const noexcept override
-	{
-		return true;
-	}
-
 	void Fill(DB::IDatabase& db, const QString& outputFileTemplate, Util::ExtractedBook& book, const QString& dstFolder) const override
 	{
 		static constexpr auto* userDestinationFolder = IScriptController::s_commandMacros[static_cast<size_t>(IScriptController::Macro::UserDestinationFolder)].second;
@@ -216,11 +206,6 @@ public:
 	}
 
 private: // IFilledTemplateConverter
-	bool IsValid() const noexcept override
-	{
-		return true;
-	}
-
 	void Fill(DB::IDatabase& db, const QString& outputFileTemplate, Util::ExtractedBook& book, const QString& dstFolder) const override
 	{
 		book.dstFileName = outputFileTemplate;
@@ -449,7 +434,7 @@ Util::ExtractedBook LogicFactory::GetCurrentExtractedBook() const
 void LogicFactory::FindBook(const NavigationMode navigationMode, const QString& navigationId, const long long bookId) const
 {
 	const auto  settings   = m_impl->container.resolve<ISettings>();
-	const auto& collection = m_impl->container.resolve<ICollectionProvider>()->GetActiveCollection();
+	const auto& collection = m_impl->container.resolve<const ICollectionProvider>()->GetActiveCollection();
 
 	if (bookId > 0)
 		settings->Set(QString(Constant::Settings::RECENT_NAVIGATION_ID_KEY).arg(collection.id, Loc::Books, ""), bookId);

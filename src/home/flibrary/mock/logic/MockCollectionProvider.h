@@ -6,9 +6,19 @@
 
 namespace HomeCompa::Flibrary::Test {
 
+struct CollectionTest final : Collection
+{
+	CollectionTest()
+	{
+		id         = "testId";
+		name       = "testName";
+		m_database = "file:my_shared_mem_db?mode=memory&cache=shared";
+	}
+};
+
 class MockCollectionProvider : public ICollectionProvider
 {
-public:
+public: // ICollectionProvider
 	MOCK_METHOD(bool, IsEmpty, (), (const, noexcept, override));
 	MOCK_METHOD(bool, IsCollectionNameExists, (const QString& name), (const, override));
 	MOCK_METHOD(QString, GetCollectionDatabaseName, (const QString& databaseFileName), (const, override));

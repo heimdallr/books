@@ -1,6 +1,6 @@
 rem @echo off
 
-set QT_MAJOR_VERSION=6
+set QT_MAJOR_VERSION=5
 set PLATFORM=x86_64
 
 if [%BUILD_TYPE%]==[] set BUILD_TYPE=Debug
