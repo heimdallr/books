@@ -286,6 +286,7 @@ LogicFactory::~LogicFactory()
 
 std::shared_ptr<ITreeViewController> LogicFactory::GetTreeViewController(const ItemType type) const
 {
+	assert(static_cast<size_t>(type) < std::size(m_impl->controllers));
 	auto& controller = m_impl->controllers[static_cast<size_t>(type)];
 	if (!controller)
 	{

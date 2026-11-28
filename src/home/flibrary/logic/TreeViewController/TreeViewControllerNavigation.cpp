@@ -1013,8 +1013,6 @@ TreeViewControllerNavigation::TreeViewControllerNavigation(
 
 TreeViewControllerNavigation::~TreeViewControllerNavigation()
 {
-	if (auto modelProvider = m_modelProvider.lock())
-		AbstractTreeViewController::UnregisterObserver(modelProvider.get());
 	PLOGV << "TreeViewControllerNavigation destroyed";
 }
 
